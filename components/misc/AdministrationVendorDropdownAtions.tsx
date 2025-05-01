@@ -1,30 +1,11 @@
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  EditIcon,
-  EyeIcon,
-  Loader2,
-  MoreHorizontal,
-  Trash2,
-  UserIcon,
-} from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, } from "@/components/ui/dropdown-menu";
+import { EditIcon, EyeIcon, Loader2, MoreHorizontal, Trash2, } from "lucide-react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "../ui/button";
 import { useGetAdministrationVendorById } from "@/hooks/administracion/useGetAdministrationVendorById";
 import { useDeleteAdministrationVendor } from "@/actions/administracion/proveedor/actions";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "../ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, } from "../ui/dialog";
 import { Card } from "../ui/card";
 import { Badge } from "../ui/badge";
 import { Avatar, AvatarFallback } from "../ui/avatar";
@@ -38,10 +19,6 @@ const AdministrationVendorDropdownActions = ({ id }: { id: string }) => {
   const { deleteAdministrationVendor } = useDeleteAdministrationVendor();
   const { data: vendorDetails, isLoading } = useGetAdministrationVendorById(id);
   const [openEdit, setOpenEdit] = useState<boolean>(false);
-
-  const handleViewStats = () => {
-    router.push(`/transmandu/administracion/gestion_general/proveedor/${id}`);
-  };
 
   const handleDelete = (id: number | string) => {
     deleteAdministrationVendor.mutate(id, {
@@ -128,6 +105,7 @@ const AdministrationVendorDropdownActions = ({ id }: { id: string }) => {
           onInteractOutside={(e) => {
             e.preventDefault(); // Evita que el diálogo se cierre al hacer clic fuera
           }}
+          aria-describedby={undefined} 
           className="sm:max-w-lg p-0 border-none"
         >
           {isLoading ? (
@@ -255,6 +233,7 @@ const AdministrationVendorDropdownActions = ({ id }: { id: string }) => {
           onInteractOutside={(e) => {
             e.preventDefault(); // Evita que el diálogo se cierre al hacer clic fuera
           }}
+          aria-describedby={undefined} 
         >
           <DialogHeader>
             <DialogTitle>Editar Cliente</DialogTitle>

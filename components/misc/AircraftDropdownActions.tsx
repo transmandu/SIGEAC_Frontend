@@ -1,31 +1,11 @@
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  Banknote,
-  EyeIcon,
-  Loader2,
-  MoreHorizontal,
-  PlaneIcon,
-  Trash2,
-  TrendingUp,
-} from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, } from "@/components/ui/dropdown-menu";
+import { Banknote, EyeIcon, Loader2, MoreHorizontal, PlaneIcon, Trash2, TrendingUp, } from "lucide-react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "../ui/button";
 import { useGetAircraftById } from "@/hooks/administracion/useGetAircraftById";
 import { useDeleteAircraft } from "@/actions/administracion/aeronaves/actions";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "../ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, } from "../ui/dialog";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { EditIcon } from "lucide-react";
@@ -145,6 +125,7 @@ export const AircraftDropdownActions = ({ id }: { id: string }) => {
           onInteractOutside={(e) => {
             e.preventDefault(); // Evita que el diálogo se cierre al hacer clic fuera
           }}
+          aria-describedby={undefined} 
         >
           <DialogHeader className="text-center font-bold">
             Resumen de Aeronave

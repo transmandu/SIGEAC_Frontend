@@ -61,6 +61,7 @@ const CashDropdownActions = ({ id, cash }: { id: string; cash: Cash }) => {
           onInteractOutside={(e) => {
             e.preventDefault(); // Evita que el diálogo se cierre al hacer clic fuera
           }}
+          aria-describedby={undefined} 
         >
           <DialogHeader>
             <DialogTitle className="text-center">

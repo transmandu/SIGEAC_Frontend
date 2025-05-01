@@ -1,36 +1,13 @@
 import { useDeleteFlight } from "@/actions/administracion/vuelos/actions";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, } from "@/components/ui/dropdown-menu";
 import { Flight } from "@/types";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import {
-  ArrowRightIcon,
-  EyeIcon,
-  FileTextIcon,
-  Loader2,
-  MapPinIcon,
-  MoreHorizontal,
-  PlaneIcon,
-  PlaneLanding,
-  Trash2,
-  UserIcon,
-} from "lucide-react";
+import { ArrowRightIcon, EyeIcon, FileTextIcon, Loader2, MapPinIcon, MoreHorizontal, PlaneIcon, PlaneLanding, Trash2, UserIcon, } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Button } from "../ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "../ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, } from "../ui/dialog";
 import { Separator } from "../ui/separator";
 import { Badge } from "../ui/badge";
 import { cn } from "@/lib/utils";
@@ -123,6 +100,7 @@ const FlightDropdownActions = ({ flight }: { flight: Flight }) => {
           onInteractOutside={(e) => {
             e.preventDefault(); // Evita que el diálogo se cierre al hacer clic fuera
           }}
+          aria-describedby={undefined} 
           className="sm:max-w-xl rounded-lg"
         >
           <DialogHeader>

@@ -1,31 +1,11 @@
 import { useDeleteAdministrationArticle } from "@/actions/administracion/articulos/actions";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, } from "@/components/ui/dropdown-menu";
 import { useGetAdministrationArticleById } from "@/hooks/administracion/useGetAdministrationArticleById";
-import {
-  Boxes,
-  EyeIcon,
-  HandCoins,
-  Loader2,
-  MoreHorizontal,
-  PackageIcon,
-  Trash2,
-} from "lucide-react";
+import { Boxes, EyeIcon, HandCoins, Loader2, MoreHorizontal, Trash2, } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Button } from "../ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "../ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,} from "../ui/dialog";
 import { Badge } from "../ui/badge";
 import { SellForm } from "../forms/CreateSellForm";
 
@@ -138,9 +118,12 @@ const AdministrationArticleDropdownActions = ({ id }: { id: string }) => {
           onInteractOutside={(e) => {
             e.preventDefault(); // Evita que el diálogo se cierre al hacer clic fuera
           }}
+          aria-describedby={undefined}  
         >
           <DialogHeader className="text-center font-bold">
-            Resumen del Articulo
+          <DialogTitle className="text-center font-bold"> 
+              Resumen del Artículo
+            </DialogTitle>
           </DialogHeader>
           {isLoading ? (
             <div className="flex justify-center py-4">

@@ -1,22 +1,10 @@
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, } from "@/components/ui/dropdown-menu";
 import { Credit } from "@/types";
-import {
-  HandCoins,
-  MoreHorizontal,
-} from "lucide-react";
+import { HandCoins, MoreHorizontal, } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Button } from "../ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-} from "../ui/dialog";
+import { Dialog, DialogContent, DialogHeader, } from "../ui/dialog";
 import { CreditPaymentForm } from "../forms/CreateCreditPaymentForm";
 
 const CreditDropdownActions = ({ credit }: { credit: Credit }) => {

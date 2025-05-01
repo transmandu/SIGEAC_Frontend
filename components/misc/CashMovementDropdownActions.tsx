@@ -98,14 +98,11 @@ const CashMovementDropdownActions = ({
 
       {/*Dialog para mostar el resumen del movimiento de una caja*/}
       <Dialog open={openCashMovement} onOpenChange={setOpenCashMovement}>
-        <DialogContent
-          className="sm:max-w-md"
-          onInteractOutside={(e) => {
-            e.preventDefault(); // Evita que el diálogo se cierre al hacer clic fuera
-          }}
-        >
-          <DialogHeader className="text-center font-bold">
-            Resumen del Movimiento de la Caja
+        <DialogContent className="sm:max-w-md" onInteractOutside={(e) => e.preventDefault()} aria-describedby={undefined}> 
+          <DialogHeader>
+            <DialogTitle className="text-center font-bold"> 
+              Resumen 
+            </DialogTitle>
           </DialogHeader>
           <CashMovementResume movement={movement} />
           <DialogFooter className="sm:justify-center">

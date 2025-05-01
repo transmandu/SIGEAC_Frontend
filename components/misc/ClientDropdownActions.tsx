@@ -1,32 +1,12 @@
 import { useDeleteClient } from "@/actions/administracion/clientes/actions";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, } from "@/components/ui/dropdown-menu";
 import { useGetClientById } from "@/hooks/administracion/clientes/useGetClientsById";
-import {
-  EditIcon,
-  EyeIcon,
-  Loader2,
-  MoreHorizontal,
-  Plus,
-  Trash2,
-  TrendingUp,
-} from "lucide-react";
+import { EditIcon, EyeIcon, Loader2, MoreHorizontal, Plus, Trash2, TrendingUp, } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { EditClientForm } from "../forms/EditClientForm";
 import { Button } from "../ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "../ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, } from "../ui/dialog";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Badge } from "../ui/badge";
 import { Avatar, AvatarFallback } from "../ui/avatar";
@@ -144,6 +124,7 @@ const ClientDropdownActions = ({ id }: { id: string }) => {
           onInteractOutside={(e) => {
             e.preventDefault(); // Evita que el diálogo se cierre al hacer clic fuera
           }}
+          aria-describedby={undefined} 
           className="sm:max-w-lg"
         >
           {isLoading ? (
