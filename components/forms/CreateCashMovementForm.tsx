@@ -3,27 +3,26 @@
 import { useCreateCashMovement } from "@/actions/administracion/movimientos/actions";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, } from "@/components/ui/form";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Popover, PopoverContent, PopoverTrigger, } from "@/components/ui/popover";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, } from "@/components/ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useGetCash } from "@/hooks/administracion/cajas/useGetCash";
 import { useGetEmployeesByCompany } from "@/hooks/administracion/useGetEmployees";
 import { cn } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
 import { es } from "date-fns/locale/es";
-import { CalendarIcon, Check, ChevronsUpDown } from "lucide-react";
+import { CalendarIcon, Check, ChevronsUpDown, Loader2 } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { useGetBankAccounts } from "@/hooks/ajustes/cuentas/useGetBankAccounts";
-import { Loader2 } from "lucide-react";
 import { useGetVendors } from "@/hooks/ajustes/globales/proveedores/useGetVendors";
 import { useGetClients } from "@/hooks/administracion/clientes/useGetClients";
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList, } from "../ui/command";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "../ui/command";
 import { useGetAccount } from "@/hooks/administracion/useGetAccount";
 import { useEffect } from "react";
-import { useGetCategory } from "@/hooks/administracion/useGetCategory";
+import { useGetCategorysByAccountant } from "@/hooks/administracion/useGetCategorysByAcountant";
 
 const formSchema = z.object({
   responsible_id: z.string({
@@ -62,7 +61,6 @@ const formSchema = z.object({
     }),
   amount: z.string().refine(
     (val) => {
-      // Convertir el valor a número y verificar que sea positivo
       const number = parseFloat(val);
       return !isNaN(number) && number > 0;
     },
@@ -78,7 +76,7 @@ const formSchema = z.object({
     .refine((val) => val !== undefined, {
       message: "Debe seleccionar una opción",
     })
-    .transform((val) => (val === "" ? null : val)), // Transforma "" a null
+    .transform((val) => (val === "" ? null : val)),
 });
 
 interface FormProps {
@@ -86,24 +84,22 @@ interface FormProps {
 }
 
 export function CreateCashMovementForm({ onClose }: FormProps) {
-  const { createCashMovement } = useCreateCashMovement();
-  const {
-    data: employees,
-    mutate,
-    isPending: isEmployeesLoading,
-  } = useGetEmployeesByCompany();
-  const { data: cashes, isLoading: isCashesLoading } = useGetCash();
-  const { data: bankaccounts, isLoading: isBankAccLoading } =
-    useGetBankAccounts();
-  const { data: vendors, isLoading: isVendorLoading } = useGetVendors();
-  const { data: clients, isLoading: isClientLoading } = useGetClients();
-  const { data: accounts, isLoading: isAccountLoading } = useGetAccount();
-  const { data: categories, isLoading: isCategoryLoading } = useGetCategory();
-
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {},
   });
+
+  // Obtener accountant_id para usar en el hook de categorías
+  const accountantId = form.watch("accountant_id");
+
+  const { createCashMovement } = useCreateCashMovement();
+  const { data: employees, mutate, isPending: isEmployeesLoading } = useGetEmployeesByCompany();
+  const { data: cashes, isLoading: isCashesLoading } = useGetCash();
+  const { data: bankaccounts, isLoading: isBankAccLoading } = useGetBankAccounts();
+  const { data: vendors, isLoading: isVendorLoading } = useGetVendors();
+  const { data: clients, isLoading: isClientLoading } = useGetClients();
+  const { data: accounts, isLoading: isAccountLoading } = useGetAccount();
+  const { data: categories, isLoading: isCategoryLoading } = useGetCategorysByAccountant(accountantId || "");
 
   useEffect(() => {
     mutate("transmandu");
@@ -127,7 +123,7 @@ export function CreateCashMovementForm({ onClose }: FormProps) {
   async function onSubmit(values: z.infer<typeof formSchema>) {
     createCashMovement.mutate(values, {
       onSuccess: () => {
-        onClose(); // Cierra el modal solo si la creación fue exitosa
+        onClose();
       },
     });
   }

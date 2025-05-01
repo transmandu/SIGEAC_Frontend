@@ -91,14 +91,10 @@ const formSchema = z
       path: ["payed_amount"],
     }
   )
-  .refine(
-    (data) =>
-      !data.start_date || !data.deadline || data.deadline >= data.start_date,
-    {
-      message: "La fecha límite debe ser posterior a la fecha de inicio",
-      path: ["deadline"],
-    }
-  );
+  .refine(data => data.deadline >= data.start_date, {
+    message: "La fecha límite no puede ser anterior a la fecha de inicio",
+    path: ["deadline"],
+  });
 
 interface FormProps {
   onClose: () => void;
@@ -199,55 +195,60 @@ export function CreateRentingForm({ onClose }: FormProps) {
           <FormField
             control={form.control}
             name="deadline"
-            render={({ field }) => (
-              <FormItem className="flex flex-col gap-2 w-full">
-                <FormLabel>Fecha Límite</FormLabel>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <FormControl>
-                      <Button
-                        variant={"outline"}
-                        className={cn(
-                          "w-[200px] pl-3 text-left font-normal",
-                          !field.value && "text-muted-foreground"
-                        )}
-                      >
-                        {field.value ? (
-                          format(field.value, "PPP", {
-                            locale: es,
-                          })
-                        ) : (
-                          <span>Seleccione </span>
-                        )}
-                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                      </Button>
-                    </FormControl>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={field.value}
-                      onSelect={field.onChange}
-                      disabled={(date) => false} // Permite TODAS las fechas (pasadas y futuras)
-                      initialFocus
-                      fromYear={1980} // Año mínimo que se mostrará
-                      captionLayout="dropdown-buttons" // Selectores de año/mes
-                      components={{
-                        Dropdown: (props) => (
-                          <select
-                            {...props}
-                            className="bg-popover text-popover-foreground"
-                          >
-                            {props.children}
-                          </select>
-                        ),
-                      }}
-                    />
-                  </PopoverContent>
-                </Popover>
-                <FormMessage />
-              </FormItem>
-            )}
+            render={({ field }) => {
+              const startDate = form.watch("start_date");
+              return (
+                <FormItem className="flex flex-col gap-2 w-full">
+                  <FormLabel>Fecha Límite</FormLabel>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <FormControl>
+                        <Button
+                          variant={"outline"}
+                          className={cn(
+                            "w-full pl-3 text-left font-normal",
+                            !field.value && "text-muted-foreground"
+                          )}
+                        >
+                          {field.value ? (
+                            format(field.value, "PPP", { locale: es })
+                          ) : (
+                            <span>Seleccione</span>
+                          )}
+                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                        </Button>
+                      </FormControl>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={field.value}
+                        onSelect={field.onChange}
+                        disabled={(date) => {
+                          if (!startDate) return false;
+                          return date < startDate;
+                        }}
+                        initialFocus
+                        fromYear={2000}
+                        toYear={new Date().getFullYear() + 1} 
+                        captionLayout="dropdown-buttons"
+                        components={{
+                          Dropdown: (props) => (
+                            <select
+                              {...props}
+                              className="bg-popover text-popover-foreground"
+                            >
+                              {props.children}
+                            </select>
+                          ),
+                        }}
+                      />
+                    </PopoverContent>
+                  </Popover>
+                  <FormMessage />
+                </FormItem>
+              );
+            }}
           />
         </div>
         <div className="flex gap-2 items-center justify-center">
