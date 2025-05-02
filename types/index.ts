@@ -1,6 +1,7 @@
 export type Accountant = {
   id: number,
   name: string,
+  category: Category,
 }
 
 export type AdministrationCompany = {

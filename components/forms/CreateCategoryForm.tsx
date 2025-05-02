@@ -6,7 +6,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, } from 
 import { Popover, PopoverContent, PopoverTrigger, } from "@/components/ui/popover";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList, } from "../ui/command";
 import { Input } from "@/components/ui/input";
-import { useGetAccount } from "@/hooks/administracion/useGetAccount";
+import { useGetAccountant } from "@/hooks/administracion/useGetAccountant";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -35,7 +35,7 @@ interface FormProps {
 
 export function CreateCategoryForm({ onClose }: FormProps) {
   const { createCategory } = useCreateCategory();
-  const { data: accounts, isLoading: isAccountLoading } = useGetAccount();
+  const { data: accounts, isLoading: isAccountLoading } = useGetAccountant();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {},

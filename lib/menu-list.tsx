@@ -104,6 +104,13 @@ export function getMenuList(
                       pathname ===
                       "/transmandu/administracion/creditos/credito_arrendamiento",
                   },
+                  {
+                    href: "/transmandu/administracion/creditos/cuentas_por_pagar",
+                    label: "Cuentas por Pagar",
+                    active:
+                      pathname ===
+                      "/transmandu/administracion/creditos/cuentas_por_pagar",
+                  },
                   //  {
                   //    href: "/transmandu/administracion/creditos/credito_venta",
                   //    label: "Ventas",

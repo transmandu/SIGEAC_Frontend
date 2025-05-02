@@ -1,5 +1,6 @@
 import axiosInstance from "@/lib/axios"
-import { useMutation, useQueryClient } from "@tanstack/react-query"
+import { Accountant } from "@/types"
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 
 export const useCreateAccount = () => {
@@ -51,19 +52,41 @@ export const useDeleteAccount = () => {
   }
 }
 
+export const useGetAccount = (id: string | null) => {
+  const accountsQuery = useQuery({
+    queryKey: ["account"],
+    queryFn: async () => {
+      const {data} = await axiosInstance.get(`/transmandu/accountants/${id}`); // Adjust the endpoint as needed
+      return data as Accountant;
+    },
+    enabled: !!id
+  });
+  return {
+    data: accountsQuery.data,
+    loading: accountsQuery.isLoading,
+    error: accountsQuery.isError // Function to call the query
+  };
+};
+
 export const useUpdateAccount = () => {
   const queryAccount = useQueryClient();
   const updateMutation = useMutation({
-    mutationFn: async ({ id, data }: { id: string; data: any }) => {
-      await axiosInstance.put(`/transmandu/accountants/${id}`, data);
+    mutationFn: async (values: {
+      id: string
+      name: string,
+      category?: string }) => {
+      await axiosInstance.patch(`/transmandu/accountants/${values.id}`, {
+        name: values.name,
+        category: values.category ?? null,
+      });
     },
     onSuccess: () => {
       queryAccount.invalidateQueries({ queryKey: ['account'] });
-      toast("¡Actualizado!", {
+      toast.success("¡Actualizado!", {
         description: "¡La cuenta se ha actualizado correctamente!",
       });
     },
-    onError: (error) => {
+    onError: (error: Error) => {
       toast.error("Oops!", {
         description: `Hubo un error al actualizar la cuenta: ${error}`,
       });

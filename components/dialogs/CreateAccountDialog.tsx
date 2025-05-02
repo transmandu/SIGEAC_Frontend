@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, } from "@/components/ui/dialog";
 import { useState } from "react";
-import { CreateAccountForm } from "../forms/CreateAccountForm";
+import AccountForm from "../forms/CreateAccountForm";
 
 export function CreateAccountantDialog() {
   const [open, setOpen] = useState(false);
@@ -28,7 +28,7 @@ export function CreateAccountantDialog() {
           <DialogTitle>Crear Cuenta</DialogTitle>
           <DialogDescription>Cree una nueva cuenta.</DialogDescription>
         </DialogHeader>
-        <CreateAccountForm onClose={() => setOpen(false)} />
+        <AccountForm onClose={() => setOpen(false)} />
       </DialogContent>
     </Dialog>
   );

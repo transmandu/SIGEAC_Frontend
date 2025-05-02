@@ -7,7 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow,} from "@/components/ui/table";
 import { ListRestart } from "lucide-react";
 import { useState } from "react";
-import { CreditFlightDialog } from "@/components/dialogs/CreateCreditFlightDialog";
+import { CreditDialog } from "@/components/dialogs/CreateCreditDialog";
+
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
@@ -39,7 +40,7 @@ export function DataTable<TData, TValue>({
     <div>
       <div className="flex items-center py-4">
         <div className="flex gap-x-2 items-center">
-          <CreditFlightDialog/>
+          <CreditDialog/>
           {isFiltered && (
             <Button
               variant="ghost"

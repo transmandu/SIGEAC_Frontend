@@ -1,13 +1,15 @@
-import axios from '@/lib/axios';
+"use client"
+
+import axiosInstance from '@/lib/axios';
 import { Accountant } from '@/types';
 import { useQuery } from '@tanstack/react-query';
 
 const fetchAccount = async (): Promise<Accountant[]> => {
-  const {data} = await axios.get(`/transmandu/accountants`);
+  const {data} = await axiosInstance.get(`/transmandu/accountants`);
   return data;
 };
 
-export const useGetAccount = () => {
+export const useGetAccountant = () => {
   return useQuery<Accountant[]>({
     queryKey: ["account"],
     queryFn: fetchAccount,
