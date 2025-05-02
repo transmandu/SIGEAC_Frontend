@@ -108,7 +108,7 @@ const ShowVoluntaryReport = () => {
           <div className="w-full max-w-2xl space-y-4">
             <div className="flex justify-between items-center bg-gray-100 p-4 rounded-lg">
               <p className="text-lg font-medium text-gray-700">
-                <span className="font-semibold">Número del Reporte:</span>{" "}
+                <span className="font-semibold">Número del Reporte:</span> RVP-
                 {voluntaryReport.report_number}
               </p>
 
@@ -151,7 +151,7 @@ const ShowVoluntaryReport = () => {
                 {voluntaryReport.danger_area}
               </p>
               <p className="text-lg font-medium text-gray-700">
-                <span className="font-semibold">Departamento:</span>{" "}
+                <span className="font-semibold">Base:</span>{" "}
                 {voluntaryReport.danger_location}
               </p>
               <p className="text-lg font-medium text-gray-700">
@@ -207,30 +207,55 @@ const ShowVoluntaryReport = () => {
           </div>
         )}
 
-        <CardContent className="flex flex-col gap-8">
-          {voluntaryReport?.image && (
-            <div className="flex flex-col items-center gap-2">
-              <div className="max-w-md overflow-hidden">
-                <img
-                  src={
-                    voluntaryReport.image.startsWith("data:image")
-                      ? voluntaryReport.image
-                      : `data:image/jpeg;base64,${voluntaryReport?.image}`
-                  }
-                  alt="Imagen asociada al reporte"
-                  className="w-[500px] h-[500px]"
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).style.display = "none";
-                    console.log("error");
-                    console.log(voluntaryReport);
-                  }}
-                />
-              </div>
+        <div className="flex justify-center items-center gap-2">
+          <CardContent className="flex flex-col gap-8">
+            {voluntaryReport?.image && (
+              <div className="flex flex-col items-center gap-2">
+                <div className="max-w-md overflow-hidden">
+                  <img
+                    src={
+                      voluntaryReport.image.startsWith("data:image")
+                        ? voluntaryReport.image
+                        : `data:image/jpeg;base64,${voluntaryReport?.image}`
+                    }
+                    alt="Imagen asociada al reporte"
+                    className="w-[300px] h-[300px]"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).style.display = "none";
+                      console.log("error");
+                      console.log(voluntaryReport);
+                    }}
+                  />
+                </div>
 
-              <p className="text-sm text-muted-foreground">Imagen adjunta</p>
-            </div>
-          )}
-        </CardContent>
+                <p className="text-sm text-muted-foreground">Imagen adjunta</p>
+              </div>
+            )}
+          </CardContent>
+
+          <CardContent className="flex flex-col gap-8">
+            {voluntaryReport?.document && (
+              <div className="flex flex-col items-center gap-2">
+                <iframe
+                  src={
+                    voluntaryReport.document.startsWith("data:application/pdf")
+                      ? voluntaryReport.document
+                      : `data:application/pdf;base64,${voluntaryReport.document}`
+                  }
+                  width="100%"
+                  height="80%"
+                  className="border rounded-md"
+                  title="Documento PDF"
+                />
+                <p className="text-sm text-muted-foreground">
+                  Documento adjunto
+                </p>
+              </div>
+            )}
+          </CardContent>
+        </div>
+
+        <Button className="">Imagen</Button>
 
         {isError && (
           <p className="text-sm text-red-500 mt-4">
