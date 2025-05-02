@@ -27,6 +27,7 @@ export type GetVoluntaryReport = {
   reporter_phone?: string;
   reporter_email?: string;
   image?: string;
+  document?: string;
 };
 
 export const useGetVoluntaryReportById = (id: string | number) => {

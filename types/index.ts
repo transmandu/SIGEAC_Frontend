@@ -566,7 +566,8 @@ export type VoluntaryReport = {
   reporter_last_name?: string;
   reporter_phone?: string;
   reporter_email?: string;
-  image?:File| string,
+  image?:File | string,
+  document?: File | string;
 };
 
 export type DangerIdentification = {
