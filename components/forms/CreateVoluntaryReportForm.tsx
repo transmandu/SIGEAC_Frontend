@@ -112,6 +112,16 @@ const FormSchema = z.object({
       "Solo JPEG/PNG"
     )
     .optional(),
+
+  document: z
+    .instanceof(File)
+    .refine((file) => file.size <= 5 * 1024 * 1024, "Máximo 5MB")
+    .refine(
+      (file) => file.type === "application/pdf",
+      "Solo se permiten archivos PDF"
+    )
+    .optional(),
+
   // Otros campos del esquema...
 });
 
@@ -152,7 +162,7 @@ export function CreateVoluntaryReportForm({
     resolver: zodResolver(FormSchema),
     defaultValues: {
       report_number: initialData?.report_number || "",
-      danger_area: initialData?.danger_area || "",
+ger_area: initialData?.danger_area || "",
       danger_location: initialData?.danger_location || "",
       description: initialData?.description || "",
       possible_consequences: initialData?.possible_consequences || "",
@@ -517,6 +527,7 @@ export function CreateVoluntaryReportForm({
           </div>
         )}
 
+        <div className="flex justify-center items-center gap-2">
         <FormField
           control={form.control}
           name="image"
@@ -543,6 +554,35 @@ export function CreateVoluntaryReportForm({
             </FormItem>
           )}
         />
+
+        <FormField
+          control={form.control}
+          name="document"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Documento PDF</FormLabel>
+              <div className="flex items-center gap-4">
+                {field.value && (
+                  <div>
+                    <p className="text-sm text-gray-500">
+                      Archivo seleccionado:
+                    </p>
+                    <p className="font-semibold text-sm">{field.value.name}</p>
+                  </div>
+                )}
+                <FormControl>
+                  <Input
+                    type="file"
+                    accept="application/pdf"
+                    onChange={(e) => field.onChange(e.target.files?.[0])}
+                  />
+                </FormControl>
+              </div>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        </div>
 
         <div className="flex justify-between items-center gap-x-4">
           <Separator className="flex-1" />
