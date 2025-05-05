@@ -3,20 +3,9 @@
 import { useCreateAircraft } from "@/actions/administracion/aeronaves/actions";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+import { Popover, PopoverContent, PopoverTrigger, } from "@/components/ui/popover";
 import { useGetLocationsByCompanies } from "@/hooks/useGetLocationsByCompanies";
 import { cn } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -27,13 +16,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Separator } from "../ui/separator";
 import { Textarea } from "../ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, } from "@/components/ui/select";
 
 const FormSchema = z.object({
   fabricant: z
@@ -65,7 +48,7 @@ const FormSchema = z.object({
     .min(2, {
       message: "El serial debe tener al menos 2 números.",
     })
-    .max(30, {
+    .max(8, {
       message: "El serial tiene un máximo 8 números.",
     }),
   acronym: z

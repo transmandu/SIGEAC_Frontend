@@ -352,7 +352,7 @@ export function FlightForm({ onClose }: FormProps) {
             control={form.control}
             name="aircraft_id"
             render={({ field }) => (
-              <FormItem className="w-full">
+              <FormItem className="flex flex-col space-y-3">
                 <FormLabel>Aeronave</FormLabel>
                 <Select
                   disabled={isAircraftLoading}
@@ -366,14 +366,18 @@ export function FlightForm({ onClose }: FormProps) {
                   </FormControl>
                   <SelectContent>
                     {aircrafts &&
-                      aircrafts.map((aircraft) => (
-                        <SelectItem
-                          key={aircraft.id}
-                          value={aircraft.id.toString()}
-                        >
-                          {aircraft.brand} - {aircraft.acronym}
-                        </SelectItem>
-                      ))}
+                      aircrafts
+                        .filter(
+                          (aircraft) => aircraft.status === "EN POSESION"
+                        )
+                        .map((aircraft) => (
+                          <SelectItem
+                            key={aircraft.id}
+                            value={aircraft.id.toString()}
+                          >
+                            {aircraft.brand} - {aircraft.acronym}
+                          </SelectItem>
+                        ))}
                   </SelectContent>
                 </Select>
                 <FormMessage />

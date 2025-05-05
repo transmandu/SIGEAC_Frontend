@@ -6,7 +6,7 @@ export const useCreateCategory = () => {
     const queryCategory = useQueryClient()
     const createMutation = useMutation({
         mutationFn: async (data: any) => {
-            await axiosInstance.post('/transmandu/accountants-categorys', data)
+            await axiosInstance.post('/transmandu/accountants-categories', data)
           },
         onSuccess: () => {
             queryCategory.invalidateQueries({queryKey: ['category']})
@@ -30,7 +30,7 @@ export const useDeleteCategory = () => {
   const queryCategory = useQueryClient()
   const deleteMutation = useMutation({
       mutationFn: async (id: number | string) => {
-          await axiosInstance.delete(`/transmandu/accountants-categorys/${id}`)
+          await axiosInstance.delete(`/transmandu/accountants-categories/${id}`)
         },
       onSuccess: () => {
 
@@ -55,7 +55,7 @@ export const useUpdateCategory = () => {
   const queryCategory = useQueryClient();
   const updateMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: any }) => {
-      await axiosInstance.put(`/transmandu/accountants-categorys/${id}`, data);
+      await axiosInstance.put(`/transmandu/accountants-categories/${id}`, data);
     },
     onSuccess: () => {
       queryCategory.invalidateQueries({ queryKey: ['category'] });

@@ -22,7 +22,7 @@ import { useGetClients } from "@/hooks/administracion/clientes/useGetClients";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList, } from "../ui/command";
 import { useGetAccountant } from "@/hooks/administracion/useGetAccountant";
 import { useEffect } from "react";
-import { useGetCategorysByAccountant } from "@/hooks/administracion/useGetCategorysByAcountant";
+import { useGetCategoriesByAccountant } from "@/hooks/administracion/useGetCategoriesByAcountant";
 
 const formSchema = z.object({
   responsible_id: z.string({
@@ -105,7 +105,7 @@ export function CreateCashMovementForm({ onClose }: FormProps) {
   const { data: clients, isLoading: isClientLoading } = useGetClients();
   const { data: accounts, isLoading: isAccountLoading } = useGetAccountant();
   const { data: categories, isLoading: isCategoryLoading } =
-    useGetCategorysByAccountant(accountantId || "");
+    useGetCategoriesByAccountant(accountantId || "");
 
   useEffect(() => {
     mutate("transmandu");
