@@ -33,11 +33,6 @@ const CreditDropdownActions = ({ credit }: { credit: Credit }) => {
               <HandCoins className="size-5 text-green-500" />
             </DropdownMenuItem>
           )}
-          <DropdownMenuItem
-            onClick={() => {
-              router.push(`/administracion/credito/${credit}`);
-            }}
-          ></DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
 

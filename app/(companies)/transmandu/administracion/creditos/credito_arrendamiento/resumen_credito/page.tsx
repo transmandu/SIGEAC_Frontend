@@ -257,7 +257,7 @@ const CreditStatisticsRentingPage = () => {
                 <TableBody>
                   {getFilteredCredits().map((credit) => (
                     <TableRow key={credit.id}>
-                      <TableCell className="font-medium">{credit.client.name || "N/A"}</TableCell>
+                      <TableCell className="font-medium">{credit.client.name || "-"}</TableCell>
                       <TableCell>
                         <span
                           className={`px-2 py-1 rounded-full text-xs font-medium ${
