@@ -7,6 +7,13 @@ import { ContentLayout } from "@/components/layout/ContentLayout";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CardContent } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { useGetVoluntaryReportById } from "@/hooks/sms/useGetVoluntaryReportById";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -207,55 +214,125 @@ const ShowVoluntaryReport = () => {
           </div>
         )}
 
-        <div className="flex justify-center items-center gap-2">
-          <CardContent className="flex flex-col gap-8">
-            {voluntaryReport?.image && (
-              <div className="flex flex-col items-center gap-2">
-                <div className="max-w-md overflow-hidden">
+        <div className="flex flex-col gap-4">
+          {/* Diálogo para el documento PDF */}
+          {voluntaryReport?.document && (
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button variant="outline" className="w-full">
+                  Ver Documento Adjunto
+                </Button>
+              </DialogTrigger>
+
+              <DialogContent className="max-w-7xl h-[90vh] flex flex-col">
+                <DialogHeader>
+                  <DialogTitle>Visualizador de Documento</DialogTitle>
+                </DialogHeader>
+
+                <div className="flex-1 overflow-hidden">
+                  <div className="flex flex-col items-center gap-4 w-full h-full">
+                    <div className="w-full flex justify-end">
+                      <a
+                        href={
+                          voluntaryReport.document.startsWith(
+                            "data:application/pdf"
+                          )
+                            ? voluntaryReport.document
+                            : `data:application/pdf;base64,${voluntaryReport.document}`
+                        }
+                        download="reporte-voluntario.pdf"
+                        className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700"
+                      >
+                        Descargar PDF
+                      </a>
+                    </div>
+
+                    <iframe
+                      src={
+                        voluntaryReport.document.startsWith(
+                          "data:application/pdf"
+                        )
+                          ? voluntaryReport.document
+                          : `data:application/pdf;base64,${voluntaryReport.document}`
+                      }
+                      width="100%"
+                      height="100%"
+                      className="border rounded-md flex-1"
+                      title="Documento PDF"
+                    />
+
+                    <p className="text-sm text-muted-foreground">
+                      Documento adjunto
+                    </p>
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
+          )}
+
+          {/* Diálogo para la imagen */}
+          {voluntaryReport?.image && (
+            <Dialog>
+              <DialogTrigger asChild>
+                <div className="cursor-pointer">
+                  <CardContent className="flex flex-col gap-2 p-0">
+                    <div className="relative group">
+                      <img
+                        src={
+                          voluntaryReport.image.startsWith("data:image")
+                            ? voluntaryReport.image
+                            : `data:image/jpeg;base64,${voluntaryReport.image}`
+                        }
+                        alt="Vista previa de imagen"
+                        className="w-full h-48 object-cover rounded-md border-2 border-gray-300 shadow-sm group-hover:border-blue-400 transition-all"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).style.display = "none";
+                        }}
+                      />
+                      <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                        <span className="bg-black/50 text-white px-3 py-1 rounded-md">
+                          Ver imagen completa
+                        </span>
+                      </div>
+                    </div>
+                  </CardContent>
+                </div>
+              </DialogTrigger>
+
+              <DialogContent className="max-w-4xl max-h-[90vh]">
+                <DialogHeader>
+                  <DialogTitle>Imagen del Reporte</DialogTitle>
+                </DialogHeader>
+
+                <div className="flex justify-center items-center h-full">
                   <img
                     src={
                       voluntaryReport.image.startsWith("data:image")
                         ? voluntaryReport.image
-                        : `data:image/jpeg;base64,${voluntaryReport?.image}`
+                        : `data:image/jpeg;base64,${voluntaryReport.image}`
                     }
-                    alt="Imagen asociada al reporte"
-                    className="w-[300px] h-[300px]"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).style.display = "none";
-                      console.log("error");
-                      console.log(voluntaryReport);
-                    }}
+                    alt="Imagen completa"
+                    className="max-w-full max-h-[70vh] object-contain border-4 border-gray-100 shadow-lg rounded-lg"
                   />
                 </div>
 
-                <p className="text-sm text-muted-foreground">Imagen adjunta</p>
-              </div>
-            )}
-          </CardContent>
-
-          <CardContent className="flex flex-col gap-8">
-            {voluntaryReport?.document && (
-              <div className="flex flex-col items-center gap-2">
-                <iframe
-                  src={
-                    voluntaryReport.document.startsWith("data:application/pdf")
-                      ? voluntaryReport.document
-                      : `data:application/pdf;base64,${voluntaryReport.document}`
-                  }
-                  width="100%"
-                  height="80%"
-                  className="border rounded-md"
-                  title="Documento PDF"
-                />
-                <p className="text-sm text-muted-foreground">
-                  Documento adjunto
-                </p>
-              </div>
-            )}
-          </CardContent>
+                <div className="flex justify-end mt-4">
+                  <a
+                    href={
+                      voluntaryReport.image.startsWith("data:image")
+                        ? voluntaryReport.image
+                        : `data:image/jpeg;base64,${voluntaryReport.image}`
+                    }
+                    download="imagen-reporte.jpg"
+                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700"
+                  >
+                    Descargar Imagen
+                  </a>
+                </div>
+              </DialogContent>
+            </Dialog>
+          )}
         </div>
-
-        <Button className="">Imagen</Button>
 
         {isError && (
           <p className="text-sm text-red-500 mt-4">

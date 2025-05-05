@@ -148,9 +148,10 @@ const VoluntaryReportDropdownActions = ({
                 </>
               )}
             </div>
+
             <div className="flex justify-end mt-4">
               <PDFDownloadLink
-                fileName={`reporte_diario_${format(
+                fileName={`repore_sms${format(
                   new Date(),
                   "dd-MM-yyyy"
                 )}.pdf`}
@@ -159,6 +160,7 @@ const VoluntaryReportDropdownActions = ({
                 <Button>Descargar Reporte</Button>
               </PDFDownloadLink>
             </div>
+            
           </DialogContent>
         </Dialog>
         <Dialog open={openDelete} onOpenChange={setOpenDelete}>
