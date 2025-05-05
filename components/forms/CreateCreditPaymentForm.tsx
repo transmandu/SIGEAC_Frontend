@@ -4,32 +4,15 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Calendar } from "@/components/ui/calendar";
 import { es } from "date-fns/locale/es";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, } from "@/components/ui/form";
+import { Popover, PopoverContent, PopoverTrigger, } from "@/components/ui/popover";
 import { Input } from "@/components/ui/input";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, } from "@/components/ui/select";
 import { useGetBankAccounts } from "@/hooks/ajustes/cuentas/useGetBankAccounts";
 import { Loader2 } from "lucide-react";
 import { Credit } from "@/types";
@@ -45,7 +28,6 @@ export function CreditPaymentForm({ onClose, credit }: FormProps) {
   const { data: accounts, isLoading: isAccLoading } = useGetBankAccounts();
   // Calcular el monto pendiente por pagar
   const pendingAmount = Number(credit.debt) - Number(credit.payed_amount || 0);
-
   const formSchema = z
     .object({
       bank_account_id: z
@@ -120,8 +102,9 @@ export function CreditPaymentForm({ onClose, credit }: FormProps) {
     const formattedValues = {
       ...values,
       id: credit.id,
-      client_id: credit.client.id,
+      client_id: credit.client ? credit.client.id : null,
       pay_amount: payAmount,
+      vendor_id: credit.vendor ? credit.vendor.id : null,
     };
 
     createCreditPayment.mutate(formattedValues, {

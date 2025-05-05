@@ -13,6 +13,7 @@ export const useCreateCreditPayment = (options?: { onSuccess?: () => void }) => 
     onSuccess: () => {
       // Invalidar todas las queries relacionadas
       queryClient.invalidateQueries({ queryKey: ['credit-payment'] });
+      queryClient.invalidateQueries({ queryKey: ['credits'] }); //query de cuentas por pagar 
       queryClient.invalidateQueries({ queryKey: ['credit-flight-payment'] }); //query de credito de vuelos
       queryClient.invalidateQueries({ queryKey: ['credit-rent-payment'] });  //query de credito de renta
       
