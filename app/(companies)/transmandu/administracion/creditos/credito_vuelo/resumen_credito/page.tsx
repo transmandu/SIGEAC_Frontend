@@ -173,7 +173,7 @@ const CreditStatisticsFlightPage = () => {
 
           {/* Gráfico de barras */}
           <div className="w-full h-[400px]">
-            <ResponsiveContainer width="70%" height="100%">
+            <ResponsiveContainer width="100%" height="100%">
               <BarChart
                 data={chartData}
                 margin={{
