@@ -1,27 +1,9 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "../ui/command";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, } from "@/components/ui/form";
+import { Popover, PopoverContent, PopoverTrigger, } from "@/components/ui/popover";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList, } from "../ui/command";
 import { Input } from "@/components/ui/input";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -29,7 +11,7 @@ import { z } from "zod";
 import { Separator } from "../ui/separator";
 import { useUpdateCategory } from "@/actions/administracion/categorias/actions";
 import { useGetCategoryById } from "@/hooks/administracion/useGetCategoryById";
-import { useGetAccount } from "@/hooks/administracion/useGetAccountant";
+import { useGetAccountant } from "@/hooks/administracion/useGetAccountant";
 import { cn } from "@/lib/utils";
 import { Check, ChevronsUpDown, Loader2 } from "lucide-react";
 
@@ -62,7 +44,7 @@ interface EditCategoryFormProps {
 export function EditCategoryForm({ id, onClose }: EditCategoryFormProps) {
   const { data: categoryDetails, isLoading } = useGetCategoryById(id);
   const { updateCategory } = useUpdateCategory();
-  const { data: accounts, isLoading: isAccountLoading } = useGetAccount();
+  const { data: accounts, isLoading: isAccountLoading } = useGetAccountant();
   const form = useForm<FormSchemaType>({
     resolver: zodResolver(formSchema),
     defaultValues: {

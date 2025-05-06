@@ -52,7 +52,7 @@ const AdministrationArticleDropdownActions = ({ id }: { id: string }) => {
                   <span className="text-blue-500">Rentado</span>
                 </DropdownMenuItem>
               ) : (
-                <DropdownMenuItem onClick={() => setOpenSell(true)}>
+                <DropdownMenuItem onClick={() => setOpenSell(true)} >
                   <HandCoins className="size-5 text-green-500" />
                 </DropdownMenuItem>
               )}
@@ -60,7 +60,7 @@ const AdministrationArticleDropdownActions = ({ id }: { id: string }) => {
           )}
           <DropdownMenuItem onClick={() => setOpenDelete(true)}>
             <Trash2 className="size-5 text-red-500" />
-          </DropdownMenuItem>
+          </DropdownMenuItem> 
           <DropdownMenuItem onClick={handleViewDetails}>
             <EyeIcon className="size-5" />
           </DropdownMenuItem>
@@ -226,7 +226,9 @@ const AdministrationArticleDropdownActions = ({ id }: { id: string }) => {
       {/*Dialog para registrar una venta*/}
       {articleDetails && (
         <Dialog open={openSell} onOpenChange={setOpenSell}>
-          <DialogContent>
+          <DialogContent onInteractOutside={(e) => {
+            e.preventDefault(); // Evita que el diálogo se cierre al hacer clic fuera
+          }}>
             <DialogHeader className="text-center font-bold">
               Registrar Venta
             </DialogHeader>
