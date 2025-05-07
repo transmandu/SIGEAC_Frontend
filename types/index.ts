@@ -579,9 +579,7 @@ export type Route = {
   id: number;
   from: string;
   to: string;
-  layovers:{ 
-    name:string
-  }[]
+  layovers: string,
 };
 
 export type Sell ={

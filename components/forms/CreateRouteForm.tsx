@@ -1,5 +1,3 @@
-"use client";
-
 import { useCreateRoute, useGetRoute, useUpdateRoute } from "@/actions/administracion/rutas/actions";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { cn } from "@/lib/utils";
@@ -36,33 +34,36 @@ const getFormSchema = (hasLayovers: boolean) => z.object({
     .max(30, {
       message: "El destino tiene un máximo 30 caracteres.",
     }),
-    layovers: z.array(
-      z.object({
-        name: z.string().min(3, {
-          message: "Cada escala debe tener al menos 3 caracteres.",
-        })
-      })
-    ).superRefine((layovers, ctx) => {
+  layovers: z
+    .string()
+    .superRefine((value, ctx) => {
       if (!hasLayovers) return true;
       
-      if (layovers.length === 0) {
+      if (!value || value.trim() === '') {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           message: "Debe ingresar al menos una escala cuando está marcado el checkbox.",
         });
         return false;
       }
-  
-      layovers.forEach((layover, index) => {
-        if (/^\d+$/.test(layover.name)) {
-          ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            message: `La escala ${index + 1} no puede contener solo números.`,
-            path: [index, 'name']
-          });
-        }
-      });
-    }).optional(),
+
+      const isOnlyNumbers = /^\d+$/.test(value.replace(/,/g, "").trim());
+      if (isOnlyNumbers) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Las escalas no pueden contener solo números.",
+        });
+      }
+
+      const layovers = value.split(",").map((l) => l.trim());
+      if (!layovers.every((l) => l.length >= 3)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Cada escala debe tener al menos 3 caracteres.",
+        });
+      }
+    })
+    .optional(),
 });
 
 interface FormProps {
@@ -106,25 +107,21 @@ const RouteForm = ({ id, onClose, isEditing = false }: FormProps) => {
       setInitialValues(data);
       form.setValue("from", data.from);
       form.setValue("to", data.to);
+      form.setValue("layovers", data.layovers ?? undefined);
       setChecked(!!data.layovers);
       
-      // If there are layovers when editing, initialize the fields
-      if (data.layovers && data.layovers.length > 0) {
+      // Si hay escalas al editar, inicializar los campos
+      if (data.layovers) {
+        const initialLayovers = data.layovers.split(",").map(l => l.trim());
         setScaleFields(
-          data.layovers.map((layover: {name: string}, index: number) => ({
+          initialLayovers.map((layover, index) => ({
             id: Date.now() + index,
-            value: layover.name,
+            value: layover,
           }))
         );
-        // Set the form value as an array of objects
-        form.setValue("layovers", data.layovers);
-      } else {
-        // Initialize with empty array if no layovers
-        form.setValue("layovers", []);
       }
     }
   }, [data, form]);
-  
 
   const onAddInput = () => {
     setScaleFields([...layoversFields, { id: Date.now(), value: "" }]);
@@ -141,13 +138,11 @@ const RouteForm = ({ id, onClose, isEditing = false }: FormProps) => {
       const updatedFields = prevFields.map((field) =>
         field.id === id ? { ...field, value } : field
       );
-      
-      // Convert to the format expected by the form schema
       const layoversValues = updatedFields
-        .map((field) => ({ name: field.value }))
-        .filter(item => item.name.trim() !== "");
-      
-      form.setValue("layovers", layoversValues);
+        .map((field) => field.value)
+        .filter(Boolean);
+      form.setValue("layovers", layoversValues.join(", "));
+
       return updatedFields;
     });
   };
