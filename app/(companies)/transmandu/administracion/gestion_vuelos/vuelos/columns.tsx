@@ -9,6 +9,7 @@ import FlightDropdownActions from "@/components/misc/FlightDropdownActions";
 import { Badge } from "@/components/ui/badge";
 import ClientResumeDialog from "@/components/dialogs/ClientResumeDialog";
 import { formatCurrency } from "@/lib/utils";
+import AircraftResumeDialog from "@/components/dialogs/AircraftResumeDialog";
 
 export const columns: ColumnDef<Flight>[] = [
   {
@@ -66,16 +67,10 @@ export const columns: ColumnDef<Flight>[] = [
   {
     accessorKey: "aircraft.acronym",
     header: ({ column }) => (
-      <DataTableColumnHeader filter column={column} title="Avion" />
+      <DataTableColumnHeader filter column={column} title="Aeronave" />
     ),
-    meta: { title: "Avion" },
-    cell: ({ row }) => (
-      <div className="flex justify-center">
-        <span className="text-muted-foreground italic">
-          {row.original.aircraft ? row.original.aircraft.acronym : "N/A"}
-        </span>
-      </div>
-    ),
+    meta: { title: "Aeronave" },
+    cell: ({ row }) => <AircraftResumeDialog aircraft={row.original.aircraft} /> 
   },
   {
     accessorKey: "type",

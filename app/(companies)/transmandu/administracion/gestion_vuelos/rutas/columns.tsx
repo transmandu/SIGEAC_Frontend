@@ -35,7 +35,7 @@ export const columns: ColumnDef<Route>[] = [
       return (
         <div className="flex justify-center font-bold">
           <span className="text-muted-foreground font-bold">
-            {layovers.map(layover => layover.name).join(", ")}
+            {layovers.map(layover => layover.name).join(" , ")}
           </span>
         </div>
       );
