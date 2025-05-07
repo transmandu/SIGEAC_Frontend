@@ -7,8 +7,12 @@ export const useCreateRoute = () => {
 
   const queryRoute = useQueryClient()
   const createMutation = useMutation({
-    mutationFn: async (data: any) => {
-      await axiosInstance.post('/transmandu/route', data)
+    mutationFn: async (data: {
+      from: string;
+      to: string;
+      layovers?: { name: string }[]; 
+    }) => {
+      await axiosInstance.post('/transmandu/route', data);
     },
     onSuccess: () => {
       queryRoute.invalidateQueries({queryKey: ['routes']})
@@ -53,7 +57,7 @@ export const useUpdateRoute = () => {
       id: string
       from:string,
       to: string,
-      layovers?: string
+      layovers?: { name: string }[]
     }) => {
       await axiosInstance.patch(`/transmandu/route/${values.id}`, {
         from: values.from,
