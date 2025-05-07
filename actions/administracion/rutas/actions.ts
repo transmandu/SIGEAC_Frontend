@@ -32,7 +32,7 @@ export const useGetRoute = (id: string | null) => {
   const routesQuery = useQuery({
     queryKey: ["route"],
     queryFn: async () => {
-      const {data} = await axiosInstance.get(`/transmandu/route/${id}`); // Adjust the endpoint as needed
+      const {data} = await axiosInstance.get(`/transmandu/route/${id}`); 
       return data as Route;
     },
     enabled: !!id
@@ -40,7 +40,7 @@ export const useGetRoute = (id: string | null) => {
   return {
     data: routesQuery.data,
     loading: routesQuery.isLoading,
-    error: routesQuery.isError // Function to call the query
+    error: routesQuery.isError 
   };
 };
 
@@ -62,7 +62,6 @@ export const useUpdateRoute = () => {
       });
     },
     onSuccess: () => {
-      // Invalidate the 'branches' query to refresh the data
       queryClient.invalidateQueries({ queryKey: ["routes"] });
       toast.success("¡Actualizado!", {
         description: "¡La ruta ha sido creada correctamente!",
@@ -76,7 +75,7 @@ export const useUpdateRoute = () => {
   });
 
   return {
-    updateRoute: updateMutation, // Function to call the mutation
+    updateRoute: updateMutation, 
   };
 };
 

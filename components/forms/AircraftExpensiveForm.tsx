@@ -31,7 +31,7 @@ const formSchema = z.object({
   date: z.date({
     required_error: "La fecha es requerida",
   }),
-  sub_category_details: z
+  details: z
     .string()
     .min(2, {
       message:
@@ -269,7 +269,7 @@ export function AircraftExpensiveForm({ id, onClose }: FormProps) {
         <div className="flex gap-2 items-center justify-center">
           <FormField
             control={form.control}
-            name="sub_category_details"
+            name="details"
             render={({ field }) => (
               <FormItem className="w-full">
                 <FormLabel>Detalles</FormLabel>

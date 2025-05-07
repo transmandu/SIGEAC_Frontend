@@ -28,7 +28,7 @@ export const columns: ColumnDef<Route>[] = [
       if (!layovers || layovers.length === 0) {
         return (
           <div className="flex justify-center font-bold">
-            <span className="text-muted-foreground font-bold">N/A</span>
+            <span className="text-muted-foreground font-bold">-</span>
           </div>
         );
       }
