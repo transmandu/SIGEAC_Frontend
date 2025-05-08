@@ -2,47 +2,42 @@
 
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, } from "@/components/ui/form";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Popover, PopoverContent, PopoverTrigger, } from "@/components/ui/popover";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, } from "@/components/ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useGetCash } from "@/hooks/administracion/cajas/useGetCash";
 import { useGetEmployeesByCompany } from "@/hooks/administracion/useGetEmployees";
 import { cn } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
 import { es } from "date-fns/locale/es";
-import { CalendarIcon, Check, ChevronsUpDown } from "lucide-react";
-import { useForm } from "react-hook-form";
+import { CalendarIcon, Check, ChevronsUpDown, PlusCircle, MinusCircle } from "lucide-react";
+import { useForm, useFieldArray } from "react-hook-form";
 import { z } from "zod";
 import { useGetBankAccounts } from "@/hooks/ajustes/cuentas/useGetBankAccounts";
 import { Loader2 } from "lucide-react";
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList, } from "../ui/command";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "../ui/command";
 import { useEffect } from "react";
 import { useCashMovementForAircraft } from "@/actions/administracion/aeronaves/actions";
+import { Label } from "../ui/label";
+import { useGetAccountant } from "@/hooks/administracion/useGetAccountant";
+import { useGetCategoriesByAccountant } from "@/hooks/administracion/useGetCategoriesByAcountant";
+import { useGetVendors } from "@/hooks/ajustes/globales/proveedores/useGetVendors";
 
-const formSchema = z.object({
-  responsible_id: z.string({
-    message: "Debe elegir un responsable.",
+// Esquema para los gastos
+const expenseSchema = z.object({
+  accountant_id: z.string({
+    required_error: "La cuenta es requerida",
   }),
-  cash_id: z.string({
-    message: "Debe elegir una caja.",
+  category_id: z.string({
+    required_error: "La categoría es requerida",
   }),
-  date: z.date({
-    required_error: "La fecha es requerida",
+  detail: z.string().min(2, {
+    message: "El detalle debe tener al menos 2 caracteres.",
   }),
-  details: z
-    .string()
-    .min(2, {
-      message:
-        "El detalle de la sub categoría debe tener al menos 2 caracteres.",
-    })
-    .max(100, {
-      message: "El detalle de la sub categoría tiene un máximo 100 caracteres.",
-    }),
   amount: z.string().refine(
     (val) => {
-      // Convertir el valor a número y verificar que sea positivo
       const number = parseFloat(val);
       return !isNaN(number) && number > 0;
     },
@@ -50,15 +45,50 @@ const formSchema = z.object({
       message: "El monto debe ser mayor a cero.",
     }
   ),
-  bank_account_id: z
-    .union([
-      z.string().min(1, { message: "Debe seleccionar una cuenta válida" }),
-      z.null(),
-    ])
-    .refine((val) => val !== undefined, {
-      message: "Debe seleccionar una opción",
-    })
-    .transform((val) => (val === "" ? null : val)), // Transforma "" a null
+});
+
+// Esquema para los movimientos
+const movementSchema = z.object({
+  cash_id: z.string({
+    required_error: "La caja es requerida",
+  }),
+  bank_account_id: z.union([
+    z.string().min(1, { message: "Debe seleccionar una cuenta válida" }),
+    z.null(),
+  ]).optional(),
+  total_amount: z.string().refine(
+    (val) => {
+      const number = parseFloat(val);
+      return !isNaN(number) && number > 0;
+    },
+    {
+      message: "El monto total debe ser mayor a cero.",
+    }
+  ),
+  reference: z.string().min(2, {
+    message: "La referencia debe tener al menos 2 caracteres.",
+  }).max(10, {
+    message: "La referencia tiene un máximo 10 caracteres.",
+  }),
+  expenses: z.array(expenseSchema).min(1, {
+    message: "Debe agregar al menos un gasto.",
+  }),
+  responsible_id: z.string({
+    message: "Debe elegir un responsable.",
+  }),
+  vendor_id: z.string({
+    required_error: "El beneficiario es requerido",
+  }),
+});
+
+// Esquema principal del formulario
+const formSchema = z.object({
+  date: z.date({
+    required_error: "La fecha es requerida",
+  }),
+  movements: z.array(movementSchema).min(1, {
+    message: "Debe agregar al menos un movimiento.",
+  }),
 });
 
 interface FormProps {
@@ -67,54 +97,97 @@ interface FormProps {
 }
 
 export function AircraftExpensiveForm({ id, onClose }: FormProps) {
-  const { createCashMovementForAircraft } = useCashMovementForAircraft();
-  const {
-    data: employees,
-    mutate,
-    isPending: isEmployeesLoading,
-  } = useGetEmployeesByCompany();
-  const { data: cashes, isLoading: isCashesLoading } = useGetCash();
-  const { data: bankaccounts, isLoading: isBankAccLoading } =
-    useGetBankAccounts();
-
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: {},
+    defaultValues: {
+      movements: [{
+        expenses: [{}]
+      }]
+    },
+  });
+
+  const { createCashMovementForAircraft } = useCashMovementForAircraft();
+  const { data: employees, mutate, isPending: isEmployeesLoading } = useGetEmployeesByCompany();
+  const { data: cashes, isLoading: isCashesLoading } = useGetCash();
+  const { data: bankaccounts, isLoading: isBankAccLoading } = useGetBankAccounts();
+  const { data: accounts, isLoading: isAccountLoading } = useGetAccountant();
+  const { data: vendors, isLoading: isVendorLoading } = useGetVendors();
+
+  // Get accountant_id from form values to fetch categories
+  const accountantId = form.watch("movements.0.expenses.0.accountant_id");
+  const { data: categories, isLoading: isCategoryLoading } = useGetCategoriesByAccountant(accountantId || "");
+
+  const { fields: movementFields, append: appendMovement, remove: removeMovement } = useFieldArray({
+    control: form.control,
+    name: "movements",
   });
 
   useEffect(() => {
     mutate("transmandu");
-    // Observar cambios en la caja seleccionada
-    const subscription = form.watch((value, { name }) => {
-      if (name === "cash_id") {
-        // Encontrar la caja seleccionada
-        const selectedCash = cashes?.find(
-          (cash) => cash.id.toString() === value.cash_id
-        );
-        // Si es de tipo efectivo, resetear el campo de cuenta bancaria
-        if (selectedCash?.type === "EFECTIVO") {
-          form.setValue("bank_account_id", null);
-        }
-      }
-    });
-
-    return () => subscription.unsubscribe();
-  }, [mutate, form, cashes]);
+  }, [mutate]);
 
   async function onSubmit(formData: z.infer<typeof formSchema>) {
-    createCashMovementForAircraft.mutate({ id, formData }, {  
+    interface AircraftExpenseFormData {
+      date: Date;
+      movements: {
+        cash_id: string;
+        bank_account_id?: string | null;
+        total_amount: number;
+        reference: string;
+        responsible_id: string;
+        vendor_id: string;
+        expenses: {
+          accountant_id: string;
+          category_id: string;
+          detail: string;
+          amount: number;
+        }[];
+      }[];
+    }
+    
+    const transformedData = {
+      ...formData,
+      movements: formData.movements.map(movement => ({
+        ...movement,
+        total_amount: parseFloat(movement.total_amount),  
+        expenses: movement.expenses.map(expense => ({
+          ...expense,
+          amount: parseFloat(expense.amount),         
+        })),
+      })),
+    };
+  
+    createCashMovementForAircraft.mutate({ id, formData: transformedData }, {  
       onSuccess: () => {
         onClose();
       },
     });
   }
 
+  const addMovement = () => {
+    appendMovement({
+      cash_id: "",
+      bank_account_id: null,
+      total_amount: "",
+      reference: "",
+      responsible_id: "",
+      vendor_id: "",
+      expenses: [{
+        accountant_id: "",
+        category_id: "",
+        detail: "",
+        amount: ""
+      }]
+    });
+  };
+
+  const removeMovementField = (index: number) => {
+    removeMovement(index);
+  };
+
   return (
     <Form {...form}>
-      <form
-        onSubmit={form.handleSubmit(onSubmit)}
-        className="flex flex-col space-y-3"
-      >
+      <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col space-y-3">
         <div className="flex gap-2 items-center justify-center">
           <FormField
             control={form.control}
@@ -152,9 +225,9 @@ export function AircraftExpensiveForm({ id, onClose }: FormProps) {
                         date > new Date() || date < new Date("1999-07-21")
                       }
                       initialFocus
-                      fromYear={1980} // Año mínimo que se mostrará
-                      toYear={new Date().getFullYear()} // Año máximo (actual)
-                      captionLayout="dropdown-buttons" // Selectores de año/mes
+                      fromYear={1980}
+                      toYear={new Date().getFullYear()}
+                      captionLayout="dropdown-buttons"
                       components={{
                         Dropdown: (props) => (
                           <select
@@ -172,206 +245,372 @@ export function AircraftExpensiveForm({ id, onClose }: FormProps) {
               </FormItem>
             )}
           />
-          <FormField
-            control={form.control}
-            name="cash_id"
-            render={({ field }) => (
-              <FormItem className="w-full">
-                <FormLabel>Caja</FormLabel>
-                <Select
-                  disabled={isCashesLoading}
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Seleccione la caja" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {cashes &&
-                      cashes.map((cash) => (
-                        <SelectItem key={cash.id} value={cash.id.toString()}>
-                          {cash.name}
-                        </SelectItem>
-                      ))}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
         </div>
-        <div className="flex gap-2 items-center justify-center">
-          <FormField
-            control={form.control}
-            name="amount"
-            render={({ field }) => (
-              <FormItem className="w-full">
-                <FormLabel>Monto Final</FormLabel>
-                <FormControl>
-                  <Input placeholder="Ingrese monto" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          {/*Validacion para cuando la caja sea efectivo retorna nulo y cuando la caja sea tipo transferencia mostrara la cuenta de banco*/}
-        {(() => {
-          const selectedCashId = form.watch("cash_id");
-          const selectedCash = cashes?.find(
-            (cash) => cash.id.toString() === selectedCashId
-          );
-          if (selectedCash?.type === "EFECTIVO") {
-            return null;
-          }
-          return (
-            <FormField
-              control={form.control}
-              name="bank_account_id"
-              render={({ field }) => (
-                <FormItem className="w-full">
-                  <FormLabel>Cuenta de Banco</FormLabel>
-                  <Select
-                    disabled={isBankAccLoading}
-                    onValueChange={field.onChange}
-                    defaultValue={field.value === null ? "" : field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue
-                          placeholder={
-                            isBankAccLoading ? (
-                              <Loader2 className="animate-spin" />
-                            ) : (
-                              "Seleccione una cuenta..."
-                            )
-                          }
-                        />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {bankaccounts &&
-                        bankaccounts.map((acc) => (
-                          <SelectItem value={acc.id.toString()} key={acc.id}>
-                            {acc.name} - {acc.bank.name}
-                          </SelectItem>
-                        ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          );
-        })()}
-        </div>
-        <div className="flex gap-2 items-center justify-center">
-          <FormField
-            control={form.control}
-            name="details"
-            render={({ field }) => (
-              <FormItem className="w-full">
-                <FormLabel>Detalles</FormLabel>
-                <FormControl>
-                  <Input placeholder="Ingrese los detalles" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-        <div className="flex gap-4 items-center ">
-          <div className="flex-1 min-w-[200px]">
-            <FormField
-              control={form.control}
-              name="responsible_id"
-              render={({ field }) => (
-                <FormItem className="w-full flex flex-col space-y-3 mt-1.5">
-                  <FormLabel>Responsable</FormLabel>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <FormControl>
-                        <Button
-                          disabled={isEmployeesLoading}
-                          variant="outline"
-                          role="combobox"
-                          className={cn(
-                            "justify-between",
-                            !field.value && "text-muted-foreground"
-                          )}
-                        >
-                          {isEmployeesLoading && (
-                            <Loader2 className="size-4 animate-spin mr-2" />
-                          )}
-                          {field.value ? (
-                            <p>
-                              {
-                                employees?.find(
-                                  (employee) =>
-                                    employee.id.toString() === field.value
-                                )?.first_name
-                              }{" "}
-                              {
-                                employees?.find(
-                                  (employee) =>
-                                    employee.id.toString() === field.value
-                                )?.last_name
-                              }
-                            </p>
-                          ) : (
-                            "Elige al responsable..."
-                          )}
-                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                        </Button>
-                      </FormControl>
-                    </PopoverTrigger>
-                    <PopoverContent className="p-0">
-                      <Command>
-                        <CommandInput placeholder="Busque un responsable..." />
-                        <CommandList>
-                          <CommandEmpty className="text-sm p-2 text-center">
-                            No se ha encontrado ningún empleado.
-                          </CommandEmpty>
-                          <CommandGroup>
-                            {employees?.map((employee) => (
-                              <CommandItem
-                                value={`${employee.first_name} ${employee.last_name}`}
-                                key={employee.id}
-                                onSelect={() => {
-                                  form.setValue(
-                                    "responsible_id",
-                                    employee.id.toString()
-                                  );
-                                }}
-                              >
-                                <Check
-                                  className={cn(
-                                    "mr-2 h-4 w-4",
-                                    `${employee.first_name} ${employee.last_name}` ===
-                                      field.value
-                                      ? "opacity-100"
-                                      : "opacity-0"
-                                  )}
-                                />
-                                {
-                                  <p>
-                                    {employee.first_name} {employee.last_name}
-                                  </p>
-                                }
-                              </CommandItem>
-                            ))}
-                          </CommandGroup>
-                        </CommandList>
-                      </Command>
-                    </PopoverContent>
-                  </Popover>
-                  <FormMessage />
-                </FormItem>
-              )}
+
+        {/* Sección de Movimientos */}
+        <div className="space-y-4">
+          <div className="flex gap-2 items-center p-2">
+            <Label>Movimiento(s)</Label>
+            <PlusCircle
+              className="size-4 cursor-pointer hover:scale-125 transition-all ease-in duration-100"
+              onClick={addMovement}
             />
           </div>
+
+          {movementFields.map((movement, movementIndex) => (
+            <div key={movement.id} className="border p-4 rounded-lg space-y-4">
+              <div className="flex justify-between items-center">
+                <h4 className="font-medium">Movimiento {movementIndex + 1}</h4>
+                {movementFields.length > 1 && (
+                  <MinusCircle
+                    className="size-4 cursor-pointer hover:scale-125 transition-all ease-in duration-100 text-red-500"
+                    onClick={() => removeMovementField(movementIndex)}
+                  />
+                )}
+              </div>
+              <div className="flex gap-2 items-center justify-center">
+                <FormField
+                  control={form.control}
+                  name={`movements.${movementIndex}.cash_id`}
+                  render={({ field }) => (
+                    <FormItem className="w-full">
+                      <FormLabel>Caja</FormLabel>
+                      <Select
+                        disabled={isCashesLoading}
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Seleccione la caja" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {cashes &&
+                            cashes.map((cash) => (
+                              <SelectItem key={cash.id} value={cash.id.toString()}>
+                                {cash.name}
+                              </SelectItem>
+                            ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                {(() => {
+                  const selectedCashId = form.watch(`movements.${movementIndex}.cash_id`);
+                  const selectedCash = cashes?.find(
+                    (cash) => cash.id.toString() === selectedCashId
+                  );
+                  if (selectedCash?.type === "EFECTIVO") {
+                    return null;
+                  }
+                  return (
+                    <FormField
+                      control={form.control}
+                      name={`movements.${movementIndex}.bank_account_id`}
+                      render={({ field }) => (
+                        <FormItem className="w-full">
+                          <FormLabel>Cuenta de Banco</FormLabel>
+                          <Select
+                            disabled={isBankAccLoading}
+                            onValueChange={field.onChange}
+                            defaultValue={field.value === null ? "" : field.value}
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue
+                                  placeholder={
+                                    isBankAccLoading ? (
+                                      <Loader2 className="animate-spin" />
+                                    ) : (
+                                      "Seleccione una cuenta..."
+                                    )
+                                  }
+                                />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {bankaccounts &&
+                                bankaccounts.map((acc) => (
+                                  <SelectItem value={acc.id.toString()} key={acc.id}>
+                                    {acc.name} - {acc.bank.name}
+                                  </SelectItem>
+                                ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  );
+                })()}
+              </div>
+              <div className="flex gap-2 items-center justify-center">
+                <FormField
+                  control={form.control}
+                  name={`movements.${movementIndex}.total_amount`}
+                  render={({ field }) => (
+                    <FormItem className="w-full">
+                      <FormLabel>Monto Total</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Ingrese monto total" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name={`movements.${movementIndex}.reference`}
+                  render={({ field }) => (
+                    <FormItem className="w-full">
+                      <FormLabel>Referencia</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Ingrese referencia" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              <div className="flex gap-2 items-center justify-center">
+                <FormField
+                  control={form.control}
+                  name={`movements.${movementIndex}.responsible_id`}
+                  render={({ field }) => (
+                    <FormItem className="w-full flex flex-col space-y-3 mt-1.5">
+                      <FormLabel>Responsable</FormLabel>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <FormControl>
+                            <Button
+                              disabled={isEmployeesLoading}
+                              variant="outline"
+                              role="combobox"
+                              className={cn(
+                                "justify-between",
+                                !field.value && "text-muted-foreground"
+                              )}
+                            >
+                              {isEmployeesLoading && (
+                                <Loader2 className="size-4 animate-spin mr-2" />
+                              )}
+                              {field.value ? (
+                                <p>
+                                  {
+                                    employees?.find(
+                                      (employee) =>
+                                        employee.id.toString() === field.value
+                                    )?.first_name
+                                  }{" "}
+                                  {
+                                    employees?.find(
+                                      (employee) =>
+                                        employee.id.toString() === field.value
+                                    )?.last_name
+                                  }
+                                </p>
+                              ) : (
+                                "Elige al responsable..."
+                              )}
+                              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                            </Button>
+                          </FormControl>
+                        </PopoverTrigger>
+                      </Popover>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name={`movements.${movementIndex}.vendor_id`}
+                  render={({ field }) => (
+                    <FormItem className="w-full flex flex-col space-y-3">
+                      <FormLabel>Beneficiario</FormLabel>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <FormControl>
+                            <Button
+                              disabled={isVendorLoading}
+                              variant="outline"
+                              role="combobox"
+                              className={cn(
+                                "justify-between",
+                                !field.value && "text-muted-foreground"
+                              )}
+                            >
+                              {isVendorLoading && (
+                                <Loader2 className="size-4 animate-spin mr-2" />
+                              )}
+                              {field.value
+                                ? vendors?.find(
+                                    (vendor) => vendor.id.toString() === field.value
+                                  )?.name
+                                : "Seleccione un beneficiario"}
+                              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                            </Button>
+                          </FormControl>
+                        </PopoverTrigger>
+                      </Popover>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              {/* Sección de Gastos */}
+              <div className="mt-4 space-y-4">
+                <h5 className="font-medium">Gastos</h5>
+                
+                {form.watch(`movements.${movementIndex}.expenses`)?.map((expense, expenseIndex) => {
+                  // Get the current accountant_id for this expense to filter categories
+                  const currentAccountantId = form.watch(`movements.${movementIndex}.expenses.${expenseIndex}.accountant_id`);
+                  
+                  return (
+                    <div key={expenseIndex} className="border p-4 rounded-lg space-y-2">
+                      <div className="flex justify-between items-center">
+                        <h6 className="font-medium">Gasto {expenseIndex + 1}</h6>
+                        {form.watch(`movements.${movementIndex}.expenses`)?.length > 1 && (
+                          <MinusCircle
+                            className="size-4 cursor-pointer hover:scale-125 transition-all ease-in duration-100 text-red-500"
+                            onClick={() => {
+                              const currentExpenses = form.getValues(`movements.${movementIndex}.expenses`);
+                              const newExpenses = currentExpenses.filter((_, i) => i !== expenseIndex);
+                              form.setValue(`movements.${movementIndex}.expenses`, newExpenses);
+                            }}
+                          />
+                        )}
+                      </div>
+
+                      <div className="flex gap-2 items-center justify-center">
+                        <FormField
+                          control={form.control}
+                          name={`movements.${movementIndex}.expenses.${expenseIndex}.accountant_id`}
+                          render={({ field }) => (
+                            <FormItem className="w-full">
+                              <FormLabel>Cuenta</FormLabel>
+                              <Select
+                                onValueChange={(value) => {
+                                  field.onChange(value);
+                                  // Reset category when accountant changes
+                                  form.setValue(`movements.${movementIndex}.expenses.${expenseIndex}.category_id`, "");
+                                }}
+                                value={field.value}
+                              >
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Seleccione una cuenta" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  {accounts?.map((account) => (
+                                    <SelectItem key={account.id} value={account.id.toString()}>
+                                      {account.name}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name={`movements.${movementIndex}.expenses.${expenseIndex}.category_id`}
+                          render={({ field }) => (
+                            <FormItem className="w-full">
+                              <FormLabel>Categoría</FormLabel>
+                              <Select
+                                onValueChange={field.onChange}
+                                value={field.value}
+                                disabled={!currentAccountantId}
+                              >
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder={
+                                      !currentAccountantId 
+                                        ? "Seleccione cuenta primero" 
+                                        : "Seleccione categoría"
+                                    } />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  {categories
+                                    ?.filter(category => category.accountant.toString() === currentAccountantId)
+                                    ?.map((category) => (
+                                      <SelectItem key={category.id} value={category.id.toString()}>
+                                        {category.name}
+                                      </SelectItem>
+                                    ))}
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                      <div className="flex gap-2 items-center justify-center">
+                        <FormField
+                          control={form.control}
+                          name={`movements.${movementIndex}.expenses.${expenseIndex}.detail`}
+                          render={({ field }) => (
+                            <FormItem className="w-full">
+                              <FormLabel>Detalle</FormLabel>
+                              <FormControl>
+                                <Input placeholder="Ingrese detalle" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={form.control}
+                          name={`movements.${movementIndex}.expenses.${expenseIndex}.amount`}
+                          render={({ field }) => (
+                            <FormItem className="w-full">
+                              <FormLabel>Monto</FormLabel>
+                              <FormControl>
+                                <Input placeholder="Ingrese monto" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                    </div>
+                  );
+                })}
+
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    const currentExpenses = form.getValues(`movements.${movementIndex}.expenses`) || [];
+                    form.setValue(`movements.${movementIndex}.expenses`, [
+                      ...currentExpenses,
+                      {
+                        accountant_id: "",
+                        category_id: "",
+                        detail: "",
+                        amount: ""
+                      }
+                    ]);
+                  }}
+                  className="mt-2"
+                >
+                  <PlusCircle className="mr-2 h-4 w-4" />
+                  Agregar Gasto
+                </Button>
+              </div>
+            </div>
+          ))}
         </div>
+
         <Button type="submit" disabled={createCashMovementForAircraft.isPending}>
           {createCashMovementForAircraft.isPending ? "Enviando..." : "Enviar"}
         </Button>

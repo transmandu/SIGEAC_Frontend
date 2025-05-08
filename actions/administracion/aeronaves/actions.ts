@@ -1,4 +1,5 @@
 import axiosInstance from "@/lib/axios"
+import { Accountant, AdministrationVendor, Cash, CashMovement, Category, Employee } from "@/types"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 
@@ -81,18 +82,70 @@ export const useUpdateAircraft = () => {
   };
 };
 
+// export const useCashMovementForAircraft = () => {
+//   const queryAircraft = useQueryClient();
+//   const createMutation = useMutation({
+//     mutationFn: async (data: { id: string; formData: any }) => { 
+//       await axiosInstance.post(`/transmandu/cash-movement-aircraft/${data.id}/expense`, data.formData);
+//     },
+//     onSuccess: () => {
+//       queryAircraft.invalidateQueries({
+//         queryKey: ["aircrafts"],
+//       });
+//       toast("¡Creado!", {
+//         description: `¡El movimiento del gasto se ha creado correctamente!`,
+//       });
+//     },
+//     onError: (error) => {
+//       toast("Hey", {
+//         description: `No se creo correctamente: ${error}`,
+//       });
+//     },
+//   });
+//   return {
+//     createCashMovementForAircraft: createMutation,
+//   };
+// };
+
+interface AircraftExpenseFormData {
+  date: Date;
+  movements: {
+    cash_id: string;  
+    bank_account_id?: string | null;
+    total_amount: number;
+    reference: string;
+    responsible_id: string;  
+    vendor_id: string;  
+    expenses: {
+      accountant_id: string;  
+      category_id: string;  
+      detail: string;
+      amount: number;
+    }[];
+  }[];
+}
+
 export const useCashMovementForAircraft = () => {
   const queryAircraft = useQueryClient();
   const createMutation = useMutation({
-    mutationFn: async (data: { id: string; formData: any }) => { 
-      await axiosInstance.post(`/transmandu/cash-movement-aircraft/${data.id}/expense`, data.formData);
+    mutationFn: async (data: { 
+      id: string; 
+      formData: AircraftExpenseFormData 
+    }) => {
+      const response = await axiosInstance.post(
+        `/transmandu/cash-movement-aircraft/${data.id}/expense`,
+        data.formData
+      );
+      return response.data as CashMovement;
     },
-    onSuccess: () => {
-      queryAircraft.invalidateQueries({
-        queryKey: ["aircrafts"],
-      });
+    onSuccess: (newMovement) => {
+      queryAircraft.setQueryData(
+        ["aircrafts", "movements"],
+        (old: CashMovement[] | undefined) => 
+          old ? [...old, newMovement] : [newMovement]
+      );
       toast("¡Creado!", {
-        description: `¡El movimiento del gasto se ha creado correctamente!`,
+        description: "Movimiento registrado correctamente",
       });
     },
     onError: (error) => {
@@ -101,6 +154,7 @@ export const useCashMovementForAircraft = () => {
       });
     },
   });
+
   return {
     createCashMovementForAircraft: createMutation,
   };

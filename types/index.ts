@@ -140,6 +140,7 @@ export type CashMovement = {
   vendor: AdministrationVendor,
   client: Client,
   cash_id: string;
+  reference: string;
 }
 
 export type Category = {
