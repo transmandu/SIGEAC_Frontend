@@ -1,3 +1,4 @@
+"use client"
 import { useCreateQuote } from "@/actions/compras/cotizaciones/actions"
 import { useUpdateRequisitionStatus } from "@/actions/compras/requisiciones/actions"
 import { Button } from "@/components/ui/button"
@@ -27,6 +28,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select"
 import CreateVendorForm from "./CreateVendorForm"
 import { useGetSecondaryUnits } from "@/hooks/ajustes/globales/unidades/useGetSecondaryUnits"
+import { ScrollArea } from "../ui/scroll-area"
 
 const FormSchema = z.object({
   justification: z.string({ message: "Debe ingresar una justificacion." }),
@@ -129,7 +131,7 @@ export function CreateQuoteForm({ initialData, onClose, req }: { initialData?: a
     await updateStatusRequisition.mutateAsync({
       id: req.id,
       data: {
-        status: "cotizado",
+        status: "COTIZADO",
         updated_by: `${user?.first_name} ${user?.last_name}`,
         company: selectedCompany!.split(" ").join("").toLowerCase(),
       }
@@ -315,35 +317,25 @@ export function CreateQuoteForm({ initialData, onClose, req }: { initialData?: a
         {/* Artículos */}
         <div className="space-y-4">
           <h3 className="text-lg font-bold">Artículos</h3>
-          {fields.map((field, index) => (
-            <div key={field.id} className="flex items-center gap-4">
-              <FormField
-                control={control}
-                name={`articles.${index}.part_number`}
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel># Parte</FormLabel>
-                    <FormControl>
-                      <Input disabled className="disabled:opacity-85 font-semibold" placeholder="Ej: ABC123" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              {/* Cantidad */}
-              <div className="flex gap-2 items-center">
+          <ScrollArea className={cn("", fields.length > 3 && "h-[280px]")}>
+            {fields.map((field, index) => (
+              <div
+                key={field.id}
+                className="flex gap-4 items-end p-2 border-b"
+              >
+                {/* Número de parte */}
                 <FormField
                   control={control}
-                  name={`articles.${index}.quantity`}
+                  name={`articles.${index}.part_number`}
                   render={({ field }) => (
-                    <FormItem className="w-1/3">
-                      <FormLabel>Cantidad</FormLabel>
+                    <FormItem>
+                      <FormLabel htmlFor={`part-number-${index}`}># Parte</FormLabel>
                       <FormControl>
                         <Input
-                          disabled className="disabled:opacity-85 font-semibold"
-                          type="number"
-                          min={1}
+                          id={`part-number-${index}`}
+                          disabled
+                          className="disabled:opacity-85 disabled:cursor-default font-semibold"
+                          placeholder="Ej: ABC123"
                           {...field}
                         />
                       </FormControl>
@@ -351,53 +343,86 @@ export function CreateQuoteForm({ initialData, onClose, req }: { initialData?: a
                     </FormItem>
                   )}
                 />
-                {
-                  articles[index].unit && (
-                    <div className="space-y-2 w-full">
-                      <Label>Unidad</Label>
-                      <Select defaultValue={articles[index].unit.toString()}>
-                        <SelectTrigger className="w-full">
-                          <SelectValue placeholder="Unidad" />
+
+                {/* Cantidad y Unidad */}
+                <div className="flex gap-2 items-end">
+                  <FormField
+                    control={control}
+                    name={`articles.${index}.quantity`}
+                    render={({ field }) => (
+                      <FormItem className="flex-1">
+
+                        <FormLabel htmlFor={`quantity-${index}`}>Cantidad</FormLabel>
+                        <FormControl>
+                          <Input
+                            id={`quantity-${index}`}
+                            disabled
+                            className="disabled:opacity-85 font-semibold"
+                            type="number"
+                            min={1}
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  {articles[index]?.unit && (
+                    <FormItem className="flex-1">
+                      <FormLabel htmlFor={`unit-${index}`}>Unidad</FormLabel>
+                      <Select
+                        value={articles[index].unit.toString()}
+                        disabled
+                      >
+                        <SelectTrigger id={`unit-${index}`}>
+                          <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          {
-                            secondaryUnits && secondaryUnits.map((unit) => (
-                              <SelectItem disabled key={unit.id} value={unit.id.toString()}>{unit.secondary_unit}</SelectItem>
-                            ))
-                          }
+                          {secondaryUnits?.map((unit) => (
+                            <SelectItem key={unit.id} value={unit.id.toString()}>
+                              {unit.secondary_unit}
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
-                    </div>
-                  )
-                }
+                    </FormItem>
+                  )}
+                </div>
 
-              </div>
-              {/* Precio Unitario */}
-              <FormField
-                control={control}
-                name={`articles.${index}.unit_price`}
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Precio Unitario</FormLabel>
-                    <FormControl>
-                      <AmountInput
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                {/* Precio Unitario */}
+                <FormField
+                  control={control}
+                  name={`articles.${index}.unit_price`}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel htmlFor={`unit-price-${index}`}>Precio Unitario</FormLabel>
+                      <FormControl>
+                        <AmountInput
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-              {/* Total del Artículo */}
-              <div className="flex flex-col w-[100px] justify-center items-center">
-                <Label>Total</Label>
-                <p className="text-base font-bold">
-                  ${articles[index]?.quantity * Number(articles[index]?.unit_price) || 0}
-                </p>
+                {/* Total del Artículo */}
+                <div className="flex flex-col">
+                  <Label className="mb-2">Total</Label>
+                  <p className="text-base font-bold bg-gray-100 p-2 rounded-md">
+                    {new Intl.NumberFormat('es-AR', {
+                      style: 'currency',
+                      currency: 'ARS'
+                    }).format(
+                      (articles[index]?.quantity || 0) *
+                      (Number(articles[index]?.unit_price) || 0)
+                    )}
+                  </p>
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </ScrollArea>
         </div>
 
         {/* Total general */}

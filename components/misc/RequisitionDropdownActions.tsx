@@ -10,13 +10,12 @@ import { useDeleteRequisition, useUpdateRequisitionStatus } from "@/actions/comp
 import { useAuth } from "@/contexts/AuthContext"
 import { useCompanyStore } from "@/stores/CompanyStore"
 import { Requisition } from "@/types"
-import { ClipboardCheck, ClipboardX, Loader2, MoreHorizontal, Pencil, Trash2 } from "lucide-react"
+import { ClipboardCheck, ClipboardX, Loader2, MoreHorizontal, Trash2 } from "lucide-react"
 import { useState } from "react"
-import { CreateGeneralRequisitionForm } from "../forms/CreateGeneralRequisitionForm"
+import { CreateQuoteForm } from "../forms/CreateQuoteForm"
 import { Button } from "../ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "../ui/dialog"
 import LoadingPage from "./LoadingPage"
-import { CreateQuoteForm } from "../forms/CreateQuoteForm"
 
 function transformApiData(apiData: any) {
   return {
@@ -30,7 +29,9 @@ function transformApiData(apiData: any) {
       batch: batch.id.toString(),
       batch_name: batch.name,
       batch_articles: batch.batch_articles.map((article: any) => ({
-        part_number: article.article_part_number,
+        part_number: article.article_part_number ||
+          article.article_alt_part_number ||
+          article.pma,
         unit: article.unit,
         quantity: parseFloat(article.quantity),
         image: article.image || null,
@@ -102,13 +103,13 @@ const RequisitionsDropdownActions = ({ req }: { req: Requisition }) => {
             ((user!.roles!.map(role => role.name).includes("ANALISTA_COMPRAS")) || (user!.roles!.map(role => role.name).includes("SUPERUSER"))) && (
               <>
                 {
-                  (req.status !== 'aprobada' && req.status !== 'cotizado') && (
-                    <DropdownMenuItem disabled={req.status === 'aprobado' || req.status === 'rechazado'} className="cursor-pointer">
+                  (req.status !== 'APROBADA' && req.status !== 'COTIZADO') && (
+                    <DropdownMenuItem disabled={req.status === 'APROBADO' || req.status === 'RECHAZADO'} className="cursor-pointer">
                       <ClipboardCheck onClick={() => setOpenConfirm(true)} className='size-5' />
                     </DropdownMenuItem>
                   )
                 }
-                <DropdownMenuItem disabled={req.status === 'rechazado'} onClick={() => setOpenReject(true)} className="cursor-pointer">
+                <DropdownMenuItem disabled={req.status === 'RECHAZADO'} onClick={() => setOpenReject(true)} className="cursor-pointer">
                   <ClipboardX className="size-5" />
                 </DropdownMenuItem>
               </>
@@ -156,7 +157,7 @@ const RequisitionsDropdownActions = ({ req }: { req: Requisition }) => {
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button onClick={() => handleReject(req.id, `${user?.first_name} ${user?.last_name}`, "rechazado", selectedCompany.split(" ").join(""))} disabled={updateStatusRequisition.isPending} className="bg-primary text-white">{updateStatusRequisition.isPending ? <Loader2 className="animate-spin size-4" /> : "Confirmar"}</Button>
+            <Button onClick={() => handleReject(req.id, `${user?.first_name} ${user?.last_name}`, "RECHAZADO", selectedCompany.split(" ").join(""))} disabled={updateStatusRequisition.isPending} className="bg-primary text-white">{updateStatusRequisition.isPending ? <Loader2 className="animate-spin size-4" /> : "Confirmar"}</Button>
             <Button type="button" variant={"destructive"} onClick={() => setOpenReject(false)}>Cancelar</Button>
           </DialogFooter>
         </DialogContent>

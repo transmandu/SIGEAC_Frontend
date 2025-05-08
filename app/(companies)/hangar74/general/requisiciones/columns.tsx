@@ -84,8 +84,8 @@ export const columns: ColumnDef<Requisition>[] = [
     ),
     meta: { title: "Status" },
     cell: ({ row }) => {
-      const process = row.original.status === 'proceso' || row.original.status === 'cotizado'
-      const aproved = row.original.status === 'aprobada'
+      const process = row.original.status === 'PROCESO' || row.original.status === 'COTIZADO'
+      const aproved = row.original.status === 'APROBADO'
       return (
         <Badge className={cn("flex justify-center", process ? "bg-yellow-500" : aproved ? "bg-green-500" : "bg-red-500")} > {row.original.status.toUpperCase()}</Badge >
       )

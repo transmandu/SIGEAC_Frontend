@@ -89,8 +89,8 @@ export const columns: ColumnDef<PurchaseOrder>[] = [
       <DataTableColumnHeader column={column} title="Status" />
     ),
     cell: ({ row }) => {
-      const process = row.original.status === 'proceso'
-      const aproved = row.original.status === 'pagado'
+      const process = row.original.status === 'PROCESO'
+      const aproved = row.original.status === 'PAGADO'
       return (
         <Badge className={cn("flex justify-center", process ? "bg-yellow-500" : aproved ? "bg-green-500" : "bg-red-500")} > {row.original.status.toUpperCase()}</Badge >
       )

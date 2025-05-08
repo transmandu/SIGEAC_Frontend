@@ -11,7 +11,7 @@ import { columns } from './columns';
 import { DataTable } from './data-table';
 import { Requisition } from '@/types';
 
-const InventarioPage = () => {
+const RequisitionsPage = () => {
   const { user } = useAuth();
   const { selectedCompany, selectedStation } = useCompanyStore();
   const { data: requisitions, isLoading, isError } = useGetRequisition(
@@ -70,4 +70,4 @@ const InventarioPage = () => {
   );
 };
 
-export default InventarioPage;
+export default RequisitionsPage;

@@ -174,7 +174,7 @@ export function CreateRequisitionForm({ onClose }: FormProps) {
       ...data,
       type: "AERONAUTICO",
       work_order_id: Number(data.work_order_id),
-      aircraft_id: Number(data.aircraft_id)
+      aircraft_id: Number(data.aircraft_id).toString(),
     }
     await createRequisition.mutateAsync(formattedData)
     onClose()

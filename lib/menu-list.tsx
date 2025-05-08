@@ -2,6 +2,7 @@
 
 import { format } from "date-fns";
 import {
+  Award,
   BookCheck,
   BookUser,
   Building,
@@ -409,6 +410,27 @@ export function getMenuList(pathname: string, company: CompanyMenu, userRoles: s
               active: pathname.includes("/hangar74/mantenimiento/servicios"),
               icon: Drill,
               roles: ["ANALISTA_PLANIFICACION", "JEFE_PLANIFICACION", "SUPERUSER"],
+              submenus: []
+            },
+          ]
+        },
+        {
+          groupLabel: "Ingenieria",
+          menus: [
+            {
+              href: "/hangar74/ingenieria/certificados",
+              label: "Certificados",
+              active: pathname.includes("/hangar74/ingenieria/certificados"),
+              icon: Award,
+              roles: ["SUPERUSER"],
+              submenus: []
+            },
+            {
+              href: "/hangar74/general/requisiciones/nueva_requisicion",
+              label: "Requisiciones",
+              active: pathname.includes("/hangar74/general/requisiciones/nueva_requisicion"),
+              icon: ScrollText,
+              roles: ["SUPERUSER"],
               submenus: []
             },
           ]

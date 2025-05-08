@@ -16,8 +16,9 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "
 import { useGetQuoteByQuoteNumber } from '@/hooks/compras/useGetQuoteByQuoteNumber';
 import { cn } from '@/lib/utils';
 import { useCompanyStore } from '@/stores/CompanyStore';
-import { Loader2, Trash2, User } from 'lucide-react';
+import { Trash2, Loader2, User } from 'lucide-react';
 import { useParams, useRouter } from 'next/navigation';
+
 import { useState } from 'react';
 
 const QuotePage = () => {
@@ -55,7 +56,7 @@ const QuotePage = () => {
       <Card className='max-w-5xl mx-auto'>
         <CardHeader className='flex flex-col items-center'>
           <CardTitle className='flex justify-center text-5xl mb-2'>#{quote_number}</CardTitle>
-          <Badge className={cn("text-lg", data?.status === 'aprobada' ? "bg-green-500" : "bg-yellow-600")}>{data?.status.toUpperCase()}</Badge>
+          <Badge className={cn("text-lg", data?.status === 'APROBADO' ? "bg-green-500" : "bg-yellow-600")}>{data?.status.toUpperCase()}</Badge>
         </CardHeader>
         <CardContent className='flex flex-col gap-8' >
           <div className='flex w-full justify-center gap-24 text-xl'>

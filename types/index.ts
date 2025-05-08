@@ -389,9 +389,14 @@ export type Requisition = {
     name: string,
     batch_articles: {
       article_part_number: string,
+      article_alt_part_number?: string,
+      pma?: string,
+      reference_cod?: string,
+      justification: string,
       quantity: number,
       unit?: Convertion,
-      image: string,
+      image?: string,
+      certificates?: string[]
     }[]
   }[],
   received_by: string,
@@ -524,4 +529,9 @@ export type Activity = {
   final_hour: string,
   description: string,
   result?: string,
+}
+
+export type Certificate = {
+  id: number,
+  name: string,
 }
