@@ -3,10 +3,10 @@
 import { useCreateCashMovement } from "@/actions/administracion/movimientos/actions";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, } from "@/components/ui/form";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage,} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Popover, PopoverContent, PopoverTrigger, } from "@/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, } from "@/components/ui/select";
+import { Popover, PopoverContent, PopoverTrigger, } from "@/components/ui/popover";
 import { useGetCash } from "@/hooks/administracion/cajas/useGetCash";
 import { useGetEmployeesByCompany } from "@/hooks/administracion/useGetEmployees";
 import { cn } from "@/lib/utils";
@@ -65,7 +65,7 @@ const formSchema = z.object({
       return !isNaN(number) && number > 0;
     },
     {
-      message: "El monto debe ser mayor a cero.",
+      message: "El monto debe ser mayor a cero, con maximo dos decimales.",
     }
   ),
   bank_account_id: z
@@ -648,7 +648,35 @@ export function CreateCashMovementForm({ onClose }: FormProps) {
             <FormItem>
               <FormLabel>Monto Final</FormLabel>
               <FormControl>
-                <Input placeholder="Ingrese el monto" {...field} />
+                <div className="relative">
+                  <span className="absolute left-3 top-2.5 text-muted-foreground">
+                    $
+                  </span>
+                  <Input
+                    placeholder="0.00"
+                    className="pl-8"
+                    {...field}
+                    onChange={(e) => {
+                      // Validar que solo se ingresen números y un punto decimal
+                      const value = e.target.value;
+                      const regex = /^(\d+)?([.]?\d{0,2})?$/;
+
+                      if (value === "" || regex.test(value)) {
+                        field.onChange(value);
+                      }
+                    }}
+                    onBlur={(e) => {
+                      // Formatear el valor al salir del input
+                      const value = e.target.value;
+                      if (value) {
+                        const number = parseFloat(value);
+                        if (!isNaN(number)) {
+                          field.onChange(number.toFixed(2));
+                        }
+                      }
+                    }}
+                  />
+                </div>
               </FormControl>
               <FormMessage />
             </FormItem>

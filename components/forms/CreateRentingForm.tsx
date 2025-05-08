@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, } from "@/components/ui/form";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage,} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger, } from "@/components/ui/popover";
@@ -91,7 +91,7 @@ const formSchema = z
       path: ["payed_amount"],
     }
   )
-  .refine(data => data.deadline >= data.start_date, {
+  .refine((data) => data.deadline >= data.start_date, {
     message: "La fecha límite no puede ser anterior a la fecha de inicio",
     path: ["deadline"],
   });
@@ -230,7 +230,7 @@ export function CreateRentingForm({ onClose }: FormProps) {
                         }}
                         initialFocus
                         fromYear={2000}
-                        toYear={new Date().getFullYear() + 1} 
+                        toYear={new Date().getFullYear() + 1}
                         captionLayout="dropdown-buttons"
                         components={{
                           Dropdown: (props) => (
@@ -416,9 +416,37 @@ export function CreateRentingForm({ onClose }: FormProps) {
               <FormItem className="w-full">
                 <FormLabel>Precio</FormLabel>
                 <FormControl>
-                  <Input placeholder="Ingrese el precio" {...field} />
+                  <div className="relative">
+                    <span className="absolute left-3 top-2.5 text-muted-foreground">
+                      $
+                    </span>
+                    <Input
+                      placeholder="0.00"
+                      className="pl-8"
+                      {...field}
+                      onChange={(e) => {
+                        // Validar que solo se ingresen números y un punto decimal
+                        const value = e.target.value;
+                        const regex = /^(\d+)?([.]?\d{0,2})?$/;
+
+                        if (value === "" || regex.test(value)) {
+                          field.onChange(value);
+                        }
+                      }}
+                      onBlur={(e) => {
+                        // Formatear el valor al salir del input
+                        const value = e.target.value;
+                        if (value) {
+                          const number = parseFloat(value);
+                          if (!isNaN(number)) {
+                            field.onChange(number.toFixed(2));
+                          }
+                        }
+                      }}
+                    />
+                  </div>
                 </FormControl>
-                <FormMessage className="text-xs" />
+                <FormMessage />
               </FormItem>
             )}
           />
@@ -429,9 +457,37 @@ export function CreateRentingForm({ onClose }: FormProps) {
               <FormItem className="w-full">
                 <FormLabel>Monto Pagado</FormLabel>
                 <FormControl>
-                  <Input placeholder="Ingrese el monto" {...field} />
+                  <div className="relative">
+                    <span className="absolute left-3 top-2.5 text-muted-foreground">
+                      $
+                    </span>
+                    <Input
+                      placeholder="0.00"
+                      className="pl-8"
+                      {...field}
+                      onChange={(e) => {
+                        // Validar que solo se ingresen números y un punto decimal
+                        const value = e.target.value;
+                        const regex = /^(\d+)?([.]?\d{0,2})?$/;
+
+                        if (value === "" || regex.test(value)) {
+                          field.onChange(value);
+                        }
+                      }}
+                      onBlur={(e) => {
+                        // Formatear el valor al salir del input
+                        const value = e.target.value;
+                        if (value) {
+                          const number = parseFloat(value);
+                          if (!isNaN(number)) {
+                            field.onChange(number.toFixed(2));
+                          }
+                        }
+                      }}
+                    />
+                  </div>
                 </FormControl>
-                <FormMessage className="text-xs" />
+                <FormMessage />
               </FormItem>
             )}
           />

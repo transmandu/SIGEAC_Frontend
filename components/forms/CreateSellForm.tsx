@@ -214,14 +214,42 @@ export function SellForm({ onClose, article_id }: FormProps) {
           )}
         />
         <div className="flex gap-2 items-center justify-center">
-          <FormField
+        <FormField
             control={form.control}
             name="total_price"
             render={({ field }) => (
               <FormItem className="w-full">
                 <FormLabel>Precio</FormLabel>
                 <FormControl>
-                  <Input placeholder="Ingresa el precio" {...field} />
+                  <div className="relative">
+                    <span className="absolute left-3 top-2.5 text-muted-foreground">
+                      $
+                    </span>
+                    <Input
+                      placeholder="0.00"
+                      className="pl-8"
+                      {...field}
+                      onChange={(e) => {
+                        // Validar que solo se ingresen números y un punto decimal
+                        const value = e.target.value;
+                        const regex = /^(\d+)?([.]?\d{0,2})?$/;
+
+                        if (value === "" || regex.test(value)) {
+                          field.onChange(value);
+                        }
+                      }}
+                      onBlur={(e) => {
+                        // Formatear el valor al salir del input
+                        const value = e.target.value;
+                        if (value) {
+                          const number = parseFloat(value);
+                          if (!isNaN(number)) {
+                            field.onChange(number.toFixed(2));
+                          }
+                        }
+                      }}
+                    />
+                  </div>
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -234,7 +262,35 @@ export function SellForm({ onClose, article_id }: FormProps) {
               <FormItem className="w-full">
                 <FormLabel>Monto Pagado</FormLabel>
                 <FormControl>
-                  <Input placeholder="Ingresa el monto" {...field} />
+                  <div className="relative">
+                    <span className="absolute left-3 top-2.5 text-muted-foreground">
+                      $
+                    </span>
+                    <Input
+                      placeholder="0.00"
+                      className="pl-8"
+                      {...field}
+                      onChange={(e) => {
+                        // Validar que solo se ingresen números y un punto decimal
+                        const value = e.target.value;
+                        const regex = /^(\d+)?([.]?\d{0,2})?$/;
+
+                        if (value === "" || regex.test(value)) {
+                          field.onChange(value);
+                        }
+                      }}
+                      onBlur={(e) => {
+                        // Formatear el valor al salir del input
+                        const value = e.target.value;
+                        if (value) {
+                          const number = parseFloat(value);
+                          if (!isNaN(number)) {
+                            field.onChange(number.toFixed(2));
+                          }
+                        }
+                      }}
+                    />
+                  </div>
                 </FormControl>
                 <FormMessage />
               </FormItem>
