@@ -325,13 +325,6 @@ export default function ClientFlightReportPage() {
                   width={80}
                   domain={[0, "auto"]}
                 />
-                <YAxis
-                  yAxisId="right"
-                  orientation="right"
-                  tickFormatter={(value) => `$${value.toLocaleString()}`}
-                  width={80}
-                  domain={[0, "auto"]}
-                />
                 <Tooltip content={<CustomTooltip />} />
                 <Legend />
                 <Bar
@@ -352,7 +345,7 @@ export default function ClientFlightReportPage() {
                   ))}
                 </Bar>
                 <Bar
-                  yAxisId="right"
+                  yAxisId="left"
                   dataKey="costos"
                   name="Costos"
                   fill="#3b82f6"
