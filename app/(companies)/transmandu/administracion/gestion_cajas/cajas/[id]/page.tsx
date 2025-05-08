@@ -346,7 +346,7 @@ const MovementsByAccountPage = () => {
                           <TableRow>
                             <TableHead>Fecha</TableHead>
                             <TableHead>Categoría</TableHead>
-                            <TableHead>Subcategoría</TableHead>
+                            <TableHead>Detalle</TableHead>
                             <TableHead>Tipo</TableHead>
                             <TableHead>Monto</TableHead>
                             <TableHead>Cuenta Bancaria</TableHead>
@@ -358,8 +358,8 @@ const MovementsByAccountPage = () => {
                               <TableCell>
                                 {formatDate(movement.date,1)}
                               </TableCell>
-                              <TableCell>{movement.category}</TableCell>
-                              <TableCell>{movement.sub_category}</TableCell>
+                              <TableCell>{movement.category.name}</TableCell>
+                              <TableCell>{movement.details}</TableCell>
                               <TableCell>
                                 <span
                                   className={`px-2 py-1 rounded-full text-xs font-medium ${

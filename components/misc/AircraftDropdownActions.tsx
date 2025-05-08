@@ -66,7 +66,7 @@ export const AircraftDropdownActions = ({ id }: { id: string }) => {
             <TrendingUp className="size-5 text-green-500" />
           </DropdownMenuItem>
           <DropdownMenuItem onClick={() => setOpenForm(true)}>
-            <Banknote className="size-5 text-green-500" />
+            <Banknote className="size-5 text-red-500" />
           </DropdownMenuItem>
           <DropdownMenuItem onClick={() => setOpenEdit(true)}>
             <EditIcon className="size-5 text-blue-500" />

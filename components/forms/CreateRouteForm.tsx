@@ -1,5 +1,5 @@
-import { useCreateRoute, useGetRoute, useUpdateRoute } from "@/actions/administracion/rutas/actions";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { useCreateRoute, useGetRoute, useUpdateRoute, } from "@/actions/administracion/rutas/actions";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, } from "@/components/ui/form";
 import { cn } from "@/lib/utils";
 import { Route } from "@/types";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -13,58 +13,60 @@ import { Checkbox } from "../ui/checkbox";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 
-const getFormSchema = (hasLayovers: boolean) => z.object({
-  from: z
-    .string({
-      message: "Debe seleccionar un origen.",
-    })
-    .min(3, {
-      message: "El origen debe tener al menos 3 caracteres.",
-    })
-    .max(30, {
-      message: "El origen tiene un máximo 30 caracteres.",
-    }),
-  to: z
-    .string({
-      message: "Debe seleccionar un destino.",
-    })
-    .min(3, {
-      message: "El destino debe tener al menos 3 caracteres.",
-    })
-    .max(30, {
-      message: "El destino tiene un máximo 30 caracteres.",
-    }),
-  layovers: z
-    .string()
-    .superRefine((value, ctx) => {
-      if (!hasLayovers) return true;
-      
-      if (!value || value.trim() === '') {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: "Debe ingresar al menos una escala cuando está marcado el checkbox.",
-        });
-        return false;
-      }
+const getFormSchema = (hasLayovers: boolean) => 
+  z.object({
+    from: z
+      .string({
+        message: "Debe seleccionar un origen.",
+      })
+      .min(3, {
+        message: "El origen debe tener al menos 3 caracteres.",
+      })
+      .max(30, {
+        message: "El origen tiene un máximo 30 caracteres.",
+      }),
+    to: z
+      .string({
+        message: "Debe seleccionar un destino.",
+      })
+      .min(3, {
+        message: "El destino debe tener al menos 3 caracteres.",
+      })
+      .max(30, {
+        message: "El destino tiene un máximo 30 caracteres.",
+      }),
+    layovers: z
+      .string()
+      .superRefine((value, ctx) => {
+        if (!hasLayovers) return true;
 
-      const isOnlyNumbers = /^\d+$/.test(value.replace(/,/g, "").trim());
-      if (isOnlyNumbers) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: "Las escalas no pueden contener solo números.",
-        });
-      }
+        if (!value || value.trim() === "") {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message:
+              "Debe ingresar al menos una escala cuando está marcado el checkbox.",
+          });
+          return false;
+        }
 
-      const layovers = value.split(",").map((l) => l.trim());
-      if (!layovers.every((l) => l.length >= 3)) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: "Cada escala debe tener al menos 3 caracteres.",
-        });
-      }
-    })
-    .optional(),
-});
+        const isOnlyNumbers = /^\d+$/.test(value.replace(/,/g, "").trim());
+        if (isOnlyNumbers) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "Las escalas no pueden contener solo números.",
+          });
+        }
+
+        const layovers = value.split(",").map((l) => l.trim());
+        if (!layovers.every((l) => l.length >= 3)) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "Cada escala debe tener al menos 3 caracteres.",
+          });
+        }
+      })
+      .optional(),
+  });
 
 interface FormProps {
   onClose: () => void;
@@ -109,10 +111,10 @@ const RouteForm = ({ id, onClose, isEditing = false }: FormProps) => {
       form.setValue("to", data.to);
       form.setValue("layovers", data.layovers ?? undefined);
       setChecked(!!data.layovers);
-      
+
       // Si hay escalas al editar, inicializar los campos
       if (data.layovers) {
-        const initialLayovers = data.layovers.split(",").map(l => l.trim());
+        const initialLayovers = data.layovers.split(",").map((l) => l.trim());
         setScaleFields(
           initialLayovers.map((layover, index) => ({
             id: Date.now() + index,
@@ -148,7 +150,7 @@ const RouteForm = ({ id, onClose, isEditing = false }: FormProps) => {
   };
 
   useEffect(() => {
-    form.trigger('layovers');
+    form.trigger("layovers");
   }, [checked, form]);
 
   const onSubmitRoute = async (values: z.infer<typeof formSchema>) => {
@@ -262,7 +264,9 @@ const RouteForm = ({ id, onClose, isEditing = false }: FormProps) => {
                             <Input
                               placeholder="Ingrese la escala"
                               value={field.value}
-                              onChange={(e) => handleInputChange(field.id, e.target.value)}
+                              onChange={(e) =>
+                                handleInputChange(field.id, e.target.value)
+                              }
                             />
                           </FormControl>
                           {form.formState.errors.layovers && index === 0 && (

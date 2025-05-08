@@ -70,7 +70,11 @@ export const columns: ColumnDef<Flight>[] = [
       <DataTableColumnHeader filter column={column} title="Aeronave" />
     ),
     meta: { title: "Aeronave" },
-    cell: ({ row }) => <AircraftResumeDialog aircraft={row.original.aircraft} /> 
+    cell: ({ row }) => (
+      <div className="flex justify-center">
+        <AircraftResumeDialog aircraft={row.original.aircraft} />
+      </div>
+    )
   },
   {
     accessorKey: "type",
