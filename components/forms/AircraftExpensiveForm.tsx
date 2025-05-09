@@ -63,7 +63,7 @@ const expenseSchema = z.object({
   category_id: z.string({
     required_error: "La categoría es requerida",
   }),
-  detail: z.string().min(2, {
+  details: z.string().min(2, {
     message: "El detalle debe tener al menos 2 caracteres.",
   }),
   amount: z.string().refine(
@@ -172,6 +172,7 @@ export function AircraftExpensiveForm({ id, onClose }: FormProps) {
   useEffect(() => {
     mutate("transmandu");
   }, [mutate]);
+  
 
   async function onSubmit(formData: z.infer<typeof formSchema>) {
     interface AircraftExpenseFormData {
@@ -186,7 +187,7 @@ export function AircraftExpensiveForm({ id, onClose }: FormProps) {
         expenses: {
           accountant_id: string;
           category_id: string;
-          detail: string;
+          details: string;
           amount: number;
         }[];
       }[];
@@ -226,7 +227,7 @@ export function AircraftExpensiveForm({ id, onClose }: FormProps) {
         {
           accountant_id: "",
           category_id: "",
-          detail: "",
+          details: "",
           amount: "",
         },
       ],
@@ -421,7 +422,29 @@ export function AircraftExpensiveForm({ id, onClose }: FormProps) {
                     <FormItem className="w-full">
                       <FormLabel>Monto Total</FormLabel>
                       <FormControl>
-                        <Input placeholder="Ingrese monto total" {...field} />
+                        <Input
+                          placeholder="0.00"
+                          {...field}
+                          onChange={(e) => {
+                            // Validar que solo se ingresen números y un punto decimal
+                            const value = e.target.value;
+                            const regex = /^(\d+)?([.]?\d{0,2})?$/;
+
+                            if (value === "" || regex.test(value)) {
+                              field.onChange(value);
+                            }
+                          }}
+                          onBlur={(e) => {
+                            // Formatear el valor al salir del input
+                            const value = e.target.value;
+                            if (value) {
+                              const number = parseFloat(value);
+                              if (!isNaN(number)) {
+                                field.onChange(number.toFixed(2));
+                              }
+                            }
+                          }}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -634,7 +657,7 @@ export function AircraftExpensiveForm({ id, onClose }: FormProps) {
                         <div className="flex gap-2 items-center justify-center">
                           <FormField
                             control={form.control}
-                            name={`movements.${movementIndex}.expenses.${expenseIndex}.detail`}
+                            name={`movements.${movementIndex}.expenses.${expenseIndex}.details`}
                             render={({ field }) => (
                               <FormItem className="w-full">
                                 <FormLabel>Detalle</FormLabel>
@@ -657,8 +680,27 @@ export function AircraftExpensiveForm({ id, onClose }: FormProps) {
                                 <FormLabel>Monto</FormLabel>
                                 <FormControl>
                                   <Input
-                                    placeholder="Ingrese monto"
+                                    placeholder="0.00"
                                     {...field}
+                                    onChange={(e) => {
+                                      // Validar que solo se ingresen números y un punto decimal
+                                      const value = e.target.value;
+                                      const regex = /^(\d+)?([.]?\d{0,2})?$/;
+
+                                      if (value === "" || regex.test(value)) {
+                                        field.onChange(value);
+                                      }
+                                    }}
+                                    onBlur={(e) => {
+                                      // Formatear el valor al salir del input
+                                      const value = e.target.value;
+                                      if (value) {
+                                        const number = parseFloat(value);
+                                        if (!isNaN(number)) {
+                                          field.onChange(number.toFixed(2));
+                                        }
+                                      }
+                                    }}
                                   />
                                 </FormControl>
                                 <FormMessage />
@@ -683,7 +725,7 @@ export function AircraftExpensiveForm({ id, onClose }: FormProps) {
                       {
                         accountant_id: "",
                         category_id: "",
-                        detail: "",
+                        details: "",
                         amount: "",
                       },
                     ]);
