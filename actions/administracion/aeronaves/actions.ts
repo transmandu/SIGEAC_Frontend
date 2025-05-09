@@ -133,7 +133,7 @@ export const useCashMovementForAircraft = () => {
       formData: AircraftExpenseFormData 
     }) => {
       const response = await axiosInstance.post(
-        `/transmandu/cash-movement-aircraft/${data.id}/expense`,
+        `/transmandu/cash-movement-aircraft/${data.id}/expenses`,
         data.formData
       );
       return response.data as CashMovement;
