@@ -49,7 +49,7 @@ export function CashMovementDialog({ id }: { id?: string }) {
           </Button>
         </DialogTrigger>
         <DialogContent
-          className="sm:max-w-[480px]"
+          className="sm:max-w-[550px]"
           onInteractOutside={(e) => {
             e.preventDefault(); // Evita que el diálogo se cierre al hacer clic fuera
           }}

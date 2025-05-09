@@ -1,11 +1,31 @@
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, } from "@/components/ui/dropdown-menu";
-import { Banknote, EyeIcon, Loader2, MoreHorizontal, PlaneIcon, Trash2, TrendingUp, } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Banknote,
+  EyeIcon,
+  Loader2,
+  MoreHorizontal,
+  PlaneIcon,
+  Trash2,
+  TrendingUp,
+} from "lucide-react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "../ui/button";
 import { useGetAircraftById } from "@/hooks/administracion/useGetAircraftById";
 import { useDeleteAircraft } from "@/actions/administracion/aeronaves/actions";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, } from "../ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "../ui/dialog";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { EditIcon } from "lucide-react";
@@ -55,10 +75,10 @@ export const AircraftDropdownActions = ({ id }: { id: string }) => {
         <DropdownMenuContent
           align="center"
           className="flex gap-2 justify-center"
-        > 
+        >
           <DropdownMenuItem onClick={() => setOpenDelete(true)}>
             <Trash2 className="size-5 text-red-500" />
-          </DropdownMenuItem> 
+          </DropdownMenuItem>
           <DropdownMenuItem onClick={handleViewDetails}>
             <EyeIcon className="size-5" />
           </DropdownMenuItem>
@@ -125,7 +145,7 @@ export const AircraftDropdownActions = ({ id }: { id: string }) => {
           onInteractOutside={(e) => {
             e.preventDefault(); // Evita que el diálogo se cierre al hacer clic fuera
           }}
-          aria-describedby={undefined} 
+          aria-describedby={undefined}
         >
           <DialogHeader className="text-center font-bold">
             Resumen de Aeronave
@@ -142,8 +162,8 @@ export const AircraftDropdownActions = ({ id }: { id: string }) => {
                   aircraftDetails.status === "EN POSESION"
                     ? "bg-gradient-to-r from-green-600 to-emerald-500"
                     : aircraftDetails.status === "RENTADO"
-                    ? "bg-gradient-to-r from-amber-500 to-yellow-500"
-                    : "bg-gradient-to-r from-red-600 to-red-500"
+                      ? "bg-gradient-to-r from-amber-500 to-yellow-500"
+                      : "bg-gradient-to-r from-red-600 to-red-500"
                 }`}
               >
                 <div className="flex items-center gap-4">
@@ -153,8 +173,8 @@ export const AircraftDropdownActions = ({ id }: { id: string }) => {
                         aircraftDetails.status === "EN POSESION"
                           ? "text-green-600"
                           : aircraftDetails.status === "RENTADO"
-                          ? "text-amber-500"
-                          : "text-gray-600"
+                            ? "text-amber-500"
+                            : "text-gray-600"
                       }`}
                     />
                   </div>
@@ -171,8 +191,8 @@ export const AircraftDropdownActions = ({ id }: { id: string }) => {
                           aircraftDetails.status === "EN POSESION"
                             ? "bg-green-700 hover:bg-green-800"
                             : aircraftDetails.status === "RENTADO"
-                            ? "bg-amber-600 hover:bg-amber-700"
-                            : "bg-gray-700 hover:bg-gray-800"
+                              ? "bg-amber-600 hover:bg-amber-700"
+                              : "bg-gray-700 hover:bg-gray-800"
                         }`}
                       >
                         {aircraftDetails.status}
@@ -291,6 +311,7 @@ export const AircraftDropdownActions = ({ id }: { id: string }) => {
       {/*Formulario para cargar los gastos de una aeronave*/}
       <Dialog open={openForm} onOpenChange={setOpenForm}>
         <DialogContent
+          className="lg:max-w-[550px]"
           onInteractOutside={(e) => {
             e.preventDefault();
           }}
@@ -298,7 +319,7 @@ export const AircraftDropdownActions = ({ id }: { id: string }) => {
           <DialogHeader>
             <DialogTitle>Gastos de la Aeronave</DialogTitle>
           </DialogHeader>
-        <AircraftExpensiveForm id={id} onClose={() => setOpenForm(false)} />
+          <AircraftExpensiveForm id={id} onClose={() => setOpenForm(false)} />
         </DialogContent>
       </Dialog>
 

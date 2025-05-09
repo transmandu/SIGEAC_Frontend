@@ -2,22 +2,52 @@
 
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useGetCash } from "@/hooks/administracion/cajas/useGetCash";
 import { useGetEmployeesByCompany } from "@/hooks/administracion/useGetEmployees";
 import { cn } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
 import { es } from "date-fns/locale/es";
-import { CalendarIcon, Check, ChevronsUpDown, PlusCircle, MinusCircle } from "lucide-react";
+import {
+  CalendarIcon,
+  Check,
+  ChevronsUpDown,
+  PlusCircle,
+  MinusCircle,
+} from "lucide-react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { z } from "zod";
 import { useGetBankAccounts } from "@/hooks/ajustes/cuentas/useGetBankAccounts";
 import { Loader2 } from "lucide-react";
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "../ui/command";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "../ui/command";
 import { useEffect } from "react";
 import { useCashMovementForAircraft } from "@/actions/administracion/aeronaves/actions";
 import { Label } from "../ui/label";
@@ -52,10 +82,12 @@ const movementSchema = z.object({
   cash_id: z.string({
     required_error: "La caja es requerida",
   }),
-  bank_account_id: z.union([
-    z.string().min(1, { message: "Debe seleccionar una cuenta válida" }),
-    z.null(),
-  ]).optional(),
+  bank_account_id: z
+    .union([
+      z.string().min(1, { message: "Debe seleccionar una cuenta válida" }),
+      z.null(),
+    ])
+    .optional(),
   total_amount: z.string().refine(
     (val) => {
       const number = parseFloat(val);
@@ -65,11 +97,14 @@ const movementSchema = z.object({
       message: "El monto total debe ser mayor a cero.",
     }
   ),
-  reference: z.string().min(2, {
-    message: "La referencia debe tener al menos 2 caracteres.",
-  }).max(10, {
-    message: "La referencia tiene un máximo 10 caracteres.",
-  }),
+  reference: z
+    .string()
+    .min(2, {
+      message: "La referencia debe tener al menos 2 caracteres.",
+    })
+    .max(10, {
+      message: "La referencia tiene un máximo 10 caracteres.",
+    }),
   expenses: z.array(expenseSchema).min(1, {
     message: "Debe agregar al menos un gasto.",
   }),
@@ -100,24 +135,36 @@ export function AircraftExpensiveForm({ id, onClose }: FormProps) {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      movements: [{
-        expenses: [{}]
-      }]
+      movements: [
+        {
+          expenses: [{}],
+        },
+      ],
     },
   });
 
   const { createCashMovementForAircraft } = useCashMovementForAircraft();
-  const { data: employees, mutate, isPending: isEmployeesLoading } = useGetEmployeesByCompany();
+  const {
+    data: employees,
+    mutate,
+    isPending: isEmployeesLoading,
+  } = useGetEmployeesByCompany();
   const { data: cashes, isLoading: isCashesLoading } = useGetCash();
-  const { data: bankaccounts, isLoading: isBankAccLoading } = useGetBankAccounts();
+  const { data: bankaccounts, isLoading: isBankAccLoading } =
+    useGetBankAccounts();
   const { data: accounts, isLoading: isAccountLoading } = useGetAccountant();
   const { data: vendors, isLoading: isVendorLoading } = useGetVendors();
 
   // Get accountant_id from form values to fetch categories
   const accountantId = form.watch("movements.0.expenses.0.accountant_id");
-  const { data: categories, isLoading: isCategoryLoading } = useGetCategoriesByAccountant(accountantId || "");
+  const { data: categories, isLoading: isCategoryLoading } =
+    useGetCategoriesByAccountant(accountantId || "");
 
-  const { fields: movementFields, append: appendMovement, remove: removeMovement } = useFieldArray({
+  const {
+    fields: movementFields,
+    append: appendMovement,
+    remove: removeMovement,
+  } = useFieldArray({
     control: form.control,
     name: "movements",
   });
@@ -144,24 +191,27 @@ export function AircraftExpensiveForm({ id, onClose }: FormProps) {
         }[];
       }[];
     }
-    
+
     const transformedData = {
       ...formData,
-      movements: formData.movements.map(movement => ({
+      movements: formData.movements.map((movement) => ({
         ...movement,
-        total_amount: parseFloat(movement.total_amount),  
-        expenses: movement.expenses.map(expense => ({
+        total_amount: parseFloat(movement.total_amount),
+        expenses: movement.expenses.map((expense) => ({
           ...expense,
-          amount: parseFloat(expense.amount),         
+          amount: parseFloat(expense.amount),
         })),
       })),
     };
-  
-    createCashMovementForAircraft.mutate({ id, formData: transformedData }, {  
-      onSuccess: () => {
-        onClose();
-      },
-    });
+
+    createCashMovementForAircraft.mutate(
+      { id, formData: transformedData },
+      {
+        onSuccess: () => {
+          onClose();
+        },
+      }
+    );
   }
 
   const addMovement = () => {
@@ -172,13 +222,16 @@ export function AircraftExpensiveForm({ id, onClose }: FormProps) {
       reference: "",
       responsible_id: "",
       vendor_id: "",
-      expenses: [{
-        accountant_id: "",
-        category_id: "",
-        detail: "",
-        amount: ""
-      }]
+      expenses: [
+        {
+          accountant_id: "",
+          category_id: "",
+          detail: "",
+          amount: "",
+        },
+      ],
     });
+    console.log(appendMovement);
   };
 
   const removeMovementField = (index: number) => {
@@ -187,7 +240,10 @@ export function AircraftExpensiveForm({ id, onClose }: FormProps) {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col space-y-3">
+      <form
+        onSubmit={form.handleSubmit(onSubmit)}
+        className="flex flex-col space-y-3"
+      >
         <div className="flex gap-2 items-center justify-center">
           <FormField
             control={form.control}
@@ -288,7 +344,10 @@ export function AircraftExpensiveForm({ id, onClose }: FormProps) {
                         <SelectContent>
                           {cashes &&
                             cashes.map((cash) => (
-                              <SelectItem key={cash.id} value={cash.id.toString()}>
+                              <SelectItem
+                                key={cash.id}
+                                value={cash.id.toString()}
+                              >
                                 {cash.name}
                               </SelectItem>
                             ))}
@@ -299,7 +358,9 @@ export function AircraftExpensiveForm({ id, onClose }: FormProps) {
                   )}
                 />
                 {(() => {
-                  const selectedCashId = form.watch(`movements.${movementIndex}.cash_id`);
+                  const selectedCashId = form.watch(
+                    `movements.${movementIndex}.cash_id`
+                  );
                   const selectedCash = cashes?.find(
                     (cash) => cash.id.toString() === selectedCashId
                   );
@@ -316,7 +377,9 @@ export function AircraftExpensiveForm({ id, onClose }: FormProps) {
                           <Select
                             disabled={isBankAccLoading}
                             onValueChange={field.onChange}
-                            defaultValue={field.value === null ? "" : field.value}
+                            defaultValue={
+                              field.value === null ? "" : field.value
+                            }
                           >
                             <FormControl>
                               <SelectTrigger>
@@ -334,7 +397,10 @@ export function AircraftExpensiveForm({ id, onClose }: FormProps) {
                             <SelectContent>
                               {bankaccounts &&
                                 bankaccounts.map((acc) => (
-                                  <SelectItem value={acc.id.toString()} key={acc.id}>
+                                  <SelectItem
+                                    value={acc.id.toString()}
+                                    key={acc.id}
+                                  >
                                     {acc.name} - {acc.bank.name}
                                   </SelectItem>
                                 ))}
@@ -382,44 +448,28 @@ export function AircraftExpensiveForm({ id, onClose }: FormProps) {
                   render={({ field }) => (
                     <FormItem className="w-full flex flex-col space-y-3 mt-1.5">
                       <FormLabel>Responsable</FormLabel>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <FormControl>
-                            <Button
-                              disabled={isEmployeesLoading}
-                              variant="outline"
-                              role="combobox"
-                              className={cn(
-                                "justify-between",
-                                !field.value && "text-muted-foreground"
-                              )}
-                            >
-                              {isEmployeesLoading && (
-                                <Loader2 className="size-4 animate-spin mr-2" />
-                              )}
-                              {field.value ? (
-                                <p>
-                                  {
-                                    employees?.find(
-                                      (employee) =>
-                                        employee.id.toString() === field.value
-                                    )?.first_name
-                                  }{" "}
-                                  {
-                                    employees?.find(
-                                      (employee) =>
-                                        employee.id.toString() === field.value
-                                    )?.last_name
-                                  }
-                                </p>
-                              ) : (
-                                "Elige al responsable..."
-                              )}
-                              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                            </Button>
-                          </FormControl>
-                        </PopoverTrigger>
-                      </Popover>
+                      <Select
+                        disabled={isEmployeesLoading}
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Seleccione el responsable" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {employees &&
+                            employees.map((employee) => (
+                              <SelectItem
+                                key={employee.id}
+                                value={employee.id.toString()}
+                              >
+                                {employee.first_name} {employee.last_name}
+                              </SelectItem>
+                            ))}
+                        </SelectContent>
+                      </Select>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -430,31 +480,28 @@ export function AircraftExpensiveForm({ id, onClose }: FormProps) {
                   render={({ field }) => (
                     <FormItem className="w-full flex flex-col space-y-3">
                       <FormLabel>Beneficiario</FormLabel>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <FormControl>
-                            <Button
-                              disabled={isVendorLoading}
-                              variant="outline"
-                              role="combobox"
-                              className={cn(
-                                "justify-between",
-                                !field.value && "text-muted-foreground"
-                              )}
-                            >
-                              {isVendorLoading && (
-                                <Loader2 className="size-4 animate-spin mr-2" />
-                              )}
-                              {field.value
-                                ? vendors?.find(
-                                    (vendor) => vendor.id.toString() === field.value
-                                  )?.name
-                                : "Seleccione un beneficiario"}
-                              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                            </Button>
-                          </FormControl>
-                        </PopoverTrigger>
-                      </Popover>
+                      <Select
+                        disabled={isVendorLoading}
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Seleccione el beneficiario" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {vendors &&
+                            vendors.map((vendor) => (
+                              <SelectItem
+                                key={vendor.id}
+                                value={vendor.id.toString()}
+                              >
+                                {vendor.name}
+                              </SelectItem>
+                            ))}
+                        </SelectContent>
+                      </Select>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -464,141 +511,181 @@ export function AircraftExpensiveForm({ id, onClose }: FormProps) {
               {/* Sección de Gastos */}
               <div className="mt-4 space-y-4">
                 <h5 className="font-medium">Gastos</h5>
-                
-                {form.watch(`movements.${movementIndex}.expenses`)?.map((expense, expenseIndex) => {
-                  // Get the current accountant_id for this expense to filter categories
-                  const currentAccountantId = form.watch(`movements.${movementIndex}.expenses.${expenseIndex}.accountant_id`);
-                  
-                  return (
-                    <div key={expenseIndex} className="border p-4 rounded-lg space-y-2">
-                      <div className="flex justify-between items-center">
-                        <h6 className="font-medium">Gasto {expenseIndex + 1}</h6>
-                        {form.watch(`movements.${movementIndex}.expenses`)?.length > 1 && (
-                          <MinusCircle
-                            className="size-4 cursor-pointer hover:scale-125 transition-all ease-in duration-100 text-red-500"
-                            onClick={() => {
-                              const currentExpenses = form.getValues(`movements.${movementIndex}.expenses`);
-                              const newExpenses = currentExpenses.filter((_, i) => i !== expenseIndex);
-                              form.setValue(`movements.${movementIndex}.expenses`, newExpenses);
-                            }}
-                          />
-                        )}
-                      </div>
 
-                      <div className="flex gap-2 items-center justify-center">
-                        <FormField
-                          control={form.control}
-                          name={`movements.${movementIndex}.expenses.${expenseIndex}.accountant_id`}
-                          render={({ field }) => (
-                            <FormItem className="w-full">
-                              <FormLabel>Cuenta</FormLabel>
-                              <Select
-                                onValueChange={(value) => {
-                                  field.onChange(value);
-                                  // Reset category when accountant changes
-                                  form.setValue(`movements.${movementIndex}.expenses.${expenseIndex}.category_id`, "");
-                                }}
-                                value={field.value}
-                              >
-                                <FormControl>
-                                  <SelectTrigger>
-                                    <SelectValue placeholder="Seleccione una cuenta" />
-                                  </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                  {accounts?.map((account) => (
-                                    <SelectItem key={account.id} value={account.id.toString()}>
-                                      {account.name}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                              <FormMessage />
-                            </FormItem>
+                {form
+                  .watch(`movements.${movementIndex}.expenses`)
+                  ?.map((expense, expenseIndex) => {
+                    // Get the current accountant_id for this expense to filter categories
+                    const currentAccountantId = form.watch(
+                      `movements.${movementIndex}.expenses.${expenseIndex}.accountant_id`
+                    );
+
+                    return (
+                      <div
+                        key={expenseIndex}
+                        className="border p-4 rounded-lg space-y-2"
+                      >
+                        <div className="flex justify-between items-center">
+                          <h6 className="font-medium">
+                            Gasto {expenseIndex + 1}
+                          </h6>
+                          {form.watch(`movements.${movementIndex}.expenses`)
+                            ?.length > 1 && (
+                            <MinusCircle
+                              className="size-4 cursor-pointer hover:scale-125 transition-all ease-in duration-100 text-red-500"
+                              onClick={() => {
+                                const currentExpenses = form.getValues(
+                                  `movements.${movementIndex}.expenses`
+                                );
+                                const newExpenses = currentExpenses.filter(
+                                  (_, i) => i !== expenseIndex
+                                );
+                                form.setValue(
+                                  `movements.${movementIndex}.expenses`,
+                                  newExpenses
+                                );
+                              }}
+                            />
                           )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name={`movements.${movementIndex}.expenses.${expenseIndex}.category_id`}
-                          render={({ field }) => (
-                            <FormItem className="w-full">
-                              <FormLabel>Categoría</FormLabel>
-                              <Select
-                                onValueChange={field.onChange}
-                                value={field.value}
-                                disabled={!currentAccountantId}
-                              >
-                                <FormControl>
-                                  <SelectTrigger>
-                                    <SelectValue placeholder={
-                                      !currentAccountantId 
-                                        ? "Seleccione cuenta primero" 
-                                        : "Seleccione categoría"
-                                    } />
-                                  </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                  {categories
-                                    ?.filter(category => category.accountant.toString() === currentAccountantId)
-                                    ?.map((category) => (
-                                      <SelectItem key={category.id} value={category.id.toString()}>
-                                        {category.name}
+                        </div>
+
+                        <div className="flex gap-2 items-center justify-center">
+                          <FormField
+                            control={form.control}
+                            name={`movements.${movementIndex}.expenses.${expenseIndex}.accountant_id`}
+                            render={({ field }) => (
+                              <FormItem className="w-full">
+                                <FormLabel>Cuenta</FormLabel>
+                                <Select
+                                  onValueChange={(value) => {
+                                    field.onChange(value);
+                                    // Reset category when accountant changes
+                                    form.setValue(
+                                      `movements.${movementIndex}.expenses.${expenseIndex}.category_id`,
+                                      ""
+                                    );
+                                  }}
+                                  value={field.value}
+                                >
+                                  <FormControl>
+                                    <SelectTrigger>
+                                      <SelectValue placeholder="Seleccione una cuenta" />
+                                    </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent>
+                                    {accounts?.map((account) => (
+                                      <SelectItem
+                                        key={account.id}
+                                        value={account.id.toString()}
+                                      >
+                                        {account.name}
                                       </SelectItem>
                                     ))}
-                                </SelectContent>
-                              </Select>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-                      <div className="flex gap-2 items-center justify-center">
-                        <FormField
-                          control={form.control}
-                          name={`movements.${movementIndex}.expenses.${expenseIndex}.detail`}
-                          render={({ field }) => (
-                            <FormItem className="w-full">
-                              <FormLabel>Detalle</FormLabel>
-                              <FormControl>
-                                <Input placeholder="Ingrese detalle" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
+                                  </SelectContent>
+                                </Select>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name={`movements.${movementIndex}.expenses.${expenseIndex}.category_id`}
+                            render={({ field }) => (
+                              <FormItem className="w-full">
+                                <FormLabel>Categoría</FormLabel>
+                                <Select
+                                  onValueChange={field.onChange}
+                                  value={field.value}
+                                  disabled={!currentAccountantId}
+                                >
+                                  <FormControl>
+                                    <SelectTrigger>
+                                      <SelectValue
+                                        placeholder={
+                                          !currentAccountantId
+                                            ? "Seleccione cuenta primero"
+                                            : "Seleccione categoría"
+                                        }
+                                      />
+                                    </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent>
+                                    {categories
+                                      ?.filter(
+                                        (category) =>
+                                          category.accountant.id.toString() ===
+                                          currentAccountantId
+                                      )
+                                      ?.map((category) => (
+                                        <SelectItem
+                                          key={category.id}
+                                          value={category.id.toString()}
+                                        >
+                                          {category.name}
+                                        </SelectItem>
+                                      ))}
+                                  </SelectContent>
+                                </Select>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                        <div className="flex gap-2 items-center justify-center">
+                          <FormField
+                            control={form.control}
+                            name={`movements.${movementIndex}.expenses.${expenseIndex}.detail`}
+                            render={({ field }) => (
+                              <FormItem className="w-full">
+                                <FormLabel>Detalle</FormLabel>
+                                <FormControl>
+                                  <Input
+                                    placeholder="Ingrese detalle"
+                                    {...field}
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
 
-                        <FormField
-                          control={form.control}
-                          name={`movements.${movementIndex}.expenses.${expenseIndex}.amount`}
-                          render={({ field }) => (
-                            <FormItem className="w-full">
-                              <FormLabel>Monto</FormLabel>
-                              <FormControl>
-                                <Input placeholder="Ingrese monto" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
+                          <FormField
+                            control={form.control}
+                            name={`movements.${movementIndex}.expenses.${expenseIndex}.amount`}
+                            render={({ field }) => (
+                              <FormItem className="w-full">
+                                <FormLabel>Monto</FormLabel>
+                                <FormControl>
+                                  <Input
+                                    placeholder="Ingrese monto"
+                                    {...field}
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
                       </div>
-                    </div>
-                  );
-                })}
+                    );
+                  })}
 
                 <Button
                   type="button"
                   variant="outline"
                   size="sm"
                   onClick={() => {
-                    const currentExpenses = form.getValues(`movements.${movementIndex}.expenses`) || [];
+                    const currentExpenses =
+                      form.getValues(`movements.${movementIndex}.expenses`) ||
+                      [];
                     form.setValue(`movements.${movementIndex}.expenses`, [
                       ...currentExpenses,
                       {
                         accountant_id: "",
                         category_id: "",
                         detail: "",
-                        amount: ""
-                      }
+                        amount: "",
+                      },
                     ]);
                   }}
                   className="mt-2"
@@ -611,7 +698,10 @@ export function AircraftExpensiveForm({ id, onClose }: FormProps) {
           ))}
         </div>
 
-        <Button type="submit" disabled={createCashMovementForAircraft.isPending}>
+        <Button
+          type="submit"
+          disabled={createCashMovementForAircraft.isPending}
+        >
           {createCashMovementForAircraft.isPending ? "Enviando..." : "Enviar"}
         </Button>
       </form>
