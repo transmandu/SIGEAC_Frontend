@@ -264,9 +264,31 @@ export function CreateCreditForm({ onClose }: FormProps) {
           name="debt"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Monto de la Deuda</FormLabel>
+              <FormLabel>Monto</FormLabel>
               <FormControl>
-                <Input placeholder="Ingrese el monto" {...field} />
+                <Input
+                  placeholder="0.00"
+                  {...field}
+                  onChange={(e) => {
+                    // Validar que solo se ingresen números y un punto decimal
+                    const value = e.target.value;
+                    const regex = /^(\d+)?([.]?\d{0,2})?$/;
+                    
+                    if (value === "" || regex.test(value)) {
+                      field.onChange(value);
+                    }
+                  }}
+                  onBlur={(e) => {
+                    // Formatear el valor al salir del input
+                    const value = e.target.value;
+                    if (value) {
+                      const number = parseFloat(value);
+                      if (!isNaN(number)) {
+                        field.onChange(number.toFixed(2));
+                      }
+                    }
+                  }}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>

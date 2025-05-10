@@ -47,7 +47,7 @@ const ClientDropdownActions = ({ id }: { id: string }) => {
         <DropdownMenuContent
           align="center"
           className="flex gap-2 justify-center"
-        >
+        > 
           <DropdownMenuItem onClick={() => setOpenDelete(true)}>
             <Trash2 className="size-5 text-red-500" />
           </DropdownMenuItem>

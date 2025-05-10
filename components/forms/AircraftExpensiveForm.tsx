@@ -240,6 +240,7 @@ export function AircraftExpensiveForm({ id, onClose }: FormProps) {
   };
 
   return (
+    //<ScrollArea className="h-72 w-48 rounded-md border">
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit(onSubmit)}
