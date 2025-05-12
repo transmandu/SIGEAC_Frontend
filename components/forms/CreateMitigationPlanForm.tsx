@@ -127,7 +127,7 @@ export default function CreateMitigationPlanForm({
             name="responsible"
             render={({ field }) => (
               <FormItem className="w-full">
-                <FormLabel>Area de identificación</FormLabel>
+                <FormLabel>Area de Responsable</FormLabel>
                 <Select
                   onValueChange={field.onChange}
                   defaultValue={field.value}
