@@ -127,6 +127,22 @@ export type Cash = {
 
 export type CashMovement = {
   id: number,
+  employee_responsible: Employee,
+  cash: Cash,
+  company: Company,
+  date: Date,
+  type: "INCOME" | "OUTPUT",
+  details: string,
+  total_amount: number,
+  bank_account: BankAccount, 
+  vendor: AdministrationVendor,
+  client: Client,
+  cash_id: string;
+  reference: string;
+}
+
+export type CashMovementDetails = {
+  id: number,
   responsible: Employee,
   cash: Cash,
   company: Company,
