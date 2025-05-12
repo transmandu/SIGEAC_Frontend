@@ -26,7 +26,7 @@ const MovementTypeBadge = ({ type }: MovementTypeBadgeProps) => {
 };
 
 const CashMovementResume = ({ movement }: { movement: CashMovement }) => {
-  const userInitials = movement.responsible.first_name
+  const userInitials = movement.employee_responsible.first_name
     .split(" ")
     .map((n) => n[0])
     .join("")
@@ -83,7 +83,7 @@ const CashMovementResume = ({ movement }: { movement: CashMovement }) => {
             <h3 className="text-sm font-medium text-muted-foreground">
               Responsable
             </h3>
-            <p className="font-medium">{movement.responsible.first_name}</p>
+            <p className="font-medium">{movement.employee_responsible.first_name}</p>
           </div>
         </div>
 
@@ -105,7 +105,7 @@ const CashMovementResume = ({ movement }: { movement: CashMovement }) => {
                   movement.type === "INCOME" ? "text-green-600" : "text-red-600"
                 }`}
               >
-                $ {movement.amount.toLocaleString()}
+                $ {movement.total_amount.toLocaleString()}
               </span>
             </div>
           </CardContent>

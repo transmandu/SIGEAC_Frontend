@@ -25,7 +25,7 @@ import { useEffect } from "react";
 import { useGetCategoriesByAccountant } from "@/hooks/administracion/useGetCategoriesByAcountant";
 
 const formSchema = z.object({
-  responsible_id: z.string({
+  employee_responsible_id: z.string({
     message: "Debe elegir un responsable.",
   }),
   cash_id: z.string({
@@ -59,7 +59,7 @@ const formSchema = z.object({
     .max(100, {
       message: "El detalle tiene un máximo 100 caracteres.",
     }),
-  amount: z.string().refine(
+  total_amount: z.string().refine(
     (val) => {
       const number = parseFloat(val);
       return !isNaN(number) && number > 0;
@@ -554,7 +554,7 @@ export function CreateCashMovementForm({ onClose }: FormProps) {
           <div className="flex-1 min-w-[200px]">
             <FormField
               control={form.control}
-              name="responsible_id"
+              name="employee_responsible_id"
               render={({ field }) => (
                 <FormItem className="w-full flex flex-col space-y-3 mt-1.5">
                   <FormLabel>Responsable</FormLabel>
@@ -609,7 +609,7 @@ export function CreateCashMovementForm({ onClose }: FormProps) {
                                 key={employee.id}
                                 onSelect={() => {
                                   form.setValue(
-                                    "responsible_id",
+                                    "employee_responsible_id",
                                     employee.id.toString()
                                   );
                                 }}
@@ -643,7 +643,7 @@ export function CreateCashMovementForm({ onClose }: FormProps) {
         </div>
         <FormField
           control={form.control}
-          name="amount"
+          name="total_amount"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Monto Final</FormLabel>

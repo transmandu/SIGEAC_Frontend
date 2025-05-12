@@ -30,28 +30,6 @@ export const columns: ColumnDef<CashMovement>[] = [
       );
     },
   },
-  //  {
-  //    accessorKey: "company.name",
-  //    header: ({ column }) => (
-  //      <DataTableColumnHeader filter column={column} title="Empresa" />
-  //    ),
-  //    meta: { title: "Cliente" },
-  //    cell: ({ row }) => <CompanyResumeDialog company={row.original.company} />,
-  //  },
-  //  {
-  //    accessorKey: "type",
-  //    header: ({ column }) => (
-  //      <DataTableColumnHeader filter column={column} title="Ingreso/Egreso" />
-  //    ),
-  //    meta: { title: "Ingreso/Egreso" },
-  //    cell: ({ row }) => (
-  //      <div className="flex justify-center">
-  //        <span className="text-muted-foreground italic">
-  //          {row.original.type}
-  //        </span>
-  //      </div>
-  //    ),
-  //  },
   {
     accessorKey: "client.name",
     header: ({ column }) => (
@@ -128,7 +106,7 @@ export const columns: ColumnDef<CashMovement>[] = [
     ),
   },
   {
-    accessorKey: "amount",
+    accessorKey: "total_amount",
     header: ({ column }) => (
       <DataTableColumnHeader filter column={column} title="Monto" />
     ),
@@ -137,7 +115,7 @@ export const columns: ColumnDef<CashMovement>[] = [
       const isIncome = row.original.type === "INCOME";
       const badgeVariant = isIncome ? "default" : "destructive";
       const formattedAmount = formatCurrencyJ(
-        row.original.amount,
+        row.original.total_amount,
         row.original.cash.coin
       );
 
@@ -158,13 +136,13 @@ export const columns: ColumnDef<CashMovement>[] = [
     },
   },
   //  {
-  //    accessorKey: "responsible.first_name",
+  //    accessorKey: "employee_responsible.first_name",
   //    header: ({ column }) => (
   //      <DataTableColumnHeader filter column={column} title="Responsable" />
   //    ),
   //    meta: { title: "Responsable" },
   //    cell: ({ row }) => (
-  //      <ResponsibleResumeDialog id={row.original.responsible.id.toString()} />
+  //      <ResponsibleResumeDialog id={row.original.employee_responsible.id.toString()} />
   //    ),
   //  },
   {

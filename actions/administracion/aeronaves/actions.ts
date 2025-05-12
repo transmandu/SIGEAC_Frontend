@@ -116,10 +116,10 @@ interface AircraftExpenseFormData {
     reference: string;
     responsible_id: string;  
     vendor_id: string;  
-    expenses: {
+    cash_movement_details: {
       accountant_id: string;  
       category_id: string;  
-      detail: string;
+      details: string;
       amount: number;
     }[];
   }[];
@@ -133,7 +133,7 @@ export const useCashMovementForAircraft = () => {
       formData: AircraftExpenseFormData 
     }) => {
       const response = await axiosInstance.post(
-        `/transmandu/cash-movement-aircraft/${data.id}/expenses`,
+        `/transmandu/cash-movement-aircraft/${data.id}/cash_movement_details`,
         data.formData
       );
       return response.data as CashMovement;

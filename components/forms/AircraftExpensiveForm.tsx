@@ -26,7 +26,7 @@ import { useGetVendors } from "@/hooks/ajustes/globales/proveedores/useGetVendor
 import { ScrollArea } from "@/components/ui/scroll-area"
 
 // Esquema para los gastos
-const expenseSchema = z.object({
+const cash_movement_detailsSchema = z.object({
   accountant_id: z.string({
     required_error: "La cuenta es requerida",
   }),
@@ -70,7 +70,7 @@ const movementSchema = z.object({
     .max(10, {
       message: "La referencia tiene un máximo 10 caracteres.",
     }),
-  expenses: z.array(expenseSchema).min(1, {
+  cash_movement_details: z.array(cash_movement_detailsSchema).min(1, {
     message: "Debe agregar al menos un gasto.",
   }),
   responsible_id: z.string({
@@ -102,7 +102,7 @@ export function AircraftExpensiveForm({ id, onClose }: FormProps) {
     defaultValues: {
       movements: [
         {
-          expenses: [{}],
+          cash_movement_details: [{}],
         },
       ],
     },
@@ -116,7 +116,7 @@ export function AircraftExpensiveForm({ id, onClose }: FormProps) {
   const { data: vendors, isLoading: isVendorLoading } = useGetVendors()
 
   // Get accountant_id from form values to fetch categories
-  const accountantId = form.watch("movements.0.expenses.0.accountant_id")
+  const accountantId = form.watch("movements.0.cash_movement_details.0.accountant_id")
   const { data: categories, isLoading: isCategoryLoading } = useGetCategoriesByAccountant(accountantId || "")
 
   const {
@@ -142,7 +142,7 @@ export function AircraftExpensiveForm({ id, onClose }: FormProps) {
         reference: string
         responsible_id: string
         vendor_id: string
-        expenses: {
+        cash_movement_details: {
           accountant_id: string
           category_id: string
           details: string
@@ -156,9 +156,9 @@ export function AircraftExpensiveForm({ id, onClose }: FormProps) {
       movements: formData.movements.map((movement) => ({
         ...movement,
         total_amount: Number.parseFloat(movement.total_amount),
-        expenses: movement.expenses.map((expense) => ({
-          ...expense,
-          amount: Number.parseFloat(expense.amount),
+        cash_movement_details: movement.cash_movement_details.map((cash_movement_details) => ({
+          ...cash_movement_details,
+          amount: Number.parseFloat(cash_movement_details.amount),
         })),
       })),
     }
@@ -181,7 +181,7 @@ export function AircraftExpensiveForm({ id, onClose }: FormProps) {
       reference: "",
       responsible_id: "",
       vendor_id: "",
-      expenses: [
+      cash_movement_details: [
         {
           accountant_id: "",
           category_id: "",
@@ -454,23 +454,23 @@ export function AircraftExpensiveForm({ id, onClose }: FormProps) {
                   <h5 className="font-medium">Gastos</h5>
 
                   <ScrollArea className="h-[200px]" scrollHideDelay={0}>
-                    {form.watch(`movements.${movementIndex}.expenses`)?.map((expense, expenseIndex) => {
-                      // Get the current accountant_id for this expense to filter categories
+                    {form.watch(`movements.${movementIndex}.cash_movement_details`)?.map((cash_movement_details, expenseIndex) => {
+                      // Get the current accountant_id for this cash_movement_details to filter categories
                       const currentAccountantId = form.watch(
-                        `movements.${movementIndex}.expenses.${expenseIndex}.accountant_id`,
+                        `movements.${movementIndex}.cash_movement_details.${expenseIndex}.accountant_id`,
                       )
 
                       return (
                         <div key={expenseIndex} className="border p-4 rounded-lg space-y-2 mb-4">
                           <div className="flex justify-between items-center">
                             <h6 className="font-medium">Gasto {expenseIndex + 1}</h6>
-                            {form.watch(`movements.${movementIndex}.expenses`)?.length > 1 && (
+                            {form.watch(`movements.${movementIndex}.cash_movement_details`)?.length > 1 && (
                               <MinusCircle
                                 className="size-4 cursor-pointer hover:scale-125 transition-all ease-in duration-100 text-red-500"
                                 onClick={() => {
-                                  const currentExpenses = form.getValues(`movements.${movementIndex}.expenses`)
+                                  const currentExpenses = form.getValues(`movements.${movementIndex}.cash_movement_details`)
                                   const newExpenses = currentExpenses.filter((_, i) => i !== expenseIndex)
-                                  form.setValue(`movements.${movementIndex}.expenses`, newExpenses)
+                                  form.setValue(`movements.${movementIndex}.cash_movement_details`, newExpenses)
                                 }}
                               />
                             )}
@@ -479,7 +479,7 @@ export function AircraftExpensiveForm({ id, onClose }: FormProps) {
                           <div className="flex gap-2 items-center justify-center">
                             <FormField
                               control={form.control}
-                              name={`movements.${movementIndex}.expenses.${expenseIndex}.accountant_id`}
+                              name={`movements.${movementIndex}.cash_movement_details.${expenseIndex}.accountant_id`}
                               render={({ field }) => (
                                 <FormItem className="w-full">
                                   <FormLabel>Cuenta</FormLabel>
@@ -488,7 +488,7 @@ export function AircraftExpensiveForm({ id, onClose }: FormProps) {
                                       field.onChange(value)
                                       // Reset category when accountant changes
                                       form.setValue(
-                                        `movements.${movementIndex}.expenses.${expenseIndex}.category_id`,
+                                        `movements.${movementIndex}.cash_movement_details.${expenseIndex}.category_id`,
                                         "",
                                       )
                                     }}
@@ -513,7 +513,7 @@ export function AircraftExpensiveForm({ id, onClose }: FormProps) {
                             />
                             <FormField
                               control={form.control}
-                              name={`movements.${movementIndex}.expenses.${expenseIndex}.category_id`}
+                              name={`movements.${movementIndex}.cash_movement_details.${expenseIndex}.category_id`}
                               render={({ field }) => (
                                 <FormItem className="w-full">
                                   <FormLabel>Categoría</FormLabel>
@@ -551,7 +551,7 @@ export function AircraftExpensiveForm({ id, onClose }: FormProps) {
                           <div className="flex gap-2 items-center justify-center">
                             <FormField
                               control={form.control}
-                              name={`movements.${movementIndex}.expenses.${expenseIndex}.details`}
+                              name={`movements.${movementIndex}.cash_movement_details.${expenseIndex}.details`}
                               render={({ field }) => (
                                 <FormItem className="w-full">
                                   <FormLabel>Detalle</FormLabel>
@@ -565,7 +565,7 @@ export function AircraftExpensiveForm({ id, onClose }: FormProps) {
 
                             <FormField
                               control={form.control}
-                              name={`movements.${movementIndex}.expenses.${expenseIndex}.amount`}
+                              name={`movements.${movementIndex}.cash_movement_details.${expenseIndex}.amount`}
                               render={({ field }) => (
                                 <FormItem className="w-full">
                                   <FormLabel>Monto</FormLabel>
@@ -609,8 +609,8 @@ export function AircraftExpensiveForm({ id, onClose }: FormProps) {
                     variant="outline"
                     size="sm"
                     onClick={() => {
-                      const currentExpenses = form.getValues(`movements.${movementIndex}.expenses`) || []
-                      form.setValue(`movements.${movementIndex}.expenses`, [
+                      const currentExpenses = form.getValues(`movements.${movementIndex}.cash_movement_details`) || []
+                      form.setValue(`movements.${movementIndex}.cash_movement_details`, [
                         ...currentExpenses,
                         {
                           accountant_id: "",
