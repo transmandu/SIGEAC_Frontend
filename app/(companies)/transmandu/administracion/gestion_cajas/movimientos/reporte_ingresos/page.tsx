@@ -86,9 +86,9 @@ const IncomeDashboard = () => {
         monthIncome = clientMovements.reduce(
           (sum: number, mov: CashMovement) =>
             sum +
-            (typeof mov.amount === "string"
-              ? Number.parseFloat(mov.amount)
-              : mov.amount),
+            (typeof mov.total_amount === "string"
+              ? Number.parseFloat(mov.total_amount)
+              : mov.total_amount),
           0
         );
       }
@@ -436,9 +436,9 @@ const IncomeDashboard = () => {
                         </TableCell>
                         <TableCell className="text-right font-medium text-emerald-600">
                           $
-                          {(typeof movement.amount === "string"
-                            ? Number.parseFloat(movement.amount)
-                            : movement.amount
+                          {(typeof movement.total_amount === "string"
+                            ? Number.parseFloat(movement.total_amount)
+                            : movement.total_amount
                           ).toLocaleString()}
                         </TableCell>
                       </TableRow>

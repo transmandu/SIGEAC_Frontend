@@ -17,7 +17,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useGetCompanies } from "@/hooks/administracion/clientes/useGetClients";
 import { useGetBanks } from "@/hooks/ajustes/globales/bancos/useGetBanks";
 import { generateSlug } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -25,6 +24,7 @@ import { Loader2 } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Button } from "../ui/button";
+import { useGetCompanies } from "@/hooks/administracion/useGetCompanies";
 
 const formSchema = z.object({
   name: z.string().min(3, {

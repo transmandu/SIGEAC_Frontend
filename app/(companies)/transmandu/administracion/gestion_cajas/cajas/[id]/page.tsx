@@ -380,7 +380,7 @@ const MovementsByAccountPage = () => {
                                     : "text-red-600 font-medium"
                                 }
                               >
-                                {formatCurrency(movement.amount)}
+                                {formatCurrency(movement.total_amount)}
                               </TableCell>
                               <TableCell>
                                 {movement.bank_account?.name || "Efectivo"}

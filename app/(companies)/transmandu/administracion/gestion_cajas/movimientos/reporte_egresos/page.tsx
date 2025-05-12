@@ -87,9 +87,9 @@ const OutputDashboard = () => {
         monthOutput = vendorMovements.reduce(
           (sum: number, mov: CashMovement) =>
             sum +
-            (typeof mov.amount === "string"
-              ? Number.parseFloat(mov.amount)
-              : mov.amount),
+            (typeof mov.total_amount === "string"
+              ? Number.parseFloat(mov.total_amount)
+              : mov.total_amount),
           0
         );
       }
@@ -433,9 +433,9 @@ const OutputDashboard = () => {
                         </TableCell>
                         <TableCell className="text-right font-medium text-red-600">
                           $
-                          {(typeof movement.amount === "string"
-                            ? Number.parseFloat(movement.amount)
-                            : movement.amount
+                          {(typeof movement.total_amount === "string"
+                            ? Number.parseFloat(movement.total_amount)
+                            : movement.total_amount
                           ).toLocaleString()}
                         </TableCell>
                       </TableRow>

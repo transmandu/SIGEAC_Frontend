@@ -2,12 +2,12 @@
 
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import { useAuth } from "@/contexts/AuthContext";
-import { useGetEmployeesByCompany } from "@/hooks/contabilidad/useGetEmployees";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { Loader2 } from "lucide-react";
 import { useEffect } from "react";
 import { columns } from "./columns";
 import { DataTable } from "./data-table";
+import { useGetEmployeesByCompany } from "@/hooks/administracion/useGetEmployees";
 
 const EmployeePage = () => {
   const { user, loading: userLoading } = useAuth();
@@ -27,7 +27,7 @@ const EmployeePage = () => {
         (c) => c.name.toLowerCase() === selectedCompany.toLowerCase()
       )?.id;
       if (companyId) {
-        mutate(companyId); // Invoca la mutación con el ID de la compañía
+        mutate("transmandu"); // Invoca la mutación con el ID de la compañía
       }
     }
   }, [selectedCompany, user?.companies, mutate]);
