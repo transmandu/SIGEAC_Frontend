@@ -1,13 +1,31 @@
-import type { CashMovement } from "@/types"
 import { useQuery } from "@tanstack/react-query"
 import axiosInstance from "@/lib/axios"
+import { BankAccount } from "@/types";
 
 // Definir la estructura de datos que devuelve el endpoint
-export interface AccountMovement {
-  accountant_name: string
-  INCOME: number
-  OUTPUT: number
-  movements: CashMovement[]
+interface MovementDetail {
+  id: number;
+  details: string;
+  amount: string;
+  accountant_id: number;
+  category_id: number;
+  cash_movement_id: number;
+  category: {
+    name: string;
+  };
+}
+
+interface CashMovement {
+  date: string;
+  type: "INCOME" | "OUTPUT";
+  cash_movement_details: MovementDetail;
+}
+
+interface AccountMovement {
+  accountant_name: string;
+  INCOME: number;
+  OUTPUT: number;
+  movements: CashMovement[];
 }
 
 // Interfaz para los parámetros de fecha

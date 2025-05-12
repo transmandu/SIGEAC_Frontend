@@ -63,34 +63,34 @@ export const columns: ColumnDef<CashMovement>[] = [
     meta: { title: "Caja" },
     cell: ({ row }) => <CashResumeDialog cash={row.original.cash} />,
   },
-  {
-    accessorKey: "accountant.name",
-    header: ({ column }) => (
-      <DataTableColumnHeader filter column={column} title="Cuenta" />
-    ),
-    meta: { title: "Cuenta" },
-    cell: ({ row }) => (
-      <div className="flex justify-center">
-        <span className="text-muted-foreground italic">
-          {row.original.accountant.name}
-        </span>
-      </div>
-    ),
-  },
-  {
-    accessorKey: "category_id",
-    header: ({ column }) => (
-      <DataTableColumnHeader filter column={column} title="Categoría" />
-    ),
-    meta: { title: "Categoría" },
-    cell: ({ row }) => (
-      <div className="flex justify-center">
-        <span className="text-muted-foreground italic">
-          {row.original.category.name}
-        </span>
-      </div>
-    ),
-  },
+//  {
+//    accessorKey: "accountant.name",
+//    header: ({ column }) => (
+//      <DataTableColumnHeader filter column={column} title="Cuenta" />
+//    ),
+//    meta: { title: "Cuenta" },
+//    cell: ({ row }) => (
+//      <div className="flex justify-center">
+//        <span className="text-muted-foreground italic">
+//          {row.original.accountant.name}
+//        </span>
+//      </div>
+//    ),
+//  },
+//  {
+//    accessorKey: "category_id",
+//    header: ({ column }) => (
+//      <DataTableColumnHeader filter column={column} title="Categoría" />
+//    ),
+//    meta: { title: "Categoría" },
+//    cell: ({ row }) => (
+//      <div className="flex justify-center">
+//        <span className="text-muted-foreground italic">
+//          {row.original.category.name}
+//        </span>
+//      </div>
+//    ),
+//  },
   {
     accessorKey: "details",
     header: ({ column }) => (

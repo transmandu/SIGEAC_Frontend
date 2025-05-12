@@ -52,7 +52,7 @@ const CashMovementResume = ({ movement }: { movement: CashMovement }) => {
             <h3 className="text-sm font-medium text-muted-foreground">Caja</h3>
             <p className="font-medium">{movement.cash.name}</p>
           </div>
-
+{/*
           <div className="space-y-1">
             <h3 className="text-sm font-medium text-muted-foreground">
               Cuenta
@@ -66,7 +66,7 @@ const CashMovementResume = ({ movement }: { movement: CashMovement }) => {
             </h3>
             <p className="font-medium">{movement.category.name}</p>
           </div>
-
+*/}
           <div className="space-y-1">
             <h3 className="text-sm font-medium text-muted-foreground">
               Detalles

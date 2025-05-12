@@ -141,19 +141,15 @@ export type CashMovement = {
   reference: string;
   accountant: Accountant,
   category: Category,
+  cash_movement_details: CashMovementDetails,
 }
 
 export type CashMovementDetails = {
   id: number,
-  employee_responsible: Employee,
-  cash: Cash,
-  date: Date,
   accountant: Accountant,
   category: Category,
   details: string,
   amount: number,
-  cash_id: string;
-  vendor: AdministrationVendor,
 }
 
 export type Category = {

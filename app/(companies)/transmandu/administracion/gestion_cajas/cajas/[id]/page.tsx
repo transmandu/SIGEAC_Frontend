@@ -1,7 +1,8 @@
 "use client";
 
 import { useGetCashMovementByAccount } from "@/hooks/administracion/movimientos/useGetCashMovementByAccount";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, } from "@/components/ui/table";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+} from "@/components/ui/table";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, } from "@/components/ui/card";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -55,12 +56,34 @@ const MovementsByAccountPage = () => {
     Egresos: Number(accountant.OUTPUT || 0),
   }));
 
-  // Get movements for selected accountant
+  // Obtener movimientos para la cuenta seleccionada
   const selectedAccountData = selectedAccount
-    ? accountsData.find((accountant) => accountant.accountant_name === selectedAccount)
+    ? accountsData.find(
+        (accountant) => accountant.accountant_name === selectedAccount
+      )
     : null;
 
-  const selectedAccountMovements = selectedAccountData?.movements || [];
+  // Procesar movimientos considerando múltiples detalles
+  const selectedAccountMovements = selectedAccountData?.movements?.flatMap(movement => {
+  // Convertir a array si es un objeto único
+  const detailsArray = Array.isArray(movement.cash_movement_details) 
+    ? movement.cash_movement_details 
+    : [movement.cash_movement_details];
+  
+  return detailsArray.map(detail => ({
+    id: detail.cash_movement_id?.toString() || movement.date, 
+    date: movement.date,
+    type: movement.type,
+    total_amount: Number(detail.amount),
+    bank_account: { name: "Efectivo" }, 
+    details: detail.details,
+    category: {
+      name: detail.category?.name || "Sin categoría"
+    }
+  }));
+}) || [];
+
+  console.log(selectedAccountData);
 
   // Handle row click to select accountant
   const handleRowClick = (accountName: string) => {
@@ -162,13 +185,16 @@ const MovementsByAccountPage = () => {
                     const income = Number(accountant.INCOME || 0);
                     const outcome = Number(accountant.OUTPUT || 0);
                     const balance = income - outcome;
-                    const isSelected = accountant.accountant_name === selectedAccount;
+                    const isSelected =
+                      accountant.accountant_name === selectedAccount;
 
                     return (
                       <TableRow
                         key={accountant.accountant_name}
                         className={`cursor-pointer hover:bg-muted/50 ${isSelected ? "bg-muted" : ""}`}
-                        onClick={() => handleRowClick(accountant.accountant_name)}
+                        onClick={() =>
+                          handleRowClick(accountant.accountant_name)
+                        }
                       >
                         <TableCell className="font-medium text-center">
                           {accountant.accountant_name}
@@ -353,10 +379,10 @@ const MovementsByAccountPage = () => {
                           </TableRow>
                         </TableHeader>
                         <TableBody>
-                          {selectedAccountMovements.map((movement) => (
-                            <TableRow key={movement.id}>
+                          {selectedAccountMovements.map((movement, index) => (
+                            <TableRow key={`${movement.id}-${index}`}>
                               <TableCell>
-                                {formatDate(movement.date,1)}
+                                {formatDate(movement.date, 1)}
                               </TableCell>
                               <TableCell>{movement.category.name}</TableCell>
                               <TableCell>{movement.details}</TableCell>

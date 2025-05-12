@@ -114,7 +114,7 @@ interface AircraftExpenseFormData {
     bank_account_id?: string | null;
     total_amount: number;
     reference: string;
-    responsible_id: string;  
+    employee_responsible_id: string;  
     vendor_id: string;  
     cash_movement_details: {
       accountant_id: string;  
