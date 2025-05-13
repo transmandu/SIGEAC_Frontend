@@ -3,17 +3,21 @@ import CreateDangerIdentificationDialog from "@/components/dialogs/CreateDangerI
 import CreateObligatoryDialog from "@/components/dialogs/CreateObligatoryDialog";
 import DeleteVoluntaryReprotDialog from "@/components/dialogs/DeleteVoluntaryReportDialog";
 import PreviewObligatoryReportPdfDialog from "@/components/dialogs/PreviewObligatoryReportPdfDialog";
-import PreviewVoluntaryReportPdfDialog from "@/components/dialogs/PreviewVoluntaryReportPdfDialog";
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { useGetObligatoryReportById } from "@/hooks/sms/useGetObligatoryReportById";
 import { format, parse } from "date-fns";
 import { es } from "date-fns/locale";
 import { Loader2 } from "lucide-react";
-import { Content } from "next/font/google";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import React from "react";
 
 function hourFormat(date: Date) {
   const timeString = date.toString();
@@ -114,7 +118,7 @@ const ShowObligatoryReport = () => {
           </div>
         )}
         {obligatoryReport && (
-          <div className="w-full max-w-2xl space-y-4">
+          <div className="w-full space-y-4">
             <div className="bg-gray-100 p-4 rounded-lg">
               <p className="text-lg text-gray-700">
                 <span className="font-semibold">Codigo: </span> RVP-
@@ -239,67 +243,124 @@ const ShowObligatoryReport = () => {
               </p>
             </div>
 
-            {obligatoryReport.pilot && (
-              <div className="bg-gray-100 p-4 rounded-lg">
-                <p className="text-xl font-semibold text-center text-gray-800 mb-2">
-                  Datos del Piloto
-                </p>
-                <p className="text-lg text-gray-700">
-                  <span className="font-semibold">DNI: </span>{" "}
-                  {obligatoryReport.pilot.dni}
-                </p>
-                <p className="text-lg text-gray-700">
-                  <span className="font-semibold">Número de Licencia: </span>{" "}
-                  {obligatoryReport.pilot.license_number}
-                </p>
-                <p className="text-lg text-gray-700">
-                  <span className="font-semibold">Nombre:</span>{" "}
-                  {obligatoryReport.pilot.first_name}
-                </p>
-                <p className="text-lg text-gray-700">
-                  <span className="font-semibold">Apellido:</span>{" "}
-                  {obligatoryReport.pilot.last_name}
-                </p>
-                <p className="text-lg text-gray-700">
-                  <span className="font-semibold">Correo Electronico:</span>{" "}
-                  {obligatoryReport.pilot.email}
-                </p>
-                <p className="text-lg text-gray-700">
-                  <span className="font-semibold">Telefono:</span>{" "}
-                  {obligatoryReport.pilot.phone}
-                </p>
-              </div>
-            )}
+            <div className="flex justify-center items-center gap-4" >
+              {obligatoryReport.pilot && (
+                <div className="bg-gray-100 p-4 rounded-lg">
+                  <p className="text-xl font-semibold text-center text-gray-800 mb-2">
+                    Datos del Piloto
+                  </p>
+                  <p className="text-lg text-gray-700">
+                    <span className="font-semibold">DNI: </span>{" "}
+                    {obligatoryReport.pilot.dni}
+                  </p>
+                  <p className="text-lg text-gray-700">
+                    <span className="font-semibold">Número de Licencia: </span>{" "}
+                    {obligatoryReport.pilot.license_number}
+                  </p>
+                  <p className="text-lg text-gray-700">
+                    <span className="font-semibold">Nombre:</span>{" "}
+                    {obligatoryReport.pilot.first_name}
+                  </p>
+                  <p className="text-lg text-gray-700">
+                    <span className="font-semibold">Apellido:</span>{" "}
+                    {obligatoryReport.pilot.last_name}
+                  </p>
+                  <p className="text-lg text-gray-700">
+                    <span className="font-semibold">Correo Electronico:</span>{" "}
+                    {obligatoryReport.pilot.email}
+                  </p>
+                  <p className="text-lg text-gray-700">
+                    <span className="font-semibold">Telefono:</span>{" "}
+                    {obligatoryReport.pilot.phone}
+                  </p>
+                </div>
+              )}
 
-            {obligatoryReport.copilot && (
-              <div className="bg-gray-100 p-4 rounded-lg">
-                <p className="text-xl font-semibold text-center text-gray-800 mb-2">
-                  Datos del copiloto
-                </p>
-                <p className="text-lg text-gray-700">
-                  <span className="font-semibold">DNI: </span>{" "}
-                  {obligatoryReport.copilot.dni}
-                </p>
-                <p className="text-lg text-gray-700">
-                  <span className="font-semibold">Número de Licencia: </span>{" "}
-                  {obligatoryReport.copilot.license_number}
-                </p>
-                <p className="text-lg text-gray-700">
-                  <span className="font-semibold">Nombre:</span>{" "}
-                  {obligatoryReport.copilot.first_name}
-                </p>
-                <p className="text-lg text-gray-700">
-                  <span className="font-semibold">Apellido:</span>{" "}
-                  {obligatoryReport.copilot.last_name}
-                </p>
-                <p className="text-lg text-gray-700">
-                  <span className="font-semibold">Correo Electronico:</span>{" "}
-                  {obligatoryReport.copilot.email}
-                </p>
-                <p className="text-lg text-gray-700">
-                  <span className="font-semibold">Telefono:</span>{" "}
-                  {obligatoryReport.copilot.phone}
-                </p>
+              {obligatoryReport.copilot && (
+                <div className="bg-gray-100 p-4 rounded-lg">
+                  <p className="text-xl font-semibold text-center text-gray-800 mb-2">
+                    Datos del copiloto
+                  </p>
+                  <p className="text-lg text-gray-700">
+                    <span className="font-semibold">DNI: </span>{" "}
+                    {obligatoryReport.copilot.dni}
+                  </p>
+                  <p className="text-lg text-gray-700">
+                    <span className="font-semibold">Número de Licencia: </span>{" "}
+                    {obligatoryReport.copilot.license_number}
+                  </p>
+                  <p className="text-lg text-gray-700">
+                    <span className="font-semibold">Nombre:</span>{" "}
+                    {obligatoryReport.copilot.first_name}
+                  </p>
+                  <p className="text-lg text-gray-700">
+                    <span className="font-semibold">Apellido:</span>{" "}
+                    {obligatoryReport.copilot.last_name}
+                  </p>
+                  <p className="text-lg text-gray-700">
+                    <span className="font-semibold">Correo Electronico:</span>{" "}
+                    {obligatoryReport.copilot.email}
+                  </p>
+                  <p className="text-lg text-gray-700">
+                    <span className="font-semibold">Telefono:</span>{" "}
+                    {obligatoryReport.copilot.phone}
+                  </p>
+                </div>
+              )}
+            </div>
+            {obligatoryReport.document && (
+              <div className="flex justify-center items-center w-1/3 bg-gray-100 p-4 rounded-lg " >
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button variant="outline" className="flex  w-full">
+                      Ver Documento Adjunto
+                    </Button>
+                  </DialogTrigger>
+
+                  <DialogContent className="max-w-7xl h-[90vh] flex flex-col">
+                    <DialogHeader>
+                      <DialogTitle>Visualizador de Documento</DialogTitle>
+                    </DialogHeader>
+
+                    <div className="flex-1 overflow-hidden">
+                      <div className="flex flex-col items-center gap-4 w-full h-full">
+                        <div className="w-full flex justify-end">
+                          <a
+                            href={
+                              obligatoryReport.document.startsWith(
+                                "data:application/pdf"
+                              )
+                                ? obligatoryReport.document
+                                : `data:application/pdf;base64,${obligatoryReport.document}`
+                            }
+                            download="reporte-voluntario.pdf"
+                            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700"
+                          >
+                            Descargar PDF
+                          </a>
+                        </div>
+
+                        <iframe
+                          src={
+                            obligatoryReport.document.startsWith(
+                              "data:application/pdf"
+                            )
+                              ? obligatoryReport.document
+                              : `data:application/pdf;base64,${obligatoryReport.document}`
+                          }
+                          width="100%"
+                          height="100%"
+                          className="border rounded-md flex-1"
+                          title="Documento PDF"
+                        />
+
+                        <p className="text-sm text-muted-foreground">
+                          Documento adjunto
+                        </p>
+                      </div>
+                    </div>
+                  </DialogContent>
+                </Dialog>
               </div>
             )}
           </div>

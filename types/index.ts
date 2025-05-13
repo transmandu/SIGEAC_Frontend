@@ -547,6 +547,8 @@ export type ObligatoryReport = {
   other_incidents: string;
   status: string;
   danger_identification_id: number;
+  image?:File | string,
+  document?: File | string;
 };
 
 export type VoluntaryReport = {
@@ -560,7 +562,7 @@ export type VoluntaryReport = {
   airport_location: string;
   possible_consequences: string;
   danger_identification_id: number;
-  danger_identification: DangerIdentification;
+  danger_identification: DangerIdentification; //TENER EN CUENTA QUE CREO QUE HAY  QUE AGREGARLO AL ROS, O ELIMIANR ESTE QUE NO CREO PERO BUENO GGs
   status: string;
   reporter_name?: string;
   reporter_last_name?: string;

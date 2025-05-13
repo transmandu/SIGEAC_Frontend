@@ -89,6 +89,23 @@ const FormSchema = z
       (val) => (val === null || val === undefined ? "" : val),
       z.string().optional()
     ),
+    image: z
+      .instanceof(File)
+      .refine((file) => file.size <= 5 * 1024 * 1024, "Max 5MB")
+      .refine(
+        (file) => ["image/jpeg", "image/png"].includes(file.type),
+        "Solo JPEG/PNG"
+      )
+      .optional(),
+
+    document: z
+      .instanceof(File)
+      .refine((file) => file.size <= 5 * 1024 * 1024, "Máximo 5MB")
+      .refine(
+        (file) => file.type === "application/pdf",
+        "Solo se permiten archivos PDF"
+      )
+      .optional(),
   })
   .refine(
     (data) => {
@@ -238,6 +255,8 @@ export function CreateObligatoryReportForm({
         flight_alt_destiny: data.flight_alt_destiny,
         incidents: data.incidents,
         other_incidents: data.other_incidents,
+        image: data.image,
+        document: data.document,
         status: "ABIERTO",
       };
 
@@ -755,6 +774,79 @@ export function CreateObligatoryReportForm({
             </FormItem>
           )}
         />
+
+        <div className="flex justify-center items-center gap-2">
+          <FormField
+            control={form.control}
+            name="image"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Imagen General</FormLabel>
+
+                <div className="flex items-center gap-4">
+                  {field.value ? (
+                    <img
+                      src={URL.createObjectURL(field.value)}
+                      alt="Preview"
+                      className="h-16 w-16 rounded-md object-cover"
+                    />
+                  ) : initialData?.image &&
+                    typeof initialData.image === "string" ? (
+                    <img
+                      src={
+                        initialData.image.startsWith("data:image")
+                          ? initialData.image
+                          : `data:image/jpeg;base64,${initialData.image}`
+                      }
+                      alt="Preview"
+                      className="h-16 w-16 rounded-md object-cover"
+                    />
+                  ) : null}
+
+                  <FormControl>
+                    <Input
+                      type="file"
+                      accept="image/jpeg, image/png"
+                      onChange={(e) => field.onChange(e.target.files?.[0])}
+                    />
+                  </FormControl>
+                </div>
+
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="document"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Documento PDF</FormLabel>
+                <div className="flex items-center gap-4">
+                  {field.value && (
+                    <div>
+                      <p className="text-sm text-gray-500">
+                        Archivo seleccionado:
+                      </p>
+                      <p className="font-semibold text-sm">
+                        {field.value.name}
+                      </p>
+                    </div>
+                  )}
+                  <FormControl>
+                    <Input
+                      type="file"
+                      accept="application/pdf"
+                      onChange={(e) => field.onChange(e.target.files?.[0])}
+                    />
+                  </FormControl>
+                </div>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
 
         <div className="flex justify-between items-center gap-x-4">
           <Separator className="flex-1" />

@@ -1,7 +1,5 @@
 import axiosInstance from "@/lib/axios";
-import { Aircraft } from "@/types";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Update } from "next/dist/build/swc";
 import { toast } from "sonner";
 
 interface ObligatoryReportData {
@@ -23,6 +21,8 @@ interface ObligatoryReportData {
   incidents?: string[];
   other_incidents?: string;
   status: string;
+  image?: File | string;
+  document?: File | string;
 }
 
 interface UpdateObligatoryReportData {
