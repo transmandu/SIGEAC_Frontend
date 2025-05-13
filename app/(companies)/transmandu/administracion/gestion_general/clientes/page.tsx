@@ -6,6 +6,8 @@ import { columns } from "./columns";
 import { useGetClients } from "@/hooks/administracion/clientes/useGetClients";
 import LoadingPage from "@/components/misc/LoadingPage";
 
+
+// CAMBIAR ID POR CDI, RIF O LO QUE SEA
 const ClientsPage = () => {
   const { data, isLoading, isError } = useGetClients();
 

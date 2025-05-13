@@ -92,11 +92,6 @@ const CashMovementDropdownActions = ({
       {/*Dialog para mostar el resumen del movimiento de una caja*/}
       <Dialog open={openCashMovement} onOpenChange={setOpenCashMovement}>
         <DialogContent className="sm:max-w-xl" onInteractOutside={(e) => e.preventDefault()} aria-describedby={undefined}>
-          <DialogHeader>
-            <DialogTitle className="text-center font-bold">
-              Resumen
-            </DialogTitle>
-          </DialogHeader>
           <CashMovementResume movement={movement} />
           <DialogFooter className="sm:justify-center">
             <Button onClick={() => setOpenCashMovement(false)}>Cerrar</Button>

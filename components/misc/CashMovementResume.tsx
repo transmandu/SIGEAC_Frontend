@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Badge } from "../ui/badge";
 import { Avatar, AvatarFallback } from "../ui/avatar";
 import { Separator } from "../ui/separator";
+import { cn } from "@/lib/utils";
 
 type MovementTypeBadgeProps = {
   type: string;
@@ -15,7 +16,7 @@ const MovementTypeBadge = ({ type }: MovementTypeBadgeProps) => {
   const isIncome = type === "INCOME";
   return (
     <Badge
-      className={`text-sm py-1 px-3 ${isIncome
+      className={`text-xs ${isIncome
         ? "bg-green-600 hover:bg-green-700"
         : "bg-red-600 hover:bg-red-700"
         }`}
@@ -41,53 +42,50 @@ const CashMovementResume = ({ movement }: { movement: CashMovement }) => {
             <p className="text-sm text-muted-foreground mt-1">
               {format(movement.date, "PPP", { locale: es })}
             </p>
+            <div className="flex items-center justify-center gap-2">
+              <Avatar className="h-10 w-10">
+                <AvatarFallback className="text-sm">
+                  {userInitials}
+                </AvatarFallback>
+              </Avatar>
+              <p className="text-sm text-muted-foreground mt-1 text-center">
+                {movement.employee_responsible.first_name} <br />
+                {movement.employee_responsible.last_name}</p>
+            </div>
           </div>
         </CardTitle>
       </CardHeader>
 
       <CardContent className="grid gap-4">
-        <div className="flex flex-col gap-4 xl:flex-row justify-center">
-          <div className="flex flex-col gap-2">
-            <div className="space-y-1">
-              <h3 className="text-sm font-medium text-muted-foreground">Caja</h3>
-              <p className="font-medium">{movement.cash.name}</p>
-            </div>
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
 
-            <div className="space-y-1">
-              <h3 className="text-sm font-medium text-muted-foreground">
-                Detalles
-              </h3>
-              <p className="font-medium">{movement.details}</p>
-            </div>
+          <div className="space-y-1 flex flex-col items-center">
+            <h3 className="text-sm font-medium text-muted-foreground">Caja</h3>
+            <p className="font-medium">{movement.cash.name}</p>
           </div>
-          <div className="flex flex-col items-center justify-center gap-3 pt-2">
-            <div className="flex justify-center gap-3">
-              <Avatar className="h-8 w-8">
-                <AvatarFallback>{userInitials}</AvatarFallback>
-              </Avatar>
-              <div>
-                <h3 className="text-sm font-medium text-muted-foreground">
-                  Responsable
-                </h3>
-                <p className="font-medium">{movement.employee_responsible.first_name}</p>
-              </div>
-            </div>
-            <MovementTypeBadge type={movement.type} />
+          <div className="space-y-1 flex flex-col items-center">
+            <h3 className="text-sm font-medium text-muted-foreground">Tipo de Mov.</h3>
+            <Badge className={cn("font-bold", movement.type === "INCOME" ? "bg-green-500" : "bg-red-500")}>{movement.type === "INCOME" ? "INGRESO" : "EGRESO"}</Badge>
           </div>
-        </div>
-
-        <div className="space-y-1">
-          <h3 className="text-sm font-medium text-muted-foreground">
-            {movement.bank_account ? "Cuenta de Banco" : "Tipo de Pago"}
-          </h3>
-          <p className="font-medium">
-            {movement.bank_account ? movement.bank_account.name : "Efectivo"}
-          </p>
+          <div className="space-y-1 flex flex-col items-center">
+            <h3 className="text-sm font-medium text-muted-foreground">
+              {movement.bank_account ? "Cuenta de Banco" : "Tipo de Pago"}
+            </h3>
+            <p className="font-medium">
+              {movement.bank_account ? movement.bank_account.name : "Efectivo"}
+            </p>
+          </div>
+          <div className="space-y-1 flex flex-col items-center col-span-3">
+            <h3 className="text-sm font-medium text-muted-foreground">
+              Detalles
+            </h3>
+            <p className="font-medium">{movement.details}</p>
+          </div>
         </div>
 
         <div className="flex flex-col gap-2">
           <h3 className="text-base font-medium text-muted-foreground">
-            Detalles del Movimiento
+            Detalles del Movimiento - <span className={cn("font-bold", movement.type === "INCOME" ? "text-green-500" : "text-red-500")}>${movement.total_amount}</span>
           </h3>
           <Separator />
           <div className="flex flex-col gap-4">
@@ -103,7 +101,7 @@ const CashMovementResume = ({ movement }: { movement: CashMovement }) => {
                     <p className="font-medium">
                       {detail.details}
                     </p>
-                    <Badge className="text-sm">Monto: ${detail.amount}</Badge>
+                    <Badge className={cn("font-bold", movement.type === "INCOME" ? "bg-green-500 hover:bg-green-600" : "bg-red-500 hover:bg-red-600")}>Monto: ${detail.amount}</Badge>
                   </CardContent>
                 </Card>
               )) : <span className="text-muted-foreground text-xs italic">No existen detalles para este movimiento...</span>

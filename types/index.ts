@@ -133,6 +133,7 @@ export type CashMovement = {
   date: Date,
   type: "INCOME" | "OUTPUT",
   details: string,
+  reference_cod: string,
   total_amount: number,
   bank_account: BankAccount,
   vendor: AdministrationVendor,
