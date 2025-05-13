@@ -34,7 +34,7 @@ import {
 } from "../ui/dialog";
 import { useGetDangerIdentificationWithAllById } from "@/hooks/sms/useGetDangerIdentificationWithAllById";
 
-const VoluntaryReportDropdownActions = ({
+const  VoluntaryReportDropdownActions = ({
   voluntaryReport,
 }: {
   voluntaryReport: VoluntaryReport;

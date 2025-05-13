@@ -121,7 +121,6 @@ const FormSchema = z.object({
       "Solo se permiten archivos PDF"
     )
     .optional(),
-
   // Otros campos del esquema...
 });
 
@@ -162,7 +161,7 @@ export function CreateVoluntaryReportForm({
     resolver: zodResolver(FormSchema),
     defaultValues: {
       report_number: initialData?.report_number || "",
-ger_area: initialData?.danger_area || "",
+      danger_area: initialData?.danger_area || "",
       danger_location: initialData?.danger_location || "",
       description: initialData?.description || "",
       possible_consequences: initialData?.possible_consequences || "",
@@ -528,60 +527,76 @@ ger_area: initialData?.danger_area || "",
         )}
 
         <div className="flex justify-center items-center gap-2">
-        <FormField
-          control={form.control}
-          name="image"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Imagen General</FormLabel>
-              <div className="flex items-center gap-4">
-                {field.value && (
-                  <img
-                    src={URL.createObjectURL(field.value)}
-                    alt="Preview"
-                    className="h-16 w-16 rounded-md object-cover"
-                  />
-                )}
-                <FormControl>
-                  <Input
-                    type="file"
-                    accept="image/jpeg, image/png"
-                    onChange={(e) => field.onChange(e.target.files?.[0])}
-                  />
-                </FormControl>
-              </div>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+          <FormField
+            control={form.control}
+            name="image"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Imagen General</FormLabel>
 
-        <FormField
-          control={form.control}
-          name="document"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Documento PDF</FormLabel>
-              <div className="flex items-center gap-4">
-                {field.value && (
-                  <div>
-                    <p className="text-sm text-gray-500">
-                      Archivo seleccionado:
-                    </p>
-                    <p className="font-semibold text-sm">{field.value.name}</p>
-                  </div>
-                )}
-                <FormControl>
-                  <Input
-                    type="file"
-                    accept="application/pdf"
-                    onChange={(e) => field.onChange(e.target.files?.[0])}
-                  />
-                </FormControl>
-              </div>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+                <div className="flex items-center gap-4">
+                  {field.value ? (
+                    <img
+                      src={URL.createObjectURL(field.value)}
+                      alt="Preview"
+                      className="h-16 w-16 rounded-md object-cover"
+                    />
+                  ) : initialData?.image &&
+                    typeof initialData.image === "string" ? (
+                    <img
+                      src={
+                        initialData.image.startsWith("data:image")
+                          ? initialData.image
+                          : `data:image/jpeg;base64,${initialData.image}`
+                      }
+                      alt="Preview"
+                      className="h-16 w-16 rounded-md object-cover"
+                    />
+                  ) : null}
+
+                  <FormControl>
+                    <Input
+                      type="file"
+                      accept="image/jpeg, image/png"
+                      onChange={(e) => field.onChange(e.target.files?.[0])}
+                    />
+                  </FormControl>
+                </div>
+
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="document"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Documento PDF</FormLabel>
+                <div className="flex items-center gap-4">
+                  {field.value && (
+                    <div>
+                      <p className="text-sm text-gray-500">
+                        Archivo seleccionado:
+                      </p>
+                      <p className="font-semibold text-sm">
+                        {field.value.name}
+                      </p>
+                    </div>
+                  )}
+                  <FormControl>
+                    <Input
+                      type="file"
+                      accept="application/pdf"
+                      onChange={(e) => field.onChange(e.target.files?.[0])}
+                    />
+                  </FormControl>
+                </div>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
         </div>
 
         <div className="flex justify-between items-center gap-x-4">

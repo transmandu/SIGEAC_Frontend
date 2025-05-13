@@ -14,7 +14,8 @@ interface VoluntaryReportData {
   last_name?: string;
   phone?: string;
   email?: string;
-  image?:File| string,
+  image?: File | string;
+  document?: File | string;
 }
 interface UpdateVoluntaryReportData {
   id: number;
@@ -31,7 +32,8 @@ interface UpdateVoluntaryReportData {
   reporter_last_name?: string;
   reporter_phone?: string;
   reporter_email?: string;
-  image?:File| string,
+  image?: File | string;
+  document?: File | string;
 }
 
 export const useCreateVoluntaryReport = () => {
@@ -101,14 +103,20 @@ export const useUpdateVoluntaryReport = () => {
   const updateVoluntaryReportMutation = useMutation({
     mutationKey: ["voluntary-reports"],
     mutationFn: async (data: UpdateVoluntaryReportData) => {
-      await axiosInstance.patch(
-        `/transmandu/sms/voluntary-reports/${data.id}`,
-        data
+      console.log("line number 106", data);
+      const response = await axiosInstance.post(
+        `/transmandu/sms/update/voluntary-reports/${data.id}`,
+        data,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
       );
+      return response.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["voluntary-reports"] });
-      queryClient.invalidateQueries({ queryKey: ["voluntary-report"] });
       queryClient.invalidateQueries({ queryKey: ["voluntary-report"] });
       toast.success("¡Actualizado!", {
         description: `El reporte voluntario ha sido actualizado correctamente.`,
