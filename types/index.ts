@@ -134,14 +134,12 @@ export type CashMovement = {
   type: "INCOME" | "OUTPUT",
   details: string,
   total_amount: number,
-  bank_account: BankAccount, 
+  bank_account: BankAccount,
   vendor: AdministrationVendor,
   client: Client,
-  cash_id: string;
-  reference: string;
   accountant: Accountant,
   category: Category,
-  cash_movement_details: CashMovementDetails,
+  cash_movement_details: CashMovementDetails[],
 }
 
 export type CashMovementDetails = {
@@ -355,13 +353,13 @@ export type Employee = {
 export type Flight = {
   id:number,
   flight_number: string,
-  client: Client, 
-  route: Route,      
-  aircraft: Aircraft,  
+  client: Client,
+  route: Route,
+  aircraft: Aircraft,
   date: string,
   details: string,
   fee: number,
-  total_amount: number, 
+  total_amount: number,
   type: "CARGA" | "PAX" | "CHART",
   payed_amount: number,
   debt_status: "PENDIENTE" | "PAGADO",
@@ -661,7 +659,7 @@ export type Warehouse = {
   name: string,
   address: string,
   company: string,
-  type: string, 
+  type: string,
 }
 
 export interface WorkOrder extends Request {

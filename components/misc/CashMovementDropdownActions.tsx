@@ -9,10 +9,8 @@ import { CashMovement } from "@/types";
 import CashMovementResume from "./CashMovementResume";
 
 const CashMovementDropdownActions = ({
-  id,
   movement,
 }: {
-  id: string;
   movement: CashMovement;
 }) => {
   const [openDelete, setOpenDelete] = useState<boolean>(false);
@@ -49,11 +47,6 @@ const CashMovementDropdownActions = ({
           <DropdownMenuItem onClick={handleViewDetails}>
             <EyeIcon className="size-5" />
           </DropdownMenuItem>
-          <DropdownMenuItem
-            onClick={() => {
-              router.push(`/administracion/gestion_cajas/movimientos/${id}`);
-            }}
-          ></DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
 
@@ -84,7 +77,7 @@ const CashMovementDropdownActions = ({
             <Button
               disabled={deleteCashMovement.isPending}
               className="hover:bg-white hover:text-black hover:border hover:border-black transition-all"
-              onClick={() => handleDelete(id)}
+              onClick={() => handleDelete(movement.id)}
             >
               {deleteCashMovement.isPending ? (
                 <Loader2 className="size-4 animate-spin" />
@@ -98,10 +91,10 @@ const CashMovementDropdownActions = ({
 
       {/*Dialog para mostar el resumen del movimiento de una caja*/}
       <Dialog open={openCashMovement} onOpenChange={setOpenCashMovement}>
-        <DialogContent className="sm:max-w-md" onInteractOutside={(e) => e.preventDefault()} aria-describedby={undefined}> 
+        <DialogContent className="sm:max-w-xl" onInteractOutside={(e) => e.preventDefault()} aria-describedby={undefined}>
           <DialogHeader>
-            <DialogTitle className="text-center font-bold"> 
-              Resumen 
+            <DialogTitle className="text-center font-bold">
+              Resumen
             </DialogTitle>
           </DialogHeader>
           <CashMovementResume movement={movement} />

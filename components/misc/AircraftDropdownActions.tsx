@@ -32,6 +32,7 @@ import { EditIcon } from "lucide-react";
 import { Badge } from "../ui/badge";
 import { EditAircraftForm } from "../forms/EditAircraftForm";
 import { AircraftExpensiveForm } from "../forms/AircraftExpensiveForm";
+import Link from "next/link";
 
 interface AircraftDropdownActionsProps {
   id: string;
@@ -85,8 +86,9 @@ export const AircraftDropdownActions = ({ id }: { id: string }) => {
           <DropdownMenuItem onClick={handleViewStats}>
             <TrendingUp className="size-5 text-green-500" />
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => setOpenForm(true)}>
-            <Banknote className="size-5 text-red-500" />
+          <DropdownMenuItem>
+            <Link href={`/transmandu/administracion/gestion_vuelos/aviones/${id}/registrar_gasto`}>
+              <Banknote className="size-5 text-red-500" /></Link>
           </DropdownMenuItem>
           <DropdownMenuItem onClick={() => setOpenEdit(true)}>
             <EditIcon className="size-5 text-blue-500" />
@@ -158,24 +160,22 @@ export const AircraftDropdownActions = ({ id }: { id: string }) => {
             <div className="relative">
               {/* Header con gradiente según estado */}
               <div
-                className={`p-6 text-white rounded-t-lg ${
-                  aircraftDetails.status === "EN POSESION"
-                    ? "bg-gradient-to-r from-green-600 to-emerald-500"
-                    : aircraftDetails.status === "RENTADO"
-                      ? "bg-gradient-to-r from-amber-500 to-yellow-500"
-                      : "bg-gradient-to-r from-red-600 to-red-500"
-                }`}
+                className={`p-6 text-white rounded-t-lg ${aircraftDetails.status === "EN POSESION"
+                  ? "bg-gradient-to-r from-green-600 to-emerald-500"
+                  : aircraftDetails.status === "RENTADO"
+                    ? "bg-gradient-to-r from-amber-500 to-yellow-500"
+                    : "bg-gradient-to-r from-red-600 to-red-500"
+                  }`}
               >
                 <div className="flex items-center gap-4">
                   <div className="bg-white p-3 rounded-lg shadow-sm border">
                     <PlaneIcon
-                      className={`h-10 w-10 ${
-                        aircraftDetails.status === "EN POSESION"
-                          ? "text-green-600"
-                          : aircraftDetails.status === "RENTADO"
-                            ? "text-amber-500"
-                            : "text-gray-600"
-                      }`}
+                      className={`h-10 w-10 ${aircraftDetails.status === "EN POSESION"
+                        ? "text-green-600"
+                        : aircraftDetails.status === "RENTADO"
+                          ? "text-amber-500"
+                          : "text-gray-600"
+                        }`}
                     />
                   </div>
                   <div>
@@ -187,13 +187,12 @@ export const AircraftDropdownActions = ({ id }: { id: string }) => {
                         {aircraftDetails.acronym}
                       </Badge>
                       <Badge
-                        className={`text-white ${
-                          aircraftDetails.status === "EN POSESION"
-                            ? "bg-green-700 hover:bg-green-800"
-                            : aircraftDetails.status === "RENTADO"
-                              ? "bg-amber-600 hover:bg-amber-700"
-                              : "bg-gray-700 hover:bg-gray-800"
-                        }`}
+                        className={`text-white ${aircraftDetails.status === "EN POSESION"
+                          ? "bg-green-700 hover:bg-green-800"
+                          : aircraftDetails.status === "RENTADO"
+                            ? "bg-amber-600 hover:bg-amber-700"
+                            : "bg-gray-700 hover:bg-gray-800"
+                          }`}
                       >
                         {aircraftDetails.status}
                       </Badge>

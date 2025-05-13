@@ -5,6 +5,7 @@ import { CashMovement } from "@/types";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Badge } from "../ui/badge";
 import { Avatar, AvatarFallback } from "../ui/avatar";
+import { Separator } from "../ui/separator";
 
 type MovementTypeBadgeProps = {
   type: string;
@@ -14,11 +15,10 @@ const MovementTypeBadge = ({ type }: MovementTypeBadgeProps) => {
   const isIncome = type === "INCOME";
   return (
     <Badge
-      className={`text-sm py-1 px-3 ${
-        isIncome
-          ? "bg-green-600 hover:bg-green-700"
-          : "bg-red-600 hover:bg-red-700"
-      }`}
+      className={`text-sm py-1 px-3 ${isIncome
+        ? "bg-green-600 hover:bg-green-700"
+        : "bg-red-600 hover:bg-red-700"
+        }`}
     >
       {type}
     </Badge>
@@ -35,81 +35,82 @@ const CashMovementResume = ({ movement }: { movement: CashMovement }) => {
   return (
     <Card className="border-none shadow-sm">
       <CardHeader className="pb-3">
-        <CardTitle className="flex justify-between items-start">
-          <div>
-            <h2 className="text-xl font-semibold">Movimiento de caja</h2>
+        <CardTitle className="flex justify-center items-start">
+          <div className="flex flex-col items-center gap-2">
+            <h2 className="text-xl font-semibold">Movimiento de Caja</h2>
             <p className="text-sm text-muted-foreground mt-1">
               {format(movement.date, "PPP", { locale: es })}
             </p>
           </div>
-          <MovementTypeBadge type={movement.type} />
         </CardTitle>
       </CardHeader>
 
       <CardContent className="grid gap-4">
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-1">
-            <h3 className="text-sm font-medium text-muted-foreground">Caja</h3>
-            <p className="font-medium">{movement.cash.name}</p>
-          </div>
-{/*
-          <div className="space-y-1">
-            <h3 className="text-sm font-medium text-muted-foreground">
-              Cuenta
-            </h3>
-            <p className="font-medium">{movement.accountant.name}</p>
-          </div>
+        <div className="flex flex-col gap-4 xl:flex-row justify-center">
+          <div className="flex flex-col gap-2">
+            <div className="space-y-1">
+              <h3 className="text-sm font-medium text-muted-foreground">Caja</h3>
+              <p className="font-medium">{movement.cash.name}</p>
+            </div>
 
-          <div className="space-y-1">
-            <h3 className="text-sm font-medium text-muted-foreground">
-              Categoría
-            </h3>
-            <p className="font-medium">{movement.category.name}</p>
+            <div className="space-y-1">
+              <h3 className="text-sm font-medium text-muted-foreground">
+                Detalles
+              </h3>
+              <p className="font-medium">{movement.details}</p>
+            </div>
           </div>
-*/}
-          <div className="space-y-1">
-            <h3 className="text-sm font-medium text-muted-foreground">
-              Detalles
-            </h3>
-            <p className="font-medium">{movement.details}</p>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-3 pt-2">
-          <Avatar className="h-8 w-8">
-            <AvatarFallback>{userInitials}</AvatarFallback>
-          </Avatar>
-          <div>
-            <h3 className="text-sm font-medium text-muted-foreground">
-              Responsable
-            </h3>
-            <p className="font-medium">{movement.employee_responsible.first_name}</p>
+          <div className="flex flex-col items-center justify-center gap-3 pt-2">
+            <div className="flex justify-center gap-3">
+              <Avatar className="h-8 w-8">
+                <AvatarFallback>{userInitials}</AvatarFallback>
+              </Avatar>
+              <div>
+                <h3 className="text-sm font-medium text-muted-foreground">
+                  Responsable
+                </h3>
+                <p className="font-medium">{movement.employee_responsible.first_name}</p>
+              </div>
+            </div>
+            <MovementTypeBadge type={movement.type} />
           </div>
         </div>
 
         <div className="space-y-1">
           <h3 className="text-sm font-medium text-muted-foreground">
-            {movement.bank_account ? "Cuenta de Banco" : ""}
+            {movement.bank_account ? "Cuenta de Banco" : "Tipo de Pago"}
           </h3>
           <p className="font-medium">
             {movement.bank_account ? movement.bank_account.name : "Efectivo"}
           </p>
         </div>
 
-        <Card className="bg-primary/5 mt-4">
-          <CardContent className="p-4">
-            <div className="flex justify-between items-center">
-              <span className="font-medium">Monto Total</span>
-              <span
-                className={`font-bold text-2xl ${
-                  movement.type === "INCOME" ? "text-green-600" : "text-red-600"
-                }`}
-              >
-                $ {movement.total_amount.toLocaleString()}
-              </span>
-            </div>
-          </CardContent>
-        </Card>
+        <div className="flex flex-col gap-2">
+          <h3 className="text-base font-medium text-muted-foreground">
+            Detalles del Movimiento
+          </h3>
+          <Separator />
+          <div className="flex flex-col gap-4">
+            {
+              movement.cash_movement_details.length > 0 ? movement.cash_movement_details.map((detail) => (
+                <Card key={detail.id}>
+                  <CardHeader>
+                    <CardTitle className="text-lg font-bold">
+                      {detail.accountant.name} - {detail.category.name}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="flex justify-around items-center">
+                    <p className="font-medium">
+                      {detail.details}
+                    </p>
+                    <Badge className="text-sm">Monto: ${detail.amount}</Badge>
+                  </CardContent>
+                </Card>
+              )) : <span className="text-muted-foreground text-xs italic">No existen detalles para este movimiento...</span>
+            }
+          </div>
+        </div>
+
       </CardContent>
     </Card>
   );

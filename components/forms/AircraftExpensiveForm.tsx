@@ -24,6 +24,7 @@ import { useGetAccountant } from "@/hooks/administracion/useGetAccountant"
 import { useGetCategoriesByAccountant } from "@/hooks/administracion/useGetCategoriesByAcountant"
 import { useGetVendors } from "@/hooks/ajustes/globales/proveedores/useGetVendors"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import { Separator } from "../ui/separator"
 
 // Esquema para los gastos
 const cash_movement_detailsSchema = z.object({
@@ -261,7 +262,7 @@ export function AircraftExpensiveForm({ id, onClose }: FormProps) {
             />
           </div>
 
-          <ScrollArea className="h-[300px] pr-4" scrollHideDelay={0}> 
+          <ScrollArea className="h-[550px]" scrollHideDelay={0}>
             {movementFields.map((movement, movementIndex) => (
               <div key={movement.id} className="border p-4 rounded-lg space-y-4 mb-4">
                 <div className="flex justify-between items-center">
@@ -628,6 +629,7 @@ export function AircraftExpensiveForm({ id, onClose }: FormProps) {
                 </div>
               </div>
             ))}
+            <Separator />
           </ScrollArea>
         </div>
 
