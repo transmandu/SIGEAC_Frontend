@@ -208,7 +208,7 @@ export default function AircraftExpensesPage() {
                 </Button>
               </div>
 
-              <ScrollArea className="h-[550px]" scrollHideDelay={0}>
+              <ScrollArea className="h-[800px]" scrollHideDelay={0}>
                 {movementFields.map((movement, movementIndex) => (
                   <div key={movement.id} className="border p-4 rounded-lg space-y-4 mb-4 bg-gray-50">
                     <div className="flex justify-between items-center">

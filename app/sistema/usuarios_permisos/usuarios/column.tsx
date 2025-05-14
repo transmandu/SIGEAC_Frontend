@@ -82,7 +82,7 @@ export const columns: ColumnDef<User>[] = [
       return (
         <>
           {
-            item.isActive.toString() === '1' ? <Badge className="bg-emerald-500">ACTIVO</Badge> : <Badge className="bg-rose-500">INACTIVO</Badge>
+            item.isActive ? <Badge className="bg-emerald-500">ACTIVO</Badge> : <Badge className="bg-rose-500">INACTIVO</Badge>
           }
         </>
       )
