@@ -1,6 +1,7 @@
 "use client";
 
 import { useCashMovementForAircraft } from "@/actions/administracion/aeronaves/actions";
+import { useCreateCashMovement } from "@/actions/administracion/movimientos/actions";
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import { description } from "@/components/misc/TestChart";
 import { Button } from "@/components/ui/button";
@@ -64,6 +65,7 @@ const cash_movement_detailsSchema = z.object({
 });
 
 const movementSchema = z.object({
+  type: z.string({ message: "Debe elegir un tipo" }),
   cash_id: z.string({ required_error: "La caja es requerida" }),
   details: z
     .string({ message: "La descripción es requerida" })
@@ -89,7 +91,10 @@ const movementSchema = z.object({
     .array(cash_movement_detailsSchema)
     .min(1, { message: "Debe agregar al menos un gasto." }),
   employee_responsible_id: z.string({ message: "Debe elegir un responsable." }),
-  vendor_id: z.string({ required_error: "El beneficiario es requerido" }),
+  vendor_id: z
+    .string({ required_error: "El beneficiario es requerido" })
+    .optional(),
+  client_id: z.string().optional(),
 });
 
 const formSchema = z.object({
@@ -109,7 +114,7 @@ export default function AircraftExpensesPage() {
     },
   });
 
-  const { createCashMovementForAircraft } = useCashMovementForAircraft();
+  const { createCashMovement } = useCreateCashMovement();
   const {
     data: employees,
     mutate,
@@ -120,11 +125,6 @@ export default function AircraftExpensesPage() {
     useGetBankAccounts();
   const { data: accounts, isLoading: isAccountLoading } = useGetAccountant();
   const { data: vendors, isLoading: isVendorLoading } = useGetVendors();
-
-  // Get accountant_id from form values to fetch categories
-  const accountantId = form.watch(
-    "movements.0.cash_movement_details.0.accountant_id"
-  );
   const { data: allCategories, isLoading: isAllCategoriesLoading } =
     useGetCategory();
 
@@ -155,16 +155,12 @@ export default function AircraftExpensesPage() {
         })),
       })),
     };
-
-    // console.log(transformedData)
-    await createCashMovementForAircraft.mutateAsync({
-      id,
-      formData: transformedData,
-    });
+    await createCashMovement.mutateAsync(transformedData);
   }
 
   const addMovement = () => {
     appendMovement({
+      type: "",
       cash_id: "",
       bank_account_id: null,
       total_amount: "",
@@ -172,6 +168,7 @@ export default function AircraftExpensesPage() {
       details: "",
       employee_responsible_id: "",
       vendor_id: "",
+      client_id: "",
       cash_movement_details: [
         {
           accountant_id: "",
@@ -188,14 +185,13 @@ export default function AircraftExpensesPage() {
   };
 
   return (
-    <ContentLayout title="Registro de Gastos">
+    <ContentLayout title="Registro de Movimiento">
       <div className="space-y-6">
         <h1 className="text-5xl font-bold text-center">
-          Registro de Gastos de Aeronave
+          Registro de Movimiento
         </h1>
         <p className="text-muted-foreground text-center italic">
-          Ingrese la información para registrar los gastos asociados a la
-          aeronave.
+          Ingrese la información para registrar movimientos de caja.
         </p>
 
         <Form {...form}>
@@ -208,7 +204,7 @@ export default function AircraftExpensesPage() {
                 control={form.control}
                 name="date"
                 render={({ field }) => (
-                  <FormItem className="flex flex-col mt-1.5">
+                  <FormItem className="flex flex-col mt-1.5 text-center">
                     <FormLabel>Fecha</FormLabel>
                     <Popover>
                       <PopoverTrigger asChild>
@@ -270,7 +266,28 @@ export default function AircraftExpensesPage() {
                   >
                     <div className="flex justify-between items-center">
                       <h4 className="font-semibold text-3xl text-gray-800 dark:text-white">
-                        Movimiento {movementIndex + 1}
+                        Movimiento {movementIndex + 1}{" "}
+                        <FormField
+                          control={form.control}
+                          name={`movements.${movementIndex}.type`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Tipo</FormLabel>
+                              <Select value={field.value}>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Seleccione la caja" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="INCOME">
+                                    Ingreso
+                                  </SelectItem>
+                                  <SelectItem value="OUTPUT">Egreso</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
                       </h4>
                       {movementFields.length > 1 && (
                         <Button
@@ -285,7 +302,6 @@ export default function AircraftExpensesPage() {
                         </Button>
                       )}
                     </div>
-
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {/* Caja y Cuenta Bancaria */}
                       <div className="space-y-2">
@@ -435,39 +451,80 @@ export default function AircraftExpensesPage() {
                             </FormItem>
                           )}
                         />
+                        {
+                          <p>
+                            asdsa:{" "}
+                            {form.watch(`movements.${movementIndex}.type`)}
+                          </p>
+                        }
                       </div>
-
-                      <div className="space-y-2">
-                        <FormField
-                          control={form.control}
-                          name={`movements.${movementIndex}.vendor_id`}
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Beneficiario</FormLabel>
-                              <Select
-                                disabled={isVendorLoading}
-                                onValueChange={field.onChange}
-                                value={field.value}
-                              >
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Seleccione beneficiario" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {vendors?.map((vendor) => (
-                                    <SelectItem
-                                      key={vendor.id}
-                                      value={vendor.id.toString()}
-                                    >
-                                      {vendor.name}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </div>
+                      {form.watch(`movements.${movementIndex}.type`)}
+                      {form.watch(`movements.${movementIndex}.type`) ===
+                      "OUTPUT" ? (
+                        <div className="space-y-2">
+                          <FormField
+                            control={form.control}
+                            name={`movements.${movementIndex}.vendor_id`}
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Beneficiario</FormLabel>
+                                <Select
+                                  disabled={isVendorLoading}
+                                  onValueChange={field.onChange}
+                                  value={field.value}
+                                >
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Seleccione beneficiario" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {vendors?.map((vendor) => (
+                                      <SelectItem
+                                        key={vendor.id}
+                                        value={vendor.id.toString()}
+                                      >
+                                        {vendor.name}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                      ) : (
+                        <div className="space-y-2">
+                          <FormField
+                            control={form.control}
+                            name={`movements.${movementIndex}.client_id`}
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Cliente</FormLabel>
+                                <Select
+                                  disabled={isVendorLoading}
+                                  onValueChange={field.onChange}
+                                  value={field.value}
+                                >
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Seleccione el cliente" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {vendors?.map((vendor) => (
+                                      <SelectItem
+                                        key={vendor.id}
+                                        value={vendor.id.toString()}
+                                      >
+                                        {vendor.name}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                      )}
                       <FormField
                         control={form.control}
                         name={`movements.${movementIndex}.details`}
@@ -532,7 +589,7 @@ export default function AircraftExpensesPage() {
                             return (
                               <div
                                 key={expenseIndex}
-                                className="border p-4 rounded-lg mb-4"
+                                className="border p-4 rounded-lg mb-4 bg-white"
                               >
                                 <div className="flex justify-between items-center mb-3">
                                   <h6 className="font-medium">
@@ -753,10 +810,10 @@ export default function AircraftExpensesPage() {
 
             <Button
               type="submit"
-              disabled={createCashMovementForAircraft.isPending}
+              disabled={createCashMovement.isPending}
               className="self-end"
             >
-              {createCashMovementForAircraft.isPending ? (
+              {createCashMovement.isPending ? (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               ) : null}
               Registrar Gastos

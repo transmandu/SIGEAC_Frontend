@@ -13,6 +13,7 @@ import { useState } from "react";
 import { CreateCashMovementForm } from "../forms/CreateCashMovementForm";
 import { useRouter } from "next/navigation";
 import DateFilterUpdate from "../forms/CreateFilterDatesUpdate";
+import Link from "next/link";
 
 export function CashMovementDialog({ id }: { id?: string }) {
   const [openMovementDialog, setOpenMovementDialog] = useState(false);
@@ -37,31 +38,18 @@ export function CashMovementDialog({ id }: { id?: string }) {
     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 items-center gap-4">
       <DateFilterUpdate />
       {/*Dialogo para registrar un movimiento de caja*/}
-      <Dialog open={openMovementDialog} onOpenChange={setOpenMovementDialog}>
-        <DialogTrigger asChild>
-          <Button
-            onClick={() => setOpenMovementDialog(true)}
-            variant={"outline"}
-            className="flex items-center justify-center gap-2 h-8 border-dashed"
-          >
-            Registrar Movimiento de Caja
-          </Button>
-        </DialogTrigger>
-        <DialogContent
-          className="sm:max-w-[550px]"
-          onInteractOutside={(e) => {
-            e.preventDefault(); // Evita que el diálogo se cierre al hacer clic fuera
-          }}
+      <Link
+        href={
+          "/transmandu/administracion/gestion_cajas/movimientos/registrar_movimiento"
+        }
+      >
+        <Button
+          variant={"outline"}
+          className="flex items-center justify-center gap-2 h-8 border-dashed"
         >
-          <DialogHeader>
-            <DialogTitle>Crear un Movimiento</DialogTitle>
-            <DialogDescription>Cree un nuevo movimiento.</DialogDescription>
-          </DialogHeader>
-          <CreateCashMovementForm
-            onClose={() => setOpenMovementDialog(false)}
-          />
-        </DialogContent>
-      </Dialog>
+          Registrar Movimiento de Caja
+        </Button>
+      </Link>
 
       {/*Dialogo para ver el resumen de ingresos*/}
       <Dialog open={openActionsIncome} onOpenChange={setOpenActionsIncome}>

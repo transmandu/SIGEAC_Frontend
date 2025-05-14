@@ -414,8 +414,8 @@ const IncomeDashboard = () => {
                     <TableRow>
                       <TableHead>Fecha</TableHead>
                       <TableHead>Cliente</TableHead>
-                      <TableHead>Cuenta</TableHead>
-                      <TableHead>Categoría</TableHead>
+                       {/*    <TableHead>Cuenta</TableHead>
+                      <TableHead>Categoría</TableHead> */}
                       <TableHead className="text-right">Monto</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -428,12 +428,12 @@ const IncomeDashboard = () => {
                           })}
                         </TableCell>
                         <TableCell>{movement.client?.name || "N/A"}</TableCell>
-                        <TableCell>{movement.accountant.name}</TableCell>
+                     {/*    <TableCell>{movement.accountant.name}</TableCell>
                         <TableCell>
                           <Badge variant="outline" className="bg-primary/5">
                             {movement.category.name}
                           </Badge>
-                        </TableCell>
+                        </TableCell>  */}
                         <TableCell className="text-right font-medium text-emerald-600">
                           $
                           {(typeof movement.total_amount === "string"
