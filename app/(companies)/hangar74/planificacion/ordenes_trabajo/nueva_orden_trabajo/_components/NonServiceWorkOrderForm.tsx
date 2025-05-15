@@ -238,7 +238,7 @@ const NonServiceWorkOrderForm = () => {
                 name="authorizing"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Email</FormLabel>
+                    <FormLabel>Autorizado Por:</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger>
@@ -251,7 +251,7 @@ const NonServiceWorkOrderForm = () => {
                       </SelectContent>
                     </Select>
                     <FormDescription>
-                       
+
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
