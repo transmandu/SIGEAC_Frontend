@@ -30,6 +30,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { useGetCash } from "@/hooks/administracion/cajas/useGetCash";
+import { useGetClients } from "@/hooks/administracion/clientes/useGetClients";
 import { useGetAccountant } from "@/hooks/administracion/useGetAccountant";
 import { useGetCategory } from "@/hooks/administracion/useGetCategory";
 import { useGetEmployeesByCompany } from "@/hooks/administracion/useGetEmployees";
@@ -92,7 +93,7 @@ const movementSchema = z.object({
   vendor_id: z
     .string({ required_error: "El beneficiario es requerido" })
     .optional(),
-  client_id: z.string().optional(),
+  client_id: z.string({ required_error: "El cliente es requerido" }).optional(),
 });
 
 const formSchema = z.object({
@@ -123,6 +124,7 @@ export default function AircraftExpensesPage() {
     useGetBankAccounts();
   const { data: accounts, isLoading: isAccountLoading } = useGetAccountant();
   const { data: vendors, isLoading: isVendorLoading } = useGetVendors();
+  const { data: clients, isLoading: isClientLoading } = useGetClients();
   const { data: allCategories, isLoading: isAllCategoriesLoading } =
     useGetCategory();
 
@@ -415,8 +417,6 @@ export default function AircraftExpensesPage() {
                           )}
                         />
                       </div>
-
-                      {/* Responsable y Beneficiario */}
                       <div className="space-y-2">
                         <FormField
                           control={form.control}
@@ -486,7 +486,7 @@ export default function AircraftExpensesPage() {
                             <FormItem>
                               <FormLabel>Cliente</FormLabel>
                               <Select
-                                disabled={isVendorLoading}
+                                disabled={isClientLoading}
                                 onValueChange={field.onChange}
                                 value={field.value}
                               >
@@ -494,12 +494,12 @@ export default function AircraftExpensesPage() {
                                   <SelectValue placeholder="Seleccione el cliente" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                  {vendors?.map((vendor) => (
+                                  {clients?.map((client) => (
                                     <SelectItem
-                                      key={vendor.id}
-                                      value={vendor.id.toString()}
+                                      key={client.id}
+                                      value={client.id.toString()}
                                     >
-                                      {vendor.name}
+                                      {client.name}
                                     </SelectItem>
                                   ))}
                                 </SelectContent>
