@@ -14,7 +14,7 @@ const AircraftPage = () => {
   }
 
   return (
-    <ContentLayout title="Aviones">
+    <ContentLayout title="Aeronaves">
       {" "}
       <h1 className="text-5xl font-bold text-center mt-2">
         Control de Aeronaves

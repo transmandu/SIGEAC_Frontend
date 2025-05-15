@@ -14,16 +14,16 @@ const AdministrationArticlePage = () => {
   }
 
   return (
-    <ContentLayout title="Articulos">
+    <ContentLayout title="Artículos">
       {" "}
-      <h1 className="text-5xl font-bold text-center mt-2">Control de Articulos</h1>
+      <h1 className="text-5xl font-bold text-center mt-2">Control de Artículos</h1>
       <p className="text-sm text-muted-foreground text-center italic mt-2">
         Aquí puede llevar el control de los articulos registrados.
       </p>
       {data && <DataTable columns={columns} data={data} />}
       {isError && (
         <p className="text-muted-foreground text-sm italic text-center">
-          Ha ocurrido un error al cargar los articulos...
+          Ha ocurrido un error al cargar los artículos...
         </p>
       )}
     </ContentLayout>

@@ -14,7 +14,7 @@ const RentingPage = () => {
   }
 
   return (
-    <ContentLayout title="Renta">
+    <ContentLayout title="Arrendamiento">
       {" "}
       <h1 className="text-5xl font-bold text-center mt-2">
         Control de Arrendamientos

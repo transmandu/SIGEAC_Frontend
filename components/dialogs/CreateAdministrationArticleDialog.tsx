@@ -22,7 +22,7 @@ export function AdministrationArticleDialog() {
           variant={"outline"}
           className="flex items-center justify-center gap-2 h-8 border-dashed"
         >
-          Registrar Articulo
+          Registrar Artículo
         </Button>
       </DialogTrigger>
       <DialogContent
@@ -32,8 +32,8 @@ export function AdministrationArticleDialog() {
         }}
       >
         <DialogHeader>
-          <DialogTitle>Crear un Articulo</DialogTitle>
-          <DialogDescription>Cree una nuevo articulo.</DialogDescription>
+          <DialogTitle>Crear un Artículo</DialogTitle>
+          <DialogDescription>Cree una nuevo artículo.</DialogDescription>
         </DialogHeader>
         <CreateAdministrationArticleForm onClose={() => setOpen(false)} />
       </DialogContent>
