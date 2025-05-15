@@ -50,6 +50,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../ui/select";
+import { useRouter } from "next/navigation";
 
 //Falta añadir validaciones
 
@@ -136,7 +137,7 @@ export function CreateObligatoryReportForm({
 }: FormProps) {
   const { createObligatoryReport } = useCreateObligatoryReport();
   const { updateObligatoryReport } = useUpdateObligatoryReport();
-
+  const router = useRouter();
   const [showOtherInput, setShowOtherInput] = useState(
     initialData?.other_incidents ? true : false
   );
@@ -213,9 +214,14 @@ export function CreateObligatoryReportForm({
   });
 
   const onSubmit = async (data: FormSchemaType) => {
+    console.log(data);
     if (isEditing && initialData) {
       const value = {
         id: initialData.id,
+        image: data.image,
+        document: data.document,
+        status: initialData.status,
+        danger_identification_id : initialData.danger_identification_id,
         report_number: data.report_number,
         incident_location: data.incident_location,
         description: data.description,
@@ -259,8 +265,16 @@ export function CreateObligatoryReportForm({
         document: data.document,
         status: "ABIERTO",
       };
-
-      await createObligatoryReport.mutateAsync(value);
+      
+      try {
+        const response = await createObligatoryReport.mutateAsync(value);
+        console.log("this is a console log post await async",response);
+        router.push(
+          `/transmandu/sms/reportes_obligatorios/${response.obligatory_report_id}`
+        );
+      } catch (error) {
+        console.error("Error al crear el reporte:", error);
+      }
     }
     onClose();
   };
