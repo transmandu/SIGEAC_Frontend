@@ -43,22 +43,28 @@ interface UpdateObligatoryReportData {
   flight_destiny: string;
   flight_alt_destiny: string;
   incidents?: string[];
+  status: string;
+  danger_identification_id: string | number | null;
   other_incidents?: string;
+  image?: string | File;
+  document?: string | File;
 }
 
-
 export const useCreateObligatoryReport = () => {
-  
   const queryClient = useQueryClient();
   const createMutation = useMutation({
     mutationKey: ["obligatory-reports"],
     mutationFn: async (data: ObligatoryReportData) => {
-      await axiosInstance.post("/transmandu/sms/obligatory-reports", data, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
-      console.log("THIS IS THE DATA RSO",data);
+      const response = await axiosInstance.post(
+        "/transmandu/sms/obligatory-reports",
+        data,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+      return response.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["obligatory-reports"] });
@@ -111,9 +117,15 @@ export const useUpdateObligatoryReport = () => {
   const updateObligatoryReportMutation = useMutation({
     mutationKey: ["obligatory-reports"],
     mutationFn: async (data: UpdateObligatoryReportData) => {
-      await axiosInstance.patch(
-        `/transmandu/sms/obligatory-reports/${data.id}`,
-        data
+      console.log("antes de hacer el post",data);
+      await axiosInstance.post(
+        `/transmandu/sms/update/obligatory-reports/${data.id}`,
+        data,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
       );
     },
     onSuccess: () => {
