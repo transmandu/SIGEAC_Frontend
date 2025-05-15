@@ -23,8 +23,8 @@ import {
 } from "@/components/ui/table";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { Button } from "react-day-picker";
 import CreateObligatoryDialog from "@/components/dialogs/CreateObligatoryDialog";
+import { Button } from "@/components/ui/button";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -69,7 +69,16 @@ export function DataTable<TData, TValue>({
       </div>
 
       <div className="flex items-center py-4">
-        <CreateObligatoryDialog  title="Nuevo Reporte"/>
+        <Button
+          onClick={() => {
+            router.push(`/transmandu/sms/reportes_obligatorios/nuevo_reporte`);
+          }}
+          variant="outline"
+          size="sm"
+          className=" hidden h-8 lg:flex"
+        >
+          Nuevo Reporte
+        </Button>
         <DataTableViewOptions table={table} />
       </div>
 
