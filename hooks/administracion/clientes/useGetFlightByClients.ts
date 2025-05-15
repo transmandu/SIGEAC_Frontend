@@ -1,6 +1,45 @@
 import { useQuery } from "@tanstack/react-query";
 import axiosInstance from "@/lib/axios";
-import { Flight } from "@/types";
+
+export interface Flight {
+    id: number;
+    date: string;
+    details: string;
+    fee: string;
+    total_amount: string;
+    payed_amount: string;
+    type: string;
+    debt_status: string;
+    flight_number: string;
+    debt: number;
+    client: {
+        id: number;
+        name: string;
+        dni: string;
+        email: string;
+        phone: string;
+        address: string;
+        balance: string;
+        pay_credit_days: number;
+    };
+    route: {
+        id: number;
+        from: string;
+        to: string;
+    };
+    aircraft: {
+        id: number;
+        model: string;
+        fabricant: string;
+        serial: string;
+        acronym: string;
+        fabricant_date: string;
+        owner: string;
+        comments: string;
+        brand: string;
+        status: string;
+    };
+}
 
 // Definir la estructura de datos que devuelve el endpoint
 export interface ClientStatistics {
@@ -27,12 +66,14 @@ export interface ClientStatistics {
         total_flights: {
           [year: number]: number;
         };
+        total_debt: number;
       };
     flights: {
       [year: number]: {
         [month: string]: Flight[]
       }
     }
+    total_debt_flights: Flight[];
 }
 
 const fetchFlightsByClient = async (clientId: string): Promise<ClientStatistics> => {

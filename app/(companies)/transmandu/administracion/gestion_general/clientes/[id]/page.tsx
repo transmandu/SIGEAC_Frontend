@@ -8,6 +8,7 @@ import {
   TabsTrigger,
 } from "@/components/ui/tabs";
 import ClientStatistics from "./_components/ClientStatistics";
+import ClientDebts from "./_components/ClientDebts";
 
 export default function ClientFlightReportPage() {
   return (
@@ -20,7 +21,7 @@ export default function ClientFlightReportPage() {
         <TabsContent value="statistics">
           <ClientStatistics />
         </TabsContent>
-        <TabsContent value="debts">DEUDAS</TabsContent>
+        <TabsContent value="debts"><ClientDebts/></TabsContent>
       </Tabs>
 
     </ContentLayout>
