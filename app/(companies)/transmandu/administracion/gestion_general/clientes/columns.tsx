@@ -25,7 +25,7 @@ export const columns: ColumnDef<Client>[] = [
     ),
     meta: { title: "RIF / C.I" },
     cell: ({ row }) => (
-      <div className="flex justify-center font-bold">{row.original.dni}</div>
+      <div className="flex justify-center font-bold">{row.original.dni_type}-{row.original.dni}</div>
     ),
   },
   {
@@ -92,8 +92,8 @@ export const columns: ColumnDef<Client>[] = [
   {
     id: "actions",
     cell: ({ row }) => {
-      const id = row.original.id;
-      return <ClientDropdownActions id={row.original.id.toString()} />;
+      const client = row.original;
+      return <ClientDropdownActions client={client} />;
     },
   },
 ];

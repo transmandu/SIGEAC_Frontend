@@ -39,7 +39,7 @@ const ClientResumeDialog = ({ client }: { client: Client }) => {
               </Avatar>
               <div>
                 <CardTitle className="text-xl">{client.name}</CardTitle>
-                <p className="text-sm text-muted-foreground">{client.dni}</p>
+                <p className="text-sm text-muted-foreground">{client.dni_type}-{client.dni}</p>
               </div>
             </div>
           </CardHeader>

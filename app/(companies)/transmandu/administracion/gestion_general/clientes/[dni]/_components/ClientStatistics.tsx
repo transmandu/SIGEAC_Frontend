@@ -3,12 +3,48 @@
 import type React from "react";
 import { useParams } from "next/navigation";
 import { useState, useMemo, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, } from "@/components/ui/select";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Loader2, ArrowLeft, DollarSign, Plane, TrendingUp, CreditCard, } from "lucide-react";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, } from "@/components/ui/table";
-import { BarChart, Bar, Legend, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Cell, } from "recharts";
+import {
+  Loader2,
+  ArrowLeft,
+  DollarSign,
+  Plane,
+  TrendingUp,
+  CreditCard,
+} from "lucide-react";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  BarChart,
+  Bar,
+  Legend,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+  CartesianGrid,
+  Cell,
+} from "recharts";
 import { useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { formatCurrency } from "@/lib/utils";
@@ -16,6 +52,8 @@ import { useGetClientById } from "@/hooks/administracion/clientes/useGetClientsB
 import { useGetFlightsByClient } from "@/hooks/administracion/clientes/useGetFlightByClients";
 import months from "@/components/cards/ConfigMonths";
 import { SummaryCard } from "@/components/cards/SummaryCard";
+import { useGetClientByDni } from "@/hooks/administracion/clientes/useGetClientByDni";
+import LoadingPage from "@/components/misc/LoadingPage";
 
 const getMonthByNumber = (number: string) => {
   return months.find((m) => m.number === number);
@@ -41,11 +79,11 @@ interface CustomTooltipProps {
 
 const ClientStatistics = () => {
   const params = useParams();
-  const id = params.id as string;
+  const dni = params.dni as string;
   const router = useRouter();
-  const { data: clientDetails, isLoading, error } = useGetClientById(id);
+  const { data: clientDetails, isLoading, error } = useGetClientByDni(dni);
   const { data: clientStats, isLoading: isLoadingFlights } =
-    useGetFlightsByClient(id);
+    useGetFlightsByClient(clientDetails?.id.toString() ?? null);
   const availableYears = useMemo(() => {
     if (!clientStats?.statistics?.total_payed_annual) {
       return [new Date().getFullYear().toString()];
@@ -110,7 +148,7 @@ const ClientStatistics = () => {
   // Calcular estadísticas totales para el año seleccionado
   const totalPayed =
     clientStats?.statistics?.total_payed_annual[
-    Number.parseInt(selectedYear)
+      Number.parseInt(selectedYear)
     ] || 0;
   const totalDebt =
     clientStats?.statistics?.annual_debt[Number.parseInt(selectedYear)] || 0;
@@ -161,12 +199,8 @@ const ClientStatistics = () => {
   };
 
   // Estados de carga y error
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <Loader2 className="h-8 w-8 animate-spin" />
-      </div>
-    );
+  if (isLoading || isLoadingFlights) {
+    return <LoadingPage />;
   }
 
   if (error || !clientDetails) {
@@ -191,9 +225,7 @@ const ClientStatistics = () => {
       </div>
       {/* Encabezado */}
       <div className="space-y-3 mb-6">
-        <h1 className="text-5xl font-bold text-center">
-          Reporte de Vuelos
-        </h1>
+        <h1 className="text-5xl font-bold text-center">Reporte de Vuelos</h1>
         <p className="text-4xl text-muted-foreground text-center font-medium">
           {clientDetails?.name}
         </p>
@@ -404,8 +436,8 @@ const ClientStatistics = () => {
                         >
                           {flight.debt_status === "PENDIENTE"
                             ? formatCurrency(
-                              flight.total_amount - flight.payed_amount
-                            )
+                                flight.total_amount - flight.payed_amount
+                              )
                             : formatCurrency(0)}
                         </TableCell>
                         <TableCell
@@ -428,7 +460,7 @@ const ClientStatistics = () => {
         </Card>
       )}
     </>
-  )
-}
+  );
+};
 
-export default ClientStatistics
+export default ClientStatistics;

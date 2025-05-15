@@ -2,14 +2,8 @@
 
 import { useCreateClient } from "@/actions/administracion/clientes/actions";
 import { Button } from "@/components/ui/button";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, } from "@/components/ui/form";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -28,6 +22,9 @@ const formSchema = z.object({
     .max(11, {
       message: "El número de identificación tiene un máximo 9 caracteres.",
     }),
+  dni_type: z.string({
+    message: "Debe elegir el tipo de documento.",
+  }),
   name: z
     .string()
     .max(40)
@@ -93,12 +90,36 @@ export function CreateClientForm({ onClose }: FormProps) {
         <div className="flex gap-2 items-center justify-center">
           <FormField
             control={form.control}
+            name="dni_type"
+            render={({ field }) => (
+              <FormItem >
+                <FormLabel>Documento</FormLabel>
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="V / J" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="V">V</SelectItem>
+                    <SelectItem value="J">J</SelectItem>
+                    <SelectItem value="E">E</SelectItem>
+                  </SelectContent>
+                </Select>
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
             name="dni"
             render={({ field }) => (
               <FormItem className="w-full">
                 <FormLabel>DNI</FormLabel>
                 <FormControl>
-                  <Input placeholder="Ej: V-12345678" {...field} />
+                  <Input placeholder="Ej: 12345678" {...field} />
                 </FormControl>
                 <FormMessage className="text-xs" />
               </FormItem>

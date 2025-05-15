@@ -149,8 +149,8 @@ export const columns: ColumnDef<Aircraft>[] = [
   {
     id: "actions",
     cell: ({ row }) => {
-      const id = row.original.id;
-      return <AircraftDropdownActions id={row.original.id.toString()} />;
+      const aircraft = row.original;
+      return <AircraftDropdownActions aircraft={aircraft} />;
     },
   },
 ];

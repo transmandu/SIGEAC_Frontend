@@ -37,16 +37,16 @@ export interface AircraftStatistics {
   }
 }
 
-const fetchFlightsByAircraft = async (aircraftId: string): Promise<AircraftStatistics> => {
-  const { data } = await axiosInstance.get(`/transmandu/aircraft-statistics/${aircraftId}`);
+const fetchFlightsByAircraft = async (aircraftAcronym: string): Promise<AircraftStatistics> => {
+  const { data } = await axiosInstance.get(`/transmandu/aircraft-statistics/${aircraftAcronym}`);
   return data;
 };
 
-export const useGetAircraftStatistics = (aircraftId: string) => {
+export const useGetAircraftStatistics = (aircraftAcronym: string) => {
   return useQuery<AircraftStatistics>({
-    queryKey: ["flights", aircraftId],
-    queryFn: () => fetchFlightsByAircraft(aircraftId),
+    queryKey: ["flights", aircraftAcronym],
+    queryFn: () => fetchFlightsByAircraft(aircraftAcronym),
     staleTime: 1000 * 60 * 5, // 5 minutos
-    enabled: !!aircraftId,
+    enabled: !!aircraftAcronym,
   });
 };

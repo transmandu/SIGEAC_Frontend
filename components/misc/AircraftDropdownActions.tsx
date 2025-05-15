@@ -33,25 +33,26 @@ import { Badge } from "../ui/badge";
 import { EditAircraftForm } from "../forms/EditAircraftForm";
 import { AircraftExpensiveForm } from "../forms/AircraftExpensiveForm";
 import Link from "next/link";
+import { Aircraft } from "@/types";
+import { useGetAircraftByAcronym } from "@/hooks/administracion/useGetAircraftByAcronym";
 
-interface AircraftDropdownActionsProps {
-  id: string;
-  aircraftDetails: any;
-  handleDelete: () => void;
-}
-
-export const AircraftDropdownActions = ({ id }: { id: string }) => {
+export const AircraftDropdownActions = ({
+  aircraft,
+}: {
+  aircraft: Aircraft;
+}) => {
   const [openDelete, setOpenDelete] = useState<boolean>(false);
   const [openActions, setOpenActions] = useState<boolean>(false);
   const [openAircraft, setOpenAircraft] = useState<boolean>(false);
   const router = useRouter();
   const { deleteAircraft } = useDeleteAircraft();
-  const { data: aircraftDetails, isLoading } = useGetAircraftById(id);
   const [openEdit, setOpenEdit] = useState<boolean>(false);
   const [openForm, setOpenForm] = useState<boolean>(false);
 
   const handleViewStats = () => {
-    router.push(`/transmandu/administracion/gestion_vuelos/aviones/${id}`);
+    router.push(
+      `/transmandu/administracion/gestion_vuelos/aviones/${aircraft.acronym}`
+    );
   };
 
   const handleDelete = (id: number | string) => {
@@ -87,15 +88,20 @@ export const AircraftDropdownActions = ({ id }: { id: string }) => {
             <TrendingUp className="size-5 text-green-500" />
           </DropdownMenuItem>
           <DropdownMenuItem>
-            <Link href={`/transmandu/administracion/gestion_vuelos/aviones/${id}/registrar_gasto`}>
-              <Banknote className="size-5 text-red-500" /></Link>
+            <Link
+              href={`/transmandu/administracion/gestion_vuelos/aviones/${aircraft.acronym}/registrar_gasto`}
+            >
+              <Banknote className="size-5 text-red-500" />
+            </Link>
           </DropdownMenuItem>
           <DropdownMenuItem onClick={() => setOpenEdit(true)}>
             <EditIcon className="size-5 text-blue-500" />
           </DropdownMenuItem>
           <DropdownMenuItem
             onClick={() => {
-              router.push(`/administracion/gestion_vuelos/aviones/${id}`);
+              router.push(
+                `/administracion/gestion_vuelos/aviones/${aircraft.acronym}`
+              );
             }}
           ></DropdownMenuItem>
         </DropdownMenuContent>
@@ -128,7 +134,7 @@ export const AircraftDropdownActions = ({ id }: { id: string }) => {
             <Button
               disabled={deleteAircraft.isPending}
               className="hover:bg-white hover:text-black hover:border hover:border-black transition-all"
-              onClick={() => handleDelete(id)}
+              onClick={() => handleDelete(aircraft.id)}
             >
               {deleteAircraft.isPending ? (
                 <Loader2 className="size-4 animate-spin" />
@@ -152,145 +158,125 @@ export const AircraftDropdownActions = ({ id }: { id: string }) => {
           <DialogHeader className="text-center font-bold">
             Resumen de Aeronave
           </DialogHeader>
-          {isLoading ? (
-            <div className="flex justify-center py-4">
-              <Loader2 className="h-6 w-6 animate-spin" />
-            </div>
-          ) : aircraftDetails ? (
-            <div className="relative">
-              {/* Header con gradiente según estado */}
-              <div
-                className={`p-6 text-white rounded-t-lg ${aircraftDetails.status === "EN POSESION"
+
+          <div className="relative">
+            {/* Header con gradiente según estado */}
+            <div
+              className={`p-6 text-white rounded-t-lg ${
+                aircraft.status === "EN POSESION"
                   ? "bg-gradient-to-r from-green-600 to-emerald-500"
-                  : aircraftDetails.status === "RENTADO"
+                  : aircraft.status === "RENTADO"
                     ? "bg-gradient-to-r from-amber-500 to-yellow-500"
                     : "bg-gradient-to-r from-red-600 to-red-500"
-                  }`}
-              >
-                <div className="flex items-center gap-4">
-                  <div className="bg-white p-3 rounded-lg shadow-sm border">
-                    <PlaneIcon
-                      className={`h-10 w-10 ${aircraftDetails.status === "EN POSESION"
+              }`}
+            >
+              <div className="flex items-center gap-4">
+                <div className="bg-white p-3 rounded-lg shadow-sm border">
+                  <PlaneIcon
+                    className={`h-10 w-10 ${
+                      aircraft.status === "EN POSESION"
                         ? "text-green-600"
-                        : aircraftDetails.status === "RENTADO"
+                        : aircraft.status === "RENTADO"
                           ? "text-amber-500"
                           : "text-gray-600"
-                        }`}
-                    />
-                  </div>
-                  <div>
-                    <h2 className="text-xl font-bold">
-                      {aircraftDetails.model}
-                    </h2>
-                    <div className="flex items-center gap-3 mt-1">
-                      <Badge className="bg-white text-gray-800 hover:bg-gray-100">
-                        {aircraftDetails.acronym}
-                      </Badge>
-                      <Badge
-                        className={`text-white ${aircraftDetails.status === "EN POSESION"
+                    }`}
+                  />
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold">{aircraft.model}</h2>
+                  <div className="flex items-center gap-3 mt-1">
+                    <Badge className="bg-white text-gray-800 hover:bg-gray-100">
+                      {aircraft.acronym}
+                    </Badge>
+                    <Badge
+                      className={`text-white ${
+                        aircraft.status === "EN POSESION"
                           ? "bg-green-700 hover:bg-green-800"
-                          : aircraftDetails.status === "RENTADO"
+                          : aircraft.status === "RENTADO"
                             ? "bg-amber-600 hover:bg-amber-700"
                             : "bg-gray-700 hover:bg-gray-800"
-                          }`}
-                      >
-                        {aircraftDetails.status}
-                      </Badge>
-                    </div>
+                      }`}
+                    >
+                      {aircraft.status}
+                    </Badge>
                   </div>
                 </div>
               </div>
+            </div>
 
-              {/* Contenido principal */}
-              <div className="p-6 grid gap-6">
-                {/* Grid de información principal */}
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="bg-muted/50 p-4 rounded-lg">
-                    <h3 className="text-sm font-medium text-muted-foreground mb-1">
-                      Serial
-                    </h3>
-                    <p className="font-medium">{aircraftDetails.serial}</p>
-                  </div>
-
-                  <div className="bg-muted/50 p-4 rounded-lg">
-                    <h3 className="text-sm font-medium text-muted-foreground mb-1">
-                      Fabricante
-                    </h3>
-                    <p className="font-medium">{aircraftDetails.fabricant}</p>
-                  </div>
-
-                  <div className="bg-muted/50 p-4 rounded-lg">
-                    <h3 className="text-sm font-medium text-muted-foreground mb-1">
-                      Fecha Fabricación
-                    </h3>
-                    <p className="font-medium">
-                      {format(aircraftDetails.fabricant_date, "PPP", {
-                        locale: es,
-                      })}
-                    </p>
-                  </div>
-
-                  <div className="bg-muted/50 p-4 rounded-lg">
-                    <h3 className="text-sm font-medium text-muted-foreground mb-1">
-                      Marca
-                    </h3>
-                    <p className="font-medium">{aircraftDetails.brand}</p>
-                  </div>
-                </div>
-
-                {/* Información secundaria */}
+            {/* Contenido principal */}
+            <div className="p-6 grid gap-6">
+              {/* Grid de información principal */}
+              <div className="grid grid-cols-2 gap-4">
                 <div className="bg-muted/50 p-4 rounded-lg">
                   <h3 className="text-sm font-medium text-muted-foreground mb-1">
-                    Ubicación
+                    Serial
+                  </h3>
+                  <p className="font-medium">{aircraft.serial}</p>
+                </div>
+
+                <div className="bg-muted/50 p-4 rounded-lg">
+                  <h3 className="text-sm font-medium text-muted-foreground mb-1">
+                    Fabricante
+                  </h3>
+                  <p className="font-medium">{aircraft.fabricant}</p>
+                </div>
+
+                <div className="bg-muted/50 p-4 rounded-lg">
+                  <h3 className="text-sm font-medium text-muted-foreground mb-1">
+                    Fecha Fabricación
                   </h3>
                   <p className="font-medium">
-                    {aircraftDetails.location.address}
+                    {format(aircraft.fabricant_date, "PPP", {
+                      locale: es,
+                    })}
                   </p>
                 </div>
 
                 <div className="bg-muted/50 p-4 rounded-lg">
                   <h3 className="text-sm font-medium text-muted-foreground mb-1">
-                    Dueño
+                    Marca
                   </h3>
-                  <p className="font-medium">{aircraftDetails.owner}</p>
+                  <p className="font-medium">{aircraft.brand}</p>
                 </div>
-
-                {aircraftDetails.comments && (
-                  <div className="bg-muted/50 p-4 rounded-lg">
-                    <h3 className="text-sm font-medium text-muted-foreground mb-1">
-                      Comentarios
-                    </h3>
-                    <p className="font-medium text-justify">
-                      {aircraftDetails.comments}
-                    </p>
-                  </div>
-                )}
               </div>
 
-              <DialogFooter className="px-6 pb-6">
-                <Button
-                  onClick={() => setOpenAircraft(false)}
-                  variant="outline"
-                  className="w-full"
-                >
-                  Cerrar
-                </Button>
-              </DialogFooter>
+              {/* Información secundaria */}
+              <div className="bg-muted/50 p-4 rounded-lg">
+                <h3 className="text-sm font-medium text-muted-foreground mb-1">
+                  Ubicación
+                </h3>
+                <p className="font-medium">{aircraft.location.address}</p>
+              </div>
+
+              <div className="bg-muted/50 p-4 rounded-lg">
+                <h3 className="text-sm font-medium text-muted-foreground mb-1">
+                  Dueño
+                </h3>
+                <p className="font-medium">{aircraft.owner}</p>
+              </div>
+
+              {aircraft.comments && (
+                <div className="bg-muted/50 p-4 rounded-lg">
+                  <h3 className="text-sm font-medium text-muted-foreground mb-1">
+                    Comentarios
+                  </h3>
+                  <p className="font-medium text-justify">
+                    {aircraft.comments}
+                  </p>
+                </div>
+              )}
             </div>
-          ) : (
-            <div className="text-center py-6">
-              <p className="text-muted-foreground">
-                No se pudo cargar la información de la aeronave
-              </p>
+            <DialogFooter className="px-6 pb-6">
               <Button
                 onClick={() => setOpenAircraft(false)}
                 variant="outline"
-                className="mt-4"
+                className="w-full"
               >
                 Cerrar
               </Button>
-            </div>
-          )}
+            </DialogFooter>
+          </div>
         </DialogContent>
       </Dialog>
 
@@ -300,8 +286,7 @@ export const AircraftDropdownActions = ({ id }: { id: string }) => {
           <DialogHeader>
             <DialogTitle>Acciones</DialogTitle>
             <DialogDescription>
-              Selecciona una acción para{" "}
-              {aircraftDetails?.acronym || "esta aeronave"}
+              Selecciona una acción para {aircraft?.acronym || "esta aeronave"}
             </DialogDescription>
           </DialogHeader>
         </DialogContent>
@@ -318,7 +303,10 @@ export const AircraftDropdownActions = ({ id }: { id: string }) => {
           <DialogHeader>
             <DialogTitle>Gastos de la Aeronave</DialogTitle>
           </DialogHeader>
-          <AircraftExpensiveForm id={id} onClose={() => setOpenForm(false)} />
+          <AircraftExpensiveForm
+            id={aircraft.id.toString()}
+            onClose={() => setOpenForm(false)}
+          />
         </DialogContent>
       </Dialog>
 
@@ -332,7 +320,10 @@ export const AircraftDropdownActions = ({ id }: { id: string }) => {
           <DialogHeader>
             <DialogTitle>Editar Aerovane</DialogTitle>
           </DialogHeader>
-          <EditAircraftForm id={id} onClose={() => setOpenEdit(false)} />
+          <EditAircraftForm
+            id={aircraft.id.toString()}
+            onClose={() => setOpenEdit(false)}
+          />
         </DialogContent>
       </Dialog>
     </>

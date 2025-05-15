@@ -16,6 +16,7 @@ import { SummaryCard } from "@/components/cards/SummaryCard"
 import { formatCurrency, formatDate } from "@/lib/utils"
 import months, { getMonthByNumber } from "@/components/cards/ConfigMonths"
 import type { CashMovement } from "@/types"
+import { useGetAircraftByAcronym } from "@/hooks/administracion/useGetAircraftByAcronym"
 
 type MonthlyData = {
   name: string
@@ -38,10 +39,10 @@ interface CustomTooltipProps {
 
 export default function AircraftReportPage() {
   const params = useParams()
-  const id = params.id as string
+  const acronym = params.acronym as string
   const router = useRouter()
-  const { data: aircraftDetails, isLoading, error } = useGetAircraftById(id)
-  const { data: aircraftStats } = useGetAircraftStatistics(id)
+  const { data: aircraftDetails, isLoading, error } = useGetAircraftByAcronym(acronym)
+  const { data: aircraftStats } = useGetAircraftStatistics(acronym)
 
   // Obtener años combinados de ingresos y egresos
   const availableYears = useMemo(() => {
@@ -384,7 +385,7 @@ export default function AircraftReportPage() {
                               : "font-medium text-red-600"
                           }
                         >
-                          {formatCurrency(movement.amount)}
+                          {formatCurrency(Number(movement.total_amount))}
                         </TableCell>
                         <TableCell>{movement.cash?.name || movement.cash_id || "-"}</TableCell>
                         <TableCell>

@@ -166,6 +166,7 @@ export type Client = {
   phone: string,
   balance: number,
   pay_credit_days: number,
+  dni_type: "V" | "J" | "E",
 }
 
 export type Condition = {

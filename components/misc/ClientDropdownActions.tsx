@@ -11,18 +11,23 @@ import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Badge } from "../ui/badge";
 import { Avatar, AvatarFallback } from "../ui/avatar";
 import AddClientBalanceForm from "../forms/AddClientBalanceForm";
+import { Client } from "@/types";
 
-const ClientDropdownActions = ({ id }: { id: string }) => {
+const ClientDropdownActions = ({ client }: { client: Client }) => {
   const [openDelete, setOpenDelete] = useState<boolean>(false);
   const [openClient, setOpenClient] = useState<boolean>(false);
   const router = useRouter();
   const { deleteClient } = useDeleteClient();
-  const { data: clientDetails, isLoading } = useGetClientById(id);
+  const { data: clientDetails, isLoading } = useGetClientById(
+    client.id.toString()
+  );
   const [openEdit, setOpenEdit] = useState<boolean>(false);
   const [openAddBalance, setOpenAddBalance] = useState<boolean>(false);
 
   const handleViewStats = () => {
-    router.push(`/transmandu/administracion/gestion_general/clientes/${id}`);
+    router.push(
+      `/transmandu/administracion/gestion_general/clientes/${client.dni}`
+    );
   };
 
   const handleDelete = (id: number | string) => {
@@ -47,7 +52,7 @@ const ClientDropdownActions = ({ id }: { id: string }) => {
         <DropdownMenuContent
           align="center"
           className="flex gap-2 justify-center"
-        > 
+        >
           <DropdownMenuItem onClick={() => setOpenDelete(true)}>
             <Trash2 className="size-5 text-red-500" />
           </DropdownMenuItem>
@@ -73,7 +78,9 @@ const ClientDropdownActions = ({ id }: { id: string }) => {
           ) : null}
           <DropdownMenuItem
             onClick={() => {
-              router.push(`/administracion/gestion_general/clientes/${id}`);
+              router.push(
+                `/administracion/gestion_general/clientes/${client.id}`
+              );
             }}
           ></DropdownMenuItem>
         </DropdownMenuContent>
@@ -106,7 +113,7 @@ const ClientDropdownActions = ({ id }: { id: string }) => {
             <Button
               disabled={deleteClient.isPending}
               className="hover:bg-white hover:text-black hover:border hover:border-black transition-all"
-              onClick={() => handleDelete(id)}
+              onClick={() => handleDelete(client.id)}
             >
               {deleteClient.isPending ? (
                 <Loader2 className="size-4 animate-spin" />
@@ -124,7 +131,7 @@ const ClientDropdownActions = ({ id }: { id: string }) => {
           onInteractOutside={(e) => {
             e.preventDefault(); // Evita que el diálogo se cierre al hacer clic fuera
           }}
-          aria-describedby={undefined} 
+          aria-describedby={undefined}
           className="sm:max-w-lg"
         >
           {isLoading ? (
@@ -240,7 +247,10 @@ const ClientDropdownActions = ({ id }: { id: string }) => {
           <DialogHeader>
             <DialogTitle>Editar Cliente</DialogTitle>
           </DialogHeader>
-          <EditClientForm id={id} onClose={() => setOpenEdit(false)} />
+          <EditClientForm
+            id={client.id.toString()}
+            onClose={() => setOpenEdit(false)}
+          />
         </DialogContent>
       </Dialog>
 
@@ -255,7 +265,7 @@ const ClientDropdownActions = ({ id }: { id: string }) => {
             <DialogTitle>Registrar Saldo a Favor</DialogTitle>
           </DialogHeader>
           <AddClientBalanceForm
-            id={id}
+            id={client.id.toString()}
             onClose={() => setOpenAddBalance(false)}
           />
         </DialogContent>
