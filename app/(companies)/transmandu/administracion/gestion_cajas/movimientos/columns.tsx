@@ -38,9 +38,13 @@ export const columns: ColumnDef<CashMovement>[] = [
     ),
     meta: { title: "Cliente" },
     cell: ({ row }) => (
-      row.original.client ?
-        <ClientResumeDialog client={row.original.client} /> :
-        <span>N/A</span>
+    <div style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
+      {row.original.client ? (
+        <ClientResumeDialog client={row.original.client} />
+      ) : (
+        <span>-</span>
+      )}
+    </div>
     ),
 
   },
@@ -49,12 +53,16 @@ export const columns: ColumnDef<CashMovement>[] = [
     header: ({ column }) => (
       <DataTableColumnHeader filter column={column} title="Proveedor" />
     ),
-    meta: { title: "Proveedor" },
+     meta: { title: "Proveedor" },
     cell: ({ row }) => (
-      row.original.vendor ?
-        <VendorResumeDialog vendor={row.original.vendor} /> :
-        <span>N/A</span>
-    ),
+    <div style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
+      {row.original.vendor ? (
+        <VendorResumeDialog vendor={row.original.vendor} />
+      ) : (
+        <span>-</span>
+      )}
+    </div>
+  ),
   },
   {
     accessorKey: "cash.name",
@@ -62,7 +70,11 @@ export const columns: ColumnDef<CashMovement>[] = [
       <DataTableColumnHeader filter column={column} title="Caja" />
     ),
     meta: { title: "Caja" },
-    cell: ({ row }) => <CashResumeDialog cash={row.original.cash} />,
+    cell: ({ row }) => (
+    <div style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
+      <CashResumeDialog cash={row.original.cash} />
+    </div>
+  ),
   },
   //  {
   //    accessorKey: "accountant.name",
@@ -117,7 +129,7 @@ export const columns: ColumnDef<CashMovement>[] = [
       if (!reference) {
         return (
           <div className="flex justify-center">
-            <span className="text-muted-foreground italic">N/A</span>
+            <span className="text-muted-foreground italic">-</span>
           </div>
         );
       }

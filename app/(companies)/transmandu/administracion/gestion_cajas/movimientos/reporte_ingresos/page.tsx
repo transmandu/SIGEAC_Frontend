@@ -9,13 +9,15 @@ import { Button } from "@/components/ui/button";
 import { Loader2, ArrowLeft, DollarSign, BarChartIcon, Calendar, } from "lucide-react";
 import { addDays, format } from "date-fns";
 import { es } from "date-fns/locale";
-import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow, } from "@/components/ui/table";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, } from "@/components/ui/table";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Cell, } from "recharts";
 import { Badge } from "@/components/ui/badge";
 import type { CashMovement } from "@/types";
 import { useGetIncomeStatistics } from "@/hooks/administracion/movimientos/useGetIncomeStatistics";
 import { SummaryCard } from "@/components/cards/SummaryCard";
 import months from "@/components/cards/ConfigMonths";
+import MovementDetailsDialog from "@/components/dialogs/MovementDetailsDialog";
+import { ContentLayout } from "@/components/layout/ContentLayout";
 
 type MonthlyData = {
   name: string;
@@ -255,7 +257,7 @@ const IncomeDashboard = () => {
   }
 
   return (
-    <div className="container mx-auto py-8 px-4">
+    <ContentLayout title="Reporte de Ingresos">
       {/* Encabezado */}
       <div className="flex items-center mb-6">
         <Button
@@ -413,9 +415,9 @@ const IncomeDashboard = () => {
                   <TableHeader className="bg-muted/30">
                     <TableRow>
                       <TableHead>Fecha</TableHead>
+                      <TableHead>Caja</TableHead>
                       <TableHead>Cliente</TableHead>
-                       {/*    <TableHead>Cuenta</TableHead>
-                      <TableHead>Categoría</TableHead> */}
+                      <TableHead>Detalles</TableHead>
                       <TableHead className="text-right">Monto</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -427,13 +429,11 @@ const IncomeDashboard = () => {
                             locale: es,
                           })}
                         </TableCell>
+                        <TableCell>{movement.cash.name || "N/A"}</TableCell>
                         <TableCell>{movement.client?.name || "N/A"}</TableCell>
-                     {/*    <TableCell>{movement.accountant.name}</TableCell>
                         <TableCell>
-                          <Badge variant="outline" className="bg-primary/5">
-                            {movement.category.name}
-                          </Badge>
-                        </TableCell>  */}
+                          <MovementDetailsDialog movement={movement} />
+                        </TableCell>
                         <TableCell className="text-right font-medium text-emerald-600">
                           $
                           {(typeof movement.total_amount === "string"
@@ -448,13 +448,13 @@ const IncomeDashboard = () => {
               </div>
             ) : (
               <div className="text-center py-8 text-muted-foreground">
-                No hay movimientos registrados para este mes
+                No hay movimientos de ingresos registrados para este mes
               </div>
             )}
           </CardContent>
         </Card>
       )}
-    </div>
+    </ContentLayout>
   );
 };
 

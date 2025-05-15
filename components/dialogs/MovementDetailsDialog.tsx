@@ -1,13 +1,5 @@
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, } from "@/components/ui/dialog";
 import { Button } from "../ui/button";
-import { UserPen } from "lucide-react";
 import { CashMovement } from "@/types";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Badge } from "../ui/badge";
@@ -26,9 +18,9 @@ const MovementDetailsDialog = ({ movement }: { movement: CashMovement }) => {
       </DialogTrigger>
       <DialogContent className="sm:max-w-[550px]">
         <DialogHeader>
-          <DialogTitle>Edición de Usuario</DialogTitle>
+          <DialogTitle>Detalle de la cuenta</DialogTitle>
           <DialogDescription>
-            Ingrese sus nueva información para finalizar la edición.
+            Aqui se refleja el movimiento detallado.
           </DialogDescription>
         </DialogHeader>
         {movement.cash_movement_details.length > 0 ? (

@@ -3,54 +3,19 @@
 import type React from "react";
 import { useRouter } from "next/navigation";
 import { useState, useMemo, useEffect } from "react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import {
-  Loader2,
-  ArrowLeft,
-  DollarSign,
-  BarChartIcon,
-  Calendar,
-} from "lucide-react";
+import { Loader2, ArrowLeft, DollarSign, BarChartIcon, Calendar, } from "lucide-react";
 import { addDays, format } from "date-fns";
 import { es } from "date-fns/locale";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ResponsiveContainer,
-  CartesianGrid,
-  Cell,
-} from "recharts";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, } from "@/components/ui/table";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Cell,} from "recharts";
 import { Badge } from "@/components/ui/badge";
 import type { CashMovement } from "@/types";
 import { useGetOutputStatistics } from "@/hooks/administracion/movimientos/useGetOutputStatistics";
 import { SummaryCard } from "@/components/cards/SummaryCard";
 import months from "@/components/cards/ConfigMonths";
-import { cn } from "@/lib/utils";
 import MovementDetailsDialog from "@/components/dialogs/MovementDetailsDialog";
 import { ContentLayout } from "@/components/layout/ContentLayout";
 
@@ -292,6 +257,25 @@ const OutputDashboard = () => {
 
   return (
     <ContentLayout title="Reporte de Egresos">
+      {/* Encabezado */}
+      <div className="flex items-center mb-6">
+        <Button
+          variant="outline"
+          size="sm"
+          className="mr-4"
+          onClick={() => router.back()}
+        >
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Volver
+        </Button>
+        <div>
+          <h1 className="text-2xl font-bold">Reporte de Egresos Anuales</h1>
+          <p className="text-muted-foreground">
+            Análisis detallado de egresos
+          </p>
+        </div>
+      </div>
+
       {/* Tarjetas de resumen */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         <SummaryCard
@@ -432,8 +416,6 @@ const OutputDashboard = () => {
                       <TableHead>Fecha</TableHead>
                       <TableHead>Caja</TableHead>
                       <TableHead>Proveedor</TableHead>
-                      {/*    <TableHead>Cuenta</TableHead>
-                      <TableHead>Categoría</TableHead> */}
                       <TableHead>Detalles</TableHead>
                       <TableHead className="text-right">Monto</TableHead>
                     </TableRow>
@@ -451,12 +433,6 @@ const OutputDashboard = () => {
                         <TableCell>
                           <MovementDetailsDialog movement={movement} />
                         </TableCell>
-                        {/*  <TableCell>{movement.accountant.name}</TableCell>
-                        <TableCell>
-                          <Badge variant="outline" className="bg-primary/5">
-                            {movement.category.name}
-                          </Badge>
-                        </TableCell>*/}
                         <TableCell className="text-right font-medium text-red-600">
                           $
                           {(typeof movement.total_amount === "string"
@@ -471,7 +447,7 @@ const OutputDashboard = () => {
               </div>
             ) : (
               <div className="text-center py-8 text-muted-foreground">
-                No hay movimientos registrados para este mes
+                No hay movimientos de egresos registrados para este mes
               </div>
             )}
           </CardContent>

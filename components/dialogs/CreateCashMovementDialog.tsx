@@ -1,22 +1,13 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+import { Dialog, DialogTrigger, } from "@/components/ui/dialog";
 import { useState } from "react";
-import { CreateCashMovementForm } from "../forms/CreateCashMovementForm";
 import { useRouter } from "next/navigation";
 import DateFilterUpdate from "../forms/CreateFilterDatesUpdate";
 import Link from "next/link";
 
 export function CashMovementDialog({ id }: { id?: string }) {
-  const [openMovementDialog, setOpenMovementDialog] = useState(false);
   const [openActionsIncome, setOpenActionsIncome] = useState(false);
   const [openActionsOutput, setOpenActionsOutput] = useState(false);
 

@@ -4,29 +4,12 @@ import { useCreateCashMovement } from "@/actions/administracion/movimientos/acti
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+import { Popover, PopoverContent, PopoverTrigger, } from "@/components/ui/popover";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { useGetCash } from "@/hooks/administracion/cajas/useGetCash";
@@ -41,11 +24,12 @@ import { useCompanyStore } from "@/stores/CompanyStore";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
 import { es } from "date-fns/locale/es";
-import { CalendarIcon, Loader2, MinusCircle, PlusCircle } from "lucide-react";
+import { ArrowLeft, CalendarIcon, Loader2, MinusCircle, PlusCircle } from "lucide-react";
 import { useParams } from "next/navigation";
 import { useEffect } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
 import { z } from "zod";
+import { useRouter } from "next/navigation";
 
 // Esquemas Zod (igual que antes)
 const cash_movement_detailsSchema = z.object({
@@ -112,7 +96,7 @@ export default function AircraftExpensesPage() {
       movements: [{ cash_movement_details: [{}] }],
     },
   });
-
+  const router = useRouter();
   const { createCashMovement } = useCreateCashMovement();
   const {
     data: employees,
@@ -186,6 +170,15 @@ export default function AircraftExpensesPage() {
   return (
     <ContentLayout title="Registro de Movimiento">
       <div className="space-y-6">
+        <Button
+           variant="outline"
+           size="sm"
+           className="mr-4"
+           onClick={() => router.back()}
+        >
+           <ArrowLeft className="h-4 w-4 mr-2" />
+           Volver
+         </Button>
         <h1 className="text-5xl font-bold text-center">
           Registro de Movimiento
         </h1>
