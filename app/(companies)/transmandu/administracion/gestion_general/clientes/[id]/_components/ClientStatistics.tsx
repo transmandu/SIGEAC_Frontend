@@ -183,6 +183,12 @@ const ClientStatistics = () => {
   }
   return (
     <>
+      <div className="mb-4">
+        <Button variant="outline" size="sm" onClick={() => router.back()}>
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Volver
+        </Button>
+      </div>
       {/* Encabezado */}
       <div className="space-y-3 mb-6">
         <h1 className="text-5xl font-bold text-center">
