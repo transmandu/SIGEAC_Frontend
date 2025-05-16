@@ -1,5 +1,16 @@
 "use client";
 
+import CreateFollowUpControlDialog from "@/components/dialogs/CreateFollowUpControlDialog";
+import { DataTablePagination } from "@/components/tables/DataTablePagination";
+import { DataTableViewOptions } from "@/components/tables/DataTableViewOptions";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import {
   ColumnDef,
   ColumnFiltersState,
@@ -11,22 +22,8 @@ import {
   SortingState,
   useReactTable,
 } from "@tanstack/react-table";
-import { DataTablePagination } from "@/components/tables/DataTablePagination";
-import { DataTableViewOptions } from "@/components/tables/DataTableViewOptions";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { Button } from "react-day-picker";
-import { CreateObligatoryDialog } from "@/components/dialogs/CreateObligatoryDialog";
-import CreateFollowUpControl from "@/components/dialogs/CreateFollowUpControlDialog";
-import CreateFollowUpControlDialog from "@/components/dialogs/CreateFollowUpControlDialog";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
