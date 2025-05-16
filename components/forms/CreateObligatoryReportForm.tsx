@@ -62,29 +62,44 @@ function timeFormat(date: Date) {
 
 const FormSchema = z
   .object({
-    report_number: z.string(),
-    incident_location: z.string(),
+    report_number: z.string().refine((val) => !isNaN(Number(val)), {
+      message: "El valor debe ser un número",
+    }),
+    incident_location: z
+      .string()
+      .min(3, {
+        message: "El lugar de incidente debe tener al menos 3 caracteres",
+      })
+      .max(50, {
+        message: "El lugar de incidente no debe exceder los 50 caracteres",
+      }),
     description: z.string(),
+
     report_date: z
       .date()
-      .refine((val) => !isNaN(val.getTime()), { message: "Invalid Date" }),
+      .refine((val) => !isNaN(val.getTime()), { message: "Fecha inválida" }),
     incident_date: z
       .date()
-      .refine((val) => !isNaN(val.getTime()), { message: "Invalid Date" }),
+      .refine((val) => !isNaN(val.getTime()), { message: "Fecha inválida" }),
+
     incident_time: z
       .date()
-      .refine((val) => !isNaN(val.getTime()), { message: "Invalid Date" }),
+      .refine((val) => !isNaN(val.getTime()), { message: "Hora inválida" }),
     flight_time: z
       .date()
-      .refine((val) => !isNaN(val.getTime()), { message: "Invalid Date" }),
+      .refine((val) => !isNaN(val.getTime()), { message: "Hora inválida" }),
     pilot_id: z.string(),
     copilot_id: z.string(),
-    aircraft_acronym: z.string().min(3),
+    aircraft_acronym: z.string().min(7).max(7),
     aircraft_model: z.string().min(3),
-    flight_number: z.string().min(3),
-    flight_origin: z.string().min(3),
-    flight_destiny: z.string().min(3),
-    flight_alt_destiny: z.string().min(3),
+    flight_number: z.string().refine((val) => !isNaN(Number(val)), {
+      message: "El valor debe ser un número",
+    }),
+
+    flight_origin: z.string().min(3).max(3),
+    flight_destiny: z.string().min(3).max(3),
+    flight_alt_destiny: z.string().min(3).max(3),
+
     incidents: z.array(z.string()).optional(),
     other_incidents: z.preprocess(
       (val) => (val === null || val === undefined ? "" : val),
@@ -112,7 +127,6 @@ const FormSchema = z
     (data) => {
       const hasIncidents = data.incidents && data.incidents.length > 0;
       const hasOtherIncidents = data.other_incidents?.trim() !== "";
-
       return hasIncidents || hasOtherIncidents;
     },
     {
@@ -120,7 +134,6 @@ const FormSchema = z
       path: ["incidents"],
     }
   );
-
 type FormSchemaType = z.infer<typeof FormSchema>;
 
 interface FormProps {
@@ -221,7 +234,7 @@ export function CreateObligatoryReportForm({
         image: data.image,
         document: data.document,
         status: initialData.status,
-        danger_identification_id : initialData.danger_identification_id,
+        danger_identification_id: initialData.danger_identification_id,
         report_number: data.report_number,
         incident_location: data.incident_location,
         description: data.description,
@@ -265,10 +278,10 @@ export function CreateObligatoryReportForm({
         document: data.document,
         status: "ABIERTO",
       };
-      
+
       try {
         const response = await createObligatoryReport.mutateAsync(value);
-        console.log("this is a console log post await async",response);
+        console.log("this is a console log post await async", response);
         router.push(
           `/transmandu/sms/reportes_obligatorios/${response.obligatory_report_id}`
         );
@@ -310,7 +323,7 @@ export function CreateObligatoryReportForm({
               <FormItem>
                 <FormLabel>Codigo del Reporte</FormLabel>
                 <FormControl>
-                  <Input placeholder="RSO-123" {...field} />
+                  <Input placeholder="001" {...field} maxLength={4} />
                 </FormControl>
                 <FormMessage className="text-xs" />
               </FormItem>
@@ -324,7 +337,7 @@ export function CreateObligatoryReportForm({
               <FormItem>
                 <FormLabel>Lugar del Incidente</FormLabel>
                 <FormControl>
-                  <Input placeholder="" {...field} />
+                  <Input placeholder="" {...field} maxLength={50} />
                 </FormControl>
                 <FormMessage className="text-xs" />
               </FormItem>
@@ -348,10 +361,10 @@ export function CreateObligatoryReportForm({
         <div className="flex gap-2 items-center justify-center">
           <FormField
             control={form.control}
-            name="report_date"
+            name="incident_date"
             render={({ field }) => (
               <FormItem className="flex flex-col mt-2.5">
-                <FormLabel>Fecha de reporte del incidente</FormLabel>
+                <FormLabel>Fecha del Incidente</FormLabel>
                 <Popover>
                   <PopoverTrigger asChild>
                     <FormControl>
@@ -392,10 +405,10 @@ export function CreateObligatoryReportForm({
           />
           <FormField
             control={form.control}
-            name="incident_date"
+            name="report_date"
             render={({ field }) => (
               <FormItem className="flex flex-col mt-2.5">
-                <FormLabel>Fecha del incidente</FormLabel>
+                <FormLabel>Fecha de Reporte</FormLabel>
                 <Popover>
                   <PopoverTrigger asChild>
                     <FormControl>
@@ -496,7 +509,7 @@ export function CreateObligatoryReportForm({
           />
         </div>
 
-        <div className="flex gap-2 justify-center items-center">
+        <div className="flex gap-4 justify-center items-center">
           <FormField
             control={form.control}
             name="flight_time"
@@ -510,8 +523,13 @@ export function CreateObligatoryReportForm({
               };
 
               return (
-                <FormItem className="w-full">
-                  <FormLabel>Indicar hora de vuelo</FormLabel>
+                <FormItem className="w-full flex flex-col">
+                  {" "}
+                  {/* Cambio clave aquí */}
+                  <FormLabel className="mb-1">
+                    Indicar hora de vuelo
+                  </FormLabel>{" "}
+                  {/* Añadido mb-1 para espacio */}
                   <Popover>
                     <PopoverTrigger asChild>
                       <FormControl>
@@ -523,7 +541,7 @@ export function CreateObligatoryReportForm({
                           )}
                         >
                           {field.value ? (
-                            format(field.value, "HH:mm") // Formato 24 horas
+                            format(field.value, "HH:mm")
                           ) : (
                             <span>Seleccionar Hora</span>
                           )}
@@ -545,6 +563,7 @@ export function CreateObligatoryReportForm({
               );
             }}
           />
+
           <FormField
             control={form.control}
             name="incident_time"
@@ -558,8 +577,13 @@ export function CreateObligatoryReportForm({
               };
 
               return (
-                <FormItem className="w-full">
-                  <FormLabel>Indicar hora del incidente</FormLabel>
+                <FormItem className="w-full flex flex-col">
+                  {" "}
+                  {/* Cambio clave aquí */}
+                  <FormLabel className="mb-1">
+                    Indicar hora del incidente
+                  </FormLabel>{" "}
+                  {/* Añadido mb-1 para espacio */}
                   <Popover>
                     <PopoverTrigger asChild>
                       <FormControl>
@@ -571,7 +595,7 @@ export function CreateObligatoryReportForm({
                           )}
                         >
                           {field.value ? (
-                            format(field.value, "HH:mm") // Formato 24 horas
+                            format(field.value, "HH:mm")
                           ) : (
                             <span>Seleccionar Hora</span>
                           )}
@@ -602,7 +626,7 @@ export function CreateObligatoryReportForm({
               <FormItem className="w-full">
                 <FormLabel>Matricula de la aereonave</FormLabel>
                 <FormControl>
-                  <Input placeholder="Matricula de aereonave" {...field} />
+                  <Input placeholder="Matricula de aereonave" {...field} maxLength={7}/>
                 </FormControl>
                 <FormMessage className="text-xs" />
               </FormItem>
@@ -615,7 +639,7 @@ export function CreateObligatoryReportForm({
               <FormItem className="w-full">
                 <FormLabel>Modelo de la aereonave</FormLabel>
                 <FormControl>
-                  <Input placeholder="Modelo de aereonave" {...field} />
+                  <Input placeholder="Modelo de aereonave" {...field} maxLength={7}/>
                 </FormControl>
                 <FormMessage className="text-xs" />
               </FormItem>
@@ -630,7 +654,7 @@ export function CreateObligatoryReportForm({
               <FormItem className="w-full">
                 <FormLabel>Numero de vuelo</FormLabel>
                 <FormControl>
-                  <Input placeholder="Numero del vuelo" {...field} />
+                  <Input placeholder="Numero del vuelo" {...field} maxLength={6}/>
                 </FormControl>
                 <FormMessage className="text-xs" />
               </FormItem>
@@ -643,7 +667,11 @@ export function CreateObligatoryReportForm({
               <FormItem className="w-full">
                 <FormLabel>Origen de vuelo</FormLabel>
                 <FormControl>
-                  <Input placeholder="Salida del vuelo" {...field} />
+                  <Input
+                    placeholder="Salida del vuelo"
+                    {...field}
+                    maxLength={3}
+                  />
                 </FormControl>
                 <FormMessage className="text-xs" />
               </FormItem>
@@ -659,7 +687,11 @@ export function CreateObligatoryReportForm({
               <FormItem className="w-full">
                 <FormLabel>Destino de vuelo</FormLabel>
                 <FormControl>
-                  <Input placeholder="Destino del vuelo" {...field} />
+                  <Input
+                    placeholder="Destino del vuelo"
+                    {...field}
+                    maxLength={3}
+                  />
                 </FormControl>
                 <FormMessage className="text-xs" />
               </FormItem>
@@ -672,7 +704,11 @@ export function CreateObligatoryReportForm({
               <FormItem className="w-full">
                 <FormLabel>Destino alterno del vuelo</FormLabel>
                 <FormControl>
-                  <Input placeholder="Destino alterno del vuelo" {...field} />
+                  <Input
+                    placeholder="Destino alterno del vuelo"
+                    {...field}
+                    maxLength={3}
+                  />
                 </FormControl>
                 <FormMessage className="text-xs" />
               </FormItem>
