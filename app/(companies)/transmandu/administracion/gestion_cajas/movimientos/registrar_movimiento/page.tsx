@@ -4,12 +4,29 @@ import { useCreateCashMovement } from "@/actions/administracion/movimientos/acti
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, } from "@/components/ui/form";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Popover, PopoverContent, PopoverTrigger, } from "@/components/ui/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { useGetCash } from "@/hooks/administracion/cajas/useGetCash";
@@ -24,7 +41,13 @@ import { useCompanyStore } from "@/stores/CompanyStore";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
 import { es } from "date-fns/locale/es";
-import { ArrowLeft, CalendarIcon, Loader2, MinusCircle, PlusCircle } from "lucide-react";
+import {
+  ArrowLeft,
+  CalendarIcon,
+  Loader2,
+  MinusCircle,
+  PlusCircle,
+} from "lucide-react";
 import { useParams } from "next/navigation";
 import { useEffect } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
@@ -171,14 +194,14 @@ export default function AircraftExpensesPage() {
     <ContentLayout title="Registro de Movimiento">
       <div className="space-y-6">
         <Button
-           variant="outline"
-           size="sm"
-           className="mr-4"
-           onClick={() => router.back()}
+          variant="outline"
+          size="sm"
+          className="mr-4"
+          onClick={() => router.back()}
         >
-           <ArrowLeft className="h-4 w-4 mr-2" />
-           Volver
-         </Button>
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Volver
+        </Button>
         <h1 className="text-5xl font-bold text-center">
           Registro de Movimiento
         </h1>
@@ -265,7 +288,10 @@ export default function AircraftExpensesPage() {
                           render={({ field }) => (
                             <FormItem>
                               <FormLabel>Tipo</FormLabel>
-                              <Select onValueChange={field.onChange} value={field.value}>
+                              <Select
+                                onValueChange={field.onChange}
+                                value={field.value}
+                              >
                                 <SelectTrigger>
                                   <SelectValue placeholder="Seleccione el tipo..." />
                                 </SelectTrigger>
@@ -441,7 +467,8 @@ export default function AircraftExpensesPage() {
                           )}
                         />
                       </div>
-                      {form.watch(`movements.${movementIndex}.type`) === "OUTPUT" ? (
+                      {form.watch(`movements.${movementIndex}.type`) ===
+                      "OUTPUT" ? (
                         <FormField
                           control={form.control}
                           name={`movements.${movementIndex}.vendor_id`}
@@ -571,29 +598,29 @@ export default function AircraftExpensesPage() {
                                   {form.watch(
                                     `movements.${movementIndex}.cash_movement_details`
                                   )?.length > 1 && (
-                                      <Button
-                                        variant="ghost"
-                                        type="button"
-                                        size="sm"
-                                        onClick={() => {
-                                          const currentExpenses = form.getValues(
-                                            `movements.${movementIndex}.cash_movement_details`
+                                    <Button
+                                      variant="ghost"
+                                      type="button"
+                                      size="sm"
+                                      onClick={() => {
+                                        const currentExpenses = form.getValues(
+                                          `movements.${movementIndex}.cash_movement_details`
+                                        );
+                                        const newExpenses =
+                                          currentExpenses.filter(
+                                            (_, i) => i !== expenseIndex
                                           );
-                                          const newExpenses =
-                                            currentExpenses.filter(
-                                              (_, i) => i !== expenseIndex
-                                            );
-                                          form.setValue(
-                                            `movements.${movementIndex}.cash_movement_details`,
-                                            newExpenses
-                                          );
-                                        }}
-                                        className="text-red-500 hover:text-red-600"
-                                      >
-                                        <MinusCircle className="size-4 mr-1" />
-                                        Eliminar
-                                      </Button>
-                                    )}
+                                        form.setValue(
+                                          `movements.${movementIndex}.cash_movement_details`,
+                                          newExpenses
+                                        );
+                                      }}
+                                      className="text-red-500 hover:text-red-600"
+                                    >
+                                      <MinusCircle className="size-4 mr-1" />
+                                      Eliminar
+                                    </Button>
+                                  )}
                                 </div>
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -682,7 +709,7 @@ export default function AircraftExpensesPage() {
                                                       : isAllCategoriesLoading
                                                         ? "Cargando..."
                                                         : filteredCategories.length ===
-                                                          0
+                                                            0
                                                           ? "No hay categorías"
                                                           : "Seleccione categoría"
                                                   }

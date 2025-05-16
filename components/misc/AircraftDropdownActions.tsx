@@ -303,7 +303,7 @@ export const AircraftDropdownActions = ({
             <DialogTitle>Gastos de la Aeronave</DialogTitle>
           </DialogHeader>
           <AircraftExpensiveForm
-            id={aircraft.id.toString()}
+            acronym="acronym"
             onClose={() => setOpenForm(false)}
           />
         </DialogContent>

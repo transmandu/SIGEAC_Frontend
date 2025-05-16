@@ -100,7 +100,7 @@ const formSchema = z.object({
 });
 
 export default function AircraftExpensesPage() {
-  const { id } = useParams<{ id: string }>();
+  const { acronym } = useParams<{ acronym: string }>();
   const { selectedCompany } = useCompanyStore();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -158,7 +158,7 @@ export default function AircraftExpensesPage() {
 
     // console.log(transformedData)
     await createCashMovementForAircraft.mutateAsync({
-      id,
+      acronym,
       formData: transformedData,
     });
   }

@@ -1,30 +1,47 @@
-"use client"
+"use client";
 
-import { Button } from "@/components/ui/button"
-import { Calendar } from "@/components/ui/calendar"
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { useGetCash } from "@/hooks/administracion/cajas/useGetCash"
-import { useGetEmployeesByCompany } from "@/hooks/administracion/useGetEmployees"
-import { cn } from "@/lib/utils"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { format } from "date-fns"
-import { es } from "date-fns/locale/es"
-import { CalendarIcon, PlusCircle, MinusCircle } from "lucide-react"
-import { useForm, useFieldArray } from "react-hook-form"
-import { z } from "zod"
-import { useGetBankAccounts } from "@/hooks/ajustes/cuentas/useGetBankAccounts"
-import { Loader2 } from "lucide-react"
-import { useEffect } from "react"
-import { useCashMovementForAircraft } from "@/actions/administracion/aeronaves/actions"
-import { Label } from "../ui/label"
-import { useGetAccountant } from "@/hooks/administracion/useGetAccountant"
-import { useGetCategoriesByAccountant } from "@/hooks/administracion/useGetCategoriesByAcountant"
-import { useGetVendors } from "@/hooks/ajustes/globales/proveedores/useGetVendors"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { Separator } from "../ui/separator"
+import { useCashMovementForAircraft } from "@/actions/administracion/aeronaves/actions";
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useGetCash } from "@/hooks/administracion/cajas/useGetCash";
+import { useGetAccountant } from "@/hooks/administracion/useGetAccountant";
+import { useGetCategoriesByAccountant } from "@/hooks/administracion/useGetCategoriesByAcountant";
+import { useGetEmployeesByCompany } from "@/hooks/administracion/useGetEmployees";
+import { useGetBankAccounts } from "@/hooks/ajustes/cuentas/useGetBankAccounts";
+import { useGetVendors } from "@/hooks/ajustes/globales/proveedores/useGetVendors";
+import { cn } from "@/lib/utils";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { format } from "date-fns";
+import { es } from "date-fns/locale/es";
+import { CalendarIcon, Loader2, MinusCircle, PlusCircle } from "lucide-react";
+import { useEffect } from "react";
+import { useFieldArray, useForm } from "react-hook-form";
+import { z } from "zod";
+import { Label } from "../ui/label";
+import { Separator } from "../ui/separator";
+import { Textarea } from "../ui/textarea";
 
 // Esquema para los gastos
 const cash_movement_detailsSchema = z.object({
@@ -39,31 +56,37 @@ const cash_movement_detailsSchema = z.object({
   }),
   amount: z.string().refine(
     (val) => {
-      const number = Number.parseFloat(val)
-      return !isNaN(number) && number > 0
+      const number = Number.parseFloat(val);
+      return !isNaN(number) && number > 0;
     },
     {
       message: "El monto debe ser mayor a cero.",
-    },
+    }
   ),
-})
+});
 
 // Esquema para los movimientos
 const movementSchema = z.object({
   cash_id: z.string({
     required_error: "La caja es requerida",
   }),
-  bank_account_id: z.union([z.string().min(1, { message: "Debe seleccionar una cuenta válida" }), z.null()]).optional(),
+  details: z.string(),
+  bank_account_id: z
+    .union([
+      z.string().min(1, { message: "Debe seleccionar una cuenta válida" }),
+      z.null(),
+    ])
+    .optional(),
   total_amount: z.string().refine(
     (val) => {
-      const number = Number.parseFloat(val)
-      return !isNaN(number) && number > 0
+      const number = Number.parseFloat(val);
+      return !isNaN(number) && number > 0;
     },
     {
       message: "El monto total debe ser mayor a cero.",
-    },
+    }
   ),
-  reference: z
+  reference_cod: z
     .string()
     .min(2, {
       message: "La referencia debe tener al menos 2 caracteres.",
@@ -80,7 +103,7 @@ const movementSchema = z.object({
   vendor_id: z.string({
     required_error: "El beneficiario es requerido",
   }),
-})
+});
 
 // Esquema principal del formulario
 const formSchema = z.object({
@@ -90,14 +113,14 @@ const formSchema = z.object({
   movements: z.array(movementSchema).min(1, {
     message: "Debe agregar al menos un movimiento.",
   }),
-})
+});
 
 interface FormProps {
-  onClose: () => void
-  id: string
+  onClose: () => void;
+  acronym: string;
 }
 
-export function AircraftExpensiveForm({ id, onClose }: FormProps) {
+export function AircraftExpensiveForm({ acronym, onClose }: FormProps) {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -107,18 +130,26 @@ export function AircraftExpensiveForm({ id, onClose }: FormProps) {
         },
       ],
     },
-  })
+  });
 
-  const { createCashMovementForAircraft } = useCashMovementForAircraft()
-  const { data: employees, mutate, isPending: isEmployeesLoading } = useGetEmployeesByCompany()
-  const { data: cashes, isLoading: isCashesLoading } = useGetCash()
-  const { data: bankaccounts, isLoading: isBankAccLoading } = useGetBankAccounts()
-  const { data: accounts, isLoading: isAccountLoading } = useGetAccountant()
-  const { data: vendors, isLoading: isVendorLoading } = useGetVendors()
+  const { createCashMovementForAircraft } = useCashMovementForAircraft();
+  const {
+    data: employees,
+    mutate,
+    isPending: isEmployeesLoading,
+  } = useGetEmployeesByCompany();
+  const { data: cashes, isLoading: isCashesLoading } = useGetCash();
+  const { data: bankaccounts, isLoading: isBankAccLoading } =
+    useGetBankAccounts();
+  const { data: accounts, isLoading: isAccountLoading } = useGetAccountant();
+  const { data: vendors, isLoading: isVendorLoading } = useGetVendors();
 
   // Get accountant_id from form values to fetch categories
-  const accountantId = form.watch("movements.0.cash_movement_details.0.accountant_id")
-  const { data: categories, isLoading: isCategoryLoading } = useGetCategoriesByAccountant(accountantId || "")
+  const accountantId = form.watch(
+    "movements.0.cash_movement_details.0.accountant_id"
+  );
+  const { data: categories, isLoading: isCategoryLoading } =
+    useGetCategoriesByAccountant(accountantId || "");
 
   const {
     fields: movementFields,
@@ -127,29 +158,29 @@ export function AircraftExpensiveForm({ id, onClose }: FormProps) {
   } = useFieldArray({
     control: form.control,
     name: "movements",
-  })
+  });
 
   useEffect(() => {
-    mutate("transmandu")
-  }, [mutate])
+    mutate("transmandu");
+  }, [mutate]);
 
   async function onSubmit(formData: z.infer<typeof formSchema>) {
     interface AircraftExpenseFormData {
-      date: Date
+      date: Date;
       movements: {
-        cash_id: string
-        bank_account_id?: string | null
-        total_amount: number
-        reference: string
-        employee_responsible_id: string
-        vendor_id: string
+        cash_id: string;
+        bank_account_id?: string | null;
+        total_amount: number;
+        reference_cod: string;
+        employee_responsible_id: string;
+        vendor_id: string;
         cash_movement_details: {
-          accountant_id: string
-          category_id: string
-          details: string
-          amount: number
-        }[]
-      }[]
+          accountant_id: string;
+          category_id: string;
+          details: string;
+          amount: number;
+        }[];
+      }[];
     }
 
     const transformedData = {
@@ -157,29 +188,32 @@ export function AircraftExpensiveForm({ id, onClose }: FormProps) {
       movements: formData.movements.map((movement) => ({
         ...movement,
         total_amount: Number.parseFloat(movement.total_amount),
-        cash_movement_details: movement.cash_movement_details.map((cash_movement_details) => ({
-          ...cash_movement_details,
-          amount: Number.parseFloat(cash_movement_details.amount),
-        })),
+        cash_movement_details: movement.cash_movement_details.map(
+          (cash_movement_details) => ({
+            ...cash_movement_details,
+            amount: Number.parseFloat(cash_movement_details.amount),
+          })
+        ),
       })),
-    }
+    };
 
     createCashMovementForAircraft.mutate(
-      { id, formData: transformedData },
+      { acronym, formData: transformedData },
       {
         onSuccess: () => {
-          onClose()
+          onClose();
         },
-      },
-    )
+      }
+    );
   }
 
   const addMovement = () => {
     appendMovement({
+      details: "",
       cash_id: "",
       bank_account_id: null,
       total_amount: "",
-      reference: "",
+      reference_cod: "",
       employee_responsible_id: "",
       vendor_id: "",
       cash_movement_details: [
@@ -190,17 +224,20 @@ export function AircraftExpensiveForm({ id, onClose }: FormProps) {
           amount: "",
         },
       ],
-    })
-    console.log(appendMovement)
-  }
+    });
+    console.log(appendMovement);
+  };
 
   const removeMovementField = (index: number) => {
-    removeMovement(index)
-  }
+    removeMovement(index);
+  };
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col space-y-3">
+      <form
+        onSubmit={form.handleSubmit(onSubmit)}
+        className="flex flex-col space-y-3"
+      >
         <div className="flex gap-2 items-center justify-center">
           <FormField
             control={form.control}
@@ -213,7 +250,10 @@ export function AircraftExpensiveForm({ id, onClose }: FormProps) {
                     <FormControl>
                       <Button
                         variant={"outline"}
-                        className={cn("w-[240px] pl-3 text-left font-normal", !field.value && "text-muted-foreground")}
+                        className={cn(
+                          "w-[240px] pl-3 text-left font-normal",
+                          !field.value && "text-muted-foreground"
+                        )}
                       >
                         {field.value ? (
                           format(field.value, "PPP", {
@@ -231,14 +271,19 @@ export function AircraftExpensiveForm({ id, onClose }: FormProps) {
                       mode="single"
                       selected={field.value ? new Date(field.value) : undefined}
                       onSelect={field.onChange}
-                      disabled={(date) => date > new Date() || date < new Date("1999-07-21")}
+                      disabled={(date) =>
+                        date > new Date() || date < new Date("1999-07-21")
+                      }
                       initialFocus
                       fromYear={1980}
                       toYear={new Date().getFullYear()}
                       captionLayout="dropdown-buttons"
                       components={{
                         Dropdown: (props) => (
-                          <select {...props} className="bg-popover text-popover-foreground">
+                          <select
+                            {...props}
+                            className="bg-popover text-popover-foreground"
+                          >
                             {props.children}
                           </select>
                         ),
@@ -264,9 +309,14 @@ export function AircraftExpensiveForm({ id, onClose }: FormProps) {
 
           <ScrollArea className="h-[550px]" scrollHideDelay={0}>
             {movementFields.map((movement, movementIndex) => (
-              <div key={movement.id} className="border p-4 rounded-lg space-y-4 mb-4">
+              <div
+                key={movement.id}
+                className="border p-4 rounded-lg space-y-4 mb-4"
+              >
                 <div className="flex justify-between items-center">
-                  <h4 className="font-medium">Movimiento {movementIndex + 1}</h4>
+                  <h4 className="font-medium">
+                    Movimiento {movementIndex + 1}
+                  </h4>
                   {movementFields.length > 1 && (
                     <MinusCircle
                       className="size-4 cursor-pointer hover:scale-125 transition-all ease-in duration-100 text-red-500"
@@ -281,7 +331,11 @@ export function AircraftExpensiveForm({ id, onClose }: FormProps) {
                     render={({ field }) => (
                       <FormItem className="w-full">
                         <FormLabel>Caja</FormLabel>
-                        <Select disabled={isCashesLoading} onValueChange={field.onChange} defaultValue={field.value}>
+                        <Select
+                          disabled={isCashesLoading}
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                        >
                           <FormControl>
                             <SelectTrigger>
                               <SelectValue placeholder="Seleccione la caja" />
@@ -290,7 +344,10 @@ export function AircraftExpensiveForm({ id, onClose }: FormProps) {
                           <SelectContent>
                             {cashes &&
                               cashes.map((cash) => (
-                                <SelectItem key={cash.id} value={cash.id.toString()}>
+                                <SelectItem
+                                  key={cash.id}
+                                  value={cash.id.toString()}
+                                >
                                   {cash.name}
                                 </SelectItem>
                               ))}
@@ -301,10 +358,14 @@ export function AircraftExpensiveForm({ id, onClose }: FormProps) {
                     )}
                   />
                   {(() => {
-                    const selectedCashId = form.watch(`movements.${movementIndex}.cash_id`)
-                    const selectedCash = cashes?.find((cash) => cash.id.toString() === selectedCashId)
+                    const selectedCashId = form.watch(
+                      `movements.${movementIndex}.cash_id`
+                    );
+                    const selectedCash = cashes?.find(
+                      (cash) => cash.id.toString() === selectedCashId
+                    );
                     if (selectedCash?.type === "EFECTIVO") {
-                      return null
+                      return null;
                     }
                     return (
                       <FormField
@@ -316,7 +377,9 @@ export function AircraftExpensiveForm({ id, onClose }: FormProps) {
                             <Select
                               disabled={isBankAccLoading}
                               onValueChange={field.onChange}
-                              defaultValue={field.value === null ? "" : field.value}
+                              defaultValue={
+                                field.value === null ? "" : field.value
+                              }
                             >
                               <FormControl>
                                 <SelectTrigger>
@@ -334,7 +397,10 @@ export function AircraftExpensiveForm({ id, onClose }: FormProps) {
                               <SelectContent>
                                 {bankaccounts &&
                                   bankaccounts.map((acc) => (
-                                    <SelectItem value={acc.id.toString()} key={acc.id}>
+                                    <SelectItem
+                                      value={acc.id.toString()}
+                                      key={acc.id}
+                                    >
                                       {acc.name} - {acc.bank.name}
                                     </SelectItem>
                                   ))}
@@ -344,7 +410,7 @@ export function AircraftExpensiveForm({ id, onClose }: FormProps) {
                           </FormItem>
                         )}
                       />
-                    )
+                    );
                   })()}
                 </div>
                 <div className="flex gap-2 items-center justify-center">
@@ -360,20 +426,20 @@ export function AircraftExpensiveForm({ id, onClose }: FormProps) {
                             {...field}
                             onChange={(e) => {
                               // Validar que solo se ingresen números y un punto decimal
-                              const value = e.target.value
-                              const regex = /^(\d+)?([.]?\d{0,2})?$/
+                              const value = e.target.value;
+                              const regex = /^(\d+)?([.]?\d{0,2})?$/;
 
                               if (value === "" || regex.test(value)) {
-                                field.onChange(value)
+                                field.onChange(value);
                               }
                             }}
                             onBlur={(e) => {
                               // Formatear el valor al salir del input
-                              const value = e.target.value
+                              const value = e.target.value;
                               if (value) {
-                                const number = Number.parseFloat(value)
+                                const number = Number.parseFloat(value);
                                 if (!isNaN(number)) {
-                                  field.onChange(number.toFixed(2))
+                                  field.onChange(number.toFixed(2));
                                 }
                               }
                             }}
@@ -385,7 +451,7 @@ export function AircraftExpensiveForm({ id, onClose }: FormProps) {
                   />
                   <FormField
                     control={form.control}
-                    name={`movements.${movementIndex}.reference`}
+                    name={`movements.${movementIndex}.reference_cod`}
                     render={({ field }) => (
                       <FormItem className="w-full">
                         <FormLabel>Referencia</FormLabel>
@@ -404,7 +470,11 @@ export function AircraftExpensiveForm({ id, onClose }: FormProps) {
                     render={({ field }) => (
                       <FormItem className="w-full flex flex-col space-y-3 mt-1.5">
                         <FormLabel>Responsable</FormLabel>
-                        <Select disabled={isEmployeesLoading} onValueChange={field.onChange} defaultValue={field.value}>
+                        <Select
+                          disabled={isEmployeesLoading}
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                        >
                           <FormControl>
                             <SelectTrigger>
                               <SelectValue placeholder="Seleccione el responsable" />
@@ -413,7 +483,10 @@ export function AircraftExpensiveForm({ id, onClose }: FormProps) {
                           <SelectContent>
                             {employees &&
                               employees.map((employee) => (
-                                <SelectItem key={employee.id} value={employee.id.toString()}>
+                                <SelectItem
+                                  key={employee.id}
+                                  value={employee.id.toString()}
+                                >
                                   {employee.first_name} {employee.last_name}
                                 </SelectItem>
                               ))}
@@ -429,7 +502,11 @@ export function AircraftExpensiveForm({ id, onClose }: FormProps) {
                     render={({ field }) => (
                       <FormItem className="w-full flex flex-col space-y-3">
                         <FormLabel>Beneficiario</FormLabel>
-                        <Select disabled={isVendorLoading} onValueChange={field.onChange} defaultValue={field.value}>
+                        <Select
+                          disabled={isVendorLoading}
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                        >
                           <FormControl>
                             <SelectTrigger>
                               <SelectValue placeholder="Seleccione el beneficiario" />
@@ -438,12 +515,32 @@ export function AircraftExpensiveForm({ id, onClose }: FormProps) {
                           <SelectContent>
                             {vendors &&
                               vendors.map((vendor) => (
-                                <SelectItem key={vendor.id} value={vendor.id.toString()}>
+                                <SelectItem
+                                  key={vendor.id}
+                                  value={vendor.id.toString()}
+                                >
                                   {vendor.name}
                                 </SelectItem>
                               ))}
                           </SelectContent>
                         </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name={`movements.${movementIndex}.details`}
+                    render={({ field }) => (
+                      <FormItem className="col-span-2">
+                        <FormLabel>Descripción</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder="Agregue una descripción del movimiento..."
+                            className="resize-none"
+                            {...field}
+                          />
+                        </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -455,154 +552,188 @@ export function AircraftExpensiveForm({ id, onClose }: FormProps) {
                   <h5 className="font-medium">Gastos</h5>
 
                   <ScrollArea className="h-[200px]" scrollHideDelay={0}>
-                    {form.watch(`movements.${movementIndex}.cash_movement_details`)?.map((cash_movement_details, expenseIndex) => {
-                      // Get the current accountant_id for this cash_movement_details to filter categories
-                      const currentAccountantId = form.watch(
-                        `movements.${movementIndex}.cash_movement_details.${expenseIndex}.accountant_id`,
-                      )
+                    {form
+                      .watch(`movements.${movementIndex}.cash_movement_details`)
+                      ?.map((cash_movement_details, expenseIndex) => {
+                        // Get the current accountant_id for this cash_movement_details to filter categories
+                        const currentAccountantId = form.watch(
+                          `movements.${movementIndex}.cash_movement_details.${expenseIndex}.accountant_id`
+                        );
 
-                      return (
-                        <div key={expenseIndex} className="border p-4 rounded-lg space-y-2 mb-4">
-                          <div className="flex justify-between items-center">
-                            <h6 className="font-medium">Gasto {expenseIndex + 1}</h6>
-                            {form.watch(`movements.${movementIndex}.cash_movement_details`)?.length > 1 && (
-                              <MinusCircle
-                                className="size-4 cursor-pointer hover:scale-125 transition-all ease-in duration-100 text-red-500"
-                                onClick={() => {
-                                  const currentExpenses = form.getValues(`movements.${movementIndex}.cash_movement_details`)
-                                  const newExpenses = currentExpenses.filter((_, i) => i !== expenseIndex)
-                                  form.setValue(`movements.${movementIndex}.cash_movement_details`, newExpenses)
-                                }}
-                              />
-                            )}
-                          </div>
-
-                          <div className="flex gap-2 items-center justify-center">
-                            <FormField
-                              control={form.control}
-                              name={`movements.${movementIndex}.cash_movement_details.${expenseIndex}.accountant_id`}
-                              render={({ field }) => (
-                                <FormItem className="w-full">
-                                  <FormLabel>Cuenta</FormLabel>
-                                  <Select
-                                    onValueChange={(value) => {
-                                      field.onChange(value)
-                                      // Reset category when accountant changes
-                                      form.setValue(
-                                        `movements.${movementIndex}.cash_movement_details.${expenseIndex}.category_id`,
-                                        "",
-                                      )
-                                    }}
-                                    value={field.value}
-                                  >
-                                    <FormControl>
-                                      <SelectTrigger>
-                                        <SelectValue placeholder="Seleccione una cuenta" />
-                                      </SelectTrigger>
-                                    </FormControl>
-                                    <SelectContent>
-                                      {accounts?.map((account) => (
-                                        <SelectItem key={account.id} value={account.id.toString()}>
-                                          {account.name}
-                                        </SelectItem>
-                                      ))}
-                                    </SelectContent>
-                                  </Select>
-                                  <FormMessage />
-                                </FormItem>
+                        return (
+                          <div
+                            key={expenseIndex}
+                            className="border p-4 rounded-lg space-y-2 mb-4"
+                          >
+                            <div className="flex justify-between items-center">
+                              <h6 className="font-medium">
+                                Gasto {expenseIndex + 1}
+                              </h6>
+                              {form.watch(
+                                `movements.${movementIndex}.cash_movement_details`
+                              )?.length > 1 && (
+                                <MinusCircle
+                                  className="size-4 cursor-pointer hover:scale-125 transition-all ease-in duration-100 text-red-500"
+                                  onClick={() => {
+                                    const currentExpenses = form.getValues(
+                                      `movements.${movementIndex}.cash_movement_details`
+                                    );
+                                    const newExpenses = currentExpenses.filter(
+                                      (_, i) => i !== expenseIndex
+                                    );
+                                    form.setValue(
+                                      `movements.${movementIndex}.cash_movement_details`,
+                                      newExpenses
+                                    );
+                                  }}
+                                />
                               )}
-                            />
-                            <FormField
-                              control={form.control}
-                              name={`movements.${movementIndex}.cash_movement_details.${expenseIndex}.category_id`}
-                              render={({ field }) => (
-                                <FormItem className="w-full">
-                                  <FormLabel>Categoría</FormLabel>
-                                  <Select
-                                    onValueChange={field.onChange}
-                                    value={field.value}
-                                    disabled={!currentAccountantId}
-                                  >
-                                    <FormControl>
-                                      <SelectTrigger>
-                                        <SelectValue
-                                          placeholder={
-                                            !currentAccountantId ? "Seleccione cuenta primero" : "Seleccione categoría"
-                                          }
-                                        />
-                                      </SelectTrigger>
-                                    </FormControl>
-                                    <SelectContent>
-                                      {categories
-                                        ?.filter(
-                                          (category) => category.accountant.id.toString() === currentAccountantId,
-                                        )
-                                        ?.map((category) => (
-                                          <SelectItem key={category.id} value={category.id.toString()}>
-                                            {category.name}
+                            </div>
+
+                            <div className="flex gap-2 items-center justify-center">
+                              <FormField
+                                control={form.control}
+                                name={`movements.${movementIndex}.cash_movement_details.${expenseIndex}.accountant_id`}
+                                render={({ field }) => (
+                                  <FormItem className="w-full">
+                                    <FormLabel>Cuenta</FormLabel>
+                                    <Select
+                                      onValueChange={(value) => {
+                                        field.onChange(value);
+                                        // Reset category when accountant changes
+                                        form.setValue(
+                                          `movements.${movementIndex}.cash_movement_details.${expenseIndex}.category_id`,
+                                          ""
+                                        );
+                                      }}
+                                      value={field.value}
+                                    >
+                                      <FormControl>
+                                        <SelectTrigger>
+                                          <SelectValue placeholder="Seleccione una cuenta" />
+                                        </SelectTrigger>
+                                      </FormControl>
+                                      <SelectContent>
+                                        {accounts?.map((account) => (
+                                          <SelectItem
+                                            key={account.id}
+                                            value={account.id.toString()}
+                                          >
+                                            {account.name}
                                           </SelectItem>
                                         ))}
-                                    </SelectContent>
-                                  </Select>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
-                          </div>
-                          <div className="flex gap-2 items-center justify-center">
-                            <FormField
-                              control={form.control}
-                              name={`movements.${movementIndex}.cash_movement_details.${expenseIndex}.details`}
-                              render={({ field }) => (
-                                <FormItem className="w-full">
-                                  <FormLabel>Detalle</FormLabel>
-                                  <FormControl>
-                                    <Input placeholder="Ingrese detalle" {...field} />
-                                  </FormControl>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
+                                      </SelectContent>
+                                    </Select>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                              <FormField
+                                control={form.control}
+                                name={`movements.${movementIndex}.cash_movement_details.${expenseIndex}.category_id`}
+                                render={({ field }) => (
+                                  <FormItem className="w-full">
+                                    <FormLabel>Categoría</FormLabel>
+                                    <Select
+                                      onValueChange={field.onChange}
+                                      value={field.value}
+                                      disabled={!currentAccountantId}
+                                    >
+                                      <FormControl>
+                                        <SelectTrigger>
+                                          <SelectValue
+                                            placeholder={
+                                              !currentAccountantId
+                                                ? "Seleccione cuenta primero"
+                                                : "Seleccione categoría"
+                                            }
+                                          />
+                                        </SelectTrigger>
+                                      </FormControl>
+                                      <SelectContent>
+                                        {categories
+                                          ?.filter(
+                                            (category) =>
+                                              category.accountant.id.toString() ===
+                                              currentAccountantId
+                                          )
+                                          ?.map((category) => (
+                                            <SelectItem
+                                              key={category.id}
+                                              value={category.id.toString()}
+                                            >
+                                              {category.name}
+                                            </SelectItem>
+                                          ))}
+                                      </SelectContent>
+                                    </Select>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                            </div>
+                            <div className="flex gap-2 items-center justify-center">
+                              <FormField
+                                control={form.control}
+                                name={`movements.${movementIndex}.cash_movement_details.${expenseIndex}.details`}
+                                render={({ field }) => (
+                                  <FormItem className="w-full">
+                                    <FormLabel>Detalle</FormLabel>
+                                    <FormControl>
+                                      <Input
+                                        placeholder="Ingrese detalle"
+                                        {...field}
+                                      />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
 
-                            <FormField
-                              control={form.control}
-                              name={`movements.${movementIndex}.cash_movement_details.${expenseIndex}.amount`}
-                              render={({ field }) => (
-                                <FormItem className="w-full">
-                                  <FormLabel>Monto</FormLabel>
-                                  <FormControl>
-                                    <Input
-                                      placeholder="0.00"
-                                      {...field}
-                                      onChange={(e) => {
-                                        // Validar que solo se ingresen números y un punto decimal
-                                        const value = e.target.value
-                                        const regex = /^(\d+)?([.]?\d{0,2})?$/
+                              <FormField
+                                control={form.control}
+                                name={`movements.${movementIndex}.cash_movement_details.${expenseIndex}.amount`}
+                                render={({ field }) => (
+                                  <FormItem className="w-full">
+                                    <FormLabel>Monto</FormLabel>
+                                    <FormControl>
+                                      <Input
+                                        placeholder="0.00"
+                                        {...field}
+                                        onChange={(e) => {
+                                          // Validar que solo se ingresen números y un punto decimal
+                                          const value = e.target.value;
+                                          const regex =
+                                            /^(\d+)?([.]?\d{0,2})?$/;
 
-                                        if (value === "" || regex.test(value)) {
-                                          field.onChange(value)
-                                        }
-                                      }}
-                                      onBlur={(e) => {
-                                        // Formatear el valor al salir del input
-                                        const value = e.target.value
-                                        if (value) {
-                                          const number = Number.parseFloat(value)
-                                          if (!isNaN(number)) {
-                                            field.onChange(number.toFixed(2))
+                                          if (
+                                            value === "" ||
+                                            regex.test(value)
+                                          ) {
+                                            field.onChange(value);
                                           }
-                                        }
-                                      }}
-                                    />
-                                  </FormControl>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
+                                        }}
+                                        onBlur={(e) => {
+                                          // Formatear el valor al salir del input
+                                          const value = e.target.value;
+                                          if (value) {
+                                            const number =
+                                              Number.parseFloat(value);
+                                            if (!isNaN(number)) {
+                                              field.onChange(number.toFixed(2));
+                                            }
+                                          }
+                                        }}
+                                      />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                            </div>
                           </div>
-                        </div>
-                      )
-                    })}
+                        );
+                      })}
                   </ScrollArea>
 
                   <Button
@@ -610,16 +741,22 @@ export function AircraftExpensiveForm({ id, onClose }: FormProps) {
                     variant="outline"
                     size="sm"
                     onClick={() => {
-                      const currentExpenses = form.getValues(`movements.${movementIndex}.cash_movement_details`) || []
-                      form.setValue(`movements.${movementIndex}.cash_movement_details`, [
-                        ...currentExpenses,
-                        {
-                          accountant_id: "",
-                          category_id: "",
-                          details: "",
-                          amount: "",
-                        },
-                      ])
+                      const currentExpenses =
+                        form.getValues(
+                          `movements.${movementIndex}.cash_movement_details`
+                        ) || [];
+                      form.setValue(
+                        `movements.${movementIndex}.cash_movement_details`,
+                        [
+                          ...currentExpenses,
+                          {
+                            accountant_id: "",
+                            category_id: "",
+                            details: "",
+                            amount: "",
+                          },
+                        ]
+                      );
                     }}
                     className="mt-2"
                   >
@@ -633,10 +770,13 @@ export function AircraftExpensiveForm({ id, onClose }: FormProps) {
           </ScrollArea>
         </div>
 
-        <Button type="submit" disabled={createCashMovementForAircraft.isPending}>
+        <Button
+          type="submit"
+          disabled={createCashMovementForAircraft.isPending}
+        >
           {createCashMovementForAircraft.isPending ? "Enviando..." : "Enviar"}
         </Button>
       </form>
     </Form>
-  )
+  );
 }
