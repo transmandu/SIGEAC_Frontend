@@ -176,7 +176,7 @@ const FlightDropdownActions = ({ flight }: { flight: Flight }) => {
                     <span
                       className={cn(
                         "font-medium",
-                        flight.payed_amount === flight.total_amount
+                        (Number(flight.payed_amount)) === (Number(flight.total_amount))
                           ? "text-green-600"
                           : "text-yellow-600"
                       )}

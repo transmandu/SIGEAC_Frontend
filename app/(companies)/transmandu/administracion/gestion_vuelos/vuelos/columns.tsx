@@ -111,8 +111,7 @@ export const columns: ColumnDef<Flight>[] = [
     cell: ({ row }) => {
       const isPayed = row.original.debt_status === "PAGADO";
       const badgeVariant = isPayed ? "default" : "destructive";
-      const formattedAmount = formatCurrency(row.original.total_amount);
-
+      const formattedAmount = formatCurrency(Number(row.original.total_amount));
       return (
         <div className="flex justify-center">
           <Badge
