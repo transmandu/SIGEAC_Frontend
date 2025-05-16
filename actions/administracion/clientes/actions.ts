@@ -7,7 +7,7 @@ export const useCreateClient = () => {
     const queryClient = useQueryClient()
     const createMutation = useMutation({
         mutationFn: async (data: any) => {
-            await axiosInstance.post('/transmandu/clients', data)
+            await axiosInstance.post('/transmandu/clients-administration', data)
           },
         onSuccess: () => {
             queryClient.invalidateQueries({queryKey: ['clients']})
@@ -34,7 +34,7 @@ export const useDeleteClient = () => {
 
   const deleteMutation = useMutation({
       mutationFn: async (id: number | string) => {
-          await axiosInstance.delete(`/transmandu/clients/${id}`)
+          await axiosInstance.delete(`/transmandu/clients-administration/${id}`)
         },
       onSuccess: () => {
 
@@ -64,7 +64,7 @@ export const useUpdateClient = () => {
       await axiosInstance.put(`/transmandu/clients/${id}`, data);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['clients'] });
+      queryClient.invalidateQueries({ queryKey: ['clients-administration'] });
       toast("¡Actualizado!", {
         description: "¡El cliente se ha actualizado correctamente!",
       });

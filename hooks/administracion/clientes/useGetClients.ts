@@ -5,7 +5,7 @@ import { Client } from '@/types';
 import { useQuery } from '@tanstack/react-query';
 
 const fetchClients = async (): Promise<Client[]> => {
-  const  {data}  = await axiosInstance.get('/transmandu/clients');
+  const  {data}  = await axiosInstance.get('/transmandu/clients-administration');
   return data;
 };
 
