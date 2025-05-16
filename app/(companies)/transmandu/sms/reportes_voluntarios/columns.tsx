@@ -113,9 +113,14 @@ export const columns: ColumnDef<VoluntaryReport>[] = [
     cell: ({ row }) => (
       <div className="flex justify-center">
         <Badge
-          className={`justify-center items-center text-center font-bold font-sans ${
-            row.original.status === "CERRADO" ? "bg-green-400" : "bg-red-400"
-          }`}
+          className={`justify-center items-center text-center font-bold font-sans 
+      ${
+        row.original.status === "CERRADO"
+          ? "bg-green-400"
+          : row.original.status === "PROCESO"
+          ? "bg-gray-500" // Color gris oscuro (puedes ajustar el tono)
+          : "bg-red-400"
+      }`}
         >
           {row.original.status}
         </Badge>
