@@ -6,7 +6,6 @@ import {
   BookCheck,
   BookUser,
   Building,
-  CalendarCheck,
   ClipboardCopy,
   ClipboardPen,
   Drill,
@@ -22,11 +21,11 @@ import {
   Receipt,
   ScrollText,
   Settings,
+  ShieldAlert,
   SquarePen,
-  TriangleAlert,
   User2,
   UserRoundCog,
-  Wrench,
+  Wrench
 } from "lucide-react";
 
 type Submenu = {
@@ -89,38 +88,44 @@ export function getMenuList(
                 label: "Reportes",
                 active: pathname.includes("/transmandu/sms"),
                 icon: ClipboardPen,
-                roles: ["ANALISTA_SMS", "JEFE_SMS", "SUPERUSER"],
+              roles: ["ANALISTA_SMS", "JEFE_SMS", "SUPERUSER","GUEST"],
                 submenus: [
                   {
                     href: "/transmandu/sms/reportes_voluntarios",
                     label: "Reportes Voluntarios",
-                    roles: ["ANALISTA_SMS", "JEFE_SMS", "SUPERUSER"],
+                    roles: ["ANALISTA_SMS", "JEFE_SMS", "SUPERUSER","GUEST"],
                     active: pathname === "/transmandu/sms/reportes_voluntarios",
                   },
                   {
                     href: "/transmandu/sms/reportes_obligatorios",
                     label: "Reportes Obligatorios",
-                    roles: ["ANALISTA_SMS", "JEFE_SMS", "SUPERUSER"],
+                    roles: ["ANALISTA_SMS", "JEFE_SMS", "SUPERUSER","GUEST"],
                     active:
                       pathname === "/transmandu/sms/reportes_obligatorios",
                   },
                 ],
               },
               {
-                href: "/transmandu/sms/peligros_identificados",
-                label: "Peligros Identificados",
-                icon: TriangleAlert,
-                active: pathname.includes("/peligros"),
+                href: "/transmandu/sms",
+                label: "Gestion de Reportes",
+                active: pathname.includes("/transmandu/sms"),
+                icon: ShieldAlert ,
                 roles: ["ANALISTA_SMS", "JEFE_SMS", "SUPERUSER"],
-                submenus: [],
-              },
-              {
-                href: "/transmandu/sms/planes_de_mitigacion",
-                label: "Planes de Mitigacion",
-                icon: CalendarCheck,
-                active: pathname.includes("/planes_de_mitigacion"),
-                roles: ["ANALISTA_SMS", "JEFE_SMS", "SUPERUSER"],
-                submenus: [],
+                submenus: [
+                  {
+                    href: "/transmandu/sms/peligros_identificados",
+                    label: "Peligros Identificados",
+                    roles: ["ANALISTA_SMS", "JEFE_SMS", "SUPERUSER"],
+                    active: pathname === "/transmandu/sms/peligros_identificados",
+                  },
+                  {
+                    href: "/transmandu/sms/planes_de_mitigacion",
+                    label: "Planes de Mitigacion",
+                    roles: ["ANALISTA_SMS", "JEFE_SMS", "SUPERUSER"],
+                    active:
+                      pathname === "/transmandu/sms/planes_de_mitigacion",
+                  },
+                ],
               },
               {
                 href: "/transmandu/sms",

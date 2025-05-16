@@ -370,8 +370,7 @@ const ShowObligatoryReport = () => {
               <Dialog>
                 <DialogTrigger asChild>
                   <div className="cursor-pointer flex justify-center">
-                    {" "}
-                    {/* Contenedor flex para centrar */}
+
                     <CardContent className="flex flex-col gap-2 p-0">
                       <div className="relative group">
                         <img

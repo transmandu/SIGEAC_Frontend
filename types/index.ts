@@ -594,6 +594,8 @@ export type FollowUpControl = {
   date: Date;
   description: string;
   mitigation_measure_id: number;
+  image?:File | string;
+  document?: File | string;
 };
 
 export type MitigationMeasure = {
