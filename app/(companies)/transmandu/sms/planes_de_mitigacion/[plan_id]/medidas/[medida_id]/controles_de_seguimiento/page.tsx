@@ -18,11 +18,11 @@ const FollowUpControlPage = () => {
 
   console.log(plan_id, medida_id);
   const {
-    data: mitigationControl,
+    data: measureFollowUpControls,
     isLoading,
     isError,
   } = useGetMeasureFollowUpControl(plan_id, medida_id);  
-  
+  console.log("this is the date form data page follow up control", measureFollowUpControls);
   return (
     <ContentLayout title="Controles de seguimiento">
       <div className="flex flex-col gap-y-2">
@@ -31,8 +31,8 @@ const FollowUpControlPage = () => {
             <Loader2 className="size-24 animate-spin mt-48" />
           </div>
         )}
-        {mitigationControl && (
-          <DataTable columns={columns} data={mitigationControl} />
+        {measureFollowUpControls && (
+          <DataTable columns={columns} data={measureFollowUpControls} />
         )}
         {isError && (
           <p className="text-sm text-muted-foreground">
