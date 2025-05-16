@@ -144,6 +144,8 @@ export function CreateVoluntaryReportForm({
   const router = useRouter();
   const { user } = useAuth();
 
+  const userRoles = user?.roles?.map((role) => role.name) || [];
+
   useEffect(() => {
     if (initialData && isEditing) {
       if (
@@ -228,6 +230,25 @@ export function CreateVoluntaryReportForm({
         <FormLabel className="text-lg text-center">
           Formulario de Reporte Voluntario
         </FormLabel>
+
+        <FormField
+          control={form.control}
+          name="report_number"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Codigo del Reporte Voluntario</FormLabel>
+              <FormControl>
+                <Input
+                  placeholder=""
+                  {...field}
+                  maxLength={4}
+                  disabled={true}
+                />
+              </FormControl>
+              <FormMessage className="text-xs" />
+            </FormItem>
+          )}
+        />
         <div className="flex gap-2 items-center justify-center  ">
           <FormField
             control={form.control}
@@ -318,19 +339,6 @@ export function CreateVoluntaryReportForm({
             )}
           />
         </div>
-        <FormField
-          control={form.control}
-          name="report_number"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Codigo del Reporte Voluntario</FormLabel>
-              <FormControl>
-                <Input placeholder="" {...field} maxLength={4} />
-              </FormControl>
-              <FormMessage className="text-xs" />
-            </FormItem>
-          )}
-        />
 
         <div className="flex gap-2 items-center justify-center">
           <FormField
