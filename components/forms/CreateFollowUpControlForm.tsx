@@ -30,6 +30,7 @@ import { useCreateFollowUpControl } from "@/actions/sms/controles_de_seguimiento
 import { Separator } from "@radix-ui/react-select";
 import { useParams } from "next/navigation";
 import { Textarea } from "../ui/textarea";
+import { Input } from "../ui/input";
 
 const FormSchema = z.object({
   description: z
@@ -40,6 +41,24 @@ const FormSchema = z.object({
   date: z
     .date()
     .refine((val) => !isNaN(val.getTime()), { message: "Invalid Date" }),
+
+  image: z
+    .instanceof(File)
+    .refine((file) => file.size <= 5 * 1024 * 1024, "Max 5MB")
+    .refine(
+      (file) => ["image/jpeg", "image/png"].includes(file.type),
+      "Solo JPEG/PNG"
+    )
+    .optional(),
+
+  document: z
+    .instanceof(File)
+    .refine((file) => file.size <= 5 * 1024 * 1024, "Máximo 5MB")
+    .refine(
+      (file) => file.type === "application/pdf",
+      "Solo se permiten archivos PDF"
+    )
+    .optional(),
 });
 
 type FormSchemaType = z.infer<typeof FormSchema>;
@@ -140,6 +159,68 @@ export default function CreateFollowUpControlForm({ onClose, id }: FormProps) {
             </FormItem>
           )}
         />
+
+        <div className="flex justify-center items-center gap-2">
+          <FormField
+            control={form.control}
+            name="image"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Imagen General</FormLabel>
+
+                <div className="flex items-center gap-4">
+                  {field.value && (
+                    <img
+                      src={URL.createObjectURL(field.value)}
+                      alt="Preview"
+                      className="h-16 w-16 rounded-md object-cover"
+                    />
+                  )}
+
+                  <FormControl>
+                    <Input
+                      type="file"
+                      accept="image/jpeg, image/png"
+                      onChange={(e) => field.onChange(e.target.files?.[0])}
+                    />
+                  </FormControl>
+                </div>
+
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="document"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Documento PDF</FormLabel>
+                <div className="flex items-center gap-4">
+                  {field.value && (
+                    <div>
+                      <p className="text-sm text-gray-500">
+                        Archivo seleccionado:
+                      </p>
+                      <p className="font-semibold text-sm">
+                        {field.value.name}
+                      </p>
+                    </div>
+                  )}
+                  <FormControl>
+                    <Input
+                      type="file"
+                      accept="application/pdf"
+                      onChange={(e) => field.onChange(e.target.files?.[0])}
+                    />
+                  </FormControl>
+                </div>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
         <div className="flex justify-between items-center gap-x-4">
           <Separator className="flex-1" />
           <p className="text-muted-foreground">SIGEAC</p>

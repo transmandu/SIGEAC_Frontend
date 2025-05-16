@@ -31,7 +31,6 @@ export const useCreateFollowUpControl = () => {
   const createMutation = useMutation({
     mutationKey: ["follow-up-controls"],
     mutationFn: async (data: FollowDescriptionData) => {
-      console.log("THIS IS THE DATA : ", data);
       await axiosInstance.post("/transmandu/sms/follow-up-controls", data, {
         headers: {
           "Content-Type": "multipart/form-data",
@@ -65,7 +64,7 @@ export const useDeleteFollowUpControl = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["follow-up-controls"] });
-      
+
       toast.success("¡Eliminado!", {
         description: `¡El control de seguimiento ha sido eliminada correctamente!`,
       });
@@ -88,9 +87,14 @@ export const useUpdateFollowUpControl = () => {
   const updateFollowUpControlMutation = useMutation({
     mutationKey: ["follow-up-controls"],
     mutationFn: async (data: updateFolllowUpControlData) => {
-      await axiosInstance.put(
-        `/transmandu/sms/follow-up-controls/${data.id}`,
-        data
+      await axiosInstance.post(
+        `/transmandu/sms/update/follow-up-controls/${data.id}`,
+        data,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
       );
     },
     onSuccess: () => {
