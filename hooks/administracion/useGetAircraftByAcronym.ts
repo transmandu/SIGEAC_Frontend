@@ -5,7 +5,7 @@ import { useQuery } from "@tanstack/react-query"
 import axiosInstance from "@/lib/axios"
 
 const fetchAircraftByAcronym = async (acronym: string): Promise<Aircraft> => {
-  const { data } = await axiosInstance.get(`/transmandu/aircrafts/${acronym}`)
+  const { data } = await axiosInstance.get(`/transmandu/aircrafts-administration/${acronym}`)
   return data
 }
 

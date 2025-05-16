@@ -8,16 +8,16 @@ import { Loader2, ArrowLeft, DollarSign, Plane, AlertCircle } from "lucide-react
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { formatCurrency, formatDate } from "@/lib/utils"
-import { useGetClientById } from "@/hooks/administracion/clientes/useGetClientsById"
 import { useGetFlightsByClient } from "@/hooks/administracion/clientes/useGetFlightByClients"
 import { SummaryCard } from "@/components/cards/SummaryCard"
+import { useGetClientByDni } from "@/hooks/administracion/clientes/useGetClientByDni"
 
 const ClientDebts = () => {
   const params = useParams()
-  const id = params.id as string
+  const dni = params.dni as string
   const router = useRouter()
-  const { data: clientDetails, isLoading, error } = useGetClientById(id)
-  const { data: clientStats, isLoading: isLoadingFlights } = useGetFlightsByClient(id)
+  const { data: clientDetails, isLoading, error } = useGetClientByDni(dni)
+  const { data: clientStats, isLoading: isLoadingFlights } = useGetFlightsByClient(dni)
   const allDebtFlights = useMemo(() => {
     if (!clientStats?.total_debt_flights) return []
     // Ordenar los vuelos por fecha (más recientes primero)

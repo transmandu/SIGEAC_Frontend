@@ -1,6 +1,5 @@
 import { useDeleteClient } from "@/actions/administracion/clientes/actions";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, } from "@/components/ui/dropdown-menu";
-import { useGetClientById } from "@/hooks/administracion/clientes/useGetClientsById";
 import { EditIcon, EyeIcon, Loader2, MoreHorizontal, Plus, Trash2, TrendingUp, } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -12,14 +11,15 @@ import { Badge } from "../ui/badge";
 import { Avatar, AvatarFallback } from "../ui/avatar";
 import AddClientBalanceForm from "../forms/AddClientBalanceForm";
 import { Client } from "@/types";
+import { useGetClientByDni } from "@/hooks/administracion/clientes/useGetClientByDni";
 
 const ClientDropdownActions = ({ client }: { client: Client }) => {
   const [openDelete, setOpenDelete] = useState<boolean>(false);
   const [openClient, setOpenClient] = useState<boolean>(false);
   const router = useRouter();
   const { deleteClient } = useDeleteClient();
-  const { data: clientDetails, isLoading } = useGetClientById(
-    client.id.toString()
+  const { data: clientDetails, isLoading } = useGetClientByDni(
+    client.dni.toString()
   );
   const [openEdit, setOpenEdit] = useState<boolean>(false);
   const [openAddBalance, setOpenAddBalance] = useState<boolean>(false);
@@ -79,7 +79,7 @@ const ClientDropdownActions = ({ client }: { client: Client }) => {
           <DropdownMenuItem
             onClick={() => {
               router.push(
-                `/administracion/gestion_general/clientes/${client.id}`
+                `/administracion/gestion_general/clientes/${client.dni}`
               );
             }}
           ></DropdownMenuItem>
@@ -265,7 +265,7 @@ const ClientDropdownActions = ({ client }: { client: Client }) => {
             <DialogTitle>Registrar Saldo a Favor</DialogTitle>
           </DialogHeader>
           <AddClientBalanceForm
-            id={client.id.toString()}
+            dni={client.dni.toString()}
             onClose={() => setOpenAddBalance(false)}
           />
         </DialogContent>

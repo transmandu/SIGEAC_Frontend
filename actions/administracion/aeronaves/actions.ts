@@ -8,7 +8,7 @@ export const useCreateAircraft = () => {
     const queryAircraft = useQueryClient()
     const createMutation = useMutation({
         mutationFn: async (data: any) => {
-            await axiosInstance.post('/transmandu/aircrafts', data)
+            await axiosInstance.post('/transmandu/aircrafts-administration', data)
           },
         onSuccess: () => {
             queryAircraft.invalidateQueries({queryKey: ['aircrafts']})
@@ -34,8 +34,8 @@ export const useDeleteAircraft = () => {
   const queryAircraft = useQueryClient()
 
   const deleteMutation = useMutation({
-      mutationFn: async (id: number | string) => {
-          await axiosInstance.delete(`/transmandu/aircrafts/${id}`)
+      mutationFn: async (acronym: number | string) => {
+          await axiosInstance.delete(`/transmandu/aircrafts-administration/${acronym}`)
         },
       onSuccess: () => {
 
@@ -61,8 +61,8 @@ export const useUpdateAircraft = () => {
   const queryClient = useQueryClient();
 
   const updateMutation = useMutation({
-    mutationFn: async ({ id, data }: { id: string; data: any }) => {
-      await axiosInstance.put(`/transmandu/aircrafts/${id}`, data);
+    mutationFn: async ({ acronym, data }: { acronym: string; data: any }) => {
+      await axiosInstance.put(`/transmandu/aircrafts-administration/${acronym}`, data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['aircrafts'] });
@@ -105,11 +105,11 @@ export const useCashMovementForAircraft = () => {
   const queryAircraft = useQueryClient();
   const createMutation = useMutation({
     mutationFn: async (data: {
-      id: string;
+      acronym: string;
       formData: AircraftExpenseFormData
     }) => {
       const response = await axiosInstance.post(
-        `/transmandu/cash-movement-aircraft/${data.id}/expenses`,
+        `/transmandu/cash-movement-aircraft/${data.acronym}/expenses`,
         data.formData
       );
       return response.data as CashMovement;

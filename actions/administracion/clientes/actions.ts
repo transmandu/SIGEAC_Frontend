@@ -33,8 +33,8 @@ export const useDeleteClient = () => {
   const queryClient = useQueryClient()
 
   const deleteMutation = useMutation({
-      mutationFn: async (id: number | string) => {
-          await axiosInstance.delete(`/transmandu/clients-administration/${id}`)
+      mutationFn: async (dni: number | string) => {
+          await axiosInstance.delete(`/transmandu/clients-administration/${dni}`)
         },
       onSuccess: () => {
 
@@ -60,8 +60,8 @@ export const useUpdateClient = () => {
   const queryClient = useQueryClient();
 
   const updateMutation = useMutation({
-    mutationFn: async ({ id, data }: { id: string; data: any }) => {
-      await axiosInstance.put(`/transmandu/clients/${id}`, data);
+    mutationFn: async ({ dni, data }: { dni: string; data: any }) => {
+      await axiosInstance.put(`/transmandu/clients/${dni}`, data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['clients-administration'] });
@@ -85,8 +85,8 @@ export const useUpdateBalance = () => {
   const queryClient = useQueryClient();
 
   const updateMutation = useMutation({
-    mutationFn: async ({ id, data }: { id: string; data: any }) => {
-      await axiosInstance.patch(`/transmandu/clients-add-balance/${id}`, data);
+    mutationFn: async ({ dni, data }: { dni: string; data: any }) => {
+      await axiosInstance.patch(`/transmandu/clients-add-balance/${dni}`, data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['clients'] });

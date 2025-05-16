@@ -5,7 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 import axiosInstance from '@/lib/axios';
 
 const fetchAircrafts = async (): Promise<Aircraft[]> => {
-  const  {data}  = await axiosInstance.get('/transmandu/aircrafts');
+  const  {data}  = await axiosInstance.get('/transmandu/aircrafts-administration');
   return data;
 }; 
 
