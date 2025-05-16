@@ -23,6 +23,8 @@ const formSchema = z.object({
     })
     .max(11, {
       message: "El número de identificación tiene un máximo 9 caracteres.",
+    }).regex(/^\d+$/, {
+      message: "El documento solo puede contener números",
     }),
   dni_type: z.string({
     message: "Debe elegir el tipo de documento.",
@@ -138,7 +140,12 @@ export function EditClientForm({ id, onClose }: EditClientFormProps) {
               <FormItem className="w-full">
                 <FormLabel>DNI</FormLabel>
                 <FormControl>
-                  <Input placeholder="Ej: V-12345678" {...field} />
+                  <Input 
+                    placeholder="Ej: 12345678" 
+                    {...field} 
+                    type="number" 
+                    onChange={(e) => field.onChange(e.target.value)}
+                  />
                 </FormControl>
                 <FormMessage className="text-xs" />
               </FormItem>

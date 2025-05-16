@@ -249,10 +249,10 @@ export type Department = {
   id: number,
   address: string,
   type: string,
-  is_main_base: string,
-  cod_iata: string,
   name: string,
   email: string,
+  registered_by: string,
+  update_by: string,
 }
 
 export type MaintenanceClient = {

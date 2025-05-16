@@ -77,7 +77,7 @@ export interface ClientStatistics {
 }
 
 const fetchFlightsByClient = async (client_id: string | null): Promise<ClientStatistics> => {
-  const { data } = await axiosInstance.get(`/transmandu/clients/${client_id}/flights`);
+  const { data } = await axiosInstance.get(`/transmandu/clients-administration/${client_id}/flights`);
   return data;
 };
 

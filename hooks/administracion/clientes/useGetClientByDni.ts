@@ -5,7 +5,7 @@ import { useQuery } from "@tanstack/react-query"
 import axiosInstance from "@/lib/axios"
 
 const fetchClientsByDni = async (dni: string): Promise<Client> => {
-  const { data } = await axiosInstance.get(`/transmandu/clients/${dni}`)
+  const { data } = await axiosInstance.get(`/transmandu/clients-administration/${dni}`)
   return data
 }
 
