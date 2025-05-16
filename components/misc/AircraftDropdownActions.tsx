@@ -16,7 +16,6 @@ import {
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "../ui/button";
-import { useGetAircraftById } from "@/hooks/administracion/useGetAircraftById";
 import { useDeleteAircraft } from "@/actions/administracion/aeronaves/actions";
 import {
   Dialog,
@@ -321,7 +320,7 @@ export const AircraftDropdownActions = ({
             <DialogTitle>Editar Aerovane</DialogTitle>
           </DialogHeader>
           <EditAircraftForm
-            id={aircraft.id.toString()}
+            aircraft={aircraft}
             onClose={() => setOpenEdit(false)}
           />
         </DialogContent>

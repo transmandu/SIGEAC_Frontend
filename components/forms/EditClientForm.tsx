@@ -1,15 +1,29 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, } from "@/components/ui/form";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue,} from "@/components/ui/select";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { useGetClientById } from "@/hooks/administracion/clientes/useGetClientsById";
 import { useUpdateClient } from "@/actions/administracion/clientes/actions";
 import { Separator } from "../ui/separator";
+import { useGetClientByDni } from "@/hooks/administracion/clientes/useGetClientByDni";
+import { Client } from "@/types";
 
 const phoneRegex = new RegExp(
   /^([+]?[\s0-9]+)?(\d{3}|[(]?[0-9]+[)])?([-]?[\s]?[0-9])+$/
@@ -23,7 +37,8 @@ const formSchema = z.object({
     })
     .max(11, {
       message: "El número de identificación tiene un máximo 9 caracteres.",
-    }).regex(/^\d+$/, {
+    })
+    .regex(/^\d+$/, {
       message: "El documento solo puede contener números",
     }),
   dni_type: z.string({
@@ -67,23 +82,22 @@ const formSchema = z.object({
 type FormSchemaType = z.infer<typeof formSchema>;
 
 interface EditClientFormProps {
-  id: string;
+  client: Client;
   onClose: () => void;
 }
 
-export function EditClientForm({ id, onClose }: EditClientFormProps) {
-  const { data: clientDetails, isLoading } = useGetClientById(id);
+export function EditClientForm({ onClose, client }: EditClientFormProps) {
   const { updateClient } = useUpdateClient();
   const form = useForm<FormSchemaType>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      dni: clientDetails?.dni,
-      dni_type: clientDetails?.dni_type,
-      name: clientDetails?.name,
-      phone: clientDetails?.phone,
-      email: clientDetails?.email,
-      address: clientDetails?.address,
-      pay_credit_days: clientDetails?.pay_credit_days,
+      dni: client.dni,
+      dni_type: client.dni_type,
+      name: client.name,
+      phone: client.phone,
+      email: client.email,
+      address: client.address,
+      pay_credit_days: client.pay_credit_days,
     },
   });
 
@@ -97,13 +111,9 @@ export function EditClientForm({ id, onClose }: EditClientFormProps) {
       address: formData.address,
       pay_credit_days: formData.pay_credit_days,
     };
-    await updateClient.mutateAsync({ id, data });
+    await updateClient.mutateAsync({ dni: client.dni, data });
     onClose();
   };
-
-  if (isLoading) {
-    return <div>Cargando...</div>;
-  }
 
   return (
     <Form {...form}>
@@ -140,10 +150,10 @@ export function EditClientForm({ id, onClose }: EditClientFormProps) {
               <FormItem className="w-full">
                 <FormLabel>DNI</FormLabel>
                 <FormControl>
-                  <Input 
-                    placeholder="Ej: 12345678" 
-                    {...field} 
-                    type="number" 
+                  <Input
+                    placeholder="Ej: 12345678"
+                    {...field}
+                    type="number"
                     onChange={(e) => field.onChange(e.target.value)}
                   />
                 </FormControl>

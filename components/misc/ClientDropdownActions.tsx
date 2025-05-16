@@ -1,11 +1,31 @@
 import { useDeleteClient } from "@/actions/administracion/clientes/actions";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, } from "@/components/ui/dropdown-menu";
-import { EditIcon, EyeIcon, Loader2, MoreHorizontal, Plus, Trash2, TrendingUp, } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  EditIcon,
+  EyeIcon,
+  Loader2,
+  MoreHorizontal,
+  Plus,
+  Trash2,
+  TrendingUp,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { EditClientForm } from "../forms/EditClientForm";
 import { Button } from "../ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, } from "../ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "../ui/dialog";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Badge } from "../ui/badge";
 import { Avatar, AvatarFallback } from "../ui/avatar";
@@ -16,13 +36,10 @@ import { useGetClientByDni } from "@/hooks/administracion/clientes/useGetClientB
 const ClientDropdownActions = ({ client }: { client: Client }) => {
   const [openDelete, setOpenDelete] = useState<boolean>(false);
   const [openClient, setOpenClient] = useState<boolean>(false);
-  const router = useRouter();
-  const { deleteClient } = useDeleteClient();
-  const { data: clientDetails, isLoading } = useGetClientByDni(
-    client.dni.toString()
-  );
   const [openEdit, setOpenEdit] = useState<boolean>(false);
   const [openAddBalance, setOpenAddBalance] = useState<boolean>(false);
+  const { deleteClient } = useDeleteClient();
+  const router = useRouter();
 
   const handleViewStats = () => {
     router.push(
@@ -30,8 +47,8 @@ const ClientDropdownActions = ({ client }: { client: Client }) => {
     );
   };
 
-  const handleDelete = (id: number | string) => {
-    deleteClient.mutate(id, {
+  const handleDelete = (dni: number | string) => {
+    deleteClient.mutate(dni, {
       onSuccess: () => setOpenDelete(false), // Cierra el modal solo si la eliminación fue exitosa
     });
   };
@@ -65,17 +82,15 @@ const ClientDropdownActions = ({ client }: { client: Client }) => {
           <DropdownMenuItem onClick={() => setOpenEdit(true)}>
             <EditIcon className="size-5 text-blue-500" />
           </DropdownMenuItem>
-          {!isLoading && clientDetails ? (
-            clientDetails.balance < 0 ? (
-              <DropdownMenuItem disabled>
-                <span className="text-red-500">Con Deuda</span>
-              </DropdownMenuItem>
-            ) : (
-              <DropdownMenuItem onClick={() => setOpenAddBalance(true)}>
-                <Plus className="size-5 text-green-500" />
-              </DropdownMenuItem>
-            )
-          ) : null}
+          {client.balance < 0 ? (
+            <DropdownMenuItem disabled>
+              <span className="text-red-500">Con Deuda</span>
+            </DropdownMenuItem>
+          ) : (
+            <DropdownMenuItem onClick={() => setOpenAddBalance(true)}>
+              <Plus className="size-5 text-green-500" />
+            </DropdownMenuItem>
+          )}
           <DropdownMenuItem
             onClick={() => {
               router.push(
@@ -113,7 +128,7 @@ const ClientDropdownActions = ({ client }: { client: Client }) => {
             <Button
               disabled={deleteClient.isPending}
               className="hover:bg-white hover:text-black hover:border hover:border-black transition-all"
-              onClick={() => handleDelete(client.id)}
+              onClick={() => handleDelete(client.dni)}
             >
               {deleteClient.isPending ? (
                 <Loader2 className="size-4 animate-spin" />
@@ -134,96 +149,78 @@ const ClientDropdownActions = ({ client }: { client: Client }) => {
           aria-describedby={undefined}
           className="sm:max-w-lg"
         >
-          {isLoading ? (
-            <div className="flex justify-center py-8">
-              <Loader2 className="h-8 w-8 animate-spin" />
-            </div>
-          ) : clientDetails ? (
-            <Card className="border-none shadow-none">
-              <CardHeader className="pb-4">
-                <div className="flex items-center gap-4">
-                  <Avatar className="h-12 w-12">
-                    <AvatarFallback>
-                      {clientDetails.name
-                        .split(" ")
-                        .map((n) => n[0])
-                        .join("")
-                        .toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <CardTitle className="text-xl">
-                      {clientDetails.name}
-                    </CardTitle>
-                    <p className="text-sm text-muted-foreground">
-                      {clientDetails.dni}
-                    </p>
-                  </div>
+          <Card className="border-none shadow-none">
+            <CardHeader className="pb-4">
+              <div className="flex items-center gap-4">
+                <Avatar className="h-12 w-12">
+                  <AvatarFallback>
+                    {client.name
+                      .split(" ")
+                      .map((n) => n[0])
+                      .join("")
+                      .toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+                <div>
+                  <CardTitle className="text-xl">{client.name}</CardTitle>
+                  <p className="text-sm text-muted-foreground">{client.dni}</p>
                 </div>
-              </CardHeader>
+              </div>
+            </CardHeader>
 
-              <CardContent className="grid gap-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-1">
-                    <h3 className="text-sm font-medium text-muted-foreground">
-                      Teléfono
-                    </h3>
-                    <p className="font-medium">
-                      {clientDetails.phone || "No especificado"}
-                    </p>
-                  </div>
-
-                  <div className="space-y-1">
-                    <h3 className="text-sm font-medium text-muted-foreground">
-                      Días Crédito
-                    </h3>
-                    <p className="font-medium">
-                      {clientDetails.pay_credit_days || "0"} días
-                    </p>
-                  </div>
-
-                  <div className="space-y-1 col-span-2">
-                    <h3 className="text-sm font-medium text-muted-foreground">
-                      Dirección
-                    </h3>
-                    <p className="font-medium">
-                      {clientDetails.address || "No especificada"}
-                    </p>
-                  </div>
+            <CardContent className="grid gap-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <h3 className="text-sm font-medium text-muted-foreground">
+                    Teléfono
+                  </h3>
+                  <p className="font-medium">
+                    {client.phone || "No especificado"}
+                  </p>
                 </div>
 
-                <Card>
-                  <CardContent className="p-4">
-                    <div className="flex justify-between items-center">
-                      <span className="font-medium">Saldo Actual</span>
-                      <span
-                        className={`font-bold text-2xl ${
-                          clientDetails.balance >= 0
-                            ? "text-green-600"
-                            : "text-red-600"
-                        }`}
-                      >
-                        {clientDetails.balance >= 0 ? "+" : "-"} ${" "}
-                        {Math.abs(clientDetails.balance).toLocaleString()}
-                      </span>
-                    </div>
-                  </CardContent>
-                </Card>
+                <div className="space-y-1">
+                  <h3 className="text-sm font-medium text-muted-foreground">
+                    Días Crédito
+                  </h3>
+                  <p className="font-medium">
+                    {client.pay_credit_days || "0"} días
+                  </p>
+                </div>
 
-                {clientDetails.balance < 0 && (
-                  <Badge variant="destructive" className="w-fit">
-                    Cliente con deuda
-                  </Badge>
-                )}
-              </CardContent>
-            </Card>
-          ) : (
-            <div className="text-center py-6">
-              <p className="text-muted-foreground">
-                No se pudo cargar la información del cliente
-              </p>
-            </div>
-          )}
+                <div className="space-y-1 col-span-2">
+                  <h3 className="text-sm font-medium text-muted-foreground">
+                    Dirección
+                  </h3>
+                  <p className="font-medium">
+                    {client.address || "No especificada"}
+                  </p>
+                </div>
+              </div>
+
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex justify-between items-center">
+                    <span className="font-medium">Saldo Actual</span>
+                    <span
+                      className={`font-bold text-2xl ${
+                        client.balance >= 0 ? "text-green-600" : "text-red-600"
+                      }`}
+                    >
+                      {client.balance >= 0 ? "+" : "-"} ${" "}
+                      {Math.abs(client.balance).toLocaleString()}
+                    </span>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {client.balance < 0 && (
+                <Badge variant="destructive" className="w-fit">
+                  Cliente con deuda
+                </Badge>
+              )}
+            </CardContent>
+          </Card>
 
           <DialogFooter className="sm:justify-start">
             <Button
@@ -247,10 +244,7 @@ const ClientDropdownActions = ({ client }: { client: Client }) => {
           <DialogHeader>
             <DialogTitle>Editar Cliente</DialogTitle>
           </DialogHeader>
-          <EditClientForm
-            id={client.id.toString()}
-            onClose={() => setOpenEdit(false)}
-          />
+          <EditClientForm client={client} onClose={() => setOpenEdit(false)} />
         </DialogContent>
       </Dialog>
 

@@ -61,10 +61,10 @@ export const useUpdateClient = () => {
 
   const updateMutation = useMutation({
     mutationFn: async ({ dni, data }: { dni: string; data: any }) => {
-      await axiosInstance.put(`/transmandu/clients/${dni}`, data);
+      await axiosInstance.put(`/transmandu/clients-administration/${dni}`, data);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['clients-administration'] });
+      queryClient.invalidateQueries({ queryKey: ['clients'] });
       toast("¡Actualizado!", {
         description: "¡El cliente se ha actualizado correctamente!",
       });

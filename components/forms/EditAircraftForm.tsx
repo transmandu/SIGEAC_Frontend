@@ -33,8 +33,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useGetAircraftById } from "@/hooks/administracion/useGetAircraftById";
 import { useUpdateAircraft } from "@/actions/administracion/aeronaves/actions";
+import { useGetAircraftByAcronym } from "@/hooks/administracion/useGetAircraftByAcronym";
+import { Aircraft } from "@/types";
 
 const FormSchema = z.object({
   fabricant: z
@@ -107,12 +108,11 @@ const FormSchema = z.object({
 type FormSchemaType = z.infer<typeof FormSchema>;
 
 interface EditAircraftFormProps {
-  id: string;
+  aircraft: Aircraft;
   onClose: () => void;
 }
 
-export function EditAircraftForm({ id, onClose }: EditAircraftFormProps) {
-  const { data: aircraftDetails, isLoading } = useGetAircraftById(id);
+export function EditAircraftForm({ aircraft, onClose }: EditAircraftFormProps) {
   const { updateAircraft } = useUpdateAircraft();
   const { data: locationsData } = useGetLocationsByCompanies();
   const locations = locationsData;
@@ -120,18 +120,18 @@ export function EditAircraftForm({ id, onClose }: EditAircraftFormProps) {
     resolver: zodResolver(FormSchema),
     defaultValues: {
       // Cargar los valores actuales del avión
-      fabricant: aircraftDetails?.fabricant,
-      brand: aircraftDetails?.brand,
-      model: aircraftDetails?.model,
-      serial: aircraftDetails?.serial,
-      acronym: aircraftDetails?.acronym,
-      fabricant_date: aircraftDetails?.fabricant_date
-        ? new Date(aircraftDetails.fabricant_date)
+      fabricant: aircraft.fabricant,
+      brand: aircraft.brand,
+      model: aircraft.model,
+      serial: aircraft.serial,
+      acronym: aircraft.acronym,
+      fabricant_date: aircraft.fabricant_date
+        ? new Date(aircraft.fabricant_date)
         : new Date(), // Valor por defecto si es undefined
-      owner: aircraftDetails?.owner,
-      comments: aircraftDetails?.comments,
-      location_id: aircraftDetails?.location.id.toString(),
-      status: aircraftDetails?.status,
+      owner: aircraft.owner,
+      comments: aircraft.comments,
+      location_id: aircraft.location.id.toString(),
+      status: aircraft.status,
     },
   });
 
@@ -150,13 +150,9 @@ export function EditAircraftForm({ id, onClose }: EditAircraftFormProps) {
       },
       status: formData.status,
     };
-    await updateAircraft.mutateAsync({ id, data });
+    await updateAircraft.mutateAsync({ acronym: aircraft.acronym, data });
     onClose();
   };
-
-  if (isLoading) {
-    return <div>Cargando...</div>;
-  }
 
   return (
     <Form {...form}>
