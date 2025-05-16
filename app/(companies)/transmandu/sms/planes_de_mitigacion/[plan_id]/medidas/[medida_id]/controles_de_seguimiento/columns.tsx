@@ -4,23 +4,16 @@ import { ColumnDef } from "@tanstack/react-table";
 
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
 
+import DocumentDisplayDialog from "@/components/dialogs/DocumentDisplayDialog";
 import FollowUpControlDropdownActions from "@/components/misc/FollowUpControlDropdownActions";
+import { Button } from "@/components/ui/button";
 import { FollowUpControl } from "@/types";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import ImageDisplayDialog from "@/components/dialogs/ImageDisplayDialog";
 
 export const columns: ColumnDef<FollowUpControl>[] = [
-  {
-    accessorKey: "id",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Numero de Control" />
-    ),
-    meta: { title: "Control" },
-    cell: ({ row }) => {
 
-      return <div className="flex justify-center">{row.index + 1}</div>;
-    },
-  },
   {
     accessorKey: "description",
     header: ({ column }) => (
@@ -46,6 +39,57 @@ export const columns: ColumnDef<FollowUpControl>[] = [
             locale: es,
           })}
         </p>
+      );
+    },
+  },
+  {
+    accessorKey: "document",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Documento" />
+    ),
+    meta: { title: "Documento" },
+    cell: ({ row }) => {
+      return (
+        <div className="flex justify-center items-center">
+          {row.original?.document &&
+          typeof row.original?.document === "string" ? (
+            <DocumentDisplayDialog base64Document={row.original.document} />
+          ) : (
+            <Button
+              variant="outline"
+              size="sm"
+              className=" hidden h-8 lg:flex"
+              disabled={true}
+            >
+              Sin Documento
+            </Button>
+          )}
+        </div>
+      );
+    },
+  },
+  {
+    accessorKey: "image",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Imagen" />
+    ),
+    meta: { title: "Imagen" },
+    cell: ({ row }) => {
+      return (
+        <div className="flex justify-center items-center">
+          {row.original?.image && typeof row.original?.image === "string" ? (
+            <ImageDisplayDialog base64Image={row.original.image} />
+          ) : (
+            <Button
+              variant="outline"
+              size="sm"
+              className=" hidden h-8 lg:flex"
+              disabled={true}
+            >
+              Sin imagen
+            </Button>
+          )}
+        </div>
       );
     },
   },
