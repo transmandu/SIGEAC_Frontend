@@ -34,7 +34,7 @@ export const useDeleteAircraft = () => {
   const queryAircraft = useQueryClient()
 
   const deleteMutation = useMutation({
-      mutationFn: async (acronym: number | string) => {
+      mutationFn: async (acronym: string) => {
           await axiosInstance.delete(`/transmandu/aircrafts-administration/${acronym}`)
         },
       onSuccess: () => {

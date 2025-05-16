@@ -54,8 +54,8 @@ export const AircraftDropdownActions = ({
     );
   };
 
-  const handleDelete = (id: number | string) => {
-    deleteAircraft.mutate(id, {
+  const handleDelete = (acronym: string) => {
+    deleteAircraft.mutate(acronym, {
       onSuccess: () => setOpenDelete(false), // Cierra el modal solo si la eliminación fue exitosa
     });
   };
@@ -133,7 +133,7 @@ export const AircraftDropdownActions = ({
             <Button
               disabled={deleteAircraft.isPending}
               className="hover:bg-white hover:text-black hover:border hover:border-black transition-all"
-              onClick={() => handleDelete(aircraft.id)}
+              onClick={() => handleDelete(aircraft.acronym)}
             >
               {deleteAircraft.isPending ? (
                 <Loader2 className="size-4 animate-spin" />
