@@ -1,14 +1,22 @@
 "use client";
 
+import { useUpdateAccount } from "@/actions/administracion/cuentas/actions";
 import { Button } from "@/components/ui/button";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, } from "@/components/ui/form";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { useGetAccountById } from "@/hooks/administracion/useGetAccountById";
+import { Accountant } from "@/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Separator } from "../ui/separator";
-import { useUpdateAccount } from "@/actions/administracion/cuentas/actions";
-import { useGetAccountById } from "@/hooks/administracion/useGetAccountById";
 
 const formSchema = z.object({
   name: z
@@ -21,36 +29,38 @@ const formSchema = z.object({
     .min(2, {
       message: "El nombre debe tener al menos 2 caracteres y maximo 40.",
     }),
+  category: z.string().optional(),
 });
 
 type FormSchemaType = z.infer<typeof formSchema>;
 
 interface EditAccountFormProps {
-  id: string;
+  accountant: Accountant;
   onClose: () => void;
 }
 
-export function EditAccountantForm({ id, onClose }: EditAccountFormProps) {
-  const { data: accountDetails, isLoading } = useGetAccountById(id);
+export function EditAccountantForm({
+  accountant,
+  onClose,
+}: EditAccountFormProps) {
   const { updateAccount } = useUpdateAccount();
   const form = useForm<FormSchemaType>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: accountDetails?.name,
+      name: accountant?.name,
+      category: accountant?.category?.id.toString(),
     },
   });
-
+//prueba a ver
   const OnSubmit = async (formData: FormSchemaType) => {
     const data = {
+      id: accountant.id.toString(),
       name: formData.name,
+      category: formData.category,
     };
-    await updateAccount.mutate({ id, data });
+    await updateAccount.mutateAsync(data);
     onClose();
   };
-
-  if (isLoading) {
-    return <div>Cargando...</div>;
-  }
 
   return (
     <Form {...form}>
@@ -63,7 +73,10 @@ export function EditAccountantForm({ id, onClose }: EditAccountFormProps) {
               <FormItem className="w-full">
                 <FormLabel>Nombre</FormLabel>
                 <FormControl>
-                  <Input placeholder="Ingrese el nuevo nombre de la cuenta" {...field} />
+                  <Input
+                    placeholder="Ingrese el nuevo nombre de la cuenta"
+                    {...field}
+                  />
                 </FormControl>
                 <FormMessage className="text-xs" />
               </FormItem>

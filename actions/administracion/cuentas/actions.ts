@@ -56,7 +56,7 @@ export const useGetAccount = (id: string | null) => {
   const accountsQuery = useQuery({
     queryKey: ["account"],
     queryFn: async () => {
-      const {data} = await axiosInstance.get(`/transmandu/accountants/${id}`); // Adjust the endpoint as needed
+      const {data} = await axiosInstance.get(`/transmandu/accountants/${id}`);
       return data as Accountant;
     },
     enabled: !!id
@@ -64,7 +64,7 @@ export const useGetAccount = (id: string | null) => {
   return {
     data: accountsQuery.data,
     loading: accountsQuery.isLoading,
-    error: accountsQuery.isError // Function to call the query
+    error: accountsQuery.isError 
   };
 };
 

@@ -1,19 +1,36 @@
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, } from "@/components/ui/dropdown-menu";
-import { EditIcon, Loader2, MoreHorizontal, Trash2, } from "lucide-react";
-import { useState } from "react";
-import { Button } from "../ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, } from "../ui/dialog";
 import { useDeleteAccount } from "@/actions/administracion/cuentas/actions";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Accountant } from "@/types";
+import { EditIcon, Loader2, MoreHorizontal, Trash2 } from "lucide-react";
+import { useState } from "react";
 import { EditAccountantForm } from "../forms/EditAccountForm";
+import { Button } from "../ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "../ui/dialog";
 
-const AccountantDropdownActions = ({ id }: { id: string }) => {
+const AccountantDropdownActions = ({
+  accountant,
+}: {
+  accountant: Accountant;
+}) => {
   const [openDelete, setOpenDelete] = useState<boolean>(false);
   const { deleteAccount } = useDeleteAccount();
   const [openEdit, setOpenEdit] = useState<boolean>(false);
 
   const handleDelete = (id: number | string) => {
     deleteAccount.mutate(id, {
-      onSuccess: () => setOpenDelete(false), 
+      onSuccess: () => setOpenDelete(false),
     });
   };
 
@@ -43,7 +60,7 @@ const AccountantDropdownActions = ({ id }: { id: string }) => {
       <Dialog open={openDelete} onOpenChange={setOpenDelete}>
         <DialogContent
           onInteractOutside={(e) => {
-            e.preventDefault(); 
+            e.preventDefault();
           }}
         >
           <DialogHeader>
@@ -66,7 +83,7 @@ const AccountantDropdownActions = ({ id }: { id: string }) => {
             <Button
               disabled={deleteAccount.isPending}
               className="hover:bg-white hover:text-black hover:border hover:border-black transition-all"
-              onClick={() => handleDelete(id)}
+              onClick={() => handleDelete(accountant.id)}
             >
               {deleteAccount.isPending ? (
                 <Loader2 className="size-4 animate-spin" />
@@ -88,10 +105,12 @@ const AccountantDropdownActions = ({ id }: { id: string }) => {
           <DialogHeader>
             <DialogTitle>Editar Cuenta</DialogTitle>
           </DialogHeader>
-          <EditAccountantForm id={id} onClose={() => setOpenEdit(false)} />
+          <EditAccountantForm
+            accountant={accountant}
+            onClose={() => setOpenEdit(false)}
+          />
         </DialogContent>
       </Dialog>
-
     </>
   );
 };

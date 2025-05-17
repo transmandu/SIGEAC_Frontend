@@ -21,7 +21,7 @@ export const columns: ColumnDef<Aircraft>[] = [
   {
     accessorKey: "acronym",
     header: ({ column }) => (
-      <DataTableColumnHeader filter column={column} title="Placa" />
+      <DataTableColumnHeader filter column={column} title="Matrícula" />
     ),
     meta: { title: "Matrícula" },
     cell: ({ row }) => (

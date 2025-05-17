@@ -80,6 +80,10 @@ const CashMovementResume = ({ movement }: { movement: CashMovement }) => {
               Detalles
             </h3>
             <p className="font-medium">{movement.details}</p>
+            <h3 className="text-sm font-medium text-muted-foreground">
+              Referencia
+            </h3>
+            <p className="font-medium">{movement.reference_cod}</p>
           </div>
         </div>
 

@@ -19,8 +19,8 @@ export const columns: ColumnDef<Accountant>[] = [
   {
     id: "actions",
     cell: ({ row }) => {
-      const id = row.original.id;
-      return <AccountantDropdownActions id={row.original.id.toString()} />;
+      const accountant = row.original;
+      return <AccountantDropdownActions accountant={accountant} />;
     },
   },
 ];
