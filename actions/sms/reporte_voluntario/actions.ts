@@ -134,3 +134,35 @@ export const useUpdateVoluntaryReport = () => {
     updateVoluntaryReport: updateVoluntaryReportMutation,
   };
 };
+
+export const useAcceptVoluntaryReport = () => {
+  const queryClient = useQueryClient();
+
+  const acceptVoluntaryReportMutation = useMutation({
+    mutationKey: ["voluntary-reports"],
+    mutationFn: async (data: UpdateVoluntaryReportData) => {
+      console.log("line number 106", data);
+      const response = await axiosInstance.patch(
+        `/transmandu/sms/accept/voluntary-reports/${data.id}`,
+        data
+      );
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["voluntary-reports"] });
+      queryClient.invalidateQueries({ queryKey: ["voluntary-report"] });
+      toast.success("Aceptado!", {
+        description: `El reporte voluntario ha sido aceptado.`,
+      });
+    },
+    onError: (error) => {
+      toast.error("Oops!", {
+        description: "No se pudo aceptar el reporte voluntario...",
+      });
+      console.log(error);
+    },
+  });
+  return {
+    acceptVoluntaryReport: acceptVoluntaryReportMutation,
+  };
+};

@@ -9,6 +9,7 @@ import { VoluntaryReport } from "@/types";
 import { PDFDownloadLink, PDFViewer } from "@react-pdf/renderer";
 import { format } from "date-fns";
 import {
+  CheckCheck,
   ClipboardPen,
   ClipboardPenLine,
   EyeIcon,
@@ -33,8 +34,9 @@ import {
   DialogTrigger,
 } from "../ui/dialog";
 import { useGetDangerIdentificationWithAllById } from "@/hooks/sms/useGetDangerIdentificationWithAllById";
+import { AcceptVoluntaryReport } from "../forms/AcceptVoluntaryForm";
 
-const  VoluntaryReportDropdownActions = ({
+const VoluntaryReportDropdownActions = ({
   voluntaryReport,
 }: {
   voluntaryReport: VoluntaryReport;
@@ -43,7 +45,7 @@ const  VoluntaryReportDropdownActions = ({
   const [openPDF, setOpenPDF] = useState<boolean>(false);
 
   const [openEdit, setOpenEdit] = useState<boolean>(false);
-
+  const [openAccept, setOpenAccept] = useState<boolean>(false);
   const { deleteVoluntaryReport } = useDeleteVoluntaryReport();
 
   const [openCreateDangerIdentification, setOpenCreateDangerIdentification] =
@@ -76,21 +78,30 @@ const  VoluntaryReportDropdownActions = ({
             align="center"
             className="flex-col gap-2 justify-center"
           >
-            {voluntaryReport && voluntaryReport.status !== "CERRADO" && (
+            {voluntaryReport && voluntaryReport.status === "ABIERTO" && (
               <DropdownMenuItem onClick={() => setOpenEdit(true)}>
                 <ClipboardPen className="size-5" />
                 <p className="pl-2">Editar</p>
               </DropdownMenuItem>
             )}
 
-            {voluntaryReport && voluntaryReport.status !== "CERRADO" && (
-              <DialogTrigger asChild>
-                <DropdownMenuItem onClick={() => setOpenDelete(true)}>
-                  <Trash2 className="size-5 text-red-500" />
-                  <p className="pl-2">Eliminar</p>
-                </DropdownMenuItem>
-              </DialogTrigger>
+            {voluntaryReport && voluntaryReport.status === "PROCESO" && (
+              <DropdownMenuItem onClick={() => setOpenAccept(true)}>
+                <CheckCheck className="size-5 text-green-400" />
+                <p className="pl-2">Aceptar</p>
+              </DropdownMenuItem>
             )}
+
+            {voluntaryReport &&
+              (voluntaryReport.status === "ABIERTO" ||
+                voluntaryReport.status === "PROCESO") && (
+                <DialogTrigger asChild>
+                  <DropdownMenuItem onClick={() => setOpenDelete(true)}>
+                    <Trash2 className="size-5 text-red-500" />
+                    <p className="pl-2">Eliminar</p>
+                  </DropdownMenuItem>
+                </DialogTrigger>
+              )}
 
             <DropdownMenuItem
               onClick={() => {
@@ -104,7 +115,7 @@ const  VoluntaryReportDropdownActions = ({
             </DropdownMenuItem>
 
             {!voluntaryReport.danger_identification_id &&
-              voluntaryReport.status !== "CERRADO" && (
+              voluntaryReport.status === "ABIERTO" && (
                 <DropdownMenuItem
                   onClick={() => setOpenCreateDangerIdentification(true)}
                 >
@@ -151,16 +162,12 @@ const  VoluntaryReportDropdownActions = ({
 
             <div className="flex justify-end mt-4">
               <PDFDownloadLink
-                fileName={`repore_sms${format(
-                  new Date(),
-                  "dd-MM-yyyy"
-                )}.pdf`}
+                fileName={`repore_sms${format(new Date(), "dd-MM-yyyy")}.pdf`}
                 document={<VoluntaryReportPdf report={voluntaryReport} />}
               >
                 <Button>Descargar Reporte</Button>
               </PDFDownloadLink>
             </div>
-            
           </DialogContent>
         </Dialog>
         <Dialog open={openDelete} onOpenChange={setOpenDelete}>
@@ -217,19 +224,32 @@ const  VoluntaryReportDropdownActions = ({
           </DialogContent>
         </Dialog>
 
-          <Dialog open={openEdit} onOpenChange={setOpenEdit}>
-            <DialogContent className="flex flex-col max-w-2xl m-2">
-              <DialogHeader>
-                <DialogTitle className="text-center"></DialogTitle>
-                <DialogDescription></DialogDescription>
-              </DialogHeader>
-              <CreateVoluntaryReportForm
-                onClose={() => setOpenEdit(false)}
-                initialData={voluntaryReport}
-                isEditing={true}
-              />
-            </DialogContent>
-          </Dialog>
+        <Dialog open={openEdit} onOpenChange={setOpenEdit}>
+          <DialogContent className="flex flex-col max-w-2xl m-2">
+            <DialogHeader>
+              <DialogTitle className="text-center"></DialogTitle>
+              <DialogDescription></DialogDescription>
+            </DialogHeader>
+            <CreateVoluntaryReportForm
+              onClose={() => setOpenEdit(false)}
+              initialData={voluntaryReport}
+              isEditing={true}
+            />
+          </DialogContent>
+        </Dialog>
+        <Dialog open={openAccept} onOpenChange={setOpenAccept}>
+          <DialogContent className="flex flex-col w-2xs m-2">
+            <DialogHeader>
+              <DialogTitle className="text-center"></DialogTitle>
+              <DialogDescription></DialogDescription>
+            </DialogHeader>
+
+            <AcceptVoluntaryReport
+              onClose={() => setOpenAccept(false)}
+              initialData={voluntaryReport}
+            />
+          </DialogContent>
+        </Dialog>
       </Dialog>
     </>
   );
