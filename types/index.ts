@@ -553,7 +553,7 @@ export type ObligatoryReport = {
 
 export type VoluntaryReport = {
   id: number;
-  report_number: string;
+  report_number?: string ;
   report_date: Date;
   identification_date: Date;
   danger_location: string;

@@ -3,6 +3,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 interface VoluntaryReportData {
+  report_number?: string;
   identification_date: Date;
   report_date: Date;
   danger_location: string;
@@ -19,7 +20,7 @@ interface VoluntaryReportData {
 }
 interface UpdateVoluntaryReportData {
   id: number;
-  report_number: string;
+  report_number?: string;
   report_date: Date;
   identification_date: Date;
   danger_location: string;

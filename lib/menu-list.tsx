@@ -25,7 +25,7 @@ import {
   SquarePen,
   User2,
   UserRoundCog,
-  Wrench
+  Wrench,
 } from "lucide-react";
 
 type Submenu = {
@@ -88,18 +88,18 @@ export function getMenuList(
                 label: "Reportes",
                 active: pathname.includes("/transmandu/sms"),
                 icon: ClipboardPen,
-              roles: ["ANALISTA_SMS", "JEFE_SMS", "SUPERUSER","GUEST"],
+                roles: ["ANALISTA_SMS", "JEFE_SMS", "SUPERUSER"],
                 submenus: [
                   {
                     href: "/transmandu/sms/reportes_voluntarios",
                     label: "Reportes Voluntarios",
-                    roles: ["ANALISTA_SMS", "JEFE_SMS", "SUPERUSER","GUEST"],
+                    roles: ["ANALISTA_SMS", "JEFE_SMS", "SUPERUSER"],
                     active: pathname === "/transmandu/sms/reportes_voluntarios",
                   },
                   {
                     href: "/transmandu/sms/reportes_obligatorios",
                     label: "Reportes Obligatorios",
-                    roles: ["ANALISTA_SMS", "JEFE_SMS", "SUPERUSER","GUEST"],
+                    roles: ["ANALISTA_SMS", "JEFE_SMS", "SUPERUSER"],
                     active:
                       pathname === "/transmandu/sms/reportes_obligatorios",
                   },
@@ -109,21 +109,21 @@ export function getMenuList(
                 href: "/transmandu/sms",
                 label: "Gestion de Reportes",
                 active: pathname.includes("/transmandu/sms"),
-                icon: ShieldAlert ,
+                icon: ShieldAlert,
                 roles: ["ANALISTA_SMS", "JEFE_SMS", "SUPERUSER"],
                 submenus: [
                   {
                     href: "/transmandu/sms/peligros_identificados",
                     label: "Peligros Identificados",
                     roles: ["ANALISTA_SMS", "JEFE_SMS", "SUPERUSER"],
-                    active: pathname === "/transmandu/sms/peligros_identificados",
+                    active:
+                      pathname === "/transmandu/sms/peligros_identificados",
                   },
                   {
                     href: "/transmandu/sms/planes_de_mitigacion",
                     label: "Planes de Mitigacion",
                     roles: ["ANALISTA_SMS", "JEFE_SMS", "SUPERUSER"],
-                    active:
-                      pathname === "/transmandu/sms/planes_de_mitigacion",
+                    active: pathname === "/transmandu/sms/planes_de_mitigacion",
                   },
                 ],
               },
@@ -164,6 +164,31 @@ export function getMenuList(
                     active:
                       pathname ===
                       "/transmandu/sms/estadisticas/indicadores_riesgo",
+                  },
+                ],
+              },
+              {
+                href: "/transmandu/sms",
+                label: "Reportes",
+                active: pathname.includes("/transmandu/sms"),
+                icon: ClipboardPen,
+                roles: ["ANALISTA_SMS", "REGULAR", "GUEST"],
+                submenus: [
+                  {
+                    href: "/transmandu/sms/reportes_voluntarios/nuevo_reporte", 
+                    label: "Reportes Voluntarios",
+                    roles: ["ANALISTA_SMS", "REGULAR", "GUEST"],
+                    active:
+                      pathname ===
+                      "/transmandu/sms/reportes_voluntarios/nuevo_reporte",
+                  },
+                  {
+                    href: "/transmandu/sms/reportes_obligatorios/nuevo_reporte",
+                    label: "Reportes Obligatorios",
+                    roles: ["ANALISTA_SMS", "REGULAR", "GUEST"],
+                    active:
+                      pathname ===
+                      "/transmandu/sms/reportes_obligatorios/nuevo_reporte",
                   },
                 ],
               },

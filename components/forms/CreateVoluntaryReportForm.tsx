@@ -35,6 +35,7 @@ import {
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
+import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
 import { VoluntaryReport } from "@/types";
 import { format } from "date-fns";
@@ -43,88 +44,6 @@ import { CalendarIcon, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Label } from "../ui/label";
-import { useAuth } from "@/contexts/AuthContext";
-
-const FormSchema = z.object({
-  identification_date: z
-    .date()
-    .refine((val) => !isNaN(val.getTime()), { message: "Invalid Date" }),
-  report_date: z
-    .date()
-    .refine((val) => !isNaN(val.getTime()), { message: "Invalid Date" }),
-
-  report_number: z.string().refine((val) => !isNaN(Number(val)), {
-    message: "El valor debe ser un número",
-  }),
-  danger_location: z.string(),
-  danger_area: z.string(),
-  airport_location: z.string(),
-  description: z
-    .string()
-    .min(3, {
-      message: "La descripción debe tener al menos 3 caracteres",
-    })
-    .max(255, {
-      message: "La descripción no debe exceder los 255 caracteres",
-    }),
-  possible_consequences: z
-    .string()
-    .min(3, {
-      message: "Las consecuencias deben tener al menos 3 caracteres",
-    })
-    .max(255, {
-      message: "Las consecuencias no debe exceder los 255 caracteres",
-    }),
-
-  reporter_name: z
-    .string()
-    .min(3, {
-      message: "El nombre de quien reporta debe tener al menos 3 letras.",
-    })
-    .max(40)
-    .optional(),
-  reporter_last_name: z
-    .string()
-    .min(3, {
-      message: "El Apellido de quien reporta debe tener al menos 3 letras.",
-    })
-    .max(40)
-    .optional(),
-  reporter_phone: z
-    .string()
-    .regex(/^\d{11}$/, {
-      message: "El número telefónico debe tener almenos 11 dígitos",
-    })
-    .optional(),
-
-  reporter_email: z
-    .string()
-    .min(10, {
-      message: "El correo electrónico debe tener al menos 10 caracteres",
-    })
-    .email({ message: "Formato de correo electrónico inválido" })
-    .optional(),
-  image: z
-    .instanceof(File)
-    .refine((file) => file.size <= 5 * 1024 * 1024, "Max 5MB")
-    .refine(
-      (file) => ["image/jpeg", "image/png"].includes(file.type),
-      "Solo JPEG/PNG"
-    )
-    .optional(),
-
-  document: z
-    .instanceof(File)
-    .refine((file) => file.size <= 5 * 1024 * 1024, "Máximo 5MB")
-    .refine(
-      (file) => file.type === "application/pdf",
-      "Solo se permiten archivos PDF"
-    )
-    .optional(),
-  // Otros campos del esquema...
-});
-
-type FormSchemaType = z.infer<typeof FormSchema>;
 
 interface FormProps {
   onClose: () => void;
@@ -142,9 +61,106 @@ export function CreateVoluntaryReportForm({
   const { updateVoluntaryReport } = useUpdateVoluntaryReport();
   const [isAnonymous, setIsAnonymous] = useState(true);
   const router = useRouter();
+
   const { user } = useAuth();
 
   const userRoles = user?.roles?.map((role) => role.name) || [];
+
+  const shouldEnableField = userRoles.some((role) =>
+    ["SUPERUSER", "ANALISTA_SMS", "JEFE_SMS"].includes(role)
+  );
+
+  const FormSchema = z.object({
+    identification_date: z
+      .date()
+      .refine((val) => !isNaN(val.getTime()), { message: "Invalid Date" }),
+    report_date: z
+      .date()
+      .refine((val) => !isNaN(val.getTime()), { message: "Invalid Date" }),
+
+    report_number: shouldEnableField
+      ? z
+          .string()
+          .min(1, "El número de reporte es obligatorio")
+          .refine((val) => !isNaN(Number(val)), {
+            message: "El valor debe ser un número",
+          })
+      : z
+          .string()
+          .refine((val) => val === "" || !isNaN(Number(val)), {
+            message: "El valor debe ser un número o estar vacío",
+          })
+          .optional(),
+
+    danger_location: z.string(),
+    danger_area: z.string(),
+    airport_location: z.string(),
+    description: z
+      .string()
+      .min(3, {
+        message: "La descripción debe tener al menos 3 caracteres",
+      })
+      .max(255, {
+        message: "La descripción no debe exceder los 255 caracteres",
+      }),
+    possible_consequences: z
+      .string()
+      .min(3, {
+        message: "Las consecuencias deben tener al menos 3 caracteres",
+      })
+      .max(255, {
+        message: "Las consecuencias no debe exceder los 255 caracteres",
+      }),
+
+    reporter_name: z
+      .string()
+      .min(3, {
+        message: "El nombre de quien reporta debe tener al menos 3 letras.",
+      })
+      .max(40)
+      .optional(),
+    reporter_last_name: z
+      .string()
+      .min(3, {
+        message: "El Apellido de quien reporta debe tener al menos 3 letras.",
+      })
+      .max(40)
+      .optional(),
+    reporter_phone: z
+      .string()
+      .regex(/^\d{11}$/, {
+        message: "El número telefónico debe tener almenos 11 dígitos",
+      })
+      .optional(),
+
+    reporter_email: z
+      .string()
+      .min(10, {
+        message: "El correo electrónico debe tener al menos 10 caracteres",
+      })
+      .email({ message: "Formato de correo electrónico inválido" })
+      .optional(),
+    image: z
+      .instanceof(File)
+      .refine((file) => file.size <= 5 * 1024 * 1024, "Max 5MB")
+      .refine(
+        (file) => ["image/jpeg", "image/png"].includes(file.type),
+        "Solo JPEG/PNG"
+      )
+      .optional(),
+
+    document: z
+      .instanceof(File)
+      .refine((file) => file.size <= 5 * 1024 * 1024, "Máximo 5MB")
+      .refine(
+        (file) => file.type === "application/pdf",
+        "Solo se permiten archivos PDF"
+      )
+      .optional(),
+    // Otros campos del esquema...
+  });
+
+  type FormSchemaType = z.infer<typeof FormSchema>;
 
   useEffect(() => {
     if (initialData && isEditing) {
@@ -208,7 +224,10 @@ export function CreateVoluntaryReportForm({
       };
       await updateVoluntaryReport.mutateAsync(value);
     } else {
-      const value = { ...data, status: "ABIERTO" };
+      const value = {
+        ...data,
+        status: shouldEnableField ? "ABIERTO" : "PROCESO",
+      };
       try {
         const response = await createVoluntaryReport.mutateAsync(value);
         router.push(
@@ -228,27 +247,24 @@ export function CreateVoluntaryReportForm({
         className="flex flex-col space-y-3"
       >
         <FormLabel className="text-lg text-center">
-          Formulario de Reporte Voluntario
+          Reporte Voluntario de Peligro
         </FormLabel>
 
-        <FormField
-          control={form.control}
-          name="report_number"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Codigo del Reporte Voluntario</FormLabel>
-              <FormControl>
-                <Input
-                  placeholder=""
-                  {...field}
-                  maxLength={4}
-                  disabled={true}
-                />
-              </FormControl>
-              <FormMessage className="text-xs" />
-            </FormItem>
-          )}
-        />
+        {shouldEnableField && (
+          <FormField
+            control={form.control}
+            name="report_number"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Código del Reporte Voluntario</FormLabel>
+                <FormControl>
+                  <Input placeholder="" {...field} maxLength={4} />
+                </FormControl>
+                <FormMessage className="text-xs" />
+              </FormItem>
+            )}
+          />
+        )}
         <div className="flex gap-2 items-center justify-center  ">
           <FormField
             control={form.control}
@@ -540,7 +556,7 @@ export function CreateVoluntaryReportForm({
             name="image"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Imagen General</FormLabel>
+                <FormLabel>Imagen del Reporte</FormLabel>
 
                 <div className="flex items-center gap-4">
                   {field.value ? (
