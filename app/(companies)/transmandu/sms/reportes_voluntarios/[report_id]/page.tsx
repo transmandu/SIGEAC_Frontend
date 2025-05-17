@@ -114,10 +114,16 @@ const ShowVoluntaryReport = () => {
         {voluntaryReport && (
           <div className="w-full max-w-2xl space-y-4">
             <div className="flex justify-between items-center bg-gray-100 p-4 rounded-lg">
-              <p className="text-lg font-medium text-gray-700">
-                <span className="font-semibold">Número del Reporte:</span> RVP-
-                {voluntaryReport.report_number}
-              </p>
+              {voluntaryReport.report_number ? (
+                <p className="text-lg font-medium text-gray-700">
+                  <span className="font-semibold">Número del Reporte:</span>{" "}
+                  RVP-{voluntaryReport.report_number}
+                </p>
+            ) : (
+                <p className="text-lg font-medium text-gray-700">
+                  <span className="font-semibold">Número del Reporte:</span> N/A
+                </p>
+              )}
 
               <div className="flex justify-center">
                 <p className="text-lg font-medium text-gray-700">
@@ -128,7 +134,9 @@ const ShowVoluntaryReport = () => {
                   className={`justify-center items-center text-center font-bold font-sans ${
                     voluntaryReport.status === "CERRADO"
                       ? "bg-green-400"
-                      : "bg-red-400"
+                      : voluntaryReport.status === "ABIERTO"
+                      ? "bg-red-400"
+                      : "bg-gray-500" // Este será para "PROCESO" o cualquier otro estado
                   }`}
                 >
                   {voluntaryReport.status}
