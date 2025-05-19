@@ -3,7 +3,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 interface ObligatoryReportData {
-  report_number: string;
+  report_number?: string;
   description: string;
   incident_location: string;
   report_date: Date;
@@ -26,16 +26,18 @@ interface ObligatoryReportData {
 }
 
 interface UpdateObligatoryReportData {
-  id: number | string;
+  id?: number | string;
   report_number: string;
   description: string;
   incident_location: string;
   report_date: Date;
   incident_date: Date;
+
   incident_time: string;
   flight_time: string;
-  pilot_id: string;
-  copilot_id: string;
+
+  pilot_id: string | number;
+  copilot_id: string | number;
   aircraft_acronym: string;
   aircraft_model: string;
   flight_number: string;
@@ -117,7 +119,7 @@ export const useUpdateObligatoryReport = () => {
   const updateObligatoryReportMutation = useMutation({
     mutationKey: ["obligatory-reports"],
     mutationFn: async (data: UpdateObligatoryReportData) => {
-      console.log("antes de hacer el post",data);
+      console.log("antes de hacer el post", data);
       await axiosInstance.post(
         `/transmandu/sms/update/obligatory-reports/${data.id}`,
         data,
@@ -143,5 +145,35 @@ export const useUpdateObligatoryReport = () => {
   });
   return {
     updateObligatoryReport: updateObligatoryReportMutation,
+  };
+};
+
+export const useAcceptObligatoryReport = () => {
+  const queryClient = useQueryClient();
+
+  const acceptObligatoryReportMutation = useMutation({
+    mutationKey: ["obligatory-reports"],
+    mutationFn: async (data: UpdateObligatoryReportData) => {
+      console.log("antes de hacer el post", data);
+      await axiosInstance.patch(
+        `/transmandu/sms/accept/obligatory-reports/${data.id}`,
+        data
+      );
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["obligatory-reports"] });
+      toast.success("¡Actualizado!", {
+        description: `El reporte obligatorio ha sido aceptado correctamente.`,
+      });
+    },
+    onError: (error) => {
+      toast.error("Oops!", {
+        description: "No se pudo aceptar el reporte obligatorio...",
+      });
+      console.log(error);
+    },
+  });
+  return {
+    acceptObligatoryReport: acceptObligatoryReportMutation,
   };
 };

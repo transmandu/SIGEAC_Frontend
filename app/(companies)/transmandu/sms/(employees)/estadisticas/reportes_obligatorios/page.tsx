@@ -12,7 +12,6 @@ import { useGetVoluntaryReportsCountedByAirportLocation } from "@/hooks/sms/useG
 import { Loader2, Check, ChevronsUpDown, X } from "lucide-react";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import DynamicBarChart from "../../../../../../components/charts/DynamicBarChart";
 import { format, startOfMonth } from "date-fns";
 import { useGetIdentificationStatsBySourceName } from "@/hooks/sms/useGetIdentificationStatsBySoruceName";
 import { useGetIdentificationStatsBySourceType } from "@/hooks/sms/useGetIdentificationStatsBySoruceType";
@@ -33,6 +32,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
+import DynamicBarChart from "@/components/charts/DynamicBarChart";
 
 interface Params {
   from?: string;
@@ -204,7 +204,17 @@ const Statistics = () => {
     ];
 
     refetchFunctions.forEach((refetch) => refetch());
-  }, [params]);
+  }, [
+    params,
+    refetchBarChart,
+    refetchPieChart,
+    refetchDynamicChart,
+    refetchRisk,
+    refetchPostRisk,
+    refetchAirportLocationData,
+    refetchDynamicSourceNameChart,
+    refetchDynamicSourceTypeChart,
+  ]);
 
   const handleSelectChange = (id: string) => {
     if (id === "Todos") {

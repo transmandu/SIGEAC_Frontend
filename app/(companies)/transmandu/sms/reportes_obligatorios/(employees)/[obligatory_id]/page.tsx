@@ -4,6 +4,7 @@ import CreateObligatoryDialog from "@/components/dialogs/CreateObligatoryDialog"
 import DeleteVoluntaryReprotDialog from "@/components/dialogs/DeleteVoluntaryReportDialog";
 import PreviewObligatoryReportPdfDialog from "@/components/dialogs/PreviewObligatoryReportPdfDialog";
 import { ContentLayout } from "@/components/layout/ContentLayout";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CardContent } from "@/components/ui/card";
 import {
@@ -120,19 +121,37 @@ const ShowObligatoryReport = () => {
         )}
         {obligatoryReport && (
           <div className="w-full space-y-4">
-            <div className="flex justify-between bg-gray-100 p-4 rounded-lg">
-              <p className="text-lg text-gray-700">
-                <span className="font-semibold">Codigo: </span> ROS-
-                {obligatoryReport.report_number}
-              </p>
-              <p className="text-lg font-medium text-gray-700">
-                <span className="font-semibold">Fecha del Reporte: </span>
-                {format(obligatoryReport.report_date, "PPP", {
-                  locale: es,
-                })}
-              </p>
-            </div>
+            {obligatoryReport.report_number && (
+              <div className="flex justify-between bg-gray-100 p-4 rounded-lg">
+                <p className="text-lg text-gray-700">
+                  <span className="font-semibold">Codigo: </span> ROS-
+                  {obligatoryReport.report_number}
+                </p>
+                <p className="text-lg font-medium text-gray-700">
+                  <span className="font-semibold">Fecha del Reporte: </span>
+                  {format(obligatoryReport.report_date, "PPP", {
+                    locale: es,
+                  })}
+                </p>
+              </div>
+            )}
+
             <div className="flex-col bg-gray-100 p-4 rounded-lg ">
+              <p className="text-lg font-medium text-gray-700">
+                <span className="font-semibold">Estado: </span>
+                <Badge
+                  className={`justify-center items-center text-center font-bold font-sans ${
+                    obligatoryReport.status === "CERRADO"
+                      ? "bg-green-400"
+                      : obligatoryReport.status === "ABIERTO"
+                      ? "bg-red-400"
+                      : "bg-gray-500" // Este será para "PROCESO" o cualquier otro estado
+                  }`}
+                >
+                  {obligatoryReport.status}
+                </Badge>
+              </p>
+
               <p className="text-lg text-gray-700">
                 <span className="font-semibold">
                   Lugar Donde Ocurrio el Suceso:{" "}
@@ -370,7 +389,6 @@ const ShowObligatoryReport = () => {
               <Dialog>
                 <DialogTrigger asChild>
                   <div className="cursor-pointer flex justify-center">
-
                     <CardContent className="flex flex-col gap-2 p-0">
                       <div className="relative group">
                         <img

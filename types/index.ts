@@ -525,7 +525,7 @@ export type InformationSource = {
 };
 
 export type ObligatoryReport = {
-  id: number;
+  id?: number;
   report_number: string;
   incident_location: string;
   description: string;

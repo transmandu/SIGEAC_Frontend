@@ -13,7 +13,6 @@ import { format, startOfMonth } from "date-fns";
 import { Loader2, Check, ChevronsUpDown, X } from "lucide-react";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import DynamicBarChart from "../../../../../../components/charts/DynamicBarChart";
 import { useGetTotalIdentificationStatsBySourceName } from "@/hooks/sms/useGetTotalIdentificationStatsBySoruceName";
 import { useGetTotalPostRiskCountByDateRange } from "@/hooks/sms/useGetTotalPostRiskByDateRange";
 import { Button } from "@/components/ui/button";
@@ -32,6 +31,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
+import DynamicBarChart from "@/components/charts/DynamicBarChart";
 
 const GeneralReportStats = () => {
   const [selectedGraphics, setSelectedGraphics] = useState<string[]>([]);

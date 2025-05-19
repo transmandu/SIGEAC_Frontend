@@ -34,7 +34,13 @@ import { cn } from "@/lib/utils";
 import { ObligatoryReport } from "@/types";
 import { format, isValid, parse } from "date-fns";
 import { es } from "date-fns/locale";
-import { CalendarIcon, Check, ChevronsUpDown, ClockIcon } from "lucide-react";
+import {
+  CalendarIcon,
+  Check,
+  ChevronsUpDown,
+  ClockIcon,
+  Loader2,
+} from "lucide-react";
 import {
   Command,
   CommandEmpty,
@@ -51,6 +57,7 @@ import {
   SelectValue,
 } from "../ui/select";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/contexts/AuthContext";
 
 //Falta añadir validaciones
 
@@ -59,82 +66,6 @@ function timeFormat(date: Date) {
   const parsedTime = parse(timeString, "HH:mm:ss", new Date());
   return parsedTime;
 }
-
-const FormSchema = z
-  .object({
-    report_number: z.string().refine((val) => !isNaN(Number(val)), {
-      message: "El valor debe ser un número",
-    }),
-    incident_location: z
-      .string()
-      .min(3, {
-        message: "El lugar de incidente debe tener al menos 3 caracteres",
-      })
-      .max(50, {
-        message: "El lugar de incidente no debe exceder los 50 caracteres",
-      }),
-    description: z.string(),
-
-    report_date: z
-      .date()
-      .refine((val) => !isNaN(val.getTime()), { message: "Fecha inválida" }),
-    incident_date: z
-      .date()
-      .refine((val) => !isNaN(val.getTime()), { message: "Fecha inválida" }),
-
-    incident_time: z
-      .date()
-      .refine((val) => !isNaN(val.getTime()), { message: "Hora inválida" }),
-    flight_time: z
-      .date()
-      .refine((val) => !isNaN(val.getTime()), { message: "Hora inválida" }),
-    pilot_id: z.string(),
-    copilot_id: z.string(),
-    aircraft_acronym: z.string().min(7).max(7),
-    aircraft_model: z.string().min(3),
-    flight_number: z.string().refine((val) => !isNaN(Number(val)), {
-      message: "El valor debe ser un número",
-    }),
-
-    flight_origin: z.string().min(3).max(3),
-    flight_destiny: z.string().min(3).max(3),
-    flight_alt_destiny: z.string().min(3).max(3),
-
-    incidents: z.array(z.string()).optional(),
-    other_incidents: z.preprocess(
-      (val) => (val === null || val === undefined ? "" : val),
-      z.string().optional()
-    ),
-    image: z
-      .instanceof(File)
-      .refine((file) => file.size <= 5 * 1024 * 1024, "Max 5MB")
-      .refine(
-        (file) => ["image/jpeg", "image/png"].includes(file.type),
-        "Solo JPEG/PNG"
-      )
-      .optional(),
-
-    document: z
-      .instanceof(File)
-      .refine((file) => file.size <= 5 * 1024 * 1024, "Máximo 5MB")
-      .refine(
-        (file) => file.type === "application/pdf",
-        "Solo se permiten archivos PDF"
-      )
-      .optional(),
-  })
-  .refine(
-    (data) => {
-      const hasIncidents = data.incidents && data.incidents.length > 0;
-      const hasOtherIncidents = data.other_incidents?.trim() !== "";
-      return hasIncidents || hasOtherIncidents;
-    },
-    {
-      message: "Debe proporcionar al menos un incidente o descripción",
-      path: ["incidents"],
-    }
-  );
-type FormSchemaType = z.infer<typeof FormSchema>;
 
 interface FormProps {
   isEditing?: boolean;
@@ -148,9 +79,105 @@ export function CreateObligatoryReportForm({
   isEditing,
   initialData,
 }: FormProps) {
+  const { user } = useAuth();
+
+  const userRoles = user?.roles?.map((role) => role.name) || [];
+
+  const shouldEnableField = userRoles.some((role) =>
+    ["SUPERUSER", "ANALISTA_SMS", "JEFE_SMS"].includes(role)
+  );
+
+  const FormSchema = z
+    .object({
+      report_number: shouldEnableField
+        ? z
+            .string()
+            .min(1, "El número de reporte es obligatorio")
+            .refine((val) => !isNaN(Number(val)), {
+              message: "El valor debe ser un número",
+            })
+        : z
+            .string()
+            .refine((val) => val === "" || !isNaN(Number(val)), {
+              message: "El valor debe ser un número o estar vacío",
+            })
+            .optional(),
+
+      incident_location: z
+        .string()
+        .min(3, {
+          message: "El lugar de incidente debe tener al menos 3 caracteres",
+        })
+        .max(50, {
+          message: "El lugar de incidente no debe exceder los 50 caracteres",
+        }),
+      description: z.string(),
+
+      report_date: z
+        .date()
+        .refine((val) => !isNaN(val.getTime()), { message: "Fecha inválida" }),
+      incident_date: z
+        .date()
+        .refine((val) => !isNaN(val.getTime()), { message: "Fecha inválida" }),
+
+      incident_time: z
+        .date()
+        .refine((val) => !isNaN(val.getTime()), { message: "Hora inválida" }),
+      flight_time: z
+        .date()
+        .refine((val) => !isNaN(val.getTime()), { message: "Hora inválida" }),
+      pilot_id: z.string(),
+      copilot_id: z.string(),
+      aircraft_acronym: z.string().min(7).max(7),
+      aircraft_model: z.string().min(3),
+      flight_number: z.string().refine((val) => !isNaN(Number(val)), {
+        message: "El valor debe ser un número",
+      }),
+
+      flight_origin: z.string().min(3).max(3),
+      flight_destiny: z.string().min(3).max(3),
+      flight_alt_destiny: z.string().min(3).max(3),
+
+      incidents: z.array(z.string()).optional(),
+      other_incidents: z.preprocess(
+        (val) => (val === null || val === undefined ? "" : val),
+        z.string().optional()
+      ),
+      image: z
+        .instanceof(File)
+        .refine((file) => file.size <= 5 * 1024 * 1024, "Max 5MB")
+        .refine(
+          (file) => ["image/jpeg", "image/png"].includes(file.type),
+          "Solo JPEG/PNG"
+        )
+        .optional(),
+
+      document: z
+        .instanceof(File)
+        .refine((file) => file.size <= 5 * 1024 * 1024, "Máximo 5MB")
+        .refine(
+          (file) => file.type === "application/pdf",
+          "Solo se permiten archivos PDF"
+        )
+        .optional(),
+    })
+    .refine(
+      (data) => {
+        const hasIncidents = data.incidents && data.incidents.length > 0;
+        const hasOtherIncidents = data.other_incidents?.trim() !== "";
+        return hasIncidents || hasOtherIncidents;
+      },
+      {
+        message: "Debe proporcionar al menos un incidente o descripción",
+        path: ["incidents"],
+      }
+    );
+  type FormSchemaType = z.infer<typeof FormSchema>;
+
   const { createObligatoryReport } = useCreateObligatoryReport();
   const { updateObligatoryReport } = useUpdateObligatoryReport();
   const router = useRouter();
+
   const [showOtherInput, setShowOtherInput] = useState(
     initialData?.other_incidents ? true : false
   );
@@ -228,7 +255,7 @@ export function CreateObligatoryReportForm({
 
   const onSubmit = async (data: FormSchemaType) => {
     console.log(data);
-    if (isEditing && initialData) {
+    if (isEditing && initialData && data.report_number) {
       const value = {
         id: initialData.id,
         image: data.image,
@@ -253,9 +280,9 @@ export function CreateObligatoryReportForm({
         incidents: data.incidents,
         other_incidents: data.other_incidents,
       };
-
       await updateObligatoryReport.mutateAsync(value);
     } else {
+      console.log("THIS IS ROS", data);
       const value = {
         report_number: data.report_number,
         incident_location: data.incident_location,
@@ -276,7 +303,7 @@ export function CreateObligatoryReportForm({
         other_incidents: data.other_incidents,
         image: data.image,
         document: data.document,
-        status: "ABIERTO",
+        status: shouldEnableField ? "ABIERTO" : "PROCESO",
       };
 
       try {
@@ -316,19 +343,21 @@ export function CreateObligatoryReportForm({
         </FormLabel>
 
         <div className="flex gap-2 items-center justify-evenly">
-          <FormField
-            control={form.control}
-            name="report_number"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Codigo del Reporte</FormLabel>
-                <FormControl>
-                  <Input placeholder="001" {...field} maxLength={4} />
-                </FormControl>
-                <FormMessage className="text-xs" />
-              </FormItem>
-            )}
-          />
+          {shouldEnableField && (
+            <FormField
+              control={form.control}
+              name="report_number"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Codigo del Reporte</FormLabel>
+                  <FormControl>
+                    <Input placeholder="001" {...field} maxLength={4} />
+                  </FormControl>
+                  <FormMessage className="text-xs" />
+                </FormItem>
+              )}
+            />
+          )}
 
           <FormField
             control={form.control}
@@ -456,24 +485,31 @@ export function CreateObligatoryReportForm({
             render={({ field }) => (
               <FormItem className="w-full">
                 <FormLabel>Piloto</FormLabel>
-                <Select
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Seleccionar Piloto" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {pilots &&
-                      pilots.map((pilot) => (
+                {isLoading ? (
+                  <div className="flex items-center gap-2 p-2 border rounded-md bg-muted">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <span>Cargando pilotos...</span>
+                  </div>
+                ) : (
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                    disabled={isLoading} // Deshabilitar durante carga
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Seleccionar Piloto" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {pilots?.map((pilot) => (
                         <SelectItem key={pilot.id} value={pilot.id.toString()}>
                           {pilot.first_name} {pilot.last_name}
                         </SelectItem>
                       ))}
-                  </SelectContent>
-                </Select>
+                    </SelectContent>
+                  </Select>
+                )}
                 <FormMessage />
               </FormItem>
             )}
@@ -484,25 +520,32 @@ export function CreateObligatoryReportForm({
             name="copilot_id"
             render={({ field }) => (
               <FormItem className="w-full">
-                <FormLabel>Copiloto</FormLabel>
-                <Select
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Seleccionar Copiloto" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {pilots &&
-                      pilots.map((pilot) => (
+                <FormLabel>Piloto</FormLabel>
+                {isLoading ? (
+                  <div className="flex items-center gap-2 p-2 border rounded-md bg-muted">
+                    <Loader2 className="h-4 w-4 animate-spin" />{" "}
+                    <span>Cargando pilotos...</span>
+                  </div>
+                ) : (
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                    disabled={isLoading} // Deshabilitar durante carga
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Seleccionar Copiloto" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {pilots?.map((pilot) => (
                         <SelectItem key={pilot.id} value={pilot.id.toString()}>
                           {pilot.first_name} {pilot.last_name}
                         </SelectItem>
                       ))}
-                  </SelectContent>
-                </Select>
+                    </SelectContent>
+                  </Select>
+                )}
                 <FormMessage />
               </FormItem>
             )}
@@ -626,7 +669,11 @@ export function CreateObligatoryReportForm({
               <FormItem className="w-full">
                 <FormLabel>Matricula de la aereonave</FormLabel>
                 <FormControl>
-                  <Input placeholder="Matricula de aereonave" {...field} maxLength={7}/>
+                  <Input
+                    placeholder="Matricula de aereonave"
+                    {...field}
+                    maxLength={7}
+                  />
                 </FormControl>
                 <FormMessage className="text-xs" />
               </FormItem>
@@ -639,7 +686,11 @@ export function CreateObligatoryReportForm({
               <FormItem className="w-full">
                 <FormLabel>Modelo de la aereonave</FormLabel>
                 <FormControl>
-                  <Input placeholder="Modelo de aereonave" {...field} maxLength={7}/>
+                  <Input
+                    placeholder="Modelo de aereonave"
+                    {...field}
+                    maxLength={7}
+                  />
                 </FormControl>
                 <FormMessage className="text-xs" />
               </FormItem>
@@ -654,7 +705,11 @@ export function CreateObligatoryReportForm({
               <FormItem className="w-full">
                 <FormLabel>Numero de vuelo</FormLabel>
                 <FormControl>
-                  <Input placeholder="Numero del vuelo" {...field} maxLength={6}/>
+                  <Input
+                    placeholder="Numero del vuelo"
+                    {...field}
+                    maxLength={6}
+                  />
                 </FormControl>
                 <FormMessage className="text-xs" />
               </FormItem>

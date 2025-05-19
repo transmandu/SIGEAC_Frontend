@@ -6,6 +6,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { ObligatoryReport } from "@/types";
 import {
+  CheckCheck,
   ClipboardPen,
   ClipboardPenLine,
   EyeIcon,
@@ -34,6 +35,7 @@ import ObligatoryReportPdf from "../pdf/sms/ObligatoryReportPdf";
 import { format } from "date-fns";
 import VoluntaryReportPdf from "../pdf/sms/VoluntaryReportPdf";
 import { useGetDangerIdentificationWithAllById } from "@/hooks/sms/useGetDangerIdentificationWithAllById";
+import { AcceptObligatoryReport } from "../forms/AcceptObligatoryForm";
 
 const ObligatoryReportDropdownActions = ({
   obligatoryReport,
@@ -44,6 +46,7 @@ const ObligatoryReportDropdownActions = ({
   const [openCreateDangerIdentification, setOpenCreateDangerIdentification] =
     useState<boolean>(false);
   const [openEdit, setOpenEdit] = useState<boolean>(false);
+  const [openAccept, setOpenAccept] = useState<boolean>(false);
   const [open, setOpen] = useState<boolean>(false);
   const [openPrint, setOpenPrint] = useState<boolean>(false);
 
@@ -74,22 +77,30 @@ const ObligatoryReportDropdownActions = ({
             className="flex-col gap-2 justify-center"
           >
             {/*Este es el primer icon ode edit */}
-            {obligatoryReport.status !== "CERRADO" && (
+
+            {obligatoryReport.status === "ABIERTO" && (
               <DropdownMenuItem onClick={() => setOpenEdit(true)}>
                 <ClipboardPen className="size-5" />
                 <p className="pl-2"> Editar </p>
               </DropdownMenuItem>
             )}
 
-            {obligatoryReport.status !== "CERRADO" && (
+            {obligatoryReport.status === "PROCESO" && (
+              <DropdownMenuItem onClick={() => setOpenAccept(true)}>
+                <CheckCheck className="size-5 text-green-400" />
+                <p className="pl-2 "> Aceptar </p>
+              </DropdownMenuItem>
+            )}
+
+            {(obligatoryReport.status === "ABIERTO" ||
+              obligatoryReport.status === "PROCESO") && (
               <DialogTrigger asChild>
                 <DropdownMenuItem onClick={() => setOpenDelete(true)}>
                   <Trash2 className="size-5 text-red-500" />
-                  <p className="pl-2"> Eliminar </p>
+                  <p className="pl-2">Eliminar</p>
                 </DropdownMenuItem>
               </DialogTrigger>
             )}
-
             <DropdownMenuItem
               onClick={() => {
                 router.push(
@@ -102,7 +113,7 @@ const ObligatoryReportDropdownActions = ({
             </DropdownMenuItem>
 
             {!obligatoryReport.danger_identification_id &&
-              obligatoryReport.status !== "CERRADO" && (
+              obligatoryReport.status === "ABIERTO" && (
                 <DropdownMenuItem
                   onClick={() => setOpenCreateDangerIdentification(true)}
                 >
@@ -111,7 +122,7 @@ const ObligatoryReportDropdownActions = ({
                 </DropdownMenuItem>
               )}
 
-            {obligatoryReport &&  (
+            {obligatoryReport && (
               <DropdownMenuItem onClick={() => setOpenPrint(true)}>
                 <PrinterCheck className="size-5" />
                 <p className="pl-2"> Descargar PDF</p>
@@ -144,7 +155,11 @@ const ObligatoryReportDropdownActions = ({
               <Button
                 disabled={deleteObligatoryReport.isPending}
                 className="hover:bg-white hover:text-black hover:border hover:border-black transition-all"
-                onClick={() => handleDelete(obligatoryReport.id)}
+                onClick={() => {
+                  if (obligatoryReport.id) {
+                    handleDelete(obligatoryReport.id);
+                  }
+                }}
               >
                 {deleteObligatoryReport.isPending ? (
                   <Loader2 className="size-4 animate-spin" />
@@ -169,6 +184,18 @@ const ObligatoryReportDropdownActions = ({
           </DialogContent>
         </Dialog>
 
+        <Dialog open={openAccept} onOpenChange={setOpenAccept}>
+          <DialogContent className="flex flex-col max-w-2xl m-2">
+            <DialogHeader>
+              <DialogTitle className="text-center"></DialogTitle>
+              <AcceptObligatoryReport
+                initialData={obligatoryReport}
+                onClose={() => setOpenAccept(false)}
+              ></AcceptObligatoryReport>
+            </DialogHeader>
+          </DialogContent>
+        </Dialog>
+
         <Dialog
           open={openCreateDangerIdentification}
           onOpenChange={setOpenCreateDangerIdentification}
@@ -179,11 +206,13 @@ const ObligatoryReportDropdownActions = ({
               <DialogDescription></DialogDescription>
             </DialogHeader>
 
-            <CreateDangerIdentificationForm
-              onClose={() => setOpenCreateDangerIdentification(false)}
-              id={obligatoryReport.id}
-              reportType="ROS"
-            />
+            {obligatoryReport.id && (
+              <CreateDangerIdentificationForm
+                onClose={() => setOpenCreateDangerIdentification(false)}
+                id={obligatoryReport.id}
+                reportType="ROS"
+              />
+            )}
           </DialogContent>
         </Dialog>
 
