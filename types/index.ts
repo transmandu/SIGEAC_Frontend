@@ -573,6 +573,26 @@ export type Requisition = {
   aircraft: Aircraft,
 }
 
+export type AdministrationRequisition = {
+  id: number,
+  order_number: string,
+  status: string,
+  created_by: User,
+  requested_by: string,
+  batch: {
+    batch_articles: {
+      description: string,
+      quantity: number,
+    }[]
+  }[],
+  received_by: string,
+  justification: string,
+  arrival_date: Date,
+  submission_date: Date,
+  work_order: WorkOrder,
+  aircraft: Aircraft,
+}
+
 export type Role = {
   id: number,
   name: string,

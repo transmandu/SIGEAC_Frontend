@@ -130,9 +130,7 @@ export function CompletePurchaseForm({ onClose, po }: FormProps) {
     onClose()
 
   }
-
-  console.log(form.getValues())
-
+  
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col space-y-3 w-full">
