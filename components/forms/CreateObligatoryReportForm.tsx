@@ -58,6 +58,7 @@ import {
 } from "../ui/select";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
+import Image from "next/image";
 
 //Falta añadir validaciones
 
@@ -890,22 +891,30 @@ export function CreateObligatoryReportForm({
 
                 <div className="flex items-center gap-4">
                   {field.value ? (
-                    <img
-                      src={URL.createObjectURL(field.value)}
-                      alt="Preview"
-                      className="h-16 w-16 rounded-md object-cover"
-                    />
+                    <div className="relative h-16 w-16">
+                      <Image
+                        src={URL.createObjectURL(field.value)}
+                        alt="Preview"
+                        width={64}
+                        height={64}
+                        className="rounded-md object-contain"
+                      />
+                    </div>
                   ) : initialData?.image &&
                     typeof initialData.image === "string" ? (
-                    <img
-                      src={
-                        initialData.image.startsWith("data:image")
-                          ? initialData.image
-                          : `data:image/jpeg;base64,${initialData.image}`
-                      }
-                      alt="Preview"
-                      className="h-16 w-16 rounded-md object-cover"
-                    />
+                    <div className="relative h-16 w-16">
+                      <Image
+                        src={
+                          initialData.image.startsWith("data:image")
+                            ? initialData.image
+                            : `data:image/jpeg;base64,${initialData.image}`
+                        }
+                        alt="Preview"
+                        width={64}
+                        height={64}
+                        className="rounded-md object-contain"
+                      />
+                    </div>
                   ) : null}
 
                   <FormControl>
@@ -921,7 +930,6 @@ export function CreateObligatoryReportForm({
               </FormItem>
             )}
           />
-
           <FormField
             control={form.control}
             name="document"

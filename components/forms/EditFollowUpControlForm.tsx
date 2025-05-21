@@ -24,7 +24,7 @@ import { z } from "zod";
 import { Calendar } from "../ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { Separator } from "../ui/separator";
-
+import Image from "next/image";
 const FormSchema = z.object({
   description: z.string().max(255),
   date: z
@@ -158,14 +158,16 @@ export function EditFollowUpControlForm({ onClose, initialData }: FormProps) {
 
                 <div className="flex items-center gap-4">
                   {field.value ? (
-                    <img
+                    <Image
                       src={URL.createObjectURL(field.value)}
                       alt="Preview"
                       className="h-16 w-16 rounded-md object-cover"
+                      width={64}
+                      height={64}
                     />
                   ) : initialData?.image &&
                     typeof initialData.image === "string" ? (
-                    <img
+                    <Image
                       src={
                         initialData.image.startsWith("data:image")
                           ? initialData.image
@@ -173,6 +175,8 @@ export function EditFollowUpControlForm({ onClose, initialData }: FormProps) {
                       }
                       alt="Preview"
                       className="h-16 w-16 rounded-md object-cover"
+                      width={64}
+                      height={64}
                     />
                   ) : null}
 

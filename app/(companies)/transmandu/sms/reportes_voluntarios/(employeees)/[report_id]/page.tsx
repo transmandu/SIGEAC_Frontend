@@ -20,6 +20,7 @@ import { es } from "date-fns/locale";
 import { Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
+import Image from "next/image";
 
 const ShowVoluntaryReport = () => {
   const { report_id } = useParams<{ report_id: string }>();
@@ -119,7 +120,7 @@ const ShowVoluntaryReport = () => {
                   <span className="font-semibold">Número del Reporte:</span>{" "}
                   RVP-{voluntaryReport.report_number}
                 </p>
-            ) : (
+              ) : (
                 <p className="text-lg font-medium text-gray-700">
                   <span className="font-semibold">Número del Reporte:</span> N/A
                 </p>
@@ -223,6 +224,75 @@ const ShowVoluntaryReport = () => {
         )}
 
         <div className="flex flex-col gap-4">
+          {/* Diálogo para la imagen */}
+          {voluntaryReport?.image && (
+            <Dialog>
+              <DialogTrigger asChild>
+                <div className="cursor-pointer flex justify-center">
+                  <CardContent className="flex flex-col gap-2 p-0">
+                    <div className="relative group">
+                      <div className="w-64 h-64">
+                        <Image
+                          src={
+                            voluntaryReport.image.startsWith("data:image")
+                              ? voluntaryReport.image
+                              : `data:image/jpeg;base64,${voluntaryReport.image}`
+                          }
+                          alt="Vista previa de imagen"
+                          fill
+                          className="object-contain rounded-md border-2 border-gray-300 shadow-sm group-hover:border-blue-400 transition-all"
+                          onError={(e) => {
+                            // Necesitarás manejar el error de otra forma ya que Next.js Image no expone directamente el elemento
+                            const target = e.target as HTMLImageElement;
+                            target.style.display = "none";
+                          }}
+                        />
+                        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                          <span className="bg-black/50 text-white px-3 py-1 rounded-md">
+                            Ver imagen completa
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </div>
+              </DialogTrigger>
+
+              <DialogContent className="max-w-4xl max-h-[90vh]">
+                <DialogHeader>
+                  <DialogTitle>Imagen del Reporte</DialogTitle>
+                </DialogHeader>
+
+                <div className="relative flex justify-center items-center h-[70vh]">
+                  <Image
+                    src={
+                      voluntaryReport.image.startsWith("data:image")
+                        ? voluntaryReport.image
+                        : `data:image/jpeg;base64,${voluntaryReport.image}`
+                    }
+                    alt="Imagen completa"
+                    fill
+                    className=" object-contain border-4 border-gray-100 shadow-lg rounded-lg"
+                  />
+                </div>
+
+                <div className="flex justify-end mt-4">
+                  <a
+                    href={
+                      voluntaryReport.image.startsWith("data:image")
+                        ? voluntaryReport.image
+                        : `data:image/jpeg;base64,${voluntaryReport.image}`
+                    }
+                    download="reporte-voluntario"
+                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700"
+                  >
+                    Descargar Imagen
+                  </a>
+                </div>
+              </DialogContent>
+            </Dialog>
+          )}
+
           {/* Diálogo para el documento PDF */}
           {voluntaryReport?.document && (
             <Dialog>
@@ -273,69 +343,6 @@ const ShowVoluntaryReport = () => {
                       Documento adjunto
                     </p>
                   </div>
-                </div>
-              </DialogContent>
-            </Dialog>
-          )}
-
-          {/* Diálogo para la imagen */}
-          {voluntaryReport?.image && (
-            <Dialog>
-              <DialogTrigger asChild>
-                <div className="cursor-pointer">
-                  <CardContent className="flex flex-col gap-2 p-0">
-                    <div className="relative group">
-                      <img
-                        src={
-                          voluntaryReport.image.startsWith("data:image")
-                            ? voluntaryReport.image
-                            : `data:image/jpeg;base64,${voluntaryReport.image}`
-                        }
-                        alt="Vista previa de imagen"
-                        className="w-full h-48 object-cover rounded-md border-2 border-gray-300 shadow-sm group-hover:border-blue-400 transition-all"
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).style.display = "none";
-                        }}
-                      />
-                      <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                        <span className="bg-black/50 text-white px-3 py-1 rounded-md">
-                          Ver imagen completa
-                        </span>
-                      </div>
-                    </div>
-                  </CardContent>
-                </div>
-              </DialogTrigger>
-
-              <DialogContent className="max-w-4xl max-h-[90vh]">
-                <DialogHeader>
-                  <DialogTitle>Imagen del Reporte</DialogTitle>
-                </DialogHeader>
-
-                <div className="flex justify-center items-center h-full">
-                  <img
-                    src={
-                      voluntaryReport.image.startsWith("data:image")
-                        ? voluntaryReport.image
-                        : `data:image/jpeg;base64,${voluntaryReport.image}`
-                    }
-                    alt="Imagen completa"
-                    className="max-w-full max-h-[70vh] object-contain border-4 border-gray-100 shadow-lg rounded-lg"
-                  />
-                </div>
-
-                <div className="flex justify-end mt-4">
-                  <a
-                    href={
-                      voluntaryReport.image.startsWith("data:image")
-                        ? voluntaryReport.image
-                        : `data:image/jpeg;base64,${voluntaryReport.image}`
-                    }
-                    download="imagen-reporte.jpg"
-                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700"
-                  >
-                    Descargar Imagen
-                  </a>
                 </div>
               </DialogContent>
             </Dialog>

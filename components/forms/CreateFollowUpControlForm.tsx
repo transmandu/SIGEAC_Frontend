@@ -31,7 +31,7 @@ import { Separator } from "@radix-ui/react-select";
 import { useParams } from "next/navigation";
 import { Textarea } from "../ui/textarea";
 import { Input } from "../ui/input";
-
+import Image from "next/image";
 const FormSchema = z.object({
   description: z
     .string()
@@ -170,10 +170,12 @@ export default function CreateFollowUpControlForm({ onClose, id }: FormProps) {
 
                 <div className="flex items-center gap-4">
                   {field.value && (
-                    <img
+                    <Image
                       src={URL.createObjectURL(field.value)}
                       alt="Preview"
                       className="h-16 w-16 rounded-md object-cover"
+                      width={64}
+                      height={64}
                     />
                   )}
 

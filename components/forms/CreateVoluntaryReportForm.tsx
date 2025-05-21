@@ -44,6 +44,7 @@ import { CalendarIcon, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Label } from "../ui/label";
+import Image from "next/image";
 
 interface FormProps {
   onClose: () => void;
@@ -560,22 +561,30 @@ export function CreateVoluntaryReportForm({
 
                 <div className="flex items-center gap-4">
                   {field.value ? (
-                    <img
-                      src={URL.createObjectURL(field.value)}
-                      alt="Preview"
-                      className="h-16 w-16 rounded-md object-cover"
-                    />
+                    <div className="relative">
+                      <Image
+                        src={URL.createObjectURL(field.value)}
+                        alt="Preview"
+                        width={64}
+                        height={64}
+                        className="rounded-md object-contain h-16 w-auto"
+                      />
+                    </div>
                   ) : initialData?.image &&
                     typeof initialData.image === "string" ? (
-                    <img
-                      src={
-                        initialData.image.startsWith("data:image")
-                          ? initialData.image
-                          : `data:image/jpeg;base64,${initialData.image}`
-                      }
-                      alt="Preview"
-                      className="h-16 w-16 rounded-md object-cover"
-                    />
+                    <div className="relative">
+                      <Image
+                        src={
+                          initialData.image.startsWith("data:image")
+                            ? initialData.image
+                            : `data:image/jpeg;base64,${initialData.image}`
+                        }
+                        alt="Preview"
+                        width={64}
+                        height={64}
+                        className="rounded-md object-contain h-16 w-auto"
+                      />
+                    </div>
                   ) : null}
 
                   <FormControl>

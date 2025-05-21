@@ -7,7 +7,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"; // Ajusta la ruta a tus componentes de diálogo
 import { Button } from "@/components/ui/button"; // Ajusta la ruta a tu componente de botón
-
+import Image from "next/image"; // Asegúrate de que estás importando correctamente el componente Image
 interface Props {
   base64Image: string;
 }
@@ -27,14 +27,15 @@ function ImageDisplayDialog({ base64Image }: Props) {
               <DialogTitle>Imagen del Reporte</DialogTitle>
             </DialogHeader>
 
-            <div className="flex justify-center items-center h-full">
-              <img
+            <div className="relative flex justify-center items-center h-[70vh]">
+              <Image
                 src={
                   base64Image.startsWith("data:image")
                     ? base64Image
                     : `data:image/jpeg;base64,${base64Image}`
                 }
                 alt="Imagen completa"
+                fill
                 className="max-w-full max-h-[70vh] object-contain border-4 border-gray-100 shadow-lg rounded-lg"
               />
             </div>
