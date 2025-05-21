@@ -12,8 +12,7 @@ interface ObligatoryReportData {
   flight_time: string;
   pilot_id: string;
   copilot_id: string;
-  aircraft_acronym: string;
-  aircraft_model: string;
+  aircraft_id: string;
   flight_number: string;
   flight_origin: string;
   flight_destiny: string;
@@ -32,14 +31,11 @@ interface UpdateObligatoryReportData {
   incident_location: string;
   report_date: Date;
   incident_date: Date;
-
   incident_time: string;
   flight_time: string;
-
   pilot_id: string | number;
   copilot_id: string | number;
-  aircraft_acronym: string;
-  aircraft_model: string;
+  aircraft_id: string | number;
   flight_number: string;
   flight_origin: string;
   flight_destiny: string;

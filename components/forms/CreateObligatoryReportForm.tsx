@@ -29,6 +29,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Separator } from "@/components/ui/separator";
+import { useAuth } from "@/contexts/AuthContext";
 import { useGetPilots } from "@/hooks/sms/useGetPilots";
 import { cn } from "@/lib/utils";
 import { ObligatoryReport } from "@/types";
@@ -41,6 +42,8 @@ import {
   ClockIcon,
   Loader2,
 } from "lucide-react";
+import Image from "next/image";
+import { useRouter } from "next/navigation";
 import {
   Command,
   CommandEmpty,
@@ -56,9 +59,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../ui/select";
-import { useRouter } from "next/navigation";
-import { useAuth } from "@/contexts/AuthContext";
-import Image from "next/image";
+import { useGetAircraftByAcronym } from "@/hooks/administracion/useGetAircraftByAcronym";
+import { useGetAircraftAcronyms } from "@/hooks/administracion/useGetAircraftsAcronym";
 
 //Falta añadir validaciones
 
@@ -129,8 +131,7 @@ export function CreateObligatoryReportForm({
         .refine((val) => !isNaN(val.getTime()), { message: "Hora inválida" }),
       pilot_id: z.string(),
       copilot_id: z.string(),
-      aircraft_acronym: z.string().min(7).max(7),
-      aircraft_model: z.string().min(3),
+      aircraft_id: z.string(),
       flight_number: z.string().refine((val) => !isNaN(Number(val)), {
         message: "El valor debe ser un número",
       }),
@@ -197,7 +198,8 @@ export function CreateObligatoryReportForm({
   });
 
   // No estoy seguro si esto va aca lol
-  const { data: pilots, isLoading } = useGetPilots();
+  const { data: pilots, isLoading: isLoadingPilots } = useGetPilots();
+  const { data: aircrafts, isLoading: isLoadingAircrafts } = useGetAircraftAcronyms();
 
   const OPTIONS_LIST = [
     "La aereonave aterriza quedándose solo con el combustible de reserva o menos",
@@ -226,8 +228,7 @@ export function CreateObligatoryReportForm({
       report_number: initialData?.report_number,
       description: initialData?.description,
       incident_location: initialData?.incident_location,
-      aircraft_acronym: initialData?.aircraft_acronym,
-      aircraft_model: initialData?.aircraft_model,
+      aircraft_id: initialData?.aircraft_id.toString(),
       pilot_id: initialData?.pilot_id.toString(),
       copilot_id: initialData?.copilot_id.toString(),
       flight_alt_destiny: initialData?.flight_alt_destiny,
@@ -272,8 +273,7 @@ export function CreateObligatoryReportForm({
         flight_time: format(data.flight_time, "HH:mm:ss"),
         pilot_id: data.pilot_id,
         copilot_id: data.pilot_id,
-        aircraft_acronym: data.aircraft_acronym,
-        aircraft_model: data.aircraft_model,
+        aircraft_id: data.aircraft_id,
         flight_number: data.flight_number,
         flight_origin: data.flight_origin,
         flight_destiny: data.flight_destiny,
@@ -294,8 +294,7 @@ export function CreateObligatoryReportForm({
         flight_time: format(data.flight_time, "HH:mm:ss"),
         pilot_id: data.pilot_id,
         copilot_id: data.pilot_id,
-        aircraft_acronym: data.aircraft_acronym,
-        aircraft_model: data.aircraft_model,
+        aircraft_id: data.aircraft_id,
         flight_number: data.flight_number,
         flight_origin: data.flight_origin,
         flight_destiny: data.flight_destiny,
@@ -486,7 +485,7 @@ export function CreateObligatoryReportForm({
             render={({ field }) => (
               <FormItem className="w-full">
                 <FormLabel>Piloto</FormLabel>
-                {isLoading ? (
+                {isLoadingPilots ? (
                   <div className="flex items-center gap-2 p-2 border rounded-md bg-muted">
                     <Loader2 className="h-4 w-4 animate-spin " />
                     <span className="text-sm">Cargando pilotos...</span>
@@ -495,7 +494,7 @@ export function CreateObligatoryReportForm({
                   <Select
                     onValueChange={field.onChange}
                     defaultValue={field.value}
-                    disabled={isLoading} // Deshabilitar durante carga
+                    disabled={isLoadingPilots} // Deshabilitar durante carga
                   >
                     <FormControl>
                       <SelectTrigger>
@@ -522,7 +521,7 @@ export function CreateObligatoryReportForm({
             render={({ field }) => (
               <FormItem className="w-full">
                 <FormLabel>Piloto</FormLabel>
-                {isLoading ? (
+                {isLoadingPilots ? (
                   <div className="flex items-center gap-2 p-2 border rounded-md bg-muted">
                     <Loader2 className="h-4 w-4 animate-spin" />{" "}
                     <span className="text-sm">Cargando pilotos...</span>
@@ -531,7 +530,7 @@ export function CreateObligatoryReportForm({
                   <Select
                     onValueChange={field.onChange}
                     defaultValue={field.value}
-                    disabled={isLoading} // Deshabilitar durante carga
+                    disabled={isLoadingPilots} // Deshabilitar durante carga
                   >
                     <FormControl>
                       <SelectTrigger>
@@ -662,42 +661,42 @@ export function CreateObligatoryReportForm({
             }}
           />
         </div>
-        <div className="flex gap-2 justify-center items-center">
-          <FormField
+        <FormField
             control={form.control}
-            name="aircraft_acronym"
+            name="aircraft_id"
             render={({ field }) => (
               <FormItem className="w-full">
-                <FormLabel>Matricula de la aereonave</FormLabel>
-                <FormControl>
-                  <Input
-                    placeholder="Matricula de aereonave"
-                    {...field}
-                    maxLength={7}
-                  />
-                </FormControl>
-                <FormMessage className="text-xs" />
+                <FormLabel>Aeronave</FormLabel>
+                {isLoadingAircrafts ? (
+                  <div className="flex items-center gap-2 p-2 border rounded-md bg-muted">
+                    <Loader2 className="h-4 w-4 animate-spin" />{" "}
+                    <span className="text-sm">Cargando Aeronaves...</span>
+                  </div>
+                ) : (
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                    disabled={isLoadingAircrafts} // Deshabilitar durante carga
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Seleccionar Matricula de la Aeronave" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {aircrafts?.map((aircraft) => (
+                        <SelectItem key={aircraft.id} value={aircraft.id.toString()}>
+                          <p className="font-bold">Matricula : {aircraft.acronym} </p>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+                <FormMessage />
               </FormItem>
             )}
           />
-          <FormField
-            control={form.control}
-            name="aircraft_model"
-            render={({ field }) => (
-              <FormItem className="w-full">
-                <FormLabel>Modelo de la aereonave</FormLabel>
-                <FormControl>
-                  <Input
-                    placeholder="Modelo de aereonave"
-                    {...field}
-                    maxLength={7}
-                  />
-                </FormControl>
-                <FormMessage className="text-xs" />
-              </FormItem>
-            )}
-          />
-        </div>
+
         <div className="flex gap-2 justify-center items-center">
           <FormField
             control={form.control}

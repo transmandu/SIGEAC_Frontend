@@ -794,8 +794,7 @@ export type ObligatoryReport = {
   copilot_id: number;
   pilot: Pilot;
   copilot: Pilot;
-  aircraft_acronym: string;
-  aircraft_model: string;
+  aircraft_id: number;
   flight_number: string;
   flight_origin: string;
   flight_destiny: string;

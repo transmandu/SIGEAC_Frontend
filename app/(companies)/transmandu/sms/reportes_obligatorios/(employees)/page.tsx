@@ -1,13 +1,10 @@
 "use client";
 
 import { ContentLayout } from "@/components/layout/ContentLayout";
-import { useGetQuotes } from "@/hooks/compras/useGetQuotes";
-import { useCompanyStore } from "@/stores/CompanyStore";
-import { Loader2 } from "lucide-react";
+import LoadingPage from "@/components/misc/LoadingPage";
+import { useGetObligatoryReports } from "@/hooks/sms/useGetObligatoryReports";
 import { columns } from "./columns";
 import { DataTable } from "./data-table";
-import { useGetObligatoryReports } from "@/hooks/sms/useGetObligatoryReports";
-import LoadingPage from "@/components/misc/LoadingPage";
 
 const ObligatoryReportsPage = () => {
   const { data, isLoading, isError } = useGetObligatoryReports();

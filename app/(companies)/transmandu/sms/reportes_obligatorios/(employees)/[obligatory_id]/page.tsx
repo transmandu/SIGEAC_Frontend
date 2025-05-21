@@ -218,24 +218,24 @@ const ShowObligatoryReport = () => {
             </div>
 
             <div className="flex justify-center items-stretch gap-4 ">
-              <div className=" bg-gray-100 p-4 rounded-lg flex-1">
+              {obligatoryReport.aircraft && (
+                <div className=" bg-gray-100 p-4 rounded-lg flex-1">
                 <p className="text-xl font-semibold text-center text-gray-800 mb-2">
                   Datos de Aereonave
                 </p>
-
                 <p className="text-lg text-gray-700">
                   <span className="font-semibold">
                     Matricula de Aereonave:{" "}
                   </span>
-                  {obligatoryReport.aircraft_acronym}
+                  {obligatoryReport.aircraft.acronym}
                 </p>
                 <p className="text-lg font-medium text-gray-700">
                   <span className="font-semibold">
                     Modelo de la Aereonave:{" "}
                   </span>
-                  {obligatoryReport.aircraft_model}
+                  {obligatoryReport.aircraft.model}
                 </p>
-              </div>
+              </div>)}
 
               <div className="bg-gray-100 p-4 rounded-lg flex-1">
                 <p className="text-xl font-semibold text-center text-gray-800 mb-2">

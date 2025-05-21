@@ -1,5 +1,5 @@
 import axiosInstance from "@/lib/axios";
-import { ObligatoryReport, Pilot } from "@/types";
+import { Aircraft, ObligatoryReport, Pilot } from "@/types";
 import { useQuery } from "@tanstack/react-query";
 
 const fetcObligatoryReportById = async (id: string | number) => {
@@ -22,8 +22,8 @@ export type getObligatoryReport = {
   copilot_id: number;
   pilot: Pilot;
   copilot: Pilot;
-  aircraft_acronym: string;
-  aircraft_model: string;
+  aircraft: Aircraft;
+  aircraft_id: number;
   flight_number: string;
   flight_origin: string;
   flight_destiny: string;
