@@ -1,98 +1,38 @@
+export type Accountant = {
+  id: number,
+  name: string,
+  category: Category,
+}
 
-export type Role = {
-  id: number;
-  name: string;
-  companyId: number;
-  permissions: Permission[];
-  company: {
-    id: number;
-    name: string;
-    description: string;
-  }[];
-};
+export type AdministrationCompany = {
+  id: number,
+  name: string,
+  rif: string,
+  fiscal_address: string,
+  phone_number: string,
+  created_at: string,
+  updated_at: string,
+}
 
-export type User = {
-  id: number;
-  username: string;
-  first_name: string;
-  last_name: string;
-  email: string;
-  isActive: boolean;
-  roles?: {
-    id: number;
-    name: string;
-    permissions: Permission[];
-  }[];
-  permissions: Permission[];
-  companies: Company[];
-};
-
-export type Permission = {
-  id: number;
-  name: string;
-  label: string;
-  modules: {
-    id: number;
-    name: string;
-    description: string;
-    registered_by: string;
-    company_id: string;
-    pivot: {
-      permission_id: string;
-      module_id: string;
-    };
-    company: {
-      id: number;
-      name: string;
-      description: string;
-    };
-  }[];
-};
-
-export type Module = {
-  id: number;
-  name: string;
-  description: string;
-  company_id: string;
-};
-
-export type Condition = {
-  id: number;
-  name: string;
-  description: string;
-  registered_by: string;
-  updated_by: string;
-};
-
-export type Company = {
-  id: number;
-  name: string;
-  description: string;
-  rif: string;
-  cod_inac: string;
-  fiscal_address: string;
-  created_at: string;
-  updated_at: string;
-};
-
-export type Location = {
-  id: number;
-  address: string;
-  type: string;
-  isMainBase: boolean;
-  cod_iata: string;
-  companies: Company[];
-};
-
-export type Warehouse = {
-    id: string,
-    name: string,
-    location: {
-      address: string,
-      type: string,
-    },
-    company: string,
-    type: string,
+export type Aircraft = {
+  id: number,
+  client: Client,
+  location: Location,
+  location_id?: number;
+  fabricant: string,
+  brand: string,
+  serial: string,
+  acronym: string,
+  flight_hours: number,
+  cycles: number,
+  fabricant_date: Date,
+  owner: string,
+  aircraft_operator: string,
+  type_engine: string,
+  number_engine: string,
+  comments: string,
+  model: string,
+  status: "VENDIDO" | "EN POSESION" | "RENTADO",
 }
 
 export type AdministrationArticle = {
@@ -226,7 +166,6 @@ export type Client = {
   phone: string,
   balance: number,
   pay_credit_days: number,
-  dni_type: "V" | "J" | "E",
 }
 
 export type Condition = {
@@ -244,6 +183,37 @@ export interface ConsumableArticle extends Article {
   fabrication_date?: string;
 }
 
+
+
+
+
+export type Convertion = {
+  id: number,
+  secondary_unit: string,
+  convertion_rate: number,
+  unit: Unit,
+  quantity_unit: number,
+  updated_by: string,
+  registered_by: string,
+  created_at: Date,
+  updated_at: Date,
+}
+
+export type Company = {
+  id: number,
+  name: string,
+  description: string,
+  rif: string,
+  cod_inac: string,
+  fiscal_address: string,
+  phone_number: number,
+  alt_phone_number: number,
+  cod_iata: string,
+  cod_oaci: string,
+  created_at: string,
+  updated_at: string,
+}
+
 export interface ComponentArticle extends Article {
   caducate_date?: string;
   fabrication_date?: string;
@@ -253,8 +223,20 @@ export interface ComponentArticle extends Article {
   component_id?: number;
 }
 
-export interface ToolArticle extends Article {
-  is_special: boolean;
+export type Credit ={
+  id: number,
+  renting: Renting,
+  flight: Flight,
+  vendor: AdministrationVendor,
+  client: Client,
+  details: string,
+  type: "PAGAR" | "COBRAR",
+  opening_date: Date,
+  closing_date: Date,
+  deadline: Date,
+  debt: number,
+  payed_amount: number,
+  status: "PENDIENTE" | "PAGADO",
 }
 
 export type CreditPayment = {
@@ -267,7 +249,11 @@ export type CreditPayment = {
 }
 
 export type Department = {
-  id: number;
+  id: number,
+  address: string,
+  type: string,
+  is_main_base: string,
+  cod_iata: string,
   name: string;
   email: string;
 };
@@ -279,13 +265,6 @@ export type MaintenanceClient = {
   address: string,
   phone_number: string,
 }
-
-export type JobTitle = {
-  id: number;
-  name: string;
-  description: string;
-  department: Department;
-};
 
 export type MaintenanceAircraft = {
   id: number,
@@ -380,7 +359,7 @@ export type WorkOrderTask = {
     needs_task: boolean,
     work_order_task: Omit<WorkOrderTask, "non_routine">
     no_routine_task?: Omit<WorkOrderTask, "non_routine">[]
-  }
+  },
 }
 
 export interface WorkOrder extends Request {
@@ -393,7 +372,24 @@ export interface WorkOrder extends Request {
   elaborated_by: string,
   reviewed_by: string,
   approved_by: string,
+  preliminary_inspection?: PrelimInspection,
   work_order_tasks: WorkOrderTask[]
+}
+
+export type PrelimInspection = {
+  id: number | string,
+  work_order: WorkOrder,
+  status: string,
+  authorizing: string,
+  observation: string,
+  pre_inspection_items: PrelimInspectionItem[],
+}
+
+export type PrelimInspectionItem = {
+  id: number | string,
+  ata: string,
+  description: string,
+  location: string,
 }
 
 export interface DispatchRequest extends Request {
@@ -416,15 +412,33 @@ export interface DispatchRequest extends Request {
   category: string,
 }
 
-export type Unit = {
-  id: number;
-  value: string;
-  label: string;
-  updated_by: string;
-  registered_by: string;
-  created_at: Date;
-  updated_at: Date;
-};
+
+export type Flight = {
+  id:number,
+  flight_number: string,
+  client: Client,
+  route: Route,
+  aircraft: Aircraft,
+  date: string,
+  details: string,
+  fee: number,
+  total_amount: number,
+  type: "CARGA" | "PAX" | "CHART",
+  payed_amount: number,
+  debt_status: "PENDIENTE" | "PAGADO",
+  bank_account: BankAccount,
+}
+
+export type FlightPayment = {
+  id: number,
+  bank_account: BankAccount,
+  flight: Flight,
+  client: Client,
+  pay_method: "EFECTIVO" | "TRANSFERENCIA",
+  pay_amount: string,
+  payment_date: Date,
+  pay_description: string,
+}
 
 export type GeneralSalesReport = {
   requisition_order: Requisition,
@@ -439,17 +453,15 @@ export type JobTitle = {
   department: Department,
 }
 
-export type ToolBox = {
-  id: number;
-  name: string;
-  created_by: string;
-  delivered_by: string;
-  employee: Employee;
-  tool: {
-    serial: string;
-    article: ToolArticle;
-  }[];
-};
+export type Location = {
+  id: number,
+  name: string,
+  address: string,
+  type: string,
+  isMainBase: boolean,
+  cod_iata: string,
+  companies: Company[],
+}
 
 export type Manufacturer = {
   id: number,
@@ -470,9 +482,14 @@ export type Module = {
     name: string,
     batch_articles: {
       article_part_number: string,
+      article_alt_part_number?: string,
+      pma?: string,
+      reference_cod?: string,
+      justification: string,
       quantity: number,
       unit?: Convertion,
-      image: string,
+      image?: string,
+      certificates?: string[]
     }[]
   }[],
   received_by: string,
@@ -493,12 +510,22 @@ export type Vendor = {
   updated_at: Date;
 };
 
-export type Quote = {
-  id: number;
-  quote_number: string;
-  justification: string;
-  article_quote_order: {
-    batch: {
+export type Permission = {
+  id: number,
+  name: string,
+  label: string,
+  modules: {
+    id: number,
+    name: string,
+    description: string,
+    registered_by: string,
+    company_id: string,
+    pivot: {
+      permission_id: string,
+      module_id: string,
+    },
+    company: {
+      id: number,
       name: string,
       description: string,
     }
@@ -713,7 +740,6 @@ export interface WorkOrder extends Request {
   order_number: string
   service: string,
   aircraft: MaintenanceAircraft,
-  status: boolean,
   description: string,
   employee: Employee,
 }
@@ -734,6 +760,11 @@ export type Activity = {
   result?: string,
 }
 
+export type Certificate = {
+  id: number,
+  name: string,
+}
+
 export type Pilot = {
   id: number;
   dni: string;
@@ -751,7 +782,7 @@ export type InformationSource = {
 };
 
 export type ObligatoryReport = {
-  id?: number;
+  id: number;
   report_number: string;
   incident_location: string;
   description: string;
