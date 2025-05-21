@@ -488,8 +488,8 @@ export function CreateObligatoryReportForm({
                 <FormLabel>Piloto</FormLabel>
                 {isLoading ? (
                   <div className="flex items-center gap-2 p-2 border rounded-md bg-muted">
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    <span>Cargando pilotos...</span>
+                    <Loader2 className="h-4 w-4 animate-spin " />
+                    <span className="text-sm">Cargando pilotos...</span>
                   </div>
                 ) : (
                   <Select
@@ -525,7 +525,7 @@ export function CreateObligatoryReportForm({
                 {isLoading ? (
                   <div className="flex items-center gap-2 p-2 border rounded-md bg-muted">
                     <Loader2 className="h-4 w-4 animate-spin" />{" "}
-                    <span>Cargando pilotos...</span>
+                    <span className="text-sm">Cargando pilotos...</span>
                   </div>
                 ) : (
                   <Select
