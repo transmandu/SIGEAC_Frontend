@@ -150,6 +150,7 @@ const ObligatoryReportIndicators = () => {
                   aspect={3}
                   title="Promedio de Reportes Obligatorios"
                   activeDecimal={true}
+                  isCustomizedAxis={false}
                 />
               )
             ) : (

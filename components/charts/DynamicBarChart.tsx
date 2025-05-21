@@ -23,6 +23,8 @@ interface DynamicBarChartProps {
   width: string;
   aspect?: number;
   activeDecimal?: boolean;
+  fontSize?: number;
+  isCustomizedAxis?: boolean;
 }
 
 interface CustomizedAxisTickProps {
@@ -30,27 +32,35 @@ interface CustomizedAxisTickProps {
   y: number;
   payload: TickItem;
   theme: "light" | "dark";
+  fontSize?: number;
 }
 
-const CustomizedAxisTick: React.FC<CustomizedAxisTickProps> = ({ x, y, payload, theme }) => {
+const CustomizedAxisTick = ({
+  x,
+  y,
+  payload,
+  theme,
+  fontSize, // Valor por defecto
+}: CustomizedAxisTickProps) => {
   if (!payload || !payload.value) {
     return null;
   }
-  const words = payload.value.toString().split(' ');
+
+  const words = payload.value.toString().split(" ");
   const verticalSpacing = 7; // Espacio entre líneas de la misma etiqueta
   const spaceToChart = 5; // Espacio adicional hacia el gráfico
 
   return (
-    <g transform={`translate(${x},${y + spaceToChart})`}> {/* Move the entire group down */}
+    <g transform={`translate(${x},${y + spaceToChart})`}>
       {words.map((word: string, i: number) => (
         <text
           x={0}
           y={i * verticalSpacing}
-          dy={verticalSpacing / 2} // Ajusta la posición vertical de cada línea
+          dy={verticalSpacing / 2}
           textAnchor="middle"
           fill={theme === "light" ? "black" : "white"}
           key={i}
-          fontSize={9}
+          fontSize={fontSize}
           className="text-wrap"
         >
           {word}
@@ -68,6 +78,8 @@ const DynamicBarChart = ({
   width,
   activeDecimal,
   aspect,
+  fontSize,
+  isCustomizedAxis = true,
 }: DynamicBarChartProps) => {
   const { theme } = useTheme();
   const [clickedBarName, setClickedBarName] = useState<string | null>(null);
@@ -81,9 +93,7 @@ const DynamicBarChart = ({
   return (
     <>
       <h1 className="text-sm font-semibold">{title}</h1>
-      {/* {clickedBarName && (
-        <p className="mt-2">Barra seleccionada: {clickedBarName}</p>
-      )} */}
+
       <ResponsiveContainer aspect={aspect || 1}>
         <BarChart
           width={730}
@@ -101,14 +111,19 @@ const DynamicBarChart = ({
             dataKey="name"
             stroke={theme === "light" ? "black" : "white"}
             height={20}
-            tick={(props) => (
-              <CustomizedAxisTick
-                x={props.x}
-                y={props.y}
-                payload={props.payload}
-                theme={'light'}
-              />
-            )}
+            tick={
+              isCustomizedAxis
+                ? (props) => (
+                    <CustomizedAxisTick
+                      x={props.x}
+                      y={props.y}
+                      payload={props.payload}
+                      theme={theme === "light" ? "light" : "dark"}
+                      fontSize={fontSize || 12}
+                    />
+                  )
+                : undefined
+            }
             interval={0} // Show all ticks
           />
           <YAxis
