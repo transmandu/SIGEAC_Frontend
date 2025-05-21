@@ -410,7 +410,7 @@ export function CreateQuoteForm({ initialData, onClose, req }: { initialData?: a
                 {/* Total del Artículo */}
                 <div className="flex flex-col">
                   <Label className="mb-2">Total</Label>
-                  <p className="text-base font-bold bg-gray-100 p-2 rounded-md">
+                  <p className="text-base font-bold p-2 rounded-md">
                     {new Intl.NumberFormat('es-AR', {
                       style: 'currency',
                       currency: 'ARS'

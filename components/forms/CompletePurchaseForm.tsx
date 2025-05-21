@@ -102,7 +102,6 @@ export function CompletePurchaseForm({ onClose, po }: FormProps) {
   ]);
 
   const onSubmit = async (data: FormSchemaType) => {
-
     const total =
       Number(po.sub_total) +
       Number(data.tax || 0) +
@@ -110,7 +109,6 @@ export function CompletePurchaseForm({ onClose, po }: FormProps) {
       Number(data.handling_fee || 0) +
       Number(data.usa_shipping || 0) +
       Number(data.ock_shipping || 0);
-
     const finalData = {
       ...data,
       articles_purchase_orders: data.articles_purchase_orders.map(article => ({
@@ -124,14 +122,10 @@ export function CompletePurchaseForm({ onClose, po }: FormProps) {
       total,
       updated_by: `${user?.first_name} ${user?.last_name}`
     };
-
     await completePurchase.mutateAsync({ id: po.id, data: { ...finalData } })
-
     onClose()
 
   }
-
-  console.log(form.getValues())
 
   return (
     <Form {...form}>

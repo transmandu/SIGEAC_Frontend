@@ -80,7 +80,7 @@ export const useCompletePurchase = () => {
           await axiosInstance.put(`/purchase-order/${id}`, data)
         },
       onSuccess: () => {
-          queryClient.invalidateQueries({queryKey: ['quotes']})
+          queryClient.invalidateQueries({queryKey: ['purchase-orders']})
           toast.success("¡Confirmada!", {
               description: `¡La orden de compra ha sido actualizada correctamente!`
           })
