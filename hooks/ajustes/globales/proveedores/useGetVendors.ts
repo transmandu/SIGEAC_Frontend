@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 
 
 const fetchVendors = async (): Promise<Vendor[]> => {
-  const {data} = await axios.get(`/hangar74/vendors`);
+  const {data} = await axios.get(`/transmandu/administration-vendors`);
   return data;
 };
 

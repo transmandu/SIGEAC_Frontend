@@ -1,4 +1,4 @@
-'use client';
+"use client";
 import { useCreateBankAccount } from "@/actions/ajustes/banco_cuentas/cuentas/actions";
 import {
   Form,
@@ -17,7 +17,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useGetCompanies } from "@/hooks/administracion/useGetClients";
 import { useGetBanks } from "@/hooks/ajustes/globales/bancos/useGetBanks";
 import { generateSlug } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -25,7 +24,7 @@ import { Loader2 } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Button } from "../ui/button";
-
+import { useGetCompanies } from "@/hooks/administracion/useGetCompanies";
 
 const formSchema = z.object({
   name: z.string().min(3, {
@@ -38,17 +37,16 @@ const formSchema = z.object({
   account_type: z.string(),
   bank_id: z.string(),
   company_id: z.string(),
-})
-
+});
 
 interface FormProps {
-  onClose: () => void,
+  onClose: () => void;
 }
 
 export default function CreateBankAccountForm({ onClose }: FormProps) {
   const { createBankAccount } = useCreateBankAccount();
-  const { data: banks } = useGetBanks()
-  const { data: companies } = useGetCompanies()
+  const { data: banks } = useGetBanks();
+  const { data: companies } = useGetCompanies();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -56,16 +54,16 @@ export default function CreateBankAccountForm({ onClose }: FormProps) {
       account_owner: "",
       account_type: "",
     },
-  })
+  });
   const { control } = form;
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     await createBankAccount.mutateAsync({
       ...values,
-      slug: generateSlug(values.name)
+      slug: generateSlug(values.name),
     });
-    onClose()
-  }
+    onClose();
+  };
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)}>
@@ -92,18 +90,25 @@ export default function CreateBankAccountForm({ onClose }: FormProps) {
             render={({ field }) => (
               <FormItem className="w-full">
                 <FormLabel>Compañía</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                >
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Seleccione una compañía..." />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {
-                      companies && companies.map((company) => (
-                        <SelectItem value={company.id.toString()} key={company.id}>{company.name}</SelectItem>
-                      ))
-                    }
+                    {companies &&
+                      companies.map((company) => (
+                        <SelectItem
+                          value={company.id.toString()}
+                          key={company.id}
+                        >
+                          {company.name}
+                        </SelectItem>
+                      ))}
                   </SelectContent>
                 </Select>
                 <FormDescription>
@@ -121,18 +126,22 @@ export default function CreateBankAccountForm({ onClose }: FormProps) {
             render={({ field }) => (
               <FormItem className="w-full">
                 <FormLabel>Banco Perteneciente</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                >
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Seleccione un tipo..." />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {
-                      banks && banks.map((bank) => (
-                        <SelectItem value={bank.id.toString()} key={bank.id}>{bank.name}</SelectItem>
-                      ))
-                    }
+                    {banks &&
+                      banks.map((bank) => (
+                        <SelectItem value={bank.id.toString()} key={bank.id}>
+                          {bank.name}
+                        </SelectItem>
+                      ))}
                   </SelectContent>
                 </Select>
                 <FormDescription>
@@ -164,7 +173,10 @@ export default function CreateBankAccountForm({ onClose }: FormProps) {
             render={({ field }) => (
               <FormItem className="w-full">
                 <FormLabel>Tipo de Cuenta</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                >
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Seleccione un tipo..." />
@@ -188,29 +200,38 @@ export default function CreateBankAccountForm({ onClose }: FormProps) {
             render={({ field }) => (
               <FormItem className="w-full">
                 <FormLabel>Tipo de Owner</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                >
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Seleccione un tipo..." />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value={'NATURAL'}>Natural</SelectItem>
-                    <SelectItem value={'JURIDICA'}>Juridica</SelectItem>
+                    <SelectItem value={"NATURAL"}>Natural</SelectItem>
+                    <SelectItem value={"JURIDICA"}>Juridica</SelectItem>
                   </SelectContent>
                 </Select>
-                <FormDescription>
-                  Tipo de owner de la cuenta.
-                </FormDescription>
+                <FormDescription>Tipo de owner de la cuenta.</FormDescription>
                 <FormMessage />
               </FormItem>
             )}
           />
         </div>
-        <Button className="bg-primary mt-2 text-white hover:bg-blue-900 disabled:bg-primary/70" disabled={createBankAccount?.isPending} type="submit">
-          {createBankAccount?.isPending ? <Loader2 className="size-4 animate-spin" /> : <p>Crear</p>}
+        <Button
+          className="bg-primary mt-2 text-white hover:bg-blue-900 disabled:bg-primary/70"
+          disabled={createBankAccount?.isPending}
+          type="submit"
+        >
+          {createBankAccount?.isPending ? (
+            <Loader2 className="size-4 animate-spin" />
+          ) : (
+            <p>Crear</p>
+          )}
         </Button>
       </form>
     </Form>
-  )
+  );
 }

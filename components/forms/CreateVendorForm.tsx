@@ -32,9 +32,7 @@ interface FormProps {
 }
 
 export default function CreateVendorForm({ onClose }: FormProps) {
-
   const { createVendor } = useCreateVendor()
-
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -92,7 +90,7 @@ export default function CreateVendorForm({ onClose }: FormProps) {
             control={form.control}
             name="email"
             render={({ field }) => (
-              <FormItem>
+              <FormItem className="w-full">
                 <FormLabel>Correo Electrónico</FormLabel>
                 <FormControl>
                   <Input placeholder="..." {...field} />
@@ -106,7 +104,7 @@ export default function CreateVendorForm({ onClose }: FormProps) {
             control={form.control}
             name="address"
             render={({ field }) => (
-              <FormItem>
+              <FormItem className="w-full">
                 <FormLabel>Ubicación</FormLabel>
                 <FormControl>
                   <Input placeholder="..." {...field} />

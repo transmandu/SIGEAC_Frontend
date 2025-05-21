@@ -1,27 +1,27 @@
-import { Column } from "@tanstack/react-table"
+import { Column } from "@tanstack/react-table";
 import {
   ArrowDownIcon,
   ArrowDownNarrowWide,
   ArrowUpIcon,
   EyeOff,
-} from "lucide-react"
+} from "lucide-react";
 
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { cn } from "@/lib/utils"
-import { Input } from "../ui/input"
+} from "@/components/ui/dropdown-menu";
+import { cn } from "@/lib/utils";
+import { Input } from "../ui/input";
 
 interface DataTableColumnHeaderProps<TData, TValue>
   extends React.HTMLAttributes<HTMLDivElement> {
-  column: Column<TData, TValue>
-  title: string
-  filter?: boolean
+  column: Column<TData, TValue>;
+  title: string;
+  filter?: boolean;
 }
 
 export function DataTableColumnHeader<TData, TValue>({
@@ -31,7 +31,7 @@ export function DataTableColumnHeader<TData, TValue>({
   className,
 }: DataTableColumnHeaderProps<TData, TValue>) {
   if (!column.getCanSort()) {
-    return <div className={cn(className)}>{title}</div>
+    return <div className={cn(className)}>{title}</div>;
   }
 
   return (
@@ -69,18 +69,18 @@ export function DataTableColumnHeader<TData, TValue>({
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
-      {
-        filter && (
-          <Input
-            placeholder={`Busq. - ${title.toLowerCase()}...`}
-            value={(column?.getFilterValue() as string) ?? (column?.getFilterValue() as string) ?? ""}
-            onChange={(event) =>
-              column?.setFilterValue(event.target.value)
-            }
-            className="h-7 mb-2 text-xs text-muted-foreground w-[150px]"
-          />
-        )
-      }
+      {filter && (
+        <Input
+          placeholder={`Busq. - ${title.toLowerCase()}...`}
+          value={
+            (column?.getFilterValue() as string) ??
+            (column?.getFilterValue() as string) ??
+            ""
+          }
+          onChange={(event) => column?.setFilterValue(event.target.value)}
+          className="h-7 mb-2 text-xs text-muted-foreground w-[150px]"
+        />
+      )}
     </div>
-  )
+  );
 }

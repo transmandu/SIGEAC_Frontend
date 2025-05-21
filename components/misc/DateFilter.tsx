@@ -1,13 +1,13 @@
-'use client'
+"use client";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useRouter } from "next/navigation";
-import qs from "query-string"
+import qs from "query-string";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
   PopoverClose,
-} from "@/components/ui/popover"
+} from "@/components/ui/popover";
 import { Button } from "../ui/button";
 import { format, parseISO, subDays } from "date-fns";
 import { formatDateRange } from "@/lib/utils";
@@ -17,27 +17,20 @@ import { ChevronDown } from "lucide-react";
 import { Calendar } from "../ui/calendar";
 import { useCompanyStore } from "@/stores/CompanyStore";
 
-
 const DateFilter = () => {
-
-  const { selectedCompany, selectedStation } = useCompanyStore()
-
-  const router = useRouter()
-
+  const { selectedCompany, selectedStation } = useCompanyStore();
+  const router = useRouter();
   const params = useSearchParams();
-
   const pathname = usePathname();
-
-  const from = params.get("from") || ""
-  const to = params.get("to") || ""
-
+  const from = params.get("from") || "";
+  const to = params.get("to") || "";
   const defaultTo = new Date();
   const defaultFrom = subDays(defaultTo, 31);
 
   const paramState = {
     from: from ? parseISO(from) : defaultFrom,
     to: to ? parseISO(to) : defaultTo,
-  }
+  };
 
   const [date, setDate] = useState<DateRange | undefined>(paramState);
 
@@ -47,42 +40,71 @@ const DateFilter = () => {
       to: format(dateRange?.to || defaultTo, "yyyy-MM-dd"),
       company: selectedCompany?.split(" ").join(""),
       location_id: selectedStation,
-    }
+    };
 
-    const url = qs.stringifyUrl({
-      url: pathname,
-      query,
-    }, { skipEmptyString: true, skipNull: true })
+    const url = qs.stringifyUrl(
+      {
+        url: pathname,
+        query,
+      },
+      { skipEmptyString: true, skipNull: true }
+    );
 
     router.push(url);
-  }
+  };
 
   const onReset = () => {
-    setDate(undefined)
-    pushToUrl(undefined)
-  }
+    setDate(undefined);
+    pushToUrl(undefined);
+  };
 
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button disabled={false} size={"sm"} variant={"outline"} className="lg:w-auto w-full h-9 rounded-md px-3 font-normal bg-primary hover:bg-primary/90 hover:text-white border-none focus:ring-offset-0 focus:ring-transparent outline-none text-white focus:bg-white/30 transition">
+        <Button
+          disabled={false}
+          size={"sm"}
+          variant={"outline"}
+          className="lg:w-auto w-full h-9 rounded-md px-3 font-normal bg-primary hover:bg-primary/90 hover:text-white border-none focus:ring-offset-0 focus:ring-transparent outline-none text-white focus:bg-white/30 transition"
+        >
           <span>{formatDateRange(paramState)}</span>
           <ChevronDown className="size-4 mr-2 opacity-50" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="lg:w-auto w-full p-0" align="start">
-        <Calendar disabled={false} initialFocus mode="range" defaultMonth={date?.from} selected={date} onSelect={setDate} numberOfMonths={2} />
+        <Calendar
+          disabled={false}
+          initialFocus
+          mode="range"
+          defaultMonth={date?.from}
+          selected={date}
+          onSelect={setDate}
+          numberOfMonths={2}
+        />
         <div className="p-4 w-full flex items-center gap-x-2">
           <PopoverClose asChild>
-            <Button onClick={onReset} disabled={!date?.from || !date?.to} className="w-full" variant={'outline'}>Reiniciar</Button>
+            <Button
+              onClick={onReset}
+              disabled={!date?.from || !date?.to}
+              className="w-full"
+              variant={"outline"}
+            >
+              Reiniciar
+            </Button>
           </PopoverClose>
           <PopoverClose asChild>
-            <Button onClick={() => pushToUrl(date)} disabled={!date?.from || !date?.to} className="w-full">Aplicar</Button>
+            <Button
+              onClick={() => pushToUrl(date)}
+              disabled={!date?.from || !date?.to}
+              className="w-full"
+            >
+              Aplicar
+            </Button>
           </PopoverClose>
         </div>
       </PopoverContent>
     </Popover>
-  )
-}
+  );
+};
 
-export default DateFilter
+export default DateFilter;

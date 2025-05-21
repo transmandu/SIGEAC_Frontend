@@ -9,7 +9,7 @@ interface LocationsByCompany {
 
 // Ajusta la función de fetch para que devuelva la estructura esperada
 const fetchLocations = async (): Promise<LocationsByCompany[]> => {
-  const { data } = await axiosInstance.get('/locationsByCompanies');
+  const { data } = await axiosInstance.get('/locations-by-companies');
   return data.companies_location;
 };
 

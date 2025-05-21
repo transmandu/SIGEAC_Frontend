@@ -16,16 +16,15 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 const ArticleDropdownActions = ({ id, serial, part_number }: { id: string | number, serial: string, part_number: string }) => {
 
   const [open, setOpen] = useState<boolean>(false)
-
   const router = useRouter()
-
   const { deleteArticle } = useDeleteArticle()
 
-  const handleDelete = async (id: number | string) => {
-    await deleteArticle.mutateAsync(id);
-    setOpen(false);
-    router.refresh()
+  const handleDelete = (id: number | string) => {
+    deleteArticle.mutate(id, {
+      onSuccess: () => setOpen(false), // Cierra el modal solo si la eliminación fue exitosa
+    });
   }
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DropdownMenu>

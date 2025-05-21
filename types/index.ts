@@ -95,20 +95,14 @@ export type Warehouse = {
     type: string,
 }
 
-export type Batch = {
+export type AdministrationArticle = {
   id: number,
+  serial: string,
   name: string,
-  slug: string,
-  description: string,
-  category: string,
-  ata_code: string,
-  brand:string,
-  is_hazarous: boolean,
-  medition_unit: string,
-  min_quantity: number,
-  zone: string,
-  warehouse_id: number,
-  warehouse_name: string,
+  status: "VENDIDO" | "EN POSESION" | "RENTADO",
+  price: string,
+  brand: string,
+  type: string,
 }
 
 export type Article = {
@@ -136,6 +130,113 @@ export type Article = {
   image?:File| string,
 }
 
+export type Bank = {
+  id: number,
+  name: string,
+  type: string,
+  created_by: string,
+  updated_by: string,
+}
+
+export type BankAccount = {
+  id: number,
+  name: string,
+  account_number: string,
+  account_type: string,
+  account_owner: string,
+  bank: Bank,
+  cards: Card[],
+  company: Company,
+  created_by: string,
+  updated_by: string,
+}
+
+export type Batch = {
+  id: number,
+  name: string,
+  slug: string,
+  description: string,
+  category: string,
+  ata_code: string,
+  brand:string,
+  is_hazarous: boolean,
+  medition_unit: string,
+  min_quantity: number,
+  zone: string,
+  warehouse_id: number,
+  warehouse_name: string,
+}
+
+export type Card = {
+  id: number,
+  name: string,
+  card_number: string,
+  type: string,
+  bank_account: BankAccount,
+  created_by: string,
+  updated_by: string,
+}
+
+export type Cash = {
+  id: number,
+  name: string,
+  total_amount: string,
+  coin: "BOLIVARES" | "DOLARES" | "EUROS",
+  type: "EFECTIVO" | "TRANSFERENCIA",
+}
+
+export type CashMovement = {
+  id: number,
+  employee_responsible: Employee,
+  cash: Cash,
+  company: Company,
+  date: Date,
+  type: "INCOME" | "OUTPUT",
+  details: string,
+  reference_cod: string,
+  total_amount: number,
+  bank_account: BankAccount,
+  vendor: AdministrationVendor,
+  client: Client,
+  accountant: Accountant,
+  category: Category,
+  cash_movement_details: CashMovementDetails[],
+}
+
+export type CashMovementDetails = {
+  id: number,
+  accountant: Accountant,
+  category: Category,
+  details: string,
+  amount: number,
+}
+
+export type Category = {
+  id: number,
+  name: string,
+  accountant: Accountant,
+}
+
+export type Client = {
+  id: number,
+  name: string,
+  dni: string,
+  address: string,
+  email: string,
+  phone: string,
+  balance: number,
+  pay_credit_days: number,
+  dni_type: "V" | "J" | "E",
+}
+
+export type Condition = {
+  id: number,
+  name: string,
+  description: string,
+  registered_by: string,
+  updated_by: string,
+}
+
 export interface ConsumableArticle extends Article {
   is_managed?: boolean;
   quantity?: number;
@@ -156,16 +257,13 @@ export interface ToolArticle extends Article {
   is_special: boolean;
 }
 
-export type Request = {
+export type CreditPayment = {
   id: number,
-  request_number: string,
-  justification: string,
-  submission_date: string,
-  work_order?: WorkOrder,
-  requisition_order?: string,
-  article?: Article,
-  requested_by: string,
-  created_by: string,
+  bank_account: BankAccount,
+  pay_method: "EFECTIVO" | "TRANSFERENCIA",
+  pay_amount: string,
+  payment_date: Date,
+  pay_description: string,
 }
 
 export type Department = {
@@ -328,16 +426,17 @@ export type Unit = {
   updated_at: Date;
 };
 
-export type Convertion = {
+export type GeneralSalesReport = {
+  requisition_order: Requisition,
+  purchase_order?: PurchaseOrder,
+  quote_order?: Quote[],
+}[]
+
+export type JobTitle = {
   id: number,
-  secondary_unit: string,
-  convertion_rate: number,
-  unit: Unit,
-  quantity_unit: number,
-  updated_by: string,
-  registered_by: string,
-  created_at: Date,
-  updated_at: Date,
+  name: string,
+  description: string,
+  department: Department,
 }
 
 export type ToolBox = {
@@ -359,7 +458,7 @@ export type Manufacturer = {
   description: string,
 }
 
-export type Requisition = {
+export type Module = {
   id: number,
   order_number: string,
   status: string,
@@ -401,20 +500,9 @@ export type Quote = {
   article_quote_order: {
     batch: {
       name: string,
-    },
-    article_part_number: string,
-    quantity: number,
-    unit_price: string,
-    unit?: Convertion,
-    image: string,
+      description: string,
+    }
   }[],
-  sub_total: number,
-  total: number,
-  vendor: Vendor,
-  requisition_order: Requisition,
-  quote_date: Date,
-  created_by: string,
-  status: string,
 }
 
 export type PurchaseOrder = {
@@ -454,43 +542,181 @@ export type PurchaseOrder = {
   company: string,
 }
 
-
-export type Bank = {
+export type Quote = {
   id: number,
-  name: string,
-  type: string,
-  created_by: string,
-  updated_by: string,
-}
-
-export type BankAccount = {
-  id: number,
-  name: string,
-  account_number: string,
-  account_type: string,
-  account_owner: string,
-  bank: Bank,
-  cards: Card[],
-  company: Company,
-  created_by: string,
-  updated_by: string,
-}
-
-export type Card = {
-  id: number,
-  name: string,
-  card_number: string,
-  type: string,
-  bank_account: BankAccount,
-  created_by: string,
-  updated_by: string,
-}
-
-export type GeneralSalesReport = {
+  quote_number: string,
+  justification: string,
+  article_quote_order: {
+    batch: {
+      name: string,
+    },
+    article_part_number: string,
+    quantity: number,
+    unit_price: string,
+    unit?: Convertion,
+    image: string,
+  }[],
+  sub_total: number,
+  total: number,
+  vendor: Vendor,
   requisition_order: Requisition,
-  purchase_order?: PurchaseOrder,
-  quote_order?: Quote[],
-}[]
+  quote_date: Date,
+  created_by: string,
+  status: string,
+}
+
+export type Renting = {
+  id: number;
+  description: string,
+  status: "EN PROCESO" | "CULMINADO" | "RETRASADO",
+  type: "AERONAVE" | "ARTICULO",
+  price: number,
+  payed_amount: number,
+  start_date: Date,
+  end_date: Date,
+  deadline: Date,
+  article: AdministrationArticle,
+  aircraft: Aircraft,
+  client: Client,
+  debt_status: "PENDIENTE" | "PAGADO",
+  bank_account: BankAccount,
+  //reference_pic: string,
+}
+
+export type Request = {
+  id: number,
+  request_number: string,
+  justification: string,
+  submission_date: string,
+  work_order?: WorkOrder,
+  requisition_order?: string,
+  article?: Article,
+  requested_by: string,
+  created_by: string,
+}
+
+export type Requisition = {
+  id: number,
+  order_number: string,
+  status: string,
+  created_by: User,
+  requested_by: string,
+  batch: {
+    name: string,
+    batch_articles: {
+      article_part_number: string,
+      quantity: number,
+      unit?: Convertion,
+      image: string,
+    }[]
+  }[],
+  received_by: string,
+  justification: string,
+  arrival_date: Date,
+  submission_date: Date,
+  work_order: WorkOrder,
+  aircraft: Aircraft,
+}
+
+export type Role = {
+  id: number,
+  name: string,
+  companyId: number;
+  permissions: Permission[],
+  company: {
+    id: number,
+    name: string,
+    description: string,
+  }[]
+}
+
+export type Route = {
+  id: number;
+  from: string;
+  to: string;
+  layovers: string,
+};
+
+export type Sell ={
+  id: number,
+  client: Client,
+  concept: string,
+  total_price: number,
+  payed_amount: number,
+  date: Date,
+  reference_pic: string,
+}
+
+export interface ToolArticle extends Article {
+  is_special: boolean,
+}
+
+export type ToolBox = {
+  id: number,
+  name: string,
+  created_by: string,
+  delivered_by: string,
+  employee: Employee,
+  tool: {
+    serial: string,
+    article: ToolArticle,
+  }[],
+}
+
+export type Unit = {
+  id: number,
+  value: string,
+  label: string,
+  updated_by: string,
+  registered_by: string,
+
+  created_at: Date,
+  updated_at: Date,
+}
+
+export type User = {
+  id: number;
+  username: string;
+  first_name: string,
+  last_name: string,
+  email: string;
+  isActive: boolean,
+  roles?: {
+    id: number,
+    name: string,
+    permissions: Permission[]
+  }[];
+  permissions: Permission[],
+  companies: Company[]
+}
+
+export type AdministrationVendor = {
+  id: string | number,
+  name: string,
+  email: string,
+  phone: string,
+  address: string,
+  type: "PROVEEDOR" | "BENEFICIARIO",
+  created_at: Date,
+  updated_at: Date,
+}
+
+export type Warehouse = {
+  id: string,
+  name: string,
+  address: string,
+  company: string,
+  type: string,
+}
+
+export interface WorkOrder extends Request {
+  order_number: string
+  service: string,
+  aircraft: MaintenanceAircraft,
+  status: boolean,
+  description: string,
+  employee: Employee,
+}
 
 export type ActivityReport = {
   id: number,
