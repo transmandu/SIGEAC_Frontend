@@ -214,7 +214,9 @@ const GeneralReportStats = () => {
                   {selectedGraphics.length === 0 ? (
                     "Seleccionar gráficos..."
                   ) : (
-                    <span>{selectedGraphics.length} gráficos seleccionados</span>
+                    <span>
+                      {selectedGraphics.length} gráficos seleccionados
+                    </span>
                   )}
                   <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                 </Button>
@@ -399,7 +401,7 @@ const GeneralReportStats = () => {
                 title="Numero de Reportes por Cada Indice de Riesgo (General)"
               />
             ) : (
-              <p className="text-lg text-muted-foreground">
+              <p className=" text-center text-lg text-muted-foreground">
                 No hay datos para mostrar.
               </p>
             )}
@@ -453,7 +455,7 @@ const GeneralReportStats = () => {
                 title="Numero de Reportes por Cada Indice de Riesgo  (Post-Mitigacion)"
               />
             ) : (
-              <p className="text-lg text-muted-foreground">
+              <p className="text-center text-lg text-muted-foreground">
                 No hay datos para mostrar.
               </p>
             )}
@@ -479,7 +481,7 @@ const GeneralReportStats = () => {
                 title="Numero de Reportes por Tipo de Fuente"
               />
             ) : (
-              <p className="text-lg text-muted-foreground">
+              <p className="text-center text-lg text-muted-foreground">
                 No hay datos para mostrar.
               </p>
             )}
