@@ -1,30 +1,13 @@
 "use client"
 
-import {
-  ColumnDef,
-  ColumnFiltersState,
-  flexRender,
-  getCoreRowModel,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
-  SortingState,
-  useReactTable,
-} from "@tanstack/react-table"
-
-import { RegisterDispatchRequestDialog } from "@/components/dialogs/RegisterDispatchRequestDialog"
+import { ColumnDef, ColumnFiltersState, flexRender, getCoreRowModel, getFilteredRowModel, getPaginationRowModel, getSortedRowModel, SortingState, useReactTable, } from "@tanstack/react-table"
 import { DataTablePagination } from "@/components/tables/DataTablePagination"
 import { DataTableViewOptions } from "@/components/tables/DataTableViewOptions"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
-import { useRouter } from "next/navigation"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, } from "@/components/ui/table"
 import { useState } from "react"
+import { PurchaseOrdersDialog } from "@/components/dialogs/CreatePurchaseOrdersDialog"
+import { Button } from "@/components/ui/button"
+import { ListRestart } from "lucide-react"
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
@@ -55,17 +38,24 @@ export function DataTable<TData, TValue>({
     }
   })
 
-  const router = useRouter();
-
   const isFiltered = table.getState().columnFilters.length > 0
 
   return (
     <>
-      <div className="flex flex-col gap-2 mb-4">
-        <h1 className="text-5xl font-bold text-center">Ordenes de Compra</h1>
-        <p className="text-sm italic text-muted-foreground text-center">Aquí puede ver las ordenes de compras realizadas a partir de las cotizaciones.</p>
-      </div>
       <div className="flex items-center py-4">
+        <div className="flex gap-x-2 items-center">
+          <PurchaseOrdersDialog />
+          {isFiltered && (
+            <Button
+              variant="ghost"
+              onClick={() => table.resetColumnFilters()}
+              className="h-8 px-2 lg:px-3"
+            >
+              Reiniciar
+              <ListRestart className="ml-2 h-4 w-4" />
+            </Button>
+          )}
+        </div>
         <DataTableViewOptions table={table} />
       </div>
       <div className="rounded-md border mb-4">
