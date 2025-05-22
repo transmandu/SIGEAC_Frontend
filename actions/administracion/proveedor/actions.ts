@@ -7,7 +7,7 @@ export const useCreateAdministartionVendor = () => {
   const queryAdministrationVendor = useQueryClient()
   const createMutation = useMutation({
     mutationFn: async (data: any) => {
-          await axiosInstance.post('/transmandu/administration-vendors', data)
+          await axiosInstance.post('/transmandu/vendors', data)
         },
         onSuccess: () => {
           queryAdministrationVendor.invalidateQueries({queryKey: ['vendor']})
@@ -34,7 +34,7 @@ export const useDeleteAdministrationVendor = () => {
 
   const deleteMutation = useMutation({
       mutationFn: async (id: number | string) => {
-          await axiosInstance.delete(`/transmandu/administration-vendors/${id}`)
+          await axiosInstance.delete(`/transmandu/vendors/${id}`)
         },
       onSuccess: () => {
 
@@ -61,7 +61,7 @@ export const useUpdateAdministrationVendor = () => {
 
   const updateMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: any }) => {
-      await axiosInstance.put(`/transmandu/administration-vendors/${id}`, data);
+      await axiosInstance.put(`/transmandu/vendors/${id}`, data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['vendor'] });

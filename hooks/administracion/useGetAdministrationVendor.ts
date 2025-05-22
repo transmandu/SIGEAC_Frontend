@@ -5,7 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 import axiosInstance from '@/lib/axios';
 
 const fetchAdministrationVendor = async (): Promise<AdministrationVendor[]> => {
-  const  {data}  = await axiosInstance.get('/transmandu/administration-vendors');
+  const  {data}  = await axiosInstance.get('/transmandu/vendors');
   return data;
 }; 
 
