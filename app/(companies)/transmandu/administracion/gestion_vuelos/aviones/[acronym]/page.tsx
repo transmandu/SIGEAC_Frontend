@@ -1,7 +1,6 @@
 "use client"
 
 import { useParams } from "next/navigation"
-import { useGetAircraftById } from "@/hooks/administracion/useGetAircraftById"
 import { useGetAircraftStatistics } from "@/hooks/administracion/vuelos/useGetAircraftStatistics"
 import { useState, useMemo, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
