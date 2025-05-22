@@ -1,5 +1,5 @@
 import axios from '@/lib/axios';
-import { Convertion, User } from '@/types';
+import { AdministrationRequisition, Convertion, User } from '@/types';
 import { useQuery } from '@tanstack/react-query';
 
 interface Requisition {
@@ -23,13 +23,13 @@ interface Requisition {
 }[]
 
 
-const fetchRequisitionByOrderNumber = async (company: string | null, order_number: string): Promise<Requisition> => {
+const fetchRequisitionByOrderNumber = async (company: string | null, order_number: string): Promise<Requisition | AdministrationRequisition> => {
   const {data} = await axios.get(`/show-requisition-order/${company}/${order_number}`);
   return data[0];
 };
 
 export const useGetRequisitionByOrderNumber = (company: string | null, order_number: string) => {
-  return useQuery<Requisition, Error>({
+  return useQuery<Requisition | AdministrationRequisition, Error>({
     queryKey: ["batches"],
     queryFn: () => fetchRequisitionByOrderNumber(company, order_number),
     enabled: !!company && !!order_number,

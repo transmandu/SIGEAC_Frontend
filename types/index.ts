@@ -583,14 +583,12 @@ export type AdministrationRequisition = {
     batch_articles: {
       description: string,
       quantity: number,
-    }[]
+    }
   }[],
   received_by: string,
   justification: string,
-  arrival_date: Date,
   submission_date: Date,
-  work_order: WorkOrder,
-  aircraft: Aircraft,
+  aircraft?: Aircraft,
 }
 
 export type Role = {

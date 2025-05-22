@@ -8,6 +8,7 @@ import { Separator } from "@/components/ui/separator"
 import { Textarea } from "@/components/ui/textarea"
 import { useAuth } from "@/contexts/AuthContext"
 import { useGetVendors } from "@/hooks/ajustes/globales/proveedores/useGetVendors"
+import { useGetSecondaryUnits } from "@/hooks/ajustes/globales/unidades/useGetSecondaryUnits"
 import { useGetLocationsByCompanyId } from "@/hooks/useGetLocationsByCompanyId"
 import { cn } from "@/lib/utils"
 import { useCompanyStore } from "@/stores/CompanyStore"
@@ -26,7 +27,6 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select"
 import CreateVendorForm from "./CreateVendorForm"
-import { useGetSecondaryUnits } from "@/hooks/ajustes/globales/unidades/useGetSecondaryUnits"
 
 const FormSchema = z.object({
   justification: z.string({ message: "Debe ingresar una justificacion." }),
@@ -104,8 +104,6 @@ export function CreateQuoteForm({ initialData, onClose, req }: { initialData?: a
 
   const { mutate, data: locations, isPending: isLocationsPending } = useGetLocationsByCompanyId()
 
-  console.log(form.getValues())
-
   useEffect(() => {
     if (selectedCompany) {
       mutate(Number(2))
@@ -136,7 +134,6 @@ export function CreateQuoteForm({ initialData, onClose, req }: { initialData?: a
         company: selectedCompany!.split(" ").join("").toLowerCase(),
       }
     });
-    console.log(formattedData)
     onClose()
   }
 

@@ -7,6 +7,7 @@ interface VendorSchema {
     email?: string,
     phone?: string,
     address?: string,
+    company: string,
 }
 
 export const useCreateVendor = () => {
@@ -15,7 +16,7 @@ export const useCreateVendor = () => {
 
     const createMutation = useMutation({
         mutationFn: async (data: VendorSchema) => {
-            await axiosInstance.post('/hangar74/vendors', data)
+            await axiosInstance.post(`/vendors`, data)
           },
         onSuccess: () => {
             queryClient.invalidateQueries({queryKey: ['vendors']})

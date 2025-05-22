@@ -5,9 +5,11 @@ import { useGetVendors } from '@/hooks/ajustes/globales/proveedores/useGetVendor
 import { Loader2 } from 'lucide-react'
 import { columns } from './columns'
 import { DataTable } from './data-table'
+import { useCompanyStore } from '@/stores/CompanyStore'
 
 const VendorsPage = () => {
-  const { data: vendors, isLoading, error } = useGetVendors();
+  const { selectedCompany } = useCompanyStore();
+  const { data: vendors, isLoading, error } = useGetVendors(selectedCompany?.split(" ").join("") ?? null);
   return (
     <ContentLayout title='Permisos'>
       <h1 className='text-5xl font-bold text-center mt-2'>

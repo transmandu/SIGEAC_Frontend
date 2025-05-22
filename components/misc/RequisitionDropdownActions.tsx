@@ -9,14 +9,13 @@ import {
 import { useDeleteRequisition, useUpdateRequisitionStatus } from "@/actions/compras/requisiciones/actions"
 import { useAuth } from "@/contexts/AuthContext"
 import { useCompanyStore } from "@/stores/CompanyStore"
-import { Requisition } from "@/types"
-import { ClipboardCheck, ClipboardX, Loader2, MoreHorizontal, Pencil, Trash2 } from "lucide-react"
+import { AdministrationRequisition, Requisition } from "@/types"
+import { ClipboardCheck, ClipboardX, Loader2, MoreHorizontal, Trash2 } from "lucide-react"
 import { useState } from "react"
-import { CreateGeneralRequisitionForm } from "../forms/CreateGeneralRequisitionForm"
+import { CreateQuoteForm } from "../forms/CreateQuoteForm"
 import { Button } from "../ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "../ui/dialog"
 import LoadingPage from "./LoadingPage"
-import { CreateQuoteForm } from "../forms/CreateQuoteForm"
 
 function transformApiData(apiData: any) {
   return {
@@ -99,7 +98,7 @@ const RequisitionsDropdownActions = ({ req }: { req: Requisition }) => {
         </DropdownMenuTrigger>
         <DropdownMenuContent align="center" className="flex gap-2 justify-center">
           {
-            ((user!.roles!.map(role => role.name).includes("ANALISTA_COMPRAS")) || (user!.roles!.map(role => role.name).includes("SUPERUSER"))) && (
+            ((userRoles.includes("ANALISTA_COMPRAS")) || (userRoles.includes("SUPERUSER"))) && (
               <>
                 {
                   (req.status !== 'aprobada' && req.status !== 'cotizado') && (

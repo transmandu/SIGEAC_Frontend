@@ -4,11 +4,11 @@ import { ColumnDef } from "@tanstack/react-table"
 
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader"
 
-import RequisitionsDropdownActions from "@/components/misc/RequisitionDropdownActions"
+import AdministrationRequisitionsDropdownActions from "@/components/misc/AdministrationRequisitionDropdownActions"
 import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
 import { cn } from "@/lib/utils"
-import { AdministrationRequisition, Batch, Requisition } from "@/types"
+import { AdministrationRequisition, Batch } from "@/types"
 import { format } from "date-fns"
 import { es } from "date-fns/locale"
 import Link from "next/link"
@@ -52,7 +52,7 @@ export const columns: ColumnDef<AdministrationRequisition>[] = [
     cell: ({ row }) => {
       return (
         <div className="flex justify-center">
-          <Link href={`/hangar74/general/requisiciones/${row.original.order_number}`} className="text-center font-bold">{row.original.order_number}</Link>
+          <Link href={`/transmandu/compras/requisiciones/${row.original.order_number}`} className="text-center font-bold">{row.original.order_number}</Link>
         </div>
       )
     }
@@ -84,8 +84,8 @@ export const columns: ColumnDef<AdministrationRequisition>[] = [
     ),
     meta: { title: "Status" },
     cell: ({ row }) => {
-      const process = row.original.status === 'proceso' || row.original.status === 'cotizado'
-      const aproved = row.original.status === 'aprobada'
+      const process = row.original.status === 'PROCESO' || row.original.status === 'cotizado'
+      const aproved = row.original.status === 'APROBADA'
       return (
         <Badge className={cn("flex justify-center", process ? "bg-yellow-500" : aproved ? "bg-green-500" : "bg-red-500")} > {row.original.status.toUpperCase()}</Badge >
       )
@@ -101,16 +101,16 @@ export const columns: ColumnDef<AdministrationRequisition>[] = [
       <p className="text-center">{format(row.original.submission_date, "PPP", { locale: es })}</p>
     )
   },
-  // {
-  //   accessorKey: "actions",
-  //   header: ({ column }) => (
-  //     <DataTableColumnHeader column={column} title="Acciones" />
-  //   ),
-  //   meta: { title: "Acciones" },
-  //   cell: ({ row }) => (
-  //     <div className="flex justify-center">
-  //       <RequisitionsDropdownActions req={row.original} />
-  //     </div>
-  //   )
-  // },
+  {
+    accessorKey: "actions",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Acciones" />
+    ),
+    meta: { title: "Acciones" },
+    cell: ({ row }) => (
+      <div className="flex justify-center">
+        <AdministrationRequisitionsDropdownActions req={row.original} />
+      </div>
+    )
+  },
 ]
