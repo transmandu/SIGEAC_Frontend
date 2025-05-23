@@ -39,21 +39,21 @@ export interface Statistics {
         [yearNumber: string]: {
           [month: string]: number
         }
-      }
-    }
-    monthly_completed_purchase_orders: {
-      [year: string]: {
-        [month: string]: PurchaseOrder[]
+      },
+      monthly_completed_purchase_orders: {
+        [year: string]: {
+          [month: string]: PurchaseOrder[]
+        }
       }
     }
 }
 
-const fetchStatisticsPurchaseOrders = async (location_id: string): Promise<Statistics> => {
-    const { data } = await axiosInstance.get(`/completed-purchases-statistics/transmandu/${location_id}`)
+const fetchStatisticsPurchaseOrders = async (location_id: string | null): Promise<Statistics> => {
+    const { data } = await axiosInstance.get(`/completed-purchases-statistics/${location_id}`)
     return data
 }
   
-export const useGetStatisticsPurchaseOrders = (location_id: string) => {
+export const useGetStatisticsPurchaseOrders = (location_id: string | null) => {
     return useQuery<Statistics>({
       queryKey: ["purchase-orders"],
       queryFn: () => fetchStatisticsPurchaseOrders(location_id),

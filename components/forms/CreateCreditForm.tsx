@@ -14,7 +14,7 @@ import { z } from "zod";
 import { Calendar } from "../ui/calendar";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useCreateCredit } from "@/actions/administracion/creditos/cuentas_por_pagar/actions";
-import { useGetVendors } from "@/hooks/ajustes/globales/proveedores/useGetVendors";
+import { useGetAdministrationVendor } from "@/hooks/administracion/useGetAdministrationVendor";
 
 const formSchema = z
   .object({
@@ -56,7 +56,7 @@ interface FormProps {
 
 export function CreateCreditForm({ onClose }: FormProps) {
   const { createCredit } = useCreateCredit();
-  const { data: vendors, isLoading: isVendorLoading } = useGetVendors();
+  const { data: vendors, isLoading: isVendorLoading } = useGetAdministrationVendor();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
