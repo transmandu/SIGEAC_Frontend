@@ -72,7 +72,7 @@ export const columns: ColumnDef<AdministrationVendor>[] = [
     id: "actions",
     cell: ({ row }) => {
       const id = row.original.id;
-      return <AdministrationVendorDropdownActions id={row.original.id.toString()} />;
+      return <AdministrationVendorDropdownActions vendor={row.original} />;
     },
   },
 ];

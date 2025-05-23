@@ -11,7 +11,7 @@ const fetchAdministrationVendor = async (): Promise<AdministrationVendor[]> => {
 
 export const useGetAdministrationVendor = () => {
   return useQuery<AdministrationVendor[]>({
-    queryKey: ['vendor'],
+    queryKey: ['vendors'],
     queryFn: fetchAdministrationVendor,
     staleTime: 1000 * 60 * 5, // 5 minutos
   });

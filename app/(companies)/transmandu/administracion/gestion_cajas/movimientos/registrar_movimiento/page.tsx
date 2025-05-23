@@ -131,7 +131,8 @@ export default function AircraftExpensesPage() {
   const { data: bankaccounts, isLoading: isBankAccLoading } =
     useGetBankAccounts();
   const { data: accounts, isLoading: isAccountLoading } = useGetAccountant();
-  const { data: vendors, isLoading: isVendorLoading } = useGetAdministrationVendor();
+  const { data: vendors, isLoading: isVendorLoading } =
+    useGetAdministrationVendor();
   const { data: clients, isLoading: isClientLoading } = useGetClients();
   const { data: allCategories, isLoading: isAllCategoriesLoading } =
     useGetCategory();

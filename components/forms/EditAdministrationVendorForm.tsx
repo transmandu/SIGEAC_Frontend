@@ -1,5 +1,6 @@
 "use client";
 
+import { useUpdateAdministrationVendor } from "@/actions/administracion/proveedor/actions";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -10,6 +11,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { AdministrationVendor } from "@/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -20,8 +22,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../ui/select";
-import { useUpdateAdministrationVendor } from "@/actions/administracion/proveedor/actions";
-import { useGetAdministrationVendorById } from "@/hooks/administracion/useGetAdministrationVendorById";
 
 const phoneRegex = new RegExp(
   /^([+]?[\s0-9]+)?(\d{3}|[(]?[0-9]+[)])?([-]?[\s]?[0-9])+$/
@@ -60,24 +60,23 @@ const formSchema = z.object({
 type FormSchemaType = z.infer<typeof formSchema>;
 
 interface EditAdministrationVendorFormProps {
-  id: string;
+  vendor: AdministrationVendor;
   onClose: () => void;
 }
 
 export function EditAdministrationVendorForm({
-  id,
+  vendor,
   onClose,
 }: EditAdministrationVendorFormProps) {
-  const { data: vendorDetails, isLoading } = useGetAdministrationVendorById(id);
   const { updateAdministrationVendor } = useUpdateAdministrationVendor();
   const form = useForm<FormSchemaType>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: vendorDetails?.name,
-      phone: vendorDetails?.phone,
-      email: vendorDetails?.email,
-      address: vendorDetails?.address,
-      type: vendorDetails?.type,
+      name: vendor.name,
+      phone: vendor.phone,
+      email: vendor.email,
+      address: vendor.address,
+      type: vendor.type,
     },
   });
 
@@ -89,13 +88,9 @@ export function EditAdministrationVendorForm({
       address: formData.address,
       type: formData.type,
     };
-    await updateAdministrationVendor.mutate({ id, data });
+    await updateAdministrationVendor.mutate({ id: vendor.id.toString(), data });
     onClose();
   };
-
-  if (isLoading) {
-    return <div>Cargando...</div>;
-  }
 
   return (
     <Form {...form}>

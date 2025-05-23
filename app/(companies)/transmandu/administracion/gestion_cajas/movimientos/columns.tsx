@@ -38,31 +38,30 @@ export const columns: ColumnDef<CashMovement>[] = [
     ),
     meta: { title: "Cliente" },
     cell: ({ row }) => (
-    <div style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
-      {row.original.client ? (
-        <ClientResumeDialog client={row.original.client} />
-      ) : (
-        <span>-</span>
-      )}
-    </div>
+      <div style={{ display: "flex", justifyContent: "center", width: "100%" }}>
+        {row.original.client ? (
+          <ClientResumeDialog client={row.original.client} />
+        ) : (
+          <span>-</span>
+        )}
+      </div>
     ),
-
   },
   {
     accessorKey: "vendor.name",
     header: ({ column }) => (
       <DataTableColumnHeader filter column={column} title="Proveedor" />
     ),
-     meta: { title: "Proveedor" },
+    meta: { title: "Proveedor" },
     cell: ({ row }) => (
-    <div style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
-      {row.original.vendor ? (
-        <VendorResumeDialog vendor={row.original.vendor} />
-      ) : (
-        <span>-</span>
-      )}
-    </div>
-  ),
+      <div style={{ display: "flex", justifyContent: "center", width: "100%" }}>
+        {row.original.vendor ? (
+          <VendorResumeDialog vendor={row.original.vendor} />
+        ) : (
+          <span>-</span>
+        )}
+      </div>
+    ),
   },
   {
     accessorKey: "cash.name",
@@ -71,10 +70,10 @@ export const columns: ColumnDef<CashMovement>[] = [
     ),
     meta: { title: "Caja" },
     cell: ({ row }) => (
-    <div style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
-      <CashResumeDialog cash={row.original.cash} />
-    </div>
-  ),
+      <div style={{ display: "flex", justifyContent: "center", width: "100%" }}>
+        <CashResumeDialog cash={row.original.cash} />
+      </div>
+    ),
   },
   //  {
   //    accessorKey: "accountant.name",
@@ -137,23 +136,23 @@ export const columns: ColumnDef<CashMovement>[] = [
       if (reference.match(/\.(jpeg|jpg|gif|png|webp)$/i)) {
         return (
           <div className="flex justify-center">
-            <img 
-              src={reference} 
-              alt="Referencia" 
+            <img
+              src={reference}
+              alt="Referencia"
               className="h-10 w-10 object-cover rounded"
-              onClick={() => window.open(reference, '_blank')}
-              style={{ cursor: 'pointer' }}
+              onClick={() => window.open(reference, "_blank")}
+              style={{ cursor: "pointer" }}
             />
           </div>
         );
       }
       // Caso PDF
-      if (reference.endsWith('.pdf')) {
+      if (reference.endsWith(".pdf")) {
         return (
           <div className="flex justify-center">
-            <a 
-              href={reference} 
-              target="_blank" 
+            <a
+              href={reference}
+              target="_blank"
               rel="noopener noreferrer"
               className="flex items-center text-red-700 hover:underline"
             >
@@ -164,12 +163,12 @@ export const columns: ColumnDef<CashMovement>[] = [
         );
       }
       // Caso enlace genérico
-      if (reference.startsWith('http')) {
+      if (reference.startsWith("http")) {
         return (
           <div className="flex justify-center">
-            <a 
-              href={reference} 
-              target="_blank" 
+            <a
+              href={reference}
+              target="_blank"
               rel="noopener noreferrer"
               className="text-blue-700 hover:underline"
             >
@@ -181,9 +180,7 @@ export const columns: ColumnDef<CashMovement>[] = [
       // Texto plano
       return (
         <div className="flex justify-center">
-          <span className="text-muted-foreground italic">
-            {reference}
-          </span>
+          <span className="text-muted-foreground italic">{reference}</span>
         </div>
       );
     },
@@ -236,11 +233,7 @@ export const columns: ColumnDef<CashMovement>[] = [
     meta: { title: "Cuenta de Banco" },
     cell: ({ row }) => {
       if (row.original.bank_account) {
-        return (
-          <BankAccountResumeDialog
-            id={row.original.bank_account.id.toString()}
-          />
-        );
+        return <BankAccountResumeDialog bank_acc={row.original.bank_account} />;
       } else {
         return (
           <p className="text-center italic font-medium cursor-pointer">
@@ -253,11 +246,7 @@ export const columns: ColumnDef<CashMovement>[] = [
   {
     id: "actions",
     cell: ({ row }) => {
-      return (
-        <CashMovementDropdownActions
-          movement={row.original}
-        />
-      );
+      return <CashMovementDropdownActions movement={row.original} />;
     },
   },
 ];

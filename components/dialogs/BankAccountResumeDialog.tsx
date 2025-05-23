@@ -1,15 +1,24 @@
-import { useGetBankAccountById } from "@/hooks/administracion/useGetBankAccountById";
-import { Banknote, CreditCard, Loader2, User, UserCircleIcon, Wallet } from "lucide-react";
+import { BankAccount } from "@/types";
+import {
+  Banknote,
+  CreditCard,
+  Loader2,
+  User,
+  UserCircleIcon,
+  Wallet,
+} from "lucide-react";
 import { useState } from "react";
 import { Button } from "../ui/button";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTrigger, } from "../ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTrigger,
+} from "../ui/dialog";
 
-const BankAccountResumeDialog = ({ id }: { id: string }) => {
-  const { data: bank_acc, isLoading } = useGetBankAccountById(id);
+const BankAccountResumeDialog = ({ bank_acc }: { bank_acc: BankAccount }) => {
   const [openBankAcc, setOpenBankAcc] = useState(false);
-  if (isLoading) {
-    return <Loader2 className="animate-spin" />;
-  }
 
   if (!bank_acc) {
     return <p>N/A</p>;
@@ -51,7 +60,7 @@ const BankAccountResumeDialog = ({ id }: { id: string }) => {
           </div>
 
           <div className="flex items-start gap-4">
-          <UserCircleIcon className="mt-1 h-5 w-5 text-muted-foreground" />
+            <UserCircleIcon className="mt-1 h-5 w-5 text-muted-foreground" />
             <div>
               <p className="text-sm text-muted-foreground">Tipo de titular</p>
               <p className="font-medium">{bank_acc?.account_owner}</p>
