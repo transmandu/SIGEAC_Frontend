@@ -148,7 +148,7 @@ const CreateConsumableForm = ({ initialData, isEditing }: {
   useEffect(() => {
     if (batches) {
       // Filtrar los batches por categoría
-      const filtered = batches.filter((batch) => batch.category === "consumible");
+      const filtered = batches.filter((batch) => batch.category === "CONSUMIBLE");
       setFilteredBatches(filtered);
     }
   }, [batches]);
