@@ -5,7 +5,7 @@ import { useQuery } from "@tanstack/react-query"
 import axiosInstance from "@/lib/axios"
 
 const fetchAdministrationVendorById = async (id: string): Promise<AdministrationVendor> => {
-  const { data } = await axiosInstance.get(`/transmandu/administration-vendors/${id}`)
+  const { data } = await axiosInstance.get(`/transmandu/vendors/${id}`)
   return data
 }
 

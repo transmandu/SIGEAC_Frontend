@@ -53,6 +53,7 @@ import { useEffect } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
 import { z } from "zod";
 import { useRouter } from "next/navigation";
+import { useGetAdministrationVendor } from "@/hooks/administracion/useGetAdministrationVendor";
 
 // Esquemas Zod (igual que antes)
 const cash_movement_detailsSchema = z.object({
@@ -130,7 +131,8 @@ export default function AircraftExpensesPage() {
   const { data: bankaccounts, isLoading: isBankAccLoading } =
     useGetBankAccounts();
   const { data: accounts, isLoading: isAccountLoading } = useGetAccountant();
-  const { data: vendors, isLoading: isVendorLoading } = useGetVendors();
+  const { data: vendors, isLoading: isVendorLoading } =
+    useGetAdministrationVendor();
   const { data: clients, isLoading: isClientLoading } = useGetClients();
   const { data: allCategories, isLoading: isAllCategoriesLoading } =
     useGetCategory();
