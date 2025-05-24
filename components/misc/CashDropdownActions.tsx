@@ -26,7 +26,6 @@ const CashDropdownActions = ({ id, cash }: { id: string; cash: Cash }) => {
 
   const handleViewStats = () => {
     router.push(`/transmandu/administracion/gestion_cajas/cajas/${id}`);
-    console.log("Redirigiendo a:", router);
   };
 
   return (

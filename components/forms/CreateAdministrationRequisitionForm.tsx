@@ -142,7 +142,6 @@ export function CreateAdministrationRequisitionForm({ onClose, initialData, isEd
     });
 
     onClose();
-    console.log(data)
   };
 
   return (

@@ -12,7 +12,6 @@ const CreditPage = () => {
   if (isLoading) {
     return <LoadingPage />;
   }
-  console.log(data);
   return (
     <ContentLayout title="Crédito">
       {" "}

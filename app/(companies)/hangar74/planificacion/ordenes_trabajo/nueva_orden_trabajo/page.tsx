@@ -101,9 +101,7 @@ export default function WorkOrderPage() {
     }
   }, [services, replace]);
   const selectedTasks = form.getValues("tasks")?.filter((task) => task.selected);
-  console.log(selectedTasks)
   const onSubmit = (data: WorkOrderFormValues) => {
-    console.log("click")
     const selectedTasks = data.tasks.filter((task) => task.selected);
     console.log('Orden de trabajo guardada:', {
       ...data,

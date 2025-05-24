@@ -83,8 +83,6 @@ const MovementsByAccountPage = () => {
   }));
 }) || [];
 
-  console.log(selectedAccountData);
-
   // Handle row click to select accountant
   const handleRowClick = (accountName: string) => {
     setSelectedAccount(accountName === selectedAccount ? null : accountName);

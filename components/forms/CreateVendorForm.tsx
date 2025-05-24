@@ -61,7 +61,6 @@ export default function CreateVendorForm({ onClose }: FormProps) {
         company: selectedCompany!.split(" ").join("") ?? null,
       })
     } catch (error) {
-      console.log(error)
     }
     onClose()
   }

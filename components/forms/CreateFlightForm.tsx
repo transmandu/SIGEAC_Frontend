@@ -136,7 +136,6 @@ export function FlightForm({ onClose }: FormProps) {
     if (payed > total) {
       form.setValue("payed_amount", total.toString());
     }
-    console.log(total, payed);
   }, [form]);
 
   useEffect(() => {
@@ -157,7 +156,6 @@ export function FlightForm({ onClose }: FormProps) {
   }, [kg, form.watch("fee"), form.watch("type")]);
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log("clkick");
     const formattedValues = {
       ...values,
       fee: values.type === "CHART" ? 0 : Number(values.fee),
@@ -172,7 +170,6 @@ export function FlightForm({ onClose }: FormProps) {
   }
 
   const debtStatus = form.watch("debt_status");
-  console.log(form.getValues());
   return (
     <Form {...form}>
       <form

@@ -30,7 +30,6 @@ import { useGetAccountant } from "@/hooks/administracion/useGetAccountant";
 import { useGetCategoriesByAccountant } from "@/hooks/administracion/useGetCategoriesByAcountant";
 import { useGetEmployeesByCompany } from "@/hooks/administracion/useGetEmployees";
 import { useGetBankAccounts } from "@/hooks/ajustes/cuentas/useGetBankAccounts";
-import { useGetVendors } from "@/hooks/ajustes/globales/proveedores/useGetVendors";
 import { cn } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
@@ -42,6 +41,7 @@ import { z } from "zod";
 import { Label } from "../ui/label";
 import { Separator } from "../ui/separator";
 import { Textarea } from "../ui/textarea";
+import { useGetAdministrationVendor } from "@/hooks/administracion/useGetAdministrationVendor";
 
 // Esquema para los gastos
 const cash_movement_detailsSchema = z.object({
@@ -142,7 +142,7 @@ export function AircraftExpensiveForm({ acronym, onClose }: FormProps) {
   const { data: bankaccounts, isLoading: isBankAccLoading } =
     useGetBankAccounts();
   const { data: accounts, isLoading: isAccountLoading } = useGetAccountant();
-  const { data: vendors, isLoading: isVendorLoading } = useGetVendors();
+  const { data: vendors, isLoading: isVendorLoading } = useGetAdministrationVendor();
 
   // Get accountant_id from form values to fetch categories
   const accountantId = form.watch(
@@ -225,7 +225,6 @@ export function AircraftExpensiveForm({ acronym, onClose }: FormProps) {
         },
       ],
     });
-    console.log(appendMovement);
   };
 
   const removeMovementField = (index: number) => {
