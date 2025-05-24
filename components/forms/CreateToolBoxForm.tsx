@@ -29,7 +29,7 @@ const FormSchema = z.object({
   }),
   created_by: z.string(),
   delivered_by: z.string(),
-  employee_id: z.string(),
+  employee_dni: z.string(),
   tool_id: z.array(z.string()),
 })
 
@@ -70,7 +70,7 @@ export function CreateToolBoxForm({ onClose, initialData }: FormProps) {
       name: initialData?.name || "",
       created_by: initialData?.created_by || "",
       delivered_by: initialData?.delivered_by || "",
-      employee_id: initialData?.employee.id.toString() || "",
+      employee_dni: initialData?.employee.dni || "",
     },
   })
 
@@ -130,7 +130,7 @@ export function CreateToolBoxForm({ onClose, initialData }: FormProps) {
         />
         <FormField
           control={form.control}
-          name="employee_id"
+          name="employee_dni"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Responsable</FormLabel>
@@ -146,7 +146,7 @@ export function CreateToolBoxForm({ onClose, initialData }: FormProps) {
                   }
                   {
                     employees && employees.map((employee) => (
-                      <SelectItem key={employee.id} value={employee.id.toString()}>{employee.first_name} {employee.last_name} - {employee.job_title.name}</SelectItem>
+                      <SelectItem key={employee.id} value={employee.dni}>{employee.first_name} {employee.last_name} - {employee.job_title.name}</SelectItem>
                     ))
                   }
                 </SelectContent>

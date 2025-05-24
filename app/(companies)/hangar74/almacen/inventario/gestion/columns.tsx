@@ -93,7 +93,7 @@ export const columns: ColumnDef<BatchesWithCountProp>[] = [
       <DataTableColumnHeader filter column={column} title="Ubicacion" />
     ),
     cell: ({ row }) => (
-      <p className="flex justify-center font-medium">{row.original.warehouse_name}</p>
+      <p className="flex text-center font-medium">{row.original.warehouse_name}</p>
     )
   },
   {

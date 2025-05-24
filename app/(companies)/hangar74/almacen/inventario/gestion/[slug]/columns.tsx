@@ -179,7 +179,7 @@ export const columns: ColumnDef<ColumnI>[] = [
       <DataTableColumnHeader column={column} title="Zona de Ubicación" />
     ),
     cell: ({ row }) => (
-      <p className="flex justify-center">{row.original.zone}</p>
+      <p className="flex text-center justify-center">{row.original.zone}</p>
     )
   },
   {
