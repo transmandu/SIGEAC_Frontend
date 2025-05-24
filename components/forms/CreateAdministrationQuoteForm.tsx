@@ -126,8 +126,7 @@ export function CreateAdministrationQuoteForm({
     const formattedData = {
       justification: data.justification,
       submission_date: data.submission_date,
-      sub_total: total,
-      total: total,
+      total: data.articles.reduce((sum, article) => sum + Number(article.amount), 0), // Calculate total from article amounts
       location_id: Number(data.location_id),
       req_id: req.id.toString(),
       vendor_id: Number(data.vendor_id),
@@ -152,7 +151,7 @@ export function CreateAdministrationQuoteForm({
     //   }
     // });
     console.log(formattedData);
-    onClose();
+    //onClose();
   };
 
   return (
