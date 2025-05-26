@@ -19,7 +19,7 @@ export interface IArticleByBatch {
   batches_id: number,
   vendor_id: string,
   part_number: string,
-  alternate_part_number: string,
+  alternative_part_number: string[],
   certificates?: string[],
   unit_secondary: string,
   image: string,

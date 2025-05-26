@@ -37,9 +37,11 @@ const formSchema = z.object({
   part_number: z.string().min(2, {
     message: "El serial debe contener al menos 2 carácteres.",
   }),
-  alternative_part_number: z.string().min(2, {
-    message: "El serial debe contener al menos 2 carácteres.",
-  }).optional(),
+  alternative_part_number: z.array(
+    z.string().min(2, {
+      message: "Cada número de parte alterno debe contener al menos 2 carácteres.",
+    })
+  ).optional(),
   description: z.string({
     message: "Debe ingresar la descripción del articulo."
   }).min(2, {
@@ -124,7 +126,7 @@ const CreateToolForm = ({ initialData, isEditing }: {
     defaultValues: {
       serial: initialData?.serial || "",
       part_number: initialData?.part_number || "",
-      alternative_part_number: initialData?.alternative_part_number || "",
+      alternative_part_number: initialData?.alternative_part_number || [],
       batches_id: initialData?.batches.id?.toString() || "",
       manufacturer_id: initialData?.manufacturer?.id.toString() || "",
       condition_id: initialData?.condition?.id.toString() || "",

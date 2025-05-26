@@ -22,7 +22,7 @@ const SearchSection = ({
     />
     {showNoResults && (
       <div className="text-center py-3 text-muted-foreground">
-        No se encontraron renglones con artículos que coincidan con: "{debouncedSearchTerm}"
+        No se encontraron renglones con artículos que coincidan con: &quot;{searchTerm}&quot;
       </div>
     )}
   </div>

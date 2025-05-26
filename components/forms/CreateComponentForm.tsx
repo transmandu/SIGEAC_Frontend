@@ -99,9 +99,11 @@ const CreateComponentForm = ({ initialData, isEditing }: {
     }, {
       message: "Este número de parte ya existe como número de parte alternativo en otro componente.",
     }),
-    alternative_part_number: z.string().min(2, {
-      message: "El serial debe contener al menos 2 carácteres.",
-    }).optional(),
+    alternative_part_number: z.array(
+      z.string().min(2, {
+        message: "Cada número de parte alterno debe contener al menos 2 carácteres.",
+      })
+    ).optional(),
     description: z.string({
       message: "Debe ingresar la descripción del articulo."
     }).min(2, {
@@ -168,7 +170,7 @@ const CreateComponentForm = ({ initialData, isEditing }: {
     defaultValues: {
       part_number: initialData?.part_number || "",
       serial: initialData?.serial || "",
-      alternative_part_number: initialData?.alternative_part_number || "",
+      alternative_part_number: initialData?.alternative_part_number || [],
       batches_id: initialData?.batches.id?.toString() || "",
       manufacturer_id: initialData?.manufacturer?.id.toString() || "",
       condition_id: initialData?.condition?.id.toString() || "",
