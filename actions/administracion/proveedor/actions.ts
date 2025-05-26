@@ -10,7 +10,7 @@ export const useCreateAdministartionVendor = () => {
           await axiosInstance.post('/transmandu/vendors', data)
         },
         onSuccess: () => {
-          queryAdministrationVendor.invalidateQueries({queryKey: ['vendor']})
+          queryAdministrationVendor.invalidateQueries({queryKey: ['vendors']})
           toast("¡Creado!", {
               description: `¡El registro del proveedor se ha creado correctamente!`
           })
@@ -38,7 +38,7 @@ export const useDeleteAdministrationVendor = () => {
         },
       onSuccess: () => {
 
-          queryAdministrationVendor.invalidateQueries({queryKey: ['vendor']})
+          queryAdministrationVendor.invalidateQueries({queryKey: ['vendors']})
           toast.success("¡Eliminado!", {
               description: `¡El registro del proveedor ha sido eliminado correctamente!`
           })
@@ -64,7 +64,7 @@ export const useUpdateAdministrationVendor = () => {
       await axiosInstance.put(`/transmandu/vendors/${id}`, data);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['vendor'] });
+      queryClient.invalidateQueries({ queryKey: ['vendors'] });
       toast("¡Actualizado!", {
         description: "¡El proveedor se ha actualizado correctamente!",
       });
