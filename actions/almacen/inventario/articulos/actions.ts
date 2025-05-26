@@ -140,7 +140,7 @@ export const useConfirmIncomingArticle = () => {
         id?: number
         serial?: string,
         part_number: string,
-        alternative_part_number?: string,
+        alternative_part_number?: string[],
         description: string,
         zone: string,
         manufacturer_id?: number | string,

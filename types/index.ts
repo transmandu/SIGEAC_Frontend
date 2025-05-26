@@ -115,7 +115,7 @@ export type Article = {
   id?: number,
   article_type?: string,
   part_number: string,
-  alternative_part_number?: string,
+  alternative_part_number?: string[],
   status?: string,
   serial?: string,
   description?: string,

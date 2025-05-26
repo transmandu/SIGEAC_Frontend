@@ -14,12 +14,39 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb"
+import { useSearchBatchesByPartNumber } from '@/hooks/almacen/useGetBatchesByArticlePartNumber';
+import { useMemo, useState } from 'react';
+import { useDebounce } from '@/hooks/useDebounce';
+import { Input } from '@/components/ui/input';
+import SearchSection from './_components/SearchSection';
 
 const InventarioPage = () => {
-
   const { selectedStation } = useCompanyStore();
+  const [searchTerm, setSearchTerm] = useState('');
+  const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
-  const { data: batches, isLoading: isBatchesLoading, isError } = useGetBatchesWithArticlesCount(selectedStation ?? undefined);
+  // Consultas a la API
+  const { data: allBatches, isLoading: isLoadingBatches, isError: isBatchesError, error: batchesError } =
+    useGetBatchesWithArticlesCount(selectedStation ?? undefined);
+
+  const { data: searchedBatches, isLoading: isLoadingSearch, isError: isSearchError, error: searchError } =
+    useSearchBatchesByPartNumber(selectedStation ?? undefined, debouncedSearchTerm || undefined);
+
+  // Memoización de batches a mostrar
+  const displayedBatches = useMemo(() => {
+    if (!allBatches) return [];
+    if (!debouncedSearchTerm || debouncedSearchTerm === "") return allBatches;
+    if (searchedBatches) {
+      const searchedBatchIds = new Set(searchedBatches.map(b => b.id));
+      return allBatches.filter(batch => searchedBatchIds.has(batch.id));
+    }
+    return [];
+  }, [allBatches, searchedBatches, debouncedSearchTerm]);
+
+  // Estados derivados
+  const isLoading = isLoadingBatches || !!(debouncedSearchTerm && isLoadingSearch);
+  const isEmptyState = !isLoading && displayedBatches?.length === 0;
+  const showNoResults = !isLoading && !!debouncedSearchTerm && isEmptyState;
 
   return (
     <ContentLayout title='Inventario'>
@@ -39,22 +66,41 @@ const InventarioPage = () => {
         <p className='text-sm text-muted-foreground text-center  italic'>
           Aquí puede observar todos los renglones de los diferentes almacenes. <br />Filtre y/o busque sí desea un renglón en específico.
         </p>
-        {
-          isBatchesLoading && (
-            <div className='flex w-full h-full justify-center items-center'>
-              <Loader2 className='size-24 animate-spin mt-48' />
-            </div>
-          )
-        }
-        {
-          batches && (
-            <DataTable columns={columns} data={batches} />
+        <SearchSection
+          searchTerm={searchTerm}
+          onSearchChange={setSearchTerm}
+          debouncedSearchTerm={debouncedSearchTerm}
+          showNoResults={showNoResults}
+        />
 
-          )
-        }
-        {
-          isError && <p className='text-sm text-muted-foreground'>Ha ocurrido un error al cargar los lotes...</p>
-        }
+        {isLoading ? (
+          <div className='flex w-full h-full justify-center items-center min-h-[300px]'>
+            <Loader2 className='size-24 animate-spin' />
+          </div>
+        ) : (
+          <>
+            {allBatches && (
+              <DataTable
+                columns={columns}
+                initialData={displayedBatches}
+                isSearching={!!debouncedSearchTerm}
+                searchTerm={debouncedSearchTerm}
+              />
+            )}
+
+            {isBatchesError && (
+              <div className="text-red-500 text-center text-sm italic text-muted-foreground">
+                Error cargando batches: {batchesError.message}
+              </div>
+            )}
+
+            {isSearchError && (
+              <div className="text-red-500 text-center text-sm italic text-muted-foreground">
+                Error en búsqueda: {searchError.message}
+              </div>
+            )}
+          </>
+        )}
       </div>
     </ContentLayout>
   )
