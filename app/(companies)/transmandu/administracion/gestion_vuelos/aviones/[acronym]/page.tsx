@@ -374,8 +374,7 @@ export default function AircraftReportPage() {
                           </span>
                         </TableCell>
                         <TableCell>
-                          {movement.category} - {movement.sub_category}
-                          {movement.sub_category_details && ` (${movement.sub_category_details})`}
+                          {movement.details}
                         </TableCell>
                         <TableCell
                           className={
