@@ -1,5 +1,16 @@
 "use client";
 
+import { DataTablePagination } from "@/components/tables/DataTablePagination";
+import { DataTableViewOptions } from "@/components/tables/DataTableViewOptions";
+import { Button } from "@/components/ui/button";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import {
   ColumnDef,
   ColumnFiltersState,
@@ -11,20 +22,8 @@ import {
   SortingState,
   useReactTable,
 } from "@tanstack/react-table";
-import { DataTablePagination } from "@/components/tables/DataTablePagination";
-import { DataTableViewOptions } from "@/components/tables/DataTableViewOptions";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import CreateObligatoryDialog from "@/components/dialogs/CreateObligatoryDialog";
-import { Button } from "@/components/ui/button";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -54,7 +53,6 @@ export function DataTable<TData, TValue>({
 
   const router = useRouter();
 
-  const isFiltered = table.getState().columnFilters.length > 0;
 
   return (
     <>
