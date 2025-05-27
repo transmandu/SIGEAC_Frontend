@@ -28,6 +28,7 @@ import {
   User2,
   UserRoundCog,
   Wrench,
+  Activity 
 } from "lucide-react";
 
 type Submenu = {
@@ -365,6 +366,29 @@ export function getMenuList(
                   active:
                     pathname ===
                     "/transmandu/sms/estadisticas/indicadores_riesgo",
+                },
+              ],
+              
+            },
+            {
+              href: "/transmandu/sms",
+              label: "Planificacion",
+              active: pathname.includes("/transmandu/sms"),
+              icon: Activity,
+              roles: ["ANALISTA_SMS", "JEFE_SMS", "SUPERUSER"],
+              submenus: [
+                {
+                  href: "/transmandu/sms/planificacion/cursos",
+                  label: "Cursos SMS",
+                  roles: ["ANALISTA_SMS", "JEFE_SMS", "SUPERUSER"],
+                  active:
+                    pathname === "/transmandu/planificacion/cursos",
+                },
+                {
+                  href: "/transmandu/sms/planificacion/actividades",
+                  label: "Actividades SMS",
+                  roles: ["ANALISTA_SMS", "JEFE_SMS", "SUPERUSER"],
+                  active: pathname === "/transmandu/planificacion/actividades",
                 },
               ],
             },
