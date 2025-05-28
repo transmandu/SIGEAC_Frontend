@@ -22,6 +22,7 @@ import {
   PlaneIcon,
   Receipt,
   ScrollText,
+  Settings,
   SquarePen,
   User2,
   UserRoundCog,
