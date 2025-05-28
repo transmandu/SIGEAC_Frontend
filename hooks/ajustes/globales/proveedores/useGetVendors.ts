@@ -1,16 +1,17 @@
-import axios from '@/lib/axios';
+import axiosInstance from '@/lib/axios';
 import { Vendor } from '@/types';
 import { useQuery } from '@tanstack/react-query';
 
 
-const fetchVendors = async (): Promise<Vendor[]> => {
-  const {data} = await axios.get(`/hangar74/vendors`);
+const fetchVendors = async (company: string | null): Promise<Vendor[]> => {
+  const {data} = await axiosInstance.get(`/${company}/vendors`);
   return data;
 };
 
-export const useGetVendors = () => {
+export const useGetVendors = (company: string | null) => {
   return useQuery<Vendor[]>({
     queryKey: ["vendors"],
-    queryFn: fetchVendors,
+    queryFn: () => fetchVendors(company),
+    enabled: !!company,
   });
 };

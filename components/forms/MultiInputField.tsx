@@ -29,7 +29,7 @@ export const MultiInputField = ({
   };
 
   return (
-    <div className='flex gap-2 w-full'>
+    <div className='flex flex-col xl:flex-row gap-2 w-full'>
       {label && <label className="text-sm font-medium">{label}</label>}
       <div className="flex gap-2">
         <Input

@@ -132,11 +132,11 @@ const CreateConsumableForm = ({ initialData, isEditing }: {
 
   const { confirmIncoming } = useConfirmIncomingArticle();
 
-  const { selectedStation } = useCompanyStore();
+  const { selectedStation, selectedCompany } = useCompanyStore();
 
   const { data: secondaryUnits, isLoading: secondaryLoading, isError: secondaryError } = useGetSecondaryUnits()
 
-  const { data: manufacturers, isLoading: isManufacturerLoading, isError: isManufacturerError } = useGetManufacturers()
+  const { data: manufacturers, isLoading: isManufacturerLoading, isError: isManufacturerError } = useGetManufacturers(selectedCompany?.split(" ").join("") ?? null)
 
   const { data: conditions, isLoading: isConditionsLoading, error: isConditionsError } = useGetConditions();
 
@@ -211,12 +211,12 @@ const CreateConsumableForm = ({ initialData, isEditing }: {
   return (
     <Form {...form}>
       <form className="flex flex-col gap-4 max-w-6xl mx-auto" onSubmit={form.handleSubmit(onSubmit)}>
-        <div className="max-w-7xl flex lg:flex-row gap-2 w-full">
+        <div className="max-w-7xl flex flex-col lg:flex-row gap-2 w-full">
           <FormField
             control={form.control}
             name="part_number"
             render={({ field }) => (
-              <FormItem className="w-1/3">
+              <FormItem className="w-full xl:w-1/3">
                 <FormLabel>Nro. de Parte</FormLabel>
                 <FormControl>
                   <Input placeholder="EJ: 234ABAC" {...field} />

@@ -13,8 +13,10 @@ export const useCreateManufacturer = () => {
     const queryClient = useQueryClient()
 
     const createMutation = useMutation({
-        mutationFn: async (data: ManufacturerSchema) => {
-            await axiosInstance.post('/hangar74/manufacturer', data)
+        mutationFn: async ({company, data}: {
+          company: string | null, data: ManufacturerSchema
+        }) => {
+            await axiosInstance.post(`/${company}/manufacturer`, data)
           },
         onSuccess: () => {
             queryClient.invalidateQueries({queryKey: ['manufacturers']})
