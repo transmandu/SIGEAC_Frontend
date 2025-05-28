@@ -8,6 +8,7 @@ interface Requisition {
   created_by: User,
   requested_by: string,
   received_by: string,
+  image?: string,
   justification: string,
   arrival_date: Date,
   submitted_date: Date,
@@ -16,8 +17,15 @@ interface Requisition {
     name: string,
     batch_articles: {
       article_part_number: string,
-      unit?: Convertion,
+      article_alt_part_number?: string,
+      pma?: string,
+      manual?: string,
+      reference_cod?: string,
+      justification: string,
       quantity: number,
+      unit?: Convertion,
+      image?: string,
+      certificates?: string[]
     }[]
   }[]
 }[]
@@ -29,8 +37,8 @@ const fetchRequisitionByOrderNumber = async (company: string | null, order_numbe
 };
 
 export const useGetRequisitionByOrderNumber = (company: string | null, order_number: string) => {
-  return useQuery<Requisition | AdministrationRequisition, Error>({
-    queryKey: ["batches"],
+  return useQuery<Requisition, Error>({
+    queryKey: ["requisition-order", company, order_number],
     queryFn: () => fetchRequisitionByOrderNumber(company, order_number),
     enabled: !!company && !!order_number,
   });

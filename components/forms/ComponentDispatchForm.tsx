@@ -79,14 +79,13 @@ export function ComponentDispatchForm({ onClose }: FormProps) {
 
   const { data: employees, isLoading: employeesLoading, isError: employeesError } = useGetWorkOrderEmployees();
 
-  const { mutate: workOrderMutate, data: workOrders, isPending } = useGetWorkOrders();
+  const { data: workOrders, isLoading } = useGetWorkOrders(selectedStation ?? null);
 
   useEffect(() => {
     if (selectedStation) {
       mutate(Number(selectedStation))
-      workOrderMutate(Number(selectedStation))
     }
-  }, [selectedStation, mutate, workOrderMutate])
+  }, [selectedStation, mutate])
 
   useEffect(() => {
     if (batches) {

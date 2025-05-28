@@ -18,6 +18,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
+import { useGetConditions } from "@/hooks/administracion/useGetConditions"
 import { useGetManufacturers } from "@/hooks/ajustes/globales/fabricantes/useGetManufacturers"
 import { useGetArticlesByCategory } from "@/hooks/almacen/useGetArticlesByCategory"
 import { useGetBatchesByLocationId } from "@/hooks/almacen/useGetBatchesByLocationId"
@@ -26,17 +27,16 @@ import loadingGif from '@/public/loading2.gif'
 import { useCompanyStore } from "@/stores/CompanyStore"
 import { Article, Batch } from "@/types"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { addYears, format, parse, subYears } from "date-fns"
+import { addYears, format, subYears } from "date-fns"
 import { es } from 'date-fns/locale'
 import { CalendarIcon, FileUpIcon, Loader2 } from "lucide-react"
 import Image from "next/image"
+import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
-import { AmountInput } from "../misc/AmountInput"
 import { Textarea } from "../ui/textarea"
-import { useGetConditions } from "@/hooks/administracion/useGetConditions"
-import { useRouter } from "next/navigation"
+import { MultiInputField } from "./MultiInputField"
 
 interface EditingArticle extends Article {
   batches: Batch,
@@ -69,7 +69,7 @@ const CreateComponentForm = ({ initialData, isEditing }: {
 
   const { createArticle } = useCreateArticle();
 
-  const { selectedStation } = useCompanyStore();
+  const { selectedStation, selectedCompany } = useCompanyStore();
 
   const { confirmIncoming } = useConfirmIncomingArticle();
 
@@ -77,7 +77,7 @@ const CreateComponentForm = ({ initialData, isEditing }: {
 
   const { mutate, data: batches, isPending: isBatchesLoading, isError } = useGetBatchesByLocationId();
 
-  const { data: manufacturers, isLoading: isManufacturerLoading, isError: isManufacturerError } = useGetManufacturers()
+  const { data: manufacturers, isLoading: isManufacturerLoading, isError: isManufacturerError } = useGetManufacturers(selectedCompany?.split(" ").join("") ?? null)
 
   const { data: conditions, isLoading: isConditionsLoading, error: isConditionsError } = useGetConditions();
 
@@ -99,9 +99,11 @@ const CreateComponentForm = ({ initialData, isEditing }: {
     }, {
       message: "Este número de parte ya existe como número de parte alternativo en otro componente.",
     }),
-    alternative_part_number: z.string().min(2, {
-      message: "El serial debe contener al menos 2 carácteres.",
-    }).optional(),
+    alternative_part_number: z.array(
+      z.string().min(2, {
+        message: "Cada número de parte alterno debe contener al menos 2 carácteres.",
+      })
+    ).optional(),
     description: z.string({
       message: "Debe ingresar la descripción del articulo."
     }).min(2, {
@@ -157,7 +159,7 @@ const CreateComponentForm = ({ initialData, isEditing }: {
   useEffect(() => {
     if (batches) {
       // Filtrar los batches por categoría
-      const filtered = batches.filter((batch) => batch.category === "componente");
+      const filtered = batches.filter((batch) => batch.category === "COMPONENTE");
       setFilteredBatches(filtered);
     }
   }, [batches]);
@@ -168,7 +170,7 @@ const CreateComponentForm = ({ initialData, isEditing }: {
     defaultValues: {
       part_number: initialData?.part_number || "",
       serial: initialData?.serial || "",
-      alternative_part_number: initialData?.alternative_part_number || "",
+      alternative_part_number: initialData?.alternative_part_number || [],
       batches_id: initialData?.batches.id?.toString() || "",
       manufacturer_id: initialData?.manufacturer?.id.toString() || "",
       condition_id: initialData?.condition?.id.toString() || "",
@@ -228,13 +230,17 @@ const CreateComponentForm = ({ initialData, isEditing }: {
             control={form.control}
             name="alternative_part_number"
             render={({ field }) => (
-              <FormItem className="w-full">
-                <FormLabel>Nro. de Parte - Alt.</FormLabel>
+              <FormItem>
+                <FormLabel>Nro. de Parte Alternos</FormLabel>
                 <FormControl>
-                  <Input placeholder="EJ: 234ABAC" {...field} />
+                  <MultiInputField
+                    values={field.value || []}
+                    onChange={field.onChange}
+                    placeholder="EJ: 234ABAC"
+                  />
                 </FormControl>
                 <FormDescription>
-                  Identificador único del articulo.
+                  Identificadores alternativos del artículo.
                 </FormDescription>
                 <FormMessage />
               </FormItem>

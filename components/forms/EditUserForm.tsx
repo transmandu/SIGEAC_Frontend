@@ -139,7 +139,7 @@ export function EditUserForm({ user, onClose }: { user: User, onClose: () => voi
               <FormItem>
                 <FormLabel>Usuario</FormLabel>
                 <FormControl>
-                  <Input placeholder="Ej: aperez" {...field} />
+                  <Input disabled placeholder="Ej: aperez" {...field} />
                 </FormControl>
                 <FormMessage className="text-xs" />
               </FormItem>

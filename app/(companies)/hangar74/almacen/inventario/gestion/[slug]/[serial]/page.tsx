@@ -27,8 +27,8 @@ import { useEffect, useState } from 'react';
 const ArticlePage = () => {
   const { selectedStation } = useCompanyStore();
   const [date, setDate] = useState<Date>()
-  const params = useParams<{ part_number: string, serial: string }>();
-  const { mutate, data, isPending, isError } = useGetArticle(selectedStation!, params.part_number, params.serial);
+  const params = useParams<{ slug: string, serial: string }>();
+  const { mutate, data, isPending, isError } = useGetArticle(selectedStation!, params.slug, params.serial);
 
   useEffect(() => {
     if (selectedStation) {

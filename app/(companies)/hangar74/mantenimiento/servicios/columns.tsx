@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/tooltip"
 import { MaintenanceService } from "@/types"
 import Link from "next/link"
+import MaintenanceServiceDropdownActions from "@/components/misc/MaintenanceServiceDropdownActionts"
 
 export const columns: ColumnDef<MaintenanceService>[] = [
   {
@@ -87,39 +88,7 @@ export const columns: ColumnDef<MaintenanceService>[] = [
     cell: ({ row }) => {
       const item = row.original
       return (
-        <TooltipProvider>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0">
-                <span className="sr-only">Abrir menu</span>
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="center" className="flex gap-2 justify-center">
-              <DropdownMenuSeparator />
-              <DropdownMenuItem>
-                <Tooltip>
-                  <TooltipTrigger>
-                    <Trash2 className='size-5 text-red-500' />
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Eliminar</p>
-                  </TooltipContent>
-                </Tooltip>
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <Tooltip>
-                  <TooltipTrigger>
-                    <SquarePen className="size-5" />
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    Editar
-                  </TooltipContent>
-                </Tooltip>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </TooltipProvider>
+        <MaintenanceServiceDropdownActions service={row.original} />
       )
     },
   },

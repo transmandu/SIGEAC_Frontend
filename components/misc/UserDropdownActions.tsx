@@ -2,34 +2,16 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu"
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip"
 
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog"
 
-import { EyeIcon, Loader2, MoreHorizontal, SquarePen, Trash2 } from "lucide-react"
-import { useRouter } from "next/navigation"
-import { Button } from "../ui/button"
 import { useDeleteUser } from "@/actions/administracion/usuarios/actions"
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "../ui/dialog"
+import { EyeIcon, Loader2, MoreHorizontal, Trash2 } from "lucide-react"
+import { useRouter } from "next/navigation"
 import { useState } from "react"
+import { Button } from "../ui/button"
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "../ui/dialog"
 
 const UserDropdownActions = ({ id, companies }: { id: number | string, companies: { id: number, name: string }[] }) => {
 

@@ -30,6 +30,7 @@ export const useCreateQuote = () => {
         },
       onSuccess: () => {
           queryClient.invalidateQueries({queryKey: ['quotes']})
+          queryClient.invalidateQueries({queryKey: ['quote'], exact: false})
           toast.success("¡Creado!", {
               description: `La cotizacion ha sido creada correctamente.`
           })

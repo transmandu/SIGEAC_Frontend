@@ -214,7 +214,7 @@ export function CreateBatchForm({ onClose }: FormProps) {
                       {isLoading && <Loader2 className="size-4 animate-spin" />}
                       {warehouses && warehouses.map((warehouse) => (
                         <SelectItem key={warehouse.id} value={warehouse.id.toString()}>
-                          {warehouse.name} - {warehouse.address}
+                          {warehouse.name} - {warehouse.location.address}
                         </SelectItem>
                       ))}
                       {warehouses && warehouses.length < 1 && (

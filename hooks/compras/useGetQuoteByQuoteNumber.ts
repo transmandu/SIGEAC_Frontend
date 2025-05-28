@@ -9,7 +9,7 @@ const fetchQuoteByQuoteNumber = async (company: string | null, quote_number: str
 
 export const useGetQuoteByQuoteNumber = (company: string | null, quote_number: string) => {
   return useQuery<Quote, Error>({
-    queryKey: ["quote"],
+    queryKey: ["quote", company, quote_number],
     queryFn: () => fetchQuoteByQuoteNumber(company, quote_number),
     enabled: !!company && !!quote_number,
   });

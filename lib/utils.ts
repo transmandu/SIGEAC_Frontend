@@ -23,15 +23,15 @@ export const generateSlug = (name: string) => {
 // export function formatDateRange(period?: Period) {
 //   const defaultTo = new Date();
 //   const defaultFrom = subDays(defaultTo, 30);
-//   const locale = es;// 
+//   const locale = es;//
 
 //   if(!period?.from) {
 //     return `${format(defaultFrom, "LLL dd", {locale})} - ${format(defaultTo, "LLL dd, y", {locale})}`
-//   }// 
+//   }//
 
 //   if(period.to) {
 //     return `${format(period.from, "LLL dd")} - ${format(period.to, "LLL dd, y", {locale})}`
-//   }// 
+//   }//
 
 //   return format(period.from, "LLL dd, y", {locale});
 // }
@@ -42,19 +42,19 @@ export const formatDateRangeUpdate = (range: DateRange) => {
   if (!range?.from && !range?.to) {
     return "Filtrado de fechas";
   }
-  
+
   if (range.from && !range.to) {
     return `Desde ${format(range.from, "MMM dd, yyyy")}`;
   }
-  
+
   if (!range.from && range.to) {
     return `Hasta ${format(range.to, "MMM dd, yyyy")}`;
   }
-  
+
   if (range.from && range.to) {
     return `${format(range.from, "MMM dd, yyyy")} - ${format(range.to, "MMM dd, yyyy")}`;
   }
-  
+
   return "Filtrado de fechas";
 };
 
@@ -74,7 +74,7 @@ export const formatDateRange = (
 
   // Si ambas fechas son válidas, formatea el rango
   return `${format(period.from, "LLL dd", { locale })} - ${format(period.to, "LLL dd, y", { locale })}`;
-};//ESTO ES NUEVO lo que esta en comentarios era viejo... las fechas se muestran decrementadas un numero en el dia 
+};//ESTO ES NUEVO lo que esta en comentarios era viejo... las fechas se muestran decrementadas un numero en el dia
 
 
 export function formatCurrency(value: number) {
@@ -96,14 +96,14 @@ export function getCurrencySymbol(coinType: string): string {
   return symbolMap[coinType.toUpperCase()] || "";
 }
 
-//funcion formateo de simbolo y de número  
+//funcion formateo de simbolo y de número
 export function formatCurrencyJ(
   value: number | string, // Acepta ambos tipos
   coinType: string,
   locale: string = 'es-US'
 ): string {
   // Convertir a número
-  const numericValue = typeof value === 'string' 
+  const numericValue = typeof value === 'string'
     ? parseFloat(value.replace(',', '.')) // Reemplaza comas por puntos para locales que usan coma decimal
     : value;
 
@@ -124,7 +124,7 @@ export function formatCurrencyJ(
 // Función para formatear fechas, la forma correcta de implementar es: {formatDate(datexxx,1)}
 export const formatDate = (dateInput: string | Date, daysToAdd: number = 0) => {
   let date = dateInput instanceof Date ? dateInput : new Date(dateInput);
-  
+
   if (daysToAdd !== 0) {
     date = new Date(date.getTime() + daysToAdd * 24 * 60 * 60 * 1000);
   }

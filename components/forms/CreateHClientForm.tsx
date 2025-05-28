@@ -8,6 +8,14 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+
 import { Input } from "@/components/ui/input";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
@@ -15,6 +23,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Button } from "../ui/button";
 import { useCreateClient } from "@/actions/ajustes/clientes/actions";
+import { useState } from "react";
 
 
 const formSchema = z.object({
@@ -25,6 +34,7 @@ const formSchema = z.object({
     message: "El nombre debe tener al menos 3 carácters.",
   }),
   phone_number: z.string(),
+  rif: z.string(),
   address: z.string(),
 })
 
@@ -34,19 +44,24 @@ interface FormProps {
 }
 
 export default function CreateHClientForm({ onClose }: FormProps) {
+  const [type, setType] = useState("V")
   const { createClient } = useCreateClient();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: "",
       email: "",
+      rif: "",
       phone_number: "",
       address: "",
     },
   })
   const { control } = form;
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    await createClient.mutateAsync(values)
+    await createClient.mutateAsync({
+      ...values,
+      rif: `${type}-${values.rif}`,
+    })
     onClose()
   }
   return (
@@ -63,6 +78,34 @@ export default function CreateHClientForm({ onClose }: FormProps) {
               </FormControl>
               <FormDescription>
                 Nombre de su cliente.
+              </FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={control}
+          name="rif"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Identificación</FormLabel>
+              <FormControl>
+                <div className="flex items-center space-x-2">
+                  <Select>
+                    <SelectTrigger className="w-[80px]">
+                      <SelectValue placeholder="Selec..." />
+                    </SelectTrigger>
+                    <SelectContent defaultValue={"V"}>
+                      <SelectItem value="V">V</SelectItem>
+                      <SelectItem value="J">J</SelectItem>
+                      <SelectItem value="E">E</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Input placeholder="..." {...field} />
+                </div>
+              </FormControl>
+              <FormDescription>
+                Número identificador.
               </FormDescription>
               <FormMessage />
             </FormItem>

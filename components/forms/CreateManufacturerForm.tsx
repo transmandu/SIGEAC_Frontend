@@ -8,6 +8,13 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { Input } from "@/components/ui/input";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
@@ -24,6 +31,9 @@ const formSchema = z.object({
   description: z.string().min(3, {
     message: "La descripcion debe tener al menos 3 carácters.",
   }),
+  type: z.enum(["AIRCRAFT", "PART"], {
+    required_error: "Debe seleccionar un tipo",
+  }),
 })
 
 
@@ -39,6 +49,7 @@ export default function CreateManufacturerForm({ onClose }: FormProps) {
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: "",
+      type: "AIRCRAFT",
       description: "",
     },
   })
@@ -66,6 +77,30 @@ export default function CreateManufacturerForm({ onClose }: FormProps) {
               </FormControl>
               <FormDescription>
                 Este será el nombre del fabricante.
+              </FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="type"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Tipo</FormLabel>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Seleccione el tipo..." />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="AIRCRAFT">Aeronave</SelectItem>
+                  <SelectItem value="PART">Parte</SelectItem>
+                </SelectContent>
+              </Select>
+              <FormDescription>
+                Indique si es de parte o de aeronave.
               </FormDescription>
               <FormMessage />
             </FormItem>

@@ -40,23 +40,13 @@ export const columns: ColumnDef<Warehouse>[] = [
       </>
   },
   {
-    accessorKey: "type",
-    header: ({ column }) => (
-      <DataTableColumnHeader filter column={column} title="Tipo" />
-    ),
-    cell: ({ row }) =>
-      <>
-        <span className='text-muted-foreground flex justify-center italic'>{row.original.type}</span>
-      </>
-  },
-  {
-    accessorKey: "address",
+    accessorKey: "location.address",
     header: ({ column }) => (
       <DataTableColumnHeader filter column={column} title="Ubicación" />
     ),
     cell: ({ row }) =>
       <>
-        <span className="flex justify-center">{row.original.address}</span>
+        <span className="flex justify-center">{row.original.location.address} - {row.original.location.type}</span>
       </>
   },
   {
@@ -67,6 +57,16 @@ export const columns: ColumnDef<Warehouse>[] = [
     cell: ({ row }) =>
       <>
         <span className="flex justify-center font-medium">{row.original.company}</span>
+      </>
+  },
+  {
+    accessorKey: "type",
+    header: ({ column }) => (
+      <DataTableColumnHeader filter column={column} title="Tipo" />
+    ),
+    cell: ({ row }) =>
+      <>
+        <span className='text-muted-foreground flex justify-center italic'>{row.original.type}</span>
       </>
   },
   {

@@ -7,6 +7,7 @@ interface CreateClientSchema {
   phone_number: string,
   email: string,
   address: string,
+  rif: string,
 }
 
 export const useCreateClient = () => {
@@ -14,8 +15,10 @@ export const useCreateClient = () => {
   const queryClient = useQueryClient()
 
   const createMutation = useMutation({
-      mutationFn: async (data: CreateClientSchema) => {
-          await axiosInstance.post('/hangar74/clients', data)
+      mutationFn: async ({company, data}: {
+        company: string | null, data: CreateClientSchema
+      }) => {
+          await axiosInstance.post(`/${company}/clients`, data)
         },
       onSuccess: () => {
           queryClient.invalidateQueries({queryKey: ['maintenance-clients']})

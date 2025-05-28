@@ -49,7 +49,7 @@ export type Article = {
   id?: number,
   article_type?: string,
   part_number: string,
-  alternative_part_number?: string,
+  alternative_part_number?: string[],
   status?: string,
   serial?: string,
   description?: string,
@@ -280,8 +280,10 @@ export type MaintenanceAircraft = {
 export type MaintenanceAircraftPart = {
   part_number: string,
   part_name: string,
+  condition_type: string,
   part_hours: number,
   part_cycles: number,
+  sub_parts: MaintenanceAircraftPart[],
   aircraft: MaintenanceAircraft,
 }
 
@@ -298,26 +300,54 @@ export type FlightControl = {
 
 export type MaintenanceService = {
   id: number
+  origin_manual: string,
   name: string,
   description: string,
   manufacturer: Manufacturer,
+  type: "AIRCRAFT" | "PART",
   tasks: ServiceTask[],
 }
 
 export type ServiceTask = {
   id: number,
   description: string,
-  batch: Batch,
   service: MaintenanceService,
+  task_items: {
+    id: number
+    article_part_number: string,
+    article_alt_part_number?: string,
+    article_serial: string,
+  }[]
 }
 
 export interface WorkOrder extends Request {
   order_number: string
-  service: string,
+  client: MaintenanceClient,
   aircraft: MaintenanceAircraft,
-  status: boolean,
+  status: string,
+  date: string,
   description: string,
-  employee: Employee,
+  elaborated_by: string,
+  reviewed_by: string,
+  approved_by: string,
+  preliminary_inspection?: PrelimInspection,
+  work_order_tasks: WorkOrderTask[]
+}
+
+export type PrelimInspection = {
+  id: number | string,
+  work_order: WorkOrder,
+  status: string,
+  authorizing: string,
+  observation: string,
+  pre_inspection_items: PrelimInspectionItem[],
+}
+
+export type PrelimInspectionItem = {
+  id: number | string,
+  ata: string,
+  description: string,
+  location: string,
 }
 
 export interface DispatchRequest extends Request {
@@ -405,6 +435,7 @@ export type Location = {
 export type Manufacturer = {
   id: number,
   name: string,
+  type: "AIRCRAFT" | "PART",
   description: string,
 }
 
@@ -413,14 +444,21 @@ export type Module = {
   order_number: string,
   status: string,
   created_by: User,
+  type: string,
+  image?: string,
   requested_by: string,
   batch: {
     name: string,
     batch_articles: {
       article_part_number: string,
+      article_alt_part_number?: string,
+      pma?: string,
+      reference_cod?: string,
+      justification: string,
       quantity: number,
       unit?: Convertion,
-      image: string,
+      image?: string,
+      certificates?: string[]
     }[]
   }[],
   received_by: string,
@@ -705,4 +743,9 @@ export type Activity = {
   final_hour: string,
   description: string,
   result?: string,
+}
+
+export type Certificate = {
+  id: number,
+  name: string,
 }

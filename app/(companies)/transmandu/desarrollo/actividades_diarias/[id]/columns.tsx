@@ -58,7 +58,7 @@ export const columns: ColumnDef<Activity>[] = [
       return (
         <ActivityDropdownActions
           finished={finished}
-          id={row.original.id!}
+          initialData={row.original}
         />
       );
     },

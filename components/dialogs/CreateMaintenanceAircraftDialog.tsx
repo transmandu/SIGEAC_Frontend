@@ -19,6 +19,7 @@ interface AircraftPart {
   part_number: string;
   part_hours: number;
   part_cycles: number;
+  condition_type: "NEW" | "OVERHAULED"
 }
 
 interface AircraftInfoType {
@@ -81,7 +82,7 @@ export function CreateMaintenanceAircraftDialog() {
           Registrar Aeronave
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-xl">
+      <DialogContent className="max-w-3xl">
         <DialogHeader>
           <DialogTitle>Registro de Aeronave</DialogTitle>
           <DialogDescription>
@@ -120,7 +121,6 @@ export function CreateMaintenanceAircraftDialog() {
               <h4 className="font-medium mb-2">Información de la Aeronave</h4>
               <div className="space-y-1 text-sm">
                 <p><span className="font-medium">Fabricante:</span> {aircraftData?.manufacturer_id}</p>
-                <p><span className="font-medium">Cliente:</span> {aircraftData?.client_id}</p>
                 <p><span className="font-medium">Serial:</span> {aircraftData?.serial}</p>
                 <p><span className="font-medium">Acrónimo:</span> {aircraftData?.acronym}</p>
                 <p><span className="font-medium">Horas de Vuelo:</span> {aircraftData?.flight_hours}</p>

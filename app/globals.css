@@ -69,3 +69,13 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* En tu archivo global.css */
+@layer components {
+  .tasks-table th {
+    @apply font-semibold text-sm bg-muted/30;
+  }
+  .tasks-table td {
+    @apply align-top;
+  }
+}

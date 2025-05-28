@@ -104,17 +104,7 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
     isError,
   } = useGetBatchesWithInWarehouseArticles();
 
-  const {
-    data: employees,
-    isLoading: employeesLoading,
-    isError: employeesError,
-  } = useGetWorkOrderEmployees();
-
-  const {
-    mutate: workOrderMutate,
-    data: workOrders,
-    isPending,
-  } = useGetWorkOrders();
+  const { data: employees, isLoading: employeesLoading, isError: employeesError } = useGetWorkOrderEmployees();
 
   const form = useForm<FormSchemaType>({
     resolver: zodResolver(FormSchema),
@@ -128,10 +118,9 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
 
   useEffect(() => {
     if (selectedStation) {
-      mutate(Number(selectedStation));
-      workOrderMutate(Number(selectedStation));
+      mutate(Number(selectedStation))
     }
-  }, [selectedStation, mutate, workOrderMutate]);
+  }, [selectedStation, mutate])
 
   useEffect(() => {
     if (batches) {

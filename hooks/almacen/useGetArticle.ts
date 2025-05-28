@@ -36,14 +36,14 @@ interface IGetArticle {
     }[]
 }
 
-const fetchArticle = async (location_id: string, batch: string, serial: string,): Promise<IGetArticle> => {
-  const {data} = await axios.post(`/hangar74/articles/${batch}/${serial}`, {location_id});
+const fetchArticle = async (location_id: string, slug: string, serial: string,): Promise<IGetArticle> => {
+  const {data} = await axios.post(`/hangar74/articles/${slug}/${serial}`, {location_id});
   return data;
 };
 
-export const useGetArticle = (location_id: string, batch: string, serial: string) => {
+export const useGetArticle = (location_id: string, slug: string, serial: string) => {
   return useMutation<IGetArticle>({
     mutationKey: ["article"],
-    mutationFn: () => fetchArticle(location_id, batch, serial),
+    mutationFn: () => fetchArticle(location_id, slug, serial),
   });
 };

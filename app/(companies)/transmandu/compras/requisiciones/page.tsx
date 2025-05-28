@@ -11,7 +11,7 @@ import { columns } from './columns';
 import { DataTable } from './data-table';
 import { Requisition } from '@/types';
 
-const InventarioPage = () => {
+const RequisitionsPage = () => {
   const { user } = useAuth();
   const { selectedCompany, selectedStation } = useCompanyStore();
   const { data: requisitions, isLoading, isError } = useGetRequisition(
@@ -26,10 +26,8 @@ const InventarioPage = () => {
       setFilteredRequisitions([]);
       return;
     }
-
-    const fullAccessRoles = ['SUPERUSER', 'ANALISTA_COMPRAS'];
+    const fullAccessRoles = ['SUPERUSER', 'ANALISTA_COMPRAS', "JEFE_COMPRAS"];
     const hasFullAccess = user?.roles?.some(role => fullAccessRoles.includes(role.name)) ?? false;
-
     if (hasFullAccess) {
       setFilteredRequisitions(requisitions);
     } else {
@@ -72,4 +70,4 @@ const InventarioPage = () => {
   );
 };
 
-export default InventarioPage;
+export default RequisitionsPage;

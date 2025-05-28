@@ -6,7 +6,7 @@ const axiosInstance = axios.create({
   withCredentials: true,
   headers: {
     "skip_zrok_interstitial": true,
-  }
+  },
 });
 
 axiosInstance.interceptors.request.use((config) => {

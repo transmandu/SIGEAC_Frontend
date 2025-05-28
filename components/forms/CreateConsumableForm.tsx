@@ -25,9 +25,10 @@ import { cn } from "@/lib/utils"
 import { useCompanyStore } from "@/stores/CompanyStore"
 import { Article, Batch, Convertion } from "@/types"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { addYears, format, parse, parseISO, subYears } from "date-fns"
+import { addYears, format, subYears } from "date-fns"
 import { es } from 'date-fns/locale'
 import { CalendarIcon, Check, ChevronsUpDown, FileUpIcon, Loader2 } from "lucide-react"
+import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
@@ -35,7 +36,7 @@ import { Checkbox } from "../ui/checkbox"
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "../ui/command"
 import { Label } from "../ui/label"
 import { Textarea } from "../ui/textarea"
-import { useRouter } from "next/navigation"
+import { MultiInputField } from "./MultiInputField"
 
 
 const formSchema = z.object({
@@ -43,6 +44,11 @@ const formSchema = z.object({
   part_number: z.string().min(2, {
     message: "El serial debe contener al menos 2 carácteres.",
   }),
+  alternative_part_number: z.array(
+    z.string().min(2, {
+      message: "Cada número de parte alterno debe contener al menos 2 carácteres.",
+    })
+  ).optional(),
   description: z.string({
     message: "Debe ingresar la descripción del articulo."
   }).min(2, {
@@ -103,8 +109,6 @@ interface EditingArticle extends Article {
   },
 }
 
-
-
 const CreateConsumableForm = ({ initialData, isEditing }: {
   initialData?: EditingArticle,
   isEditing?: boolean,
@@ -128,11 +132,11 @@ const CreateConsumableForm = ({ initialData, isEditing }: {
 
   const { confirmIncoming } = useConfirmIncomingArticle();
 
-  const { selectedStation } = useCompanyStore();
+  const { selectedStation, selectedCompany } = useCompanyStore();
 
   const { data: secondaryUnits, isLoading: secondaryLoading, isError: secondaryError } = useGetSecondaryUnits()
 
-  const { data: manufacturers, isLoading: isManufacturerLoading, isError: isManufacturerError } = useGetManufacturers()
+  const { data: manufacturers, isLoading: isManufacturerLoading, isError: isManufacturerError } = useGetManufacturers(selectedCompany?.split(" ").join("") ?? null)
 
   const { data: conditions, isLoading: isConditionsLoading, error: isConditionsError } = useGetConditions();
 
@@ -147,7 +151,7 @@ const CreateConsumableForm = ({ initialData, isEditing }: {
   useEffect(() => {
     if (batches) {
       // Filtrar los batches por categoría
-      const filtered = batches.filter((batch) => batch.category === "consumible");
+      const filtered = batches.filter((batch) => batch.category === "CONSUMIBLE");
       setFilteredBatches(filtered);
     }
   }, [batches]);
@@ -161,12 +165,13 @@ const CreateConsumableForm = ({ initialData, isEditing }: {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      part_number: initialData?.part_number || "",
-      batches_id: initialData?.batches.id?.toString() || "",
-      manufacturer_id: initialData?.manufacturer?.id.toString() || "",
-      condition_id: initialData?.condition?.id.toString() || "",
+      part_number: initialData?.part_number || undefined,
+      alternative_part_number: initialData?.alternative_part_number || [],
+      batches_id: initialData?.batches.id?.toString() || undefined,
+      manufacturer_id: initialData?.manufacturer?.id.toString() || undefined,
+      condition_id: initialData?.condition?.id.toString() || undefined,
       description: initialData?.description || "",
-      zone: initialData?.zone || "",
+      zone: initialData?.zone || undefined,
     }
   })
   form.setValue("article_type", "consumible");
@@ -202,17 +207,16 @@ const CreateConsumableForm = ({ initialData, isEditing }: {
     } else {
       createArticle.mutate(formattedValues);
     }
-
   }
   return (
     <Form {...form}>
       <form className="flex flex-col gap-4 max-w-6xl mx-auto" onSubmit={form.handleSubmit(onSubmit)}>
-        <div className="max-w-7xl flex flex-col lg:flex-row gap-2 justify-center items-center w-full">
+        <div className="max-w-7xl flex flex-col lg:flex-row gap-2 w-full">
           <FormField
             control={form.control}
             name="part_number"
             render={({ field }) => (
-              <FormItem className="w-full">
+              <FormItem className="w-full xl:w-1/3">
                 <FormLabel>Nro. de Parte</FormLabel>
                 <FormControl>
                   <Input placeholder="EJ: 234ABAC" {...field} />
@@ -224,6 +228,28 @@ const CreateConsumableForm = ({ initialData, isEditing }: {
               </FormItem>
             )}
           />
+          <FormField
+            control={form.control}
+            name="alternative_part_number"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Nro. de Parte Alternos</FormLabel>
+                <FormControl>
+                  <MultiInputField
+                    values={field.value || []}
+                    onChange={field.onChange}
+                    placeholder="EJ: 234ABAC"
+                  />
+                </FormControl>
+                <FormDescription>
+                  Identificadores alternativos del artículo.
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+        <div className="max-w-7xl flex flex-col lg:flex-row gap-2 justify-center items-center w-full">
           <FormField
             control={form.control}
             name="condition_id"

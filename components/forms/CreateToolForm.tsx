@@ -28,6 +28,7 @@ import { AmountInput } from "../misc/AmountInput"
 import { useGetManufacturers } from "@/hooks/ajustes/globales/fabricantes/useGetManufacturers"
 import { useGetConditions } from "@/hooks/administracion/useGetConditions"
 import { useRouter } from "next/navigation"
+import { MultiInputField } from "./MultiInputField"
 
 const formSchema = z.object({
   article_type: z.string(),
@@ -37,9 +38,11 @@ const formSchema = z.object({
   part_number: z.string().min(2, {
     message: "El serial debe contener al menos 2 carácteres.",
   }),
-  alternative_part_number: z.string().min(2, {
-    message: "El serial debe contener al menos 2 carácteres.",
-  }).optional(),
+  alternative_part_number: z.array(
+    z.string().min(2, {
+      message: "Cada número de parte alterno debe contener al menos 2 carácteres.",
+    })
+  ).optional(),
   description: z.string({
     message: "Debe ingresar la descripción del articulo."
   }).min(2, {
@@ -95,7 +98,7 @@ const CreateToolForm = ({ initialData, isEditing }: {
 
   const { confirmIncoming } = useConfirmIncomingArticle();
 
-  const { selectedStation } = useCompanyStore();
+  const { selectedStation, selectedCompany } = useCompanyStore();
 
   const router = useRouter()
 
@@ -103,7 +106,7 @@ const CreateToolForm = ({ initialData, isEditing }: {
 
   const { data: conditions, isLoading: isConditionsLoading, error: isConditionsError } = useGetConditions();
 
-  const { data: manufacturers, isLoading: isManufacturerLoading, isError: isManufacturerError } = useGetManufacturers()
+  const { data: manufacturers, isLoading: isManufacturerLoading, isError: isManufacturerError } = useGetManufacturers(selectedCompany?.split(" ").join("") ?? null)
 
   useEffect(() => {
     if (selectedStation) {
@@ -114,7 +117,7 @@ const CreateToolForm = ({ initialData, isEditing }: {
   useEffect(() => {
     if (batches) {
       // Filtrar los batches por categoría
-      const filtered = batches.filter((batch) => batch.category === "herramienta");
+      const filtered = batches.filter((batch) => batch.category === "HERRAMIENTA");
       setFilteredBatches(filtered);
     }
   }, [batches]);
@@ -124,7 +127,7 @@ const CreateToolForm = ({ initialData, isEditing }: {
     defaultValues: {
       serial: initialData?.serial || "",
       part_number: initialData?.part_number || "",
-      alternative_part_number: initialData?.alternative_part_number || "",
+      alternative_part_number: initialData?.alternative_part_number || [],
       batches_id: initialData?.batches.id?.toString() || "",
       manufacturer_id: initialData?.manufacturer?.id.toString() || "",
       condition_id: initialData?.condition?.id.toString() || "",
@@ -162,39 +165,45 @@ const CreateToolForm = ({ initialData, isEditing }: {
   return (
     <Form {...form}>
       <form encType="multipart/form-data" className="flex flex-col gap-4 max-w-6xl mx-auto" onSubmit={form.handleSubmit(onSubmit)}>
-        <div className="max-w-7xl flex flex-col lg:flex-row gap-2 justify-center items-center w-full">
-          <FormField
-            control={form.control}
-            name="part_number"
-            render={({ field }) => (
-              <FormItem className="w-full">
-                <FormLabel>Numero de Parte</FormLabel>
-                <FormControl>
-                  <Input placeholder="EJ: 234ABAC" {...field} />
-                </FormControl>
-                <FormDescription>
-                  Identificador único del articulo.
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="alternative_part_number"
-            render={({ field }) => (
-              <FormItem className="w-full">
-                <FormLabel>Numero de Parte Alt.</FormLabel>
-                <FormControl>
-                  <Input placeholder="EJ: 234ABAC" {...field} />
-                </FormControl>
-                <FormDescription>
-                  Identificador único del articulo.
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+        <div className="max-w-7xl grid grid-cols-2 gap-4">
+          <div className="col-span-2 flex flex-col xl:flex-row gap-4">
+            <FormField
+              control={form.control}
+              name="part_number"
+              render={({ field }) => (
+                <FormItem className="w-full xl:w-1/3">
+                  <FormLabel>Numero de Parte</FormLabel>
+                  <FormControl>
+                    <Input placeholder="EJ: 234ABAC" {...field} />
+                  </FormControl>
+                  <FormDescription>
+                    Identificador único del articulo.
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="alternative_part_number"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Nro. de Parte Alternos</FormLabel>
+                  <FormControl>
+                    <MultiInputField
+                      values={field.value || []}
+                      onChange={field.onChange}
+                      placeholder="EJ: 234ABAC"
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    Identificadores alternativos del artículo.
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
           <FormField
             control={form.control}
             name="serial"
@@ -211,36 +220,36 @@ const CreateToolForm = ({ initialData, isEditing }: {
               </FormItem>
             )}
           />
+          <FormField
+            control={form.control}
+            name="manufacturer_id"
+            render={({ field }) => (
+              <FormItem className="w-full">
+                <FormLabel>Fabricante</FormLabel>
+                <Select disabled={isManufacturerLoading} onValueChange={field.onChange} value={field.value}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecccione..." />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {
+                      manufacturers && manufacturers.map((manufacturer) => (
+                        <SelectItem key={manufacturer.id} value={manufacturer.id.toString()}>{manufacturer.name}</SelectItem>
+                      ))
+                    }
+                  </SelectContent>
+                </Select>
+                <FormDescription>
+                  Marca específica del articulo.
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
         </div>
-        <div className="flex flex-row gap-10 justify-center max-w-6xl">
-          <div className="flex gap-2 items-center flex-wrap">
-            <FormField
-              control={form.control}
-              name="manufacturer_id"
-              render={({ field }) => (
-                <FormItem className="w-full">
-                  <FormLabel>Fabricante</FormLabel>
-                  <Select disabled={isManufacturerLoading} onValueChange={field.onChange} value={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecccione..." />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {
-                        manufacturers && manufacturers.map((manufacturer) => (
-                          <SelectItem key={manufacturer.id} value={manufacturer.id.toString()}>{manufacturer.name}</SelectItem>
-                        ))
-                      }
-                    </SelectContent>
-                  </Select>
-                  <FormDescription>
-                    Marca específica del articulo.
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+        <div className="flex flex-row gap-10 justify-between max-w-6xl">
+          <div className="flex flex-col w-full">
             <FormField
               control={form.control}
               name="batches_id"
@@ -384,7 +393,7 @@ const CreateToolForm = ({ initialData, isEditing }: {
               )}
             />
           </div>
-          <div className="flex flex-col max-w-7xl w-1/2 space-y-3">
+          <div className="flex flex-col max-w-7xl space-y-3 w-full">
             <FormField
               control={form.control}
               name="description"
@@ -488,7 +497,7 @@ const CreateToolForm = ({ initialData, isEditing }: {
             </div>
           </div>
         </div>
-        <div>
+        <div className="flex justify-end w-full">
           <Button className="bg-primary text-white hover:bg-blue-900 disabled:bg-slate-50 disabled:border-dashed disabled:border-black" disabled={createArticle?.isPending || confirmIncoming.isPending} type="submit">
             {createArticle?.isPending || confirmIncoming.isPending ? <Image className="text-black" src={loadingGif} width={170} height={170} alt="Loading..." /> : <p>{isEditing ? "Confirmar Ingreso" : "Crear Articulo"}</p>}
           </Button>

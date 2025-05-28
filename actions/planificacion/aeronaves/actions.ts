@@ -48,3 +48,31 @@ export const useCreateMaintenanceAircraft = () => {
     createMaintenanceAircraft: createMutation,
   }
 }
+
+export const useDeleteMaintenanceAircraft = () => {
+
+  const queryClient = useQueryClient()
+
+  const deleteMutation = useMutation({
+      mutationFn: async (id: number | string) => {
+          await axiosInstance.delete(`/hangar74/aircrafts/${id}`)
+        },
+      onSuccess: () => {
+        queryClient.invalidateQueries({queryKey: ['aircrafts'], exact: false})
+        queryClient.invalidateQueries({queryKey: ['aircraft'], exact: false})
+          toast.success("¡Eliminado!", {
+              description: `¡La aeronave ha sido eliminado correctamente!`
+          })
+        },
+      onError: (e) => {
+          toast.error("Oops!", {
+            description: "¡Hubo un error al eliminar la aeronave!"
+        })
+        },
+      }
+  )
+
+  return {
+    deleteAircraft: deleteMutation,
+  }
+}

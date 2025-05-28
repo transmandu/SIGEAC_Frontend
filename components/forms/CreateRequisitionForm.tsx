@@ -70,11 +70,13 @@ export function CreateRequisitionForm({ onClose }: FormProps) {
 
   const { mutate, data, isPending } = useGetBatchesByLocationId();
 
+  const { selectedStation } = useCompanyStore()
+
   const { data: employees, isLoading: employeesLoading, isError: employeesError } = useGetWorkOrderEmployees();
 
   const { data: aircrafts, isLoading: aircraftsLoading, isError: aircraftsError } = useGetMaintenanceAircrafts();
 
-  const { mutate: woMutate, data: workOrders, isPending: workOrdersLoading, isError: workOrdersError } = useGetWorkOrders()
+  const { data: workOrders, isLoading: workOrdersLoading, isError: workOrdersError } = useGetWorkOrders(selectedStation ?? null)
 
   const { selectedCompany } = useCompanyStore()
 
@@ -82,7 +84,6 @@ export function CreateRequisitionForm({ onClose }: FormProps) {
 
   const [selectedBatches, setSelectedBatches] = useState<Batch[]>([])
 
-  const { selectedStation } = useCompanyStore()
 
   const form = useForm<FormSchemaType>({
     resolver: zodResolver(FormSchema),
@@ -102,7 +103,6 @@ export function CreateRequisitionForm({ onClose }: FormProps) {
   useEffect(() => {
     if (selectedStation) {
       mutate(Number(selectedStation))
-      woMutate(Number(selectedStation))
     }
   }, [selectedStation])
 
@@ -172,8 +172,9 @@ export function CreateRequisitionForm({ onClose }: FormProps) {
   const onSubmit = async (data: FormSchemaType) => {
     const formattedData = {
       ...data,
+      type: "AERONAUTICO",
       work_order_id: Number(data.work_order_id),
-      aircraft_id: Number(data.aircraft_id)
+      aircraft_id: Number(data.aircraft_id).toString(),
     }
     await createRequisition.mutateAsync(formattedData)
     onClose()

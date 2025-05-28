@@ -9,7 +9,6 @@ import {
 } from "@/components/ui/dropdown-menu"
 
 const AgregarPage = () => {
-
   return (
     <ContentLayout title='Registro de Articulo'>
       <Breadcrumb>

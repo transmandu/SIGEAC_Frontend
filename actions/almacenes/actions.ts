@@ -6,7 +6,7 @@ interface createWarehouseSchema {
     name: string,
     company_id: number,
     location_id: number,
-  }
+}
 
 export const useCreateWarehouse = () => {
 

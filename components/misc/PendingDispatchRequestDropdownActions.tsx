@@ -96,6 +96,7 @@ const PendingDispatchRequestDropdownActions
           justification: `Restock por solicitud de salida de ${request.batch.name} - ${request.batch.articles[0].part_number}`,
           requested_by: `${user?.first_name} ${user?.last_name}`,
           created_by: user!.id,
+          type: "AERONAUTICO",
           company: selectedCompany!.split(" ").join("").toLowerCase(),
           location_id: selectedStation!,
           articles: [

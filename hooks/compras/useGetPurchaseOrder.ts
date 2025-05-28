@@ -10,7 +10,7 @@ const fetchPurchaseOrder = async (company: string | null, order_number: string |
 
 export const useGetPurchaseOrder = (company: string | null, order_number: string | null) => {
   return useQuery<PurchaseOrder>({
-    queryKey: ["quotes"],
+    queryKey: ["purchase-order", company, order_number],
     queryFn: () => fetchPurchaseOrder(company, order_number),
     enabled: !!company && !!order_number
   });

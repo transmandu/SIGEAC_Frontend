@@ -39,6 +39,7 @@ export const useCreatePurchaseOrder = () => {
         },
       onSuccess: () => {
           queryClient.invalidateQueries({queryKey: ['purchase-orders']})
+          queryClient.invalidateQueries({queryKey: ['purchase-order'], exact: false})
           toast.success("¡Creado!", {
               description: `La orden de compra ha sido creada correctamente.`
           })
@@ -79,7 +80,7 @@ export const useCompletePurchase = () => {
           await axiosInstance.put(`/purchase-order/${id}`, data)
         },
       onSuccess: () => {
-          queryClient.invalidateQueries({queryKey: ['quotes']})
+          queryClient.invalidateQueries({queryKey: ['purchase-orders']})
           toast.success("¡Confirmada!", {
               description: `¡La orden de compra ha sido actualizada correctamente!`
           })

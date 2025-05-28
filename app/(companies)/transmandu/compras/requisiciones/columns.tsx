@@ -4,11 +4,11 @@ import { ColumnDef } from "@tanstack/react-table"
 
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader"
 
-import AdministrationRequisitionsDropdownActions from "@/components/misc/AdministrationRequisitionDropdownActions"
+import RequisitionsDropdownActions from "@/components/misc/RequisitionDropdownActions"
 import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
 import { cn } from "@/lib/utils"
-import { AdministrationRequisition, Batch } from "@/types"
+import { Batch, Requisition } from "@/types"
 import { format } from "date-fns"
 import { es } from "date-fns/locale"
 import Link from "next/link"
@@ -20,7 +20,7 @@ interface BatchesWithCountProp extends Batch {
   article_count: number,
 }
 
-export const columns: ColumnDef<AdministrationRequisition>[] = [
+export const columns: ColumnDef<Requisition>[] = [
   {
     id: "select",
     header: ({ table }) => (
@@ -52,7 +52,7 @@ export const columns: ColumnDef<AdministrationRequisition>[] = [
     cell: ({ row }) => {
       return (
         <div className="flex justify-center">
-          <Link href={`/transmandu/compras/requisiciones/${row.original.order_number}`} className="text-center font-bold">{row.original.order_number}</Link>
+          <Link href={`/hangar74/general/requisiciones/${row.original.order_number}`} className="text-center font-bold">{row.original.order_number}</Link>
         </div>
       )
     }
@@ -84,8 +84,8 @@ export const columns: ColumnDef<AdministrationRequisition>[] = [
     ),
     meta: { title: "Status" },
     cell: ({ row }) => {
-      const process = row.original.status === 'PROCESO' || row.original.status === 'cotizado'
-      const aproved = row.original.status === 'APROBADA'
+      const process = row.original.status === 'PROCESO' || row.original.status === 'COTIZADO'
+      const aproved = row.original.status === 'APROBADO'
       return (
         <Badge className={cn("flex justify-center", process ? "bg-yellow-500" : aproved ? "bg-green-500" : "bg-red-500")} > {row.original.status.toUpperCase()}</Badge >
       )
@@ -102,6 +102,16 @@ export const columns: ColumnDef<AdministrationRequisition>[] = [
     )
   },
   {
+    accessorKey: "type",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Tipo de Req." />
+    ),
+    meta: { title: "Fecha de c." },
+    cell: ({ row }) => (
+      <p className="text-center">{row.original.type}</p>
+    )
+  },
+  {
     accessorKey: "actions",
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Acciones" />
@@ -109,7 +119,7 @@ export const columns: ColumnDef<AdministrationRequisition>[] = [
     meta: { title: "Acciones" },
     cell: ({ row }) => (
       <div className="flex justify-center">
-        <AdministrationRequisitionsDropdownActions req={row.original} />
+        <RequisitionsDropdownActions req={row.original} />
       </div>
     )
   },

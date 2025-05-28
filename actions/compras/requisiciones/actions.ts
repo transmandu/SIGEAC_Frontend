@@ -7,8 +7,9 @@ interface CreateRequisitionData {
   justification: string,
   requested_by: string,
   created_by: number | string,
-  aircraft_id?: number,
+  aircraft_id?: string,
   work_order_id?: number,
+  type: string,
   company: string,
   image?: File,
   articles: {
@@ -16,7 +17,9 @@ interface CreateRequisitionData {
     batch_name: string,
     batch_articles: {
       quantity: number,
-      part_number: string,
+      part_number?: string,
+      alt_part_number?: string,
+      pma?: string,
       unit?: string | number,
       image?: File,
     }[]
@@ -38,6 +41,8 @@ export const useCreateRequisition = () => {
         },
       onSuccess: () => {
           queryClient.invalidateQueries({queryKey: ['requisitions-orders']})
+          queryClient.invalidateQueries({queryKey: ['requisitions-order'], exact: false})
+
           toast.success("¡Creado!", {
               description: `La requisicion ha sido creada correctamente.`
           })

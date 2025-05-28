@@ -74,7 +74,7 @@ export const columns: ColumnDef<Requisition>[] = [
     ),
     meta: { title: "Solicitado por" },
     cell: ({ row }) => (
-      <p className="flex justify-center font-bold">{row.original.requested_by}</p>
+      <p className="flex text-center font-bold">{row.original.requested_by}</p>
     )
   },
   {
@@ -84,8 +84,8 @@ export const columns: ColumnDef<Requisition>[] = [
     ),
     meta: { title: "Status" },
     cell: ({ row }) => {
-      const process = row.original.status === 'proceso' || row.original.status === 'cotizado'
-      const aproved = row.original.status === 'aprobada'
+      const process = row.original.status === 'PROCESO' || row.original.status === 'COTIZADO'
+      const aproved = row.original.status === 'APROBADO'
       return (
         <Badge className={cn("flex justify-center", process ? "bg-yellow-500" : aproved ? "bg-green-500" : "bg-red-500")} > {row.original.status.toUpperCase()}</Badge >
       )
@@ -99,6 +99,16 @@ export const columns: ColumnDef<Requisition>[] = [
     meta: { title: "Fecha de c." },
     cell: ({ row }) => (
       <p className="text-center">{format(row.original.submission_date, "PPP", { locale: es })}</p>
+    )
+  },
+  {
+    accessorKey: "type",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Tipo de Req." />
+    ),
+    meta: { title: "Fecha de c." },
+    cell: ({ row }) => (
+      <p className="text-center">{row.original.type}</p>
     )
   },
   {

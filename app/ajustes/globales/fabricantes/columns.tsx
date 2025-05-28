@@ -4,6 +4,7 @@ import { ColumnDef } from "@tanstack/react-table"
 
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader"
 
+import ManufacturerDropdownActions from "@/components/misc/ManufacturerDropdownActions"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Manufacturer } from "@/types"
 
@@ -49,5 +50,14 @@ export const columns: ColumnDef<Manufacturer>[] = [
       <div className="flex justify-center">
         <span className='text-muted-foreground italic'>{row.original.description.toUpperCase()}</span>
       </div>
+  },
+  {
+    id: "actions",
+    cell: ({ row }) => {
+      const id = row.original.id
+      return (
+        <ManufacturerDropdownActions id={id.toString()} />
+      )
+    },
   },
 ]

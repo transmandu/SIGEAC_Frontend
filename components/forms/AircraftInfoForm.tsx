@@ -27,6 +27,7 @@ const AircraftInfoSchema = z.object({
   manufacturer_id: z.string().min(1, "Debe seleccionar un fabricante"),
   client_id: z.string().min(1, "Debe seleccionar un cliente"),
   serial: z.string().min(1, "El serial es obligatorio"),
+  model: z.string().min(1, "El modelo es obligatorio"),
   acronym: z.string().min(1, "El acrónimo es obligatorio"),
   flight_hours: z.string(),
   flight_cycles: z.string(),
@@ -171,7 +172,7 @@ export function AircraftInfoForm({ onNext, onBack, initialData }: AircraftInfoFo
                       <CommandList>
                         <CommandEmpty className="text-sm p-2 text-center">No se ha encontrado ningún fabricante.</CommandEmpty>
                         <CommandGroup>
-                          {manufacturers?.map((manufacturer) => (
+                          {manufacturers?.filter((m) => m.type === 'AIRCRAFT').map((manufacturer) => (
                             <CommandItem
                               value={`${manufacturer.id}`}
                               key={manufacturer.id}
@@ -204,22 +205,40 @@ export function AircraftInfoForm({ onNext, onBack, initialData }: AircraftInfoFo
               </FormItem>
             )}
           />
-          <FormField
-            control={form.control}
-            name="serial"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Serial</FormLabel>
-                <FormControl>
-                  <Input placeholder="Serial de la aeronave..." {...field} />
-                </FormControl>
-                <FormDescription className="text-xs">
-                  Serial identificador de la aeronave.
-                </FormDescription>
-                <FormMessage className="text-xs" />
-              </FormItem>
-            )}
-          />
+          <div className="flex gap-2">
+            <FormField
+              control={form.control}
+              name="model"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Modelo</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Modelo de la aeronave..." {...field} />
+                  </FormControl>
+                  <FormDescription className="text-xs">
+                    Serial identificador de la aeronave.
+                  </FormDescription>
+                  <FormMessage className="text-xs" />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="serial"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Serial</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Serial de la aeronave..." {...field} />
+                  </FormControl>
+                  <FormDescription className="text-xs">
+                    Serial identificador de la aeronave.
+                  </FormDescription>
+                  <FormMessage className="text-xs" />
+                </FormItem>
+              )}
+            />
+          </div>
           <FormField
             control={form.control}
             name="acronym"
@@ -250,7 +269,7 @@ export function AircraftInfoForm({ onNext, onBack, initialData }: AircraftInfoFo
                       <Button
                         variant={"outline"}
                         className={cn(
-                          "w-[240px] pl-3 text-left font-normal",
+                          "pl-3 text-left font-normal",
                           !field.value && "text-muted-foreground"
                         )}
                       >
