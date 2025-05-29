@@ -66,25 +66,7 @@ const BarChartComponent = ({
   ): VoluntaryReport[] => {
     return reports.filter((report) => report.status === status);
   };
-  const handleBarClick = (entry: any, index: number, barType: string) => {
-    setClickedBarType(barType);
-    if (reportsData && reportsData.length > 0) {
-      const statusMap: { [key: string]: string } = {
-        open_reports: "ABIERTO",
-        closed_reports: "CERRADO",
-      };
 
-      const status = statusMap[barType];
-      const filteredData = status
-        ? filterReportsByStatus(reportsData, status)
-        : [];
-      setBarData(filteredData);
-      setOpenList(filteredData.length > 0);
-    } else {
-      setBarData(null);
-      setOpenList(false);
-    }
-  };
 
   if (!data.closed_reports && !data.open_reports) {
     return (
@@ -144,9 +126,7 @@ const BarChartComponent = ({
               name={"En Proceso"}
               stackId="a"
               fill={theme === "light" ? "#80d5c0" : "#89f4c7"}
-              onClick={(data, index) =>
-                handleBarClick(data, index, "open_reports")
-              }
+
             />
 
             <Bar
@@ -154,9 +134,7 @@ const BarChartComponent = ({
               name={"Gestionados"}
               stackId="a"
               fill={theme === "light" ? "#8ea7f0" : "#8f8dfe"}
-              onClick={(data, index) =>
-                handleBarClick(data, index, "closed_reports")
-              }
+
             />
           </BarChart>
         ) : (
