@@ -6,7 +6,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 
 
-import { useUpdateArticleStatus } from "@/actions/almacen/inventario/articulos/actions"
+import { useUpdateArticleStatus } from "@/actions/mantenimiento/almacen/inventario/articulos/actions"
 import { ClipboardCheck, EyeIcon, Loader2, MoreHorizontal } from "lucide-react"
 import { useState } from "react"
 import { Button } from "../ui/button"

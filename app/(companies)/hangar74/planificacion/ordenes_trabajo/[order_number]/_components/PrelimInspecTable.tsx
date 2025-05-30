@@ -1,5 +1,5 @@
 "use client"
-import { useCreatePrelimInspection, useUpdatePrelimInspection } from "@/actions/planificacion/ordenes_trabajo/inspecccion_preliminar/actions"
+import { useCreatePrelimInspection, useUpdatePrelimInspection } from "@/actions/mantenimiento/planificacion/ordenes_trabajo/inspecccion_preliminar/actions"
 import { PrelimInspectItemDialog } from "@/components/dialogs/PrelimInspecItemDialog"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"

@@ -3,7 +3,7 @@
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import { DataTable } from "./data-table";
 import { columns } from "./columns";
-import { useGetClients } from "@/hooks/administracion/clientes/useGetClients";
+import { useGetClients } from "@/hooks/general/clientes/useGetClients";
 import LoadingPage from "@/components/misc/LoadingPage";
 
 

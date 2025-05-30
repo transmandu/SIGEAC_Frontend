@@ -8,9 +8,9 @@ import { Loader2, ArrowLeft, DollarSign, Plane, AlertCircle } from "lucide-react
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { formatCurrency, formatDate } from "@/lib/utils"
-import { useGetFlightsByClient } from "@/hooks/administracion/clientes/useGetFlightByClients"
+import { useGetFlightsByClient } from "@/hooks/general/clientes/useGetFlightByClients"
 import { SummaryCard } from "@/components/cards/SummaryCard"
-import { useGetClientByDni } from "@/hooks/administracion/clientes/useGetClientByDni"
+import { useGetClientByDni } from "@/hooks/general/clientes/useGetClientByDni"
 
 const ClientDebts = () => {
   const params = useParams()

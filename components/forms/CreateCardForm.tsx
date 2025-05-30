@@ -1,5 +1,5 @@
 'use client';
-import { useCreateCard } from "@/actions/ajustes/banco_cuentas/tarjetas/actions";
+import { useCreateCard } from "@/actions/general/banco_cuentas/tarjetas/actions";
 import {
   Form,
   FormControl,
@@ -22,7 +22,7 @@ import { Loader2 } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Button } from "../ui/button";
-import { useGetBankAccounts } from "@/hooks/ajustes/cuentas/useGetBankAccounts";
+import { useGetBankAccounts } from "@/hooks/general/cuentas_bancarias/useGetBankAccounts";
 import { generateSlug } from "@/lib/utils";
 
 

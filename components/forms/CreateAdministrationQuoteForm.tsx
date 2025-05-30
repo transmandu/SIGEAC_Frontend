@@ -1,7 +1,7 @@
 'use client';
 
-import { useCreateQuote } from "@/actions/compras/cotizaciones/actions";
-import { useUpdateRequisitionStatus } from "@/actions/compras/requisiciones/actions";
+import { useCreateQuote } from "@/actions/mantenimiento/compras/cotizaciones/actions";
+import { useUpdateRequisitionStatus } from "@/actions/mantenimiento/compras/requisiciones/actions";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -9,8 +9,8 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/contexts/AuthContext";
-import { useGetVendors } from "@/hooks/ajustes/globales/proveedores/useGetVendors";
-import { useGetLocationsByCompanyId } from "@/hooks/useGetLocationsByCompanyId";
+import { useGetVendors } from "@/hooks/general/globales/proveedores/useGetVendors";
+import { useGetLocationsByCompanyId } from "@/hooks/sistema/useGetLocationsByCompanyId";
 import { cn } from "@/lib/utils";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { AdministrationRequisition } from "@/types";

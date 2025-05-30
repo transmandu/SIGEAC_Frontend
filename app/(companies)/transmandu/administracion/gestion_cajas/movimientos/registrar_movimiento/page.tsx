@@ -1,6 +1,6 @@
 "use client";
 
-import { useCreateCashMovement } from "@/actions/administracion/movimientos/actions";
+import { useCreateCashMovement } from "@/actions/aerolinea/movimientos/actions";
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -29,13 +29,13 @@ import {
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
-import { useGetCash } from "@/hooks/administracion/cajas/useGetCash";
-import { useGetClients } from "@/hooks/administracion/clientes/useGetClients";
-import { useGetAccountant } from "@/hooks/administracion/useGetAccountant";
-import { useGetCategory } from "@/hooks/administracion/useGetCategory";
+import { useGetCash } from "@/hooks/aerolinea/cajas/useGetCash";
+import { useGetClients } from "@/hooks/general/clientes/useGetClients";
+import { useGetAccountant } from "@/hooks/aerolinea/cuentas_contables/useGetAccountant";
+import { useGetCategory } from "@/hooks/aerolinea/categorias_cuentas/useGetCategory";
 import { useGetEmployeesByCompany } from "@/hooks/administracion/useGetEmployees";
-import { useGetBankAccounts } from "@/hooks/ajustes/cuentas/useGetBankAccounts";
-import { useGetVendors } from "@/hooks/ajustes/globales/proveedores/useGetVendors";
+import { useGetBankAccounts } from "@/hooks/general/cuentas_bancarias/useGetBankAccounts";
+import { useGetVendors } from "@/hooks/general/globales/proveedores/useGetVendors";
 import { cn } from "@/lib/utils";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { zodResolver } from "@hookform/resolvers/zod";

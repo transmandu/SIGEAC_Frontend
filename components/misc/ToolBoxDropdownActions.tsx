@@ -1,6 +1,6 @@
 'use client'
 
-import { useDeleteToolBox } from "@/actions/almacen/inventario/caja_herramientas/actions"
+import { useDeleteToolBox } from "@/actions/mantenimiento/almacen/inventario/caja_herramientas/actions"
 import {
   DropdownMenu,
   DropdownMenuContent,

@@ -1,13 +1,13 @@
 "use client";
 
-import { useCreateCashMovement } from "@/actions/administracion/movimientos/actions";
+import { useCreateCashMovement } from "@/actions/aerolinea/movimientos/actions";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage,} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger, } from "@/components/ui/popover";
-import { useGetCash } from "@/hooks/administracion/cajas/useGetCash";
+import { useGetCash } from "@/hooks/aerolinea/cajas/useGetCash";
 import { useGetEmployeesByCompany } from "@/hooks/administracion/useGetEmployees";
 import { cn } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -16,13 +16,13 @@ import { es } from "date-fns/locale/es";
 import { CalendarIcon, Check, ChevronsUpDown, Loader2 } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { useGetBankAccounts } from "@/hooks/ajustes/cuentas/useGetBankAccounts";
-import { useGetVendors } from "@/hooks/ajustes/globales/proveedores/useGetVendors";
-import { useGetClients } from "@/hooks/administracion/clientes/useGetClients";
+import { useGetBankAccounts } from "@/hooks/general/cuentas_bancarias/useGetBankAccounts";
+import { useGetVendors } from "@/hooks/general/globales/proveedores/useGetVendors";
+import { useGetClients } from "@/hooks/general/clientes/useGetClients";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList, } from "../ui/command";
-import { useGetAccountant } from "@/hooks/administracion/useGetAccountant";
+import { useGetAccountant } from "@/hooks/aerolinea/cuentas_contables/useGetAccountant";
 import { useEffect } from "react";
-import { useGetCategoriesByAccountant } from "@/hooks/administracion/useGetCategoriesByAcountant";
+import { useGetCategoriesByAccountant } from "@/hooks/aerolinea/categorias_cuentas/useGetCategoriesByAcountant";
 
 const formSchema = z.object({
   employee_responsible_id: z.string({

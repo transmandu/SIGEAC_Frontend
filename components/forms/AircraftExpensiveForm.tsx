@@ -1,6 +1,6 @@
 "use client";
 
-import { useCashMovementForAircraft } from "@/actions/administracion/aeronaves/actions";
+import { useCashMovementForAircraft } from "@/actions/aerolinea/aeronaves/actions";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -25,11 +25,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useGetCash } from "@/hooks/administracion/cajas/useGetCash";
-import { useGetAccountant } from "@/hooks/administracion/useGetAccountant";
-import { useGetCategoriesByAccountant } from "@/hooks/administracion/useGetCategoriesByAcountant";
+import { useGetCash } from "@/hooks/aerolinea/cajas/useGetCash";
+import { useGetAccountant } from "@/hooks/aerolinea/cuentas_contables/useGetAccountant";
+import { useGetCategoriesByAccountant } from "@/hooks/aerolinea/categorias_cuentas/useGetCategoriesByAcountant";
 import { useGetEmployeesByCompany } from "@/hooks/administracion/useGetEmployees";
-import { useGetBankAccounts } from "@/hooks/ajustes/cuentas/useGetBankAccounts";
+import { useGetBankAccounts } from "@/hooks/general/cuentas_bancarias/useGetBankAccounts";
 import { cn } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";

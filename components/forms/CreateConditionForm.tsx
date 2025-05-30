@@ -1,5 +1,5 @@
 "use client"
-import { useCreateCondition } from "@/actions/administracion/almacen/condiciones_articulos/actions";
+import { useCreateCondition } from "@/actions/aerolinea/almacen/condiciones_articulos/actions";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";

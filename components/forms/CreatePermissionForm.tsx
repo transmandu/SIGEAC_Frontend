@@ -1,5 +1,5 @@
 'use client';
-import { useCreatePermission } from "@/actions/administracion/permisos/actions";
+import { useCreatePermission } from "@/actions/aerolinea/permisos/actions";
 import {
   Form,
   FormControl,

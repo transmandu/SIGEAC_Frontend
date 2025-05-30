@@ -1,6 +1,6 @@
 "use client";
 
-import { useCreateDispatchRequest } from "@/actions/almacen/solicitudes/salida/action";
+import { useCreateDispatchRequest } from "@/actions/mantenimiento/almacen/solicitudes/salida/action";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -20,9 +20,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useAuth } from "@/contexts/AuthContext";
-import { useGetBatchesWithInWarehouseArticles } from "@/hooks/almacen/useGetBatchesWithInWarehouseArticles";
-import { useGetWorkOrderEmployees } from "@/hooks/planificacion/useGetWorkOrderEmployees";
-import { useGetWorkOrders } from "@/hooks/planificacion/useGetWorkOrders";
+import { useGetBatchesWithInWarehouseArticles } from "@/hooks/mantenimiento/almacen/renglones/useGetBatchesWithInWarehouseArticles";
+import { useGetWorkOrderEmployees } from "@/hooks/mantenimiento/planificacion/useGetWorkOrderEmployees";
+import { useGetWorkOrders } from "@/hooks/mantenimiento/planificacion/useGetWorkOrders";
 import { cn } from "@/lib/utils";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { Article, Batch } from "@/types";

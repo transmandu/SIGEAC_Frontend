@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button"
 import { ArrowLeft, Loader2, Plane,  PlaneIcon, } from "lucide-react"
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts"
 import { formatCurrency, formatDate } from "@/lib/utils"
-import { useGetCreditStatisticsFlights } from "@/hooks/administracion/creditos/useGetCreditStatisticsFlights"
+import { useGetCreditStatisticsFlights } from "@/hooks/aerolinea/creditos/useGetCreditStatisticsFlights"
 
 const CreditStatisticsFlightPage = () => {
   const router = useRouter()
@@ -182,7 +182,7 @@ const CreditStatisticsFlightPage = () => {
                   left: 20,
                   bottom: 5,
                 }}
-                barSize={40} 
+                barSize={40}
               >
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="name" />
@@ -274,8 +274,8 @@ const CreditStatisticsFlightPage = () => {
                            <div className="flex items-center gap-2">
                            <div className="flex flex-col">
                              <span className="font-medium flex items-center gap-1">
-                               <PlaneIcon className="h-4 w-4 text-blue-500" /> 
-                               {credit.flight.flight_number} 
+                               <PlaneIcon className="h-4 w-4 text-blue-500" />
+                               {credit.flight.flight_number}
                              </span>
                              <span className="text-xs text-muted-foreground">
                                {credit.flight.type} - {new Date(credit.flight.date).toLocaleDateString()}

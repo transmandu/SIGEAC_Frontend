@@ -13,13 +13,13 @@ import { es } from "date-fns/locale/es";
 import { CalendarIcon, Loader2 } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { useGetAircrafts } from "@/hooks/administracion/useGetAircrafts";
-import { useGetClients } from "@/hooks/administracion/clientes/useGetClients";
+import { useGetAircrafts } from "@/hooks/aerolinea/aeronaves/useGetAircrafts";
+import { useGetClients } from "@/hooks/general/clientes/useGetClients";
 import { useGetAdministrationArticle } from "@/hooks/administracion/useGetAdministrationArticle";
 import { Calendar } from "../ui/calendar";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useCreateRenting } from "@/actions/administracion/arrendamiento/actions";
-import { useGetBankAccounts } from "@/hooks/ajustes/cuentas/useGetBankAccounts";
+import { useCreateRenting } from "@/actions/aerolinea/arrendamiento/actions";
+import { useGetBankAccounts } from "@/hooks/general/cuentas_bancarias/useGetBankAccounts";
 
 const formSchema = z
   .object({

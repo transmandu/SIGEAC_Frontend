@@ -8,7 +8,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 import { Separator } from "../ui/separator"
-import { useCreateCertificate } from "@/actions/ingenieria/certificados/actions"
+import { useCreateCertificate } from "@/actions/mantenimiento/ingenieria/certificados/actions"
 import { Loader2 } from "lucide-react"
 
 const FormSchema = z.object({

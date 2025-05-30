@@ -13,7 +13,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
-import { IArticleByBatch } from "@/hooks/almacen/useGetArticlesByBatch"
+import { IArticleByBatch } from "@/hooks/mantenimiento/almacen/articulos/useGetArticlesByBatch"
 import Image from "next/image"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"

@@ -1,6 +1,6 @@
 "use client"
 
-import { useCompletePurchase } from "@/actions/compras/ordenes_compras/actions"
+import { useCompletePurchase } from "@/actions/mantenimiento/compras/ordenes_compras/actions"
 import { Button } from "@/components/ui/button"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import {
@@ -11,8 +11,8 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { useAuth } from "@/contexts/AuthContext"
-import { useGetBankAccounts } from "@/hooks/ajustes/cuentas/useGetBankAccounts"
-import { useGetCards } from "@/hooks/ajustes/tarjetas/useGetCards"
+import { useGetBankAccounts } from "@/hooks/general/cuentas_bancarias/useGetBankAccounts"
+import { useGetCards } from "@/hooks/general/tarjetas/useGetCards"
 import { cn } from "@/lib/utils"
 import { useCompanyStore } from "@/stores/CompanyStore"
 import { PurchaseOrder } from "@/types"

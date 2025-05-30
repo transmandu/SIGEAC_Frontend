@@ -15,7 +15,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Button } from "../ui/button";
 import { Textarea } from "../ui/textarea";
-import { useAddPrelimItem } from "@/actions/planificacion/ordenes_trabajo/inspecccion_preliminar/actions";
+import { useAddPrelimItem } from "@/actions/mantenimiento/planificacion/ordenes_trabajo/inspecccion_preliminar/actions";
 
 
 const formSchema = z.object({

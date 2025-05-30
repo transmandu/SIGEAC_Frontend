@@ -6,7 +6,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 
 
-import { useDeleteCertificate } from "@/actions/ingenieria/certificados/actions"
+import { useDeleteCertificate } from "@/actions/mantenimiento/ingenieria/certificados/actions"
 import { Loader2, MoreHorizontal, Trash2 } from "lucide-react"
 import { useState } from "react"
 import { Button } from "../ui/button"

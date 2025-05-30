@@ -11,7 +11,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { useGetGeneralReport } from '@/hooks/compras/useGetGeneralReport'
+import { useGetGeneralReport } from '@/hooks/mantenimiento/compras/useGetGeneralReport'
 import { PDFDownloadLink } from '@react-pdf/renderer'
 
 

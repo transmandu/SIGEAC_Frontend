@@ -25,7 +25,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { useGetRoles } from "@/hooks/user/useGetRoles"
+import { useGetRoles } from "@/hooks/sistema/usuario/useGetRoles"
 import { Role } from "@/types"
 import { ListRestart } from "lucide-react"
 import { useState } from "react"

@@ -1,6 +1,6 @@
 'use client'
 
-import { useConfirmIncomingArticle, useCreateArticle } from "@/actions/almacen/inventario/articulos/actions"
+import { useConfirmIncomingArticle, useCreateArticle } from "@/actions/mantenimiento/almacen/inventario/articulos/actions"
 import { Button } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
@@ -18,9 +18,9 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { useGetConditions } from "@/hooks/administracion/useGetConditions"
-import { useGetManufacturers } from "@/hooks/ajustes/globales/fabricantes/useGetManufacturers"
-import { useGetSecondaryUnits } from "@/hooks/ajustes/globales/unidades/useGetSecondaryUnits"
-import { useGetBatchesByLocationId } from "@/hooks/almacen/useGetBatchesByLocationId"
+import { useGetManufacturers } from "@/hooks/general/globales/fabricantes/useGetManufacturers"
+import { useGetSecondaryUnits } from "@/hooks/general/globales/unidades/useGetSecondaryUnits"
+import { useGetBatchesByLocationId } from "@/hooks/mantenimiento/almacen/renglones/useGetBatchesByLocationId"
 import { cn } from "@/lib/utils"
 import { useCompanyStore } from "@/stores/CompanyStore"
 import { Article, Batch, Convertion } from "@/types"

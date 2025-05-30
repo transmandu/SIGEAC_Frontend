@@ -4,7 +4,7 @@ import { ContentLayout } from '@/components/layout/ContentLayout';
 import LoadingPage from '@/components/misc/LoadingPage';
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb';
 import { useAuth } from '@/contexts/AuthContext';
-import { useGetRequisition } from '@/hooks/compras/useGetRequisitions';
+import { useGetRequisition } from '@/hooks/mantenimiento/compras/useGetRequisitions';
 import { useCompanyStore } from '@/stores/CompanyStore';
 import { useEffect, useState } from 'react';
 import { columns } from './columns';

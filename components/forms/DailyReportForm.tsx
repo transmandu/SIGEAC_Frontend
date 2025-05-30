@@ -1,5 +1,5 @@
 'use client';
-import { useRegisterActivity } from "@/actions/desarrollo/reportes_diarios/actions";
+import { useRegisterActivity } from "@/actions/aerolinea/desarrollo/reportes_diarios/actions";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -77,7 +77,7 @@ export function DailyReportForm({ activities_length, report_id }: DailyReportFor
             <Label>Analista</Label>
             <Input value={`${user?.first_name || ""} ${user?.last_name || ""}`} disabled />
           </div>
-          
+
           <FormField
             control={form.control}
             name="date"
@@ -127,7 +127,7 @@ export function DailyReportForm({ activities_length, report_id }: DailyReportFor
               <Input value={activities_length + 1} disabled className="w-16 text-center" />
             </FormControl>
           </FormItem>
-          
+
           <FormField
             control={form.control}
             name="description"
@@ -168,9 +168,9 @@ export function DailyReportForm({ activities_length, report_id }: DailyReportFor
             )}
           />
         </div>
-        
-        <Button 
-          type="submit" 
+
+        <Button
+          type="submit"
           disabled={registerActivity.isPending || !isFormValid}
           className="min-w-[100px] gap-2 justify-center"
         >

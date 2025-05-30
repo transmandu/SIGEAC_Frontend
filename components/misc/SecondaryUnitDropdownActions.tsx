@@ -6,7 +6,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 
 
-import { useDeleteSecondaryUnit } from "@/actions/ajustes/globales/unidades/actions"
+import { useDeleteSecondaryUnit } from "@/actions/general/unidades/actions"
 import { Loader2, MoreHorizontal, Trash2 } from "lucide-react"
 import { useState } from "react"
 import { Button } from "../ui/button"

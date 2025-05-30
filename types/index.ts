@@ -320,6 +320,33 @@ export type ServiceTask = {
   }[]
 }
 
+export type WorkOrderTask = {
+  id: number,
+  description_task: string,
+  status: string,
+  technician_responsable?: string,
+  inspector_responsable?: string,
+  ata: string,
+  task_number: string,
+  origin_manual: string,
+  old_technician?: string[],
+  task_items: {
+    article_serial: string,
+    article_part_number: string,
+    article_alt_part_number: string,
+  }[],
+  non_routine?: {
+    id: number,
+    ata: string,
+    description: string,
+    status: string,
+    action?: string,
+    needs_task: boolean,
+    work_order_task: Omit<WorkOrderTask, "non_routine">
+    no_routine_task?: Omit<WorkOrderTask, "non_routine">[]
+  },
+}
+
 export interface WorkOrder extends Request {
   order_number: string
   client: MaintenanceClient,
@@ -724,7 +751,6 @@ export interface WorkOrder extends Request {
   order_number: string
   service: string,
   aircraft: MaintenanceAircraft,
-  status: boolean,
   description: string,
   employee: Employee,
 }

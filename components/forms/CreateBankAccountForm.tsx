@@ -1,5 +1,5 @@
 "use client";
-import { useCreateBankAccount } from "@/actions/ajustes/banco_cuentas/cuentas/actions";
+import { useCreateBankAccount } from "@/actions/general/banco_cuentas/cuentas/actions";
 import {
   Form,
   FormControl,
@@ -17,7 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useGetBanks } from "@/hooks/ajustes/globales/bancos/useGetBanks";
+import { useGetBanks } from "@/hooks/general/globales/bancos/useGetBanks";
 import { generateSlug } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";

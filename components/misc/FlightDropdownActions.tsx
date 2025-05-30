@@ -1,4 +1,4 @@
-import { useDeleteFlight } from "@/actions/administracion/vuelos/actions";
+import { useDeleteFlight } from "@/actions/aerolinea/vuelos/actions";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, } from "@/components/ui/dropdown-menu";
 import { Flight } from "@/types";
 import { format } from "date-fns";
@@ -100,7 +100,7 @@ const FlightDropdownActions = ({ flight }: { flight: Flight }) => {
           onInteractOutside={(e) => {
             e.preventDefault(); // Evita que el diálogo se cierre al hacer clic fuera
           }}
-          aria-describedby={undefined} 
+          aria-describedby={undefined}
           className="sm:max-w-xl rounded-lg"
         >
           <DialogHeader>

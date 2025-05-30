@@ -1,6 +1,6 @@
 "use client"
 
-import { useCreateUser } from "@/actions/administracion/usuarios/actions";
+import { useCreateUser } from "@/actions/aerolinea/usuarios/actions";
 import { Button } from "@/components/ui/button";
 import {
   Command,
@@ -19,8 +19,8 @@ import {
 } from '@/components/ui/popover';
 import { useGetCompanies } from "@/hooks/administracion/useGetCompanies";
 import { useGetLocationsByCompanies } from "@/hooks/administracion/useGetLocationsByCompanies";
-import { useGetRoles } from "@/hooks/user/useGetRoles";
-import { useGetUsers } from "@/hooks/user/useGetUsers";
+import { useGetRoles } from "@/hooks/sistema/usuario/useGetRoles";
+import { useGetUsers } from "@/hooks/sistema/usuario/useGetUsers";
 import { cn } from "@/lib/utils";
 import loadingGif from '@/public/loading2.gif';
 import { zodResolver } from "@hookform/resolvers/zod";

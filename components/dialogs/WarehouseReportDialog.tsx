@@ -16,8 +16,8 @@ import {
   SelectTrigger,
   SelectValue
 } from "@/components/ui/select";
-import { useGetManufacturers } from "@/hooks/ajustes/globales/condiciones/useGetConditions";
-import { useGetWarehouseReport } from "@/hooks/reportes/useGetWarehouseReport";
+import { useGetManufacturers } from "@/hooks/general/globales/condiciones/useGetConditions";
+import { useGetWarehouseReport } from "@/hooks/mantenimiento/almacen/reportes/useGetWarehouseReport";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { PDFDownloadLink } from "@react-pdf/renderer";
 import { format } from "date-fns";

@@ -6,7 +6,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 
 
-import { useDeleteUser } from "@/actions/administracion/usuarios/actions"
+import { useDeleteUser } from "@/actions/aerolinea/usuarios/actions"
 import { EyeIcon, Loader2, MoreHorizontal, Trash2 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useState } from "react"

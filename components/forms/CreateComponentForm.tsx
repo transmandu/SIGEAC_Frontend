@@ -9,7 +9,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 
-import { useConfirmIncomingArticle, useCreateArticle } from "@/actions/almacen/inventario/articulos/actions"
+import { useConfirmIncomingArticle, useCreateArticle } from "@/actions/mantenimiento/almacen/inventario/articulos/actions"
 import { Calendar } from "@/components/ui/calendar"
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
@@ -19,9 +19,9 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover"
 import { useGetConditions } from "@/hooks/administracion/useGetConditions"
-import { useGetManufacturers } from "@/hooks/ajustes/globales/fabricantes/useGetManufacturers"
-import { useGetArticlesByCategory } from "@/hooks/almacen/useGetArticlesByCategory"
-import { useGetBatchesByLocationId } from "@/hooks/almacen/useGetBatchesByLocationId"
+import { useGetManufacturers } from "@/hooks/general/globales/fabricantes/useGetManufacturers"
+import { useGetArticlesByCategory } from "@/hooks/mantenimiento/almacen/articulos/useGetArticlesByCategory"
+import { useGetBatchesByLocationId } from "@/hooks/mantenimiento/almacen/renglones/useGetBatchesByLocationId"
 import { cn } from "@/lib/utils"
 import loadingGif from '@/public/loading2.gif'
 import { useCompanyStore } from "@/stores/CompanyStore"

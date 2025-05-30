@@ -23,7 +23,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { useDebounce } from "@/hooks/useDebounce"
+import { useDebounce } from "@/hooks/helpers/useDebounce"
 import { useEffect, useState } from "react"
 import { Input } from "@/components/ui/input"
 

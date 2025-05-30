@@ -1,4 +1,4 @@
-import { useDeleteAdministrationArticle } from "@/actions/administracion/articulos/actions";
+import { useDeleteAdministrationArticle } from "@/actions/aerolinea/articulos/actions";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, } from "@/components/ui/dropdown-menu";
 import { useGetAdministrationArticleById } from "@/hooks/administracion/useGetAdministrationArticleById";
 import { Boxes, EyeIcon, HandCoins, Loader2, MoreHorizontal, Trash2, } from "lucide-react";
@@ -60,7 +60,7 @@ const AdministrationArticleDropdownActions = ({ id }: { id: string }) => {
           )}
           <DropdownMenuItem onClick={() => setOpenDelete(true)}>
             <Trash2 className="size-5 text-red-500" />
-          </DropdownMenuItem> 
+          </DropdownMenuItem>
           <DropdownMenuItem onClick={handleViewDetails}>
             <EyeIcon className="size-5" />
           </DropdownMenuItem>
@@ -118,10 +118,10 @@ const AdministrationArticleDropdownActions = ({ id }: { id: string }) => {
           onInteractOutside={(e) => {
             e.preventDefault(); // Evita que el diálogo se cierre al hacer clic fuera
           }}
-          aria-describedby={undefined}  
+          aria-describedby={undefined}
         >
           <DialogHeader className="text-center font-bold">
-          <DialogTitle className="text-center font-bold"> 
+          <DialogTitle className="text-center font-bold">
               Resumen del Artículo
             </DialogTitle>
           </DialogHeader>

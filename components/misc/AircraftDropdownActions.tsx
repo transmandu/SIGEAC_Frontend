@@ -16,7 +16,7 @@ import {
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "../ui/button";
-import { useDeleteAircraft } from "@/actions/administracion/aeronaves/actions";
+import { useDeleteAircraft } from "@/actions/aerolinea/aeronaves/actions";
 import {
   Dialog,
   DialogContent,
@@ -33,7 +33,7 @@ import { EditAircraftForm } from "../forms/EditAircraftForm";
 import { AircraftExpensiveForm } from "../forms/AircraftExpensiveForm";
 import Link from "next/link";
 import { Aircraft } from "@/types";
-import { useGetAircraftByAcronym } from "@/hooks/administracion/useGetAircraftByAcronym";
+import { useGetAircraftByAcronym } from "@/hooks/aerolinea/aeronaves/useGetAircraftByAcronym";
 
 export const AircraftDropdownActions = ({
   aircraft,

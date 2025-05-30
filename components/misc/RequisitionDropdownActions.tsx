@@ -1,4 +1,4 @@
-import { useDeleteRequisition, useUpdateRequisitionStatus } from "@/actions/compras/requisiciones/actions"
+import { useDeleteRequisition, useUpdateRequisitionStatus } from "@/actions/mantenimiento/compras/requisiciones/actions"
 import {
   DropdownMenu,
   DropdownMenuContent,

@@ -1,5 +1,5 @@
-import { useUpdateQuoteStatus } from "@/actions/compras/cotizaciones/actions"
-import { useUpdateRequisitionStatus } from "@/actions/compras/requisiciones/actions"
+import { useUpdateQuoteStatus } from "@/actions/mantenimiento/compras/cotizaciones/actions"
+import { useUpdateRequisitionStatus } from "@/actions/mantenimiento/compras/requisiciones/actions"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,7 +13,7 @@ import { ClipboardCheck, ClipboardX, EyeIcon, Loader2, MoreHorizontal } from "lu
 import { useState } from "react"
 import { Button } from "../ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "../ui/dialog"
-import { useCreatePurchaseOrder } from "@/actions/compras/ordenes_compras/actions"
+import { useCreatePurchaseOrder } from "@/actions/mantenimiento/compras/ordenes_compras/actions"
 
 const QuoteDropdownActions = ({ quote }: { quote: Quote }) => {
 

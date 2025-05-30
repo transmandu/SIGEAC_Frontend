@@ -1,6 +1,6 @@
 "use client";
 
-import { useCreateClient } from "@/actions/administracion/clientes/actions";
+import { useCreateClient } from "@/actions/aerolinea/clientes/actions";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, } from "@/components/ui/select";
@@ -121,10 +121,10 @@ export function CreateClientForm({ onClose }: FormProps) {
               <FormItem className="w-full">
                 <FormLabel>DNI</FormLabel>
                 <FormControl>
-                  <Input 
-                    placeholder="Ej: 12345678" 
-                    {...field} 
-                    type="number" 
+                  <Input
+                    placeholder="Ej: 12345678"
+                    {...field}
+                    type="number"
                     onChange={(e) => field.onChange(e.target.value)}
                   />
                 </FormControl>

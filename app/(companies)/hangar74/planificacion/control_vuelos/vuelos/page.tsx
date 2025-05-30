@@ -2,7 +2,7 @@
 
 import { ContentLayout } from '@/components/layout/ContentLayout'
 import LoadingPage from '@/components/misc/LoadingPage'
-import { useGetFlightControl } from '@/hooks/planificacion/useGetFlightsControl'
+import { useGetFlightControl } from '@/hooks/mantenimiento/planificacion/useGetFlightsControl'
 import { columns } from './columns'
 import { DataTable } from './data-table'
 

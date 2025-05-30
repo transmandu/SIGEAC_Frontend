@@ -1,7 +1,7 @@
 "use client";
 
 import { ContentLayout } from "@/components/layout/ContentLayout";
-import { useGetAircrafts } from "@/hooks/administracion/useGetAircrafts";
+import { useGetAircrafts } from "@/hooks/aerolinea/aeronaves/useGetAircrafts";
 import { columns } from "./columns";
 import { DataTable } from "./data-table";
 import LoadingPage from "@/components/misc/LoadingPage";

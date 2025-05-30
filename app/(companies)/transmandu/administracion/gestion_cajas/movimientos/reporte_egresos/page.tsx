@@ -13,7 +13,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, } from "
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Cell,} from "recharts";
 import { Badge } from "@/components/ui/badge";
 import type { CashMovement } from "@/types";
-import { useGetOutputStatistics } from "@/hooks/administracion/movimientos/useGetOutputStatistics";
+import { useGetOutputStatistics } from "@/hooks/aerolinea/movimientos/useGetOutputStatistics";
 import { SummaryCard } from "@/components/cards/SummaryCard";
 import months from "@/components/cards/ConfigMonths";
 import MovementDetailsDialog from "@/components/dialogs/MovementDetailsDialog";

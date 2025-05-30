@@ -3,7 +3,7 @@
 import RegisterArticleForm from "@/components/forms/RegisterArticleForm"
 import { ContentLayout } from "@/components/layout/ContentLayout"
 import LoadingPage from "@/components/misc/LoadingPage"
-import { useGetArticleById } from "@/hooks/almacen/useGetArticleById"
+import { useGetArticleById } from "@/hooks/mantenimiento/almacen/articulos/useGetArticleById"
 import { useCompanyStore } from "@/stores/CompanyStore"
 import { redirect, useParams } from "next/navigation"
 

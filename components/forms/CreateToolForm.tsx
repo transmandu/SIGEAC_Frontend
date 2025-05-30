@@ -1,6 +1,6 @@
 'use client'
 
-import { useConfirmIncomingArticle, useCreateArticle } from "@/actions/almacen/inventario/articulos/actions"
+import { useConfirmIncomingArticle, useCreateArticle } from "@/actions/mantenimiento/almacen/inventario/articulos/actions"
 import { Button } from "@/components/ui/button"
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
@@ -11,7 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { useGetBatchesByLocationId } from "@/hooks/almacen/useGetBatchesByLocationId"
+import { useGetBatchesByLocationId } from "@/hooks/mantenimiento/almacen/renglones/useGetBatchesByLocationId"
 import { conditions } from "@/lib/conditions"
 import loadingGif from '@/public/loading2.gif'
 import { useCompanyStore } from "@/stores/CompanyStore"
@@ -25,7 +25,7 @@ import { z } from "zod"
 import { Checkbox } from "../ui/checkbox"
 import { Textarea } from "../ui/textarea"
 import { AmountInput } from "../misc/AmountInput"
-import { useGetManufacturers } from "@/hooks/ajustes/globales/fabricantes/useGetManufacturers"
+import { useGetManufacturers } from "@/hooks/general/globales/fabricantes/useGetManufacturers"
 import { useGetConditions } from "@/hooks/administracion/useGetConditions"
 import { useRouter } from "next/navigation"
 import { MultiInputField } from "./MultiInputField"

@@ -1,6 +1,6 @@
 'use client'
 
-import { useUpdateWorkOrderTask, useUpdateWorkOrderTaskStatus } from '@/actions/planificacion/ordenes_trabajo/actions'
+import { useUpdateWorkOrderTask, useUpdateWorkOrderTaskStatus } from '@/actions/mantenimiento/planificacion/ordenes_trabajo/actions'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
@@ -10,7 +10,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { useGetWorkOrderEmployees } from '@/hooks/planificacion/useGetWorkOrderEmployees'
+import { useGetWorkOrderEmployees } from '@/hooks/mantenimiento/planificacion/useGetWorkOrderEmployees'
 import { WorkOrder } from '@/types'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Loader2, Pencil, User2 } from 'lucide-react'
@@ -18,7 +18,7 @@ import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import CreateNoRutineDialog from './CreateNoRutineDialog'
-import { useUpdateNoRoutineTask } from '@/actions/planificacion/ordenes_trabajo/no_rutinarios/actions'
+import { useUpdateNoRoutineTask } from '@/actions/mantenimiento/planificacion/ordenes_trabajo/no_rutinarios/actions'
 
 // Esquema del formulario para asignación de responsables
 const assignmentFormSchema = z.object({

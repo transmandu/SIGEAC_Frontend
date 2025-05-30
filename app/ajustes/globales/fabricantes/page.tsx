@@ -1,7 +1,7 @@
 'use client'
 
 import { ContentLayout } from '@/components/layout/ContentLayout'
-import { useGetManufacturers } from '@/hooks/ajustes/globales/fabricantes/useGetManufacturers'
+import { useGetManufacturers } from '@/hooks/general/globales/fabricantes/useGetManufacturers'
 import { Loader2 } from 'lucide-react'
 import { columns } from './columns'
 import { DataTable } from './data-table'

@@ -1,7 +1,7 @@
 "use client"
 import { Button } from "@/components/ui/button"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
-import { useCreateRequisition, useUpdateRequisition } from "@/actions/compras/requisiciones/actions"
+import { useCreateRequisition, useUpdateRequisition } from "@/actions/mantenimiento/compras/requisiciones/actions"
 import { Input } from "@/components/ui/input"
 import { useAuth } from "@/contexts/AuthContext"
 import { useGetDepartamentEmployees } from "@/hooks/administracion/useGetDepartamentEmployees"
@@ -19,7 +19,7 @@ import { ScrollArea } from "../ui/scroll-area"
 import { Separator } from "../ui/separator"
 import { Textarea } from "../ui/textarea"
 import { CreateBatchDialog } from "../dialogs/CreateBatchDialog"
-import { useGetSecondaryUnits } from "@/hooks/ajustes/globales/unidades/useGetSecondaryUnits"
+import { useGetSecondaryUnits } from "@/hooks/general/globales/unidades/useGetSecondaryUnits"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select"
 
 const FormSchema = z.object({

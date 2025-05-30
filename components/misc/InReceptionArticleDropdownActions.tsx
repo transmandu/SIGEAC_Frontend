@@ -1,6 +1,6 @@
 'use client'
 
-import { useUpdateArticleStatus } from "@/actions/almacen/inventario/articulos/actions"
+import { useUpdateArticleStatus } from "@/actions/mantenimiento/almacen/inventario/articulos/actions"
 import {
   DropdownMenu,
   DropdownMenuContent,

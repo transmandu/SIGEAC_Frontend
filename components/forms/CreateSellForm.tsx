@@ -1,6 +1,6 @@
 "use client";
 
-import { useCreateSell } from "@/actions/administracion/ventas/actions";
+import { useCreateSell } from "@/actions/aerolinea/ventas/actions";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -24,7 +24,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useGetClients } from "@/hooks/administracion/clientes/useGetClients";
+import { useGetClients } from "@/hooks/general/clientes/useGetClients";
 import { cn } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";

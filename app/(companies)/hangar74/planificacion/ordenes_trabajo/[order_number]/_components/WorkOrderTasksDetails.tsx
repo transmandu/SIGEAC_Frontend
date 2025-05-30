@@ -6,7 +6,7 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/ui/tabs"
-import { useCheckWorkOrderArticles } from "@/hooks/planificacion/useCheckWorkOrderArticles"
+import { useCheckWorkOrderArticles } from "@/hooks/mantenimiento/planificacion/useCheckWorkOrderArticles"
 import { cn } from "@/lib/utils"
 import { WorkOrder } from "@/types"
 import { zodResolver } from "@hookform/resolvers/zod"

@@ -1,6 +1,6 @@
 "use client";
 
-import { useGetCashMovementByAccount } from "@/hooks/administracion/movimientos/useGetCashMovementByAccount";
+import { useGetCashMovementByAccount } from "@/hooks/aerolinea/movimientos/useGetCashMovementByAccount";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, } from "@/components/ui/card";
@@ -66,16 +66,16 @@ const MovementsByAccountPage = () => {
   // Procesar movimientos considerando múltiples detalles
   const selectedAccountMovements = selectedAccountData?.movements?.flatMap(movement => {
   // Convertir a array si es un objeto único
-  const detailsArray = Array.isArray(movement.cash_movement_details) 
-    ? movement.cash_movement_details 
+  const detailsArray = Array.isArray(movement.cash_movement_details)
+    ? movement.cash_movement_details
     : [movement.cash_movement_details];
-  
+
   return detailsArray.map(detail => ({
-    id: detail.cash_movement_id?.toString() || movement.date, 
+    id: detail.cash_movement_id?.toString() || movement.date,
     date: movement.date,
     type: movement.type,
     total_amount: Number(detail.amount),
-    bank_account: { name: "Efectivo" }, 
+    bank_account: { name: "Efectivo" },
     details: detail.details,
     category: {
       name: detail.category?.name || "Sin categoría"

@@ -2,7 +2,7 @@
 
 import { ContentLayout } from '@/components/layout/ContentLayout'
 import LoadingPage from '@/components/misc/LoadingPage'
-import { useGetMaintenanceAircrafts } from '@/hooks/planificacion/useGetMaintenanceAircrafts'
+import { useGetMaintenanceAircrafts } from '@/hooks/mantenimiento/planificacion/useGetMaintenanceAircrafts'
 import React from 'react'
 import { DataTable } from './data-table'
 import { columns } from './columns'

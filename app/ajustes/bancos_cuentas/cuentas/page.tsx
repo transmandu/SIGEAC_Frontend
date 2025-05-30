@@ -4,7 +4,7 @@ import { ContentLayout } from '@/components/layout/ContentLayout';
 import { Loader2 } from 'lucide-react';
 import { columns } from './columns';
 import { DataTable } from './data-table';
-import { useGetBankAccounts } from '@/hooks/ajustes/cuentas/useGetBankAccounts';
+import { useGetBankAccounts } from '@/hooks/general/cuentas_bancarias/useGetBankAccounts';
 
 const BankAccountsPage = () => {
 

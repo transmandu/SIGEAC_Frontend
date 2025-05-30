@@ -9,7 +9,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { useGetMaintenanceAircrafts } from "@/hooks/planificacion/useGetMaintenanceAircrafts";
+import { useGetMaintenanceAircrafts } from "@/hooks/mantenimiento/planificacion/useGetMaintenanceAircrafts";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { CalendarIcon, Check, ChevronsUpDown, Loader2 } from "lucide-react";
 import { useForm } from "react-hook-form";
@@ -21,7 +21,7 @@ import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { Calendar } from "../ui/calendar";
-import { useCreateFlightControl } from "@/actions/planificacion/vuelos/actions";
+import { useCreateFlightControl } from "@/actions/mantenimiento/planificacion/vuelos/actions";
 
 
 const formSchema = z.object({

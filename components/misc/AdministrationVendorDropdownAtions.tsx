@@ -1,4 +1,4 @@
-import { useDeleteAdministrationVendor } from "@/actions/administracion/proveedor/actions";
+import { useDeleteAdministrationVendor } from "@/actions/aerolinea/proveedor/actions";
 import {
   DropdownMenu,
   DropdownMenuContent,

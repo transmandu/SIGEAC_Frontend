@@ -3,7 +3,7 @@
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import { DataTable } from "./data-table";
 import { columns } from "./columns";
-import { useGetRenting } from "@/hooks/administracion/useGetRenting";
+import { useGetRenting } from "@/hooks/aerolinea/rentas/useGetRenting";
 import LoadingPage from "@/components/misc/LoadingPage";
 
 const RentingPage = () => {

@@ -4,7 +4,7 @@ import { ContentLayout } from "@/components/layout/ContentLayout";
 import { columns } from "./columns";
 import LoadingPage from "@/components/misc/LoadingPage";
 import { DataTable } from "./data-table";
-import { useGetCreditSell } from "@/hooks/administracion/creditos/useGetCreditSell";
+import { useGetCreditSell } from "@/hooks/aerolinea/creditos/useGetCreditSell";
 
 const CreditPage = () => {
   const { data, isLoading, isError } = useGetCreditSell();

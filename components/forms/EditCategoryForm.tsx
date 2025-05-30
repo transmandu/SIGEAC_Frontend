@@ -9,9 +9,9 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Separator } from "../ui/separator";
-import { useUpdateCategory } from "@/actions/administracion/categorias/actions";
-import { useGetCategoryById } from "@/hooks/administracion/useGetCategoryById";
-import { useGetAccountant } from "@/hooks/administracion/useGetAccountant";
+import { useUpdateCategory } from "@/actions/aerolinea/categorias/actions";
+import { useGetCategoryById } from "@/hooks/aerolinea/categorias_cuentas/useGetCategoryById";
+import { useGetAccountant } from "@/hooks/aerolinea/cuentas_contables/useGetAccountant";
 import { cn } from "@/lib/utils";
 import { Check, ChevronsUpDown, Loader2 } from "lucide-react";
 

@@ -1,5 +1,5 @@
 'use client';
-import { useCreateVendor } from "@/actions/ajustes/globales/proveedores/actions";
+import { useCreateVendor } from "@/actions/general/proveedores/actions";
 import {
   Form,
   FormControl,

@@ -5,8 +5,8 @@ import {
   DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu"
 
-import { useUpdateStatusDispatchRequest } from "@/actions/almacen/solicitudes/salida/action"
-import { useCreateRequisition } from "@/actions/compras/requisiciones/actions"
+import { useUpdateStatusDispatchRequest } from "@/actions/mantenimiento/almacen/solicitudes/salida/action"
+import { useCreateRequisition } from "@/actions/mantenimiento/compras/requisiciones/actions"
 import { Button } from "@/components/ui/button"
 import {
   Form,
@@ -28,7 +28,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { useAuth } from "@/contexts/AuthContext"
-import { useGetWarehousesEmployees } from "@/hooks/almacen/useGetWarehousesEmployees"
+import { useGetWarehousesEmployees } from "@/hooks/mantenimiento/almacen/empleados/useGetWarehousesEmployees"
 import { cn } from "@/lib/utils"
 import { useCompanyStore } from "@/stores/CompanyStore"
 import { DispatchRequest } from "@/types"

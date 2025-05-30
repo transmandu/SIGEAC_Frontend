@@ -1,4 +1,4 @@
-import { useDeleteWorkOrder } from "@/actions/planificacion/ordenes_trabajo/actions"
+import { useDeleteWorkOrder } from "@/actions/mantenimiento/planificacion/ordenes_trabajo/actions"
 import {
   DropdownMenu,
   DropdownMenuContent,

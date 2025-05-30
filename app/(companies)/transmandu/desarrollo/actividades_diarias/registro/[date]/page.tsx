@@ -4,10 +4,10 @@ import { useRouter } from 'next/navigation';
 import { ContentLayout } from '@/components/layout/ContentLayout';
 import { DailyReportForm } from '@/components/forms/DailyReportForm';
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
-import { useGetDailyActivityReport } from '@/hooks/desarrollo/useGetDailyActivities';
+import { useGetDailyActivityReport } from '@/hooks/aerolinea/desarrollo/useGetDailyActivities';
 import { useParams } from 'next/navigation';
 import ConfirmCreateActivityReportDialog from '@/components/dialogs/CreateActivityReportDialog';
-import { useCreateActivityReport } from '@/actions/desarrollo/reportes_diarios/actions';
+import { useCreateActivityReport } from '@/actions/aerolinea/desarrollo/reportes_diarios/actions';
 import { useAuth } from '@/contexts/AuthContext';
 import LoadingPage from '@/components/misc/LoadingPage';
 

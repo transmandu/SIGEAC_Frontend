@@ -3,7 +3,7 @@
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import { DataTable } from "./data-table";
 import { columns } from "./columns";
-import { useGetFlights } from "@/hooks/administracion/vuelos/useGetFlights";
+import { useGetFlights } from "@/hooks/aerolinea/vuelos/useGetFlights";
 import LoadingPage from "@/components/misc/LoadingPage";
 
 const FlightPage = () => {

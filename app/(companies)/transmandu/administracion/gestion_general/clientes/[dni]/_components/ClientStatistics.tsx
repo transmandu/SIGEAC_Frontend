@@ -48,10 +48,10 @@ import {
 import { useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { formatCurrency } from "@/lib/utils";
-import { useGetFlightsByClient } from "@/hooks/administracion/clientes/useGetFlightByClients";
+import { useGetFlightsByClient } from "@/hooks/general/clientes/useGetFlightByClients";
 import months from "@/components/cards/ConfigMonths";
 import { SummaryCard } from "@/components/cards/SummaryCard";
-import { useGetClientByDni } from "@/hooks/administracion/clientes/useGetClientByDni";
+import { useGetClientByDni } from "@/hooks/general/clientes/useGetClientByDni";
 import LoadingPage from "@/components/misc/LoadingPage";
 
 const getMonthByNumber = (number: string) => {

@@ -19,7 +19,7 @@ import {
 } from "../ui/dialog";
 import { format } from "date-fns";
 import { es } from "date-fns/locale/es";
-import { useDeleteSell } from "@/actions/administracion/ventas/actions";
+import { useDeleteSell } from "@/actions/aerolinea/ventas/actions";
 import { useGetSellById } from "@/hooks/administracion/useGetSellById";
 
 const SellDropdownActions = ({ id }: { id: string }) => {

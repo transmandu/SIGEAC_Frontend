@@ -15,7 +15,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { AmountInput } from "../misc/AmountInput";
 import { Button } from "../ui/button";
-import { useUpdateBalance } from "@/actions/administracion/clientes/actions";
+import { useUpdateBalance } from "@/actions/aerolinea/clientes/actions";
 
 const formSchema = z.object({
   balance: z.string().min(1, {

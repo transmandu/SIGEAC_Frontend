@@ -1,6 +1,6 @@
 'use client';
 
-import { useCreateMaintenanceService } from "@/actions/planificacion/servicios/actions";
+import { useCreateMaintenanceService } from "@/actions/mantenimiento/planificacion/servicios/actions";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -19,7 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useGetManufacturers } from "@/hooks/ajustes/globales/condiciones/useGetConditions";
+import { useGetManufacturers } from "@/hooks/general/globales/condiciones/useGetConditions";
 import { useGetBatchesByLocationId } from "@/hooks/useGetBatchesByLocationId";
 import { cn } from "@/lib/utils";
 import { useCompanyStore } from "@/stores/CompanyStore";

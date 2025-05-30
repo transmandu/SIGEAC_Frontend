@@ -1,6 +1,6 @@
 "use client";
 
-import { useCreateFlight } from "@/actions/administracion/vuelos/actions";
+import { useCreateFlight } from "@/actions/aerolinea/vuelos/actions";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, } from "@/components/ui/form";
@@ -17,10 +17,10 @@ import { CalendarIcon } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { AmountInput } from "../misc/AmountInput";
-import { useGetRoute } from "@/hooks/administracion/useGetRoutes";
-import { useGetClients } from "@/hooks/administracion/clientes/useGetClients";
-import { useGetAircrafts } from "@/hooks/administracion/useGetAircrafts";
-import { useGetBankAccounts } from "@/hooks/ajustes/cuentas/useGetBankAccounts";
+import { useGetRoute } from "@/hooks/aerolinea/rutas/useGetRoutes";
+import { useGetClients } from "@/hooks/general/clientes/useGetClients";
+import { useGetAircrafts } from "@/hooks/aerolinea/aeronaves/useGetAircrafts";
+import { useGetBankAccounts } from "@/hooks/general/cuentas_bancarias/useGetBankAccounts";
 import { Label } from "../ui/label";
 import { Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -623,7 +623,7 @@ export function FlightForm({ onClose }: FormProps) {
                 <FormMessage />
               </FormItem>
             )}
-          />           
+          />
           )}
         </div>
         <FormField

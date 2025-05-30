@@ -1,6 +1,6 @@
 "use client";
 
-import { useCreateAdministrationCompany } from "@/actions/administracion/empresa/actions";
+import { useCreateAdministrationCompany } from "@/actions/aerolinea/empresa/actions";
 import { Button } from "@/components/ui/button";
 import {
   Form,

@@ -4,7 +4,7 @@ import { ContentLayout } from "@/components/layout/ContentLayout";
 import LoadingPage from "@/components/misc/LoadingPage";
 import { columns } from "./columns";
 import { DataTable } from "./data-table";
-import { useGetCategory } from "@/hooks/administracion/useGetCategory";
+import { useGetCategory } from "@/hooks/aerolinea/categorias_cuentas/useGetCategory";
 
 const Category = () => {
   const { data, isLoading, isError } = useGetCategory();

@@ -17,7 +17,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover"
 import { ScrollArea } from "../ui/scroll-area"
 import { Separator } from "../ui/separator"
 import { Textarea } from "../ui/textarea"
-import { useCreateRequisition } from "@/actions/administracion/compras/requisiciones/actions"
+import { useCreateRequisition } from "@/actions/aerolinea/compras/requisiciones/actions"
 
 const FormSchema = z.object({
   justification: z.string().min(2, { message: "La justificación debe ser válida." }),

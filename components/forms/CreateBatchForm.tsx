@@ -1,6 +1,6 @@
 "use client"
 
-import { useCreateBatch } from "@/actions/almacen/inventario/lotes/actions"
+import { useCreateBatch } from "@/actions/mantenimiento/almacen/inventario/lotes/actions"
 import { Button } from "@/components/ui/button"
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
@@ -12,7 +12,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { useGetWarehousesByUser } from "@/hooks/administracion/useGetWarehousesByUser"
-import { useGetBatchesWithArticlesCount } from "@/hooks/almacen/useGetBatchesWithArticleCount"
+import { useGetBatchesWithArticlesCount } from "@/hooks/mantenimiento/almacen/renglones/useGetBatchesWithArticleCount"
 import { batches_categories } from "@/lib/batches_categories"
 import { useCompanyStore } from "@/stores/CompanyStore"
 import { zodResolver } from "@hookform/resolvers/zod"

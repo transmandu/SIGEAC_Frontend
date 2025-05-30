@@ -1,6 +1,6 @@
 'use client';
 
-import { useDeleteQuote } from '@/actions/compras/cotizaciones/actions';
+import { useDeleteQuote } from '@/actions/mantenimiento/compras/cotizaciones/actions';
 import { ContentLayout } from '@/components/layout/ContentLayout';
 import LoadingPage from '@/components/misc/LoadingPage';
 import { Badge } from '@/components/ui/badge';
@@ -13,7 +13,7 @@ import {
   CardTitle
 } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { useGetQuoteByQuoteNumber } from '@/hooks/compras/useGetQuoteByQuoteNumber';
+import { useGetQuoteByQuoteNumber } from '@/hooks/mantenimiento/compras/useGetQuoteByQuoteNumber';
 import { cn } from '@/lib/utils';
 import { useCompanyStore } from '@/stores/CompanyStore';
 import { Trash2, Loader2, User } from 'lucide-react';

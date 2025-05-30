@@ -17,7 +17,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 
-import { useCreateWarehouse } from "@/actions/almacen/almacenes/actions"
+import { useCreateWarehouse } from "@/actions/mantenimiento/almacen/almacenes/actions"
 import { Input } from "@/components/ui/input"
 import { useGetCompaniesWithWarehouses } from "@/hooks/administracion/useGetCompaniesWithWarehouses"
 import { useGetLocationsByCompanyId } from "@/hooks/administracion/useGetLocationsByCompanyId"

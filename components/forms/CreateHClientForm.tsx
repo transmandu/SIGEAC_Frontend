@@ -22,7 +22,7 @@ import { Loader2 } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Button } from "../ui/button";
-import { useCreateClient } from "@/actions/ajustes/clientes/actions";
+import { useCreateClient } from "@/actions/general/clientes/actions";
 import { useState } from "react";
 
 

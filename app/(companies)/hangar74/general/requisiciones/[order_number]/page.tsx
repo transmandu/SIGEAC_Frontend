@@ -1,6 +1,6 @@
 'use client';
 
-import { useDeleteRequisition } from '@/actions/compras/requisiciones/actions';
+import { useDeleteRequisition } from '@/actions/mantenimiento/compras/requisiciones/actions';
 import { ContentLayout } from '@/components/layout/ContentLayout';
 import LoadingPage from '@/components/misc/LoadingPage';
 import { Badge } from '@/components/ui/badge';
@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Separator } from '@/components/ui/separator';
-import { useGetRequisitionByOrderNumber } from '@/hooks/compras/useGetRequisitionByOrderNumber';
+import { useGetRequisitionByOrderNumber } from '@/hooks/mantenimiento/compras/useGetRequisitionByOrderNumber';
 import { cn } from '@/lib/utils';
 import { useCompanyStore } from '@/stores/CompanyStore';
 import { FileText, Loader2, Trash2, User, Image as ImageIcon } from 'lucide-react';

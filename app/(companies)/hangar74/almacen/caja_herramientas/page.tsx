@@ -1,13 +1,13 @@
 'use client'
 
 import { ContentLayout } from '@/components/layout/ContentLayout'
-import { useGetPendingDispatches } from '@/hooks/almacen/useGetPendingDispatchRequests'
+import { useGetPendingDispatches } from '@/hooks/mantenimiento/almacen/solicitudes/useGetPendingDispatchRequests'
 import { useCompanyStore } from '@/stores/CompanyStore'
 import { Loader2 } from 'lucide-react'
 import { useEffect } from 'react'
 import { DataTable } from './data-table'
 import { columns } from './columns'
-import { useGetToolBoxes } from '@/hooks/useGetToolBoxes'
+import { useGetToolBoxes } from '@/hooks/mantenimiento/almacen/caja_herramientas/useGetToolBoxes'
 import LoadingPage from '@/components/misc/LoadingPage'
 
 const DispatchRequestPage = () => {

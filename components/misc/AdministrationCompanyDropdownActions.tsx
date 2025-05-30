@@ -16,7 +16,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "../ui/button";
 import { Separator } from "../ui/separator";
 import { useGetAdministrationCompanyById } from "@/hooks/administracion/useGetAdministrationCompanyById";
-import { useDeleteAdministrationCompany } from "@/actions/administracion/empresa/actions";
+import { useDeleteAdministrationCompany } from "@/actions/aerolinea/empresa/actions";
 import {
   Dialog,
   DialogContent,

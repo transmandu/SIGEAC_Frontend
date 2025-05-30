@@ -14,7 +14,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Textarea } from '@/components/ui/textarea';
-import { useGetArticle } from '@/hooks/almacen/useGetArticle';
+import { useGetArticle } from '@/hooks/mantenimiento/almacen/articulos/useGetArticle';
 import { cn } from '@/lib/utils';
 import { useCompanyStore } from '@/stores/CompanyStore';
 import { format } from 'date-fns';

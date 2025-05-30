@@ -1,7 +1,7 @@
 'use client';
 
 import { ContentLayout } from '@/components/layout/ContentLayout';
-import { useGetArticlesByBatch } from '@/hooks/almacen/useGetArticlesByBatch';
+import { useGetArticlesByBatch } from '@/hooks/mantenimiento/almacen/articulos/useGetArticlesByBatch';
 import { useCompanyStore } from '@/stores/CompanyStore';
 import { Loader2 } from 'lucide-react';
 import { useParams } from 'next/navigation';

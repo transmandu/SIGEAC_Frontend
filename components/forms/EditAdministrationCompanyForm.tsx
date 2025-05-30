@@ -14,7 +14,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { useGetAdministrationCompanyById } from "@/hooks/administracion/useGetAdministrationCompanyById";
-import { useUpdateAdministrationCompany } from "@/actions/administracion/empresa/actions";
+import { useUpdateAdministrationCompany } from "@/actions/aerolinea/empresa/actions";
 import { Separator } from "../ui/separator";
 
 const phoneRegex = new RegExp(

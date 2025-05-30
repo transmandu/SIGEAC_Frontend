@@ -3,7 +3,7 @@
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import { columns } from "./columns";
 import { DataTable } from "./data-table";
-import { useGetRoute } from "@/hooks/administracion/useGetRoutes";
+import { useGetRoute } from "@/hooks/aerolinea/rutas/useGetRoutes";
 import LoadingPage from "@/components/misc/LoadingPage";
 import { RouteDialog } from "@/components/dialogs/CreateRouteDialog";
 

@@ -2,8 +2,8 @@
 
 import { ContentLayout } from '@/components/layout/ContentLayout'
 import LoadingPage from '@/components/misc/LoadingPage'
-import { useGetUnits } from '@/hooks/ajustes/globales/unidades/useGetPrimaryUnits'
-import { useGetSecondaryUnits } from '@/hooks/ajustes/globales/unidades/useGetSecondaryUnits'
+import { useGetUnits } from '@/hooks/general/globales/unidades/useGetPrimaryUnits'
+import { useGetSecondaryUnits } from '@/hooks/general/globales/unidades/useGetSecondaryUnits'
 import { columns } from './columns'
 import { PrimaryDataTable } from './primary-data-table'
 import { secondary_columns } from './secondary-columns'

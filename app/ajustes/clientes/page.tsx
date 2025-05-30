@@ -1,7 +1,7 @@
 'use client'
 
 import { ContentLayout } from '@/components/layout/ContentLayout';
-import { useGetMaintenanceClients } from '@/hooks/ajustes/clientes/useGetMaintenanceClients';
+import { useGetMaintenanceClients } from '@/hooks/generalk/clientes/useGetMaintenanceClients';
 import { Loader2 } from 'lucide-react';
 import { columns } from './columns';
 import { DataTable } from './data-table';

@@ -5,7 +5,7 @@ import {
   DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu"
 
-import { useDeleteMaintenanceAircraft } from "@/actions/planificacion/aeronaves/actions"
+import { useDeleteMaintenanceAircraft } from "@/actions/mantenimiento/planificacion/aeronaves/actions"
 import { Loader2, MoreHorizontal, Trash2 } from "lucide-react"
 import { useState } from "react"
 import { Button } from "../ui/button"

@@ -1,6 +1,6 @@
 "use client"
 
-import { useCreateRequisition } from "@/actions/compras/requisiciones/actions"
+import { useCreateRequisition } from "@/actions/mantenimiento/compras/requisiciones/actions"
 import { CreateBatchDialog } from '@/components/dialogs/CreateBatchDialog'
 import { ContentLayout } from '@/components/layout/ContentLayout'
 import { Button } from "@/components/ui/button"
@@ -15,8 +15,8 @@ import { Separator } from "@/components/ui/separator"
 import { Textarea } from "@/components/ui/textarea"
 import { useAuth } from "@/contexts/AuthContext"
 import { useGetDepartamentEmployees } from "@/hooks/administracion/useGetDepartamentEmployees"
-import { useGetSecondaryUnits } from "@/hooks/ajustes/globales/unidades/useGetSecondaryUnits"
-import { useGetMaintenanceAircrafts } from '@/hooks/planificacion/useGetMaintenanceAircrafts'
+import { useGetSecondaryUnits } from "@/hooks/general/globales/unidades/useGetSecondaryUnits"
+import { useGetMaintenanceAircrafts } from '@/hooks/mantenimiento/planificacion/useGetMaintenanceAircrafts'
 import { useGetBatchesByLocationId } from "@/hooks/useGetBatchesByLocationId"
 import { cn } from "@/lib/utils"
 import { useCompanyStore } from "@/stores/CompanyStore"

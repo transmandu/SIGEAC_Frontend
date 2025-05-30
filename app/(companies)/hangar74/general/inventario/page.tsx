@@ -1,7 +1,7 @@
 'use client';
 
 import { ContentLayout } from '@/components/layout/ContentLayout';
-import { useGetBatchesWithArticlesCount } from '@/hooks/almacen/useGetBatchesWithArticleCount';
+import { useGetBatchesWithArticlesCount } from '@/hooks/mantenimiento/almacen/renglones/useGetBatchesWithArticleCount';
 import { useCompanyStore } from '@/stores/CompanyStore';
 import { Loader2 } from 'lucide-react';
 import { columns } from './columns';
@@ -14,9 +14,9 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb"
-import { useSearchBatchesByPartNumber } from '@/hooks/almacen/useGetBatchesByArticlePartNumber';
+import { useSearchBatchesByPartNumber } from '@/hooks/mantenimiento/almacen/renglones/useGetBatchesByArticlePartNumber';
 import { useMemo, useState } from 'react';
-import { useDebounce } from '@/hooks/useDebounce';
+import { useDebounce } from '@/hooks/helpers/useDebounce';
 import { Input } from '@/components/ui/input';
 import SearchSection from './_components/SearchSection';
 

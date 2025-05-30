@@ -7,7 +7,7 @@ import {
 } from "@/components/ui/accordion"
 import { ContentLayout } from '@/components/layout/ContentLayout';
 import LoadingPage from '@/components/misc/LoadingPage';
-import { useGetWorkOrderByOrderNumber } from '@/hooks/planificacion/useGetWorkOrderByOrderNumber';
+import { useGetWorkOrderByOrderNumber } from '@/hooks/mantenimiento/planificacion/useGetWorkOrderByOrderNumber';
 import { useParams } from 'next/navigation';
 import WorkOrderAircraftDetailsCards from './_components/WorkOrderAircraftDetailsCards';
 import WorkOrderTasksDetails from './_components/WorkOrderTasksDetails';

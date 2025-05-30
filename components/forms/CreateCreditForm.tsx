@@ -13,7 +13,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Calendar } from "../ui/calendar";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useCreateCredit } from "@/actions/administracion/creditos/cuentas_por_pagar/actions";
+import { useCreateCredit } from "@/actions/aerolinea/creditos/cuentas_por_pagar/actions";
 import { useGetAdministrationVendor } from "@/hooks/administracion/useGetAdministrationVendor";
 
 const formSchema = z
@@ -64,7 +64,7 @@ export function CreateCreditForm({ onClose }: FormProps) {
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    createCredit.mutate({ ...values, type: "PAGAR" }, { 
+    createCredit.mutate({ ...values, type: "PAGAR" }, {
       onSuccess: () => {
         onClose();
       },
@@ -90,7 +90,7 @@ export function CreateCreditForm({ onClose }: FormProps) {
                       <Button
                         variant={"outline"}
                         className={cn(
-                          "w-full pl-2 text-left font-normal", 
+                          "w-full pl-2 text-left font-normal",
                           !field.value && "text-muted-foreground"
                         )}
                       >
@@ -273,7 +273,7 @@ export function CreateCreditForm({ onClose }: FormProps) {
                     // Validar que solo se ingresen números y un punto decimal
                     const value = e.target.value;
                     const regex = /^(\d+)?([.]?\d{0,2})?$/;
-                    
+
                     if (value === "" || regex.test(value)) {
                       field.onChange(value);
                     }

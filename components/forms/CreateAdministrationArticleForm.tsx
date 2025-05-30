@@ -1,6 +1,6 @@
 "use client";
 
-import { useCreateAdministrationArticle } from "@/actions/administracion/articulos/actions";
+import { useCreateAdministrationArticle } from "@/actions/aerolinea/articulos/actions";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -195,7 +195,7 @@ export function CreateAdministrationArticleForm({ onClose }: FormProps) {
           )}
         />
         </div>
-        
+
         <Button type="submit" disabled={createAdministrationArticle.isPending}>
           {createAdministrationArticle.isPending ? "Enviando..." : "Enviar"}
         </Button>

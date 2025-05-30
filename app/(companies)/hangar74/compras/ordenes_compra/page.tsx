@@ -1,6 +1,6 @@
 'use client'
 import { ContentLayout } from '@/components/layout/ContentLayout'
-import { useGetPurchaseOrders } from '@/hooks/compras/useGetPurchaseOrders'
+import { useGetPurchaseOrders } from '@/hooks/mantenimiento/compras/useGetPurchaseOrders'
 import { useCompanyStore } from '@/stores/CompanyStore'
 import { Loader2 } from 'lucide-react'
 import { columns } from './columns'

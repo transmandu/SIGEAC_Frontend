@@ -4,7 +4,7 @@ import { ContentLayout } from '@/components/layout/ContentLayout';
 import LoadingPage from '@/components/misc/LoadingPage';
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb';
 import { useAuth } from '@/contexts/AuthContext';
-import { useGetCertificates } from '@/hooks/ingenieria/useGetCertificates';
+import { useGetCertificates } from '@/hooks/mantenimiento/ingenieria/useGetCertificates';
 import { columns } from './columns';
 import { DataTable } from './data-table';
 

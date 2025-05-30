@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import {
   ColumnDef,
@@ -10,11 +10,11 @@ import {
   getSortedRowModel,
   SortingState,
   useReactTable,
-} from "@tanstack/react-table"
+} from "@tanstack/react-table";
 
-import { RegisterDispatchRequestDialog } from "@/components/dialogs/RegisterDispatchRequestDialog"
-import { DataTablePagination } from "@/components/tables/DataTablePagination"
-import { DataTableViewOptions } from "@/components/tables/DataTableViewOptions"
+import { CreateToolBoxDialog } from "@/components/dialogs/CreateToolBoxDialog";
+import { DataTablePagination } from "@/components/tables/DataTablePagination";
+import { DataTableViewOptions } from "@/components/tables/DataTableViewOptions";
 import {
   Table,
   TableBody,
@@ -22,25 +22,20 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table"
-import { useRouter } from "next/navigation"
-import { useState } from "react"
-import { CreateToolBoxDialog } from "@/components/dialogs/CreateToolBoxDialog"
+} from "@/components/ui/table";
+import { useState } from "react";
 
 interface DataTableProps<TData, TValue> {
-  columns: ColumnDef<TData, TValue>[]
-  data: TData[]
+  columns: ColumnDef<TData, TValue>[];
+  data: TData[];
 }
 
 export function DataTable<TData, TValue>({
   columns,
   data,
 }: DataTableProps<TData, TValue>) {
-
-  const [sorting, setSorting] = useState<SortingState>([])
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>(
-    []
-  )
+  const [sorting, setSorting] = useState<SortingState>([]);
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const table = useReactTable({
     data,
     columns,
@@ -52,19 +47,21 @@ export function DataTable<TData, TValue>({
     getFilteredRowModel: getFilteredRowModel(),
     state: {
       sorting,
-      columnFilters
-    }
-  })
-
-  const router = useRouter();
-
-  const isFiltered = table.getState().columnFilters.length > 0
+      columnFilters,
+    },
+  });
 
   return (
     <>
       <div className="flex flex-col gap-2 mb-4">
-        <h1 className="text-5xl font-bold text-center">Cajas de Herramientas</h1>
-        <p className="text-sm italic text-muted-foreground text-center">Aquí puede ver las cajas de herramientas creadas y despachadas a los diferentes empleados/técnicos. <br /> Cree o modifique las cajas según su necesidad.</p>
+        <h1 className="text-5xl font-bold text-center">
+          Cajas de Herramientas
+        </h1>
+        <p className="text-sm italic text-muted-foreground text-center">
+          Aquí puede ver las cajas de herramientas creadas y despachadas a los
+          diferentes empleados/técnicos. <br /> Cree o modifique las cajas según
+          su necesidad.
+        </p>
       </div>
       <div className="flex justify-between items-center py-4">
         <CreateToolBoxDialog />
@@ -81,11 +78,11 @@ export function DataTable<TData, TValue>({
                       {header.isPlaceholder
                         ? null
                         : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )}
                     </TableHead>
-                  )
+                  );
                 })}
               </TableRow>
             ))}
@@ -99,14 +96,20 @@ export function DataTable<TData, TValue>({
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext()
+                      )}
                     </TableCell>
                   ))}
                 </TableRow>
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={columns.length} className="h-24 text-center text-muted-foreground">
+                <TableCell
+                  colSpan={columns.length}
+                  className="h-24 text-center text-muted-foreground"
+                >
                   No se ha encontrado ningún resultado...
                 </TableCell>
               </TableRow>
@@ -116,5 +119,5 @@ export function DataTable<TData, TValue>({
       </div>
       <DataTablePagination table={table} />
     </>
-  )
+  );
 }

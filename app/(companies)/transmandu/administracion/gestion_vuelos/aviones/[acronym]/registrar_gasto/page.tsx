@@ -1,6 +1,6 @@
 "use client";
 
-import { useCashMovementForAircraft } from "@/actions/administracion/aeronaves/actions";
+import { useCashMovementForAircraft } from "@/actions/aerolinea/aeronaves/actions";
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import { description } from "@/components/misc/TestChart";
 import { Button } from "@/components/ui/button";
@@ -30,12 +30,12 @@ import {
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
-import { useGetCash } from "@/hooks/administracion/cajas/useGetCash";
-import { useGetAccountant } from "@/hooks/administracion/useGetAccountant";
+import { useGetCash } from "@/hooks/aerolinea/cajas/useGetCash";
+import { useGetAccountant } from "@/hooks/aerolinea/cuentas_contables/useGetAccountant";
 import { useGetAdministrationVendor } from "@/hooks/administracion/useGetAdministrationVendor";
-import { useGetCategory } from "@/hooks/administracion/useGetCategory";
+import { useGetCategory } from "@/hooks/aerolinea/categorias_cuentas/useGetCategory";
 import { useGetEmployeesByCompany } from "@/hooks/administracion/useGetEmployees";
-import { useGetBankAccounts } from "@/hooks/ajustes/cuentas/useGetBankAccounts";
+import { useGetBankAccounts } from "@/hooks/general/cuentas_bancarias/useGetBankAccounts";
 import { cn } from "@/lib/utils";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { zodResolver } from "@hookform/resolvers/zod";

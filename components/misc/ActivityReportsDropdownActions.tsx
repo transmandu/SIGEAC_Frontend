@@ -5,14 +5,14 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useGetUserActivity } from "@/hooks/desarrollo/useGetUserActivities";
+import { useGetUserActivity } from "@/hooks/aerolinea/desarrollo/useGetUserActivities";
 import { Eye, MessageSquare, MoreHorizontal, Loader2, Check } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { Button } from "../ui/button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "../ui/dialog";
 import { Input } from "../ui/input";
-import { useUpdateObservation } from "@/actions/desarrollo/reportes_diarios/actions";
+import { useUpdateObservation } from "@/actions/aerolinea/desarrollo/reportes_diarios/actions";
 import { useToast } from "../ui/use-toast";
 
 interface ActivityReportsDropdownActionsProps {
@@ -25,7 +25,7 @@ const ActivityReportsDropdownActions = ({ id, existingObservation }: ActivityRep
   const router = useRouter();
   const { data: report, isLoading: isReportLoading } = useGetUserActivity(id);
   const { updateObservation } = useUpdateObservation();
-  
+
   const [observation, setObservation] = useState("");
   const [isObservationOpen, setIsObservationOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -88,7 +88,7 @@ const ActivityReportsDropdownActions = ({ id, existingObservation }: ActivityRep
                 disabled={isSubmitting}
               />
               <DialogFooter>
-                <Button 
+                <Button
                   onClick={handleUpdateObservation}
                   disabled={isSubmitting || !observation.trim()}
                 >
@@ -113,8 +113,8 @@ const ActivityReportsDropdownActions = ({ id, existingObservation }: ActivityRep
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="center" className="w-56 px-2 py-1.5">
-          <DropdownMenuItem 
-            onClick={navigateToDetail} 
+          <DropdownMenuItem
+            onClick={navigateToDetail}
             className="cursor-pointer px-3 py-2 text-sm"
           >
             <Eye className="mr-3 h-5 w-5" />

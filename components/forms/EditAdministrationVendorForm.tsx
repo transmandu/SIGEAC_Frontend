@@ -1,6 +1,6 @@
 "use client";
 
-import { useUpdateAdministrationVendor } from "@/actions/administracion/proveedor/actions";
+import { useUpdateAdministrationVendor } from "@/actions/aerolinea/proveedor/actions";
 import { Button } from "@/components/ui/button";
 import {
   Form,

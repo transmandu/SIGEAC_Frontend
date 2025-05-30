@@ -1,7 +1,7 @@
 'use client'
 
 import { ContentLayout } from '@/components/layout/ContentLayout'
-import { useGetPendingDispatches } from '@/hooks/almacen/useGetPendingDispatchRequests'
+import { useGetPendingDispatches } from '@/hooks/mantenimiento/almacen/solicitudes/useGetPendingDispatchRequests'
 import { useCompanyStore } from '@/stores/CompanyStore'
 import { Loader2 } from 'lucide-react'
 import { columns } from './columns'

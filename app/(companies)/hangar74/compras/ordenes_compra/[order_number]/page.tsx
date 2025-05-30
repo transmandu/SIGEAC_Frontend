@@ -12,7 +12,7 @@ import {
   CardTitle
 } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { useGetPurchaseOrder } from '@/hooks/compras/useGetPurchaseOrder';
+import { useGetPurchaseOrder } from '@/hooks/mantenimiento/compras/useGetPurchaseOrder';
 import { cn } from '@/lib/utils';
 import { useCompanyStore } from '@/stores/CompanyStore';
 import { Trash2, User } from 'lucide-react';

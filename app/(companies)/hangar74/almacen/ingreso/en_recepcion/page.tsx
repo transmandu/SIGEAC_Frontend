@@ -1,7 +1,7 @@
 'use client';
 
 import { ContentLayout } from '@/components/layout/ContentLayout';
-import { useGetInReceptionArticles } from '@/hooks/almacen/useGetInReceptionArticles';
+import { useGetInReceptionArticles } from '@/hooks/mantenimiento/almacen/articulos/useGetInReceptionArticles';
 import { useCompanyStore } from '@/stores/CompanyStore';
 import { Loader2 } from 'lucide-react';
 import { columns } from './columns';

@@ -4,7 +4,7 @@ import { ContentLayout } from "@/components/layout/ContentLayout";
 import { DataTable } from "./data-table";
 import { columns } from "./columns";
 import LoadingPage from "@/components/misc/LoadingPage";
-import { useGetAccountant } from "@/hooks/administracion/useGetAccountant";
+import { useGetAccountant } from "@/hooks/aerolinea/cuentas_contables/useGetAccountant";
 
 const ClientsPage = () => {
   const { data, isLoading, isError } = useGetAccountant();

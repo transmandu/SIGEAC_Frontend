@@ -2,7 +2,7 @@
 
 import { ContentLayout } from '@/components/layout/ContentLayout';
 import LoadingPage from '@/components/misc/LoadingPage';
-import { useGetWorkOrders } from '@/hooks/planificacion/useGetWorkOrders';
+import { useGetWorkOrders } from '@/hooks/mantenimiento/planificacion/useGetWorkOrders';
 import { useCompanyStore } from '@/stores/CompanyStore';
 import { Loader2 } from 'lucide-react';
 import { columns } from './columns';

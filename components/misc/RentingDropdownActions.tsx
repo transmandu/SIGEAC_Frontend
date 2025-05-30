@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Button } from "../ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, } from "../ui/dialog";
-import { useDeleteRenting } from "@/actions/administracion/arrendamiento/actions";
+import { useDeleteRenting } from "@/actions/aerolinea/arrendamiento/actions";
 import { DefineEndDateForm } from "../forms/DefineEndDateForm";
 import { Renting } from "@/types";
 
@@ -16,7 +16,7 @@ const RentingDropdownActions = ({ rent }: { rent: Renting }) => {
 
   const handleDelete = (id: number | string) => {
     deleteRenting.mutate(id, {
-      onSuccess: () => setOpenDelete(false), 
+      onSuccess: () => setOpenDelete(false),
     });
   };
 

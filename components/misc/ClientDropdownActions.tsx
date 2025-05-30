@@ -1,4 +1,4 @@
-import { useDeleteClient } from "@/actions/administracion/clientes/actions";
+import { useDeleteClient } from "@/actions/aerolinea/clientes/actions";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -31,7 +31,7 @@ import { Badge } from "../ui/badge";
 import { Avatar, AvatarFallback } from "../ui/avatar";
 import AddClientBalanceForm from "../forms/AddClientBalanceForm";
 import { Client } from "@/types";
-import { useGetClientByDni } from "@/hooks/administracion/clientes/useGetClientByDni";
+import { useGetClientByDni } from "@/hooks/general/clientes/useGetClientByDni";
 
 const ClientDropdownActions = ({ client }: { client: Client }) => {
   const [openDelete, setOpenDelete] = useState<boolean>(false);

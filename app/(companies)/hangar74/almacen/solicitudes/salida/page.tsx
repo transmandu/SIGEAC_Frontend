@@ -4,7 +4,7 @@ import { ContentLayout } from '@/components/layout/ContentLayout'
 import React, { useEffect } from 'react'
 import { DataTable } from './data-table'
 import { columns } from '@/app/(companies)/hangar74/almacen/solicitudes/salida/columns'
-import { useGetDispatchesByLocation } from '@/hooks/almacen/useGetDispatchesRequests'
+import { useGetDispatchesByLocation } from '@/hooks/mantenimiento/almacen/solicitudes/useGetDispatchesRequests'
 import { useCompanyStore } from '@/stores/CompanyStore'
 import { Loader2 } from 'lucide-react'
 import { Breadcrumb, BreadcrumbEllipsis, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb"

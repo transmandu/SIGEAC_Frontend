@@ -21,7 +21,7 @@ import { Loader2 } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Button } from "../ui/button";
-import { useCreateManufacturer } from "@/actions/ajustes/globales/fabricantes/actions";
+import { useCreateManufacturer } from "@/actions/general/fabricantes/actions";
 
 
 const formSchema = z.object({

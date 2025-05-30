@@ -12,7 +12,7 @@ import {
 import { useState } from "react";
 import { AircraftInfoForm } from "../forms/AircraftInfoForm";
 import { AircraftPartsInfoForm } from "../forms/AircraftPartsForm";
-import { useCreateMaintenanceAircraft } from "@/actions/planificacion/aeronaves/actions";
+import { useCreateMaintenanceAircraft } from "@/actions/mantenimiento/planificacion/aeronaves/actions";
 
 interface AircraftPart {
   part_name: string;
