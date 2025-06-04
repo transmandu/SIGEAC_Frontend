@@ -19,8 +19,8 @@ import {
 
 import { useCreateWarehouse } from "@/actions/mantenimiento/almacen/almacenes/actions"
 import { Input } from "@/components/ui/input"
-import { useGetCompaniesWithWarehouses } from "@/hooks/administracion/useGetCompaniesWithWarehouses"
-import { useGetLocationsByCompanyId } from "@/hooks/administracion/useGetLocationsByCompanyId"
+import { useGetCompaniesWithWarehouses } from "@/hooks/sistema/useGetCompaniesWithWarehouses"
+import { useGetLocationsByCompanyId } from "@/hooks/sistema/useGetLocationsByCompanyId"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Loader2 } from "lucide-react"
 import { useEffect, useState } from "react"

@@ -76,16 +76,16 @@ export interface ClientStatistics {
     total_debt_flights: Flight[];
 }
 
-const fetchFlightsByClient = async (client_dni: string | null): Promise<ClientStatistics> => {
-  const { data } = await axiosInstance.get(`/transmandu/clients-administration/${client_dni}/flights`);
+const fetchFlightsByClient = async ({dni, company}: {dni: string, company: string | undefined}): Promise<ClientStatistics> => {
+  const { data } = await axiosInstance.get(`/${company}/administration-clients/${dni}/flights`);
   return data;
 };
 
-export const useGetFlightsByClient = (client_dni: string | null) => {
+export const useGetFlightsByClient = ({dni, company}: {dni: string, company: string | undefined}) => {
   return useQuery<ClientStatistics>({
-    queryKey: ["flights", client_dni],
-    queryFn: () => fetchFlightsByClient(client_dni),
+    queryKey: ["flights", dni, company],
+    queryFn: () => fetchFlightsByClient({dni, company}),
     staleTime: 1000 * 60 * 5, // 5 minutos
-    enabled: !!client_dni,
+    enabled: !!dni &&  !!company,
   });
 };

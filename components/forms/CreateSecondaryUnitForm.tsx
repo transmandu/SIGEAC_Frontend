@@ -28,7 +28,7 @@ import { Check, ChevronsUpDown, Loader2 } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Button } from "../ui/button";
-import { useGetUnits } from "@/hooks/general/globales/unidades/useGetPrimaryUnits";
+import { useGetUnits } from "@/hooks/general/unidades/useGetPrimaryUnits";
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 

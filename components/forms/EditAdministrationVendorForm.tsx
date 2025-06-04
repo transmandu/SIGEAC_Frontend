@@ -11,7 +11,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { AdministrationVendor } from "@/types";
+import { Vendor } from "@/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -60,7 +60,7 @@ const formSchema = z.object({
 type FormSchemaType = z.infer<typeof formSchema>;
 
 interface EditAdministrationVendorFormProps {
-  vendor: AdministrationVendor;
+  vendor: Vendor;
   onClose: () => void;
 }
 
@@ -88,7 +88,7 @@ export function EditAdministrationVendorForm({
       address: formData.address,
       type: formData.type,
     };
-    await updateAdministrationVendor.mutate({ id: vendor.id.toString(), data });
+    await updateAdministrationVendor.mutateAsync({ id: vendor.id.toString(), data });
     onClose();
   };
 

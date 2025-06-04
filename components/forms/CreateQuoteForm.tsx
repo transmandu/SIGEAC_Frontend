@@ -8,8 +8,8 @@ import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
 import { Textarea } from "@/components/ui/textarea"
 import { useAuth } from "@/contexts/AuthContext"
-import { useGetVendors } from "@/hooks/general/globales/proveedores/useGetVendors"
-import { useGetSecondaryUnits } from "@/hooks/general/globales/unidades/useGetSecondaryUnits"
+import { useGetVendors } from "@/hooks/general/proveedores/useGetVendors"
+import { useGetSecondaryUnits } from "@/hooks/general/unidades/useGetSecondaryUnits"
 import { useGetLocationsByCompanyId } from "@/hooks/sistema/useGetLocationsByCompanyId"
 import { cn } from "@/lib/utils"
 import { useCompanyStore } from "@/stores/CompanyStore"
@@ -26,13 +26,10 @@ import { Calendar } from "../ui/calendar"
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "../ui/command"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "../ui/dialog"
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover"
+import { ScrollArea } from "../ui/scroll-area"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select"
 import CreateVendorForm from "./CreateVendorForm"
-<<<<<<< HEAD
-=======
-import { useGetSecondaryUnits } from "@/hooks/ajustes/globales/unidades/useGetSecondaryUnits"
-import { ScrollArea } from "../ui/scroll-area"
->>>>>>> 9ef4e7cd850e7e00a6e7806a6296128037498cb8
+
 
 const FormSchema = z.object({
   justification: z.string({ message: "Debe ingresar una justificacion." }),
@@ -86,8 +83,6 @@ export function CreateQuoteForm({ initialData, onClose, req }: { initialData?: a
     },
   });
 
-  console.log(form.getValues())
-
   const { control, handleSubmit } = form
 
   const { fields } = useFieldArray({
@@ -106,7 +101,7 @@ export function CreateQuoteForm({ initialData, onClose, req }: { initialData?: a
 
   const total = useMemo(() => calculateTotal(articles), [articles]);
 
-  const { data: vendors, isLoading: isVendorsLoading, isError: isVendorsErros } = useGetVendors()
+  const { data: vendors, isLoading: isVendorsLoading, isError: isVendorsErros } = useGetVendors(selectedCompany?.split(" ").join("").toLowerCase())
 
   const { mutate, data: locations, isPending: isLocationsPending } = useGetLocationsByCompanyId()
 

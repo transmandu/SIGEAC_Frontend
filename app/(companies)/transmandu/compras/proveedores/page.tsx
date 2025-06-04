@@ -1,7 +1,7 @@
 'use client'
 
 import { ContentLayout } from '@/components/layout/ContentLayout'
-import { useGetVendors } from '@/hooks/general/globales/proveedores/useGetVendors'
+import { useGetVendors } from '@/hooks/general/proveedores/useGetVendors'
 import { Loader2 } from 'lucide-react'
 import { columns } from './columns'
 import { DataTable } from './data-table'
@@ -9,7 +9,7 @@ import { useCompanyStore } from '@/stores/CompanyStore'
 
 const VendorsPage = () => {
   const { selectedCompany } = useCompanyStore();
-  const { data: vendors, isLoading, error } = useGetVendors(selectedCompany?.split(" ").join("") ?? null);
+  const { data: vendors, isLoading, error } = useGetVendors(selectedCompany?.split(" ").join(""));
   return (
     <ContentLayout title='Permisos'>
       <h1 className='text-5xl font-bold text-center mt-2'>

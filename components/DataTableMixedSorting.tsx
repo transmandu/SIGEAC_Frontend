@@ -16,7 +16,6 @@ import {
 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
-import { mixedSortingFn } from "@/lib/ordenamiento_mixed_sorting"
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
@@ -45,10 +44,6 @@ export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData
       columnFilters,
       columnVisibility,
       rowSelection,
-    },
-    // Configurar la función de ordenamiento personalizada como predeterminada
-    sortingFns: {
-      mixed: mixedSortingFn,
     },
   })
 

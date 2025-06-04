@@ -468,39 +468,19 @@ export type Manufacturer = {
 
 export type Module = {
   id: number,
-  order_number: string,
-  status: string,
-  created_by: User,
-  type: string,
-  image?: string,
-  requested_by: string,
-  batch: {
-    name: string,
-    batch_articles: {
-      article_part_number: string,
-      article_alt_part_number?: string,
-      pma?: string,
-      reference_cod?: string,
-      justification: string,
-      quantity: number,
-      unit?: Convertion,
-      image?: string,
-      certificates?: string[]
-    }[]
-  }[],
-  received_by: string,
-  justification: string,
-  arrival_date: Date,
-  submission_date: Date,
-  work_order: WorkOrder,
-  aircraft: MaintenanceAircraft,
+  name: string,
+  description: string,
+  registered_by: string,
+  company: Company,
 }
 
 export type Vendor = {
 id: string | number,
-  name: string,
-  description: string,
-  company_id: string,
+name: string,
+phone: string,
+type: "PROVEEDOR" | "BENEFICIARIO",
+address: string,
+email: string,
 }
 
 export type Permission = {
@@ -636,6 +616,7 @@ export type Requisition = {
   submission_date: Date,
   work_order: WorkOrder,
   aircraft: Aircraft,
+  type: "GENERAL" | "AERONAUTICO",
 }
 
 export type AdministrationRequisition = {
@@ -742,7 +723,10 @@ export type AdministrationVendor = {
 export type Warehouse = {
   id: string,
   name: string,
-  address: string,
+  location: {
+    address: string,
+    type: string,
+  },
   company: string,
   type: string,
 }

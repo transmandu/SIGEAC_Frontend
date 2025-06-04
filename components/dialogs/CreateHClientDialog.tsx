@@ -10,7 +10,7 @@ import {
   DialogTrigger
 } from "@/components/ui/dialog"
 import { useState } from "react"
-import CreateHClientForm from "../forms/CreateHClientForm"
+import { CreateClientForm } from "../forms/CreateClientForm";
 
 export function CreateHClientDialog() {
   const [open, setOpen] = useState(false);
@@ -26,7 +26,7 @@ export function CreateHClientDialog() {
             Cree un cliente rellenando la información necesaria.
           </DialogDescription>
         </DialogHeader>
-        <CreateHClientForm onClose={() => setOpen(false)} />
+        <CreateClientForm onClose={() => setOpen(false)} />
       </DialogContent>
     </Dialog>
   );

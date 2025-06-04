@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/dialog";
 import { useState } from "react";
 import { CreateAircraftForm } from "../forms/CreateAircraftForm";
+import { ScrollArea } from "../ui/scroll-area";
 
 export function CreateAircraftDialog() {
   const [open, setOpen] = useState<boolean>(false);
@@ -26,7 +27,7 @@ export function CreateAircraftDialog() {
         </Button>
       </DialogTrigger>
       <DialogContent
-        className="sm:max-w-[480px]"
+        className="sm:max-w-[520px]"
         onInteractOutside={(e) => {
           e.preventDefault(); // Evita que el diálogo se cierre al hacer clic fuera
         }}
@@ -35,7 +36,9 @@ export function CreateAircraftDialog() {
           <DialogTitle>Crear Aeronave</DialogTitle>
           <DialogDescription>Cree una nueva aeronave.</DialogDescription>
         </DialogHeader>
-        <CreateAircraftForm onClose={() => setOpen(false)} />
+        <ScrollArea className="h-[580px]">
+          <CreateAircraftForm onClose={() => setOpen(false)} />
+        </ScrollArea>
       </DialogContent>
     </Dialog>
   );

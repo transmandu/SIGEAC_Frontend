@@ -76,7 +76,7 @@ export function CreateAdministrationRequisitionForm({ onClose, initialData, isEd
       form.reset(initialData);
       form.setValue("company", selectedCompany.split(" ").join(""))
     }
-  }, [user, initialData, form, selectedCompany])
+  }, [user, initialData, form, selectedCompany, selectedStation])
 
   useEffect(() => {
     if (selectedStation) {
@@ -86,7 +86,7 @@ export function CreateAdministrationRequisitionForm({ onClose, initialData, isEd
 
   useEffect(() => {
     form.setValue("articles", batches)
-  }, [batches])
+  }, [batches, form])
 
   const handleArticleChange = (batchIndex: number, articleIndex: number, field: string, value: string | number) => {
     setBatches(prev =>

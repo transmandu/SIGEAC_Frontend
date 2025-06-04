@@ -31,15 +31,15 @@ interface Requisition {
 }[]
 
 
-const fetchRequisitionByOrderNumber = async (company: string | null, order_number: string): Promise<Requisition | AdministrationRequisition> => {
+const fetchRequisitionByOrderNumber = async ({company, order_number}:{company: string | undefined, order_number: string}): Promise<Requisition> => {
   const {data} = await axios.get(`/show-requisition-order/${company}/${order_number}`);
   return data[0];
 };
 
-export const useGetRequisitionByOrderNumber = (company: string | null, order_number: string) => {
+export const useGetRequisitionByOrderNumber = ({company, order_number}:{company: string | undefined, order_number: string}) => {
   return useQuery<Requisition, Error>({
     queryKey: ["requisition-order", company, order_number],
-    queryFn: () => fetchRequisitionByOrderNumber(company, order_number),
+    queryFn: () => fetchRequisitionByOrderNumber({company, order_number}),
     enabled: !!company && !!order_number,
   });
 };

@@ -1,11 +1,11 @@
 "use client";
 
-import { ColumnDef } from "@tanstack/react-table";
-import { AdministrationVendor } from "@/types";
-import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
 import AdministrationVendorDropdownActions from "@/components/misc/AdministrationVendorDropdownAtions";
+import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
+import { Vendor } from "@/types";
+import { ColumnDef } from "@tanstack/react-table";
 
-export const columns: ColumnDef<AdministrationVendor>[] = [
+export const columns: ColumnDef<Vendor>[] = [
   {
     accessorKey: "name",
     header: ({ column }) => (
@@ -14,16 +14,6 @@ export const columns: ColumnDef<AdministrationVendor>[] = [
     meta: { title: "Nombre" },
     cell: ({ row }) => (
       <div className="flex justify-center font-bold">{row.original.name}</div>
-    ),
-  },
-  {
-    accessorKey: "email",
-    header: ({ column }) => (
-      <DataTableColumnHeader filter column={column} title="Email" />
-    ),
-    meta: { title: "Email" },
-    cell: ({ row }) => (
-      <div className="flex justify-center font-bold">{row.original.email}</div>
     ),
   },
   {
@@ -71,7 +61,6 @@ export const columns: ColumnDef<AdministrationVendor>[] = [
   {
     id: "actions",
     cell: ({ row }) => {
-      const id = row.original.id;
       return <AdministrationVendorDropdownActions vendor={row.original} />;
     },
   },

@@ -2,11 +2,11 @@
 
 import WarehouseDropdownActions from "@/components/misc/WarehouseDropdownActions"
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader"
-import { MaintenanceClient } from "@/types"
+import { Client } from "@/types"
 import { ColumnDef } from "@tanstack/react-table"
 import Link from "next/link"
 
-export const columns: ColumnDef<MaintenanceClient>[] = [
+export const columns: ColumnDef<Client>[] = [
   {
     accessorKey: "name",
     header: ({ column }) => (
@@ -37,7 +37,7 @@ export const columns: ColumnDef<MaintenanceClient>[] = [
     meta: { title: 'Nro. de TLF' },
     cell: ({ row }) =>
       <>
-        <span className='text-muted-foreground flex justify-center italic'>{row.original.phone_number}</span>
+        <span className='text-muted-foreground flex justify-center italic'>{row.original.phone}</span>
       </>
   },
   {

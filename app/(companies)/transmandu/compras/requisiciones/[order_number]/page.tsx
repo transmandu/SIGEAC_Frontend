@@ -18,6 +18,7 @@ import { useGetRequisitionByOrderNumber } from '@/hooks/mantenimiento/compras/us
 import { cn } from '@/lib/utils';
 import { useCompanyStore } from '@/stores/CompanyStore';
 import { FileText, Loader2, Trash2, User, Image as ImageIcon } from 'lucide-react';
+import Image from 'next/image';
 import { useParams, useRouter } from 'next/navigation';
 import { useState } from 'react';
 
@@ -26,7 +27,7 @@ const RequisitionPage = () => {
   const { selectedCompany } = useCompanyStore();
   const router = useRouter();
   const { order_number } = useParams<{ order_number: string }>();
-  const { data, isLoading, isError } = useGetRequisitionByOrderNumber(selectedCompany?.split(" ").join("") ?? null, order_number);
+  const { data, isLoading, isError } = useGetRequisitionByOrderNumber({company: selectedCompany?.split(" ").join(""), order_number});
   const { deleteRequisition } = useDeleteRequisition();
 
   if (isLoading) return <LoadingPage />;
@@ -61,7 +62,7 @@ const RequisitionPage = () => {
           {data?.image && (
             <div className="flex flex-col items-center gap-2">
               <div className="max-w-sm overflow-hidden">
-                <img
+                <Image
                   src={data.image.startsWith('data:image')
                     ? data.image
                     : `data:image/jpeg;base64,${data.image}`}
@@ -169,7 +170,7 @@ const RequisitionPage = () => {
                           {article.image ? (
                             <>
                               <div className='max-w-xs'>
-                                <img
+                                <Image
                                   src={article.image.startsWith('data:image')
                                     ? article.image
                                     : `data:image/jpeg;base64,${article.image}`}

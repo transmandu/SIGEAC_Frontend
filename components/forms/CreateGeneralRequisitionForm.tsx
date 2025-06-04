@@ -1,11 +1,12 @@
 "use client"
+import { useCreateRequisition, useUpdateRequisition } from "@/actions/mantenimiento/compras/requisiciones/actions"
 import { Button } from "@/components/ui/button"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
-import { useCreateRequisition, useUpdateRequisition } from "@/actions/mantenimiento/compras/requisiciones/actions"
 import { Input } from "@/components/ui/input"
 import { useAuth } from "@/contexts/AuthContext"
 import { useGetDepartamentEmployees } from "@/hooks/administracion/useGetDepartamentEmployees"
-import { useGetBatchesByLocationId } from "@/hooks/useGetBatchesByLocationId"
+import { useGetSecondaryUnits } from "@/hooks/general/unidades/useGetSecondaryUnits"
+import { useGetBatchesByLocationId } from "@/hooks/mantenimiento/almacen/renglones/useGetBatchesByLocationId"
 import { cn } from "@/lib/utils"
 import { useCompanyStore } from "@/stores/CompanyStore"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -13,14 +14,14 @@ import { Check, ChevronsUpDown, Loader2, MinusCircle } from "lucide-react"
 import { useEffect, useState } from "react"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
+import { CreateBatchDialog } from "../dialogs/CreateBatchDialog"
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "../ui/command"
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover"
 import { ScrollArea } from "../ui/scroll-area"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select"
 import { Separator } from "../ui/separator"
 import { Textarea } from "../ui/textarea"
-import { CreateBatchDialog } from "../dialogs/CreateBatchDialog"
-import { useGetSecondaryUnits } from "@/hooks/general/globales/unidades/useGetSecondaryUnits"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select"
+import Image from "next/image"
 
 const FormSchema = z.object({
   justification: z.string({ message: "La justificación debe ser válida." }).min(2, { message: "La justificación debe ser válida." }),
@@ -123,7 +124,7 @@ export function CreateGeneralRequisitionForm({ onClose, initialData, isEditing, 
       form.reset(initialData); // Set initial form values
       form.setValue("company", selectedCompany.split(" ").join(""))
     }
-  }, [user, initialData, form, selectedCompany])
+  }, [user, initialData, form, selectedCompany, selectedStation])
 
   useEffect(() => {
     if (selectedStation) {
@@ -134,7 +135,7 @@ export function CreateGeneralRequisitionForm({ onClose, initialData, isEditing, 
 
   useEffect(() => {
     form.setValue("articles", selectedBatches)
-  }, [selectedBatches])
+  }, [selectedBatches, form])
 
 
   // Maneja la selección de un lote.
@@ -480,7 +481,7 @@ export function CreateGeneralRequisitionForm({ onClose, initialData, isEditing, 
               <FormLabel>Imagen General</FormLabel>
               <div className="flex items-center gap-4">
                 {field.value && (
-                  <img
+                  <Image
                     src={URL.createObjectURL(field.value)}
                     alt="Preview"
                     className="h-16 w-16 rounded-md object-cover"

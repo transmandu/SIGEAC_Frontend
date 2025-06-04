@@ -35,7 +35,7 @@ import { useGetAccountant } from "@/hooks/aerolinea/cuentas_contables/useGetAcco
 import { useGetCategory } from "@/hooks/aerolinea/categorias_cuentas/useGetCategory";
 import { useGetEmployeesByCompany } from "@/hooks/administracion/useGetEmployees";
 import { useGetBankAccounts } from "@/hooks/general/cuentas_bancarias/useGetBankAccounts";
-import { useGetVendors } from "@/hooks/general/globales/proveedores/useGetVendors";
+import { useGetVendors } from "@/hooks/general/proveedores/useGetVendors";
 import { cn } from "@/lib/utils";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -53,7 +53,6 @@ import { useEffect } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
 import { z } from "zod";
 import { useRouter } from "next/navigation";
-import { useGetAdministrationVendor } from "@/hooks/administracion/useGetAdministrationVendor";
 
 // Esquemas Zod (igual que antes)
 const cash_movement_detailsSchema = z.object({
@@ -132,8 +131,8 @@ export default function AircraftExpensesPage() {
     useGetBankAccounts();
   const { data: accounts, isLoading: isAccountLoading } = useGetAccountant();
   const { data: vendors, isLoading: isVendorLoading } =
-    useGetAdministrationVendor();
-  const { data: clients, isLoading: isClientLoading } = useGetClients();
+    useGetVendors(selectedCompany?.split(" ").join(""));
+  const { data: clients, isLoading: isClientLoading } = useGetClients(selectedCompany?.split(" ").join(""));
   const { data: allCategories, isLoading: isAllCategoriesLoading } =
     useGetCategory();
 
@@ -166,6 +165,7 @@ export default function AircraftExpensesPage() {
     };
     await createCashMovement.mutateAsync(transformedData);
   }
+  
 
   const addMovement = () => {
     appendMovement({

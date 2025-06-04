@@ -151,7 +151,7 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
         quantity: currentQuantity,
       });
     }
-  }, [form.watch("unit"), quantity]);
+  }, [quantity, articleSelected, form]);
 
   const { setValue } = form;
 

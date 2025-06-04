@@ -14,7 +14,7 @@ export const useCreateManufacturer = () => {
 
     const createMutation = useMutation({
         mutationFn: async ({company, data}: {
-          company: string | null, data: ManufacturerSchema
+          company: string | undefined, data: ManufacturerSchema
         }) => {
             await axiosInstance.post(`/${company}/manufacturer`, data)
           },

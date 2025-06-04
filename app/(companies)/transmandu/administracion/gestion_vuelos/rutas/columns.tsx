@@ -24,7 +24,7 @@ export const columns: ColumnDef<Route>[] = [
     meta: { title: "Escala" },
     cell: ({ row }) => {
       const layovers = row.original.layovers;
-      
+
       if (!layovers || layovers.length === 0) {
         return (
           <div className="flex justify-center font-bold">
@@ -35,7 +35,7 @@ export const columns: ColumnDef<Route>[] = [
       return (
         <div className="flex justify-center font-bold">
           <span className="text-muted-foreground font-bold">
-            {layovers.map(layover => layover.name).join(" , ")}
+            {layovers}
           </span>
         </div>
       );

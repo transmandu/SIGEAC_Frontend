@@ -4,10 +4,12 @@ import { ContentLayout } from "@/components/layout/ContentLayout";
 import LoadingPage from "@/components/misc/LoadingPage";
 import { columns } from "./columns";
 import { DataTable } from "./data-table";
-import { useGetAdministrationVendor } from "@/hooks/administracion/useGetAdministrationVendor";
+import { useGetVendors } from "@/hooks/general/proveedores/useGetVendors";
+import { useCompanyStore } from "@/stores/CompanyStore";
 
 const AdministrationVendor = () => {
-  const { data, isLoading, isError } = useGetAdministrationVendor();
+  const { selectedCompany } = useCompanyStore();
+  const { data, isLoading, isError } = useGetVendors(selectedCompany?.split(" ").join(""));
 
   if (isLoading) {
     return <LoadingPage />;
@@ -17,10 +19,10 @@ const AdministrationVendor = () => {
     <ContentLayout title="Empresa">
       {" "}
       <h1 className="text-5xl font-bold text-center mt-2">
-        Control de Proveedores
+        Control de Proveedores/Beneficiarios
       </h1>
       <p className="text-sm text-muted-foreground text-center italic mt-2">
-        Aquí puede llevar el control de los proveedores.
+        Aquí puede llevar el control de los proveedores y beneficiarios.
       </p>
       {data && <DataTable columns={columns} data={data} />}
       {isError && (

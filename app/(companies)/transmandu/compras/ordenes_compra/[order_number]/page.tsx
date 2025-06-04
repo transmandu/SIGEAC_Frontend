@@ -27,7 +27,7 @@ const CotizacionPage = () => {
 
   const { order_number } = useParams<{ order_number: string }>();
 
-  const { data, isLoading } = useGetPurchaseOrder(selectedCompany?.split(" ").join("") ?? null, order_number);
+  const { data, isLoading } = useGetPurchaseOrder(selectedCompany?.split(" ").join(""), order_number);
 
   if (isLoading) return <LoadingPage />;
 

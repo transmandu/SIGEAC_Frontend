@@ -103,7 +103,7 @@ const RentingDropdownActions = ({ rent }: { rent: Renting }) => {
             <DialogTitle>Definir Fecha Final</DialogTitle>
           </DialogHeader>
           <DefineEndDateForm
-            id={rent.id.toString()}
+            renting={rent}
             onClose={() => setOpenDefine(false)}
           />
         </DialogContent>

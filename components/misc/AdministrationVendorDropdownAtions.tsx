@@ -5,7 +5,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { AdministrationVendor } from "@/types";
+import { Vendor } from "@/types";
 import {
   EditIcon,
   EyeIcon,
@@ -33,7 +33,7 @@ import {
 const AdministrationVendorDropdownActions = ({
   vendor,
 }: {
-  vendor: AdministrationVendor;
+  vendor: Vendor;
 }) => {
   const [openVendor, setOpenVendor] = useState<boolean>(false);
   const [openDelete, setOpenDelete] = useState<boolean>(false);

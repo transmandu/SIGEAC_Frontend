@@ -13,6 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import ClientResumeDialog from "@/components/dialogs/ClientResumeDialog";
 import VendorResumeDialog from "@/components/dialogs/VendorResumeDialog";
 import { FileDownIcon } from "lucide-react";
+import Image from "next/image";
 
 export const columns: ColumnDef<CashMovement>[] = [
   {
@@ -34,23 +35,7 @@ export const columns: ColumnDef<CashMovement>[] = [
   {
     accessorKey: "client.name",
     header: ({ column }) => (
-      <DataTableColumnHeader filter column={column} title="Cliente" />
-    ),
-    meta: { title: "Cliente" },
-    cell: ({ row }) => (
-      <div style={{ display: "flex", justifyContent: "center", width: "100%" }}>
-        {row.original.client ? (
-          <ClientResumeDialog client={row.original.client} />
-        ) : (
-          <span>-</span>
-        )}
-      </div>
-    ),
-  },
-  {
-    accessorKey: "vendor.name",
-    header: ({ column }) => (
-      <DataTableColumnHeader filter column={column} title="Proveedor" />
+      <DataTableColumnHeader filter column={column} title="Proveedor / Cliente" />
     ),
     meta: { title: "Proveedor" },
     cell: ({ row }) => (
@@ -58,7 +43,7 @@ export const columns: ColumnDef<CashMovement>[] = [
         {row.original.vendor ? (
           <VendorResumeDialog vendor={row.original.vendor} />
         ) : (
-          <span>-</span>
+          <ClientResumeDialog client={row.original.client} />
         )}
       </div>
     ),
@@ -136,7 +121,7 @@ export const columns: ColumnDef<CashMovement>[] = [
       if (reference.match(/\.(jpeg|jpg|gif|png|webp)$/i)) {
         return (
           <div className="flex justify-center">
-            <img
+            <Image
               src={reference}
               alt="Referencia"
               className="h-10 w-10 object-cover rounded"

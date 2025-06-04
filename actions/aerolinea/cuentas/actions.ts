@@ -10,7 +10,7 @@ export const useCreateAccount = () => {
             await axiosInstance.post('/transmandu/accountants', data)
           },
         onSuccess: () => {
-            queryAccount.invalidateQueries({queryKey: ['account']})
+            queryAccount.invalidateQueries({queryKey: ['accountants']})
             toast("¡Creado!", {
                 description: `¡La cuenta se ha creado correctamente!`
             })
@@ -35,7 +35,7 @@ export const useDeleteAccount = () => {
         },
       onSuccess: () => {
 
-          queryAccount.invalidateQueries({queryKey: ['account']})
+          queryAccount.invalidateQueries({queryKey: ['accountants']})
           toast.success("¡Eliminado!", {
               description: `¡La cuenta ha sido eliminado correctamente!`
           })
@@ -64,7 +64,7 @@ export const useGetAccount = (id: string | null) => {
   return {
     data: accountsQuery.data,
     loading: accountsQuery.isLoading,
-    error: accountsQuery.isError 
+    error: accountsQuery.isError
   };
 };
 

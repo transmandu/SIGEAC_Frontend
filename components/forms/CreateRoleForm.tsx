@@ -23,8 +23,6 @@ import {
   TabsList,
   TabsTrigger
 } from "@/components/ui/tabs";
-import { useGetCompanies } from "@/hooks/administracion/useGetCompanies";
-import { useGetModulesByCompanyId } from "@/hooks/administracion/useGetModulesByCompanyId";
 import { useGetPermissions } from "@/hooks/sistema/usuario/useGetPermissions";
 import { Company, Module } from "@/types";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -34,6 +32,8 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Button } from "../ui/button";
 import { Checkbox } from "../ui/checkbox";
+import { useGetCompanies } from "@/hooks/sistema/useGetCompanies";
+import { useGetModulesByCompanyId } from "@/hooks/sistema/useGetModulesByCompanyId";
 
 const formSchema = z.object({
   name: z.string().min(3, {

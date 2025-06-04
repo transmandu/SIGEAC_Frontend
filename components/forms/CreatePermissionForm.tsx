@@ -17,8 +17,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useGetCompanies } from "@/hooks/administracion/useGetCompanies";
-import { useGetModulesByCompanyId } from "@/hooks/administracion/useGetModulesByCompanyId";
 import { Company } from "@/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
@@ -26,6 +24,8 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Button } from "../ui/button";
+import { useGetCompanies } from "@/hooks/sistema/useGetCompanies";
+import { useGetModulesByCompanyId } from "@/hooks/sistema/useGetModulesByCompanyId";
 
 
 const formSchema = z.object({
@@ -184,9 +184,9 @@ export default function CreatePermisssionForm({ onClose }: FormProps) {
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  {modules && modules.map(module => (
-                    <SelectItem key={module.id} value={module.id.toString()}>
-                      {module.name}
+                  {modules && modules.map(m => (
+                    <SelectItem key={m.id} value={m.id.toString()}>
+                      {m.name}
                     </SelectItem>
                   ))}
                 </SelectContent>

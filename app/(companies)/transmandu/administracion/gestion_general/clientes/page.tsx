@@ -5,11 +5,13 @@ import { DataTable } from "./data-table";
 import { columns } from "./columns";
 import { useGetClients } from "@/hooks/general/clientes/useGetClients";
 import LoadingPage from "@/components/misc/LoadingPage";
+import { useCompanyStore } from "@/stores/CompanyStore";
 
 
 // CAMBIAR ID POR CDI, RIF O LO QUE SEA
 const ClientsPage = () => {
-  const { data, isLoading, isError } = useGetClients();
+const {selectedCompany} = useCompanyStore();
+const { data, isLoading, isError } = useGetClients(selectedCompany?.split(" ").join(""));
 
   if (isLoading) {
     return <LoadingPage />;

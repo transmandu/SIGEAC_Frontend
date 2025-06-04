@@ -24,6 +24,7 @@ import { useGetBankAccounts } from "@/hooks/general/cuentas_bancarias/useGetBank
 import { Label } from "../ui/label";
 import { Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useCompanyStore } from "@/stores/CompanyStore";
 
 const formSchema = z
   .object({
@@ -108,6 +109,7 @@ interface FormProps {
 
 export function FlightForm({ onClose }: FormProps) {
   const { createFlight } = useCreateFlight();
+  const {selectedCompany} = useCompanyStore();
   const { data: routes, isLoading: isRouteLoading, isError } = useGetRoute();
   const { data: accounts, isLoading: isAccLoading } = useGetBankAccounts();
   const [kg, setKg] = useState("0");
@@ -115,12 +117,12 @@ export function FlightForm({ onClose }: FormProps) {
     data: clients,
     isLoading: isClientsLoading,
     isError: isClientsError,
-  } = useGetClients();
+  } = useGetClients(selectedCompany?.split(" ").join(""));
   const {
     data: aircrafts,
     isLoading: isAircraftLoading,
     isError: isAircraftError,
-  } = useGetAircrafts();
+  } = useGetAircrafts(selectedCompany?.split(" ").join(""));
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -138,22 +140,25 @@ export function FlightForm({ onClose }: FormProps) {
     }
   }, [form]);
 
+
+  const {fee, type} = form.watch();
+
   useEffect(() => {
-    if (form.watch("type") !== "CHART") {
+    if (type !== "CHART") {
       let newAmount = 0;
-      const feeString = form.watch("fee") || "0";
-      const fee = parseFloat(feeString.replace(/,/g, "")); // Asegurar reemplazo de comas
+      const feeString = fee || "0";
+      const final_fee = parseFloat(feeString.replace(/,/g, "")); // Asegurar reemplazo de comas
 
       // Asegurar que kg use punto como separador decimal
       const kgValue = parseFloat(kg.replace(/,/g, "") || "0");
 
       if (!isNaN(kgValue)) {
-        newAmount = kgValue * fee;
+        newAmount = kgValue * final_fee;
       }
 
       form.setValue("total_amount", newAmount.toString());
     }
-  }, [kg, form.watch("fee"), form.watch("type")]);
+  }, [kg, fee, type, form]);
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     const formattedValues = {

@@ -1,20 +1,21 @@
 "use client";
 
+import { useCreateCredit } from "@/actions/aerolinea/creditos/cuentas_por_pagar/actions";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger, } from "@/components/ui/popover";
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList, } from "../ui/command";
+import { useGetVendors } from "@/hooks/general/proveedores/useGetVendors";
 import { cn } from "@/lib/utils";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
 import { es } from "date-fns/locale/es";
 import { CalendarIcon, Check, ChevronsUpDown, Loader2 } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Calendar } from "../ui/calendar";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useCreateCredit } from "@/actions/aerolinea/creditos/cuentas_por_pagar/actions";
-import { useGetAdministrationVendor } from "@/hooks/administracion/useGetAdministrationVendor";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList, } from "../ui/command";
+import { useCompanyStore } from "@/stores/CompanyStore";
 
 const formSchema = z
   .object({
@@ -55,8 +56,9 @@ interface FormProps {
 }
 
 export function CreateCreditForm({ onClose }: FormProps) {
+  const {selectedCompany} = useCompanyStore();
   const { createCredit } = useCreateCredit();
-  const { data: vendors, isLoading: isVendorLoading } = useGetAdministrationVendor();
+  const { data: vendors, isLoading: isVendorLoading } = useGetVendors(selectedCompany?.split(" ").join(""));
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),

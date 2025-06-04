@@ -18,8 +18,8 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { useGetConditions } from "@/hooks/administracion/useGetConditions"
-import { useGetManufacturers } from "@/hooks/general/globales/fabricantes/useGetManufacturers"
-import { useGetSecondaryUnits } from "@/hooks/general/globales/unidades/useGetSecondaryUnits"
+import { useGetManufacturers } from "@/hooks/general/fabricantes/useGetManufacturers"
+import { useGetSecondaryUnits } from "@/hooks/general/unidades/useGetSecondaryUnits"
 import { useGetBatchesByLocationId } from "@/hooks/mantenimiento/almacen/renglones/useGetBatchesByLocationId"
 import { cn } from "@/lib/utils"
 import { useCompanyStore } from "@/stores/CompanyStore"
@@ -136,7 +136,7 @@ const CreateConsumableForm = ({ initialData, isEditing }: {
 
   const { data: secondaryUnits, isLoading: secondaryLoading, isError: secondaryError } = useGetSecondaryUnits()
 
-  const { data: manufacturers, isLoading: isManufacturerLoading, isError: isManufacturerError } = useGetManufacturers(selectedCompany?.split(" ").join("") ?? null)
+  const { data: manufacturers, isLoading: isManufacturerLoading, isError: isManufacturerError } = useGetManufacturers(selectedCompany?.split(" ").join(""))
 
   const { data: conditions, isLoading: isConditionsLoading, error: isConditionsError } = useGetConditions();
 

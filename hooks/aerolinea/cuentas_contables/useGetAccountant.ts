@@ -11,7 +11,7 @@ const fetchAccount = async (): Promise<Accountant[]> => {
 
 export const useGetAccountant = () => {
   return useQuery<Accountant[]>({
-    queryKey: ["account"],
+    queryKey: ["accountants"],
     queryFn: fetchAccount,
     staleTime: 1000 * 60 * 5, // 5 minutos
   });

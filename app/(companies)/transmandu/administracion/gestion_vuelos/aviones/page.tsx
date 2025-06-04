@@ -5,9 +5,11 @@ import { useGetAircrafts } from "@/hooks/aerolinea/aeronaves/useGetAircrafts";
 import { columns } from "./columns";
 import { DataTable } from "./data-table";
 import LoadingPage from "@/components/misc/LoadingPage";
+import { useCompanyStore } from "@/stores/CompanyStore";
 
 const AircraftPage = () => {
-  const { data, isLoading, isError } = useGetAircrafts();
+  const {selectedCompany} = useCompanyStore();
+  const { data, isLoading, isError } = useGetAircrafts(selectedCompany?.split(" ").join(""));
 
   if (isLoading) {
     return <LoadingPage />;

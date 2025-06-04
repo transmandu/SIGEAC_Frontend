@@ -41,7 +41,8 @@ import { z } from "zod";
 import { Label } from "../ui/label";
 import { Separator } from "../ui/separator";
 import { Textarea } from "../ui/textarea";
-import { useGetAdministrationVendor } from "@/hooks/administracion/useGetAdministrationVendor";
+import { useGetVendors } from "@/hooks/general/proveedores/useGetVendors";
+import { useCompanyStore } from "@/stores/CompanyStore";
 
 // Esquema para los gastos
 const cash_movement_detailsSchema = z.object({
@@ -131,7 +132,7 @@ export function AircraftExpensiveForm({ acronym, onClose }: FormProps) {
       ],
     },
   });
-
+  const {selectedCompany} = useCompanyStore();
   const { createCashMovementForAircraft } = useCashMovementForAircraft();
   const {
     data: employees,
@@ -142,7 +143,7 @@ export function AircraftExpensiveForm({ acronym, onClose }: FormProps) {
   const { data: bankaccounts, isLoading: isBankAccLoading } =
     useGetBankAccounts();
   const { data: accounts, isLoading: isAccountLoading } = useGetAccountant();
-  const { data: vendors, isLoading: isVendorLoading } = useGetAdministrationVendor();
+  const { data: vendors, isLoading: isVendorLoading } = useGetVendors(selectedCompany?.split(" ").join(""));
 
   // Get accountant_id from form values to fetch categories
   const accountantId = form.watch(
@@ -161,8 +162,8 @@ export function AircraftExpensiveForm({ acronym, onClose }: FormProps) {
   });
 
   useEffect(() => {
-    mutate("transmandu");
-  }, [mutate]);
+    mutate(selectedCompany!.split(" ").join("")); // Refetch employees when company changes
+  }, [mutate, selectedCompany]);
 
   async function onSubmit(formData: z.infer<typeof formSchema>) {
     interface AircraftExpenseFormData {

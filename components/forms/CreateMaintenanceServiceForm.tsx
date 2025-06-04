@@ -19,8 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useGetManufacturers } from "@/hooks/general/globales/condiciones/useGetConditions";
-import { useGetBatchesByLocationId } from "@/hooks/useGetBatchesByLocationId";
+import { useGetManufacturers } from "@/hooks/general/condiciones/useGetConditions";
 import { cn } from "@/lib/utils";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -32,6 +31,7 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { ScrollArea } from "../ui/scroll-area";
 import { Textarea } from "../ui/textarea";
+import { useGetBatchesByLocationId } from "@/hooks/mantenimiento/almacen/renglones/useGetBatchesByLocationId";
 
 // Esquema de validación para el servicio
 const serviceSchema = z.object({
@@ -87,9 +87,9 @@ interface CreateMaintenanceServiceDialogProps {
 }
 
 export function CreateMaintenanceServiceForm({ onClose }: CreateMaintenanceServiceDialogProps) {
+  const { selectedStation, selectedCompany } = useCompanyStore()
   const { mutate, data: batches, isPending: isBatchesLoading, isError: isBatchesError } = useGetBatchesByLocationId();
-  const { data: manufacturers, isLoading: isManufacturersLoading, isError: isManufacturersError } = useGetManufacturers()
-  const { selectedStation } = useCompanyStore()
+  const { data: manufacturers, isLoading: isManufacturersLoading, isError: isManufacturersError } = useGetManufacturers(selectedCompany?.split(' ').join(''));
   const { createService } = useCreateMaintenanceService()
   const [currentStep, setCurrentStep] = useState(1); // Paso actual
   const [serviceData, setServiceData] = useState<ServiceFormType | null>(null); // Datos del servicio
@@ -121,11 +121,13 @@ export function CreateMaintenanceServiceForm({ onClose }: CreateMaintenanceServi
     name: "tasks",
   });
 
+  const {type} = serviceForm.watch(); // Obtenemos el tipo de servicio seleccionado
+
   const filteredManufacturers = useMemo(() => {
     return manufacturers?.filter(
-      (manufacturer) => manufacturer.type === serviceForm.watch("type")
+      (manufacturer) => manufacturer.type === type
     ) || [];
-  }, [manufacturers, serviceForm.watch("type")]);
+  }, [manufacturers, type]);
 
   useEffect(() => {
     if (selectedStation) {

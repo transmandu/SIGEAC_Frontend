@@ -110,8 +110,7 @@ export function CreateAircraftForm({ onClose }: FormProps) {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)}>
-        <div className="flex flex-col md:flex-row gap-2">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col xl:grid gap-1 xl:grid-cols-2 xl:gap-4">
           <FormField
             control={form.control}
             name="serial"
@@ -138,8 +137,6 @@ export function CreateAircraftForm({ onClose }: FormProps) {
               </FormItem>
             )}
           />
-        </div>
-        <div className="flex gap-2 items-center justify-center">
           <FormField
             control={form.control}
             name="model"
@@ -184,8 +181,6 @@ export function CreateAircraftForm({ onClose }: FormProps) {
               </FormItem>
             )}
           />
-        </div>
-        <div className="flex gap-2 items-center">
           <FormField
             control={form.control}
             name="owner"
@@ -212,8 +207,6 @@ export function CreateAircraftForm({ onClose }: FormProps) {
               </FormItem>
             )}
           />
-        </div>
-        <div className="flex gap-2 items-center">
           <FormField
             control={form.control}
             name="fabricant"
@@ -281,8 +274,6 @@ export function CreateAircraftForm({ onClose }: FormProps) {
               </FormItem>
             )}
           />
-        </div>
-        <div className="flex gap-2 items-center">
           <FormField
             control={form.control}
             name="status"
@@ -307,12 +298,11 @@ export function CreateAircraftForm({ onClose }: FormProps) {
               </FormItem>
             )}
           />
-        </div>
         <FormField
           control={form.control}
           name="comments"
           render={({ field }) => (
-            <FormItem>
+            <FormItem className="col-span-2">
               <FormLabel>Comentarios</FormLabel>
               <FormControl>
                 <Textarea placeholder="Detalles/Comentarios" {...field} />
@@ -321,14 +311,16 @@ export function CreateAircraftForm({ onClose }: FormProps) {
             </FormItem>
           )}
         />
-        <div className="flex justify-between items-center gap-x-4">
-          <Separator className="flex-1" />
-          <p className="text-muted-foreground">SIGEAC</p>
-          <Separator className="flex-1" />
+        <div className="flex flex-col justify-center col-span-2">
+          <div className="flex justify-between items-center gap-x-4">
+            <Separator className="flex-1" />
+            <p className="text-muted-foreground">SIGEAC</p>
+            <Separator className="flex-1" />
+          </div>
+          <Button type="submit" disabled={createAircraft.isPending}>
+            {createAircraft.isPending ? "Enviando..." : "Enviar"}
+          </Button>
         </div>
-        <Button type="submit" disabled={createAircraft.isPending}>
-          {createAircraft.isPending ? "Enviando..." : "Enviar"}
-        </Button>
       </form>
     </Form>
   );

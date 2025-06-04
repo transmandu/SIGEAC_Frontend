@@ -80,7 +80,7 @@ const PendingDispatchRequestDropdownActions
       if (selectedStation) {
         employeeMutate(Number(selectedStation))
       }
-    }, [selectedStation])
+    }, [selectedStation, employeeMutate])
     const handleAprove = async (data: z.infer<typeof formSchema>) => {
       const newQty = request.batch.article_count - Number(request.batch.articles[0].quantity);
       const qtyToBuy = Math.max(request.batch.min_quantity - newQty + 1, 0);

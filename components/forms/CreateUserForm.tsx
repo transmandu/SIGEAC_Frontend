@@ -17,8 +17,8 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-import { useGetCompanies } from "@/hooks/administracion/useGetCompanies";
-import { useGetLocationsByCompanies } from "@/hooks/administracion/useGetLocationsByCompanies";
+import { useGetCompanies } from "@/hooks/sistema/useGetCompanies";
+import { useGetLocationsByCompanies } from "@/hooks/sistema/useGetLocationsByCompanies";
 import { useGetRoles } from "@/hooks/sistema/usuario/useGetRoles";
 import { useGetUsers } from "@/hooks/sistema/usuario/useGetUsers";
 import { cn } from "@/lib/utils";

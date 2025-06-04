@@ -3,26 +3,27 @@
 import { useCreateCashMovement } from "@/actions/aerolinea/movimientos/actions";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage,} from "@/components/ui/form";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger, } from "@/components/ui/popover";
-import { useGetCash } from "@/hooks/aerolinea/cajas/useGetCash";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, } from "@/components/ui/select";
 import { useGetEmployeesByCompany } from "@/hooks/administracion/useGetEmployees";
+import { useGetCash } from "@/hooks/aerolinea/cajas/useGetCash";
+import { useGetCategoriesByAccountant } from "@/hooks/aerolinea/categorias_cuentas/useGetCategoriesByAcountant";
+import { useGetAccountant } from "@/hooks/aerolinea/cuentas_contables/useGetAccountant";
+import { useGetClients } from "@/hooks/general/clientes/useGetClients";
+import { useGetBankAccounts } from "@/hooks/general/cuentas_bancarias/useGetBankAccounts";
+import { useGetVendors } from "@/hooks/general/proveedores/useGetVendors";
 import { cn } from "@/lib/utils";
+import { useCompanyStore } from "@/stores/CompanyStore";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
 import { es } from "date-fns/locale/es";
 import { CalendarIcon, Check, ChevronsUpDown, Loader2 } from "lucide-react";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { useGetBankAccounts } from "@/hooks/general/cuentas_bancarias/useGetBankAccounts";
-import { useGetVendors } from "@/hooks/general/globales/proveedores/useGetVendors";
-import { useGetClients } from "@/hooks/general/clientes/useGetClients";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList, } from "../ui/command";
-import { useGetAccountant } from "@/hooks/aerolinea/cuentas_contables/useGetAccountant";
-import { useEffect } from "react";
-import { useGetCategoriesByAccountant } from "@/hooks/aerolinea/categorias_cuentas/useGetCategoriesByAcountant";
 
 const formSchema = z.object({
   employee_responsible_id: z.string({
@@ -93,6 +94,7 @@ export function CreateCashMovementForm({ onClose }: FormProps) {
   const accountantId = form.watch("accountant_id");
 
   const { createCashMovement } = useCreateCashMovement();
+  const {selectedCompany} = useCompanyStore();
   const {
     data: employees,
     mutate,
@@ -101,8 +103,8 @@ export function CreateCashMovementForm({ onClose }: FormProps) {
   const { data: cashes, isLoading: isCashesLoading } = useGetCash();
   const { data: bankaccounts, isLoading: isBankAccLoading } =
     useGetBankAccounts();
-  const { data: vendors, isLoading: isVendorLoading } = useGetVendors();
-  const { data: clients, isLoading: isClientLoading } = useGetClients();
+  const { data: vendors, isLoading: isVendorLoading } = useGetVendors(selectedCompany?.split(" ").join(""));
+  const { data: clients, isLoading: isClientLoading } = useGetClients(selectedCompany?.split(" ").join(""));
   const { data: accounts, isLoading: isAccountLoading } = useGetAccountant();
   const { data: categories, isLoading: isCategoryLoading } =
     useGetCategoriesByAccountant(accountantId || "");

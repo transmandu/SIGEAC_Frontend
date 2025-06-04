@@ -25,7 +25,7 @@ import { z } from "zod"
 import { Checkbox } from "../ui/checkbox"
 import { Textarea } from "../ui/textarea"
 import { AmountInput } from "../misc/AmountInput"
-import { useGetManufacturers } from "@/hooks/general/globales/fabricantes/useGetManufacturers"
+import { useGetManufacturers } from "@/hooks/general/fabricantes/useGetManufacturers"
 import { useGetConditions } from "@/hooks/administracion/useGetConditions"
 import { useRouter } from "next/navigation"
 import { MultiInputField } from "./MultiInputField"
@@ -106,7 +106,7 @@ const CreateToolForm = ({ initialData, isEditing }: {
 
   const { data: conditions, isLoading: isConditionsLoading, error: isConditionsError } = useGetConditions();
 
-  const { data: manufacturers, isLoading: isManufacturerLoading, isError: isManufacturerError } = useGetManufacturers(selectedCompany?.split(" ").join("") ?? null)
+  const { data: manufacturers, isLoading: isManufacturerLoading, isError: isManufacturerError } = useGetManufacturers(selectedCompany?.split(" ").join(""))
 
   useEffect(() => {
     if (selectedStation) {

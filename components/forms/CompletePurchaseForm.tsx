@@ -83,22 +83,21 @@ export function CompletePurchaseForm({ onClose, po }: FormProps) {
     },
   });
 
+  const {tax, wire_fee, handling_fee, usa_shipping, ock_shipping} = form.watch();
+
   const total = useMemo(() => {
     return (
       Number(po.sub_total) +
-      Number(form.watch("tax") || 0) +
-      Number(form.watch("wire_fee") || 0) +
-      Number(form.watch("handling_fee") || 0) +
-      Number(form.watch("usa_shipping") || 0) +
-      Number(form.watch("ock_shipping") || 0)
+      Number(tax || 0) +
+      Number(wire_fee|| 0) +
+      Number(handling_fee || 0) +
+      Number(usa_shipping || 0) +
+      Number(ock_shipping || 0)
     );
   }, [
     po.sub_total,
-    form.watch("tax"),
-    form.watch("wire_fee"),
-    form.watch("handling_fee"),
-    form.watch("usa_shipping"),
-    form.watch("ock_shipping"),
+    tax,
+ wire_fee, handling_fee, usa_shipping, ock_shipping
   ]);
 
   const onSubmit = async (data: FormSchemaType) => {

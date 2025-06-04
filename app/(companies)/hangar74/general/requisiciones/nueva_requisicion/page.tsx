@@ -15,9 +15,9 @@ import { Separator } from "@/components/ui/separator"
 import { Textarea } from "@/components/ui/textarea"
 import { useAuth } from "@/contexts/AuthContext"
 import { useGetDepartamentEmployees } from "@/hooks/administracion/useGetDepartamentEmployees"
-import { useGetSecondaryUnits } from "@/hooks/general/globales/unidades/useGetSecondaryUnits"
+import { useGetSecondaryUnits } from "@/hooks/general/unidades/useGetSecondaryUnits"
+import { useGetBatchesByLocationId } from "@/hooks/mantenimiento/almacen/renglones/useGetBatchesByLocationId"
 import { useGetMaintenanceAircrafts } from '@/hooks/mantenimiento/planificacion/useGetMaintenanceAircrafts'
-import { useGetBatchesByLocationId } from "@/hooks/useGetBatchesByLocationId"
 import { cn } from "@/lib/utils"
 import { useCompanyStore } from "@/stores/CompanyStore"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -26,6 +26,7 @@ import { useEffect, useState } from "react"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 import CertificatesCombobox from './_components/TagCombobox'
+import Image from "next/image"
 
 interface Article {
   part_number: string;
@@ -621,7 +622,7 @@ const CreateRequisitionPage = () => {
                   <FormLabel>Imagen General</FormLabel>
                   <div className="flex items-center gap-4">
                     {field.value && (
-                      <img
+                      <Image
                         src={URL.createObjectURL(field.value)}
                         alt="Preview"
                         className="h-16 w-16 rounded-md object-cover"

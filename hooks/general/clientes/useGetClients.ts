@@ -5,7 +5,7 @@ import { Client } from '@/types';
 import { useQuery } from '@tanstack/react-query';
 
 const fetchClients = async (company: string | undefined): Promise<Client[]> => {
-  const  {data}  = await axiosInstance.get(`/${company}/clients-administration`);
+  const  {data}  = await axiosInstance.get(`/${company}/clients`);
   return data;
 };
 

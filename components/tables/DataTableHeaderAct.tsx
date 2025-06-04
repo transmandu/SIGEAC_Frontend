@@ -26,37 +26,37 @@ export function DataTableColumnHeaderAct<TData, TValue>({
   className,
 }: DataTableColumnHeaderProps<TData, TValue>) {
     const [localFilterValue, setLocalFilterValue] = useState<string>("")
-
+    const {getFilterValue} = column
     // Initialize local filter value from column filter
     useEffect(() => {
-      if (isDate && column.getFilterValue()) {
+      if (isDate && getFilterValue()) {
         // Convert yyyy-mm-dd to Spanish format for display
         try {
-          const date = parse(column.getFilterValue() as string, "yyyy-MM-dd", new Date())
+          const date = parse(getFilterValue() as string, "yyyy-MM-dd", new Date())
           if (isValid(date)) {
             setLocalFilterValue(format(date, "PPP", { locale: es }))
           } else {
-            setLocalFilterValue(column.getFilterValue() as string)
+            setLocalFilterValue(getFilterValue() as string)
           }
         } catch (error) {
-          setLocalFilterValue(column.getFilterValue() as string)
+          setLocalFilterValue(getFilterValue() as string)
         }
       } else {
-        setLocalFilterValue((column.getFilterValue() as string) || "")
+        setLocalFilterValue((getFilterValue() as string) || "")
       }
-    }, [column.getFilterValue(), isDate])
-  
+    }, [getFilterValue, isDate, column])
+
     // Handle filter input change
     const handleFilterChange = (value: string) => {
       // Always update the local display value
       setLocalFilterValue(value)
-  
+
       if (isDate) {
         if (!value) {
           column.setFilterValue("")
           return
         }
-  
+
         // Only try to parse as date if the input has enough characters to be a date
         // This prevents losing input while typing
         if (value.length >= 3) {
@@ -64,10 +64,10 @@ export function DataTableColumnHeaderAct<TData, TValue>({
             // Try different date formats
             let parsedDate = null
             let isValidDate = false
-  
+
             // Array of possible formats to try
             const formats = ["d 'de' MMMM 'de' yyyy", "d 'de' MMMM yyyy", "d MMM yyyy", "dd/MM/yyyy", "d/M/yyyy"]
-  
+
             // Try each format
             for (const formatStr of formats) {
               try {
@@ -80,7 +80,7 @@ export function DataTableColumnHeaderAct<TData, TValue>({
                 // Continue to next format
               }
             }
-  
+
             if (isValidDate && parsedDate) {
               // Convert to yyyy-MM-dd for backend filtering
               const formattedDate = format(parsedDate, "yyyy-MM-dd")
@@ -91,7 +91,7 @@ export function DataTableColumnHeaderAct<TData, TValue>({
             // If parsing fails, continue to use the raw input
           }
         }
-  
+
         // If we couldn't parse as a date or the input is too short, use the raw input
         // This allows for partial text searching
         column.setFilterValue(value)
@@ -100,11 +100,11 @@ export function DataTableColumnHeaderAct<TData, TValue>({
         column.setFilterValue(value)
       }
     }
-  
+
     if (!column.getCanSort()) {
       return <div className={cn(className)}>{title}</div>
     }
-  
+
     return (
       <div className={cn("flex flex-col items-center justify-center", className)}>
         <DropdownMenu>
@@ -150,4 +150,3 @@ export function DataTableColumnHeaderAct<TData, TValue>({
       </div>
     )
   }
-  

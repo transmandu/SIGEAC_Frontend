@@ -6,10 +6,10 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { useCreateRequisition } from "@/actions/mantenimiento/compras/requisiciones/actions"
 import { Input } from "@/components/ui/input"
 import { useAuth } from "@/contexts/AuthContext"
+import { useGetBatchesByLocationId } from "@/hooks/mantenimiento/almacen/renglones/useGetBatchesByLocationId"
 import { useGetMaintenanceAircrafts } from "@/hooks/mantenimiento/planificacion/useGetMaintenanceAircrafts"
 import { useGetWorkOrderEmployees } from "@/hooks/mantenimiento/planificacion/useGetWorkOrderEmployees"
 import { useGetWorkOrders } from "@/hooks/mantenimiento/planificacion/useGetWorkOrders"
-import { useGetBatchesByLocationId } from "@/hooks/useGetBatchesByLocationId"
 import { cn } from "@/lib/utils"
 import { useCompanyStore } from "@/stores/CompanyStore"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -98,17 +98,17 @@ export function CreateRequisitionForm({ onClose }: FormProps) {
       form.setValue("created_by", user.id.toString())
       form.setValue("company", selectedCompany.split(" ").join(""))
     }
-  }, [user])
+  }, [user, form, selectedCompany])
 
   useEffect(() => {
     if (selectedStation) {
       mutate(Number(selectedStation))
     }
-  }, [selectedStation])
+  }, [selectedStation, mutate])
 
   useEffect(() => {
     form.setValue("articles", selectedBatches)
-  }, [selectedBatches])
+  }, [selectedBatches, form])
 
 
   // Maneja la selección de un lote.

@@ -19,7 +19,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover"
 import { useGetConditions } from "@/hooks/administracion/useGetConditions"
-import { useGetManufacturers } from "@/hooks/general/globales/fabricantes/useGetManufacturers"
+import { useGetManufacturers } from "@/hooks/general/fabricantes/useGetManufacturers"
 import { useGetArticlesByCategory } from "@/hooks/mantenimiento/almacen/articulos/useGetArticlesByCategory"
 import { useGetBatchesByLocationId } from "@/hooks/mantenimiento/almacen/renglones/useGetBatchesByLocationId"
 import { cn } from "@/lib/utils"
@@ -77,7 +77,7 @@ const CreateComponentForm = ({ initialData, isEditing }: {
 
   const { mutate, data: batches, isPending: isBatchesLoading, isError } = useGetBatchesByLocationId();
 
-  const { data: manufacturers, isLoading: isManufacturerLoading, isError: isManufacturerError } = useGetManufacturers(selectedCompany?.split(" ").join("") ?? null)
+  const { data: manufacturers, isLoading: isManufacturerLoading, isError: isManufacturerError } = useGetManufacturers(selectedCompany?.split(" ").join(""))
 
   const { data: conditions, isLoading: isConditionsLoading, error: isConditionsError } = useGetConditions();
 
@@ -152,7 +152,7 @@ const CreateComponentForm = ({ initialData, isEditing }: {
       mutate(Number(selectedStation))
       verifyMutation(Number(selectedStation))
     }
-  }, [selectedStation, mutate])
+  }, [selectedStation, mutate, verifyMutation])
 
 
 

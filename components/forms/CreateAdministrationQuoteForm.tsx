@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/contexts/AuthContext";
-import { useGetVendors } from "@/hooks/general/globales/proveedores/useGetVendors";
+import { useGetVendors } from "@/hooks/general/proveedores/useGetVendors";
 import { useGetLocationsByCompanyId } from "@/hooks/sistema/useGetLocationsByCompanyId";
 import { cn } from "@/lib/utils";
 import { useCompanyStore } from "@/stores/CompanyStore";
@@ -92,7 +92,7 @@ export function CreateAdministrationQuoteForm({
     return watchArticles.reduce((sum, article) => sum + (Number(article.quantity) * Number(article.unit_price) || 0), 0);
   }, [watchArticles]);
 
-  const { data: vendors, isLoading: isVendorsLoading, isError: isVendorsError } = useGetVendors(selectedCompany?.split(" ").join("").toLowerCase() ?? null);
+  const { data: vendors, isLoading: isVendorsLoading, isError: isVendorsError } = useGetVendors(selectedCompany?.split(" ").join(""));
   const { mutate, data: locations, isPending: isLocationsPending } = useGetLocationsByCompanyId();
 
   useEffect(() => {

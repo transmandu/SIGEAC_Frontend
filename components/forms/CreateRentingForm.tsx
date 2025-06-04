@@ -15,11 +15,11 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { useGetAircrafts } from "@/hooks/aerolinea/aeronaves/useGetAircrafts";
 import { useGetClients } from "@/hooks/general/clientes/useGetClients";
-import { useGetAdministrationArticle } from "@/hooks/administracion/useGetAdministrationArticle";
 import { Calendar } from "../ui/calendar";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useCreateRenting } from "@/actions/aerolinea/arrendamiento/actions";
 import { useGetBankAccounts } from "@/hooks/general/cuentas_bancarias/useGetBankAccounts";
+import { useCompanyStore } from "@/stores/CompanyStore";
 
 const formSchema = z
   .object({
@@ -74,11 +74,6 @@ const formSchema = z
         message: "Debe elegir una aeronave.",
       })
       .optional(),
-    article_id: z
-      .string({
-        message: "Debe elegir un articulo.",
-      })
-      .optional(),
   })
   .refine(
     (data) => {
@@ -101,22 +96,18 @@ interface FormProps {
 }
 
 export function CreateRentingForm({ onClose }: FormProps) {
+  const {selectedCompany} = useCompanyStore();
   const { createRenting } = useCreateRenting();
   const {
     data: clients,
     isLoading: isClientsLoading,
     isError: isClientsError,
-  } = useGetClients();
+  } = useGetClients(selectedCompany?.split(" ").join(""));
   const {
     data: aircrafts,
     isLoading: isAircraftLoading,
     isError: isAircraftError,
-  } = useGetAircrafts();
-  const {
-    data: articles,
-    isLoading: isArticlesLoading,
-    isError: isArticlesError,
-  } = useGetAdministrationArticle();
+  } = useGetAircrafts(selectedCompany?.split(" ").join(""));
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {},
@@ -312,94 +303,6 @@ export function CreateRentingForm({ onClose }: FormProps) {
                               ))}
                         </SelectContent>
                       </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              )}
-              {form.watch("type") !== "AERONAVE" && (
-                <FormField
-                  control={form.control}
-                  name="article_id"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-col space-y-3 w-full">
-                      <FormLabel>Artículo</FormLabel>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <FormControl>
-                            <Button
-                              variant="outline"
-                              role="combobox"
-                              className={cn(
-                                "justify-between",
-                                !field.value && "text-muted-foreground"
-                              )}
-                            >
-                              {field.value ? (
-                                <p>
-                                  {
-                                    articles?.find(
-                                      (article) =>
-                                        article.id.toString() === field.value
-                                    )?.serial
-                                  }{" "}
-                                  -{" "}
-                                  {
-                                    articles?.find(
-                                      (article) =>
-                                        article.id.toString() === field.value
-                                    )?.name
-                                  }
-                                </p>
-                              ) : (
-                                "Seleccione un artículo..."
-                              )}
-                              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                            </Button>
-                          </FormControl>
-                        </PopoverTrigger>
-                        <PopoverContent className="p-0">
-                          <Command>
-                            <CommandInput placeholder="Busque un artículo..." />
-                            <CommandList>
-                              <CommandEmpty className="text-sm p-2 text-center">
-                                No se ha encontrado ningún artículo.
-                              </CommandEmpty>
-                              <CommandGroup>
-                                {articles
-                                  ?.filter(
-                                    (article) =>
-                                      article.status === "EN POSESION"
-                                  )
-                                  ?.map((article) => (
-                                    <CommandItem
-                                      value={`${article.serial} ${article.name}`}
-                                      key={article.id}
-                                      onSelect={() => {
-                                        form.setValue(
-                                          "article_id",
-                                          article.id.toString()
-                                        );
-                                      }}
-                                    >
-                                      <Check
-                                        className={cn(
-                                          "mr-2 h-4 w-4",
-                                          article.id.toString() === field.value
-                                            ? "opacity-100"
-                                            : "opacity-0"
-                                        )}
-                                      />
-                                      <p>
-                                        {article.serial} - {article.name}
-                                      </p>
-                                    </CommandItem>
-                                  ))}
-                              </CommandGroup>
-                            </CommandList>
-                          </Command>
-                        </PopoverContent>
-                      </Popover>
                       <FormMessage />
                     </FormItem>
                   )}

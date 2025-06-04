@@ -1,10 +1,11 @@
 "use client";
 
-import { useCreateClient } from "@/actions/aerolinea/clientes/actions";
+import { useCreateClient } from "@/actions/general/clientes/actions";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, } from "@/components/ui/form";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, } from "@/components/ui/select";
+import { useCompanyStore } from "@/stores/CompanyStore";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -69,6 +70,7 @@ interface FormProps {
 }
 
 export function CreateClientForm({ onClose }: FormProps) {
+  const { selectedCompany } = useCompanyStore();
   const { createClient } = useCreateClient();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -76,11 +78,7 @@ export function CreateClientForm({ onClose }: FormProps) {
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    createClient.mutate(values, {
-      onSuccess: () => {
-        onClose(); // Cierra el modal solo si la creación fue exitosa
-      },
-    });
+    createClient.mutate({company: selectedCompany!.split(" ").join(""), data: values});
   }
 
   return (

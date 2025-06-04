@@ -3,24 +3,23 @@
 import { Button } from "@/components/ui/button"
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
-import { useGetMaintenanceClients } from "@/hooks/generalk/clientes/useGetMaintenanceClients"
-import { useGetManufacturers } from "@/hooks/general/globales/condiciones/useGetConditions"
+import { useGetClients } from "@/hooks/general/clientes/useGetClients"
+import { useGetManufacturers } from "@/hooks/general/condiciones/useGetConditions"
+import { useGetLocationsByCompanyId } from "@/hooks/sistema/useGetLocationsByCompanyId"
 import { cn } from "@/lib/utils"
+import { useCompanyStore } from "@/stores/CompanyStore"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { format } from "date-fns"
 import { es } from "date-fns/locale"
 import { CalendarIcon, Check, ChevronsUpDown, Loader2 } from "lucide-react"
+import { useEffect } from "react"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 import { Calendar } from "../ui/calendar"
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "../ui/command"
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover"
-import { Textarea } from "../ui/textarea"
-import { useGetLocations } from "@/hooks/useGetLocations"
-import { useGetLocationsByCompanies } from "@/hooks/sistema/useGetLocationsByCompanies"
-import { useGetLocationsByCompanyId } from "@/hooks/administracion/useGetLocationsByCompanyId"
-import { useEffect } from "react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select"
+import { Textarea } from "../ui/textarea"
 
 // Esquema de validación para el Paso 1 (Información de la aeronave)
 const AircraftInfoSchema = z.object({
@@ -45,13 +44,14 @@ interface AircraftInfoFormProps {
 }
 
 export function AircraftInfoForm({ onNext, onBack, initialData }: AircraftInfoFormProps) {
-  const { data: clients, isLoading: isClientsLoading, isError: isClientsError } = useGetMaintenanceClients();
+  const {selectedCompany} = useCompanyStore()
+  const { data: clients, isLoading: isClientsLoading, isError: isClientsError } = useGetClients(selectedCompany?.split(" ").join(""));
   const { data: locations, isPending: isLocationsLoading, isError: isLocationsError, mutate } = useGetLocationsByCompanyId();
-  const { data: manufacturers, isLoading: isManufacturersLoading, isError: isManufacturersError } = useGetManufacturers();
+  const { data: manufacturers, isLoading: isManufacturersLoading, isError: isManufacturersError } = useGetManufacturers(selectedCompany?.split(" ").join(""));
 
   useEffect(() => {
     mutate(2)
-  }, [])
+  }, [mutate])
   const form = useForm<AircraftInfoType>({
     resolver: zodResolver(AircraftInfoSchema),
     defaultValues: initialData || {}, // Usar datos iniciales si están disponibles
