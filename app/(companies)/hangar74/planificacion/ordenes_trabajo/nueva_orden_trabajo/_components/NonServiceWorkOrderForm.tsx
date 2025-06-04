@@ -41,7 +41,6 @@ const manualWorkOrderSchema = z.object({
     task_items: z.array(z.object({
       part_number: z.string().min(1, 'Número de parte requerido'),
       alternate_part_number: z.string().optional(),
-      serial: z.string().optional()
     })).optional()
   })).min(1, 'Debe agregar al menos una tarea'),
 });
@@ -51,7 +50,6 @@ type ManualWorkOrderFormValues = z.infer<typeof manualWorkOrderSchema>;
 interface TaskItem {
   part_number: string;
   alternate_part_number: string;
-  serial: string;
 }
 
 interface TaskInProgress {
@@ -454,7 +452,7 @@ const NonServiceWorkOrderForm = () => {
                         <ScrollArea className={cn("", task.task_items.length > 2 ? "h-[295px]" : "")}>
                           {task.task_items.map((item, itemIndex) => (
                             <div key={itemIndex} className="p-3 border rounded-md bg-muted/50">
-                              <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                                 {/* Part Number */}
                                 <FormItem>
                                   <FormLabel>Número de Parte*</FormLabel>
@@ -478,20 +476,7 @@ const NonServiceWorkOrderForm = () => {
                                     placeholder="Ej: 9876-5432"
                                   />
                                 </FormItem>
-
-                                {/* Serial */}
-                                <FormItem>
-                                  <FormLabel>Serial</FormLabel>
-                                  <Input
-                                    value={item.serial}
-                                    onChange={(e) =>
-                                      updateTaskItem(index, itemIndex, "serial", e.target.value)
-                                    }
-                                    placeholder="Ej: SN12345678"
-                                  />
-                                </FormItem>
                               </div>
-
                               <div className="flex justify-end mt-2">
                                 <Button
                                   variant="ghost"

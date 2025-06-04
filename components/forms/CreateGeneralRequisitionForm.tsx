@@ -307,7 +307,7 @@ export function CreateGeneralRequisitionForm({ onClose, initialData, isEditing, 
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="AERONAUTICO">Aeronautico</SelectItem>
+                    <SelectItem value="AVIACION">Aviacion</SelectItem>
                     <SelectItem value="GENERAL">General</SelectItem>
                   </SelectContent>
                 </Select>

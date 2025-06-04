@@ -16,7 +16,7 @@ export const useCreateVendor = () => {
 
     const createMutation = useMutation({
         mutationFn: async (data: VendorSchema) => {
-            await axiosInstance.post(`/vendors`, data)
+            await axiosInstance.post(`/${data.company}/vendors`, data)
           },
         onSuccess: () => {
             queryClient.invalidateQueries({queryKey: ['vendors']})

@@ -101,7 +101,7 @@ export function CreateQuoteForm({ initialData, onClose, req }: { initialData?: a
 
   const total = useMemo(() => calculateTotal(articles), [articles]);
 
-  const { data: vendors, isLoading: isVendorsLoading, isError: isVendorsErros } = useGetVendors(selectedCompany?.split(" ").join("").toLowerCase())
+  const { data: vendors, isLoading: isVendorsLoading, isError: isVendorsErros } = useGetVendors(selectedCompany?.split(" ").join(""))
 
   const { mutate, data: locations, isPending: isLocationsPending } = useGetLocationsByCompanyId()
 

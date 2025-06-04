@@ -616,7 +616,7 @@ export type Requisition = {
   submission_date: Date,
   work_order: WorkOrder,
   aircraft: Aircraft,
-  type: "GENERAL" | "AERONAUTICO",
+  type: "GENERAL" | "AVIACION",
 }
 
 export type AdministrationRequisition = {

@@ -63,7 +63,7 @@ export const columns: ColumnDef<Employee>[] = [
   {
     accessorKey: "Ubicación",
     header: ({ column }) => (
-      <DataTableColumnHeader filter column={column} title="Departamento" />
+      <DataTableColumnHeader filter column={column} title="Ubicación" />
     ),
     cell: ({ row }) =>
       <>
