@@ -16,7 +16,7 @@ export const useCreateManufacturer = () => {
         mutationFn: async ({company, data}: {
           company: string | undefined, data: ManufacturerSchema
         }) => {
-            await axiosInstance.post(`/${company}/manufacturer`, data)
+            await axiosInstance.post(`/${company}/manufacturers`, data)
           },
         onSuccess: () => {
             queryClient.invalidateQueries({queryKey: ['manufacturers']})
@@ -44,7 +44,7 @@ export const useDeleteManufacturer = () => {
 
   const deleteMutation = useMutation({
       mutationFn: async (id: number | string) => {
-          await axiosInstance.delete(`/hangar74/manufacturer/${id}`)
+          await axiosInstance.delete(`/hangar74/manufacturers/${id}`)
         },
       onSuccess: () => {
 

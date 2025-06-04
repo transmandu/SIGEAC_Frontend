@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 
 
 const fetchManufacturers = async (company: string | undefined): Promise<Manufacturer[]> => {
-  const {data} = await axiosInstance.get(`/${company}/manufacturer`);
+  const {data} = await axiosInstance.get(`/${company}/manufacturers`);
   return data;
 };
 
