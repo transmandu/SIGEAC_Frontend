@@ -209,7 +209,7 @@ export const columns: ColumnDef<ColumnI>[] = [
       return (
         <div className="flex justify-center">
           <Badge className={quantity <= 0 ? "bg-yellow-500" : "bg-green-500"}>
-            {quantity} {row.original.unit_secondary}
+            {consumable ? quantity.toFixed(2) : quantity} {row.original.unit_secondary}
           </Badge>
         </div>
       );
