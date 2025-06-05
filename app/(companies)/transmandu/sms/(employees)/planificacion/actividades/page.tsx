@@ -5,10 +5,10 @@ import { ContentLayout } from "@/components/layout/ContentLayout";
 import { Loader2 } from "lucide-react";
 import { columns } from "./columns";
 import { DataTable } from "./data-table";
-import { useGetMitigationTable } from "@/hooks/sms/useGetMitigationTable";
+import { useGetSMSActivities } from "@/hooks/sms/useGetSMSActivities";
 
 const SMSActivitiesPage = () => {
-  const { data: mitigationTable, isLoading, isError } = useGetMitigationTable();
+  const { data: activity, isLoading, isError } = useGetSMSActivities();
 
   return (
     <ContentLayout title="Actividades de SMS">
@@ -18,10 +18,10 @@ const SMSActivitiesPage = () => {
             <Loader2 className="size-24 animate-spin mt-48" />
           </div>
         )}
-        {mitigationTable && (
+        {activity && (
           <DataTable
             columns={columns}
-            data={mitigationTable.filter((row) => row.analysis !== null)}
+            data={activity}
           />
         )}
         {isError && (

@@ -1,16 +1,15 @@
 "use client";
 
-import CreateSmsActivityForm from "@/components/forms/CreateSmsAtivityForm";
-import { CreateVoluntaryReportForm } from "@/components/forms/CreateVoluntaryReportForm";
+import CreateSMSActivityForm from "@/components/forms/CreateSMSActivityForm";
 import { ContentLayout } from "@/components/layout/ContentLayout";
 
 const CreateSMSActivity = () => {
   return (
     <ContentLayout title="Creacion de Actividad SMS " >
       <div className="flex flex-col justify-center items-center">
-        <CreateSmsActivityForm
+        <CreateSMSActivityForm
           onClose={() => false}
-        ></CreateSmsActivityForm>
+        ></CreateSMSActivityForm>
       </div>
     </ContentLayout>
   );
