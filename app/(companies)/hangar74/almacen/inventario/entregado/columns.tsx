@@ -12,7 +12,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
-import { DispachedArticles } from "@/hooks/almacen/useGetDispatchedArticles"
+import { DispachedArticles } from "@/hooks/mantenimiento/almacen/salidas_entradas/useGetDispatchedArticles"
 import { format } from "date-fns"
 import { es } from "date-fns/locale"
 import Link from "next/link"

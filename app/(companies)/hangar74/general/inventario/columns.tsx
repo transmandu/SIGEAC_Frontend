@@ -1,34 +1,14 @@
 "use client"
 
 import { ColumnDef } from "@tanstack/react-table"
-import { ClipboardCheck, MoreHorizontal, SquarePen, Trash2 } from "lucide-react"
 
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader"
-import { Button } from "@/components/ui/button"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger
-} from "@/components/ui/dropdown-menu"
 
 import { Checkbox } from "@/components/ui/checkbox"
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip"
-import { Batch } from "@/types"
-import { redirect, useRouter } from "next/navigation"
-import Link from "next/link"
 import { cn } from "@/lib/utils"
-import BatchDropdownActions from "@/components/misc/BatchDropdownActions"
+import { Batch } from "@/types"
+import Link from "next/link"
 
-
-// This type is used to define the shape of our data.
-// You can use a Zod schema here if you want.
 interface BatchesWithCountProp extends Batch {
   article_count: number,
 }
@@ -77,7 +57,7 @@ export const columns: ColumnDef<BatchesWithCountProp>[] = [
     )
   },
   {
-    accessorKey: "ata_code",
+  accessorKey: "ata_code",
     header: ({ column }) => (
       <DataTableColumnHeader filter column={column} title="Código ATA" />
     ),
@@ -91,7 +71,7 @@ export const columns: ColumnDef<BatchesWithCountProp>[] = [
       <DataTableColumnHeader column={column} title="Cantidad Mínima" />
     ),
     cell: ({ row }) => (
-      <p className="flex justify-center">{row.original.min_quantity}<span className="font-bold">{row.original.medition_unit}</span></p>
+      <p className="flex text-center font-bold justify-center">{row.original.min_quantity} {row.original.medition_unit}</p>
     )
   },
   {

@@ -1,4 +1,4 @@
-import { useDeleteCash } from "@/actions/administracion/cajas/actions";
+import { useDeleteCash } from "@/actions/aerolinea/cajas/actions";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, } from "@/components/ui/dropdown-menu";
 import { Cash } from "@/types";
 import { EyeIcon, Loader2, MoreHorizontal, Trash2, TrendingUp, } from "lucide-react";
@@ -26,7 +26,6 @@ const CashDropdownActions = ({ id, cash }: { id: string; cash: Cash }) => {
 
   const handleViewStats = () => {
     router.push(`/transmandu/administracion/gestion_cajas/cajas/${id}`);
-    console.log("Redirigiendo a:", router);
   };
 
   return (
@@ -61,7 +60,7 @@ const CashDropdownActions = ({ id, cash }: { id: string; cash: Cash }) => {
           onInteractOutside={(e) => {
             e.preventDefault(); // Evita que el diálogo se cierre al hacer clic fuera
           }}
-          aria-describedby={undefined} 
+          aria-describedby={undefined}
         >
           <DialogHeader>
             <DialogTitle className="text-center">

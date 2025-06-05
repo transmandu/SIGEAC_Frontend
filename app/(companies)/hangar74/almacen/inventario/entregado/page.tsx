@@ -1,7 +1,7 @@
 'use client';
 
 import { ContentLayout } from '@/components/layout/ContentLayout';
-import { useGetDispatchedArticles } from '@/hooks/almacen/useGetDispatchedArticles';
+import { useGetDispatchedArticles } from '@/hooks/mantenimiento/almacen/salidas_entradas/useGetDispatchedArticles';
 import { useCompanyStore } from '@/stores/CompanyStore';
 import { Loader2 } from 'lucide-react';
 import { useEffect } from 'react';

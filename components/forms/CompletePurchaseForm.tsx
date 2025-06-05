@@ -1,6 +1,6 @@
 "use client"
 
-import { useCompletePurchase } from "@/actions/compras/ordenes_compras/actions"
+import { useCompletePurchase } from "@/actions/mantenimiento/compras/ordenes_compras/actions"
 import { Button } from "@/components/ui/button"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import {
@@ -11,8 +11,8 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { useAuth } from "@/contexts/AuthContext"
-import { useGetBankAccounts } from "@/hooks/ajustes/cuentas/useGetBankAccounts"
-import { useGetCards } from "@/hooks/ajustes/tarjetas/useGetCards"
+import { useGetBankAccounts } from "@/hooks/general/cuentas_bancarias/useGetBankAccounts"
+import { useGetCards } from "@/hooks/general/tarjetas/useGetCards"
 import { cn } from "@/lib/utils"
 import { useCompanyStore } from "@/stores/CompanyStore"
 import { PurchaseOrder } from "@/types"
@@ -83,26 +83,24 @@ export function CompletePurchaseForm({ onClose, po }: FormProps) {
     },
   });
 
+  const {tax, wire_fee, handling_fee, usa_shipping, ock_shipping} = form.watch();
+
   const total = useMemo(() => {
     return (
       Number(po.sub_total) +
-      Number(form.watch("tax") || 0) +
-      Number(form.watch("wire_fee") || 0) +
-      Number(form.watch("handling_fee") || 0) +
-      Number(form.watch("usa_shipping") || 0) +
-      Number(form.watch("ock_shipping") || 0)
+      Number(tax || 0) +
+      Number(wire_fee|| 0) +
+      Number(handling_fee || 0) +
+      Number(usa_shipping || 0) +
+      Number(ock_shipping || 0)
     );
   }, [
     po.sub_total,
-    form.watch("tax"),
-    form.watch("wire_fee"),
-    form.watch("handling_fee"),
-    form.watch("usa_shipping"),
-    form.watch("ock_shipping"),
+    tax,
+ wire_fee, handling_fee, usa_shipping, ock_shipping
   ]);
 
   const onSubmit = async (data: FormSchemaType) => {
-
     const total =
       Number(po.sub_total) +
       Number(data.tax || 0) +
@@ -110,7 +108,6 @@ export function CompletePurchaseForm({ onClose, po }: FormProps) {
       Number(data.handling_fee || 0) +
       Number(data.usa_shipping || 0) +
       Number(data.ock_shipping || 0);
-
     const finalData = {
       ...data,
       articles_purchase_orders: data.articles_purchase_orders.map(article => ({
@@ -124,14 +121,10 @@ export function CompletePurchaseForm({ onClose, po }: FormProps) {
       total,
       updated_by: `${user?.first_name} ${user?.last_name}`
     };
-
     await completePurchase.mutateAsync({ id: po.id, data: { ...finalData } })
-
     onClose()
 
   }
-
-  console.log(form.getValues())
 
   return (
     <Form {...form}>

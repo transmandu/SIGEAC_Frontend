@@ -1,6 +1,6 @@
 "use client";
 
-import { useCreateAccount, useUpdateAccount, useGetAccount } from "@/actions/administracion/cuentas/actions";
+import { useCreateAccount, useUpdateAccount, useGetAccount } from "@/actions/aerolinea/cuentas/actions";
 import { useEffect, useState, useMemo } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -30,7 +30,7 @@ const getFormSchema = (hasCategories: boolean) => z.object({
     .string()
     .superRefine((value, ctx) => {
       if (!hasCategories) return true;
-      
+
       if (!value || value.trim() === '') {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
@@ -89,13 +89,13 @@ const AccountForm = ({ id, onClose, isEditing = false }: FormProps) => {
     if (data) {
       setInitialValues(data);
       form.setValue("name", data.name);
-      
+
       const hasCategory = !!data.category;
       setChecked(hasCategory);
-      
+
       if (hasCategory) {
         form.setValue("category", data.category?.name ?? undefined);
-        
+
         const initialCategory = data.category.name.split(",").map(l => l.trim());
         setCategoryFields(
           initialCategory.map((category, index) => ({
@@ -129,15 +129,15 @@ const AccountForm = ({ id, onClose, isEditing = false }: FormProps) => {
         .map((field) => field.value)
         .filter(Boolean);
       form.setValue("category", categoryValues.join(", "));
-  
+
       return updatedFields;
     });
   };
-  
+
   useEffect(() => {
     form.trigger('category');
   }, [checked, form]);
-  
+
   const onSubmitAccount = async (values: z.infer<typeof formSchema>) => {
     try {
       if (isEditing && initialValues) {
@@ -186,7 +186,7 @@ const AccountForm = ({ id, onClose, isEditing = false }: FormProps) => {
               </div>
             </div>
           </div>
-        
+
           <div
             className={cn("flex gap-2 items-center", checked ? "flex-col" : "")}
           >
@@ -251,7 +251,7 @@ const AccountForm = ({ id, onClose, isEditing = false }: FormProps) => {
               </>
             )}
           </div>
-          <Button 
+          <Button
             disabled={createAccount.isPending || updateAccount.isPending}
             type="submit" className="w-full">
             {createAccount.isPending || updateAccount.isPending ?  (

@@ -1,5 +1,6 @@
 "use client";
 
+import { useDefineEndDateRenting } from "@/actions/aerolinea/arrendamiento/actions";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -15,16 +16,15 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
+import { Renting } from "@/types";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
 import { es } from "date-fns/locale/es";
 import { CalendarIcon, Loader2 } from "lucide-react";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { Separator } from "../ui/separator";
 import { Calendar } from "../ui/calendar";
-import { useGetRentingById } from "@/hooks/administracion/useGetRentingById";
-import { useDefineEndDateRenting } from "@/actions/administracion/arrendamiento/actions";
+import { Separator } from "../ui/separator";
 
 const formSchema = z.object({
   end_date: z
@@ -37,23 +37,22 @@ const formSchema = z.object({
 type FormSchemaType = z.infer<typeof formSchema>;
 
 interface DefineEndDateFormProps {
-  id: string;
+  renting: Renting;
   onClose: () => void;
 }
 
-export function DefineEndDateForm({ id, onClose }: DefineEndDateFormProps) {
-  const { data: rentingDetails, isLoading } = useGetRentingById(id);
+export function DefineEndDateForm({ renting, onClose }: DefineEndDateFormProps) {
   const { defineEndDateRenting } = useDefineEndDateRenting();
   const form = useForm<FormSchemaType>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      end_date: rentingDetails?.end_date,
+      end_date: new Date(),
     },
   });
 
   // Función de validación personalizada
   const validateEndDate = (date: Date) => {
-    const startDate = rentingDetails?.start_date;
+    const startDate = renting.start_date;
 
     if (startDate && date < new Date(startDate)) {
       return "La fecha final no debe ser menor a la fecha de inicio";
@@ -73,21 +72,11 @@ export function DefineEndDateForm({ id, onClose }: DefineEndDateFormProps) {
       end_date: formData.end_date,
     };
 
-    defineEndDateRenting.mutate(
-      { id, data: { end_date: formData.end_date } },
-      {
-        onSuccess: () => onClose(), // Cierra solo si la mutación es exitosa
-      }
-    );
-  };
+    await defineEndDateRenting.mutateAsync(
+      { id: renting.id.toString(), data: { end_date: formData.end_date } });
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
-  }
+      onClose()
+  };
 
   return (
     <Form {...form}>
@@ -129,8 +118,8 @@ export function DefineEndDateForm({ id, onClose }: DefineEndDateFormProps) {
                       selected={field.value}
                       onSelect={field.onChange}
                       disabled={(date) => {
-                        const startDate = rentingDetails?.start_date
-                          ? new Date(rentingDetails.start_date)
+                        const startDate = renting.start_date
+                          ? new Date(renting.start_date)
                           : new Date("1999-07-21");
                         return (
                           date < startDate || date > new Date() // Opcional: para no permitir fechas futuras
@@ -158,10 +147,10 @@ export function DefineEndDateForm({ id, onClose }: DefineEndDateFormProps) {
                   {form.formState.errors.end_date?.message}
                 </FormMessage>
                 <div className="text-xs text-gray-500 mt-1">
-                  {rentingDetails?.start_date && (
+                  {renting.start_date && (
                     <p>
                       Fecha de inicio:{" "}
-                      {format(new Date(rentingDetails.start_date), "PPP", {
+                      {format(new Date(renting.start_date), "PPP", {
                         locale: es,
                       })}
                     </p>

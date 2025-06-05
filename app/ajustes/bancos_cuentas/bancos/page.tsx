@@ -5,7 +5,7 @@ import { useGetConditions } from '@/hooks/administracion/useGetConditions';
 import { Loader2 } from 'lucide-react';
 import { columns } from './columns';
 import { DataTable } from './data-table';
-import { useGetBanks } from '@/hooks/ajustes/globales/bancos/useGetBanks';
+import { useGetBanks } from '@/hooks/general/bancos/useGetBanks';
 
 const BanksPage = () => {
 

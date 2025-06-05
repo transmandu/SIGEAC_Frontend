@@ -1,5 +1,5 @@
 'use client';
-import { useCreateVendor } from "@/actions/ajustes/globales/proveedores/actions";
+import { useCreateVendor } from "@/actions/general/proveedores/actions";
 import {
   Form,
   FormControl,
@@ -9,7 +9,16 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+
 import { Input } from "@/components/ui/input";
+import { useCompanyStore } from "@/stores/CompanyStore";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
 import { useForm } from "react-hook-form";
@@ -24,6 +33,7 @@ const formSchema = z.object({
   email: z.string().email().optional(),
   phone: z.string().optional(),
   address: z.string().optional(),
+  type: z.enum(["PROVEEDOR", "BENEFICIARIO"]).optional(),
 })
 
 
@@ -33,6 +43,7 @@ interface FormProps {
 
 export default function CreateVendorForm({ onClose }: FormProps) {
   const { createVendor } = useCreateVendor()
+  const { selectedCompany } = useCompanyStore()
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -45,9 +56,11 @@ export default function CreateVendorForm({ onClose }: FormProps) {
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
-      await createVendor.mutateAsync(values)
+      await createVendor.mutateAsync({
+        ...values,
+        company: selectedCompany!.split(" ").join("") ?? null,
+      })
     } catch (error) {
-      console.log(error)
     }
     onClose()
   }
@@ -86,6 +99,27 @@ export default function CreateVendorForm({ onClose }: FormProps) {
               )}
             />
           </div>
+          <FormField
+            control={form.control}
+            name="type"
+            render={({ field }) => (
+              <FormItem className="w-full">
+                <FormLabel>Tipo</FormLabel>
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selec. el tipo..." />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="BENEFICIARIO">Beneficiario</SelectItem>
+                    <SelectItem value="PROVEEDOR">Proveedor</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
           <FormField
             control={form.control}
             name="email"

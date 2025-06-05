@@ -16,7 +16,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { useGetLocationsByCompanies } from "@/hooks/useGetLocationsByCompanies";
+import { useGetLocationsByCompanies } from "@/hooks/sistema/useGetLocationsByCompanies";
 import { cn } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
@@ -33,8 +33,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useUpdateAircraft } from "@/actions/administracion/aeronaves/actions";
-import { useGetAircraftByAcronym } from "@/hooks/administracion/useGetAircraftByAcronym";
+import { useUpdateAircraft } from "@/actions/aerolinea/aeronaves/actions";
+import { useGetAircraftByAcronym } from "@/hooks/aerolinea/aeronaves/useGetAircraftByAcronym";
 import { Aircraft } from "@/types";
 
 const FormSchema = z.object({

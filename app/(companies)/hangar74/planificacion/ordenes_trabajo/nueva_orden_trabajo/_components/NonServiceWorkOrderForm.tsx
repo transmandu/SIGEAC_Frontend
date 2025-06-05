@@ -1,5 +1,5 @@
 'use client';
-import { useCreateWorkOrder } from '@/actions/planificacion/ordenes_trabajo/actions';
+import { useCreateWorkOrder } from '@/actions/mantenimiento/planificacion/ordenes_trabajo/actions';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
@@ -8,8 +8,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { useGetMaintenanceAircrafts } from '@/hooks/planificacion/useGetMaintenanceAircrafts';
+import { useGetMaintenanceAircrafts } from '@/hooks/mantenimiento/planificacion/useGetMaintenanceAircrafts';
 import { cn } from '@/lib/utils';
 import { useCompanyStore } from '@/stores/CompanyStore';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -27,6 +28,9 @@ const manualWorkOrderSchema = z.object({
   approved_by: z.string().min(1, 'Aprobado por es obligatorio'),
   reviewed_by: z.string().min(1, 'Revisado por es obligatorio'),
   location_id: z.string().min(1, 'La ubicación es obligatoria'),
+  authorizing: z.string({
+    message: "Debe elegir al autorizante."
+  }),
   aircraft_id: z.string(),
   date: z.date(),
   work_order_task: z.array(z.object({
@@ -37,7 +41,6 @@ const manualWorkOrderSchema = z.object({
     task_items: z.array(z.object({
       part_number: z.string().min(1, 'Número de parte requerido'),
       alternate_part_number: z.string().optional(),
-      serial: z.string().optional()
     })).optional()
   })).min(1, 'Debe agregar al menos una tarea'),
 });
@@ -47,7 +50,6 @@ type ManualWorkOrderFormValues = z.infer<typeof manualWorkOrderSchema>;
 interface TaskItem {
   part_number: string;
   alternate_part_number: string;
-  serial: string;
 }
 
 interface TaskInProgress {
@@ -224,6 +226,30 @@ const NonServiceWorkOrderForm = () => {
                     </Popover>
                     <FormDescription className="text-xs">
                       Aeronave que recibirá el servicio.
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="authorizing"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Autorizado Por:</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Quién autoriza..." />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="PROPIETARIO">Propietario</SelectItem>
+                        <SelectItem value="EXPLOTADOR">Explotador</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormDescription>
+
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -426,7 +452,7 @@ const NonServiceWorkOrderForm = () => {
                         <ScrollArea className={cn("", task.task_items.length > 2 ? "h-[295px]" : "")}>
                           {task.task_items.map((item, itemIndex) => (
                             <div key={itemIndex} className="p-3 border rounded-md bg-muted/50">
-                              <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                                 {/* Part Number */}
                                 <FormItem>
                                   <FormLabel>Número de Parte*</FormLabel>
@@ -450,20 +476,7 @@ const NonServiceWorkOrderForm = () => {
                                     placeholder="Ej: 9876-5432"
                                   />
                                 </FormItem>
-
-                                {/* Serial */}
-                                <FormItem>
-                                  <FormLabel>Serial</FormLabel>
-                                  <Input
-                                    value={item.serial}
-                                    onChange={(e) =>
-                                      updateTaskItem(index, itemIndex, "serial", e.target.value)
-                                    }
-                                    placeholder="Ej: SN12345678"
-                                  />
-                                </FormItem>
                               </div>
-
                               <div className="flex justify-end mt-2">
                                 <Button
                                   variant="ghost"

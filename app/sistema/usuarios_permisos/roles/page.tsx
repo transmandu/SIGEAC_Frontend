@@ -1,7 +1,7 @@
 'use client'
 
 import { ContentLayout } from '@/components/layout/ContentLayout'
-import { useGetRoles } from '@/hooks/user/useGetRoles'
+import { useGetRoles } from '@/hooks/sistema/usuario/useGetRoles'
 import React from 'react'
 import { columns } from './columns'
 import { Loader2 } from 'lucide-react'

@@ -2,7 +2,7 @@
 
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import LoadingPage from "@/components/misc/LoadingPage";
-import { useGetCashMovements } from "@/hooks/administracion/movimientos/useGetMovement";
+import { useGetCashMovements } from "@/hooks/aerolinea/movimientos/useGetMovement";
 import { columns } from "./columns";
 import { DataTable } from "./data-table";
 

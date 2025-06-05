@@ -1,7 +1,7 @@
 'use client';
 
 import { ContentLayout } from '@/components/layout/ContentLayout';
-import { useGetBatchesWithArticlesCount } from '@/hooks/almacen/useGetBatchesWithArticleCount';
+import { useGetBatchesWithArticlesCount } from '@/hooks/mantenimiento/almacen/renglones/useGetBatchesWithArticleCount';
 import { useCompanyStore } from '@/stores/CompanyStore';
 import { ChevronDownIcon, Loader2 } from 'lucide-react';
 import { useEffect } from 'react';

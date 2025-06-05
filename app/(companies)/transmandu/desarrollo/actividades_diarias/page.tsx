@@ -13,7 +13,7 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
-import { useGetRegisterWithActivities } from "@/hooks/desarrollo/useGetRegisterWithActivities";
+import { useGetRegisterWithActivities } from "@/hooks/aerolinea/desarrollo/useGetRegisterWithActivities";
 import LoadingPage from "@/components/misc/LoadingPage";
 import { useEffect, useState } from "react";
 import { ActivityReport } from "@/types";

@@ -1,5 +1,5 @@
 'use client'
-import { useUpdateFinalHour, useDeleteActivity, useEditActivity } from '@/actions/desarrollo/reportes_diarios/actions';
+import { useUpdateFinalHour, useDeleteActivity, useEditActivity } from '@/actions/aerolinea/desarrollo/reportes_diarios/actions';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Clock, MoreHorizontal, Trash2, Edit, Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -7,7 +7,7 @@ import { Button } from "../ui/button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "../ui/dialog";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
-import { useGetUserActivity } from "@/hooks/desarrollo/useGetUserActivities";
+import { useGetUserActivity } from "@/hooks/aerolinea/desarrollo/useGetUserActivities";
 import { useRouter } from "next/navigation";
 import { Activity } from '@/types';
 

@@ -1,4 +1,4 @@
-import { useDeleteBatch } from "@/actions/almacen/inventario/lotes/actions"
+import { useDeleteBatch } from "@/actions/mantenimiento/almacen/inventario/lotes/actions"
 import {
   DropdownMenu,
   DropdownMenuContent,

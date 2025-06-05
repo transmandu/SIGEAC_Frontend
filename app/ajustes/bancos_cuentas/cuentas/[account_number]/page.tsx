@@ -1,7 +1,7 @@
 'use client'
 
 import { ContentLayout } from '@/components/layout/ContentLayout';
-import { useGetCards } from '@/hooks/ajustes/tarjetas/useGetCards';
+import { useGetCards } from '@/hooks/general/tarjetas/useGetCards';
 import { Loader2 } from 'lucide-react';
 import { columns } from './columns';
 import { DataTable } from './data-table';

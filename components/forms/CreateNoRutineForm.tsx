@@ -1,5 +1,5 @@
 'use client'
-import { useCreateNoRutine } from '@/actions/planificacion/ordenes_trabajo/no_rutinarios/actions'
+import { useCreateNoRutine } from '@/actions/mantenimiento/planificacion/ordenes_trabajo/no_rutinarios/actions'
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import {

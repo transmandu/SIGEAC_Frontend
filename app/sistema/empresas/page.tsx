@@ -1,19 +1,19 @@
 'use client'
 
 import { ContentLayout } from '@/components/layout/ContentLayout'
-import { useGetCompanies } from '@/hooks/administracion/useGetCompanies'
 import { Loader2 } from 'lucide-react'
 import { columns } from './columns'
 import { DataTable } from './data-table'
+import { useGetCompanies } from '@/hooks/sistema/useGetCompanies'
 
 const CompanyPage = () => {
   const { data: companies, isLoading, error } = useGetCompanies();
   return (
     <ContentLayout title='Fabricantes'>
       <h1 className='text-5xl font-bold text-center mt-2'>
-        Control de Fabricantes
+        Control de Empresas
       </h1>
-      <p className='text-sm text-muted-foreground text-center italic mt-2'>Aquí se lleva el control de los diferentes fabricantes de los diferentes articulos.</p>
+      <p className='text-sm text-muted-foreground text-center italic mt-2'>Aquí se lleva el control de las diferentes empresas rpay_amountegistradas en el sistema.</p>
       {
         isLoading && (
           <div className='grid mt-72 place-content-center'>

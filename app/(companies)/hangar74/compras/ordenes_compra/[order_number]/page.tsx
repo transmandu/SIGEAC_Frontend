@@ -12,7 +12,7 @@ import {
   CardTitle
 } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { useGetPurchaseOrder } from '@/hooks/compras/useGetPurchaseOrder';
+import { useGetPurchaseOrder } from '@/hooks/mantenimiento/compras/useGetPurchaseOrder';
 import { cn } from '@/lib/utils';
 import { useCompanyStore } from '@/stores/CompanyStore';
 import { Trash2, User } from 'lucide-react';
@@ -27,7 +27,7 @@ const CotizacionPage = () => {
 
   const { order_number } = useParams<{ order_number: string }>();
 
-  const { data, isLoading } = useGetPurchaseOrder(selectedCompany?.split(" ").join("") ?? null, order_number);
+  const { data, isLoading } = useGetPurchaseOrder(selectedCompany?.split(" ").join(""), order_number);
 
   if (isLoading) return <LoadingPage />;
 
@@ -39,50 +39,52 @@ const CotizacionPage = () => {
           Detalles de la Orden de Compra #{order_number}
         </p>
       </div>
-      <Card className='max-w-5xl mx-auto'>
+      {
+        data && (
+          <Card className='max-w-5xl mx-auto'>
         <CardHeader className='flex flex-col items-center'>
           <CardTitle className='flex justify-center text-5xl mb-2'>#{order_number}</CardTitle>
-          <Badge className={cn("text-lg", data?.status === 'pagado' ? "bg-green-500" : "bg-yellow-600")}>{data?.status.toUpperCase()}</Badge>
+          <Badge className={cn("text-lg", data.status === 'pagado' ? "bg-green-500" : "bg-yellow-600")}>{data.status.toUpperCase()}</Badge>
         </CardHeader>
         <CardContent className='flex flex-col gap-4' >
           <div className='flex w-full justify-center gap-24 text-xl'>
             <div className='flex flex-col gap-2 items-center'>
               <h1>Creado Por:</h1>
-              <p className='font-bold flex gap-2 items-center'><User /> {data?.created_by}</p>
+              <p className='font-bold flex gap-2 items-center'><User /> {data.created_by}</p>
             </div>
             <div className='flex flex-col gap-2 items-center'>
               <h1>Proveedor:</h1>
-              <p className='font-bold flex gap-2 items-center'>{data?.vendor.name}</p>
+              <p className='font-bold flex gap-2 items-center'>{data.vendor.name}</p>
             </div>
           </div>
           <div className='flex justify-center gap-24 text-center'>
             <div className='flex flex-col gap-2 justify-center'>
               <h1 className='text-2xl font-bold'>Detalles del Pago</h1>
-              <p className=' font-semibold italic'>Banco: {data?.bank_account?.bank.name}</p>
-              <p className=' font-semibold italic'>Cuenta: {data?.bank_account?.name} ({data?.bank_account?.account_number})</p>
+              <p className=' font-semibold italic'>Banco: {data.bank_account?.bank.name}</p>
+              <p className=' font-semibold italic'>Cuenta: {data.bank_account?.name} ({data.bank_account?.account_number})</p>
               {
-                data?.card && (
-                  <p className='font-semibold italic'>Tarjeta: {data?.card?.name} ({data?.card?.card_number})</p>
+                data.card && (
+                  <p className='font-semibold italic'>Tarjeta: {data.card?.name} ({data.card?.card_number})</p>
                 )
               }
             </div>
             <div className='flex flex-col gap-2 justify-center text-center  font-semibold'>
               <h1 className='text-2xl font-bold'>Costos</h1>
-              <p>Tax: ${data?.tax}</p>
+              <p>Tax: ${data.tax}</p>
               <div className='flex gap-2'>
-                <p>Wire Fee: ${data?.wire_fee}</p>
-                <p>Handling Fee: {data?.handling_fee}</p>
+                <p>Wire Fee: ${data.wire_fee}</p>
+                <p>Handling Fee: {data.handling_fee}</p>
               </div>
               <div className='flex gap-2'>
-                <p>Envío USA: ${data?.usa_shipping}</p>
-                <p>Envío OCK21: ${data?.ock_shipping}</p>
+                <p>Envío USA: ${data.usa_shipping}</p>
+                <p>Envío OCK21: ${data.ock_shipping}</p>
               </div>
             </div>
           </div>
-          <p className='text-center font-medium italic'>{data?.justification}</p>
+          <p className='text-center font-medium italic'>{data.justification}</p>
           <div className='flex justify-center gap-2'>
             {
-              data?.article_purchase_order.map((article) => (
+              data.article_purchase_order.map((article) => (
                 <Card className='w-[280px] text-center' key={article.article_part_number}>
                   <CardTitle className='p-6'>{article.batch?.name} - {article.article_part_number}</CardTitle>
                   <CardContent>
@@ -97,7 +99,7 @@ const CotizacionPage = () => {
           </div>
         </CardContent>
         {
-          data?.status !== 'aprobada' && (
+          data.status !== 'aprobada' && (
             <CardFooter className='flex gap-2 justify-end'>
               <Button>Aprobar</Button>
               <Button onClick={() => setOpenDelete(true)} variant={"destructive"}><Trash2 /></Button>
@@ -105,6 +107,8 @@ const CotizacionPage = () => {
           )
         }
       </Card>
+        )
+      }
       <Dialog open={openDelete} onOpenChange={setOpenDelete}>
         <DialogContent>
           <DialogHeader>

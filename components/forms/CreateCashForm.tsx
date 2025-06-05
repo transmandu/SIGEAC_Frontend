@@ -1,6 +1,6 @@
 "use client";
 
-import { useCreateCash } from "@/actions/administracion/cajas/actions";
+import { useCreateCash } from "@/actions/aerolinea/cajas/actions";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -88,7 +88,7 @@ export function CreateCashForm({ onClose }: FormProps) {
                     // Validar que solo se ingresen números y un punto decimal
                     const value = e.target.value;
                     const regex = /^(\d+)?([.]?\d{0,2})?$/;
-                    
+
                     if (value === "" || regex.test(value)) {
                       field.onChange(value);
                     }

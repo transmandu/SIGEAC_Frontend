@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button"
 import { ArrowLeft, Loader2, CreditCard } from "lucide-react"
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts"
 import { formatCurrency, formatDate } from "@/lib/utils"
-import { useGetCreditStatistics } from "@/hooks/administracion/creditos/useGetCreditStatistics"
+import { useGetCreditStatistics } from "@/hooks/aerolinea/creditos/useGetCreditStatistics"
 
 const CreditStatisticsVendorPage = () => {
   const router = useRouter()
@@ -99,7 +99,7 @@ const chartData = [
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="flex items-center mb-6"> 
+      <div className="flex items-center mb-6">
         <Button variant="outline" size="sm" className="mr-4" onClick={() => router.back()}>
           <ArrowLeft className="h-4 w-4 mr-2" />
           Volver
@@ -169,7 +169,7 @@ const chartData = [
                   left: 20,
                   bottom: 5,
                 }}
-                barSize={40} 
+                barSize={40}
               >
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="name" />

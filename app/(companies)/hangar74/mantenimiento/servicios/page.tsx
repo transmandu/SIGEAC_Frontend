@@ -2,7 +2,7 @@
 
 import { ContentLayout } from '@/components/layout/ContentLayout'
 import LoadingPage from '@/components/misc/LoadingPage'
-import { useGetMaintenanceServices } from '@/hooks/planificacion/useGetMaintenanceServices'
+import { useGetMaintenanceServices } from '@/hooks/mantenimiento/planificacion/useGetMaintenanceServices'
 import { columns } from './columns'
 import { DataTable } from './data-table'
 

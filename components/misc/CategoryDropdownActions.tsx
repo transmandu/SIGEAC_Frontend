@@ -3,7 +3,7 @@ import { EditIcon, Loader2, MoreHorizontal, Trash2, } from "lucide-react";
 import { useState } from "react";
 import { Button } from "../ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, } from "../ui/dialog";
-import { useDeleteCategory } from "@/actions/administracion/categorias/actions";
+import { useDeleteCategory } from "@/actions/aerolinea/categorias/actions";
 import { EditCategoryForm } from "../forms/EditCategoryForm";
 
 const CategoryDropdownActions = ({ id }: { id: string }) => {
@@ -13,7 +13,7 @@ const CategoryDropdownActions = ({ id }: { id: string }) => {
 
   const handleDelete = (id: number | string) => {
     deleteCategory.mutate(id, {
-      onSuccess: () => setOpenDelete(false), 
+      onSuccess: () => setOpenDelete(false),
     });
   };
 
@@ -43,7 +43,7 @@ const CategoryDropdownActions = ({ id }: { id: string }) => {
       <Dialog open={openDelete} onOpenChange={setOpenDelete}>
         <DialogContent
           onInteractOutside={(e) => {
-            e.preventDefault(); 
+            e.preventDefault();
           }}
         >
           <DialogHeader>

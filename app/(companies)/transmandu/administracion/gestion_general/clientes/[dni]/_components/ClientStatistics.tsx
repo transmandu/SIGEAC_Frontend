@@ -48,11 +48,12 @@ import {
 import { useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { formatCurrency } from "@/lib/utils";
-import { useGetFlightsByClient } from "@/hooks/administracion/clientes/useGetFlightByClients";
+import { useGetFlightsByClient } from "@/hooks/general/clientes/useGetFlightByClients";
 import months from "@/components/cards/ConfigMonths";
 import { SummaryCard } from "@/components/cards/SummaryCard";
-import { useGetClientByDni } from "@/hooks/administracion/clientes/useGetClientByDni";
+import { useGetClientByDni } from "@/hooks/general/clientes/useGetClientByDni";
 import LoadingPage from "@/components/misc/LoadingPage";
+import { useCompanyStore } from "@/stores/CompanyStore";
 
 const getMonthByNumber = (number: string) => {
   return months.find((m) => m.number === number);
@@ -80,9 +81,10 @@ const ClientStatistics = () => {
   const params = useParams();
   const dni = params.dni as string;
   const router = useRouter();
-  const { data: clientDetails, isLoading, error } = useGetClientByDni(dni);
+  const {selectedCompany} = useCompanyStore();
+  const { data: clientDetails, isLoading, error } = useGetClientByDni({dni, company: selectedCompany?.split(" ").join("") });
   const { data: clientStats, isLoading: isLoadingFlights } =
-    useGetFlightsByClient(clientDetails?.dni.toString() ?? null);
+    useGetFlightsByClient({dni, company: selectedCompany?.split(" ").join("") });
   const availableYears = useMemo(() => {
     if (!clientStats?.statistics?.total_payed_annual) {
       return [new Date().getFullYear().toString()];

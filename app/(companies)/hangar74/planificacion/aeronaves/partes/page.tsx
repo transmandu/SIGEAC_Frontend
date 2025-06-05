@@ -5,7 +5,7 @@ import LoadingPage from '@/components/misc/LoadingPage'
 import React from 'react'
 import { DataTable } from './data-table'
 import { columns } from './columns'
-import { useGetAircraftsParts } from '@/hooks/planificacion/useGetAircraftParts'
+import { useGetAircraftsParts } from '@/hooks/mantenimiento/planificacion/useGetAircraftParts'
 
 const AircraftsPage = () => {
 

@@ -1,23 +1,44 @@
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, } from "@/components/ui/dropdown-menu";
-import { EditIcon, EyeIcon, Loader2, MoreHorizontal, Trash2, } from "lucide-react";
-import { useState } from "react";
+import { useDeleteAdministrationVendor } from "@/actions/aerolinea/proveedor/actions";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Vendor } from "@/types";
+import {
+  EditIcon,
+  EyeIcon,
+  Loader2,
+  MoreHorizontal,
+  Trash2,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
-import { Button } from "../ui/button";
-import { useGetAdministrationVendorById } from "@/hooks/administracion/useGetAdministrationVendorById";
-import { useDeleteAdministrationVendor } from "@/actions/administracion/proveedor/actions";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, } from "../ui/dialog";
-import { Card } from "../ui/card";
-import { Badge } from "../ui/badge";
-import { Avatar, AvatarFallback } from "../ui/avatar";
+import { useState } from "react";
 import { EditAdministrationVendorForm } from "../forms/EditAdministrationVendorForm";
+import { Avatar, AvatarFallback } from "../ui/avatar";
+import { Badge } from "../ui/badge";
+import { Button } from "../ui/button";
+import { Card } from "../ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "../ui/dialog";
 ("../forms/EditAdministrationVendorForm");
 
-const AdministrationVendorDropdownActions = ({ id }: { id: string }) => {
+const AdministrationVendorDropdownActions = ({
+  vendor,
+}: {
+  vendor: Vendor;
+}) => {
   const [openVendor, setOpenVendor] = useState<boolean>(false);
   const [openDelete, setOpenDelete] = useState<boolean>(false);
   const router = useRouter();
   const { deleteAdministrationVendor } = useDeleteAdministrationVendor();
-  const { data: vendorDetails, isLoading } = useGetAdministrationVendorById(id);
   const [openEdit, setOpenEdit] = useState<boolean>(false);
 
   const handleDelete = (id: number | string) => {
@@ -54,7 +75,9 @@ const AdministrationVendorDropdownActions = ({ id }: { id: string }) => {
           </DropdownMenuItem>
           <DropdownMenuItem
             onClick={() => {
-              router.push(`/administracion/gestion_general/proveedor/${id}`);
+              router.push(
+                `/administracion/gestion_general/proveedor/${vendor.id}`
+              );
             }}
           ></DropdownMenuItem>
         </DropdownMenuContent>
@@ -87,7 +110,7 @@ const AdministrationVendorDropdownActions = ({ id }: { id: string }) => {
             <Button
               disabled={deleteAdministrationVendor.isPending}
               className="hover:bg-white hover:text-black hover:border hover:border-black transition-all"
-              onClick={() => handleDelete(id)}
+              onClick={() => handleDelete(vendor.id)}
             >
               {deleteAdministrationVendor.isPending ? (
                 <Loader2 className="size-4 animate-spin" />
@@ -105,125 +128,101 @@ const AdministrationVendorDropdownActions = ({ id }: { id: string }) => {
           onInteractOutside={(e) => {
             e.preventDefault(); // Evita que el diálogo se cierre al hacer clic fuera
           }}
-          aria-describedby={undefined} 
+          aria-describedby={undefined}
           className="sm:max-w-lg p-0 border-none"
         >
-          {isLoading ? (
-            <div className="flex flex-col items-center justify-center p-8 gap-4">
-              <Loader2 className="h-8 w-8 animate-spin text-primary" />
-              <p className="text-sm text-muted-foreground">
-                Cargando información...
-              </p>
+          <div className="relative">
+            {/* Header con gradiente según tipo */}
+            <div
+              className={`p-6 text-white rounded-t-lg ${
+                vendor.type === "PROVEEDOR"
+                  ? "bg-gradient-to-r from-blue-600 to-blue-500"
+                  : "bg-gradient-to-r from-green-600 to-green-500"
+              }`}
+            >
+              <div className="flex items-center gap-4">
+                <Avatar className="h-12 w-12 border-2 border-white">
+                  <AvatarFallback
+                    className={`font-semibold ${
+                      vendor.type === "PROVEEDOR"
+                        ? "bg-white text-blue-600"
+                        : "bg-white text-green-600"
+                    }`}
+                  >
+                    {vendor.name
+                      .split(" ")
+                      .map((n) => n[0])
+                      .join("")
+                      .toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+                <div>
+                  <h2 className="text-xl font-bold">{vendor.name}</h2>
+                  <Badge
+                    className={`mt-1 text-white ${
+                      vendor.type === "PROVEEDOR"
+                        ? "bg-blue-700 hover:bg-blue-800"
+                        : "bg-green-700 hover:bg-green-800"
+                    }`}
+                  >
+                    {vendor.type === "PROVEEDOR" ? "PROVEEDOR" : "BENEFICIARIO"}
+                  </Badge>
+                </div>
+              </div>
             </div>
-          ) : vendorDetails ? (
-            <div className="relative">
-              {/* Header con gradiente según tipo */}
-              <div
-                className={`p-6 text-white rounded-t-lg ${
-                  vendorDetails.type === "PROVEEDOR"
-                    ? "bg-gradient-to-r from-blue-600 to-blue-500"
-                    : "bg-gradient-to-r from-green-600 to-green-500"
+
+            {/* Contenido principal */}
+            <div className="p-6 grid gap-6">
+              {/* Grid de información básica */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="bg-muted/50 p-4 rounded-lg col-span-2">
+                  <h3 className="text-sm font-medium text-muted-foreground mb-1 ">
+                    Email
+                  </h3>
+                  <p className="font-medium">
+                    {vendor.email || "No especificado"}
+                  </p>
+                </div>
+
+                <div className="bg-muted/50 p-4 rounded-lg col-span-2">
+                  <h3 className="text-sm font-medium text-muted-foreground mb-1">
+                    Teléfono
+                  </h3>
+                  <p className="font-medium">
+                    {vendor.phone || "No especificado"}
+                  </p>
+                </div>
+
+                <div className="bg-muted/50 p-4 rounded-lg col-span-2">
+                  <h3 className="text-sm font-medium text-muted-foreground mb-1">
+                    Dirección
+                  </h3>
+                  <p className="font-medium">
+                    {vendor.address || "No especificada"}
+                  </p>
+                </div>
+              </div>
+
+              {/* Sección de información adicional */}
+              <Card
+                className={`${
+                  vendor.type === "PROVEEDOR"
+                    ? "bg-blue-50 border-blue-200"
+                    : "bg-green-50 border-green-200"
                 }`}
-              >
-                <div className="flex items-center gap-4">
-                  <Avatar className="h-12 w-12 border-2 border-white">
-                    <AvatarFallback
-                      className={`font-semibold ${
-                        vendorDetails.type === "PROVEEDOR"
-                          ? "bg-white text-blue-600"
-                          : "bg-white text-green-600"
-                      }`}
-                    >
-                      {vendorDetails.name
-                        .split(" ")
-                        .map((n) => n[0])
-                        .join("")
-                        .toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <h2 className="text-xl font-bold">{vendorDetails.name}</h2>
-                    <Badge
-                      className={`mt-1 text-white ${
-                        vendorDetails.type === "PROVEEDOR"
-                          ? "bg-blue-700 hover:bg-blue-800"
-                          : "bg-green-700 hover:bg-green-800"
-                      }`}
-                    >
-                      {vendorDetails.type === "PROVEEDOR"
-                        ? "PROVEEDOR"
-                        : "BENEFICIARIO"}
-                    </Badge>
-                  </div>
-                </div>
-              </div>
-
-              {/* Contenido principal */}
-              <div className="p-6 grid gap-6">
-                {/* Grid de información básica */}
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="bg-muted/50 p-4 rounded-lg col-span-2">
-                    <h3 className="text-sm font-medium text-muted-foreground mb-1 ">
-                      Email
-                    </h3>
-                    <p className="font-medium">
-                      {vendorDetails.email || "No especificado"}
-                    </p>
-                  </div>
-
-                  <div className="bg-muted/50 p-4 rounded-lg col-span-2">
-                    <h3 className="text-sm font-medium text-muted-foreground mb-1">
-                      Teléfono
-                    </h3>
-                    <p className="font-medium">
-                      {vendorDetails.phone || "No especificado"}
-                    </p>
-                  </div>
-
-                  <div className="bg-muted/50 p-4 rounded-lg col-span-2">
-                    <h3 className="text-sm font-medium text-muted-foreground mb-1">
-                      Dirección
-                    </h3>
-                    <p className="font-medium">
-                      {vendorDetails.address || "No especificada"}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Sección de información adicional */}
-                <Card
-                  className={`${
-                    vendorDetails.type === "PROVEEDOR"
-                      ? "bg-blue-50 border-blue-200"
-                      : "bg-green-50 border-green-200"
-                  }`}
-                ></Card>
-              </div>
-
-              <DialogFooter className="px-6 pb-6">
-                <Button
-                  onClick={() => setOpenVendor(false)}
-                  variant="outline"
-                  className="w-full"
-                >
-                  Cerrar
-                </Button>
-              </DialogFooter>
+              ></Card>
             </div>
-          ) : (
-            <div className="text-center py-6">
-              <p className="text-muted-foreground">
-                No se pudo cargar la información
-              </p>
+
+            <DialogFooter className="px-6 pb-6">
               <Button
                 onClick={() => setOpenVendor(false)}
                 variant="outline"
-                className="mt-4"
+                className="w-full"
               >
                 Cerrar
               </Button>
-            </div>
-          )}
+            </DialogFooter>
+          </div>
         </DialogContent>
       </Dialog>
 
@@ -233,13 +232,13 @@ const AdministrationVendorDropdownActions = ({ id }: { id: string }) => {
           onInteractOutside={(e) => {
             e.preventDefault(); // Evita que el diálogo se cierre al hacer clic fuera
           }}
-          aria-describedby={undefined} 
+          aria-describedby={undefined}
         >
           <DialogHeader>
             <DialogTitle>Editar Cliente</DialogTitle>
           </DialogHeader>
           <EditAdministrationVendorForm
-            id={id}
+            vendor={vendor}
             onClose={() => setOpenEdit(false)}
           />
         </DialogContent>

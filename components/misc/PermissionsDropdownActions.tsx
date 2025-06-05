@@ -9,7 +9,7 @@ import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { Button } from "../ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "../ui/dialog"
-import { useDeletePermission } from "@/actions/administracion/permisos/actions"
+import { useDeletePermission } from "@/actions/aerolinea/permisos/actions"
 
 const PermissionsDropdownActions = ({ id }: { id: string | number }) => {
 

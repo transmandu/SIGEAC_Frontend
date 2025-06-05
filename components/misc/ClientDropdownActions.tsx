@@ -1,39 +1,40 @@
-import { useDeleteClient } from "@/actions/administracion/clientes/actions";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Client } from "@/types";
 import {
-  EditIcon,
-  EyeIcon,
-  Loader2,
-  MoreHorizontal,
-  Plus,
-  Trash2,
-  TrendingUp,
+    EditIcon,
+    EyeIcon,
+    Loader2,
+    MoreHorizontal,
+    Plus,
+    Trash2,
+    TrendingUp,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { EditClientForm } from "../forms/EditClientForm";
-import { Button } from "../ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "../ui/dialog";
-import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
-import { Badge } from "../ui/badge";
-import { Avatar, AvatarFallback } from "../ui/avatar";
 import AddClientBalanceForm from "../forms/AddClientBalanceForm";
-import { Client } from "@/types";
-import { useGetClientByDni } from "@/hooks/administracion/clientes/useGetClientByDni";
+import { EditClientForm } from "../forms/EditClientForm";
+import { Avatar, AvatarFallback } from "../ui/avatar";
+import { Badge } from "../ui/badge";
+import { Button } from "../ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from "../ui/dialog";
+import { useDeleteClient } from "@/actions/general/clientes/actions";
+import { useCompanyStore } from "@/stores/CompanyStore";
 
 const ClientDropdownActions = ({ client }: { client: Client }) => {
+    const {selectedCompany} = useCompanyStore();
   const [openDelete, setOpenDelete] = useState<boolean>(false);
   const [openClient, setOpenClient] = useState<boolean>(false);
   const [openEdit, setOpenEdit] = useState<boolean>(false);
@@ -47,8 +48,8 @@ const ClientDropdownActions = ({ client }: { client: Client }) => {
     );
   };
 
-  const handleDelete = (dni: number | string) => {
-    deleteClient.mutate(dni, {
+  const handleDelete = (dni: string) => {
+    deleteClient.mutate({dni, company: selectedCompany!.split(" ").join("")}, {
       onSuccess: () => setOpenDelete(false), // Cierra el modal solo si la eliminación fue exitosa
     });
   };

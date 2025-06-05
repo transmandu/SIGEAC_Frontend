@@ -1,6 +1,6 @@
 "use client";
 
-import { useCreateFlight } from "@/actions/administracion/vuelos/actions";
+import { useCreateFlight } from "@/actions/aerolinea/vuelos/actions";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, } from "@/components/ui/form";
@@ -17,13 +17,14 @@ import { CalendarIcon } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { AmountInput } from "../misc/AmountInput";
-import { useGetRoute } from "@/hooks/administracion/useGetRoutes";
-import { useGetClients } from "@/hooks/administracion/clientes/useGetClients";
-import { useGetAircrafts } from "@/hooks/administracion/useGetAircrafts";
-import { useGetBankAccounts } from "@/hooks/ajustes/cuentas/useGetBankAccounts";
+import { useGetRoute } from "@/hooks/aerolinea/rutas/useGetRoutes";
+import { useGetClients } from "@/hooks/general/clientes/useGetClients";
+import { useGetAircrafts } from "@/hooks/aerolinea/aeronaves/useGetAircrafts";
+import { useGetBankAccounts } from "@/hooks/general/cuentas_bancarias/useGetBankAccounts";
 import { Label } from "../ui/label";
 import { Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useCompanyStore } from "@/stores/CompanyStore";
 
 const formSchema = z
   .object({
@@ -108,6 +109,7 @@ interface FormProps {
 
 export function FlightForm({ onClose }: FormProps) {
   const { createFlight } = useCreateFlight();
+  const {selectedCompany} = useCompanyStore();
   const { data: routes, isLoading: isRouteLoading, isError } = useGetRoute();
   const { data: accounts, isLoading: isAccLoading } = useGetBankAccounts();
   const [kg, setKg] = useState("0");
@@ -115,12 +117,12 @@ export function FlightForm({ onClose }: FormProps) {
     data: clients,
     isLoading: isClientsLoading,
     isError: isClientsError,
-  } = useGetClients();
+  } = useGetClients(selectedCompany?.split(" ").join(""));
   const {
     data: aircrafts,
     isLoading: isAircraftLoading,
     isError: isAircraftError,
-  } = useGetAircrafts();
+  } = useGetAircrafts(selectedCompany?.split(" ").join(""));
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -136,28 +138,29 @@ export function FlightForm({ onClose }: FormProps) {
     if (payed > total) {
       form.setValue("payed_amount", total.toString());
     }
-    console.log(total, payed);
   }, [form]);
 
+
+  const {fee, type} = form.watch();
+
   useEffect(() => {
-    if (form.watch("type") !== "CHART") {
+    if (type !== "CHART") {
       let newAmount = 0;
-      const feeString = form.watch("fee") || "0";
-      const fee = parseFloat(feeString.replace(/,/g, "")); // Asegurar reemplazo de comas
+      const feeString = fee || "0";
+      const final_fee = parseFloat(feeString.replace(/,/g, "")); // Asegurar reemplazo de comas
 
       // Asegurar que kg use punto como separador decimal
       const kgValue = parseFloat(kg.replace(/,/g, "") || "0");
 
       if (!isNaN(kgValue)) {
-        newAmount = kgValue * fee;
+        newAmount = kgValue * final_fee;
       }
 
       form.setValue("total_amount", newAmount.toString());
     }
-  }, [kg, form.watch("fee"), form.watch("type")]);
+  }, [kg, fee, type, form]);
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log("clkick");
     const formattedValues = {
       ...values,
       fee: values.type === "CHART" ? 0 : Number(values.fee),
@@ -172,7 +175,6 @@ export function FlightForm({ onClose }: FormProps) {
   }
 
   const debtStatus = form.watch("debt_status");
-  console.log(form.getValues());
   return (
     <Form {...form}>
       <form
@@ -626,7 +628,7 @@ export function FlightForm({ onClose }: FormProps) {
                 <FormMessage />
               </FormItem>
             )}
-          />           
+          />
           )}
         </div>
         <FormField

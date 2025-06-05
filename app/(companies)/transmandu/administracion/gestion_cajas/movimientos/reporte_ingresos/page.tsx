@@ -13,7 +13,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, } from "
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Cell, } from "recharts";
 import { Badge } from "@/components/ui/badge";
 import type { CashMovement } from "@/types";
-import { useGetIncomeStatistics } from "@/hooks/administracion/movimientos/useGetIncomeStatistics";
+import { useGetIncomeStatistics } from "@/hooks/aerolinea/movimientos/useGetIncomeStatistics";
 import { SummaryCard } from "@/components/cards/SummaryCard";
 import months from "@/components/cards/ConfigMonths";
 import MovementDetailsDialog from "@/components/dialogs/MovementDetailsDialog";
@@ -144,14 +144,14 @@ const IncomeDashboard = () => {
   // Calcular estadísticas
   const totalAnnualIncome = useMemo(() => {
     if (!data?.statistics?.monthly?.[selectedYear]) return 0;
-    
+
     // Si no hay cliente seleccionado o es "all", usa las estadísticas directas
     if (!selectedClient || selectedClient === "all") {
       return months.reduce((sum, month) => {
         return sum + (data.statistics.monthly[selectedYear][month.name] || 0);
       }, 0);
     }
-    
+
     // Si hay un cliente seleccionado, calcula manualmente
     return monthlyData.reduce((sum, month) => sum + month.income, 0);
   }, [data, selectedYear, selectedClient, monthlyData]);

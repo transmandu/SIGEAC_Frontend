@@ -14,7 +14,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Textarea } from '@/components/ui/textarea';
-import { useGetArticle } from '@/hooks/almacen/useGetArticle';
+import { useGetArticle } from '@/hooks/mantenimiento/almacen/articulos/useGetArticle';
 import { cn } from '@/lib/utils';
 import { useCompanyStore } from '@/stores/CompanyStore';
 import { format } from 'date-fns';
@@ -27,8 +27,8 @@ import { useEffect, useState } from 'react';
 const ArticlePage = () => {
   const { selectedStation } = useCompanyStore();
   const [date, setDate] = useState<Date>()
-  const params = useParams<{ part_number: string, serial: string }>();
-  const { mutate, data, isPending, isError } = useGetArticle(selectedStation!, params.part_number, params.serial);
+  const params = useParams<{ slug: string, serial: string }>();
+  const { mutate, data, isPending, isError } = useGetArticle(selectedStation!, params.slug, params.serial);
 
   useEffect(() => {
     if (selectedStation) {

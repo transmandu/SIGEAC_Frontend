@@ -1,5 +1,5 @@
 'use client';
-import { useCreateBank } from "@/actions/ajustes/banco_cuentas/bancos/actions";
+import { useCreateBank } from "@/actions/general/banco_cuentas/bancos/actions";
 import {
   Form,
   FormControl,

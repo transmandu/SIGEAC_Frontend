@@ -13,10 +13,10 @@ import { z } from "zod";
 import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, } from "@/components/ui/select";
-import { useGetBankAccounts } from "@/hooks/ajustes/cuentas/useGetBankAccounts";
+import { useGetBankAccounts } from "@/hooks/general/cuentas_bancarias/useGetBankAccounts";
 import { Loader2 } from "lucide-react";
 import { Credit } from "@/types";
-import { useCreateCreditPayment } from "@/actions/administracion/pagos_creditos/actions";
+import { useCreateCreditPayment } from "@/actions/aerolinea/pagos_creditos/actions";
 
 interface FormProps {
   onClose: () => void;

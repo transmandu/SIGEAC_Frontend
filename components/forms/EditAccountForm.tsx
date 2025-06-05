@@ -1,6 +1,6 @@
 "use client";
 
-import { useUpdateAccount } from "@/actions/administracion/cuentas/actions";
+import { useUpdateAccount } from "@/actions/aerolinea/cuentas/actions";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -11,7 +11,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { useGetAccountById } from "@/hooks/administracion/useGetAccountById";
+import { useGetAccountById } from "@/hooks/aerolinea/cuentas_contables/useGetAccountById";
 import { Accountant } from "@/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";

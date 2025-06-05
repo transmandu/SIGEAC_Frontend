@@ -1,5 +1,5 @@
-import { useUpdateQuoteStatus } from "@/actions/compras/cotizaciones/actions"
-import { useUpdateRequisitionStatus } from "@/actions/compras/requisiciones/actions"
+import { useUpdateQuoteStatus } from "@/actions/mantenimiento/compras/cotizaciones/actions"
+import { useUpdateRequisitionStatus } from "@/actions/mantenimiento/compras/requisiciones/actions"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,7 +13,7 @@ import { ClipboardCheck, ClipboardX, EyeIcon, Loader2, MoreHorizontal } from "lu
 import { useState } from "react"
 import { Button } from "../ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "../ui/dialog"
-import { useCreatePurchaseOrder } from "@/actions/compras/ordenes_compras/actions"
+import { useCreatePurchaseOrder } from "@/actions/mantenimiento/compras/ordenes_compras/actions"
 
 const QuoteDropdownActions = ({ quote }: { quote: Quote }) => {
 
@@ -33,7 +33,7 @@ const QuoteDropdownActions = ({ quote }: { quote: Quote }) => {
 
   const handleReject = async (id: number) => {
     const data = {
-      status: "rechazada",
+      status: "RECHAZADA",
       updated_by: `${user?.first_name} ${user?.last_name}`,
       company: selectedCompany!.split(" ").join("").toLowerCase(),
     };
@@ -41,7 +41,7 @@ const QuoteDropdownActions = ({ quote }: { quote: Quote }) => {
     await updateStatusQuote.mutateAsync({ id, data });
     await updateStatusRequisition.mutateAsync({
       id: quote.requisition_order.id, data: {
-        status: "proceso",
+        status: "PROCESO",
         updated_by: `${user?.first_name} ${user?.last_name}`,
         company: selectedCompany!.split(" ").join("").toLowerCase(),
       }
@@ -51,7 +51,7 @@ const QuoteDropdownActions = ({ quote }: { quote: Quote }) => {
   const handleApprove = async (id: number) => {
 
     const poData = {
-      status: "proceso",
+      status: "PROCESO",
       justification: quote.justification,
       purchase_date: new Date(),
       sub_total: Number(quote.total),
@@ -64,7 +64,7 @@ const QuoteDropdownActions = ({ quote }: { quote: Quote }) => {
     }
 
     const data = {
-      status: "aprobada",
+      status: "APROBADO",
       updated_by: `${user?.first_name} ${user?.last_name}`,
       company: selectedCompany!.split(" ").join("").toLowerCase(),
     };
@@ -73,7 +73,7 @@ const QuoteDropdownActions = ({ quote }: { quote: Quote }) => {
     await createPurchaseOrder.mutateAsync(poData);
     await updateStatusRequisition.mutateAsync({
       id: quote.requisition_order.id, data: {
-        status: "aprobada",
+        status: "APROBADO",
         updated_by: `${user?.first_name} ${user?.last_name}`,
         company: selectedCompany!.split(" ").join("").toLowerCase(),
       }
@@ -93,7 +93,7 @@ const QuoteDropdownActions = ({ quote }: { quote: Quote }) => {
         </DropdownMenuTrigger>
         <DropdownMenuContent align="center" className="flex gap-2 justify-center"> 
           {
-            quote.status !== 'aprobada' && quote.status !== 'rechazada' && (
+            quote.status !== 'APROBADO' && quote.status !== 'RECHAZADA' && (
               <>
                 <DropdownMenuItem onClick={() => setOpenApprove(true)}>
                   <ClipboardCheck className='size-5 text-green-500' />
@@ -131,7 +131,7 @@ const QuoteDropdownActions = ({ quote }: { quote: Quote }) => {
           <DialogHeader>
             <DialogTitle className="text-center">¿Seguro que desea aprobar la cotizacion?</DialogTitle>
             <DialogDescription className="text-center p-2 mb-0 pb-0">
-              Será aprobada tanto la cotizacion como la requisicion adjunta.
+              Será APROBADO tanto la cotizacion como la requisicion adjunta.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="flex gap-2">

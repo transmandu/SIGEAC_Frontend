@@ -9,7 +9,7 @@ import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 import { Button } from "../ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "../ui/dialog"
-import { useDeleteWarehouse } from "@/actions/almacen/almacenes/actions"
+import { useDeleteWarehouse } from "@/actions/mantenimiento/almacen/almacenes/actions"
 import { useCompanyStore } from "@/stores/CompanyStore"
 
 const WarehouseDropdownActions

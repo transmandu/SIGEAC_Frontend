@@ -13,7 +13,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
-import { IArticleByBatch } from "@/hooks/almacen/useGetArticlesByBatch"
+import { IArticleByBatch } from "@/hooks/mantenimiento/almacen/articulos/useGetArticlesByBatch"
 import Image from "next/image"
 import { Badge } from "@/components/ui/badge"
 
@@ -32,7 +32,7 @@ interface ColumnI {
   batches_id: number,
   vendor_id: string,
   part_number: string,
-  alternate_part_number: string,
+  alternative_part_number: string[],
   certificates?: string[],
   unit_secondary: string,
   image: string,
@@ -139,19 +139,18 @@ export const columns: ColumnDef<ColumnI>[] = [
     ),
     filterFn: (row, columnId, filterValue) => {
       const partNumber = row.original.part_number?.toLowerCase() ?? "";
-      const altPartNumber = row.original.alternate_part_number?.toLowerCase() ?? "";
       const filter = filterValue.toLowerCase();
-      return partNumber.includes(filter) || altPartNumber.includes(filter);
+      return partNumber.includes(filter)
     },
   },
   {
-    accessorKey: "alternate_part_number",
+    accessorKey: "alternative_part_number",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Nro. de Parte Alterno" />
+      <DataTableColumnHeader filter column={column} title="Nro. de Parte Alterno" />
     ),
     cell: ({ row }) => (
       <p className="flex justify-center text-muted-foreground">
-        {row.original.alternate_part_number ?? "N/A"}
+        {row.original.alternative_part_number[0]}
       </p>
     ),
   },
@@ -203,7 +202,7 @@ export const columns: ColumnDef<ColumnI>[] = [
       return (
         <div className="flex justify-center">
           <Badge className={quantity <= 0 ? "bg-yellow-500" : "bg-green-500"}>
-            {quantity} {row.original.unit_secondary}
+            {consumable ? quantity.toFixed(2) : quantity} - {row.original.unit_secondary}
           </Badge>
         </div>
       );

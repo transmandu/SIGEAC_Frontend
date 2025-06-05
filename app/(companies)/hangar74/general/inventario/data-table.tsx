@@ -12,7 +12,7 @@ import {
   useReactTable,
 } from "@tanstack/react-table"
 
-import { CreateBatchDialog } from "@/components/dialogs/CreateBatchDialog"
+import { DispatchRequestDialog } from "@/components/dialogs/DispatchRequestDialog"
 import { DataTablePagination } from "@/components/tables/DataTablePagination"
 import { DataTableViewOptions } from "@/components/tables/DataTableViewOptions"
 import {
@@ -23,32 +23,29 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { useRouter } from "next/navigation"
-import { useState } from "react"
-import { DispatchRequestDialog } from "@/components/dialogs/DispatchRequestDialog"
+import { useDebounce } from "@/hooks/helpers/useDebounce"
+import { useEffect, useState } from "react"
+import { Input } from "@/components/ui/input"
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
-  data: TData[]
+  initialData: TData[],
+  isSearching?: boolean,
+  searchTerm?: string,
 }
 
 export function DataTable<TData, TValue>({
   columns,
-  data,
+  initialData,
+  isSearching = false,
+  searchTerm = '',
 }: DataTableProps<TData, TValue>) {
-
+  const [data, setData] = useState<TData[]>(initialData)
+  const [partNumberFilter, setPartNumberFilter] = useState("")
   const [sorting, setSorting] = useState<SortingState>([])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>(
     []
   )
-
-  const locations = [
-    {
-      label: 'Puerto Ordaz',
-      value: 'pzo'
-    }
-  ]
-
   const table = useReactTable({
     data,
     columns,
@@ -63,10 +60,6 @@ export function DataTable<TData, TValue>({
       columnFilters
     }
   })
-
-  const router = useRouter();
-
-  const isFiltered = table.getState().columnFilters.length > 0
 
   return (
     <div>

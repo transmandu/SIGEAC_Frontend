@@ -1,12 +1,12 @@
 "use client";
 
-import { useCreateCategory } from "@/actions/administracion/categorias/actions";
+import { useCreateCategory } from "@/actions/aerolinea/categorias/actions";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, } from "@/components/ui/form";
 import { Popover, PopoverContent, PopoverTrigger, } from "@/components/ui/popover";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList, } from "../ui/command";
 import { Input } from "@/components/ui/input";
-import { useGetAccountant } from "@/hooks/administracion/useGetAccountant";
+import { useGetAccountant } from "@/hooks/aerolinea/cuentas_contables/useGetAccountant";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";

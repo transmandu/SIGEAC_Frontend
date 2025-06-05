@@ -8,16 +8,18 @@ import { Loader2, ArrowLeft, DollarSign, Plane, AlertCircle } from "lucide-react
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { formatCurrency, formatDate } from "@/lib/utils"
-import { useGetFlightsByClient } from "@/hooks/administracion/clientes/useGetFlightByClients"
+import { useGetFlightsByClient } from "@/hooks/general/clientes/useGetFlightByClients"
 import { SummaryCard } from "@/components/cards/SummaryCard"
-import { useGetClientByDni } from "@/hooks/administracion/clientes/useGetClientByDni"
+import { useGetClientByDni } from "@/hooks/general/clientes/useGetClientByDni"
+import { useCompanyStore } from "@/stores/CompanyStore"
 
 const ClientDebts = () => {
+  const { selectedCompany } = useCompanyStore()
   const params = useParams()
   const dni = params.dni as string
   const router = useRouter()
-  const { data: clientDetails, isLoading, error } = useGetClientByDni(dni)
-  const { data: clientStats, isLoading: isLoadingFlights } = useGetFlightsByClient(dni)
+  const { data: clientDetails, isLoading, error } = useGetClientByDni({company: selectedCompany?.split(" ").join(""), dni})
+  const { data: clientStats, isLoading: isLoadingFlights } = useGetFlightsByClient({company: selectedCompany?.split(" ").join(""), dni})
   const allDebtFlights = useMemo(() => {
     if (!clientStats?.total_debt_flights) return []
     // Ordenar los vuelos por fecha (más recientes primero)

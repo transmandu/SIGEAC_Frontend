@@ -1,7 +1,7 @@
 'use client'
 
 import { ContentLayout } from '@/components/layout/ContentLayout'
-import { useGetUsers } from '@/hooks/user/useGetUsers'
+import { useGetUsers } from '@/hooks/sistema/usuario/useGetUsers'
 import { Loader2 } from 'lucide-react';
 import React from 'react'
 import { DataTable } from './data-table';

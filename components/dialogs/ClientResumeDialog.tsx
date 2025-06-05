@@ -18,7 +18,7 @@ const ClientResumeDialog = ({ client }: { client: Client }) => {
   return (
     <Dialog open={openClient} onOpenChange={setOpenClient}>
       <DialogTrigger>{client.name}</DialogTrigger>
-      <DialogContent className="sm:max-w-md" 
+      <DialogContent className="sm:max-w-md"
           onInteractOutside={(e) => {
           e.preventDefault();
         }}>

@@ -1,8 +1,7 @@
 "use client";
 
-import { useCashMovementForAircraft } from "@/actions/administracion/aeronaves/actions";
+import { useCashMovementForAircraft } from "@/actions/aerolinea/aeronaves/actions";
 import { ContentLayout } from "@/components/layout/ContentLayout";
-import { description } from "@/components/misc/TestChart";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -30,12 +29,12 @@ import {
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
-import { useGetCash } from "@/hooks/administracion/cajas/useGetCash";
-import { useGetAccountant } from "@/hooks/administracion/useGetAccountant";
-import { useGetCategory } from "@/hooks/administracion/useGetCategory";
 import { useGetEmployeesByCompany } from "@/hooks/administracion/useGetEmployees";
-import { useGetBankAccounts } from "@/hooks/ajustes/cuentas/useGetBankAccounts";
-import { useGetVendors } from "@/hooks/ajustes/globales/proveedores/useGetVendors";
+import { useGetCash } from "@/hooks/aerolinea/cajas/useGetCash";
+import { useGetCategory } from "@/hooks/aerolinea/categorias_cuentas/useGetCategory";
+import { useGetAccountant } from "@/hooks/aerolinea/cuentas_contables/useGetAccountant";
+import { useGetBankAccounts } from "@/hooks/general/cuentas_bancarias/useGetBankAccounts";
+import { useGetVendors } from "@/hooks/general/proveedores/useGetVendors";
 import { cn } from "@/lib/utils";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -119,7 +118,7 @@ export default function AircraftExpensesPage() {
   const { data: bankaccounts, isLoading: isBankAccLoading } =
     useGetBankAccounts();
   const { data: accounts, isLoading: isAccountLoading } = useGetAccountant();
-  const { data: vendors, isLoading: isVendorLoading } = useGetVendors();
+  const { data: vendors, isLoading: isVendorLoading } = useGetVendors(selectedCompany?.split(" ").join(""));
 
   // Get accountant_id from form values to fetch categories
   const accountantId = form.watch(
@@ -155,8 +154,6 @@ export default function AircraftExpensesPage() {
         })),
       })),
     };
-
-    // console.log(transformedData)
     await createCashMovementForAircraft.mutateAsync({
       acronym,
       formData: transformedData,

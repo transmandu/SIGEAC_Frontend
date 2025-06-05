@@ -1,4 +1,4 @@
-import { useCreateRoute, useGetRoute, useUpdateRoute, } from "@/actions/administracion/rutas/actions";
+import { useCreateRoute, useGetRoute, useUpdateRoute, } from "@/actions/aerolinea/rutas/actions";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, } from "@/components/ui/form";
 import { cn } from "@/lib/utils";
 import { Route } from "@/types";
@@ -13,7 +13,7 @@ import { Checkbox } from "../ui/checkbox";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 
-const getFormSchema = (hasLayovers: boolean) => 
+const getFormSchema = (hasLayovers: boolean) =>
   z.object({
     from: z
       .string({

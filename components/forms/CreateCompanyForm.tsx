@@ -10,6 +10,7 @@ import { z } from "zod"
 import { Separator } from "../ui/separator"
 
 const FormSchema = z.object({
+  acronym: z.string({ message: "El acronimo es requerido." }),
   name: z.string().min(3, {
     message: "El usuario debe tener al menos 3 caracteres.",
   }),
@@ -88,6 +89,19 @@ export function CreateCompanyForm({ onClose }: FormProps) {
                 <FormLabel>RIF</FormLabel>
                 <FormControl>
                   <Input placeholder="Ej: J-#######" {...field} />
+                </FormControl>
+                <FormMessage className="text-xs" />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="acronym"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Abrev.</FormLabel>
+                <FormControl>
+                  <Input placeholder="Ej: TMD - HG74 - etc..." {...field} />
                 </FormControl>
                 <FormMessage className="text-xs" />
               </FormItem>

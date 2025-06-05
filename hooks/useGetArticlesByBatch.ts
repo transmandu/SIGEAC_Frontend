@@ -1,10 +1,9 @@
-import axios from '@/lib/axios';
+
+import axiosInstance from '@/lib/axios';
 import { Article } from '@/types';
 import { useMutation } from '@tanstack/react-query';
-
-
 const fetchArticlesByBatch = async (location_id: number, batch: string): Promise<Article[]> => {
-  const {data} = await axios.post(`/hangar74/batches/${batch}`, {location_id});
+  const {data} = await axiosInstance.post(`/hangar74/batches/${batch}`, {location_id});
   return data;
 };
 

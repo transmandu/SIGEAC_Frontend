@@ -1,4 +1,4 @@
-import { useDeleteAccount } from "@/actions/administracion/cuentas/actions";
+import { useDeleteAccount } from "@/actions/aerolinea/cuentas/actions";
 import {
   DropdownMenu,
   DropdownMenuContent,

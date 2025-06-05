@@ -4,7 +4,7 @@ import { ContentLayout } from "@/components/layout/ContentLayout";
 import { columns } from "./columns";
 import LoadingPage from "@/components/misc/LoadingPage";
 import { DataTable } from "./data-table";
-import { useGetCreditFlight } from "@/hooks/administracion/creditos/useGetCreditFlight";
+import { useGetCreditFlight } from "@/hooks/aerolinea/creditos/useGetCreditFlight";
 
 const CreditPage = () => {
   const { data, isLoading, isError } = useGetCreditFlight();
@@ -12,7 +12,6 @@ const CreditPage = () => {
   if (isLoading) {
     return <LoadingPage />;
   }
-  console.log(data);
   return (
     <ContentLayout title="Crédito">
       {" "}

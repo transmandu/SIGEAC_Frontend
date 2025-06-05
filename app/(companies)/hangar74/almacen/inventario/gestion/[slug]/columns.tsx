@@ -13,9 +13,11 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
-import { IArticleByBatch } from "@/hooks/almacen/useGetArticlesByBatch"
+import { IArticleByBatch } from "@/hooks/mantenimiento/almacen/articulos/useGetArticlesByBatch"
 import Image from "next/image"
 import { Badge } from "@/components/ui/badge"
+import { Separator } from "@/components/ui/separator"
+import { COMPILER_INDEXES } from "next/dist/shared/lib/constants"
 
 interface ColumnI {
   id: number,
@@ -32,7 +34,7 @@ interface ColumnI {
   batches_id: number,
   vendor_id: string,
   part_number: string,
-  alternate_part_number: string,
+  alternative_part_number: string[],
   certificates?: string[],
   unit_secondary: string,
   image: string,
@@ -139,9 +141,8 @@ export const columns: ColumnDef<ColumnI>[] = [
     ),
     filterFn: (row, columnId, filterValue) => {
       const partNumber = row.original.part_number?.toLowerCase() ?? "";
-      const altPartNumber = row.original.alternate_part_number?.toLowerCase() ?? "";
       const filter = filterValue.toLowerCase();
-      return partNumber.includes(filter) || altPartNumber.includes(filter);
+      return partNumber.includes(filter)
     },
   },
   {
@@ -150,9 +151,14 @@ export const columns: ColumnDef<ColumnI>[] = [
       <DataTableColumnHeader column={column} title="Nro. de Parte Alterno" />
     ),
     cell: ({ row }) => (
-      <p className="flex justify-center text-muted-foreground">
-        {row.original.alternate_part_number ?? "N/A"}
-      </p>
+      <div className="flex gap-2 text-center justify-center">
+        {row.original.alternative_part_number.map((part_number, index) => (
+          <div className="flex gap-2" key={index}>
+            <p className="text-muted-foreground">{part_number}</p>
+            <Separator orientation="vertical" className={index === row.original.alternative_part_number.length - 1 ? "hidden" : ""} />
+          </div>
+        ))}
+      </div>
     ),
   },
   {
@@ -179,7 +185,7 @@ export const columns: ColumnDef<ColumnI>[] = [
       <DataTableColumnHeader column={column} title="Zona de Ubicación" />
     ),
     cell: ({ row }) => (
-      <p className="flex justify-center">{row.original.zone}</p>
+      <p className="flex text-center justify-center">{row.original.zone}</p>
     )
   },
   {
@@ -203,7 +209,7 @@ export const columns: ColumnDef<ColumnI>[] = [
       return (
         <div className="flex justify-center">
           <Badge className={quantity <= 0 ? "bg-yellow-500" : "bg-green-500"}>
-            {quantity} {row.original.unit_secondary}
+            {consumable ? quantity.toFixed(2) : quantity} {row.original.unit_secondary}
           </Badge>
         </div>
       );

@@ -19,7 +19,7 @@ export function CreateCompanyDialog() {
       <DialogTrigger asChild>
         <Button onClick={() => setOpen(true)} variant={'outline'} className="flex items-center justify-center gap-2 h-8 border-dashed">Nuevo</Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[420px]">
+      <DialogContent className="sm:max-w-[520px]">
         <DialogHeader>
           <DialogTitle>Creación de Empresa</DialogTitle>
           <DialogDescription>

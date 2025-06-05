@@ -9,7 +9,7 @@ import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { Button } from "../ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "../ui/dialog"
-import { useDeleteRole } from "@/actions/administracion/roles/actions"
+import { useDeleteRole } from "@/actions/aerolinea/roles/actions"
 
 const RolesDropdownActions = ({ id }: { id: string | number }) => {
 

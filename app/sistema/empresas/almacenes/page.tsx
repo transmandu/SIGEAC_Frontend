@@ -7,9 +7,7 @@ import { columns } from './columns';
 import { DataTable } from './data-table';
 
 const AlmacenesPage = () => {
-
   const { data: warehouses, isLoading, error } = useGetWarehouses();
-  console.log(warehouses)
   return (
     <ContentLayout title={'Almacenes'}>
       <h1 className='text-4xl font-bold text-center mb-2'>Control de Almácenes</h1>

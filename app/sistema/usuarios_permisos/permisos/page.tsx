@@ -6,7 +6,7 @@ import { Loader2 } from 'lucide-react'
 import React from 'react'
 import { DataTable } from './data-table'
 import { columns } from './columns'
-import { useGetPermissions } from '@/hooks/user/useGetPermissions'
+import { useGetPermissions } from '@/hooks/sistema/usuario/useGetPermissions'
 
 const PermisosPage = () => {
   const { data: permissions, isLoading, error } = useGetPermissions()

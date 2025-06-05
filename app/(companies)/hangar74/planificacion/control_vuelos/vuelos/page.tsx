@@ -2,13 +2,14 @@
 
 import { ContentLayout } from '@/components/layout/ContentLayout'
 import LoadingPage from '@/components/misc/LoadingPage'
-import { useGetFlightControl } from '@/hooks/planificacion/useGetFlightsControl'
+import { useGetFlightControl } from '@/hooks/mantenimiento/planificacion/useGetFlightsControl'
 import { columns } from './columns'
 import { DataTable } from './data-table'
+import { useCompanyStore } from '@/stores/CompanyStore'
 
 const FlightControlPage = () => {
-
-  const { data: flights, isLoading, isError } = useGetFlightControl()
+  const {selectedCompany} = useCompanyStore()
+  const { data: flights, isLoading, isError } = useGetFlightControl(selectedCompany?.split(" ").join(""))
   if (isLoading) {
     return <LoadingPage />
   }

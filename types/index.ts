@@ -49,7 +49,7 @@ export type Article = {
   id?: number,
   article_type?: string,
   part_number: string,
-  alternative_part_number?: string,
+  alternative_part_number?: string[],
   status?: string,
   serial?: string,
   description?: string,
@@ -323,18 +323,6 @@ export type ServiceTask = {
   }[]
 }
 
-export type Employee = {
-  id: number,
-  first_name: string,
-  last_name: string,
-  company: string,
-  dni: string,
-  job_title: JobTitle,
-  department: Department,
-  user?: User,
-  location: Location,
-}
-
 export type WorkOrderTask = {
   id: number,
   description_task: string,
@@ -472,43 +460,20 @@ export type Manufacturer = {
 
 export type Module = {
   id: number,
-  order_number: string,
-  status: string,
-  created_by: User,
-  type: string,
-  image?: string,
-  requested_by: string,
-  batch: {
-    name: string,
-    batch_articles: {
-      article_part_number: string,
-      article_alt_part_number?: string,
-      pma?: string,
-      reference_cod?: string,
-      justification: string,
-      quantity: number,
-      unit?: Convertion,
-      image?: string,
-      certificates?: string[]
-    }[]
-  }[],
-  received_by: string,
-  justification: string,
-  arrival_date: Date,
-  submission_date: Date,
-  work_order: WorkOrder,
-  aircraft: MaintenanceAircraft,
+  name: string,
+  description: string,
+  registered_by: string,
+  company: Company,
 }
 
 export type Vendor = {
-  id: string | number;
-  name: string;
-  email: string;
-  phone: string;
-  address: string;
-  created_at: Date;
-  updated_at: Date;
-};
+id: string | number,
+name: string,
+phone: string,
+type: "PROVEEDOR" | "BENEFICIARIO",
+address: string,
+email: string,
+}
 
 export type Permission = {
   id: number,
@@ -643,6 +608,25 @@ export type Requisition = {
   submission_date: Date,
   work_order: WorkOrder,
   aircraft: Aircraft,
+  type: "GENERAL" | "AVIACION",
+}
+
+export type AdministrationRequisition = {
+  id: number,
+  order_number: string,
+  status: string,
+  created_by: User,
+  requested_by: string,
+  batch: {
+    batch_articles: {
+      description: string,
+      quantity: number,
+    }
+  }[],
+  received_by: string,
+  justification: string,
+  submission_date: Date,
+  aircraft?: Aircraft,
 }
 
 export type Role = {
@@ -731,7 +715,10 @@ export type AdministrationVendor = {
 export type Warehouse = {
   id: string,
   name: string,
-  address: string,
+  location: {
+    address: string,
+    type: string,
+  },
   company: string,
   type: string,
 }
@@ -763,213 +750,4 @@ export type Activity = {
 export type Certificate = {
   id: number,
   name: string,
-}
-
-export type Pilot = {
-  id: number;
-  dni: string;
-  first_name: string;
-  last_name: string;
-  license_number: string;
-  phone: string;
-  email: string;
-};
-
-export type InformationSource = {
-  id: string;
-  name: string;
-  type: "PROACTIVO" | "REACTIVO" | "PREDICTIVO";
-};
-
-export type ObligatoryReport = {
-  id: number;
-  report_number: string;
-  incident_location: string;
-  description: string;
-  report_date: Date;
-  incident_date: Date;
-  incident_time: Date;
-  flight_time: Date;
-  pilot_id: number;
-  copilot_id: number;
-  pilot: Pilot;
-  copilot: Pilot;
-  aircraft_id: number;
-  flight_number: string;
-  flight_origin: string;
-  flight_destiny: string;
-  flight_alt_destiny: string;
-  incidents: string;
-  other_incidents: string;
-  status: string;
-  danger_identification_id: number;
-  image?: File | string,
-  document?: File | string;
-};
-
-export type VoluntaryReport = {
-  id: number;
-  report_number?: string;
-  report_date: Date;
-  identification_date: Date;
-  danger_location: string;
-  danger_area: string;
-  description: string;
-  airport_location: string;
-  possible_consequences: string;
-  danger_identification_id: number;
-  danger_identification: DangerIdentification; //TENER EN CUENTA QUE CREO QUE HAY  QUE AGREGARLO AL ROS, O ELIMIANR ESTE QUE NO CREO PERO BUENO GGs
-  status: string;
-  reporter_name?: string;
-  reporter_last_name?: string;
-  reporter_phone?: string;
-  reporter_email?: string;
-  image?: File | string,
-  document?: File | string;
-};
-
-export type DangerIdentification = {
-  id: number;
-  danger: string;
-  current_defenses: string;
-  danger_area: string;
-  danger_type: string;
-  description: string;
-  possible_consequences: string;
-  consequence_to_evaluate: string;
-  root_cause_analysis: string;
-  information_source: InformationSource;
-  risk_management_start_date: Date;
-  analysis: Analysis;
-  voluntary_report: VoluntaryReport;
-  obligatory_report: ObligatoryReport;
-};
-
-export type FollowUpControl = {
-  id: number;
-  date: Date;
-  description: string;
-  mitigation_measure_id: number;
-  image?: File | string;
-  document?: File | string;
-};
-
-export type MitigationMeasure = {
-  id: number;
-  description: string;
-  implementation_supervisor: string;
-  implementation_responsible: string;
-  estimated_date: Date;
-  execution_date: Date;
-  mitigation_plan_id: number;
-  follow_up_control: FollowUpControl[];
-};
-
-export type MitigationPlan = {
-  id: number;
-  description: string;
-  responsible: string;
-  start_date: Date;
-  measures: MitigationMeasure[];
-  analysis: Analysis;
-};
-
-export type Analysis = {
-  id: number;
-  probability: string;
-  severity: string;
-  result: string;
-};
-
-export type MitigationTable = {
-  id: number;
-  danger: string;
-  current_defenses: string;
-  risk_management_start_date: Date;
-  danger_location: string;
-  danger_area: string;
-  description: string;
-  possible_consequences: string;
-  consequence_to_evaluate: string;
-  danger_type: string;
-  root_cause_analysis: string;
-  information_source_id: number;
-  information_source: InformationSource;
-  analysis: Analysis;
-  mitigation_plan: MitigationPlan | null;
-  obligatory_report: ObligatoryReport;
-  voluntary_report: VoluntaryReport;
-};
-
-export type ReportsByArea = {
-  name: string;
-  reports_number: string;
-};
-
-export type DangerIdentificationsByType = {
-  name: string;
-  identifications_number: string;
-};
-
-export type ReportingStats = {
-  total_reports: number;
-  open_reports: number;
-  closed_reports: number;
-};
-
-export type pieChartData = {
-  name: string;
-  value: number;
-};
-
-export type Areas = {
-  id: number;
-  name: string;
-};
-
-export type StatsByMonth = {
-  average_per_month: number;
-  months: number;
-  result: number;
-  percentage_change: number;
-  from: string;
-  to: string;
-};
-
-export type AverageReportsResponse = {
-  oldest_range: StatsByMonth;
-  newest_range: StatsByMonth;
-};
-
-export type DangerIdentificationWithAll = {
-  id: number;
-  description: string;
-  measures: MitigationMeasure[];
-  analysis: Analysis;
-};
-
-export type SMSActivity = {
-  id: number;
-  activity_name: string;
-  activity_number: string;
-  title: string;
-  start_date: Date;
-  end_date: Date;
-  hour: Date;
-  duration: string;
-  place: string;
-  topics: string;
-  objetive: string;
-  description: string;
-  authorized_by: number;
-  planned_by: number;
-  executed_by: number;
-  status: string;
-}
-
-export type SMSActivityAttendance = {
-  id: number;
-  sms_activity_id: number;
-  employee_id: number;
-  attended: boolean;
 }

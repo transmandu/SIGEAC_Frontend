@@ -1,7 +1,7 @@
 "use client"
 
 import { ContentLayout } from '@/components/layout/ContentLayout'
-import { useGetMaintenanceAircraftByAcronym } from '@/hooks/planificacion/useGetMaitenanceAircraftByAcronym';
+import { useGetMaintenanceAircraftByAcronym } from '@/hooks/mantenimiento/planificacion/useGetMaitenanceAircraftByAcronym';
 import { useParams } from 'next/navigation';
 import React from 'react'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';

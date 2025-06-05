@@ -9,7 +9,7 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
-import { useGetUserActivity } from "@/hooks/desarrollo/useGetUserActivities";
+import { useGetUserActivity } from "@/hooks/aerolinea/desarrollo/useGetUserActivities";
 import { addDays, format } from "date-fns";
 import { es } from "date-fns/locale";
 import { columns } from "./columns";

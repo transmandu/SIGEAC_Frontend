@@ -1,6 +1,6 @@
 "use client";
 
-import { useCreateAdministartionVendor } from "@/actions/administracion/proveedor/actions";
+import { useCreateAdministartionVendor } from "@/actions/aerolinea/proveedor/actions";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -80,7 +80,7 @@ export function CreateAdministrationVendorForm({ onClose }: FormProps) {
             <FormItem className="w-full">
               <FormLabel>Teléfono</FormLabel>
               <FormControl>
-                <Input                  
+                <Input
                   placeholder="Ej: +584247000001"
                   {...field}
                 />
@@ -88,7 +88,7 @@ export function CreateAdministrationVendorForm({ onClose }: FormProps) {
               <FormMessage className="text-xs"/>
             </FormItem>
           )}
-        />        
+        />
       </div>
       <div className='flex gap-2 items-center justify-center'>
         <FormField

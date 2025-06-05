@@ -20,13 +20,13 @@ export default function Home() {
         <motion.div initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           className="mt-24 lg:mt-0" key="plane">
-          <Image className="lg:absolute lg:top-56 lg:-right-3 w-[600px] lg:w-auto" src={'/plane3.webp'} width={850} height={850} alt="avion" />
+          <Image className="lg:absolute lg:top-56 lg:-right-3 w-[600px] lg:w-auto" src={'/plane3.webp'} width={850} height={850} alt="avion-al" />
         </motion.div>
       </div>
       <div className="w-full h-full flex flex-col items-center justify-center gap-4">
         <div className="flex flex-col justify-center items-center gap-4">
           <Logo />
-          <Button onClick={onClick}>Iniciar Sesión - v2.0</Button>
+          <Button onClick={onClick}>Iniciar Sesión - v2.0.1</Button>
         </div>
         <Footer />
       </div>

@@ -3,13 +3,13 @@
 import { Button } from "@/components/ui/button"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 
-import { useCreateRequisition } from "@/actions/compras/requisiciones/actions"
+import { useCreateRequisition } from "@/actions/mantenimiento/compras/requisiciones/actions"
 import { Input } from "@/components/ui/input"
 import { useAuth } from "@/contexts/AuthContext"
-import { useGetMaintenanceAircrafts } from "@/hooks/planificacion/useGetMaintenanceAircrafts"
-import { useGetWorkOrderEmployees } from "@/hooks/planificacion/useGetWorkOrderEmployees"
-import { useGetWorkOrders } from "@/hooks/planificacion/useGetWorkOrders"
-import { useGetBatchesByLocationId } from "@/hooks/useGetBatchesByLocationId"
+import { useGetBatchesByLocationId } from "@/hooks/mantenimiento/almacen/renglones/useGetBatchesByLocationId"
+import { useGetMaintenanceAircrafts } from "@/hooks/mantenimiento/planificacion/useGetMaintenanceAircrafts"
+import { useGetWorkOrderEmployees } from "@/hooks/mantenimiento/planificacion/useGetWorkOrderEmployees"
+import { useGetWorkOrders } from "@/hooks/mantenimiento/planificacion/useGetWorkOrders"
 import { cn } from "@/lib/utils"
 import { useCompanyStore } from "@/stores/CompanyStore"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -98,17 +98,17 @@ export function CreateRequisitionForm({ onClose }: FormProps) {
       form.setValue("created_by", user.id.toString())
       form.setValue("company", selectedCompany.split(" ").join(""))
     }
-  }, [user])
+  }, [user, form, selectedCompany])
 
   useEffect(() => {
     if (selectedStation) {
       mutate(Number(selectedStation))
     }
-  }, [selectedStation])
+  }, [selectedStation, mutate])
 
   useEffect(() => {
     form.setValue("articles", selectedBatches)
-  }, [selectedBatches])
+  }, [selectedBatches, form])
 
 
   // Maneja la selección de un lote.
@@ -174,7 +174,7 @@ export function CreateRequisitionForm({ onClose }: FormProps) {
       ...data,
       type: "AERONAUTICO",
       work_order_id: Number(data.work_order_id),
-      aircraft_id: Number(data.aircraft_id)
+      aircraft_id: Number(data.aircraft_id).toString(),
     }
     await createRequisition.mutateAsync(formattedData)
     onClose()

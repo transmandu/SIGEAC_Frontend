@@ -1,20 +1,21 @@
 "use client";
 
+import { useCreateCredit } from "@/actions/aerolinea/creditos/cuentas_por_pagar/actions";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger, } from "@/components/ui/popover";
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList, } from "../ui/command";
+import { useGetVendors } from "@/hooks/general/proveedores/useGetVendors";
 import { cn } from "@/lib/utils";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
 import { es } from "date-fns/locale/es";
 import { CalendarIcon, Check, ChevronsUpDown, Loader2 } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Calendar } from "../ui/calendar";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useCreateCredit } from "@/actions/administracion/creditos/cuentas_por_pagar/actions";
-import { useGetVendors } from "@/hooks/ajustes/globales/proveedores/useGetVendors";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList, } from "../ui/command";
+import { useCompanyStore } from "@/stores/CompanyStore";
 
 const formSchema = z
   .object({
@@ -55,8 +56,9 @@ interface FormProps {
 }
 
 export function CreateCreditForm({ onClose }: FormProps) {
+  const {selectedCompany} = useCompanyStore();
   const { createCredit } = useCreateCredit();
-  const { data: vendors, isLoading: isVendorLoading } = useGetVendors();
+  const { data: vendors, isLoading: isVendorLoading } = useGetVendors(selectedCompany?.split(" ").join(""));
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -64,7 +66,7 @@ export function CreateCreditForm({ onClose }: FormProps) {
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    createCredit.mutate({ ...values, type: "PAGAR" }, { 
+    createCredit.mutate({ ...values, type: "PAGAR" }, {
       onSuccess: () => {
         onClose();
       },
@@ -90,7 +92,7 @@ export function CreateCreditForm({ onClose }: FormProps) {
                       <Button
                         variant={"outline"}
                         className={cn(
-                          "w-full pl-2 text-left font-normal", 
+                          "w-full pl-2 text-left font-normal",
                           !field.value && "text-muted-foreground"
                         )}
                       >
@@ -273,7 +275,7 @@ export function CreateCreditForm({ onClose }: FormProps) {
                     // Validar que solo se ingresen números y un punto decimal
                     const value = e.target.value;
                     const regex = /^(\d+)?([.]?\d{0,2})?$/;
-                    
+
                     if (value === "" || regex.test(value)) {
                       field.onChange(value);
                     }

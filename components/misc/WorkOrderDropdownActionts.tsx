@@ -1,4 +1,4 @@
-import { useDeleteWorkOrder } from "@/actions/planificacion/ordenes_trabajo/actions"
+import { useDeleteWorkOrder } from "@/actions/mantenimiento/planificacion/ordenes_trabajo/actions"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -6,10 +6,11 @@ import {
   DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu"
 import { WorkOrder } from "@/types"
-import { Loader2, MoreHorizontal, Trash2 } from "lucide-react"
+import { Loader2, MoreHorizontal, SearchCheck, Trash2 } from "lucide-react"
 import { useState } from "react"
 import { Button } from "../ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "../ui/dialog"
+import Link from "next/link"
 
 const WorkOrderDropdownActions = ({ work_order }: { work_order: WorkOrder }) => {
 

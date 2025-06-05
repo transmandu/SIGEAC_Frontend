@@ -1,13 +1,17 @@
 "use client";
 
-import { useCreateClient } from "@/actions/administracion/clientes/actions";
+import { useCreateClient } from "@/actions/general/clientes/actions";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, } from "@/components/ui/form";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, } from "@/components/ui/select";
+import { useCompanyStore } from "@/stores/CompanyStore";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import { Checkbox } from "../ui/checkbox";
+import { Label } from "../ui/label";
 
 const phoneRegex = new RegExp(
   /^([+]?[\s0-9]+)?(\d{3}|[(]?[0-9]+[)])?([-]?[\s]?[0-9])+$/
@@ -61,7 +65,7 @@ const formSchema = z.object({
       message: "Debe agregar un plazo en días para pagar el crédito.",
     })
     .int("Debe ser un número entero")
-    .max(730, { message: "Máximo 730 días" }),
+    .max(730, { message: "Máximo 730 días" }).optional(),
 });
 
 interface FormProps {
@@ -69,18 +73,16 @@ interface FormProps {
 }
 
 export function CreateClientForm({ onClose }: FormProps) {
+  const { selectedCompany } = useCompanyStore();
   const { createClient } = useCreateClient();
+  const [isAdmin, setIsAdmin] = useState(false);
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {},
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    createClient.mutate(values, {
-      onSuccess: () => {
-        onClose(); // Cierra el modal solo si la creación fue exitosa
-      },
-    });
+    createClient.mutate({company: selectedCompany!.split(" ").join(""), data: values});
   }
 
   return (
@@ -121,10 +123,10 @@ export function CreateClientForm({ onClose }: FormProps) {
               <FormItem className="w-full">
                 <FormLabel>DNI</FormLabel>
                 <FormControl>
-                  <Input 
-                    placeholder="Ej: 12345678" 
-                    {...field} 
-                    type="number" 
+                  <Input
+                    placeholder="Ej: 12345678"
+                    {...field}
+                    type="number"
                     onChange={(e) => field.onChange(e.target.value)}
                   />
                 </FormControl>
@@ -193,25 +195,34 @@ export function CreateClientForm({ onClose }: FormProps) {
             )}
           />
         </div>
-        <FormField
-          control={form.control}
-          name="pay_credit_days"
-          render={({ field }) => (
-            <FormItem className="w-full">
-              <FormLabel>Días de Crédito</FormLabel>
-              <FormControl>
-                <Input
-                  type="number"
-                  placeholder="Ingrese un plazo (0-730 días)"
-                  min={0}
-                  max={730} // Máximo 730 días
-                  {...field}
-                />
-              </FormControl>
-              <FormMessage className="text-xs" />
-            </FormItem>
-          )}
-        />
+        <div className="flex items-center gap-2">
+          <Checkbox
+            onCheckedChange={(checked) => setIsAdmin(!!checked)}
+            checked={isAdmin}
+          />
+          <Label>¿Es un cliente administrativo?</Label>
+
+        </div>
+        {isAdmin && (
+          <FormField
+            control={form.control}
+            name="pay_credit_days"
+            render={({ field }) => (
+              <FormItem className="w-full">
+                <FormLabel>Días de crédito</FormLabel>
+                <FormControl>
+                  <Input
+                    type="number"
+                    placeholder="0 - 730 días"
+                    {...field}
+                    onChange={(e) => field.onChange(Number(e.target.value))}
+                  />
+                </FormControl>
+                <FormMessage className="text-xs" />
+              </FormItem>
+            )}
+          />
+        )}
         <Button type="submit" disabled={createClient.isPending}>
           {createClient.isPending ? "Enviando..." : "Enviar"}
         </Button>

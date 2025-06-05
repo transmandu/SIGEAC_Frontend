@@ -1,7 +1,7 @@
 'use client';
 
 import { ContentLayout } from '@/components/layout/ContentLayout';
-import { useGetInTransitArticles } from '@/hooks/almacen/useGetInTransitArticles';
+import { useGetInTransitArticles } from '@/hooks/mantenimiento/almacen/articulos/useGetInTransitArticles';
 import { useCompanyStore } from '@/stores/CompanyStore';
 import { Loader2 } from 'lucide-react';
 import { columns } from './columns';

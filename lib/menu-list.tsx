@@ -2,13 +2,13 @@
 
 import { format } from "date-fns";
 import {
-  AreaChartIcon,
+  Award,
   BookCheck,
   BookUser,
   Building,
   ClipboardCopy,
+  ClipboardList,
   CreditCardIcon,
-  ClipboardPen,
   Drill,
   Globe,
   HandCoins,
@@ -23,12 +23,10 @@ import {
   Receipt,
   ScrollText,
   Settings,
-  ShieldAlert,
   SquarePen,
   User2,
   UserRoundCog,
-  Wrench,
-  Activity 
+  Wrench
 } from "lucide-react";
 
 type Submenu = {
@@ -51,9 +49,7 @@ type Group = {
   menus: Menu[];
 };
 
-export type CompanyMenu = "transmandu" | "hangar 74";
-
-//TODO: Crear menus para cada empresa. Mismo array o diferente, ir probando.
+export type CompanyMenu = 'transmandu' | 'hangar 74';
 
 export function getMenuList(
   pathname: string,
@@ -283,139 +279,31 @@ export function getMenuList(
           ],
         },
         {
-          groupLabel: "SMS",
+          groupLabel: "Compras",
           menus: [
             {
-              href: "/transmandu/sms",
-              label: "Reportes",
-              active: pathname.includes("/transmandu/sms"),
-              icon: ClipboardPen,
-              roles: ["ANALISTA_SMS", "JEFE_SMS", "SUPERUSER"],
-              submenus: [
-                {
-                  href: "/transmandu/sms/reportes_voluntarios",
-                  label: "Reportes Voluntarios",
-                  roles: ["ANALISTA_SMS", "JEFE_SMS", "SUPERUSER"],
-                  active: pathname === "/transmandu/sms/reportes_voluntarios",
-                },
-                {
-                  href: "/transmandu/sms/reportes_obligatorios",
-                  label: "Reportes Obligatorios",
-                  roles: ["ANALISTA_SMS", "JEFE_SMS", "SUPERUSER"],
-                  active:
-                    pathname === "/transmandu/sms/reportes_obligatorios",
-                },
-              ],
+              href: "/transmandu/compras/requisiciones",
+              label: "Requisiciones",
+              active: pathname.includes("/transmandu/compras/requisiciones"),
+              icon: ClipboardList,
+              roles: ["ANALISTA_COMPRAS", "JEFE_COMPRAS", "SUPERUSER"],
+              submenus: [],
             },
             {
-              href: "/transmandu/sms",
-              label: "Gestion de Reportes",
-              active: pathname.includes("/transmandu/sms"),
-              icon: ShieldAlert,
-              roles: ["ANALISTA_SMS", "JEFE_SMS", "SUPERUSER"],
-              submenus: [
-                {
-                  href: "/transmandu/sms/peligros_identificados",
-                  label: "Peligros Identificados",
-                  roles: ["ANALISTA_SMS", "JEFE_SMS", "SUPERUSER"],
-                  active:
-                    pathname === "/transmandu/sms/peligros_identificados",
-                },
-                {
-                  href: "/transmandu/sms/planes_de_mitigacion",
-                  label: "Planes de Mitigacion",
-                  roles: ["ANALISTA_SMS", "JEFE_SMS", "SUPERUSER"],
-                  active: pathname === "/transmandu/sms/planes_de_mitigacion",
-                },
-              ],
+              href: "/transmandu/compras/cotizaciones",
+              label: "Cotizaciones",
+              active: pathname.includes("/transmandu/compras/cotizaciones"),
+              icon: HandCoins,
+              roles: ["ANALISTA_COMPRAS", "JEFE_COMPRAS", "SUPERUSER"],
+              submenus: [],
             },
             {
-              href: "/transmandu/sms",
-              label: "Estadisticas",
-              icon: AreaChartIcon,
-              active: pathname.includes("/estadisticas"),
-              roles: ["ANALISTA_SMS", "JEFE_SMS", "SUPERUSER"],
-              submenus: [
-                {
-                  href: "/transmandu/sms/estadisticas/general",
-                  label: "General",
-                  roles: ["ANALISTA_SMS", "JEFE_SMS", "SUPERUSER"],
-                  active: pathname === "/transmandu/sms/estadisticas/general",
-                },
-
-                {
-                  href: "/transmandu/sms/estadisticas/reportes_voluntarios",
-                  label: "Reportes Voluntarios",
-                  roles: ["ANALISTA_SMS", "JEFE_SMS", "SUPERUSER"],
-                  active:
-                    pathname ===
-                    "/transmandu/sms/estadisticas/reportes_voluntarios",
-                },
-                {
-                  href: "/transmandu/sms/estadisticas/reportes_obligatorios",
-                  label: "Reportes Obligatorios",
-                  roles: ["ANALISTA_SMS", "JEFE_SMS", "SUPERUSER"],
-                  active:
-                    pathname ===
-                    "/transmandu/sms/estadisticas/reportes_obligatorios",
-                },
-                {
-                  href: "/transmandu/sms/estadisticas/indicadores_riesgo",
-                  label: "Indicadores de Riesgo",
-                  roles: ["ANALISTA_SMS", "JEFE_SMS", "SUPERUSER"],
-                  active:
-                    pathname ===
-                    "/transmandu/sms/estadisticas/indicadores_riesgo",
-                },
-              ],
-              
-            },
-            {
-              href: "/transmandu/sms",
-              label: "Planificacion",
-              active: pathname.includes("/transmandu/sms"),
-              icon: Activity,
-              roles: ["ANALISTA_SMS", "JEFE_SMS", "SUPERUSER"],
-              submenus: [
-                {
-                  href: "/transmandu/sms/planificacion/cursos",
-                  label: "Cursos SMS",
-                  roles: ["ANALISTA_SMS", "JEFE_SMS", "SUPERUSER"],
-                  active:
-                    pathname === "/transmandu/planificacion/cursos",
-                },
-                {
-                  href: "/transmandu/sms/planificacion/actividades",
-                  label: "Actividades SMS",
-                  roles: ["ANALISTA_SMS", "JEFE_SMS", "SUPERUSER"],
-                  active: pathname === "/transmandu/planificacion/actividades",
-                },
-              ],
-            },
-            {
-              href: "/transmandu/sms",
-              label: "Reportes",
-              active: pathname.includes("/transmandu/sms"),
-              icon: ClipboardPen,
-              roles: ["ANALISTA_SMS", "REGULAR", "GUEST"],
-              submenus: [
-                {
-                  href: "/transmandu/sms/reportes_voluntarios/nuevo_reporte",
-                  label: "Reportes Voluntarios",
-                  roles: ["ANALISTA_SMS", "REGULAR", "GUEST"],
-                  active:
-                    pathname ===
-                    "/transmandu/sms/reportes_voluntarios/nuevo_reporte",
-                },
-                {
-                  href: "/transmandu/sms/reportes_obligatorios/nuevo_reporte",
-                  label: "Reportes Obligatorios",
-                  roles: ["ANALISTA_SMS", "REGULAR", "GUEST"],
-                  active:
-                    pathname ===
-                    "/transmandu/sms/reportes_obligatorios/nuevo_reporte",
-                },
-              ],
+              href: "/transmandu/compras/ordenes_compra",
+              label: "Ordenes de Compra",
+              active: pathname.includes("/transmandu/compras/ordenes_compra"),
+              icon: Receipt,
+              roles: ["ANALISTA_COMPRAS", "JEFE_COMPRAS", "SUPERUSER"],
+              submenus: [],
             },
           ],
         },
@@ -459,39 +347,39 @@ export function getMenuList(
               roles: ["SUPERUSER"],
               submenus: [
                 {
-                  href: "/ajustes/globales/bancos",
+                  href: "/ajustes/bancos_cuentas/bancos",
                   label: "Bancos",
-                  active: pathname === "/ajustes/globales/bancos",
+                  active: pathname === "/ajustes/bancos_cuentas/bancos",
                 },
                 {
-                  href: "/ajustes/globales/cuentas_bancos",
+                  href: "/ajustes/bancos_cuentas/cuentas",
                   label: "Cuentas",
-                  active: pathname === "/ajustes/globales/bancos",
+                  active: pathname === "/ajustes/bancos_cuentas/cuentas",
                 },
                 {
-                  href: "/ajustes/globales/tarjetas_bancos",
+                  href: "/ajustes/bancos_cuentas/tarjetas",
                   label: "Tarjetas",
-                  active: pathname === "/ajustes/globales/bancos",
+                  active: pathname === "/ajustes/bancos_cuentas/tarjetas",
                 },
                 {
-                  href: "/ajustes/globales/unidades",
+                  href: "/ajustes/unidades",
                   label: "Unidades",
-                  active: pathname === "/ajustes/globales/unidades",
+                  active: pathname === "/ajustes/unidades",
                 },
                 {
-                  href: "/ajustes/globales/fabricantes",
+                  href: "/ajustes/fabricantes",
                   label: "Fabricantes",
-                  active: pathname === "/administracion/globales/fabricantes",
+                  active: pathname === "/ajustes/fabricantes",
                 },
                 {
-                  href: "/ajustes/globales/proveedores",
+                  href: "/ajustes/proveedores",
                   label: "Proveedores",
-                  active: pathname === "/administracion/globales/proveedores",
+                  active: pathname === "/ajustes/proveedores",
                 },
                 {
-                  href: "/ajustes/globales/condiciones",
+                  href: "/ajustes/condiciones",
                   label: "Condiciones",
-                  active: pathname === "/ajustes/globales/condiciones",
+                  active: pathname === "/ajustes/condiciones",
                 },
               ],
             },
@@ -817,14 +705,31 @@ export function getMenuList(
               label: "Servicios",
               active: pathname.includes("/hangar74/mantenimiento/servicios"),
               icon: Drill,
-              roles: [
-                "ANALISTA_PLANIFICACION",
-                "JEFE_PLANIFICACION",
-                "SUPERUSER",
-              ],
-              submenus: [],
+              roles: ["ANALISTA_PLANIFICACION", "JEFE_PLANIFICACION", "SUPERUSER"],
+              submenus: []
             },
-          ],
+          ]
+        },
+        {
+          groupLabel: "Ingenieria",
+          menus: [
+            {
+              href: "/hangar74/ingenieria/certificados",
+              label: "Certificados",
+              active: pathname.includes("/hangar74/ingenieria/certificados"),
+              icon: Award,
+              roles: ["SUPERUSER"],
+              submenus: []
+            },
+            {
+              href: "/hangar74/general/requisiciones/nueva_requisicion",
+              label: "Requisiciones",
+              active: pathname.includes("/hangar74/general/requisiciones/nueva_requisicion"),
+              icon: ScrollText,
+              roles: ["SUPERUSER"],
+              submenus: []
+            },
+          ]
         },
         {
           groupLabel: "Ajustes",

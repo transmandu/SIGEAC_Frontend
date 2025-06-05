@@ -1,5 +1,5 @@
 'use client';
-import { useRegisterActivity } from "@/actions/desarrollo/reportes_diarios/actions";
+import { useRegisterActivity } from "@/actions/aerolinea/desarrollo/reportes_diarios/actions";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -65,7 +65,7 @@ export const DailyReportDialog = ({
       ...data,
       activity_report_id: report_id,
     } as z.infer<typeof FormSchema> & { activity_report_id: string | number };
-    
+
     await registerActivity.mutateAsync(submissionData);
     form.reset();
     setOpen(false);
@@ -181,8 +181,8 @@ export const DailyReportDialog = ({
                 )}
               />
             </div>
-            <Button 
-              type="submit" 
+            <Button
+              type="submit"
               disabled={registerActivity.isPending || !form.watch("description")}
               className="min-w-[100px] gap-2 justify-center"
             >

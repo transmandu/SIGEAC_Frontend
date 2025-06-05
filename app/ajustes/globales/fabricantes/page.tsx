@@ -1,13 +1,15 @@
 'use client'
 
 import { ContentLayout } from '@/components/layout/ContentLayout'
-import { useGetManufacturers } from '@/hooks/ajustes/globales/fabricantes/useGetManufacturers'
+import { useGetManufacturers } from '@/hooks/general/fabricantes/useGetManufacturers'
 import { Loader2 } from 'lucide-react'
 import { columns } from './columns'
 import { DataTable } from './data-table'
+import { useCompanyStore } from '@/stores/CompanyStore'
 
 const ManufacturersPage = () => {
-  const { data: manufacturers, isLoading, error } = useGetManufacturers();
+  const { selectedCompany } = useCompanyStore();
+  const { data: manufacturers, isLoading, error } = useGetManufacturers(selectedCompany?.split(' ').join(''));
   return (
     <ContentLayout title='Permisos'>
       <h1 className='text-5xl font-bold text-center mt-2'>

@@ -6,7 +6,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 
 
-import { useDeleteArticle } from "@/actions/almacen/inventario/articulos/actions"
+import { useDeleteArticle } from "@/actions/mantenimiento/almacen/inventario/articulos/actions"
 import { EyeIcon, Loader2, MoreHorizontal, Trash2 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useState } from "react"

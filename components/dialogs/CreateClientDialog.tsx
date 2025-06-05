@@ -26,7 +26,6 @@ export function CreateClientDialog() {
         </Button>
       </DialogTrigger>
       <DialogContent
-        className="sm:max-w-[480px]"
         onInteractOutside={(e) => {
           e.preventDefault(); // Evita que el diálogo se cierre al hacer clic fuera
         }}

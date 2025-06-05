@@ -21,7 +21,8 @@ import { Loader2 } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Button } from "../ui/button";
-import { useCreateManufacturer } from "@/actions/ajustes/globales/fabricantes/actions";
+import { useCreateManufacturer } from "@/actions/general/fabricantes/actions";
+import { useCompanyStore } from "@/stores/CompanyStore";
 
 
 const formSchema = z.object({
@@ -43,6 +44,8 @@ interface FormProps {
 
 export default function CreateManufacturerForm({ onClose }: FormProps) {
 
+  const { selectedCompany } = useCompanyStore()
+
   const { createManufacturer } = useCreateManufacturer()
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -56,7 +59,7 @@ export default function CreateManufacturerForm({ onClose }: FormProps) {
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
-      await createManufacturer.mutateAsync(values)
+      await createManufacturer.mutateAsync({company: selectedCompany?.split(" ").join(""), data: values})
       onClose()
     } catch (error) {
       console.log(error)

@@ -16,8 +16,8 @@ import {
   SelectTrigger,
   SelectValue
 } from "@/components/ui/select";
-import { useGetManufacturers } from "@/hooks/ajustes/globales/condiciones/useGetConditions";
-import { useGetWarehouseReport } from "@/hooks/reportes/useGetWarehouseReport";
+import { useGetManufacturers } from "@/hooks/general/condiciones/useGetConditions";
+import { useGetWarehouseReport } from "@/hooks/mantenimiento/almacen/reportes/useGetWarehouseReport";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { PDFDownloadLink } from "@react-pdf/renderer";
 import { format } from "date-fns";
@@ -26,10 +26,10 @@ import { useState } from "react";
 import WarehouseReportPdf from "../pdf/GeneralWarehouseReport";
 
 export function WarehouseReportDialog() {
-  const { selectedStation } = useCompanyStore()
+  const { selectedStation, selectedCompany } = useCompanyStore()
   const [open, setOpen] = useState(false);
   const [manufacturer, setManufacturer] = useState<string | null>(null)
-  const { data: manufacturers, isLoading } = useGetManufacturers()
+  const { data: manufacturers, isLoading } = useGetManufacturers(selectedCompany?.split(" ").join(""));
   const { data, isLoading: reportLoading } = useGetWarehouseReport(selectedStation ?? null);
   return (
     <Dialog open={open} onOpenChange={setOpen}>

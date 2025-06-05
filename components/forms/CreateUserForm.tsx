@@ -1,6 +1,6 @@
 "use client"
 
-import { useCreateUser } from "@/actions/administracion/usuarios/actions";
+import { useCreateUser } from "@/actions/aerolinea/usuarios/actions";
 import { Button } from "@/components/ui/button";
 import {
   Command,
@@ -17,24 +17,23 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useGetCompanies } from "@/hooks/administracion/useGetCompanies";
-import { useGetLocationsByCompanies } from "@/hooks/administracion/useGetLocationsByCompanies";
-import { useGetRoles } from "@/hooks/user/useGetRoles";
-import { useGetUsers } from "@/hooks/user/useGetUsers";
+import { useGetCompanies } from "@/hooks/sistema/useGetCompanies";
+import { useGetLocationsByCompanies } from "@/hooks/sistema/useGetLocationsByCompanies";
+import { useGetRoles } from "@/hooks/sistema/usuario/useGetRoles";
+import { useGetUsers } from "@/hooks/sistema/usuario/useGetUsers";
 import { cn } from "@/lib/utils";
 import loadingGif from '@/public/loading2.gif';
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Check, ChevronsUpDown, Eye, EyeOff, EyeOffIcon, Loader2 } from 'lucide-react';
+import { Check, ChevronsUpDown, Eye, EyeOff, Loader2 } from 'lucide-react';
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "../ui/accordion";
 import { Badge } from "../ui/badge";
 import { Checkbox } from "../ui/checkbox";
-import { Separator } from "../ui/separator";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "../ui/accordion";
 import { Label } from "../ui/label";
+import { Separator } from "../ui/separator";
 
 const FormSchema = z.object({
   first_name: z.string().min(3, {

@@ -2,9 +2,9 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Loader2, MoreHorizontal, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { Button } from "../ui/button";
-import { useDeleteRoute } from "@/actions/administracion/rutas/actions";
+import { useDeleteRoute } from "@/actions/aerolinea/rutas/actions";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, } from "../ui/dialog";
-  
+
 const RouteDropdownActions = ({ id }: { id: string }) => {
   const [openDelete, setOpenDelete] = useState<boolean>(false);
   const { deleteRoute } = useDeleteRoute();
@@ -73,5 +73,5 @@ const RouteDropdownActions = ({ id }: { id: string }) => {
       </Dialog>
     );
   };
-  
-  export default RouteDropdownActions; 
+
+  export default RouteDropdownActions;

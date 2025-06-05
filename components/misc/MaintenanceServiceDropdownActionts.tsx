@@ -1,4 +1,4 @@
-import { useDeleteService } from "@/actions/planificacion/servicios/actions"
+import { useDeleteService } from "@/actions/mantenimiento/planificacion/servicios/actions"
 import {
   DropdownMenu,
   DropdownMenuContent,

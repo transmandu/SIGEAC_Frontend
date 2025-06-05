@@ -1,8 +1,7 @@
 "use client"
 
 import { useParams } from "next/navigation"
-import { useGetAircraftById } from "@/hooks/administracion/useGetAircraftById"
-import { useGetAircraftStatistics } from "@/hooks/administracion/vuelos/useGetAircraftStatistics"
+import { useGetAircraftStatistics } from "@/hooks/aerolinea/vuelos/useGetAircraftStatistics"
 import { useState, useMemo, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -16,7 +15,7 @@ import { SummaryCard } from "@/components/cards/SummaryCard"
 import { formatCurrency, formatDate } from "@/lib/utils"
 import months, { getMonthByNumber } from "@/components/cards/ConfigMonths"
 import type { CashMovement } from "@/types"
-import { useGetAircraftByAcronym } from "@/hooks/administracion/useGetAircraftByAcronym"
+import { useGetAircraftByAcronym } from "@/hooks/aerolinea/aeronaves/useGetAircraftByAcronym"
 
 type MonthlyData = {
   name: string
@@ -375,8 +374,7 @@ export default function AircraftReportPage() {
                           </span>
                         </TableCell>
                         <TableCell>
-                          {movement.category} - {movement.sub_category}
-                          {movement.sub_category_details && ` (${movement.sub_category_details})`}
+                          {movement.details}
                         </TableCell>
                         <TableCell
                           className={

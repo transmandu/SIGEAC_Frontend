@@ -1,6 +1,6 @@
 "use client";
 
-import { useCashMovementForAircraft } from "@/actions/administracion/aeronaves/actions";
+import { useCashMovementForAircraft } from "@/actions/aerolinea/aeronaves/actions";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -25,12 +25,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useGetCash } from "@/hooks/administracion/cajas/useGetCash";
-import { useGetAccountant } from "@/hooks/administracion/useGetAccountant";
-import { useGetCategoriesByAccountant } from "@/hooks/administracion/useGetCategoriesByAcountant";
+import { useGetCash } from "@/hooks/aerolinea/cajas/useGetCash";
+import { useGetAccountant } from "@/hooks/aerolinea/cuentas_contables/useGetAccountant";
+import { useGetCategoriesByAccountant } from "@/hooks/aerolinea/categorias_cuentas/useGetCategoriesByAcountant";
 import { useGetEmployeesByCompany } from "@/hooks/administracion/useGetEmployees";
-import { useGetBankAccounts } from "@/hooks/ajustes/cuentas/useGetBankAccounts";
-import { useGetVendors } from "@/hooks/ajustes/globales/proveedores/useGetVendors";
+import { useGetBankAccounts } from "@/hooks/general/cuentas_bancarias/useGetBankAccounts";
 import { cn } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
@@ -42,6 +41,8 @@ import { z } from "zod";
 import { Label } from "../ui/label";
 import { Separator } from "../ui/separator";
 import { Textarea } from "../ui/textarea";
+import { useGetVendors } from "@/hooks/general/proveedores/useGetVendors";
+import { useCompanyStore } from "@/stores/CompanyStore";
 
 // Esquema para los gastos
 const cash_movement_detailsSchema = z.object({
@@ -131,7 +132,7 @@ export function AircraftExpensiveForm({ acronym, onClose }: FormProps) {
       ],
     },
   });
-
+  const {selectedCompany} = useCompanyStore();
   const { createCashMovementForAircraft } = useCashMovementForAircraft();
   const {
     data: employees,
@@ -142,7 +143,7 @@ export function AircraftExpensiveForm({ acronym, onClose }: FormProps) {
   const { data: bankaccounts, isLoading: isBankAccLoading } =
     useGetBankAccounts();
   const { data: accounts, isLoading: isAccountLoading } = useGetAccountant();
-  const { data: vendors, isLoading: isVendorLoading } = useGetVendors();
+  const { data: vendors, isLoading: isVendorLoading } = useGetVendors(selectedCompany?.split(" ").join(""));
 
   // Get accountant_id from form values to fetch categories
   const accountantId = form.watch(
@@ -161,8 +162,8 @@ export function AircraftExpensiveForm({ acronym, onClose }: FormProps) {
   });
 
   useEffect(() => {
-    mutate("transmandu");
-  }, [mutate]);
+    mutate(selectedCompany!.split(" ").join("")); // Refetch employees when company changes
+  }, [mutate, selectedCompany]);
 
   async function onSubmit(formData: z.infer<typeof formSchema>) {
     interface AircraftExpenseFormData {
@@ -225,7 +226,6 @@ export function AircraftExpensiveForm({ acronym, onClose }: FormProps) {
         },
       ],
     });
-    console.log(appendMovement);
   };
 
   const removeMovementField = (index: number) => {
