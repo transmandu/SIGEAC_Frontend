@@ -64,10 +64,10 @@ export type Article = {
   batches?: Batch,
   batch_id?: number,
   vendor_id?: string,
-  certifcate_8130?: File|string,
-  certifcate_vendor?: File|string,
-  certifcate_fabricant?: File|string,
-  image?:File| string,
+  certifcate_8130?: File | string,
+  certifcate_vendor?: File | string,
+  certifcate_fabricant?: File | string,
+  image?: File | string,
 }
 
 export type Bank = {
@@ -98,7 +98,7 @@ export type Batch = {
   description: string,
   category: string,
   ata_code: string,
-  brand:string,
+  brand: string,
   is_hazarous: boolean,
   medition_unit: string,
   min_quantity: number,
@@ -223,7 +223,7 @@ export interface ComponentArticle extends Article {
   component_id?: number;
 }
 
-export type Credit ={
+export type Credit = {
   id: number,
   renting: Renting,
   flight: Flight,
@@ -414,7 +414,7 @@ export interface DispatchRequest extends Request {
 
 
 export type Flight = {
-  id:number,
+  id: number,
   flight_number: string,
   client: Client,
   route: Route,
@@ -664,7 +664,7 @@ export type Route = {
   layovers: string,
 };
 
-export type Sell ={
+export type Sell = {
   id: number,
   client: Client,
   concept: string,
@@ -803,13 +803,13 @@ export type ObligatoryReport = {
   other_incidents: string;
   status: string;
   danger_identification_id: number;
-  image?:File | string,
+  image?: File | string,
   document?: File | string;
 };
 
 export type VoluntaryReport = {
   id: number;
-  report_number?: string ;
+  report_number?: string;
   report_date: Date;
   identification_date: Date;
   danger_location: string;
@@ -824,7 +824,7 @@ export type VoluntaryReport = {
   reporter_last_name?: string;
   reporter_phone?: string;
   reporter_email?: string;
-  image?:File | string,
+  image?: File | string,
   document?: File | string;
 };
 
@@ -850,7 +850,7 @@ export type FollowUpControl = {
   date: Date;
   description: string;
   mitigation_measure_id: number;
-  image?:File | string;
+  image?: File | string;
   document?: File | string;
 };
 
@@ -948,7 +948,7 @@ export type DangerIdentificationWithAll = {
   analysis: Analysis;
 };
 
-export type sms_activities = {
+export type SMSActivity = {
   id: number;
   activity_name: string;
   activity_number: string;
@@ -967,7 +967,7 @@ export type sms_activities = {
   status: string;
 }
 
-export type sms_activity_attendance = {
+export type SMSActivityAttendance = {
   id: number;
   sms_activity_id: number;
   employee_id: number;
