@@ -140,7 +140,7 @@ const FormSchema = z.object({
 type FormSchemaType = z.infer<typeof FormSchema>;
 
 interface FormProps {
-  id: number | string;
+  id: number ;
   onClose: () => void;
   initialData?: DangerIdentification;
   isEditing?: boolean;
@@ -187,7 +187,7 @@ export default function CreateDangerIdentificationForm({
       danger_area: initialData?.danger_area || "",
       danger_type: initialData?.danger_type || "",
       information_source_id:
-        initialData?.information_source?.id.toString() || "",
+      initialData?.information_source?.id || "",
       root_cause_analysis: initialData?.root_cause_analysis || "",
       description: initialData?.description || "",
       possible_consequences: initialData?.possible_consequences || "",
@@ -237,14 +237,13 @@ export default function CreateDangerIdentificationForm({
         id: initialData.id,
         ...data,
       };
-      console.log("DANGER IDETIFICATION VALUES", values);
       await updateDangerIdentification.mutateAsync(values);
     } else {
-      
+      console.log("esto es lo que envia mi front ", id);
       const response = await createDangerIdentification.mutateAsync({
-        ...data,
+        data,
         id,
-        reportType: reportType,
+        reportType
       });
       router.push(
         `/transmandu/sms/peligros_identificados/${response.danger_identification_id}`

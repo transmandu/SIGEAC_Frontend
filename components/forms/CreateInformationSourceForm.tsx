@@ -28,7 +28,7 @@ import { Loader2 } from "lucide-react";
 
 const FormSchema = z.object({
   type: z.string(),
-  name: z.string(),
+  name: z.string().max(21),
 });
 
 type FormSchemaType = z.infer<typeof FormSchema>;
@@ -36,8 +36,7 @@ type FormSchemaType = z.infer<typeof FormSchema>;
 interface FormProps {
   onClose: () => void;
 }
-// { onClose }: FormProps
-// lo de arriba va en prop
+
 export function CreateInformationSourceForm({ onClose }: FormProps) {
   const { createInformationSource } = useCreateInformationSource();
 
@@ -68,7 +67,7 @@ export function CreateInformationSourceForm({ onClose }: FormProps) {
               <FormItem>
                 <FormLabel>Nombre de la Fuente</FormLabel>
                 <FormControl>
-                  <Input placeholder="" {...field} />
+                  <Input placeholder="" {...field} maxLength={20}/>
                 </FormControl>
                 <FormMessage className="text-xs" />
               </FormItem>

@@ -1,27 +1,21 @@
 import axiosInstance from "@/lib/axios";
-import {
-  Analysis,
-  ComponentArticle,
-  ConsumableArticle,
-  DispatchRequest,
-  InformationSource,
-  Request,
-} from "@/types";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 interface DangerIdentificationData {
-  id: string | number; // Este id es el del reporte al cual sera asignado la identificacion (CREO)
-  danger: string;
-  current_defenses: string;
-  risk_management_start_date: Date;
-  danger_area: string;
-  description: string;
-  possible_consequences: string;
-  consequence_to_evaluate: string;
-  root_cause_analysis: string;
-  information_source_id: string;
+  id: number; // Este id es el del reporte al cual sera asignado la identificacion (CREO)
   reportType: string;
+  data: {
+    danger: string;
+    current_defenses: string;
+    risk_management_start_date: Date;
+    danger_area: string;
+    description: string;
+    possible_consequences: string;
+    consequence_to_evaluate: string;
+    root_cause_analysis: string;
+    information_source_id: string;
+  }
 }
 
 interface UpdateDangerIdentification {
@@ -42,9 +36,10 @@ export const useCreateDangerIdentification = () => {
   const queryClient = useQueryClient();
   const createMutation = useMutation({
     mutationKey: ["danger-identifications/${id}"],
-    mutationFn: async (data: DangerIdentificationData) => {
+    mutationFn: async ({data, reportType, id}: DangerIdentificationData) => {
+      console.log("ESTA ES LA DATA QUE RECIBE EL ACTION",data);
       const response = await axiosInstance.post(
-        `/transmandu/sms/danger-identifications/${data.id}/${data.reportType}`,
+        `/transmandu/sms/danger-identifications/${id}/${reportType}`,
         data,
         {
           headers: {
