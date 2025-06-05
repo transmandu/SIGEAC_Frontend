@@ -25,7 +25,7 @@ interface ObligatoryReportData {
 }
 
 interface UpdateObligatoryReportData {
-  id?: number | string;
+  id: number | string;
   report_number: string;
   description: string;
   incident_location: string;

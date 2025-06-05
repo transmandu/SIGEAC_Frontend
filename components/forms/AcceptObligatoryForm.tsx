@@ -50,7 +50,6 @@ export function AcceptObligatoryReport({ onClose, initialData }: FormProps) {
   });
 
   const onSubmit = async (data: FormSchemaType) => {
-    console.log("initialData", initialData);
     if (initialData) {
       const value = {
         report_number: data.report_number,
@@ -58,14 +57,12 @@ export function AcceptObligatoryReport({ onClose, initialData }: FormProps) {
         status: "ABIERTO",
         image: undefined, // USO ESTO PORQUE EN INITIAL DATA VIENE EL NOMBRE DEL ARCHIVO Y SOLO NECESITL NUMERO DE REPORTE.
         document: undefined,
-
-        danger_identification_id: initialData.danger_identification_id,
+        danger_identification_id: initialData.danger_identification.id,
         description: initialData.description,
         incident_location: initialData.incident_location,
-        aircraft_acronym: initialData.aircraft_acronym,
-        aircraft_model: initialData.aircraft_model,
-        pilot_id: initialData.pilot_id,
-        copilot_id: initialData.copilot_id,
+        aircraft_id: initialData.aircraft.id,
+        pilot_id: initialData.pilot.id,
+        copilot_id: initialData.copilot.id,
         flight_alt_destiny: initialData.flight_alt_destiny,
         flight_destiny: initialData.flight_destiny,
         flight_number: initialData.flight_number,

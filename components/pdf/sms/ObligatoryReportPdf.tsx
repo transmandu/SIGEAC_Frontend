@@ -742,13 +742,13 @@ const ObligatoryReportPdf = ({ report, identification }: MyDocumentProps) => (
           <Text style={styles.cellText}>{timeFormat(report.flight_time)}</Text>
         </View>
         <View style={{ ...styles.tableCell, width: "23.33%" }}>
-          <Text style={styles.cellText}>{report.aircraft_acronym}</Text>
+          <Text style={styles.cellText}>{report.aircraft.acronym}</Text>
         </View>
         <View style={{ ...styles.tableCell, width: "24.67%" }}>
           <Text style={styles.cellText}>{report.flight_number}</Text>
         </View>
         <View style={{ ...styles.tableCell, width: "42%" }}>
-          <Text style={styles.cellText}>{report.aircraft_model}</Text>
+          <Text style={styles.cellText}>{report.aircraft.model}</Text>
         </View>
       </View>
 
@@ -883,9 +883,9 @@ const ObligatoryReportPdf = ({ report, identification }: MyDocumentProps) => (
         </View>
       </View>
 
-      {/* SEGUNDA FILA DE INCIDENTES 
-       
-       
+      {/* SEGUNDA FILA DE INCIDENTES
+
+
         "INCURSION EN PISTA O CALLE DE RODAJE ( RUNAWAY INCURSION-RI)",
         "DERRAME DE COMBUSTIBLE",
         "FALLA DE MOTOR",
@@ -956,16 +956,16 @@ const ObligatoryReportPdf = ({ report, identification }: MyDocumentProps) => (
         </View>
       </View>
 
-      {/* TERCERA FILA DE INCIDENTES 
-       
-       
-       
+      {/* TERCERA FILA DE INCIDENTES
+
+
+
          "APROXIMACION NO ESTABILIZADA POR DEBAJO DE LOS 500 PIES VRF O 1000 PIES IRF",
   "ERROR  DE NAVEGACION CON DESVIACION SIGNIFICATIVA DE LA RUTA",
   "TAIL STRIKE",
   "WIND SHEAR",
   "PARAMETROS DE VUELO ANORMALES",
-  
+
   */}
 
       <View style={styles.tableRow}>
@@ -1081,7 +1081,7 @@ const ObligatoryReportPdf = ({ report, identification }: MyDocumentProps) => (
       <View style={styles.observationContainer}>
         <View style={styles.titleContainer}>
           <Text style={[styles.title, styles.boldTitle, { marginTop: 5 }]}>
-            EN CASO DE HABER SELECCIONADO EL ITEM "OTRO", POR FAVOR, ESPECIFIQUE
+            EN CASO DE HABER SELECCIONADO EL ITEM `OTRO`, POR FAVOR, ESPECIFIQUE
             A CONTINUACION, A QUE TIPO DE{"\n"}SUCESO SE REFIERE:
           </Text>
         </View>

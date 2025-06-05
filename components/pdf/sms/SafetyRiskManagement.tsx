@@ -574,7 +574,7 @@ interface FirstPageProps {
   identificationDate: Date;
   reportDate: Date;
   reportType: string;
-  reportNumber: string;
+  reportNumber?: string;
   identification: MitigationTable;
 }
 
@@ -776,7 +776,7 @@ export const FirstPage = ({
         }}
       >
         <Text style={styles.cellText2}>
-          {reportType}-{reportNumber}
+          {reportType}-{reportNumber ?? `N/A`}
         </Text>
       </View>
 
@@ -1311,7 +1311,7 @@ export const FirstPage = ({
       >
         <Text style={[styles.cellText2, styles.boldTitle]}>
           Si el porque final no tiene una solucion controlable, vuelva al
-          "porque" anterior
+          `porque` anterior
         </Text>
       </View>
     </View>
@@ -3238,7 +3238,7 @@ export const FourthPage = () => (
     </View>
 
     <View style={[styles.observationContainer,{paddingBottom:220,paddingTop:220}]}>
-   
+
     </View>
 
     <InstructiveFirstPart />

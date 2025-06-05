@@ -27,7 +27,7 @@ export default function PreviewVoluntaryReportPdfDialog({
 }: PreviewProps) {
   const [open, setOpen] = useState(false);
   const { data: dangerIdentification } = useGetDangerIdentificationWithAllById(
-    obligatoryReport.danger_identification_id
+    obligatoryReport.danger_identification.id
   );
   return (
     <>

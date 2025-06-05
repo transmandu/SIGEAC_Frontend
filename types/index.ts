@@ -161,6 +161,7 @@ export type Client = {
   id: number,
   name: string,
   dni: string,
+  dni_type: string,
   address: string,
   email: string,
   phone: string,
@@ -701,6 +702,17 @@ export type User = {
   companies: Company[]
 }
 
+export type Employee = {
+  id: number,
+  first_name: string,
+  last_name: string,
+  company: string,
+  dni: string,
+  job_title: JobTitle,
+  department: Department,
+  user?: User,
+  location: Location,
+}
 export type AdministrationVendor = {
   id: string | number,
   name: string,
@@ -750,4 +762,211 @@ export type Activity = {
 export type Certificate = {
   id: number,
   name: string,
+}
+
+export type Pilot = {
+  id: number;
+  dni: string;
+  first_name: string;
+  last_name: string;
+  license_number: string;
+  phone: string;
+  email: string;
+};
+
+export type InformationSource = {
+  id: string;
+  name: string;
+  type: "PROACTIVO" | "REACTIVO" | "PREDICTIVO";
+};
+
+export type ObligatoryReport = {
+  id: number;
+  report_number: string;
+  incident_location: string;
+  description: string;
+  report_date: Date;
+  incident_date: Date;
+  incident_time: Date;
+  flight_time: Date;
+  pilot: Pilot;
+  copilot: Pilot;
+  aircraft: Aircraft;
+  flight_number: string;
+  flight_origin: string;
+  flight_destiny: string;
+  flight_alt_destiny: string;
+  incidents: string;
+  other_incidents: string;
+  status: string;
+  danger_identification: DangerIdentification;
+  image?: string,
+  document?: string;
+};
+
+export type VoluntaryReport = {
+  id: number;
+  report_number?: string;
+  report_date: Date;
+  identification_date: Date;
+  danger_location: string;
+  danger_area: string;
+  description: string;
+  airport_location: string;
+  possible_consequences: string;
+  danger_identification_id: number;
+  danger_identification: DangerIdentification; //TENER EN CUENTA QUE CREO QUE HAY  QUE AGREGARLO AL ROS, O ELIMIANR ESTE QUE NO CREO PERO BUENO GGs
+  status: string;
+  reporter_name?: string;
+  reporter_last_name?: string;
+  reporter_phone?: string;
+  reporter_email?: string;
+  image?: File | string,
+  document?: File | string;
+};
+
+export type DangerIdentification = {
+  id: number;
+  danger: string;
+  current_defenses: string;
+  danger_area: string;
+  danger_type: string;
+  description: string;
+  possible_consequences: string;
+  consequence_to_evaluate: string;
+  root_cause_analysis: string;
+  information_source: InformationSource;
+  risk_management_start_date: Date;
+  analysis: Analysis;
+  voluntary_report: VoluntaryReport;
+  obligatory_report: ObligatoryReport;
+};
+
+export type FollowUpControl = {
+  id: number;
+  date: Date;
+  description: string;
+  mitigation_measure_id: number;
+  image?: File | string;
+  document?: File | string;
+};
+
+export type MitigationMeasure = {
+  id: number;
+  description: string;
+  implementation_supervisor: string;
+  implementation_responsible: string;
+  estimated_date: Date;
+  execution_date: Date;
+  mitigation_plan_id: number;
+  follow_up_control: FollowUpControl[];
+};
+
+export type MitigationPlan = {
+  id: number;
+  description: string;
+  responsible: string;
+  start_date: Date;
+  measures: MitigationMeasure[];
+  analysis: Analysis;
+};
+
+export type Analysis = {
+  id: number;
+  probability: string;
+  severity: string;
+  result: string;
+};
+
+export type MitigationTable = {
+  id: number;
+  danger: string;
+  current_defenses: string;
+  risk_management_start_date: Date;
+  danger_location: string;
+  danger_area: string;
+  description: string;
+  possible_consequences: string;
+  consequence_to_evaluate: string;
+  danger_type: string;
+  root_cause_analysis: string;
+  information_source_id: number;
+  information_source: InformationSource;
+  analysis: Analysis;
+  mitigation_plan: MitigationPlan | null;
+  obligatory_report: ObligatoryReport;
+  voluntary_report: VoluntaryReport;
+};
+
+export type ReportsByArea = {
+  name: string;
+  reports_number: string;
+};
+
+export type DangerIdentificationsByType = {
+  name: string;
+  identifications_number: string;
+};
+
+export type ReportingStats = {
+  total_reports: number;
+  open_reports: number;
+  closed_reports: number;
+};
+
+export type pieChartData = {
+  name: string;
+  value: number;
+};
+
+export type Areas = {
+  id: number;
+  name: string;
+};
+
+export type StatsByMonth = {
+  average_per_month: number;
+  months: number;
+  result: number;
+  percentage_change: number;
+  from: string;
+  to: string;
+};
+
+export type AverageReportsResponse = {
+  oldest_range: StatsByMonth;
+  newest_range: StatsByMonth;
+};
+
+export type DangerIdentificationWithAll = {
+  id: number;
+  description: string;
+  measures: MitigationMeasure[];
+  analysis: Analysis;
+};
+
+export type SMSActivity = {
+  id: number;
+  activity_name: string;
+  activity_number: string;
+  title: string;
+  start_date: Date;
+  end_date: Date;
+  hour: Date;
+  duration: string;
+  place: string;
+  topics: string;
+  objetive: string;
+  description: string;
+  authorized_by: number;
+  planned_by: number;
+  executed_by: number;
+  status: string;
+}
+
+export type SMSActivityAttendance = {
+  id: number;
+  sms_activity_id: number;
+  employee_id: number;
+  attended: boolean;
 }

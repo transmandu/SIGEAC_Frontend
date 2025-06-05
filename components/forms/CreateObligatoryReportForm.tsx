@@ -59,10 +59,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../ui/select";
-import { useGetAircraftByAcronym } from "@/hooks/administracion/useGetAircraftByAcronym";
 import { useGetAircraftAcronyms } from "@/hooks/administracion/useGetAircraftsAcronym";
-
-//Falta añadir validaciones
 
 function timeFormat(date: Date) {
   const timeString = date.toString();
@@ -228,9 +225,9 @@ export function CreateObligatoryReportForm({
       report_number: initialData?.report_number,
       description: initialData?.description,
       incident_location: initialData?.incident_location,
-      aircraft_id: initialData?.aircraft_id.toString(),
-      pilot_id: initialData?.pilot_id.toString(),
-      copilot_id: initialData?.copilot_id.toString(),
+      aircraft_id: initialData?.aircraft.id.toString(),
+      pilot_id: initialData?.pilot.id.toString(),
+      copilot_id: initialData?.copilot.id.toString(),
       flight_alt_destiny: initialData?.flight_alt_destiny,
       flight_destiny: initialData?.flight_destiny,
       flight_number: initialData?.flight_number,
@@ -263,7 +260,7 @@ export function CreateObligatoryReportForm({
         image: data.image,
         document: data.document,
         status: initialData.status,
-        danger_identification_id: initialData.danger_identification_id,
+        danger_identification_id: initialData.danger_identification.id,
         report_number: data.report_number,
         incident_location: data.incident_location,
         description: data.description,

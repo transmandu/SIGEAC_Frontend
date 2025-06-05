@@ -7,9 +7,8 @@ import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
 import VoluntaryReportDropdownActions from "@/components/misc/VoluntaryReportDropDownMenu";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { VoluntaryReport } from "@/types";
-import { formatDate } from "date-fns";
 import { dateFormat } from "@/lib/utils";
+import { VoluntaryReport } from "@/types";
 
 export const columns: ColumnDef<VoluntaryReport>[] = [
   {
@@ -113,7 +112,7 @@ export const columns: ColumnDef<VoluntaryReport>[] = [
     cell: ({ row }) => (
       <div className="flex justify-center">
         <Badge
-          className={`justify-center items-center text-center font-bold font-sans 
+          className={`justify-center items-center text-center font-bold font-sans
       ${
         row.original.status === "CERRADO"
           ? "bg-green-400"

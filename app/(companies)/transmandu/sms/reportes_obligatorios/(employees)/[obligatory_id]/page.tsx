@@ -41,12 +41,12 @@ const ShowObligatoryReport = () => {
   return (
     <ContentLayout title="Reportes Obligatorios">
       <div className=" flex justify-evenly">
-        {/* Mostrar el boton para crear identificacion, si el reporte existe, si el status esta  bierto 
+        {/* Mostrar el boton para crear identificacion, si el reporte existe, si el status esta  bierto
         y si aun no tiene una idedntificacion de peligro */}
 
         {obligatoryReport &&
         obligatoryReport.status === "ABIERTO" &&
-        !obligatoryReport.danger_identification_id ? (
+        !obligatoryReport.danger_identification.id ? (
           <div className="flex items-center py-4">
             <CreateDangerIdentificationDialog
               title="Crear Identificacion de Peligro"
@@ -57,7 +57,7 @@ const ShowObligatoryReport = () => {
         ) : (
           obligatoryReport &&
           obligatoryReport.status === "ABIERTO" &&
-          obligatoryReport.danger_identification_id !== null && (
+          obligatoryReport.danger_identification.id !== null && (
             <div className="flex items-center py-4">
               <Button
                 variant="outline"
@@ -65,7 +65,7 @@ const ShowObligatoryReport = () => {
                 className=" hidden h-8 lg:flex"
               >
                 <Link
-                  href={`/transmandu/sms/peligros_identificados/${obligatoryReport.danger_identification_id}`}
+                  href={`/transmandu/sms/peligros_identificados/${obligatoryReport.danger_identification.id}`}
                 >
                   Ver Identificacion de Peligro
                 </Link>

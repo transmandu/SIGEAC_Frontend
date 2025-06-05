@@ -55,7 +55,7 @@ const ObligatoryReportDropdownActions = ({
   const { deleteObligatoryReport } = useDeleteObligatoryReport();
 
   const { data: dangerIdentification } = useGetDangerIdentificationWithAllById(
-    obligatoryReport.danger_identification_id
+    obligatoryReport.danger_identification.id
   );
   const handleDelete = async (id: number | string) => {
     await deleteObligatoryReport.mutateAsync(id);
@@ -112,7 +112,7 @@ const ObligatoryReportDropdownActions = ({
               <p className="pl-2"> Ver </p>
             </DropdownMenuItem>
 
-            {!obligatoryReport.danger_identification_id &&
+            {!obligatoryReport.danger_identification.id &&
               obligatoryReport.status === "ABIERTO" && (
                 <DropdownMenuItem
                   onClick={() => setOpenCreateDangerIdentification(true)}
