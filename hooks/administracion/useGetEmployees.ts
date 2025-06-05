@@ -3,7 +3,7 @@ import { Employee } from '@/types';
 import { useMutation } from '@tanstack/react-query';
 
 const fetchEmployeesByCompany = async (company: string): Promise<Employee[]> => {
-  const {data} = await axiosInstance.post('/employees-all', { company });
+  const {data} = await axiosInstance.post('/employees-by-company', { company });
   return data;
 };
 

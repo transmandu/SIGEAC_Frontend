@@ -10,8 +10,6 @@ import { DataTable } from "./data-table";
 import { useGetEmployeesByCompany } from "@/hooks/administracion/useGetEmployees";
 
 const EmployeePage = () => {
-  const { user, loading: userLoading } = useAuth();
-
   const {
     mutate,
     data: employees,
@@ -23,14 +21,9 @@ const EmployeePage = () => {
 
   useEffect(() => {
     if (selectedCompany) {
-      const companyId = user?.companies.find(
-        (c) => c.name.toLowerCase() === selectedCompany.toLowerCase()
-      )?.id;
-      if (companyId) {
-        mutate("transmandu"); // Invoca la mutación con el ID de la compañía
-      }
+        mutate(selectedCompany.split(" ").join("")); 
     }
-  }, [selectedCompany, user?.companies, mutate]);
+  }, [selectedCompany, mutate]);
 
   return (
     <ContentLayout title="Empleados">

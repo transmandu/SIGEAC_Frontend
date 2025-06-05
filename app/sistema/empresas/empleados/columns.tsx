@@ -80,5 +80,14 @@ export const columns: ColumnDef<Employee>[] = [
         <span className="flex justify-center font-medium">{row.original.job_title.name}</span>
       </>
   },
-
+ {
+    accessorKey: "company",
+    header: ({ column }) => (
+      <DataTableColumnHeader filter column={column} title="Cargo" />
+    ),
+    cell: ({ row }) =>
+      <>
+        <span className="flex justify-center font-medium">{row.original.job_title.name}</span>
+      </>
+  },
 ]
