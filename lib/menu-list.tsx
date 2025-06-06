@@ -367,7 +367,7 @@ export function getMenuList(
                     "/transmandu/sms/estadisticas/indicadores_riesgo",
                 },
               ],
-              
+
             },
             {
               href: "/transmandu/sms",
@@ -396,12 +396,12 @@ export function getMenuList(
               label: "Reportes",
               active: pathname.includes("/transmandu/sms"),
               icon: ClipboardPen,
-              roles: ["ANALISTA_SMS", "REGULAR", "GUEST"],
+              roles: [],
               submenus: [
                 {
                   href: "/transmandu/sms/reportes_voluntarios/nuevo_reporte",
                   label: "Reportes Voluntarios",
-                  roles: ["ANALISTA_SMS", "REGULAR", "GUEST"],
+                  roles: [],
                   active:
                     pathname ===
                     "/transmandu/sms/reportes_voluntarios/nuevo_reporte",
