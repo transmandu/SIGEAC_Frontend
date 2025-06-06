@@ -2,12 +2,15 @@
 
 import { format } from "date-fns";
 import {
+  Activity,
+  AreaChartIcon,
   Award,
   BookCheck,
   BookUser,
   Building,
   ClipboardCopy,
   ClipboardList,
+  ClipboardPen,
   CreditCardIcon,
   Drill,
   Globe,
@@ -23,6 +26,7 @@ import {
   Receipt,
   ScrollText,
   Settings,
+  ShieldAlert,
   SquarePen,
   User2,
   UserRoundCog,
@@ -277,6 +281,142 @@ export function getMenuList(
               ],
             },
           ],
+        }, {
+          groupLabel: "SMS",
+          menus: [
+            {
+              href: "/transmandu/sms",
+              label: "Reportes",
+              active: pathname.includes("/transmandu/sms"),
+              icon: ClipboardPen,
+              roles: ["ANALISTA_SMS", "JEFE_SMS", "SUPERUSER"],
+              submenus: [
+                {
+                  href: "/transmandu/sms/reportes_voluntarios",
+                  label: "Reportes Voluntarios",
+                  roles: ["ANALISTA_SMS", "JEFE_SMS", "SUPERUSER"],
+                  active: pathname === "/transmandu/sms/reportes_voluntarios",
+                },
+                {
+                  href: "/transmandu/sms/reportes_obligatorios",
+                  label: "Reportes Obligatorios",
+                  roles: ["ANALISTA_SMS", "JEFE_SMS", "SUPERUSER"],
+                  active:
+                    pathname === "/transmandu/sms/reportes_obligatorios",
+                },
+              ],
+            },
+            {
+              href: "/transmandu/sms",
+              label: "Gestion de Reportes",
+              active: pathname.includes("/transmandu/sms"),
+              icon: ShieldAlert,
+              roles: ["ANALISTA_SMS", "JEFE_SMS", "SUPERUSER"],
+              submenus: [
+                {
+                  href: "/transmandu/sms/peligros_identificados",
+                  label: "Peligros Identificados",
+                  roles: ["ANALISTA_SMS", "JEFE_SMS", "SUPERUSER"],
+                  active:
+                    pathname === "/transmandu/sms/peligros_identificados",
+                },
+                {
+                  href: "/transmandu/sms/planes_de_mitigacion",
+                  label: "Planes de Mitigacion",
+                  roles: ["ANALISTA_SMS", "JEFE_SMS", "SUPERUSER"],
+                  active: pathname === "/transmandu/sms/planes_de_mitigacion",
+                },
+              ],
+            },
+            {
+              href: "/transmandu/sms",
+              label: "Estadisticas",
+              icon: AreaChartIcon,
+              active: pathname.includes("/estadisticas"),
+              roles: ["ANALISTA_SMS", "JEFE_SMS", "SUPERUSER"],
+              submenus: [
+                {
+                  href: "/transmandu/sms/estadisticas/general",
+                  label: "General",
+                  roles: ["ANALISTA_SMS", "JEFE_SMS", "SUPERUSER"],
+                  active: pathname === "/transmandu/sms/estadisticas/general",
+                },
+
+                {
+                  href: "/transmandu/sms/estadisticas/reportes_voluntarios",
+                  label: "Reportes Voluntarios",
+                  roles: ["ANALISTA_SMS", "JEFE_SMS", "SUPERUSER"],
+                  active:
+                    pathname ===
+                    "/transmandu/sms/estadisticas/reportes_voluntarios",
+                },
+                {
+                  href: "/transmandu/sms/estadisticas/reportes_obligatorios",
+                  label: "Reportes Obligatorios",
+                  roles: ["ANALISTA_SMS", "JEFE_SMS", "SUPERUSER"],
+                  active:
+                    pathname ===
+                    "/transmandu/sms/estadisticas/reportes_obligatorios",
+                },
+                {
+                  href: "/transmandu/sms/estadisticas/indicadores_riesgo",
+                  label: "Indicadores de Riesgo",
+                  roles: ["ANALISTA_SMS", "JEFE_SMS", "SUPERUSER"],
+                  active:
+                    pathname ===
+                    "/transmandu/sms/estadisticas/indicadores_riesgo",
+                },
+              ],
+              
+            },
+            {
+              href: "/transmandu/sms",
+              label: "Planificacion",
+              active: pathname.includes("/transmandu/sms"),
+              icon: Activity,
+              roles: ["ANALISTA_SMS", "JEFE_SMS", "SUPERUSER"],
+              submenus: [
+                {
+                  href: "/transmandu/sms/planificacion/cursos",
+                  label: "Cursos SMS",
+                  roles: ["ANALISTA_SMS", "JEFE_SMS", "SUPERUSER"],
+                  active:
+                    pathname === "/transmandu/planificacion/cursos",
+                },
+                {
+                  href: "/transmandu/sms/planificacion/actividades",
+                  label: "Actividades SMS",
+                  roles: ["ANALISTA_SMS", "JEFE_SMS", "SUPERUSER"],
+                  active: pathname === "/transmandu/planificacion/actividades",
+                },
+              ],
+            },
+            {
+              href: "/transmandu/sms",
+              label: "Reportes",
+              active: pathname.includes("/transmandu/sms"),
+              icon: ClipboardPen,
+              roles: ["ANALISTA_SMS", "REGULAR", "GUEST"],
+              submenus: [
+                {
+                  href: "/transmandu/sms/reportes_voluntarios/nuevo_reporte",
+                  label: "Reportes Voluntarios",
+                  roles: ["ANALISTA_SMS", "REGULAR", "GUEST"],
+                  active:
+                    pathname ===
+                    "/transmandu/sms/reportes_voluntarios/nuevo_reporte",
+                },
+                {
+                  href: "/transmandu/sms/reportes_obligatorios/nuevo_reporte",
+                  label: "Reportes Obligatorios",
+                  roles: ["ANALISTA_SMS", "REGULAR", "GUEST"],
+                  active:
+                    pathname ===
+                    "/transmandu/sms/reportes_obligatorios/nuevo_reporte",
+                },
+              ],
+            },
+          ],
         },
         {
           groupLabel: "Compras",
@@ -380,6 +520,11 @@ export function getMenuList(
                   href: "/ajustes/condiciones",
                   label: "Condiciones",
                   active: pathname === "/ajustes/condiciones",
+                },
+                {
+                  href: "/ajustes/globales/fuentes_informacion",
+                  label: "Fuentes de Información",
+                  active: pathname === "/ajustes/globales/fuentes_informacion",
                 },
               ],
             },
