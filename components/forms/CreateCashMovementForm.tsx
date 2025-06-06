@@ -26,7 +26,7 @@ import { z } from "zod";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList, } from "../ui/command";
 
 const formSchema = z.object({
-  employee_responsible_id: z.string({
+  employee_responsible: z.string({
     message: "Debe elegir un responsable.",
   }),
   cash_id: z.string({
@@ -556,7 +556,7 @@ export function CreateCashMovementForm({ onClose }: FormProps) {
           <div className="flex-1 min-w-[200px]">
             <FormField
               control={form.control}
-              name="employee_responsible_id"
+              name="employee_responsible"
               render={({ field }) => (
                 <FormItem className="w-full flex flex-col space-y-3 mt-1.5">
                   <FormLabel>Responsable</FormLabel>
@@ -580,13 +580,13 @@ export function CreateCashMovementForm({ onClose }: FormProps) {
                               {
                                 employees?.find(
                                   (employee) =>
-                                    employee.id.toString() === field.value
+                                    employee.dni === field.value
                                 )?.first_name
                               }{" "}
                               {
                                 employees?.find(
                                   (employee) =>
-                                    employee.id.toString() === field.value
+                                    employee.dni === field.value
                                 )?.last_name
                               }
                             </p>
@@ -611,8 +611,8 @@ export function CreateCashMovementForm({ onClose }: FormProps) {
                                 key={employee.id}
                                 onSelect={() => {
                                   form.setValue(
-                                    "employee_responsible_id",
-                                    employee.id.toString()
+                                    "employee_responsible",
+                                    employee.dni
                                   );
                                 }}
                               >
