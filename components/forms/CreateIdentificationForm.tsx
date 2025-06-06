@@ -140,7 +140,7 @@ const FormSchema = z.object({
 type FormSchemaType = z.infer<typeof FormSchema>;
 
 interface FormProps {
-  id: number ;
+  id: number | string;
   onClose: () => void;
   initialData?: DangerIdentification;
   isEditing?: boolean;

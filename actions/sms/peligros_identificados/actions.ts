@@ -3,7 +3,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 interface DangerIdentificationData {
-  id: number; // Este id es el del reporte al cual sera asignado la identificacion (CREO)
+  id: number | string; // Este id es el del reporte al cual sera asignado la identificacion (CREO)
   reportType: string;
   data: {
     danger: string;
@@ -19,7 +19,7 @@ interface DangerIdentificationData {
 }
 
 interface UpdateDangerIdentification {
-  id: number;
+  id: number | string;
   current_defenses: string;
   risk_management_start_date: Date;
   danger: string;
