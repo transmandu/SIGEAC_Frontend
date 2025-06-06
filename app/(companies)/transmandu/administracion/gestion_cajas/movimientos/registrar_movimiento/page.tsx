@@ -96,7 +96,7 @@ const movementSchema = z.object({
   cash_movement_details: z
     .array(cash_movement_detailsSchema)
     .min(1, { message: "Debe agregar al menos un gasto." }),
-  employee_responsible_id: z.string({ message: "Debe elegir un responsable." }),
+  employee_responsible: z.string({ message: "Debe elegir un responsable." }),
   vendor_id: z
     .string({ required_error: "El beneficiario es requerido" })
     .optional(),
@@ -165,7 +165,7 @@ export default function AircraftExpensesPage() {
     };
     await createCashMovement.mutateAsync(transformedData);
   }
-  
+
 
   const addMovement = () => {
     appendMovement({
@@ -175,7 +175,7 @@ export default function AircraftExpensesPage() {
       total_amount: "",
       reference_cod: "",
       details: "",
-      employee_responsible_id: "",
+      employee_responsible: "",
       vendor_id: "",
       client_id: "",
       cash_movement_details: [
@@ -441,7 +441,7 @@ export default function AircraftExpensesPage() {
                       <div className="space-y-2">
                         <FormField
                           control={form.control}
-                          name={`movements.${movementIndex}.employee_responsible_id`}
+                          name={`movements.${movementIndex}.employee_responsible`}
                           render={({ field }) => (
                             <FormItem>
                               <FormLabel>Responsable</FormLabel>
@@ -457,7 +457,7 @@ export default function AircraftExpensesPage() {
                                   {employees?.map((employee) => (
                                     <SelectItem
                                       key={employee.id}
-                                      value={employee.id.toString()}
+                                      value={employee.dni}
                                     >
                                       {employee.first_name} {employee.last_name}
                                     </SelectItem>
