@@ -152,12 +152,12 @@ export const columns: ColumnDef<ColumnI>[] = [
     ),
     cell: ({ row }) => (
       <div className="flex gap-2 text-center justify-center">
-        {row.original.alternative_part_number.map((part_number, index) => (
+        {row.original.alternative_part_number ? row.original.alternative_part_number.map((part_number, index) => (
           <div className="flex gap-2" key={index}>
             <p className="text-muted-foreground">{part_number}</p>
             <Separator orientation="vertical" className={index === row.original.alternative_part_number.length - 1 ? "hidden" : ""} />
           </div>
-        ))}
+        )): "N/A"}
       </div>
     ),
   },
