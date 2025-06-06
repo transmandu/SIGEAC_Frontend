@@ -91,7 +91,7 @@ const QuoteDropdownActions = ({ quote }: { quote: Quote }) => {
             <MoreHorizontal className="h-4 w-4" />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="center" className="flex gap-2 justify-center">
+        <DropdownMenuContent align="center" className="flex gap-2 justify-center"> 
           {
             quote.status !== 'APROBADO' && quote.status !== 'RECHAZADA' && (
               <>
@@ -109,6 +109,7 @@ const QuoteDropdownActions = ({ quote }: { quote: Quote }) => {
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
+
 
       <Dialog open={openReject} onOpenChange={setOpenReject}>
         <DialogContent>

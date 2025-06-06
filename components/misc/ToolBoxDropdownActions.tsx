@@ -35,6 +35,7 @@ const ToolBoxDropdownActions = ({ id, initialData }: { id: number, initialData: 
             <MoreHorizontal className="h-4 w-4" />
           </Button>
         </DropdownMenuTrigger>
+
         <DropdownMenuContent align="center" className="flex gap-2 justify-center">
           <DropdownMenuItem onClick={() => setOpenEdit(true)} className="cursor-pointer">
             <Pencil className="size-5" />
@@ -43,7 +44,9 @@ const ToolBoxDropdownActions = ({ id, initialData }: { id: number, initialData: 
             <Trash2 onClick={() => setOpen(true)} className='size-5 text-red-500' />
           </DropdownMenuItem>
         </DropdownMenuContent>
+
       </DropdownMenu>
+      
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="w-[1080px]">
           <DialogHeader>
@@ -58,6 +61,7 @@ const ToolBoxDropdownActions = ({ id, initialData }: { id: number, initialData: 
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      
       <Dialog open={openEdit} onOpenChange={setOpenEdit}>
         <DialogContent className="w-[380px]">
           <DialogHeader>

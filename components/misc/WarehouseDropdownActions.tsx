@@ -58,6 +58,8 @@ const WarehouseDropdownActions
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
+
+        
         <DialogContent>
           <DialogHeader>
             <DialogTitle className="text-center">¿Seguro que desea eliminar el almacén?</DialogTitle>
