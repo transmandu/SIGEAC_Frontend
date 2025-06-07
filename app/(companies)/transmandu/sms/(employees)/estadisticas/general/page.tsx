@@ -455,7 +455,7 @@ const GeneralReportStats = () => {
                 title="Numero de Reportes por Cada Indice de Riesgo  (Post-Mitigacion)"
               />
             ) : (
-              <p className="text-center text-lg text-muted-foreground">
+              <p className="text-lg text-muted-foreground">
                 No hay datos para mostrar.
               </p>
             )}
@@ -468,7 +468,7 @@ const GeneralReportStats = () => {
         )}
 
         {shouldShow("source-type") && (
-          <div className="flex-col p-4 rounded-lg shadow border">
+          <div className="flex flex-col justify-center items-center p-4 rounded-lg shadow border">
             {isLoadingTotalPostRiskData ? (
               <div className="flex justify-center items-center h-48">
                 <Loader2 className="size-24 animate-spin" />
@@ -481,8 +481,8 @@ const GeneralReportStats = () => {
                 title="Numero de Reportes por Tipo de Fuente"
               />
             ) : (
-              <p className="text-center text-lg text-muted-foreground">
-                No hay datos para mostrar.
+              <p className="text-lg text-muted-foreground">
+                No hay datos para mostrar
               </p>
             )}
           </div>
