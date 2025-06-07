@@ -37,21 +37,41 @@ import { MitigationMeasure } from "@/types";
 
 const FormSchema = z.object({
   description: z.string().min(5),
-  implementation_supervisor: z
+
+implementation_supervisor: z
     .string()
+    .nonempty({ message: "El supervisor es requerido" }) // Agregado para campo requerido
     .min(3, { message: "El supervisor debe tener al menos 3 caracteres" })
     .max(19, { message: "El supervisor no puede exceder los 19 caracteres" }),
+
   implementation_responsible: z
     .string()
+    .nonempty({ message: "El responsable es requerido" }) // Agregado para campo requerido
     .min(3, { message: "El responsable debe tener al menos 3 caracteres" })
     .max(23, { message: "El responsable no puede exceder los 23 caracteres" }),
-
+  
   estimated_date: z
-    .date()
-    .refine((val) => !isNaN(val.getTime()), { message: "Invalid Date" }),
-  execution_date: z
-    .date()
-    .refine((val) => !isNaN(val.getTime()), { message: "Invalid Date" }),
+      .date()
+      .refine((val) => !isNaN(val.getTime()), { message: "Invalid Date" }),
+    execution_date: z
+      .date()
+      .refine((val) => !isNaN(val.getTime()), { message: "Invalid Date" }),
+  })
+  .superRefine((data, ctx) => {
+    // Si ambas fechas son válidas, procedemos con la comparación
+    if (
+      !isNaN(data.estimated_date.getTime()) &&
+      !isNaN(data.execution_date.getTime())
+    ) {
+      if (data.execution_date < data.estimated_date) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "La fecha de ejecución debe ser mayor o igual a la fecha estimada.",
+          path: ["execution_date"], // Esto apunta el error específicamente al campo 'execution_date'
+        });
+      }
+    }
+  
 });
 
 type FormSchemaType = z.infer<typeof FormSchema>;
