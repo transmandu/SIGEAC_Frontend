@@ -64,6 +64,16 @@ const MitigationMeasureDropdownActions = ({
             align="center"
             className="flex-COL gap-2 justify-center"
           >
+
+            <DialogTrigger asChild>
+              <DropdownMenuItem
+                onClick={() => setOpenCreateFollowUpControl(true)}
+              >
+                <Plus className="size-5 text-black" />
+                <p className="pl-2">Crear Control</p>
+              </DropdownMenuItem>
+            </DialogTrigger>
+            
             {mitigationMeasure && (
               <DropdownMenuItem onClick={() => setOpenEdit(true)}>
                 <ClipboardPenLine className="size-5" />
@@ -77,14 +87,7 @@ const MitigationMeasureDropdownActions = ({
               </DropdownMenuItem>
             </DialogTrigger>
 
-            <DialogTrigger asChild>
-              <DropdownMenuItem
-                onClick={() => setOpenCreateFollowUpControl(true)}
-              >
-                <Plus className="size-5 text-black" />
-                <p className="pl-2">Crear Control</p>
-              </DropdownMenuItem>
-            </DialogTrigger>
+            
           </DropdownMenuContent>
         </DropdownMenu>
 
