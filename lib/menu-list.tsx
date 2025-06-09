@@ -526,6 +526,11 @@ export function getMenuList(
                   label: "Fuentes de Información",
                   active: pathname === "/ajustes/globales/fuentes_informacion",
                 },
+                {
+                  href: "/ajustes/globales/pilotos",
+                  label: "Pilotos",
+                  active: pathname === "/ajustes/globales/pilotos",
+                },
               ],
             },
             {
