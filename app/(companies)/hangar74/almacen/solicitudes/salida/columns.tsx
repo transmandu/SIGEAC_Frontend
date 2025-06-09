@@ -24,6 +24,8 @@ import { DispatchRequest, WorkOrder, Convertion } from "@/types"
 import DispatchArticlesDialog from "@/components/dialogs/DispatchArticlesDialog"
 import { format } from "date-fns"
 import { es } from "date-fns/locale"
+import { Badge } from "@/components/ui/badge"
+import { cn } from "@/lib/utils"
 
 interface IDispatch {
   id: number,
@@ -33,6 +35,7 @@ interface IDispatch {
   destination_place: string,
   submission_date: string,
   work_order?: WorkOrder,
+  status: "PROCESO" | "APROBADO" | "RECHAZADO",
   articles:
   {
     id: number,
@@ -120,6 +123,19 @@ export const columns: ColumnDef<IDispatch>[] = [
         <DispatchArticlesDialog articles={row.original.articles} work_order={row.original.work_order?.order_number!} />
       </div>
     )
+  },
+  {
+    accessorKey: "status",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Status" />
+    ),
+    cell: ({ row }) => {
+      const approved = row.original.status === "APROBADO"
+      const process = row.original.status === "PROCESO"
+      return (
+        <p className="font-medium text-center">{row.original.status ? <Badge className={cn("", approved ? "bg-green-500 hover:bg-green-600" : process ? "bg-yellow-500 hover:bg-yellow-600" : "bg-red-500 hover:bg-red-600")}>{row.original.status.toUpperCase()}</Badge> :"N/A"}</p>
+      )
+    }
   },
   {
     id: "actions",
