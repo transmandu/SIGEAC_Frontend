@@ -713,6 +713,7 @@ export type Employee = {
   user?: User,
   location: Location,
 }
+
 export type AdministrationVendor = {
   id: string | number,
   name: string,
