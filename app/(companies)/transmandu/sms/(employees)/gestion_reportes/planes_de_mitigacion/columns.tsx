@@ -120,19 +120,19 @@ const RiskAnalysisCell = ({ analysis }: { analysis: any }) => {
             if (riskIndex === "TOLERABLE") {
               return (
                 <div className="flex justify-center">
-                  <Badge className={"bg-yellow-500"}>Tolerable</Badge>
+                  <Badge className={"bg-yellow-500 hover:bg-yellow-400"} >Tolerable</Badge>
                 </div>
               );
             } else if (riskIndex === "INTOLERABLE") {
               return (
                 <div className="flex justify-center">
-                  <Badge className={"bg-red-600"}>Intolerable</Badge>
+                  <Badge className={"bg-red-600 hover:bg-red-500"} >Intolerable</Badge>
                 </div>
               );
             } else if (riskIndex === "ACEPTABLE") {
               return (
-                <div className="flex justify-center">
-                  <Badge className={"bg-green-600"}>Aceptable</Badge>
+                <div className="flex justify-center ">
+                  <Badge className={"bg-green-600 hover:bg-green-500"} >Aceptable</Badge>
                 </div>
               );
             }
