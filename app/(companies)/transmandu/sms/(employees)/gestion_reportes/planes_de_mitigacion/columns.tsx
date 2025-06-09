@@ -206,7 +206,7 @@ export const columns: ColumnDef<MitigationTable>[] = [
   {
     id: "actions",
     cell: ({ row }) => {
-      const mitigationTable = row.original;
+      const mitigationTable = row.original; 
       const shouldShowActions = 
         (mitigationTable.voluntary_report && mitigationTable.voluntary_report.status !== "CERRADO") ||
         (mitigationTable.obligatory_report && mitigationTable.obligatory_report.status !== "CERRADO");
