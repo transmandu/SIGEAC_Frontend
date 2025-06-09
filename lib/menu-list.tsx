@@ -287,44 +287,44 @@ export function getMenuList(
             {
               href: "/transmandu/sms",
               label: "Reportes",
-              active: pathname.includes("/transmandu/sms"),
+              active: pathname.includes("/transmandu/sms/reportes"),
               icon: ClipboardPen,
               roles: ["ANALISTA_SMS", "JEFE_SMS", "SUPERUSER"],
               submenus: [
                 {
-                  href: "/transmandu/sms/reportes_voluntarios",
+                  href: "/transmandu/sms/reportes/reportes_voluntarios",
                   label: "Reportes Voluntarios",
                   roles: ["ANALISTA_SMS", "JEFE_SMS", "SUPERUSER"],
-                  active: pathname === "/transmandu/sms/reportes_voluntarios",
+                  active: pathname === "/transmandu/sms/reportes/reportes_voluntarios",
                 },
                 {
-                  href: "/transmandu/sms/reportes_obligatorios",
+                  href: "/transmandu/sms/reportes/reportes_obligatorios",
                   label: "Reportes Obligatorios",
                   roles: ["ANALISTA_SMS", "JEFE_SMS", "SUPERUSER"],
                   active:
-                    pathname === "/transmandu/sms/reportes_obligatorios",
+                    pathname === "/transmandu/sms/reportes/reportes_obligatorios",
                 },
               ],
             },
             {
               href: "/transmandu/sms",
               label: "Gestion de Reportes",
-              active: pathname.includes("/transmandu/sms"),
+              active: pathname.includes("/transmandu/sms/gestion_reportes"),
               icon: ShieldAlert,
               roles: ["ANALISTA_SMS", "JEFE_SMS", "SUPERUSER"],
               submenus: [
                 {
-                  href: "/transmandu/sms/peligros_identificados",
+                  href: "/transmandu/sms/gestion_reportes/peligros_identificados",
                   label: "Peligros Identificados",
                   roles: ["ANALISTA_SMS", "JEFE_SMS", "SUPERUSER"],
                   active:
-                    pathname === "/transmandu/sms/peligros_identificados",
+                    pathname === "/transmandu/sms/gestion_reportes/peligros_identificados",
                 },
                 {
-                  href: "/transmandu/sms/planes_de_mitigacion",
+                  href: "/transmandu/sms/gestion_reportes/planes_de_mitigacion",
                   label: "Planes de Mitigacion",
                   roles: ["ANALISTA_SMS", "JEFE_SMS", "SUPERUSER"],
-                  active: pathname === "/transmandu/sms/planes_de_mitigacion",
+                  active: pathname === "/transmandu/sms/gestion_reportes/planes_de_mitigacion",
                 },
               ],
             },
@@ -332,7 +332,7 @@ export function getMenuList(
               href: "/transmandu/sms",
               label: "Estadisticas",
               icon: AreaChartIcon,
-              active: pathname.includes("/estadisticas"),
+              active: pathname.includes("/transmandu/sms/estadisticas"),
               roles: ["ANALISTA_SMS", "JEFE_SMS", "SUPERUSER"],
               submenus: [
                 {
@@ -372,7 +372,7 @@ export function getMenuList(
             {
               href: "/transmandu/sms",
               label: "Planificacion",
-              active: pathname.includes("/transmandu/sms"),
+              active: pathname.includes("/transmandu/sms/planificacion"),
               icon: Activity,
               roles: ["ANALISTA_SMS", "JEFE_SMS", "SUPERUSER"],
               submenus: [
@@ -399,20 +399,20 @@ export function getMenuList(
               roles: ["ANALISTA_SMS", "REGULAR", "GUEST"],
               submenus: [
                 {
-                  href: "/transmandu/sms/reportes_voluntarios/nuevo_reporte",
+                  href: "/transmandu/sms/reportes/reportes_voluntarios/nuevo_reporte",
                   label: "Reportes Voluntarios",
                   roles: ["ANALISTA_SMS", "REGULAR", "GUEST"],
                   active:
                     pathname ===
-                    "/transmandu/sms/reportes_voluntarios/nuevo_reporte",
+                    "/transmandu/sms/reportes/reportes_voluntarios/nuevo_reporte",
                 },
                 {
-                  href: "/transmandu/sms/reportes_obligatorios/nuevo_reporte",
+                  href: "/transmandu/sms/reportes/reportes_obligatorios/nuevo_reporte",
                   label: "Reportes Obligatorios",
                   roles: ["ANALISTA_SMS", "REGULAR", "GUEST"],
                   active:
                     pathname ===
-                    "/transmandu/sms/reportes_obligatorios/nuevo_reporte",
+                    "/transmandu/sms/reportes/reportes_obligatorios/nuevo_reporte",
                 },
               ],
             },
@@ -525,6 +525,11 @@ export function getMenuList(
                   href: "/ajustes/globales/fuentes_informacion",
                   label: "Fuentes de Información",
                   active: pathname === "/ajustes/globales/fuentes_informacion",
+                },
+                {
+                  href: "/ajustes/globales/pilotos",
+                  label: "Pilotos",
+                  active: pathname === "/ajustes/globales/pilotos",
                 },
               ],
             },

@@ -63,7 +63,7 @@ const MeasuresCell = ({
 
             {measures.length > 0 && planId && (
               <Link
-                href={`/transmandu/sms/planes_de_mitigacion/${planId}/medidas`}
+                href={`/transmandu/sms/gestion_reportes/planes_de_mitigacion/${planId}/medidas`}
               >
                 <div className="flex justify-end mt-4">
                   <Button className="w-1/3">Ver mas</Button>
@@ -120,19 +120,19 @@ const RiskAnalysisCell = ({ analysis }: { analysis: any }) => {
             if (riskIndex === "TOLERABLE") {
               return (
                 <div className="flex justify-center">
-                  <Badge className={"bg-yellow-500"}>Tolerable</Badge>
+                  <Badge className={"bg-yellow-500 hover:bg-yellow-400"} >Tolerable</Badge>
                 </div>
               );
             } else if (riskIndex === "INTOLERABLE") {
               return (
                 <div className="flex justify-center">
-                  <Badge className={"bg-red-600"}>Intolerable</Badge>
+                  <Badge className={"bg-red-600 hover:bg-red-500"} >Intolerable</Badge>
                 </div>
               );
             } else if (riskIndex === "ACEPTABLE") {
               return (
-                <div className="flex justify-center">
-                  <Badge className={"bg-green-600"}>Aceptable</Badge>
+                <div className="flex justify-center ">
+                  <Badge className={"bg-green-600 hover:bg-green-500"} >Aceptable</Badge>
                 </div>
               );
             }
@@ -205,8 +205,15 @@ export const columns: ColumnDef<MitigationTable>[] = [
   },
   {
     id: "actions",
-    cell: ({ row }) => (
-      <MitigationTableDropdownActions mitigationTable={row.original} />
-    ),
-  },
+    cell: ({ row }) => {
+      const mitigationTable = row.original; 
+      const shouldShowActions = 
+        (mitigationTable.voluntary_report && mitigationTable.voluntary_report.status !== "CERRADO") ||
+        (mitigationTable.obligatory_report && mitigationTable.obligatory_report.status !== "CERRADO");
+
+      return shouldShowActions 
+        ? <MitigationTableDropdownActions mitigationTable={mitigationTable} /> 
+        : null;
+    }
+  }
 ];

@@ -66,7 +66,7 @@ const FollowUpControlCell = ({
             </div>
 
             <Link
-              href={`/transmandu/sms/planes_de_mitigacion/${planId}/medidas/${measureId}/controles_de_seguimiento`}
+              href={`/transmandu/sms/gestion_reportes/planes_de_mitigacion/${planId}/medidas/${measureId}/controles_de_seguimiento`}
             >
               <div className="flex justify-end mt-4">
                 <Button className="w-1/3">Ver mas</Button>

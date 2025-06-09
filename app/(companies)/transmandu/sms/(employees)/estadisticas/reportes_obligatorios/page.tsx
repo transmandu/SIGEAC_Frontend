@@ -13,8 +13,8 @@ import { Loader2, Check, ChevronsUpDown, X } from "lucide-react";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { format, startOfMonth } from "date-fns";
-import { useGetIdentificationStatsBySourceName } from "@/hooks/sms/useGetIdentificationStatsBySoruceName";
-import { useGetIdentificationStatsBySourceType } from "@/hooks/sms/useGetIdentificationStatsBySoruceType";
+import { useGetIdentificationStatsBySourceName } from "@/hooks/sms/useGetIdentificationStatsBySourceName";
+import { useGetIdentificationStatsBySourceType } from "@/hooks/sms/useGetIdentificationStatsBySourceType";
 import { useGetReportsCountedByArea } from "@/hooks/sms/useGetReportsCountedByArea";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -45,11 +45,6 @@ const graphicsOptions = [
     id: "Todos",
     label: "Todos los gráficos",
     description: "Mostrar todos los gráficos disponibles",
-  },
-  {
-    id: "location",
-    label: "Identificados por localizacion",
-    description: "Número de reportes por ubicación en el aeropuerto",
   },
   {
     id: "tipo",
@@ -119,7 +114,7 @@ const Statistics = () => {
   } = useGetVoluntaryReportingStatsByYear(
     params.from!,
     params.to!,
-    "voluntary"
+    "obligatory"
   );
 
   const {
@@ -129,32 +124,26 @@ const Statistics = () => {
   } = useGetDangerIdentificationsCountedByType(
     params.from!,
     params.to!,
-    "voluntary"
+    "obligatory"
   );
 
   const {
     data: pieCharData,
     isLoading: isLoadingPieCharData,
     refetch: refetchPieChart,
-  } = useGetReportsCountedByArea(params.from!, params.to!, "voluntary");
+  } = useGetReportsCountedByArea(params.from!, params.to!, "obligatory");
 
   const {
     data: riskData,
     isLoading: isLoadingRisk,
     refetch: refetchRisk,
-  } = useGetRiskCountByDateRange(params.from!, params.to!, "voluntary");
+  } = useGetRiskCountByDateRange(params.from!, params.to!, "obligatory");
 
   const {
     data: postRiskData,
     isLoading: isLoadingPostRisk,
     refetch: refetchPostRisk,
-  } = useGetPostRiskCountByDateRange(params.from!, params.to!, "voluntary");
-
-  const {
-    data: reportsByLocationData,
-    isLoading: isLoadingReportsByLocationData,
-    refetch: refetchAirportLocationData,
-  } = useGetVoluntaryReportsCountedByAirportLocation(params.from!, params.to!);
+  } = useGetPostRiskCountByDateRange(params.from!, params.to!, "obligatory");
 
   const {
     data: reportsBySourceName,
@@ -163,7 +152,7 @@ const Statistics = () => {
   } = useGetIdentificationStatsBySourceName(
     params.from!,
     params.to!,
-    "voluntary"
+    "obligatory"
   );
 
   const {
@@ -173,7 +162,7 @@ const Statistics = () => {
   } = useGetIdentificationStatsBySourceType(
     params.from!,
     params.to!,
-    "voluntary"
+    "obligatory"
   );
 
   useEffect(() => {
@@ -198,7 +187,6 @@ const Statistics = () => {
       refetchDynamicChart,
       refetchRisk,
       refetchPostRisk,
-      refetchAirportLocationData,
       refetchDynamicSourceNameChart,
       refetchDynamicSourceTypeChart,
     ];
@@ -211,7 +199,6 @@ const Statistics = () => {
     refetchDynamicChart,
     refetchRisk,
     refetchPostRisk,
-    refetchAirportLocationData,
     refetchDynamicSourceNameChart,
     refetchDynamicSourceTypeChart,
   ]);
@@ -409,27 +396,6 @@ const Statistics = () => {
                 width="100%"
                 data={pieCharData}
                 title="Número de Reportes vs Áreas"
-              />
-            ) : (
-              <p className="text-lg text-muted-foreground">
-                No hay datos para mostrar.
-              </p>
-            )}
-          </div>
-        )}
-
-        {shouldShow("location") && (
-          <div className="p-4 rounded-lg shadow border">
-            {isLoadingReportsByLocationData ? (
-              <div className="flex justify-center items-center h-48">
-                <Loader2 className="size-24 animate-spin" />
-              </div>
-            ) : reportsByLocationData?.length ? (
-              <DynamicBarChart
-                height="100%"
-                width="100%"
-                data={reportsByLocationData}
-                title="Número de Reportes vs Localización"
               />
             ) : (
               <p className="text-lg text-muted-foreground">

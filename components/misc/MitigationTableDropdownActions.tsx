@@ -94,6 +94,18 @@ const MitigationTableDropdownActions = ({
             align="center"
             className="flex flex-col gap-2 justify-center"
           >
+              {mitigationTable.mitigation_plan?.id &&
+              mitigationTable.mitigation_plan?.analysis === null && (
+                <DropdownMenuItem onClick={() => setOpenCreateMeasure(true)}>
+                  <Plus
+                    className={`size-5 ${
+                      theme === "light" ? "text-black" : "text-white"
+                    }`}
+                  />
+                  <p className="pl-2">Crear Medida</p>
+                </DropdownMenuItem>
+              )}
+
             {!mitigationTable.mitigation_plan ? (
               <DropdownMenuItem onClick={() => setOpenCreatePlan(true)}>
                 <ClipboardList className="size-5" />
@@ -107,7 +119,8 @@ const MitigationTableDropdownActions = ({
               </DropdownMenuItem>
             ) : null}
 
-            {mitigationTable.mitigation_plan && (
+            {mitigationTable.mitigation_plan &&
+              (
               <DialogTrigger asChild>
                 <DropdownMenuItem onClick={() => setOpenDelete(true)}>
                   <Trash2 className="size-5 text-red-500" />
@@ -133,17 +146,7 @@ const MitigationTableDropdownActions = ({
               )
             ) : null}
 
-            {mitigationTable.mitigation_plan?.id &&
-              mitigationTable.mitigation_plan?.analysis === null && (
-                <DropdownMenuItem onClick={() => setOpenCreateMeasure(true)}>
-                  <Plus
-                    className={`size-5 ${
-                      theme === "light" ? "text-black" : "text-white"
-                    }`}
-                  />
-                  <p className="pl-2">Crear Medida</p>
-                </DropdownMenuItem>
-              )}
+            
 
             {!mitigationTable.id && (
               <DropdownMenuItem
