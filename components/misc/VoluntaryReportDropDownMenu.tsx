@@ -142,7 +142,7 @@ const VoluntaryReportDropdownActions = ({
               </DialogDescription>
             </DialogHeader>
             <div className="w-full h-screen">
-              {voluntaryReport && dangerIdentification ? (
+              {voluntaryReport && voluntaryReport.status === "CERRADO" && dangerIdentification ? (
                 <>
                   <PDFViewer style={{ width: "100%", height: "60%" }}>
                     <VoluntaryReportPdf
