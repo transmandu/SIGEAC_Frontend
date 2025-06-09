@@ -26,12 +26,14 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "../ui/dialog";
+import { useTheme } from "next-themes";
 
 const MitigationMeasureDropdownActions = ({
   mitigationMeasure,
 }: {
   mitigationMeasure: MitigationMeasure;
-}) => {
+  }) => {
+  const { theme } = useTheme();
   const [open, setOpen] = useState<boolean>(false);
   const [openEdit, setOpenEdit] = useState<boolean>(false);
 
@@ -69,7 +71,7 @@ const MitigationMeasureDropdownActions = ({
               <DropdownMenuItem
                 onClick={() => setOpenCreateFollowUpControl(true)}
               >
-                <Plus className="size-5 text-black" />
+              <Plus className={`size-5 ${theme === "light" ? "text-black" : "text-white"}`} />
                 <p className="pl-2">Crear Control</p>
               </DropdownMenuItem>
             </DialogTrigger>
