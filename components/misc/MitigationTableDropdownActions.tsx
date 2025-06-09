@@ -120,13 +120,11 @@ const MitigationTableDropdownActions = ({
             ) : null}
 
             {mitigationTable.mitigation_plan &&
-              mitigationTable.voluntary_report.status === "ABIERTO" &&
-              mitigationTable.obligatory_report.status === "ABIERTO" &&
               (
               <DialogTrigger asChild>
                 <DropdownMenuItem onClick={() => setOpenDelete(true)}>
                   <Trash2 className="size-5 text-red-500" />
-                  <p className="pl-2">DELETE</p>
+                  <p className="pl-2">Eliminar</p>
                 </DropdownMenuItem>
               </DialogTrigger>
             )}
