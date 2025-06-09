@@ -2723,9 +2723,11 @@ export const ThirdPage = ({
                   backgroundColor: WHITE,
                 }}
               >
-                <Text style={[styles.cellText2, { textAlign: "center" }]}>
-                  {dateFormat(measure.execution_date, "dd-MM-yyyy")}
-                </Text>
+                {measure.execution_date && (
+                  <Text style={[styles.cellText2, { textAlign: "center" }]}>
+                    {dateFormat(measure.execution_date, "dd-MM-yyyy")}
+                  </Text>
+                )}
               </View>
             </View>
           );
