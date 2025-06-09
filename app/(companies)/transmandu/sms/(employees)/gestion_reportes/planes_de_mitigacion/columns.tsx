@@ -63,7 +63,7 @@ const MeasuresCell = ({
 
             {measures.length > 0 && planId && (
               <Link
-                href={`/transmandu/sms/planes_de_mitigacion/${planId}/medidas`}
+                href={`/transmandu/sms/gestion_reportes/planes_de_mitigacion/${planId}/medidas`}
               >
                 <div className="flex justify-end mt-4">
                   <Button className="w-1/3">Ver mas</Button>
