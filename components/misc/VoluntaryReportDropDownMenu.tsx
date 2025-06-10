@@ -106,7 +106,7 @@ const VoluntaryReportDropdownActions = ({
             <DropdownMenuItem
               onClick={() => {
                 router.push(
-                  `/transmandu/sms/reportes_voluntarios/${voluntaryReport.id}`
+                  `/transmandu/sms/reportes/eportes_voluntarios/${voluntaryReport.id}`
                 );
               }}
             >
@@ -124,7 +124,7 @@ const VoluntaryReportDropdownActions = ({
                 </DropdownMenuItem>
               )}
 
-            {voluntaryReport && (
+            {voluntaryReport && voluntaryReport.status !== "PROCESO" &&(
               <DropdownMenuItem onClick={() => setOpenPDF(true)}>
                 <PrinterCheck className="size-5" />
                 <p className="pl-2">Descargar PDF</p>
@@ -142,7 +142,7 @@ const VoluntaryReportDropdownActions = ({
               </DialogDescription>
             </DialogHeader>
             <div className="w-full h-screen">
-              {voluntaryReport && dangerIdentification ? (
+              {voluntaryReport && voluntaryReport.status === "CERRADO" && dangerIdentification ? (
                 <>
                   <PDFViewer style={{ width: "100%", height: "60%" }}>
                     <VoluntaryReportPdf

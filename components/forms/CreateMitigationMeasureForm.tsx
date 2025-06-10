@@ -26,7 +26,7 @@ import {
 } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
-import { format, min } from "date-fns";
+import { format } from "date-fns";
 
 import { Separator } from "@radix-ui/react-select";
 import {
@@ -37,21 +37,39 @@ import { MitigationMeasure } from "@/types";
 
 const FormSchema = z.object({
   description: z.string().min(5),
+
   implementation_supervisor: z
     .string()
+    .nonempty({ message: "El supervisor es requerido" })
     .min(3, { message: "El supervisor debe tener al menos 3 caracteres" })
     .max(19, { message: "El supervisor no puede exceder los 19 caracteres" }),
+
   implementation_responsible: z
     .string()
+    .nonempty({ message: "El responsable es requerido" })
     .min(3, { message: "El responsable debe tener al menos 3 caracteres" })
     .max(23, { message: "El responsable no puede exceder los 23 caracteres" }),
-
+  
   estimated_date: z
     .date()
-    .refine((val) => !isNaN(val.getTime()), { message: "Invalid Date" }),
+    .refine((val) => !isNaN(val.getTime()), { message: "Fecha inválida" }),
+  
   execution_date: z
     .date()
-    .refine((val) => !isNaN(val.getTime()), { message: "Invalid Date" }),
+    .refine((val) => !isNaN(val.getTime()), { message: "Fecha inválida" })
+    .nullable()
+})
+.superRefine((data, ctx) => {
+  if (
+    data.execution_date &&
+    data.execution_date < data.estimated_date
+  ) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "La fecha de ejecución debe ser mayor o igual a la fecha estimada.",
+      path: ["execution_date"],
+    });
+  }
 });
 
 type FormSchemaType = z.infer<typeof FormSchema>;
@@ -72,15 +90,15 @@ export default function CreateMitigationMeasureForm({
   const form = useForm<FormSchemaType>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
-      description: initialData?.description,
-      implementation_responsible: initialData?.implementation_responsible,
-      implementation_supervisor: initialData?.implementation_supervisor,
+      description: initialData?.description || "",
+      implementation_responsible: initialData?.implementation_responsible || "",
+      implementation_supervisor: initialData?.implementation_supervisor || "",
       estimated_date: initialData?.estimated_date
         ? new Date(initialData.estimated_date)
         : new Date(),
       execution_date: initialData?.execution_date
         ? new Date(initialData.execution_date)
-        : new Date(),
+        : null, // Inicializar como null en lugar de new Date()
     },
   });
 
@@ -240,7 +258,7 @@ export default function CreateMitigationMeasureForm({
                   <PopoverContent className="w-auto p-0" align="start">
                     <Calendar
                       mode="single"
-                      selected={field.value}
+                      selected={field.value ?? undefined} // Manejar el caso null
                       onSelect={field.onChange}
                       disabled={(date) =>
                         date > new Date() || date < new Date("1900-01-01")

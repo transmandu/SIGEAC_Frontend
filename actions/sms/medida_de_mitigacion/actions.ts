@@ -7,7 +7,7 @@ interface MitigationMeasureData {
   implementation_supervisor: string;
   implementation_responsible: string;
   estimated_date: Date;
-  execution_date: Date;
+  execution_date?: Date | null;
   mitigation_plan_id: number | string;
 }
 
@@ -17,7 +17,7 @@ interface UpdateMitigationMeasureData {
   implementation_supervisor: string;
   implementation_responsible: string;
   estimated_date: Date;
-  execution_date: Date;
+  execution_date?: Date | null;
 }
 export const useCreateMitigationMeasure = () => {
   const queryClient = useQueryClient();

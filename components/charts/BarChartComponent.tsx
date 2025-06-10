@@ -71,7 +71,7 @@ const BarChartComponent = ({
   if (!data.closed_reports && !data.open_reports) {
     return (
       <p className="text-lg text-muted-foreground">
-        No hay datos para mostrar acerca de {title}
+        No hay datos para mostrar.
       </p>
     );
   }

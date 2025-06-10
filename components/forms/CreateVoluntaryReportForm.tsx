@@ -232,7 +232,7 @@ export function CreateVoluntaryReportForm({
       try {
         const response = await createVoluntaryReport.mutateAsync(value);
         router.push(
-          `/transmandu/sms/reportes_voluntarios/${response.voluntary_report_id}`
+          `/transmandu/sms/reportes/reportes_voluntarios/${response.voluntary_report_id}`
         );
       } catch (error) {
         console.error("Error al crear el reporte:", error);
