@@ -412,7 +412,7 @@ export function getMenuList(
                 {
                   href: "/transmandu/sms/reportes/reportes_obligatorios/nuevo_reporte",
                   label: "Reportes Obligatorios",
-                  roles: ["ANALISTA_SMS", "REGULAR", "GUEST"],
+                  roles: [],
                   active:
                     pathname ===
                     "/transmandu/sms/reportes/reportes_obligatorios/nuevo_reporte",
