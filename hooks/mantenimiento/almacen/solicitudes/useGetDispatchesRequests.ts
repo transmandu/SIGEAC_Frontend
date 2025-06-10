@@ -9,6 +9,7 @@ interface IDispatch {
     justification: string,
     destination_place: string,
     submission_date: string,
+    status: "PROCESO" | "APROBADO" | "RECHAZADO",
     work_order?: WorkOrder,
     articles:
         {

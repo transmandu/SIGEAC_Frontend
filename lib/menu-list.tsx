@@ -370,7 +370,7 @@ export function getMenuList(
                     "/transmandu/sms/estadisticas/indicadores_riesgo",
                 },
               ],
-              
+
             },
             {
               href: "/transmandu/sms",
@@ -399,12 +399,12 @@ export function getMenuList(
               label: "Reportes",
               active: pathname.includes("/transmandu/sms"),
               icon: ClipboardPen,
-              roles: ["ANALISTA_SMS", "REGULAR", "GUEST"],
+              roles: [],
               submenus: [
                 {
                   href: "/transmandu/sms/reportes/reportes_voluntarios/nuevo_reporte",
                   label: "Reportes Voluntarios",
-                  roles: ["ANALISTA_SMS", "REGULAR", "GUEST"],
+                  roles: [],
                   active:
                     pathname ===
                     "/transmandu/sms/reportes/reportes_voluntarios/nuevo_reporte",
@@ -782,7 +782,7 @@ export function getMenuList(
               ),
               icon: SquarePen,
               roles: [
-                "ANALISTA_PLANIFICACION",
+                "ANALISTA_ADMINISTRACION",
                 "JEFE_PLANIFICACION",
                 "SUPERUSER",
               ],
@@ -963,10 +963,10 @@ export function getMenuList(
           menus: [
             {
               href: "/sistema/usuarios_permisos",
-              label: "Usuarios",
+              label: "Usuarios Y Permisos",
               active: pathname.includes("/sistema/usuarios_permisos"),
               icon: User2,
-              roles: ["SUPERUSER"],
+              roles: ["ADMIN", "SUPERUSER"],
               submenus: [
                 {
                   href: "/sistema/usuarios_permisos/usuarios",
@@ -975,32 +975,13 @@ export function getMenuList(
                 },
                 {
                   href: "/sistema/usuarios_permisos/roles",
-                  label: "Administrar  Roles",
+                  label: "Administrar Roles",
                   active: pathname === "/sistema/usuarios_permisos/roles",
                 },
                 {
                   href: "/sistema/usuarios_permisos/permisos",
                   label: "Administrar Permisos",
                   active: pathname === "/sistema/usuarios_permisos/permisos",
-                },
-              ],
-            },
-            {
-              href: "/sistema/empresas",
-              label: "Empresas",
-              active: pathname.includes("/sistema/empresas"),
-              icon: Building,
-              roles: ["SUPERUSER"],
-              submenus: [
-                {
-                  href: "/sistema/empresas/almacenes",
-                  label: "Administrar Almacenes",
-                  active: pathname === "/sistema/empresas/almacenes",
-                },
-                {
-                  href: "/sistema/empresas/empleados",
-                  label: "Administrar Empleados",
-                  active: pathname === "/sistema/empresas/empleados",
                 },
               ],
             },
