@@ -8,7 +8,8 @@ export const useCreateAircraft = () => {
     const queryAircraft = useQueryClient()
     const createMutation = useMutation({
         mutationFn: async (data: any) => {
-            await axiosInstance.post('/transmandu/aircrafts-administration', data)
+            // await axiosInstance.post('/transmandu/aircrafts-administration', data)
+            await axiosInstance.post('/transmandu/aircrafts', data)
           },
         onSuccess: () => {
             queryAircraft.invalidateQueries({queryKey: ['aircrafts']})
