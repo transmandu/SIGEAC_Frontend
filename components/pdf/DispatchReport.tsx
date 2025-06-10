@@ -1,5 +1,5 @@
 import { Document, Page, StyleSheet, Text, View } from "@react-pdf/renderer";
-import { format } from "date-fns";
+import { format, isAfter, isBefore, isEqual, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
 
 export interface DispatchReport {
@@ -96,25 +96,45 @@ const styles = StyleSheet.create({
 const DispatchReportPdf = ({
   reports,
   aircraftFilter = null,
+  startDate,
+  endDate,
 }: {
   reports: DispatchReport[];
   aircraftFilter?: number | null;
+  startDate?: Date;
+  endDate?: Date;
 }) => {
-  const filtered = aircraftFilter
-    ? reports.filter((r) => r.aircraft === aircraftFilter)
-    : reports;
+  const filtered = reports.filter((r) => {
+    const submission = parseISO(r.submission_date);
+
+    const matchesAircraft = aircraftFilter ? r.aircraft === aircraftFilter : true;
+    const matchesStart = startDate ? (isAfter(submission, startDate) || isEqual(submission, startDate)) : true;
+    const matchesEnd = endDate ? (isBefore(submission, endDate) || isEqual(submission, endDate)) : true;
+
+    return matchesAircraft && matchesStart && matchesEnd;
+  });
 
   return (
     <Document>
-      <Page size="A4" style={styles.page}>
+      <Page size="LETTER" style={styles.page}>
         <View style={styles.header}>
           <Text style={styles.title}>Reporte de Salidas de Almacén</Text>
           <Text style={styles.subtitle}>
-            Fecha: {format(new Date(), "PPP", { locale: es })}
+            Fecha de generación: {format(new Date(), "PPP", { locale: es })}
           </Text>
           {aircraftFilter && (
             <Text style={styles.subtitle}>
               Filtrado por Aeronave: {aircraftFilter}
+            </Text>
+          )}
+          {startDate && (
+            <Text style={styles.subtitle}>
+              Desde: {format(startDate, "PPP", { locale: es })}
+            </Text>
+          )}
+          {endDate && (
+            <Text style={styles.subtitle}>
+              Hasta: {format(endDate, "PPP", { locale: es })}
             </Text>
           )}
         </View>
@@ -124,7 +144,7 @@ const DispatchReportPdf = ({
             <View key={dispatch.id} style={styles.section}>
               <Text style={styles.subTitle}>Salida ID: {dispatch.id}</Text>
               <Text>Status: {dispatch.status}</Text>
-              <Text>Fecha: {format(new Date(dispatch.submission_date), "PPP", { locale: es })}</Text>
+              <Text>Fecha: {format(parseISO(dispatch.submission_date), "PPP", { locale: es })}</Text>
               <Text>Justificación: {dispatch.justification}</Text>
               <Text>Destino: {dispatch.destination_place}</Text>
               <Text>Orden de Trabajo: {dispatch.work_order ?? "N/A"}</Text>
@@ -132,7 +152,6 @@ const DispatchReportPdf = ({
               <Text>Solicitado por: {dispatch.requested_by}</Text>
               <Text>Aprobado por: {dispatch.approved_by}</Text>
               <Text>Entregado por: {dispatch.delivered_by}</Text>
-              {/* <Text>Creado por: {dispatch.created_by}</Text> */}
 
               {dispatch.articles.length > 0 && (
                 <>
@@ -157,13 +176,8 @@ const DispatchReportPdf = ({
             </View>
           ))
         ) : (
-          <Text style={styles.noRecords}>No hay salidas registradas.</Text>
+          <Text style={styles.noRecords}>No hay salidas registradas para los filtros aplicados.</Text>
         )}
-
-        <Text style={styles.footer}>
-          Este reporte fue generado automáticamente. Fecha:{" "}
-          {format(new Date(), "PPP", { locale: es })}
-        </Text>
       </Page>
     </Document>
   );

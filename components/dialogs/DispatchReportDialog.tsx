@@ -1,5 +1,10 @@
 'use client'
 
+import { useState } from "react";
+import { format } from "date-fns";
+import { CalendarDays, NotepadText, Plane } from "lucide-react";
+import { PDFDownloadLink } from "@react-pdf/renderer";
+
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -16,83 +21,159 @@ import {
   SelectTrigger,
   SelectValue
 } from "@/components/ui/select";
-import { useGetManufacturers } from "@/hooks/general/condiciones/useGetConditions";
-import { useGetWarehouseReport } from "@/hooks/mantenimiento/almacen/reportes/useGetWarehouseReport";
-import { useCompanyStore } from "@/stores/CompanyStore";
-import { PDFDownloadLink } from "@react-pdf/renderer";
-import { format } from "date-fns";
-import { Drill, NotepadText, Plane } from "lucide-react";
-import { useState } from "react";
-import WarehouseReportPdf from "../pdf/GeneralWarehouseReport";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
 
-import { useGetAircrafts } from "@/hooks/aerolinea/aeronaves/useGetAircrafts"; 
+import { useCompanyStore } from "@/stores/CompanyStore";
+import { useGetAircrafts } from "@/hooks/aerolinea/aeronaves/useGetAircrafts";
 import { useGetDispatchReport } from "@/hooks/mantenimiento/almacen/reportes/useGetDispatchReport";
 import DispatchReportPdf from "../pdf/DispatchReport";
 
 export function DispatchReportDialog() {
   const { selectedStation, selectedCompany } = useCompanyStore();
   const [open, setOpen] = useState(false);
-  const [manufacturer, setManufacturer] = useState<string | null>(null);
   const [aircraft, setAircraft] = useState<string | null>(null);
+  const [startDate, setStartDate] = useState<Date | undefined>();
+  const [endDate, setEndDate] = useState<Date | undefined>();
 
   const { data: dispatchReport, isLoading: isLoadingDispatchReport } = useGetDispatchReport(selectedStation ?? null);
   const { data: aircrafts, isLoading: isLoadingAircrafts } = useGetAircrafts(selectedCompany?.replace(/\s/g, ""));
-//   const { data, isLoading: reportLoading } = useGetWarehouseReport(selectedStation ?? null);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button onClick={() => setOpen(true)} variant="outline" className="flex items-center justify-center gap-2 h-8 border-dashed">
+        <Button
+          onClick={() => setOpen(true)}
+          variant="outline"
+          className="flex items-center justify-center gap-2 h-8 border-dashed"
+        >
           Generar Reporte
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[420px]">
+
+      <DialogContent className="sm:max-w-[480px]">
         <DialogHeader>
           <DialogTitle>Generar Reporte</DialogTitle>
           <DialogDescription>
             Aquí se pueden generar los reportes del almacén.
           </DialogDescription>
         </DialogHeader>
+
         <div className="space-y-6 flex flex-col justify-center text-center">
           {/* Reporte General */}
           <div className="space-y-2">
-            <h1 className="text-xl font-bold flex gap-2 items-center justify-center">General <NotepadText /></h1>
-            <p className="text-muted-foreground text-sm italic">Genere un reporte de todos los artículos registrados con su respectivo estado.</p>
-            {
-              dispatchReport && (
-                <PDFDownloadLink
-                  fileName={`registro_de_salida_${format(new Date(), "dd-MM-yyyy")}.pdf`}
-                  document={<DispatchReportPdf reports={dispatchReport ?? []} />}
-                >
-                  <Button disabled={isLoadingDispatchReport} className="mt-2">Descargar Reporte</Button>
-                </PDFDownloadLink>
-              )
-            }
+            <h1 className="text-xl font-bold flex gap-2 items-center justify-center">
+              General <NotepadText />
+            </h1>
+            <p className="text-muted-foreground text-sm italic">
+              Genere un reporte con todas las salidas registradas.
+            </p>
+            {dispatchReport && (
+              <PDFDownloadLink
+                fileName={`salidas_${format(new Date(), "dd-MM-yyyy")}.pdf`}
+                document={
+                  <DispatchReportPdf
+                    reports={dispatchReport ?? []}
+                    aircraftFilter={aircraft ? parseInt(aircraft) : null}
+                    startDate={startDate}
+                    endDate={endDate}
+                  />
+                }
+              >
+                <Button disabled={isLoadingDispatchReport} className="mt-2">
+                  Descargar Reporte
+                </Button>
+              </PDFDownloadLink>
+            )}
           </div>
 
-          {/* Reporte por Avión */}
+          {/* Filtro por Avión */}
           <div className="space-y-2">
-            <h1 className="text-xl font-bold flex gap-2 items-center justify-center">Avión <Plane /></h1>
-            <p className="text-muted-foreground text-sm italic">Genere un reporte filtrado por aeronave.</p>
+            <h1 className="text-xl font-bold flex gap-2 items-center justify-center">
+              Filtrar <Plane />
+            </h1>
+            <p className="text-muted-foreground text-sm italic">
+              Seleccione un avión (opcional) para filtrar.
+            </p>
             <div className="flex gap-2 items-center justify-center">
               <Select onValueChange={(value) => setAircraft(value)}>
-                <SelectTrigger disabled={isLoadingAircrafts} className="w-[180px]">
-                  <SelectValue placeholder="Seleccione..." />
+                <SelectTrigger disabled={isLoadingAircrafts} className="w-[200px]">
+                  <SelectValue placeholder="Todos los aviones" />
                 </SelectTrigger>
                 <SelectContent>
-                  {/* {
-                    aircrafts?.map((aircraft) => (
-                      <SelectItem key={aircraft.id} value={aircraft.id.toString()}>
-                        {aircraft.registration ?? `Aeronave #${aircraft.id}`}
-                      </SelectItem>
-                    ))
-                  } */}
+                  {/* {aircrafts?.map((aircraft) => (
+                    <SelectItem key={aircraft.id} value={aircraft.id.toString()}>
+                      {aircraft.registration ?? `Aeronave #${aircraft.id}`}
+                    </SelectItem>
+                  ))} */}
                 </SelectContent>
               </Select>
-              <Button disabled={!aircraft}>Descargar</Button>
             </div>
           </div>
 
+          {/* Rango de Fechas */}
+          <div className="space-y-2">
+            <h1 className="text-xl font-bold flex gap-2 items-center justify-center">
+              Rango de Fecha <CalendarDays />
+            </h1>
+            <p className="text-muted-foreground text-sm italic">
+              Seleccione un rango de fechas para filtrar.
+            </p>
+            <div className="flex flex-col md:flex-row justify-center gap-4 items-center">
+              {/* Desde */}
+              <div className="flex flex-col items-start">
+                <label className="text-xs font-medium">Desde</label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "w-[200px] justify-start text-left",
+                        !startDate && "text-muted-foreground"
+                      )}
+                    >
+                      {startDate ? format(startDate, "PPP") : "Seleccionar fecha"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={startDate}
+                      onSelect={setStartDate}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+
+              {/* Hasta */}
+              <div className="flex flex-col items-start">
+                <label className="text-xs font-medium">Hasta</label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "w-[200px] justify-start text-left",
+                        !endDate && "text-muted-foreground"
+                      )}
+                    >
+                      {endDate ? format(endDate, "PPP") : "Seleccionar fecha"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={endDate}
+                      onSelect={setEndDate}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+            </div>
+          </div>
         </div>
       </DialogContent>
     </Dialog>
