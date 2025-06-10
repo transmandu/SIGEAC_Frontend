@@ -27,7 +27,7 @@ import { es } from "date-fns/locale"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 
-interface IDispatch {
+interface IDispatch  {
   id: number,
   requested_by: string,
   created_by: string,
@@ -133,7 +133,7 @@ export const columns: ColumnDef<IDispatch>[] = [
       const approved = row.original.status === "APROBADO"
       const process = row.original.status === "PROCESO"
       return (
-        <p className="font-medium text-center">{row.original.status ? <Badge className={cn("", approved ? "bg-green-500 hover:bg-green-600" : process ? "bg-yellow-500 hover:bg-yellow-600" : "bg-red-500 hover:bg-red-600")}>{row.original.status.toUpperCase()}</Badge> :"N/A"}</p>
+        <p className="font-medium text-center">{row.original.status ? <Badge className={cn("", approved ? "bg-green-500 hover:bg-green-600" : process ? "bg-yellow-500 hover:bg-yellow-600" : "bg-red-500 hover:bg-red-600")}>{row.original.status}</Badge> :"N/A"}</p>
       )
     }
   },
