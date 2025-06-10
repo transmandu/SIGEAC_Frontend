@@ -37,6 +37,7 @@ type Submenu = {
   href: string;
   label: string;
   active: boolean;
+  roles?: string[]; 
 };
 
 type Menu = {
@@ -61,11 +62,11 @@ export function getMenuList(
   userRoles: string[]
 ): Group[] {
   const date = format(new Date(), "yyyy-MM-dd");
-  function hasAccess(menu: Menu): boolean {
-    return (
-      menu.roles.length === 0 ||
-      menu.roles.some((role) => userRoles.includes(role))
-    );
+  function hasAccess(menuItem: Menu | Submenu): boolean {
+    if (!menuItem.roles || menuItem.roles.length === 0) {
+      return true; // No roles specified, so everyone has access
+    }
+    return menuItem.roles.some((role) => userRoles.includes(role));
   }
   return (
     company === "transmandu"
@@ -94,9 +95,11 @@ export function getMenuList(
               ),
               icon: CreditCardIcon,
               roles: [
-                "ANALISTA_PLANIFICACION",
-                "JEFE_PLANIFICACION",
                 "SUPERUSER",
+                "ANALISTA_ADMINISTRACION",
+                "JEFE_ADMINISTRACION",
+                "JEFE_CONTADURIA",
+                "RRHH",
               ],
               submenus: [
                 {
@@ -137,9 +140,11 @@ export function getMenuList(
               ),
               icon: Landmark,
               roles: [
-                "ANALISTA_PLANIFICACION",
-                "JEFE_PLANIFICACION",
                 "SUPERUSER",
+                "ANALISTA_ADMINISTRACION",
+                "JEFE_ADMINISTRACION",
+                "JEFE_CONTADURIA",
+                "RRHH",
               ],
               submenus: [
                 {
@@ -180,9 +185,11 @@ export function getMenuList(
               ),
               icon: BookUser,
               roles: [
-                "ANALISTA_PLANIFICACION",
-                "JEFE_PLANIFICACION",
                 "SUPERUSER",
+                "ANALISTA_ADMINISTRACION",
+                "JEFE_ADMINISTRACION",
+                "JEFE_CONTADURIA",
+                "RRHH",
               ],
               submenus: [
                 {
@@ -216,9 +223,9 @@ export function getMenuList(
               ),
               icon: PackageOpen,
               roles: [
-                "ANALISTA_PLANIFICACION",
-                "JEFE_PLANIFICACION",
                 "SUPERUSER",
+                "ANALISTA_ADMINISTRACION",
+                "JEFE_ADMINISTRACION",
               ],
               submenus: [
                 {
@@ -247,36 +254,32 @@ export function getMenuList(
             {
               href: "/transmandu/administracion/gestion_vuelos",
               label: "Vuelos",
-              active: pathname.includes(
-                "/transmandu/administracion/gestion_vuelos"
-              ),
+              active: pathname.includes("/transmandu/administracion/gestion_vuelos"),
               icon: PlaneIcon,
               roles: [
-                "ANALISTA_PLANIFICACION",
-                "JEFE_PLANIFICACION",
                 "SUPERUSER",
+                "ANALISTA_ADMINISTRACION",
+                "JEFE_ADMINISTRACION",
+                "RRHH",  // RRHH ve el menú principal, pero no todos los submenús
               ],
               submenus: [
                 {
                   href: "/transmandu/administracion/gestion_vuelos/aviones",
                   label: "Aeronaves",
-                  active:
-                    pathname ===
-                    "/transmandu/administracion/gestion_vuelos/aviones",
+                  active: pathname === "/transmandu/administracion/gestion_vuelos/aviones",
+                  roles: ["SUPERUSER", "ANALISTA_ADMINISTRACION", "JEFE_ADMINISTRACION", "RRHH"],  // RRHH puede ver Aeronaves
                 },
                 {
                   href: "/transmandu/administracion/gestion_vuelos/rutas",
                   label: "Rutas",
-                  active:
-                    pathname ===
-                    "/transmandu/administracion/gestion_vuelos/rutas",
+                  active: pathname === "/transmandu/administracion/gestion_vuelos/rutas",
+                  roles: ["SUPERUSER", "ANALISTA_ADMINISTRACION", "JEFE_ADMINISTRACION"],  // RRHH no puede ver Rutas
                 },
                 {
                   href: "/transmandu/administracion/gestion_vuelos/vuelos",
                   label: "Vuelos",
-                  active:
-                    pathname ===
-                    "/transmandu/administracion/gestion_vuelos/vuelos",
+                  active: pathname === "/transmandu/administracion/gestion_vuelos/vuelos",
+                  roles: ["SUPERUSER", "ANALISTA_ADMINISTRACION", "JEFE_ADMINISTRACION"],  // RRHH no puede ver Vuelos
                 },
               ],
             },
@@ -1005,16 +1008,18 @@ export function getMenuList(
         },
       ]
   )
-    .map((group) => ({
-      ...group,
-      menus: group.menus.filter(hasAccess).map((menu) => ({
-        ...menu,
-        submenus: menu.submenus.filter(
-          (sub) =>
-            !menu.roles.length ||
-            menu.roles.some((role) => userRoles.includes(role))
-        ),
-      })),
-    }))
-    .filter((group) => group.menus.length > 0);
+  .map((group) => {
+    // Filter menus within each group
+    const filteredMenus = group.menus
+      .filter((menu) => hasAccess(menu))
+      .map((menu) => {
+        // Filter submenus within each menu
+        const filteredSubmenus = menu.submenus.filter((submenu) =>
+          hasAccess(submenu)
+        );
+        return { ...menu, submenus: filteredSubmenus };
+      });
+
+    return { ...group, menus: filteredMenus };
+  }).filter((group) => group.menus.length > 0); 
 }
