@@ -2,8 +2,8 @@
 
 import { ContentLayout } from '@/components/layout/ContentLayout'
 import React, { useEffect } from 'react'
-import { DataTable } from './data-table'
 import { columns } from '@/app/(companies)/hangar74/almacen/solicitudes/salida/columns'
+import { DataTable } from './data-table'
 import { useGetDispatchesByLocation } from '@/hooks/mantenimiento/almacen/solicitudes/useGetDispatchesRequests'
 import { useCompanyStore } from '@/stores/CompanyStore'
 import { Loader2 } from 'lucide-react'
