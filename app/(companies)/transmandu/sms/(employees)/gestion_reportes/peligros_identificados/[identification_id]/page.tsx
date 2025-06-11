@@ -104,31 +104,31 @@ const ShowDangerIdentification = () => {
             <div className="w-full max-w-2xl space-y-4">
               <div className="flex justify-between items-center bg-gray-100 p-4 rounded-lg">
                 <p className="text-lg font-medium text-gray-700">
-                  <span className="font-semibold">Peligro</span>
+                  <span className="font-semibold">Peligro: </span>
                   {""}
                   {dangerIdentification.danger}
                 </p>
               </div>
               <div className="flex bg-gray-100 justify-between items-center p-4 rounded-lg">
                 <p className="text-lg text-gray-700">
-                  <span className="font-semibold">Área de Peligro:</span>
+                  <span className="font-semibold">Área de Peligro: </span>
                   {dangerIdentification.danger_area}
                 </p>
               </div>
               <div className="flex bg-gray-100 justify-between items-center p-4 rounded-lg">
                 <p className="text-lg text-gray-700">
-                  <span className="font-semibold">Tipo de Peligro:</span>
+                  <span className="font-semibold">Tipo de Peligro: </span>
                   {dangerIdentification.danger_type}
                 </p>
               </div>
               {dangerIdentification.information_source && (
                 <div className="flex bg-gray-100 justify-between items-center p-4 rounded-lg">
                   <p className="text-lg text-gray-700">
-                    <span className="font-semibold">Nombre de la Fuente:</span>
+                    <span className="font-semibold">Nombre de la Fuente: </span>
                     {dangerIdentification.information_source.name}
                   </p>
                   <p className="text-lg font-medium text-gray-700">
-                    <span className="font-semibold">Tipo de Fuente:</span>
+                    <span className="font-semibold">Tipo de Fuente: </span>
                     {dangerIdentification.information_source.type}
                   </p>
                 </div>
@@ -136,8 +136,7 @@ const ShowDangerIdentification = () => {
               <div className="bg-gray-100 p-4 rounded-lg">
                 <p className="text-lg text-gray-700">
                   <span className="font-semibold">
-                    Descripción del Reporte:
-                  </span>
+                    Descripción del Reporte: </span>
                   {dangerIdentification.description}
                 </p>
               </div>
@@ -165,7 +164,7 @@ const ShowDangerIdentification = () => {
 
               <div className="bg-gray-100 p-4 rounded-lg">
                 <p className="text-lg text-gray-700">
-                  <span className="font-semibold">Analisis Causa Raiz:</span>
+                  <span className="font-semibold">Analisis Causa Raiz: </span>
                   {dangerIdentification.root_cause_analysis}
                 </p>
               </div>

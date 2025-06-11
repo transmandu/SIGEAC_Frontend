@@ -246,7 +246,7 @@ export default function CreateDangerIdentificationForm({
         reportType
       });
       router.push(
-        `/transmandu/sms/peligros_identificados/${response.danger_identification_id}`
+        `/transmandu/sms/gestion_reportes/peligros_identificados/${response.danger_identification_id}`
       );
 
 
