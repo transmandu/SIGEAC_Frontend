@@ -62,7 +62,7 @@ const FormSchema = z.object({
 .superRefine((data, ctx) => {
   if (
     data.execution_date &&
-    data.execution_date < data.estimated_date
+    data.execution_date >= data.estimated_date
   ) {
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
