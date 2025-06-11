@@ -1413,7 +1413,7 @@ export const FirstPage = ({
       >
         <Text style={[styles.cellText3, styles.boldTitle]}>
           {identification.mitigation_plan?.responsible ===
-          "MATENIMIENTO_PLANIFICACION"
+          "MATENIMIENTO"
             ? "X"
             : ""}
         </Text>
@@ -1468,7 +1468,7 @@ export const FirstPage = ({
         }}
       >
         <Text style={[styles.cellText3, styles.boldTitle]}>
-          {identification.mitigation_plan?.responsible === "IT" ? "X" : ""}
+          {identification.mitigation_plan?.responsible === "CONTROL_CALIDAD" ? "X" : ""}
         </Text>
       </View>
 
