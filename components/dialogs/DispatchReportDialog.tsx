@@ -74,15 +74,15 @@ export function DispatchReportDialog() {
                 fileName={`salidas_${format(new Date(), "dd-MM-yyyy")}.pdf`}
                 document={
                   <DispatchReportPdf
-                    reports={dispatchReport ?? []}
-                    aircraftFilter={aircraft ? parseInt(aircraft) : null}
-                    startDate={startDate}
-                    endDate={endDate}
+                    reports={dispatchReport}
+                    aircraftFilter={null}
+                    startDate={undefined}
+                    endDate={undefined}
                   />
                 }
               >
                 <Button disabled={isLoadingDispatchReport} className="mt-2">
-                  Descargar Reporte
+                  Descargar Reporte General
                 </Button>
               </PDFDownloadLink>
             )}
@@ -94,7 +94,7 @@ export function DispatchReportDialog() {
               Filtrar <Plane />
             </h1>
             <p className="text-muted-foreground text-sm italic">
-              Seleccione un avión (opcional) para filtrar.
+              Seleccione un avión para filtrar.
             </p>
             <div className="flex gap-2 items-center justify-center">
               <Select onValueChange={(value) => setAircraft(value)}>
@@ -102,14 +102,31 @@ export function DispatchReportDialog() {
                   <SelectValue placeholder="Todos los aviones" />
                 </SelectTrigger>
                 <SelectContent>
-                  {/* {aircrafts?.map((aircraft) => (
+                  {aircrafts?.map((aircraft) => (
                     <SelectItem key={aircraft.id} value={aircraft.id.toString()}>
-                      {aircraft.registration ?? `Aeronave #${aircraft.id}`}
+                      {aircraft.acronym ?? `Aeronave #${aircraft.id}`}
                     </SelectItem>
-                  ))} */}
+                  ))}
                 </SelectContent>
               </Select>
             </div>
+            {aircraft && dispatchReport && (
+              <PDFDownloadLink
+                fileName={`salidas_avion_${aircraft}_${format(new Date(), "dd-MM-yyyy")}.pdf`}
+                document={
+                  <DispatchReportPdf
+                    reports={dispatchReport}
+                    aircraftFilter={parseInt(aircraft)}
+                    startDate={undefined}
+                    endDate={undefined}
+                  />
+                }
+              >
+                <Button disabled={isLoadingDispatchReport} className="mt-2">
+                  Descargar Reporte por Avión
+                </Button>
+              </PDFDownloadLink>
+            )}
           </div>
 
           {/* Rango de Fechas */}
@@ -173,6 +190,23 @@ export function DispatchReportDialog() {
                 </Popover>
               </div>
             </div>
+            {startDate && endDate && dispatchReport && (
+              <PDFDownloadLink
+                fileName={`salidas_rango_${format(startDate, "dd-MM-yyyy")}_a_${format(endDate, "dd-MM-yyyy")}.pdf`}
+                document={
+                  <DispatchReportPdf
+                    reports={dispatchReport}
+                    aircraftFilter={null}
+                    startDate={startDate}
+                    endDate={endDate}
+                  />
+                }
+              >
+                <Button disabled={isLoadingDispatchReport} className="mt-4">
+                  Descargar Reporte por Rango de Fechas
+                </Button>
+              </PDFDownloadLink>
+            )}
           </div>
         </div>
       </DialogContent>
