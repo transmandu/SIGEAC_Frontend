@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { format } from "date-fns";
+import { es } from "date-fns/locale";
 import { CalendarDays, NotepadText, Plane } from "lucide-react";
 import { PDFDownloadLink } from "@react-pdf/renderer";
 
@@ -40,6 +41,8 @@ export function DispatchReportDialog() {
   const { data: dispatchReport, isLoading: isLoadingDispatchReport } = useGetDispatchReport(selectedStation ?? null);
   const { data: aircrafts, isLoading: isLoadingAircrafts } = useGetAircrafts(selectedCompany?.replace(/\s/g, ""));
 
+  const isDateRangeInvalid = startDate && endDate && endDate < startDate;
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
@@ -71,7 +74,7 @@ export function DispatchReportDialog() {
             </p>
             {dispatchReport && (
               <PDFDownloadLink
-                fileName={`salidas_${format(new Date(), "dd-MM-yyyy")}.pdf`}
+                fileName={`salidas_${format(new Date(), "dd-MM-yyyy", { locale: es })}.pdf`}
                 document={
                   <DispatchReportPdf
                     reports={dispatchReport}
@@ -97,11 +100,14 @@ export function DispatchReportDialog() {
               Seleccione un avión para filtrar.
             </p>
             <div className="flex gap-2 items-center justify-center">
-              <Select onValueChange={(value) => setAircraft(value)}>
+              <Select
+                onValueChange={(value) => setAircraft(value === "all" ? null : value)}
+              >
                 <SelectTrigger disabled={isLoadingAircrafts} className="w-[200px]">
                   <SelectValue placeholder="Todos los aviones" />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="all">Todos los aviones</SelectItem>
                   {aircrafts?.map((aircraft) => (
                     <SelectItem key={aircraft.id} value={aircraft.id.toString()}>
                       {aircraft.acronym ?? `Aeronave #${aircraft.id}`}
@@ -112,7 +118,7 @@ export function DispatchReportDialog() {
             </div>
             {aircraft && dispatchReport && (
               <PDFDownloadLink
-                fileName={`salidas_avion_${aircraft}_${format(new Date(), "dd-MM-yyyy")}.pdf`}
+                fileName={`salidas_avion_${aircraft}_${format(new Date(), "dd-MM-yyyy", { locale: es })}.pdf`}
                 document={
                   <DispatchReportPdf
                     reports={dispatchReport}
@@ -150,7 +156,7 @@ export function DispatchReportDialog() {
                         !startDate && "text-muted-foreground"
                       )}
                     >
-                      {startDate ? format(startDate, "PPP") : "Seleccionar fecha"}
+                      {startDate ? format(startDate, "PPP", { locale: es }) : "Seleccionar fecha"}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0" align="start">
@@ -176,7 +182,7 @@ export function DispatchReportDialog() {
                         !endDate && "text-muted-foreground"
                       )}
                     >
-                      {endDate ? format(endDate, "PPP") : "Seleccionar fecha"}
+                      {endDate ? format(endDate, "PPP", { locale: es }) : "Seleccionar fecha"}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0" align="start">
@@ -185,14 +191,16 @@ export function DispatchReportDialog() {
                       selected={endDate}
                       onSelect={setEndDate}
                       initialFocus
+                      disabled={(date) => startDate ? date < startDate : false}
                     />
                   </PopoverContent>
                 </Popover>
               </div>
             </div>
-            {startDate && endDate && dispatchReport && (
+
+            {startDate && endDate && !isDateRangeInvalid && dispatchReport && (
               <PDFDownloadLink
-                fileName={`salidas_rango_${format(startDate, "dd-MM-yyyy")}_a_${format(endDate, "dd-MM-yyyy")}.pdf`}
+                fileName={`salidas_rango_${format(startDate, "dd-MM-yyyy", { locale: es })}_a_${format(endDate, "dd-MM-yyyy", { locale: es })}.pdf`}
                 document={
                   <DispatchReportPdf
                     reports={dispatchReport}
