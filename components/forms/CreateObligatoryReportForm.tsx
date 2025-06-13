@@ -71,11 +71,10 @@ function timeFormat(date: Date) {
 interface FormProps {
   isEditing?: boolean;
   initialData?: ObligatoryReport;
-
   onClose: () => void;
 }
 
-export function CreateObligatoryReportForm({
+export function CreateObligatoryReportForm({ 
   onClose,
   isEditing,
   initialData,
