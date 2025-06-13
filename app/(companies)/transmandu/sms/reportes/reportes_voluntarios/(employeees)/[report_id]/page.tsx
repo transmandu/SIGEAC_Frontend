@@ -17,7 +17,7 @@ import {
 import { useGetVoluntaryReportById } from "@/hooks/sms/useGetVoluntaryReportById";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { Loader2 } from "lucide-react";
+import { Loader2, FileText, Calendar, MapPin, AlertTriangle, User, Mail, Phone, AlertCircle, File, Image as ImageIcon } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import Image from "next/image";
@@ -32,235 +32,250 @@ const ShowVoluntaryReport = () => {
 
   return (
     <ContentLayout title="Reportes Voluntarios">
-      <div className=" flex justify-evenly">
-        {/* Mostrar el boton para crear identificacion, si el reporte existe, si el status esta  bierto 
-        y si aun no tiene una idedntificacion de peligro */}
-
-        {voluntaryReport &&
-        voluntaryReport.status === "ABIERTO" &&
-        !voluntaryReport.danger_identification_id ? (
-          <div className="flex items-center py-4">
+      {/* Botones de acción (sin iconos como solicitaste) */}
+      <div className="flex justify-evenly flex-wrap gap-2">
+        {voluntaryReport?.status === "ABIERTO" && !voluntaryReport.danger_identification_id && (
+          <div className="flex items-center py-2">
             <CreateDangerIdentificationDialog
-              title="Crear Identificacion de Peligro"
-              id={voluntaryReport?.id}
+              title="Crear Identificación de Peligro"
+              id={voluntaryReport.id}
               reportType="RVP"
             />
           </div>
-        ) : (
-          voluntaryReport &&
-          voluntaryReport.status === "ABIERTO" &&
-          voluntaryReport.danger_identification_id !== null && (
-            <div className="flex items-center py-4">
-              <Button
-                variant="outline"
-                size="sm"
-                className=" hidden h-8 lg:flex"
-              >
-                <Link
-                  href={`/transmandu/sms/peligros_identificados/${voluntaryReport.danger_identification_id}`}
-                >
-                  Ver Identificacion de Peligro
-                </Link>
-              </Button>
+        )}
+
+        {voluntaryReport?.status === "ABIERTO" && voluntaryReport.danger_identification_id && (
+          <div className="flex items-center py-2">
+            <Button variant="outline" size="sm" className="h-8">
+              <Link href={`/transmandu/sms/gestion_reportes/peligros_identificados/${voluntaryReport.danger_identification_id}`}>
+                Ver Identificación de Peligro
+              </Link>
+            </Button>
+          </div>
+        )}
+
+        {voluntaryReport?.status === "ABIERTO" && (
+          <>
+            <div className="flex items-center py-2">
+              <CreateVoluntaryReportDialog
+                initialData={voluntaryReport}
+                isEditing={true}
+                title="Editar"
+              />
             </div>
-          )
-        )}
-        {/* Mostrar el boton para editar el reporte, si el reporte existe y si el status esta  abierto */}
-
-        {voluntaryReport && voluntaryReport.status === "ABIERTO" && (
-          <div className="flex items-center py-4">
-            <CreateVoluntaryReportDialog
-              initialData={voluntaryReport}
-              isEditing={true}
-              title="Editar"
-            />
-          </div>
+            <div className="flex items-center py-2">
+              <DeleteVoluntaryReprotDialog id={voluntaryReport.id} />
+            </div>
+          </>
         )}
 
-        {voluntaryReport && voluntaryReport.status === "ABIERTO" && (
-          <div className="flex items-center py-4">
-            <DeleteVoluntaryReprotDialog id={voluntaryReport.id} />
-          </div>
-        )}
-
-        {voluntaryReport && voluntaryReport.status === "CERRADO" ? (
-          <div className="flex items-center py-4">
+        {voluntaryReport && (
+          <div className="flex items-center py-2">
             <PreviewVoluntaryReportPdfDialog
               title="Descargar PDF"
               voluntaryReport={voluntaryReport}
             />
           </div>
-        ) : (
-          voluntaryReport &&
-          voluntaryReport.status === "ABIERTO" && (
-            <div className="flex items-center py-4">
-              <PreviewVoluntaryReportPdfDialog
-                title="Descargar PDF"
-                voluntaryReport={voluntaryReport}
-              />
-            </div>
-          )
         )}
       </div>
 
-      <div className="flex flex-col justify-center items-center border border-gray-300 rounded-lg p-6 gap-y-4 shadow-md">
-        <h1 className="text-2xl font-semibold mb-4 text-center text-gray-800 dark:text-white">
-          Detalles del Reporte
-        </h1>
+      {/* Contenido principal */}
+      <div className="flex flex-col justify-center items-center border border-gray-300 rounded-lg p-6 gap-y-4 shadow-md dark:border-gray-700">
+        <div className="flex items-center gap-3">
+          <FileText className="w-8 h-8 text-blue-600" />
+          <h1 className="text-2xl font-semibold text-center text-gray-800 dark:text-white">
+            Detalles del Reporte Voluntario
+          </h1>
+        </div>
+
         {isLoading && (
           <div className="flex w-full h-64 justify-center items-center">
             <Loader2 className="size-24 animate-spin text-blue-500" />
           </div>
         )}
+
         {voluntaryReport && (
           <div className="w-full max-w-2xl space-y-4">
-            <div className="flex justify-between items-center bg-gray-100 p-4 rounded-lg">
-              {voluntaryReport.report_number ? (
-                <p className="text-lg font-medium text-gray-700">
-                  <span className="font-semibold">Número del Reporte:</span>{" "}
-                  RVP-{voluntaryReport.report_number}
-                </p>
-              ) : (
-                <p className="text-lg font-medium text-gray-700">
-                  <span className="font-semibold">Número del Reporte:</span> N/A
-                </p>
-              )}
+            {/* Encabezado con información básica */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg">
+                <div className="flex items-center gap-2 mb-2">
+                  <FileText className="w-5 h-5 text-gray-600 dark:text-gray-300" />
+                  <p className="text-lg font-medium text-gray-700 dark:text-gray-300">
+                    {voluntaryReport.report_number ? (
+                      <>RVP-{voluntaryReport.report_number}</>
+                    ) : (
+                      <>N/A</>
+                    )}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Calendar className="w-5 h-5 text-gray-600 dark:text-gray-300" />
+                  <p className="text-gray-700 dark:text-gray-300">
+                    {format(voluntaryReport.report_date, "PPP", { locale: es })}
+                  </p>
+                </div>
+              </div>
 
-              <div className="flex justify-center">
-                <p className="text-lg font-medium text-gray-700">
-                  <span className="font-semibold">Estado: </span>
-                  {"                 "}
-                </p>
+              <div className="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <AlertCircle className="w-5 h-5 text-gray-600 dark:text-gray-300" />
+                  <span className="text-gray-700 dark:text-gray-300">Estado:</span>
+                </div>
                 <Badge
-                  className={`justify-center items-center text-center font-bold font-sans ${
-                    voluntaryReport.status === "CERRADO"
-                      ? "bg-green-400"
-                      : voluntaryReport.status === "ABIERTO"
-                      ? "bg-red-400"
-                      : "bg-gray-500" // Este será para "PROCESO" o cualquier otro estado
+                  className={`font-bold ${
+                    voluntaryReport.status === "CERRADO" ? "bg-green-400" :
+                    voluntaryReport.status === "ABIERTO" ? "bg-red-400" :
+                    "bg-gray-500"
                   }`}
                 >
                   {voluntaryReport.status}
                 </Badge>
               </div>
             </div>
-            <div className="flex justify-between items-center bg-gray-100 p-4 rounded-lg">
-              <p className="text-lg font-medium text-gray-700">
-                <span className="font-semibold">Fecha del Reporte: </span>
-                {format(voluntaryReport.report_date, "PPP", {
-                  locale: es,
-                })}
-              </p>
+
+            {/* Información de localización */}
+            <div className="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg space-y-3">
+              <h3 className="text-lg font-semibold flex items-center gap-2">
+                <MapPin className="w-5 h-5" />
+                Ubicación del Peligro
+              </h3>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div>
+                  <p className="font-medium text-gray-700 dark:text-gray-300">Área:</p>
+                  <p>{voluntaryReport.danger_area || "N/A"}</p>
+                </div>
+                <div>
+                  <p className="font-medium text-gray-700 dark:text-gray-300">Base:</p>
+                  <p>{voluntaryReport.danger_location || "N/A"}</p>
+                </div>
+                <div className="md:col-span-2">
+                  <p className="font-medium text-gray-700 dark:text-gray-300">Localización exacta:</p>
+                  <p>{voluntaryReport.airport_location || "N/A"}</p>
+                </div>
+              </div>
             </div>
 
-            <div className="flex justify-between items-center bg-gray-100 p-4 rounded-lg">
-              <p className="text-lg font-medium text-gray-700">
-                <span className="font-semibold">Fecha de Identificacion: </span>
-                {format(voluntaryReport.identification_date, "PPP", {
-                  locale: es,
-                })}
-              </p>
-            </div>
-            <div className=" bg-gray-100  p-4 rounded-lg">
-              <p className="text-lg text-gray-700">
-                <span className="font-semibold">Área de Peligro:</span>{" "}
-                {voluntaryReport.danger_area}
-              </p>
-              <p className="text-lg font-medium text-gray-700">
-                <span className="font-semibold">Base:</span>{" "}
-                {voluntaryReport.danger_location}
-              </p>
-              <p className="text-lg font-medium text-gray-700">
-                <span className="font-semibold">Localización del Peligro:</span>{" "}
-                {voluntaryReport.airport_location}
-              </p>
-            </div>
-            <div className="bg-gray-100 p-4 rounded-lg">
-              <p className="text-lg text-gray-700">
-                <span className="font-semibold">Descripción del Reporte:</span>{" "}
-                {voluntaryReport.description}
-              </p>
+            {/* Fecha de identificación */}
+            <div className="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg">
+              <div className="flex items-center gap-2">
+                <Calendar className="w-5 h-5 text-gray-600 dark:text-gray-300" />
+                <p className="text-gray-700 dark:text-gray-300">
+                  <span className="font-semibold">Fecha de Identificación:</span>{" "}
+                  {format(voluntaryReport.identification_date, "PPP", { locale: es })}
+                </p>
+              </div>
             </div>
 
-            <div className="bg-gray-100 p-4 rounded-lg">
-              <p className="text-lg text-gray-700">
-                <span className="font-semibold">Posibles Consecuencias:</span>{" "}
-                {voluntaryReport.possible_consequences}
-              </p>
+            {/* Descripción y consecuencias */}
+            <div className="space-y-4">
+              <div className="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg">
+                <h3 className="text-lg font-semibold mb-2 flex items-center gap-2">
+                  <FileText className="w-5 h-5" />
+                  Descripción
+                </h3>
+                <p className="text-gray-700 dark:text-gray-300">
+                  {voluntaryReport.description || "N/A"}
+                </p>
+              </div>
+
+              <div className="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg">
+                <h3 className="text-lg font-semibold mb-2 flex items-center gap-2">
+                  <AlertTriangle className="w-5 h-5" />
+                  Posibles Consecuencias
+                </h3>
+                <p className="text-gray-700 dark:text-gray-300">
+                  {voluntaryReport.possible_consequences || "N/A"}
+                </p>
+              </div>
             </div>
+
+            {/* Información del reportero */}
             {!voluntaryReport.reporter_phone &&
             !voluntaryReport.reporter_email &&
             !voluntaryReport.reporter_name &&
             !voluntaryReport.reporter_last_name ? (
-              <div className="bg-gray-100 p-4 rounded-lg text-center">
-                <p className="text-lg text-gray-700">
+              <div className="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg text-center">
+                <p className="text-gray-700 dark:text-gray-300">
                   Reportado por: <span className="font-semibold">Anónimo</span>
                 </p>
               </div>
             ) : (
-              <div className="bg-gray-100 p-4 rounded-lg">
-                <p className="text-xl font-semibold text-center text-gray-800 mb-2">
-                  Reportado Por:
-                </p>
-                <p className="text-lg text-gray-700">
-                  <span className="font-semibold">Nombre:</span>{" "}
-                  {voluntaryReport.reporter_name}
-                </p>
-                <p className="text-lg text-gray-700">
-                  <span className="font-semibold">Apellido:</span>{" "}
-                  {voluntaryReport.reporter_last_name}
-                </p>
-                <p className="text-lg text-gray-700">
-                  <span className="font-semibold">Teléfono:</span>{" "}
-                  {voluntaryReport.reporter_phone}
-                </p>
-                <p className="text-lg text-gray-700">
-                  <span className="font-semibold">Email:</span>{" "}
-                  {voluntaryReport.reporter_email}
-                </p>
+              <div className="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg">
+                <h3 className="text-lg font-semibold mb-3 text-center flex items-center justify-center gap-2">
+                  <User className="w-5 h-5" />
+                  Información del Reportero
+                </h3>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div>
+                    <p className="font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2">
+                      <User className="w-4 h-4" /> Nombre:
+                    </p>
+                    <p>{voluntaryReport.reporter_name || "N/A"} {voluntaryReport.reporter_last_name}</p>
+                  </div>
+                  <div>
+                    <p className="font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2">
+                      <Mail className="w-4 h-4" /> Email:
+                    </p>
+                    <p>{voluntaryReport.reporter_email || "N/A"}</p>
+                  </div>
+                  <div>
+                    <p className="font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2">
+                      <Phone className="w-4 h-4" /> Teléfono:
+                    </p>
+                    <p>{voluntaryReport.reporter_phone || "N/A"}</p>
+                  </div>
+                </div>
               </div>
             )}
           </div>
         )}
 
-        <div className="flex flex-col gap-4">
-          {/* Diálogo para la imagen */}
+        {/* Archivos adjuntos */}
+        <div className="w-full max-w-2xl space-y-4">
           {voluntaryReport?.image && (
             <Dialog>
               <DialogTrigger asChild>
-                <div className="cursor-pointer flex justify-center">
-                  <CardContent className="flex flex-col gap-2 p-0">
-                    <div className="relative group">
-                      <div className="w-64 h-64">
-                        <Image
-                          src={
-                            voluntaryReport.image.startsWith("data:image")
-                              ? voluntaryReport.image
-                              : `data:image/jpeg;base64,${voluntaryReport.image}`
-                          }
-                          alt="Vista previa de imagen"
-                          fill
-                          className="object-contain rounded-md border-2 border-gray-300 shadow-sm group-hover:border-blue-400 transition-all"
-                          onError={(e) => {
-                            // Necesitarás manejar el error de otra forma ya que Next.js Image no expone directamente el elemento
-                            const target = e.target as HTMLImageElement;
-                            target.style.display = "none";
-                          }}
-                        />
-                        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                          <span className="bg-black/50 text-white px-3 py-1 rounded-md">
-                            Ver imagen completa
-                          </span>
-                        </div>
+                <div className="cursor-pointer">
+                  <CardContent className="flex flex-col items-center p-0">
+                    <div className="relative group w-64 h-64">
+                      <Image
+                        src={
+                          voluntaryReport.image.startsWith("data:image")
+                            ? voluntaryReport.image
+                            : `data:image/jpeg;base64,${voluntaryReport.image}`
+                        }
+                        alt="Vista previa de imagen"
+                        fill
+                        className="object-contain rounded-md border-2 border-gray-300 shadow-sm group-hover:border-blue-400 transition-all"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.style.display = "none";
+                        }}
+                      />
+                      <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/30 rounded-md">
+                        <span className="bg-black/70 text-white px-3 py-1 rounded-md flex items-center gap-1">
+                          <ImageIcon className="w-4 h-4" />
+                          Ver imagen
+                        </span>
                       </div>
                     </div>
+                    <p className="mt-2 text-sm text-gray-600 dark:text-gray-400 flex items-center gap-1">
+                      <ImageIcon className="w-4 h-4" />
+                      Imagen adjunta
+                    </p>
                   </CardContent>
                 </div>
               </DialogTrigger>
 
               <DialogContent className="max-w-4xl max-h-[90vh]">
                 <DialogHeader>
-                  <DialogTitle>Imagen del Reporte</DialogTitle>
+                  <DialogTitle className="flex items-center gap-2">
+                    <ImageIcon className="w-5 h-5" />
+                    Imagen del Reporte
+                  </DialogTitle>
                 </DialogHeader>
 
                 <div className="relative flex justify-center items-center h-[70vh]">
@@ -272,7 +287,7 @@ const ShowVoluntaryReport = () => {
                     }
                     alt="Imagen completa"
                     fill
-                    className=" object-contain border-4 border-gray-100 shadow-lg rounded-lg"
+                    className="object-contain border-4 border-gray-100 shadow-lg rounded-lg"
                   />
                 </div>
 
@@ -283,7 +298,7 @@ const ShowVoluntaryReport = () => {
                         ? voluntaryReport.image
                         : `data:image/jpeg;base64,${voluntaryReport.image}`
                     }
-                    download="reporte-voluntario"
+                    download="reporte-voluntario.jpg"
                     className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700"
                   >
                     Descargar Imagen
@@ -293,18 +308,21 @@ const ShowVoluntaryReport = () => {
             </Dialog>
           )}
 
-          {/* Diálogo para el documento PDF */}
           {voluntaryReport?.document && (
             <Dialog>
               <DialogTrigger asChild>
-                <Button variant="outline" className="w-full">
+                <Button variant="outline" className="w-full flex items-center gap-2">
+                  <File className="w-4 h-4" />
                   Ver Documento Adjunto
                 </Button>
               </DialogTrigger>
 
               <DialogContent className="max-w-7xl h-[90vh] flex flex-col">
                 <DialogHeader>
-                  <DialogTitle>Visualizador de Documento</DialogTitle>
+                  <DialogTitle className="flex items-center gap-2">
+                    <File className="w-5 h-5" />
+                    Documento Adjunto
+                  </DialogTitle>
                 </DialogHeader>
 
                 <div className="flex-1 overflow-hidden">
@@ -312,9 +330,7 @@ const ShowVoluntaryReport = () => {
                     <div className="w-full flex justify-end">
                       <a
                         href={
-                          voluntaryReport.document.startsWith(
-                            "data:application/pdf"
-                          )
+                          voluntaryReport.document.startsWith("data:application/pdf")
                             ? voluntaryReport.document
                             : `data:application/pdf;base64,${voluntaryReport.document}`
                         }
@@ -327,9 +343,7 @@ const ShowVoluntaryReport = () => {
 
                     <iframe
                       src={
-                        voluntaryReport.document.startsWith(
-                          "data:application/pdf"
-                        )
+                        voluntaryReport.document.startsWith("data:application/pdf")
                           ? voluntaryReport.document
                           : `data:application/pdf;base64,${voluntaryReport.document}`
                       }
@@ -338,10 +352,6 @@ const ShowVoluntaryReport = () => {
                       className="border rounded-md flex-1"
                       title="Documento PDF"
                     />
-
-                    <p className="text-sm text-muted-foreground">
-                      Documento adjunto
-                    </p>
                   </div>
                 </div>
               </DialogContent>
@@ -350,9 +360,12 @@ const ShowVoluntaryReport = () => {
         </div>
 
         {isError && (
-          <p className="text-sm text-red-500 mt-4">
-            Ha ocurrido un error al cargar el reporte voluntario...
-          </p>
+          <div className="bg-red-100 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 flex items-center gap-3">
+            <AlertCircle className="w-5 h-5 text-red-500" />
+            <p className="text-red-700 dark:text-red-300">
+              Ha ocurrido un error al cargar el reporte voluntario...
+            </p>
+          </div>
         )}
       </div>
     </ContentLayout>

@@ -1,10 +1,14 @@
+import { useDeleteObligatoryReport } from "@/actions/sms/reporte_obligatorio/actions";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useGetDangerIdentificationWithAllById } from "@/hooks/sms/useGetDangerIdentificationWithAllById";
 import { ObligatoryReport } from "@/types";
+import { PDFDownloadLink, PDFViewer } from "@react-pdf/renderer";
+import { format } from "date-fns";
 import {
   CheckCheck,
   ClipboardPen,
@@ -15,7 +19,12 @@ import {
   PrinterCheck,
   Trash2,
 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { AcceptObligatoryReport } from "../forms/AcceptObligatoryForm";
+import CreateDangerIdentificationForm from "../forms/CreateIdentificationForm";
+import { CreateObligatoryReportForm } from "../forms/CreateObligatoryReportForm";
+import ObligatoryReportPdf from "../pdf/sms/ObligatoryReportPdf";
 import { Button } from "../ui/button";
 import {
   Dialog,
@@ -26,16 +35,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "../ui/dialog";
-import { useDeleteObligatoryReport } from "@/actions/sms/reporte_obligatorio/actions";
-import { useRouter } from "next/navigation";
-import { CreateObligatoryReportForm } from "../forms/CreateObligatoryReportForm";
-import CreateDangerIdentificationForm from "../forms/CreateIdentificationForm";
-import { PDFDownloadLink, PDFViewer } from "@react-pdf/renderer";
-import ObligatoryReportPdf from "../pdf/sms/ObligatoryReportPdf";
-import { format } from "date-fns";
-import VoluntaryReportPdf from "../pdf/sms/VoluntaryReportPdf";
-import { useGetDangerIdentificationWithAllById } from "@/hooks/sms/useGetDangerIdentificationWithAllById";
-import { AcceptObligatoryReport } from "../forms/AcceptObligatoryForm";
 
 const ObligatoryReportDropdownActions = ({
   obligatoryReport,
@@ -55,7 +54,7 @@ const ObligatoryReportDropdownActions = ({
   const { deleteObligatoryReport } = useDeleteObligatoryReport();
 
   const { data: dangerIdentification } = useGetDangerIdentificationWithAllById(
-    obligatoryReport.danger_identification.id
+    obligatoryReport?.danger_identification?.id
   );
   const handleDelete = async (id: number | string) => {
     await deleteObligatoryReport.mutateAsync(id);
@@ -104,7 +103,7 @@ const ObligatoryReportDropdownActions = ({
             <DropdownMenuItem
               onClick={() => {
                 router.push(
-                  `/transmandu/sms/reportes_obligatorios/${obligatoryReport.id}`
+                  `/transmandu/sms/reportes/reportes_obligatorios/${obligatoryReport.id}`
                 );
               }}
             >
@@ -112,8 +111,8 @@ const ObligatoryReportDropdownActions = ({
               <p className="pl-2"> Ver </p>
             </DropdownMenuItem>
 
-            {!obligatoryReport.danger_identification.id &&
-              obligatoryReport.status === "ABIERTO" && (
+            {obligatoryReport?.danger_identification?.id === null && 
+            obligatoryReport?.status === "ABIERTO" && (
                 <DropdownMenuItem
                   onClick={() => setOpenCreateDangerIdentification(true)}
                 >
