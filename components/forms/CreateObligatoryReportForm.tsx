@@ -59,7 +59,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../ui/select";
-import { useGetAircraftAcronyms } from "@/hooks/administracion/useGetAircraftsAcronym";
+import { useCompanyStore } from "@/stores/CompanyStore";
+import { useGetAircraftAcronyms } from "@/hooks/aerolinea/aeronaves/useGetAircraftAcronyms";
 
 function timeFormat(date: Date) {
   const timeString = date.toString();
@@ -195,8 +196,9 @@ export function CreateObligatoryReportForm({
   });
 
   // No estoy seguro si esto va aca lol
+  const {selectedCompany} = useCompanyStore();
   const { data: pilots, isLoading: isLoadingPilots } = useGetPilots();
-  const { data: aircrafts, isLoading: isLoadingAircrafts } = useGetAircraftAcronyms();
+  const { data: aircrafts, isLoading: isLoadingAircrafts } = useGetAircraftAcronyms(selectedCompany?.split(" ").join(""));
 
   const OPTIONS_LIST = [
     "La aereonave aterriza quedándose solo con el combustible de reserva o menos",
