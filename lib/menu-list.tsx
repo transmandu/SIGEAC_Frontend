@@ -377,19 +377,19 @@ export function getMenuList(
               label: "Planificacion",
               active: pathname.includes("/transmandu/sms/planificacion"),
               icon: Activity,
-              roles: ["ANALISTA_SMS", "JEFE_SMS", "SUPERUSER"],
+              roles: ["SUPERUSER"],
               submenus: [
                 {
                   href: "/transmandu/sms/planificacion/cursos",
                   label: "Cursos SMS",
-                  roles: ["ANALISTA_SMS", "JEFE_SMS", "SUPERUSER"],
+                  roles: ["SUPERUSER"],
                   active:
                     pathname === "/transmandu/planificacion/cursos",
                 },
                 {
                   href: "/transmandu/sms/planificacion/actividades",
                   label: "Actividades SMS",
-                  roles: ["ANALISTA_SMS", "JEFE_SMS", "SUPERUSER"],
+                  roles: ["SUPERUSER"],
                   active: pathname === "/transmandu/planificacion/actividades",
                 },
               ],
