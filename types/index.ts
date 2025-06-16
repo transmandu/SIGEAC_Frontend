@@ -950,7 +950,6 @@ export type SMSActivity = {
   id: number;
   activity_name: string;
   activity_number: string;
-  title: string;
   start_date: Date;
   end_date: Date;
   hour: Date;
@@ -959,9 +958,9 @@ export type SMSActivity = {
   topics: string;
   objetive: string;
   description: string;
-  authorized_by: number;
-  planned_by: number;
-  executed_by: number;
+  authorized_by: string;
+  planned_by: string;
+  executed_by: string;
   status: string;
 }
 

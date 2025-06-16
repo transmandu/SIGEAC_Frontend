@@ -69,7 +69,7 @@ export function DataTable<TData, TValue>({
       <div className="flex items-center py-4">
         <Button
           onClick={() => {
-            router.push(`/transmandu/sms/reportes_obligatorios/nuevo_reporte`);
+            router.push(`/transmandu/sms/reportes/reportes_obligatorios/nuevo_reporte`);
           }}
           variant="outline"
           size="sm"

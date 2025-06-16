@@ -6,7 +6,7 @@ import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
 
 import { Checkbox } from "@/components/ui/checkbox";
 import { InformationSource, Manufacturer, Pilot, Vendor } from "@/types";
-import InformationSourceDropdownActions from "@/components/misc/InformationSourceDropDownMenu";
+import InformationSourceDropdownActions from "@/components/misc/InformationSourceDropDownActions";
 import { Badge } from "@/components/ui/badge";
 
 export const columns: ColumnDef<InformationSource>[] = [

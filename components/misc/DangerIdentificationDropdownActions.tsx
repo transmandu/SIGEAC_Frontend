@@ -105,7 +105,7 @@ const DangerIdentificationDropdownActions = ({
             <DropdownMenuItem
               onClick={() => {
                 router.push(
-                  `/transmandu/sms/peligros_identificados/${dangerIdentification.id}`
+                  `/transmandu/sms/gestion_reportes/peligros_identificados/${dangerIdentification.id}`
                 );
               }}
             >
