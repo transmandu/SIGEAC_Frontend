@@ -1,5 +1,6 @@
 "use client";
 
+import { useUpdateAircraft } from "@/actions/aerolinea/aeronaves/actions";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -16,16 +17,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { useGetLocationsByCompanies } from "@/hooks/sistema/useGetLocationsByCompanies";
-import { cn } from "@/lib/utils";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { format } from "date-fns";
-import { es } from "date-fns/locale/es";
-import { CalendarIcon } from "lucide-react";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { Separator } from "../ui/separator";
-import { Textarea } from "../ui/textarea";
 import {
   Select,
   SelectContent,
@@ -33,18 +24,25 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useUpdateAircraft } from "@/actions/aerolinea/aeronaves/actions";
-import { useGetAircraftByAcronym } from "@/hooks/aerolinea/aeronaves/useGetAircraftByAcronym";
+import { useGetLocationsByCompanies } from "@/hooks/sistema/useGetLocationsByCompanies";
+import { cn } from "@/lib/utils";
+import { useCompanyStore } from "@/stores/CompanyStore";
 import { Aircraft } from "@/types";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { format } from "date-fns";
+import { es } from "date-fns/locale/es";
+import { CalendarIcon, Check, ChevronsUpDown, Loader2 } from "lucide-react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "../ui/command";
+import { Separator } from "../ui/separator";
+import { Textarea } from "../ui/textarea";
+import { useGetManufacturers } from "@/hooks/general/fabricantes/useGetManufacturers";
 
 const FormSchema = z.object({
-  fabricant: z
-    .string()
-    .min(2, {
-      message: "El fabricante debe tener al menos 2 caracteres.",
-    })
-    .max(30, {
-      message: "El fabricante tiene un máximo 30 caracteres.",
+  manufacturer_id: z
+    .string({
+      message: "El fabricante es requerido",
     }),
   brand: z
     .string()
@@ -114,13 +112,13 @@ interface EditAircraftFormProps {
 
 export function EditAircraftForm({ aircraft, onClose }: EditAircraftFormProps) {
   const { updateAircraft } = useUpdateAircraft();
+  const {selectedCompany} = useCompanyStore();
   const { data: locationsData } = useGetLocationsByCompanies();
-  const locations = locationsData;
+  const { data: manufacturers, isLoading: isManufacturersLoading, isError: isManufacturersError } = useGetManufacturers(selectedCompany?.split(" ").join(""));
   const form = useForm<FormSchemaType>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
       // Cargar los valores actuales del avión
-      fabricant: aircraft.fabricant,
       brand: aircraft.brand,
       model: aircraft.model,
       serial: aircraft.serial,
@@ -135,22 +133,8 @@ export function EditAircraftForm({ aircraft, onClose }: EditAircraftFormProps) {
     },
   });
 
-  const onSubmit = async (formData: FormSchemaType) => {
-    const data = {
-      fabricant: formData.fabricant,
-      brand: formData.brand,
-      model: formData.model,
-      serial: formData.serial,
-      acronym: formData.acronym,
-      fabricant_date: formData.fabricant_date,
-      owner: formData.owner,
-      comments: formData.comments,
-      location: {
-        id: parseInt(formData.location_id), // Convertir location_id a número
-      },
-      status: formData.status,
-    };
-    await updateAircraft.mutateAsync({ acronym: aircraft.acronym, data });
+  const onSubmit = async (data: FormSchemaType) => {
+    await updateAircraft.mutateAsync({ acronym: aircraft.acronym, data, company: selectedCompany?.split(" ").join("")});
     onClose();
   };
 
@@ -262,14 +246,68 @@ export function EditAircraftForm({ aircraft, onClose }: EditAircraftFormProps) {
         <div className="flex gap-2 items-center">
           <FormField
             control={form.control}
-            name="fabricant"
+            name="manufacturer_id"
             render={({ field }) => (
-              <FormItem className="w-full">
+              <FormItem className="flex flex-col space-y-3 mt-1.5">
                 <FormLabel>Fabricante</FormLabel>
-                <FormControl>
-                  <Input placeholder="Ingrese el fabricante" {...field} />
-                </FormControl>
-                <FormMessage className="text-xs" />
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <FormControl>
+                      <Button
+                        disabled={isManufacturersLoading || isManufacturersError}
+                        variant="outline"
+                        role="combobox"
+                        className={cn(
+                          "justify-between",
+                          !field.value && "text-muted-foreground"
+                        )}
+                      >
+                        {
+                          isManufacturersLoading && <Loader2 className="size-4 animate-spin mr-2" />
+                        }
+                        {field.value
+                          ? <p>{manufacturers?.find(
+                            (manufacturer) => `${manufacturer.id.toString()}` === field.value
+                          )?.name}</p>
+                          : "Elige al fabricante..."
+                        }
+                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                      </Button>
+                    </FormControl>
+                  </PopoverTrigger>
+                  <PopoverContent className="p-0">
+                    <Command>
+                      <CommandInput placeholder="Busque un fabricante..." />
+                      <CommandList>
+                        <CommandEmpty className="text-sm p-2 text-center">No se ha encontrado ningún fabricante.</CommandEmpty>
+                        <CommandGroup>
+                          {manufacturers?.filter((m) => m.type === 'AIRCRAFT').map((manufacturer) => (
+                            <CommandItem
+                              value={`${manufacturer.id}`}
+                              key={manufacturer.id}
+                              onSelect={() => {
+                                form.setValue("manufacturer_id", manufacturer.id.toString())
+                              }}
+                            >
+                              <Check
+                                className={cn(
+                                  "mr-2 h-4 w-4",
+                                  `${manufacturer.id.toString()}` === field.value
+                                    ? "opacity-100"
+                                    : "opacity-0"
+                                )}
+                              />
+                              {
+                                <p>{manufacturer.name}</p>
+                              }
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
+                <FormMessage />
               </FormItem>
             )}
           />

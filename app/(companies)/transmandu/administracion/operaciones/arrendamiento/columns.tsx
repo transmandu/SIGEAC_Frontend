@@ -39,58 +39,12 @@ export const columns: ColumnDef<Renting>[] = [
     },
   },
   {
-    accessorKey: "deadline",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Fecha Límite" />
-    ),
-    meta: { title: "Fecha Límite" },
-    cell: ({ row }) => (
-      <p>{format(addDays(row.original.deadline, 1), "PPP", { locale: es })}</p>
-    ),
-  },
-//  {
-//    accessorKey: "status",
-//    header: ({ column }) => (
-//      <DataTableColumnHeader filter column={column} title="Estado" />
-//    ),
-//    meta: { title: "Estado" },
-//    cell: ({ row }) => {
-//      const status = row.original.status;
-//      const backgroundColor =
-//        status === "EN PROCESO" ? "bg-yellow-500" : "bg-green-500";
-
-//      return (
-//        <div>
-//          <div className="flex justify-center">
-//            <Badge className={backgroundColor}>{row.original.status}</Badge>
-//          </div>
-//        </div>
-//      );
-//    },
-//  },
-  {
     accessorKey: "client.name",
     header: ({ column }) => (
       <DataTableColumnHeader filter column={column} title="Cliente" />
     ),
     meta: { title: "Cliente" },
     cell: ({ row }) => <ClientResumeDialog client={row.original.client} />,
-  },
-  {
-    accessorKey: "article.name",
-    header: ({ column }) => (
-      <DataTableColumnHeader filter column={column} title="Artículo" />
-    ),
-    meta: { title: "Artículo" },
-    cell: ({ row }) => (
-      <div className="flex justify-center">
-        <span className="text-muted-foreground italic">
-          {row.original.article
-            ? `${row.original.article.name}-${row.original.article.serial}`
-            : "N/A"}
-        </span>
-      </div>
-    ),
   },
   {
     accessorKey: "aircraft.acronym",
@@ -185,7 +139,7 @@ export const columns: ColumnDef<Renting>[] = [
 //    meta: { title: "Referencia" },
 //    cell: ({ row }) => {
 //      const reference = row.original.reference_pic;
-//      
+//
 //      if (!reference) {
 //        return (
 //          <div className="flex justify-center">
@@ -193,14 +147,14 @@ export const columns: ColumnDef<Renting>[] = [
 //          </div>
 //        );
 //      }
-//  
+//
 //      // Caso imagen
 //      if (reference.match(/\.(jpeg|jpg|gif|png|webp)$/i)) {
 //        return (
 //          <div className="flex justify-center">
-//            <img 
-//              src={reference} 
-//              alt="Referencia" 
+//            <img
+//              src={reference}
+//              alt="Referencia"
 //              className="h-10 w-10 object-cover rounded"
 //              onClick={() => window.open(reference, '_blank')}
 //              style={{ cursor: 'pointer' }}
@@ -208,14 +162,14 @@ export const columns: ColumnDef<Renting>[] = [
 //          </div>
 //        );
 //      }
-//  
+//
 //      // Caso PDF
 //      if (reference.endsWith('.pdf')) {
 //        return (
 //          <div className="flex justify-center">
-//            <a 
-//              href={reference} 
-//              target="_blank" 
+//            <a
+//              href={reference}
+//              target="_blank"
 //              rel="noopener noreferrer"
 //              className="flex items-center text-red-500 hover:underline"
 //            >
@@ -225,14 +179,14 @@ export const columns: ColumnDef<Renting>[] = [
 //          </div>
 //        );
 //      }
-//  
+//
 //      // Caso enlace genérico
 //      if (reference.startsWith('http')) {
 //        return (
 //          <div className="flex justify-center">
-//            <a 
-//              href={reference} 
-//              target="_blank" 
+//            <a
+//              href={reference}
+//              target="_blank"
 //              rel="noopener noreferrer"
 //              className="text-blue-500 hover:underline"
 //            >
@@ -241,7 +195,7 @@ export const columns: ColumnDef<Renting>[] = [
 //          </div>
 //        );
 //      }
-//  
+//
 //      // Texto plano
 //      return (
 //        <div className="flex justify-center">

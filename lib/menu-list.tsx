@@ -14,7 +14,9 @@ import {
   CreditCardIcon,
   Drill,
   Globe,
+  Hammer,
   HandCoins,
+  Handshake,
   Landmark,
   LayoutGrid,
   LucideIcon,
@@ -227,21 +229,7 @@ export function getMenuList(
                   active:
                     pathname ===
                     "/transmandu/administracion/operaciones/arrendamiento",
-                },
-                //  {
-                //    href: "/transmandu/administracion/operaciones/ventas",
-                //    label: "Ventas",
-                //    active:
-                //      pathname ===
-                //      "/transmandu/administracion/operaciones/ventas",
-                //  },
-                {
-                  href: "/transmandu/administracion/operaciones/articulos",
-                  label: "Artículos",
-                  active:
-                    pathname ===
-                    "/transmandu/administracion/operaciones/articulos",
-                },
+                }
               ],
             },
             {
@@ -445,6 +433,23 @@ export function getMenuList(
               roles: ["ANALISTA_COMPRAS", "JEFE_COMPRAS", "SUPERUSER"],
               submenus: [],
             },
+
+            {
+              href: "/transmandu/compras/proveedores",
+              label: "Proveedores",
+              active: pathname.includes("/transmandu/compras/proveedores"),
+              icon: Handshake,
+              roles: ["ANALISTA_COMPRAS", "JEFE_COMPRAS", "SUPERUSER"],
+              submenus: [],
+            },
+            {
+              href: "/transmandu/compras/fabricantes",
+              label: "Fabricantes",
+              active: pathname.includes("/transmandu/compras/fabricantes"),
+              icon: Hammer,
+              roles: ["ANALISTA_COMPRAS", "JEFE_COMPRAS", "SUPERUSER"],
+              submenus: [],
+            },
           ],
         },
         {
@@ -484,7 +489,36 @@ export function getMenuList(
               label: "Globales",
               active: pathname.includes("/ajustes/globales"),
               icon: Globe,
-              roles: ["SUPERUSER"],
+              roles: ["ANALISTA_ALMACEN", "JEFE_ALMACEN", "SUPERUSER"],
+              submenus: [
+                {
+                  href: "/ajustes/globales/unidades",
+                  label: "Unidades",
+                  active: pathname === "/ajustes/globales/unidades",
+                },
+                {
+                  href: "/ajustes/globales/fabricantes",
+                  label: "Fabricantes",
+                  active: pathname === "/administracion/globales/fabricantes",
+                },
+                {
+                  href: "/ajustes/globales/proveedores",
+                  label: "Proveedores",
+                  active: pathname === "/administracion/globales/proveedores",
+                },
+                {
+                  href: "/ajustes/globales/condiciones",
+                  label: "Condiciones",
+                  active: pathname === "/ajustes/globales/condiciones",
+                },
+              ],
+            },
+            {
+              href: "/ajustes/bancos_cuentas",
+              label: "Bancos",
+              active: pathname.includes("/bancos_cuentas"),
+              icon: Landmark,
+              roles: ["SUPERUSER", "ANALISTA_ADMINISTRACION", "JEFE_ADMINISTRACION", "ANALISTA_COMPRAS", "JEFE_COMPRAS"],
               submenus: [
                 {
                   href: "/ajustes/bancos_cuentas/bancos",
@@ -501,46 +535,21 @@ export function getMenuList(
                   label: "Tarjetas",
                   active: pathname === "/ajustes/bancos_cuentas/tarjetas",
                 },
-                {
-                  href: "/ajustes/unidades",
-                  label: "Unidades",
-                  active: pathname === "/ajustes/unidades",
-                },
-                {
-                  href: "/ajustes/fabricantes",
-                  label: "Fabricantes",
-                  active: pathname === "/ajustes/fabricantes",
-                },
-                {
-                  href: "/ajustes/proveedores",
-                  label: "Proveedores",
-                  active: pathname === "/ajustes/proveedores",
-                },
-                {
-                  href: "/ajustes/condiciones",
-                  label: "Condiciones",
-                  active: pathname === "/ajustes/condiciones",
-                },
-                {
-                  href: "/ajustes/globales/fuentes_informacion",
-                  label: "Fuentes de Información",
-                  active: pathname === "/ajustes/globales/fuentes_informacion",
-                },
               ],
             },
             {
-              href: "/ajustes/cuentas_bancos",
-              label: "Cuentas y Bancos",
-              active: pathname.includes("/ajustes"),
-              icon: UserRoundCog,
-              roles: [],
+              href: "/ajustes/clientes",
+              label: "Clientes",
+              active: pathname.includes("/clientes"),
+              icon: BookUser,
+              roles: ["SUPERUSER"],
               submenus: [],
             },
             {
-              href: "/hangar74/cuenta",
+              href: "/ajustes/cuenta",
               label: "Cuenta",
-              active: pathname.includes("/cuenta"),
-              icon: Settings,
+              active: pathname.includes("/bancos_cuentas"),
+              icon: UserRoundCog,
               roles: [],
               submenus: [],
             },
@@ -761,6 +770,22 @@ export function getMenuList(
             //     },
             //   ]
             // },
+          {
+              href: "/hangar74/compras/proveedores",
+              label: "Proveedores",
+              active: pathname.includes("/hangar74/compras/proveedores"),
+              icon: Handshake,
+              roles: ["ANALISTA_COMPRAS", "JEFE_COMPRAS", "SUPERUSER"],
+              submenus: [],
+            },
+            {
+              href: "/hangar74/compras/fabricantes",
+              label: "Proveedores",
+              active: pathname.includes("/hangar74/compras/fabricantes"),
+              icon: Hammer,
+              roles: ["ANALISTA_COMPRAS", "JEFE_COMPRAS", "SUPERUSER"],
+              submenus: [],
+            },
           ],
         },
         {
@@ -913,7 +938,7 @@ export function getMenuList(
               label: "Bancos",
               active: pathname.includes("/bancos_cuentas"),
               icon: Landmark,
-              roles: ["SUPERUSER"],
+              roles: ["SUPERUSER", "ANALISTA_ADMINISTRACION", "JEFE_ADMINISTRACION"],
               submenus: [
                 {
                   href: "/ajustes/bancos_cuentas/bancos",

@@ -30,7 +30,7 @@ export function CreateFlightDialog() {
           </Button>
         </DialogTrigger>
         <DialogContent
-          className="sm:max-w-[480px]"
+          className="sm:max-w-[520px]"
           onInteractOutside={(e) => {
             e.preventDefault(); // Evita que el diálogo se cierre al hacer clic fuera
           }}
