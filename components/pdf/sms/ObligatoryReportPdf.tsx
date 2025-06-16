@@ -5,7 +5,7 @@ import {
   Text,
   View,
   StyleSheet,
-  Image,
+  Image as PDFImage,
 } from "@react-pdf/renderer";
 import { MitigationTable, ObligatoryReport } from "@/types";
 import { dateFormat, timeFormat } from "@/lib/utils";
@@ -498,7 +498,7 @@ const Footer = (currentPage: number, pageNumber: number) => (
 const Header = () => (
   <View style={styles.tableRowHeader}>
     <View style={{ ...styles.tableCellHeader, width: "20%" }}>
-      <Image src="/tmd_sms_header.jpg" style={styles.logo} />
+      <PDFImage src="/tmd_sms_header.jpg" style={styles.logo} />
     </View>
     <View style={styles.column2Header}>
       <View style={styles.rowColumnHeader}>
