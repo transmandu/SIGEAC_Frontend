@@ -14,5 +14,6 @@ export const useGetDangerIdentificationWithAllById = (id: string | number) => {
     queryKey: ['danger-identification/with-all-by', id], // Incluye el ID en la clave de la query
     queryFn: () => fetDangerIdentificationWithAllById(id), // Pasa el ID a la función fetchUser
     staleTime: 1000 * 60 * 5, // 5 minutos
+    enabled: !!id,
   });
 };

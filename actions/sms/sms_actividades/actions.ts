@@ -1,48 +1,44 @@
 import axiosInstance from "@/lib/axios";
-import { SMSActivity } from "@/types";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
-interface VoluntaryReportData {
-  report_number?: string;
-  identification_date: Date;
-  report_date: Date;
-  danger_location: string;
-  danger_area: string;
+interface SMSActivityData {
+  activity_name: string;
+  activity_number: string;
+  start_date: Date;
+  end_date: Date;
+  hour: string;
+  duration: string;
+  place: string;
+  topics: string;
+  objetive: string;
   description: string;
-  possible_consequences: string;
-  status: string;
-  name?: string;
-  last_name?: string;
-  phone?: string;
-  email?: string;
-  image?: File | string;
-  document?: File | string;
+  authorized_by: string;
+  planned_by: string;
+  executed_by: string;
 }
-interface UpdateVoluntaryReportData {
-  id: number;
-  report_number?: string;
-  report_date: Date;
-  identification_date: Date;
-  danger_location: string;
-  danger_area: string;
+interface updateSMSActivityData {
+  id: string | number;
+  activity_name: string;
+  activity_number: string;
+  start_date: Date;
+  end_date: Date;
+  hour: string;
+  duration: string;
+  place: string;
+  topics: string;
+  objetive: string;
   description: string;
-  possible_consequences: string;
-  danger_identification_id: number;
+  authorized_by: string;
+  planned_by: string;
+  executed_by: string;
   status: string;
-  reporter_name?: string;
-  reporter_last_name?: string;
-  reporter_phone?: string;
-  reporter_email?: string;
-  image?: File | string;
-  document?: File | string;
 }
 
 export const useCreateSMSActivity = () => {
   const queryClient = useQueryClient();
   const createMutation = useMutation({
-    mutationKey: ["sms-activities"],
-    mutationFn: async (data: SMSActivity) => {
+    mutationFn: async (data: SMSActivityData) => {
       const response = await axiosInstance.post(
         "/transmandu/sms/sms-activities",
         data,
@@ -72,42 +68,38 @@ export const useCreateSMSActivity = () => {
   };
 };
 
-export const useDeleteVoluntaryReport = () => {
+export const useDeleteSMSActivity = () => {
   const queryClient = useQueryClient();
 
   const deleteMutation = useMutation({
-    mutationKey: ["voluntary-reports"],
     mutationFn: async (id: number | string) => {
-      await axiosInstance.delete(`/transmandu/sms/voluntary-reports/${id}`);
+      await axiosInstance.delete(`/transmandu/sms/sms-activities/${id}`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["danger-identifications"] });
-      queryClient.invalidateQueries({ queryKey: ["voluntary-reports"] });
+      queryClient.invalidateQueries({ queryKey: ["sms-activities"] }); // No se cual key va aca pero estoy seguro que no es esa 
       toast.success("¡Eliminado!", {
-        description: `¡El reporte ha sido eliminada correctamente!`,
+        description: `¡La actividad ha sido eliminada correctamente!`,
       });
     },
     onError: (e) => {
       toast.error("Oops!", {
-        description: "¡Hubo un error al eliminar el reporte!",
+        description: "¡Hubo un error al eliminar la actividad!",
       });
     },
   });
 
   return {
-    deleteVoluntaryReport: deleteMutation,
+    deleteSMSActivity: deleteMutation,
   };
 };
 
-export const useUpdateVoluntaryReport = () => {
+export const useUpdateSMSActivity = () => {
   const queryClient = useQueryClient();
 
-  const updateVoluntaryReportMutation = useMutation({
-    mutationKey: ["voluntary-reports"],
-    mutationFn: async (data: UpdateVoluntaryReportData) => {
-      console.log("line number 106", data);
+  const updateSMSActivityMutation = useMutation({
+    mutationFn: async (data: updateSMSActivityData) => {
       const response = await axiosInstance.post(
-        `/transmandu/sms/update/voluntary-reports/${data.id}`,
+        `/transmandu/sms/sms-activities/${data.id}`,
         data,
         {
           headers: {
@@ -118,52 +110,19 @@ export const useUpdateVoluntaryReport = () => {
       return response.data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["voluntary-reports"] });
-      queryClient.invalidateQueries({ queryKey: ["voluntary-report"] });
+      // queryClient.invalidateQueries({ queryKey: ["voluntary-report"] });
       toast.success("¡Actualizado!", {
-        description: `El reporte voluntario ha sido actualizado correctamente.`,
+        description: `La actividad ha sido actualizada correctamente.`,
       });
     },
     onError: (error) => {
       toast.error("Oops!", {
-        description: "No se pudo actualizar el reporte voluntario...",
+        description: "No se pudo actualizar la actividad...",
       });
       console.log(error);
     },
   });
   return {
-    updateVoluntaryReport: updateVoluntaryReportMutation,
-  };
-};
-
-export const useAcceptVoluntaryReport = () => {
-  const queryClient = useQueryClient();
-
-  const acceptVoluntaryReportMutation = useMutation({
-    mutationKey: ["voluntary-reports"],
-    mutationFn: async (data: UpdateVoluntaryReportData) => {
-      console.log("line number 106", data);
-      const response = await axiosInstance.patch(
-        `/transmandu/sms/accept/voluntary-reports/${data.id}`,
-        data
-      );
-      return response.data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["voluntary-reports"] });
-      queryClient.invalidateQueries({ queryKey: ["voluntary-report"] });
-      toast.success("Aceptado!", {
-        description: `El reporte voluntario ha sido aceptado.`,
-      });
-    },
-    onError: (error) => {
-      toast.error("Oops!", {
-        description: "No se pudo aceptar el reporte voluntario...",
-      });
-      console.log(error);
-    },
-  });
-  return {
-    acceptVoluntaryReport: acceptVoluntaryReportMutation,
+    updateVoluntaryReport: updateSMSActivityMutation,
   };
 };

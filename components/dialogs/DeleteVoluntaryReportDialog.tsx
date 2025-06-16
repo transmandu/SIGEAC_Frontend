@@ -12,7 +12,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Loader2 } from "lucide-react";
+import { Loader2, Router } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 interface DeleteProps {
@@ -22,9 +23,14 @@ interface DeleteProps {
 export default function DeleteVoluntaryReprotDialog({id} : DeleteProps ) {
   const [open, setOpen] = useState(false);
   const { deleteVoluntaryReport } = useDeleteVoluntaryReport();
-
+  const router = useRouter();
   const handleDelete = async (id: number | string) => {
-    await deleteVoluntaryReport.mutateAsync(id);
+    try {
+      await deleteVoluntaryReport.mutateAsync(id);
+      router.push("/transmandu/sms/reportes/reportes_voluntarios");
+    } catch (error) {
+      console.error("No se pudo eliminar el reportes", error);
+    }
     setOpen(false);
   };
 

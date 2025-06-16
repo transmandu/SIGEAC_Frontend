@@ -59,7 +59,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../ui/select";
-import { useGetAircraftAcronyms } from "@/hooks/administracion/useGetAircraftsAcronym";
+import { useCompanyStore } from "@/stores/CompanyStore";
+import { useGetAircraftAcronyms } from "@/hooks/aerolinea/aeronaves/useGetAircraftAcronyms";
 
 function timeFormat(date: Date) {
   const timeString = date.toString();
@@ -70,11 +71,10 @@ function timeFormat(date: Date) {
 interface FormProps {
   isEditing?: boolean;
   initialData?: ObligatoryReport;
-
   onClose: () => void;
 }
 
-export function CreateObligatoryReportForm({
+export function CreateObligatoryReportForm({ 
   onClose,
   isEditing,
   initialData,
@@ -195,8 +195,9 @@ export function CreateObligatoryReportForm({
   });
 
   // No estoy seguro si esto va aca lol
+  const {selectedCompany} = useCompanyStore();
   const { data: pilots, isLoading: isLoadingPilots } = useGetPilots();
-  const { data: aircrafts, isLoading: isLoadingAircrafts } = useGetAircraftAcronyms();
+  const { data: aircrafts, isLoading: isLoadingAircrafts } = useGetAircraftAcronyms(selectedCompany?.split(" ").join(""));
 
   const OPTIONS_LIST = [
     "La aereonave aterriza quedándose solo con el combustible de reserva o menos",
@@ -307,7 +308,7 @@ export function CreateObligatoryReportForm({
         const response = await createObligatoryReport.mutateAsync(value);
         console.log("this is a console log post await async", response);
         router.push(
-          `/transmandu/sms/reportes_obligatorios/${response.obligatory_report_id}`
+          `/transmandu/sms/reportes/reportes_obligatorios/${response.obligatory_report_id}`
         );
       } catch (error) {
         console.error("Error al crear el reporte:", error);
