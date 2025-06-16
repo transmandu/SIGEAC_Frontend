@@ -83,7 +83,7 @@ const RouteForm = ({ id, onClose, isEditing = false }: FormProps) => {
   });
 
     const layover = form.watch("layover") || [];
-
+  console.log(layover);
   const [layoverFields, setScaleFields] = useState<layoverField[]>([
     {
       id: Date.now(),
@@ -218,7 +218,7 @@ const RouteForm = ({ id, onClose, isEditing = false }: FormProps) => {
                 <div className="flex gap-2 items-center p-2">
                   <MinusCircle
                     className="size-4 cursor-pointer hover:layover-125 transition-all ease-in duration-100"
-                    onClick={() => onRemoveInput(layoverFields.length - 1)}
+                    onClick={() => onRemoveInput(layover.length - 1)}
                   />
                   <Label>Escala(s)</Label>
                   <PlusCircle
@@ -228,34 +228,23 @@ const RouteForm = ({ id, onClose, isEditing = false }: FormProps) => {
                 </div>
                 <div
                   className={cn(
-                    "grid grid-cols-1 gap-2",
-                    layoverFields.length > 1 ? "grid-cols-2" : ""
+                    "grid gap-2",
+                    layover.length > 1 ? "grid-cols-2" : "grid-cols-1"
                   )}
                 >
-                  {layoverFields.map((field, index) => (
-                    <FormField
-                      key={field.id}
-                      control={form.control}
-                      name="layover"
-                      render={() => (
-                        <FormItem className="w-auto">
-                          <FormControl>
-                            <Input
-                              placeholder="Ingrese la escala"
-                              value={field.value}
-                              onChange={(e) =>
-                                handleInputChange(field.id, e.target.value)
-                              }
-                            />
-                          </FormControl>
-                          {form.formState.errors.layover && index === 0 && (
-                            <FormMessage>
-                              {form.formState.errors.layover.message}
-                            </FormMessage>
-                          )}
-                        </FormItem>
+                  {layover.map((value, index) => (
+                    <div key={index} className="flex items-center gap-2">
+                      <Input
+                        placeholder="Ingrese la escala"
+                        value={value}
+                        onChange={(e) => handleInputChange(index, e.target.value)}
+                      />
+                      {form.formState.errors.layover?.[index] && (
+                        <FormMessage>
+                          {form.formState.errors.layover[index]?.message}
+                        </FormMessage>
                       )}
-                    />
+                    </div>
                   ))}
                 </div>
               </>
