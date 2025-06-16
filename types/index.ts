@@ -857,7 +857,7 @@ export type MitigationMeasure = {
   implementation_supervisor: string;
   implementation_responsible: string;
   estimated_date: Date;
-  execution_date: Date;
+  execution_date?: Date | null;
   mitigation_plan_id: number;
   follow_up_control: FollowUpControl[];
 };
@@ -949,7 +949,6 @@ export type SMSActivity = {
   id: number;
   activity_name: string;
   activity_number: string;
-  title: string;
   start_date: Date;
   end_date: Date;
   hour: Date;
@@ -958,9 +957,9 @@ export type SMSActivity = {
   topics: string;
   objetive: string;
   description: string;
-  authorized_by: number;
-  planned_by: number;
-  executed_by: number;
+  authorized_by: string;
+  planned_by: string;
+  executed_by: string;
   status: string;
 }
 

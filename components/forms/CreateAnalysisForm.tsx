@@ -31,6 +31,7 @@ import {
 import { Analysis } from "@/types";
 import { Separator } from "@radix-ui/react-select";
 import RiskMatrix from "../misc/RiskMatrix";
+import { useRouter } from "next/navigation";
 
 const FormSchema = z.object({
   severity: z.string(),
@@ -56,6 +57,7 @@ export default function CreateAnalysisForm({
 }: FormProps) {
   const { createAnalysis } = useCreateAnalysis();
   const { updateAnalyses } = useUpdateAnalyses();
+  const router = useRouter();
   const SEVERITY = [
     { name: "CATASTROFICO", value: "A" },
     { name: "PELIGROSO", value: "B" },
@@ -97,7 +99,6 @@ export default function CreateAnalysisForm({
           result: data.probability + data.severity,
           mitigation_plan_id: id,
         };
-        console.log(values);
         await createAnalysis.mutateAsync(values);
       } else {
         const values = {
@@ -105,8 +106,12 @@ export default function CreateAnalysisForm({
           result: data.probability + data.severity,
           danger_identification_id: id,
         };
-        console.log(values);
-        await createAnalysis.mutateAsync(values);
+        try {
+          await createAnalysis.mutateAsync(values);
+          router.push("/transmandu/sms/gestion_reportes/planes_de_mitigacion")
+        } catch (error) {
+          console.error("Error al crear el análisis:", error);
+        }
       }
     }
 

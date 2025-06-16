@@ -26,12 +26,14 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "../ui/dialog";
+import { useTheme } from "next-themes";
 
 const MitigationMeasureDropdownActions = ({
   mitigationMeasure,
 }: {
   mitigationMeasure: MitigationMeasure;
-}) => {
+  }) => {
+  const { theme } = useTheme();
   const [open, setOpen] = useState<boolean>(false);
   const [openEdit, setOpenEdit] = useState<boolean>(false);
 
@@ -64,6 +66,16 @@ const MitigationMeasureDropdownActions = ({
             align="center"
             className="flex-COL gap-2 justify-center"
           >
+
+            <DialogTrigger asChild>
+              <DropdownMenuItem
+                onClick={() => setOpenCreateFollowUpControl(true)}
+              >
+              <Plus className={`size-5 ${theme === "light" ? "text-black" : "text-white"}`} />
+                <p className="pl-2">Crear Control</p>
+              </DropdownMenuItem>
+            </DialogTrigger>
+            
             {mitigationMeasure && (
               <DropdownMenuItem onClick={() => setOpenEdit(true)}>
                 <ClipboardPenLine className="size-5" />
@@ -77,14 +89,7 @@ const MitigationMeasureDropdownActions = ({
               </DropdownMenuItem>
             </DialogTrigger>
 
-            <DialogTrigger asChild>
-              <DropdownMenuItem
-                onClick={() => setOpenCreateFollowUpControl(true)}
-              >
-                <Plus className="size-5 text-black" />
-                <p className="pl-2">Crear Control</p>
-              </DropdownMenuItem>
-            </DialogTrigger>
+            
           </DropdownMenuContent>
         </DropdownMenu>
 

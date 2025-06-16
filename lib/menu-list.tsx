@@ -14,9 +14,7 @@ import {
   CreditCardIcon,
   Drill,
   Globe,
-  Hammer,
   HandCoins,
-  Handshake,
   Landmark,
   LayoutGrid,
   LucideIcon,
@@ -39,6 +37,7 @@ type Submenu = {
   href: string;
   label: string;
   active: boolean;
+  roles?: string[];
 };
 
 type Menu = {
@@ -63,11 +62,11 @@ export function getMenuList(
   userRoles: string[]
 ): Group[] {
   const date = format(new Date(), "yyyy-MM-dd");
-  function hasAccess(menu: Menu): boolean {
-    return (
-      menu.roles.length === 0 ||
-      menu.roles.some((role) => userRoles.includes(role))
-    );
+  function hasAccess(menuItem: Menu | Submenu): boolean {
+    if (!menuItem.roles || menuItem.roles.length === 0) {
+      return true; // No roles specified, so everyone has access
+    }
+    return menuItem.roles.some((role) => userRoles.includes(role));
   }
   return (
     company === "transmandu"
@@ -96,9 +95,11 @@ export function getMenuList(
               ),
               icon: CreditCardIcon,
               roles: [
+                "SUPERUSER",
                 "ANALISTA_ADMINISTRACION",
                 "JEFE_ADMINISTRACION",
-                "SUPERUSER",
+                "JEFE_CONTADURIA",
+                "RRHH",
               ],
               submenus: [
                 {
@@ -139,9 +140,11 @@ export function getMenuList(
               ),
               icon: Landmark,
               roles: [
+                "SUPERUSER",
                 "ANALISTA_ADMINISTRACION",
                 "JEFE_ADMINISTRACION",
-                "SUPERUSER",
+                "JEFE_CONTADURIA",
+                "RRHH",
               ],
               submenus: [
                 {
@@ -182,9 +185,11 @@ export function getMenuList(
               ),
               icon: BookUser,
               roles: [
+                "SUPERUSER",
                 "ANALISTA_ADMINISTRACION",
                 "JEFE_ADMINISTRACION",
-                "SUPERUSER",
+                "JEFE_CONTADURIA",
+                "RRHH",
               ],
               submenus: [
                 {
@@ -218,9 +223,9 @@ export function getMenuList(
               ),
               icon: PackageOpen,
               roles: [
+                "SUPERUSER",
                 "ANALISTA_ADMINISTRACION",
                 "JEFE_ADMINISTRACION",
-                "SUPERUSER",
               ],
               submenus: [
                 {
@@ -229,42 +234,52 @@ export function getMenuList(
                   active:
                     pathname ===
                     "/transmandu/administracion/operaciones/arrendamiento",
-                }
+                },
+                //  {
+                //    href: "/transmandu/administracion/operaciones/ventas",
+                //    label: "Ventas",
+                //    active:
+                //      pathname ===
+                //      "/transmandu/administracion/operaciones/ventas",
+                //  },
+                {
+                  href: "/transmandu/administracion/operaciones/articulos",
+                  label: "Artículos",
+                  active:
+                    pathname ===
+                    "/transmandu/administracion/operaciones/articulos",
+                },
               ],
             },
             {
               href: "/transmandu/administracion/gestion_vuelos",
               label: "Vuelos",
-              active: pathname.includes(
-                "/transmandu/administracion/gestion_vuelos"
-              ),
+              active: pathname.includes("/transmandu/administracion/gestion_vuelos"),
               icon: PlaneIcon,
               roles: [
+                "SUPERUSER",
                 "ANALISTA_ADMINISTRACION",
                 "JEFE_ADMINISTRACION",
-                "SUPERUSER",
+                "RRHH",  // RRHH ve el menú principal, pero no todos los submenús
               ],
               submenus: [
                 {
                   href: "/transmandu/administracion/gestion_vuelos/aviones",
                   label: "Aeronaves",
-                  active:
-                    pathname ===
-                    "/transmandu/administracion/gestion_vuelos/aviones",
+                  active: pathname === "/transmandu/administracion/gestion_vuelos/aviones",
+                  roles: ["SUPERUSER", "ANALISTA_ADMINISTRACION", "JEFE_ADMINISTRACION", "RRHH"],  // RRHH puede ver Aeronaves
                 },
                 {
                   href: "/transmandu/administracion/gestion_vuelos/rutas",
                   label: "Rutas",
-                  active:
-                    pathname ===
-                    "/transmandu/administracion/gestion_vuelos/rutas",
+                  active: pathname === "/transmandu/administracion/gestion_vuelos/rutas",
+                  roles: ["SUPERUSER", "ANALISTA_ADMINISTRACION", "JEFE_ADMINISTRACION"],  // RRHH no puede ver Rutas
                 },
                 {
                   href: "/transmandu/administracion/gestion_vuelos/vuelos",
                   label: "Vuelos",
-                  active:
-                    pathname ===
-                    "/transmandu/administracion/gestion_vuelos/vuelos",
+                  active: pathname === "/transmandu/administracion/gestion_vuelos/vuelos",
+                  roles: ["SUPERUSER", "ANALISTA_ADMINISTRACION", "JEFE_ADMINISTRACION"],  // RRHH no puede ver Vuelos
                 },
               ],
             },
@@ -275,44 +290,44 @@ export function getMenuList(
             {
               href: "/transmandu/sms",
               label: "Reportes",
-              active: pathname.includes("/transmandu/sms"),
+              active: pathname.includes("/transmandu/sms/reportes"),
               icon: ClipboardPen,
               roles: ["ANALISTA_SMS", "JEFE_SMS", "SUPERUSER"],
               submenus: [
                 {
-                  href: "/transmandu/sms/reportes_voluntarios",
+                  href: "/transmandu/sms/reportes/reportes_voluntarios",
                   label: "Reportes Voluntarios",
                   roles: ["ANALISTA_SMS", "JEFE_SMS", "SUPERUSER"],
-                  active: pathname === "/transmandu/sms/reportes_voluntarios",
+                  active: pathname === "/transmandu/sms/reportes/reportes_voluntarios",
                 },
                 {
-                  href: "/transmandu/sms/reportes_obligatorios",
+                  href: "/transmandu/sms/reportes/reportes_obligatorios",
                   label: "Reportes Obligatorios",
                   roles: ["ANALISTA_SMS", "JEFE_SMS", "SUPERUSER"],
                   active:
-                    pathname === "/transmandu/sms/reportes_obligatorios",
+                    pathname === "/transmandu/sms/reportes/reportes_obligatorios",
                 },
               ],
             },
             {
               href: "/transmandu/sms",
               label: "Gestion de Reportes",
-              active: pathname.includes("/transmandu/sms"),
+              active: pathname.includes("/transmandu/sms/gestion_reportes"),
               icon: ShieldAlert,
               roles: ["ANALISTA_SMS", "JEFE_SMS", "SUPERUSER"],
               submenus: [
                 {
-                  href: "/transmandu/sms/peligros_identificados",
+                  href: "/transmandu/sms/gestion_reportes/peligros_identificados",
                   label: "Peligros Identificados",
                   roles: ["ANALISTA_SMS", "JEFE_SMS", "SUPERUSER"],
                   active:
-                    pathname === "/transmandu/sms/peligros_identificados",
+                    pathname === "/transmandu/sms/gestion_reportes/peligros_identificados",
                 },
                 {
-                  href: "/transmandu/sms/planes_de_mitigacion",
+                  href: "/transmandu/sms/gestion_reportes/planes_de_mitigacion",
                   label: "Planes de Mitigacion",
                   roles: ["ANALISTA_SMS", "JEFE_SMS", "SUPERUSER"],
-                  active: pathname === "/transmandu/sms/planes_de_mitigacion",
+                  active: pathname === "/transmandu/sms/gestion_reportes/planes_de_mitigacion",
                 },
               ],
             },
@@ -320,7 +335,7 @@ export function getMenuList(
               href: "/transmandu/sms",
               label: "Estadisticas",
               icon: AreaChartIcon,
-              active: pathname.includes("/estadisticas"),
+              active: pathname.includes("/transmandu/sms/estadisticas"),
               roles: ["ANALISTA_SMS", "JEFE_SMS", "SUPERUSER"],
               submenus: [
                 {
@@ -360,21 +375,21 @@ export function getMenuList(
             {
               href: "/transmandu/sms",
               label: "Planificacion",
-              active: pathname.includes("/transmandu/sms"),
+              active: pathname.includes("/transmandu/sms/planificacion"),
               icon: Activity,
-              roles: ["ANALISTA_SMS", "JEFE_SMS", "SUPERUSER"],
+              roles: ["SUPERUSER"],
               submenus: [
                 {
                   href: "/transmandu/sms/planificacion/cursos",
                   label: "Cursos SMS",
-                  roles: ["ANALISTA_SMS", "JEFE_SMS", "SUPERUSER"],
+                  roles: ["SUPERUSER"],
                   active:
                     pathname === "/transmandu/planificacion/cursos",
                 },
                 {
                   href: "/transmandu/sms/planificacion/actividades",
                   label: "Actividades SMS",
-                  roles: ["ANALISTA_SMS", "JEFE_SMS", "SUPERUSER"],
+                  roles: ["SUPERUSER"],
                   active: pathname === "/transmandu/planificacion/actividades",
                 },
               ],
@@ -387,20 +402,20 @@ export function getMenuList(
               roles: [],
               submenus: [
                 {
-                  href: "/transmandu/sms/reportes_voluntarios/nuevo_reporte",
+                  href: "/transmandu/sms/reportes/reportes_voluntarios/nuevo_reporte",
                   label: "Reportes Voluntarios",
                   roles: [],
                   active:
                     pathname ===
-                    "/transmandu/sms/reportes_voluntarios/nuevo_reporte",
+                    "/transmandu/sms/reportes/reportes_voluntarios/nuevo_reporte",
                 },
                 {
-                  href: "/transmandu/sms/reportes_obligatorios/nuevo_reporte",
+                  href: "/transmandu/sms/reportes/reportes_obligatorios/nuevo_reporte",
                   label: "Reportes Obligatorios",
-                  roles: ["ANALISTA_SMS", "REGULAR", "GUEST"],
+                  roles: [],
                   active:
                     pathname ===
-                    "/transmandu/sms/reportes_obligatorios/nuevo_reporte",
+                    "/transmandu/sms/reportes/reportes_obligatorios/nuevo_reporte",
                 },
               ],
             },
@@ -430,23 +445,6 @@ export function getMenuList(
               label: "Ordenes de Compra",
               active: pathname.includes("/transmandu/compras/ordenes_compra"),
               icon: Receipt,
-              roles: ["ANALISTA_COMPRAS", "JEFE_COMPRAS", "SUPERUSER"],
-              submenus: [],
-            },
-
-            {
-              href: "/transmandu/compras/proveedores",
-              label: "Proveedores",
-              active: pathname.includes("/transmandu/compras/proveedores"),
-              icon: Handshake,
-              roles: ["ANALISTA_COMPRAS", "JEFE_COMPRAS", "SUPERUSER"],
-              submenus: [],
-            },
-            {
-              href: "/transmandu/compras/fabricantes",
-              label: "Fabricantes",
-              active: pathname.includes("/transmandu/compras/fabricantes"),
-              icon: Hammer,
               roles: ["ANALISTA_COMPRAS", "JEFE_COMPRAS", "SUPERUSER"],
               submenus: [],
             },
@@ -489,36 +487,7 @@ export function getMenuList(
               label: "Globales",
               active: pathname.includes("/ajustes/globales"),
               icon: Globe,
-              roles: ["ANALISTA_ALMACEN", "JEFE_ALMACEN", "SUPERUSER"],
-              submenus: [
-                {
-                  href: "/ajustes/globales/unidades",
-                  label: "Unidades",
-                  active: pathname === "/ajustes/globales/unidades",
-                },
-                {
-                  href: "/ajustes/globales/fabricantes",
-                  label: "Fabricantes",
-                  active: pathname === "/administracion/globales/fabricantes",
-                },
-                {
-                  href: "/ajustes/globales/proveedores",
-                  label: "Proveedores",
-                  active: pathname === "/administracion/globales/proveedores",
-                },
-                {
-                  href: "/ajustes/globales/condiciones",
-                  label: "Condiciones",
-                  active: pathname === "/ajustes/globales/condiciones",
-                },
-              ],
-            },
-            {
-              href: "/ajustes/bancos_cuentas",
-              label: "Bancos",
-              active: pathname.includes("/bancos_cuentas"),
-              icon: Landmark,
-              roles: ["SUPERUSER", "ANALISTA_ADMINISTRACION", "JEFE_ADMINISTRACION", "ANALISTA_COMPRAS", "JEFE_COMPRAS"],
+              roles: ["SUPERUSER"],
               submenus: [
                 {
                   href: "/ajustes/bancos_cuentas/bancos",
@@ -535,21 +504,51 @@ export function getMenuList(
                   label: "Tarjetas",
                   active: pathname === "/ajustes/bancos_cuentas/tarjetas",
                 },
+                {
+                  href: "/ajustes/unidades",
+                  label: "Unidades",
+                  active: pathname === "/ajustes/unidades",
+                },
+                {
+                  href: "/ajustes/fabricantes",
+                  label: "Fabricantes",
+                  active: pathname === "/ajustes/fabricantes",
+                },
+                {
+                  href: "/ajustes/proveedores",
+                  label: "Proveedores",
+                  active: pathname === "/ajustes/proveedores",
+                },
+                {
+                  href: "/ajustes/condiciones",
+                  label: "Condiciones",
+                  active: pathname === "/ajustes/condiciones",
+                },
+                {
+                  href: "/ajustes/globales/fuentes_informacion",
+                  label: "Fuentes de Información",
+                  active: pathname === "/ajustes/globales/fuentes_informacion",
+                },
+                {
+                  href: "/ajustes/globales/pilotos",
+                  label: "Pilotos",
+                  active: pathname === "/ajustes/globales/pilotos",
+                },
               ],
             },
             {
-              href: "/ajustes/clientes",
-              label: "Clientes",
-              active: pathname.includes("/clientes"),
-              icon: BookUser,
-              roles: ["SUPERUSER"],
+              href: "/ajustes/cuentas_bancos",
+              label: "Cuentas y Bancos",
+              active: pathname.includes("/ajustes"),
+              icon: UserRoundCog,
+              roles: [],
               submenus: [],
             },
             {
-              href: "/ajustes/cuenta",
+              href: "/hangar74/cuenta",
               label: "Cuenta",
-              active: pathname.includes("/bancos_cuentas"),
-              icon: UserRoundCog,
+              active: pathname.includes("/cuenta"),
+              icon: Settings,
               roles: [],
               submenus: [],
             },
@@ -770,22 +769,6 @@ export function getMenuList(
             //     },
             //   ]
             // },
-          {
-              href: "/hangar74/compras/proveedores",
-              label: "Proveedores",
-              active: pathname.includes("/hangar74/compras/proveedores"),
-              icon: Handshake,
-              roles: ["ANALISTA_COMPRAS", "JEFE_COMPRAS", "SUPERUSER"],
-              submenus: [],
-            },
-            {
-              href: "/hangar74/compras/fabricantes",
-              label: "Proveedores",
-              active: pathname.includes("/hangar74/compras/fabricantes"),
-              icon: Hammer,
-              roles: ["ANALISTA_COMPRAS", "JEFE_COMPRAS", "SUPERUSER"],
-              submenus: [],
-            },
           ],
         },
         {
@@ -938,7 +921,7 @@ export function getMenuList(
               label: "Bancos",
               active: pathname.includes("/bancos_cuentas"),
               icon: Landmark,
-              roles: ["SUPERUSER", "ANALISTA_ADMINISTRACION", "JEFE_ADMINISTRACION"],
+              roles: ["SUPERUSER"],
               submenus: [
                 {
                   href: "/ajustes/bancos_cuentas/bancos",
@@ -1006,16 +989,18 @@ export function getMenuList(
         },
       ]
   )
-    .map((group) => ({
-      ...group,
-      menus: group.menus.filter(hasAccess).map((menu) => ({
-        ...menu,
-        submenus: menu.submenus.filter(
-          (sub) =>
-            !menu.roles.length ||
-            menu.roles.some((role) => userRoles.includes(role))
-        ),
-      })),
-    }))
-    .filter((group) => group.menus.length > 0);
+  .map((group) => {
+    // Filter menus within each group
+    const filteredMenus = group.menus
+      .filter((menu) => hasAccess(menu))
+      .map((menu) => {
+        // Filter submenus within each menu
+        const filteredSubmenus = menu.submenus.filter((submenu) =>
+          hasAccess(submenu)
+        );
+        return { ...menu, submenus: filteredSubmenus };
+      });
+
+    return { ...group, menus: filteredMenus };
+  }).filter((group) => group.menus.length > 0);
 }

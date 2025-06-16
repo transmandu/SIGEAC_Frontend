@@ -9,10 +9,9 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { useState } from "react";
-import IdentificationForm from "../forms/CreateIdentificationForm";
-import CreateDangerIdentificationForm from "../forms/CreateIdentificationForm";
 import { DangerIdentification } from "@/types";
+import { useState } from "react";
+import CreateDangerIdentificationForm from "../forms/CreateIdentificationForm";
 
 interface FormProps {
   title: string;

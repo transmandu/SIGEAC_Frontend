@@ -8,7 +8,7 @@ import { DataTable } from "./data-table";
 import { useGetSMSActivities } from "@/hooks/sms/useGetSMSActivities";
 
 const SMSActivitiesPage = () => {
-  const { data: activity, isLoading, isError } = useGetSMSActivities();
+  const { data: activities, isLoading, isError } = useGetSMSActivities();
 
   return (
     <ContentLayout title="Actividades de SMS">
@@ -18,10 +18,10 @@ const SMSActivitiesPage = () => {
             <Loader2 className="size-24 animate-spin mt-48" />
           </div>
         )}
-        {activity && (
+        {activities && (
           <DataTable
             columns={columns}
-            data={activity}
+            data={activities}
           />
         )}
         {isError && (

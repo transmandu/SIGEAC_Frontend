@@ -11,7 +11,7 @@ const fetDangerIdentificationById = async (id: string | number) => {
 
 export const useGetDangerIdentificationById = (id: string | number) => {
   return useQuery<DangerIdentification>({
-    queryKey: ['danger-identification-by-id',id], // Incluye el ID en la clave de la query
+    queryKey: ['danger-identification',id], // Incluye el ID en la clave de la query
     queryFn: () => fetDangerIdentificationById(id), // Pasa el ID a la función fetchUser
     staleTime: 1000 * 60 * 5, // 5 minutos
   });

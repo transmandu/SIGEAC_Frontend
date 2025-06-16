@@ -156,8 +156,7 @@ export default function CreateDangerIdentificationForm({
   reportType,
 }: FormProps) {
   const [consequences, setConsequences] = useState<string[]>([]);
-  const { data: informationSources, isLoading: isLoadingSources } =
-    useGetInformationSources();
+  const { data: informationSources, isLoading: isLoadingSources } = useGetInformationSources();
   const { createDangerIdentification } = useCreateDangerIdentification();
   const { updateDangerIdentification } = useUpdateDangerIdentification();
   const [defaultValuesLoaded, setDefaultValuesLoaded] = useState(false);
@@ -177,17 +176,14 @@ export default function CreateDangerIdentificationForm({
     resolver: zodResolver(FormSchema),
     defaultValues: {
       danger: initialData?.danger || "",
+      information_source_id: initialData?.information_source.id.toString(),
       current_defenses: initialData?.current_defenses || "",
-
       risk_management_start_date: initialData?.risk_management_start_date
         ? new Date(initialData.risk_management_start_date)
         : new Date(),
-
       consequence_to_evaluate: initialData?.consequence_to_evaluate || "",
       danger_area: initialData?.danger_area || "",
       danger_type: initialData?.danger_type || "",
-      information_source_id:
-      initialData?.information_source?.id || "",
       root_cause_analysis: initialData?.root_cause_analysis || "",
       description: initialData?.description || "",
       possible_consequences: initialData?.possible_consequences || "",
@@ -195,19 +191,6 @@ export default function CreateDangerIdentificationForm({
   });
 
   useEffect(() => {
-    if (
-      !defaultValuesLoaded &&
-      informationSources &&
-      initialData?.information_source
-    ) {
-      const sourceId = initialData.information_source.id.toString();
-      if (
-        informationSources.some((source) => source.id.toString() === sourceId)
-      ) {
-        form.setValue("information_source_id", sourceId);
-        setDefaultValuesLoaded(true);
-      }
-    }
 
     if (initialData?.possible_consequences) {
       const initialConsequences = initialData.possible_consequences
@@ -219,19 +202,6 @@ export default function CreateDangerIdentificationForm({
   }, [informationSources, initialData, form, defaultValuesLoaded]);
 
   const onSubmit = async (data: FormSchemaType) => {
-    console.log("DANGER IDETIFICATION DATA", data);
-    if (
-      informationSources &&
-      !informationSources.some(
-        (source) => source.id.toString() === data.information_source_id
-      )
-    ) {
-      form.setError("information_source_id", {
-        type: "manual",
-        message: "Fuente de información no válida",
-      });
-      return;
-    }
     if (initialData && isEditing) {
       const values = {
         id: initialData.id,
@@ -239,19 +209,15 @@ export default function CreateDangerIdentificationForm({
       };
       await updateDangerIdentification.mutateAsync(values);
     } else {
-      console.log("esto es lo que envia mi front ", id);
       const response = await createDangerIdentification.mutateAsync({
         data,
         id,
         reportType
       });
       router.push(
-        `/transmandu/sms/peligros_identificados/${response.danger_identification_id}`
+        `/transmandu/sms/gestion_reportes/peligros_identificados/${response.danger_identification_id}`
       );
-
-
     }
-
     onClose();
   };
 
@@ -456,7 +422,7 @@ export default function CreateDangerIdentificationForm({
                 ) : (
                   <Select
                     onValueChange={field.onChange}
-                    value={field.value}
+                    defaultValue={field.value}
                     disabled={isLoadingSources}
                   >
                     <FormControl>

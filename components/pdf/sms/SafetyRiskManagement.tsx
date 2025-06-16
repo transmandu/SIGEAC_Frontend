@@ -10,7 +10,7 @@ import {
   StyleSheet,
   Text,
   View,
-  Image,
+  Image as PDFImage,
 } from "@react-pdf/renderer";
 
 const BLUE = "#daeef3";
@@ -1413,7 +1413,7 @@ export const FirstPage = ({
       >
         <Text style={[styles.cellText3, styles.boldTitle]}>
           {identification.mitigation_plan?.responsible ===
-          "MATENIMIENTO_PLANIFICACION"
+          "MATENIMIENTO"
             ? "X"
             : ""}
         </Text>
@@ -1468,7 +1468,7 @@ export const FirstPage = ({
         }}
       >
         <Text style={[styles.cellText3, styles.boldTitle]}>
-          {identification.mitigation_plan?.responsible === "IT" ? "X" : ""}
+          {identification.mitigation_plan?.responsible === "CONTROL_CALIDAD" ? "X" : ""}
         </Text>
       </View>
 
@@ -2193,7 +2193,7 @@ export const SecondPage = ({
     <View style={[styles.mainRow, { borderTop: 1 }]}>
       {/* Columna de la pirámide (continua) */}
       <View style={styles.pyramidColumn}>
-        <Image src="/risk_matrix_pyramid.png" style={styles.pyramid_image} />
+        <PDFImage src="/risk_matrix_pyramid.png" style={styles.pyramid_image} />
       </View>
 
       {/* Primera columna segmentada */}
@@ -2723,9 +2723,11 @@ export const ThirdPage = ({
                   backgroundColor: WHITE,
                 }}
               >
-                <Text style={[styles.cellText2, { textAlign: "center" }]}>
-                  {dateFormat(measure.execution_date, "dd-MM-yyyy")}
-                </Text>
+                {measure.execution_date && (
+                  <Text style={[styles.cellText2, { textAlign: "center" }]}>
+                    {dateFormat(measure.execution_date, "dd-MM-yyyy")}
+                  </Text>
+                )}
               </View>
             </View>
           );
@@ -3644,7 +3646,7 @@ const SafetyRiskManagementPdf = (
 const Header = () => (
   <View style={styles.tableRowHeader}>
     <View style={{ ...styles.tableCellHeader, width: "20%" }}>
-      <Image src="/tmd_sms_header.jpg" style={styles.logo} />
+      <PDFImage src="/tmd_sms_header.jpg" style={styles.logo} />
     </View>
     <View style={styles.column2Header}>
       <View style={styles.rowColumnHeader}>

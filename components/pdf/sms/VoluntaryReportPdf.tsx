@@ -2,7 +2,7 @@ import { dateFormat } from "@/lib/utils";
 import { MitigationTable, VoluntaryReport } from "@/types";
 import {
   Document,
-  Image,
+  Image as PDFImage,
   Page,
   StyleSheet,
   Text,
@@ -277,7 +277,7 @@ const Footer = (currentPage: number, pageNumber: number) => (
 const Header = () => (
   <View style={styles.tableRowHeader}>
     <View style={{ ...styles.tableCellHeader, width: "20%" }}>
-      <Image src="/tmd_sms_header.jpg" style={styles.logo} />
+      <PDFImage src="/tmd_sms_header.jpg" style={styles.logo} />
     </View>
     <View style={styles.column2Header}>
       <View style={styles.rowColumnHeader}>

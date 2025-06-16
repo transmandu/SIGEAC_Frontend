@@ -123,7 +123,7 @@ export function dateFormat(date: string | Date, DateFormat: string) {
   });
 }
 
-export function timeFormat(hour: Date, outPutFormat: string = "HH:mm") {
+export function timeFormat(hour: Date, outPutFormat: string = "HH:mm") { // Para transformate date a strins y mostrarlos en Tables
   const timeString = hour.toString();
   const parsedTime = parse(timeString, "HH:mm:ss", new Date());
   const time = format(parsedTime, outPutFormat);

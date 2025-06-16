@@ -1,15 +1,14 @@
-import { useDeleteInformationSource } from "@/actions/ajustes/globales/tipos_fuente/actions";
+import { useDeleteSMSActivity } from "@/actions/sms/sms_actividades/actions";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { InformationSource } from "@/types";
+import { SMSActivity } from "@/types";
 import { ClipboardPen, Loader2, MoreHorizontal, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { EditInformationSourceForm } from "../forms/EditInformationSourceForm";
 import { Button } from "../ui/button";
 import {
   Dialog,
@@ -19,22 +18,23 @@ import {
   DialogHeader,
   DialogTitle,
 } from "../ui/dialog";
+import CreateSMSActivityForm from "../forms/CreateSMSActivityForm";
 
-const InformationSourceDropdownActions = ({
-  informationSource,
+const SMSActivityDropDownActions = ({
+  smsActivity,
 }: {
-  informationSource: InformationSource;
+  smsActivity: SMSActivity;
 }) => {
   const [openDelete, setOpenDelete] = useState<boolean>(false);
 
   const [openEdit, setOpenEdit] = useState<boolean>(false);
 
-  const { deleteInformationSource } = useDeleteInformationSource();
+  const { deleteSMSActivity } = useDeleteSMSActivity();
 
   const router = useRouter();
 
   const handleDelete = async (id: number | string) => {
-    await deleteInformationSource.mutateAsync(id);
+    await deleteSMSActivity.mutateAsync(id);
     setOpenDelete(false);
   };
   return (
@@ -67,11 +67,11 @@ const InformationSourceDropdownActions = ({
         <DialogContent>
           <DialogHeader>
             <DialogTitle className="text-center">
-              ¿Seguro que desea eliminar la fuente?
+              ¿Seguro que desea eliminar la actividad?
             </DialogTitle>
             <DialogDescription className="text-center p-2 mb-0 pb-0">
-              Esta acción es irreversible y estaría eliminando por completo el
-              piloto seleccionado.
+              Esta acción es irreversible y estaría eliminando por completo
+              la actividad seleccionada.
             </DialogDescription>
           </DialogHeader>
 
@@ -85,11 +85,11 @@ const InformationSourceDropdownActions = ({
             </Button>
 
             <Button
-              disabled={deleteInformationSource.isPending}
+              disabled={deleteSMSActivity.isPending}
               className="hover:bg-white hover:text-black hover:border hover:border-black transition-all"
-              onClick={() => handleDelete(informationSource.id)}
+              onClick={() => handleDelete(smsActivity.id)}
             >
-              {deleteInformationSource.isPending ? (
+              {deleteSMSActivity.isPending ? (
                 <Loader2 className="size-4 animate-spin" />
               ) : (
                 <p>Confirmar</p>
@@ -101,15 +101,13 @@ const InformationSourceDropdownActions = ({
 
       {/* DIALOGO DE EDITAR */}
       <Dialog open={openEdit} onOpenChange={setOpenEdit}>
-        <DialogContent>
+        <DialogContent className="flex flex-col max-w-2xl m-2">
           <DialogHeader>
-            <DialogTitle className="text-center">Edicion de Fuente</DialogTitle>
-            <DialogDescription className="text-center p-2 mb-0 pb-0">
-              Edicion de Fuente de Informacion
+            <DialogTitle className="text-center">Edicion de Actividad</DialogTitle>
+            <DialogDescription className="text-center">
             </DialogDescription>
-
-            <EditInformationSourceForm
-              initialData={informationSource}
+            < CreateSMSActivityForm initialData={smsActivity}
+              isEditing={true}
               onClose={() => setOpenEdit(false)}
             />
           </DialogHeader>
@@ -119,4 +117,4 @@ const InformationSourceDropdownActions = ({
   );
 };
 
-export default InformationSourceDropdownActions;
+export default SMSActivityDropDownActions;
