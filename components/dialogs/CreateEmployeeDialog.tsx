@@ -58,8 +58,8 @@ export const CreateEmployeeDialog = () => {
 
   const { mutateAsync, isPending } = useCreateEmployee();
   const { data: companies = [] } = useGetCompanies();
-  const { data: departments = [] } = useDepartments();
-  const { data: jobTitles = [] } = useJobTitles();
+  // const { data: departments = [] } = useDepartments();
+  // const { data: jobTitles = [] } = useJobTitles();
   const { data: locations = [] } = useGetLocationsByCompanyId();
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
@@ -176,11 +176,11 @@ export const CreateEmployeeDialog = () => {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {jobTitles.map((title) => (
+                        {/* {jobTitles.map((title) => (
                           <SelectItem key={title.id} value={title.id.toString()}>
                             {title.name}
                           </SelectItem>
-                        ))}
+                        ))} */}
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -201,11 +201,11 @@ export const CreateEmployeeDialog = () => {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {departments.map((d) => (
+                        {/* {departments.map((d) => (
                           <SelectItem key={d.id} value={d.id.toString()}>
                             {d.name}
                           </SelectItem>
-                        ))}
+                        ))} */}
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -227,11 +227,11 @@ export const CreateEmployeeDialog = () => {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {locations.map((loc) => (
+                      {/* {locations.map((loc) => (
                         <SelectItem key={loc.id} value={loc.id.toString()}>
                           {loc.name}
                         </SelectItem>
-                      ))}
+                      ))} */}
                     </SelectContent>
                   </Select>
                   <FormMessage />
