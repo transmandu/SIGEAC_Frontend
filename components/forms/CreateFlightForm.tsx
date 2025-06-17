@@ -40,13 +40,13 @@ const formSchema = z
     date: z.date({
       required_error: "La fecha de vuelo es requerida",
     }),
-    flight_number: z
+    guide_code: z
       .string()
       .min(1, {
         message: "El número de vuelo es requerido.",
       })
       .max(10, {
-        message: "El número de vuelo tiene un máximo de 10 caracteres.",
+        message: "El número de guía tiene un máximo de 10 caracteres.",
       }),
     details: z
       .string()
@@ -184,12 +184,12 @@ export function FlightForm({ onClose }: FormProps) {
         <div className="flex gap-2 items-center justify-center">
           <FormField
             control={form.control}
-            name="flight_number"
+            name="guide_code"
             render={({ field }) => (
               <FormItem className="w-full">
-                <FormLabel>Número de Vuelo</FormLabel>
+                <FormLabel>Número de Guía</FormLabel>
                 <FormControl>
-                  <Input placeholder="# Vuelo" {...field} />
+                  <Input placeholder="# Guía" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>

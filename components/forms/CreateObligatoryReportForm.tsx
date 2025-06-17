@@ -74,7 +74,7 @@ interface FormProps {
   onClose: () => void;
 }
 
-export function CreateObligatoryReportForm({ 
+export function CreateObligatoryReportForm({
   onClose,
   isEditing,
   initialData,
