@@ -36,7 +36,7 @@ const FormSchema = z.object({
   description: z.string()
     .min(5, { message: "La descripción debe tener al menos 5 caracteres" })
     .max(200, { message: "La descripción no puede exceder los 200 caracteres" }),
-    
+
   responsible: z.string()
     .min(3, { message: "El responsable debe tener al menos 3 caracteres" })
     .max(50, { message: "El responsable no puede exceder los 50 caracteres" }),
@@ -120,7 +120,7 @@ export default function CreateMitigationPlanForm({
 
 
         <div className="flex gap-2 items-center justify-center">
- 
+
           <FormField
             control={form.control}
             name="responsible"
@@ -140,7 +140,7 @@ export default function CreateMitigationPlanForm({
                     <SelectItem value="SMS">DIRECCIÓN DE SMS</SelectItem>
                     <SelectItem value="OPERACIONES">OPERACIONES</SelectItem>
                     <SelectItem value="MANTENIMIENTO">MANTENIMIENTO</SelectItem>
-                    <SelectItem value="ADMINISTRACION_RRH">ADMINISTRACION Y RRHH</SelectItem>
+                    <SelectItem value="ADMINISTRACION_RRHH">ADMINISTRACION Y RRHH</SelectItem>
                     <SelectItem value="CONTROL_CALIDAD">
                       CONTROL DE CALIDAD
                     </SelectItem>
