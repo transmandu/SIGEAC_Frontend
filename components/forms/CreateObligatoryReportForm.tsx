@@ -74,7 +74,7 @@ interface FormProps {
   onClose: () => void;
 }
 
-export function CreateObligatoryReportForm({ 
+export function CreateObligatoryReportForm({
   onClose,
   isEditing,
   initialData,
@@ -254,7 +254,6 @@ export function CreateObligatoryReportForm({
   });
 
   const onSubmit = async (data: FormSchemaType) => {
-    console.log(data);
     if (isEditing && initialData && data.report_number) {
       const value = {
         id: initialData.id,
@@ -288,8 +287,8 @@ export function CreateObligatoryReportForm({
         description: data.description,
         incident_date: data.incident_date,
         report_date: data.report_date,
-        incident_time: format(data.incident_time, "HH:mm:ss"),
-        flight_time: format(data.flight_time, "HH:mm:ss"),
+        incident_time: data.incident_time ? format(data.incident_time, "HH:mm:ss") : "00:00:00",
+        flight_time: data.flight_time ? format(data.flight_time, "HH:mm:ss") : "00:00:00",
         pilot_id: data.pilot_id,
         copilot_id: data.pilot_id,
         aircraft_id: data.aircraft_id,
@@ -551,114 +550,107 @@ export function CreateObligatoryReportForm({
         </div>
 
         <div className="flex gap-4 justify-center items-center">
-          <FormField
-            control={form.control}
-            name="flight_time"
-            render={({ field }) => {
-              const handleChange = (event: { target: { value: any } }) => {
-                const timeString = event.target.value;
-                const time = parse(timeString, "HH:mm", new Date());
-                const formattedTime = format(time, "HH:mm")
-                if (isValid(time)) {
-                  field.onChange(formattedTime);
-                }
-              };
+        <FormField
+          control={form.control}
+          name="flight_time"
+          render={({ field }) => {
+            const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+              const timeString = event.target.value;
+              if (timeString) {
+                const [hours, minutes] = timeString.split(':').map(Number);
+                const date = new Date();
+                date.setHours(hours, minutes);
+                field.onChange(date);
+              }
+            };
 
-              return (
-                <FormItem className="w-full flex flex-col">
-                  {" "}
-                  {/* Cambio clave aquí */}
-                  <FormLabel className="mb-1">
-                    Indicar hora de vuelo
-                  </FormLabel>{" "}
-                  {/* Añadido mb-1 para espacio */}
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <FormControl>
-                        <Button
-                          variant={"outline"}
-                          className={cn(
-                            "w-[240px] pl-3 text-left font-normal",
-                            !field.value && "text-muted-foreground"
-                          )}
-                        >
-                          {field.value ? (
-                            format(field.value, "HH:mm")
-                          ) : (
-                            <span>Seleccionar Hora</span>
-                          )}
-                          <ClockIcon className="ml-auto h-4 w-4 opacity-50" />
-                        </Button>
-                      </FormControl>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <input
-                        type="time"
-                        value={field.value ? format(field.value, "HH:mm") : ""}
-                        onChange={handleChange}
-                        className="w-full p-2 border rounded"
-                      />
-                    </PopoverContent>
-                  </Popover>
-                  <FormMessage />
-                </FormItem>
-              );
-            }}
-          />
+            return (
+              <FormItem className="w-full flex flex-col">
+                <FormLabel className="mb-1">Indicar hora de vuelo</FormLabel>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <FormControl>
+                      <Button
+                        variant={"outline"}
+                        className={cn(
+                          "w-[240px] pl-3 text-left font-normal",
+                          !field.value && "text-muted-foreground"
+                        )}
+                      >
+                        {field.value ? (
+                          format(field.value, "HH:mm")
+                        ) : (
+                          <span>Seleccionar Hora</span>
+                        )}
+                        <ClockIcon className="ml-auto h-4 w-4 opacity-50" />
+                      </Button>
+                    </FormControl>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <input
+                      type="time"
+                      value={field.value ? format(field.value, "HH:mm") : ""}
+                      onChange={handleChange}
+                      className="w-full p-2 border rounded"
+                    />
+                  </PopoverContent>
+                </Popover>
+                <FormMessage />
+              </FormItem>
+            );
+          }}
+        />
 
-          <FormField
-            control={form.control}
-            name="incident_time"
-            render={({ field }) => {
-              const handleChange = (event: { target: { value: any } }) => {
-                const timeString = event.target.value;
-                const time = parse(timeString, "HH:mm", new Date());
-                if (isValid(time)) {
-                  field.onChange(time);
-                }
-              };
+        <FormField
+          control={form.control}
+          name="incident_time"
+          render={({ field }) => {
+            const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+              const timeString = event.target.value;
+              if (timeString) {
+                const [hours, minutes] = timeString.split(':').map(Number);
+                const date = new Date();
+                date.setHours(hours, minutes);
+                field.onChange(date);
+              }
+            };
 
-              return (
-                <FormItem className="w-full flex flex-col">
-                  {" "}
-                  {/* Cambio clave aquí */}
-                  <FormLabel className="mb-1">
-                    Indicar hora del incidente
-                  </FormLabel>{" "}
-                  {/* Añadido mb-1 para espacio */}
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <FormControl>
-                        <Button
-                          variant={"outline"}
-                          className={cn(
-                            "w-[240px] pl-3 text-left font-normal",
-                            !field.value && "text-muted-foreground"
-                          )}
-                        >
-                          {field.value ? (
-                            format(field.value, "HH:mm")
-                          ) : (
-                            <span>Seleccionar Hora</span>
-                          )}
-                          <ClockIcon className="ml-auto h-4 w-4 opacity-50" />
-                        </Button>
-                      </FormControl>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <input
-                        type="time"
-                        value={field.value ? format(field.value, "HH:mm") : ""}
-                        onChange={handleChange}
-                        className="w-full p-2 border rounded"
-                      />
-                    </PopoverContent>
-                  </Popover>
-                  <FormMessage />
-                </FormItem>
-              );
-            }}
-          />
+            return (
+              <FormItem className="w-full flex flex-col">
+                <FormLabel className="mb-1">Hora del Incidente</FormLabel>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <FormControl>
+                      <Button
+                        variant={"outline"}
+                        className={cn(
+                          "w-[240px] pl-3 text-left font-normal",
+                          !field.value && "text-muted-foreground"
+                        )}
+                      >
+                        {field.value ? (
+                          format(field.value, "HH:mm")
+                        ) : (
+                          <span>Seleccionar Hora</span>
+                        )}
+                        <ClockIcon className="ml-auto h-4 w-4 opacity-50" />
+                      </Button>
+                    </FormControl>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <input
+                      type="time"
+                      value={field.value ? format(field.value, "HH:mm") : ""}
+                      onChange={handleChange}
+                      className="w-full p-2 border rounded"
+                    />
+                  </PopoverContent>
+                </Popover>
+                <FormMessage />
+              </FormItem>
+            );
+          }}
+        />
         </div>
         <FormField
             control={form.control}
