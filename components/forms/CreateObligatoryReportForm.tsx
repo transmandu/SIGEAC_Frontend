@@ -226,7 +226,7 @@ export function CreateObligatoryReportForm({
       report_number: initialData?.report_number,
       description: initialData?.description,
       incident_location: initialData?.incident_location,
-      aircraft_id: initialData?.aircraft.id.toString(),
+      aircraft_id: initialData?.aircraft?.id.toString(),
       pilot_id: initialData?.pilot?.id.toString(),
       copilot_id: initialData?.copilot?.id.toString(),
       flight_alt_destiny: initialData?.flight_alt_destiny,
