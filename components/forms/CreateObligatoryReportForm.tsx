@@ -87,6 +87,7 @@ export function CreateObligatoryReportForm({
     ["SUPERUSER", "ANALISTA_SMS", "JEFE_SMS"].includes(role)
   );
 
+
   const FormSchema = z
     .object({
       report_number: shouldEnableField
@@ -102,7 +103,6 @@ export function CreateObligatoryReportForm({
               message: "El valor debe ser un número o estar vacío",
             })
             .optional(),
-
       incident_location: z
         .string()
         .min(3, {
@@ -112,31 +112,31 @@ export function CreateObligatoryReportForm({
           message: "El lugar de incidente no debe exceder los 50 caracteres",
         }),
       description: z.string(),
-
       report_date: z
         .date()
         .refine((val) => !isNaN(val.getTime()), { message: "Fecha inválida" }),
       incident_date: z
         .date()
         .refine((val) => !isNaN(val.getTime()), { message: "Fecha inválida" }),
-
       incident_time: z
-        .date()
-        .refine((val) => !isNaN(val.getTime()), { message: "Hora inválida" }),
+        .string()
+        .regex(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/, {
+          message: "Formato de hora inválido (HH:mm)",
+        }),
       flight_time: z
-        .date()
-        .refine((val) => !isNaN(val.getTime()), { message: "Hora inválida" }),
+        .string()
+        .regex(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/, {
+          message: "Formato de hora inválido (HH:mm)",
+        }),
       pilot_id: z.string(),
       copilot_id: z.string(),
       aircraft_id: z.string(),
       flight_number: z.string().refine((val) => !isNaN(Number(val)), {
         message: "El valor debe ser un número",
       }),
-
       flight_origin: z.string().min(3).max(3),
       flight_destiny: z.string().min(3).max(3),
       flight_alt_destiny: z.string().min(3).max(3),
-
       incidents: z.array(z.string()).optional(),
       other_incidents: z.preprocess(
         (val) => (val === null || val === undefined ? "" : val),
@@ -150,7 +150,6 @@ export function CreateObligatoryReportForm({
           "Solo JPEG/PNG"
         )
         .optional(),
-
       document: z
         .instanceof(File)
         .refine((file) => file.size <= 5 * 1024 * 1024, "Máximo 5MB")
@@ -171,6 +170,7 @@ export function CreateObligatoryReportForm({
         path: ["incidents"],
       }
     );
+
   type FormSchemaType = z.infer<typeof FormSchema>;
 
   const { createObligatoryReport } = useCreateObligatoryReport();
@@ -243,13 +243,12 @@ export function CreateObligatoryReportForm({
       incident_date: initialData?.incident_date
         ? new Date(initialData?.incident_date)
         : new Date(),
-
       flight_time: initialData?.flight_time
-        ? timeFormat(initialData?.flight_time)
-        : new Date(),
+        ? initialData.flight_time.substring(0, 5) // Extraemos solo HH:mm
+        : "00:00",
       incident_time: initialData?.incident_time
-        ? timeFormat(initialData?.incident_time)
-        : new Date(),
+        ? initialData.incident_time.substring(0, 5) // Extraemos solo HH:mm
+        : "00:00",
     },
   });
 
@@ -266,8 +265,8 @@ export function CreateObligatoryReportForm({
         description: data.description,
         incident_date: data.incident_date,
         report_date: data.report_date,
-        incident_time: format(data.incident_time, "HH:mm:ss"),
-        flight_time: format(data.flight_time, "HH:mm:ss"),
+        incident_time: `${data.incident_time}:00`, // Añadimos segundos para el backend
+        flight_time: `${data.flight_time}:00`, // Añadimos segundos para el backend
         pilot_id: data.pilot_id,
         copilot_id: data.pilot_id,
         aircraft_id: data.aircraft_id,
@@ -287,8 +286,8 @@ export function CreateObligatoryReportForm({
         description: data.description,
         incident_date: data.incident_date,
         report_date: data.report_date,
-        incident_time: data.incident_time ? format(data.incident_time, "HH:mm:ss") : "00:00:00",
-        flight_time: data.flight_time ? format(data.flight_time, "HH:mm:ss") : "00:00:00",
+        incident_time: `${data.incident_time}:00`, // Añadimos segundos para el backend
+        flight_time: `${data.flight_time}:00`, // Añadimos segundos para el backend
         pilot_id: data.pilot_id,
         copilot_id: data.pilot_id,
         aircraft_id: data.aircraft_id,
@@ -548,109 +547,52 @@ export function CreateObligatoryReportForm({
             )}
           />
         </div>
-
         <div className="flex gap-4 justify-center items-center">
-        <FormField
-          control={form.control}
-          name="flight_time"
-          render={({ field }) => {
-            const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-              const timeString = event.target.value;
-              if (timeString) {
-                const [hours, minutes] = timeString.split(':').map(Number);
-                const date = new Date();
-                date.setHours(hours, minutes);
-                field.onChange(timeString);
-              }
-            };
-
-            return (
-              <FormItem className="w-full flex flex-col">
-                <FormLabel className="mb-1">Indicar hora de vuelo</FormLabel>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <FormControl>
-                      <Button
-                        variant={"outline"}
-                        className={cn(
-                          "w-[240px] pl-3 text-left font-normal",
-                          !field.value && "text-muted-foreground"
-                        )}
-                      >
-                        {field.value ? (
-                          format(field.value, "HH:mm")
-                        ) : (
-                          <span>Seleccionar Hora</span>
-                        )}
-                        <ClockIcon className="ml-auto h-4 w-4 opacity-50" />
-                      </Button>
-                    </FormControl>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <input
-                      type="time"
-                      value={field.value ? format(field.value, "HH:mm") : ""}
-                      onChange={handleChange}
-                      className="w-full p-2 border rounded"
-                    />
-                  </PopoverContent>
-                </Popover>
+          <FormField
+            control={form.control}
+            name="flight_time"
+            render={({ field }) => (
+              <FormItem className="w-full">
+                <FormLabel>Hora de vuelo</FormLabel>
+                <FormControl>
+                  <Input
+                    type="time"
+                    {...field}
+                    onChange={(e) => {
+                      // Validamos que el formato sea correcto
+                      if (e.target.value.match(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/)) {
+                        field.onChange(e.target.value);
+                      }
+                    }}
+                  />
+                </FormControl>
                 <FormMessage />
               </FormItem>
-            );
-          }}
-        />
+            )}
+          />
 
-        <FormField
-          control={form.control}
-          name="incident_time"
-          render={({ field }) => {
-            const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-              const timeString = event.target.value;
-              if (timeString) {
-                const [hours, minutes] = timeString.split(':').map(Number);
-                const date = new Date();
-                date.setHours(hours, minutes);
-                field.onChange(timeString);
-              }
-            };
-
-            return (
-              <FormItem className="w-full flex flex-col">
-                <FormLabel className="mb-1">Hora del Incidente</FormLabel>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <FormControl>
-                      <Button
-                        variant={"outline"}
-                        className={cn(
-                          "w-[240px] pl-3 text-left font-normal",
-                          !field.value && "text-muted-foreground"
-                        )}
-                      >
-                        {field.value ? (
-                          format(field.value, "HH:mm")
-                        ) : (
-                          <span>Seleccionar Hora</span>
-                        )}
-                        <ClockIcon className="ml-auto h-4 w-4 opacity-50" />
-                      </Button>
-                    </FormControl>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <input
-                      type="time"
-                      value={field.value ? format(field.value, "HH:mm") : ""}
-                      onChange={handleChange}
-                      className="w-full p-2 border rounded"
-                    />
-                  </PopoverContent>
-                </Popover>
+          <FormField
+            control={form.control}
+            name="incident_time"
+            render={({ field }) => (
+              <FormItem className="w-full">
+                <FormLabel>Hora del incidente</FormLabel>
+                <FormControl>
+                  <Input
+                    type="time"
+                    {...field}
+                    onChange={(e) => {
+                      // Validamos que el formato sea correcto
+                      if (e.target.value.match(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/)) {
+                        field.onChange(e.target.value);
+                      }
+                    }}
+                  />
+                </FormControl>
                 <FormMessage />
               </FormItem>
-            );
-          }}
-        />
+            )}
+          />
         </div>
         <FormField
             control={form.control}

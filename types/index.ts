@@ -787,8 +787,8 @@ export type ObligatoryReport = {
   description: string;
   report_date: Date;
   incident_date: Date;
-  incident_time: Date;
-  flight_time: Date;
+  incident_time: string;
+  flight_time: string;
   pilot: Pilot;
   copilot: Pilot;
   aircraft: Aircraft;
