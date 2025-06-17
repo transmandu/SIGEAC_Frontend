@@ -140,7 +140,7 @@ export default function CreateMitigationPlanForm({
                     <SelectItem value="SMS">DIRECCIÓN DE SMS</SelectItem>
                     <SelectItem value="OPERACIONES">OPERACIONES</SelectItem>
                     <SelectItem value="MANTENIMIENTO">MANTENIMIENTO</SelectItem>
-                    <SelectItem value="ADMINISTRACION_RRH">ADMINISTRACION Y RRHH</SelectItem>
+                    <SelectItem value="ADMINISTRACION_RRHH">ADMINISTRACION Y RRHH</SelectItem>
                     <SelectItem value="CONTROL_CALIDAD">
                       CONTROL DE CALIDAD
                     </SelectItem>
