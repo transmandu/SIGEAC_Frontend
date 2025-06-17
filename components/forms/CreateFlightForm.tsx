@@ -40,6 +40,7 @@ const formSchema = z
     date: z.date({
       required_error: "La fecha de vuelo es requerida",
     }),
+    reference_cod: z.string().optional(),
     guide_code: z
       .string()
       .min(1, {

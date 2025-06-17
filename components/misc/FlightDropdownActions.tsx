@@ -108,7 +108,7 @@ const FlightDropdownActions = ({ flight }: { flight: Flight }) => {
               <div>
                 <DialogTitle className="text-xl font-bold flex items-center gap-2">
                   <PlaneIcon className="h-5 w-5 text-primary" />
-                  Vuelo # {flight.flight_number}
+                  Vuelo # {flight.guide_code}
                 </DialogTitle>
                 <DialogDescription className="text-sm">
                   {format(flight.date, "PPP", { locale: es })}

@@ -26,17 +26,17 @@ import { Flight } from "@/types";
 
 const FlightResumeDialog = ({ flight }: { flight: Flight }) => {
   const [openFlight, setOpenFlight] = useState(false);
-  
+
   return (
     <Dialog open={openFlight} onOpenChange={setOpenFlight}>
-      <DialogTrigger>{flight.flight_number}</DialogTrigger>
+      <DialogTrigger>{flight.guide_code}</DialogTrigger>
       <DialogContent className="sm:max-w-xl rounded-lg">
         <DialogHeader>
           <div className="flex items-center justify-between">
             <div>
               <DialogTitle className="text-xl font-bold flex items-center gap-2">
                 <PlaneIcon className="h-5 w-5 text-primary" />
-                Vuelo # {flight.flight_number}
+                Vuelo # {flight.guide_code}
               </DialogTitle>
               <DialogDescription className="text-sm">
                 {format(flight.date, "PPP", { locale: es })}
