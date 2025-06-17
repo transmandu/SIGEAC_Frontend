@@ -17,7 +17,7 @@ export const columns: ColumnDef<Flight>[] = [
     header: ({ column }) => (
       <DataTableColumnHeader filter column={column} title="# Guía" />
     ),
-    meta: { title: "# Vuelo" },
+    meta: { title: "# Guía" },
     cell: ({ row }) => (
       <div className="flex justify-center">
         <span className="text-muted-foreground italic">

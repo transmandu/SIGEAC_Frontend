@@ -7,6 +7,12 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, } from 
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger, } from "@/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, } from "@/components/ui/select";
+import {
+  InputOTP,
+  InputOTPGroup,
+  InputOTPSeparator,
+  InputOTPSlot,
+} from "@/components/ui/input-otp"
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList, } from "../ui/command";
 import { Check, ChevronsUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -190,7 +196,27 @@ export function FlightForm({ onClose }: FormProps) {
               <FormItem className="w-full">
                 <FormLabel>Número de Guía</FormLabel>
                 <FormControl>
-                  <Input placeholder="# Guía" {...field} />
+                  <InputOTP
+                    maxLength={4}
+                    value={field.value?.replace(/-/g, '') || ''}
+                    onChange={(value) => {
+                      // Formatea como XX-XX cuando se completan los 4 dígitos
+                      const formattedValue = value.length === 4
+                        ? `${value.slice(0, 2)}-${value.slice(2)}`
+                        : value
+                      field.onChange(formattedValue)
+                    }}
+                  >
+                    <InputOTPGroup>
+                      <InputOTPSlot index={0} />
+                      <InputOTPSlot index={1} />
+                    </InputOTPGroup>
+                      <InputOTPSeparator />
+                    <InputOTPGroup>
+                      <InputOTPSlot index={2} />
+                      <InputOTPSlot index={3} />
+                    </InputOTPGroup>
+                  </InputOTP>
                 </FormControl>
                 <FormMessage />
               </FormItem>
