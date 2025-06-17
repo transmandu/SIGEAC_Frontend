@@ -259,7 +259,7 @@ export function CreateObligatoryReportForm({
         image: data.image,
         document: data.document,
         status: initialData.status,
-        danger_identification_id: initialData.danger_identification.id,
+        danger_identification_id: initialData.danger_identification?.id,
         report_number: data.report_number,
         incident_location: data.incident_location,
         description: data.description,
@@ -268,7 +268,7 @@ export function CreateObligatoryReportForm({
         incident_time: `${data.incident_time}:00`, // Añadimos segundos para el backend
         flight_time: `${data.flight_time}:00`, // Añadimos segundos para el backend
         pilot_id: data.pilot_id,
-        copilot_id: data.pilot_id,
+        copilot_id: data.copilot_id,
         aircraft_id: data.aircraft_id,
         flight_number: data.flight_number,
         flight_origin: data.flight_origin,
@@ -289,7 +289,7 @@ export function CreateObligatoryReportForm({
         incident_time: `${data.incident_time}:00`, // Añadimos segundos para el backend
         flight_time: `${data.flight_time}:00`, // Añadimos segundos para el backend
         pilot_id: data.pilot_id,
-        copilot_id: data.pilot_id,
+        copilot_id: data.copilot_id,
         aircraft_id: data.aircraft_id,
         flight_number: data.flight_number,
         flight_origin: data.flight_origin,
