@@ -560,7 +560,7 @@ export function CreateObligatoryReportForm({
                 const [hours, minutes] = timeString.split(':').map(Number);
                 const date = new Date();
                 date.setHours(hours, minutes);
-                field.onChange(date);
+                field.onChange(timeString);
               }
             };
 
@@ -611,7 +611,7 @@ export function CreateObligatoryReportForm({
                 const [hours, minutes] = timeString.split(':').map(Number);
                 const date = new Date();
                 date.setHours(hours, minutes);
-                field.onChange(date);
+                field.onChange(timeString);
               }
             };
 
