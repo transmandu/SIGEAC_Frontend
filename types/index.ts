@@ -404,7 +404,7 @@ export interface DispatchRequest extends Request {
 
 export type Flight = {
   id: number,
-  flight_number: string,
+  guide_code: string,
   client: Client,
   route: Route,
   aircraft: Aircraft,
