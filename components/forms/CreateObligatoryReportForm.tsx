@@ -558,8 +558,9 @@ export function CreateObligatoryReportForm({
               const handleChange = (event: { target: { value: any } }) => {
                 const timeString = event.target.value;
                 const time = parse(timeString, "HH:mm", new Date());
+                const formattedTime = format(time, "HH:mm")
                 if (isValid(time)) {
-                  field.onChange(time);
+                  field.onChange(formattedTime);
                 }
               };
 
