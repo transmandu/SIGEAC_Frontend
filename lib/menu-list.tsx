@@ -477,6 +477,30 @@ export function getMenuList(
                 },
               ],
             },
+            {
+              href: "/sistema/empresas/empleados",
+              label: "Empleados",
+              active: pathname.includes("/sistema/empresas/empleados"),
+              icon: User2,
+              roles: ["ADMIN", "SUPERUSER"],
+              submenus: [
+                {
+                  href: "/sistema/empresas/empleados",
+                  label: "Administrar Empleados",
+                  active: pathname === "/sistema/empresas/empleados",
+                },
+                {
+                  href: "/sistema/empresas/empleados/cargo",
+                  label: "Administrar Cargos",
+                  active: pathname === "/sistema/empresas/empleados/cargo",
+                },
+                {
+                  href: "/sistema/empresas/empleados/departamento",
+                  label: "Administrar Departamentos",
+                  active: pathname === "/sistema/empresas/empleados/departamento",
+                },
+              ],
+            },
           ],
         },
         {
@@ -982,6 +1006,35 @@ export function getMenuList(
                   href: "/sistema/usuarios_permisos/permisos",
                   label: "Administrar Permisos",
                   active: pathname === "/sistema/usuarios_permisos/permisos",
+                },
+                {
+                  href: "/sistema/empresas/empleados",
+                  label: "Administrar Empleados",
+                  active: pathname === "/sistema/empresas/empleados",
+                },
+              ],
+            },
+            {
+              href: "/sistema/empresas/empleados",
+              label: "Empleados",
+              active: pathname.includes("/sistema/empresas/empleados"),
+              icon: User2,
+              roles: ["ADMIN", "SUPERUSER"],
+              submenus: [
+                {
+                  href: "/sistema/empresas/empleados",
+                  label: "Administrar Empleados",
+                  active: pathname === "/sistema/empresas/empleados",
+                },
+                {
+                  href: "/sistema/empresas/empleados/cargo",
+                  label: "Administrar Cargos",
+                  active: pathname === "/sistema/empresas/empleados/cargo",
+                },
+                {
+                  href: "/sistema/empresas/empleados/departamento",
+                  label: "Administrar Departamentos",
+                  active: pathname === "/sistema/empresas/empleados/departamento",
                 },
               ],
             },

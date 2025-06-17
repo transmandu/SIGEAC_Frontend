@@ -251,10 +251,11 @@ export type CreditPayment = {
 
 export type Department = {
   id: number,
-  address: string,
-  type: string,
-  is_main_base: string,
-  cod_iata: string,
+  // address: string,
+  // type: string,
+  // is_main_base: string,
+  // cod_iata: string,
+  acronym: string,
   name: string;
   email: string;
 };
