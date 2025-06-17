@@ -89,10 +89,10 @@ interface AircraftExpenseFormData {
     cash_id: string;
     bank_account_id?: string | null;
     total_amount: number;
-    reference_cod: string;
+    reference_cod?: string;
     details: string;
     employee_responsible: string;
-    vendor_id: string;
+    vendor_id?: string;
     cash_movement_details: {
       accountant_id: string;
       category_id: string;

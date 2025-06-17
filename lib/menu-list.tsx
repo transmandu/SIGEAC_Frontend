@@ -7,7 +7,6 @@ import {
   Award,
   BookCheck,
   BookUser,
-  Building,
   ClipboardCopy,
   ClipboardList,
   ClipboardPen,
@@ -234,20 +233,6 @@ export function getMenuList(
                   active:
                     pathname ===
                     "/transmandu/administracion/operaciones/arrendamiento",
-                },
-                //  {
-                //    href: "/transmandu/administracion/operaciones/ventas",
-                //    label: "Ventas",
-                //    active:
-                //      pathname ===
-                //      "/transmandu/administracion/operaciones/ventas",
-                //  },
-                {
-                  href: "/transmandu/administracion/operaciones/articulos",
-                  label: "Artículos",
-                  active:
-                    pathname ===
-                    "/transmandu/administracion/operaciones/articulos",
                 },
               ],
             },
