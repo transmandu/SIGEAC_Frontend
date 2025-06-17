@@ -17,13 +17,13 @@ import {
 import { useGetObligatoryReportById } from "@/hooks/sms/useGetObligatoryReportById";
 import { format, parse } from "date-fns";
 import { es } from "date-fns/locale";
-import { 
-  Loader2, 
-  FileText, 
-  Download, 
-  Eye, 
-  Edit, 
-  Trash2, 
+import {
+  Loader2,
+  FileText,
+  Download,
+  Eye,
+  Edit,
+  Trash2,
   AlertTriangle,
   Calendar,
   Clock,
@@ -108,7 +108,7 @@ const ShowObligatoryReport = () => {
         {/* Botón para eliminar reporte */}
         {obligatoryReport && obligatoryReport.status === "ABIERTO" && (
           <div className="flex items-center py-4">
-            <DeleteVoluntaryReprotDialog 
+            <DeleteVoluntaryReprotDialog
               id={obligatoryReport.id}
             />
           </div>
@@ -199,7 +199,7 @@ const ShowObligatoryReport = () => {
                   <Clock className="w-5 h-5" />
                   <span>
                     <span className="font-semibold">Hora: </span>
-                    {hourFormat(obligatoryReport.incident_time)}
+                    {obligatoryReport.incident_time}
                   </span>
                 </p>
               </div>
@@ -294,7 +294,7 @@ const ShowObligatoryReport = () => {
                   </p>
                   <p className="text-lg font-medium text-gray-700 dark:text-gray-300">
                     <span className="font-semibold">Hora de Vuelo: </span>
-                    {hourFormat(obligatoryReport.flight_time)}
+                    {obligatoryReport.flight_time}
                   </p>
                   <p className="text-lg text-gray-700 dark:text-gray-300">
                     <span className="font-semibold">Origen: </span>

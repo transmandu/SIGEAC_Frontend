@@ -60,8 +60,8 @@ export const columns: ColumnDef<ObligatoryReport>[] = [
     cell: ({ row }) => {
       return (
         <p className="font-medium text-center">
-        {row.original.report_date 
-          ? dateFormat(row.original.report_date, "PPP") 
+        {row.original.report_date
+          ? dateFormat(row.original.report_date, "PPP")
           : "N/A"}
         </p>
       );
@@ -73,15 +73,7 @@ export const columns: ColumnDef<ObligatoryReport>[] = [
       <DataTableColumnHeader filter column={column} title="Hora del Vuelo" />
     ),
     cell: ({ row }) => {
-      if (!row.original.flight_time) return <p className="font-medium text-center">N/A</p>;
-    
-      try {
-        const flight_time = timeFormat(row.original.flight_time);
-        return <p className="font-medium text-center">{flight_time}</p>;
-      } catch (e) {
-        console.error("Error formatting flight time:", e);
-        return <p className="font-medium text-center">Invalid Time</p>;
-      }
+        return <p className="font-medium text-center">{row.original.flight_time}</p>;
     },
   },
   {
@@ -90,15 +82,8 @@ export const columns: ColumnDef<ObligatoryReport>[] = [
       <DataTableColumnHeader filter column={column} title="Hora del suceso" />
     ),
     cell: ({ row }) => {
-      if (!row.original.incident_time) return <p className="font-medium text-center">N/A</p>;
-    
-      try {
-        const incident_time = timeFormat(row.original.incident_time);
+        const incident_time = row.original.incident_time;
         return <p className="font-medium text-center">{incident_time}</p>;
-      } catch (e) {
-        console.error("Error formatting flight time:", e);
-        return <p className="font-medium text-center">Invalid Time</p>;
-      }
     },
   },
 
@@ -121,7 +106,7 @@ export const columns: ColumnDef<ObligatoryReport>[] = [
     cell: ({ row }) => (
       <div className="flex justify-center">
         <Badge
-          className={`justify-center items-center text-center font-bold font-sans 
+          className={`justify-center items-center text-center font-bold font-sans
       ${
         row.original.status === "CERRADO"
           ? "bg-green-400"
