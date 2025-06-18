@@ -308,8 +308,8 @@ const Header = () => (
 );
 
 interface MyDocumentProps {
-report: VoluntaryReport;
-identification?: MitigationTable;
+  report: VoluntaryReport;
+  identification?: MitigationTable;
 }
 
 const MyDocument = ({ report, identification }: MyDocumentProps) => (
@@ -508,7 +508,7 @@ const MyDocument = ({ report, identification }: MyDocumentProps) => (
             </View>
             <View style={styles.xCell}>
               <Text style={styles.cellText}>
-                {report.danger_area === "ADMINISTRACION" ? "X" : ""}
+                {report.danger_area === "ADMINISTRACION_RRHH" ? "X" : ""}
               </Text>
             </View>
 
@@ -531,7 +531,7 @@ const MyDocument = ({ report, identification }: MyDocumentProps) => (
             <View style={styles.xCell}>
               <Text style={styles.cellText}>
                 {" "}
-                {report.danger_area === "INFORMATICA_TECNOLOGIA" ? "X" : ""}
+                {report.danger_area === "IT" ? "X" : ""}
               </Text>
             </View>
             <View style={styles.textCell}>
@@ -712,7 +712,8 @@ const MyDocument = ({ report, identification }: MyDocumentProps) => (
         </Text>
         <Text style={styles.instructiveText}>
           {" "}
-          Colocar el número telefónico de la persona que realiza el reporte, si{" "}
+          Colocar el número telefónico de la persona que realiza el reporte,
+          si{" "}
         </Text>
       </View>
       <View style={styles.instructiveContainer}>
