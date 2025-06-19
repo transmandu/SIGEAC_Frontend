@@ -82,6 +82,7 @@ export const useDeleteVoluntaryReport = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["danger-identifications"] });
       queryClient.invalidateQueries({ queryKey: ["voluntary-reports"] });
+      queryClient.invalidateQueries({ queryKey: ["analysis"] });
       toast.success("¡Eliminado!", {
         description: `¡El reporte ha sido eliminada correctamente!`,
       });
@@ -104,7 +105,6 @@ export const useUpdateVoluntaryReport = () => {
   const updateVoluntaryReportMutation = useMutation({
     mutationKey: ["voluntary-reports"],
     mutationFn: async (data: UpdateVoluntaryReportData) => {
-      console.log("line number 106", data);
       const response = await axiosInstance.post(
         `/transmandu/sms/update/voluntary-reports/${data.id}`,
         data,
@@ -141,7 +141,6 @@ export const useAcceptVoluntaryReport = () => {
   const acceptVoluntaryReportMutation = useMutation({
     mutationKey: ["voluntary-reports"],
     mutationFn: async (data: UpdateVoluntaryReportData) => {
-      console.log("line number 106", data);
       const response = await axiosInstance.patch(
         `/transmandu/sms/accept/voluntary-reports/${data.id}`,
         data

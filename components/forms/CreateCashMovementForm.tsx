@@ -24,6 +24,7 @@ import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList, } from "../ui/command";
+import { useGetEmployeesByDepartment } from "@/hooks/sistema/useGetEmployeesByDepartament";
 
 const formSchema = z.object({
   employee_responsible: z.string({
@@ -95,11 +96,7 @@ export function CreateCashMovementForm({ onClose }: FormProps) {
 
   const { createCashMovement } = useCreateCashMovement();
   const {selectedCompany} = useCompanyStore();
-  const {
-    data: employees,
-    mutate,
-    isPending: isEmployeesLoading,
-  } = useGetEmployeesByCompany();
+  const {data: employees, isLoading: isEmployeesLoading } = useGetEmployeesByDepartment("DAR", selectedCompany?.split(" ").join(""));
   const { data: cashes, isLoading: isCashesLoading } = useGetCash();
   const { data: bankaccounts, isLoading: isBankAccLoading } =
     useGetBankAccounts();
@@ -110,7 +107,6 @@ export function CreateCashMovementForm({ onClose }: FormProps) {
     useGetCategoriesByAccountant(accountantId || "");
 
   useEffect(() => {
-    mutate("transmandu");
     // Observar cambios en la caja seleccionada
     const subscription = form.watch((value, { name }) => {
       if (name === "cash_id") {
@@ -126,7 +122,7 @@ export function CreateCashMovementForm({ onClose }: FormProps) {
     });
 
     return () => subscription.unsubscribe();
-  }, [mutate, form, cashes]);
+  }, [form, cashes]);
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     createCashMovement.mutate(values, {

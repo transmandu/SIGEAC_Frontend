@@ -1,7 +1,7 @@
 import CurrencyInput from 'react-currency-input-field'
 
 type Props = {
-  value?: string,
+  value: string,
   onChange: (value: string | undefined) => void
   placeholder?: string,
   disabled?: boolean,

@@ -73,8 +73,8 @@ export function AcceptObligatoryReport({ onClose, initialData }: FormProps) {
         other_incidents: initialData.other_incidents ?? "",
         report_date: new Date(initialData.report_date),
         incident_date: new Date(initialData.incident_date),
-        incident_time: format(timeFormat(initialData?.incident_time), "HH:mm:ss"),
-        flight_time: format(timeFormat(initialData?.flight_time), "HH:mm:ss"),
+        incident_time:initialData?.incident_time,
+        flight_time: initialData?.flight_time,
       };
       try {
         await acceptObligatoryReport.mutateAsync(value);

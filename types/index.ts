@@ -404,7 +404,7 @@ export interface DispatchRequest extends Request {
 
 export type Flight = {
   id: number,
-  flight_number: string,
+  guide_code: string,
   client: Client,
   route: Route,
   aircraft: Aircraft,
@@ -646,7 +646,7 @@ export type Route = {
   id: number;
   from: string;
   to: string;
-  layovers: string,
+  layover: string[],
 };
 
 export type Sell = {
@@ -787,8 +787,8 @@ export type ObligatoryReport = {
   description: string;
   report_date: Date;
   incident_date: Date;
-  incident_time: Date;
-  flight_time: Date;
+  incident_time: string;
+  flight_time: string;
   pilot: Pilot;
   copilot: Pilot;
   aircraft: Aircraft;
@@ -949,7 +949,6 @@ export type SMSActivity = {
   id: number;
   activity_name: string;
   activity_number: string;
-  title: string;
   start_date: Date;
   end_date: Date;
   hour: Date;
@@ -958,9 +957,9 @@ export type SMSActivity = {
   topics: string;
   objetive: string;
   description: string;
-  authorized_by: number;
-  planned_by: number;
-  executed_by: number;
+  authorized_by: string;
+  planned_by: string;
+  executed_by: string;
   status: string;
 }
 

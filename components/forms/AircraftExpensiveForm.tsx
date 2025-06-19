@@ -98,7 +98,7 @@ const movementSchema = z.object({
   cash_movement_details: z.array(cash_movement_detailsSchema).min(1, {
     message: "Debe agregar al menos un gasto.",
   }),
-  employee_responsible_id: z.string({
+  employee_responsible: z.string({
     message: "Debe elegir un responsable.",
   }),
   vendor_id: z.string({
@@ -173,7 +173,7 @@ export function AircraftExpensiveForm({ acronym, onClose }: FormProps) {
         bank_account_id?: string | null;
         total_amount: number;
         reference_cod: string;
-        employee_responsible_id: string;
+        employee_responsible: string;
         vendor_id: string;
         cash_movement_details: {
           accountant_id: string;
@@ -215,7 +215,7 @@ export function AircraftExpensiveForm({ acronym, onClose }: FormProps) {
       bank_account_id: null,
       total_amount: "",
       reference_cod: "",
-      employee_responsible_id: "",
+      employee_responsible: "",
       vendor_id: "",
       cash_movement_details: [
         {
@@ -466,7 +466,7 @@ export function AircraftExpensiveForm({ acronym, onClose }: FormProps) {
                 <div className="flex gap-2 items-center justify-center">
                   <FormField
                     control={form.control}
-                    name={`movements.${movementIndex}.employee_responsible_id`}
+                    name={`movements.${movementIndex}.employee_responsible`}
                     render={({ field }) => (
                       <FormItem className="w-full flex flex-col space-y-3 mt-1.5">
                         <FormLabel>Responsable</FormLabel>
@@ -485,7 +485,7 @@ export function AircraftExpensiveForm({ acronym, onClose }: FormProps) {
                               employees.map((employee) => (
                                 <SelectItem
                                   key={employee.id}
-                                  value={employee.id.toString()}
+                                  value={employee.dni}
                                 >
                                   {employee.first_name} {employee.last_name}
                                 </SelectItem>

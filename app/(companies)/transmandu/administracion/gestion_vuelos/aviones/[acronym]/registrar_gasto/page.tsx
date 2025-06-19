@@ -29,12 +29,12 @@ import {
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
-import { useGetEmployeesByCompany } from "@/hooks/administracion/useGetEmployees";
 import { useGetCash } from "@/hooks/aerolinea/cajas/useGetCash";
 import { useGetCategory } from "@/hooks/aerolinea/categorias_cuentas/useGetCategory";
 import { useGetAccountant } from "@/hooks/aerolinea/cuentas_contables/useGetAccountant";
 import { useGetBankAccounts } from "@/hooks/general/cuentas_bancarias/useGetBankAccounts";
 import { useGetVendors } from "@/hooks/general/proveedores/useGetVendors";
+import { useGetEmployeesByDepartment } from "@/hooks/sistema/useGetEmployeesByDepartament";
 import { cn } from "@/lib/utils";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -42,7 +42,6 @@ import { format } from "date-fns";
 import { es } from "date-fns/locale/es";
 import { CalendarIcon, Loader2, MinusCircle, PlusCircle } from "lucide-react";
 import { useParams } from "next/navigation";
-import { useEffect } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -83,12 +82,12 @@ const movementSchema = z.object({
   reference_cod: z
     .string()
     .min(2, { message: "La referencia debe tener al menos 2 caracteres." })
-    .max(15, { message: "La referencia tiene un máximo 10 caracteres." }),
+    .max(15, { message: "La referencia tiene un máximo 10 caracteres." }).optional(),
   cash_movement_details: z
     .array(cash_movement_detailsSchema)
     .min(1, { message: "Debe agregar al menos un gasto." }),
-  employee_responsible_id: z.string({ message: "Debe elegir un responsable." }),
-  vendor_id: z.string({ required_error: "El beneficiario es requerido" }),
+  employee_responsible: z.string({ message: "Debe elegir un responsable." }),
+  vendor_id: z.string().optional(),
 });
 
 const formSchema = z.object({
@@ -107,13 +106,8 @@ export default function AircraftExpensesPage() {
       movements: [{ cash_movement_details: [{}] }],
     },
   });
-
   const { createCashMovementForAircraft } = useCashMovementForAircraft();
-  const {
-    data: employees,
-    mutate,
-    isPending: isEmployeesLoading,
-  } = useGetEmployeesByCompany();
+  const {data: employees, isLoading: isEmployeesLoading } = useGetEmployeesByDepartment("DAR", selectedCompany?.split(" ").join(""));
   const { data: cashes, isLoading: isCashesLoading } = useGetCash();
   const { data: bankaccounts, isLoading: isBankAccLoading } =
     useGetBankAccounts();
@@ -135,13 +129,6 @@ export default function AircraftExpensesPage() {
     control: form.control,
     name: "movements",
   });
-
-  useEffect(() => {
-    if (selectedCompany) {
-      mutate(selectedCompany.split(" ").join("").toLowerCase());
-    }
-  }, [mutate, selectedCompany]);
-
   async function onSubmit(formData: z.infer<typeof formSchema>) {
     const transformedData = {
       ...formData,
@@ -167,7 +154,7 @@ export default function AircraftExpensesPage() {
       total_amount: "",
       reference_cod: "",
       details: "",
-      employee_responsible_id: "",
+      employee_responsible: "",
       vendor_id: "",
       cash_movement_details: [
         {
@@ -385,7 +372,17 @@ export default function AircraftExpensesPage() {
                           )}
                         />
 
-                        <FormField
+{(() => {
+                          const selectedCashId = form.watch(
+                            `movements.${movementIndex}.cash_id`
+                          );
+                          const selectedCash = cashes?.find(
+                            (cash) => cash.id.toString() === selectedCashId
+                          );
+                          if (selectedCash?.type === "EFECTIVO") return null;
+
+                          return (
+                            <FormField
                           control={form.control}
                           name={`movements.${movementIndex}.reference_cod`}
                           render={({ field }) => (
@@ -399,13 +396,16 @@ export default function AircraftExpensesPage() {
                             </FormItem>
                           )}
                         />
+                          );
+                        })()}
+
                       </div>
 
                       {/* Responsable y Beneficiario */}
                       <div className="space-y-2">
                         <FormField
                           control={form.control}
-                          name={`movements.${movementIndex}.employee_responsible_id`}
+                          name={`movements.${movementIndex}.employee_responsible`}
                           render={({ field }) => (
                             <FormItem>
                               <FormLabel>Responsable</FormLabel>
@@ -421,7 +421,7 @@ export default function AircraftExpensesPage() {
                                   {employees?.map((employee) => (
                                     <SelectItem
                                       key={employee.id}
-                                      value={employee.id.toString()}
+                                      value={employee.dni}
                                     >
                                       {employee.first_name} {employee.last_name}
                                     </SelectItem>

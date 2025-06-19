@@ -10,7 +10,7 @@ export const useCreateRoute = () => {
     mutationFn: async (data: {
       from: string;
       to: string;
-      layovers?: string; 
+      layover?: string[];
     }) => {
       await axiosInstance.post('/transmandu/route', data);
     },
@@ -36,7 +36,7 @@ export const useGetRoute = (id: string | null) => {
   const routesQuery = useQuery({
     queryKey: ["route"],
     queryFn: async () => {
-      const {data} = await axiosInstance.get(`/transmandu/route/${id}`); 
+      const {data} = await axiosInstance.get(`/transmandu/route/${id}`);
       return data as Route;
     },
     enabled: !!id
@@ -44,7 +44,7 @@ export const useGetRoute = (id: string | null) => {
   return {
     data: routesQuery.data,
     loading: routesQuery.isLoading,
-    error: routesQuery.isError 
+    error: routesQuery.isError
   };
 };
 
@@ -57,12 +57,12 @@ export const useUpdateRoute = () => {
       id: string
       from:string,
       to: string,
-      layovers?: string
+      layover?: string[]
     }) => {
       await axiosInstance.patch(`/transmandu/route/${values.id}`, {
         from: values.from,
         to: values.to,
-        layovers: values.layovers ?? null,
+        layover: values.layover ?? null,
       });
     },
     onSuccess: () => {
@@ -79,7 +79,7 @@ export const useUpdateRoute = () => {
   });
 
   return {
-    updateRoute: updateMutation, 
+    updateRoute: updateMutation,
   };
 };
 

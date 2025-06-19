@@ -9,7 +9,7 @@ const fetchWorkOrders = async (location_id: string | null): Promise<WorkOrder[]>
 
 export const useGetWorkOrders = (location_id: string | null) => {
   return useQuery<WorkOrder[], Error>({
-    queryKey: ["work-orders"],
+    queryKey: ["work-orders", location_id],
     queryFn: () => fetchWorkOrders(location_id),
     enabled: !!location_id,
   });

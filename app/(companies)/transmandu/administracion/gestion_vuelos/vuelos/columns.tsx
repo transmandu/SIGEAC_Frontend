@@ -13,15 +13,15 @@ import AircraftResumeDialog from "@/components/dialogs/AircraftResumeDialog";
 
 export const columns: ColumnDef<Flight>[] = [
   {
-    accessorKey: "flight_number",
+    accessorKey: "guide_code",
     header: ({ column }) => (
-      <DataTableColumnHeader filter column={column} title="# Vuelo" />
+      <DataTableColumnHeader filter column={column} title="# Guía" />
     ),
-    meta: { title: "# Vuelo" },
+    meta: { title: "# Guía" },
     cell: ({ row }) => (
       <div className="flex justify-center">
         <span className="text-muted-foreground italic">
-          {row.original.flight_number} 
+          {row.original.guide_code ? row.original.guide_code : "N/A"}
         </span>
       </div>
     ),

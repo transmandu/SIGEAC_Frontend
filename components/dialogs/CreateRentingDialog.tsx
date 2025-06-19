@@ -10,7 +10,7 @@ export function RentingDialog() {
   const [open, setOpen] = useState(false);
   return (
     <>
-    <DateFilterUpdate /> 
+    <DateFilterUpdate />
 
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
@@ -25,17 +25,17 @@ export function RentingDialog() {
       <DialogContent
         className="sm:max-w-[480px]"
         onInteractOutside={(e) => {
-          e.preventDefault(); 
+          e.preventDefault();
         }}
       >
         <DialogHeader>
-          <DialogTitle>Crear un arrendamiento</DialogTitle>
+          <DialogTitle>Crear un Arrendamiento</DialogTitle>
           <DialogDescription>Cree un nuevo arrendamiento.</DialogDescription>
         </DialogHeader>
         <CreateRentingForm onClose={() => setOpen(false)} />
       </DialogContent>
     </Dialog>
-    
+
     </>
   );
 }

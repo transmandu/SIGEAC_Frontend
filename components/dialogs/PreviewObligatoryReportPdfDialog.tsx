@@ -15,6 +15,7 @@ import { ObligatoryReport } from "@/types";
 import { PDFViewer } from "@react-pdf/renderer";
 import { useState } from "react";
 import ObligatoryReportPdf from "../pdf/sms/ObligatoryReportPdf";
+import { Download } from "lucide-react";
 
 interface PreviewProps {
   title: string;
@@ -27,7 +28,7 @@ export default function PreviewVoluntaryReportPdfDialog({
 }: PreviewProps) {
   const [open, setOpen] = useState(false);
   const { data: dangerIdentification } = useGetDangerIdentificationWithAllById(
-    obligatoryReport.danger_identification.id
+    obligatoryReport?.danger_identification?.id
   );
   return (
     <>

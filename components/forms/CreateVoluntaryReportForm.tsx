@@ -400,7 +400,7 @@ export function CreateVoluntaryReportForm({
                   <SelectContent>
                     <SelectItem value="OPERACIONES">OPERACIONES</SelectItem>
                     <SelectItem value="MANTENIMIENTO">MANTENIMIENTO</SelectItem>
-                    <SelectItem value="ADMINISTRACION_RRH">
+                    <SelectItem value="ADMINISTRACION_RRHH">
                       ADMINISTRACION Y RRHH
                     </SelectItem>
                     <SelectItem value="CONTROL_CALIDAD">

@@ -59,7 +59,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../ui/select";
-import { useGetAircraftAcronyms } from "@/hooks/administracion/useGetAircraftsAcronym";
+import { useCompanyStore } from "@/stores/CompanyStore";
+import { useGetAircraftAcronyms } from "@/hooks/aerolinea/aeronaves/useGetAircraftAcronyms";
 
 function timeFormat(date: Date) {
   const timeString = date.toString();
@@ -70,7 +71,6 @@ function timeFormat(date: Date) {
 interface FormProps {
   isEditing?: boolean;
   initialData?: ObligatoryReport;
-
   onClose: () => void;
 }
 
@@ -87,6 +87,7 @@ export function CreateObligatoryReportForm({
     ["SUPERUSER", "ANALISTA_SMS", "JEFE_SMS"].includes(role)
   );
 
+
   const FormSchema = z
     .object({
       report_number: shouldEnableField
@@ -102,7 +103,6 @@ export function CreateObligatoryReportForm({
               message: "El valor debe ser un número o estar vacío",
             })
             .optional(),
-
       incident_location: z
         .string()
         .min(3, {
@@ -112,31 +112,31 @@ export function CreateObligatoryReportForm({
           message: "El lugar de incidente no debe exceder los 50 caracteres",
         }),
       description: z.string(),
-
       report_date: z
         .date()
         .refine((val) => !isNaN(val.getTime()), { message: "Fecha inválida" }),
       incident_date: z
         .date()
         .refine((val) => !isNaN(val.getTime()), { message: "Fecha inválida" }),
-
       incident_time: z
-        .date()
-        .refine((val) => !isNaN(val.getTime()), { message: "Hora inválida" }),
+        .string()
+        .regex(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/, {
+          message: "Formato de hora inválido (HH:mm)",
+        }),
       flight_time: z
-        .date()
-        .refine((val) => !isNaN(val.getTime()), { message: "Hora inválida" }),
+        .string()
+        .regex(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/, {
+          message: "Formato de hora inválido (HH:mm)",
+        }),
       pilot_id: z.string(),
       copilot_id: z.string(),
       aircraft_id: z.string(),
       flight_number: z.string().refine((val) => !isNaN(Number(val)), {
         message: "El valor debe ser un número",
       }),
-
       flight_origin: z.string().min(3).max(3),
       flight_destiny: z.string().min(3).max(3),
       flight_alt_destiny: z.string().min(3).max(3),
-
       incidents: z.array(z.string()).optional(),
       other_incidents: z.preprocess(
         (val) => (val === null || val === undefined ? "" : val),
@@ -150,7 +150,6 @@ export function CreateObligatoryReportForm({
           "Solo JPEG/PNG"
         )
         .optional(),
-
       document: z
         .instanceof(File)
         .refine((file) => file.size <= 5 * 1024 * 1024, "Máximo 5MB")
@@ -171,6 +170,7 @@ export function CreateObligatoryReportForm({
         path: ["incidents"],
       }
     );
+
   type FormSchemaType = z.infer<typeof FormSchema>;
 
   const { createObligatoryReport } = useCreateObligatoryReport();
@@ -195,8 +195,9 @@ export function CreateObligatoryReportForm({
   });
 
   // No estoy seguro si esto va aca lol
+  const {selectedCompany} = useCompanyStore();
   const { data: pilots, isLoading: isLoadingPilots } = useGetPilots();
-  const { data: aircrafts, isLoading: isLoadingAircrafts } = useGetAircraftAcronyms();
+  const { data: aircrafts, isLoading: isLoadingAircrafts } = useGetAircraftAcronyms(selectedCompany?.split(" ").join(""));
 
   const OPTIONS_LIST = [
     "La aereonave aterriza quedándose solo con el combustible de reserva o menos",
@@ -225,9 +226,9 @@ export function CreateObligatoryReportForm({
       report_number: initialData?.report_number,
       description: initialData?.description,
       incident_location: initialData?.incident_location,
-      aircraft_id: initialData?.aircraft.id.toString(),
-      pilot_id: initialData?.pilot.id.toString(),
-      copilot_id: initialData?.copilot.id.toString(),
+      aircraft_id: initialData?.aircraft?.id.toString(),
+      pilot_id: initialData?.pilot?.id.toString(),
+      copilot_id: initialData?.copilot?.id.toString(),
       flight_alt_destiny: initialData?.flight_alt_destiny,
       flight_destiny: initialData?.flight_destiny,
       flight_number: initialData?.flight_number,
@@ -242,34 +243,32 @@ export function CreateObligatoryReportForm({
       incident_date: initialData?.incident_date
         ? new Date(initialData?.incident_date)
         : new Date(),
-
       flight_time: initialData?.flight_time
-        ? timeFormat(initialData?.flight_time)
-        : new Date(),
+        ? initialData.flight_time.substring(0, 5) // Extraemos solo HH:mm
+        : "00:00",
       incident_time: initialData?.incident_time
-        ? timeFormat(initialData?.incident_time)
-        : new Date(),
+        ? initialData.incident_time.substring(0, 5) // Extraemos solo HH:mm
+        : "00:00",
     },
   });
 
   const onSubmit = async (data: FormSchemaType) => {
-    console.log(data);
     if (isEditing && initialData && data.report_number) {
       const value = {
         id: initialData.id,
         image: data.image,
         document: data.document,
         status: initialData.status,
-        danger_identification_id: initialData.danger_identification.id,
+        danger_identification_id: initialData.danger_identification?.id,
         report_number: data.report_number,
         incident_location: data.incident_location,
         description: data.description,
         incident_date: data.incident_date,
         report_date: data.report_date,
-        incident_time: format(data.incident_time, "HH:mm:ss"),
-        flight_time: format(data.flight_time, "HH:mm:ss"),
+        incident_time: `${data.incident_time}:00`, // Añadimos segundos para el backend
+        flight_time: `${data.flight_time}:00`, // Añadimos segundos para el backend
         pilot_id: data.pilot_id,
-        copilot_id: data.pilot_id,
+        copilot_id: data.copilot_id,
         aircraft_id: data.aircraft_id,
         flight_number: data.flight_number,
         flight_origin: data.flight_origin,
@@ -287,10 +286,10 @@ export function CreateObligatoryReportForm({
         description: data.description,
         incident_date: data.incident_date,
         report_date: data.report_date,
-        incident_time: format(data.incident_time, "HH:mm:ss"),
-        flight_time: format(data.flight_time, "HH:mm:ss"),
+        incident_time: `${data.incident_time}:00`, // Añadimos segundos para el backend
+        flight_time: `${data.flight_time}:00`, // Añadimos segundos para el backend
         pilot_id: data.pilot_id,
-        copilot_id: data.pilot_id,
+        copilot_id: data.copilot_id,
         aircraft_id: data.aircraft_id,
         flight_number: data.flight_number,
         flight_origin: data.flight_origin,
@@ -307,7 +306,7 @@ export function CreateObligatoryReportForm({
         const response = await createObligatoryReport.mutateAsync(value);
         console.log("this is a console log post await async", response);
         router.push(
-          `/transmandu/sms/reportes_obligatorios/${response.obligatory_report_id}`
+          `/transmandu/sms/reportes/reportes_obligatorios/${response.obligatory_report_id}`
         );
       } catch (error) {
         console.error("Error al crear el reporte:", error);
@@ -548,114 +547,51 @@ export function CreateObligatoryReportForm({
             )}
           />
         </div>
-
         <div className="flex gap-4 justify-center items-center">
           <FormField
             control={form.control}
             name="flight_time"
-            render={({ field }) => {
-              const handleChange = (event: { target: { value: any } }) => {
-                const timeString = event.target.value;
-                const time = parse(timeString, "HH:mm", new Date());
-                if (isValid(time)) {
-                  field.onChange(time);
-                }
-              };
-
-              return (
-                <FormItem className="w-full flex flex-col">
-                  {" "}
-                  {/* Cambio clave aquí */}
-                  <FormLabel className="mb-1">
-                    Indicar hora de vuelo
-                  </FormLabel>{" "}
-                  {/* Añadido mb-1 para espacio */}
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <FormControl>
-                        <Button
-                          variant={"outline"}
-                          className={cn(
-                            "w-[240px] pl-3 text-left font-normal",
-                            !field.value && "text-muted-foreground"
-                          )}
-                        >
-                          {field.value ? (
-                            format(field.value, "HH:mm")
-                          ) : (
-                            <span>Seleccionar Hora</span>
-                          )}
-                          <ClockIcon className="ml-auto h-4 w-4 opacity-50" />
-                        </Button>
-                      </FormControl>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <input
-                        type="time"
-                        value={field.value ? format(field.value, "HH:mm") : ""}
-                        onChange={handleChange}
-                        className="w-full p-2 border rounded"
-                      />
-                    </PopoverContent>
-                  </Popover>
-                  <FormMessage />
-                </FormItem>
-              );
-            }}
+            render={({ field }) => (
+              <FormItem className="w-full">
+                <FormLabel>Hora de vuelo</FormLabel>
+                <FormControl>
+                  <Input
+                    type="time"
+                    {...field}
+                    onChange={(e) => {
+                      // Validamos que el formato sea correcto
+                      if (e.target.value.match(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/)) {
+                        field.onChange(e.target.value);
+                      }
+                    }}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
           />
 
           <FormField
             control={form.control}
             name="incident_time"
-            render={({ field }) => {
-              const handleChange = (event: { target: { value: any } }) => {
-                const timeString = event.target.value;
-                const time = parse(timeString, "HH:mm", new Date());
-                if (isValid(time)) {
-                  field.onChange(time);
-                }
-              };
-
-              return (
-                <FormItem className="w-full flex flex-col">
-                  {" "}
-                  {/* Cambio clave aquí */}
-                  <FormLabel className="mb-1">
-                    Indicar hora del incidente
-                  </FormLabel>{" "}
-                  {/* Añadido mb-1 para espacio */}
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <FormControl>
-                        <Button
-                          variant={"outline"}
-                          className={cn(
-                            "w-[240px] pl-3 text-left font-normal",
-                            !field.value && "text-muted-foreground"
-                          )}
-                        >
-                          {field.value ? (
-                            format(field.value, "HH:mm")
-                          ) : (
-                            <span>Seleccionar Hora</span>
-                          )}
-                          <ClockIcon className="ml-auto h-4 w-4 opacity-50" />
-                        </Button>
-                      </FormControl>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <input
-                        type="time"
-                        value={field.value ? format(field.value, "HH:mm") : ""}
-                        onChange={handleChange}
-                        className="w-full p-2 border rounded"
-                      />
-                    </PopoverContent>
-                  </Popover>
-                  <FormMessage />
-                </FormItem>
-              );
-            }}
+            render={({ field }) => (
+              <FormItem className="w-full">
+                <FormLabel>Hora del incidente</FormLabel>
+                <FormControl>
+                  <Input
+                    type="time"
+                    {...field}
+                    onChange={(e) => {
+                      // Validamos que el formato sea correcto
+                      if (e.target.value.match(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/)) {
+                        field.onChange(e.target.value);
+                      }
+                    }}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
           />
         </div>
         <FormField

@@ -27,7 +27,7 @@ export function CreateAircraftDialog() {
         </Button>
       </DialogTrigger>
       <DialogContent
-        className="sm:max-w-[520px]"
+        className="sm:max-w-[620px]"
         onInteractOutside={(e) => {
           e.preventDefault(); // Evita que el diálogo se cierre al hacer clic fuera
         }}
@@ -36,9 +36,7 @@ export function CreateAircraftDialog() {
           <DialogTitle>Crear Aeronave</DialogTitle>
           <DialogDescription>Cree una nueva aeronave.</DialogDescription>
         </DialogHeader>
-        <ScrollArea className="h-[580px]">
           <CreateAircraftForm onClose={() => setOpen(false)} />
-        </ScrollArea>
       </DialogContent>
     </Dialog>
   );

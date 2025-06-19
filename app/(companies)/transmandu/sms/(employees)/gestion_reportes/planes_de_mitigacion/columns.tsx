@@ -8,15 +8,16 @@ import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogHeader,
+  DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { MitigationMeasure, MitigationTable } from "@/types";
 import Link from "next/link";
-import { useTheme } from "next-themes";
+import { Card } from "@/components/ui/card";
+import { getResult } from "@/lib/utils";
 
-// Componente para las celdas de medidas (contiene el hook useTheme)
+// Componente para mostrar las medidas de mitigación (responsive)
 const MeasuresCell = ({
   measures,
   planId,
@@ -24,168 +25,151 @@ const MeasuresCell = ({
   measures: MitigationMeasure[];
   planId?: string | number;
 }) => {
-  const { theme } = useTheme();
-
   return (
-    <div className="flex flex-col justify-center">
-      {measures ? (
-        <Dialog>
-          <DialogTrigger className="flex justify-center items-center rounded-full">
-            <Badge className={"bg-blue-600 "}>Medidas creadas</Badge>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogDescription
-                className={`font-semibold ${
-                  theme === "light" ? "text-black" : "text-white"
-                }`}
-              >
-                Medidas de Mitigación
-              </DialogDescription>
-            </DialogHeader>
+    <div className="flex justify-center">
+      <Dialog>
+        <DialogTrigger asChild>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="min-w-[100px] md:min-w-[120px]"
+          >
+            {measures?.length > 0 ? (
+              <span className="flex items-center gap-1 md:gap-2">
+                <span className="h-2 w-2 rounded-full bg-green-500" />
+                <span className="hidden sm:inline">
+                  {measures.length} medida{measures.length !== 1 ? "s" : ""}
+                </span>
+                <span className="sm:hidden">{measures.length}</span>
+              </span>
+            ) : (
+              <span className="truncate">Sin medidas</span>
+            )}
+          </Button>
+        </DialogTrigger>
+        
+        <DialogContent className="w-[95vw] max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-semibold">
+              Medidas de Mitigación
+            </DialogTitle>
+          </DialogHeader>
 
-            <div className="border rounded-lg p-4 shadow-md">
-              {measures.length > 0 ? (
-                <ul>
-                  {measures.map((measure: any, index: number) => (
-                    <li key={measure.id} className="mb-2">
-                      <span className="font-semibold"> {++index} ) </span>
-                      <span>{measure.description}</span>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="text-left">
-                  No hay medidas asociadas a este plan de mitigacion
-                </p>
-              )}
-            </div>
+          <Card className="p-4">
+            {measures.length > 0 ? (
+              <ol className="space-y-2 max-h-[60vh] overflow-y-auto pr-2">
+                {measures.map((measure, index) => (
+                  <li key={measure.id} className="flex items-start">
+                    <span className="mr-2 font-medium text-primary shrink-0">
+                      {index + 1}.
+                    </span>
+                    <span className="text-sm break-words">{measure.description}</span>
+                  </li>
+                ))}
+              </ol>
+            ) : (
+              <p className="text-muted-foreground">
+                No hay medidas asociadas a este plan de mitigación
+              </p>
+            )}
 
             {measures.length > 0 && planId && (
-              <Link
-                href={`/transmandu/sms/gestion_reportes/planes_de_mitigacion/${planId}/medidas`}
-              >
-                <div className="flex justify-end mt-4">
-                  <Button className="w-1/3">Ver mas</Button>
-                </div>
-              </Link>
+              <div className="mt-4 flex justify-end">
+                <Link
+                  href={`/transmandu/sms/gestion_reportes/planes_de_mitigacion/${planId}/medidas`}
+                  passHref
+                >
+                  <Button variant="default" size="sm">
+                    Ver todas las medidas
+                  </Button>
+                </Link>
+              </div>
             )}
-          </DialogContent>
-        </Dialog>
-      ) : (
-        <p className="text-center">N/A</p>
+          </Card>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+};
+
+// Componente para mostrar el análisis de riesgo (responsive)
+const RiskAnalysisCell = ({ analysis }: { analysis: any }) => {
+  if (!analysis) return <div className="text-center text-muted-foreground text-xs sm:text-sm">N/A</div>;
+
+  const riskLevel = getResult(analysis.result);
+  
+  const badgeConfig = {
+    INTOLERABLE: { className: "bg-red-600 hover:bg-red-500", label: "Intolerable" },
+    TOLERABLE: { className: "bg-yellow-500 hover:bg-yellow-400", label: "Tolerable" },
+    ACEPTABLE: { className: "bg-green-600 hover:bg-green-500", label: "Aceptable" },
+  };
+
+  const currentBadge = riskLevel ? badgeConfig[riskLevel] : null;
+
+  return (
+    <div className="space-y-1 sm:space-y-2 text-center">
+      <div className="grid grid-cols-2 gap-1 text-xs sm:text-sm">
+        <div className="rounded bg-muted p-1 truncate">Prob.</div>
+        <div className="rounded bg-muted p-1 truncate">{analysis.probability}</div>
+        <div className="rounded bg-muted p-1 truncate">Sev.</div>
+        <div className="rounded bg-muted p-1 truncate">{analysis.severity}</div>
+      </div>
+      
+      {currentBadge && (
+        <Badge className={`${currentBadge.className} w-full justify-center text-xs sm:text-sm`}>
+          {currentBadge.label}
+        </Badge>
       )}
     </div>
   );
 };
 
-// Función helper para determinar el resultado (fuera del componente)
-function getResult(index: string) {
-  const INTOLERABLE: string[] = ["5A", "5B", "5C", "4A", "4B", "3A"];
-  const TOLERABLE: string[] = [
-    "5D",
-    "5E",
-    "4C",
-    "4D",
-    "4E",
-    "3B",
-    "3C",
-    "3D",
-    "2A",
-    "2B",
-    "2C",
-  ];
-  const ACCEPTABLE: string[] = ["3E", "2D", "2E", "1A", "1B", "1C", "1D", "1E"];
-
-  if (INTOLERABLE.includes(index)) return "INTOLERABLE";
-  if (TOLERABLE.includes(index)) return "TOLERABLE";
-  if (ACCEPTABLE.includes(index)) return "ACEPTABLE";
-  return undefined;
-}
-
-// Componente para mostrar el análisis de riesgo
-const RiskAnalysisCell = ({ analysis }: { analysis: any }) => {
-  return (
-    <div className="flex flex-col justify-center text-center">
-      {analysis ? (
-        <>
-          <hr />
-          <p>Probabilidad: {analysis.probability}</p>
-          <hr />
-          <p>Severidad: {analysis.severity}</p>
-          <hr />
-          <p>Resultado: {analysis.result}</p>
-          {(() => {
-            const riskIndex = getResult(analysis.result);
-            if (riskIndex === "TOLERABLE") {
-              return (
-                <div className="flex justify-center">
-                  <Badge className={"bg-yellow-500 hover:bg-yellow-400"} >Tolerable</Badge>
-                </div>
-              );
-            } else if (riskIndex === "INTOLERABLE") {
-              return (
-                <div className="flex justify-center">
-                  <Badge className={"bg-red-600 hover:bg-red-500"} >Intolerable</Badge>
-                </div>
-              );
-            } else if (riskIndex === "ACEPTABLE") {
-              return (
-                <div className="flex justify-center ">
-                  <Badge className={"bg-green-600 hover:bg-green-500"} >Aceptable</Badge>
-                </div>
-              );
-            }
-            return null;
-          })()}
-        </>
-      ) : null}
-    </div>
-  );
-};
-
-// Columnas de la tabla
+// Columnas de la tabla (responsive)
 export const columns: ColumnDef<MitigationTable>[] = [
   {
     accessorKey: "analysis",
     header: ({ column }) => (
-      <DataTableColumnHeader filter column={column} title="Analisis" />
+      <DataTableColumnHeader column={column} title="Riesgo" filter />
     ),
-    meta: { title: "Analisis" },
     cell: ({ row }) => <RiskAnalysisCell analysis={row.original.analysis} />,
+    size: 120,
+    minSize: 100,
+    maxSize: 150,
   },
   {
-    accessorKey: "mitigation_plan",
+    accessorKey: "consequence_to_evaluate",
     header: ({ column }) => (
-      <DataTableColumnHeader
-        filter
-        column={column}
-        title="Consecuencia a Evaluar"
-      />
+      <DataTableColumnHeader column={column} title="Consecuencia" filter />
     ),
-    meta: { title: "Consecuencia a Evaluar" },
     cell: ({ row }) => (
-      <div className="flex justify-center text-center">
-        {row.original.consequence_to_evaluate ?? "N/A"}
+      <div className="text-center text-xs sm:text-sm">
+        {row.original.consequence_to_evaluate || (
+          <span className="text-muted-foreground">N/A</span>
+        )}
       </div>
     ),
+    size: 150,
+    minSize: 120,
   },
   {
     accessorKey: "description",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Descripcion del Plan" />
+      <DataTableColumnHeader column={column} title="Descripción" />
     ),
-    meta: { title: "Descripcion" },
     cell: ({ row }) => (
-      <p className="font-medium text-center">
-        {row.original.mitigation_plan?.description ?? "N/A"}
+      <p className="line-clamp-2 text-center text-xs sm:text-sm break-words">
+        {row.original.mitigation_plan?.description || (
+          <span className="text-muted-foreground">N/A</span>
+        )}
       </p>
     ),
+    size: 200,
+    minSize: 150,
   },
   {
     accessorKey: "measures",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Agregar Medidas" />
+      <DataTableColumnHeader column={column} title="Medidas" />
     ),
     cell: ({ row }) => (
       <MeasuresCell
@@ -193,27 +177,35 @@ export const columns: ColumnDef<MitigationTable>[] = [
         planId={row.original.mitigation_plan?.id}
       />
     ),
+    size: 120,
+    minSize: 100,
   },
   {
-    accessorKey: "mitigation_plan",
+    accessorKey: "post_mitigation",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Post-Mitigacion" />
+      <DataTableColumnHeader column={column} title="Post-Mit." />
     ),
     cell: ({ row }) => (
       <RiskAnalysisCell analysis={row.original.mitigation_plan?.analysis} />
     ),
+    size: 120,
+    minSize: 100,
   },
   {
     id: "actions",
     cell: ({ row }) => {
-      const mitigationTable = row.original; 
-      const shouldShowActions = 
+      const mitigationTable = row.original;
+      const shouldShowActions =
         (mitigationTable.voluntary_report && mitigationTable.voluntary_report.status !== "CERRADO") ||
         (mitigationTable.obligatory_report && mitigationTable.obligatory_report.status !== "CERRADO");
 
-      return shouldShowActions 
-        ? <MitigationTableDropdownActions mitigationTable={mitigationTable} /> 
-        : null;
-    }
-  }
+      return shouldShowActions ? (
+        <div className="flex justify-center">
+          <MitigationTableDropdownActions mitigationTable={mitigationTable} />
+        </div>
+      ) : null;
+    },
+    size: 60,
+    minSize: 50,
+  },
 ];
