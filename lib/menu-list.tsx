@@ -98,7 +98,7 @@ export function getMenuList(
                   "ANALISTA_ADMINISTRACION",
                   "JEFE_ADMINISTRACION",
                   "JEFE_CONTADURIA",
-                  "RRHH",
+                  "RRHH_ADMINISTRACION",
                 ],
                 submenus: [
                   {
@@ -143,7 +143,7 @@ export function getMenuList(
                   "ANALISTA_ADMINISTRACION",
                   "JEFE_ADMINISTRACION",
                   "JEFE_CONTADURIA",
-                  "RRHH",
+                  "RRHH_ADMINISTRACION",
                 ],
                 submenus: [
                   {
@@ -188,7 +188,7 @@ export function getMenuList(
                   "ANALISTA_ADMINISTRACION",
                   "JEFE_ADMINISTRACION",
                   "JEFE_CONTADURIA",
-                  "RRHH",
+                  "RRHH_ADMINISTRACION",
                 ],
                 submenus: [
                   {
@@ -247,7 +247,7 @@ export function getMenuList(
                   "SUPERUSER",
                   "ANALISTA_ADMINISTRACION",
                   "JEFE_ADMINISTRACION",
-                  "RRHH", // RRHH ve el menú principal, pero no todos los submenús
+                  "RRHH_ADMINISTRACION", // RRHH_ADMINISTRACION ve el menú principal, pero no todos los submenús
                 ],
                 submenus: [
                   {
@@ -260,8 +260,8 @@ export function getMenuList(
                       "SUPERUSER",
                       "ANALISTA_ADMINISTRACION",
                       "JEFE_ADMINISTRACION",
-                      "RRHH",
-                    ], // RRHH puede ver Aeronaves
+                      "RRHH_ADMINISTRACION",
+                    ], // RRHH_ADMINISTRACION puede ver Aeronaves
                   },
                   {
                     href: "/transmandu/administracion/gestion_vuelos/rutas",
@@ -558,7 +558,7 @@ export function getMenuList(
                   "ANALISTA_ADMINISTRACION",
                   "JEFE_ADMINISTRACION",
                   "JEFE_CONTADURIA",
-                  "RRHH",
+                  "RRHH_ADMINISTRACION",
                   "ANALISTA_COMPRAS",
                   "JEFE_COMPRAS",
                   "SUPERUSER"
