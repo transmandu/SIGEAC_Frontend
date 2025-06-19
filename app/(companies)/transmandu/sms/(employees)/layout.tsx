@@ -1,4 +1,3 @@
-import ProtectedLayout from "@/components/layout/ProtectedLayout";
 import ProtectedRoute from "@/components/layout/ProtectedRoute";
 import React from "react";
 
