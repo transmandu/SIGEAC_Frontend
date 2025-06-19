@@ -83,6 +83,34 @@ export function getMenuList(
             },
           ],
         },
+                {
+          groupLabel: "Desarrollo",
+          menus: [
+            {
+              href: "/transmandu/desarrollo",
+              label: "Actividades",
+              active: pathname.includes("/transmandu/desarrollo"),
+              icon: SquarePen,
+              roles: ["ANALISTA_DESARROLLO", "JEFE_DESARROLLO", "SUPERUSER"],
+              submenus: [
+                {
+                  href: `/transmandu/desarrollo/actividades_diarias/registro/${date}/`,
+                  label: "Registro de Actividades",
+                  active:
+                    pathname ===
+                    `/transmandu/desarrollo/actividades_diarias/registro/`,
+                },
+                {
+                  href: "/transmandu/desarrollo/actividades_diarias",
+                  label: "Gestion de Actividades",
+                  active:
+                    pathname ===
+                    `/transmandu/desarrollo/actividades_diarias/`,
+                },
+              ],
+            },
+          ],
+        },
         {
           groupLabel: "Administración",
           menus: [
@@ -472,6 +500,40 @@ export function getMenuList(
               label: "Globales",
               active: pathname.includes("/ajustes/globales"),
               icon: Globe,
+              roles: ["ANALISTA_ALMACEN", "JEFE_ALMACEN", "SUPERUSER"],
+              submenus: [
+                {
+                  href: "/ajustes/globales/unidades",
+                  label: "Unidades",
+                  active: pathname === "/ajustes/globales/unidades",
+                },
+                {
+                  href: "/ajustes/globales/fabricantes",
+                  label: "Fabricantes",
+                  active: pathname === "/administracion/globales/fabricantes",
+                },
+                {
+                  href: "/ajustes/globales/proveedores",
+                  label: "Proveedores",
+                  active: pathname === "/administracion/globales/proveedores",
+                },
+                {
+                  href: "/ajustes/globales/clientes",
+                  label: "Clientes",
+                  active: pathname === "/ajustes/globales/clientes",
+                },
+                {
+                  href: "/ajustes/globales/condiciones",
+                  label: "Condiciones",
+                  active: pathname === "/ajustes/globales/condiciones",
+                },
+              ],
+            },
+            {
+              href: "/ajustes/bancos_cuentas",
+              label: "Bancos",
+              active: pathname.includes("/bancos_cuentas"),
+              icon: Landmark,
               roles: ["SUPERUSER"],
               submenus: [
                 {
@@ -489,94 +551,15 @@ export function getMenuList(
                   label: "Tarjetas",
                   active: pathname === "/ajustes/bancos_cuentas/tarjetas",
                 },
-                {
-                  href: "/ajustes/unidades",
-                  label: "Unidades",
-                  active: pathname === "/ajustes/unidades",
-                },
-                {
-                  href: "/ajustes/fabricantes",
-                  label: "Fabricantes",
-                  active: pathname === "/ajustes/fabricantes",
-                },
-                {
-                  href: "/ajustes/proveedores",
-                  label: "Proveedores",
-                  active: pathname === "/ajustes/proveedores",
-                },
-                {
-                  href: "/ajustes/condiciones",
-                  label: "Condiciones",
-                  active: pathname === "/ajustes/condiciones",
-                },
-                {
-                  href: "/ajustes/globales/fuentes_informacion",
-                  label: "Fuentes de Información",
-                  active: pathname === "/ajustes/globales/fuentes_informacion",
-                },
-                {
-                  href: "/ajustes/globales/pilotos",
-                  label: "Pilotos",
-                  active: pathname === "/ajustes/globales/pilotos",
-                },
               ],
             },
             {
-              href: "/ajustes/cuentas_bancos",
-              label: "Cuentas y Bancos",
-              active: pathname.includes("/ajustes"),
+              href: "/ajustes/cuenta",
+              label: "Cuenta",
+              active: pathname.includes("/ajustes/cuenta"),
               icon: UserRoundCog,
-              roles: ["SUPERUSER", "ANALISTA_ADMINISTRACION", "JEFE_ADMINISTRACION", "JEFE_COMPRAS", "ANALISTA_COMPRAS"],
-              submenus: [],
-            },
-            {
-              href: "/hangar74/cuenta",
-              label: "Cuenta",
-              active: pathname.includes("/cuenta"),
-              icon: Settings,
               roles: [],
               submenus: [],
-            },
-          ],
-        },
-        {
-          groupLabel: "Settings",
-          menus: [
-            {
-              href: "/cuenta",
-              label: "Cuenta",
-              active: pathname.includes("/cuenta"),
-              icon: Settings,
-              roles: [],
-              submenus: [],
-            },
-          ],
-        },
-        {
-          groupLabel: "Desarrollo",
-          menus: [
-            {
-              href: "/transmandu/desarrollo",
-              label: "Actividades",
-              active: pathname.includes("/transmandu/desarrollo"),
-              icon: SquarePen,
-              roles: ["ANALISTA_DESARROLLO", "JEFE_DESARROLLO", "SUPERUSER"],
-              submenus: [
-                {
-                  href: `/transmandu/desarrollo/actividades_diarias/registro/${date}/`,
-                  label: "Registro de Actividades",
-                  active:
-                    pathname ===
-                    `/transmandu/desarrollo/actividades_diarias/registro/`,
-                },
-                {
-                  href: "/transmandu/desarrollo/actividades_diarias",
-                  label: "Gestion de Actividades",
-                  active:
-                    pathname ===
-                    `/transmandu/desarrollo/actividades_diarias/`,
-                },
-              ],
             },
           ],
         },
@@ -869,6 +852,35 @@ export function getMenuList(
             },
           ]
         },
+                {
+          groupLabel: "Sistema",
+          menus: [
+            {
+              href: "/sistema/usuarios_permisos",
+              label: "Usuarios Y Permisos",
+              active: pathname.includes("/sistema/usuarios_permisos"),
+              icon: User2,
+              roles: ["ADMIN", "SUPERUSER"],
+              submenus: [
+                {
+                  href: "/sistema/usuarios_permisos/usuarios",
+                  label: "Administrar Usuarios",
+                  active: pathname === "/sistema/usuarios_permisos/usuarios",
+                },
+                {
+                  href: "/sistema/usuarios_permisos/roles",
+                  label: "Administrar Roles",
+                  active: pathname === "/sistema/usuarios_permisos/roles",
+                },
+                {
+                  href: "/sistema/usuarios_permisos/permisos",
+                  label: "Administrar Permisos",
+                  active: pathname === "/sistema/usuarios_permisos/permisos",
+                },
+              ],
+            },
+          ],
+        },
         {
           groupLabel: "Ajustes",
           menus: [
@@ -893,6 +905,11 @@ export function getMenuList(
                   href: "/ajustes/globales/proveedores",
                   label: "Proveedores",
                   active: pathname === "/administracion/globales/proveedores",
+                },
+                {
+                  href: "/ajustes/globales/clientes",
+                  label: "Clientes",
+                  active: pathname === "/ajustes/globales/clientes",
                 },
                 {
                   href: "/ajustes/globales/condiciones",
@@ -926,49 +943,12 @@ export function getMenuList(
               ],
             },
             {
-              href: "/ajustes/clientes",
-              label: "Clientes",
-              active: pathname.includes("/clientes"),
-              icon: BookUser,
-              roles: ["SUPERUSER"],
-              submenus: [],
-            },
-            {
               href: "/ajustes/cuenta",
               label: "Cuenta",
-              active: pathname.includes("/bancos_cuentas"),
+              active: pathname.includes("/ajustes/cuenta"),
               icon: UserRoundCog,
               roles: [],
               submenus: [],
-            },
-          ],
-        },
-        {
-          groupLabel: "Sistema",
-          menus: [
-            {
-              href: "/sistema/usuarios_permisos",
-              label: "Usuarios Y Permisos",
-              active: pathname.includes("/sistema/usuarios_permisos"),
-              icon: User2,
-              roles: ["ADMIN", "SUPERUSER"],
-              submenus: [
-                {
-                  href: "/sistema/usuarios_permisos/usuarios",
-                  label: "Administrar Usuarios",
-                  active: pathname === "/sistema/usuarios_permisos/usuarios",
-                },
-                {
-                  href: "/sistema/usuarios_permisos/roles",
-                  label: "Administrar Roles",
-                  active: pathname === "/sistema/usuarios_permisos/roles",
-                },
-                {
-                  href: "/sistema/usuarios_permisos/permisos",
-                  label: "Administrar Permisos",
-                  active: pathname === "/sistema/usuarios_permisos/permisos",
-                },
-              ],
             },
           ],
         },
