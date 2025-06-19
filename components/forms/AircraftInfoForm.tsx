@@ -54,11 +54,11 @@ export function AircraftInfoForm({ onNext, onBack, initialData }: AircraftInfoFo
   }, [mutate])
   const form = useForm<AircraftInfoType>({
     resolver: zodResolver(AircraftInfoSchema),
-    defaultValues: initialData || {}, // Usar datos iniciales si están disponibles
+    defaultValues: initialData || {},
   });
 
   const onSubmit = (data: AircraftInfoType) => {
-    onNext(data); // Pasar los datos al siguiente paso
+    onNext(data); 
   };
 
   return (
@@ -335,9 +335,9 @@ export function AircraftInfoForm({ onNext, onBack, initialData }: AircraftInfoFo
                       onSelect={field.onChange}
                       disabled={(date) => date > new Date()}
                       initialFocus
-                      fromYear={1980} 
-                      toYear={new Date().getFullYear()} 
-                      captionLayout="dropdown-buttons" 
+                      fromYear={1980}
+                      toYear={new Date().getFullYear()}
+                      captionLayout="dropdown-buttons"
                       components={{
                         Dropdown: (props) => (
                           <select

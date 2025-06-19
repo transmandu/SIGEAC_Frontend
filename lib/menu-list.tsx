@@ -98,7 +98,7 @@ export function getMenuList(
                 "ANALISTA_ADMINISTRACION",
                 "JEFE_ADMINISTRACION",
                 "JEFE_CONTADURIA",
-                "RRHH",
+                "RRHH_ADMINISTRACION",
               ],
               submenus: [
                 {
@@ -143,7 +143,7 @@ export function getMenuList(
                 "ANALISTA_ADMINISTRACION",
                 "JEFE_ADMINISTRACION",
                 "JEFE_CONTADURIA",
-                "RRHH",
+                "RRHH_ADMINISTRACION",
               ],
               submenus: [
                 {
@@ -188,7 +188,7 @@ export function getMenuList(
                 "ANALISTA_ADMINISTRACION",
                 "JEFE_ADMINISTRACION",
                 "JEFE_CONTADURIA",
-                "RRHH",
+                "RRHH_ADMINISTRACION",
               ],
               submenus: [
                 {
@@ -245,14 +245,14 @@ export function getMenuList(
                 "SUPERUSER",
                 "ANALISTA_ADMINISTRACION",
                 "JEFE_ADMINISTRACION",
-                "RRHH",  // RRHH ve el menú principal, pero no todos los submenús
+                "RRHH_ADMINISTRACION",  // RRHH ve el menú principal, pero no todos los submenús
               ],
               submenus: [
                 {
                   href: "/transmandu/administracion/gestion_vuelos/aviones",
                   label: "Aeronaves",
                   active: pathname === "/transmandu/administracion/gestion_vuelos/aviones",
-                  roles: ["SUPERUSER", "ANALISTA_ADMINISTRACION", "JEFE_ADMINISTRACION", "RRHH"],  // RRHH puede ver Aeronaves
+                  roles: ["SUPERUSER", "ANALISTA_ADMINISTRACION", "JEFE_ADMINISTRACION", "RRHH_ADMINISTRACION"],  // RRHH puede ver Aeronaves
                 },
                 {
                   href: "/transmandu/administracion/gestion_vuelos/rutas",
@@ -526,7 +526,7 @@ export function getMenuList(
               label: "Cuentas y Bancos",
               active: pathname.includes("/ajustes"),
               icon: UserRoundCog,
-              roles: [],
+              roles: ["SUPERUSER", "ANALISTA_ADMINISTRACION", "JEFE_ADMINISTRACION", "JEFE_COMPRAS", "ANALISTA_COMPRAS"],
               submenus: [],
             },
             {
