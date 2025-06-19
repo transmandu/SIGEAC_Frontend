@@ -10,7 +10,7 @@ const fetchManufacturers = async (company: string | undefined): Promise<Manufact
 
 export const useGetManufacturers = (company: string | undefined) => {
   return useQuery<Manufacturer[]>({
-    queryKey: ["manufacturers"],
+    queryKey: ["manufacturers", company],
     queryFn: () => fetchManufacturers(company),
     enabled: !!company
   });

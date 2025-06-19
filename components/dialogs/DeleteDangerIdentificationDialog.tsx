@@ -14,6 +14,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Loader2, Trash2 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 interface DeleteProps {
@@ -24,9 +25,14 @@ interface DeleteProps {
 export default function DeleteDangerIdentificationDialog({ id }: DeleteProps) {
   const [open, setOpen] = useState(false);
   const { deleteDangerIdentification } = useDeleteDangerIdentification();
-
+  const router = useRouter();
   const handleDelete = async (id: number | string) => {
-    await deleteDangerIdentification.mutateAsync(id);
+    try {
+      await deleteDangerIdentification.mutateAsync(id);
+      router.push("/transmandu/sms/gestion_reportes/peligros_identificados");
+    } catch (error) {
+      console.error("No se pudo eliminar la identificación de peligro", error);
+    }
     setOpen(false);
   };
 

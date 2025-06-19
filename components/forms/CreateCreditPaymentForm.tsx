@@ -1,22 +1,22 @@
 "use client";
 
+import { useCreateCreditPayment } from "@/actions/aerolinea/pagos_creditos/actions";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 import { Calendar } from "@/components/ui/calendar";
-import { es } from "date-fns/locale/es";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, } from "@/components/ui/form";
-import { Popover, PopoverContent, PopoverTrigger, } from "@/components/ui/popover";
 import { Input } from "@/components/ui/input";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { format } from "date-fns";
-import { CalendarIcon } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger, } from "@/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, } from "@/components/ui/select";
 import { useGetBankAccounts } from "@/hooks/general/cuentas_bancarias/useGetBankAccounts";
-import { Loader2 } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { Credit } from "@/types";
-import { useCreateCreditPayment } from "@/actions/aerolinea/pagos_creditos/actions";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { format } from "date-fns";
+import { es } from "date-fns/locale/es";
+import { CalendarIcon, Loader2 } from "lucide-react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { AmountInput } from "../misc/AmountInput";
 
 interface FormProps {
   onClose: () => void;
@@ -35,6 +35,7 @@ export function CreditPaymentForm({ onClose, credit }: FormProps) {
           message: "Debe elegir una cuenta de banco.",
         })
         .optional(),
+      reference_cod: z.string().optional(),
       pay_method: z.enum(["EFECTIVO", "TRANSFERENCIA"], {
         message: "Debe elegir un método de pago.",
       }),
@@ -123,6 +124,62 @@ export function CreditPaymentForm({ onClose, credit }: FormProps) {
         <div className="flex gap-2 items-center justify-center">
           <FormField
             control={form.control}
+            name="payment_date"
+            render={({ field }) => (
+              <FormItem className="flex flex-col mt-2.5">
+                <FormLabel>Fecha de Pago</FormLabel>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <FormControl>
+                      <Button
+                        variant={"outline"}
+                        className={cn(
+                          "w-[240px] pl-3 text-left font-normal",
+                          !field.value && "text-muted-foreground"
+                        )}
+                      >
+                        {field.value ? (
+                          format(field.value, "PPP", {
+                            locale: es,
+                          })
+                        ) : (
+                          <span>Seleccione una fecha</span>
+                        )}
+                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                      </Button>
+                    </FormControl>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={field.value}
+                      onSelect={field.onChange}
+                      disabled={(date) =>
+                        date > new Date() || date < new Date("1999-07-21")
+                      }
+                      initialFocus
+                      fromYear={1980}
+                      toYear={new Date().getFullYear()}
+                      captionLayout="dropdown-buttons"
+                      components={{
+                        Dropdown: (props) => (
+                          <select
+                            {...props}
+                            className="bg-popover text-popover-foreground"
+                          >
+                            {props.children}
+                          </select>
+                        ),
+                      }}
+                    />
+                  </PopoverContent>
+                </Popover>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
             name="pay_method"
             render={({ field }) => (
               <FormItem className="w-full">
@@ -144,8 +201,10 @@ export function CreditPaymentForm({ onClose, credit }: FormProps) {
               </FormItem>
             )}
           />
-          {form.watch("pay_method") !== "EFECTIVO" && (
-            <FormField
+        </div>
+        {form.watch("pay_method") !== "EFECTIVO" && (
+            <div className="flex gap-2">
+              <FormField
               control={form.control}
               name="bank_account_id"
               render={({ field }) => (
@@ -182,8 +241,21 @@ export function CreditPaymentForm({ onClose, credit }: FormProps) {
                 </FormItem>
               )}
             />
+            <FormField
+              control={form.control}
+              name="reference_cod"
+              render={({ field }) => (
+                <FormItem className="w-full">
+                  <FormLabel>Código de Referencia</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Código de referencia" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            </div>
           )}
-        </div>
         <FormField
           control={form.control}
           name="pay_amount"
@@ -200,7 +272,7 @@ export function CreditPaymentForm({ onClose, credit }: FormProps) {
                   placeholder={`Ingrese el monto a pagar (máximo ${pendingAmount.toFixed(2)})`}
                   {...field}
                   onChange={(e) => {
-                    const value = e.target.value;
+                    const value = e?.target.value;
                     if (/^[0-9]*\.?[0-9]*$/.test(value)) {
                       field.onChange(value);
                     }
@@ -231,62 +303,7 @@ export function CreditPaymentForm({ onClose, credit }: FormProps) {
             </FormItem>
           )}
         />
-        <FormField
-          control={form.control}
-          name="payment_date"
-          render={({ field }) => (
-            <FormItem className="flex flex-col mt-2.5">
-              <FormLabel>Fecha de Pago</FormLabel>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <FormControl>
-                    <Button
-                      variant={"outline"}
-                      className={cn(
-                        "w-[240px] pl-3 text-left font-normal",
-                        !field.value && "text-muted-foreground"
-                      )}
-                    >
-                      {field.value ? (
-                        format(field.value, "PPP", {
-                          locale: es,
-                        })
-                      ) : (
-                        <span>Seleccione una fecha</span>
-                      )}
-                      <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                    </Button>
-                  </FormControl>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={field.value}
-                    onSelect={field.onChange}
-                    disabled={(date) =>
-                      date > new Date() || date < new Date("1999-07-21")
-                    }
-                    initialFocus
-                    fromYear={1980}
-                    toYear={new Date().getFullYear()}
-                    captionLayout="dropdown-buttons"
-                    components={{
-                      Dropdown: (props) => (
-                        <select
-                          {...props}
-                          className="bg-popover text-popover-foreground"
-                        >
-                          {props.children}
-                        </select>
-                      ),
-                    }}
-                  />
-                </PopoverContent>
-              </Popover>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+
         <FormField
           control={form.control}
           name="pay_description"

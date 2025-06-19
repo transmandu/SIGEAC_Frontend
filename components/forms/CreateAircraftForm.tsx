@@ -11,21 +11,20 @@ import { cn } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
 import { es } from "date-fns/locale/es";
-import { CalendarIcon } from "lucide-react";
+import { CalendarIcon, Check, ChevronsUpDown, Loader2 } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Separator } from "../ui/separator";
 import { Textarea } from "../ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, } from "@/components/ui/select";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "../ui/command";
+import { useGetManufacturers } from "@/hooks/general/fabricantes/useGetManufacturers";
+import { useCompanyStore } from "@/stores/CompanyStore";
 
 const FormSchema = z.object({
-  fabricant: z
-    .string()
-    .min(2, {
-      message: "El fabricante debe tener al menos 2 caracteres.",
-    })
-    .max(30, {
-      message: "El fabricante tiene un máximo 30 caracteres.",
+  manufacturer_id: z
+    .string({
+      message: "Debe elegir un fabricante.",
     }),
   brand: z
     .string()
@@ -93,8 +92,10 @@ interface FormProps {
 }
 
 export function CreateAircraftForm({ onClose }: FormProps) {
+  const {selectedCompany} = useCompanyStore()
   const { createAircraft } = useCreateAircraft();
   const { data } = useGetLocationsByCompanies();
+  const { data: manufacturers, isLoading: isManufacturersLoading, isError: isManufacturersError } = useGetManufacturers(selectedCompany?.split(" ").join(""));
   const form = useForm<FormSchemaType>({
     resolver: zodResolver(FormSchema),
     defaultValues: {},
@@ -209,14 +210,68 @@ export function CreateAircraftForm({ onClose }: FormProps) {
           />
           <FormField
             control={form.control}
-            name="fabricant"
+            name="manufacturer_id"
             render={({ field }) => (
-              <FormItem className="w-full">
+              <FormItem className="flex flex-col space-y-3 mt-1.5">
                 <FormLabel>Fabricante</FormLabel>
-                <FormControl>
-                  <Input placeholder="Ingrese el fabricante" {...field} />
-                </FormControl>
-                <FormMessage className="text-xs" />
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <FormControl>
+                      <Button
+                        disabled={isManufacturersLoading || isManufacturersError}
+                        variant="outline"
+                        role="combobox"
+                        className={cn(
+                          "justify-between",
+                          !field.value && "text-muted-foreground"
+                        )}
+                      >
+                        {
+                          isManufacturersLoading && <Loader2 className="size-4 animate-spin mr-2" />
+                        }
+                        {field.value
+                          ? <p>{manufacturers?.find(
+                            (manufacturer) => `${manufacturer.id.toString()}` === field.value
+                          )?.name}</p>
+                          : "Elige al fabricante..."
+                        }
+                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                      </Button>
+                    </FormControl>
+                  </PopoverTrigger>
+                  <PopoverContent className="p-0">
+                    <Command>
+                      <CommandInput placeholder="Busque un fabricante..." />
+                      <CommandList>
+                        <CommandEmpty className="text-sm p-2 text-center">No se ha encontrado ningún fabricante.</CommandEmpty>
+                        <CommandGroup>
+                          {manufacturers?.filter((m) => m.type === 'AIRCRAFT').map((manufacturer) => (
+                            <CommandItem
+                              value={`${manufacturer.id}`}
+                              key={manufacturer.id}
+                              onSelect={() => {
+                                form.setValue("manufacturer_id", manufacturer.id.toString())
+                              }}
+                            >
+                              <Check
+                                className={cn(
+                                  "mr-2 h-4 w-4",
+                                  `${manufacturer.id.toString()}` === field.value
+                                    ? "opacity-100"
+                                    : "opacity-0"
+                                )}
+                              />
+                              {
+                                <p>{manufacturer.name}</p>
+                              }
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
+                <FormMessage />
               </FormItem>
             )}
           />

@@ -30,12 +30,12 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { useGetCash } from "@/hooks/aerolinea/cajas/useGetCash";
-import { useGetClients } from "@/hooks/general/clientes/useGetClients";
-import { useGetAccountant } from "@/hooks/aerolinea/cuentas_contables/useGetAccountant";
 import { useGetCategory } from "@/hooks/aerolinea/categorias_cuentas/useGetCategory";
-import { useGetEmployeesByCompany } from "@/hooks/administracion/useGetEmployees";
+import { useGetAccountant } from "@/hooks/aerolinea/cuentas_contables/useGetAccountant";
+import { useGetClients } from "@/hooks/general/clientes/useGetClients";
 import { useGetBankAccounts } from "@/hooks/general/cuentas_bancarias/useGetBankAccounts";
 import { useGetVendors } from "@/hooks/general/proveedores/useGetVendors";
+import { useGetEmployeesByDepartment } from "@/hooks/sistema/useGetEmployeesByDepartament";
 import { cn } from "@/lib/utils";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -48,11 +48,10 @@ import {
   MinusCircle,
   PlusCircle,
 } from "lucide-react";
-import { useParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
 import { z } from "zod";
-import { useRouter } from "next/navigation";
 
 // Esquemas Zod (igual que antes)
 const cash_movement_detailsSchema = z.object({
@@ -111,7 +110,6 @@ const formSchema = z.object({
 });
 
 export default function AircraftExpensesPage() {
-  const { id } = useParams<{ id: string }>();
   const { selectedCompany } = useCompanyStore();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -121,11 +119,7 @@ export default function AircraftExpensesPage() {
   });
   const router = useRouter();
   const { createCashMovement } = useCreateCashMovement();
-  const {
-    data: employees,
-    mutate,
-    isPending: isEmployeesLoading,
-  } = useGetEmployeesByCompany();
+  const {data: employees, isLoading: isEmployeesLoading } = useGetEmployeesByDepartment("DAR", selectedCompany?.split(" ").join(""));
   const { data: cashes, isLoading: isCashesLoading } = useGetCash();
   const { data: bankaccounts, isLoading: isBankAccLoading } =
     useGetBankAccounts();
@@ -144,12 +138,6 @@ export default function AircraftExpensesPage() {
     control: form.control,
     name: "movements",
   });
-
-  useEffect(() => {
-    if (selectedCompany) {
-      mutate(selectedCompany.split(" ").join("").toLowerCase());
-    }
-  }, [mutate, selectedCompany]);
 
   async function onSubmit(formData: z.infer<typeof formSchema>) {
     const transformedData = {
@@ -422,21 +410,32 @@ export default function AircraftExpensesPage() {
                             </FormItem>
                           )}
                         />
+                        {(() => {
+                          const selectedCashId = form.watch(
+                            `movements.${movementIndex}.cash_id`
+                          );
+                          const selectedCash = cashes?.find(
+                            (cash) => cash.id.toString() === selectedCashId
+                          );
+                          if (selectedCash?.type === "EFECTIVO") return null;
 
-                        <FormField
-                          control={form.control}
-                          name={`movements.${movementIndex}.reference_cod`}
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Referencia</FormLabel>
-                              <Input
-                                placeholder="Ingrese referencia"
-                                {...field}
-                              />
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
+                          return (
+                            <FormField
+                              control={form.control}
+                              name={`movements.${movementIndex}.reference_cod`}
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Referencia</FormLabel>
+                                  <Input
+                                    placeholder="Ingrese referencia"
+                                    {...field}
+                                  />
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                          );
+                        })()}
                       </div>
                       <div className="space-y-2">
                         <FormField
@@ -454,14 +453,14 @@ export default function AircraftExpensesPage() {
                                   <SelectValue placeholder="Seleccione responsable" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                  {employees?.map((employee) => (
+                                  {employees && employees.length > 0 ? employees?.map((employee) => (
                                     <SelectItem
-                                      key={employee.id}
+                                      key={employee.dni}
                                       value={employee.dni}
                                     >
                                       {employee.first_name} {employee.last_name}
                                     </SelectItem>
-                                  ))}
+                                  )) : (<p className="text-muted-foreground text-xs text-center italic p-2">No se encontraron empleados...</p>)}
                                 </SelectContent>
                               </Select>
                               <FormMessage />

@@ -10,7 +10,7 @@ const fetchVendors = async (company: string | undefined): Promise<Vendor[]> => {
 
 export const useGetVendors = (company: string | undefined) => {
   return useQuery<Vendor[]>({
-    queryKey: ["vendors"],
+    queryKey: ["vendors", company],
     queryFn: () => fetchVendors(company),
     enabled: !!company,
   });

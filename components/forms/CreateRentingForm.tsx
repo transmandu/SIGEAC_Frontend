@@ -20,6 +20,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useCreateRenting } from "@/actions/aerolinea/arrendamiento/actions";
 import { useGetBankAccounts } from "@/hooks/general/cuentas_bancarias/useGetBankAccounts";
 import { useCompanyStore } from "@/stores/CompanyStore";
+import { Fira_Mono } from "next/font/google";
 
 const formSchema = z
   .object({
@@ -31,7 +32,8 @@ const formSchema = z
       .max(100, {
         message: "La descripción tiene un máximo 100 caracteres.",
       }),
-    type: z.enum(["AERONAVE", "ARTICULO"]),
+    type: z.string(),
+    reference_cod: z.string().optional(),
     price: z.string().refine(
       (val) => {
         const number = parseFloat(val);
@@ -73,7 +75,6 @@ const formSchema = z
       .string({
         message: "Debe elegir una aeronave.",
       })
-      .optional(),
   })
   .refine(
     (data) => {
@@ -110,7 +111,9 @@ export function CreateRentingForm({ onClose }: FormProps) {
   } = useGetAircrafts(selectedCompany?.split(" ").join(""));
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: {},
+    defaultValues: {
+      type: "AERONAVE"
+    },
   });
   const { data: accounts, isLoading: isAccLoading } = useGetBankAccounts();
 
@@ -247,69 +250,50 @@ export function CreateRentingForm({ onClose }: FormProps) {
             control={form.control}
             name="type"
             render={({ field }) => (
-              <FormItem>
+              <FormItem className="w-full">
                 <FormLabel>Tipo</FormLabel>
+                  <FormControl>
+                    <Input value={"AERONAVE"} disabled />
+                  </FormControl>
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="aircraft_id"
+            render={({ field }) => (
+              <FormItem className="flex flex-col space-y-3 w-full mt-1">
+                <FormLabel>Aeronave</FormLabel>
                 <Select
+                  disabled={isAircraftLoading}
                   onValueChange={field.onChange}
                   defaultValue={field.value}
                 >
                   <FormControl>
-                    <SelectTrigger className="w-[130px]">
-                      <SelectValue placeholder="Seleccione" />
+                    <SelectTrigger>
+                      <SelectValue placeholder="Seleccione un Avión" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="AERONAVE">Aeronave</SelectItem>
-                    <SelectItem value="ARTICULO">Artículo</SelectItem>
+                    {aircrafts &&
+                      aircrafts
+                        .filter(
+                          (aircraft) => aircraft.status === "EN POSESION"
+                        )
+                        .map((aircraft) => (
+                          <SelectItem
+                            key={aircraft.id}
+                            value={aircraft.id.toString()}
+                          >
+                            {aircraft.brand} - {aircraft.acronym}
+                          </SelectItem>
+                        ))}
                   </SelectContent>
                 </Select>
+                <FormMessage />
               </FormItem>
             )}
           />
-
-          {/* Mostrar solo cuando hay un tipo seleccionado */}
-          {form.watch("type") && (
-            <>
-              {form.watch("type") !== "ARTICULO" && (
-                <FormField
-                  control={form.control}
-                  name="aircraft_id"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-col space-y-3">
-                      <FormLabel>Aeronave</FormLabel>
-                      <Select
-                        disabled={isAircraftLoading}
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Seleccione un Avión" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {aircrafts &&
-                            aircrafts
-                              .filter(
-                                (aircraft) => aircraft.status === "EN POSESION"
-                              )
-                              .map((aircraft) => (
-                                <SelectItem
-                                  key={aircraft.id}
-                                  value={aircraft.id.toString()}
-                                >
-                                  {aircraft.brand} - {aircraft.acronym}
-                                </SelectItem>
-                              ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              )}
-            </>
-          )}
         </div>
         <div className="flex gap-2 items-center justify-center">
           <FormField
@@ -395,12 +379,12 @@ export function CreateRentingForm({ onClose }: FormProps) {
             )}
           />
         </div>
-        <div className="flex gap-2 items-center justify-center">
+        <div className="grid grid-cols-2 gap-2 items-center justify-center">
           <FormField
             control={form.control}
             name="pay_method"
             render={({ field }) => (
-              <FormItem className="w-full">
+              <FormItem className={cn("", form.getValues("pay_method") === "EFECTIVO" ? "col-span-2" : "col-span-1")}>
                 <FormLabel>Método de Pago</FormLabel>
                 <Select
                   onValueChange={field.onChange}
@@ -420,11 +404,25 @@ export function CreateRentingForm({ onClose }: FormProps) {
             )}
           />
           {form.watch("pay_method") !== "EFECTIVO" && (
+          <>
+            <FormField
+              control={form.control}
+              name="reference_cod"
+              render={({ field }) => (
+                <FormItem className="">
+                  <FormLabel>Código de Referencia</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Código de referencia" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             <FormField
               control={form.control}
               name="bank_account_id"
               render={({ field }) => (
-                <FormItem className="w-full flex flex-col space-y-3">
+                <FormItem className="w-full flex flex-col space-y-3 col-span-2">
                   <FormLabel>Cuenta de Banco</FormLabel>
                   <Popover>
                     <PopoverTrigger asChild>
@@ -505,79 +503,78 @@ export function CreateRentingForm({ onClose }: FormProps) {
                 </FormItem>
               )}
             />
+          </>
           )}
         </div>
-        <div className="flex gap-2 items-center justify-center">
-          <FormField
-            control={form.control}
-            name="client_id"
-            render={({ field }) => (
-              <FormItem className="w-full flex flex-col space-y-3">
-                <FormLabel>Cliente</FormLabel>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <FormControl>
-                      <Button
-                        disabled={isClientsLoading}
-                        variant="outline"
-                        role="combobox"
-                        className={cn(
-                          "justify-between",
-                          !field.value && "text-muted-foreground"
-                        )}
-                      >
-                        {isClientsLoading && (
-                          <Loader2 className="size-4 animate-spin mr-2" />
-                        )}
-                        {field.value
-                          ? clients?.find(
-                              (client) => client.id.toString() === field.value
-                            )?.name
-                          : "Seleccione un cliente..."}
-                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                      </Button>
-                    </FormControl>
-                  </PopoverTrigger>
-                  <PopoverContent className="p-0">
-                    <Command>
-                      <CommandInput placeholder="Busque un cliente..." />
-                      <CommandList>
-                        <CommandEmpty className="text-sm p-2 text-center">
-                          No se ha encontrado ningún cliente.
-                        </CommandEmpty>
-                        <CommandGroup>
-                          {clients?.map((client) => (
-                            <CommandItem
-                              value={client.name}
-                              key={client.id}
-                              onSelect={() => {
-                                form.setValue(
-                                  "client_id",
-                                  client.id.toString()
-                                );
-                              }}
-                            >
-                              <Check
-                                className={cn(
-                                  "mr-2 h-4 w-4",
-                                  client.id.toString() === field.value
-                                    ? "opacity-100"
-                                    : "opacity-0"
-                                )}
-                              />
-                              {client.name}
-                            </CommandItem>
-                          ))}
-                        </CommandGroup>
-                      </CommandList>
-                    </Command>
-                  </PopoverContent>
-                </Popover>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
+        <FormField
+          control={form.control}
+          name="client_id"
+          render={({ field }) => (
+            <FormItem className="w-full flex flex-col space-y-3">
+              <FormLabel>Cliente</FormLabel>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <FormControl>
+                    <Button
+                      disabled={isClientsLoading}
+                      variant="outline"
+                      role="combobox"
+                      className={cn(
+                        "justify-between",
+                        !field.value && "text-muted-foreground"
+                      )}
+                    >
+                      {isClientsLoading && (
+                        <Loader2 className="size-4 animate-spin mr-2" />
+                      )}
+                      {field.value
+                        ? clients?.find(
+                            (client) => client.id.toString() === field.value
+                          )?.name
+                        : "Seleccione un cliente..."}
+                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+                  </FormControl>
+                </PopoverTrigger>
+                <PopoverContent className="p-0">
+                  <Command>
+                    <CommandInput placeholder="Busque un cliente..." />
+                    <CommandList>
+                      <CommandEmpty className="text-sm p-2 text-center">
+                        No se ha encontrado ningún cliente.
+                      </CommandEmpty>
+                      <CommandGroup>
+                        {clients?.map((client) => (
+                          <CommandItem
+                            value={client.name}
+                            key={client.id}
+                            onSelect={() => {
+                              form.setValue(
+                                "client_id",
+                                client.id.toString()
+                              );
+                            }}
+                          >
+                            <Check
+                              className={cn(
+                                "mr-2 h-4 w-4",
+                                client.id.toString() === field.value
+                                  ? "opacity-100"
+                                  : "opacity-0"
+                              )}
+                            />
+                            {client.name}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
         <FormField
           control={form.control}
           name="description"

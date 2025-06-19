@@ -7,7 +7,6 @@ import {
   Award,
   BookCheck,
   BookUser,
-  Building,
   ClipboardCopy,
   ClipboardList,
   ClipboardPen,
@@ -37,7 +36,7 @@ type Submenu = {
   href: string;
   label: string;
   active: boolean;
-  roles?: string[]; 
+  roles?: string[];
 };
 
 type Menu = {
@@ -234,20 +233,6 @@ export function getMenuList(
                   active:
                     pathname ===
                     "/transmandu/administracion/operaciones/arrendamiento",
-                },
-                //  {
-                //    href: "/transmandu/administracion/operaciones/ventas",
-                //    label: "Ventas",
-                //    active:
-                //      pathname ===
-                //      "/transmandu/administracion/operaciones/ventas",
-                //  },
-                {
-                  href: "/transmandu/administracion/operaciones/articulos",
-                  label: "Artículos",
-                  active:
-                    pathname ===
-                    "/transmandu/administracion/operaciones/articulos",
                 },
               ],
             },
@@ -1055,5 +1040,5 @@ export function getMenuList(
       });
 
     return { ...group, menus: filteredMenus };
-  }).filter((group) => group.menus.length > 0); 
+  }).filter((group) => group.menus.length > 0);
 }

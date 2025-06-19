@@ -405,7 +405,7 @@ export interface DispatchRequest extends Request {
 
 export type Flight = {
   id: number,
-  flight_number: string,
+  guide_code: string,
   client: Client,
   route: Route,
   aircraft: Aircraft,
@@ -647,7 +647,7 @@ export type Route = {
   id: number;
   from: string;
   to: string;
-  layovers: string,
+  layover: string[],
 };
 
 export type Sell = {
@@ -789,8 +789,8 @@ export type ObligatoryReport = {
   description: string;
   report_date: Date;
   incident_date: Date;
-  incident_time: Date;
-  flight_time: Date;
+  incident_time: string;
+  flight_time: string;
   pilot: Pilot;
   copilot: Pilot;
   aircraft: Aircraft;

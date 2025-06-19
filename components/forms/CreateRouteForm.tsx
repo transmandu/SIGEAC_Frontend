@@ -1,4 +1,4 @@
-import { useCreateRoute, useGetRoute, useUpdateRoute, } from "@/actions/aerolinea/rutas/actions";
+ import { useCreateRoute, useGetRoute, useUpdateRoute, } from "@/actions/aerolinea/rutas/actions";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, } from "@/components/ui/form";
 import { cn } from "@/lib/utils";
 import { Route } from "@/types";
@@ -15,57 +15,45 @@ import { Label } from "../ui/label";
 
 const getFormSchema = (hasLayovers: boolean) =>
   z.object({
-    from: z
-      .string({
-        message: "Debe seleccionar un origen.",
-      })
-      .min(3, {
-        message: "El origen debe tener al menos 3 caracteres.",
-      })
-      .max(30, {
-        message: "El origen tiene un máximo 30 caracteres.",
-      }),
-    to: z
-      .string({
-        message: "Debe seleccionar un destino.",
-      })
-      .min(3, {
-        message: "El destino debe tener al menos 3 caracteres.",
-      })
-      .max(30, {
-        message: "El destino tiene un máximo 30 caracteres.",
-      }),
-    layovers: z
-      .string()
-      .superRefine((value, ctx) => {
-        if (!hasLayovers) return true;
+    from: z.string(),
+    to: z.string(),
+    layover: z.array(z.string()).superRefine((values, ctx) => {
+      if (!hasLayovers) return true;
 
+      if (values.length === 0) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Debe ingresar al menos una escala cuando está marcado el checkbox.",
+        });
+        return false;
+      }
+
+      values.forEach((value, index) => {
         if (!value || value.trim() === "") {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
-            message:
-              "Debe ingresar al menos una escala cuando está marcado el checkbox.",
-          });
-          return false;
-        }
-
-        const isOnlyNumbers = /^\d+$/.test(value.replace(/,/g, "").trim());
-        if (isOnlyNumbers) {
-          ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            message: "Las escalas no pueden contener solo números.",
+            message: `La escala ${index + 1} no puede estar vacía.`,
+            path: [index]
           });
         }
 
-        const layovers = value.split(",").map((l) => l.trim());
-        if (!layovers.every((l) => l.length >= 3)) {
+        if (/^\d+$/.test(value.trim())) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
-            message: "Cada escala debe tener al menos 3 caracteres.",
+            message: `La escala ${index + 1} no puede contener solo números.`,
+            path: [index]
           });
         }
-      })
-      .optional(),
+
+        if (value.length < 3) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: `La escala ${index + 1} debe tener al menos 3 caracteres.`,
+            path: [index]
+          });
+        }
+      });
+    }).optional()
   });
 
 interface FormProps {
@@ -74,7 +62,7 @@ interface FormProps {
   id?: string;
 }
 
-type layoversField = {
+type layoverField = {
   id: number;
   value: string;
 };
@@ -85,19 +73,18 @@ const RouteForm = ({ id, onClose, isEditing = false }: FormProps) => {
   const { updateRoute } = useUpdateRoute();
   const { createRoute } = useCreateRoute();
   const { data } = useGetRoute(id ?? null);
-
   const formSchema = useMemo(() => getFormSchema(checked), [checked]);
-
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       from: initialValues?.from ?? "",
       to: initialValues?.to ?? "",
-      layovers: initialValues?.layovers ?? undefined,
     },
   });
 
-  const [layoversFields, setScaleFields] = useState<layoversField[]>([
+    const layover = form.watch("layover") || [];
+  console.log(layover);
+  const [layoverFields, setScaleFields] = useState<layoverField[]>([
     {
       id: Date.now(),
       value: "",
@@ -109,49 +96,41 @@ const RouteForm = ({ id, onClose, isEditing = false }: FormProps) => {
       setInitialValues(data);
       form.setValue("from", data.from);
       form.setValue("to", data.to);
-      form.setValue("layovers", data.layovers ?? undefined);
-      setChecked(!!data.layovers);
-
-      // Si hay escalas al editar, inicializar los campos
-      if (data.layovers) {
-        const initialLayovers = data.layovers.split(",").map((l) => l.trim());
-        setScaleFields(
-          initialLayovers.map((layover, index) => ({
-            id: Date.now() + index,
-            value: layover,
-          }))
-        );
-      }
+      form.setValue("layover", data.layover ?? undefined);
+      setChecked(!!data.layover);
     }
   }, [data, form]);
 
   const onAddInput = () => {
-    setScaleFields([...layoversFields, { id: Date.now(), value: "" }]);
+    form.setValue("layover", [...layover, ""]);
   };
 
   const onRemoveInput = (index: number) => {
-    if (layoversFields.length > 1) {
-      setScaleFields((prevFields) => prevFields.filter((_, i) => i !== index));
+    if (layover.length > 1) {
+      const newLayovers = [...layover];
+      newLayovers.splice(index, 1);
+      form.setValue("layover", newLayovers);
     }
   };
 
-  const handleInputChange = (id: number, value: string) => {
-    setScaleFields((prevFields) => {
-      const updatedFields = prevFields.map((field) =>
-        field.id === id ? { ...field, value } : field
-      );
-      const layoversValues = updatedFields
-        .map((field) => field.value)
-        .filter(Boolean);
-      form.setValue("layovers", layoversValues.join(", "));
-
-      return updatedFields;
-    });
+  const handleInputChange = (index: number, value: string) => {
+    const newLayovers = [...layover];
+    newLayovers[index] = value;
+    form.setValue("layover", newLayovers);
   };
 
+  // Modificación en el useEffect de inicialización
   useEffect(() => {
-    form.trigger("layovers");
-  }, [checked, form]);
+    if (data) {
+      setInitialValues(data);
+      form.reset({
+        from: data.from,
+        to: data.to,
+        layover: [],
+      });
+      setChecked(!!data.layover);
+    }
+  }, [data, form]);
 
   const onSubmitRoute = async (values: z.infer<typeof formSchema>) => {
     try {
@@ -160,12 +139,12 @@ const RouteForm = ({ id, onClose, isEditing = false }: FormProps) => {
           id: initialValues.id.toString(),
           from: values.from,
           to: values.to,
-          layovers: checked ? values.layovers : undefined,
+          layover: checked ? values.layover : undefined,
         });
       } else {
         await createRoute.mutateAsync({
           ...values,
-          layovers: checked ? values.layovers : undefined,
+          layover: checked ? values.layover : undefined,
         });
       }
       form.reset();
@@ -190,11 +169,11 @@ const RouteForm = ({ id, onClose, isEditing = false }: FormProps) => {
               <Checkbox
                 checked={checked}
                 onCheckedChange={() => setChecked(!checked)}
-                id="layovers"
+                id="layover"
               />
               <div className="grid gap-1.5 leading-none">
                 <label
-                  htmlFor="layovers"
+                  htmlFor="layover"
                   className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                 >
                   ¿Tiene escalas?
@@ -238,45 +217,34 @@ const RouteForm = ({ id, onClose, isEditing = false }: FormProps) => {
               <>
                 <div className="flex gap-2 items-center p-2">
                   <MinusCircle
-                    className="size-4 cursor-pointer hover:layovers-125 transition-all ease-in duration-100"
-                    onClick={() => onRemoveInput(layoversFields.length - 1)}
+                    className="size-4 cursor-pointer hover:layover-125 transition-all ease-in duration-100"
+                    onClick={() => onRemoveInput(layover.length - 1)}
                   />
                   <Label>Escala(s)</Label>
                   <PlusCircle
-                    className="size-4 cursor-pointer hover:layovers-125 transition-all ease-in duration-100"
+                    className="size-4 cursor-pointer hover:layover-125 transition-all ease-in duration-100"
                     onClick={onAddInput}
                   />
                 </div>
                 <div
                   className={cn(
-                    "grid grid-cols-1 gap-2",
-                    layoversFields.length > 1 ? "grid-cols-2" : ""
+                    "grid gap-2",
+                    layover.length > 1 ? "grid-cols-2" : "grid-cols-1"
                   )}
                 >
-                  {layoversFields.map((field, index) => (
-                    <FormField
-                      key={field.id}
-                      control={form.control}
-                      name="layovers"
-                      render={() => (
-                        <FormItem className="w-auto">
-                          <FormControl>
-                            <Input
-                              placeholder="Ingrese la escala"
-                              value={field.value}
-                              onChange={(e) =>
-                                handleInputChange(field.id, e.target.value)
-                              }
-                            />
-                          </FormControl>
-                          {form.formState.errors.layovers && index === 0 && (
-                            <FormMessage>
-                              {form.formState.errors.layovers.message}
-                            </FormMessage>
-                          )}
-                        </FormItem>
+                  {layover.map((value, index) => (
+                    <div key={index} className="flex items-center gap-2">
+                      <Input
+                        placeholder="Ingrese la escala"
+                        value={value}
+                        onChange={(e) => handleInputChange(index, e.target.value)}
+                      />
+                      {form.formState.errors.layover?.[index] && (
+                        <FormMessage>
+                          {form.formState.errors.layover[index]?.message}
+                        </FormMessage>
                       )}
-                    />
+                    </div>
                   ))}
                 </div>
               </>

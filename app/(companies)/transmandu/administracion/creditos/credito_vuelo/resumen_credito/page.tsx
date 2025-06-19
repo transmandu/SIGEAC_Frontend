@@ -275,7 +275,7 @@ const CreditStatisticsFlightPage = () => {
                            <div className="flex flex-col">
                              <span className="font-medium flex items-center gap-1">
                                <PlaneIcon className="h-4 w-4 text-blue-500" />
-                               {credit.flight.flight_number}
+                               {credit.flight.guide_code}
                              </span>
                              <span className="text-xs text-muted-foreground">
                                {credit.flight.type} - {new Date(credit.flight.date).toLocaleDateString()}

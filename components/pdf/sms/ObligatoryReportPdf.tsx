@@ -5,7 +5,7 @@ import {
   Text,
   View,
   StyleSheet,
-  Image,
+  Image as PDFImage,
 } from "@react-pdf/renderer";
 import { MitigationTable, ObligatoryReport } from "@/types";
 import { dateFormat, timeFormat } from "@/lib/utils";
@@ -498,7 +498,7 @@ const Footer = (currentPage: number, pageNumber: number) => (
 const Header = () => (
   <View style={styles.tableRowHeader}>
     <View style={{ ...styles.tableCellHeader, width: "20%" }}>
-      <Image src="/tmd_sms_header.jpg" style={styles.logo} />
+      <PDFImage src="/tmd_sms_header.jpg" style={styles.logo} />
     </View>
     <View style={styles.column2Header}>
       <View style={styles.rowColumnHeader}>
@@ -593,7 +593,7 @@ const ObligatoryReportPdf = ({ report, identification }: MyDocumentProps) => (
         {/*HORA DEL INCIDENTE*/}
         <View style={{ ...styles.tableCell, width: "15%" }}>
           <Text style={styles.cellText}>
-            {timeFormat(report.incident_time)}
+            {(report.incident_time)}
           </Text>
         </View>
         {/*LUGAR DEL SUCESO DEL REPORTE*/}
@@ -739,7 +739,7 @@ const ObligatoryReportPdf = ({ report, identification }: MyDocumentProps) => (
 
       <View style={styles.tableRow}>
         <View style={{ ...styles.tableCell, width: "10%" }}>
-          <Text style={styles.cellText}>{timeFormat(report.flight_time)}</Text>
+          <Text style={styles.cellText}>{report.flight_time}</Text>
         </View>
         <View style={{ ...styles.tableCell, width: "23.33%" }}>
           <Text style={styles.cellText}>{report.aircraft.acronym}</Text>

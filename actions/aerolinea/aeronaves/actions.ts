@@ -36,7 +36,7 @@ export const useDeleteAircraft = () => {
 
   const deleteMutation = useMutation({
       mutationFn: async (acronym: string) => {
-          await axiosInstance.delete(`/transmandu/aircrafts-administration/${acronym}`)
+          await axiosInstance.delete(`/transmandu/aircrafts/${acronym}`)
         },
       onSuccess: () => {
 
@@ -62,8 +62,8 @@ export const useUpdateAircraft = () => {
   const queryClient = useQueryClient();
 
   const updateMutation = useMutation({
-    mutationFn: async ({ acronym, data }: { acronym: string; data: any }) => {
-      await axiosInstance.put(`/transmandu/aircrafts-administration/${acronym}`, data);
+    mutationFn: async ({ acronym, data, company }: { acronym: string; data: any, company: string | undefined }) => {
+      await axiosInstance.put(`/${company}/aircrafts/${acronym}`, data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['aircrafts'] });
@@ -89,10 +89,10 @@ interface AircraftExpenseFormData {
     cash_id: string;
     bank_account_id?: string | null;
     total_amount: number;
-    reference_cod: string;
+    reference_cod?: string;
     details: string;
-    employee_responsible_id: string;
-    vendor_id: string;
+    employee_responsible: string;
+    vendor_id?: string;
     cash_movement_details: {
       accountant_id: string;
       category_id: string;

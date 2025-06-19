@@ -349,7 +349,7 @@ export const TaskDetailsDialog = ({
             !isEditing && (
               <div className='flex gap-2 items-center'>
                 {
-                  !selectedTask.non_routine && (
+                  !selectedTask.non_routine && !isNonRoutine && (
                     <CreateNoRutineDialog task_id={selectedTask.id.toString()} />
                   )
                 }

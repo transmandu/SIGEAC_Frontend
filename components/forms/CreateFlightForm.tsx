@@ -7,6 +7,12 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, } from 
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger, } from "@/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, } from "@/components/ui/select";
+import {
+  InputOTP,
+  InputOTPGroup,
+  InputOTPSeparator,
+  InputOTPSlot,
+} from "@/components/ui/input-otp"
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList, } from "../ui/command";
 import { Check, ChevronsUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -40,13 +46,14 @@ const formSchema = z
     date: z.date({
       required_error: "La fecha de vuelo es requerida",
     }),
-    flight_number: z
+    reference_cod: z.string().optional(),
+    guide_code: z
       .string()
       .min(1, {
         message: "El número de vuelo es requerido.",
       })
       .max(10, {
-        message: "El número de vuelo tiene un máximo de 10 caracteres.",
+        message: "El número de guía tiene un máximo de 10 caracteres.",
       }),
     details: z
       .string()
@@ -184,13 +191,86 @@ export function FlightForm({ onClose }: FormProps) {
         <div className="flex gap-2 items-center justify-center">
           <FormField
             control={form.control}
-            name="flight_number"
+            name="guide_code"
             render={({ field }) => (
               <FormItem className="w-full">
-                <FormLabel>Número de Vuelo</FormLabel>
+                <FormLabel>Número de Guía</FormLabel>
                 <FormControl>
-                  <Input placeholder="# Vuelo" {...field} />
+                  <InputOTP
+                    maxLength={4}
+                    value={field.value?.replace(/-/g, '') || ''}
+                    onChange={(value) => {
+                      // Formatea como XX-XX cuando se completan los 4 dígitos
+                      const formattedValue = value.length === 4
+                        ? `${value.slice(0, 2)}-${value.slice(2)}`
+                        : value
+                      field.onChange(formattedValue)
+                    }}
+                  >
+                    <InputOTPGroup>
+                      <InputOTPSlot index={0} />
+                      <InputOTPSlot index={1} />
+                    </InputOTPGroup>
+                      <InputOTPSeparator />
+                    <InputOTPGroup>
+                      <InputOTPSlot index={2} />
+                      <InputOTPSlot index={3} />
+                    </InputOTPGroup>
+                  </InputOTP>
                 </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="date"
+            render={({ field }) => (
+              <FormItem className="w-full">
+                <FormLabel>Fecha</FormLabel>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <FormControl>
+                      <Button
+                        variant={"outline"}
+                        className={cn(
+                          "w-full pl-3 text-left font-normal",
+                          !field.value && "text-muted-foreground"
+                        )}
+                      >
+                        {field.value ? (
+                          format(field.value, "PPP", {
+                            locale: es,
+                          })
+                        ) : (
+                          <span>Selec. una fecha</span>
+                        )}
+                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                      </Button>
+                    </FormControl>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={field.value}
+                      onSelect={field.onChange}
+                      initialFocus
+                      fromYear={1980} // Año mínimo que se mostrará
+                      toYear={new Date().getFullYear()} // Año máximo (actual)
+                      captionLayout="dropdown-buttons" // Selectores de año/mes
+                      components={{
+                        Dropdown: (props) => (
+                          <select
+                            {...props}
+                            className="bg-popover text-popover-foreground"
+                          >
+                            {props.children}
+                          </select>
+                        ),
+                      }}
+                    />
+                  </PopoverContent>
+                </Popover>
                 <FormMessage />
               </FormItem>
             )}
@@ -201,7 +281,7 @@ export function FlightForm({ onClose }: FormProps) {
             control={form.control}
             name="client_id"
             render={({ field }) => (
-              <FormItem>
+              <FormItem className="w-full">
                 <FormLabel>Cliente</FormLabel>
                 <Popover>
                   <PopoverTrigger asChild>
@@ -266,55 +346,38 @@ export function FlightForm({ onClose }: FormProps) {
               </FormItem>
             )}
           />
-          <FormField
+<FormField
             control={form.control}
-            name="date"
+            name="aircraft_id"
             render={({ field }) => (
-              <FormItem>
-                <FormLabel>Fecha</FormLabel>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <FormControl>
-                      <Button
-                        variant={"outline"}
-                        className={cn(
-                          "w-full pl-3 text-left font-normal",
-                          !field.value && "text-muted-foreground"
-                        )}
-                      >
-                        {field.value ? (
-                          format(field.value, "PPP", {
-                            locale: es,
-                          })
-                        ) : (
-                          <span>Seleccione una fecha</span>
-                        )}
-                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                      </Button>
-                    </FormControl>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={field.value}
-                      onSelect={field.onChange}
-                      initialFocus
-                      fromYear={1980} // Año mínimo que se mostrará
-                      toYear={new Date().getFullYear()} // Año máximo (actual)
-                      captionLayout="dropdown-buttons" // Selectores de año/mes
-                      components={{
-                        Dropdown: (props) => (
-                          <select
-                            {...props}
-                            className="bg-popover text-popover-foreground"
+              <FormItem className="flex flex-col w-full space-y-3 mt-1">
+                <FormLabel>Aeronave</FormLabel>
+                <Select
+                  disabled={isAircraftLoading}
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selec. la aeronave" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {aircrafts &&
+                      aircrafts
+                        .filter(
+                          (aircraft) => aircraft.status === "EN POSESION"
+                        )
+                        .map((aircraft) => (
+                          <SelectItem
+                            key={aircraft.id}
+                            value={aircraft.id.toString()}
                           >
-                            {props.children}
-                          </select>
-                        ),
-                      }}
-                    />
-                  </PopoverContent>
-                </Popover>
+                            {aircraft.brand} - {aircraft.acronym}
+                          </SelectItem>
+                        ))}
+                  </SelectContent>
+                </Select>
                 <FormMessage />
               </FormItem>
             )}
@@ -352,44 +415,6 @@ export function FlightForm({ onClose }: FormProps) {
           />
           <FormField
             control={form.control}
-            name="aircraft_id"
-            render={({ field }) => (
-              <FormItem className="flex flex-col space-y-3">
-                <FormLabel>Aeronave</FormLabel>
-                <Select
-                  disabled={isAircraftLoading}
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Seleccione un Avión" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {aircrafts &&
-                      aircrafts
-                        .filter(
-                          (aircraft) => aircraft.status === "EN POSESION"
-                        )
-                        .map((aircraft) => (
-                          <SelectItem
-                            key={aircraft.id}
-                            value={aircraft.id.toString()}
-                          >
-                            {aircraft.brand} - {aircraft.acronym}
-                          </SelectItem>
-                        ))}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-        <div className="flex items-center justify-center gap-2">
-          <FormField
-            control={form.control}
             name="type"
             render={({ field }) => (
               <FormItem className="w-full">
@@ -412,25 +437,25 @@ export function FlightForm({ onClose }: FormProps) {
               </FormItem>
             )}
           />
-          {form.watch("type") !== "CHART" && (
+        </div>
+        <div className="flex gap-2 items-center justify-center">
+        {form.watch("type") !== "CHART" && (
             <FormField
               control={form.control}
               name="fee"
               render={({ field }) => (
-                <FormItem className="w-full">
+                <FormItem className="w-1/3">
                   <FormLabel>Tarifa</FormLabel>
                   <FormControl>
-                    <AmountInput {...field} />
+                    <Input {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
           )}
-        </div>
-        <div className="flex gap-2 items-center justify-center">
           {(form.watch("type") === "CARGA" || form.watch("type") === "PAX") && (
-            <div className="space-y-2">
+            <div className="space-y-2 w-1/3">
               <Label>
                 {form.watch("type") === "CARGA" ? "KG" : " # Pasajeros"}
               </Label>
@@ -454,7 +479,7 @@ export function FlightForm({ onClose }: FormProps) {
             control={form.control}
             name="total_amount"
             render={({ field }) => (
-              <FormItem className="w-full">
+              <FormItem className={cn("", form.watch("type") === "CHART" ? "w-full" : "w-1/3")}>
                 <FormLabel>Precio a Cobrar</FormLabel>
                 <FormControl>
                   <AmountInput
@@ -521,12 +546,12 @@ export function FlightForm({ onClose }: FormProps) {
             />
           )}
         </div>
-        <div className="flex gap-2 items-center justify-center">
+        <div className="grid grid-cols-2 gap-2 items-center justify-center">
           <FormField
             control={form.control}
             name="pay_method"
             render={({ field }) => (
-              <FormItem className="w-full">
+              <FormItem className="col-span-2">
                 <FormLabel>Método de Pago</FormLabel>
                 <Select
                   onValueChange={field.onChange}
@@ -545,12 +570,13 @@ export function FlightForm({ onClose }: FormProps) {
               </FormItem>
             )}
           />
-          {form.watch("pay_method") !== "EFECTIVO" && (
+
+{form.watch("pay_method") !== "EFECTIVO" && (
             <FormField
             control={form.control}
             name="bank_account_id"
             render={({ field }) => (
-              <FormItem className="w-full flex flex-col space-y-3">
+              <FormItem className="w-full flex flex-col space-y-3 mt-1.5">
                 <FormLabel>Cuenta de Banco</FormLabel>
                 <Popover>
                   <PopoverTrigger asChild>
@@ -630,6 +656,23 @@ export function FlightForm({ onClose }: FormProps) {
             )}
           />
           )}
+        {
+            form.watch("pay_method") === "TRANSFERENCIA" && (
+              <FormField
+                control={form.control}
+                name="reference_cod"
+                render={({ field }) => (
+                  <FormItem className="">
+                    <FormLabel>Código de Referencia</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Código de referencia" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )
+        }
         </div>
         <FormField
           control={form.control}

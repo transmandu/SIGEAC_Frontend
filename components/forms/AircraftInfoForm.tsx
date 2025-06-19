@@ -257,7 +257,7 @@ export function AircraftInfoForm({ onNext, onBack, initialData }: AircraftInfoFo
           />
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
-          <FormField
+          {/* <FormField
             control={form.control}
             name="fabricant_date"
             render={({ field }) => (
@@ -297,6 +297,60 @@ export function AircraftInfoForm({ onNext, onBack, initialData }: AircraftInfoFo
                 <FormDescription className="text-xs">
                   Fecha de fabricación de la aeronave.
                 </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          /> */}
+           <FormField
+            control={form.control}
+            name="fabricant_date"
+            render={({ field }) => (
+              <FormItem className="flex flex-col mt-2.5 w-full">
+                <FormLabel>Fecha de Fabricación</FormLabel>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <FormControl>
+                      <Button
+                        variant={"outline"}
+                        className={cn(
+                          "w-full pl-3 text-left font-normal",
+                          !field.value && "text-muted-foreground"
+                        )}
+                      >
+                        {field.value ? (
+                          format(field.value, "PPP", {
+                            locale: es,
+                          })
+                        ) : (
+                          <span>Seleccione una fecha</span>
+                        )}
+                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                      </Button>
+                    </FormControl>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={field.value}
+                      onSelect={field.onChange}
+                      disabled={(date) => date > new Date()}
+                      initialFocus
+                      fromYear={1980} 
+                      toYear={new Date().getFullYear()} 
+                      captionLayout="dropdown-buttons" 
+                      components={{
+                        Dropdown: (props) => (
+                          <select
+                            {...props}
+                            className="bg-popover text-popover-foreground"
+                          >
+                            {props.children}
+                          </select>
+                        ),
+                      }}
+                    />
+                  </PopoverContent>
+                </Popover>
                 <FormMessage />
               </FormItem>
             )}

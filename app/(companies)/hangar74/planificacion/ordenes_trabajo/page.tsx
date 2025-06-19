@@ -14,6 +14,7 @@ const WorkOrdersPage = () => {
 
   const { data: work_orders, isLoading, isError } = useGetWorkOrders(selectedStation ?? null);
 
+  console.log(selectedStation)
 
   if (isLoading) return <LoadingPage />
 

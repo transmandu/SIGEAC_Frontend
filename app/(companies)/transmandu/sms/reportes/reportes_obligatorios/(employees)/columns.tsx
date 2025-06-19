@@ -60,7 +60,9 @@ export const columns: ColumnDef<ObligatoryReport>[] = [
     cell: ({ row }) => {
       return (
         <p className="font-medium text-center">
-          {dateFormat(row.original.report_date, "PPP")}
+        {row.original.report_date
+          ? dateFormat(row.original.report_date, "PPP")
+          : "N/A"}
         </p>
       );
     },
@@ -71,8 +73,7 @@ export const columns: ColumnDef<ObligatoryReport>[] = [
       <DataTableColumnHeader filter column={column} title="Hora del Vuelo" />
     ),
     cell: ({ row }) => {
-      const flight_time = timeFormat(row.original.flight_time);
-      return <p className="font-medium text-center">{flight_time} </p>;
+        return <p className="font-medium text-center">{row.original.flight_time}</p>;
     },
   },
   {
@@ -81,10 +82,8 @@ export const columns: ColumnDef<ObligatoryReport>[] = [
       <DataTableColumnHeader filter column={column} title="Hora del suceso" />
     ),
     cell: ({ row }) => {
-      const timeString = row.original.incident_time.toString();
-      const parsedTime = parse(timeString, "HH:mm:ss", new Date());
-      const incident_time = format(parsedTime, "HH:mm");
-      return <p className="font-medium text-center">{incident_time} </p>;
+        const incident_time = row.original.incident_time;
+        return <p className="font-medium text-center">{incident_time}</p>;
     },
   },
 
@@ -107,7 +106,7 @@ export const columns: ColumnDef<ObligatoryReport>[] = [
     cell: ({ row }) => (
       <div className="flex justify-center">
         <Badge
-          className={`justify-center items-center text-center font-bold font-sans 
+          className={`justify-center items-center text-center font-bold font-sans
       ${
         row.original.status === "CERRADO"
           ? "bg-green-400"

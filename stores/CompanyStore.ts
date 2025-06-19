@@ -19,7 +19,7 @@ const initialState: CompanyState = {
 
 export const useCompanyStore = create<CompanyState & CompanyActions>((set) => ({
     selectedCompany: null,
-    selectedStation: "PZO",
+    selectedStation: null,
     setSelectedCompany: (company) => {
         set({ selectedCompany: company });
         localStorage.setItem('selectedCompany', company);
