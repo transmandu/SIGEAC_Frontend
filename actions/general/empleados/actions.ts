@@ -2,26 +2,27 @@ import axiosInstance from "@/lib/axios"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 
-interface ManufacturerSchema {
-    name: string,
-    description: string,
-    type: "AIRCRAFT" | "PART",
+interface CreateEmployeeFormSchema {
+  first_name: string;
+  last_name: string;
+  dni: string;
+  company: string;
+  job_title_id: string,
+  department_id: string,
+  location_id: string,
 }
-
 export const useCreateManufacturer = () => {
 
     const queryClient = useQueryClient()
 
     const createMutation = useMutation({
-        mutationFn: async ({company, data}: {
-          company: string | undefined, data: ManufacturerSchema
-        }) => {
-            await axiosInstance.post(`/${company}/manufacturers`, data)
+        mutationFn: async ({company, data}: {data: CreateEmployeeFormSchema, company: string}) => {
+            await axiosInstance.post(`/${company}/employees`, data)
           },
         onSuccess: () => {
-            queryClient.invalidateQueries({queryKey: ['manufacturers']})
+            queryClient.invalidateQueries({queryKey: ['employees']})
             toast("¡Creado!", {
-                description: `¡El fabricante se ha creado correctamente!`
+                description: `¡El empleado se ha creado correctamente!`
             })
           },
         onError: (error) => {
@@ -33,6 +34,6 @@ export const useCreateManufacturer = () => {
     )
 
     return {
-      createManufacturer: createMutation,
+      createEmployee: createMutation,
     }
 }

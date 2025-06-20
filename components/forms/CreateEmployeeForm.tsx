@@ -1,31 +1,33 @@
 'use client';
 
+import { Button } from '@/components/ui/button';
 import {
   Form,
+  FormControl,
   FormField,
   FormItem,
   FormLabel,
-  FormControl,
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
 import {
   Select,
-  SelectTrigger,
   SelectContent,
   SelectItem,
+  SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
 import { Loader2 } from 'lucide-react';
 
-import { z } from 'zod';
-import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
 
 import { useCreateEmployee } from '@/actions/general/usuarios/actions';
-import { useGetCompanies } from '@/hooks/sistema/useGetCompanies';
-import { useGetLocationsByCompanyId } from '@/hooks/sistema/useGetLocationsByCompanyId';
+import { useGetJobTitles } from '@/hooks/sistema/cargo/useGetJobTitles';
+import { useGetDepartments } from '@/hooks/sistema/departamento/useGetDepartment';
+import { useGetLocationsByCompany } from '@/hooks/sistema/useGetLocationsByCompany';
+import { useCompanyStore } from '@/stores/CompanyStore';
 // import { useDepartments } from '@/hooks/...';
 // import { useJobTitles } from '@/hooks/...';
 
@@ -33,22 +35,21 @@ const formSchema = z.object({
   first_name: z.string().min(1, 'Requerido'),
   last_name: z.string().min(1, 'Requerido'),
   dni: z.string().min(5, 'Requerido'),
-  company: z.string(),
-  department: z.string(),
-  job_title: z.string(),
-  location: z.string(),
+  department_id: z.string(),
+  job_title_id: z.string(),
+  location_id: z.string(),
 });
 
 type EmployeeForm = z.infer<typeof formSchema>;
 
 export function CreateEmployeeForm({ onSuccess }: { onSuccess?: () => void }) {
+  const {selectedCompany } = useCompanyStore();
   const form = useForm<EmployeeForm>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       first_name: '',
       last_name: '',
       dni: '',
-      company: '',
       department: '',
       job_title: '',
       location: '',
@@ -56,22 +57,12 @@ export function CreateEmployeeForm({ onSuccess }: { onSuccess?: () => void }) {
   });
 
   const { mutateAsync, isPending } = useCreateEmployee();
-  const { data: companies = [] } = useGetCompanies();
-  const { data: locations = [] } = useGetLocationsByCompanyId();
-  // const { data: departments = [] } = useDepartments();
-  // const { data: jobTitles = [] } = useJobTitles();
+  const { data: locations, isLoading: isLocLoading, isError: isLocError } = useGetLocationsByCompany(selectedCompany?.split(' ').join(''));
+  const { data: departments, isLoading: isDepartmentsLoading, isError: isDepartmentError } = useGetDepartments(selectedCompany?.split(' ').join(''));
+  const { data: jobTitles, isLoading: isJobTitlesLoading, isError: isJobTitlesError } = useGetJobTitles(selectedCompany?.split(' ').join(''));
 
-  const onSubmit = async (values: EmployeeForm) => {
-    await mutateAsync({
-      first_name: values.first_name,
-      last_name: values.last_name,
-      dni: values.dni,
-      company: values.company,
-      job_title: { id: Number(values.job_title) },
-      department: { id: Number(values.department) },
-      location: { id: Number(values.location) },
-    });
-
+  const onSubmit = async (data: EmployeeForm) => {
+    await mutateAsync(data);
     form.reset();
     onSuccess?.();
   };
@@ -122,51 +113,25 @@ export function CreateEmployeeForm({ onSuccess }: { onSuccess?: () => void }) {
             </FormItem>
           )}
         />
-
-        <FormField
-          control={form.control}
-          name="company"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Compañía</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecciona una compañía" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {companies.map((company) => (
-                    <SelectItem key={company.id} value={company.id.toString()}>
-                      {company.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
         <div className="grid grid-cols-2 gap-4">
           <FormField
             control={form.control}
-            name="job_title"
+            name="job_title_id"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Cargo</FormLabel>
                 <Select onValueChange={field.onChange} defaultValue={field.value}>
                   <FormControl>
-                    <SelectTrigger>
+                    <SelectTrigger disabled={isJobTitlesLoading || isJobTitlesError}>
                       <SelectValue placeholder="Selecciona un cargo" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {/* {jobTitles.map((title) => (
+                     {jobTitles?.map((title) => (
                       <SelectItem key={title.id} value={title.id.toString()}>
                         {title.name}
                       </SelectItem>
-                    ))} */}
+                    ))}
                   </SelectContent>
                 </Select>
                 <FormMessage />
@@ -176,22 +141,22 @@ export function CreateEmployeeForm({ onSuccess }: { onSuccess?: () => void }) {
 
           <FormField
             control={form.control}
-            name="department"
+            name="department_id"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Departamento</FormLabel>
                 <Select onValueChange={field.onChange} defaultValue={field.value}>
                   <FormControl>
-                    <SelectTrigger>
+                    <SelectTrigger disabled={isDepartmentsLoading || isDepartmentError}>
                       <SelectValue placeholder="Selecciona un departamento" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {/* {departments.map((d) => (
+                     {departments?.map((d) => (
                       <SelectItem key={d.id} value={d.id.toString()}>
                         {d.name}
                       </SelectItem>
-                    ))} */}
+                    ))}
                   </SelectContent>
                 </Select>
                 <FormMessage />
@@ -202,22 +167,22 @@ export function CreateEmployeeForm({ onSuccess }: { onSuccess?: () => void }) {
 
         <FormField
           control={form.control}
-          name="location"
+          name="location_id"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Ubicación</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
+              <Select disabled={isLocLoading || isLocError} onValueChange={field.onChange} defaultValue={field.value}>
                 <FormControl>
                   <SelectTrigger>
                     <SelectValue placeholder="Selecciona una ubicación" />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  {/* {locations.map((loc) => (
+                   {locations?.map((loc) => (
                     <SelectItem key={loc.id} value={loc.id.toString()}>
-                      {loc.name}
+                      {loc.address} - {loc.type}
                     </SelectItem>
-                  ))} */}
+                  ))}
                 </SelectContent>
               </Select>
               <FormMessage />

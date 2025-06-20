@@ -15,6 +15,8 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useCreateDepartment } from '@/actions/general/departamento/actions';
+import { useCompanyStore } from '@/stores/CompanyStore';
+import { Loader2 } from 'lucide-react';
 
 const departmentSchema = z.object({
   acronym: z.string().min(1, 'El acrónimo es obligatorio'),
@@ -25,6 +27,7 @@ const departmentSchema = z.object({
 type DepartmentForm = z.infer<typeof departmentSchema>;
 
 export function CreateDepartmentForm({ onSuccess }: { onSuccess?: () => void }) {
+  const {selectedCompany} = useCompanyStore();
   const form = useForm<DepartmentForm>({
     resolver: zodResolver(departmentSchema),
     defaultValues: {
@@ -37,14 +40,10 @@ export function CreateDepartmentForm({ onSuccess }: { onSuccess?: () => void }) 
   const { createDepartment } = useCreateDepartment();
 
 const onSubmit = async (data: DepartmentForm) => {
-  const formattedData = {
-    acronym: data.acronym,
-    name: data.name,
-    email: data.email,
-  };
-
-  await createDepartment.mutateAsync(formattedData);
-
+  await createDepartment.mutateAsync({
+    ...data,
+    company: selectedCompany?.split(' ').join(''),
+  });
   onSuccess?.();
   form.reset();
 };
@@ -95,7 +94,7 @@ const onSubmit = async (data: DepartmentForm) => {
         />
 
         <div className="flex justify-end pt-2">
-          <Button type="submit">Guardar</Button>
+          <Button disabled={createDepartment.isPending} type="submit">{createDepartment.isPending ? <Loader2 className='animate-spin' /> : "Guardar"}</Button>
         </div>
       </form>
     </Form>

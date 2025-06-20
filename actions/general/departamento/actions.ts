@@ -6,6 +6,7 @@ interface DepartmentFormSchema {
   acronym: string;
   name: string;
   email: string;
+  company?: string;
 }
 
 // Crear un departamento
