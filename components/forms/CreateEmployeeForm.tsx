@@ -23,17 +23,20 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
-import { useCreateEmployee } from '@/actions/general/usuarios/actions';
 import { useGetJobTitles } from '@/hooks/sistema/cargo/useGetJobTitles';
 import { useGetDepartments } from '@/hooks/sistema/departamento/useGetDepartment';
 import { useGetLocationsByCompany } from '@/hooks/sistema/useGetLocationsByCompany';
 import { useCompanyStore } from '@/stores/CompanyStore';
-// import { useDepartments } from '@/hooks/...';
-// import { useJobTitles } from '@/hooks/...';
+import { useCreateEmployee } from '@/actions/general/empleados/actions';
 
 const formSchema = z.object({
   first_name: z.string().min(1, 'Requerido'),
+  middle_name: z.string().min(1, 'Requerido'),
   last_name: z.string().min(1, 'Requerido'),
+  second_last_name: z.string().min(1, 'Requerido'),
+  last_name: z.string().min(1, 'Requerido'),
+  dni_type: z.string(),
+  blood_type: z.string(),
   dni: z.string().min(5, 'Requerido'),
   department_id: z.string(),
   job_title_id: z.string(),
@@ -50,19 +53,19 @@ export function CreateEmployeeForm({ onSuccess }: { onSuccess?: () => void }) {
       first_name: '',
       last_name: '',
       dni: '',
-      department: '',
-      job_title: '',
-      location: '',
     },
   });
 
-  const { mutateAsync, isPending } = useCreateEmployee();
+  const { createEmployee } = useCreateEmployee();
   const { data: locations, isLoading: isLocLoading, isError: isLocError } = useGetLocationsByCompany(selectedCompany?.split(' ').join(''));
   const { data: departments, isLoading: isDepartmentsLoading, isError: isDepartmentError } = useGetDepartments(selectedCompany?.split(' ').join(''));
   const { data: jobTitles, isLoading: isJobTitlesLoading, isError: isJobTitlesError } = useGetJobTitles(selectedCompany?.split(' ').join(''));
 
   const onSubmit = async (data: EmployeeForm) => {
-    await mutateAsync(data);
+    await createEmployee.mutateAsync({
+        ...data,
+        company: selectedCompany!.split(' ').join(''),
+    });
     form.reset();
     onSuccess?.();
   };
@@ -90,21 +93,74 @@ export function CreateEmployeeForm({ onSuccess }: { onSuccess?: () => void }) {
             name="last_name"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Apellido</FormLabel>
+                <FormLabel>Seg. Nombre</FormLabel>
                 <FormControl>
-                  <Input placeholder="Ej. Pérez" {...field} />
+                  <Input placeholder="Ej. David" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
         </div>
+        <div className="grid grid-cols-2 gap-4">
+          <FormField
+            control={form.control}
+            name="middle_name"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Prim. Apellido</FormLabel>
+                <FormControl>
+                  <Input placeholder="Ej. Perez" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
+          <FormField
+            control={form.control}
+            name="second_last_name"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Segun. Apellido</FormLabel>
+                <FormControl>
+                  <Input placeholder="Ej. Alfonso" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+        <div className='flex gap-2 w-full'>
+          <FormField
+            control={form.control}
+            name="dni_type"
+            render={({ field }) => (
+              <FormItem className='w-1/3'>
+                <FormLabel>Documento</FormLabel>
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={"V"}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="V / J" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="V">V</SelectItem>
+                    <SelectItem value="J">J</SelectItem>
+                    <SelectItem value="E">E</SelectItem>
+                  </SelectContent>
+                </Select>
+              </FormItem>
+            )}
+          />
         <FormField
           control={form.control}
           name="dni"
           render={({ field }) => (
-            <FormItem>
+            <FormItem className='w-full'>
               <FormLabel>Cédula</FormLabel>
               <FormControl>
                 <Input placeholder="Ej. V12345678" {...field} />
@@ -113,6 +169,36 @@ export function CreateEmployeeForm({ onSuccess }: { onSuccess?: () => void }) {
             </FormItem>
           )}
         />
+        <FormField
+            control={form.control}
+            name="blood_type"
+            render={({ field }) => (
+              <FormItem className='w-1/3'>
+                <FormLabel>T. de Sangre</FormLabel>
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={"V"}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="V / J" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="V">A+</SelectItem>
+                    <SelectItem value="J">A-</SelectItem>
+                    <SelectItem value="E">AB+</SelectItem>
+                    <SelectItem value="E">AB-</SelectItem>
+                    <SelectItem value="E">B+-</SelectItem>
+                    <SelectItem value="E">B-</SelectItem>
+                    <SelectItem value="E">O+</SelectItem>
+                    <SelectItem value="E">O-</SelectItem>
+                  </SelectContent>
+                </Select>
+              </FormItem>
+            )}
+          />
+        </div>
         <div className="grid grid-cols-2 gap-4">
           <FormField
             control={form.control}
@@ -191,8 +277,8 @@ export function CreateEmployeeForm({ onSuccess }: { onSuccess?: () => void }) {
         />
 
         <div className="flex justify-end pt-2">
-          <Button type="submit" disabled={isPending}>
-            {isPending && <Loader2 className="animate-spin size-4 mr-2" />}
+          <Button type="submit" disabled={createEmployee.isPending}>
+            {createEmployee.isPending && <Loader2 className="animate-spin size-4 mr-2" />}
             Crear
           </Button>
         </div>

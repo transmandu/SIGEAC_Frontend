@@ -31,7 +31,7 @@ export const columns: ColumnDef<Employee>[] = [
     enableHiding: false,
   },
   {
-    accessorKey: "name",
+    accessorKey: "first_name",
     header: ({ column }) => (
       <DataTableColumnHeader filter column={column} title="Nombre" />
     ),
@@ -51,7 +51,7 @@ export const columns: ColumnDef<Employee>[] = [
       </>
   },
   {
-    accessorKey: "department",
+    accessorKey: "department.description",
     header: ({ column }) => (
       <DataTableColumnHeader filter column={column} title="Departamento" />
     ),

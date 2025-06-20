@@ -6,18 +6,18 @@ interface CreateEmployeeFormSchema {
   first_name: string;
   last_name: string;
   dni: string;
-  company: string;
   job_title_id: string,
   department_id: string,
   location_id: string,
+  company: string;
 }
-export const useCreateManufacturer = () => {
+export const useCreateEmployee = () => {
 
     const queryClient = useQueryClient()
 
     const createMutation = useMutation({
-        mutationFn: async ({company, data}: {data: CreateEmployeeFormSchema, company: string}) => {
-            await axiosInstance.post(`/${company}/employees`, data)
+        mutationFn: async (data: CreateEmployeeFormSchema) => {
+            await axiosInstance.post(`/employees`, data)
           },
         onSuccess: () => {
             queryClient.invalidateQueries({queryKey: ['employees']})
