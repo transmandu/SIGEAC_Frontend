@@ -12,7 +12,6 @@ import {
   useReactTable,
 } from "@tanstack/react-table"
 
-import CreateWarehouseDialog from "@/components/dialogs/CreateWarehouseDialog"
 import { DataTablePagination } from "@/components/tables/DataTablePagination"
 import { DataTableViewOptions } from "@/components/tables/DataTableViewOptions"
 import { Button } from "@/components/ui/button"
@@ -27,7 +26,6 @@ import {
 import { ListRestart } from "lucide-react"
 import { useState } from "react"
 import { CreateEmployeeDialog } from "@/components/dialogs/CreateEmployeeDialog"
-import { CreateJobTitleDialog } from "@/components/dialogs/CreateJobTitleDialog"
 import { CreateDepartmentDialog } from "@/components/dialogs/CreateDepartmentDialog"
 
 interface DataTableProps<TData, TValue> {
@@ -76,7 +74,7 @@ export function DataTable<TData, TValue>({
               <ListRestart className="ml-2 h-4 w-4" />
             </Button>
           )}
-          <CreateEmployeeDialog />
+          <CreateDepartmentDialog />
         </div>
         <DataTableViewOptions table={table} />
       </div>
