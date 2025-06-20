@@ -34,7 +34,6 @@ const formSchema = z.object({
   middle_name: z.string().min(1, 'Requerido'),
   last_name: z.string().min(1, 'Requerido'),
   second_last_name: z.string().min(1, 'Requerido'),
-  last_name: z.string().min(1, 'Requerido'),
   dni_type: z.string(),
   blood_type: z.string(),
   dni: z.string().min(5, 'Requerido'),
