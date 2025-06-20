@@ -2,81 +2,77 @@ import axiosInstance from "@/lib/axios";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
-interface JobTitleFormSchema {
-  id: number,
-  acronym: string,
+interface DepartmentFormSchema {
+  acronym: string;
   name: string;
   email: string;
 }
 
-// Crear un cargo
-export const useCreateJobTitle = () => {
+// Crear un departamento
+export const useCreateDepartment = () => {
   const queryClient = useQueryClient();
 
-  return useMutation({
-    mutationFn: async (data: JobTitleFormSchema) => {
-      await axiosInstance.post("/job_titles", data);
-    },
+  const createMutation = useMutation({
+    mutationFn: async (data: DepartmentFormSchema) =>
+      await axiosInstance.post("/departments", data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["job_titles"] });
+      queryClient.invalidateQueries({ queryKey: ["departments"] });
       toast.success("¡Creado!", {
-        description: "¡El cargo ha sido creado correctamente!",
+        description: "¡El departamento ha sido creado correctamente!",
       });
     },
     onError: () => {
       toast.error("Oops!", {
-        description: "¡Hubo un error al crear el cargo!",
+        description: "¡Hubo un error al crear el departamento!",
       });
     },
   });
+
+  return { createDepartment: createMutation };
 };
 
-// Actualizar un cargo
-export const useUpdateJobTitle = () => {
+// Actualizar un departamento
+export const useUpdateDepartment = () => {
   const queryClient = useQueryClient();
 
-  return useMutation({
-    mutationFn: async (data: JobTitleFormSchema) => {
-      await axiosInstance.put(`/job_titles/${data.id}`, data);
-    },
+  const updateMutation = useMutation({
+    mutationFn: async (data: DepartmentFormSchema) =>
+      await axiosInstance.put(`/departments/${data}`),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["job_titles"] });
+      queryClient.invalidateQueries({ queryKey: ["departments"] });
       toast.success("¡Actualizado!", {
-        description: "¡El cargo ha sido actualizado correctamente!",
+        description: "¡El departamento ha sido actualizado correctamente!",
       });
     },
     onError: () => {
       toast.error("Oops!", {
-        description: "¡Hubo un error al actualizar el cargo!",
+        description: "¡Hubo un error al actualizar el departamento!",
       });
     },
   });
+
+  return { updateDepartment: updateMutation };
 };
 
-// Eliminar un cargo
-export const useDeleteJobTitle = () => {
+// Eliminar un departamento
+export const useDeleteDepartment = () => {
   const queryClient = useQueryClient();
 
-  return useMutation({
-    mutationFn: async ({
-      id,
-      company,
-    }: {
-      id: number;
-      company: string;
-    }) => {
-      await axiosInstance.delete(`/${company}/job_titles/${id}`);
-    },
+  const deleteMutation = useMutation({
+    mutationFn: async ({ id, company }: { id: number; company: string }) =>
+      await axiosInstance.delete(`/${company}/departments/${id}`),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["job_titles"] });
+      queryClient.invalidateQueries({ queryKey: ["departments"] });
       toast.success("¡Eliminado!", {
-        description: "¡El cargo ha sido eliminado correctamente!",
+        description: "¡El departamento ha sido eliminado correctamente!",
       });
     },
     onError: () => {
       toast.error("Oops!", {
-        description: "¡Hubo un error al eliminar el cargo!",
+        description: "¡Hubo un error al eliminar el departamento!",
       });
     },
   });
+
+  return { deleteDepartment: deleteMutation };
 };

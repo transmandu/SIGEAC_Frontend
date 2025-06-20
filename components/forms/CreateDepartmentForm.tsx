@@ -14,6 +14,7 @@ import { Button } from '@/components/ui/button';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
+import { useCreateDepartment } from '@/actions/general/departamento/actions';
 
 const departmentSchema = z.object({
   acronym: z.string().min(1, 'El acrónimo es obligatorio'),
@@ -33,11 +34,20 @@ export function CreateDepartmentForm({ onSuccess }: { onSuccess?: () => void }) 
     },
   });
 
-  const onSubmit = (values: DepartmentForm) => {
-    console.log('Departamento creado:', values);
-    // Aquí puedes insertar lógica de envío (API, React Query, etc.)
-    onSuccess?.();
+  const { createDepartment } = useCreateDepartment();
+
+const onSubmit = async (data: DepartmentForm) => {
+  const formattedData = {
+    acronym: data.acronym,
+    name: data.name,
+    email: data.email,
   };
+
+  await createDepartment.mutateAsync(formattedData);
+
+  onSuccess?.();
+  form.reset();
+};
 
   return (
     <Form {...form}>
