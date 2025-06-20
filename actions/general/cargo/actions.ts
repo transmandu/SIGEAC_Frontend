@@ -15,31 +15,31 @@ export const useCreateJobTitle = () => {
   const queryClient = useQueryClient();
 
   const createMutation = useMutation({
-        mutationFn: async (data: JobTitleFormSchema) => 
-            await axiosInstance.post("/job_titles", data),
-        onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ["job_titles"] });
-            toast.success("¡Creado!", {
-                description: "¡El cargo ha sido creado correctamente!",
-            });
-        },
-        onError: () => {
-        toast.error("Oops!", {
-            description: "¡Hubo un error al crear el cargo!",
-        });
-        },
-    });
-return { createJobTitle: createMutation };
+    mutationFn: async (data: JobTitleFormSchema) =>
+      await axiosInstance.post("/job_titles", data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["job_titles"] });
+      toast.success("¡Creado!", {
+        description: "¡El cargo ha sido creado correctamente!",
+      });
+    },
+    onError: () => {
+      toast.error("Oops!", {
+        description: "¡Hubo un error al crear el cargo!",
+      });
+    },
+  });
+
+  return { createJobTitle: createMutation };
 };
 
 // Actualizar un cargo
 export const useUpdateJobTitle = () => {
   const queryClient = useQueryClient();
 
-  return useMutation({
-    mutationFn: async (data: JobTitleFormSchema) => {
-      await axiosInstance.put(`/job_titles/${data}`, data);
-    },
+  const updateMutation = useMutation({
+    mutationFn: async (data: JobTitleFormSchema & { id: number }) =>
+      await axiosInstance.put(`/job_titles/${data.id}`, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["job_titles"] });
       toast.success("¡Actualizado!", {
@@ -52,22 +52,17 @@ export const useUpdateJobTitle = () => {
       });
     },
   });
+
+  return { updateJobTitle: updateMutation };
 };
 
 // Eliminar un cargo
 export const useDeleteJobTitle = () => {
   const queryClient = useQueryClient();
 
-  return useMutation({
-    mutationFn: async ({
-      id,
-      company,
-    }: {
-      id: number;
-      company: string;
-    }) => {
-      await axiosInstance.delete(`/${company}/job_titles/${id}`);
-    },
+  const deleteMutation = useMutation({
+    mutationFn: async ({ id, company }: { id: number; company: string }) =>
+      await axiosInstance.delete(`/${company}/job_titles/${id}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["job_titles"] });
       toast.success("¡Eliminado!", {
@@ -80,4 +75,6 @@ export const useDeleteJobTitle = () => {
       });
     },
   });
+
+  return { deleteJobTitle: deleteMutation };
 };
