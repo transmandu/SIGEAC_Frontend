@@ -1,29 +1,19 @@
 "use client";
 
 import { ContentLayout } from "@/components/layout/ContentLayout";
-import { useAuth } from "@/contexts/AuthContext";
+import { useGetDepartments } from "@/hooks/sistema/departamento/useGetDepartment";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { Loader2 } from "lucide-react";
-import { useEffect } from "react";
 import { columns } from "./columns";
 import { DataTable } from "./data-table";
-import { useGetEmployeesByCompany } from "@/hooks/administracion/useGetEmployees";
 
 const DepartmentPage = () => {
+  const {selectedCompany} = useCompanyStore();
   const {
-    mutate,
-    data: employees,
+    data: departments,
     isPending: loading,
     isError: error,
-  } = useGetEmployeesByCompany();
-
-  const { selectedCompany } = useCompanyStore();
-
-  useEffect(() => {
-    if (selectedCompany) {
-        mutate(selectedCompany.split(" ").join("")); 
-    }
-  }, [selectedCompany, mutate]);
+  } = useGetDepartments(selectedCompany?.split(" ").join());
 
   return (
     <ContentLayout title="Departamentos">
@@ -43,7 +33,7 @@ const DepartmentPage = () => {
           </p>
         </div>
       )}
-      {/* {employees && <DataTable columns={columns} data={employees} />} */}
+      {departments && <DataTable columns={columns} data={departments} />}
     </ContentLayout>
   );
 };
