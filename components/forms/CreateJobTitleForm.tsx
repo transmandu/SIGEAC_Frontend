@@ -22,7 +22,10 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 
-// import { useGetDepartments } from '@/hooks/organizacion/useGetDepartments'; // ← Asegúrate de tener este hook
+import { useGetDepartments } from '@/hooks/sistema/departamento/useGetDepartment';
+import { useCreateJobTitle } from '@/actions/general/cargo/actions'; 
+import { useCompanyStore } from '@/stores/CompanyStore';
+
 
 const jobTitleSchema = z.object({
   name: z.string().min(1, 'El nombre es obligatorio'),
@@ -42,13 +45,24 @@ export function CreateJobTitleForm({ onSuccess }: { onSuccess?: () => void }) {
     },
   });
 
-//   const { data: departments, isLoading } = useGetDepartments();
+  const { selectedStation, selectedCompany } = useCompanyStore()
+  const { data: departments, isLoading } = useGetDepartments(selectedCompany?.split(' ').join(''));
+  const { createJobTitle } = useCreateJobTitle();
 
-  const onSubmit = (values: JobTitleForm) => {
-    console.log('JobTitle creado:', values);
-    // Aquí puedes integrar la lógica de guardado o llamada a la API
-    onSuccess?.();
+const onSubmit = async (data: JobTitleForm) => {
+  const formattedData = {
+    name: data.name,
+    description: data.description,
+    department: {
+      id: parseInt(data.departmentId, 10),
+    },
   };
+
+  await createJobTitle.mutateAsync(formattedData);
+
+  onSuccess?.();
+  form.reset();
+};
 
   return (
     <Form {...form}>
@@ -88,7 +102,7 @@ export function CreateJobTitleForm({ onSuccess }: { onSuccess?: () => void }) {
             <FormItem>
               <FormLabel>Departamento</FormLabel>
               <Select
-                // disabled={isLoading}
+                disabled={isLoading}
                 onValueChange={field.onChange}
                 defaultValue={field.value}
               >
@@ -98,11 +112,11 @@ export function CreateJobTitleForm({ onSuccess }: { onSuccess?: () => void }) {
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  {/* {departments?.map((dept) => (
+                  {departments?.map((dept) => (
                     <SelectItem key={dept.id} value={dept.id.toString()}>
                       {dept.name}
                     </SelectItem>
-                  ))} */}
+                  ))}
                 </SelectContent>
               </Select>
               <FormMessage />

@@ -27,6 +27,8 @@ import {
 import { ListRestart } from "lucide-react"
 import { useState } from "react"
 import { CreateEmployeeDialog } from "@/components/dialogs/CreateEmployeeDialog"
+import { CreateJobTitleDialog } from "@/components/dialogs/CreateJobTitleDialog"
+import { CreateDepartmentDialog } from "@/components/dialogs/CreateDepartmentDialog"
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]

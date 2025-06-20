@@ -10,7 +10,8 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { CreateEmployeeForm } from '@/components/forms/CreateEmployeeForm';
+
+import { CreateEmployeeForm } from '../forms/CreateEmployeeForm';
 
 export function CreateEmployeeDialog() {
   const [open, setOpen] = useState(false);
@@ -25,11 +26,11 @@ export function CreateEmployeeDialog() {
         <DialogHeader>
           <DialogTitle>Crear Empleado</DialogTitle>
           <DialogDescription>
-            Completa el formulario para registrar un nuevo empleado.
+            Completa la información para registrar un nuevo empleado.
           </DialogDescription>
         </DialogHeader>
 
-        <CreateEmployeeForm />
+        <CreateEmployeeForm onSuccess={() => setOpen(false)} />
       </DialogContent>
     </Dialog>
   );

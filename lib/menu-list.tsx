@@ -992,11 +992,6 @@ export function getMenuList(
                   label: "Administrar Permisos",
                   active: pathname === "/sistema/usuarios_permisos/permisos",
                 },
-                {
-                  href: "/sistema/empresas/empleados",
-                  label: "Administrar Empleados",
-                  active: pathname === "/sistema/empresas/empleados",
-                },
               ],
             },
             {
