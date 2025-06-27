@@ -51,9 +51,7 @@ export function EmployeeUserForm() {
       <Stepper steps={['Información del Empleado', 'Crear Usuario']} currentStep={step} />
 
       {step === 1 && (
-        <CreateEmployeeForm
-          onSubmit={handleEmployeeSubmit}
-        />
+        <CreateEmployeeForm />
       )}
 
       {step === 2 && createUserState && (
