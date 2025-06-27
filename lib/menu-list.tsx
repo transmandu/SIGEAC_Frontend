@@ -83,6 +83,34 @@ export function getMenuList(
               },
             ],
           },
+                    {
+            groupLabel: "Desarrollo",
+            menus: [
+              {
+                href: "/transmandu/desarrollo",
+                label: "Actividades",
+                active: pathname.includes("/transmandu/desarrollo"),
+                icon: SquarePen,
+                roles: ["ANALISTA_DESARROLLO", "JEFE_DESARROLLO", "SUPERUSER"],
+                submenus: [
+                  {
+                    href: `/transmandu/desarrollo/actividades_diarias/registro/${date}/`,
+                    label: "Registro de Actividades",
+                    active:
+                      pathname ===
+                      `/transmandu/desarrollo/actividades_diarias/registro/`,
+                  },
+                  {
+                    href: "/transmandu/desarrollo/actividades_diarias",
+                    label: "Gestion de Actividades",
+                    active:
+                      pathname ===
+                      `/transmandu/desarrollo/actividades_diarias/`,
+                  },
+                ],
+              },
+            ],
+          },
           {
             groupLabel: "Administración",
             menus: [
@@ -463,35 +491,6 @@ export function getMenuList(
             ],
           },
           {
-            groupLabel: "Sistema",
-            menus: [
-              {
-                href: "/sistema/usuarios_permisos",
-                label: "Usuarios Y Permisos",
-                active: pathname.includes("/sistema/usuarios_permisos"),
-                icon: User2,
-                roles: ["ADMIN", "SUPERUSER"],
-                submenus: [
-                  {
-                    href: "/sistema/usuarios_permisos/usuarios",
-                    label: "Administrar Usuarios",
-                    active: pathname === "/sistema/usuarios_permisos/usuarios",
-                  },
-                  {
-                    href: "/sistema/usuarios_permisos/roles",
-                    label: "Administrar Roles",
-                    active: pathname === "/sistema/usuarios_permisos/roles",
-                  },
-                  {
-                    href: "/sistema/usuarios_permisos/permisos",
-                    label: "Administrar Permisos",
-                    active: pathname === "/sistema/usuarios_permisos/permisos",
-                  },
-                ],
-              },
-            ],
-          },
-          {
             groupLabel: "Ajustes",
             menus: [
               {
@@ -576,46 +575,59 @@ export function getMenuList(
             ],
           },
           {
-            groupLabel: "Settings",
-            menus: [
-              {
-                href: "/cuenta",
-                label: "Cuenta",
-                active: pathname.includes("/cuenta"),
-                icon: Settings,
-                roles: [],
-                submenus: [],
-              },
-            ],
+          groupLabel: "Sistema",
+          menus: [
+            {
+              href: "/sistema/usuarios_permisos",
+              label: "Usuarios Y Permisos",
+              active: pathname.includes("/sistema/usuarios_permisos"),
+              icon: User2,
+              roles: ["ADMIN", "SUPERUSER"],
+              submenus: [
+                {
+                  href: "/sistema/usuarios_permisos/usuarios",
+                  label: "Administrar Usuarios",
+                  active: pathname === "/sistema/usuarios_permisos/usuarios",
+                },
+                {
+                  href: "/sistema/usuarios_permisos/roles",
+                  label: "Administrar Roles",
+                  active: pathname === "/sistema/usuarios_permisos/roles",
+                },
+                {
+                  href: "/sistema/usuarios_permisos/permisos",
+                  label: "Administrar Permisos",
+                  active: pathname === "/sistema/usuarios_permisos/permisos",
+                },
+              ],
+            },
+            {
+              href: "/sistema/empresas/empleados",
+              label: "Empleados",
+              active: pathname.includes("/sistema/empresas/empleados"),
+              icon: User2,
+              roles: ["ADMIN", "SUPERUSER"],
+              submenus: [
+                {
+                  href: "/sistema/empresas/empleados",
+                  label: "Administrar Empleados",
+                  active: pathname === "/sistema/empresas/empleados",
+                },
+                {
+                  href: "/sistema/empresas/empleados/cargo",
+                  label: "Administrar Cargos",
+                  active: pathname === "/sistema/empresas/empleados/cargo",
+                },
+                {
+                  href: "/sistema/empresas/empleados/departamento",
+                  label: "Administrar Departamentos",
+                  active: pathname === "/sistema/empresas/empleados/departamento",
+                },
+              ],
+            },
+          ],
           },
-          {
-            groupLabel: "Desarrollo",
-            menus: [
-              {
-                href: "/transmandu/desarrollo",
-                label: "Actividades",
-                active: pathname.includes("/transmandu/desarrollo"),
-                icon: SquarePen,
-                roles: ["ANALISTA_DESARROLLO", "JEFE_DESARROLLO", "SUPERUSER"],
-                submenus: [
-                  {
-                    href: `/transmandu/desarrollo/actividades_diarias/registro/${date}/`,
-                    label: "Registro de Actividades",
-                    active:
-                      pathname ===
-                      `/transmandu/desarrollo/actividades_diarias/registro/`,
-                  },
-                  {
-                    href: "/transmandu/desarrollo/actividades_diarias",
-                    label: "Gestion de Actividades",
-                    active:
-                      pathname ===
-                      `/transmandu/desarrollo/actividades_diarias/`,
-                  },
-                ],
-              },
-            ],
-          },
+
         ]
       : [
           {
@@ -985,34 +997,58 @@ export function getMenuList(
               },
             ],
           },
-          {
-            groupLabel: "Sistema",
-            menus: [
-              {
-                href: "/sistema/usuarios_permisos",
-                label: "Usuarios Y Permisos",
-                active: pathname.includes("/sistema/usuarios_permisos"),
-                icon: User2,
-                roles: ["ADMIN", "SUPERUSER"],
-                submenus: [
-                  {
-                    href: "/sistema/usuarios_permisos/usuarios",
-                    label: "Administrar Usuarios",
-                    active: pathname === "/sistema/usuarios_permisos/usuarios",
-                  },
-                  {
-                    href: "/sistema/usuarios_permisos/roles",
-                    label: "Administrar Roles",
-                    active: pathname === "/sistema/usuarios_permisos/roles",
-                  },
-                  {
-                    href: "/sistema/usuarios_permisos/permisos",
-                    label: "Administrar Permisos",
-                    active: pathname === "/sistema/usuarios_permisos/permisos",
-                  },
-                ],
-              },
-            ],
+                    {
+          groupLabel: "Sistema",
+          menus: [
+            {
+              href: "/sistema/usuarios_permisos",
+              label: "Usuarios Y Permisos",
+              active: pathname.includes("/sistema/usuarios_permisos"),
+              icon: User2,
+              roles: ["ADMIN", "SUPERUSER"],
+              submenus: [
+                {
+                  href: "/sistema/usuarios_permisos/usuarios",
+                  label: "Administrar Usuarios",
+                  active: pathname === "/sistema/usuarios_permisos/usuarios",
+                },
+                {
+                  href: "/sistema/usuarios_permisos/roles",
+                  label: "Administrar Roles",
+                  active: pathname === "/sistema/usuarios_permisos/roles",
+                },
+                {
+                  href: "/sistema/usuarios_permisos/permisos",
+                  label: "Administrar Permisos",
+                  active: pathname === "/sistema/usuarios_permisos/permisos",
+                },
+              ],
+            },
+            {
+              href: "/sistema/empresas/empleados",
+              label: "Empleados",
+              active: pathname.includes("/sistema/empresas/empleados"),
+              icon: User2,
+              roles: ["ADMIN", "SUPERUSER"],
+              submenus: [
+                {
+                  href: "/sistema/empresas/empleados",
+                  label: "Administrar Empleados",
+                  active: pathname === "/sistema/empresas/empleados",
+                },
+                {
+                  href: "/sistema/empresas/empleados/cargo",
+                  label: "Administrar Cargos",
+                  active: pathname === "/sistema/empresas/empleados/cargo",
+                },
+                {
+                  href: "/sistema/empresas/empleados/departamento",
+                  label: "Administrar Departamentos",
+                  active: pathname === "/sistema/empresas/empleados/departamento",
+                },
+              ],
+            },
+          ],
           },
         ]
   )

@@ -28,6 +28,7 @@ import { useGetDepartments } from '@/hooks/sistema/departamento/useGetDepartment
 import { useGetLocationsByCompany } from '@/hooks/sistema/useGetLocationsByCompany';
 import { useCompanyStore } from '@/stores/CompanyStore';
 import { useCreateEmployee } from '@/actions/general/empleados/actions';
+import { Checkbox } from '../ui/checkbox';
 
 const formSchema = z.object({
   first_name: z.string().min(1, 'Requerido'),
@@ -40,11 +41,12 @@ const formSchema = z.object({
   department_id: z.string(),
   job_title_id: z.string(),
   location_id: z.string(),
+  createUser: z.boolean().optional(),
 });
 
 type EmployeeForm = z.infer<typeof formSchema>;
 
-export function CreateEmployeeForm({ onSuccess }: { onSuccess?: () => void }) {
+export function CreateEmployeeForm({ onSubmit }: {  onSubmit: (data: EmployeeForm) => void }) {
   const {selectedCompany } = useCompanyStore();
   const form = useForm<EmployeeForm>({
     resolver: zodResolver(formSchema),
@@ -54,24 +56,23 @@ export function CreateEmployeeForm({ onSuccess }: { onSuccess?: () => void }) {
       dni: '',
     },
   });
-
-  const { createEmployee } = useCreateEmployee();
   const { data: locations, isLoading: isLocLoading, isError: isLocError } = useGetLocationsByCompany(selectedCompany?.split(' ').join(''));
   const { data: departments, isLoading: isDepartmentsLoading, isError: isDepartmentError } = useGetDepartments(selectedCompany?.split(' ').join(''));
   const { data: jobTitles, isLoading: isJobTitlesLoading, isError: isJobTitlesError } = useGetJobTitles(selectedCompany?.split(' ').join(''));
 
-  const onSubmit = async (data: EmployeeForm) => {
-    await createEmployee.mutateAsync({
-        ...data,
-        company: selectedCompany!.split(' ').join(''),
-    });
-    form.reset();
-    onSuccess?.();
-  };
-
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 mt-4">
+      <form onSubmit={async (e) => {
+          e.preventDefault();
+          try {
+            const isValid = await form.trigger();
+            if (isValid) {
+              await onSubmit(form.getValues());
+            }
+          } catch (error) {
+            console.error("Form submission error:", error);
+          }
+        }} className="space-y-4 mt-4">
         <div className="grid grid-cols-2 gap-4">
           <FormField
             control={form.control}
@@ -186,12 +187,12 @@ export function CreateEmployeeForm({ onSuccess }: { onSuccess?: () => void }) {
                   <SelectContent>
                     <SelectItem value="V">A+</SelectItem>
                     <SelectItem value="J">A-</SelectItem>
-                    <SelectItem value="E">AB+</SelectItem>
-                    <SelectItem value="E">AB-</SelectItem>
-                    <SelectItem value="E">B+-</SelectItem>
-                    <SelectItem value="E">B-</SelectItem>
-                    <SelectItem value="E">O+</SelectItem>
-                    <SelectItem value="E">O-</SelectItem>
+                    <SelectItem value="AB+">AB+</SelectItem>
+                    <SelectItem value="AB-">AB-</SelectItem>
+                    <SelectItem value="B+">B+-</SelectItem>
+                    <SelectItem value="B-">B-</SelectItem>
+                    <SelectItem value="O+">O+</SelectItem>
+                    <SelectItem value="0-">O-</SelectItem>
                   </SelectContent>
                 </Select>
               </FormItem>
@@ -274,11 +275,30 @@ export function CreateEmployeeForm({ onSuccess }: { onSuccess?: () => void }) {
             </FormItem>
           )}
         />
-
+      <FormField
+        control={form.control}
+        name="createUser"
+        render={({ field }) => (
+          <FormItem className="flex flex-row items-start space-x-3 space-y-0 p-4">
+            <FormControl>
+              <Checkbox
+                checked={field.value}
+                onCheckedChange={field.onChange}
+              />
+            </FormControl>
+            <div className="space-y-1 leading-none">
+              <FormLabel>Crear usuario para este empleado</FormLabel>
+              <p className="text-sm text-muted-foreground">
+                El empleado podrá acceder al sistema con credenciales
+              </p>
+            </div>
+          </FormItem>
+        )}
+      />
         <div className="flex justify-end pt-2">
-          <Button type="submit" disabled={createEmployee.isPending}>
-            {createEmployee.isPending && <Loader2 className="animate-spin size-4 mr-2" />}
-            Crear
+          <Button type="submit" disabled={form.formState.isSubmitting}>
+            {form.formState.isSubmitting && <Loader2 className="animate-spin size-4 mr-2" />}
+            {form.watch('createUser') ? 'Continuar' : 'Crear'}
           </Button>
         </div>
       </form>

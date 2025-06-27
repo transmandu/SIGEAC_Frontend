@@ -419,6 +419,22 @@ export type Flight = {
   bank_account: BankAccount,
 }
 
+export type AdministrationFlight = {
+  id: string,
+  guide_code: string,
+  fee: string,
+  total_amount: string,
+  payed_amount: string,
+  type: string,
+  debt_status: string,
+  registered_by: string,
+  updated_by: string,
+  date: string,
+  details: string,
+  client: Client,
+  flight: Flight,
+}
+
 export type FlightPayment = {
   id: number,
   bank_account: BankAccount,

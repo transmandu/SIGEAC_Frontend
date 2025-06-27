@@ -1,18 +1,18 @@
 import { useDeleteFlight } from "@/actions/aerolinea/vuelos/actions";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, } from "@/components/ui/dropdown-menu";
-import { Flight } from "@/types";
+import { cn } from "@/lib/utils";
+import { AdministrationFlight } from "@/types";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { ArrowRightIcon, EyeIcon, FileTextIcon, Loader2, MapPinIcon, MoreHorizontal, PlaneIcon, PlaneLanding, Trash2, UserIcon, } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, } from "../ui/dialog";
 import { Separator } from "../ui/separator";
-import { Badge } from "../ui/badge";
-import { cn } from "@/lib/utils";
 
-const FlightDropdownActions = ({ flight }: { flight: Flight }) => {
+const FlightDropdownActions = ({ flight }: { flight: AdministrationFlight }) => {
   const [openDelete, setOpenDelete] = useState<boolean>(false);
   const [openFlight, setOpenFlight] = useState<boolean>(false);
   const router = useRouter();
@@ -20,7 +20,7 @@ const FlightDropdownActions = ({ flight }: { flight: Flight }) => {
 
   const handleDelete = (id: number | string) => {
     deleteFlight.mutate(id, {
-      onSuccess: () => setOpenDelete(false), // Cierra el modal solo si la eliminación fue exitosa
+      onSuccess: () => setOpenDelete(false),
     });
   };
 
@@ -139,12 +139,12 @@ const FlightDropdownActions = ({ flight }: { flight: Flight }) => {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-muted-foreground">Origen</p>
-                    <p className="font-semibold">{flight.route.from}</p>
+                    <p className="font-semibold">{flight.flight.route.from}</p>
                   </div>
                   <ArrowRightIcon className="h-4 w-4 mx-4" />
                   <div>
                     <p className="text-sm text-muted-foreground">Destino</p>
-                    <p className="font-semibold">{flight.route.to}</p>
+                    <p className="font-semibold">{flight.flight.route.to}</p>
                   </div>
                 </div>
               </div>
@@ -154,7 +154,7 @@ const FlightDropdownActions = ({ flight }: { flight: Flight }) => {
                   <PlaneLanding className="h-4 w-4" />
                   Aeronave
                 </h3>
-                <p className="font-semibold">{flight.aircraft.acronym}</p>
+                <p className="font-semibold">{flight.flight.aircraft.acronym}</p>
               </div>
             </div>
 
