@@ -29,8 +29,7 @@ export function CreateEmployeeDialog() {
             Completa la información para registrar un nuevo empleado.
           </DialogDescription>
         </DialogHeader>
-
-        <CreateEmployeeForm onSubmit={() => setOpen(false)} />
+        <CreateEmployeeForm  /> {/* Nota: El bug persiste, no se guarada el empleado. Att: obarriga */}
       </DialogContent>
     </Dialog>
   );

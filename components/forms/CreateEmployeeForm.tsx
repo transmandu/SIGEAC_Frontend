@@ -46,8 +46,9 @@ const formSchema = z.object({
 
 type EmployeeForm = z.infer<typeof formSchema>;
 
-export function CreateEmployeeForm({ onSubmit }: {  onSubmit: (data: EmployeeForm) => void }) {
+export function CreateEmployeeForm() {
   const {selectedCompany } = useCompanyStore();
+  const { createEmployee } = useCreateEmployee();
   const form = useForm<EmployeeForm>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -62,19 +63,20 @@ export function CreateEmployeeForm({ onSubmit }: {  onSubmit: (data: EmployeeFor
   const { data: departments, isLoading: isDepartmentsLoading, isError: isDepartmentError } = useGetDepartments(selectedCompany?.split(' ').join(''));
   const { data: jobTitles, isLoading: isJobTitlesLoading, isError: isJobTitlesError } = useGetJobTitles(selectedCompany?.split(' ').join(''));
 
+  const onSubmit = async (data: EmployeeForm) => {
+    try {
+      await createEmployee.mutateAsync({
+        ...data,
+        company: selectedCompany!.split(' ').join(''),
+      });
+    } catch (error) {
+      console.error('Error creating employee:', error);
+    }
+  };
+
   return (
     <Form {...form}>
-      <form onSubmit={async (e) => {
-          e.preventDefault();
-          try {
-            const isValid = await form.trigger();
-            if (isValid) {
-              await onSubmit(form.getValues());
-            }
-          } catch (error) {
-            console.error("Form submission error:", error);
-          }
-        }} className="space-y-4 mt-4">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 mt-4">
         <div className="grid grid-cols-2 gap-4">
           <FormField
             control={form.control}

@@ -10,20 +10,14 @@ import { DataTable } from "./data-table";
 import { useGetEmployeesByCompany } from "@/hooks/administracion/useGetEmployees";
 
 const EmployeePage = () => {
+  const { selectedCompany } = useCompanyStore();
+
   const {
-    mutate,
     data: employees,
     isPending: loading,
     isError: error,
-  } = useGetEmployeesByCompany();
+  } = useGetEmployeesByCompany(selectedCompany?.split(" ").join(""));
 
-  const { selectedCompany } = useCompanyStore();
-
-  useEffect(() => {
-    if (selectedCompany) {
-        mutate(selectedCompany.split(" ").join("")); 
-    }
-  }, [selectedCompany, mutate]);
 
   return (
     <ContentLayout title="Empleados">

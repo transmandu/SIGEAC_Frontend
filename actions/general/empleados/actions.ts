@@ -4,9 +4,9 @@ import { toast } from "sonner"
 
 interface CreateEmployeeFormSchema {
   first_name: string;
-  middle_name: string;
-  last_name: string;
-  second_last_name: string;
+  middle_name?: string;
+  last_name?: string;
+  second_last_name?: string;
   dni: string;
   dni_type: string,
   blood_type: string,
