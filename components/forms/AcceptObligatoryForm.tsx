@@ -15,17 +15,10 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
+import { useAcceptObligatoryReport } from "@/actions/sms/reporte_obligatorio/actions";
 import { Separator } from "@/components/ui/separator";
 import { ObligatoryReport } from "@/types";
 import { Loader2 } from "lucide-react";
-import { useAcceptObligatoryReport } from "@/actions/sms/reporte_obligatorio/actions";
-import { format, parse } from "date-fns";
-
-function timeFormat(date: Date) {
-  const timeString = date.toString();
-  const parsedTime = parse(timeString, "HH:mm:ss", new Date());
-  return parsedTime;
-}
 
 interface FormProps {
   onClose: () => void;
@@ -73,7 +66,7 @@ export function AcceptObligatoryReport({ onClose, initialData }: FormProps) {
         other_incidents: initialData.other_incidents ?? "",
         report_date: new Date(initialData.report_date),
         incident_date: new Date(initialData.incident_date),
-        incident_time:initialData?.incident_time,
+        incident_time: initialData?.incident_time,
         flight_time: initialData?.flight_time,
       };
       try {

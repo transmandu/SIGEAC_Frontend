@@ -39,13 +39,6 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import Image from "next/image";
 
-function hourFormat(date: Date) {
-  const timeString = date.toString();
-  const parsedTime = parse(timeString, "HH:mm:ss", new Date());
-  const incident_time = format(parsedTime, "HH:mm");
-  return incident_time;
-}
-
 const ShowObligatoryReport = () => {
   const { obligatory_id } = useParams<{ obligatory_id: string }>();
 

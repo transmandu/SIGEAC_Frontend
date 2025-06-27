@@ -61,13 +61,6 @@ import {
 } from "../ui/select";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { useGetAircraftAcronyms } from "@/hooks/aerolinea/aeronaves/useGetAircraftAcronyms";
-
-function timeFormat(date: Date) {
-  const timeString = date.toString();
-  const parsedTime = parse(timeString, "HH:mm:ss", new Date());
-  return parsedTime;
-}
-
 interface FormProps {
   isEditing?: boolean;
   initialData?: ObligatoryReport;

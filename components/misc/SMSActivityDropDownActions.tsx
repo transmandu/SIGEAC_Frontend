@@ -8,6 +8,7 @@ import {
 import { SMSActivity } from "@/types";
 import {
   ClipboardPen,
+  EyeIcon,
   Loader2,
   MoreHorizontal,
   Plus,
@@ -24,6 +25,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "../ui/dialog";
+import { AddToSMSActivity } from "../forms/AddToSMSActivityForm";
 
 const SMSActivityDropDownActions = ({
   smsActivity,
@@ -34,7 +36,9 @@ const SMSActivityDropDownActions = ({
 
   const [openEdit, setOpenEdit] = useState<boolean>(false);
 
-  const [openAdd, setOpenAdd] = useState<Boolean>(false);
+  const [openAdd, setOpenAdd] = useState(false);
+
+  const [show, setOpenShow] = useState(false);
 
   const { deleteSMSActivity } = useDeleteSMSActivity();
 
@@ -64,6 +68,11 @@ const SMSActivityDropDownActions = ({
           <DropdownMenuItem onClick={() => setOpenEdit(true)}>
             <ClipboardPen className="size-5" />
             <p className="pl-2">Editar</p>
+          </DropdownMenuItem>
+
+          <DropdownMenuItem onClick={() => setOpenShow(true)}>
+            <EyeIcon className="size-5" />
+            <p className="pl-2">Ver</p>
           </DropdownMenuItem>
 
           <DropdownMenuItem onClick={() => setOpenAdd(true)}>
@@ -122,6 +131,22 @@ const SMSActivityDropDownActions = ({
               initialData={smsActivity}
               isEditing={true}
               onClose={() => setOpenEdit(false)}
+            />
+          </DialogHeader>
+        </DialogContent>
+      </Dialog>
+
+      {/* DIALOGO DE ADD FORM */}
+      <Dialog open={openAdd} onOpenChange={setOpenAdd}>
+        <DialogContent className="flex flex-col max-w-2xl m-2">
+          <DialogHeader>
+            <DialogTitle className="text-center font-light">
+              Agregar o eliminar personas
+            </DialogTitle>
+            <DialogDescription className="text-center"></DialogDescription>
+            <AddToSMSActivity
+              initialData={smsActivity}
+              onClose={() => setOpenAdd(false)}
             />
           </DialogHeader>
         </DialogContent>
