@@ -4,6 +4,7 @@ import { toast } from "sonner"
 
 interface CreateRoleSchema {
     name: string
+    label: string,
   }
 
 export const useCreateRole = () => {
