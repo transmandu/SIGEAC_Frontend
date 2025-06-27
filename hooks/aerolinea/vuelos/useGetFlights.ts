@@ -1,15 +1,15 @@
 "use client"
 
-import { Flight } from '@/types';
+import axiosInstance from "@/lib/axios";
+import { AdministrationFlight } from '@/types';
 import { useQuery } from '@tanstack/react-query';
-import  axiosInstance from "@/lib/axios"
 import { useSearchParams } from 'next/navigation';
 
-export const useGetFlights = () => {
+export const useGetAdministrationFlights = () => {
   const searchParams = useSearchParams();
   const from = searchParams.get("from");
   const to = searchParams.get("to");
-  return useQuery<Flight[], Error>({
+  return useQuery<AdministrationFlight[], Error>({
     queryKey: ['credit-flight-payment', from, to],
     queryFn: async () => {
       const  {data}  = await axiosInstance.get('/transmandu/flights', {
