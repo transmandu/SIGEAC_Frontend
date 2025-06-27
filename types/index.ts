@@ -722,7 +722,11 @@ export type User = {
 export type Employee = {
   id: number,
   first_name: string,
+  middle_name?: string,
   last_name: string,
+  second_last_name?: string,
+  dni_type: string,
+  blood_type: string,
   company: string,
   dni: string,
   job_title: JobTitle,

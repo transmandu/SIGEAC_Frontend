@@ -8,7 +8,7 @@ const fetchEmployeesByCompany = async ( company: string | undefined): Promise<Em
 };
 
 export const useGetEmployeesByCompany = ( company: string | undefined) => {
-  return useQuery<Employee[], Error, string>({
+  return useQuery<Employee[], Error>({ //<Employee[], Error, string>
     queryKey: ['employees'],
     queryFn: () => fetchEmployeesByCompany(company),
     enabled: !!company,
