@@ -255,6 +255,7 @@ export type Department = {
   type: string,
   is_main_base: string,
   cod_iata: string,
+  acronym: string,
   name: string;
   email: string;
 };
@@ -713,6 +714,7 @@ export type Employee = {
   user?: User,
   location: Location,
 }
+
 export type AdministrationVendor = {
   id: string | number,
   name: string,

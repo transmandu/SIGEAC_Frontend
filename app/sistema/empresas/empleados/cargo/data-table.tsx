@@ -26,9 +26,7 @@ import {
 } from "@/components/ui/table"
 import { ListRestart } from "lucide-react"
 import { useState } from "react"
-import { CreateEmployeeDialog } from "@/components/dialogs/CreateEmployeeDialog"
 import { CreateJobTitleDialog } from "@/components/dialogs/CreateJobTitleDialog"
-import { CreateDepartmentDialog } from "@/components/dialogs/CreateDepartmentDialog"
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
@@ -76,7 +74,7 @@ export function DataTable<TData, TValue>({
               <ListRestart className="ml-2 h-4 w-4" />
             </Button>
           )}
-          <CreateEmployeeDialog />
+          <CreateJobTitleDialog />
         </div>
         <DataTableViewOptions table={table} />
       </div>
