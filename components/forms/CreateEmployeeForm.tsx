@@ -32,16 +32,16 @@ import { Checkbox } from '../ui/checkbox';
 
 const formSchema = z.object({
   first_name: z.string().min(1, 'Requerido'),
-  middle_name: z.string().min(1, 'Requerido'),
+  middle_name: z.string().optional(),
   last_name: z.string().min(1, 'Requerido'),
-  second_last_name: z.string().min(1, 'Requerido'),
+  second_last_name: z.string().optional(),
   dni_type: z.string(),
   blood_type: z.string(),
-  dni: z.string().min(5, 'Requerido'),
+  dni: z.string().min(6, 'Requerido'),
   department_id: z.string(),
   job_title_id: z.string(),
   location_id: z.string(),
-  createUser: z.boolean().optional(),
+  // createUser: z.boolean().optional(),
 });
 
 type EmployeeForm = z.infer<typeof formSchema>;
@@ -54,6 +54,8 @@ export function CreateEmployeeForm({ onSubmit }: {  onSubmit: (data: EmployeeFor
       first_name: '',
       last_name: '',
       dni: '',
+      middle_name: '',
+      second_last_name: '',
     },
   });
   const { data: locations, isLoading: isLocLoading, isError: isLocError } = useGetLocationsByCompany(selectedCompany?.split(' ').join(''));
@@ -275,7 +277,7 @@ export function CreateEmployeeForm({ onSubmit }: {  onSubmit: (data: EmployeeFor
             </FormItem>
           )}
         />
-      <FormField
+      {/* <FormField
         control={form.control}
         name="createUser"
         render={({ field }) => (
@@ -294,11 +296,12 @@ export function CreateEmployeeForm({ onSubmit }: {  onSubmit: (data: EmployeeFor
             </div>
           </FormItem>
         )}
-      />
+      /> */}
         <div className="flex justify-end pt-2">
           <Button type="submit" disabled={form.formState.isSubmitting}>
             {form.formState.isSubmitting && <Loader2 className="animate-spin size-4 mr-2" />}
-            {form.watch('createUser') ? 'Continuar' : 'Crear'}
+            {/* {form.watch('createUser') ? 'Continuar' : 'Crear'} */}
+            Crear
           </Button>
         </div>
       </form>

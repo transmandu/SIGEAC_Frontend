@@ -30,7 +30,7 @@ export function CreateEmployeeDialog() {
           </DialogDescription>
         </DialogHeader>
 
-        <CreateEmployeeForm onSuccess={() => setOpen(false)} />
+        <CreateEmployeeForm onSubmit={() => setOpen(false)} />
       </DialogContent>
     </Dialog>
   );
