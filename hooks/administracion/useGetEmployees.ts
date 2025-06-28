@@ -1,9 +1,9 @@
 import axiosInstance from '@/lib/axios';
 import { Employee } from '@/types';
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 
 const fetchEmployeesByCompany = async ( company: string | undefined): Promise<Employee[]> => {
-  const {data} = await axiosInstance.get(`/${company}/employees-by-company`)
+  const {data} = await axiosInstance.get(`/${company}/employees`)
   return data;
 };
 

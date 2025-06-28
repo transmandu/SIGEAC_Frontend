@@ -25,6 +25,8 @@ import {
 } from "@/components/ui/table"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
+import { Button } from "@/components/ui/button"
+import Link from "next/link"
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
@@ -65,7 +67,8 @@ export function DataTable<TData, TValue>({
         <h1 className="text-5xl font-bold text-center">Ordenes de Compra</h1>
         <p className="text-sm italic text-muted-foreground text-center">Aquí puede ver las ordenes de compras realizadas a partir de las cotizaciones.</p>
       </div>
-      <div className="flex items-center py-4">
+      <div className="flex items-center py-2">
+        <Link href={"/transmandu/compras/ordenes_compra/estadisticas"}><Button variant={"outline"} className="border-dashed text-black border-black">Estadisticas</Button></Link>
         <DataTableViewOptions table={table} />
       </div>
       <div className="rounded-md border mb-4">
