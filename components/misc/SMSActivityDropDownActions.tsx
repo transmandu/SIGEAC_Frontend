@@ -12,6 +12,7 @@ import {
   Loader2,
   MoreHorizontal,
   Plus,
+  Router,
   Trash2,
 } from "lucide-react";
 import { useState } from "react";
@@ -26,6 +27,7 @@ import {
   DialogTitle,
 } from "../ui/dialog";
 import { AddToSMSActivity } from "../forms/AddToSMSActivityForm";
+import { useRouter } from "next/navigation";
 
 const SMSActivityDropDownActions = ({
   smsActivity,
@@ -38,9 +40,9 @@ const SMSActivityDropDownActions = ({
 
   const [openAdd, setOpenAdd] = useState(false);
 
-  const [show, setOpenShow] = useState(false);
-
   const { deleteSMSActivity } = useDeleteSMSActivity();
+
+  const router = useRouter();
 
   const handleDelete = async (id: number | string) => {
     await deleteSMSActivity.mutateAsync(id);
@@ -70,10 +72,17 @@ const SMSActivityDropDownActions = ({
             <p className="pl-2">Editar</p>
           </DropdownMenuItem>
 
-          <DropdownMenuItem onClick={() => setOpenShow(true)}>
+          <DropdownMenuItem
+            onClick={() => {
+              router.push(
+                `/transmandu/sms/planificacion/actividades/${smsActivity.id}`
+              );
+            }}
+          >
             <EyeIcon className="size-5" />
             <p className="pl-2">Ver</p>
           </DropdownMenuItem>
+
 
           <DropdownMenuItem onClick={() => setOpenAdd(true)}>
             <Plus className="size-5" />

@@ -10,7 +10,10 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 
-import { useCreateSMSActivity } from "@/actions/sms/sms_actividades/actions";
+import {
+  useCreateSMSActivity,
+  useUpdateSMSActivity,
+} from "@/actions/sms/sms_actividades/actions";
 import { useGetEmployesByDepartment } from "@/hooks/administracion/useGetEmployeesByDepartment";
 import { cn } from "@/lib/utils";
 import { SMSActivity } from "@/types";
@@ -32,9 +35,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../ui/select";
+import { init } from "next/dist/compiled/webpack/webpack";
 
-function timeFormat(date: Date) {
-  const timeString = date.toString();
+function timeFormat(timeString: string) {
+  // Parseamos directamente el string sin convertirlo a Date primero
   const parsedTime = parse(timeString, "HH:mm:ss", new Date());
   return parsedTime;
 }
@@ -49,9 +53,7 @@ const FormSchema = z
     end_date: z
       .date()
       .refine((val) => !isNaN(val.getTime()), { message: "Fecha inválida" }),
-    hour: z
-      .date()
-      .refine((val) => !isNaN(val.getTime()), { message: "Hora inválida" }),
+    hour: z.string(),
     duration: z.string(),
     place: z.string(),
     topics: z.string(),
@@ -81,16 +83,24 @@ export default function CreateSMSActivityForm({
 }: FormProps) {
   const router = useRouter();
   const { data: employees, isLoading: isLoadingEmployees } =
-    useGetEmployesByDepartment("DFS");  
+    useGetEmployesByDepartment("DFS");
   const { createSMSActivity } = useCreateSMSActivity();
+  const { updateSMSActivity } = useUpdateSMSActivity();
+
   const form = useForm<FormSchemaType>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
       activity_name: initialData?.activity_name,
       activity_number: initialData?.activity_number,
-      start_date: initialData?.start_date,
-      end_date: initialData?.end_date,
-      hour: initialData?.hour ? timeFormat(initialData?.hour) : new Date(),
+
+      start_date: initialData?.start_date
+        ? new Date(initialData?.start_date)
+        : new Date(),
+      end_date: initialData?.end_date
+        ? new Date(initialData?.end_date)
+        : new Date(),
+
+      hour: initialData?.hour,
       duration: initialData?.duration,
       place: initialData?.place,
       topics: initialData?.topics,
@@ -107,26 +117,13 @@ export default function CreateSMSActivityForm({
     if (isEditing && initialData) {
       const value = {
         ...data,
-        id: initialData.id,
+        id: initialData.id.toString(),
+        status: initialData.status,
       };
+      await updateSMSActivity.mutateAsync(value);
     } else {
-      const value = {
-        activity_name: data.activity_name,
-        activity_number: data.activity_number,
-        start_date: data.start_date,
-        end_date: data.end_date,
-        hour: format(data.hour, "HH:mm:ss"),
-        duration: data.duration,
-        place: data.place,
-        topics: data.topics,
-        objetive: data.objetive,
-        description: data.description,
-        authorized_by: data.authorized_by,
-        planned_by: data.planned_by,
-        executed_by: data.executed_by,
-      };
       try {
-        const response = await createSMSActivity.mutateAsync(value);
+        await createSMSActivity.mutateAsync(data);
         router.push(`/transmandu/sms/planificacion/actividades`);
       } catch (error) {
         console.error("Error al crear la actividad", error);
@@ -262,50 +259,26 @@ export default function CreateSMSActivityForm({
           <FormField
             control={form.control}
             name="hour"
-            render={({ field }) => {
-              const handleChange = (event: { target: { value: any } }) => {
-                const timeString = event.target.value;
-                const time = parse(timeString, "HH:mm", new Date());
-                if (isValid(time)) {
-                  field.onChange(time);
-                }
-              };
-
-              return (
-                <FormItem className="w-full flex flex-col">
-                  <FormLabel className="mb-1">Hora del Curso</FormLabel>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <FormControl>
-                        <Button
-                          variant={"outline"}
-                          className={cn(
-                            "w-[240px] pl-3 text-left font-normal",
-                            !field.value && "text-muted-foreground"
-                          )}
-                        >
-                          {field.value ? (
-                            format(field.value, "HH:mm")
-                          ) : (
-                            <span>Seleccionar Hora</span>
-                          )}
-                          <ClockIcon className="ml-auto h-4 w-4 opacity-50" />
-                        </Button>
-                      </FormControl>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <input
-                        type="time"
-                        value={field.value ? format(field.value, "HH:mm") : ""}
-                        onChange={handleChange}
-                        className="w-full p-2 border rounded"
-                      />
-                    </PopoverContent>
-                  </Popover>
-                  <FormMessage />
-                </FormItem>
-              );
-            }}
+            render={({ field }) => (
+              <FormItem className="w-full">
+                <FormLabel>Hora de vuelo</FormLabel>
+                <FormControl>
+                  <Input
+                    type="time"
+                    {...field}
+                    onChange={(e) => {
+                      // Validamos que el formato sea correcto
+                      if (
+                        e.target.value.match(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/)
+                      ) {
+                        field.onChange(e.target.value);
+                      }
+                    }}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
           />
 
           <FormField

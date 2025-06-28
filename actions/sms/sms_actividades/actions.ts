@@ -18,7 +18,7 @@ interface SMSActivityData {
   executed_by: string;
 }
 interface updateSMSActivityData {
-  id: string | number;
+  id: string;
   activity_name: string;
   activity_number: string;
   start_date: Date;
@@ -76,7 +76,7 @@ export const useDeleteSMSActivity = () => {
       await axiosInstance.delete(`/transmandu/sms/sms-activities/${id}`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["sms-activities"] }); // No se cual key va aca pero estoy seguro que no es esa 
+      queryClient.invalidateQueries({ queryKey: ["sms-activities"] }); // No se cual key va aca pero estoy seguro que no es esa
       toast.success("¡Eliminado!", {
         description: `¡La actividad ha sido eliminada correctamente!`,
       });
@@ -98,19 +98,14 @@ export const useUpdateSMSActivity = () => {
 
   const updateSMSActivityMutation = useMutation({
     mutationFn: async (data: updateSMSActivityData) => {
-      const response = await axiosInstance.post(
+      const response = await axiosInstance.patch(
         `/transmandu/sms/sms-activities/${data.id}`,
-        data,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        }
+        data
       );
       return response.data;
     },
     onSuccess: () => {
-      // queryClient.invalidateQueries({ queryKey: ["voluntary-report"] });
+      queryClient.invalidateQueries({ queryKey: ["sms-activities"] });
       toast.success("¡Actualizado!", {
         description: `La actividad ha sido actualizada correctamente.`,
       });
@@ -123,6 +118,6 @@ export const useUpdateSMSActivity = () => {
     },
   });
   return {
-    updateVoluntaryReport: updateSMSActivityMutation,
+    updateSMSActivity: updateSMSActivityMutation,
   };
 };
