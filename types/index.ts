@@ -971,3 +971,16 @@ export type EmplooyesEnrolled = {
   enrolled: Employee[];
   not_enrolled: Employee[];
 };
+
+export type Course = {
+  id: string;
+  name: string;
+  deparment_id: Department;
+  description: string;
+  duration: string;
+  time: string;
+  start_date: Date;
+  end_date: Date;
+  instructor?: string;
+  status: string;
+};

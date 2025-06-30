@@ -10,15 +10,21 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { Course } from "@/types";
 import { useState } from "react";
-import CreateFollowUpControlForm from "../forms/CreateFollowUpControlForm";
-import { useParams } from "next/navigation";
+import { CreateCourseForm } from "../forms/CreateCourseForm";
 
-export default function CreateFollowUpControlDialog() {
-  const { plan_id, medida_id } = useParams<{
-    plan_id: string;
-    medida_id: string;
-  }>();
+interface FormProps {
+  title: string;
+  initialData?: Course;
+  isEditing?: boolean;
+}
+
+export default function CreateCourseDialog({
+  title,
+  isEditing,
+  initialData,
+}: FormProps) {
   const [open, setOpen] = useState(false);
   return (
     <>
@@ -31,19 +37,24 @@ export default function CreateFollowUpControlDialog() {
               size="sm"
               className=" hidden h-8 lg:flex"
             >
-              Nuevo Control
+              {title}
             </Button>
           </DialogTrigger>
+
           <DialogContent className="flex flex-col max-w-2xl m-2">
             <DialogHeader>
               <DialogTitle></DialogTitle>
               <DialogDescription></DialogDescription>
             </DialogHeader>
-            {medida_id && (
-              <CreateFollowUpControlForm
+
+            {isEditing && initialData ? (
+              <CreateCourseForm
+                isEditing={true}
+                initialData={initialData}
                 onClose={() => setOpen(false)}
-                id={medida_id}
               />
+            ) : (
+              <CreateCourseForm onClose={() => setOpen(false)} />
             )}
           </DialogContent>
         </Dialog>

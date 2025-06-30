@@ -30,6 +30,7 @@ import {
   User2,
   UserRoundCog,
   Wrench,
+  Cat,
 } from "lucide-react";
 
 type Submenu = {
@@ -434,6 +435,19 @@ export function getMenuList(
             ],
           },
           {
+            groupLabel: "General",
+            menus: [
+              {
+                href: "/transmandu/general/cursos",
+                label: "Cursos",
+                active: pathname.includes("/transmandu/general/cursos"),
+                icon: Cat,
+                roles: ["SUPERUSER"],
+                submenus: [],
+              },
+            ],
+          },
+          {
             groupLabel: "Compras",
             menus: [
               {
@@ -561,7 +575,7 @@ export function getMenuList(
                   "RRHH_ADMINISTRACION",
                   "ANALISTA_COMPRAS",
                   "JEFE_COMPRAS",
-                  "SUPERUSER"
+                  "SUPERUSER",
                 ],
                 submenus: [],
               },
