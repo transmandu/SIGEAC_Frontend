@@ -1,6 +1,15 @@
 'use client';
 
+import { useCreateEmployee } from '@/actions/general/empleados/actions';
 import { Button } from '@/components/ui/button';
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from '@/components/ui/command';
 import {
   Form,
   FormControl,
@@ -11,40 +20,35 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Loader2, Eye, EyeOff, Check, ChevronsUpDown } from 'lucide-react';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
-import { z } from 'zod';
 import { useGetJobTitles } from '@/hooks/sistema/cargo/useGetJobTitles';
 import { useGetDepartments } from '@/hooks/sistema/departamento/useGetDepartment';
+import { useGetLocationsByCompanies } from '@/hooks/sistema/useGetLocationsByCompanies';
 import { useGetLocationsByCompany } from '@/hooks/sistema/useGetLocationsByCompany';
-import { useCompanyStore } from '@/stores/CompanyStore';
-import { useCreateEmployee } from '@/actions/general/empleados/actions';
-import { Checkbox } from '../ui/checkbox';
-import { useState, useEffect } from 'react';
 import { useGetRoles } from '@/hooks/sistema/usuario/useGetRoles';
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from '@/components/ui/command';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
+import { useCompanyStore } from '@/stores/CompanyStore';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Check, ChevronsUpDown, Eye, EyeOff, Loader2 } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '../ui/accordion';
 import { Badge } from '../ui/badge';
-import { Separator } from '../ui/separator';
+import { Checkbox } from '../ui/checkbox';
+import { Label } from '../ui/label';
+import { useGetCompanies } from '@/hooks/sistema/useGetCompanies';
+import { useCreateUser } from '@/actions/general/usuarios/actions';
 
 const formSchema = z.object({
   // Datos del empleado
@@ -60,13 +64,19 @@ const formSchema = z.object({
   location_id: z.string(),
 
   // Opción para crear usuario
-  createUser: z.boolean().optional(),
+  createUser: z.boolean(),
 
   // Datos del usuario (condicionales)
   username: z.string().min(3, 'Mínimo 3 caracteres').optional(),
   password: z.string().min(5, 'Mínimo 5 caracteres').optional(),
   email: z.string().email('Correo inválido').optional(),
   roles: z.array(z.string()).optional(),
+  companies_locations: z.array(
+    z.object({
+      companyID: z.number(),
+      locationID: z.array(z.number().or(z.string()))
+    })
+  ),
 }).superRefine((data, ctx) => {
   // Validación condicional si createUser es true
   if (data.createUser) {
@@ -99,13 +109,15 @@ const formSchema = z.object({
       });
     }
   }
-});
+})
+;
 
 type EmployeeForm = z.infer<typeof formSchema>;
 
 export function CreateEmployeeForm() {
   const { selectedCompany } = useCompanyStore();
   const { createEmployee } = useCreateEmployee();
+  const {createUser} = useCreateUser()
   const [step, setStep] = useState<1 | 2>(1);
   const [showPassword, setShowPassword] = useState(false);
   const [selectedRoles, setSelectedRoles] = useState<string[]>([]);
@@ -116,6 +128,9 @@ export function CreateEmployeeForm() {
   const { data: departments, isLoading: isDepartmentsLoading } = useGetDepartments(selectedCompany?.split(' ').join(''));
   const { data: jobTitles, isLoading: isJobTitlesLoading } = useGetJobTitles(selectedCompany?.split(' ').join(''));
   const { data: roles, isLoading: isRolesLoading } = useGetRoles();
+  const { data: companies, error: companiesError, isLoading: isCompaniesLoading } = useGetCompanies();
+  const { data: companies_locations, error: companies_locationsError, isLoading: companies_locationsLoading } = useGetLocationsByCompanies();
+
 
   const form = useForm<EmployeeForm>({
     resolver: zodResolver(formSchema),
@@ -165,17 +180,36 @@ export function CreateEmployeeForm() {
         location_id: data.location_id,
         company: selectedCompany!.split(' ').join(''),
       };
-      const userData = data.createUser ?? {
-        username: data.username,
+
+      // Solo incluir datos de usuario si createUser es true
+      const userData = data.createUser ? {
+        isActive: true,
+        first_name: data.first_name,
+        companies_locations: data.companies_locations,
+        last_name: data.last_name,
+        username: data.username!,
         password: data.password,
-        email: data.email,
+        email: data.email!,
         roles: data.roles?.map(Number) || [],
+      } : null;
+
+      if(data.createUser && userData) {
+        await createEmployee.mutateAsync(employeeData)
+        await createUser.mutateAsync(userData)
       }
-      await createEmployee.mutateAsync(employeeData);
     } catch (error) {
       console.error('Error creating employee:', error);
     }
   };
+
+  const handleNextStep = () => {
+    if (form.watch('createUser')) {
+      setStep(2);
+    } else {
+      // Si no se va a crear usuario, enviar directamente el formulario
+      form.handleSubmit(onSubmit)();
+    }
+  }
 
   return (
     <Form {...form}>
@@ -282,7 +316,7 @@ export function CreateEmployeeForm() {
                 name="blood_type"
                 render={({ field }) => (
                   <FormItem className='w-1/3'>
-                    <FormLabel>Tipo de Sangre</FormLabel>
+                    <FormLabel>T. de Sangre</FormLabel>
                     <Select onValueChange={field.onChange}>
                       <FormControl>
                         <SelectTrigger>
@@ -412,25 +446,24 @@ export function CreateEmployeeForm() {
             <div className="flex justify-end">
               <Button
                 type="button"
-                onClick={() => setStep(2)}
+                onClick={handleNextStep}
                 disabled={createEmployee.isPending}
               >
-                Siguiente
+                {form.watch('createUser') ? 'Siguiente' : 'Crear Empleado'}
                 {createEmployee.isPending && <Loader2 className="ml-2 h-4 w-4 animate-spin" />}
               </Button>
             </div>
           </>
         )}
 
-        {step === 2 && form.watch("createUser") && (
+        {step === 2 && (
           <>
-            <h3 className="text-lg font-medium">Datos del Usuario</h3>
-
-            <FormField
+           <div className='flex gap-2 items-center justify-center w-full'>
+              <FormField
               control={form.control}
               name="username"
               render={({ field }) => (
-                <FormItem>
+                <FormItem className='w-full'>
                   <FormLabel>Nombre de Usuario</FormLabel>
                   <FormControl>
                     <Input
@@ -438,7 +471,6 @@ export function CreateEmployeeForm() {
                       {...field}
                       onChange={(e) => {
                         field.onChange(e);
-                        // Mantener el username en lowercase
                         form.setValue('username', e.target.value.toLowerCase());
                       }}
                     />
@@ -450,27 +482,9 @@ export function CreateEmployeeForm() {
 
             <FormField
               control={form.control}
-              name="email"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Correo Electrónico</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="email"
-                      placeholder="Ej. juan.perez@empresa.com"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
               name="password"
               render={({ field }) => (
-                <FormItem>
+                <FormItem className='w-full mt-1 space-y-3'>
                   <FormLabel className="flex items-center gap-2">
                     Contraseña
                     <button
@@ -489,6 +503,25 @@ export function CreateEmployeeForm() {
                     <Input
                       type={showPassword ? "text" : "password"}
                       placeholder="Mínimo 5 caracteres"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            </div>
+
+            <FormField
+              control={form.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Correo Electrónico</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="email"
+                      placeholder="Ej. juan.perez@empresa.com"
                       {...field}
                     />
                   </FormControl>
@@ -551,7 +584,7 @@ export function CreateEmployeeForm() {
                                         : "opacity-0"
                                     )}
                                   />
-                                  {role.name}
+                                  {role.label}
                                 </CommandItem>
                               ))
                             )}
@@ -565,6 +598,106 @@ export function CreateEmployeeForm() {
               )}
             />
 
+            <FormField
+              control={form.control}
+              name="companies_locations"
+              render={({ field }) => {
+                const handleLocationChange = (companyID: number, locationID: number, isSelected: boolean | string) => {
+                  // Parse the current value or initialize it
+                  const currentValue = field.value || [];
+
+                  // Find the company entry in the array
+                  const companyIndex = currentValue.findIndex(
+                    (item) => item.companyID === companyID
+                  );
+
+                  if (companyIndex === -1 && isSelected) {
+                    // Add a new company with the location if it doesn't exist
+                    currentValue.push({
+                      companyID,
+                      locationID: [locationID],
+                    });
+                  } else if (companyIndex !== -1) {
+                    const company = currentValue[companyIndex];
+                    if (isSelected) {
+                      // Add the locationID if it's not already included
+                      if (!company.locationID.includes(locationID)) {
+                        company.locationID.push(locationID);
+                      }
+                    } else {
+                      // Remove the locationID if deselected
+                      company.locationID = company.locationID.filter(
+                        (id) => id !== locationID
+                      );
+
+                      // Remove the company entry if no locations are left
+                      if (company.locationID.length === 0) {
+                        currentValue.splice(companyIndex, 1);
+                      }
+                    }
+                  }
+
+                  // Update the form state
+                  field.onChange([...currentValue]);
+                };
+
+                return (
+                  <FormItem className="flex flex-col items-start rounded-md space-y-2 py-2 px-6">
+                    <FormLabel>Ubicaciones</FormLabel>
+                    <Accordion className="w-full" type="single" collapsible>
+                      {companies && companies_locations &&
+                        companies.map((company) => (
+                          <AccordionItem key={company.id} value={company.name}>
+                            <AccordionTrigger>{company.name}</AccordionTrigger>
+                            <AccordionContent>
+                              {companies_locations &&
+                                companies_locations
+                                  .filter((location) => location.company_id === company.id)
+                                  .map((location) => (
+                                    <div
+                                      className="flex flex-col gap-2"
+                                      key={location.company_id}
+                                    >
+                                      {location.locations.map((loc) => (
+                                        <div
+                                          className="flex items-center space-x-2"
+                                          key={loc.id}
+                                        >
+                                          <Checkbox
+                                            checked={Boolean(
+                                              field.value?.find(
+                                                (item) =>
+                                                  item.companyID === company.id &&
+                                                  item.locationID.includes(loc.id)
+                                              )
+                                            )}
+                                            onCheckedChange={(isSelected) =>
+                                              handleLocationChange(
+                                                company.id,
+                                                loc.id,
+                                                isSelected
+                                              )
+                                            }
+                                          />
+                                          <Label>{loc.address}</Label>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  ))}
+                            </AccordionContent>
+                          </AccordionItem>
+                        ))}
+                        {
+                          (companiesError || companies_locationsError) && (
+                            <p>Ha ocurrido un error cargando las empresas y/o ubicaciones...</p>
+                          )
+                        }
+                    </Accordion>
+                  </FormItem>
+                );
+              }}
+            />
+
             <div className="flex justify-between pt-4">
               <Button
                 type="button"
@@ -573,8 +706,8 @@ export function CreateEmployeeForm() {
               >
                 Anterior
               </Button>
-              <Button type="submit" disabled={createEmployee.isPending}>
-                {createEmployee.isPending ? (
+              <Button type="submit" disabled={createEmployee.isPending || createUser.isPending}>
+                {(createEmployee.isPending || createUser.isPending) ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     Creando...
@@ -585,35 +718,6 @@ export function CreateEmployeeForm() {
               </Button>
             </div>
           </>
-        )}
-
-        {step === 2 && !form.watch("createUser") && (
-          <div className="flex flex-col gap-4">
-            <div className="p-4 border rounded-lg bg-muted/50">
-              <p className="text-sm text-muted-foreground">
-                No se creará un usuario para este empleado. Puede crear uno más tarde si es necesario.
-              </p>
-            </div>
-            <div className="flex justify-between">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setStep(1)}
-              >
-                Anterior
-              </Button>
-              <Button type="submit" disabled={createEmployee.isPending}>
-                {createEmployee.isPending ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Creando empleado...
-                  </>
-                ) : (
-                  "Crear Empleado"
-                )}
-              </Button>
-            </div>
-          </div>
         )}
       </form>
     </Form>

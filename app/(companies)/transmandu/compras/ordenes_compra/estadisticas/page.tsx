@@ -91,14 +91,12 @@ const StatisticsPurchaseOrdersDashboard = () => {
     PurchaseOrder[]
   >([]);
 
-  // Actualizar el año seleccionado cuando cambian los años disponibles
   useEffect(() => {
     if (availableYears.length > 0 && !availableYears.includes(selectedYear)) {
       setSelectedYear(availableYears[0]);
     }
   }, [availableYears, selectedYear]);
 
-  // Preparar los datos para el gráfico
   const chartData = useMemo(() => {
     if (!data?.statistics?.monthly_total?.[selectedYear]) return [];
     const monthlyData: MonthlyData[] = [];

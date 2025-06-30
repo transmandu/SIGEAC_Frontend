@@ -10,13 +10,12 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 
+import RolesDialog from "@/components/dialogs/RolesDialog"
+import UserDropdownActions from "@/components/misc/UserDropdownActions"
 import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
-import Image from "next/image"
 import { User } from "@/types"
-import RolesDialog from "@/components/dialogs/RolesDialog"
-import { redirect, useRouter } from "next/navigation"
-import UserDropdownActions from "@/components/misc/UserDropdownActions"
+import { redirect } from "next/navigation"
 
 
 export const columns: ColumnDef<User>[] = [

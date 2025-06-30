@@ -650,10 +650,8 @@ export type AdministrationRequisition = {
 export type Role = {
   id: number,
   name: string,
-  companyId: number;
-  permissions: Permission[],
+  label: string,
   company: {
-    id: number,
     name: string,
     description: string,
   }[]
