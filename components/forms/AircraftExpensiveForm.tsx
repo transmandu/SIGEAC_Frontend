@@ -136,9 +136,9 @@ export function AircraftExpensiveForm({ acronym, onClose }: FormProps) {
   const { createCashMovementForAircraft } = useCashMovementForAircraft();
   const {
     data: employees,
-    mutate,
+ 
     isPending: isEmployeesLoading,
-  } = useGetEmployeesByCompany();
+  } = useGetEmployeesByCompany(selectedCompany?.split(" ").join(""));
   const { data: cashes, isLoading: isCashesLoading } = useGetCash();
   const { data: bankaccounts, isLoading: isBankAccLoading } =
     useGetBankAccounts();
@@ -161,9 +161,9 @@ export function AircraftExpensiveForm({ acronym, onClose }: FormProps) {
     name: "movements",
   });
 
-  useEffect(() => {
-    mutate(selectedCompany!.split(" ").join("")); // Refetch employees when company changes
-  }, [mutate, selectedCompany]);
+  // useEffect(() => {
+  //   mutate(selectedCompany!.split(" ").join("")); // Refetch employees when company changes
+  // }, [mutate, selectedCompany]);
 
   async function onSubmit(formData: z.infer<typeof formSchema>) {
     interface AircraftExpenseFormData {

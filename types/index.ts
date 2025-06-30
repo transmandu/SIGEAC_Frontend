@@ -414,6 +414,22 @@ export type Flight = {
   bank_account: BankAccount;
 };
 
+export type AdministrationFlight = {
+  id: string,
+  guide_code: string,
+  fee: string,
+  total_amount: string,
+  payed_amount: string,
+  type: string,
+  debt_status: string,
+  registered_by: string,
+  updated_by: string,
+  date: string,
+  details: string,
+  client: Client,
+  flight: Flight,
+}
+
 export type FlightPayment = {
   id: number;
   bank_account: BankAccount;
@@ -699,16 +715,20 @@ export type User = {
 };
 
 export type Employee = {
-  id: number;
-  first_name: string;
-  last_name: string;
-  company: string;
-  dni: string;
-  job_title: JobTitle;
-  department: Department;
-  user?: User;
-  location: Location;
-};
+  id: number,
+  first_name: string,
+  middle_name?: string,
+  last_name: string,
+  second_last_name?: string,
+  dni_type: string,
+  blood_type: string,
+  company: string,
+  dni: string,
+  job_title: JobTitle,
+  department: Department,
+  user?: User,
+  location: Location,
+}
 
 export type AdministrationVendor = {
   id: string | number;

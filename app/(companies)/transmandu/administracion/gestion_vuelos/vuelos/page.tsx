@@ -1,13 +1,13 @@
 "use client";
 
 import { ContentLayout } from "@/components/layout/ContentLayout";
-import { DataTable } from "./data-table";
-import { columns } from "./columns";
-import { useGetFlights } from "@/hooks/aerolinea/vuelos/useGetFlights";
 import LoadingPage from "@/components/misc/LoadingPage";
+import { useGetAdministrationFlights } from "@/hooks/aerolinea/vuelos/useGetFlights";
+import { columns } from "./columns";
+import { DataTable } from "./data-table";
 
 const FlightPage = () => {
-  const { data, isLoading, isError } = useGetFlights();
+  const { data, isLoading, isError } = useGetAdministrationFlights();
 
   if (isLoading) {
     return <LoadingPage />;

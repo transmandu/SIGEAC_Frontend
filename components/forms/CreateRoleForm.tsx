@@ -39,6 +39,9 @@ const formSchema = z.object({
   name: z.string().min(3, {
     message: "El nombre debe tener al menos 3 carácters.",
   }),
+  label: z.string({
+    message: "Debe especificar un nombre para el rol.",
+  }),
   company: z.string(),
   permissions: z.array(z.number()).optional(),
 })
@@ -83,7 +86,8 @@ export default function CreateRoleForm({ onClose }: FormProps) {
     const data = {
       name: values.name,
       company: parseInt(values.company),
-      permissions: values.permissions
+      permissions: values.permissions,
+      label: values.label,
     }
     createRole.mutate(data);
     if (createRole.isSuccess) {
@@ -113,6 +117,22 @@ export default function CreateRoleForm({ onClose }: FormProps) {
               <FormLabel>Nombre</FormLabel>
               <FormControl>
                 <Input placeholder="EJ: Admin..." {...field} />
+              </FormControl>
+              <FormDescription>
+                Este será el nombre del rol.
+              </FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={control}
+          name="label"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Etiqueta</FormLabel>
+              <FormControl>
+                <Input placeholder="EJ: Jef. de X" {...field} />
               </FormControl>
               <FormDescription>
                 Este será el nombre del rol.
