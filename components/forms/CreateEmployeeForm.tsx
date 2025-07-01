@@ -64,7 +64,7 @@ const formSchema = z.object({
   location_id: z.string(),
 
   // Opción para crear usuario
-  createUser: z.boolean(),
+   createUser: z.boolean(),
 
   // Datos del usuario (condicionales)
   username: z.string().min(3, 'Mínimo 3 caracteres').optional(),
@@ -192,10 +192,16 @@ export function CreateEmployeeForm() {
         email: data.email!,
         roles: data.roles?.map(Number) || [],
       } : null;
-
       if(data.createUser && userData) {
-        await createEmployee.mutateAsync(employeeData)
-        await createUser.mutateAsync(userData)
+        const userResponse = await createUser.mutateAsync(userData);
+        // 2. Luego creamos el empleado con el user_id
+        await createEmployee.mutateAsync({
+            ...employeeData,
+            user_id: userResponse.user.id // Asume que el backend devuelve el ID del usuario
+        });
+      } else {
+        // Si no se va a crear usuario, solo creamos el empleado
+        await createEmployee.mutateAsync(employeeData);
       }
     } catch (error) {
       console.error('Error creating employee:', error);

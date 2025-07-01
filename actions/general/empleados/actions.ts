@@ -14,6 +14,7 @@ interface CreateEmployeeFormSchema {
   department_id: string,
   location_id: string,
   company: string;
+  user_id?: string;
 }
 export const useCreateEmployee = () => {
 

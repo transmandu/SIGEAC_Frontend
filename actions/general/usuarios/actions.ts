@@ -16,7 +16,8 @@ export const useCreateUser = () => {
 
     const createMutation = useMutation({
         mutationFn: async (data: CreateFormSchema) => {
-            await axiosInstance.post('/register', data)
+           const response = await axiosInstance.post('/register', data)
+             return response.data
           },
         onSuccess: () => {
             queryClient.invalidateQueries({queryKey: ['users']})
@@ -46,7 +47,8 @@ export const useUpdateUser = () => {
         password: string,
         id: string,
       }) => {
-          await axiosInstance.put(`/user/${data.id}`, data)
+          const res = await axiosInstance.put(`/user/${data.id}`, data)
+          return res.data
         },
       onSuccess: () => {
           queryClient.invalidateQueries({queryKey: ['users']})

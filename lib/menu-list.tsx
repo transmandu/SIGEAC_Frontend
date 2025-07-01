@@ -458,7 +458,7 @@ export function getMenuList(
               label: "Ordenes de Compra",
               active: pathname.includes("/transmandu/compras/ordenes_compra"),
               icon: Receipt,
-              roles: ["ANALISTA_COMPRAS", "JEFE_COMPRAS", "SUPERUSER"],
+              roles: ["ANALISTA_COMPRAS", "JEFE_COMPRAS", "SUPERUSER", "JEFE_ADMINISTRACION"],
               submenus: [],
             },
           ],
@@ -505,7 +505,7 @@ export function getMenuList(
               label: "Bancos",
               active: pathname.includes("/bancos_cuentas"),
               icon: Landmark,
-              roles: ["SUPERUSER"],
+              roles: ["SUPERUSER", "ANALISTA_ADMINISTRACION", "JEFE_ADMINISTRACION"],
               submenus: [
                 {
                   href: "/ajustes/bancos_cuentas/bancos",
