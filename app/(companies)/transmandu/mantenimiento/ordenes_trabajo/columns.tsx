@@ -24,7 +24,7 @@ import { Batch, WorkOrder } from "@/types"
 import Link from "next/link"
 import { format } from "date-fns"
 import { es } from "date-fns/locale"
-import WorkOrderDropdownActions from "@/components/misc/WorkOrderDropdownActionts"
+import WorkOrderDropdownActions from "@/components/dropdowns/mantenimiento/ordenes_trabajo/WorkOrderDropdownActionts"
 
 export const columns: ColumnDef<WorkOrder>[] = [
   {

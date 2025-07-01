@@ -7,7 +7,7 @@ import {
   DialogTitle,
   DialogTrigger
 } from "@/components/ui/dialog"
-import { CreateUserForm } from "../forms/CreateUserForm"
+import { CreateUserForm } from "../forms/ajustes/CreateUserForm"
 
 export function CreateUserDialog() {
   return (

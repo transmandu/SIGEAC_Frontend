@@ -4,7 +4,7 @@ import { ColumnDef } from "@tanstack/react-table";
 
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
 
-import DangerIdentificationDropdownActions from "@/components/misc/DangerIdentificationDropdownActions";
+import DangerIdentificationDropdownActions from "@/components/dropdowns/aerolinea/sms/DangerIdentificationDropdownActions";
 import { Badge } from "@/components/ui/badge";
 import { DangerIdentification } from "@/types";
 

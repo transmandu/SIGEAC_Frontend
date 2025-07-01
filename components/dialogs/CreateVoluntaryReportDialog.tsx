@@ -11,7 +11,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { useState } from "react";
-import { CreateVoluntaryReportForm } from "../forms/CreateVoluntaryReportForm";
+import { CreateVoluntaryReportForm } from "../forms/aerolinea/sms/CreateVoluntaryReportForm";
 import { VoluntaryReport } from "@/types";
 
 interface FormProps {

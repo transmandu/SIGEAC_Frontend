@@ -5,7 +5,7 @@ import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
 import { Renting } from "@/types";
 import { addDays, format } from "date-fns";
 import { es } from "date-fns/locale/es";
-import RentingDropdownActions from "@/components/misc/RentingDropdownActions";
+import RentingDropdownActions from "@/components/dropdowns/aerolinea/administracion/RentingDropdownActions";
 import ClientResumeDialog from "@/components/dialogs/ClientResumeDialog";
 import { Badge } from "@/components/ui/badge";
 import { formatCurrency } from "@/lib/utils";

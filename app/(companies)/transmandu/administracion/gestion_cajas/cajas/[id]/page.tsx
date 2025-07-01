@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { AlertCircle, ArrowLeft, Loader2, X } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend, ResponsiveContainer, Tooltip, } from "recharts";
 import { formatCurrency, formatDate } from "@/lib/utils";
-import DateFilter from "@/components/forms/CreateFilterDates";
+import DateFilter from "@/components/forms/aerolinea/administracion/CreateFilterDates";
 import { useState } from "react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 

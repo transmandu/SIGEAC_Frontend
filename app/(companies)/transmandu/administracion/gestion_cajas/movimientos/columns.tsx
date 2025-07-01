@@ -5,7 +5,7 @@ import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
 import { CashMovement } from "@/types";
 import { addDays, format } from "date-fns";
 import { es } from "date-fns/locale/es";
-import CashMovementDropdownActions from "@/components/misc/CashMovementDropdownActions";
+import CashMovementDropdownActions from "@/components/dropdowns/aerolinea/administracion/CashMovementDropdownActions";
 import BankAccountResumeDialog from "@/components/dialogs/BankAccountResumeDialog";
 import CashResumeDialog from "@/components/dialogs/CashResumeDialog";
 import { formatCurrencyJ } from "@/lib/utils";

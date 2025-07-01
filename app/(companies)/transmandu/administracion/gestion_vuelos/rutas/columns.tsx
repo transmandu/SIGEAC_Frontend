@@ -3,7 +3,7 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
 import { Route } from "@/types";
-import RouteDropdownActions from "@/components/misc/RouteDropdownActions";
+import RouteDropdownActions from "@/components/dropdowns/aerolinea/administracion/RouteDropdownActions";
 import { ChevronRight } from "lucide-react";
 
 export const columns: ColumnDef<Route>[] = [

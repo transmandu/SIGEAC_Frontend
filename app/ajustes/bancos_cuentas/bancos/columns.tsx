@@ -1,6 +1,6 @@
 "use client"
 
-import WarehouseDropdownActions from "@/components/misc/WarehouseDropdownActions"
+import WarehouseDropdownActions from "@/components/dropdowns/ajustes/WarehouseDropdownActions"
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader"
 import { Bank } from "@/types"
 import { ColumnDef } from "@tanstack/react-table"

@@ -4,7 +4,7 @@ import { ColumnDef } from "@tanstack/react-table"
 
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader"
 
-import BatchDropdownActions from "@/components/misc/BatchDropdownActions"
+import BatchDropdownActions from "@/components/dropdowns/mantenimiento/almacen/BatchDropdownActions"
 import { Checkbox } from "@/components/ui/checkbox"
 import { cn, generateSlug } from "@/lib/utils"
 import { Batch } from "@/types"

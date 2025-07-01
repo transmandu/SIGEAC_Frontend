@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, } from "@/components/ui/dialog";
 import { useState } from "react";
-import AccountForm from "../forms/CreateAccountForm";
+import AccountForm from "../forms/aerolinea/administracion/CreateAccountForm";
 
 export function CreateAccountantDialog() {
   const [open, setOpen] = useState(false);
@@ -15,13 +15,13 @@ export function CreateAccountantDialog() {
           variant={"outline"}
           className="flex items-center justify-center gap-2 h-8 border-dashed"
         >
-          Registrar Cuenta 
+          Registrar Cuenta
         </Button>
       </DialogTrigger>
       <DialogContent
         className="sm:max-w-[480px]"
         onInteractOutside={(e) => {
-          e.preventDefault(); 
+          e.preventDefault();
         }}
       >
         <DialogHeader>

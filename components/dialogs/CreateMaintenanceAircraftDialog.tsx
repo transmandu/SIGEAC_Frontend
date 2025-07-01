@@ -10,8 +10,8 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { useState } from "react";
-import { AircraftInfoForm } from "../forms/AircraftInfoForm";
-import { AircraftPartsInfoForm } from "../forms/AircraftPartsForm";
+import { AircraftInfoForm } from "../forms/mantenimiento/aeronaves/AircraftInfoForm";
+import { AircraftPartsInfoForm } from "../forms/mantenimiento/aeronaves/AircraftPartsForm";
 import { useCreateMaintenanceAircraft } from "@/actions/mantenimiento/planificacion/aeronaves/actions";
 
 interface AircraftPart {

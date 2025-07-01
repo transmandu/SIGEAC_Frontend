@@ -4,7 +4,7 @@ import { ColumnDef } from "@tanstack/react-table"
 
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader"
 
-import ActivityReportsDropdownActions from "@/components/misc/ActivityReportsDropdownActions"
+import ActivityReportsDropdownActions from "@/components/dropdowns/aerolinea/desarrollo/ActivityReportsDropdownActions"
 import { ActivityReport } from "@/types"
 import { addDays, format } from "date-fns"
 import { es } from "date-fns/locale"

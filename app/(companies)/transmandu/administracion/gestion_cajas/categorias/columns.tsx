@@ -3,7 +3,7 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
 import { Category } from "@/types";
-import CategoryDropdownActions from "@/components/misc/CategoryDropdownActions";
+import CategoryDropdownActions from "@/components/dropdowns/aerolinea/administracion/CategoryDropdownActions";
 
 export const columns: ColumnDef<Category>[] = [
   {
@@ -42,4 +42,3 @@ export const columns: ColumnDef<Category>[] = [
     },
   },
 ];
-

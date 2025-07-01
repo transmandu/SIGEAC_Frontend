@@ -1,7 +1,7 @@
 "use client"
 import { ColumnDef } from "@tanstack/react-table"
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader"
-import SecondaryUnitDropdownActions from "@/components/misc/SecondaryUnitDropdownActions"
+import SecondaryUnitDropdownActions from "@/components/dropdowns/ajustes/SecondaryUnitDropdownActions"
 import { Convertion } from "@/types"
 
 export const secondary_columns: ColumnDef<Convertion>[] = [

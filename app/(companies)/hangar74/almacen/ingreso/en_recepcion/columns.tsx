@@ -1,10 +1,10 @@
 "use client"
 import { ColumnDef } from "@tanstack/react-table"
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader"
-import InTransitArticleDropdownActions from "@/components/misc/InTransitArticleDropdownActions"
+import InTransitArticleDropdownActions from "@/components/dropdowns/mantenimiento/almacen/InTransitArticleDropdownActions"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Article } from "@/types"
-import InReceptionDropdownActions from "@/components/misc/InReceptionArticleDropdownActions"
+import InReceptionDropdownActions from "@/components/dropdowns/mantenimiento/almacen/InReceptionArticleDropdownActions"
 
 
 export const columns: ColumnDef<Article>[] = [

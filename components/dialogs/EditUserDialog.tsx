@@ -8,7 +8,7 @@ import {
   DialogTrigger
 } from "@/components/ui/dialog"
 import { UserPen } from "lucide-react"
-import { EditUserForm } from "../forms/EditUserForm"
+import { EditUserForm } from "../forms/ajustes/EditUserForm"
 import { User } from "@/types"
 import { useState } from "react"
 

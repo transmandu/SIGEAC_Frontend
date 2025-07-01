@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/tooltip"
 import { MaintenanceService } from "@/types"
 import Link from "next/link"
-import MaintenanceServiceDropdownActions from "@/components/misc/MaintenanceServiceDropdownActionts"
+import MaintenanceServiceDropdownActions from "@/components/dropdowns/mantenimiento/ordenes_trabajo/MaintenanceServiceDropdownActionts"
 
 export const columns: ColumnDef<MaintenanceService>[] = [
   {

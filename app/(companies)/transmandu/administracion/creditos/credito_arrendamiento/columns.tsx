@@ -5,7 +5,7 @@ import { Credit } from "@/types";
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
 import { addDays, format } from "date-fns";
 import { es } from "date-fns/locale/es";
-import CreditDropdownActions from "@/components/misc/CreditDropdownActions";
+import CreditDropdownActions from "@/components/dropdowns/aerolinea/administracion/CreditDropdownActions";
 import { Badge } from "@/components/ui/badge";
 import { formatCurrency } from "@/lib/utils";
 import ClientResumeDialog from "@/components/dialogs/ClientResumeDialog";

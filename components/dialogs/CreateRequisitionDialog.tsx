@@ -10,9 +10,9 @@ import {
   DialogTrigger
 } from "@/components/ui/dialog"
 import { useState } from "react"
-import { CreateRequisitionForm } from "../forms/CreateRequisitionForm"
+import { CreateRequisitionForm } from "../forms/mantenimiento/compras/CreateRequisitionForm"
 import { useAuth } from "@/contexts/AuthContext"
-import { CreateGeneralRequisitionForm } from "../forms/CreateGeneralRequisitionForm"
+import { CreateGeneralRequisitionForm } from "../forms/mantenimiento/compras/CreateGeneralRequisitionForm"
 
 export function CreateRequisitionDialog() {
   const { user } = useAuth()

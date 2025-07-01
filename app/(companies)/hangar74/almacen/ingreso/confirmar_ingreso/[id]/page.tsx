@@ -1,6 +1,6 @@
 'use client'
 
-import RegisterArticleForm from "@/components/forms/RegisterArticleForm"
+import RegisterArticleForm from "@/components/forms/mantenimiento/almacen/RegisterArticleForm"
 import { ContentLayout } from "@/components/layout/ContentLayout"
 import LoadingPage from "@/components/misc/LoadingPage"
 import { useGetArticleById } from "@/hooks/mantenimiento/almacen/articulos/useGetArticleById"

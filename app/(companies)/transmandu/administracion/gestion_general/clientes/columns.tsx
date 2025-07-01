@@ -2,7 +2,7 @@
 
 import { ColumnDef } from "@tanstack/react-table";
 import { Client } from "@/types";
-import ClientDropdownActions from "@/components/misc/ClientDropdownActions";
+import ClientDropdownActions from "@/components/dropdowns/general/ClientDropdownActions";
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
 import { cn, formatCurrency } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";

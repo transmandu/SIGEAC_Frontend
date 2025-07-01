@@ -10,7 +10,7 @@ import {
   DialogTrigger
 } from "@/components/ui/dialog"
 import { useState } from "react"
-import CreateBankAccountForm from "../forms/CreateBankAccountForm"
+import CreateBankAccountForm from "../forms/ajustes/CreateBankAccountForm"
 
 export function CreateBankAccountDialog() {
   const [open, setOpen] = useState(false);

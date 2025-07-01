@@ -5,7 +5,7 @@ import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
 import { SMSActivity } from "@/types";
 import { dateFormat } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
-import SMSActivityDropDownActions from "@/components/misc/SMSActivityDropDownActions";
+import SMSActivityDropDownActions from "@/components/dropdowns/aerolinea/sms/SMSActivityDropDownActions";
 
 // Columnas de la tabla
 export const columns: ColumnDef<SMSActivity>[] = [

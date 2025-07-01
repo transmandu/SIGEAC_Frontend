@@ -1,8 +1,8 @@
 'use client'
 
-import CreateComponentForm from '@/components/forms/CreateComponentForm';
-import CreateConsumableForm from '@/components/forms/CreateConsumableForm';
-import CreateToolForm from '@/components/forms/CreateToolForm';
+import CreateComponentForm from '@/components/forms/mantenimiento/almacen/CreateComponentForm';
+import CreateConsumableForm from '@/components/forms/mantenimiento/almacen/CreateConsumableForm';
+import CreateToolForm from '@/components/forms/mantenimiento/almacen/CreateToolForm';
 import { ContentLayout } from '@/components/layout/ContentLayout';
 import {
   Select,

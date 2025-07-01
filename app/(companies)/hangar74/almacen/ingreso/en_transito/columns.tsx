@@ -4,7 +4,7 @@ import { ColumnDef } from "@tanstack/react-table"
 
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader"
 
-import InTransitArticleDropdownActions from "@/components/misc/InTransitArticleDropdownActions"
+import InTransitArticleDropdownActions from "@/components/dropdowns/mantenimiento/almacen/InTransitArticleDropdownActions"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Manufacturer } from "@/types"
 

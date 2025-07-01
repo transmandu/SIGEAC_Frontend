@@ -4,7 +4,7 @@ import { ColumnDef } from "@tanstack/react-table"
 
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader"
 
-import ActivityDropdownActions from "@/components/misc/ActivityDropdownActions"
+import ActivityDropdownActions from "@/components/dropdowns/aerolinea/desarrollo/ActivityDropdownActions"
 import { Activity } from "@/types"
 
 export const columns: ColumnDef<Activity>[] = [

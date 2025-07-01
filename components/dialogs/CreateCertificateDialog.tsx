@@ -10,7 +10,7 @@ import {
   DialogTrigger
 } from "@/components/ui/dialog"
 import { useState } from "react"
-import { CreateCertificateForm } from "../forms/CreateCertificateForm"
+import { CreateCertificateForm } from "../forms/mantenimiento/ordenes_trabajo/CreateCertificateForm"
 
 export function CreateCertificateDialog() {
   const [open, setOpen] = useState(false);

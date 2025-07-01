@@ -10,7 +10,7 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { CreateJobTitleForm } from '@/components/forms/CreateJobTitleForm';
+import { CreateJobTitleForm } from '@/components/forms/general/CreateJobTitleForm';
 
 export function CreateJobTitleDialog() {
   const [open, setOpen] = useState(false);

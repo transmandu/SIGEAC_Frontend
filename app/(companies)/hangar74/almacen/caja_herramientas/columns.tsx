@@ -4,10 +4,10 @@ import { ColumnDef } from "@tanstack/react-table"
 
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader"
 
-import PendingDispatchRequestDropdownActions from "@/components/misc/PendingDispatchRequestDropdownActions"
+import PendingDispatchRequestDropdownActions from "@/components/dropdowns/mantenimiento/almacen/PendingDispatchRequestDropdownActions"
 import { ToolBox } from "@/types"
 import ToolBoxToolsDialog from "@/components/dialogs/ToolBoxToolsDialog"
-import ToolBoxDropdownActions from "@/components/misc/ToolBoxDropdownActions"
+import ToolBoxDropdownActions from "@/components/dropdowns/mantenimiento/ordenes_trabajo/ToolBoxDropdownActions"
 
 export const columns: ColumnDef<ToolBox>[] = [
   // {

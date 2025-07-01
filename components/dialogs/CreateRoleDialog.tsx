@@ -9,7 +9,7 @@ import {
   DialogTitle,
   DialogTrigger
 } from "@/components/ui/dialog"
-import CreateRoleForm from "../forms/CreateRoleForm"
+import CreateRoleForm from "../forms/general/CreateRoleForm"
 import { useState } from "react"
 
 export function CreateRoleDialog() {

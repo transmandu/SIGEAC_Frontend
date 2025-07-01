@@ -10,7 +10,7 @@ import {
   DialogTrigger
 } from "@/components/ui/dialog"
 import { useState } from "react"
-import CreateCardForm from "../forms/CreateCardForm"
+import CreateCardForm from "../forms/ajustes/CreateCardForm"
 
 export function CreateCardDialog() {
   const [open, setOpen] = useState(false);

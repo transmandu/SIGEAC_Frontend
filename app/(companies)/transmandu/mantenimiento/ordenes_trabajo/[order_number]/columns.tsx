@@ -4,7 +4,7 @@ import { ColumnDef } from "@tanstack/react-table"
 
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader"
 
-import WorkOrderDropdownActions from "@/components/misc/WorkOrderDropdownActionts"
+import WorkOrderDropdownActions from "@/components/dropdowns/mantenimiento/ordenes_trabajo/WorkOrderDropdownActionts"
 import { Checkbox } from "@/components/ui/checkbox"
 import { PrelimInspectionItem } from "@/types"
 import { format } from "date-fns"

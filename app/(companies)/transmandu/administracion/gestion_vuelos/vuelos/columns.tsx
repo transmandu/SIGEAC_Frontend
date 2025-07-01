@@ -2,7 +2,7 @@
 
 import AircraftResumeDialog from "@/components/dialogs/AircraftResumeDialog";
 import ClientResumeDialog from "@/components/dialogs/ClientResumeDialog";
-import FlightDropdownActions from "@/components/misc/FlightDropdownActions";
+import FlightDropdownActions from "@/components/dropdowns/aerolinea/administracion/FlightDropdownActions";
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
 import { Badge } from "@/components/ui/badge";
 import { formatCurrency } from "@/lib/utils";
@@ -137,7 +137,7 @@ export const columns: ColumnDef<AdministrationFlight>[] = [
     cell: ({ row }) => (
       <div className="flex justify-center font-bold text-center">
         {row.original.details}
-      </div> 
+      </div>
     ),
   },
   {

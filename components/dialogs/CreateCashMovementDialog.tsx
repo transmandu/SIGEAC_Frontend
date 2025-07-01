@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogTrigger, } from "@/components/ui/dialog";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import DateFilterUpdate from "../forms/CreateFilterDatesUpdate";
+import DateFilterUpdate from "../forms/aerolinea/administracion/CreateFilterDatesUpdate";
 import Link from "next/link";
 
 export function CashMovementDialog({ id }: { id?: string }) {

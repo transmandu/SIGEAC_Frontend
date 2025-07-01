@@ -5,7 +5,7 @@ import { DataTableColumnHeader } from "@/components/tables/DataTableHeader"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Permission } from "@/types"
 import Image from "next/image"
-import PermissionsDropdownActions from "@/components/misc/PermissionsDropdownActions"
+import PermissionsDropdownActions from "@/components/dropdowns/ajustes/PermissionsDropdownActions"
 
 export const columns: ColumnDef<Permission>[] = [
   {

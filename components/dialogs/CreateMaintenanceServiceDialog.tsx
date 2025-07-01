@@ -10,7 +10,7 @@ import {
   DialogTrigger
 } from "@/components/ui/dialog"
 import { useState } from "react"
-import { CreateMaintenanceServiceForm } from "../forms/CreateMaintenanceServiceForm"
+import { CreateMaintenanceServiceForm } from "../forms/mantenimiento/ordenes_trabajo/CreateMaintenanceServiceForm"
 
 export function CreateMaintenanceServiceDialog() {
   const [open, setOpen] = useState(false);

@@ -5,7 +5,7 @@ import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
 import { Aircraft } from "@/types";
 import { addDays, format } from "date-fns";
 import { es } from "date-fns/locale/es";
-import AircraftDropdownActions from "@/components/misc/AircraftDropdownActions";
+import AircraftDropdownActions from "@/components/dropdowns/aerolinea/administracion/AircraftDropdownActions";
 
 export const columns: ColumnDef<Aircraft>[] = [
   {

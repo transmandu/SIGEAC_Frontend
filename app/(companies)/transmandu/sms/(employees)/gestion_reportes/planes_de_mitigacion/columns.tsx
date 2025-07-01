@@ -2,7 +2,7 @@
 
 import { ColumnDef } from "@tanstack/react-table";
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
-import MitigationTableDropdownActions from "@/components/misc/MitigationTableDropdownActions";
+import MitigationTableDropdownActions from "@/components/dropdowns/aerolinea/sms/MitigationTableDropdownActions";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -29,9 +29,9 @@ const MeasuresCell = ({
     <div className="flex justify-center">
       <Dialog>
         <DialogTrigger asChild>
-          <Button 
-            variant="outline" 
-            size="sm" 
+          <Button
+            variant="outline"
+            size="sm"
             className="min-w-[100px] md:min-w-[120px]"
           >
             {measures?.length > 0 ? (
@@ -47,7 +47,7 @@ const MeasuresCell = ({
             )}
           </Button>
         </DialogTrigger>
-        
+
         <DialogContent className="w-[95vw] max-w-2xl">
           <DialogHeader>
             <DialogTitle className="text-lg font-semibold">
@@ -97,7 +97,7 @@ const RiskAnalysisCell = ({ analysis }: { analysis: any }) => {
   if (!analysis) return <div className="text-center text-muted-foreground text-xs sm:text-sm">N/A</div>;
 
   const riskLevel = getResult(analysis.result);
-  
+
   const badgeConfig = {
     INTOLERABLE: { className: "bg-red-600 hover:bg-red-500", label: "Intolerable" },
     TOLERABLE: { className: "bg-yellow-500 hover:bg-yellow-400", label: "Tolerable" },
@@ -114,7 +114,7 @@ const RiskAnalysisCell = ({ analysis }: { analysis: any }) => {
         <div className="rounded bg-muted p-1 truncate">Sev.</div>
         <div className="rounded bg-muted p-1 truncate">{analysis.severity}</div>
       </div>
-      
+
       {currentBadge && (
         <Badge className={`${currentBadge.className} w-full justify-center text-xs sm:text-sm`}>
           {currentBadge.label}

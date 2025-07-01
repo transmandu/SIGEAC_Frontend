@@ -16,9 +16,9 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { useState } from "react"
-import { ConsumableDispatchForm } from "../forms/ConsumableDispatchRequestForm"
-import { ToolDispatchForm } from "../forms/ToolDispatchForm"
-import { ComponentDispatchForm } from "../forms/ComponentDispatchForm"
+import { ConsumableDispatchForm } from "../forms/mantenimiento/almacen/ConsumableDispatchRequestForm"
+import { ToolDispatchForm } from "../forms/mantenimiento/almacen/ToolDispatchForm"
+import { ComponentDispatchForm } from "../forms/mantenimiento/almacen/ComponentDispatchForm"
 
 
 export function DispatchRequestDialog() {

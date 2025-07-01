@@ -5,7 +5,7 @@ import { ColumnDef } from "@tanstack/react-table"
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader"
 
 import CertificatesDialog from "@/components/dialogs/CertificatesDialog"
-import ArticleDropdownActions from "@/components/misc/ArticleDropdownActions"
+import ArticleDropdownActions from "@/components/dropdowns/mantenimiento/almacen/ArticleDropdownActions"
 import { Checkbox } from "@/components/ui/checkbox"
 import {
   Tooltip,

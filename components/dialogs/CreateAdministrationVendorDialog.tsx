@@ -10,7 +10,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { useState } from "react";
-import { CreateAdministrationVendorForm } from "../forms/CreateAdministrationVendorForm";
+import { CreateAdministrationVendorForm } from "../forms/aerolinea/administracion/CreateAdministrationVendorForm";
 
 export function AdministrationVendorDialog() {
   const [open, setOpen] = useState(false);
@@ -28,7 +28,7 @@ export function AdministrationVendorDialog() {
       <DialogContent
         className="sm:max-w-[480px]"
         onInteractOutside={(e) => {
-          e.preventDefault(); 
+          e.preventDefault();
         }}
       >
         <DialogHeader>

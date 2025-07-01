@@ -1,6 +1,6 @@
 "use client";
 
-import AdministrationVendorDropdownActions from "@/components/misc/AdministrationVendorDropdownAtions";
+import AdministrationVendorDropdownActions from "@/components/dropdowns/aerolinea/administracion/AdministrationVendorDropdownAtions";
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
 import { Vendor } from "@/types";
 import { ColumnDef } from "@tanstack/react-table";

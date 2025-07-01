@@ -10,7 +10,7 @@ import {
   DialogTrigger
 } from "@/components/ui/dialog"
 import { useState } from "react"
-import { CreateConditionForm } from "../forms/CreateConditionForm"
+import { CreateConditionForm } from "../forms/ajustes/CreateConditionForm"
 
 export function CreateConditionDialog() {
   const [open, setOpen] = useState(false);

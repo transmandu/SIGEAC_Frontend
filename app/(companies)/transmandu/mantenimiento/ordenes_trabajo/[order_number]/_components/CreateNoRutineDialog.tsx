@@ -1,4 +1,4 @@
-import CreateNoRutineForm from "@/components/forms/CreateNoRutineForm"
+import CreateNoRutineForm from "@/components/forms/mantenimiento/ordenes_trabajo/CreateNoRutineForm"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,

@@ -25,7 +25,7 @@ import {
   DialogTrigger,
 } from "../ui/dialog";
 import { useRouter } from "next/navigation";
-import { CreatePilotForm } from "../forms/CreatePilotForm";
+import { CreatePilotForm } from "../forms/general/CreatePilotForm";
 
 const PilotDropdownActions = ({ pilot }: { pilot: Pilot }) => {
   const [open, setOpen] = useState<boolean>(false);

@@ -4,7 +4,7 @@ import { ColumnDef } from "@tanstack/react-table";
 
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
 
-import VoluntaryReportDropdownActions from "@/components/misc/VoluntaryReportDropDownMenu";
+import VoluntaryReportDropdownActions from "@/components/dropdowns/aerolinea/sms/VoluntaryReportDropDownMenu";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { dateFormat } from "@/lib/utils";

@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ContentLayout } from '@/components/layout/ContentLayout';
-import { DailyReportForm } from '@/components/forms/DailyReportForm';
+import { DailyReportForm } from '@/components/forms/aerolinea/desarollo/DailyReportForm';
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
 import { useGetDailyActivityReport } from '@/hooks/aerolinea/desarrollo/useGetDailyActivities';
 import { useParams } from 'next/navigation';

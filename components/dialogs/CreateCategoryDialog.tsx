@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, } from "@/components/ui/dialog";
 import { useState } from "react";
-import { CreateCategoryForm } from "../forms/CreateCategoryForm";
+import { CreateCategoryForm } from "../forms/aerolinea/administracion/CreateCategoryForm";
 
 export function CreateCategoryDialog() {
   const [open, setOpen] = useState(false);
@@ -21,7 +21,7 @@ export function CreateCategoryDialog() {
       <DialogContent
         className="sm:max-w-[480px]"
         onInteractOutside={(e) => {
-          e.preventDefault(); 
+          e.preventDefault();
         }}
       >
         <DialogHeader>

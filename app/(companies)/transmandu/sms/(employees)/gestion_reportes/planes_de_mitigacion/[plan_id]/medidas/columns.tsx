@@ -2,7 +2,7 @@
 
 import { ColumnDef } from "@tanstack/react-table";
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
-import MitigationMeasureDropdownActions from "@/components/misc/MitigationMeasuresDropDownActions";
+import MitigationMeasureDropdownActions from "@/components/dropdowns/aerolinea/sms/MitigationMeasuresDropDownActions";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,

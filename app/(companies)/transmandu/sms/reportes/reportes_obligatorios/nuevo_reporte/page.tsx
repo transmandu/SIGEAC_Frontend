@@ -1,6 +1,6 @@
 "use client";
 
-import { CreateObligatoryReportForm } from "@/components/forms/CreateObligatoryReportForm";
+import { CreateObligatoryReportForm } from "@/components/forms/aerolinea/sms/CreateObligatoryReportForm";
 import { ContentLayout } from "@/components/layout/ContentLayout";
 
 const CreateObligatoryReport = () => {

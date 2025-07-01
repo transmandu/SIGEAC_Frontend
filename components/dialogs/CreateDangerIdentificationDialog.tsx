@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/dialog";
 import { DangerIdentification } from "@/types";
 import { useState } from "react";
-import CreateDangerIdentificationForm from "../forms/CreateIdentificationForm";
+import CreateDangerIdentificationForm from "../forms/aerolinea/sms/CreateIdentificationForm";
 
 interface FormProps {
   title: string;

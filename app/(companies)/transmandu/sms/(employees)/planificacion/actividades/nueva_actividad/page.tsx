@@ -1,6 +1,6 @@
 "use client";
 
-import CreateSMSActivityForm from "@/components/forms/CreateSMSActivityForm";
+import CreateSMSActivityForm from "@/components/forms/aerolinea/sms/CreateSMSActivityForm";
 import { ContentLayout } from "@/components/layout/ContentLayout";
 
 const CreateSMSActivity = () => {

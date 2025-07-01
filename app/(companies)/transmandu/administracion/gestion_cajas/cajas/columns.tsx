@@ -3,7 +3,7 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
 import { Cash } from "@/types";
-import CashDropdownActions from "@/components/misc/CashDropdownActions";
+import CashDropdownActions from "@/components/dropdowns/aerolinea/administracion/CashDropdownActions";
 import { formatCurrencyJ, getCurrencySymbol } from "@/lib/utils";
 
 export const columns: ColumnDef<Cash>[] = [

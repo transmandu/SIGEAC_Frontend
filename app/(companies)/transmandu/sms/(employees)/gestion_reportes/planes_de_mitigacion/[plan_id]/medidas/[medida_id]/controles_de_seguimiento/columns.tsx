@@ -5,7 +5,7 @@ import { ColumnDef } from "@tanstack/react-table";
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
 
 import DocumentDisplayDialog from "@/components/dialogs/DocumentDisplayDialog";
-import FollowUpControlDropdownActions from "@/components/misc/FollowUpControlDropdownActions";
+import FollowUpControlDropdownActions from "@/components/dropdowns/aerolinea/sms/FollowUpControlDropdownActions";
 import { Button } from "@/components/ui/button";
 import { FollowUpControl } from "@/types";
 import { format } from "date-fns";

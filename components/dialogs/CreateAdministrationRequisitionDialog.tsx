@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/dialog"
 import { useAuth } from "@/contexts/AuthContext"
 import { useState } from "react"
-import { CreateAdministrationRequisitionForm } from "../forms/CreateAdministrationRequisitionForm"
+import { CreateAdministrationRequisitionForm } from "../forms/aerolinea/administracion/CreateAdministrationRequisitionForm"
 
 export function CreateAdministrationRequisitionDialog() {
   const { user } = useAuth()

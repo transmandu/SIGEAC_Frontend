@@ -10,7 +10,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { CreateObligatoryReportForm } from "../forms/CreateObligatoryReportForm";
+import { CreateObligatoryReportForm } from "../forms/aerolinea/sms/CreateObligatoryReportForm";
 import { useState } from "react";
 import { ObligatoryReport } from "@/types";
 

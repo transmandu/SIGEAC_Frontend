@@ -11,13 +11,13 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { useState } from "react";
-import { CreateVoluntaryReportForm } from "../forms/CreateVoluntaryReportForm";
-import CreateMitigationMeasureForm from "../forms/CreateMitigationMeasureForm";
+import { CreateVoluntaryReportForm } from "../forms/aerolinea/sms/CreateVoluntaryReportForm";
+import CreateMitigationMeasureForm from "../forms/aerolinea/sms/CreateMitigationMeasureForm";
 import { useRouter } from "next/router";
 import { useParams } from "next/navigation";
 
 export default function CreateMitigationMeasureDialog() {
-  const { plan_id } = useParams<{ plan_id: string }>();  
+  const { plan_id } = useParams<{ plan_id: string }>();
   const [open, setOpen] = useState(false);
   return (
     <>

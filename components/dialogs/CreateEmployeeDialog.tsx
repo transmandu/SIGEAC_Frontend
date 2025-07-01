@@ -11,7 +11,7 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 
-import { CreateEmployeeForm } from '../forms/CreateEmployeeForm';
+import { CreateEmployeeForm } from '../forms/general/CreateEmployeeForm';
 
 export function CreateEmployeeDialog() {
   const [open, setOpen] = useState(false);

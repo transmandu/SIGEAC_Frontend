@@ -3,7 +3,7 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
 import { Accountant } from "@/types";
-import AccountantDropdownActions from "@/components/misc/AccountDropdownActions";
+import AccountantDropdownActions from "@/components/dropdowns/aerolinea/administracion/AccountDropdownActions";
 
 export const columns: ColumnDef<Accountant>[] = [
   {

@@ -5,7 +5,7 @@ import { Credit } from "@/types";
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
 import { addDays, format } from "date-fns";
 import { es } from "date-fns/locale/es";
-import CreditDropdownActions from "@/components/misc/CreditDropdownActions";
+import CreditDropdownActions from "@/components/dropdowns/aerolinea/administracion/CreditDropdownActions";
 import { Badge } from "@/components/ui/badge";
 import { formatCurrency } from "@/lib/utils";
 
@@ -91,7 +91,7 @@ export const columns: ColumnDef<Credit>[] = [
           const isPayed = row.original.status === "PAGADO";
           const badgeVariant = isPayed ? "default" : "destructive";
           const formattedAmount = formatCurrency(row.original.debt);
-    
+
           return (
             <div className="flex justify-center">
               <Badge
