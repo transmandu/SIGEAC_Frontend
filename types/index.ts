@@ -783,12 +783,9 @@ export type Certificate = {
 
 export type Pilot = {
   id: number;
-  dni: string;
-  first_name: string;
-  last_name: string;
+  employee_dni: string;
+  employee: Employee;
   license_number: string;
-  phone: string;
-  email: string;
 };
 
 export type InformationSource = {
