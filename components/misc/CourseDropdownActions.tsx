@@ -13,6 +13,7 @@ import {
   Loader2,
   MoreHorizontal,
   Trash2,
+  Plus,
 } from "lucide-react";
 import { useState } from "react";
 import { CreateCourseForm } from "../forms/CreateCourseForm";
@@ -27,6 +28,7 @@ import {
   DialogTrigger,
 } from "../ui/dialog";
 import { useRouter } from "next/navigation";
+import { AddToCourseForm } from "../forms/AddToCourseForm";
 
 const CourseDropdownActions = ({ course }: { course: Course }) => {
   const [open, setOpen] = useState<boolean>(false);
@@ -34,6 +36,7 @@ const CourseDropdownActions = ({ course }: { course: Course }) => {
   const { selectedCompany } = useCompanyStore();
   const { deleteCourse } = useDeleteCourse();
   const [openDelete, setOpenDelete] = useState<boolean>(false);
+  const [openAdd, setOpenAdd] = useState(false);
 
   const router = useRouter();
   const handleDelete = async (id: string, company: string | null) => {
@@ -79,6 +82,11 @@ const CourseDropdownActions = ({ course }: { course: Course }) => {
             >
               <EyeIcon className="size-5" />
               <p className="pl-2">Ver</p>
+            </DropdownMenuItem>
+
+            <DropdownMenuItem onClick={() => setOpenAdd(true)}>
+              <Plus className="size-5" />
+              <p className="pl-2">Agregar personas</p>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -132,6 +140,21 @@ const CourseDropdownActions = ({ course }: { course: Course }) => {
               onClose={() => setOpenEdit(false)}
               initialData={course}
             />
+          </DialogContent>
+        </Dialog>
+        {/* DIALOGO DE ADD FORM */}
+        <Dialog open={openAdd} onOpenChange={setOpenAdd}>
+          <DialogContent className="flex flex-col max-w-2xl m-2">
+            <DialogHeader>
+              <DialogTitle className="text-center font-light">
+                Agregar o eliminar personas
+              </DialogTitle>
+              <DialogDescription className="text-center"></DialogDescription>
+              <AddToCourseForm
+                initialData={course}
+                onClose={() => setOpenAdd(false)}
+              />
+            </DialogHeader>
           </DialogContent>
         </Dialog>
       </Dialog>

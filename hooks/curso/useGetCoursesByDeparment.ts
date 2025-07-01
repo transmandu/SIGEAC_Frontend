@@ -13,7 +13,7 @@ const fetchCoursesByDepartment = async (
 
 export const useGetCoursesByDeparment = (company: string | null) => {
   return useQuery<Course[]>({
-    queryKey: ["department-courses", company],
+    queryKey: ["department-courses"],
     queryFn: () => fetchCoursesByDepartment(company),
     staleTime: 1000 * 60 * 5, // 5 minutos
     enabled: !!company,

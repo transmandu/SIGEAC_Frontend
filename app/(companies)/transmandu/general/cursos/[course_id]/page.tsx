@@ -28,7 +28,7 @@ const ShowCourse = () => {
     isLoading: isCourseLoading,
     isError: courseError,
   } = useGetCourseById(value);
-
+  console.log(course);
   return (
     <ContentLayout title="Detalles del Curso">
       {/* Contenido principal */}
@@ -62,8 +62,11 @@ const ShowCourse = () => {
                   </div>
                   <div className="flex items-center gap-2">
                     <Building className="w-5 h-5 text-gray-600 dark:text-gray-300" />
+                    <p className=" font-bold text-gray-700 dark:text-gray-300">
+                      Departamento:
+                    </p>
                     <p className="text-gray-700 dark:text-gray-300">
-                      Departamento: {course.deparment_id?.name || "N/A"}
+                      {course.department?.name || "N/A"}
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
