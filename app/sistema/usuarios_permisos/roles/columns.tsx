@@ -13,47 +13,15 @@ import Image from "next/image"
 
 
 export const columns: ColumnDef<Role>[] = [
-  {
-    id: "select",
-    header: ({ table }) => (
-      <Checkbox
-        checked={
-          table.getIsAllPageRowsSelected() ||
-          (table.getIsSomePageRowsSelected() && "indeterminate")
-        }
-        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-        aria-label="Seleccionar todos"
-      />
-    ),
-    cell: ({ row }) => (
-      <Checkbox
-        checked={row.getIsSelected()}
-        onCheckedChange={(value) => row.toggleSelected(!!value)}
-        aria-label="Seleccionar fila"
-      />
-    ),
-    enableSorting: false,
-    enableHiding: false,
-  },
-  {
-    accessorKey: "name",
+    {
+    accessorKey: "label",
     header: ({ column }) => (
       <DataTableColumnHeader filter column={column} title="Nombre" />
     ),
     cell: ({ row }) =>
-      <>
-        <Badge>{row.original.name}</Badge>
-      </>
-  },
-  {
-    accessorKey: "permissions",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Permisos" />
-    ),
-    cell: ({ row }) =>
-      <>
-        <PermissionsDialog roleName={row.original.name} permissions={row.original.permissions} />
-      </>
+      <div className="flex items-center justify-center">
+        <Badge className="text-base">{row.original.label}</Badge>
+      </div>
   },
   {
     accessorKey: "company",
@@ -61,7 +29,7 @@ export const columns: ColumnDef<Role>[] = [
       <DataTableColumnHeader column={column} title="Compañia" />
     ),
     cell: ({ row }) =>
-      <p>{row.original.company.map((c) => <div key={c.id} className="flex gap-2 items-center"><p className="text-muted-foreground">{c.description}</p> <Image src={c.name === 'TMD' ? "/LOGO_TRD.png" : "/logo.png"} width={100} height={100} alt="logo" className="w-[40px] h-[40px]" /></div>)}</p>
+      <div className="flex flex-col items-center">{row.original.company.map((c) => <div key={c.description} className="flex gap-2 items-center"><p className="text-muted-foreground">{c.description}</p></div>)}</div>
   },
   {
     id: "actions",

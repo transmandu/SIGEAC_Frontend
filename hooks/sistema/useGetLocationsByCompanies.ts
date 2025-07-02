@@ -15,7 +15,7 @@ const fetchLocations = async (): Promise<LocationsByCompany[]> => {
 
 export const useGetLocationsByCompanies = () => {
   return useQuery<LocationsByCompany[]>({
-    queryKey: ['location'],
+    queryKey: ['companie-locations'],
     queryFn: fetchLocations,
     staleTime: 1000 * 60 * 5, // 5 minutos
   });

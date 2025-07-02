@@ -399,20 +399,20 @@ export interface DispatchRequest extends Request {
 }
 
 export type Flight = {
-  id: number;
-  guide_code: string;
-  client: Client;
-  route: Route;
-  aircraft: Aircraft;
-  date: string;
-  details: string;
-  fee: number;
-  total_amount: number;
-  type: "CARGA" | "PAX" | "CHART";
-  payed_amount: number;
-  debt_status: "PENDIENTE" | "PAGADO";
-  bank_account: BankAccount;
-};
+  id: number,
+  guide_code: string,
+  client: Client,
+  route: Route,
+  aircraft: Aircraft,
+  date: string,
+  details: string,
+  fee: string,
+  total_amount: string,
+  type: "CARGA" | "PAX" | "CHART",
+  payed_amount: string,
+  debt_status: "PENDIENTE" | "PAGADO",
+  bank_account: BankAccount,
+}
 
 export type AdministrationFlight = {
   id: string;
@@ -643,16 +643,14 @@ export type AdministrationRequisition = {
 };
 
 export type Role = {
-  id: number;
-  name: string;
-  companyId: number;
-  permissions: Permission[];
+  id: number,
+  name: string,
+  label: string,
   company: {
-    id: number;
-    name: string;
-    description: string;
-  }[];
-};
+    name: string,
+    description: string,
+  }[]
+}
 
 export type Route = {
   id: number;

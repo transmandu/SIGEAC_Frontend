@@ -1,31 +1,20 @@
 "use client";
 
 import { ContentLayout } from "@/components/layout/ContentLayout";
-import { useAuth } from "@/contexts/AuthContext";
+import { useGetJobTitles } from "@/hooks/sistema/cargo/useGetJobTitles";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { Loader2 } from "lucide-react";
-import { useEffect } from "react";
 import { columns } from "./columns";
 import { DataTable } from "./data-table";
-import { useGetEmployeesByCompany } from "@/hooks/administracion/useGetEmployees";
 
 const JobTitlePage = () => {
 
   const { selectedCompany } = useCompanyStore();
   const {
-    // mutate,
-    data: employees,
-    isPending: loading,
+    data: jobTitles,
+    isLoading: loading,
     isError: error,
-  } = useGetEmployeesByCompany(selectedCompany?.split(" ").join(""));
-
-  // const { selectedCompany } = useCompanyStore();
-
-  // useEffect(() => {
-  //   if (selectedCompany) {
-  //       mutate(selectedCompany.split(" ").join(""));
-  //   }
-  // }, [selectedCompany, mutate]);
+  } = useGetJobTitles(selectedCompany?.split(" ").join(""));
 
   return (
     <ContentLayout title="Cargos">
@@ -45,7 +34,7 @@ const JobTitlePage = () => {
           </p>
         </div>
       )}
-      {/* {employees && <DataTable columns={columns} data={employees} />} */}
+       {jobTitles && <DataTable columns={columns} data={jobTitles} />}
     </ContentLayout>
   );
 };

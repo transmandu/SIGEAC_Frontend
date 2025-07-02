@@ -29,7 +29,7 @@ export function CreateEmployeeDialog() {
             Completa la información para registrar un nuevo empleado.
           </DialogDescription>
         </DialogHeader>
-        <CreateEmployeeForm  /> {/* Nota: El bug persiste, no se guarada el empleado. Att: obarriga */}
+        <CreateEmployeeForm  />
       </DialogContent>
     </Dialog>
   );

@@ -43,7 +43,6 @@ const formSchema = z.object({
     message: "Debe especificar un nombre para el rol.",
   }),
   company: z.string(),
-  permissions: z.array(z.number()).optional(),
 })
 
 interface FormProps {
@@ -60,8 +59,6 @@ export default function CreateRoleForm({ onClose }: FormProps) {
 
   const { data: companies, isLoading, isError: isCompaniesError } = useGetCompanies();
 
-  const { data: permissions, isLoading: isPermissionLoading, isError: isPermissionError } = useGetPermissions();
-
   const { mutate: fetchModules, data: modules, isPending } = useGetModulesByCompanyId();
 
   useEffect(() => {
@@ -75,7 +72,7 @@ export default function CreateRoleForm({ onClose }: FormProps) {
     defaultValues: {
       name: "",
       company: "",
-      permissions: [],
+
     },
   })
 
@@ -86,7 +83,6 @@ export default function CreateRoleForm({ onClose }: FormProps) {
     const data = {
       name: values.name,
       company: parseInt(values.company),
-      permissions: values.permissions,
       label: values.label,
     }
     createRole.mutate(data);
@@ -135,7 +131,7 @@ export default function CreateRoleForm({ onClose }: FormProps) {
                 <Input placeholder="EJ: Jef. de X" {...field} />
               </FormControl>
               <FormDescription>
-                Este será el nombre del rol.
+                Este será la etiqueta del rol.
               </FormDescription>
               <FormMessage />
             </FormItem>
@@ -175,71 +171,6 @@ export default function CreateRoleForm({ onClose }: FormProps) {
               </Select>
               <FormDescription>
                 Especifíque la compañía a la que pertenecerá el permiso.
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={control}
-          name="permissions"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Permisos</FormLabel>
-              <FormControl>
-                {
-                  selectedCompany ? (
-                    <>
-                      <Tabs onValueChange={handleModuleChange}>
-                        <TabsList className="grid w-full grid-cols-1 md:grid-cols-2">
-                          {isPending && <Loader className="size-4 animate-spin" />}
-                          {modules?.map((m) => (
-                            <TabsTrigger value={m.name} key={m.id}>{m.name}</TabsTrigger>
-                          ))}
-                        </TabsList>
-                        {selectedModule && (
-                          <TabsContent value={selectedModule.name}>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3">
-                              {
-                                isPermissionLoading && <Loader2 className="size-4 animate-spin" />
-                              }
-                              {permissions?.filter(permission =>
-                                permission.modules.some(mod => mod.id === selectedModule.id)
-                              ).map(permission => (
-                                <div key={permission.id} className="flex items-center space-x-2">
-                                  <Checkbox
-                                    id={permission.name}
-                                    value={permission.id}
-                                    onCheckedChange={(checked) => {
-                                      return checked
-                                        ? field.onChange([...field.value!, permission.id])
-                                        : field.onChange(
-                                          field.value?.filter(
-                                            (value) => value !== permission.id
-                                          )
-                                        )
-                                    }}
-                                  />
-                                  <label className='text-sm text-center' htmlFor={permission.name}>{permission.label}</label>
-                                </div>
-                              ))}
-                              {
-                                isPermissionError && <p className="text-sm text-muted-foreground text-center">Ha ocurrido un error al cargar los permisos...</p>
-                              }
-                            </div>
-                          </TabsContent>
-                        )}
-                      </Tabs>
-                    </>
-                  ) : (
-                    <p className="text-xs text-muted-foreground">Esperando eleccion...</p>
-                  )
-                }
-              </FormControl>
-              <FormDescription>
-                {
-                  selectedCompany && <p>Estos serán los permisos asignados al rol.</p>
-                }
               </FormDescription>
               <FormMessage />
             </FormItem>

@@ -7,6 +7,7 @@ import {
   Award,
   BookCheck,
   BookUser,
+  Cat,
   ClipboardCopy,
   ClipboardList,
   ClipboardPen,
@@ -29,8 +30,7 @@ import {
   SquarePen,
   User2,
   UserRoundCog,
-  Wrench,
-  Cat,
+  Wrench
 } from "lucide-react";
 
 type Submenu = {
@@ -1068,6 +1068,64 @@ export function getMenuList(
               icon: UserRoundCog,
               roles: [],
               submenus: [],
+            },
+          ],
+        },
+        {
+          groupLabel: "Sistema",
+          menus: [
+            {
+              href: "/sistema/usuarios_permisos",
+              label: "Usuarios Y Permisos",
+              active: pathname.includes("/sistema/usuarios_permisos"),
+              icon: User2,
+              roles: ["ADMIN", "SUPERUSER"],
+              submenus: [
+                {
+                  href: "/sistema/usuarios_permisos/usuarios",
+                  label: "Administrar Usuarios",
+                  active: pathname === "/sistema/usuarios_permisos/usuarios",
+                },
+                {
+                  href: "/sistema/usuarios_permisos/roles",
+                  label: "Administrar Roles",
+                  active: pathname === "/sistema/usuarios_permisos/roles",
+                },
+                {
+                  href: "/sistema/usuarios_permisos/permisos",
+                  label: "Administrar Permisos",
+                  active: pathname === "/sistema/usuarios_permisos/permisos",
+                },
+              ],
+            },
+            {
+              href: "/sistema/empresas/empleados",
+              label: "Empleados",
+              active: pathname.includes("/sistema/empresas/empleados"),
+              icon: User2,
+              roles: ["ADMIN", "SUPERUSER"],
+              submenus: [
+                {
+                  href: "/sistema/empresas/empleados",
+                  label: "Administrar Empleados",
+                  active: pathname === "/sistema/empresas/empleados",
+                },
+                {
+                  href: "/sistema/empresas/cargos",
+                  label: "Administrar Cargos",
+                  active: pathname === "/sistema/empresas/cargos",
+                },
+                {
+                  href: "/sistema/empresas/departamentos",
+                  label: "Administrar Departamentos",
+                  active: pathname === "/sistema/empresas/departamentos",
+                },
+              {
+                  href: "/sistema/empresas/departamentos",
+                  label: "Administrar Almacenes",
+                  active: pathname === "/sistema/empresas/almacenes",
+                },
+              ],
             },
           ],
         },
