@@ -411,10 +411,10 @@ export type Flight = {
   aircraft: Aircraft,
   date: string,
   details: string,
-  fee: number,
-  total_amount: number,
+  fee: string,
+  total_amount: string,
   type: "CARGA" | "PAX" | "CHART",
-  payed_amount: number,
+  payed_amount: string,
   debt_status: "PENDIENTE" | "PAGADO",
   bank_account: BankAccount,
 }

@@ -97,7 +97,7 @@ const FlightResumeDialog = ({ flight }: { flight: Flight }) => {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-sm">Costo Total:</span>
-                  <span className="font-bold">{Number(flight.total_amount).toFixed(2)}</span>
+                  <span className="font-bold">{parseFloat(flight.total_amount).toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-sm">Pagado:</span>
@@ -109,7 +109,7 @@ const FlightResumeDialog = ({ flight }: { flight: Flight }) => {
                         : "text-yellow-600"
                     )}
                   >
-                    {flight.payed_amount.toFixed(2)}
+                    {parseFloat(flight.payed_amount).toFixed(2)}
                   </span>
                 </div>
                 <Separator />
