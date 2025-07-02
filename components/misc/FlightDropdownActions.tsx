@@ -165,11 +165,11 @@ const FlightDropdownActions = ({ flight }: { flight: AdministrationFlight }) => 
                 <div className="space-y-3">
                   <div className="flex justify-between">
                     <span className="text-sm">Tarifa:</span>
-                    <span className="font-medium">{flight.fee}</span>
+                    <span className="font-medium">{Number(flight.fee).toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm">Costo Total:</span>
-                    <span className="font-bold">{flight.total_amount}</span>
+                    <span className="font-bold">{Number(flight.total_amount).toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm">Pagado:</span>
@@ -181,7 +181,7 @@ const FlightDropdownActions = ({ flight }: { flight: AdministrationFlight }) => 
                           : "text-yellow-600"
                       )}
                     >
-                      {flight.payed_amount}
+                      {Number(flight.payed_amount).toFixed(2)}
                     </span>
                   </div>
                   <Separator />
