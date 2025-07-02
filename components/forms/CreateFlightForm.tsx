@@ -155,7 +155,7 @@ export function FlightForm({ onClose }: FormProps) {
         newAmount = kgValue * final_fee;
       }
 
-      form.setValue("total_amount", newAmount.toString());
+      form.setValue("total_amount", newAmount.toFixed(2).toString());
     }
   }, [kg, fee, type, form]);
 

@@ -61,15 +61,7 @@ const formSchema = z.object({
     .max(100, {
       message: "El detalle tiene un máximo 100 caracteres.",
     }),
-  total_amount: z.string().refine(
-    (val) => {
-      const number = parseFloat(val);
-      return !isNaN(number) && number > 0;
-    },
-    {
-      message: "El monto debe ser mayor a cero, con maximo dos decimales.",
-    }
-  ),
+  total_amount: z.string(),
   bank_account_id: z
     .union([
       z.string().min(1, { message: "Debe seleccionar una cuenta válida" }),
@@ -120,7 +112,6 @@ export function CreateCashMovementForm({ onClose }: FormProps) {
         }
       }
     });
-
     return () => subscription.unsubscribe();
   }, [form, cashes]);
 
