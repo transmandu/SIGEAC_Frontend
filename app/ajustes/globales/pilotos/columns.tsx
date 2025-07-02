@@ -40,7 +40,7 @@ export const columns: ColumnDef<Pilot>[] = [
     meta: { title: "Cedula" },
     cell: ({ row }) => (
       <div className="flex justify-center">
-        <span className="font-bold text-center">{row.original.dni}</span>
+        <span className="font-bold text-center">{row.original.employee_dni}</span>
       </div>
     ),
   },
@@ -52,7 +52,7 @@ export const columns: ColumnDef<Pilot>[] = [
     meta: { title: "Nombre" },
     cell: ({ row }) => (
       <div className="flex justify-center">
-        <span className="font-bold text-center">{row.original.first_name}</span>
+        <span className="font-bold text-center">{row.original.employee.first_name}</span>
       </div>
     ),
   },
@@ -65,7 +65,7 @@ export const columns: ColumnDef<Pilot>[] = [
     cell: ({ row }) => (
       <div className="flex justify-center">
         <span className="font-bold text-center">
-          {row.original.last_name}
+          {row.original.employee.last_name}
         </span>
       </div>
     ),
@@ -94,7 +94,7 @@ export const columns: ColumnDef<Pilot>[] = [
     cell: ({ row }) => (
       <div className="flex justify-center">
         <span className="text-muted-foreground italic">
-          {row.original.phone}
+          {/* {row.original.phone} */}
         </span>
       </div>
     ),
@@ -108,7 +108,7 @@ export const columns: ColumnDef<Pilot>[] = [
     cell: ({ row }) => (
       <div className="flex justify-center">
         <span className="text-muted-foreground italic">
-          {row.original.email}
+          {/* {row.original.email} */}
         </span>
       </div>
     ),

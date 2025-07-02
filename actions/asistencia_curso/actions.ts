@@ -34,6 +34,7 @@ export const useCreateCourseAttendance = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["department-courses"] });
+      queryClient.invalidateQueries({ queryKey: ["employees-by-department"] });
       toast.success("Modificado!", {
         description: `La lista de personas ha sido modificada`,
       });
@@ -64,6 +65,7 @@ export const useDeleteCourse = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["department-courses"] });
+      queryClient.invalidateQueries({ queryKey: ["enrollment-status"] });
       toast.success("¡Eliminado!", {
         description: `¡El curso ha sido eliminado correctamente!`,
       });

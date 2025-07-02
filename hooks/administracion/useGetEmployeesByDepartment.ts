@@ -11,7 +11,7 @@ const fetchEmployesByDepartment = async (acronym: string) => {
 
 export const useGetEmployesByDepartment = (acronym: string) => {
   return useQuery<Employee[]>({
-    queryKey: ["employees-by-department", acronym], // Incluye el ID en la clave de la query
+    queryKey: ["employees-by-department"], // Incluye el ID en la clave de la query
     queryFn: () => fetchEmployesByDepartment(acronym), // Pasa el ID a la función fetchUser
     staleTime: 1000 * 60 * 5, // 5 minutos
   });

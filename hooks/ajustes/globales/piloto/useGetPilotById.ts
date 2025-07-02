@@ -1,5 +1,5 @@
 import axiosInstance from "@/lib/axios";
-import { Pilot, User, VoluntaryReport } from "@/types";
+import { Pilot } from "@/types";
 import { useQuery } from "@tanstack/react-query";
 
 const fetcPilotByDni = async (dni: string) => {

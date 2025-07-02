@@ -62,7 +62,7 @@ const PilotDropdownActions = ({ pilot }: { pilot: Pilot }) => {
 
           <DropdownMenuItem
             onClick={() => {
-              router.push(`/ajustes/globales/pilotos/${pilot.dni}`);
+              router.push(`/ajustes/globales/pilotos/${pilot.employee_dni}`);
             }}
           >
             <EyeIcon className="size-5" />

@@ -32,6 +32,8 @@ export const useCreateCourse = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["department-courses"] });
+      queryClient.invalidateQueries({ queryKey: ["enrollment-status"] });
+
       toast.success("¡Creado!", {
         description: ` El Curso ha sido creado correctamente.`,
       });

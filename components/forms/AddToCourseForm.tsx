@@ -1,6 +1,5 @@
 "use client";
 
-import { useCreateSMSActivityAttendance } from "@/actions/sms/sms_asistencia_actividades/actions";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -16,7 +15,7 @@ import { useCompanyStore } from "@/stores/CompanyStore";
 import { Course } from "@/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Check, ChevronsUpDown } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import {
@@ -45,7 +44,6 @@ interface EmployeeSelection {
   wasEnrolled: boolean;
 }
 
-// Esquema del formulario modificado
 const FormSchema = z.object({
   addedEmployees: z.array(
     z.object({
@@ -88,7 +86,33 @@ export function AddToCourseForm({ onClose, initialData }: FormProps) {
     },
   });
 
-  // Inicializar la lista de empleados
+  // Ahora 'form' completo es la dependencia de useCallback
+  const updateFormValues = useCallback(
+    (selections: EmployeeSelection[]) => {
+      const added = selections.filter((e) => e.isSelected && !e.wasEnrolled);
+      const removed = selections.filter((e) => !e.isSelected && e.wasEnrolled);
+
+      form.setValue(
+        "addedEmployees",
+        added.map((e) => ({
+          dni: e.dni,
+          first_name: e.first_name,
+          last_name: e.last_name,
+        }))
+      );
+
+      form.setValue(
+        "removedEmployees",
+        removed.map((e) => ({
+          dni: e.dni,
+          first_name: e.first_name,
+          last_name: e.last_name,
+        }))
+      );
+    },
+    [form] // La dependencia ahora es el objeto 'form'
+  );
+
   useEffect(() => {
     if (employeesData) {
       const selections: EmployeeSelection[] = [
@@ -115,7 +139,7 @@ export function AddToCourseForm({ onClose, initialData }: FormProps) {
       setEmployeeSelections(selections);
       updateFormValues(selections);
     }
-  }, [employeesData]);
+  }, [employeesData, updateFormValues]);
 
   const toggleEmployeeSelection = (dni: string) => {
     const newSelections = employeeSelections.map((emp) =>
@@ -126,32 +150,7 @@ export function AddToCourseForm({ onClose, initialData }: FormProps) {
     updateFormValues(newSelections);
   };
 
-  const updateFormValues = (selections: EmployeeSelection[]) => {
-    const added = selections.filter((e) => e.isSelected && !e.wasEnrolled);
-    const removed = selections.filter((e) => !e.isSelected && e.wasEnrolled);
-
-    form.setValue(
-      "addedEmployees",
-      added.map((e) => ({
-        dni: e.dni,
-        first_name: e.first_name,
-        last_name: e.last_name,
-      }))
-    );
-
-    form.setValue(
-      "removedEmployees",
-      removed.map((e) => ({
-        dni: e.dni,
-        first_name: e.first_name,
-        last_name: e.last_name,
-      }))
-    );
-  };
-
   const onSubmit = async (data: FormSchemaType) => {
-    console.log("Empleados agregados:", data.addedEmployees);
-    console.log("Empleados eliminados:", data.removedEmployees);
     const value = {
       company: selectedCompany,
       course_id: initialData?.id.toString(),
@@ -181,7 +180,7 @@ export function AddToCourseForm({ onClose, initialData }: FormProps) {
 
         <FormField
           control={form.control}
-          name="addedEmployees" // Solo necesitamos un campo para renderizar
+          name="addedEmployees"
           render={() => (
             <FormItem>
               <FormLabel>Participantes:</FormLabel>

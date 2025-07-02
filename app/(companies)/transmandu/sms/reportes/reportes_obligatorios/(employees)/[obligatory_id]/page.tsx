@@ -316,7 +316,7 @@ const ShowObligatoryReport = () => {
                   <div className="space-y-2">
                     <p className="text-lg text-gray-700 dark:text-gray-300">
                       <span className="font-semibold">DNI: </span>
-                      {obligatoryReport.pilot.dni}
+                      {obligatoryReport.pilot.employee_dni}
                     </p>
                     <p className="text-lg text-gray-700 dark:text-gray-300">
                       <span className="font-semibold">Licencia: </span>
@@ -324,15 +324,16 @@ const ShowObligatoryReport = () => {
                     </p>
                     <p className="text-lg text-gray-700 dark:text-gray-300">
                       <span className="font-semibold">Nombre: </span>
-                      {obligatoryReport.pilot.first_name} {obligatoryReport.pilot.last_name}
+                      {obligatoryReport.pilot.employee.first_name} {obligatoryReport.pilot.employee.last_name}
                     </p>
                     <p className="text-lg text-gray-700 dark:text-gray-300">
                       <span className="font-semibold">Email: </span>
-                      {obligatoryReport.pilot.email}
+                      {/* {obligatoryReport.pilot.}  */}
+                      {/* necesito agregar email y phone */}
                     </p>
                     <p className="text-lg text-gray-700 dark:text-gray-300">
                       <span className="font-semibold">Teléfono: </span>
-                      {obligatoryReport.pilot.phone}
+                      {/* {obligatoryReport.pilot.phone} */}
                     </p>
                   </div>
                 </div>
@@ -347,7 +348,7 @@ const ShowObligatoryReport = () => {
                   <div className="space-y-2">
                     <p className="text-lg text-gray-700 dark:text-gray-300">
                       <span className="font-semibold">DNI: </span>
-                      {obligatoryReport.copilot.dni}
+                      {obligatoryReport.copilot.employee_dni}
                     </p>
                     <p className="text-lg text-gray-700 dark:text-gray-300">
                       <span className="font-semibold">Licencia: </span>
@@ -355,15 +356,15 @@ const ShowObligatoryReport = () => {
                     </p>
                     <p className="text-lg text-gray-700 dark:text-gray-300">
                       <span className="font-semibold">Nombre: </span>
-                      {obligatoryReport.copilot.first_name} {obligatoryReport.copilot.last_name}
+                      {obligatoryReport.copilot.employee.first_name} {obligatoryReport.copilot.employee.last_name}
                     </p>
                     <p className="text-lg text-gray-700 dark:text-gray-300">
                       <span className="font-semibold">Email: </span>
-                      {obligatoryReport.copilot.email}
+                      {/* {obligatoryReport.copilot.email} */}
                     </p>
                     <p className="text-lg text-gray-700 dark:text-gray-300">
                       <span className="font-semibold">Teléfono: </span>
-                      {obligatoryReport.copilot.phone}
+                      {/* {obligatoryReport.copilot.phone} */}
                     </p>
                   </div>
                 </div>

@@ -19,9 +19,9 @@ import { cn } from "@/lib/utils";
 import { SMSActivity } from "@/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Separator } from "@radix-ui/react-select";
-import { format, isValid, parse } from "date-fns";
+import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { CalendarIcon, ClockIcon, Loader2 } from "lucide-react";
+import { CalendarIcon, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -35,13 +35,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../ui/select";
-import { init } from "next/dist/compiled/webpack/webpack";
 
-function timeFormat(timeString: string) {
-  // Parseamos directamente el string sin convertirlo a Date primero
-  const parsedTime = parse(timeString, "HH:mm:ss", new Date());
-  return parsedTime;
-}
 
 const FormSchema = z
   .object({
@@ -81,9 +75,12 @@ export default function CreateSMSActivityForm({
   isEditing,
   initialData,
 }: FormProps) {
+
   const router = useRouter();
+
   const { data: employees, isLoading: isLoadingEmployees } =
     useGetEmployesByDepartment("DFS");
+  
   const { createSMSActivity } = useCreateSMSActivity();
   const { updateSMSActivity } = useUpdateSMSActivity();
 

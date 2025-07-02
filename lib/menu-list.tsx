@@ -393,12 +393,6 @@ export function getMenuList(
                 roles: ["SUPERUSER"],
                 submenus: [
                   {
-                    href: "/transmandu/sms/planificacion/cursos",
-                    label: "Cursos SMS",
-                    roles: ["SUPERUSER"],
-                    active: pathname === "/transmandu/planificacion/cursos",
-                  },
-                  {
                     href: "/transmandu/sms/planificacion/actividades",
                     label: "Actividades SMS",
                     roles: ["SUPERUSER"],

@@ -15,38 +15,21 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
-import {
-  useCreateVoluntaryReport,
-  useUpdateVoluntaryReport,
-} from "@/actions/sms/reporte_voluntario/actions";
+import { useCreateCourse } from "@/actions/cursos/actions";
 import { Calendar } from "@/components/ui/calendar";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
-import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
-import { Course, VoluntaryReport } from "@/types";
+import { useCompanyStore } from "@/stores/CompanyStore";
+import { Course } from "@/types";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { CalendarIcon, Loader2 } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
-import { Label } from "../ui/label";
-import Image from "next/image";
-import { useCreateCourse } from "@/actions/cursos/actions";
-import { useCompanyStore } from "@/stores/CompanyStore";
 
 interface FormProps {
   onClose: () => void;

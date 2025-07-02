@@ -15,7 +15,7 @@ import { z } from "zod";
 import { Separator } from "@/components/ui/separator";
 import { SMSActivity } from "@/types";
 import { Check, ChevronsUpDown } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react"; // Importa useCallback
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import {
   Command,
@@ -80,6 +80,33 @@ export function AddToSMSActivity({ onClose, initialData }: FormProps) {
     },
   });
 
+  // Envuelve updateFormValues en useCallback
+  const updateFormValues = useCallback(
+    (selections: EmployeeSelection[]) => {
+      const added = selections.filter((e) => e.isSelected && !e.wasEnrolled);
+      const removed = selections.filter((e) => !e.isSelected && e.wasEnrolled);
+
+      form.setValue(
+        "addedEmployees",
+        added.map((e) => ({
+          dni: e.dni,
+          first_name: e.first_name,
+          last_name: e.last_name,
+        }))
+      );
+
+      form.setValue(
+        "removedEmployees",
+        removed.map((e) => ({
+          dni: e.dni,
+          first_name: e.first_name,
+          last_name: e.last_name,
+        }))
+      );
+    },
+    [form] // La dependencia ahora es el objeto 'form'
+  );
+
   // Inicializar la lista de empleados
   useEffect(() => {
     if (employeesData) {
@@ -103,7 +130,7 @@ export function AddToSMSActivity({ onClose, initialData }: FormProps) {
       setEmployeeSelections(selections);
       updateFormValues(selections);
     }
-  }, [employeesData]);
+  }, [employeesData, updateFormValues]); // Agrega updateFormValues a las dependencias
 
   const toggleEmployeeSelection = (dni: string) => {
     const newSelections = employeeSelections.map((emp) =>
@@ -112,29 +139,6 @@ export function AddToSMSActivity({ onClose, initialData }: FormProps) {
 
     setEmployeeSelections(newSelections);
     updateFormValues(newSelections);
-  };
-
-  const updateFormValues = (selections: EmployeeSelection[]) => {
-    const added = selections.filter((e) => e.isSelected && !e.wasEnrolled);
-    const removed = selections.filter((e) => !e.isSelected && e.wasEnrolled);
-
-    form.setValue(
-      "addedEmployees",
-      added.map((e) => ({
-        dni: e.dni,
-        first_name: e.first_name,
-        last_name: e.last_name,
-      }))
-    );
-
-    form.setValue(
-      "removedEmployees",
-      removed.map((e) => ({
-        dni: e.dni,
-        first_name: e.first_name,
-        last_name: e.last_name,
-      }))
-    );
   };
 
   const onSubmit = async (data: FormSchemaType) => {
@@ -168,7 +172,7 @@ export function AddToSMSActivity({ onClose, initialData }: FormProps) {
 
         <FormField
           control={form.control}
-          name="addedEmployees" // Solo necesitamos un campo para renderizar
+          name="addedEmployees"
           render={() => (
             <FormItem>
               <FormLabel>Participantes:</FormLabel>

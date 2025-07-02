@@ -44,18 +44,20 @@ const ShowPilot = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div>
                   <p className="font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2">
-                    <User className="w-4 h-4" /> Nombre: {pilot.first_name}
+                    <User className="w-4 h-4" /> Nombre:{" "}
+                    {pilot.employee.first_name}
                   </p>
                 </div>
                 <div>
                   <p className="font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2">
-                    <User className="w-4 h-4" /> Apellido: {pilot.last_name}
+                    <User className="w-4 h-4" /> Apellido:{" "}
+                    {pilot.employee.last_name}
                   </p>
                 </div>
                 <div>
                   <p className="font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2">
                     <Fingerprint className="w-4 h-4" /> Número de Cédula:{" "}
-                    {pilot.dni}
+                    {pilot.employee_dni}
                   </p>
                 </div>
                 <div>
@@ -78,13 +80,13 @@ const ShowPilot = () => {
                   <p className="font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2">
                     <Phone className="w-4 h-4" /> Teléfono:
                   </p>
-                  <p>{pilot.phone}</p>
+                  {/* <p>{pilot.phone}</p> */}
                 </div>
                 <div>
                   <p className="font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2">
                     <Mail className="w-4 h-4" /> Correo Electrónico:
                   </p>
-                  <p>{pilot.email}</p>
+                  {/* <p>{pilot.email}</p> */}
                 </div>
               </div>
             </div>
