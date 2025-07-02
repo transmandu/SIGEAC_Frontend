@@ -41,6 +41,7 @@ const ObligatoryReportDropdownActions = ({
 }: {
   obligatoryReport: ObligatoryReport;
 }) => {
+  console.log(obligatoryReport);
   const [openDelete, setOpenDelete] = useState<boolean>(false);
   const [openCreateDangerIdentification, setOpenCreateDangerIdentification] =
     useState<boolean>(false);
@@ -111,8 +112,8 @@ const ObligatoryReportDropdownActions = ({
               <p className="pl-2"> Ver </p>
             </DropdownMenuItem>
 
-            {obligatoryReport?.danger_identification?.id === null && 
-            obligatoryReport?.status === "ABIERTO" && (
+            {obligatoryReport?.danger_identification?.id === null &&
+              obligatoryReport?.status === "ABIERTO" && (
                 <DropdownMenuItem
                   onClick={() => setOpenCreateDangerIdentification(true)}
                 >
