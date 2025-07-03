@@ -269,7 +269,6 @@ export function CreateObligatoryReportForm({
       };
       await updateObligatoryReport.mutateAsync(value);
     } else {
-      console.log("THIS IS ROS", data);
       const value = {
         report_number: data.report_number,
         incident_location: data.incident_location,
@@ -378,15 +377,15 @@ export function CreateObligatoryReportForm({
             control={form.control}
             name="incident_date"
             render={({ field }) => (
-              <FormItem className="flex flex-col mt-2.5">
-                <FormLabel>Fecha del Incidente</FormLabel>
+              <FormItem className="flex flex-col mt-2.5 w-full">
+                <FormLabel>Fecha de Incidente</FormLabel>
                 <Popover>
                   <PopoverTrigger asChild>
                     <FormControl>
                       <Button
                         variant={"outline"}
                         className={cn(
-                          "w-[240px] pl-3 text-left font-normal",
+                          "w-full pl-3 text-left font-normal",
                           !field.value && "text-muted-foreground"
                         )}
                       >
@@ -395,7 +394,7 @@ export function CreateObligatoryReportForm({
                             locale: es,
                           })
                         ) : (
-                          <span>Seleccione una fecha...</span>
+                          <span>Seleccione una fecha</span>
                         )}
                         <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                       </Button>
@@ -406,11 +405,21 @@ export function CreateObligatoryReportForm({
                       mode="single"
                       selected={field.value}
                       onSelect={field.onChange}
-                      disabled={(date) =>
-                        date > new Date() || date < new Date("1900-01-01")
-                      }
+                      disabled={(date) => date > new Date()} // Solo deshabilitar fechas futuras
                       initialFocus
-                      locale={es}
+                      fromYear={1980} // Año mínimo que se mostrará
+                      toYear={new Date().getFullYear()} // Año máximo (actual)
+                      captionLayout="dropdown-buttons" // Selectores de año/mes
+                      components={{
+                        Dropdown: (props) => (
+                          <select
+                            {...props}
+                            className="bg-popover text-popover-foreground"
+                          >
+                            {props.children}
+                          </select>
+                        ),
+                      }}
                     />
                   </PopoverContent>
                 </Popover>
@@ -422,7 +431,7 @@ export function CreateObligatoryReportForm({
             control={form.control}
             name="report_date"
             render={({ field }) => (
-              <FormItem className="flex flex-col mt-2.5">
+              <FormItem className="flex flex-col mt-2.5 w-full">
                 <FormLabel>Fecha de Reporte</FormLabel>
                 <Popover>
                   <PopoverTrigger asChild>
@@ -430,7 +439,7 @@ export function CreateObligatoryReportForm({
                       <Button
                         variant={"outline"}
                         className={cn(
-                          "w-[240px] pl-3 text-left font-normal",
+                          "w-full pl-3 text-left font-normal",
                           !field.value && "text-muted-foreground"
                         )}
                       >
@@ -439,7 +448,7 @@ export function CreateObligatoryReportForm({
                             locale: es,
                           })
                         ) : (
-                          <span>Seleccione una fecha...</span>
+                          <span>Seleccione una fecha</span>
                         )}
                         <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                       </Button>
@@ -450,11 +459,21 @@ export function CreateObligatoryReportForm({
                       mode="single"
                       selected={field.value}
                       onSelect={field.onChange}
-                      disabled={(date) =>
-                        date > new Date() || date < new Date("1900-01-01")
-                      }
+                      disabled={(date) => date > new Date()} // Solo deshabilitar fechas futuras
                       initialFocus
-                      locale={es}
+                      fromYear={1980} // Año mínimo que se mostrará
+                      toYear={new Date().getFullYear()} // Año máximo (actual)
+                      captionLayout="dropdown-buttons" // Selectores de año/mes
+                      components={{
+                        Dropdown: (props) => (
+                          <select
+                            {...props}
+                            className="bg-popover text-popover-foreground"
+                          >
+                            {props.children}
+                          </select>
+                        ),
+                      }}
                     />
                   </PopoverContent>
                 </Popover>

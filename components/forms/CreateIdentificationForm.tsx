@@ -156,7 +156,8 @@ export default function CreateDangerIdentificationForm({
   reportType,
 }: FormProps) {
   const [consequences, setConsequences] = useState<string[]>([]);
-  const { data: informationSources, isLoading: isLoadingSources } = useGetInformationSources();
+  const { data: informationSources, isLoading: isLoadingSources } =
+    useGetInformationSources();
   const { createDangerIdentification } = useCreateDangerIdentification();
   const { updateDangerIdentification } = useUpdateDangerIdentification();
   const [defaultValuesLoaded, setDefaultValuesLoaded] = useState(false);
@@ -191,7 +192,6 @@ export default function CreateDangerIdentificationForm({
   });
 
   useEffect(() => {
-
     if (initialData?.possible_consequences) {
       const initialConsequences = initialData.possible_consequences
         .split(",")
@@ -212,7 +212,7 @@ export default function CreateDangerIdentificationForm({
       const response = await createDangerIdentification.mutateAsync({
         data,
         id,
-        reportType
+        reportType,
       });
       router.push(
         `/transmandu/sms/gestion_reportes/peligros_identificados/${response.danger_identification_id}`
@@ -250,7 +250,7 @@ export default function CreateDangerIdentificationForm({
             control={form.control}
             name="risk_management_start_date"
             render={({ field }) => (
-              <FormItem className="flex flex-col mt-2.5">
+              <FormItem className="flex flex-col mt-2.5 w-full">
                 <FormLabel>Fecha de Inicio de Gestion</FormLabel>
                 <Popover>
                   <PopoverTrigger asChild>
@@ -258,7 +258,7 @@ export default function CreateDangerIdentificationForm({
                       <Button
                         variant={"outline"}
                         className={cn(
-                          "w-[240px] pl-3 text-left font-normal",
+                          "w-full pl-3 text-left font-normal",
                           !field.value && "text-muted-foreground"
                         )}
                       >
@@ -267,7 +267,7 @@ export default function CreateDangerIdentificationForm({
                             locale: es,
                           })
                         ) : (
-                          <span>Seleccione una fecha...</span>
+                          <span>Seleccione una fecha</span>
                         )}
                         <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                       </Button>
@@ -278,11 +278,21 @@ export default function CreateDangerIdentificationForm({
                       mode="single"
                       selected={field.value}
                       onSelect={field.onChange}
-                      disabled={(date) =>
-                        date > new Date() || date < new Date("1900-01-01")
-                      }
+                      disabled={(date) => date > new Date()} // Solo deshabilitar fechas futuras
                       initialFocus
-                      locale={es}
+                      fromYear={1980} // Año mínimo que se mostrará
+                      toYear={new Date().getFullYear()} // Año máximo (actual)
+                      captionLayout="dropdown-buttons" // Selectores de año/mes
+                      components={{
+                        Dropdown: (props) => (
+                          <select
+                            {...props}
+                            className="bg-popover text-popover-foreground"
+                          >
+                            {props.children}
+                          </select>
+                        ),
+                      }}
                     />
                   </PopoverContent>
                 </Popover>
