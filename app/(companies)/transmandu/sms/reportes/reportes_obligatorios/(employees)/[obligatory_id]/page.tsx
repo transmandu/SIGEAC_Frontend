@@ -325,7 +325,7 @@ const ShowObligatoryReport = () => {
                       {obligatoryReport.pilot.employee?.last_name}
                     </p>
                     <p className="text-lg text-gray-700 dark:text-gray-300">
-                      <span className="font-semibold">Email: </span>
+                      <span className="font-semibold">Correo: </span>
                       {/* {obligatoryReport.pilot.}  */}
                       {/* necesito agregar email y phone */}
                     </p>
