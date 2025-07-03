@@ -4,9 +4,9 @@ import { toast } from "sonner"
 
 interface CreateClientSchema {
   name: string,
-  phone: string,
-  email: string,
-  address: string,
+  phone?: string,
+  email?: string,
+  address?: string,
   dni: string,
   dni_type: string,
 }

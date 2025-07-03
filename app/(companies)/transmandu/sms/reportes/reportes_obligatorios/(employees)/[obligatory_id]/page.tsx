@@ -313,7 +313,7 @@ const ShowObligatoryReport = () => {
                   <div className="space-y-2">
                     <p className="text-lg text-gray-700 dark:text-gray-300">
                       <span className="font-semibold">DNI: </span>
-                      {obligatoryReport.pilot.employee_dni}
+                      {obligatoryReport.pilot.employee?.dni}
                     </p>
                     <p className="text-lg text-gray-700 dark:text-gray-300">
                       <span className="font-semibold">Licencia: </span>
@@ -346,7 +346,7 @@ const ShowObligatoryReport = () => {
                   <div className="space-y-2">
                     <p className="text-lg text-gray-700 dark:text-gray-300">
                       <span className="font-semibold">DNI: </span>
-                      {obligatoryReport.copilot.employee.dni}
+                      {obligatoryReport.copilot.employee?.dni}
                     </p>
                     <p className="text-lg text-gray-700 dark:text-gray-300">
                       <span className="font-semibold">Licencia: </span>

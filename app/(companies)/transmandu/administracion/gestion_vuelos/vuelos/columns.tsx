@@ -20,51 +20,13 @@ export const columns: ColumnDef<AdministrationFlight>[] = [
     meta: { title: "# Guía" },
     cell: ({ row }) => (
       <div className="flex justify-center">
-        <span className="text-muted-foreground italic">
+        <span className="text-muted-foreground font-bold">
           {row.original.guide_code ? row.original.guide_code : "N/A"}
         </span>
       </div>
     ),
   },
-  {
-    accessorKey: "date",
-    header: ({ column }) => (
-      <DataTableColumnHeader filter column={column} title="Fecha" />
-    ),
-    meta: { title: "Fecha" },
-    cell: ({ row }) => {
-      return (
-        <p>
-          {format(addDays(row.original.date, 1), "PPP", {
-            locale: es,
-          })}
-        </p>
-      );
-    },
-  },
-  {
-    accessorKey: "client.name",
-    header: ({ column }) => (
-      <DataTableColumnHeader filter column={column} title="Cliente" />
-    ),
-    meta: { title: "Cliente" },
-    cell: ({ row }) => <ClientResumeDialog client={row.original.client} />,
-  },
-  {
-    accessorKey: "route",
-    header: ({ column }) => (
-      <DataTableColumnHeader filter column={column} title="Ruta" />
-    ),
-    meta: { title: "Ruta" },
-    cell: ({ row }) => (
-      <div className="flex justify-center">
-        <span className="text-muted-foreground italic">
-          {row.original.flight.route.from} - {row.original.flight.route.to}
-        </span>
-      </div>
-    ),
-  },
-  {
+    {
     accessorKey: "aircraft.acronym",
     header: ({ column }) => (
       <DataTableColumnHeader filter column={column} title="Aeronave" />
@@ -77,9 +39,33 @@ export const columns: ColumnDef<AdministrationFlight>[] = [
     )
   },
   {
+    accessorKey: "date",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Fecha" />
+    ),
+    meta: { title: "Fecha" },
+    cell: ({ row }) => {
+      return (
+        <p className="text-center text-muted-foreground">
+          {format(addDays(row.original.date, 1), "PPP", {
+            locale: es,
+          })}
+        </p>
+      );
+    },
+  },
+  {
+    accessorKey: "client.name",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Cliente" />
+    ),
+    meta: { title: "Cliente" },
+    cell: ({ row }) => <ClientResumeDialog client={row.original.client} />,
+  },
+  {
     accessorKey: "type",
     header: ({ column }) => (
-      <DataTableColumnHeader filter column={column} title="Tipo" />
+      <DataTableColumnHeader column={column} title="Tipo" />
     ),
     meta: { title: "Tipo" },
     cell: ({ row }) => (
@@ -90,22 +76,10 @@ export const columns: ColumnDef<AdministrationFlight>[] = [
       </div>
     ),
   },
-//  {
-//    accessorKey: "fee",
-//    header: ({ column }) => (
-//      <DataTableColumnHeader filter column={column} title="Tarifa" />
-//    ),
-//    meta: { title: "Tarifa" },
-//    cell: ({ row }) => (
-//      <div className="flex justify-center">
-//        <span className="text-muted-foreground italic">{formatCurrency(row.original.fee)}</span>
-//      </div>
-//    ),
-//  },
   {
     accessorKey: "total_amount",
     header: ({ column }) => (
-      <DataTableColumnHeader filter column={column} title="Costo" />
+      <DataTableColumnHeader column={column} title="Costo" />
     ),
     meta: { title: "Costo" },
     cell: ({ row }) => {
@@ -131,13 +105,13 @@ export const columns: ColumnDef<AdministrationFlight>[] = [
   {
     accessorKey: "details",
     header: ({ column }) => (
-      <DataTableColumnHeader filter column={column} title="Detalles" />
+      <DataTableColumnHeader column={column} title="Detalles" />
     ),
     meta: { title: "Detalles" },
     cell: ({ row }) => (
       <div className="flex justify-center font-bold text-center">
         {row.original.details}
-      </div> 
+      </div>
     ),
   },
   {

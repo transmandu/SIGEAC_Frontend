@@ -134,7 +134,7 @@ export type CashMovement = {
   type: "INCOME" | "OUTPUT";
   details: string;
   reference_cod: string;
-  total_amount: number;
+  total_amount: string;
   bank_account: BankAccount;
   vendor: AdministrationVendor;
   client: Client;
@@ -148,7 +148,7 @@ export type CashMovementDetails = {
   accountant: Accountant;
   category: Category;
   details: string;
-  amount: number;
+  amount: string;
 };
 
 export type Category = {

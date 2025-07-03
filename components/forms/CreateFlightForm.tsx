@@ -55,14 +55,6 @@ const formSchema = z
       .max(10, {
         message: "El número de guía tiene un máximo de 10 caracteres.",
       }),
-    details: z
-      .string()
-      .min(3, {
-        message: "Los detalles deben tener al menos 3 caracteres.",
-      })
-      .max(100, {
-        message: "Los detalles tiene un máximo de 100 caracteres.",
-      }),
     fee: z
       .string()
       .min(1, "La tarifa es requerida")
@@ -163,16 +155,15 @@ export function FlightForm({ onClose }: FormProps) {
         newAmount = kgValue * final_fee;
       }
 
-      form.setValue("total_amount", newAmount.toString());
+      form.setValue("total_amount", newAmount.toFixed(2).toString());
     }
   }, [kg, fee, type, form]);
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     const formattedValues = {
       ...values,
-      fee: values.type === "CHART" ? 0 : Number(values.fee),
-      total_amount: Number(values.total_amount),
-      payed_amount: Number(values.payed_amount),
+      fee: values.type === "CHART" ? "0": values.fee,
+      details: values.type === "CARGA" ? `${kg} KG` : values.type === "PAX" ? `${kg} Pasajeros` : "Vuelo Charter",
     };
     createFlight.mutate(formattedValues, {
       onSuccess: () => {
@@ -571,7 +562,7 @@ export function FlightForm({ onClose }: FormProps) {
             )}
           />
 
-{form.watch("pay_method") !== "EFECTIVO" && (
+{form.watch("pay_method") && form.watch("pay_method") !== "EFECTIVO" && (
             <FormField
             control={form.control}
             name="bank_account_id"
@@ -674,19 +665,6 @@ export function FlightForm({ onClose }: FormProps) {
             )
         }
         </div>
-        <FormField
-          control={form.control}
-          name="details"
-          render={({ field }) => (
-            <FormItem className="w-full">
-              <FormLabel>Detalle</FormLabel>
-              <FormControl>
-                <Input placeholder="Cantidad de personas o Kg" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
         <Button type="submit" disabled={createFlight.isPending}>
           {createFlight.isPending ? "Enviando..." : "Enviar"}
         </Button>
