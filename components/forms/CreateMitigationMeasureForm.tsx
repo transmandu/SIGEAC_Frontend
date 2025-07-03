@@ -35,42 +35,43 @@ import {
 } from "@/actions/sms/medida_de_mitigacion/actions";
 import { MitigationMeasure } from "@/types";
 
-const FormSchema = z.object({
-  description: z.string().min(5),
+const FormSchema = z
+  .object({
+    description: z.string().min(5),
 
-  implementation_supervisor: z
-    .string()
-    .nonempty({ message: "El supervisor es requerido" })
-    .min(3, { message: "El supervisor debe tener al menos 3 caracteres" })
-    .max(19, { message: "El supervisor no puede exceder los 19 caracteres" }),
+    implementation_supervisor: z
+      .string()
+      .nonempty({ message: "El supervisor es requerido" })
+      .min(3, { message: "El supervisor debe tener al menos 3 caracteres" })
+      .max(19, { message: "El supervisor no puede exceder los 19 caracteres" }),
 
-  implementation_responsible: z
-    .string()
-    .nonempty({ message: "El responsable es requerido" })
-    .min(3, { message: "El responsable debe tener al menos 3 caracteres" })
-    .max(23, { message: "El responsable no puede exceder los 23 caracteres" }),
-  
-  estimated_date: z
-    .date()
-    .refine((val) => !isNaN(val.getTime()), { message: "Fecha inválida" }),
-  
-  execution_date: z
-    .date()
-    .refine((val) => !isNaN(val.getTime()), { message: "Fecha inválida" })
-    .nullable()
-})
-.superRefine((data, ctx) => {
-  if (
-    data.execution_date &&
-    data.execution_date >= data.estimated_date
-  ) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      message: "La fecha de ejecución debe ser mayor o igual a la fecha estimada.",
-      path: ["execution_date"],
-    });
-  }
-});
+    implementation_responsible: z
+      .string()
+      .nonempty({ message: "El responsable es requerido" })
+      .min(3, { message: "El responsable debe tener al menos 3 caracteres" })
+      .max(23, {
+        message: "El responsable no puede exceder los 23 caracteres",
+      }),
+
+    estimated_date: z
+      .date()
+      .refine((val) => !isNaN(val.getTime()), { message: "Fecha inválida" }),
+
+    execution_date: z
+      .date()
+      .refine((val) => !isNaN(val.getTime()), { message: "Fecha inválida" })
+      .nullable(),
+  })
+  .superRefine((data, ctx) => {
+    if (data.execution_date && data.execution_date >= data.estimated_date) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          "La fecha de ejecución debe ser mayor o igual a la fecha estimada.",
+        path: ["execution_date"],
+      });
+    }
+  });
 
 type FormSchemaType = z.infer<typeof FormSchema>;
 
@@ -267,13 +268,13 @@ export default function CreateMitigationMeasureForm({
                   <PopoverContent className="w-auto p-0" align="start">
                     <Calendar
                       mode="single"
-                      selected={field.value}
+                      selected={field.value || undefined} // Convert null to undefined
                       onSelect={field.onChange}
-                      disabled={(date) => date > new Date()} // Solo deshabilitar fechas futuras
+                      disabled={(date) => date > new Date()}
                       initialFocus
-                      fromYear={1980} // Año mínimo que se mostrará
-                      toYear={new Date().getFullYear()} // Año máximo (actual)
-                      captionLayout="dropdown-buttons" // Selectores de año/mes
+                      fromYear={1980}
+                      toYear={new Date().getFullYear()}
+                      captionLayout="dropdown-buttons"
                       components={{
                         Dropdown: (props) => (
                           <select
