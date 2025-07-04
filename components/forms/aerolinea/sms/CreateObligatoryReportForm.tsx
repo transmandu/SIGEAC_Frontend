@@ -61,13 +61,6 @@ import {
 } from "../../../ui/select";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { useGetAircraftAcronyms } from "@/hooks/aerolinea/aeronaves/useGetAircraftAcronyms";
-
-function timeFormat(date: Date) {
-  const timeString = date.toString();
-  const parsedTime = parse(timeString, "HH:mm:ss", new Date());
-  return parsedTime;
-}
-
 interface FormProps {
   isEditing?: boolean;
   initialData?: ObligatoryReport;
@@ -86,7 +79,6 @@ export function CreateObligatoryReportForm({
   const shouldEnableField = userRoles.some((role) =>
     ["SUPERUSER", "ANALISTA_SMS", "JEFE_SMS"].includes(role)
   );
-
 
   const FormSchema = z
     .object({
@@ -118,16 +110,12 @@ export function CreateObligatoryReportForm({
       incident_date: z
         .date()
         .refine((val) => !isNaN(val.getTime()), { message: "Fecha inválida" }),
-      incident_time: z
-        .string()
-        .regex(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/, {
-          message: "Formato de hora inválido (HH:mm)",
-        }),
-      flight_time: z
-        .string()
-        .regex(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/, {
-          message: "Formato de hora inválido (HH:mm)",
-        }),
+      incident_time: z.string().regex(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/, {
+        message: "Formato de hora inválido (HH:mm)",
+      }),
+      flight_time: z.string().regex(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/, {
+        message: "Formato de hora inválido (HH:mm)",
+      }),
       pilot_id: z.string(),
       copilot_id: z.string(),
       aircraft_id: z.string(),
@@ -195,9 +183,10 @@ export function CreateObligatoryReportForm({
   });
 
   // No estoy seguro si esto va aca lol
-  const {selectedCompany} = useCompanyStore();
+  const { selectedCompany } = useCompanyStore();
   const { data: pilots, isLoading: isLoadingPilots } = useGetPilots();
-  const { data: aircrafts, isLoading: isLoadingAircrafts } = useGetAircraftAcronyms(selectedCompany?.split(" ").join(""));
+  const { data: aircrafts, isLoading: isLoadingAircrafts } =
+    useGetAircraftAcronyms(selectedCompany?.split(" ").join(""));
 
   const OPTIONS_LIST = [
     "La aereonave aterriza quedándose solo con el combustible de reserva o menos",
@@ -253,6 +242,7 @@ export function CreateObligatoryReportForm({
   });
 
   const onSubmit = async (data: FormSchemaType) => {
+    console.log(data);
     if (isEditing && initialData && data.report_number) {
       const value = {
         id: initialData.id,
@@ -279,7 +269,6 @@ export function CreateObligatoryReportForm({
       };
       await updateObligatoryReport.mutateAsync(value);
     } else {
-      console.log("THIS IS ROS", data);
       const value = {
         report_number: data.report_number,
         incident_location: data.incident_location,
@@ -388,15 +377,15 @@ export function CreateObligatoryReportForm({
             control={form.control}
             name="incident_date"
             render={({ field }) => (
-              <FormItem className="flex flex-col mt-2.5">
-                <FormLabel>Fecha del Incidente</FormLabel>
+              <FormItem className="flex flex-col mt-2.5 w-full">
+                <FormLabel>Fecha de Incidente</FormLabel>
                 <Popover>
                   <PopoverTrigger asChild>
                     <FormControl>
                       <Button
                         variant={"outline"}
                         className={cn(
-                          "w-[240px] pl-3 text-left font-normal",
+                          "w-full pl-3 text-left font-normal",
                           !field.value && "text-muted-foreground"
                         )}
                       >
@@ -405,7 +394,7 @@ export function CreateObligatoryReportForm({
                             locale: es,
                           })
                         ) : (
-                          <span>Seleccione una fecha...</span>
+                          <span>Seleccione una fecha</span>
                         )}
                         <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                       </Button>
@@ -416,11 +405,21 @@ export function CreateObligatoryReportForm({
                       mode="single"
                       selected={field.value}
                       onSelect={field.onChange}
-                      disabled={(date) =>
-                        date > new Date() || date < new Date("1900-01-01")
-                      }
+                      disabled={(date) => date > new Date()} // Solo deshabilitar fechas futuras
                       initialFocus
-                      locale={es}
+                      fromYear={1980} // Año mínimo que se mostrará
+                      toYear={new Date().getFullYear()} // Año máximo (actual)
+                      captionLayout="dropdown-buttons" // Selectores de año/mes
+                      components={{
+                        Dropdown: (props) => (
+                          <select
+                            {...props}
+                            className="bg-popover text-popover-foreground"
+                          >
+                            {props.children}
+                          </select>
+                        ),
+                      }}
                     />
                   </PopoverContent>
                 </Popover>
@@ -432,7 +431,7 @@ export function CreateObligatoryReportForm({
             control={form.control}
             name="report_date"
             render={({ field }) => (
-              <FormItem className="flex flex-col mt-2.5">
+              <FormItem className="flex flex-col mt-2.5 w-full">
                 <FormLabel>Fecha de Reporte</FormLabel>
                 <Popover>
                   <PopoverTrigger asChild>
@@ -440,7 +439,7 @@ export function CreateObligatoryReportForm({
                       <Button
                         variant={"outline"}
                         className={cn(
-                          "w-[240px] pl-3 text-left font-normal",
+                          "w-full pl-3 text-left font-normal",
                           !field.value && "text-muted-foreground"
                         )}
                       >
@@ -449,7 +448,7 @@ export function CreateObligatoryReportForm({
                             locale: es,
                           })
                         ) : (
-                          <span>Seleccione una fecha...</span>
+                          <span>Seleccione una fecha</span>
                         )}
                         <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                       </Button>
@@ -460,11 +459,21 @@ export function CreateObligatoryReportForm({
                       mode="single"
                       selected={field.value}
                       onSelect={field.onChange}
-                      disabled={(date) =>
-                        date > new Date() || date < new Date("1900-01-01")
-                      }
+                      disabled={(date) => date > new Date()} // Solo deshabilitar fechas futuras
                       initialFocus
-                      locale={es}
+                      fromYear={1980} // Año mínimo que se mostrará
+                      toYear={new Date().getFullYear()} // Año máximo (actual)
+                      captionLayout="dropdown-buttons" // Selectores de año/mes
+                      components={{
+                        Dropdown: (props) => (
+                          <select
+                            {...props}
+                            className="bg-popover text-popover-foreground"
+                          >
+                            {props.children}
+                          </select>
+                        ),
+                      }}
                     />
                   </PopoverContent>
                 </Popover>
@@ -500,7 +509,7 @@ export function CreateObligatoryReportForm({
                     <SelectContent>
                       {pilots?.map((pilot) => (
                         <SelectItem key={pilot.id} value={pilot.id.toString()}>
-                          {pilot.first_name} {pilot.last_name}
+                          {pilot.employee.first_name} {pilot.employee.last_name}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -536,7 +545,7 @@ export function CreateObligatoryReportForm({
                     <SelectContent>
                       {pilots?.map((pilot) => (
                         <SelectItem key={pilot.id} value={pilot.id.toString()}>
-                          {pilot.first_name} {pilot.last_name}
+                          {pilot.employee.first_name} {pilot.employee.last_name}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -560,7 +569,9 @@ export function CreateObligatoryReportForm({
                     {...field}
                     onChange={(e) => {
                       // Validamos que el formato sea correcto
-                      if (e.target.value.match(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/)) {
+                      if (
+                        e.target.value.match(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/)
+                      ) {
                         field.onChange(e.target.value);
                       }
                     }}
@@ -583,7 +594,9 @@ export function CreateObligatoryReportForm({
                     {...field}
                     onChange={(e) => {
                       // Validamos que el formato sea correcto
-                      if (e.target.value.match(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/)) {
+                      if (
+                        e.target.value.match(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/)
+                      ) {
                         field.onChange(e.target.value);
                       }
                     }}
@@ -595,40 +608,45 @@ export function CreateObligatoryReportForm({
           />
         </div>
         <FormField
-            control={form.control}
-            name="aircraft_id"
-            render={({ field }) => (
-              <FormItem className="w-full">
-                <FormLabel>Aeronave</FormLabel>
-                {isLoadingAircrafts ? (
-                  <div className="flex items-center gap-2 p-2 border rounded-md bg-muted">
-                    <Loader2 className="h-4 w-4 animate-spin" />{" "}
-                    <span className="text-sm">Cargando Aeronaves...</span>
-                  </div>
-                ) : (
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                    disabled={isLoadingAircrafts} // Deshabilitar durante carga
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Seleccionar Matricula de la Aeronave" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {aircrafts?.map((aircraft) => (
-                        <SelectItem key={aircraft.id} value={aircraft.id.toString()}>
-                          <p className="font-bold">Matricula : {aircraft.acronym} </p>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                )}
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          control={form.control}
+          name="aircraft_id"
+          render={({ field }) => (
+            <FormItem className="w-full">
+              <FormLabel>Aeronave</FormLabel>
+              {isLoadingAircrafts ? (
+                <div className="flex items-center gap-2 p-2 border rounded-md bg-muted">
+                  <Loader2 className="h-4 w-4 animate-spin" />{" "}
+                  <span className="text-sm">Cargando Aeronaves...</span>
+                </div>
+              ) : (
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                  disabled={isLoadingAircrafts} // Deshabilitar durante carga
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Seleccionar Matricula de la Aeronave" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {aircrafts?.map((aircraft) => (
+                      <SelectItem
+                        key={aircraft.id}
+                        value={aircraft.id.toString()}
+                      >
+                        <p className="font-bold">
+                          Matricula : {aircraft.acronym}{" "}
+                        </p>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
         <div className="flex gap-2 justify-center items-center">
           <FormField

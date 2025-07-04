@@ -41,7 +41,7 @@ const MovementDetailsDialog = ({ movement }: { movement: CashMovement }) => {
                       : "bg-red-500 hover:bg-red-600"
                   )}
                 >
-                  Monto: ${detail.amount}
+                  Monto: ${Number(detail.amount).toFixed(2)}
                 </Badge>
               </CardContent>
             </Card>

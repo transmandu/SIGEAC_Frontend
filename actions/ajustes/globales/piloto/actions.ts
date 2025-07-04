@@ -1,21 +1,19 @@
 import axiosInstance from "@/lib/axios";
 import {
-  ComponentArticle,
-  ConsumableArticle,
-  DispatchRequest,
-  Pilot,
-  Request,
+  Pilot
 } from "@/types";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 interface PilotData {
-  dni: string;
+  employee_dni: string;
   license_number: string;
-  first_name: string;
-  last_name: string;
-  phone: string;
-  email: string;
+}
+
+interface updatePilotData {
+  id: string;
+  employee_dni: string;
+  license_number: string;
 }
 
 export const useCreatePilot = () => {
@@ -78,7 +76,7 @@ export const useUpdatePilot = () => {
 
   const updatePilotMutation = useMutation({
       mutationKey: ["pilots"],
-      mutationFn: async (data: Pilot) => {
+      mutationFn: async (data: updatePilotData) => {
           await axiosInstance.put(`/transmandu/pilots/${data.id}`, data)
         },
       onSuccess: () => {

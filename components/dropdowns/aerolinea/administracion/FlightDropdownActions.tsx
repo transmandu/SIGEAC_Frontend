@@ -7,16 +7,20 @@ import { es } from "date-fns/locale";
 import { ArrowRightIcon, EyeIcon, FileTextIcon, Loader2, MapPinIcon, MoreHorizontal, PlaneIcon, PlaneLanding, Trash2, UserIcon, } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { Badge } from "../../../ui/badge";
-import { Button } from "../../../ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, } from "../../../ui/dialog";
-import { Separator } from "../../../ui/separator";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, } from "@/components/ui/dialog";
+import { Separator } from "@/components/ui/separator";
+import { useAuth } from "@/contexts/AuthContext";
 
 const FlightDropdownActions = ({ flight }: { flight: AdministrationFlight }) => {
+  const {user} = useAuth()
   const [openDelete, setOpenDelete] = useState<boolean>(false);
   const [openFlight, setOpenFlight] = useState<boolean>(false);
   const router = useRouter();
   const { deleteFlight } = useDeleteFlight();
+
+  const userRoles = user?.roles?.map(role => role.name) || [];
 
   const handleDelete = (id: number | string) => {
     deleteFlight.mutate(id, {
@@ -41,7 +45,7 @@ const FlightDropdownActions = ({ flight }: { flight: AdministrationFlight }) => 
           align="center"
           className="flex gap-2 justify-center"
         >
-          <DropdownMenuItem onClick={() => setOpenDelete(true)}>
+          <DropdownMenuItem className={userRoles.includes("SUPERUSER") ? "hidden" : ""} onClick={() => setOpenDelete(true)}>
             <Trash2 className="size-5 text-red-500" />
           </DropdownMenuItem>
           <DropdownMenuItem onClick={handleViewDetails}>
@@ -165,11 +169,11 @@ const FlightDropdownActions = ({ flight }: { flight: AdministrationFlight }) => 
                 <div className="space-y-3">
                   <div className="flex justify-between">
                     <span className="text-sm">Tarifa:</span>
-                    <span className="font-medium">{flight.fee}</span>
+                    <span className="font-medium">{Number(flight.fee).toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm">Costo Total:</span>
-                    <span className="font-bold">{flight.total_amount}</span>
+                    <span className="font-bold">{Number(flight.total_amount).toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm">Pagado:</span>
@@ -181,7 +185,7 @@ const FlightDropdownActions = ({ flight }: { flight: AdministrationFlight }) => 
                           : "text-yellow-600"
                       )}
                     >
-                      {flight.payed_amount}
+                      {Number(flight.payed_amount).toFixed(2)}
                     </span>
                   </div>
                   <Separator />

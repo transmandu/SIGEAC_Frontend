@@ -41,5 +41,7 @@ export const useCompanyStore = create<CompanyState & CompanyActions>((set) => ({
     },
     reset: () => {
         set(initialState);
+        localStorage.removeItem('selectedCompany');
+        localStorage.removeItem('selectedStation');
     }
 }))

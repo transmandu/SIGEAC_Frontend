@@ -33,18 +33,11 @@ import {
   User,
   Users,
   File,
-  Image as ImageIcon
+  Image as ImageIcon,
 } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import Image from "next/image";
-
-function hourFormat(date: Date) {
-  const timeString = date.toString();
-  const parsedTime = parse(timeString, "HH:mm:ss", new Date());
-  const incident_time = format(parsedTime, "HH:mm");
-  return incident_time;
-}
 
 const ShowObligatoryReport = () => {
   const { obligatory_id } = useParams<{ obligatory_id: string }>();
@@ -62,11 +55,9 @@ const ShowObligatoryReport = () => {
         {obligatoryReport &&
         obligatoryReport.status === "ABIERTO" &&
         obligatoryReport.danger_identification === null ? (
-            <div className="flex items-center py-4">
+          <div className="flex items-center py-4">
             <CreateDangerIdentificationDialog
-              title={
-                  "Crear Identificación de Peligro"
-              }
+              title={"Crear Identificación de Peligro"}
               id={obligatoryReport?.id}
               reportType="ROS"
             />
@@ -98,9 +89,7 @@ const ShowObligatoryReport = () => {
             <CreateObligatoryDialog
               initialData={obligatoryReport}
               isEditing={true}
-              title={
-                  "Editar"
-              }
+              title={"Editar"}
             />
           </div>
         )}
@@ -108,9 +97,7 @@ const ShowObligatoryReport = () => {
         {/* Botón para eliminar reporte */}
         {obligatoryReport && obligatoryReport.status === "ABIERTO" && (
           <div className="flex items-center py-4">
-            <DeleteVoluntaryReprotDialog
-              id={obligatoryReport.id}
-            />
+            <DeleteVoluntaryReprotDialog id={obligatoryReport.id} />
           </div>
         )}
 
@@ -118,9 +105,7 @@ const ShowObligatoryReport = () => {
         {obligatoryReport && (
           <div className="flex items-center py-4">
             <PreviewObligatoryReportPdfDialog
-              title={
-                  "Descargar PDF"
-              }
+              title={"Descargar PDF"}
               obligatoryReport={obligatoryReport}
             />
           </div>
@@ -169,8 +154,8 @@ const ShowObligatoryReport = () => {
                     obligatoryReport.status === "CERRADO"
                       ? "bg-green-400"
                       : obligatoryReport.status === "ABIERTO"
-                      ? "bg-red-400"
-                      : "bg-gray-500"
+                        ? "bg-red-400"
+                        : "bg-gray-500"
                   }`}
                 >
                   {obligatoryReport.status}
@@ -234,8 +219,13 @@ const ShowObligatoryReport = () => {
                       <ul className="space-y-1">
                         {incidentsArray.map(
                           (incident: string, index: number) => (
-                            <li key={index} className="text-gray-600 dark:text-gray-400 flex items-start gap-2">
-                              <span className="text-gray-500 dark:text-gray-400">•</span>
+                            <li
+                              key={index}
+                              className="text-gray-600 dark:text-gray-400 flex items-start gap-2"
+                            >
+                              <span className="text-gray-500 dark:text-gray-400">
+                                •
+                              </span>
                               <span>{incident}</span>
                             </li>
                           )
@@ -323,7 +313,7 @@ const ShowObligatoryReport = () => {
                   <div className="space-y-2">
                     <p className="text-lg text-gray-700 dark:text-gray-300">
                       <span className="font-semibold">DNI: </span>
-                      {obligatoryReport.pilot.dni}
+                      {obligatoryReport.pilot.employee?.dni}
                     </p>
                     <p className="text-lg text-gray-700 dark:text-gray-300">
                       <span className="font-semibold">Licencia: </span>
@@ -331,15 +321,17 @@ const ShowObligatoryReport = () => {
                     </p>
                     <p className="text-lg text-gray-700 dark:text-gray-300">
                       <span className="font-semibold">Nombre: </span>
-                      {obligatoryReport.pilot.first_name} {obligatoryReport.pilot.last_name}
+                      {obligatoryReport.pilot.employee?.first_name}{" "}
+                      {obligatoryReport.pilot.employee?.last_name}
                     </p>
                     <p className="text-lg text-gray-700 dark:text-gray-300">
-                      <span className="font-semibold">Email: </span>
-                      {obligatoryReport.pilot.email}
+                      <span className="font-semibold">Correo: </span>
+                      {/* {obligatoryReport.pilot.}  */}
+                      {/* necesito agregar email y phone */}
                     </p>
                     <p className="text-lg text-gray-700 dark:text-gray-300">
                       <span className="font-semibold">Teléfono: </span>
-                      {obligatoryReport.pilot.phone}
+                      {/* {obligatoryReport.pilot.phone} */}
                     </p>
                   </div>
                 </div>
@@ -354,7 +346,7 @@ const ShowObligatoryReport = () => {
                   <div className="space-y-2">
                     <p className="text-lg text-gray-700 dark:text-gray-300">
                       <span className="font-semibold">DNI: </span>
-                      {obligatoryReport.copilot.dni}
+                      {obligatoryReport.copilot.employee?.dni}
                     </p>
                     <p className="text-lg text-gray-700 dark:text-gray-300">
                       <span className="font-semibold">Licencia: </span>
@@ -362,15 +354,16 @@ const ShowObligatoryReport = () => {
                     </p>
                     <p className="text-lg text-gray-700 dark:text-gray-300">
                       <span className="font-semibold">Nombre: </span>
-                      {obligatoryReport.copilot.first_name} {obligatoryReport.copilot.last_name}
+                      {obligatoryReport.copilot.employee?.first_name}{" "}
+                      {obligatoryReport.copilot.employee?.last_name}
                     </p>
                     <p className="text-lg text-gray-700 dark:text-gray-300">
                       <span className="font-semibold">Email: </span>
-                      {obligatoryReport.copilot.email}
+                      {/* {obligatoryReport.copilot.email} */}
                     </p>
                     <p className="text-lg text-gray-700 dark:text-gray-300">
                       <span className="font-semibold">Teléfono: </span>
-                      {obligatoryReport.copilot.phone}
+                      {/* {obligatoryReport.copilot.phone} */}
                     </p>
                   </div>
                 </div>
@@ -455,7 +448,10 @@ const ShowObligatoryReport = () => {
               <Dialog>
                 <DialogTrigger asChild>
                   <div className="flex justify-center">
-                    <Button variant="outline" className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      className="flex items-center gap-2"
+                    >
                       <FileText className="w-4 h-4" />
                       Ver Documento Adjunto
                     </Button>

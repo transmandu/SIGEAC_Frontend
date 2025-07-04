@@ -26,18 +26,31 @@ import {
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 
-import { useCreateMitigationPlan, useUpdateMitigationPlan } from "@/actions/sms/planes_de_mitigation/actions";
+import {
+  useCreateMitigationPlan,
+  useUpdateMitigationPlan,
+} from "@/actions/sms/planes_de_mitigation/actions";
 import { MitigationPlan } from "@/types";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../../ui/select";
-import { Separator } from "../../../ui/separator";
-import { Textarea } from "../../../ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
+import { Textarea } from "@/components/ui/textarea";
 
 const FormSchema = z.object({
-  description: z.string()
+  description: z
+    .string()
     .min(5, { message: "La descripción debe tener al menos 5 caracteres" })
-    .max(200, { message: "La descripción no puede exceder los 200 caracteres" }),
+    .max(200, {
+      message: "La descripción no puede exceder los 200 caracteres",
+    }),
 
-  responsible: z.string()
+  responsible: z
+    .string()
     .min(3, { message: "El responsable debe tener al menos 3 caracteres" })
     .max(50, { message: "El responsable no puede exceder los 50 caracteres" }),
 
@@ -61,8 +74,6 @@ export default function CreateMitigationPlanForm({
   initialData,
   isEditing,
 }: FormProps) {
-
-
   const form = useForm<FormSchemaType>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
@@ -118,9 +129,7 @@ export default function CreateMitigationPlanForm({
           )}
         />
 
-
         <div className="flex gap-2 items-center justify-center">
-
           <FormField
             control={form.control}
             name="responsible"
@@ -140,7 +149,9 @@ export default function CreateMitigationPlanForm({
                     <SelectItem value="SMS">DIRECCIÓN DE SMS</SelectItem>
                     <SelectItem value="OPERACIONES">OPERACIONES</SelectItem>
                     <SelectItem value="MANTENIMIENTO">MANTENIMIENTO</SelectItem>
-                    <SelectItem value="ADMINISTRACION_RRHH">ADMINISTRACION Y RRHH</SelectItem>
+                    <SelectItem value="ADMINISTRACION_RRHH">
+                      ADMINISTRACION Y RRHH
+                    </SelectItem>
                     <SelectItem value="CONTROL_CALIDAD">
                       CONTROL DE CALIDAD
                     </SelectItem>
@@ -158,15 +169,15 @@ export default function CreateMitigationPlanForm({
           control={form.control}
           name="start_date"
           render={({ field }) => (
-            <FormItem className="flex flex-col mt-2.5">
-              <FormLabel>Fecha estimada de ejecución</FormLabel>
+            <FormItem className="flex flex-col mt-2.5 w-full">
+              <FormLabel>Fecha de Estimada de Ejecución</FormLabel>
               <Popover>
                 <PopoverTrigger asChild>
                   <FormControl>
                     <Button
                       variant={"outline"}
                       className={cn(
-                        "w-[240px] pl-3 text-left font-normal",
+                        "w-full pl-3 text-left font-normal",
                         !field.value && "text-muted-foreground"
                       )}
                     >
@@ -175,7 +186,7 @@ export default function CreateMitigationPlanForm({
                           locale: es,
                         })
                       ) : (
-                        <span>Seleccione una fecha...</span>
+                        <span>Seleccione una fecha</span>
                       )}
                       <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                     </Button>
@@ -186,12 +197,21 @@ export default function CreateMitigationPlanForm({
                     mode="single"
                     selected={field.value}
                     onSelect={field.onChange}
-                    disabled={(date) =>
-                      date < new Date("2019-01-01") ||
-                      date > new Date(new Date().getFullYear(), 12, 31)
-                    }
+                    disabled={(date) => date > new Date()} // Solo deshabilitar fechas futuras
                     initialFocus
-                    locale={es}
+                    fromYear={1980} // Año mínimo que se mostrará
+                    toYear={new Date().getFullYear()} // Año máximo (actual)
+                    captionLayout="dropdown-buttons" // Selectores de año/mes
+                    components={{
+                      Dropdown: (props) => (
+                        <select
+                          {...props}
+                          className="bg-popover text-popover-foreground"
+                        >
+                          {props.children}
+                        </select>
+                      ),
+                    }}
                   />
                 </PopoverContent>
               </Popover>

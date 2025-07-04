@@ -69,7 +69,7 @@ const CompanySelect = () => {
   };
 
   return (
-    <div className="flex flex-col justify-center gap-2 items-center md:hidden">
+    <div className="flex flex-col justify-center gap-2 items-center">
       <Select onValueChange={handleCompanySelect}>
         <SelectTrigger className="w-[180px]">
           <SelectValue placeholder={selectedCompany ? `${selectedCompany[0].toUpperCase() + selectedCompany.slice(1)}` : 'Empresa'} />

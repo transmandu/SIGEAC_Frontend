@@ -592,9 +592,7 @@ const ObligatoryReportPdf = ({ report, identification }: MyDocumentProps) => (
 
         {/*HORA DEL INCIDENTE*/}
         <View style={{ ...styles.tableCell, width: "15%" }}>
-          <Text style={styles.cellText}>
-            {(report.incident_time)}
-          </Text>
+          <Text style={styles.cellText}>{report.incident_time}</Text>
         </View>
         {/*LUGAR DEL SUCESO DEL REPORTE*/}
         <View style={{ ...styles.tableCell, width: "40%" }}>
@@ -646,12 +644,13 @@ const ObligatoryReportPdf = ({ report, identification }: MyDocumentProps) => (
 
         <View style={{ ...styles.tableCell, width: "25%" }}>
           <Text style={styles.cellText}>
-            {report.pilot.first_name} {report.pilot.last_name}
+            {report.pilot?.employee?.first_name}
+            {report.pilot?.employee?.last_name}
           </Text>
         </View>
 
         <View style={{ ...styles.tableCell, width: "20%" }}>
-          <Text style={styles.cellText}>{report.pilot.license_number}</Text>
+          <Text style={styles.cellText}>{report.pilot?.license_number}</Text>
         </View>
 
         <View
@@ -676,20 +675,21 @@ const ObligatoryReportPdf = ({ report, identification }: MyDocumentProps) => (
 
         <View style={{ ...styles.tableCell, width: "25%" }}>
           <Text style={styles.cellText}>
-            {report.copilot.first_name} {report.copilot.last_name}
+            {report.copilot?.employee?.first_name}{" "}
+            {report.copilot?.employee?.last_name}
           </Text>
         </View>
 
         <View style={{ ...styles.tableCell, width: "20%" }}>
-          <Text style={styles.cellText}>{report.copilot.license_number}</Text>
+          <Text style={styles.cellText}>{report.copilot?.license_number}</Text>
         </View>
 
         <View style={{ ...styles.tableCell, width: "22.5%" }}>
-          <Text style={styles.cellText}>{report.pilot.phone}</Text>
+          {/* <Text style={styles.cellText}>{report.pilot.phone}</Text> */}
         </View>
 
         <View style={{ ...styles.tableCell, width: "22.5%" }}>
-          <Text style={styles.cellText}>{report.pilot.email}</Text>
+          {/* <Text style={styles.cellText}>{report.pilot.email}</Text> */}
         </View>
       </View>
       <View style={styles.tableRow}>

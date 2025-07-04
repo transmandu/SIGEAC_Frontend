@@ -4,11 +4,10 @@ import { useQuery } from "@tanstack/react-query";
 
 const fetchSMSActivityById = async (id: string | number) => {
   const { data } = await axiosInstance.get(
-    `transmandu/sms/sms-activity/${id}`
+    `transmandu/sms/sms-activities/${id}`
   );
   return data;
-};
-
+};  
 
 export const useGetSMSActivityById = (id: string | number) => {
   return useQuery<SMSActivity>({

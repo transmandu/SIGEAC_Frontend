@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { useCreateEmployee } from '@/actions/general/empleados/actions';
-import { Button } from '@/components/ui/button';
+import { useCreateEmployee } from "@/actions/general/empleados/actions";
+import { Button } from "@/components/ui/button";
 import {
   Command,
   CommandEmpty,
@@ -9,7 +9,7 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-} from '@/components/ui/command';
+} from "@/components/ui/command";
 import {
   Form,
   FormControl,
@@ -17,13 +17,13 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from '@/components/ui/popover';
+} from "@/components/ui/popover";
 import {
   Select,
   SelectContent,
@@ -50,96 +50,111 @@ import { Label } from '../../ui/label';
 import { useGetCompanies } from '@/hooks/sistema/useGetCompanies';
 import { useCreateUser } from '@/actions/general/usuarios/actions';
 
-const formSchema = z.object({
-  // Datos del empleado
-  first_name: z.string().min(1, 'Requerido'),
-  middle_name: z.string().optional(),
-  last_name: z.string().min(1, 'Requerido'),
-  second_last_name: z.string().optional(),
-  dni_type: z.string(),
-  blood_type: z.string(),
-  dni: z.string().min(6, 'Requerido'),
-  department_id: z.string(),
-  job_title_id: z.string(),
-  location_id: z.string(),
+const formSchema = z
+  .object({
+    // Datos del empleado
+    first_name: z.string().min(1, "Requerido"),
+    middle_name: z.string().optional(),
+    last_name: z.string().min(1, "Requerido"),
+    second_last_name: z.string().optional(),
+    dni_type: z.string(),
+    blood_type: z.string(),
+    dni: z.string().min(6, "Requerido"),
+    department_id: z.string(),
+    job_title_id: z.string(),
+    location_id: z.string(),
 
-  // Opción para crear usuario
-   createUser: z.boolean(),
+    // Opción para crear usuario
+    createUser: z.boolean(),
 
-  // Datos del usuario (condicionales)
-  username: z.string().min(3, 'Mínimo 3 caracteres').optional(),
-  password: z.string().min(5, 'Mínimo 5 caracteres').optional(),
-  email: z.string().email('Correo inválido').optional(),
-  roles: z.array(z.string()).optional(),
-  companies_locations: z.array(
-    z.object({
-      companyID: z.number(),
-      locationID: z.array(z.number().or(z.string()))
-    })
-  ),
-}).superRefine((data, ctx) => {
-  // Validación condicional si createUser es true
-  if (data.createUser) {
-    if (!data.username) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "Requerido",
-        path: ["username"]
-      });
+    // Datos del usuario (condicionales)
+    username: z.string().min(3, "Mínimo 3 caracteres").optional(),
+    password: z.string().min(5, "Mínimo 5 caracteres").optional(),
+    email: z.string().email("Correo inválido").optional(),
+    roles: z.array(z.string()).optional(),
+    companies_locations: z
+      .array(
+        z.object({
+          companyID: z.number(),
+          locationID: z.array(z.number().or(z.string())),
+        })
+      )
+      .optional(),
+  })
+  .superRefine((data, ctx) => {
+    // Validación condicional si createUser es true
+    if (data.createUser) {
+      if (!data.username) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Requerido",
+          path: ["username"],
+        });
+      }
+      if (!data.password) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Requerido",
+          path: ["password"],
+        });
+      }
+      if (!data.email) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Requerido",
+          path: ["email"],
+        });
+      }
+      if (!data.roles || data.roles.length === 0) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Seleccione al menos un rol",
+          path: ["roles"],
+        });
+      }
     }
-    if (!data.password) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "Requerido",
-        path: ["password"]
-      });
-    }
-    if (!data.email) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "Requerido",
-        path: ["email"]
-      });
-    }
-    if (!data.roles || data.roles.length === 0) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "Seleccione al menos un rol",
-        path: ["roles"]
-      });
-    }
-  }
-})
-;
-
+  });
 type EmployeeForm = z.infer<typeof formSchema>;
 
 export function CreateEmployeeForm() {
   const { selectedCompany } = useCompanyStore();
   const { createEmployee } = useCreateEmployee();
-  const {createUser} = useCreateUser()
+  const { createUser } = useCreateUser();
   const [step, setStep] = useState<1 | 2>(1);
   const [showPassword, setShowPassword] = useState(false);
   const [selectedRoles, setSelectedRoles] = useState<string[]>([]);
   const [openRoles, setOpenRoles] = useState(false);
 
   // Obtener datos necesarios
-  const { data: locations, isLoading: isLocLoading } = useGetLocationsByCompany(selectedCompany?.split(' ').join(''));
-  const { data: departments, isLoading: isDepartmentsLoading } = useGetDepartments(selectedCompany?.split(' ').join(''));
-  const { data: jobTitles, isLoading: isJobTitlesLoading } = useGetJobTitles(selectedCompany?.split(' ').join(''));
+  const { data: locations, isLoading: isLocLoading } = useGetLocationsByCompany(
+    selectedCompany?.split(" ").join("")
+  );
+  const { data: departments, isLoading: isDepartmentsLoading } =
+    useGetDepartments(selectedCompany?.split(" ").join(""));
+  const { data: jobTitles, isLoading: isJobTitlesLoading } = useGetJobTitles(
+    selectedCompany?.split(" ").join("")
+  );
   const { data: roles, isLoading: isRolesLoading } = useGetRoles();
-  const { data: companies, error: companiesError, isLoading: isCompaniesLoading } = useGetCompanies();
-  const { data: companies_locations, error: companies_locationsError, isLoading: companies_locationsLoading } = useGetLocationsByCompanies();
-
+  const {
+    data: companies,
+    error: companiesError,
+    isLoading: isCompaniesLoading,
+  } = useGetCompanies();
+  const {
+    data: companies_locations,
+    error: companies_locationsError,
+    isLoading: companies_locationsLoading,
+  } = useGetLocationsByCompanies();
 
   const form = useForm<EmployeeForm>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      first_name: '',
-      last_name: '',
-      dni: '',
-      middle_name: '',
-      second_last_name: '',
+      first_name: "",
+      last_name: "",
+      dni: "",
+      dni_type: 'V',
+      middle_name: "",
+      second_last_name: "",
       createUser: false,
       roles: [],
     },
@@ -147,19 +162,28 @@ export function CreateEmployeeForm() {
 
   // Generar username automáticamente
   useEffect(() => {
-    if (form.watch('createUser') && form.watch('first_name') && form.watch('last_name')) {
-      const username = `${form.getValues('first_name').charAt(0)}${form.getValues('last_name')}`.toLowerCase();
-      form.setValue('username', username);
+    if (
+      form.watch("createUser") &&
+      form.watch("first_name") &&
+      form.watch("last_name")
+    ) {
+      const username =
+        `${form.getValues("first_name").charAt(0)}${form.getValues("last_name")}`.toLowerCase();
+      form.setValue("username", username);
     }
-  }, [form.watch('createUser'), form.watch('first_name'), form.watch('last_name')]);
+  }, [
+    form.watch("createUser"),
+    form.watch("first_name"),
+    form.watch("last_name"),
+  ]);
 
   // Manejar selección de roles
   const handleRoleSelect = (roleId: string) => {
     const newRoles = selectedRoles.includes(roleId)
-      ? selectedRoles.filter(id => id !== roleId)
+      ? selectedRoles.filter((id) => id !== roleId)
       : [...selectedRoles, roleId];
     setSelectedRoles(newRoles);
-    form.setValue('roles', newRoles);
+    form.setValue("roles", newRoles);
   };
 
   const isRoleSelected = (roleId: string) => selectedRoles.includes(roleId);
@@ -178,44 +202,46 @@ export function CreateEmployeeForm() {
         department_id: data.department_id,
         job_title_id: data.job_title_id,
         location_id: data.location_id,
-        company: selectedCompany!.split(' ').join(''),
+        company: selectedCompany!.split(" ").join(""),
       };
 
       // Solo incluir datos de usuario si createUser es true
-      const userData = data.createUser ? {
-        isActive: true,
-        first_name: data.first_name,
-        companies_locations: data.companies_locations,
-        last_name: data.last_name,
-        username: data.username!,
-        password: data.password,
-        email: data.email!,
-        roles: data.roles?.map(Number) || [],
-      } : null;
-      if(data.createUser && userData) {
+      const userData = data.createUser
+        ? {
+            isActive: true,
+            first_name: data.first_name,
+            companies_locations: data.companies_locations,
+            last_name: data.last_name,
+            username: data.username!,
+            password: data.password,
+            email: data.email!,
+            roles: data.roles?.map(Number) || [],
+          }
+        : null;
+      if (data.createUser && userData) {
         const userResponse = await createUser.mutateAsync(userData);
         // 2. Luego creamos el empleado con el user_id
         await createEmployee.mutateAsync({
-            ...employeeData,
-            user_id: userResponse.user.id // Asume que el backend devuelve el ID del usuario
+          ...employeeData,
+          user_id: userResponse.user.id, // Asume que el backend devuelve el ID del usuario
         });
       } else {
         // Si no se va a crear usuario, solo creamos el empleado
         await createEmployee.mutateAsync(employeeData);
       }
     } catch (error) {
-      console.error('Error creating employee:', error);
+      console.error("Error creating employee:", error);
     }
   };
 
   const handleNextStep = () => {
-    if (form.watch('createUser')) {
+    if (form.watch("createUser")) {
       setStep(2);
     } else {
       // Si no se va a crear usuario, enviar directamente el formulario
       form.handleSubmit(onSubmit)();
     }
-  }
+  };
 
   return (
     <Form {...form}>
@@ -240,7 +266,7 @@ export function CreateEmployeeForm() {
               />
               <FormField
                 control={form.control}
-                name="last_name"
+                name="middle_name"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Segundo Nombre</FormLabel>
@@ -256,7 +282,7 @@ export function CreateEmployeeForm() {
             <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
-                name="middle_name"
+                name="last_name"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Primer Apellido</FormLabel>
@@ -282,12 +308,12 @@ export function CreateEmployeeForm() {
               />
             </div>
 
-            <div className='flex gap-2 w-full'>
+            <div className="flex gap-2 w-full">
               <FormField
                 control={form.control}
                 name="dni_type"
                 render={({ field }) => (
-                  <FormItem className='w-1/3'>
+                  <FormItem className="w-1/3">
                     <FormLabel>T. de Doc.</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue="V">
                       <FormControl>
@@ -308,7 +334,7 @@ export function CreateEmployeeForm() {
                 control={form.control}
                 name="dni"
                 render={({ field }) => (
-                  <FormItem className='w-full'>
+                  <FormItem className="w-full">
                     <FormLabel>Cédula</FormLabel>
                     <FormControl>
                       <Input placeholder="Ej. V12345678" {...field} />
@@ -321,7 +347,7 @@ export function CreateEmployeeForm() {
                 control={form.control}
                 name="blood_type"
                 render={({ field }) => (
-                  <FormItem className='w-1/3'>
+                  <FormItem className="w-1/3">
                     <FormLabel>T. de Sangre</FormLabel>
                     <Select onValueChange={field.onChange}>
                       <FormControl>
@@ -363,7 +389,10 @@ export function CreateEmployeeForm() {
                       </FormControl>
                       <SelectContent>
                         {jobTitles?.map((title) => (
-                          <SelectItem key={title.id} value={title.id.toString()}>
+                          <SelectItem
+                            key={title.id}
+                            value={title.id.toString()}
+                          >
                             {title.name}
                           </SelectItem>
                         ))}
@@ -455,8 +484,10 @@ export function CreateEmployeeForm() {
                 onClick={handleNextStep}
                 disabled={createEmployee.isPending}
               >
-                {form.watch('createUser') ? 'Siguiente' : 'Crear Empleado'}
-                {createEmployee.isPending && <Loader2 className="ml-2 h-4 w-4 animate-spin" />}
+                {form.watch("createUser") ? "Siguiente" : "Crear Empleado"}
+                {createEmployee.isPending && (
+                  <Loader2 className="ml-2 h-4 w-4 animate-spin" />
+                )}
               </Button>
             </div>
           </>
@@ -464,58 +495,61 @@ export function CreateEmployeeForm() {
 
         {step === 2 && (
           <>
-           <div className='flex gap-2 items-center justify-center w-full'>
+            <div className="flex gap-2 items-center justify-center w-full">
               <FormField
-              control={form.control}
-              name="username"
-              render={({ field }) => (
-                <FormItem className='w-full'>
-                  <FormLabel>Nombre de Usuario</FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="Ej. jperez"
-                      {...field}
-                      onChange={(e) => {
-                        field.onChange(e);
-                        form.setValue('username', e.target.value.toLowerCase());
-                      }}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                control={form.control}
+                name="username"
+                render={({ field }) => (
+                  <FormItem className="w-full">
+                    <FormLabel>Nombre de Usuario</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="Ej. jperez"
+                        {...field}
+                        onChange={(e) => {
+                          field.onChange(e);
+                          form.setValue(
+                            "username",
+                            e.target.value.toLowerCase()
+                          );
+                        }}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-            <FormField
-              control={form.control}
-              name="password"
-              render={({ field }) => (
-                <FormItem className='w-full mt-1 space-y-3'>
-                  <FormLabel className="flex items-center gap-2">
-                    Contraseña
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="text-muted-foreground hover:text-primary"
-                    >
-                      {showPassword ? (
-                        <EyeOff className="h-4 w-4" />
-                      ) : (
-                        <Eye className="h-4 w-4" />
-                      )}
-                    </button>
-                  </FormLabel>
-                  <FormControl>
-                    <Input
-                      type={showPassword ? "text" : "password"}
-                      placeholder="Mínimo 5 caracteres"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+              <FormField
+                control={form.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem className="w-full mt-1 space-y-3">
+                    <FormLabel className="flex items-center gap-2">
+                      Contraseña
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="text-muted-foreground hover:text-primary"
+                      >
+                        {showPassword ? (
+                          <EyeOff className="h-4 w-4" />
+                        ) : (
+                          <Eye className="h-4 w-4" />
+                        )}
+                      </button>
+                    </FormLabel>
+                    <FormControl>
+                      <Input
+                        type={showPassword ? "text" : "password"}
+                        placeholder="Mínimo 5 caracteres"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </div>
 
             <FormField
@@ -552,8 +586,10 @@ export function CreateEmployeeForm() {
                         {selectedRoles.length > 0 ? (
                           <div className="flex gap-1 flex-wrap">
                             {roles
-                              ?.filter(role => selectedRoles.includes(role.id.toString()))
-                              .map(role => (
+                              ?.filter((role) =>
+                                selectedRoles.includes(role.id.toString())
+                              )
+                              .map((role) => (
                                 <Badge key={role.id} variant="secondary">
                                   {role.name}
                                 </Badge>
@@ -580,7 +616,9 @@ export function CreateEmployeeForm() {
                                 <CommandItem
                                   key={role.id}
                                   value={role.id.toString()}
-                                  onSelect={() => handleRoleSelect(role.id.toString())}
+                                  onSelect={() =>
+                                    handleRoleSelect(role.id.toString())
+                                  }
                                 >
                                   <Check
                                     className={cn(
@@ -590,7 +628,7 @@ export function CreateEmployeeForm() {
                                         : "opacity-0"
                                     )}
                                   />
-                                  {role.label}
+                                  {role.label}as
                                 </CommandItem>
                               ))
                             )}
@@ -608,7 +646,11 @@ export function CreateEmployeeForm() {
               control={form.control}
               name="companies_locations"
               render={({ field }) => {
-                const handleLocationChange = (companyID: number, locationID: number, isSelected: boolean | string) => {
+                const handleLocationChange = (
+                  companyID: number,
+                  locationID: number,
+                  isSelected: boolean | string
+                ) => {
                   // Parse the current value or initialize it
                   const currentValue = field.value || [];
 
@@ -651,14 +693,18 @@ export function CreateEmployeeForm() {
                   <FormItem className="flex flex-col items-start rounded-md space-y-2 py-2 px-6">
                     <FormLabel>Ubicaciones</FormLabel>
                     <Accordion className="w-full" type="single" collapsible>
-                      {companies && companies_locations &&
+                      {companies &&
+                        companies_locations &&
                         companies.map((company) => (
                           <AccordionItem key={company.id} value={company.name}>
                             <AccordionTrigger>{company.name}</AccordionTrigger>
                             <AccordionContent>
                               {companies_locations &&
                                 companies_locations
-                                  .filter((location) => location.company_id === company.id)
+                                  .filter(
+                                    (location) =>
+                                      location.company_id === company.id
+                                  )
                                   .map((location) => (
                                     <div
                                       className="flex flex-col gap-2"
@@ -673,8 +719,11 @@ export function CreateEmployeeForm() {
                                             checked={Boolean(
                                               field.value?.find(
                                                 (item) =>
-                                                  item.companyID === company.id &&
-                                                  item.locationID.includes(loc.id)
+                                                  item.companyID ===
+                                                    company.id &&
+                                                  item.locationID.includes(
+                                                    loc.id
+                                                  )
                                               )
                                             )}
                                             onCheckedChange={(isSelected) =>
@@ -693,11 +742,12 @@ export function CreateEmployeeForm() {
                             </AccordionContent>
                           </AccordionItem>
                         ))}
-                        {
-                          (companiesError || companies_locationsError) && (
-                            <p>Ha ocurrido un error cargando las empresas y/o ubicaciones...</p>
-                          )
-                        }
+                      {(companiesError || companies_locationsError) && (
+                        <p>
+                          Ha ocurrido un error cargando las empresas y/o
+                          ubicaciones...
+                        </p>
+                      )}
                     </Accordion>
                   </FormItem>
                 );
@@ -712,8 +762,11 @@ export function CreateEmployeeForm() {
               >
                 Anterior
               </Button>
-              <Button type="submit" disabled={createEmployee.isPending || createUser.isPending}>
-                {(createEmployee.isPending || createUser.isPending) ? (
+              <Button
+                type="submit"
+                disabled={createEmployee.isPending || createUser.isPending}
+              >
+                {createEmployee.isPending || createUser.isPending ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     Creando...

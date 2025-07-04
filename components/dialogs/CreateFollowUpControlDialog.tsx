@@ -19,8 +19,6 @@ export default function CreateFollowUpControlDialog() {
     plan_id: string;
     medida_id: string;
   }>();
-  console.log("PLAN ID",plan_id);
-  console.log("MEASURE ID",medida_id);
   const [open, setOpen] = useState(false);
   return (
     <>

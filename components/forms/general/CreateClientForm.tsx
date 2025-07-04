@@ -45,10 +45,10 @@ const formSchema = z.object({
     .string()
     .min(10, "El número de tlf debe tener al menos 10 digitos")
     .max(15, "El número de telefono debe tener hasta maximo 15 digitos")
-    .regex(phoneRegex, "Número de telefono invalido"),
+    .regex(phoneRegex, "Número de telefono invalido").optional(),
   email: z.string().email({
     message: "Debe ser un email válido.",
-  }),
+  }).optional(),
   address: z
     .string()
     .min(2, {
@@ -56,7 +56,7 @@ const formSchema = z.object({
     })
     .max(100, {
       message: "La dirección tiene un máximo 100 caracteres.",
-    }),
+    }).optional(),
   pay_credit_days: z.coerce
     .number({
       invalid_type_error: "Debe ingresar un número válido",

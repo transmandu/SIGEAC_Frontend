@@ -38,12 +38,12 @@ const AircraftResumeDialog = ({ aircraft }: { aircraft: Aircraft }) => {
 
   return (
     <Dialog open={openAircraft} onOpenChange={setOpenAircraft}>
-      <DialogTrigger>{aircraft.acronym}</DialogTrigger>
+      <DialogTrigger className="font-bold">{aircraft.acronym}</DialogTrigger>
       <DialogContent className="sm:max-w-md" onInteractOutside={(e) => e.preventDefault()}>
         <DialogHeader className="text-center font-bold">
           Resumen de Aeronave
         </DialogHeader>
-        
+
         <Card className="border-none shadow-none">
           <CardHeader className={`p-6 text-white rounded-t-lg ${statusColors.bgGradient}`}>
             <div className="flex items-center gap-4">

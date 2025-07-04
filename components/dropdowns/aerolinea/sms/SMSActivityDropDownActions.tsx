@@ -6,10 +6,16 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { SMSActivity } from "@/types";
-import { ClipboardPen, Loader2, MoreHorizontal, Trash2 } from "lucide-react";
-import { useRouter } from "next/navigation";
+import {
+  ClipboardPen,
+  EyeIcon,
+  Loader2,
+  MoreHorizontal,
+  Plus,
+  Router,
+  Trash2,
+} from "lucide-react";
 import { useState } from "react";
-import { Button } from "../../../ui/button";
 import {
   Dialog,
   DialogContent,
@@ -17,8 +23,11 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "../../../ui/dialog";
-import CreateSMSActivityForm from "../../../forms/aerolinea/sms/CreateSMSActivityForm";
+} from "@/components/ui/dialog";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import CreateSMSActivityForm from "@/components/forms/aerolinea/sms/CreateSMSActivityForm";
+import { AddToSMSActivity } from "@/components/forms/aerolinea/sms/AddToSMSActivityForm";
 
 const SMSActivityDropDownActions = ({
   smsActivity,
@@ -28,6 +37,8 @@ const SMSActivityDropDownActions = ({
   const [openDelete, setOpenDelete] = useState<boolean>(false);
 
   const [openEdit, setOpenEdit] = useState<boolean>(false);
+
+  const [openAdd, setOpenAdd] = useState(false);
 
   const { deleteSMSActivity } = useDeleteSMSActivity();
 
@@ -55,9 +66,27 @@ const SMSActivityDropDownActions = ({
             <Trash2 className="size-5 text-red-500" />
             <p className="pl-2">Eliminar</p>
           </DropdownMenuItem>
+
           <DropdownMenuItem onClick={() => setOpenEdit(true)}>
             <ClipboardPen className="size-5" />
             <p className="pl-2">Editar</p>
+          </DropdownMenuItem>
+
+          <DropdownMenuItem
+            onClick={() => {
+              router.push(
+                `/transmandu/sms/planificacion/actividades/${smsActivity.id}`
+              );
+            }}
+          >
+            <EyeIcon className="size-5" />
+            <p className="pl-2">Ver</p>
+          </DropdownMenuItem>
+
+
+          <DropdownMenuItem onClick={() => setOpenAdd(true)}>
+            <Plus className="size-5" />
+            <p className="pl-2">Agregar personas</p>
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
@@ -70,8 +99,8 @@ const SMSActivityDropDownActions = ({
               ¿Seguro que desea eliminar la actividad?
             </DialogTitle>
             <DialogDescription className="text-center p-2 mb-0 pb-0">
-              Esta acción es irreversible y estaría eliminando por completo
-              la actividad seleccionada.
+              Esta acción es irreversible y estaría eliminando por completo la
+              actividad seleccionada.
             </DialogDescription>
           </DialogHeader>
 
@@ -103,16 +132,35 @@ const SMSActivityDropDownActions = ({
       <Dialog open={openEdit} onOpenChange={setOpenEdit}>
         <DialogContent className="flex flex-col max-w-2xl m-2">
           <DialogHeader>
-            <DialogTitle className="text-center">Edicion de Actividad</DialogTitle>
-            <DialogDescription className="text-center">
-            </DialogDescription>
-            < CreateSMSActivityForm initialData={smsActivity}
+            <DialogTitle className="text-center">
+              Edicion de Actividad
+            </DialogTitle>
+            <DialogDescription className="text-center"></DialogDescription>
+            <CreateSMSActivityForm
+              initialData={smsActivity}
               isEditing={true}
               onClose={() => setOpenEdit(false)}
             />
           </DialogHeader>
         </DialogContent>
       </Dialog>
+
+      {/* DIALOGO DE ADD FORM */}
+      <Dialog open={openAdd} onOpenChange={setOpenAdd}>
+        <DialogContent className="flex flex-col max-w-2xl m-2">
+          <DialogHeader>
+            <DialogTitle className="text-center font-light">
+              Agregar o eliminar personas
+            </DialogTitle>
+            <DialogDescription className="text-center"></DialogDescription>
+            <AddToSMSActivity
+              initialData={smsActivity}
+              onClose={() => setOpenAdd(false)}
+            />
+          </DialogHeader>
+        </DialogContent>
+      </Dialog>
+
     </>
   );
 };

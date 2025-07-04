@@ -1,15 +1,15 @@
 'use client';
 import { ContentLayout } from '@/components/layout/ContentLayout';
 import DashboardTabs from '@/components/misc/DashboardTabs';
-import WelcomePage from '@/components/misc/WelcomePage';
 import { useCompanyStore } from '@/stores/CompanyStore';
+import { redirect } from 'next/navigation';
 
 const DashboardPage =  () => {
 
     const {selectedCompany, selectedStation} = useCompanyStore();
 
     if(!selectedCompany || !selectedStation){
-      return <WelcomePage />
+      redirect('/inicio');
     }
 
     return (

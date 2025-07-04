@@ -35,42 +35,43 @@ import {
 } from "@/actions/sms/medida_de_mitigacion/actions";
 import { MitigationMeasure } from "@/types";
 
-const FormSchema = z.object({
-  description: z.string().min(5),
+const FormSchema = z
+  .object({
+    description: z.string().min(5),
 
-  implementation_supervisor: z
-    .string()
-    .nonempty({ message: "El supervisor es requerido" })
-    .min(3, { message: "El supervisor debe tener al menos 3 caracteres" })
-    .max(19, { message: "El supervisor no puede exceder los 19 caracteres" }),
+    implementation_supervisor: z
+      .string()
+      .nonempty({ message: "El supervisor es requerido" })
+      .min(3, { message: "El supervisor debe tener al menos 3 caracteres" })
+      .max(19, { message: "El supervisor no puede exceder los 19 caracteres" }),
 
-  implementation_responsible: z
-    .string()
-    .nonempty({ message: "El responsable es requerido" })
-    .min(3, { message: "El responsable debe tener al menos 3 caracteres" })
-    .max(23, { message: "El responsable no puede exceder los 23 caracteres" }),
-  
-  estimated_date: z
-    .date()
-    .refine((val) => !isNaN(val.getTime()), { message: "Fecha inválida" }),
-  
-  execution_date: z
-    .date()
-    .refine((val) => !isNaN(val.getTime()), { message: "Fecha inválida" })
-    .nullable()
-})
-.superRefine((data, ctx) => {
-  if (
-    data.execution_date &&
-    data.execution_date >= data.estimated_date
-  ) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      message: "La fecha de ejecución debe ser mayor o igual a la fecha estimada.",
-      path: ["execution_date"],
-    });
-  }
-});
+    implementation_responsible: z
+      .string()
+      .nonempty({ message: "El responsable es requerido" })
+      .min(3, { message: "El responsable debe tener al menos 3 caracteres" })
+      .max(23, {
+        message: "El responsable no puede exceder los 23 caracteres",
+      }),
+
+    estimated_date: z
+      .date()
+      .refine((val) => !isNaN(val.getTime()), { message: "Fecha inválida" }),
+
+    execution_date: z
+      .date()
+      .refine((val) => !isNaN(val.getTime()), { message: "Fecha inválida" })
+      .nullable(),
+  })
+  .superRefine((data, ctx) => {
+    if (data.execution_date && data.execution_date >= data.estimated_date) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          "La fecha de ejecución debe ser mayor o igual a la fecha estimada.",
+        path: ["execution_date"],
+      });
+    }
+  });
 
 type FormSchemaType = z.infer<typeof FormSchema>;
 
@@ -187,14 +188,14 @@ export default function CreateMitigationMeasureForm({
             name="estimated_date"
             render={({ field }) => (
               <FormItem className="flex flex-col mt-2.5 w-full">
-                <FormLabel>Fecha estimada de ejecución</FormLabel>
+                <FormLabel>Fecha de Estimada de Ejecución</FormLabel>
                 <Popover>
                   <PopoverTrigger asChild>
                     <FormControl>
                       <Button
                         variant={"outline"}
                         className={cn(
-                          "w-[240px] pl-3 text-left font-normal",
+                          "w-full pl-3 text-left font-normal",
                           !field.value && "text-muted-foreground"
                         )}
                       >
@@ -203,7 +204,7 @@ export default function CreateMitigationMeasureForm({
                             locale: es,
                           })
                         ) : (
-                          <span>Seleccione una fecha...</span>
+                          <span>Seleccione una fecha</span>
                         )}
                         <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                       </Button>
@@ -214,12 +215,21 @@ export default function CreateMitigationMeasureForm({
                       mode="single"
                       selected={field.value}
                       onSelect={field.onChange}
-                      disabled={(date) =>
-                        date < new Date("2019-01-01") ||
-                        date > new Date(new Date().getFullYear(), 12, 31)
-                      }
+                      disabled={(date) => date > new Date()} // Solo deshabilitar fechas futuras
                       initialFocus
-                      locale={es}
+                      fromYear={1980} // Año mínimo que se mostrará
+                      toYear={new Date().getFullYear()} // Año máximo (actual)
+                      captionLayout="dropdown-buttons" // Selectores de año/mes
+                      components={{
+                        Dropdown: (props) => (
+                          <select
+                            {...props}
+                            className="bg-popover text-popover-foreground"
+                          >
+                            {props.children}
+                          </select>
+                        ),
+                      }}
                     />
                   </PopoverContent>
                 </Popover>
@@ -233,14 +243,14 @@ export default function CreateMitigationMeasureForm({
             name="execution_date"
             render={({ field }) => (
               <FormItem className="flex flex-col mt-2.5 w-full">
-                <FormLabel>Fecha de ejecución</FormLabel>
+                <FormLabel>Fecha de Ejecución</FormLabel>
                 <Popover>
                   <PopoverTrigger asChild>
                     <FormControl>
                       <Button
                         variant={"outline"}
                         className={cn(
-                          "w-[240px] pl-3 text-left font-normal",
+                          "w-full pl-3 text-left font-normal",
                           !field.value && "text-muted-foreground"
                         )}
                       >
@@ -249,7 +259,7 @@ export default function CreateMitigationMeasureForm({
                             locale: es,
                           })
                         ) : (
-                          <span>Seleccione una fecha...</span>
+                          <span>Seleccione una fecha</span>
                         )}
                         <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                       </Button>
@@ -258,13 +268,23 @@ export default function CreateMitigationMeasureForm({
                   <PopoverContent className="w-auto p-0" align="start">
                     <Calendar
                       mode="single"
-                      selected={field.value ?? undefined} // Manejar el caso null
+                      selected={field.value || undefined} // Convert null to undefined
                       onSelect={field.onChange}
-                      disabled={(date) =>
-                        date > new Date() || date < new Date("1900-01-01")
-                      }
+                      disabled={(date) => date > new Date()}
                       initialFocus
-                      locale={es}
+                      fromYear={1980}
+                      toYear={new Date().getFullYear()}
+                      captionLayout="dropdown-buttons"
+                      components={{
+                        Dropdown: (props) => (
+                          <select
+                            {...props}
+                            className="bg-popover text-popover-foreground"
+                          >
+                            {props.children}
+                          </select>
+                        ),
+                      }}
                     />
                   </PopoverContent>
                 </Popover>
