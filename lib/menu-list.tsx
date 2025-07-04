@@ -5,6 +5,7 @@ import {
   Activity,
   AreaChartIcon,
   Award,
+  Blocks,
   BookCheck,
   BookUser,
   Building2,
@@ -537,6 +538,15 @@ export function getMenuList(
                 {
           groupLabel: "Sistema",
           menus: [
+            {
+              href: "/sistema/modulos",
+              label: "Módulos",
+              active: pathname.includes("/sistema/modulos"),
+              icon: Blocks,
+              roles: ["ADMIN", "SUPERUSER"],
+              submenus: [
+              ],
+            },
             {
               href: "/sistema/usuarios_permisos",
               label: "Usuarios Y Permisos",

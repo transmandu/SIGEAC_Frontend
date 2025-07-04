@@ -478,8 +478,8 @@ export type Manufacturer = {
 
 export type Module = {
   id: number,
-  name: string,
-  description: string,
+  label: string,
+  value: string,
   registered_by: string,
   company: Company,
 }
