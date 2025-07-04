@@ -472,12 +472,12 @@ export type Manufacturer = {
 };
 
 export type Module = {
-  id: number;
-  name: string;
-  description: string;
-  registered_by: string;
-  company: Company;
-};
+  id: number,
+  label: string,
+  value: string,
+  registered_by: string,
+  company: Company,
+}
 
 export type Vendor = {
   id: string | number;
