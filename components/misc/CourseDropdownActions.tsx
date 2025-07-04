@@ -1,4 +1,4 @@
-import { useDeleteCourse } from "@/actions/cursos/actions";
+import { useDeleteCourse } from "@/actions/general/cursos/actions";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,8 +14,10 @@ import {
   MoreHorizontal,
   Trash2,
   Plus,
+  UserCheck,
 } from "lucide-react";
 import { useState } from "react";
+import { es } from "date-fns/locale";
 import { CreateCourseForm } from "../forms/CreateCourseForm";
 import { Button } from "../ui/button";
 import {
@@ -29,6 +31,9 @@ import {
 } from "../ui/dialog";
 import { useRouter } from "next/navigation";
 import { AddToCourseForm } from "../forms/AddToCourseForm";
+import { format } from "date-fns";
+import { dateFormat } from "@/lib/utils";
+import { AddAtendanceForm } from "../forms/AddAtendanceForm";
 
 const CourseDropdownActions = ({ course }: { course: Course }) => {
   const [open, setOpen] = useState<boolean>(false);
@@ -37,6 +42,8 @@ const CourseDropdownActions = ({ course }: { course: Course }) => {
   const { deleteCourse } = useDeleteCourse();
   const [openDelete, setOpenDelete] = useState<boolean>(false);
   const [openAdd, setOpenAdd] = useState(false);
+
+  const [openAttendance, setOpenAttendance] = useState(false);
 
   const router = useRouter();
   const handleDelete = async (id: string, company: string | null) => {
@@ -47,6 +54,12 @@ const CourseDropdownActions = ({ course }: { course: Course }) => {
     await deleteCourse.mutateAsync(value);
     setOpenDelete(false);
   };
+
+  const realNow: Date = new Date();
+  realNow.setDate(realNow.getDate() - 1);
+
+  const CourseDate: Date = new Date(course.end_date);
+
   return (
     <>
       <Dialog open={open} onOpenChange={setOpen}>
@@ -84,10 +97,19 @@ const CourseDropdownActions = ({ course }: { course: Course }) => {
               <p className="pl-2">Ver</p>
             </DropdownMenuItem>
 
-            <DropdownMenuItem onClick={() => setOpenAdd(true)}>
-              <Plus className="size-5" />
-              <p className="pl-2">Agregar personas</p>
-            </DropdownMenuItem>
+            {
+              <DropdownMenuItem onClick={() => setOpenAdd(true)}>
+                <Plus className="size-5" />
+                <p className="pl-2">Agregar personas</p>
+              </DropdownMenuItem>
+            }
+
+            {CourseDate >= realNow && (
+              <DropdownMenuItem onClick={() => setOpenAttendance(true)}>
+                <UserCheck className="size-5" />
+                <p className="pl-2">Asistencia</p>
+              </DropdownMenuItem>
+            )}
           </DropdownMenuContent>
         </DropdownMenu>
 
@@ -138,6 +160,7 @@ const CourseDropdownActions = ({ course }: { course: Course }) => {
 
             <CreateCourseForm
               onClose={() => setOpenEdit(false)}
+              isEditing={true}
               initialData={course}
             />
           </DialogContent>
@@ -157,6 +180,21 @@ const CourseDropdownActions = ({ course }: { course: Course }) => {
             </DialogHeader>
           </DialogContent>
         </Dialog>
+      </Dialog>
+
+      <Dialog open={openAttendance} onOpenChange={setOpenAttendance}>
+        <DialogContent className="flex flex-col max-w-2xl m-2">
+          <DialogHeader>
+            <DialogTitle className="text-center font-light">
+              Asistencia de personas
+            </DialogTitle>
+            <DialogDescription className="text-center"></DialogDescription>
+            <AddAtendanceForm
+              initialData={course}
+              onClose={() => setOpenAttendance(false)}
+            />
+          </DialogHeader>
+        </DialogContent>
       </Dialog>
     </>
   );

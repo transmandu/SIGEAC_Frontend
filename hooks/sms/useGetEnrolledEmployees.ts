@@ -11,7 +11,7 @@ const fetchEnrolledEmployees = async (
   return data;
 };
 
-export const useGetEnrolledEmployees = (activity_id: string) => {
+export const useGetActivityEnrolledEmployees = (activity_id: string) => {
   return useQuery<Employee[], Error>({
     queryKey: ["enrolled-employees"], // Incluye el activity_id en la clave
     queryFn: () => fetchEnrolledEmployees(activity_id),

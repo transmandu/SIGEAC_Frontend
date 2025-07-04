@@ -1,53 +1,61 @@
 import axiosInstance from "@/lib/axios";
-import { Analysis } from "@/types";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
-interface EmployeeSelected {
-  dni: string;
-  first_name: string;
-  last_name: string;
-}
-
-interface CourseAttendaceData {
+interface CourseData {
   company: string | null;
-  course_id: string;
-  employees_list: {
-    addedEmployees: EmployeeSelected[];
-    removedEmployees: EmployeeSelected[];
+  course: {
+    name: string;
+    description: string;
+    duration: string;
+    time: string;
+    start_date: Date;
+    end_date: Date;
+    instructor?: string;
   };
 }
 
-export const useCreateCourseAttendance = () => {
+interface updateCourseData {
+  company: string | null;
+  id: string;
+  data: {
+    name: string;
+    description: string;
+    duration: string;
+    time: string;
+    instructor?: string;
+    start_date: Date;
+    end_date: Date;
+  };
+}
+
+export const useCreateCourse = () => {
   const queryClient = useQueryClient();
   const createMutation = useMutation({
-    mutationFn: async (data: CourseAttendaceData) => {
-      await axiosInstance.post(
-        `/general/${data.company}/create-attendance/${data.course_id}`,
-        data.employees_list,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        }
-      );
+    mutationFn: async (data: CourseData) => {
+      await axiosInstance.post(`/general/${data.company}/create-course`, data, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["department-courses"] });
-      queryClient.invalidateQueries({ queryKey: ["employees-by-department"] });
-      toast.success("Modificado!", {
-        description: `La lista de personas ha sido modificada`,
+      queryClient.invalidateQueries({ queryKey: ["enrollment-status"] });
+
+      toast.success("¡Creado!", {
+        description: ` El Curso ha sido creado correctamente.`,
       });
     },
     onError: (error) => {
       toast.error("Oops!", {
-        description: "No se pudo modificar...",
+        description: "No se pudo crear el curso...",
       });
       console.log(error);
     },
   });
   return {
-    createCourseAttendance: createMutation,
+    createCourse: createMutation,
   };
 };
 
@@ -65,7 +73,6 @@ export const useDeleteCourse = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["department-courses"] });
-      queryClient.invalidateQueries({ queryKey: ["enrollment-status"] });
       toast.success("¡Eliminado!", {
         description: `¡El curso ha sido eliminado correctamente!`,
       });
@@ -82,27 +89,31 @@ export const useDeleteCourse = () => {
   };
 };
 
-export const useUpdateAnalyses = () => {
+export const useUpdateCourse = () => {
   const queryClient = useQueryClient();
-  const updateAnalysesMutation = useMutation({
-    mutationKey: ["analysis"],
-    mutationFn: async (data: Analysis) => {
-      await axiosInstance.put(`/transmandu/sms/analysis/${data.id}`, data);
+  const updateMutation = useMutation({
+    mutationFn: async ({ data, company, id }: updateCourseData) => {
+      console.log(data);
+      const response = await axiosInstance.patch(
+        `/general/${company}/update-course/${id}`,
+        data
+      );
+      return response.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["department-courses"] });
-      toast.success("¡Actualizado!", {
-        description: `El analisis ha sido actualizada correctamente.`,
+      toast.success("¡Creado!", {
+        description: ` La identificacion de peligro ha sido creado correctamente.`,
       });
     },
     onError: (error) => {
       toast.error("Oops!", {
-        description: "No se pudo actualizar el analisis...",
+        description: "No se pudo crear la identificacion de peligro...",
       });
       console.log(error);
     },
   });
   return {
-    updateAnalyses: updateAnalysesMutation,
+    updateCourse: updateMutation,
   };
 };

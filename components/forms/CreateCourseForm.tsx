@@ -15,7 +15,10 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
-import { useCreateCourse } from "@/actions/cursos/actions";
+import {
+  useCreateCourse,
+  useUpdateCourse,
+} from "@/actions/general/cursos/actions";
 import { Calendar } from "@/components/ui/calendar";
 import {
   Popover,
@@ -30,14 +33,14 @@ import { Course } from "@/types";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { CalendarIcon, Loader2 } from "lucide-react";
+import { dataTagSymbol } from "@tanstack/react-query";
+import { description } from "../misc/TestChart";
 
 interface FormProps {
   onClose: () => void;
   initialData?: Course;
   isEditing?: boolean;
 }
-// { onClose }: FormProps
-// lo de arriba va en prop
 export function CreateCourseForm({
   onClose,
   isEditing,
@@ -45,7 +48,8 @@ export function CreateCourseForm({
 }: FormProps) {
   const { selectedCompany } = useCompanyStore();
   const { createCourse } = useCreateCourse();
-  
+  const { updateCourse } = useUpdateCourse();
+
   const FormSchema = z.object({
     name: z.string(),
     description: z.string(),
@@ -81,12 +85,25 @@ export function CreateCourseForm({
 
   const onSubmit = async (data: FormSchemaType) => {
     if (initialData && isEditing) {
-      //await updateVoluntaryReport.mutateAsync(value);
+      const value = {
+        id: initialData.id,
+        company: selectedCompany,
+        data: {
+          name: data.name,
+          description: data.description,
+          duration: data.name,
+          time: data.time,
+          instructor: data.instructor,
+          start_date: data.start_date,
+          end_date: data.end_date,
+        },
+      };
+      const v = await updateCourse.mutateAsync(value);
     } else {
       const value = {
         company: selectedCompany,
         course: data,
-      }
+      };
       try {
         await createCourse.mutateAsync(value);
       } catch (error) {
