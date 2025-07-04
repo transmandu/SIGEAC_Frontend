@@ -61,16 +61,6 @@ const FormSchema = z
       .date()
       .refine((val) => !isNaN(val.getTime()), { message: "Fecha inválida" })
       .nullable(),
-  })
-  .superRefine((data, ctx) => {
-    if (data.execution_date && data.execution_date >= data.estimated_date) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message:
-          "La fecha de ejecución debe ser mayor o igual a la fecha estimada.",
-        path: ["execution_date"],
-      });
-    }
   });
 
 type FormSchemaType = z.infer<typeof FormSchema>;
