@@ -3,11 +3,13 @@
 import { Button } from "@/components/ui/button"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 
+import { useCreateCompany } from "@/actions/sistema/empresas/actions"
 import { Input } from "@/components/ui/input"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 import { Separator } from "../../ui/separator"
+import { Loader2 } from "lucide-react"
 
 const FormSchema = z.object({
   acronym: z.string({ message: "El acronimo es requerido." }),
@@ -44,6 +46,8 @@ interface FormProps {
 
 export function CreateCompanyForm({ onClose }: FormProps) {
 
+  const {createCompany} = useCreateCompany()
+
   const form = useForm<FormSchemaType>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
@@ -58,10 +62,8 @@ export function CreateCompanyForm({ onClose }: FormProps) {
       cod_inac: "",
     },
   })
-
-
   const onSubmit = (data: FormSchemaType) => {
-    console.log(data)
+    createCompany.mutateAsync(data)
   }
 
   return (
@@ -208,7 +210,7 @@ export function CreateCompanyForm({ onClose }: FormProps) {
           <p className="text-muted-foreground">SIGEAC</p>
           <Separator className="flex-1" />
         </div>
-        <Button>Crear Company</Button>
+        <Button disabled={createCompany.isPending}>{createCompany.isPending ? <Loader2 className="animate-spin" /> : "Crear Empresa"}</Button>
       </form>
     </Form>
   )

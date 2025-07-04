@@ -24,28 +24,44 @@ export const columns: ColumnDef<User>[] = [
       <DataTableColumnHeader filter column={column} title="Nombre" />
     ),
     cell: ({ row }) =>
-      <>
+      <div className="flex items-center justify-center">
         <TooltipProvider>
           <Tooltip>
-            <TooltipTrigger><span className='number'>{row.original.first_name} {row.original.last_name}</span></TooltipTrigger>
+            <TooltipTrigger className="flex justify-center"><p className='text-center font-medium'>{row.original.first_name} {row.original.last_name}</p></TooltipTrigger>
             <TooltipContent>
               <p>TODO: Agregar imagen</p>
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
-      </>
+      </div>
   },
   {
     accessorKey: "username",
     header: ({ column }) => (
       <DataTableColumnHeader filter column={column} title="Usuario" />
     ),
+    cell: ({ row }) => {
+      const item = row.original
+      return (
+        <div className="flex items-center justify-center">
+          <p className="font-bold">{item.username}</p>
+        </div>
+      )
+    }
   },
   {
     accessorKey: "email",
     header: ({ column }) => (
       <DataTableColumnHeader filter column={column} title="Email" />
     ),
+    cell: ({ row }) => {
+      const item = row.original
+      return (
+        <div className="flex items-center justify-center">
+          <p className="text-muted-foreground">{item.email}</p>
+        </div>
+      )
+    }
   },
   {
     accessorKey: "isActive",
@@ -56,11 +72,11 @@ export const columns: ColumnDef<User>[] = [
       const item = row.original
 
       return (
-        <>
+        <div className="flex items-center justify-center">
           {
             item.isActive ? <Badge className="bg-emerald-500">ACTIVO</Badge> : <Badge className="bg-rose-500">INACTIVO</Badge>
           }
-        </>
+        </div>
       )
     }
   },

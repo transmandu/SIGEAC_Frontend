@@ -23,6 +23,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { useState } from "react"
+import { CreateCompanyDialog } from "@/components/dialogs/CreateCompanyDialog"
 
 
 interface DataTableProps<TData, TValue> {
@@ -59,7 +60,7 @@ export function DataTable<TData, TValue>({
     <div>
       <div className="flex items-center py-4">
         <div className="flex gap-x-2 items-center">
-          <ModuleDialog />
+          <CreateCompanyDialog />
         </div>
         <DataTableViewOptions table={table} />
       </div>
