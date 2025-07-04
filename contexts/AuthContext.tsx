@@ -10,7 +10,6 @@ import { useRouter } from 'next/navigation';
 import { createContext, ReactNode, useContext, useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
-// 1. Mejor tipado para el contexto
 interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
@@ -24,7 +23,6 @@ interface AuthContextType {
   >;
   logout: () => Promise<void>;
 }
-
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -54,45 +52,30 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const userQuery = useQuery({
-    queryKey: ['user'],
-    queryFn: fetchUser,
-    retry: 1,
-    staleTime: 1000 * 60 * 5, // 5 minutos
-    refetchOnWindowFocus: false,
-    enabled: false // Deshabilitamos la ejecución automática
-  });
-
+  // Eliminamos el useQuery anterior y lo reemplazamos por una función directa
+  // que podemos llamar manualmente cuando necesitemos
 
   useEffect(() => {
-    const loadUser = async () => {
+    // Verificamos si hay token al cargar la aplicación
+    const checkAuth = async () => {
       try {
         setIsLoading(true);
-        const userData = await fetchUser();
-        if (!userData) {
-          await deleteCookie("auth_token");
+        // Aquí puedes verificar si existe el cookie de auth_token
+        // Si existe, hacemos el fetch del usuario
+        const token = document.cookie.includes('auth_token');
+        if (token) {
+          await fetchUser();
         }
       } catch (error) {
-        console.error("Error loading user:", error);
-        setError("Error al cargar usuario");
+        console.error("Error checking auth:", error);
+        setError("Error al verificar autenticación");
       } finally {
         setIsLoading(false);
       }
     };
 
-    loadUser();
-  }, []); // Array de dependencias vacío para ejecutar solo al montar
-
-
-  useEffect(() => {
-    if (userQuery.data) {
-      setUser(userQuery.data);
-    }
-    if (userQuery.error) {
-      setError(userQuery.error.message);
-    }
-  }, [userQuery.data, userQuery.error]);
-
+    checkAuth();
+  }, []);
 
   const loginMutation = useMutation({
     mutationFn: async (credentials: { login: string; password: string }) => {
@@ -104,12 +87,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (!token) throw new Error('No se recibió token de autenticación');
 
       createCookie("auth_token", token);
-      await createSession(response.data.id); // Asumiendo que el user tiene id
+      await createSession(response.data.id);
 
       return response.data;
     },
-    onSuccess: (userData) => {
-      setUser(userData);
+    onSuccess: async (userData) => {
+      // Después de login exitoso, hacemos fetch del usuario
+      await fetchUser();
       queryClient.invalidateQueries({ queryKey: ['user'] });
       router.push('/inicio');
       toast.success('¡Inicio correcto!', {
@@ -129,28 +113,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const logout = async () => {
     try {
-      // 1. Primero limpiar el estado local para evitar acceso
-    setUser(null);
-    setError(null);
-
-    // 2. Eliminar sesión del servidor (esperar a que complete)
-    await deleteSession();
-
-    // 4. Resetear el store de compañía (esperar si es async)
-    await reset();
-
-    // 5. Limpiar cache de React Query
-    queryClient.clear();
-
-    // 6. Redirigir después de TODO está completo
-    router.push('/login');
-
-    // 7. Forzar recarga para limpiar cualquier estado residual
-    router.refresh();
-
-    toast.success('Sesión cerrada correctamente', {
-      position: "bottom-center"
-    });
+      setUser(null);
+      setError(null);
+      await deleteSession();
+      await reset();
+      queryClient.clear();
+      router.push('/login');
+      router.refresh();
+      toast.success('Sesión cerrada correctamente', {
+        position: "bottom-center"
+      });
     } catch (err) {
       console.error('Error durante logout:', err);
       toast.error('Error al cerrar sesión', {
@@ -160,15 +132,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  // 9. Valor del contexto memoizado
   const contextValue = useMemo(() => ({
     user,
     isAuthenticated,
-    loading: loading || userQuery.isFetching,
+    loading,
     error,
     loginMutation,
     logout,
-  }), [user, isAuthenticated, loading, error, loginMutation, userQuery.isFetching]);
+  }), [user, isAuthenticated, loading, error, loginMutation]);
 
   return (
     <AuthContext.Provider value={contextValue}>
