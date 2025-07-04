@@ -37,7 +37,6 @@ export const useCreateDangerIdentification = () => {
   const createMutation = useMutation({
     mutationKey: ["danger-identifications/${id}"],
     mutationFn: async ({data, reportType, id}: DangerIdentificationData) => {
-      console.log("ESTA ES LA DATA QUE RECIBE EL ACTION",data);
       const response = await axiosInstance.post(
         `/transmandu/sms/danger-identifications/${id}/${reportType}`,
         data,

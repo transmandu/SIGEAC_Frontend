@@ -27,7 +27,7 @@ import {
   CommandList,
 } from "../ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
-import { useCreateCourseAttendance } from "@/actions/asistencia_curso/actions";
+import { useCreateCourseAttendance } from "@/actions/general/asistencia_curso/actions";
 
 interface FormProps {
   onClose: () => void;

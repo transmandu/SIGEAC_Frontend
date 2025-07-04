@@ -1,15 +1,7 @@
 "use client";
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { useGetEnrolledEmployees } from "@/hooks/sms/useGetEnrolledEmployees";
+import { useGetActivityEnrolledEmployees } from "@/hooks/sms/useGetEnrolledEmployees";
 import { useGetSMSActivityById } from "@/hooks/sms/useGetSMSActivityById";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -19,8 +11,7 @@ import {
   FileText,
   Loader2,
   MapPin,
-  User,
-  Users,
+  Users
 } from "lucide-react";
 import { useParams } from "next/navigation";
 
@@ -37,7 +28,7 @@ const ShowSMSActivity = () => {
     data: employees,
     isLoading: isEmployeesLoading,
     isError: employeeError,
-  } = useGetEnrolledEmployees(activity_id);
+  } = useGetActivityEnrolledEmployees(activity_id);
 
   return (
     <ContentLayout title="Actividad de SMS">

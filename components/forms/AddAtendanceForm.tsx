@@ -1,6 +1,6 @@
 "use client";
 
-import { useCreateSMSActivityAttendance } from "@/actions/sms/sms_asistencia_actividades/actions";
+import { useCreateCourseAttendance } from "@/actions/general/asistencia_curso/actions";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -10,12 +10,12 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { useGetEnrolledStatus } from "@/hooks/sms/useGetEnrolledStatus";
 import { cn } from "@/lib/utils";
-import { SMSActivity } from "@/types";
+import { useCompanyStore } from "@/stores/CompanyStore";
+import { Course } from "@/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Check, ChevronsUpDown } from "lucide-react";
-import { useCallback, useEffect, useState } from "react"; // Importa useCallback
+import { useCallback, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import {
@@ -27,21 +27,23 @@ import {
   CommandList,
 } from "../ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
+import { useGetCourseEnrolledEmployees } from "@/hooks/sms/useGetCourseEnrolledEmployees";
 
 interface FormProps {
   onClose: () => void;
-  initialData: SMSActivity;
+  initialData: Course;
 }
 
 interface EmployeeSelection {
   dni: string;
   first_name: string;
   last_name: string;
+  job_title: string;
+  department: string;
   isSelected: boolean;
   wasEnrolled: boolean;
 }
 
-// Esquema del formulario modificado
 const FormSchema = z.object({
   addedEmployees: z.array(
     z.object({
@@ -61,15 +63,20 @@ const FormSchema = z.object({
 
 type FormSchemaType = z.infer<typeof FormSchema>;
 
-export function AddToSMSActivity({ onClose, initialData }: FormProps) {
+export function AddAtendanceForm({ onClose, initialData }: FormProps) {
   const [open, setOpen] = useState(false);
-  const { createSMSActivityAttendance } = useCreateSMSActivityAttendance();
+  const { selectedCompany } = useCompanyStore();
+  const { createCourseAttendance } = useCreateCourseAttendance();
   const [employeeSelections, setEmployeeSelections] = useState<
     EmployeeSelection[]
   >([]);
 
+  const value = {
+    course_id: initialData.id.toString(),
+    company: selectedCompany,
+  };
   const { data: employeesData, isLoading: isLoadingEnrolledEmployee } =
-    useGetEnrolledStatus(initialData.id);
+    useGetCourseEnrolledEmployees(value);
 
   const form = useForm<FormSchemaType>({
     resolver: zodResolver(FormSchema),
@@ -79,7 +86,7 @@ export function AddToSMSActivity({ onClose, initialData }: FormProps) {
     },
   });
 
-  // Envuelve updateFormValues en useCallback
+  // Ahora 'form' completo es la dependencia de useCallback
   const updateFormValues = useCallback(
     (selections: EmployeeSelection[]) => {
       const added = selections.filter((e) => e.isSelected && !e.wasEnrolled);
@@ -106,21 +113,24 @@ export function AddToSMSActivity({ onClose, initialData }: FormProps) {
     [form] // La dependencia ahora es el objeto 'form'
   );
 
-  // Inicializar la lista de empleados
   useEffect(() => {
     if (employeesData) {
       const selections: EmployeeSelection[] = [
-        ...(employeesData.enrolled?.map((e) => ({
+        ...(employeesData.attended?.map((e) => ({
           dni: e.dni,
           first_name: e.first_name,
           last_name: e.last_name,
+          job_title: e.job_title.name,
+          department: e.department.name,
           isSelected: true,
           wasEnrolled: true,
         })) || []),
-        ...(employeesData.not_enrolled?.map((e) => ({
+        ...(employeesData.not_attended?.map((e) => ({
           dni: e.dni,
           first_name: e.first_name,
           last_name: e.last_name,
+          job_title: e.job_title.name,
+          department: e.department.name,
           isSelected: false,
           wasEnrolled: false,
         })) || []),
@@ -129,7 +139,7 @@ export function AddToSMSActivity({ onClose, initialData }: FormProps) {
       setEmployeeSelections(selections);
       updateFormValues(selections);
     }
-  }, [employeesData, updateFormValues]); // Agrega updateFormValues a las dependencias
+  }, [employeesData, updateFormValues]);
 
   const toggleEmployeeSelection = (dni: string) => {
     const newSelections = employeeSelections.map((emp) =>
@@ -141,17 +151,16 @@ export function AddToSMSActivity({ onClose, initialData }: FormProps) {
   };
 
   const onSubmit = async (data: FormSchemaType) => {
-    console.log("Empleados agregados:", data.addedEmployees);
-    console.log("Empleados eliminados:", data.removedEmployees);
     const value = {
-      activity_id: initialData?.id.toString(),
-      data: {
+      company: selectedCompany,
+      course_id: initialData?.id.toString(),
+      employees_list: {
         addedEmployees: data.addedEmployees,
         removedEmployees: data.removedEmployees,
       },
     };
     try {
-      const response = await createSMSActivityAttendance.mutateAsync(value);
+      await createCourseAttendance.mutateAsync(value);
     } catch (error) {
       console.error("Error al inscribir", error);
     }
@@ -166,7 +175,7 @@ export function AddToSMSActivity({ onClose, initialData }: FormProps) {
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
         <FormLabel className="text-lg font-semibold">
-          Gestionar participantes de la actividad
+          Gestionar asistentes al curso
         </FormLabel>
 
         <FormField
@@ -223,10 +232,11 @@ export function AddToSMSActivity({ onClose, initialData }: FormProps) {
                                 )}
                               />
                               {employee.first_name} {employee.last_name} -{" "}
-                              {employee.dni}
+                              {employee.dni} <br />({employee.job_title}
+                              {employee.department})
                               {employee.wasEnrolled && (
                                 <span className="ml-2 text-xs text-muted-foreground">
-                                  (inscrito)
+                                  (Asitió)
                                 </span>
                               )}
                             </CommandItem>

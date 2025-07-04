@@ -13,6 +13,7 @@ import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { Badge } from "@/components/ui/badge";
 import CourseDropdownActions from "@/components/misc/CourseDropdownActions";
+import { dateFormat } from "@/lib/utils";
 
 export const columns: ColumnDef<Course>[] = [
   {
@@ -34,9 +35,7 @@ export const columns: ColumnDef<Course>[] = [
     cell: ({ row }) => {
       return (
         <p className="font-medium text-center">
-          {format(row.original.start_date, "PPP", {
-            locale: es,
-          })}
+          {dateFormat(row.original.start_date, "PPP")}
         </p>
       );
     },
@@ -54,9 +53,7 @@ export const columns: ColumnDef<Course>[] = [
     cell: ({ row }) => {
       return (
         <p className="font-medium text-center">
-          {format(row.original.end_date, "PPP", {
-            locale: es,
-          })}
+          {dateFormat(row.original.end_date, "PPP")}
         </p>
       );
     },
