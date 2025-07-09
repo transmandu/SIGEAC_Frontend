@@ -207,9 +207,17 @@ export type Company = {
   alt_phone_number: number;
   cod_iata: string;
   cod_oaci: string;
+  modules: Module[];
   created_at: string;
   updated_at: string;
 };
+
+export type Module = {
+  id: number,
+  label: string,
+  value: string,
+  registered_by: string,
+}
 
 export interface ComponentArticle extends Article {
   caducate_date?: string;
@@ -471,13 +479,6 @@ export type Manufacturer = {
   description: string;
 };
 
-export type Module = {
-  id: number,
-  label: string,
-  value: string,
-  registered_by: string,
-  company: Company,
-}
 
 export type Vendor = {
   id: string | number;

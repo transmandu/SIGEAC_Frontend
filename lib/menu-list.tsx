@@ -612,6 +612,11 @@ export function getMenuList(
                   active: pathname === "/sistema/empresas/empresas",
                 },
                 {
+                  href: "/sistema/empresas/ubicaciones",
+                  label: "Administrar Ubicaciones",
+                  active: pathname === "/sistema/empresas/ubicaciones",
+                },
+                {
                   href: "/sistema/empresas/empleados",
                   label: "Administrar Empleados",
                   active: pathname === "/sistema/empresas/empleados",
