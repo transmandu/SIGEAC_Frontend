@@ -122,9 +122,9 @@ export function CreateObligatoryReportForm({
       flight_number: z.string().refine((val) => !isNaN(Number(val)), {
         message: "El valor debe ser un número",
       }),
-      flight_origin: z.string().min(3).max(3),
-      flight_destiny: z.string().min(3).max(3),
-      flight_alt_destiny: z.string().min(3).max(3),
+      flight_origin: z.string().min(4).max(4),
+      flight_destiny: z.string().min(4).max(4),
+      flight_alt_destiny: z.string().min(4).max(4),
       incidents: z.array(z.string()).optional(),
       other_incidents: z.preprocess(
         (val) => (val === null || val === undefined ? "" : val),
@@ -676,7 +676,6 @@ export function CreateObligatoryReportForm({
                   <Input
                     placeholder="Salida del vuelo"
                     {...field}
-                    maxLength={3}
                   />
                 </FormControl>
                 <FormMessage className="text-xs" />
@@ -696,7 +695,6 @@ export function CreateObligatoryReportForm({
                   <Input
                     placeholder="Destino del vuelo"
                     {...field}
-                    maxLength={3}
                   />
                 </FormControl>
                 <FormMessage className="text-xs" />
@@ -713,7 +711,6 @@ export function CreateObligatoryReportForm({
                   <Input
                     placeholder="Destino alterno del vuelo"
                     {...field}
-                    maxLength={3}
                   />
                 </FormControl>
                 <FormMessage className="text-xs" />
