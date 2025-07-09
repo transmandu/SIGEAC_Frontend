@@ -11,6 +11,7 @@ interface CourseData {
     time: string;
     start_date: Date;
     end_date: Date;
+    course_type: string;
     instructor?: string;
   };
 }
@@ -24,6 +25,7 @@ interface updateCourseData {
     duration: string;
     time: string;
     instructor?: string;
+    course_type: string;
     start_date: Date;
     end_date: Date;
   };
@@ -33,7 +35,8 @@ export const useCreateCourse = () => {
   const queryClient = useQueryClient();
   const createMutation = useMutation({
     mutationFn: async (data: CourseData) => {
-      await axiosInstance.post(`/general/${data.company}/create-course`, data, {
+      console.log("data from create course",data.course);
+      await axiosInstance.post(`/general/${data.company}/create-course`, data.course, {
         headers: {
           "Content-Type": "multipart/form-data",
         },

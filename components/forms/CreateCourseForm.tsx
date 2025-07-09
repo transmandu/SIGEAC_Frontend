@@ -33,8 +33,13 @@ import { Course } from "@/types";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { CalendarIcon, Loader2 } from "lucide-react";
-import { dataTagSymbol } from "@tanstack/react-query";
-import { description } from "../misc/TestChart";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../ui/select";
 
 interface FormProps {
   onClose: () => void;
@@ -55,13 +60,14 @@ export function CreateCourseForm({
     description: z.string(),
     duration: z.string(),
     time: z.string(),
+    course_type: z.string(),
     instructor: z.string().optional(),
     end_date: z
       .date()
-      .refine((val) => !isNaN(val.getTime()), { message: "Invalid Date" }),
+      .refine((val) => !isNaN(val.getTime()), { message: "Fecha no valida" }),
     start_date: z
       .date()
-      .refine((val) => !isNaN(val.getTime()), { message: "Invalid Date" }),
+      .refine((val) => !isNaN(val.getTime()), { message: "Fecha no valida" }),
   });
 
   type FormSchemaType = z.infer<typeof FormSchema>;
@@ -70,6 +76,7 @@ export function CreateCourseForm({
     resolver: zodResolver(FormSchema),
     defaultValues: {
       name: initialData?.name,
+      course_type: initialData?.course_type || "",
       description: initialData?.description,
       instructor: initialData?.instructor,
       time: initialData?.time,
@@ -95,6 +102,7 @@ export function CreateCourseForm({
           time: data.time,
           instructor: data.instructor,
           start_date: data.start_date,
+          course_type: data.course_type,
           end_date: data.end_date,
         },
       };
@@ -223,6 +231,31 @@ export function CreateCourseForm({
                   <Input placeholder="" {...field} />
                 </FormControl>
                 <FormMessage className="text-xs" />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="course_type"
+            render={({ field }) => (
+              <FormItem className="w-full">
+                <FormLabel>Tipo de Curso</FormLabel>
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Seleccionar Curso" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="RECURRENTE">RECURRENTE</SelectItem>
+                    <SelectItem value="INICIAL">INICIAL</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormMessage />
               </FormItem>
             )}
           />

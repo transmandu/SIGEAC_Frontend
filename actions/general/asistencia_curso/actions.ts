@@ -54,10 +54,15 @@ export const useMarkAttendance = () => {
   const queryClient = useQueryClient();
   const markAttendanceMutation = useMutation({
     mutationFn: async (data: CourseAttendaceData) => {
-      await axiosInstance.patch(`/general/${data.company}/mark-attendance/${data.course_id}`, data);
+      console.log("THIS IS DATA FROM MARK ATTENDANCE", data);
+      await axiosInstance.patch(
+        `/general/${data.company}/mark-attendance/${data.course_id}`,
+        data.employees_list
+      );
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["department-courses"] });
+      queryClient.invalidateQueries({ queryKey: ["employees-course"] });
       toast.success("¡Actualizado!", {
         description: `El analisis ha sido actualizada correctamente.`,
       });
