@@ -170,8 +170,6 @@ export function CreateUserForm() {
           roles: rolesAsNumbers
         };
 
-        // Enviar los datos formateados a la acción de crear usuario
-        // console.log(formattedData)
         createUser.mutate(formattedData);
       }
     } catch (error) {

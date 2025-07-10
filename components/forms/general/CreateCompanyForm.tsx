@@ -14,16 +14,17 @@ import { cn } from "@/lib/utils"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Check, ChevronsUpDown, Loader2 } from "lucide-react"
 import { useEffect, useState } from "react"
-import { useFieldArray, useForm } from "react-hook-form"
+import { Control, useFieldArray, useForm } from "react-hook-form"
 import { z } from "zod"
 import { Separator } from "../../ui/separator"
 import { toast } from "sonner"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 const LocationSchema = z.object({
-  name: z.string().min(2, "Nombre requerido"),
+  type: z.string().min(2, "Nombre requerido"),
   address: z.string().min(5, "Dirección requerida"),
-  phone: z.string().min(6, "Teléfono requerido"),
-  is_main: z.boolean().default(false),
+  cod_iata: z.string(),
+  isMainBase: z.boolean().default(false),
 });
 
 const FormSchema = z.object({
@@ -42,13 +43,19 @@ const FormSchema = z.object({
   }),
   phone_number: z.string(),
   alt_phone_number: z.string().optional(),
-  cod_inac: z.string().min(2, {
+  cod_inac: z.string().min(3, {
+    message: "El codigo debe tener la longitud correcta.",
+  }).max(3, {
     message: "El codigo debe tener la longitud correcta.",
   }),
-  cod_iata: z.string().min(2, {
+  cod_iata: z.string().min(3, {
+    message: "El codigo debe tener la longitud correcta.",
+  }).max(3, {
     message: "El codigo debe tener la longitud correcta.",
   }),
-  cod_oaci: z.string().min(2, {
+  cod_oaci: z.string().min(3, {
+    message: "El codigo debe tener la longitud correcta.",
+  }).max(3, {
     message: "El codigo debe tener la longitud correcta.",
   }),
   modules: z.array(z.string()),
@@ -105,7 +112,7 @@ export function CreateCompanyForm({ onClose }: FormProps) {
   }, [selectedModules, form]);
 
   const onSubmit = (data: FormSchemaType) => {
-    //createCompany.mutateAsync(data)
+    createCompany.mutateAsync(data)
     console.log(data)
   }
 
@@ -380,8 +387,6 @@ export function CreateCompanyForm({ onClose }: FormProps) {
           <>
             <LocationsStep
               control={form.control}
-              register={form.register}
-              errors={form.formState.errors}
             />
             <div className="flex justify-between items-center gap-x-4">
               <Separator className="flex-1" />
@@ -402,7 +407,7 @@ export function CreateCompanyForm({ onClose }: FormProps) {
 }
 
 
-const LocationsStep = ({ control, register, errors }) => {
+const LocationsStep = ({ control }: {control: Control<FormSchemaType>}) => {
   const { fields, append, remove } = useFieldArray({
     control,
     name: "locations",
@@ -424,44 +429,84 @@ const LocationsStep = ({ control, register, errors }) => {
             </Button>
           </div>
           <div className="grid grid-cols-2 gap-4 mt-2">
+            <FormField
+          control={control}
+          name={`locations.${index}.type`}
+          render={({ field }) => (
             <FormItem>
-              <FormLabel>Nombre *</FormLabel>
-              <Input
-                {...register(`locations.${index}.name`)}
-                placeholder="Ej: Sede Principal"
-              />
-              {errors.locations?.[index]?.name && (
-                <FormMessage>{errors.locations[index].name.message}</FormMessage>
+              <FormLabel>Tipo *</FormLabel>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Seleccione..." />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="principal">Principal</SelectItem>
+                  <SelectItem value="alterno">Alterno</SelectItem>
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+            <FormField
+              control={control}
+              name={`locations.${index}.cod_iata`}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Código IATA</FormLabel>
+                  <FormControl>
+                    <Input placeholder="ABC123" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
               )}
-            </FormItem>
-            <FormItem>
-              <FormLabel>Teléfono *</FormLabel>
-              <Input
-                {...register(`locations.${index}.phone`)}
-                placeholder="+58 424-1234567"
-              />
-            </FormItem>
-            <FormItem className="col-span-2">
-              <FormLabel>Dirección *</FormLabel>
-              <Input
-                {...register(`locations.${index}.address`)}
-                placeholder="Av. Principal, Edificio XYZ"
-              />
-            </FormItem>
-            <FormItem className="flex items-center gap-2">
-              <Checkbox
-                {...register(`locations.${index}.is_main`)}
-                id={`is_main_${index}`}
-              />
-              <label htmlFor={`is_main_${index}`}>¿Es la sede principal?</label>
-            </FormItem>
+            />
+            <FormField
+              control={control}
+              name={`locations.${index}.address`}
+              render={({ field }) => (
+                <FormItem className="col-span-2">
+                  <FormLabel>Dirección *</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Av. Principal, Edificio XYZ" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={control}
+              name={`locations.${index}.isMainBase`}
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-start space-x-3 space-y-0 p-4">
+                  <FormControl>
+                    <Checkbox
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                  <div className="space-y-1 leading-none">
+                    <FormLabel>
+                      ¿Es la sede principal?
+                    </FormLabel>
+                  </div>
+                </FormItem>
+              )}
+            />
           </div>
         </div>
       ))}
       <Button
         type="button"
         variant="outline"
-        onClick={() => append({ name: "", address: "", phone: "", is_main: false })}
+        onClick={() => append({
+          type: "",
+          address: "",
+          cod_iata: "",
+          isMainBase: false
+        })}
       >
         + Agregar otra ubicación
       </Button>

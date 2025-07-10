@@ -49,6 +49,7 @@ import { Checkbox } from '../../ui/checkbox';
 import { Label } from '../../ui/label';
 import { useGetCompanies } from '@/hooks/sistema/useGetCompanies';
 import { useCreateUser } from '@/actions/general/usuarios/actions';
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 const formSchema = z
   .object({
@@ -641,8 +642,9 @@ export function CreateEmployeeForm() {
                 </FormItem>
               )}
             />
-
-            <FormField
+            {
+              companies && (
+                <FormField
               control={form.control}
               name="companies_locations"
               render={({ field }) => {
@@ -692,7 +694,8 @@ export function CreateEmployeeForm() {
                 return (
                   <FormItem className="flex flex-col items-start rounded-md space-y-2 py-2 px-6">
                     <FormLabel>Ubicaciones</FormLabel>
-                    <Accordion className="w-full" type="single" collapsible>
+                    <ScrollArea className={cn("h-auto w-full", companies!.length > 4 && "h-[250px]" )}>
+                      <Accordion className="w-full" type="single" collapsible>
                       {companies &&
                         companies_locations &&
                         companies.map((company) => (
@@ -748,11 +751,14 @@ export function CreateEmployeeForm() {
                           ubicaciones...
                         </p>
                       )}
-                    </Accordion>
+                      </Accordion>
+                    </ScrollArea>
                   </FormItem>
                 );
               }}
             />
+              )
+            }
 
             <div className="flex justify-between pt-4">
               <Button
