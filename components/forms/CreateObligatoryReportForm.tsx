@@ -296,7 +296,7 @@ export function CreateObligatoryReportForm({
           `/transmandu/sms/reportes/reportes_obligatorios/${response.obligatory_report_id}`
         );
       } catch (error) {
-        console.error("Error al crear el reporte:", error);
+        console.error("Error al crear reporte:", error);
       }
     }
     onClose();
