@@ -41,13 +41,11 @@ const FormSchema = z
 
     implementation_supervisor: z
       .string()
-      .nonempty({ message: "El supervisor es requerido" })
       .min(3, { message: "El supervisor debe tener al menos 3 caracteres" })
       .max(19, { message: "El supervisor no puede exceder los 19 caracteres" }),
 
     implementation_responsible: z
       .string()
-      .nonempty({ message: "El responsable es requerido" })
       .min(3, { message: "El responsable debe tener al menos 3 caracteres" })
       .max(23, {
         message: "El responsable no puede exceder los 23 caracteres",
@@ -61,16 +59,6 @@ const FormSchema = z
       .date()
       .refine((val) => !isNaN(val.getTime()), { message: "Fecha inválida" })
       .nullable(),
-  })
-  .superRefine((data, ctx) => {
-    if (data.execution_date && data.execution_date >= data.estimated_date) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message:
-          "La fecha de ejecución debe ser mayor o igual a la fecha estimada.",
-        path: ["execution_date"],
-      });
-    }
   });
 
 type FormSchemaType = z.infer<typeof FormSchema>;

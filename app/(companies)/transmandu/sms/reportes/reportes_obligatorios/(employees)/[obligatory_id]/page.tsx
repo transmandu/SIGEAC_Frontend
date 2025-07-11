@@ -1,7 +1,7 @@
 "use client";
 import CreateDangerIdentificationDialog from "@/components/dialogs/CreateDangerIdentificationDialog";
 import CreateObligatoryDialog from "@/components/dialogs/CreateObligatoryDialog";
-import DeleteVoluntaryReprotDialog from "@/components/dialogs/DeleteVoluntaryReportDialog";
+import DeleteObligatoryReportDialog from "@/components/dialogs/DeleteObligatoryReportDialog";
 import PreviewObligatoryReportPdfDialog from "@/components/dialogs/PreviewObligatoryReportPdfDialog";
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import { Badge } from "@/components/ui/badge";
@@ -15,29 +15,25 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { useGetObligatoryReportById } from "@/hooks/sms/useGetObligatoryReportById";
-import { format, parse } from "date-fns";
+import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import {
-  Loader2,
-  FileText,
-  Download,
-  Eye,
-  Edit,
-  Trash2,
-  AlertTriangle,
+  AlertCircle,
   Calendar,
   Clock,
+  Download,
+  File,
+  FileText,
+  Image as ImageIcon,
+  Loader2,
   MapPin,
-  AlertCircle,
   Plane,
   User,
-  Users,
-  File,
-  Image as ImageIcon,
+  Users
 } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import Image from "next/image";
 import { useCompanyStore } from "@/stores/CompanyStore";
 
 const ShowObligatoryReport = () => {
@@ -105,7 +101,7 @@ const ShowObligatoryReport = () => {
         {/* Botón para eliminar reporte */}
         {obligatoryReport && obligatoryReport.status === "ABIERTO" && (
           <div className="flex items-center py-4">
-            {/* <DeleteVoluntaryReprotDialog id={obligatoryReport.id} /> */}
+            <DeleteObligatoryReportDialog id={obligatoryReport.id} />
           </div>
         )}
 
@@ -333,7 +329,7 @@ const ShowObligatoryReport = () => {
                       {obligatoryReport.pilot.employee?.last_name}
                     </p>
                     <p className="text-lg text-gray-700 dark:text-gray-300">
-                      <span className="font-semibold">Email: </span>
+                      <span className="font-semibold">Correo: </span>
                       {/* {obligatoryReport.pilot.}  */}
                       {/* necesito agregar email y phone */}
                     </p>

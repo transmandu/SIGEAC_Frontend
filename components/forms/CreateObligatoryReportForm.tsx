@@ -119,9 +119,7 @@ export function CreateObligatoryReportForm({
       pilot_id: z.string(),
       copilot_id: z.string(),
       aircraft_id: z.string(),
-      flight_number: z.string().refine((val) => !isNaN(Number(val)), {
-        message: "El valor debe ser un número",
-      }),
+      flight_number: z.string(),
       flight_origin: z.string().min(4).max(4),
       flight_destiny: z.string().min(4).max(4),
       flight_alt_destiny: z.string().min(4).max(4),
@@ -298,7 +296,7 @@ export function CreateObligatoryReportForm({
           `/transmandu/sms/reportes/reportes_obligatorios/${response.obligatory_report_id}`
         );
       } catch (error) {
-        console.error("Error al crear el reporte:", error);
+        console.error("Error al crear reporte:", error);
       }
     }
     onClose();
