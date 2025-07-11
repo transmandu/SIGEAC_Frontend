@@ -28,12 +28,14 @@ import {
   DialogTrigger,
 } from "../ui/dialog";
 import CreateDangerIdentificationForm from "../forms/CreateIdentificationForm";
+import { useCompanyStore } from "@/stores/CompanyStore";
 
 const DangerIdentificationDropdownActions = ({
   dangerIdentification,
 }: {
   dangerIdentification: DangerIdentification;
 }) => {
+  const { selectedCompany } = useCompanyStore();
   const [open, setOpen] = useState<boolean>(false);
   const [openEdit, setOpenEdit] = useState<boolean>(false);
   const [openEditAnalyses, setOpenEditAnalyses] = useState<boolean>(false);
@@ -44,7 +46,13 @@ const DangerIdentificationDropdownActions = ({
   const router = useRouter();
 
   const handleDelete = async (id: number | string) => {
-    await deleteDangerIdentification.mutateAsync(id);
+    const value = {
+      company: selectedCompany,
+      id: id.toString(),
+    };
+    if (value.company) {
+      await deleteDangerIdentification.mutateAsync(value);
+    }
     setOpenDelete(false);
   };
 

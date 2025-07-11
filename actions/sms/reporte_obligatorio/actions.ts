@@ -25,27 +25,30 @@ interface ObligatoryReportData {
 }
 
 interface UpdateObligatoryReportData {
+  company: string | null;
   id: number | string;
-  report_number: string;
-  description: string;
-  incident_location: string;
-  report_date: Date;
-  incident_date: Date;
-  incident_time: string;
-  flight_time: string;
-  pilot_id: string | number;
-  copilot_id: string | number;
-  aircraft_id: string | number;
-  flight_number: string;
-  flight_origin: string;
-  flight_destiny: string;
-  flight_alt_destiny: string;
-  incidents?: string[];
-  status: string;
-  danger_identification_id: string | number | null;
-  other_incidents?: string;
-  image?: string | File;
-  document?: string | File;
+  data: {
+    report_number: string;
+    description: string;
+    incident_location: string;
+    report_date: Date;
+    incident_date: Date;
+    incident_time: string;
+    flight_time: string;
+    pilot_id: string | number;
+    copilot_id: string | number;
+    aircraft_id: string | number;
+    flight_number: string;
+    flight_origin: string;
+    flight_destiny: string;
+    flight_alt_destiny: string;
+    incidents?: string[];
+    status: string;
+    danger_identification_id: string | number | null;
+    other_incidents?: string;
+    image?: string | File;
+    document?: string | File;
+  };
 }
 
 export const useCreateObligatoryReport = () => {
@@ -123,8 +126,8 @@ export const useUpdateObligatoryReport = () => {
     mutationFn: async (data: UpdateObligatoryReportData) => {
       console.log("antes de hacer el post", data);
       await axiosInstance.post(
-        `/transmandu/sms/update/obligatory-reports/${data.id}`,
-        data,
+        `/${data.company}/sms/update-obligatory-reports/${data.id}`,
+        data.data,
         {
           headers: {
             "Content-Type": "multipart/form-data",

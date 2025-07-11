@@ -21,7 +21,7 @@ interface data {
   id: number | string;
 }
 
-export default function DeleteVoluntaryReprotDialog(data: data) {
+export default function DeleteVoluntaryReportDialog(data: data) {
   const [open, setOpen] = useState(false);
   const { deleteVoluntaryReport } = useDeleteVoluntaryReport();
   const router = useRouter();

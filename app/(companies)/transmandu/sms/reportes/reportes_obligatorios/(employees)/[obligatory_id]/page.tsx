@@ -29,7 +29,7 @@ import {
   MapPin,
   Plane,
   User,
-  Users
+  Users,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -101,7 +101,10 @@ const ShowObligatoryReport = () => {
         {/* Botón para eliminar reporte */}
         {obligatoryReport && obligatoryReport.status === "ABIERTO" && (
           <div className="flex items-center py-4">
-            <DeleteObligatoryReportDialog id={obligatoryReport.id} />
+            <DeleteObligatoryReportDialog
+              company={selectedCompany}
+              id={obligatoryReport.id.toString()}
+            />
           </div>
         )}
 

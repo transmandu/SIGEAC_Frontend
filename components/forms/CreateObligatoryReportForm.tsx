@@ -243,27 +243,30 @@ export function CreateObligatoryReportForm({
     console.log(data);
     if (isEditing && initialData && data.report_number) {
       const value = {
+        company: selectedCompany,
         id: initialData.id,
-        image: data.image,
-        document: data.document,
-        status: initialData.status,
-        danger_identification_id: initialData.danger_identification?.id,
-        report_number: data.report_number,
-        incident_location: data.incident_location,
-        description: data.description,
-        incident_date: data.incident_date,
-        report_date: data.report_date,
-        incident_time: `${data.incident_time}:00`, // Añadimos segundos para el backend
-        flight_time: `${data.flight_time}:00`, // Añadimos segundos para el backend
-        pilot_id: data.pilot_id,
-        copilot_id: data.copilot_id,
-        aircraft_id: data.aircraft_id,
-        flight_number: data.flight_number,
-        flight_origin: data.flight_origin,
-        flight_destiny: data.flight_destiny,
-        flight_alt_destiny: data.flight_alt_destiny,
-        incidents: data.incidents,
-        other_incidents: data.other_incidents,
+        data: {
+          image: data.image,
+          document: data.document,
+          status: initialData.status,
+          danger_identification_id: initialData.danger_identification?.id,
+          report_number: data.report_number,
+          incident_location: data.incident_location,
+          description: data.description,
+          incident_date: data.incident_date,
+          report_date: data.report_date,
+          incident_time: `${data.incident_time}:00`, // Añadimos segundos para el backend
+          flight_time: `${data.flight_time}:00`, // Añadimos segundos para el backend
+          pilot_id: data.pilot_id,
+          copilot_id: data.copilot_id,
+          aircraft_id: data.aircraft_id,
+          flight_number: data.flight_number,
+          flight_origin: data.flight_origin,
+          flight_destiny: data.flight_destiny,
+          flight_alt_destiny: data.flight_alt_destiny,
+          incidents: data.incidents,
+          other_incidents: data.other_incidents,
+        },
       };
       await updateObligatoryReport.mutateAsync(value);
     } else {
@@ -671,10 +674,7 @@ export function CreateObligatoryReportForm({
               <FormItem className="w-full">
                 <FormLabel>Origen de vuelo</FormLabel>
                 <FormControl>
-                  <Input
-                    placeholder="Salida del vuelo"
-                    {...field}
-                  />
+                  <Input placeholder="Salida del vuelo" {...field} />
                 </FormControl>
                 <FormMessage className="text-xs" />
               </FormItem>
@@ -690,10 +690,7 @@ export function CreateObligatoryReportForm({
               <FormItem className="w-full">
                 <FormLabel>Destino de vuelo</FormLabel>
                 <FormControl>
-                  <Input
-                    placeholder="Destino del vuelo"
-                    {...field}
-                  />
+                  <Input placeholder="Destino del vuelo" {...field} />
                 </FormControl>
                 <FormMessage className="text-xs" />
               </FormItem>
@@ -706,10 +703,7 @@ export function CreateObligatoryReportForm({
               <FormItem className="w-full">
                 <FormLabel>Destino alterno del vuelo</FormLabel>
                 <FormControl>
-                  <Input
-                    placeholder="Destino alterno del vuelo"
-                    {...field}
-                  />
+                  <Input placeholder="Destino alterno del vuelo" {...field} />
                 </FormControl>
                 <FormMessage className="text-xs" />
               </FormItem>

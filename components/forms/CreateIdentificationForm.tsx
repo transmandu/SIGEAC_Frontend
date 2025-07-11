@@ -39,6 +39,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { Textarea } from "../ui/textarea";
 import { useRouter } from "next/navigation";
 import router from "next/router";
+import { useCompanyStore } from "@/stores/CompanyStore";
 // HAY DATOS QUE VIENEN DEL REPORTE
 // COMO FECHA DE REPORTE E IDENTIFICACION
 // A LADO DEL CODIGO TENDRA EL TIPO DE REPORTE (RVP-RSO) DETECTADO DEL ORIGEN DEL REPORTE
@@ -155,6 +156,7 @@ export default function CreateDangerIdentificationForm({
   initialData,
   reportType,
 }: FormProps) {
+  const { selectedCompany } = useCompanyStore();
   const [consequences, setConsequences] = useState<string[]>([]);
   const { data: informationSources, isLoading: isLoadingSources } =
     useGetInformationSources();
@@ -204,18 +206,22 @@ export default function CreateDangerIdentificationForm({
   const onSubmit = async (data: FormSchemaType) => {
     if (initialData && isEditing) {
       const values = {
-        id: initialData.id,
-        ...data,
+        company: selectedCompany,
+        id: initialData.id.toString(),
+        data: {
+          ...data,
+        },
       };
       await updateDangerIdentification.mutateAsync(values);
     } else {
       const response = await createDangerIdentification.mutateAsync({
-        data,
+        company: selectedCompany,
         id,
         reportType,
+        data,
       });
       router.push(
-        `/transmandu/sms/gestion_reportes/peligros_identificados/${response.danger_identification_id}`
+        `/${selectedCompany}/sms/gestion_reportes/peligros_identificados/${response.danger_identification_id}`
       );
     }
     onClose();

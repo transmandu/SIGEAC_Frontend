@@ -5,11 +5,13 @@ import { columns } from "./columns";
 import { DataTable } from "./data-table";
 import LoadingPage from "@/components/misc/LoadingPage";
 import { useGetDangerIdentifications } from "@/hooks/sms/useGetDangerIdentification";
+import { useCompanyStore } from "@/stores/CompanyStore";
 
 const DangerIdentificationsPage = () => {
-  const { data, isLoading, isError } = useGetDangerIdentifications();
+  const { selectedCompany } = useCompanyStore();
+  const { data, isLoading, isError } =
+    useGetDangerIdentifications(selectedCompany);
 
-  console.log("identification data aaaa aaa ",data);
   if (isLoading) {
     return <LoadingPage />;
   }

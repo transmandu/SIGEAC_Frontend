@@ -19,17 +19,25 @@ import { useState } from "react";
 
 interface DeleteProps {
   id: number | string;
+  company: string | null;
   onSuccess?: () => void;
 }
 
-export default function DeleteDangerIdentificationDialog({ id }: DeleteProps) {
+export default function DeleteDangerIdentificationDialog({
+  company,
+  id,
+}: DeleteProps) {
   const [open, setOpen] = useState(false);
   const { deleteDangerIdentification } = useDeleteDangerIdentification();
   const router = useRouter();
-  const handleDelete = async (id: number | string) => {
+  const handleDelete = async () => {
+    const value = {
+      company: company,
+      id: id.toString(),
+    };
     try {
-      await deleteDangerIdentification.mutateAsync(id);
-      router.push("/transmandu/sms/gestion_reportes/peligros_identificados");
+      await deleteDangerIdentification.mutateAsync(value);
+      router.push(`/${company}/sms/gestion_reportes/peligros_identificados`);
     } catch (error) {
       console.error("No se pudo eliminar la identificación de peligro", error);
     }
@@ -73,7 +81,7 @@ export default function DeleteDangerIdentificationDialog({ id }: DeleteProps) {
               <Button
                 disabled={deleteDangerIdentification.isPending}
                 className="hover:bg-white hover:text-black hover:border hover:border-black transition-all"
-                onClick={() => handleDelete(id)}
+                onClick={() => handleDelete()}
               >
                 {deleteDangerIdentification.isPending ? (
                   <Loader2 className="size-4 animate-spin" />
