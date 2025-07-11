@@ -27,12 +27,14 @@ import {
   DialogTrigger,
 } from "../ui/dialog";
 import { useTheme } from "next-themes";
+import { useCompanyStore } from "@/stores/CompanyStore";
 
 const MitigationMeasureDropdownActions = ({
   mitigationMeasure,
 }: {
   mitigationMeasure: MitigationMeasure;
-  }) => {
+}) => {
+  const { selectedCompany } = useCompanyStore();
   const { theme } = useTheme();
   const [open, setOpen] = useState<boolean>(false);
   const [openEdit, setOpenEdit] = useState<boolean>(false);
@@ -47,8 +49,12 @@ const MitigationMeasureDropdownActions = ({
 
   const [openDelete, setOpenDelete] = useState<boolean>(false);
 
-  const handleDelete = async (id: number | string) => {
-    await deleteMitigationMeasure.mutateAsync(id);
+  const handleDelete = async () => {
+    const value = {
+      company: selectedCompany,
+      id: mitigationMeasure.id.toString(),
+    };
+    await deleteMitigationMeasure.mutateAsync(value);
     setOpenDelete(false);
   };
   return (
@@ -66,16 +72,17 @@ const MitigationMeasureDropdownActions = ({
             align="center"
             className="flex-COL gap-2 justify-center"
           >
-
             <DialogTrigger asChild>
               <DropdownMenuItem
                 onClick={() => setOpenCreateFollowUpControl(true)}
               >
-              <Plus className={`size-5 ${theme === "light" ? "text-black" : "text-white"}`} />
+                <Plus
+                  className={`size-5 ${theme === "light" ? "text-black" : "text-white"}`}
+                />
                 <p className="pl-2">Crear Control</p>
               </DropdownMenuItem>
             </DialogTrigger>
-            
+
             {mitigationMeasure && (
               <DropdownMenuItem onClick={() => setOpenEdit(true)}>
                 <ClipboardPenLine className="size-5" />
@@ -88,8 +95,6 @@ const MitigationMeasureDropdownActions = ({
                 <p className="pl-2"> Eliminar </p>
               </DropdownMenuItem>
             </DialogTrigger>
-
-            
           </DropdownMenuContent>
         </DropdownMenu>
 
@@ -117,7 +122,7 @@ const MitigationMeasureDropdownActions = ({
               <Button
                 disabled={deleteMitigationMeasure.isPending}
                 className="hover:bg-white hover:text-black hover:border hover:border-black transition-all"
-                onClick={() => handleDelete(mitigationMeasure.id)}
+                onClick={() => handleDelete()}
               >
                 {deleteMitigationMeasure.isPending ? (
                   <Loader2 className="size-4 animate-spin" />

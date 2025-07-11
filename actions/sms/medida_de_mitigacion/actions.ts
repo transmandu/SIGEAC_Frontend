@@ -3,28 +3,34 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 interface MitigationMeasureData {
-  description: string;
-  implementation_supervisor: string;
-  implementation_responsible: string;
-  estimated_date: Date;
-  execution_date?: Date | null;
-  mitigation_plan_id: number | string;
+  company: string | null;
+  data: {
+    description: string;
+    implementation_supervisor: string;
+    implementation_responsible: string;
+    estimated_date: Date;
+    execution_date?: Date | null;
+    mitigation_plan_id: number | string;
+  };
 }
 
 interface UpdateMitigationMeasureData {
+  company: string | null;
   id: string | number;
-  description: string;
-  implementation_supervisor: string;
-  implementation_responsible: string;
-  estimated_date: Date;
-  execution_date?: Date | null;
+  data: {
+    description: string;
+    implementation_supervisor: string;
+    implementation_responsible: string;
+    estimated_date: Date;
+    execution_date?: Date | null;
+  };
 }
 export const useCreateMitigationMeasure = () => {
   const queryClient = useQueryClient();
   const createMutation = useMutation({
     mutationKey: ["mitigation-measures"],
-    mutationFn: async (data: MitigationMeasureData) => {
-      await axiosInstance.post("/transmandu/sms/mitigation-measures", data, {
+    mutationFn: async ({ data, company }: MitigationMeasureData) => {
+      await axiosInstance.post(`/${company}/sms/mitigation-measures`, data, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
@@ -53,8 +59,14 @@ export const useDeleteMitigationMeasure = () => {
   const queryClient = useQueryClient();
 
   const deleteMutation = useMutation({
-    mutationFn: async (id: number | string) => {
-      await axiosInstance.delete(`/transmandu/sms/mitigation-measures/${id}`);
+    mutationFn: async ({
+      id,
+      company,
+    }: {
+      company: string | null;
+      id: string;
+    }) => {
+      await axiosInstance.delete(`/${company}/sms/mitigation-measures/${id}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["mitigation-measures"] });
@@ -79,9 +91,9 @@ export const useUpdateMitigationMeasure = () => {
 
   const updateMitigationMeasureMutation = useMutation({
     mutationKey: ["mitigation-measures"],
-    mutationFn: async (data: UpdateMitigationMeasureData) => {
-      await axiosInstance.put(
-        `/transmandu/sms/mitigation-measures/${data.id}`,
+    mutationFn: async ({ data, company, id }: UpdateMitigationMeasureData) => {
+      await axiosInstance.patch(
+        `/${company}/sms/mitigation-measures/${id}`,
         data
       );
     },

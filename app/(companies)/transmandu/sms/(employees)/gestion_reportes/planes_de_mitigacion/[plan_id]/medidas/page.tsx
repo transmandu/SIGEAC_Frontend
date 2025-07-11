@@ -7,15 +7,16 @@ import { columns } from "./columns";
 import { DataTable } from "./data-table";
 import { useGetMitigationMeasure } from "@/hooks/sms/useGetMitigationMeasure";
 import { useParams } from "next/navigation";
+import { useCompanyStore } from "@/stores/CompanyStore";
 
 const MitigationMeasurePage = () => {
   const { plan_id } = useParams<{ plan_id: string }>();
-
+  const { selectedCompany } = useCompanyStore();
   const {
     data: mitigationMeasure,
     isLoading,
     isError,
-  } = useGetMitigationMeasure(plan_id);
+  } = useGetMitigationMeasure({ company: selectedCompany, plan_id });
 
   return (
     <ContentLayout title="Medidas de Mitigacion">
