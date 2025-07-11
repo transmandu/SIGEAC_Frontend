@@ -54,7 +54,7 @@ type Group = {
   menus: Menu[];
 };
 
-export type CompanyMenu = "transmandu" | "hangar 74";
+export type CompanyMenu = string;
 
 export function getMenuList(
   pathname: string,
@@ -69,7 +69,7 @@ export function getMenuList(
     return menuItem.roles.some((role) => userRoles.includes(role));
   }
   return (
-    company === "transmandu"
+    company === "Transmandu"
       ? [
           {
             groupLabel: "",

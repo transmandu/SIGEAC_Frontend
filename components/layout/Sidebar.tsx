@@ -14,9 +14,7 @@ import Image from "next/image";
 export function Sidebar() {
   const sidebar = useStore(useSidebarToggle, (state) => state);
   const { selectedCompany, selectedStation } = useCompanyStore()
-
   if (!sidebar) return null;
-
   return (
     <aside
       className={cn(
@@ -31,18 +29,16 @@ export function Sidebar() {
             "transition-transform ease-in-out duration-300 mb-1 mt-4",
             sidebar?.isOpen === false ? "translate-x-1" : "translate-x-0"
           )}
-          variant="link"
+        variant="link"
           asChild
         >
-          <Link href={`/${selectedCompany?.split(" ").join("")}/dashboard`} className="flex items-center gap-2">
+          <Link href={`/${selectedCompany?.slug}/dashboard`} className="flex items-center gap-2">
             <Image src={'/logo.png'} width={150} height={150} alt="Logo" />
           </Link>
         </Button>
         {
-          selectedCompany && selectedStation ? <Menu isOpen={sidebar?.isOpen} company={selectedCompany as CompanyMenu} /> :
-
+          selectedCompany && selectedStation ? <Menu isOpen={sidebar?.isOpen} company={selectedCompany.name} /> :
             <p className="text-sm text-muted-foreground text-center mt-10">Por favor, seleccione una <strong>Empresa</strong> y una <strong>Estacion</strong>.</p>
-
         }
       </div>
     </aside>

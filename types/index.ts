@@ -200,6 +200,7 @@ export type Company = {
   id: number;
   name: string;
   description: string;
+  slug: string,
   rif: string;
   cod_inac: string;
   fiscal_address: string;

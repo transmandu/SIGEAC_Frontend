@@ -1,12 +1,28 @@
 import { create } from "zustand";
 
+// Definimos la interfaz para los módulos
+interface Module {
+    id: number;
+    label: string;
+    value: string;
+}
+
+// Definimos la interfaz para la compañía
+interface Company {
+    id: number;
+    name: string;
+    slug: string;
+    modules: Module[];
+}
+
+// Actualizamos el estado para usar el objeto Company
 interface CompanyState {
-    selectedCompany: string | null;
+    selectedCompany: Company | null;
     selectedStation: string | null;
 }
 
 interface CompanyActions {
-    setSelectedCompany: (company: string) => void;
+    setSelectedCompany: (company: Company) => void;
     setSelectedStation: (station: string) => void;
     initFromLocalStorage: () => void;
     reset: () => void;
@@ -22,7 +38,8 @@ export const useCompanyStore = create<CompanyState & CompanyActions>((set) => ({
 
     setSelectedCompany: (company) => {
         set({ selectedCompany: company });
-        localStorage.setItem('selectedCompany', company);
+        // Guardamos el objeto como JSON en localStorage
+        localStorage.setItem('selectedCompany', JSON.stringify(company));
     },
 
     setSelectedStation: (station) => {
@@ -33,7 +50,15 @@ export const useCompanyStore = create<CompanyState & CompanyActions>((set) => ({
     initFromLocalStorage: () => {
         const savedSelectedCompany = localStorage.getItem('selectedCompany');
         if (savedSelectedCompany) {
-            set({ selectedCompany: savedSelectedCompany });
+            try {
+                // Parseamos el JSON guardado
+                const companyObj: Company = JSON.parse(savedSelectedCompany);
+                set({ selectedCompany: companyObj });
+            } catch (error) {
+                console.error("Error parsing saved company", error);
+                // Si hay error, limpiamos el valor inválido
+                localStorage.removeItem('selectedCompany');
+            }
         }
 
         const savedSelectedStation = localStorage.getItem('selectedStation');

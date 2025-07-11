@@ -1,27 +1,8 @@
 'use client';
-
-import CompanySelect from '@/components/selects/CompanySelectMobile';
-import { useCompanyStore } from '@/stores/CompanyStore';
+import CompanySelect from '@/components/selects/CompanySelect';
 import { PlaneTakeoff } from 'lucide-react';
-import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
 
 const HomePage = () => {
-  const router = useRouter();
-  const { selectedCompany, selectedStation } = useCompanyStore();
-
-  useEffect(() => {
-    if (selectedCompany && selectedStation) {
-      const companyPath = selectedCompany.toLowerCase().split(" ").join("");
-      router.push(`/${companyPath}/dashboard`);
-    }
-  }, [selectedCompany, selectedStation, router]);
-
-  if (selectedCompany && selectedStation) {
-    // Retornamos null mientras se procesa la redirección
-    return null;
-  }
-
   return (
     <div className='flex justify-end h-[650px]'>
       <div className='flex justify-center items-center max-w-sm mx-auto'>

@@ -19,7 +19,7 @@ import { useAuth } from "@/contexts/AuthContext";
 
 interface MenuProps {
   isOpen: boolean | undefined;
-  company: 'transmandu' | "hangar 74"
+  company: string,
 }
 
 
