@@ -11,17 +11,23 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 interface MitigationPlanData {
-  description: string;
-  responsible: string;
-  start_date: Date;
-  danger_identification_id: number;
+  company: string | null;
+  data: {
+    description: string;
+    responsible: string;
+    start_date: Date;
+    danger_identification_id: number;
+  };
 }
 
 interface UpdateMitigationPlanData {
-  id: number;
-  description: string;
-  responsible: string;
-  start_date: Date;
+  company: string | null;
+  id: string;
+  data: {
+    description: string;
+    responsible: string;
+    start_date: Date;
+  };
 }
 
 interface closeReportData {
@@ -31,9 +37,9 @@ interface closeReportData {
 export const useCreateMitigationPlan = () => {
   const queryClient = useQueryClient();
   const createMutation = useMutation({
-    mutationKey: ["danger-identifications/${id}"],
-    mutationFn: async (data: MitigationPlanData) => {
-      await axiosInstance.post("/transmandu/sms/mitigation-plans", data, {
+    //    mutationKey: ["danger-identifications/${id}"],
+    mutationFn: async ({ data, company }: MitigationPlanData) => {
+      await axiosInstance.post(`/${company}/sms/mitigation-plans`, data, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
@@ -62,8 +68,14 @@ export const useDeleteMitigationPlan = () => {
   const queryClient = useQueryClient();
 
   const deleteMutation = useMutation({
-    mutationFn: async (id: number | string) => {
-      await axiosInstance.delete(`/transmandu/sms/mitigation-plans/${id}`);
+    mutationFn: async ({
+      company,
+      id,
+    }: {
+      company: string | null;
+      id: string;
+    }) => {
+      await axiosInstance.delete(`/${company}/sms/mitigation-plans/${id}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["mitigation-plans"] });
@@ -89,11 +101,8 @@ export const useUpdateMitigationPlan = () => {
 
   const updateMitigationPlanMutation = useMutation({
     mutationKey: ["mitigation-plans"],
-    mutationFn: async (data: UpdateMitigationPlanData) => {
-      await axiosInstance.patch(
-        `/transmandu/sms/mitigation-plans/${data.id}`,
-        data
-      );
+    mutationFn: async ({ data, id, company }: UpdateMitigationPlanData) => {
+      await axiosInstance.patch(`/${company}/sms/mitigation-plans/${id}`, data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["analysis"] });

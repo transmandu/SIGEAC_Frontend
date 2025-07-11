@@ -39,12 +39,14 @@ import {
 import CreateMitigationMeasureForm from "../forms/CreateMitigationMeasureForm";
 import { useTheme } from "next-themes";
 import { getResult } from "@/lib/utils";
+import { useCompanyStore } from "@/stores/CompanyStore";
 
 const MitigationTableDropdownActions = ({
   mitigationTable,
 }: {
   mitigationTable: MitigationTable;
 }) => {
+  const { selectedCompany } = useCompanyStore();
   const [open, setOpen] = useState<boolean>(false);
   const { deleteMitigationPlan } = useDeleteMitigationPlan();
   const [openCreateDangerIdentification, setOpenCreateDangerIdentification] =
@@ -66,7 +68,11 @@ const MitigationTableDropdownActions = ({
   }
 
   const handleDelete = async (id: number | string) => {
-    await deleteMitigationPlan.mutateAsync(id);
+    const value = {
+      company: selectedCompany,
+      id: id.toString(),
+    };
+    await deleteMitigationPlan.mutateAsync(value);
     setOpenDelete(false);
   };
 
@@ -94,7 +100,7 @@ const MitigationTableDropdownActions = ({
             align="center"
             className="flex flex-col gap-2 justify-center"
           >
-              {mitigationTable.mitigation_plan?.id &&
+            {mitigationTable.mitigation_plan?.id &&
               mitigationTable.mitigation_plan?.analysis === null && (
                 <DropdownMenuItem onClick={() => setOpenCreateMeasure(true)}>
                   <Plus
@@ -119,8 +125,7 @@ const MitigationTableDropdownActions = ({
               </DropdownMenuItem>
             ) : null}
 
-            {mitigationTable.mitigation_plan &&
-              (
+            {mitigationTable.mitigation_plan && (
               <DialogTrigger asChild>
                 <DropdownMenuItem onClick={() => setOpenDelete(true)}>
                   <Trash2 className="size-5 text-red-500" />
@@ -145,8 +150,6 @@ const MitigationTableDropdownActions = ({
                 </DropdownMenuItem>
               )
             ) : null}
-
-            
 
             {!mitigationTable.id && (
               <DropdownMenuItem
