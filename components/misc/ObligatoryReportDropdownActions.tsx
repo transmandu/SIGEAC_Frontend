@@ -35,6 +35,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "../ui/dialog";
+import { useCompanyStore } from "@/stores/CompanyStore";
 
 const ObligatoryReportDropdownActions = ({
   obligatoryReport,
@@ -57,8 +58,14 @@ const ObligatoryReportDropdownActions = ({
   const { data: dangerIdentification } = useGetDangerIdentificationWithAllById(
     obligatoryReport?.danger_identification?.id
   );
+
+  const { selectedCompany } = useCompanyStore();
   const handleDelete = async (id: number | string) => {
-    await deleteObligatoryReport.mutateAsync(id);
+    const value = {
+      company: selectedCompany,
+      id: id.toString(),
+    }
+    await deleteObligatoryReport.mutateAsync(value);
     setOpenDelete(false);
   };
   return (

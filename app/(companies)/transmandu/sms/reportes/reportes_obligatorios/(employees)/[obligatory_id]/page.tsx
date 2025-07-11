@@ -38,15 +38,23 @@ import {
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import Image from "next/image";
+import { useCompanyStore } from "@/stores/CompanyStore";
 
 const ShowObligatoryReport = () => {
   const { obligatory_id } = useParams<{ obligatory_id: string }>();
+
+  const { selectedCompany } = useCompanyStore();
+
+  const value = {
+    company: selectedCompany,
+    id: obligatory_id,
+  };
 
   const {
     data: obligatoryReport,
     isLoading,
     isError,
-  } = useGetObligatoryReportById(obligatory_id);
+  } = useGetObligatoryReportById(value);
 
   return (
     <ContentLayout title="Reportes Obligatorios">
@@ -97,7 +105,7 @@ const ShowObligatoryReport = () => {
         {/* Botón para eliminar reporte */}
         {obligatoryReport && obligatoryReport.status === "ABIERTO" && (
           <div className="flex items-center py-4">
-            <DeleteVoluntaryReprotDialog id={obligatoryReport.id} />
+            {/* <DeleteVoluntaryReprotDialog id={obligatoryReport.id} /> */}
           </div>
         )}
 

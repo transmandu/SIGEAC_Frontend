@@ -41,10 +41,11 @@ import { VoluntaryReport } from "@/types";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { CalendarIcon, Loader2 } from "lucide-react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Label } from "../ui/label";
-import Image from "next/image";
+import { useCompanyStore } from "@/stores/CompanyStore";
 
 interface FormProps {
   onClose: () => void;
@@ -58,6 +59,7 @@ export function CreateVoluntaryReportForm({
   isEditing,
   initialData,
 }: FormProps) {
+  const { selectedCompany } = useCompanyStore();
   const { createVoluntaryReport } = useCreateVoluntaryReport();
   const { updateVoluntaryReport } = useUpdateVoluntaryReport();
   const [isAnonymous, setIsAnonymous] = useState(true);
@@ -226,8 +228,11 @@ export function CreateVoluntaryReportForm({
       await updateVoluntaryReport.mutateAsync(value);
     } else {
       const value = {
-        ...data,
-        status: shouldEnableField ? "ABIERTO" : "PROCESO",
+        company: selectedCompany,
+        reportData: {
+          ...data,
+          status: shouldEnableField ? "ABIERTO" : "PROCESO",
+        },
       };
       try {
         const response = await createVoluntaryReport.mutateAsync(value);

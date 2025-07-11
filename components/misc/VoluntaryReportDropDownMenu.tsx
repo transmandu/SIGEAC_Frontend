@@ -35,12 +35,15 @@ import {
 } from "../ui/dialog";
 import { useGetDangerIdentificationWithAllById } from "@/hooks/sms/useGetDangerIdentificationWithAllById";
 import { AcceptVoluntaryReport } from "../forms/AcceptVoluntaryForm";
+import { useCompanyStore } from "@/stores/CompanyStore";
 
 const VoluntaryReportDropdownActions = ({
   voluntaryReport,
 }: {
   voluntaryReport: VoluntaryReport;
 }) => {
+  const { selectedCompany } = useCompanyStore();
+
   const [open, setOpen] = useState<boolean>(false);
   const [openPDF, setOpenPDF] = useState<boolean>(false);
 
@@ -59,7 +62,11 @@ const VoluntaryReportDropdownActions = ({
   );
 
   const handleDelete = async (id: number | string) => {
-    await deleteVoluntaryReport.mutateAsync(id);
+    const value = {
+      company: selectedCompany,
+      id: id.toString(),
+    };
+    await deleteVoluntaryReport.mutateAsync(value);
     setOpenDelete(false);
   };
 
@@ -124,7 +131,7 @@ const VoluntaryReportDropdownActions = ({
                 </DropdownMenuItem>
               )}
 
-            {voluntaryReport && voluntaryReport.status !== "PROCESO" &&(
+            {voluntaryReport && voluntaryReport.status !== "PROCESO" && (
               <DropdownMenuItem onClick={() => setOpenPDF(true)}>
                 <PrinterCheck className="size-5" />
                 <p className="pl-2">Descargar PDF</p>
@@ -142,7 +149,9 @@ const VoluntaryReportDropdownActions = ({
               </DialogDescription>
             </DialogHeader>
             <div className="w-full h-screen">
-              {voluntaryReport && voluntaryReport.status === "CERRADO" && dangerIdentification ? (
+              {voluntaryReport &&
+              voluntaryReport.status === "CERRADO" &&
+              dangerIdentification ? (
                 <>
                   <PDFViewer style={{ width: "100%", height: "60%" }}>
                     <VoluntaryReportPdf

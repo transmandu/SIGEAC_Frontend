@@ -3,20 +3,23 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 interface VoluntaryReportData {
-  report_number?: string;
-  identification_date: Date;
-  report_date: Date;
-  danger_location: string;
-  danger_area: string;
-  description: string;
-  possible_consequences: string;
-  status: string;
-  name?: string;
-  last_name?: string;
-  phone?: string;
-  email?: string;
-  image?: File | string;
-  document?: File | string;
+  company: string | null;
+  reportData: {
+    report_number?: string;
+    identification_date: Date;
+    report_date: Date;
+    danger_location: string;
+    danger_area: string;
+    description: string;
+    possible_consequences: string;
+    status: string;
+    name?: string;
+    last_name?: string;
+    phone?: string;
+    email?: string;
+    image?: File | string;
+    document?: File | string;
+  };
 }
 interface UpdateVoluntaryReportData {
   id: number;
@@ -43,8 +46,8 @@ export const useCreateVoluntaryReport = () => {
     mutationKey: ["voluntary-reports"],
     mutationFn: async (data: VoluntaryReportData) => {
       const response = await axiosInstance.post(
-        "/transmandu/sms/voluntary-reports",
-        data,
+        `/${data.company}/sms/voluntary-reports`,
+        data.reportData,
         {
           headers: {
             "Content-Type": "multipart/form-data",
@@ -76,8 +79,14 @@ export const useDeleteVoluntaryReport = () => {
 
   const deleteMutation = useMutation({
     mutationKey: ["voluntary-reports"],
-    mutationFn: async (id: number | string) => {
-      await axiosInstance.delete(`/transmandu/sms/voluntary-reports/${id}`);
+    mutationFn: async ({
+      company,
+      id,
+    }: {
+      company: string | null;
+      id: string | number;
+    }) => {
+      await axiosInstance.delete(`/${company}/sms/voluntary-reports/${id}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["danger-identifications"] });

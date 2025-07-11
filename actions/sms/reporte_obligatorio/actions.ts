@@ -87,8 +87,14 @@ export const useDeleteObligatoryReport = () => {
 
   const deleteMutation = useMutation({
     mutationKey: ["obligatory-reports"],
-    mutationFn: async (id: number | string) => {
-      await axiosInstance.delete(`/transmandu/sms/obligatory-reports/${id}`);
+    mutationFn: async ({
+      company,
+      id,
+    }: {
+      company: string | null;
+      id: string;
+    }) => {
+      await axiosInstance.delete(`/${company}/sms/obligatory-reports/${id}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["danger-identifications"] });

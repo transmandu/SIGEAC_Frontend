@@ -5,9 +5,11 @@ import LoadingPage from "@/components/misc/LoadingPage";
 import { useGetObligatoryReports } from "@/hooks/sms/useGetObligatoryReports";
 import { columns } from "./columns";
 import { DataTable } from "./data-table";
+import { useCompanyStore } from "@/stores/CompanyStore";
 
 const ObligatoryReportsPage = () => {
-  const { data, isLoading, isError } = useGetObligatoryReports();
+  const { selectedCompany } = useCompanyStore();
+  const { data, isLoading, isError } = useGetObligatoryReports(selectedCompany);
   if (isLoading) {
     return <LoadingPage />;
   }
