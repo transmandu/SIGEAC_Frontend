@@ -236,9 +236,15 @@ export function CreateVoluntaryReportForm({
       };
       try {
         const response = await createVoluntaryReport.mutateAsync(value);
-        router.push(
-          `/transmandu/sms/reportes/reportes_voluntarios/${response.voluntary_report_id}`
-        );
+        if (shouldEnableField) {
+          router.push(
+            `/${selectedCompany}/sms/reportes/reportes_voluntarios/${response.voluntary_report_id}`
+          );
+        } else {
+          router.push(
+            `/${selectedCompany}/dashboard`
+          );
+        }
       } catch (error) {
         console.error("Error al crear el reporte:", error);
       }

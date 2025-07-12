@@ -116,13 +116,42 @@ export function CreateObligatoryReportForm({
       flight_time: z.string().regex(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/, {
         message: "Formato de hora inválido (HH:mm)",
       }),
-      pilot_id: z.string(),
-      copilot_id: z.string(),
-      aircraft_id: z.string(),
+      pilot_id: z.string({
+        required_error: "El piloto es requerido.",
+      }),
+      copilot_id: z.string({
+        required_error: "El copiloto es requerido.",
+      }),
+      aircraft_id: z.string({
+        required_error: "La aeronave es requerida.",
+      }),
       flight_number: z.string(),
-      flight_origin: z.string().min(4).max(4),
-      flight_destiny: z.string().min(4).max(4),
-      flight_alt_destiny: z.string().min(4).max(4),
+      flight_origin: z
+        .string()
+        .min(4, {
+          message: "El origen del vuelo debe tener al menos 3 caracteres.",
+        })
+        .max(4, {
+          message: "El origen del vuelo debe tener máximo 4 caracteres.",
+        }),
+      flight_destiny: z
+        .string()
+        .min(3, {
+          message: "El destino del vuelo debe tener al menos 3 caracteres.",
+        })
+        .max(4, {
+          message: "El destino del vuelo debe tener máximo 4 caracteres.",
+        }),
+      flight_alt_destiny: z
+        .string()
+        .min(3, {
+          message:
+            "El destino alterno de vuelo debe tener al menos 3 caracteres.",
+        })
+        .max(4, {
+          message:
+            "El destino alterno de vuelo debe tener máximo 4 caracteres.",
+        }),
       incidents: z.array(z.string()).optional(),
       other_incidents: z.preprocess(
         (val) => (val === null || val === undefined ? "" : val),
@@ -240,7 +269,6 @@ export function CreateObligatoryReportForm({
   });
 
   const onSubmit = async (data: FormSchemaType) => {
-    console.log(data);
     if (isEditing && initialData && data.report_number) {
       const value = {
         company: selectedCompany,
@@ -294,10 +322,13 @@ export function CreateObligatoryReportForm({
 
       try {
         const response = await createObligatoryReport.mutateAsync(value);
-        console.log("this is a console log post await async", response);
-        router.push(
-          `/transmandu/sms/reportes/reportes_obligatorios/${response.obligatory_report_id}`
-        );
+        if (shouldEnableField) {
+          router.push(
+            `/${selectedCompany}/sms/reportes/reportes_obligatorios/${response.obligatory_report_id}`
+          );
+        } else {
+          router.push(`/${selectedCompany}/dashboard`);
+        }
       } catch (error) {
         console.error("Error al crear reporte:", error);
       }
