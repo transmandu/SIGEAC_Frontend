@@ -22,22 +22,25 @@ interface VoluntaryReportData {
   };
 }
 interface UpdateVoluntaryReportData {
-  id: number;
-  report_number?: string;
-  report_date: Date;
-  identification_date: Date;
-  danger_location: string;
-  danger_area: string;
-  description: string;
-  possible_consequences: string;
-  danger_identification_id: number;
-  status: string;
-  reporter_name?: string;
-  reporter_last_name?: string;
-  reporter_phone?: string;
-  reporter_email?: string;
-  image?: File | string;
-  document?: File | string;
+  company: string | null;
+  id: string;
+  data: {
+    report_number?: string;
+    report_date: Date;
+    identification_date: Date;
+    danger_location: string;
+    danger_area: string;
+    description: string;
+    possible_consequences: string;
+    danger_identification_id: number;
+    status: string;
+    reporter_name?: string;
+    reporter_last_name?: string;
+    reporter_phone?: string;
+    reporter_email?: string;
+    image?: File | string;
+    document?: File | string;
+  };
 }
 
 export const useCreateVoluntaryReport = () => {
@@ -113,9 +116,9 @@ export const useUpdateVoluntaryReport = () => {
 
   const updateVoluntaryReportMutation = useMutation({
     mutationKey: ["voluntary-reports"],
-    mutationFn: async (data: UpdateVoluntaryReportData) => {
+    mutationFn: async ({ company, id, data }: UpdateVoluntaryReportData) => {
       const response = await axiosInstance.post(
-        `/transmandu/sms/update/voluntary-reports/${data.id}`,
+        `/${company}/sms/update-voluntary-reports/${id}`,
         data,
         {
           headers: {
@@ -148,10 +151,10 @@ export const useAcceptVoluntaryReport = () => {
   const queryClient = useQueryClient();
 
   const acceptVoluntaryReportMutation = useMutation({
-    mutationKey: ["voluntary-reports"],
-    mutationFn: async (data: UpdateVoluntaryReportData) => {
+    mutationFn: async ({ company, id, data }: UpdateVoluntaryReportData) => {
+      console.log('LLAMDO DEL END POINT');
       const response = await axiosInstance.patch(
-        `/transmandu/sms/accept/voluntary-reports/${data.id}`,
+        `/${company}/sms/accept-voluntary-reports/${id}`,
         data
       );
       return response.data;

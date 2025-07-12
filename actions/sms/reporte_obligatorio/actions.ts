@@ -26,7 +26,7 @@ interface ObligatoryReportData {
 
 interface UpdateObligatoryReportData {
   company: string | null;
-  id: number | string;
+  id: string;
   data: {
     report_number: string;
     description: string;
@@ -54,7 +54,6 @@ interface UpdateObligatoryReportData {
 export const useCreateObligatoryReport = () => {
   const queryClient = useQueryClient();
   const createMutation = useMutation({
-    mutationKey: ["obligatory-reports"],
     mutationFn: async (data: ObligatoryReportData) => {
       const response = await axiosInstance.post(
         "/transmandu/sms/obligatory-reports",
@@ -124,7 +123,6 @@ export const useUpdateObligatoryReport = () => {
   const updateObligatoryReportMutation = useMutation({
     mutationKey: ["obligatory-reports"],
     mutationFn: async ({ company, id, data }: UpdateObligatoryReportData) => {
-      console.log("antes de hacer el post", data);
       await axiosInstance.post(
         `/${company}/sms/update-obligatory-reports/${id}`,
         data,
@@ -158,10 +156,9 @@ export const useAcceptObligatoryReport = () => {
 
   const acceptObligatoryReportMutation = useMutation({
     mutationKey: ["obligatory-reports"],
-    mutationFn: async (data: UpdateObligatoryReportData) => {
-      console.log("antes de hacer el post", data);
+    mutationFn: async ({ company, id, data }: UpdateObligatoryReportData) => {
       await axiosInstance.patch(
-        `/transmandu/sms/accept/obligatory-reports/${data.id}`,
+        `/${company}/sms/accept-obligatory-reports/${id}`,
         data
       );
     },

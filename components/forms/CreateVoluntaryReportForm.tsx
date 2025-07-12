@@ -220,10 +220,14 @@ export function CreateVoluntaryReportForm({
 
     if (initialData && isEditing) {
       const value = {
-        ...data,
-        status: initialData.status,
-        id: initialData.id,
-        danger_identification_id: initialData?.danger_identification_id,
+        company: selectedCompany,
+        id: initialData.id.toString(),
+        data: {
+          ...data,
+          status: initialData.status,
+          id: initialData.id,
+          danger_identification_id: initialData?.danger_identification_id,
+        },
       };
       await updateVoluntaryReport.mutateAsync(value);
     } else {
@@ -241,9 +245,7 @@ export function CreateVoluntaryReportForm({
             `/${selectedCompany}/sms/reportes/reportes_voluntarios/${response.voluntary_report_id}`
           );
         } else {
-          router.push(
-            `/${selectedCompany}/dashboard`
-          );
+          router.push(`/${selectedCompany}/dashboard`);
         }
       } catch (error) {
         console.error("Error al crear el reporte:", error);
