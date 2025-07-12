@@ -1,26 +1,26 @@
 import axiosInstance from "@/lib/axios";
-import { FollowUpControl, MitigationMeasure } from "@/types";
+import { FollowUpControl } from "@/types";
 import { useQuery } from "@tanstack/react-query";
 
-const fetchMeasureFollowUpControl = async (
-  plan_id: string | number,
-  measure_id: string | number
-) => {
+interface data {
+  company: string | null;
+  measure_id: string;
+}
+
+const fetchMeasureFollowUpControl = async ({
+  company,
+  measure_id,
+}: data) => {
   const { data } = await axiosInstance.get(
-    `transmandu/sms/plan/${plan_id}/measure/${measure_id}/controls`
+    `/${company}/sms/measure/${measure_id}/controls`
   );
   return data;
 };
 
-export const useGetMeasureFollowUpControl = (
-  plan_id: string | number,
-  measure_id: string | number
-) => {
+export const useGetMeasureFollowUpControl = (data: data) => {
   return useQuery<FollowUpControl[]>({
-    // El id pertenece al plan del cual se van a extraer las medidas de mitigacion
-    //queryKey: ["mitigation-measures", plan_id],
     queryKey: ["follow-up-controls"],
-    queryFn: () => fetchMeasureFollowUpControl(plan_id, measure_id),
+    queryFn: () => fetchMeasureFollowUpControl(data),
     staleTime: 1000 * 60 * 5, // 5 minutos
   });
 };

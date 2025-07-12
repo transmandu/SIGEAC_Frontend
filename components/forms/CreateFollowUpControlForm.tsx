@@ -32,6 +32,7 @@ import { useParams } from "next/navigation";
 import { Textarea } from "../ui/textarea";
 import { Input } from "../ui/input";
 import Image from "next/image";
+import { useCompanyStore } from "@/stores/CompanyStore";
 const FormSchema = z.object({
   description: z
     .string()
@@ -73,9 +74,9 @@ export default function CreateFollowUpControlForm({ onClose, id }: FormProps) {
     plan_id: string;
     medida_id: string;
   }>();
+  const { selectedCompany } = useCompanyStore();
+  
   const { createFollowUpControl } = useCreateFollowUpControl();
-  //console.log("PLAN ID", plan_id);
-  //console.log("MEDIDA ID", medida_id);
   const form = useForm<FormSchemaType>({
     resolver: zodResolver(FormSchema),
     defaultValues: { date: new Date() },
@@ -83,8 +84,11 @@ export default function CreateFollowUpControlForm({ onClose, id }: FormProps) {
 
   const onSubmit = async (data: FormSchemaType) => {
     const values = {
-      ...data,
-      mitigation_measure_id: id,
+      company: selectedCompany,
+      data: {
+        ...data,
+        mitigation_measure_id: id,
+      },
     };
     console.log(values);
     await createFollowUpControl.mutateAsync(values);

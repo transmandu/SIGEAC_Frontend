@@ -123,11 +123,11 @@ export const useUpdateObligatoryReport = () => {
 
   const updateObligatoryReportMutation = useMutation({
     mutationKey: ["obligatory-reports"],
-    mutationFn: async (data: UpdateObligatoryReportData) => {
+    mutationFn: async ({ company, id, data }: UpdateObligatoryReportData) => {
       console.log("antes de hacer el post", data);
       await axiosInstance.post(
-        `/${data.company}/sms/update-obligatory-reports/${data.id}`,
-        data.data,
+        `/${company}/sms/update-obligatory-reports/${id}`,
+        data,
         {
           headers: {
             "Content-Type": "multipart/form-data",
