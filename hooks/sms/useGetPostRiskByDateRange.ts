@@ -3,26 +3,26 @@ import { pieChartData } from "@/types";
 import { useQuery } from "@tanstack/react-query";
 
 const fetchPostRiskCountByDateRange = async (
+  company: string | null,
   from: string,
   to: string,
   reportType: string
 ): Promise<pieChartData[]> => {
   const { data } = await axiosInstance.get(
-    `/transmandu/sms/post-risk/count-by-date-range?reportType=${reportType}&from=${from}&to=${to}`
+    `/${company}/sms/post-risk-count-by-date-range?reportType=${reportType}&from=${from}&to=${to}`
   );
   return data;
 };
 
 export const useGetPostRiskCountByDateRange = (
+  company: string | null,
   from: string,
   to: string,
   reportType: string
 ) => {
   return useQuery<pieChartData[]>({
-    queryKey: [
-      "/transmandu/post-risk/count-by-date-range?from=${from}&to=${to}",
-    ],
-    queryFn: () => fetchPostRiskCountByDateRange(from, to, reportType),
+    queryKey: ["post-risk/-ount-by-date-range"],
+    queryFn: () => fetchPostRiskCountByDateRange(company, from, to, reportType),
     staleTime: 1000 * 60 * 5, // 5 minutos
   });
 };
