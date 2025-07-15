@@ -8,6 +8,7 @@ import DoubleDateFilter from "@/components/misc/DoubleDateFilter";
 import { Label } from "@/components/ui/label";
 import { useGetTotalReportsStatsByYear } from "@/hooks/sms/useGetTotalReportsStatsByYear";
 import { dateFormat } from "@/lib/utils";
+import { useCompanyStore } from "@/stores/CompanyStore";
 import { pieChartData } from "@/types";
 import { format, startOfMonth } from "date-fns";
 import { es } from "date-fns/locale";
@@ -15,56 +16,8 @@ import { Loader2 } from "lucide-react";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
-const languages = [
-  { label: "English", value: "en" },
-  { label: "French", value: "fr" },
-  { label: "German", value: "de" },
-  { label: "Spanish", value: "es" },
-  { label: "Portuguese", value: "pt" },
-  { label: "Russian", value: "ru" },
-  { label: "Japanese", value: "ja" },
-  { label: "Korean", value: "ko" },
-  { label: "Chinese", value: "zh" },
-] as const;
-
 const VoluntaryReportIndicators = () => {
-  const [selectedGraphic, setSelectedGraphic] = useState("");
-  const labels = [
-    {
-      label: "Identificados por Área",
-      value: "número de informes por cada área específica",
-    },
-    {
-      label: "Según su Tipo",
-      value: "número de informes clasificados por tipo específico",
-    },
-    {
-      label: "Por Índice de Riesgo Pre-Mitigación",
-      value:
-        "número de informes clasificados por índice de riesgo antes de cualquier medida de mitigación",
-    },
-    {
-      label: "Por Índice de Riesgo Post-Mitigación",
-      value:
-        "número de informes clasificados por índice de riesgo después de aplicar medidas de mitigación",
-    },
-    {
-      label: "Identificados vs Gestionados",
-      value:
-        "comparación entre el número de informes identificados y el número de informes gestionados",
-    },
-    {
-      label: "Número de Reportes por Índice de Riesgo",
-      value:
-        "total de informes clasificados por diferentes niveles de índice de riesgo",
-    },
-    {
-      label: "Número de Reportes vs Área",
-      value:
-        "comparación del número de informes con respecto a cada área específica",
-    },
-  ];
-
+  const { selectedCompany } = useCompanyStore();
   interface Params {
     from?: string;
     to?: string;
@@ -101,10 +54,15 @@ const VoluntaryReportIndicators = () => {
     isError: isErrorBarChart,
     refetch: refetchBarChart,
   } = useGetTotalReportsStatsByYear(
+    selectedCompany,
     params.from || format(startOfMonth(new Date()), "yyyy-MM-dd"),
     params.to || format(new Date(), "yyyy-MM-dd")
   );
 
+  console.log("selectedCompany", selectedCompany);
+  console.log("params.from", params.from);
+  console.log("params.to", params.to);
+  console.log("barChartData", barChartData);
   const [resultArrayData, setResultArrayData] = useState<pieChartData[]>([]);
   const [result, setResult] = useState<number>();
 
@@ -249,8 +207,7 @@ const VoluntaryReportIndicators = () => {
                   </div>
                 </span>
               </div>
-            ) 
-            }
+            )}
           </div>
         )}
       </ContentLayout>

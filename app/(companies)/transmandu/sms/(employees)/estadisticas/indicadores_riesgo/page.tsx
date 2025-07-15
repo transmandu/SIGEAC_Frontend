@@ -9,11 +9,19 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import { useRouter } from "next/navigation"; // Importa useRouter
+import { useCompanyStore } from "@/stores/CompanyStore";
 
 const Indicators = () => {
+  const { selectedCompany } = useCompanyStore();
   const [open, setOpen] = useState(true);
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const router = useRouter(); // Inicializa useRouter
@@ -28,9 +36,9 @@ const Indicators = () => {
 
   const getLinkHref = (option: string | null) => {
     if (option === "voluntario") {
-      return "/transmandu/sms/estadisticas/indicadores_riesgo/reportes_voluntarios";
+      return `/${selectedCompany}/sms/estadisticas/indicadores_riesgo/reportes_voluntarios`;
     } else if (option === "obligatorio") {
-      return "/transmandu/sms/estadisticas/indicadores_riesgo/reportes_obligatorios";
+      return `/${selectedCompany}/sms/estadisticas/indicadores_riesgo/reportes_obligatorios`;
     }
     return "";
   };
@@ -38,7 +46,7 @@ const Indicators = () => {
   const handleDialogChange = (isOpen: boolean) => {
     setOpen(isOpen);
     if (!isOpen) {
-      router.push("/transmandu/sms/estadisticas/general"); // Redirige cuando el diálogo se cierra
+      router.push(`/${selectedCompany}/sms/estadisticas/general`); // Redirige cuando el diálogo se cierra
     }
   };
 
@@ -59,13 +67,20 @@ const Indicators = () => {
                   <SelectValue placeholder="Seleccionar Indicador" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="voluntario">Indicador de Reporte Voluntario</SelectItem>
-                  <SelectItem value="obligatorio">Indicador de Reporte Obligatorio</SelectItem>
+                  <SelectItem value="voluntario">
+                    Indicador de Reporte Voluntario
+                  </SelectItem>
+                  <SelectItem value="obligatorio">
+                    Indicador de Reporte Obligatorio
+                  </SelectItem>
                 </SelectContent>
               </Select>
 
               {selectedOption && (
-                <Link href={getLinkHref(selectedOption)} onClick={handleCloseDialog}>
+                <Link
+                  href={getLinkHref(selectedOption)}
+                  onClick={handleCloseDialog}
+                >
                   <Button type="button">Ir al Indicador</Button>
                 </Link>
               )}

@@ -1,5 +1,4 @@
 "use client";
-import BarChartComponent from "@/components/charts/BarChartComponent";
 import DynamicBarChart from "@/components/charts/DynamicBarChart";
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import DoubleDateFilter from "@/components/misc/DoubleDateFilter";
@@ -7,15 +6,16 @@ import { Label } from "@/components/ui/label";
 import { useGetObligatoryReportAverage } from "@/hooks/sms/useGetObligatoryReportAverage";
 import { useGetTotalReportsStatsByYear } from "@/hooks/sms/useGetTotalReportsStatsByYear";
 import { dateFormat } from "@/lib/utils";
+import { useCompanyStore } from "@/stores/CompanyStore";
 import { pieChartData } from "@/types";
-import { format, startOfMonth, endOfMonth, subMonths, addDays } from "date-fns";
+import { addDays, endOfMonth, format, startOfMonth, subMonths } from "date-fns";
 import { es } from "date-fns/locale";
 import { Loader2 } from "lucide-react";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { date } from "zod";
 
 const ObligatoryReportIndicators = () => {
+  const { selectedCompany } = useCompanyStore();
   const currentDate = new Date();
   // Obtener la fecha del mes anterior
   const previousMonth = subMonths(currentDate, 1);
@@ -56,6 +56,7 @@ const ObligatoryReportIndicators = () => {
     isError: isErrorBarChart,
     refetch: refetchBarChart,
   } = useGetTotalReportsStatsByYear(
+    selectedCompany,
     params.from_first || format(startOfMonth(new Date()), "yyyy-MM-dd"),
     params.to_first || format(new Date(), "yyyy-MM-dd")
   );
@@ -66,6 +67,7 @@ const ObligatoryReportIndicators = () => {
     isError: isErrorObligatoryAverageData,
     refetch: refetchObligatoryAverageData,
   } = useGetObligatoryReportAverage(
+    selectedCompany,
     params.from_first || format(startOfMonth(new Date()), "yyyy-MM-dd"),
     params.to_first || format(new Date(), "yyyy-MM-dd"),
     params.from_second || formattedStartDate,

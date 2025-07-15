@@ -272,7 +272,7 @@ export function CreateObligatoryReportForm({
     if (isEditing && initialData && data.report_number) {
       const value = {
         company: selectedCompany,
-        id: initialData.id,
+        id: initialData.id.toString(),
         data: {
           image: data.image,
           document: data.document,
