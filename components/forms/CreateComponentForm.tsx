@@ -209,12 +209,12 @@ const CreateComponentForm = ({ initialData, isEditing }: {
   return (
     <Form {...form}>
       <form className="flex flex-col gap-4 max-w-6xl mx-auto" onSubmit={form.handleSubmit(onSubmit)}>
-        <div className="max-w-7xl flex flex-col lg:flex-row gap-2 justify-center items-center w-full">
+        <div className="max-w-7xl flex flex-col lg:flex-row gap-2 w-full">
           <FormField
             control={form.control}
             name="part_number"
             render={({ field }) => (
-              <FormItem className="w-full">
+              <FormItem className="w-full xl:w-1/3">
                 <FormLabel>Nro. de Parte</FormLabel>
                 <FormControl>
                   <Input placeholder="EJ: 234ABAC" {...field} />
@@ -246,53 +246,52 @@ const CreateComponentForm = ({ initialData, isEditing }: {
               </FormItem>
             )}
           />
-          <FormField
-            control={form.control}
-            name="serial"
-            render={({ field }) => (
-              <FormItem className="w-full">
-                <FormLabel>Serial</FormLabel>
-                <FormControl>
-                  <Input placeholder="EJ: 234ABAC" {...field} />
-                </FormControl>
-                <FormDescription>
-                  Identificador único del articulo.
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="condition_id"
-            render={({ field }) => (
-              <FormItem className="w-full">
-                <FormLabel>Condición</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                  <FormControl>
-                    <SelectTrigger disabled={isConditionsLoading}>
-                      <SelectValue placeholder="Seleccione..." />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {
-                      conditions && conditions.map((condition) => (
-                        <SelectItem key={condition.id} value={condition.id.toString()}>{condition.name}</SelectItem>
-                      ))
-                    }
-                  </SelectContent>
-                </Select>
-                <FormDescription>
-                  Estado físico del articulo.
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
         </div>
-
-        <div className="flex flex-row gap-12 justify-center max-w-6xl">
-          <div className="grid grid-cols-2 gap-4">
+        <div className="flex flex-row gap-12 justify-start max-w-7xl w-full">
+          <div className="grid grid-cols-2 gap-x-10 gap-y-4 w-full max-w-xl">
+            <FormField
+              control={form.control}
+              name="serial"
+              render={({ field }) => (
+                <FormItem className="w-full">
+                  <FormLabel>Serial</FormLabel>
+                  <FormControl>
+                    <Input placeholder="EJ: 234ABAC" {...field} />
+                  </FormControl>
+                  <FormDescription>
+                    Identificador único del articulo.
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="condition_id"
+              render={({ field }) => (
+                <FormItem className="w-full">
+                  <FormLabel>Condición</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger disabled={isConditionsLoading}>
+                        <SelectValue placeholder="Seleccione..." />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {
+                        conditions && conditions.map((condition) => (
+                          <SelectItem key={condition.id} value={condition.id.toString()}>{condition.name}</SelectItem>
+                        ))
+                      }
+                    </SelectContent>
+                  </Select>
+                  <FormDescription>
+                    Estado físico del articulo.
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             <FormField
               control={form.control}
               name="fabrication_date"
