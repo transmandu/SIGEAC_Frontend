@@ -246,6 +246,7 @@ const CreateComponentForm = ({ initialData, isEditing }: {
               </FormItem>
             )}
           />
+          
         </div>
         <div className="flex flex-row gap-12 justify-start max-w-7xl w-full">
           <div className="grid grid-cols-2 gap-x-10 gap-y-4 w-full max-w-xl">
