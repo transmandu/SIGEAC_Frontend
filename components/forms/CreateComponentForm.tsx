@@ -352,13 +352,13 @@ const CreateComponentForm = ({ initialData, isEditing }: {
                 </FormItem>
               )}
             />
-            
+
             <FormField
               control={form.control}
               name="caducate_date"
               render={({ field }) => (
                 <FormItem className="flex flex-col p-0 mt-2.5 w-full">
-                  <FormLabel>Fecha de Caducidad</FormLabel>
+                  <FormLabel>Fecha de caducidad</FormLabel>
                   <Popover>
                     <PopoverTrigger asChild>
                       <FormControl>
