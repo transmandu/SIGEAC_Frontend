@@ -433,7 +433,7 @@ const CreateComponentForm = ({ initialData, isEditing }: {
                               locale: es
                             })
                           ) : (
-                            <span>Seleccione una fecha</span>
+                            <span>Seleccione una fecha...</span>
                           )}
                           <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                         </Button>
