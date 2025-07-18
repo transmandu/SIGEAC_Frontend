@@ -1,10 +1,7 @@
 "use client";
 
-import { useGetVoluntaryReportsByDateRange } from "@/hooks/sms/useGetVoluntaryReportsByDateRange";
-import { ReportingStats, VoluntaryReport } from "@/types";
+import { ReportingStats } from "@/types";
 import { useTheme } from "next-themes";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
 import {
   Bar,
   BarChart,
@@ -15,58 +12,17 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { Button } from "../ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../ui/dialog";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "../ui/table";
 
-interface StatsDataByYear {
-  name: string;
-  total_reports: number;
-  open_reports: number;
-  closed_reports: number;
-}
 
 interface BarChartProps {
   data: ReportingStats;
   title: string;
   width: string;
   height: string;
-  from: string;
-  to: string;
 }
 
-const BarChartComponent = ({
-  data,
-  title,
-  width,
-  height,
-  from,
-  to,
-}: BarChartProps) => {
+const BarChartComponent = ({ data, title, width, height }: BarChartProps) => {
   const { theme } = useTheme();
-  const router = useRouter();
-  const [clickedBarType, setClickedBarType] = useState<string | null>(null);
-  const [openList, setOpenList] = useState(false);
-  const [barData, setBarData] = useState<VoluntaryReport[] | null>(null);
-  const {
-    data: reportsData,
-    isLoading,
-    isError,
-  } = useGetVoluntaryReportsByDateRange(from, to);
-  const filterReportsByStatus = (
-    reports: VoluntaryReport[],
-    status: string
-  ): VoluntaryReport[] => {
-    return reports.filter((report) => report.status === status);
-  };
-
 
   if (!data.closed_reports && !data.open_reports) {
     return (
@@ -76,16 +32,16 @@ const BarChartComponent = ({
     );
   }
 
-  const values: StatsDataByYear[] = data
+  const values: ReportingStats[] = data
     ? [
         {
-          name: `${title}`,
           total_reports: data.total_reports,
           open_reports: data.open_reports,
           closed_reports: data.closed_reports,
         },
       ]
     : [];
+
   return (
     <>
       <h1 className="text-sm font-semibold">{title}</h1>
@@ -111,7 +67,7 @@ const BarChartComponent = ({
             <XAxis
               dataKey="name"
               stroke={theme === "light" ? "black" : "white"}
-              tick={{ fontSize: 12 }} 
+              tick={{ fontSize: 12 }}
             />
             <YAxis
               allowDecimals={false}
@@ -126,7 +82,6 @@ const BarChartComponent = ({
               name={"En Proceso"}
               stackId="a"
               fill={theme === "light" ? "#80d5c0" : "#89f4c7"}
-
             />
 
             <Bar
@@ -134,58 +89,12 @@ const BarChartComponent = ({
               name={"Gestionados"}
               stackId="a"
               fill={theme === "light" ? "#8ea7f0" : "#8f8dfe"}
-
             />
           </BarChart>
         ) : (
           <p>No hay datos disponibles para mostrar el gráfico.</p>
         )}
       </ResponsiveContainer>
-
-      <Dialog open={openList} onOpenChange={setOpenList}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Detalles de Reportes</DialogTitle>
-          </DialogHeader>
-          {barData ? (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Numero de Reporte</TableHead>
-                  <TableHead>Estado</TableHead>
-                  <TableHead>Ver mas</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {barData.map((report) => (
-                  <TableRow key={report.id}>
-                    <TableCell>RVP-{report.report_number}</TableCell>
-                    <TableCell>{report.status}</TableCell>
-                    <TableCell>
-                      <Button
-                        onClick={() => {
-                          router.push(
-                            `/transmandu/sms/reportes_voluntarios/${report.id}`
-                          );
-                        }}
-                        size="sm"
-                      >
-                        Ver Detalles
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          ) : (
-            <TableRow>
-              <TableCell colSpan={4} style={{ textAlign: "center" }}>
-                No hay detalles disponibles para esta selección.
-              </TableCell>
-            </TableRow>
-          )}
-        </DialogContent>
-      </Dialog>
     </>
   );
 };

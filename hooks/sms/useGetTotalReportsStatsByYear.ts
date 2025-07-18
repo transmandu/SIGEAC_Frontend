@@ -10,7 +10,6 @@ const fetcVoluntaryReportStatsByYear = async (
   const { data } = await axiosInstance.get(
     `/${company}/sms/total-reports-stats-by-year?from=${from}&to=${to}`
   );
-  console.log("useGetTotalReportsStatsByYear",data);
   return data;
 };
 

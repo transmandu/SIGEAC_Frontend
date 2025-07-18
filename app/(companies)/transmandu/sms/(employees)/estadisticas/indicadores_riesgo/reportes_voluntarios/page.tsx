@@ -3,8 +3,6 @@ import BarChartComponent from "@/components/charts/BarChartComponent";
 import PieChartComponent from "@/components/charts/PieChartComponent";
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import DateFilter from "@/components/misc/DataFilter";
-import DataFilter from "@/components/misc/DataFilter";
-import DoubleDateFilter from "@/components/misc/DoubleDateFilter";
 import { Label } from "@/components/ui/label";
 import { useGetTotalReportsStatsByYear } from "@/hooks/sms/useGetTotalReportsStatsByYear";
 import { dateFormat } from "@/lib/utils";
@@ -59,10 +57,6 @@ const VoluntaryReportIndicators = () => {
     params.to || format(new Date(), "yyyy-MM-dd")
   );
 
-  console.log("selectedCompany", selectedCompany);
-  console.log("params.from", params.from);
-  console.log("params.to", params.to);
-  console.log("barChartData", barChartData);
   const [resultArrayData, setResultArrayData] = useState<pieChartData[]>([]);
   const [result, setResult] = useState<number>();
 
@@ -122,8 +116,6 @@ const VoluntaryReportIndicators = () => {
               params.from &&
               params.to && (
                 <BarChartComponent
-                  from={params.from}
-                  to={params.to}
                   height="100%"
                   width="100%"
                   data={barChartData}
