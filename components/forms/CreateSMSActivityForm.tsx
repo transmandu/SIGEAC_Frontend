@@ -35,7 +35,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../ui/select";
-
+import { useCompanyStore } from "@/stores/CompanyStore";
 
 const FormSchema = z
   .object({
@@ -75,12 +75,11 @@ export default function CreateSMSActivityForm({
   isEditing,
   initialData,
 }: FormProps) {
-
   const router = useRouter();
-
+  const { selectedCompany } = useCompanyStore();
   const { data: employees, isLoading: isLoadingEmployees } =
     useGetEmployesByDepartment("DFS");
-  
+
   const { createSMSActivity } = useCreateSMSActivity();
   const { updateSMSActivity } = useUpdateSMSActivity();
 
@@ -108,20 +107,23 @@ export default function CreateSMSActivityForm({
       executed_by: initialData?.executed_by,
     },
   });
-  const onSubmit = async (data: FormSchemaType) => {
-    console.log(data);
 
+  const onSubmit = async (data: FormSchemaType) => {
+    console.log("data from sms activity form", data);
     if (isEditing && initialData) {
       const value = {
-        ...data,
+        company: selectedCompany,
         id: initialData.id.toString(),
-        status: initialData.status,
+        data: {
+          ...data,
+          status: initialData.status,
+        },
       };
       await updateSMSActivity.mutateAsync(value);
     } else {
       try {
-        await createSMSActivity.mutateAsync(data);
-        router.push(`/transmandu/sms/planificacion/actividades`);
+        await createSMSActivity.mutateAsync({ company: selectedCompany, data });
+        router.push(`/${selectedCompany}/sms/planificacion/actividades`);
       } catch (error) {
         console.error("Error al crear la actividad", error);
       }
@@ -140,10 +142,10 @@ export default function CreateSMSActivityForm({
         <div className="flex gap-9 items-center justify-between">
           <FormField
             control={form.control}
-            name="activity_name"
+            name="activity_number"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Nombre de la Actividad</FormLabel>
+                <FormLabel>Número de la Actividad</FormLabel>
                 <FormControl>
                   <Input {...field} maxLength={50} />
                 </FormControl>
@@ -154,10 +156,10 @@ export default function CreateSMSActivityForm({
 
           <FormField
             control={form.control}
-            name="activity_number"
+            name="activity_name"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Número de la Actividad</FormLabel>
+                <FormLabel>Nombre de la Actividad</FormLabel>
                 <FormControl>
                   <Input {...field} maxLength={50} />
                 </FormControl>

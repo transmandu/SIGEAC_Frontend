@@ -28,6 +28,7 @@ import {
 } from "../ui/dialog";
 import { AddToSMSActivity } from "../forms/AddToSMSActivityForm";
 import { useRouter } from "next/navigation";
+import { useCompanyStore } from "@/stores/CompanyStore";
 
 const SMSActivityDropDownActions = ({
   smsActivity,
@@ -35,6 +36,8 @@ const SMSActivityDropDownActions = ({
   smsActivity: SMSActivity;
 }) => {
   const [openDelete, setOpenDelete] = useState<boolean>(false);
+
+  const { selectedCompany } = useCompanyStore();
 
   const [openEdit, setOpenEdit] = useState<boolean>(false);
 
@@ -44,10 +47,14 @@ const SMSActivityDropDownActions = ({
 
   const router = useRouter();
 
-  const handleDelete = async (id: number | string) => {
-    await deleteSMSActivity.mutateAsync(id);
+  const handleDelete = async () => {
+    const value = {
+      company: selectedCompany,
+      id: smsActivity.id.toString(),
+    };
+    await deleteSMSActivity.mutateAsync(value);
     setOpenDelete(false);
-  };
+  };``
   return (
     <>
       <DropdownMenu>
@@ -83,7 +90,6 @@ const SMSActivityDropDownActions = ({
             <p className="pl-2">Ver</p>
           </DropdownMenuItem>
 
-
           <DropdownMenuItem onClick={() => setOpenAdd(true)}>
             <Plus className="size-5" />
             <p className="pl-2">Agregar personas</p>
@@ -116,7 +122,7 @@ const SMSActivityDropDownActions = ({
             <Button
               disabled={deleteSMSActivity.isPending}
               className="hover:bg-white hover:text-black hover:border hover:border-black transition-all"
-              onClick={() => handleDelete(smsActivity.id)}
+              onClick={() => handleDelete()}
             >
               {deleteSMSActivity.isPending ? (
                 <Loader2 className="size-4 animate-spin" />
@@ -160,7 +166,6 @@ const SMSActivityDropDownActions = ({
           </DialogHeader>
         </DialogContent>
       </Dialog>
-      
     </>
   );
 };

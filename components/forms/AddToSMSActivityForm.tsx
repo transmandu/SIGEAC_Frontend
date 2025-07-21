@@ -27,6 +27,7 @@ import {
   CommandList,
 } from "../ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
+import { useCompanyStore } from "@/stores/CompanyStore";
 
 interface FormProps {
   onClose: () => void;
@@ -62,6 +63,7 @@ const FormSchema = z.object({
 type FormSchemaType = z.infer<typeof FormSchema>;
 
 export function AddToSMSActivity({ onClose, initialData }: FormProps) {
+  const { selectedCompany } = useCompanyStore();
   const [open, setOpen] = useState(false);
   const { createSMSActivityAttendance } = useCreateSMSActivityAttendance();
   const [employeeSelections, setEmployeeSelections] = useState<
@@ -69,7 +71,10 @@ export function AddToSMSActivity({ onClose, initialData }: FormProps) {
   >([]);
 
   const { data: employeesData, isLoading: isLoadingEnrolledEmployee } =
-    useGetEnrolledStatus(initialData.id);
+    useGetEnrolledStatus({
+      company: selectedCompany,
+      activity_id: initialData.id.toString(),
+    });
 
   const form = useForm<FormSchemaType>({
     resolver: zodResolver(FormSchema),
@@ -141,9 +146,8 @@ export function AddToSMSActivity({ onClose, initialData }: FormProps) {
   };
 
   const onSubmit = async (data: FormSchemaType) => {
-    console.log("Empleados agregados:", data.addedEmployees);
-    console.log("Empleados eliminados:", data.removedEmployees);
     const value = {
+      company: selectedCompany,
       activity_id: initialData?.id.toString(),
       data: {
         addedEmployees: data.addedEmployees,
@@ -151,7 +155,7 @@ export function AddToSMSActivity({ onClose, initialData }: FormProps) {
       },
     };
     try {
-      const response = await createSMSActivityAttendance.mutateAsync(value);
+      createSMSActivityAttendance.mutateAsync(value);
     } catch (error) {
       console.error("Error al inscribir", error);
     }

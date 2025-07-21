@@ -6,9 +6,15 @@ import { Loader2 } from "lucide-react";
 import { columns } from "./columns";
 import { DataTable } from "./data-table";
 import { useGetSMSActivities } from "@/hooks/sms/useGetSMSActivities";
+import { useCompanyStore } from "@/stores/CompanyStore";
 
 const SMSActivitiesPage = () => {
-  const { data: activities, isLoading, isError } = useGetSMSActivities();
+  const { selectedCompany } = useCompanyStore();
+  const {
+    data: activities,
+    isLoading,
+    isError,
+  } = useGetSMSActivities(selectedCompany);
 
   return (
     <ContentLayout title="Actividades de SMS">
@@ -18,12 +24,7 @@ const SMSActivitiesPage = () => {
             <Loader2 className="size-24 animate-spin mt-48" />
           </div>
         )}
-        {activities && (
-          <DataTable
-            columns={columns}
-            data={activities}
-          />
-        )}
+        {activities && <DataTable columns={columns} data={activities} />}
         {isError && (
           <p className="text-sm text-muted-foreground">
             Ha ocurrido un error al cargar las actividades...
