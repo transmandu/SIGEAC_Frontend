@@ -31,8 +31,11 @@ interface UpdateMitigationPlanData {
 }
 
 interface closeReportData {
-  mitigation_id: number | string;
-  result: string;
+  company: string | null;
+  data: {
+    mitigation_id: number | string;
+    result: string;
+  };
 }
 export const useCreateMitigationPlan = () => {
   const queryClient = useQueryClient();
@@ -126,9 +129,9 @@ export const useCloseReport = () => {
   const queryClient = useQueryClient();
   const closeReportMutation = useMutation({
     mutationKey: ["close-report"],
-    mutationFn: async (data: closeReportData) => {
+    mutationFn: async ({ data, company }: closeReportData) => {
       await axiosInstance.patch(
-        `/transmandu/sms/close-report/mitigation-plan/${data.mitigation_id}`,
+        `/${company}/sms/close-report/${data.mitigation_id}`,
         data
       );
     },

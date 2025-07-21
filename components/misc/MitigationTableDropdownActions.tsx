@@ -50,22 +50,16 @@ const MitigationTableDropdownActions = ({
   const [open, setOpen] = useState<boolean>(false);
   const { deleteMitigationPlan } = useDeleteMitigationPlan();
   const [openCreateDangerIdentification, setOpenCreateDangerIdentification] =
-    useState<boolean>(false);
-  const [openDelete, setOpenDelete] = useState<boolean>(false);
-  const [openCreatePlan, setOpenCreatePlan] = useState<boolean>(false);
-  const [openCreateMeasure, setOpenCreateMeasure] = useState<boolean>(false);
-  const [closeReport, setCloseReport] = useState<boolean>(false);
-  const [openEditPlan, setOpenEditPlan] = useState<boolean>(false);
-  const [openEditAnalyses, setOpenEditAnalyses] = useState<boolean>(false);
-  const [openCreateAnalysis, setOpenCreateAnalysis] = useState<boolean>(false);
+    useState(false);
+  const [openDelete, setOpenDelete] = useState(false);
+  const [openCreatePlan, setOpenCreatePlan] = useState(false);
+  const [openCreateMeasure, setOpenCreateMeasure] = useState(false);
+  const [closeReport, setCloseReport] = useState(false);
+  const [openEditPlan, setOpenEditPlan] = useState(false);
+  const [openEditAnalyses, setOpenEditAnalyses] = useState(false);
+  const [openCreateAnalysis, setOpenCreateAnalysis] = useState(false);
   const { closeReportByMitigationId } = useCloseReport();
-
   const { theme } = useTheme();
-
-  interface closeReportData {
-    mitigation_id: number | string;
-    result: string;
-  }
 
   const handleDelete = async (id: number | string) => {
     const value = {
@@ -77,11 +71,14 @@ const MitigationTableDropdownActions = ({
   };
 
   const handleCloseReport = async (id: number | string, result: string) => {
-    const data: closeReportData = {
-      mitigation_id: id,
-      result: result,
+    const value = {
+      company: selectedCompany,
+      data: {
+        mitigation_id: id,
+        result: result,
+      },
     };
-    await closeReportByMitigationId.mutateAsync(data);
+    await closeReportByMitigationId.mutateAsync(value);
     setCloseReport(false);
   };
 
