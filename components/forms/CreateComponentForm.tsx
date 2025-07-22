@@ -246,7 +246,7 @@ const CreateComponentForm = ({ initialData, isEditing }: {
               </FormItem>
             )}
           />
-          
+
         </div>
         <div className="flex flex-row gap-12 justify-start max-w-7xl w-full">
           <div className="grid grid-cols-2 gap-x-10 gap-y-4 w-full max-w-xl">
@@ -352,12 +352,13 @@ const CreateComponentForm = ({ initialData, isEditing }: {
                 </FormItem>
               )}
             />
+
             <FormField
               control={form.control}
               name="caducate_date"
               render={({ field }) => (
                 <FormItem className="flex flex-col p-0 mt-2.5 w-full">
-                  <FormLabel>Fecha de Caducidad</FormLabel>
+                  <FormLabel>Fecha de caducidad</FormLabel>
                   <Popover>
                     <PopoverTrigger asChild>
                       <FormControl>
@@ -373,7 +374,7 @@ const CreateComponentForm = ({ initialData, isEditing }: {
                               locale: es
                             })
                           ) : (
-                            <span>Seleccione una fecha</span>
+                            <span>Seleccione una fecha...</span>
                           )}
                           <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                         </Button>
@@ -432,7 +433,7 @@ const CreateComponentForm = ({ initialData, isEditing }: {
                               locale: es
                             })
                           ) : (
-                            <span>Seleccione una fecha</span>
+                            <span>Seleccione una fecha...</span>
                           )}
                           <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                         </Button>
