@@ -96,6 +96,36 @@ export const useDeleteCourse = () => {
   };
 };
 
+export const useFinishCourse = () => {
+  const queryClient = useQueryClient();
+  const deleteMutation = useMutation({
+    mutationFn: async ({
+      company,
+      id,
+    }: {
+      company: string | null;
+      id: string;
+    }) => {
+      await axiosInstance.patch(`/general/${company}/finish-course/${id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["finish-course"] });
+      toast.success("Finalizado!", {
+        description: `¡El curso ha sido finalizado correctamente!`,
+      });
+    },
+    onError: (e) => {
+      toast.error("Oops!", {
+        description: "¡Hubo un error al finalizar un curso!",
+      });
+    },
+  });
+
+  return {
+    finishCourse: deleteMutation,
+  };
+};
+
 export const useUpdateCourse = () => {
   const queryClient = useQueryClient();
   const updateMutation = useMutation({

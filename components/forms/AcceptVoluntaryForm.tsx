@@ -46,9 +46,7 @@ export function AcceptVoluntaryReport({ onClose, initialData }: FormProps) {
     resolver: zodResolver(FormSchema),
     defaultValues: {},
   });
-  console.log("AQUIIII ENTROOO AL FORMMMM");
   const onSubmit = async (data: FormSchemaType) => {
-    console.log("DATAAAAA", data);
     const value = {
       company: selectedCompany,
       id: initialData.id.toString(),
