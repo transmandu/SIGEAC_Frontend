@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 
 export interface DispatchReport {
   id: number,
+  request_number: string;
   status: string,
   requested_by: string,
   approved_by: string,
