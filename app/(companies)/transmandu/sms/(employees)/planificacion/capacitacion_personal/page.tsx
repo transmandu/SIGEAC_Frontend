@@ -6,9 +6,15 @@ import { useGetSMSTraining } from "@/hooks/sms/useGetSMSTraining";
 import { Loader2 } from "lucide-react";
 import { columns } from "./columns";
 import { DataTable } from "./data-table";
+import { useCompanyStore } from "@/stores/CompanyStore";
 
 const SMSTrainingPage = () => {
-  const { data: employeeTraining, isLoading, isError } = useGetSMSTraining();
+  const { selectedCompany } = useCompanyStore();
+  const {
+    data: employeeTraining,
+    isLoading,
+    isError,
+  } = useGetSMSTraining(selectedCompany);
 
   return (
     <ContentLayout title="Capacitacion de SMS">

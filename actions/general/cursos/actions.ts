@@ -35,12 +35,16 @@ export const useCreateCourse = () => {
   const queryClient = useQueryClient();
   const createMutation = useMutation({
     mutationFn: async (data: CourseData) => {
-      console.log("data from create course",data.course);
-      await axiosInstance.post(`/general/${data.company}/create-course`, data.course, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
+      console.log("data from create course", data.course);
+      await axiosInstance.post(
+        `/general/${data.company}/create-course`,
+        data.course,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["department-courses"] });
@@ -66,11 +70,11 @@ export const useDeleteCourse = () => {
   const queryClient = useQueryClient();
   const deleteMutation = useMutation({
     mutationFn: async ({
-      id,
       company,
+      id,
     }: {
-      id: string;
       company: string | null;
+      id: string;
     }) => {
       await axiosInstance.delete(`/general/${company}/delete-course/${id}`);
     },
