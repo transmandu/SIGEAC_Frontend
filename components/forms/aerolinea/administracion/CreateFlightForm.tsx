@@ -116,12 +116,12 @@ export function FlightForm({ onClose }: FormProps) {
     data: clients,
     isLoading: isClientsLoading,
     isError: isClientsError,
-  } = useGetClients(selectedCompany?.split(" ").join(""));
+  } = useGetClients(selectedCompany?.slug);
   const {
     data: aircrafts,
     isLoading: isAircraftLoading,
     isError: isAircraftError,
-  } = useGetAircrafts(selectedCompany?.split(" ").join(""));
+  } = useGetAircrafts(selectedCompany?.slug);
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {

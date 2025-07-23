@@ -136,9 +136,9 @@ const CreateConsumableForm = ({ initialData, isEditing }: {
 
   const { data: secondaryUnits, isLoading: secondaryLoading, isError: secondaryError } = useGetSecondaryUnits()
 
-  const { data: manufacturers, isLoading: isManufacturerLoading, isError: isManufacturerError } = useGetManufacturers(selectedCompany?.split(" ").join(""))
+  const { data: manufacturers, isLoading: isManufacturerLoading, isError: isManufacturerError } = useGetManufacturers(selectedCompany?.slug)
 
-  const { data: conditions, isLoading: isConditionsLoading, error: isConditionsError } = useGetConditions();
+  const { data: conditions, isLoading: isConditionsLoading, error: isConditionsError } = useGetConditions(selectedCompany?.slug);
 
   const { mutate, data: batches, isPending: isBatchesLoading, isError } = useGetBatchesByLocationId();
 

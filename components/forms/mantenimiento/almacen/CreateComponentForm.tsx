@@ -77,7 +77,7 @@ const CreateComponentForm = ({ initialData, isEditing }: {
 
   const { mutate, data: batches, isPending: isBatchesLoading, isError } = useGetBatchesByLocationId();
 
-  const { data: manufacturers, isLoading: isManufacturerLoading, isError: isManufacturerError } = useGetManufacturers(selectedCompany?.split(" ").join(""))
+  const { data: manufacturers, isLoading: isManufacturerLoading, isError: isManufacturerError } = useGetManufacturers(selectedCompany?.slug)
 
   const { data: conditions, isLoading: isConditionsLoading, error: isConditionsError } = useGetConditions();
 
@@ -201,9 +201,11 @@ const CreateComponentForm = ({ initialData, isEditing }: {
         batches_id: values.batches_id,
         status: "Stored"
       })
-      router.push("/hangar74/almacen/ingreso/en_recepcion")
+      router.push(`/${selectedCompany?.slug}/almacen/ingreso/en_recepcion`)
     } else {
-      createArticle.mutateAsync(formattedValues);
+      createArticle.mutate({company: selectedCompany!.slug, data: {
+        ...formattedValues
+      }});
     }
   }
   return (

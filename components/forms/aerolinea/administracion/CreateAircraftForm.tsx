@@ -95,7 +95,7 @@ export function CreateAircraftForm({ onClose }: FormProps) {
   const {selectedCompany} = useCompanyStore()
   const { createAircraft } = useCreateAircraft();
   const { data } = useGetLocationsByCompanies();
-  const { data: manufacturers, isLoading: isManufacturersLoading, isError: isManufacturersError } = useGetManufacturers(selectedCompany?.split(" ").join(""));
+  const { data: manufacturers, isLoading: isManufacturersLoading, isError: isManufacturersError } = useGetManufacturers(selectedCompany?.slug);
   const form = useForm<FormSchemaType>({
     resolver: zodResolver(FormSchema),
     defaultValues: {},

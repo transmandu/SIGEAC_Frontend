@@ -186,7 +186,7 @@ export function CreateObligatoryReportForm({
   const { selectedCompany } = useCompanyStore();
   const { data: pilots, isLoading: isLoadingPilots } = useGetPilots();
   const { data: aircrafts, isLoading: isLoadingAircrafts } =
-    useGetAircraftAcronyms(selectedCompany?.split(" ").join(""));
+    useGetAircraftAcronyms(selectedCompany?.slug);
 
   const OPTIONS_LIST = [
     "La aereonave aterriza quedándose solo con el combustible de reserva o menos",

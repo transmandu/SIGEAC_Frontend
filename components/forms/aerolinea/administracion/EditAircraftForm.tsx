@@ -114,7 +114,7 @@ export function EditAircraftForm({ aircraft, onClose }: EditAircraftFormProps) {
   const { updateAircraft } = useUpdateAircraft();
   const {selectedCompany} = useCompanyStore();
   const { data: locationsData } = useGetLocationsByCompanies();
-  const { data: manufacturers, isLoading: isManufacturersLoading, isError: isManufacturersError } = useGetManufacturers(selectedCompany?.split(" ").join(""));
+  const { data: manufacturers, isLoading: isManufacturersLoading, isError: isManufacturersError } = useGetManufacturers(selectedCompany?.slug);
   const form = useForm<FormSchemaType>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
@@ -134,7 +134,7 @@ export function EditAircraftForm({ aircraft, onClose }: EditAircraftFormProps) {
   });
 
   const onSubmit = async (data: FormSchemaType) => {
-    await updateAircraft.mutateAsync({ acronym: aircraft.acronym, data, company: selectedCompany?.split(" ").join("")});
+    await updateAircraft.mutateAsync({ acronym: aircraft.acronym, data, company: selectedCompany?.slug});
     onClose();
   };
 

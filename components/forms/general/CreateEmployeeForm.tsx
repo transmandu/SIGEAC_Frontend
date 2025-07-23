@@ -128,12 +128,12 @@ export function CreateEmployeeForm() {
 
   // Obtener datos necesarios
   const { data: locations, isLoading: isLocLoading } = useGetLocationsByCompany(
-    selectedCompany?.split(" ").join("")
+    selectedCompany?.slug
   );
   const { data: departments, isLoading: isDepartmentsLoading } =
-    useGetDepartments(selectedCompany?.split(" ").join(""));
+    useGetDepartments(selectedCompany?.slug);
   const { data: jobTitles, isLoading: isJobTitlesLoading } = useGetJobTitles(
-    selectedCompany?.split(" ").join("")
+    selectedCompany?.slug
   );
   const { data: roles, isLoading: isRolesLoading } = useGetRoles();
   const {

@@ -14,22 +14,22 @@ export interface WarehouseReport {
     aircraft: number,
     stored: number,
     dispatch:{
-              quantity: 1,
-              location: string
-            }[]
+        quantity: 1,
+        location: string
+      }[]
     }[],
 }[]
 
 
-const fetchWarehouseReport = async (location_id: string | null): Promise<WarehouseReport[]> => {
-  const {data} = await axios.get(`/hangar74/articles/${location_id}`);
+const fetchWarehouseReport = async ({company, location_id}: {company?: string, location_id: string | null}): Promise<WarehouseReport[]> => {
+  const {data} = await axios.get(`/${company}/${location_id}/warehouse-report`);
   return data;
 };
 
-export const useGetWarehouseReport = (location_id: string | null) => {
+export const useGetWarehouseReport = ({company, location_id}: {company?: string, location_id: string | null}) => {
   return useQuery<WarehouseReport[], Error>({
     queryKey: ["warehouse-report"],
-    queryFn: () => fetchWarehouseReport(location_id),
-    enabled: !!location_id,
+    queryFn: () => fetchWarehouseReport({company, location_id}),
+    enabled: !!location_id && !!company,
   });
 };

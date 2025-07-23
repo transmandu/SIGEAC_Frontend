@@ -23,7 +23,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 
 import { useGetDepartments } from '@/hooks/sistema/departamento/useGetDepartment';
-import { useCreateJobTitle } from '@/actions/general/cargo/actions'; 
+import { useCreateJobTitle } from '@/actions/general/cargo/actions';
 import { useCompanyStore } from '@/stores/CompanyStore';
 
 
@@ -46,7 +46,7 @@ export function CreateJobTitleForm({ onSuccess }: { onSuccess?: () => void }) {
   });
 
   const { selectedStation, selectedCompany } = useCompanyStore()
-  const { data: departments, isLoading } = useGetDepartments(selectedCompany?.split(' ').join(''));
+  const { data: departments, isLoading } = useGetDepartments(selectedCompany?.slug);
   const { createJobTitle } = useCreateJobTitle();
 
 const onSubmit = async (data: JobTitleForm) => {

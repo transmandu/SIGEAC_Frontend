@@ -59,7 +59,7 @@ export default function CreateManufacturerForm({ onClose }: FormProps) {
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
-      await createManufacturer.mutateAsync({company: selectedCompany?.split(" ").join(""), data: values})
+      await createManufacturer.mutateAsync({company: selectedCompany?.slug, data: values})
       onClose()
     } catch (error) {
       console.log(error)

@@ -88,12 +88,12 @@ export function CreateCashMovementForm({ onClose }: FormProps) {
 
   const { createCashMovement } = useCreateCashMovement();
   const {selectedCompany} = useCompanyStore();
-  const {data: employees, isLoading: isEmployeesLoading } = useGetEmployeesByDepartment("DAR", selectedCompany?.split(" ").join(""));
+  const {data: employees, isLoading: isEmployeesLoading } = useGetEmployeesByDepartment("DAR", selectedCompany?.slug);
   const { data: cashes, isLoading: isCashesLoading } = useGetCash();
   const { data: bankaccounts, isLoading: isBankAccLoading } =
     useGetBankAccounts();
-  const { data: vendors, isLoading: isVendorLoading } = useGetVendors(selectedCompany?.split(" ").join(""));
-  const { data: clients, isLoading: isClientLoading } = useGetClients(selectedCompany?.split(" ").join(""));
+  const { data: vendors, isLoading: isVendorLoading } = useGetVendors(selectedCompany?.slug);
+  const { data: clients, isLoading: isClientLoading } = useGetClients(selectedCompany?.slug);
   const { data: accounts, isLoading: isAccountLoading } = useGetAccountant();
   const { data: categories, isLoading: isCategoryLoading } =
     useGetCategoriesByAccountant(accountantId || "");

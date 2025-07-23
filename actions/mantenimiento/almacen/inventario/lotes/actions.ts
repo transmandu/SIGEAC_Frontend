@@ -1,4 +1,5 @@
 import axiosInstance from "@/lib/axios"
+import { useCompanyStore } from "@/stores/CompanyStore"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 
@@ -14,15 +15,16 @@ type BatchType = {
   zone?: string,
   warehouse_id?: number,
   category?: string,
+  company: string
 }
 
 export const useCreateBatch = () => {
 
     const queryClient = useQueryClient()
-
+ 
     const createMutation = useMutation({
         mutationFn: async (data: BatchType) => {
-            await axiosInstance.post('/hangar74/batches', data)
+            await axiosInstance.post(`/${data.company}/batches`, data)
           },
         onSuccess: () => {
             queryClient.invalidateQueries({queryKey: ['batches']})

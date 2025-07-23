@@ -74,7 +74,7 @@ export default function CreateSMSActivityForm({
 
   const router = useRouter();
   const {selectedCompany} = useCompanyStore()
-  const { data: employees, isLoading: isLoadingEmployees } = useGetEmployeesByDepartment("SMS", selectedCompany?.split(" ").join(""));
+  const { data: employees, isLoading: isLoadingEmployees } = useGetEmployeesByDepartment("SMS", selectedCompany?.slug);
   const { createSMSActivity } = useCreateSMSActivity();
   const { updateSMSActivity } = useUpdateSMSActivity();
 

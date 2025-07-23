@@ -58,7 +58,7 @@ interface FormProps {
 export function CreateCreditForm({ onClose }: FormProps) {
   const {selectedCompany} = useCompanyStore();
   const { createCredit } = useCreateCredit();
-  const { data: vendors, isLoading: isVendorLoading } = useGetVendors(selectedCompany?.split(" ").join(""));
+  const { data: vendors, isLoading: isVendorLoading } = useGetVendors(selectedCompany?.slug);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),

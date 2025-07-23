@@ -18,20 +18,12 @@ const formSchema = z.object({
   label: z
     .string()
     .max(40)
-    .regex(
-      /^[a-zA-Z0-9\s]+$/,
-      "No se permiten caracteres especiales, solo letras"
-    )
     .min(2, {
       message: "El nombre debe tener al menos 2 caracteres y maximo 40.",
     }),
   value: z
     .string()
     .max(40)
-    .regex(
-      /^[a-zA-Z0-9\s]+$/,
-      "No se permiten caracteres especiales, solo letras"
-    )
     .min(2, {
       message: "El nombre debe tener al menos 2 caracteres y maximo 40.",
     }),

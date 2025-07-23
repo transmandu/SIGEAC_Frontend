@@ -92,7 +92,7 @@ export function CreateAdministrationQuoteForm({
     return watchArticles.reduce((sum, article) => sum + (Number(article.quantity) * Number(article.unit_price) || 0), 0);
   }, [watchArticles]);
 
-  const { data: vendors, isLoading: isVendorsLoading, isError: isVendorsError } = useGetVendors(selectedCompany?.split(" ").join(""));
+  const { data: vendors, isLoading: isVendorsLoading, isError: isVendorsError } = useGetVendors(selectedCompany?.slug);
   const { mutate, data: locations, isPending: isLocationsPending } = useGetLocationsByCompanyId();
 
   useEffect(() => {

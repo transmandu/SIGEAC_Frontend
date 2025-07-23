@@ -1,3 +1,4 @@
+import { Company } from "@/types";
 import { create } from "zustand";
 
 // Definimos la interfaz para los módulos
@@ -5,14 +6,6 @@ interface Module {
     id: number;
     label: string;
     value: string;
-}
-
-// Definimos la interfaz para la compañía
-interface Company {
-    id: number;
-    name: string;
-    slug: string;
-    modules: Module[];
 }
 
 // Actualizamos el estado para usar el objeto Company

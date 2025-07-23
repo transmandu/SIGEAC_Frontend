@@ -45,9 +45,9 @@ interface AircraftInfoFormProps {
 
 export function AircraftInfoForm({ onNext, onBack, initialData }: AircraftInfoFormProps) {
   const {selectedCompany} = useCompanyStore()
-  const { data: clients, isLoading: isClientsLoading, isError: isClientsError } = useGetClients(selectedCompany?.split(" ").join(""));
+  const { data: clients, isLoading: isClientsLoading, isError: isClientsError } = useGetClients(selectedCompany?.slug);
   const { data: locations, isPending: isLocationsLoading, isError: isLocationsError, mutate } = useGetLocationsByCompanyId();
-  const { data: manufacturers, isLoading: isManufacturersLoading, isError: isManufacturersError } = useGetManufacturers(selectedCompany?.split(" ").join(""));
+  const { data: manufacturers, isLoading: isManufacturersLoading, isError: isManufacturersError } = useGetManufacturers(selectedCompany?.slug);
 
   useEffect(() => {
     mutate(2)

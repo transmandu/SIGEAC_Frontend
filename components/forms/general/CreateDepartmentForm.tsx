@@ -42,7 +42,7 @@ export function CreateDepartmentForm({ onSuccess }: { onSuccess?: () => void }) 
 const onSubmit = async (data: DepartmentForm) => {
   await createDepartment.mutateAsync({
     ...data,
-    company: selectedCompany?.split(' ').join(''),
+    company: selectedCompany?.slug,
   });
   onSuccess?.();
   form.reset();

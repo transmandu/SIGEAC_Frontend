@@ -16,7 +16,7 @@ const EmployeePage = () => {
     data: employees,
     isPending: loading,
     isError: error,
-  } = useGetEmployeesByCompany(selectedCompany?.split(" ").join(""));
+  } = useGetEmployeesByCompany(selectedCompany?.slug);
 
 
   return (

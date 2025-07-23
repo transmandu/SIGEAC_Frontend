@@ -89,7 +89,7 @@ interface CreateMaintenanceServiceDialogProps {
 export function CreateMaintenanceServiceForm({ onClose }: CreateMaintenanceServiceDialogProps) {
   const { selectedStation, selectedCompany } = useCompanyStore()
   const { mutate, data: batches, isPending: isBatchesLoading, isError: isBatchesError } = useGetBatchesByLocationId();
-  const { data: manufacturers, isLoading: isManufacturersLoading, isError: isManufacturersError } = useGetManufacturers(selectedCompany?.split(' ').join(''));
+  const { data: manufacturers, isLoading: isManufacturersLoading, isError: isManufacturersError } = useGetManufacturers(selectedCompany?.slug);
   const { createService } = useCreateMaintenanceService()
   const [currentStep, setCurrentStep] = useState(1); // Paso actual
   const [serviceData, setServiceData] = useState<ServiceFormType | null>(null); // Datos del servicio

@@ -138,12 +138,12 @@ export function AircraftExpensiveForm({ acronym, onClose }: FormProps) {
     data: employees,
 
     isPending: isEmployeesLoading,
-  } = useGetEmployeesByCompany(selectedCompany?.split(" ").join(""));
+  } = useGetEmployeesByCompany(selectedCompany?.slug);
   const { data: cashes, isLoading: isCashesLoading } = useGetCash();
   const { data: bankaccounts, isLoading: isBankAccLoading } =
     useGetBankAccounts();
   const { data: accounts, isLoading: isAccountLoading } = useGetAccountant();
-  const { data: vendors, isLoading: isVendorLoading } = useGetVendors(selectedCompany?.split(" ").join(""));
+  const { data: vendors, isLoading: isVendorLoading } = useGetVendors(selectedCompany?.slug);
 
   // Get accountant_id from form values to fetch categories
   const accountantId = form.watch(

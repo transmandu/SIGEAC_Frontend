@@ -9,7 +9,7 @@ import { useCompanyStore } from '@/stores/CompanyStore';
 
 const BanksPage = () => {
   const {selectedCompany} = useCompanyStore();
-  const { data: clients, isLoading, error } = useGetClients(selectedCompany?.split(' ').join(''));
+  const { data: clients, isLoading, error } = useGetClients(selectedCompany?.slug);
   return (
     <ContentLayout title={'Almacenes'}>
       <h1 className='text-4xl font-bold text-center mb-2'>Control de Clientes</h1>

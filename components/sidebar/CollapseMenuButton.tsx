@@ -48,7 +48,9 @@ export function CollapseMenuButton({
   submenus,
   isOpen
 }: CollapseMenuButtonProps) {
+
   const isSubmenuActive = submenus.some((submenu) => submenu.active);
+
   const [isCollapsed, setIsCollapsed] = useState<boolean>(isSubmenuActive);
 
   return isOpen ? (

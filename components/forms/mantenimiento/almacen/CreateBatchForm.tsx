@@ -11,9 +11,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { useGetWarehousesByUser } from "@/hooks/administracion/useGetWarehousesByUser"
+import { useGetWarehousesByLocation } from "@/hooks/administracion/useGetWarehousesByUser"
 import { useGetBatchesWithArticlesCount } from "@/hooks/mantenimiento/almacen/renglones/useGetBatchesWithArticleCount"
 import { batches_categories } from "@/lib/batches_categories"
+import { generateSlug } from "@/lib/utils"
 import { useCompanyStore } from "@/stores/CompanyStore"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Loader2 } from "lucide-react"
@@ -22,7 +23,6 @@ import { useForm, useWatch } from "react-hook-form"
 import { z } from "zod"
 import { Checkbox } from "../../../ui/checkbox"
 import { Textarea } from "../../../ui/textarea"
-import { generateSlug } from "@/lib/utils"
 
 const FormSchema = z.object({
   name: z.string().min(3, {
@@ -51,13 +51,13 @@ interface FormProps {
 export function CreateBatchForm({ onClose }: FormProps) {
 
 
-  const { data: warehouses, error, isLoading } = useGetWarehousesByUser();
+  const {selectedCompany, selectedStation} = useCompanyStore()
+
+  const { data: warehouses, error, isLoading } = useGetWarehousesByLocation({company: selectedCompany?.slug, location_id: selectedStation});
 
   const { createBatch } = useCreateBatch();
 
-  const { selectedStation } = useCompanyStore();
-
-  const { data: batches } = useGetBatchesWithArticlesCount(selectedStation ?? undefined);
+  const { data: batches } = useGetBatchesWithArticlesCount({company: selectedCompany?.slug, location_id: selectedStation});
 
 
   const form = useForm<FormSchemaType>({
@@ -87,6 +87,7 @@ export function CreateBatchForm({ onClose }: FormProps) {
   const onSubmit = async (data: FormSchemaType) => {
     const formattedData = {
       ...data,
+      company: selectedCompany!.slug,
       slug: generateSlug(data.name),
       min_quantity: Number(data.min_quantity),
       warehouse_id: Number(data.warehouse_id)

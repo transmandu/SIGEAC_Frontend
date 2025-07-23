@@ -1006,7 +1006,7 @@ export function getMenuList(
               },
             ],
           },
-                  {
+          {
           groupLabel: "Sistema",
           menus: [
             {
@@ -1072,7 +1072,7 @@ export function getMenuList(
               ],
             },
           ],
-        },
+          },
       ]
   )
     .map((group) => {

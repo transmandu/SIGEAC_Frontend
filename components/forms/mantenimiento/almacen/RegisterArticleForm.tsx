@@ -1,11 +1,11 @@
 'use client'
 
-import React, { useState } from 'react'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../../ui/select'
+import { Article, Batch, Convertion } from '@/types';
+import { useState } from 'react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../../ui/select';
+import CreateComponentForm from './CreateComponentForm';
 import CreateConsumableForm from './CreateConsumableForm';
 import CreateToolForm from './CreateToolForm';
-import CreateComponentForm from './CreateComponentForm';
-import { Article, Batch, ComponentArticle, ConsumableArticle, Convertion, ToolArticle } from '@/types';
 
 interface EditingArticle extends Article {
   batches: Batch,

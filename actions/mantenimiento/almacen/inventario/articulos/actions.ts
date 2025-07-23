@@ -10,8 +10,8 @@ export const useCreateArticle = () => {
 
     const createMutation = useMutation({
         mutationKey: ["articles"],
-        mutationFn: async (data: ConsumableArticle | ComponentArticle | ToolArticle) => {
-            await axiosInstance.post('/hangar74/article', data,
+        mutationFn: async ({data, company}: {company: string, data: ConsumableArticle | ComponentArticle | ToolArticle}) => {
+            await axiosInstance.post(`/${company}/article`, data,
               {
               headers: {
                 'Content-Type': 'multipart/form-data',

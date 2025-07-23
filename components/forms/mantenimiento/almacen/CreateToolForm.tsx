@@ -11,24 +11,22 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { useGetConditions } from "@/hooks/administracion/useGetConditions"
+import { useGetManufacturers } from "@/hooks/general/fabricantes/useGetManufacturers"
 import { useGetBatchesByLocationId } from "@/hooks/mantenimiento/almacen/renglones/useGetBatchesByLocationId"
-import { conditions } from "@/lib/conditions"
 import loadingGif from '@/public/loading2.gif'
 import { useCompanyStore } from "@/stores/CompanyStore"
-import { Article, Batch, ToolArticle } from "@/types"
+import { Article, Batch } from "@/types"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { FileUpIcon, Loader2 } from "lucide-react"
 import Image from "next/image"
+import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
+import { MultiInputField } from "../../../misc/MultiInputField"
 import { Checkbox } from "../../../ui/checkbox"
 import { Textarea } from "../../../ui/textarea"
-import { AmountInput } from "../../../misc/AmountInput"
-import { useGetManufacturers } from "@/hooks/general/fabricantes/useGetManufacturers"
-import { useGetConditions } from "@/hooks/administracion/useGetConditions"
-import { useRouter } from "next/navigation"
-import { MultiInputField } from "../../../misc/MultiInputField"
 
 const formSchema = z.object({
   article_type: z.string(),
@@ -106,7 +104,7 @@ const CreateToolForm = ({ initialData, isEditing }: {
 
   const { data: conditions, isLoading: isConditionsLoading, error: isConditionsError } = useGetConditions();
 
-  const { data: manufacturers, isLoading: isManufacturerLoading, isError: isManufacturerError } = useGetManufacturers(selectedCompany?.split(" ").join(""))
+  const { data: manufacturers, isLoading: isManufacturerLoading, isError: isManufacturerError } = useGetManufacturers(selectedCompany?.slug)
 
   useEffect(() => {
     if (selectedStation) {
@@ -155,9 +153,11 @@ const CreateToolForm = ({ initialData, isEditing }: {
         certificate_vendor: values.certificate_vendor || initialData?.certifcate_vendor,
         status: "Stored"
       })
-      router.push("/hangar74/almacen/ingreso/en_recepcion")
+      router.push(`/${selectedCompany?.slug}/almacen/ingreso/en_recepcion`)
     } else {
-      createArticle.mutate(formattedValues);
+      createArticle.mutate({company: selectedCompany!.slug, data: {
+        ...formattedValues
+      }});
     }
   }
 
