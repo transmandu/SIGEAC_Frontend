@@ -3,7 +3,7 @@ import { Employee } from '@/types';
 import { useMutation } from '@tanstack/react-query';
 
 const fetchDepartamentEmployees = async (location_id: number): Promise<Employee[]> => {
-  const {data} = await axios.post('/transmandu/employees-department', { location_id });
+  const {data} = await axios.post('/hangar74/employees-department', { location_id });
   return data;
 };
 
