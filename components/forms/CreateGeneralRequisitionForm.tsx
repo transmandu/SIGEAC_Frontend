@@ -100,7 +100,6 @@ export function CreateGeneralRequisitionForm({ onClose, initialData, isEditing, 
 
   const { data: secondaryUnits, isLoading: secondaryUnitLoading } = useGetSecondaryUnits()
 
-
   const { createRequisition } = useCreateRequisition()
 
   const { updateRequisition } = useUpdateRequisition()
