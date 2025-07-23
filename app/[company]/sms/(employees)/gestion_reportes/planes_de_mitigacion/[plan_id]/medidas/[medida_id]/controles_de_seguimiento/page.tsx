@@ -7,6 +7,7 @@ import { columns } from "./columns";
 import { DataTable } from "./data-table";
 import { useParams } from "next/navigation";
 import { useGetMeasureFollowUpControl } from "@/hooks/sms/useGetMeasureFollowUpControl";
+import { useCompanyStore } from "@/stores/CompanyStore";
 
 type Params = {
   plan_id: string;
@@ -15,14 +16,17 @@ type Params = {
 
 const FollowUpControlPage = () => {
   const { plan_id, medida_id } = useParams<Params>();
-
-  console.log(plan_id, medida_id);
+  const { selectedCompany } = useCompanyStore();
+  const value = {
+    company: selectedCompany,
+    measure_id: medida_id,
+  };
   const {
     data: measureFollowUpControls,
     isLoading,
     isError,
-  } = useGetMeasureFollowUpControl(plan_id, medida_id);  
-  console.log("this is the date form data page follow up control", measureFollowUpControls);
+  } = useGetMeasureFollowUpControl(value);
+
   return (
     <ContentLayout title="Controles de seguimiento">
       <div className="flex flex-col gap-y-2">

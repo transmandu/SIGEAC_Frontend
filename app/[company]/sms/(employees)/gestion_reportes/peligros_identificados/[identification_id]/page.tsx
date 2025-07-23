@@ -7,13 +7,22 @@ import LoadingPage from "@/components/misc/LoadingPage";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useGetDangerIdentificationById } from "@/hooks/sms/useGetDangerIdentificationById";
-import { AlertCircle, AlertTriangle, ChevronRight, FileText, Info, Layers, List } from "lucide-react";
+import { useCompanyStore } from "@/stores/CompanyStore";
+import {
+  AlertCircle,
+  AlertTriangle,
+  ChevronRight,
+  FileText,
+  Info,
+  Layers,
+  List,
+} from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 
 const ShowDangerIdentification = () => {
   const { identification_id } = useParams<{ identification_id: string }>();
-
+  const { selectedCompany } = useCompanyStore();
   const {
     data: dangerIdentification,
     isLoading,
@@ -33,8 +42,8 @@ const ShowDangerIdentification = () => {
   const reportType = dangerIdentification?.voluntary_report
     ? "RVP"
     : dangerIdentification?.obligatory_report
-    ? "ROS"
-    : "N/A";
+      ? "ROS"
+      : "N/A";
 
   if (isLoading) {
     return <LoadingPage />;
@@ -56,20 +65,25 @@ const ShowDangerIdentification = () => {
               />
             </div>
             <div className="flex items-center py-2">
-              <DeleteDangerIdentificationDialog id={dangerIdentification.id} />
+              <DeleteDangerIdentificationDialog
+                id={dangerIdentification.id}
+                company={selectedCompany}
+              />
             </div>
           </>
         )}
 
-        {dangerIdentification && !dangerIdentification.analysis && status === "ABIERTO" && (
-          <div className="flex items-center py-2">
-            <CreateAnalysesDialog
-              buttonTitle="Crear Análisis"
-              name="identification"
-              id={dangerIdentification.id}
-            />
-          </div>
-        )}
+        {dangerIdentification &&
+          !dangerIdentification.analysis &&
+          status === "ABIERTO" && (
+            <div className="flex items-center py-2">
+              <CreateAnalysesDialog
+                buttonTitle="Crear Análisis"
+                name="identification"
+                id={dangerIdentification.id}
+              />
+            </div>
+          )}
 
         {dangerIdentification?.analysis && status === "ABIERTO" && (
           <div className="flex items-center py-2">
@@ -101,7 +115,8 @@ const ShowDangerIdentification = () => {
                 <div className="flex items-center justify-center gap-2">
                   <AlertTriangle className="w-5 h-5 text-gray-600 dark:text-gray-300 flex-shrink-0" />
                   <p className="text-base font-medium text-gray-700 dark:text-gray-300">
-                    <span className="font-semibold">Peligro:</span> {dangerIdentification.danger}
+                    <span className="font-semibold">Peligro:</span>{" "}
+                    {dangerIdentification.danger}
                   </p>
                 </div>
               </div>
@@ -110,7 +125,8 @@ const ShowDangerIdentification = () => {
                 <div className="flex items-center gap-2">
                   <Layers className="w-5 h-5 text-gray-600 dark:text-gray-300 flex-shrink-0" />
                   <p className="text-base font-medium text-gray-700 dark:text-gray-300">
-                    <span className="font-semibold">Área de Peligro:</span> {dangerIdentification.danger_area}
+                    <span className="font-semibold">Área de Peligro:</span>{" "}
+                    {dangerIdentification.danger_area}
                   </p>
                 </div>
               </div>
@@ -119,7 +135,8 @@ const ShowDangerIdentification = () => {
                 <div className="flex items-center gap-2">
                   <FileText className="w-5 h-5 text-gray-600 dark:text-gray-300 flex-shrink-0" />
                   <p className="text-base font-medium text-gray-700 dark:text-gray-300">
-                    <span className="font-semibold">Tipo de Peligro:</span> {dangerIdentification.danger_type}
+                    <span className="font-semibold">Tipo de Peligro:</span>{" "}
+                    {dangerIdentification.danger_type}
                   </p>
                 </div>
               </div>
@@ -134,14 +151,19 @@ const ShowDangerIdentification = () => {
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   <div>
-                    <p className="font-medium text-gray-700 dark:text-gray-300">Nombre:</p>
+                    <p className="font-medium text-gray-700 dark:text-gray-300">
+                      Nombre:
+                    </p>
                     <p>{dangerIdentification.information_source.name}</p>
                   </div>
                   <div>
-                    <p className="font-medium text-gray-700 dark:text-gray-300">Método de identificación:</p>
+                    <p className="font-medium text-gray-700 dark:text-gray-300">
+                      Método de identificación:
+                    </p>
                     <Badge
                       className={`justify-center items-center text-center font-bold font-sans ${
-                        dangerIdentification.information_source.type === "PROACTIVO"
+                        dangerIdentification.information_source.type ===
+                        "PROACTIVO"
                           ? "bg-green-400"
                           : "bg-red-400"
                       }`}
@@ -216,7 +238,10 @@ const ShowDangerIdentification = () => {
                   Reintentar
                 </Button>
                 <Link href="/transmandu/sms/peligros_identificados">
-                  <Button variant="outline" className="hover:bg-gray-100 dark:hover:bg-gray-700">
+                  <Button
+                    variant="outline"
+                    className="hover:bg-gray-100 dark:hover:bg-gray-700"
+                  >
                     Volver a la lista
                   </Button>
                 </Link>

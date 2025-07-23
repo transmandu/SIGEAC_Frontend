@@ -16,6 +16,7 @@ import { MitigationMeasure, MitigationTable } from "@/types";
 import Link from "next/link";
 import { Card } from "@/components/ui/card";
 import { getResult } from "@/lib/utils";
+import { useCompanyStore } from "@/stores/CompanyStore";
 
 // Componente para mostrar las medidas de mitigación (responsive)
 const MeasuresCell = ({
@@ -25,6 +26,7 @@ const MeasuresCell = ({
   measures: MitigationMeasure[];
   planId?: string | number;
 }) => {
+  const { selectedCompany } = useCompanyStore();
   return (
     <div className="flex justify-center">
       <Dialog>
@@ -63,7 +65,9 @@ const MeasuresCell = ({
                     <span className="mr-2 font-medium text-primary shrink-0">
                       {index + 1}.
                     </span>
-                    <span className="text-sm break-words">{measure.description}</span>
+                    <span className="text-sm break-words">
+                      {measure.description}
+                    </span>
                   </li>
                 ))}
               </ol>
@@ -76,7 +80,7 @@ const MeasuresCell = ({
             {measures.length > 0 && planId && (
               <div className="mt-4 flex justify-end">
                 <Link
-                  href={`/transmandu/sms/gestion_reportes/planes_de_mitigacion/${planId}/medidas`}
+                  href={`/${selectedCompany}/sms/gestion_reportes/planes_de_mitigacion/${planId}/medidas`}
                   passHref
                 >
                   <Button variant="default" size="sm">
@@ -94,14 +98,28 @@ const MeasuresCell = ({
 
 // Componente para mostrar el análisis de riesgo (responsive)
 const RiskAnalysisCell = ({ analysis }: { analysis: any }) => {
-  if (!analysis) return <div className="text-center text-muted-foreground text-xs sm:text-sm">N/A</div>;
+  if (!analysis)
+    return (
+      <div className="text-center text-muted-foreground text-xs sm:text-sm">
+        N/A
+      </div>
+    );
 
   const riskLevel = getResult(analysis.result);
 
   const badgeConfig = {
-    INTOLERABLE: { className: "bg-red-600 hover:bg-red-500", label: "Intolerable" },
-    TOLERABLE: { className: "bg-yellow-500 hover:bg-yellow-400", label: "Tolerable" },
-    ACEPTABLE: { className: "bg-green-600 hover:bg-green-500", label: "Aceptable" },
+    INTOLERABLE: {
+      className: "bg-red-600 hover:bg-red-500",
+      label: "Intolerable",
+    },
+    TOLERABLE: {
+      className: "bg-yellow-500 hover:bg-yellow-400",
+      label: "Tolerable",
+    },
+    ACEPTABLE: {
+      className: "bg-green-600 hover:bg-green-500",
+      label: "Aceptable",
+    },
   };
 
   const currentBadge = riskLevel ? badgeConfig[riskLevel] : null;
@@ -110,13 +128,17 @@ const RiskAnalysisCell = ({ analysis }: { analysis: any }) => {
     <div className="space-y-1 sm:space-y-2 text-center">
       <div className="grid grid-cols-2 gap-1 text-xs sm:text-sm">
         <div className="rounded bg-muted p-1 truncate">Prob.</div>
-        <div className="rounded bg-muted p-1 truncate">{analysis.probability}</div>
+        <div className="rounded bg-muted p-1 truncate">
+          {analysis.probability}
+        </div>
         <div className="rounded bg-muted p-1 truncate">Sev.</div>
         <div className="rounded bg-muted p-1 truncate">{analysis.severity}</div>
       </div>
 
       {currentBadge && (
-        <Badge className={`${currentBadge.className} w-full justify-center text-xs sm:text-sm`}>
+        <Badge
+          className={`${currentBadge.className} w-full justify-center text-xs sm:text-sm`}
+        >
           {currentBadge.label}
         </Badge>
       )}
@@ -196,8 +218,10 @@ export const columns: ColumnDef<MitigationTable>[] = [
     cell: ({ row }) => {
       const mitigationTable = row.original;
       const shouldShowActions =
-        (mitigationTable.voluntary_report && mitigationTable.voluntary_report.status !== "CERRADO") ||
-        (mitigationTable.obligatory_report && mitigationTable.obligatory_report.status !== "CERRADO");
+        (mitigationTable.voluntary_report &&
+          mitigationTable.voluntary_report.status !== "CERRADO") ||
+        (mitigationTable.obligatory_report &&
+          mitigationTable.obligatory_report.status !== "CERRADO");
 
       return shouldShowActions ? (
         <div className="flex justify-center">

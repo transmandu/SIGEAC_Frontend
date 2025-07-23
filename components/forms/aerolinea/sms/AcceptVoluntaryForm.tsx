@@ -17,6 +17,7 @@ import { z } from "zod";
 
 import { useAcceptVoluntaryReport } from "@/actions/sms/reporte_voluntario/actions";
 import { Separator } from "@/components/ui/separator";
+import { useCompanyStore } from "@/stores/CompanyStore";
 import { VoluntaryReport } from "@/types";
 import { Loader2 } from "lucide-react";
 
@@ -24,15 +25,19 @@ interface FormProps {
   onClose: () => void;
   initialData: VoluntaryReport;
 }
-// { onClose }: FormProps
-// lo de arriba va en prop
+
 export function AcceptVoluntaryReport({ onClose, initialData }: FormProps) {
   const { acceptVoluntaryReport } = useAcceptVoluntaryReport();
-
+  const { selectedCompany } = useCompanyStore();
   const FormSchema = z.object({
-    report_number: z.string().refine((val) => !isNaN(Number(val)), {
-      message: "El valor debe ser un número",
-    }),
+    report_number: z
+      .string({
+        required_error: "El número de reporte es requerido.", // Mensaje si el campo está ausente
+      })
+      .min(1, { message: "El número de reporte no puede estar vacío." }) // Mensaje si es una cadena vacía
+      .refine((val) => !isNaN(Number(val)), {
+        message: "El valor debe ser un número.", // Mensaje si no es un número
+      }),
   });
 
   type FormSchemaType = z.infer<typeof FormSchema>;
@@ -41,14 +46,17 @@ export function AcceptVoluntaryReport({ onClose, initialData }: FormProps) {
     resolver: zodResolver(FormSchema),
     defaultValues: {},
   });
-
   const onSubmit = async (data: FormSchemaType) => {
     const value = {
-      ...initialData,
-      report_number: data.report_number, // Sobrescribe solo report_number
-      image: undefined,
-      document: undefined,
-      status: "ABIERTO"
+      company: selectedCompany,
+      id: initialData.id.toString(),
+      data: {
+        ...initialData,
+        report_number: data.report_number, // Sobrescribe solo report_number
+        image: undefined,
+        document: undefined,
+        status: "ABIERTO",
+      },
     };
     try {
       await acceptVoluntaryReport.mutateAsync(value);

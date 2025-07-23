@@ -7,9 +7,11 @@ import { DataTable } from "./data-table";
 import { useGetVoluntaryReports } from "@/hooks/sms/useGetVoluntaryReports";
 import LoadingPage from "@/components/misc/LoadingPage";
 import { useGetMitigationTable } from "@/hooks/sms/useGetMitigationTable";
+import { useCompanyStore } from "@/stores/CompanyStore";
 
 const MitigationMeasuresPage = () => {
-  const { data, isLoading, isError } = useGetMitigationTable();
+  const { selectedCompany } = useCompanyStore();
+  const { data, isLoading, isError } = useGetMitigationTable(selectedCompany);
 
   if (isLoading) {
     return <LoadingPage />;

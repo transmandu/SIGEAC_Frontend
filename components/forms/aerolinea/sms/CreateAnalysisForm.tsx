@@ -15,8 +15,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
-
-
 import {
   useCreateAnalysis,
   useUpdateAnalyses,
@@ -32,6 +30,7 @@ import { Analysis } from "@/types";
 import { Separator } from "@radix-ui/react-select";
 import RiskMatrix from "../../../misc/RiskMatrix";
 import { useRouter } from "next/navigation";
+import { useCompanyStore } from "@/stores/CompanyStore";
 
 const FormSchema = z.object({
   severity: z.string(),
@@ -55,6 +54,7 @@ export default function CreateAnalysisForm({
   isEditing,
   initialData,
 }: FormProps) {
+  const { selectedCompany } = useCompanyStore();
   const { createAnalysis } = useCreateAnalysis();
   const { updateAnalyses } = useUpdateAnalyses();
   const router = useRouter();
@@ -86,29 +86,40 @@ export default function CreateAnalysisForm({
   const onSubmit = async (data: FormSchemaType) => {
     if (isEditing && initialData) {
       const value = {
-        ...data,
-        id: initialData.id,
-        result: data.probability + data.severity,
+        company: selectedCompany,
+        id: initialData.id.toString(),
+        data: {
+          ...data,
+          result: data.probability + data.severity,
+        },
       };
       await updateAnalyses.mutateAsync(value);
     } else {
       id = id.toString();
       if (name === "mitigacion") {
         const values = {
-          ...data,
-          result: data.probability + data.severity,
-          mitigation_plan_id: id,
+          company: selectedCompany,
+          data: {
+            ...data,
+            result: data.probability + data.severity,
+            mitigation_plan_id: id,
+          },
         };
         await createAnalysis.mutateAsync(values);
       } else {
         const values = {
-          ...data,
-          result: data.probability + data.severity,
-          danger_identification_id: id,
+          company: selectedCompany,
+          data: {
+            ...data,
+            result: data.probability + data.severity,
+            danger_identification_id: id,
+          },
         };
         try {
           await createAnalysis.mutateAsync(values);
-          router.push("/transmandu/sms/gestion_reportes/planes_de_mitigacion")
+          router.push(
+            `/${selectedCompany}/sms/gestion_reportes/planes_de_mitigacion`
+          );
         } catch (error) {
           console.error("Error al crear el análisis:", error);
         }

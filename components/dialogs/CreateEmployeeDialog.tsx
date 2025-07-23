@@ -29,7 +29,7 @@ export function CreateEmployeeDialog() {
             Completa la información para registrar un nuevo empleado.
           </DialogDescription>
         </DialogHeader>
-        <CreateEmployeeForm  />
+        <CreateEmployeeForm onSuccess={() => setOpen(false)} />
       </DialogContent>
     </Dialog>
   );

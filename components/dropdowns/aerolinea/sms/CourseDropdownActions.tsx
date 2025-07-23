@@ -1,4 +1,7 @@
-import { useDeleteCourse } from "@/actions/cursos/actions";
+import {
+  useDeleteCourse,
+  useFinishCourse,
+} from "@/actions/general/cursos/actions";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,10 +14,13 @@ import {
   ClipboardPenLine,
   EyeIcon,
   Loader2,
+  LockKeyholeOpen,
   MoreHorizontal,
-  Trash2,
   Plus,
+  Trash2,
+  UserCheck,
 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { CreateCourseForm } from "../../../forms/aerolinea/sms/CreateCourseForm";
 import { Button } from "../../../ui/button";
@@ -35,18 +41,36 @@ const CourseDropdownActions = ({ course }: { course: Course }) => {
   const [openEdit, setOpenEdit] = useState<boolean>(false);
   const { selectedCompany } = useCompanyStore();
   const { deleteCourse } = useDeleteCourse();
+  const { finishCourse } = useFinishCourse();
   const [openDelete, setOpenDelete] = useState<boolean>(false);
   const [openAdd, setOpenAdd] = useState(false);
+  const [openStatus, setOpenStatus] = useState(false);
+  const [openAttendance, setOpenAttendance] = useState(false);
 
   const router = useRouter();
-  const handleDelete = async (id: string, company: string | null) => {
+  const handleDelete = async () => {
     const value = {
-      id: id,
-      company: company,
+      id: course.id.toString(),
+      company: selectedCompany,
     };
     await deleteCourse.mutateAsync(value);
     setOpenDelete(false);
   };
+
+  const handleCloseCourse = async () => {
+    const value = {
+      id: course.id.toString(),
+      company: selectedCompany,
+    };
+    await finishCourse.mutateAsync(value);
+    setOpenStatus(false);
+  };
+
+  const realNow: Date = new Date();
+  realNow.setDate(realNow.getDate() - 1);
+
+  const CourseDate: Date = new Date(course.end_date);
+
   return (
     <>
       <Dialog open={open} onOpenChange={setOpen}>
@@ -62,19 +86,21 @@ const CourseDropdownActions = ({ course }: { course: Course }) => {
             align="center"
             className="flex-col gap-2 justify-center"
           >
-            <DialogTrigger asChild>
-              <DropdownMenuItem onClick={() => setOpenDelete(true)}>
-                <Trash2 className="size-5 text-red-500" />
-                <p className="pl-2">Eliminar</p>
-              </DropdownMenuItem>
-            </DialogTrigger>
-
-            {
+            {course.status !== "FINALIZADO" && (
+              <DialogTrigger asChild>
+                <DropdownMenuItem onClick={() => setOpenDelete(true)}>
+                  <Trash2 className="size-5 text-red-500" />
+                  <p className="pl-2">Eliminar</p>
+                </DropdownMenuItem>
+              </DialogTrigger>
+            )}
+            {course.status !== "FINALIZADO" && (
               <DropdownMenuItem onClick={() => setOpenEdit(true)}>
                 <ClipboardPenLine className="size-5" />
                 <p className="pl-2">Editar</p>
               </DropdownMenuItem>
-            }
+            )}
+
             <DropdownMenuItem
               onClick={() => {
                 router.push(`/${selectedCompany}/general/cursos/${course.id}`);
@@ -84,10 +110,26 @@ const CourseDropdownActions = ({ course }: { course: Course }) => {
               <p className="pl-2">Ver</p>
             </DropdownMenuItem>
 
-            <DropdownMenuItem onClick={() => setOpenAdd(true)}>
-              <Plus className="size-5" />
-              <p className="pl-2">Agregar personas</p>
-            </DropdownMenuItem>
+            {CourseDate >= realNow && (
+              <DropdownMenuItem onClick={() => setOpenAdd(true)}>
+                <Plus className="size-5" />
+                <p className="pl-2">Agregar personas</p>
+              </DropdownMenuItem>
+            )}
+
+            {CourseDate <= realNow && course.status !== "FINALIZADO" && (
+              <DropdownMenuItem onClick={() => setOpenAttendance(true)}>
+                <UserCheck className="size-5" />
+                <p className="pl-2">Asistencia</p>
+              </DropdownMenuItem>
+            )}
+
+            {CourseDate <= realNow && course.status !== "FINALIZADO" && (
+              <DropdownMenuItem onClick={() => setOpenStatus(true)}>
+                <LockKeyholeOpen className="size-5 text-green-400" />
+                <p className="pl-2">Finalizar</p>
+              </DropdownMenuItem>
+            )}
           </DropdownMenuContent>
         </DropdownMenu>
 
@@ -113,13 +155,11 @@ const CourseDropdownActions = ({ course }: { course: Course }) => {
               </Button>
 
               <Button
-                disabled={deleteCourse.isPending}
+                disabled={finishCourse.isPending}
                 className="hover:bg-white hover:text-black hover:border hover:border-black transition-all"
-                onClick={() =>
-                  handleDelete(course.id.toString(), selectedCompany)
-                }
+                onClick={() => handleDelete()}
               >
-                {deleteCourse.isPending ? (
+                {finishCourse.isPending ? (
                   <Loader2 className="size-4 animate-spin" />
                 ) : (
                   <p>Confirmar</p>
@@ -138,6 +178,7 @@ const CourseDropdownActions = ({ course }: { course: Course }) => {
 
             <CreateCourseForm
               onClose={() => setOpenEdit(false)}
+              isEditing={true}
               initialData={course}
             />
           </DialogContent>
@@ -157,6 +198,57 @@ const CourseDropdownActions = ({ course }: { course: Course }) => {
             </DialogHeader>
           </DialogContent>
         </Dialog>
+      </Dialog>
+
+      <Dialog open={openAttendance} onOpenChange={setOpenAttendance}>
+        <DialogContent className="flex flex-col max-w-2xl m-2">
+          <DialogHeader>
+            <DialogTitle className="text-center font-light">
+              Asistencia de personas
+            </DialogTitle>
+            <DialogDescription className="text-center"></DialogDescription>
+            <AddAtendanceForm
+              initialData={course}
+              onClose={() => setOpenAttendance(false)}
+            />
+          </DialogHeader>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={openStatus} onOpenChange={setOpenStatus}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="text-center">
+              ¿Seguro que desea finalizar el curso??
+            </DialogTitle>
+            <DialogDescription className="text-center p-2 mb-0 pb-0">
+              Esta acción es irreversible y estaría finalizando el curso
+              seleccionado.
+            </DialogDescription>
+          </DialogHeader>
+
+          <DialogFooter className="flex flex-col-reverse gap-2 md:gap-0">
+            <Button
+              className="bg-rose-400 hover:bg-white hover:text-black hover:border hover:border-black"
+              onClick={() => setOpenDelete(false)}
+              type="submit"
+            >
+              Cancelar
+            </Button>
+
+            <Button
+              disabled={deleteCourse.isPending}
+              className="hover:bg-white hover:text-black hover:border hover:border-black transition-all"
+              onClick={() => handleCloseCourse()}
+            >
+              {deleteCourse.isPending ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : (
+                <p>Confirmar</p>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
       </Dialog>
     </>
   );

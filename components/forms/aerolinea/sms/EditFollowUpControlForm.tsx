@@ -25,6 +25,7 @@ import { Calendar } from "../../../ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "../../../ui/popover";
 import { Separator } from "../../../ui/separator";
 import Image from "next/image";
+import { useCompanyStore } from "@/stores/CompanyStore";
 const FormSchema = z.object({
   description: z.string().max(255),
   date: z
@@ -57,6 +58,7 @@ interface FormProps {
 }
 
 export function EditFollowUpControlForm({ onClose, initialData }: FormProps) {
+  const { selectedCompany } = useCompanyStore();
   const { plan_id, measure_id } = useParams<{
     plan_id: string;
     measure_id: string;
@@ -73,9 +75,13 @@ export function EditFollowUpControlForm({ onClose, initialData }: FormProps) {
 
   const onSubmit = async (data: FormSchemaType) => {
     const formattedData = {
-      ...data,
-      id: initialData.id,
-      mitigation_measure_id: measure_id,
+      company: selectedCompany,
+      id: initialData.id.toString(),
+      data: {
+        ...data,
+        id: initialData.id,
+        mitigation_measure_id: measure_id,
+      },
     };
     await updateFollowUpControl.mutateAsync(formattedData);
     onClose();

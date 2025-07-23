@@ -37,9 +37,10 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { Separator } from "@/components/ui/separator";
-import { Textarea } from "@/components/ui/textarea";
+} from "../ui/select";
+import { Separator } from "../ui/separator";
+import { Textarea } from "../ui/textarea";
+import { useCompanyStore } from "@/stores/CompanyStore";
 
 const FormSchema = z.object({
   description: z
@@ -84,22 +85,29 @@ export default function CreateMitigationPlanForm({
         : new Date(),
     },
   });
-
+  const { selectedCompany } = useCompanyStore();
   const { createMitigationPlan } = useCreateMitigationPlan();
   const { updateMitigationPlan } = useUpdateMitigationPlan();
 
   const onSubmit = async (data: FormSchemaType) => {
     if (isEditing && initialData) {
       const value = {
-        ...data,
-        id: initialData.id,
+        company: selectedCompany,
+        id: initialData.id.toString(),
+        data: {
+          ...data,
+        },
       };
       await updateMitigationPlan.mutateAsync(value);
     } else {
-      await createMitigationPlan.mutateAsync({
-        ...data,
-        danger_identification_id: id,
-      });
+      const value = {
+        company: selectedCompany,
+        data: {
+          ...data,
+          danger_identification_id: id,
+        },
+      };
+      await createMitigationPlan.mutateAsync(value);
       console.log(data);
     }
     onClose();

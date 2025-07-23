@@ -6,11 +6,15 @@ import { Loader2 } from "lucide-react";
 import { columns } from "./columns";
 import { DataTable } from "./data-table";
 import { useGetMitigationTable } from "@/hooks/sms/useGetMitigationTable";
+import { useCompanyStore } from "@/stores/CompanyStore";
 
 const MitigationPlanPage = () => {
-  const { data: mitigationTable, isLoading, isError } = useGetMitigationTable();
-
-  console.log(mitigationTable);
+  const { selectedCompany } = useCompanyStore();
+  const {
+    data: mitigationTable,
+    isLoading,
+    isError,
+  } = useGetMitigationTable(selectedCompany);
 
   return (
     <ContentLayout title="Planes de Mitigacion">

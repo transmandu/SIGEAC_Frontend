@@ -117,7 +117,7 @@ const formSchema = z
   });
 type EmployeeForm = z.infer<typeof formSchema>;
 
-export function CreateEmployeeForm() {
+export function CreateEmployeeForm({ onSuccess }: { onSuccess?: () => void }) {
   const { selectedCompany } = useCompanyStore();
   const { createEmployee } = useCreateEmployee();
   const { createUser } = useCreateUser();
@@ -230,6 +230,7 @@ export function CreateEmployeeForm() {
         // Si no se va a crear usuario, solo creamos el empleado
         await createEmployee.mutateAsync(employeeData);
       }
+       onSuccess?.();
     } catch (error) {
       console.error("Error creating employee:", error);
     }

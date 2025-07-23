@@ -33,6 +33,7 @@ import {
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import DynamicBarChart from "@/components/charts/DynamicBarChart";
+import { useCompanyStore } from "@/stores/CompanyStore";
 
 interface Params {
   from?: string;
@@ -54,6 +55,7 @@ const graphicsOptions = [
 ];
 
 const Statistics = () => {
+  const { selectedCompany } = useCompanyStore();
   const [selectedGraphics, setSelectedGraphics] = useState<string[]>(["Todos"]);
   const [isOpen, setIsOpen] = useState(false);
   const searchParams = useSearchParams();
@@ -70,6 +72,7 @@ const Statistics = () => {
     isLoading: isLoadingBarChart,
     refetch: refetchBarChart,
   } = useGetVoluntaryReportingStatsByYear(
+    selectedCompany,
     params.from!,
     params.to!,
     "voluntary"
@@ -80,6 +83,7 @@ const Statistics = () => {
     isLoading: isLoadingDynamicData,
     refetch: refetchDynamicChart,
   } = useGetDangerIdentificationsCountedByType(
+    selectedCompany,
     params.from!,
     params.to!,
     "voluntary"
@@ -89,31 +93,51 @@ const Statistics = () => {
     data: pieCharData,
     isLoading: isLoadingPieCharData,
     refetch: refetchPieChart,
-  } = useGetReportsCountedByArea(params.from!, params.to!, "voluntary");
+  } = useGetReportsCountedByArea(
+    selectedCompany,
+    params.from!,
+    params.to!,
+    "voluntary"
+  );
 
   const {
     data: riskData,
     isLoading: isLoadingRisk,
     refetch: refetchRisk,
-  } = useGetRiskCountByDateRange(params.from!, params.to!, "voluntary");
+  } = useGetRiskCountByDateRange(
+    selectedCompany,
+    params.from!,
+    params.to!,
+    "voluntary"
+  );
 
   const {
     data: postRiskData,
     isLoading: isLoadingPostRisk,
     refetch: refetchPostRisk,
-  } = useGetPostRiskCountByDateRange(params.from!, params.to!, "voluntary");
+  } = useGetPostRiskCountByDateRange(
+    selectedCompany,
+    params.from!,
+    params.to!,
+    "voluntary"
+  );
 
   const {
     data: reportsByLocationData,
     isLoading: isLoadingReportsByLocationData,
     refetch: refetchAirportLocationData,
-  } = useGetVoluntaryReportsCountedByAirportLocation(params.from!, params.to!);
+  } = useGetVoluntaryReportsCountedByAirportLocation(
+    selectedCompany,
+    params.from!,
+    params.to!
+  );
 
   const {
     data: reportsBySourceName,
     isLoading: isLoadingSourceName,
     refetch: refetchDynamicSourceNameChart,
   } = useGetIdentificationStatsBySourceName(
+    selectedCompany,
     params.from!,
     params.to!,
     "voluntary"
@@ -124,6 +148,7 @@ const Statistics = () => {
     isLoading: isLoadingSourceType,
     refetch: refetchDynamicSourceTypeChart,
   } = useGetIdentificationStatsBySourceType(
+    selectedCompany,
     params.from!,
     params.to!,
     "voluntary"
@@ -300,8 +325,6 @@ const Statistics = () => {
               </div>
             ) : barChartData ? (
               <BarChartComponent
-                from={params.from!}
-                to={params.to!}
                 height="100%"
                 width="100%"
                 data={barChartData}

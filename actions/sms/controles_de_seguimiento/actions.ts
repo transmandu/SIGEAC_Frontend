@@ -1,37 +1,35 @@
 import axiosInstance from "@/lib/axios";
-import {
-  ComponentArticle,
-  ConsumableArticle,
-  DispatchRequest,
-  FollowUpControl,
-  Request,
-} from "@/types";
-import {
-  dataTagSymbol,
-  useMutation,
-  useQueryClient,
-} from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
-interface FollowDescriptionData {
-  description: string;
-  date: Date;
-  mitigation_measure_id: number | string;
+interface FollowUpControlData {
+  company: string | null;
+  data: {
+    description: string;
+    date: Date;
+    mitigation_measure_id: number | string;
+    image?: File | string;
+    document?: File | string;
+  };
 }
 
 interface updateFolllowUpControlData {
-  id: number;
-  description: string;
-  date: Date;
-  mitigation_measure_id: string | number;
+  company: string | null;
+  id: string;
+  data: {
+    description: string;
+    date: Date;
+    mitigation_measure_id: string | number;
+    image?: File | string;
+    document?: File | string;
+  };
 }
 
 export const useCreateFollowUpControl = () => {
   const queryClient = useQueryClient();
   const createMutation = useMutation({
-    mutationKey: ["follow-up-controls"],
-    mutationFn: async (data: FollowDescriptionData) => {
-      await axiosInstance.post("/transmandu/sms/follow-up-controls", data, {
+    mutationFn: async ({ data, company }: FollowUpControlData) => {
+      await axiosInstance.post(`/${company}/sms/follow-up-controls`, data, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
@@ -59,12 +57,17 @@ export const useCreateFollowUpControl = () => {
 export const useDeleteFollowUpControl = () => {
   const queryClient = useQueryClient();
   const deleteMutation = useMutation({
-    mutationFn: async (id: number | string) => {
-      await axiosInstance.delete(`/transmandu/sms/follow-up-controls/${id}`);
+    mutationFn: async ({
+      company,
+      id,
+    }: {
+      company: string | null;
+      id: string;
+    }) => {
+      await axiosInstance.delete(`/${company}/sms/follow-up-controls/${id}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["follow-up-controls"] });
-
       toast.success("¡Eliminado!", {
         description: `¡El control de seguimiento ha sido eliminada correctamente!`,
       });
@@ -85,10 +88,9 @@ export const useUpdateFollowUpControl = () => {
   const queryClient = useQueryClient();
 
   const updateFollowUpControlMutation = useMutation({
-    mutationKey: ["follow-up-controls"],
-    mutationFn: async (data: updateFolllowUpControlData) => {
+    mutationFn: async ({ company, id, data }: updateFolllowUpControlData) => {
       await axiosInstance.post(
-        `/transmandu/sms/update/follow-up-controls/${data.id}`,
+        `/${company}/sms/update-follow-up-controls/${id}`,
         data,
         {
           headers: {

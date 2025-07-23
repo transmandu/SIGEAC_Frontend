@@ -33,6 +33,7 @@ import {
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import DynamicBarChart from "@/components/charts/DynamicBarChart";
+import { useCompanyStore } from "@/stores/CompanyStore";
 
 interface Params {
   from?: string;
@@ -96,6 +97,7 @@ const graphicsOptions = [
 ];
 
 const Statistics = () => {
+  const { selectedCompany } = useCompanyStore();
   const [selectedGraphics, setSelectedGraphics] = useState<string[]>(["Todos"]);
   const [isOpen, setIsOpen] = useState(false);
   const searchParams = useSearchParams();
@@ -112,6 +114,7 @@ const Statistics = () => {
     isLoading: isLoadingBarChart,
     refetch: refetchBarChart,
   } = useGetVoluntaryReportingStatsByYear(
+    selectedCompany,
     params.from!,
     params.to!,
     "obligatory"
@@ -122,6 +125,7 @@ const Statistics = () => {
     isLoading: isLoadingDynamicData,
     refetch: refetchDynamicChart,
   } = useGetDangerIdentificationsCountedByType(
+    selectedCompany,
     params.from!,
     params.to!,
     "obligatory"
@@ -131,25 +135,41 @@ const Statistics = () => {
     data: pieCharData,
     isLoading: isLoadingPieCharData,
     refetch: refetchPieChart,
-  } = useGetReportsCountedByArea(params.from!, params.to!, "obligatory");
+  } = useGetReportsCountedByArea(
+    selectedCompany,
+    params.from!,
+    params.to!,
+    "obligatory"
+  );
 
   const {
     data: riskData,
     isLoading: isLoadingRisk,
     refetch: refetchRisk,
-  } = useGetRiskCountByDateRange(params.from!, params.to!, "obligatory");
+  } = useGetRiskCountByDateRange(
+    selectedCompany,
+    params.from!,
+    params.to!,
+    "obligatory"
+  );
 
   const {
     data: postRiskData,
     isLoading: isLoadingPostRisk,
     refetch: refetchPostRisk,
-  } = useGetPostRiskCountByDateRange(params.from!, params.to!, "obligatory");
+  } = useGetPostRiskCountByDateRange(
+    selectedCompany,
+    params.from!,
+    params.to!,
+    "obligatory"
+  );
 
   const {
     data: reportsBySourceName,
     isLoading: isLoadingSourceName,
     refetch: refetchDynamicSourceNameChart,
   } = useGetIdentificationStatsBySourceName(
+    selectedCompany,
     params.from!,
     params.to!,
     "obligatory"
@@ -160,6 +180,7 @@ const Statistics = () => {
     isLoading: isLoadingSourceType,
     refetch: refetchDynamicSourceTypeChart,
   } = useGetIdentificationStatsBySourceType(
+    selectedCompany,
     params.from!,
     params.to!,
     "obligatory"

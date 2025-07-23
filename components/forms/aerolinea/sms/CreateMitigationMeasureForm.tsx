@@ -34,44 +34,32 @@ import {
   useUpdateMitigationMeasure,
 } from "@/actions/sms/medida_de_mitigacion/actions";
 import { MitigationMeasure } from "@/types";
+import { useCompanyStore } from "@/stores/CompanyStore";
 
-const FormSchema = z
-  .object({
-    description: z.string().min(5),
+const FormSchema = z.object({
+  description: z.string().min(5),
 
-    implementation_supervisor: z
-      .string()
-      .nonempty({ message: "El supervisor es requerido" })
-      .min(3, { message: "El supervisor debe tener al menos 3 caracteres" })
-      .max(19, { message: "El supervisor no puede exceder los 19 caracteres" }),
+  implementation_supervisor: z
+    .string()
+    .min(3, { message: "El supervisor debe tener al menos 3 caracteres" })
+    .max(19, { message: "El supervisor no puede exceder los 19 caracteres" }),
 
-    implementation_responsible: z
-      .string()
-      .nonempty({ message: "El responsable es requerido" })
-      .min(3, { message: "El responsable debe tener al menos 3 caracteres" })
-      .max(23, {
-        message: "El responsable no puede exceder los 23 caracteres",
-      }),
+  implementation_responsible: z
+    .string()
+    .min(3, { message: "El responsable debe tener al menos 3 caracteres" })
+    .max(23, {
+      message: "El responsable no puede exceder los 23 caracteres",
+    }),
 
-    estimated_date: z
-      .date()
-      .refine((val) => !isNaN(val.getTime()), { message: "Fecha inválida" }),
+  estimated_date: z
+    .date()
+    .refine((val) => !isNaN(val.getTime()), { message: "Fecha inválida" }),
 
-    execution_date: z
-      .date()
-      .refine((val) => !isNaN(val.getTime()), { message: "Fecha inválida" })
-      .nullable(),
-  })
-  .superRefine((data, ctx) => {
-    if (data.execution_date && data.execution_date >= data.estimated_date) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message:
-          "La fecha de ejecución debe ser mayor o igual a la fecha estimada.",
-        path: ["execution_date"],
-      });
-    }
-  });
+  execution_date: z
+    .date()
+    .refine((val) => !isNaN(val.getTime()), { message: "Fecha inválida" })
+    .nullable(),
+});
 
 type FormSchemaType = z.infer<typeof FormSchema>;
 
@@ -102,22 +90,29 @@ export default function CreateMitigationMeasureForm({
         : null, // Inicializar como null en lugar de new Date()
     },
   });
-
+  const { selectedCompany } = useCompanyStore();
   const { createMitigationMeasure } = useCreateMitigationMeasure();
   const { updateMitigationMeasure } = useUpdateMitigationMeasure();
 
   const onSubmit = async (data: FormSchemaType) => {
     if (isEditing && initialData) {
       const value = {
-        ...data,
+        company: selectedCompany,
         id: initialData.id,
+        data: {
+          ...data,
+        },
       };
       await updateMitigationMeasure.mutateAsync(value);
     } else {
-      await createMitigationMeasure.mutateAsync({
-        ...data,
-        mitigation_plan_id: id,
-      });
+      const value = {
+        company: selectedCompany,
+        data: {
+          ...data,
+          mitigation_plan_id: id,
+        },
+      };
+      await createMitigationMeasure.mutateAsync(value);
     }
 
     onClose();

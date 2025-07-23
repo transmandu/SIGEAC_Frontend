@@ -15,44 +15,68 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { useGetVoluntaryReportById } from "@/hooks/sms/useGetVoluntaryReportById";
+import { useCompanyStore } from "@/stores/CompanyStore";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { Loader2, FileText, Calendar, MapPin, AlertTriangle, User, Mail, Phone, AlertCircle, File, Image as ImageIcon } from "lucide-react";
+import {
+  AlertCircle,
+  AlertTriangle,
+  Calendar,
+  File,
+  FileText,
+  Image as ImageIcon,
+  Loader2,
+  Mail,
+  MapPin,
+  Phone,
+  User,
+} from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import Image from "next/image";
 
 const ShowVoluntaryReport = () => {
   const { report_id } = useParams<{ report_id: string }>();
+  const { selectedCompany } = useCompanyStore();
+
+  const value = {
+    id: report_id,
+    company: selectedCompany,
+  };
+
   const {
     data: voluntaryReport,
     isLoading,
     isError,
-  } = useGetVoluntaryReportById(report_id);
+  } = useGetVoluntaryReportById(value);
 
   return (
     <ContentLayout title="Reportes Voluntarios">
       {/* Botones de acción (sin iconos como solicitaste) */}
       <div className="flex justify-evenly flex-wrap gap-2">
-        {voluntaryReport?.status === "ABIERTO" && !voluntaryReport.danger_identification_id && (
-          <div className="flex items-center py-2">
-            <CreateDangerIdentificationDialog
-              title="Crear Identificación de Peligro"
-              id={voluntaryReport.id}
-              reportType="RVP"
-            />
-          </div>
-        )}
+        {voluntaryReport?.status === "ABIERTO" &&
+          !voluntaryReport.danger_identification_id && (
+            <div className="flex items-center py-2">
+              <CreateDangerIdentificationDialog
+                title="Crear Identificación de Peligro"
+                id={voluntaryReport.id}
+                reportType="RVP"
+              />
+            </div>
+          )}
 
-        {voluntaryReport?.status === "ABIERTO" && voluntaryReport.danger_identification_id && (
-          <div className="flex items-center py-2">
-            <Button variant="outline" size="sm" className="h-8">
-              <Link href={`/transmandu/sms/gestion_reportes/peligros_identificados/${voluntaryReport.danger_identification_id}`}>
-                Ver Identificación de Peligro
-              </Link>
-            </Button>
-          </div>
-        )}
+        {voluntaryReport?.status === "ABIERTO" &&
+          voluntaryReport.danger_identification_id && (
+            <div className="flex items-center py-2">
+              <Button variant="outline" size="sm" className="h-8">
+                <Link
+                  href={`/transmandu/sms/gestion_reportes/peligros_identificados/${voluntaryReport.danger_identification_id}`}
+                >
+                  Ver Identificación de Peligro
+                </Link>
+              </Button>
+            </div>
+          )}
 
         {voluntaryReport?.status === "ABIERTO" && (
           <>
@@ -64,7 +88,10 @@ const ShowVoluntaryReport = () => {
               />
             </div>
             <div className="flex items-center py-2">
-              <DeleteVoluntaryReprotDialog id={voluntaryReport.id} />
+              <DeleteVoluntaryReprotDialog
+                company={selectedCompany}
+                id={voluntaryReport.id.toString()}
+              />
             </div>
           </>
         )}
@@ -120,13 +147,17 @@ const ShowVoluntaryReport = () => {
               <div className="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <AlertCircle className="w-5 h-5 text-gray-600 dark:text-gray-300" />
-                  <span className="text-gray-700 dark:text-gray-300">Estado:</span>
+                  <span className="text-gray-700 dark:text-gray-300">
+                    Estado:
+                  </span>
                 </div>
                 <Badge
                   className={`font-bold ${
-                    voluntaryReport.status === "CERRADO" ? "bg-green-400" :
-                    voluntaryReport.status === "ABIERTO" ? "bg-red-400" :
-                    "bg-gray-500"
+                    voluntaryReport.status === "CERRADO"
+                      ? "bg-green-400"
+                      : voluntaryReport.status === "ABIERTO"
+                        ? "bg-red-400"
+                        : "bg-gray-500"
                   }`}
                 >
                   {voluntaryReport.status}
@@ -140,18 +171,24 @@ const ShowVoluntaryReport = () => {
                 <MapPin className="w-5 h-5" />
                 Ubicación del Peligro
               </h3>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div>
-                  <p className="font-medium text-gray-700 dark:text-gray-300">Área:</p>
+                  <p className="font-medium text-gray-700 dark:text-gray-300">
+                    Área:
+                  </p>
                   <p>{voluntaryReport.danger_area || "N/A"}</p>
                 </div>
                 <div>
-                  <p className="font-medium text-gray-700 dark:text-gray-300">Base:</p>
+                  <p className="font-medium text-gray-700 dark:text-gray-300">
+                    Base:
+                  </p>
                   <p>{voluntaryReport.danger_location || "N/A"}</p>
                 </div>
                 <div className="md:col-span-2">
-                  <p className="font-medium text-gray-700 dark:text-gray-300">Localización exacta:</p>
+                  <p className="font-medium text-gray-700 dark:text-gray-300">
+                    Localización exacta:
+                  </p>
                   <p>{voluntaryReport.airport_location || "N/A"}</p>
                 </div>
               </div>
@@ -162,8 +199,12 @@ const ShowVoluntaryReport = () => {
               <div className="flex items-center gap-2">
                 <Calendar className="w-5 h-5 text-gray-600 dark:text-gray-300" />
                 <p className="text-gray-700 dark:text-gray-300">
-                  <span className="font-semibold">Fecha de Identificación:</span>{" "}
-                  {format(voluntaryReport.identification_date, "PPP", { locale: es })}
+                  <span className="font-semibold">
+                    Fecha de Identificación:
+                  </span>{" "}
+                  {format(voluntaryReport.identification_date, "PPP", {
+                    locale: es,
+                  })}
                 </p>
               </div>
             </div>
@@ -207,13 +248,16 @@ const ShowVoluntaryReport = () => {
                   <User className="w-5 h-5" />
                   Información del Reportero
                 </h3>
-                
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   <div>
                     <p className="font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2">
                       <User className="w-4 h-4" /> Nombre:
                     </p>
-                    <p>{voluntaryReport.reporter_name || "N/A"} {voluntaryReport.reporter_last_name}</p>
+                    <p>
+                      {voluntaryReport.reporter_name || "N/A"}{" "}
+                      {voluntaryReport.reporter_last_name}
+                    </p>
                   </div>
                   <div>
                     <p className="font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2">
@@ -311,7 +355,10 @@ const ShowVoluntaryReport = () => {
           {voluntaryReport?.document && (
             <Dialog>
               <DialogTrigger asChild>
-                <Button variant="outline" className="w-full flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  className="w-full flex items-center gap-2"
+                >
                   <File className="w-4 h-4" />
                   Ver Documento Adjunto
                 </Button>
@@ -330,7 +377,9 @@ const ShowVoluntaryReport = () => {
                     <div className="w-full flex justify-end">
                       <a
                         href={
-                          voluntaryReport.document.startsWith("data:application/pdf")
+                          voluntaryReport.document.startsWith(
+                            "data:application/pdf"
+                          )
                             ? voluntaryReport.document
                             : `data:application/pdf;base64,${voluntaryReport.document}`
                         }
@@ -343,7 +392,9 @@ const ShowVoluntaryReport = () => {
 
                     <iframe
                       src={
-                        voluntaryReport.document.startsWith("data:application/pdf")
+                        voluntaryReport.document.startsWith(
+                          "data:application/pdf"
+                        )
                           ? voluntaryReport.document
                           : `data:application/pdf;base64,${voluntaryReport.document}`
                       }

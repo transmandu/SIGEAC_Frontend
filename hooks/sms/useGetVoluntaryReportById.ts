@@ -1,10 +1,16 @@
 import axiosInstance from "@/lib/axios";
-import { DangerIdentification, User, VoluntaryReport } from "@/types";
+import { DangerIdentification } from "@/types";
 import { useQuery } from "@tanstack/react-query";
 
-const fetcVoluntaryReportById = async (id: string | number) => {
+const fetcVoluntaryReportById = async ({
+  company,
+  id,
+}: {
+  company: string | null;
+  id: string;
+}) => {
   const { data } = await axiosInstance.get(
-    `transmandu/sms/voluntary-reports/${id}`
+    `/${company}/sms/voluntary-reports/${id}`
   );
   return data;
 };
@@ -30,10 +36,17 @@ export type GetVoluntaryReport = {
   document?: string;
 };
 
-export const useGetVoluntaryReportById = (id: string | number) => {
+export const useGetVoluntaryReportById = ({
+  company,
+  id,
+}: {
+  company: string | null;
+  id: string;
+}) => {
   return useQuery<GetVoluntaryReport>({
-    queryKey: ["voluntary-report", id], // Incluye el ID en la clave de la query
-    queryFn: () => fetcVoluntaryReportById(id), // Pasa el ID a la función fetchUser
+    queryKey: ["voluntary-report", company, id], // Incluye el ID en la clave de la query
+    queryFn: () => fetcVoluntaryReportById({ company, id }), // Pasa el ID a la función fetchUser
     staleTime: 1000 * 60 * 5, // 5 minutos
+    enabled: !!company,
   });
 };

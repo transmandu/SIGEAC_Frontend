@@ -39,43 +39,46 @@ import {
 import CreateMitigationMeasureForm from "../../../forms/aerolinea/sms/CreateMitigationMeasureForm";
 import { useTheme } from "next-themes";
 import { getResult } from "@/lib/utils";
+import { useCompanyStore } from "@/stores/CompanyStore";
 
 const MitigationTableDropdownActions = ({
   mitigationTable,
 }: {
   mitigationTable: MitigationTable;
 }) => {
+  const { selectedCompany } = useCompanyStore();
   const [open, setOpen] = useState<boolean>(false);
   const { deleteMitigationPlan } = useDeleteMitigationPlan();
   const [openCreateDangerIdentification, setOpenCreateDangerIdentification] =
-    useState<boolean>(false);
-  const [openDelete, setOpenDelete] = useState<boolean>(false);
-  const [openCreatePlan, setOpenCreatePlan] = useState<boolean>(false);
-  const [openCreateMeasure, setOpenCreateMeasure] = useState<boolean>(false);
-  const [closeReport, setCloseReport] = useState<boolean>(false);
-  const [openEditPlan, setOpenEditPlan] = useState<boolean>(false);
-  const [openEditAnalyses, setOpenEditAnalyses] = useState<boolean>(false);
-  const [openCreateAnalysis, setOpenCreateAnalysis] = useState<boolean>(false);
+    useState(false);
+  const [openDelete, setOpenDelete] = useState(false);
+  const [openCreatePlan, setOpenCreatePlan] = useState(false);
+  const [openCreateMeasure, setOpenCreateMeasure] = useState(false);
+  const [closeReport, setCloseReport] = useState(false);
+  const [openEditPlan, setOpenEditPlan] = useState(false);
+  const [openEditAnalyses, setOpenEditAnalyses] = useState(false);
+  const [openCreateAnalysis, setOpenCreateAnalysis] = useState(false);
   const { closeReportByMitigationId } = useCloseReport();
-
   const { theme } = useTheme();
 
-  interface closeReportData {
-    mitigation_id: number | string;
-    result: string;
-  }
-
   const handleDelete = async (id: number | string) => {
-    await deleteMitigationPlan.mutateAsync(id);
+    const value = {
+      company: selectedCompany,
+      id: id.toString(),
+    };
+    await deleteMitigationPlan.mutateAsync(value);
     setOpenDelete(false);
   };
 
   const handleCloseReport = async (id: number | string, result: string) => {
-    const data: closeReportData = {
-      mitigation_id: id,
-      result: result,
+    const value = {
+      company: selectedCompany,
+      data: {
+        mitigation_id: id,
+        result: result,
+      },
     };
-    await closeReportByMitigationId.mutateAsync(data);
+    await closeReportByMitigationId.mutateAsync(value);
     setCloseReport(false);
   };
 
@@ -94,7 +97,7 @@ const MitigationTableDropdownActions = ({
             align="center"
             className="flex flex-col gap-2 justify-center"
           >
-              {mitigationTable.mitigation_plan?.id &&
+            {mitigationTable.mitigation_plan?.id &&
               mitigationTable.mitigation_plan?.analysis === null && (
                 <DropdownMenuItem onClick={() => setOpenCreateMeasure(true)}>
                   <Plus
@@ -119,8 +122,7 @@ const MitigationTableDropdownActions = ({
               </DropdownMenuItem>
             ) : null}
 
-            {mitigationTable.mitigation_plan &&
-              (
+            {mitigationTable.mitigation_plan && (
               <DialogTrigger asChild>
                 <DropdownMenuItem onClick={() => setOpenDelete(true)}>
                   <Trash2 className="size-5 text-red-500" />

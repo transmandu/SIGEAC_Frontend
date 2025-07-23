@@ -1,16 +1,9 @@
 "use client";
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { useGetEnrolledEmployees } from "@/hooks/sms/useGetEnrolledEmployees";
+import { useGetActivityEnrolledEmployees } from "@/hooks/sms/useGetEnrolledEmployees";
 import { useGetSMSActivityById } from "@/hooks/sms/useGetSMSActivityById";
+import { useCompanyStore } from "@/stores/CompanyStore";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import {
@@ -19,25 +12,28 @@ import {
   FileText,
   Loader2,
   MapPin,
-  User,
   Users,
 } from "lucide-react";
 import { useParams } from "next/navigation";
 
 const ShowSMSActivity = () => {
+  const { selectedCompany } = useCompanyStore();
   const { activity_id } = useParams<{ activity_id: string }>();
 
   const {
     data: activity,
     isLoading: isActivityLoading,
     isError: activityError,
-  } = useGetSMSActivityById(activity_id);
+  } = useGetSMSActivityById({ company: selectedCompany, id: activity_id });
 
   const {
     data: employees,
     isLoading: isEmployeesLoading,
     isError: employeeError,
-  } = useGetEnrolledEmployees(activity_id);
+  } = useGetActivityEnrolledEmployees({
+    company: selectedCompany,
+    activity_id: activity_id.toString(),
+  });
 
   return (
     <ContentLayout title="Actividad de SMS">

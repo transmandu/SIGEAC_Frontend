@@ -16,18 +16,19 @@ import { Loader2, Router } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-interface DeleteProps {
+interface data {
+  company: string | null;
   id: number | string;
 }
 
-export default function DeleteVoluntaryReprotDialog({id} : DeleteProps ) {
+export default function DeleteVoluntaryReportDialog(data: data) {
   const [open, setOpen] = useState(false);
   const { deleteVoluntaryReport } = useDeleteVoluntaryReport();
   const router = useRouter();
-  const handleDelete = async (id: number | string) => {
+  const handleDelete = async () => {
     try {
-      await deleteVoluntaryReport.mutateAsync(id);
-      router.push("/transmandu/sms/reportes/reportes_voluntarios");
+      await deleteVoluntaryReport.mutateAsync(data);
+      router.push(`/${data.company}/sms/reportes/reportes_voluntarios`);
     } catch (error) {
       console.error("No se pudo eliminar el reportes", error);
     }
@@ -71,7 +72,7 @@ export default function DeleteVoluntaryReprotDialog({id} : DeleteProps ) {
               <Button
                 disabled={deleteVoluntaryReport.isPending}
                 className="hover:bg-white hover:text-black hover:border hover:border-black transition-all"
-                onClick={() => handleDelete(id)}
+                onClick={() => handleDelete()}
               >
                 {deleteVoluntaryReport.isPending ? (
                   <Loader2 className="size-4 animate-spin" />

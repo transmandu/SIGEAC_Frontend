@@ -408,20 +408,20 @@ export interface DispatchRequest extends Request {
 }
 
 export type Flight = {
-  id: number,
-  guide_code: string,
-  client: Client,
-  route: Route,
-  aircraft: Aircraft,
-  date: string,
-  details: string,
-  fee: string,
-  total_amount: string,
-  type: "CARGA" | "PAX" | "CHART",
-  payed_amount: string,
-  debt_status: "PENDIENTE" | "PAGADO",
-  bank_account: BankAccount,
-}
+  id: number;
+  guide_code: string;
+  client: Client;
+  route: Route;
+  aircraft: Aircraft;
+  date: string;
+  details: string;
+  fee: string;
+  total_amount: string;
+  type: "CARGA" | "PAX" | "CHART";
+  payed_amount: string;
+  debt_status: "PENDIENTE" | "PAGADO";
+  bank_account: BankAccount;
+};
 
 export type AdministrationFlight = {
   id: string;
@@ -645,14 +645,14 @@ export type AdministrationRequisition = {
 };
 
 export type Role = {
-  id: number,
-  name: string,
-  label: string,
+  id: number;
+  name: string;
+  label: string;
   company: {
-    name: string,
-    description: string,
-  }[]
-}
+    name: string;
+    description: string;
+  }[];
+};
 
 export type Route = {
   id: number;
@@ -998,6 +998,22 @@ export type Course = {
   time: string;
   start_date: Date;
   end_date: Date;
+  course_type: string;
   instructor?: string;
   status: string;
+};
+
+export type CourseAttendance = {
+  course: Course;
+  employee_dni: string;
+  employee: Employee;
+};
+
+export type SMSTraining = {
+  employee: Employee;
+  course: Course;
+  last_enrollment: CourseAttendance;
+  expiration: Date;
+  status: string;
+  is_initial: boolean;
 };

@@ -7,6 +7,9 @@ import { Course } from "@/types";
 import { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import { Badge } from "@/components/ui/badge";
+import CourseDropdownActions from "@/components/misc/CourseDropdownActions";
+import { dateFormat } from "@/lib/utils";
 
 export const columns: ColumnDef<Course>[] = [
   {
@@ -28,9 +31,7 @@ export const columns: ColumnDef<Course>[] = [
     cell: ({ row }) => {
       return (
         <p className="font-medium text-center">
-          {format(row.original.start_date, "PPP", {
-            locale: es,
-          })}
+          {dateFormat(row.original.start_date, "PPP")}
         </p>
       );
     },
@@ -48,9 +49,7 @@ export const columns: ColumnDef<Course>[] = [
     cell: ({ row }) => {
       return (
         <p className="font-medium text-center">
-          {format(row.original.end_date, "PPP", {
-            locale: es,
-          })}
+          {dateFormat(row.original.end_date, "PPP")}
         </p>
       );
     },
@@ -87,9 +86,9 @@ export const columns: ColumnDef<Course>[] = [
     meta: { title: "Estado" },
     cell: ({ row }) => {
       const color =
-        row.original.status === "PENDIENTE"
+        row.original.status === "CERRADO"
           ? "bg-red-500 hover:bg-red-700"
-          : row.original.status === "TERMINADO"
+          : row.original.status === "ABIERTO"
             ? "bg-green-500 hover:bg-green-700"
             : "bg-gray-200"; // Agrega una clase por defecto para otros estados
       return (

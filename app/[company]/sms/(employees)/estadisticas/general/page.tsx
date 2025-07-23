@@ -32,8 +32,10 @@ import {
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import DynamicBarChart from "@/components/charts/DynamicBarChart";
+import { useCompanyStore } from "@/stores/CompanyStore";
 
 const GeneralReportStats = () => {
+  const { selectedCompany } = useCompanyStore();
   const [selectedGraphics, setSelectedGraphics] = useState<string[]>([]);
   const [isOpen, setIsOpen] = useState(false);
 
@@ -85,6 +87,7 @@ const GeneralReportStats = () => {
     isError: isErrorBarChart,
     refetch: refetchBarChart,
   } = useGetTotalReportsStatsByYear(
+    selectedCompany,
     params.from || format(startOfMonth(new Date()), "yyyy-MM-dd"),
     params.to || format(new Date(), "yyyy-MM-dd")
   );
@@ -183,7 +186,7 @@ const GeneralReportStats = () => {
     setSelectedGraphics((prev) => prev.filter((item) => item !== id));
   };
 
-  const shouldShow = (id: string) => 
+  const shouldShow = (id: string) =>
     selectedGraphics.length === 0 || selectedGraphics.includes(id);
 
   return (

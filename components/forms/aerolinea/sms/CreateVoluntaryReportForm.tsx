@@ -41,10 +41,11 @@ import { VoluntaryReport } from "@/types";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { CalendarIcon, Loader2 } from "lucide-react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { Label } from "../../../ui/label";
-import Image from "next/image";
+import { Label } from "../ui/label";
+import { useCompanyStore } from "@/stores/CompanyStore";
 
 interface FormProps {
   onClose: () => void;
@@ -58,6 +59,7 @@ export function CreateVoluntaryReportForm({
   isEditing,
   initialData,
 }: FormProps) {
+  const { selectedCompany } = useCompanyStore();
   const { createVoluntaryReport } = useCreateVoluntaryReport();
   const { updateVoluntaryReport } = useUpdateVoluntaryReport();
   const [isAnonymous, setIsAnonymous] = useState(true);
@@ -218,22 +220,33 @@ export function CreateVoluntaryReportForm({
 
     if (initialData && isEditing) {
       const value = {
-        ...data,
-        status: initialData.status,
-        id: initialData.id,
-        danger_identification_id: initialData?.danger_identification_id,
+        company: selectedCompany,
+        id: initialData.id.toString(),
+        data: {
+          ...data,
+          status: initialData.status,
+          id: initialData.id,
+          danger_identification_id: initialData?.danger_identification_id,
+        },
       };
       await updateVoluntaryReport.mutateAsync(value);
     } else {
       const value = {
-        ...data,
-        status: shouldEnableField ? "ABIERTO" : "PROCESO",
+        company: selectedCompany,
+        reportData: {
+          ...data,
+          status: shouldEnableField ? "ABIERTO" : "PROCESO",
+        },
       };
       try {
         const response = await createVoluntaryReport.mutateAsync(value);
-        router.push(
-          `/transmandu/sms/reportes/reportes_voluntarios/${response.voluntary_report_id}`
-        );
+        if (shouldEnableField) {
+          router.push(
+            `/${selectedCompany}/sms/reportes/reportes_voluntarios/${response.voluntary_report_id}`
+          );
+        } else {
+          router.push(`/${selectedCompany}/dashboard`);
+        }
       } catch (error) {
         console.error("Error al crear el reporte:", error);
       }

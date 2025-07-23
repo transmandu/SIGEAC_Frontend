@@ -116,15 +116,42 @@ export function CreateObligatoryReportForm({
       flight_time: z.string().regex(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/, {
         message: "Formato de hora inválido (HH:mm)",
       }),
-      pilot_id: z.string(),
-      copilot_id: z.string(),
-      aircraft_id: z.string(),
-      flight_number: z.string().refine((val) => !isNaN(Number(val)), {
-        message: "El valor debe ser un número",
+      pilot_id: z.string({
+        required_error: "El piloto es requerido.",
       }),
-      flight_origin: z.string().min(3).max(3),
-      flight_destiny: z.string().min(3).max(3),
-      flight_alt_destiny: z.string().min(3).max(3),
+      copilot_id: z.string({
+        required_error: "El copiloto es requerido.",
+      }),
+      aircraft_id: z.string({
+        required_error: "La aeronave es requerida.",
+      }),
+      flight_number: z.string(),
+      flight_origin: z
+        .string()
+        .min(4, {
+          message: "El origen del vuelo debe tener al menos 3 caracteres.",
+        })
+        .max(4, {
+          message: "El origen del vuelo debe tener máximo 4 caracteres.",
+        }),
+      flight_destiny: z
+        .string()
+        .min(3, {
+          message: "El destino del vuelo debe tener al menos 3 caracteres.",
+        })
+        .max(4, {
+          message: "El destino del vuelo debe tener máximo 4 caracteres.",
+        }),
+      flight_alt_destiny: z
+        .string()
+        .min(3, {
+          message:
+            "El destino alterno de vuelo debe tener al menos 3 caracteres.",
+        })
+        .max(4, {
+          message:
+            "El destino alterno de vuelo debe tener máximo 4 caracteres.",
+        }),
       incidents: z.array(z.string()).optional(),
       other_incidents: z.preprocess(
         (val) => (val === null || val === undefined ? "" : val),
@@ -242,30 +269,32 @@ export function CreateObligatoryReportForm({
   });
 
   const onSubmit = async (data: FormSchemaType) => {
-    console.log(data);
     if (isEditing && initialData && data.report_number) {
       const value = {
-        id: initialData.id,
-        image: data.image,
-        document: data.document,
-        status: initialData.status,
-        danger_identification_id: initialData.danger_identification?.id,
-        report_number: data.report_number,
-        incident_location: data.incident_location,
-        description: data.description,
-        incident_date: data.incident_date,
-        report_date: data.report_date,
-        incident_time: `${data.incident_time}:00`, // Añadimos segundos para el backend
-        flight_time: `${data.flight_time}:00`, // Añadimos segundos para el backend
-        pilot_id: data.pilot_id,
-        copilot_id: data.copilot_id,
-        aircraft_id: data.aircraft_id,
-        flight_number: data.flight_number,
-        flight_origin: data.flight_origin,
-        flight_destiny: data.flight_destiny,
-        flight_alt_destiny: data.flight_alt_destiny,
-        incidents: data.incidents,
-        other_incidents: data.other_incidents,
+        company: selectedCompany,
+        id: initialData.id.toString(),
+        data: {
+          image: data.image,
+          document: data.document,
+          status: initialData.status,
+          danger_identification_id: initialData.danger_identification?.id,
+          report_number: data.report_number,
+          incident_location: data.incident_location,
+          description: data.description,
+          incident_date: data.incident_date,
+          report_date: data.report_date,
+          incident_time: `${data.incident_time}:00`, // Añadimos segundos para el backend
+          flight_time: `${data.flight_time}:00`, // Añadimos segundos para el backend
+          pilot_id: data.pilot_id,
+          copilot_id: data.copilot_id,
+          aircraft_id: data.aircraft_id,
+          flight_number: data.flight_number,
+          flight_origin: data.flight_origin,
+          flight_destiny: data.flight_destiny,
+          flight_alt_destiny: data.flight_alt_destiny,
+          incidents: data.incidents,
+          other_incidents: data.other_incidents,
+        },
       };
       await updateObligatoryReport.mutateAsync(value);
     } else {
@@ -293,12 +322,15 @@ export function CreateObligatoryReportForm({
 
       try {
         const response = await createObligatoryReport.mutateAsync(value);
-        console.log("this is a console log post await async", response);
-        router.push(
-          `/transmandu/sms/reportes/reportes_obligatorios/${response.obligatory_report_id}`
-        );
+        if (shouldEnableField) {
+          router.push(
+            `/${selectedCompany}/sms/reportes/reportes_obligatorios/${response.obligatory_report_id}`
+          );
+        } else {
+          router.push(`/${selectedCompany}/dashboard`);
+        }
       } catch (error) {
-        console.error("Error al crear el reporte:", error);
+        console.error("Error al crear reporte:", error);
       }
     }
     onClose();
@@ -673,11 +705,7 @@ export function CreateObligatoryReportForm({
               <FormItem className="w-full">
                 <FormLabel>Origen de vuelo</FormLabel>
                 <FormControl>
-                  <Input
-                    placeholder="Salida del vuelo"
-                    {...field}
-                    maxLength={3}
-                  />
+                  <Input placeholder="Salida del vuelo" {...field} />
                 </FormControl>
                 <FormMessage className="text-xs" />
               </FormItem>
@@ -693,11 +721,7 @@ export function CreateObligatoryReportForm({
               <FormItem className="w-full">
                 <FormLabel>Destino de vuelo</FormLabel>
                 <FormControl>
-                  <Input
-                    placeholder="Destino del vuelo"
-                    {...field}
-                    maxLength={3}
-                  />
+                  <Input placeholder="Destino del vuelo" {...field} />
                 </FormControl>
                 <FormMessage className="text-xs" />
               </FormItem>
@@ -710,11 +734,7 @@ export function CreateObligatoryReportForm({
               <FormItem className="w-full">
                 <FormLabel>Destino alterno del vuelo</FormLabel>
                 <FormControl>
-                  <Input
-                    placeholder="Destino alterno del vuelo"
-                    {...field}
-                    maxLength={3}
-                  />
+                  <Input placeholder="Destino alterno del vuelo" {...field} />
                 </FormControl>
                 <FormMessage className="text-xs" />
               </FormItem>

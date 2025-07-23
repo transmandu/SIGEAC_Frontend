@@ -1,5 +1,4 @@
 import axiosInstance from "@/lib/axios";
-import { Analysis } from "@/types";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
@@ -34,7 +33,7 @@ export const useCreateCourseAttendance = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["department-courses"] });
-      queryClient.invalidateQueries({ queryKey: ["employees-by-department"] });
+      queryClient.invalidateQueries({ queryKey: ["enrollment-status"] });
       toast.success("Modificado!", {
         description: `La lista de personas ha sido modificada`,
       });
@@ -51,46 +50,19 @@ export const useCreateCourseAttendance = () => {
   };
 };
 
-export const useDeleteCourse = () => {
+export const useMarkAttendance = () => {
   const queryClient = useQueryClient();
-  const deleteMutation = useMutation({
-    mutationFn: async ({
-      id,
-      company,
-    }: {
-      id: string;
-      company: string | null;
-    }) => {
-      await axiosInstance.delete(`/general/${company}/delete-course/${id}`);
+  const markAttendanceMutation = useMutation({
+    mutationFn: async (data: CourseAttendaceData) => {
+      console.log("THIS IS DATA FROM MARK ATTENDANCE", data);
+      await axiosInstance.patch(
+        `/general/${data.company}/mark-attendance/${data.course_id}`,
+        data.employees_list
+      );
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["department-courses"] });
-      queryClient.invalidateQueries({ queryKey: ["enrollment-status"] });
-      toast.success("¡Eliminado!", {
-        description: `¡El curso ha sido eliminado correctamente!`,
-      });
-    },
-    onError: (e) => {
-      toast.error("Oops!", {
-        description: "¡Hubo un error al eliminar un curso!",
-      });
-    },
-  });
-
-  return {
-    deleteCourse: deleteMutation,
-  };
-};
-
-export const useUpdateAnalyses = () => {
-  const queryClient = useQueryClient();
-  const updateAnalysesMutation = useMutation({
-    mutationKey: ["analysis"],
-    mutationFn: async (data: Analysis) => {
-      await axiosInstance.put(`/transmandu/sms/analysis/${data.id}`, data);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["department-courses"] });
+      queryClient.invalidateQueries({ queryKey: ["employees-course"] });
       toast.success("¡Actualizado!", {
         description: `El analisis ha sido actualizada correctamente.`,
       });
@@ -103,6 +75,6 @@ export const useUpdateAnalyses = () => {
     },
   });
   return {
-    updateAnalyses: updateAnalysesMutation,
+    markAttendance: markAttendanceMutation,
   };
 };

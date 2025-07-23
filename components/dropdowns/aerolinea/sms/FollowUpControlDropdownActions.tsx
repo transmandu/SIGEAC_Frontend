@@ -5,14 +5,12 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  FollowUpControl
-} from "@/types";
+import { FollowUpControl } from "@/types";
 import {
   ClipboardPenLine,
   Loader2,
   MoreHorizontal,
-  Trash2
+  Trash2,
 } from "lucide-react";
 import { useState } from "react";
 import { EditFollowUpControlForm } from "../../../forms/aerolinea/sms/EditFollowUpControlForm";
@@ -25,24 +23,29 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "../../../ui/dialog";
+} from "../ui/dialog";
+import { useCompanyStore } from "@/stores/CompanyStore";
 
 const FollowUpControlDropdownActions = ({
   followUpControl,
 }: {
   followUpControl: FollowUpControl;
 }) => {
+  const { selectedCompany } = useCompanyStore();
   const [open, setOpen] = useState<boolean>(false);
   const [openEdit, setOpenEdit] = useState<boolean>(false);
-
   const { deleteFollowUpControl } = useDeleteFollowUpControl();
   const [openCreateFollowUpControl, setOpenCreateFollowUpControl] =
     useState<boolean>(false);
 
   const [openDelete, setOpenDelete] = useState<boolean>(false);
 
-  const handleDelete = async (id: number | string) => {
-    await deleteFollowUpControl.mutateAsync(id);
+  const handleDelete = async () => {
+    const value = {
+      company: selectedCompany,
+      id: followUpControl.id.toString(),
+    };
+    await deleteFollowUpControl.mutateAsync(value);
     setOpenDelete(false);
   };
   return (
@@ -100,7 +103,7 @@ const FollowUpControlDropdownActions = ({
               <Button
                 disabled={deleteFollowUpControl.isPending}
                 className="hover:bg-white hover:text-black hover:border hover:border-black transition-all"
-                onClick={() => handleDelete(followUpControl.id)}
+                onClick={() => handleDelete()}
               >
                 {deleteFollowUpControl.isPending ? (
                   <Loader2 className="size-4 animate-spin" />

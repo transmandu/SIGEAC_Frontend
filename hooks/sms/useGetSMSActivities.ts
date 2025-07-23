@@ -2,15 +2,18 @@ import axiosInstance from "@/lib/axios";
 import { SMSActivity } from "@/types";
 import { useQuery } from "@tanstack/react-query";
 
-const fetchSMSActivities = async (): Promise<SMSActivity[]> => {
-  const { data } = await axiosInstance.get("/transmandu/sms/sms-activities");
+const fetchSMSActivities = async (
+  company: string | null
+): Promise<SMSActivity[]> => {
+  const { data } = await axiosInstance.get(`/${company}/sms/activities`);
   return data;
 };
 
-export const useGetSMSActivities = () => {
+export const useGetSMSActivities = (company: string | null) => {
   return useQuery<SMSActivity[]>({
     queryKey: ["sms-activities"],
-    queryFn: fetchSMSActivities,
+    queryFn: () => fetchSMSActivities(company),
     staleTime: 1000 * 60 * 5, // 5 minutos
+    enabled: !!company,
   });
 };

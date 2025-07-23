@@ -1,7 +1,7 @@
 "use client";
 import CreateDangerIdentificationDialog from "@/components/dialogs/CreateDangerIdentificationDialog";
 import CreateObligatoryDialog from "@/components/dialogs/CreateObligatoryDialog";
-import DeleteVoluntaryReprotDialog from "@/components/dialogs/DeleteVoluntaryReportDialog";
+import DeleteObligatoryReportDialog from "@/components/dialogs/DeleteObligatoryReportDialog";
 import PreviewObligatoryReportPdfDialog from "@/components/dialogs/PreviewObligatoryReportPdfDialog";
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import { Badge } from "@/components/ui/badge";
@@ -15,38 +15,42 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { useGetObligatoryReportById } from "@/hooks/sms/useGetObligatoryReportById";
-import { format, parse } from "date-fns";
+import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import {
-  Loader2,
-  FileText,
-  Download,
-  Eye,
-  Edit,
-  Trash2,
-  AlertTriangle,
+  AlertCircle,
   Calendar,
   Clock,
+  Download,
+  File,
+  FileText,
+  Image as ImageIcon,
+  Loader2,
   MapPin,
-  AlertCircle,
   Plane,
   User,
   Users,
-  File,
-  Image as ImageIcon,
 } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import Image from "next/image";
+import { useCompanyStore } from "@/stores/CompanyStore";
 
 const ShowObligatoryReport = () => {
   const { obligatory_id } = useParams<{ obligatory_id: string }>();
+
+  const { selectedCompany } = useCompanyStore();
+
+  const value = {
+    company: selectedCompany,
+    id: obligatory_id,
+  };
 
   const {
     data: obligatoryReport,
     isLoading,
     isError,
-  } = useGetObligatoryReportById(obligatory_id);
+  } = useGetObligatoryReportById(value);
 
   return (
     <ContentLayout title="Reportes Obligatorios">
@@ -97,7 +101,10 @@ const ShowObligatoryReport = () => {
         {/* Botón para eliminar reporte */}
         {obligatoryReport && obligatoryReport.status === "ABIERTO" && (
           <div className="flex items-center py-4">
-            <DeleteVoluntaryReprotDialog id={obligatoryReport.id} />
+            <DeleteObligatoryReportDialog
+              company={selectedCompany}
+              id={obligatoryReport.id.toString()}
+            />
           </div>
         )}
 

@@ -3,16 +3,18 @@ import { pieChartData, ReportsByArea } from "@/types";
 import { useQuery } from "@tanstack/react-query";
 
 const fetcVoluntaryReportsCountedByAirportLocation = async (
+  company: string | null,
   from: string,
   to: string
 ): Promise<pieChartData[]> => {
   const { data } = await axiosInstance.get(
-    `transmandu/sms/voluntary-reports/counted-by-airport-location?from=${from}&to=${to}`
+    `/${company}/sms/voluntary-reports-counted-by-airport-location?from=${from}&to=${to}`
   );
   return data;
 };
 
 export const useGetVoluntaryReportsCountedByAirportLocation = (
+  company: string | null,
   from: string,
   to: string
 ) => {
@@ -20,7 +22,8 @@ export const useGetVoluntaryReportsCountedByAirportLocation = (
     queryKey: [
       "voluntary-reports/counted-by-airport-location?from=${from}&to=${to}",
     ], // Incluye el ID en la clave de la query
-    queryFn: () => fetcVoluntaryReportsCountedByAirportLocation(from, to), // Pasa el ID a la función fetchUser
+    queryFn: () =>
+      fetcVoluntaryReportsCountedByAirportLocation(company, from, to), // Pasa el ID a la función fetchUser
     staleTime: 1000 * 60 * 5, // 5 minutos
   });
 };

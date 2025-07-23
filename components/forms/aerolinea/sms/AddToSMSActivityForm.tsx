@@ -1,5 +1,6 @@
 "use client";
 
+import { useCreateSMSActivityAttendance } from "@/actions/sms/sms_asistencia_actividades/actions";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -9,14 +10,14 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { useGetEnrolledStatus } from "@/hooks/sms/useGetEnrolledStatus";
+import { cn } from "@/lib/utils";
+import { SMSActivity } from "@/types";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Check, ChevronsUpDown } from "lucide-react";
+import { useCallback, useEffect, useState } from "react"; // Importa useCallback
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { Separator } from "@/components/ui/separator";
-import { SMSActivity } from "@/types";
-import { Check, ChevronsUpDown } from "lucide-react";
-import { useState, useEffect, useCallback } from "react"; // Importa useCallback
-import { Popover, PopoverContent, PopoverTrigger } from "../../../ui/popover";
 import {
   Command,
   CommandEmpty,
@@ -24,10 +25,9 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-} from "../../../ui/command";
-import { cn } from "@/lib/utils";
-import { useCreateSMSActivityAttendance } from "@/actions/sms/sms_asistencia_actividades/actions";
-import { useGetEnrolledStatus } from "@/hooks/sms/useGetEnrolledStatus";
+} from "../ui/command";
+import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
+import { useCompanyStore } from "@/stores/CompanyStore";
 
 interface FormProps {
   onClose: () => void;
@@ -63,6 +63,7 @@ const FormSchema = z.object({
 type FormSchemaType = z.infer<typeof FormSchema>;
 
 export function AddToSMSActivity({ onClose, initialData }: FormProps) {
+  const { selectedCompany } = useCompanyStore();
   const [open, setOpen] = useState(false);
   const { createSMSActivityAttendance } = useCreateSMSActivityAttendance();
   const [employeeSelections, setEmployeeSelections] = useState<
@@ -70,7 +71,10 @@ export function AddToSMSActivity({ onClose, initialData }: FormProps) {
   >([]);
 
   const { data: employeesData, isLoading: isLoadingEnrolledEmployee } =
-    useGetEnrolledStatus(initialData.id);
+    useGetEnrolledStatus({
+      company: selectedCompany,
+      activity_id: initialData.id.toString(),
+    });
 
   const form = useForm<FormSchemaType>({
     resolver: zodResolver(FormSchema),
@@ -142,9 +146,8 @@ export function AddToSMSActivity({ onClose, initialData }: FormProps) {
   };
 
   const onSubmit = async (data: FormSchemaType) => {
-    console.log("Empleados agregados:", data.addedEmployees);
-    console.log("Empleados eliminados:", data.removedEmployees);
     const value = {
+      company: selectedCompany,
       activity_id: initialData?.id.toString(),
       data: {
         addedEmployees: data.addedEmployees,
@@ -152,7 +155,7 @@ export function AddToSMSActivity({ onClose, initialData }: FormProps) {
       },
     };
     try {
-      const response = await createSMSActivityAttendance.mutateAsync(value);
+      createSMSActivityAttendance.mutateAsync(value);
     } catch (error) {
       console.error("Error al inscribir", error);
     }

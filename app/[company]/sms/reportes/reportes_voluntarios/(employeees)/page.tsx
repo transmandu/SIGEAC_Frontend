@@ -1,14 +1,15 @@
 "use client";
 
 import { ContentLayout } from "@/components/layout/ContentLayout";
-import { Loader2 } from "lucide-react";
+import LoadingPage from "@/components/misc/LoadingPage";
+import { useGetVoluntaryReports } from "@/hooks/sms/useGetVoluntaryReports";
+import { useCompanyStore } from "@/stores/CompanyStore";
 import { columns } from "./columns";
 import { DataTable } from "./data-table";
-import { useGetVoluntaryReports } from "@/hooks/sms/useGetVoluntaryReports";
-import LoadingPage from "@/components/misc/LoadingPage";
 
 const VoluntaryReportsPage = () => {
-  const { data, isLoading, isError } = useGetVoluntaryReports();
+  const { selectedCompany } = useCompanyStore();
+  const { data, isLoading, isError } = useGetVoluntaryReports(selectedCompany);
 
   if (isLoading) {
     return <LoadingPage />;
