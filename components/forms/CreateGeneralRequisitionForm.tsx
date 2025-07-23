@@ -505,7 +505,7 @@ export function CreateGeneralRequisitionForm({ onClose, initialData, isEditing, 
           <Separator className="flex-1" />
         </div >
         <Button disabled={createRequisition.isPending || updateRequisition.isPending}>
-          {isEditing ? "Editar Requisición" : "Generar Requisición"}
+          {isEditing ? "Editar Requisición" : "Generar Sol. de Compra"}
           {(createRequisition.isPending || updateRequisition.isPending) && (
             <Loader2 className="ml-2 h-4 w-4 animate-spin" />
           )}
