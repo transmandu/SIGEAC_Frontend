@@ -37,7 +37,17 @@ export const columns: ColumnDef<Employee>[] = [
     ),
     cell: ({ row }) =>
       <>
-        <span className='flex justify-center font-bold'>{row.original.first_name} {row.original.last_name}</span>
+        <span className='flex justify-center font-bold'>{row.original.first_name}</span>
+      </>
+  },
+    {
+    accessorKey: "last_name",
+    header: ({ column }) => (
+      <DataTableColumnHeader filter column={column} title="Nombre" />
+    ),
+    cell: ({ row }) =>
+      <>
+        <span className='flex justify-center font-bold'>{row.original.last_name}</span>
       </>
   },
   {
@@ -49,26 +59,6 @@ export const columns: ColumnDef<Employee>[] = [
       <>
         <span className="flex justify-center font-semibold italic text-muted-foreground">{row.original.dni_type}-{row.original.dni}</span>
 
-      </>
-  },
-  {
-    accessorKey: "department.description",
-    header: ({ column }) => (
-      <DataTableColumnHeader  column={column} title="Departamento" />
-    ),
-    cell: ({ row }) =>
-      <>
-        <span className="flex justify-center font-medium text-center">{row.original.department.name}</span>
-      </>
-  },
-  {
-    accessorKey: "Ubicación",
-    header: ({ column }) => (
-      <DataTableColumnHeader  column={column} title="Ubicación" />
-    ),
-    cell: ({ row }) =>
-      <>
-        <span className="flex justify-center font-medium">{row.original.location.address}</span>
       </>
   },
 ]
