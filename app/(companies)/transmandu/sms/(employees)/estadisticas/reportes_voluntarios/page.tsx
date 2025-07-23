@@ -325,8 +325,6 @@ const Statistics = () => {
               </div>
             ) : barChartData ? (
               <BarChartComponent
-                from={params.from!}
-                to={params.to!}
                 height="100%"
                 width="100%"
                 data={barChartData}
