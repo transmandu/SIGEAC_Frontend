@@ -92,7 +92,7 @@ export function CreateGeneralRequisitionForm({ onClose, initialData, isEditing, 
 
   const { user } = useAuth()
 
-  const { mutate, data } = useGetBatchesByLocationId();
+  const { mutate, data, isPending: isBatchesLoading } = useGetBatchesByLocationId();
 
   const { selectedCompany, selectedStation } = useCompanyStore()
 
@@ -326,6 +326,7 @@ export function CreateGeneralRequisitionForm({ onClose, initialData, isEditing, 
                   <FormControl>
                     <Button
                       variant="outline"
+                      disabled={isBatchesLoading}
                       role="combobox"
                       className={cn(
                         "w-[200px] justify-between",
