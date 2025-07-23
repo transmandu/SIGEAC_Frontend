@@ -23,7 +23,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "../ui/dialog";
+} from "@/components/ui/dialog";
 import { useCompanyStore } from "@/stores/CompanyStore";
 
 const FollowUpControlDropdownActions = ({
@@ -42,7 +42,7 @@ const FollowUpControlDropdownActions = ({
 
   const handleDelete = async () => {
     const value = {
-      company: selectedCompany,
+      company: selectedCompany!.slug,
       id: followUpControl.id.toString(),
     };
     await deleteFollowUpControl.mutateAsync(value);

@@ -25,8 +25,8 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-} from "../ui/command";
-import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
+} from "@/components/ui/command";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useCompanyStore } from "@/stores/CompanyStore";
 
 interface FormProps {
@@ -72,7 +72,7 @@ export function AddToSMSActivity({ onClose, initialData }: FormProps) {
 
   const { data: employeesData, isLoading: isLoadingEnrolledEmployee } =
     useGetEnrolledStatus({
-      company: selectedCompany,
+      company: selectedCompany!.slug,
       activity_id: initialData.id.toString(),
     });
 
@@ -147,7 +147,7 @@ export function AddToSMSActivity({ onClose, initialData }: FormProps) {
 
   const onSubmit = async (data: FormSchemaType) => {
     const value = {
-      company: selectedCompany,
+      company: selectedCompany!.slug,
       activity_id: initialData?.id.toString(),
       data: {
         addedEmployees: data.addedEmployees,

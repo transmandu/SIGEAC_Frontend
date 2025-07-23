@@ -44,7 +44,7 @@ import { CalendarIcon, Loader2 } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { Label } from "../ui/label";
+import { Label } from "@/components/ui/label";
 import { useCompanyStore } from "@/stores/CompanyStore";
 
 interface FormProps {
@@ -160,7 +160,7 @@ export function CreateVoluntaryReportForm({
         "Solo se permiten archivos PDF"
       )
       .optional(),
-    // Otros campos del esquema...
+    // Otros campos del esquema@/components.
   });
 
   type FormSchemaType = z.infer<typeof FormSchema>;
@@ -220,7 +220,7 @@ export function CreateVoluntaryReportForm({
 
     if (initialData && isEditing) {
       const value = {
-        company: selectedCompany,
+        company: selectedCompany!.slug,
         id: initialData.id.toString(),
         data: {
           ...data,
@@ -232,7 +232,7 @@ export function CreateVoluntaryReportForm({
       await updateVoluntaryReport.mutateAsync(value);
     } else {
       const value = {
-        company: selectedCompany,
+        company: selectedCompany!.slug,
         reportData: {
           ...data,
           status: shouldEnableField ? "ABIERTO" : "PROCESO",

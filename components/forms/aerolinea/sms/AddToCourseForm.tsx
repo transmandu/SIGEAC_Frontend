@@ -25,8 +25,8 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-} from "../ui/command";
-import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
+} from "@/components/ui/command";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useCreateCourseAttendance } from "@/actions/general/asistencia_curso/actions";
 
 interface FormProps {
@@ -73,7 +73,7 @@ export function AddToCourseForm({ onClose, initialData }: FormProps) {
 
   const value = {
     course_id: initialData.id.toString(),
-    company: selectedCompany,
+    company: selectedCompany!.slug,
   };
   const { data: employeesData, isLoading: isLoadingEnrolledEmployee } =
     useGetCourseEnrollementStatus(value);
@@ -152,7 +152,7 @@ export function AddToCourseForm({ onClose, initialData }: FormProps) {
 
   const onSubmit = async (data: FormSchemaType) => {
     const value = {
-      company: selectedCompany,
+      company: selectedCompany!.slug,
       course_id: initialData?.id.toString(),
       employees_list: {
         addedEmployees: data.addedEmployees,

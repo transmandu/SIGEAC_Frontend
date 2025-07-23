@@ -35,6 +35,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "../../../ui/dialog";
+import { useCompanyStore } from "@/stores/CompanyStore";
 
 const ObligatoryReportDropdownActions = ({
   obligatoryReport,
@@ -61,7 +62,7 @@ const ObligatoryReportDropdownActions = ({
   const { selectedCompany } = useCompanyStore();
   const handleDelete = async (id: number | string) => {
     const value = {
-      company: selectedCompany,
+      company: selectedCompany!.slug,
       id: id.toString(),
     }
     await deleteObligatoryReport.mutateAsync(value);

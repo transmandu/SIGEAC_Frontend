@@ -24,17 +24,18 @@ import { CalendarIcon, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { Calendar } from "../ui/calendar";
-import { Input } from "../ui/input";
-import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { Input } from "@/components/ui/input";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "../ui/select";
+} from "@/components/ui/select";
 import { useCompanyStore } from "@/stores/CompanyStore";
+import { useGetEmployeesByDepartment } from "@/hooks/sistema/useGetEmployeesByDepartament";
 
 const FormSchema = z
   .object({
@@ -77,7 +78,7 @@ export default function CreateSMSActivityForm({
   const router = useRouter();
   const { selectedCompany } = useCompanyStore();
   const { data: employees, isLoading: isLoadingEmployees } =
-    useGetEmployesByDepartment("DFS");
+    useGetEmployeesByDepartment("DFS", selectedCompany?.slug);
 
   const { createSMSActivity } = useCreateSMSActivity();
   const { updateSMSActivity } = useUpdateSMSActivity();
@@ -111,7 +112,7 @@ export default function CreateSMSActivityForm({
     console.log("data from sms activity form", data);
     if (isEditing && initialData) {
       const value = {
-        company: selectedCompany,
+        company: selectedCompany!.slug,
         id: initialData.id.toString(),
         data: {
           ...data,
@@ -121,7 +122,7 @@ export default function CreateSMSActivityForm({
       await updateSMSActivity.mutateAsync(value);
     } else {
       try {
-        await createSMSActivity.mutateAsync({ company: selectedCompany, data });
+        await createSMSActivity.mutateAsync({ company: selectedCompany!.slug, data });
         router.push(`/${selectedCompany}/sms/planificacion/actividades`);
       } catch (error) {
         console.error("Error al crear la actividad", error);

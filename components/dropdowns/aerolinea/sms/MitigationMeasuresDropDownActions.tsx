@@ -51,7 +51,7 @@ const MitigationMeasureDropdownActions = ({
 
   const handleDelete = async () => {
     const value = {
-      company: selectedCompany,
+      company: selectedCompany!.slug,
       id: mitigationMeasure.id.toString(),
     };
     await deleteMitigationMeasure.mutateAsync(value);

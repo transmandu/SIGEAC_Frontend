@@ -28,6 +28,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import CreateSMSActivityForm from "@/components/forms/aerolinea/sms/CreateSMSActivityForm";
 import { AddToSMSActivity } from "@/components/forms/aerolinea/sms/AddToSMSActivityForm";
+import { useCompanyStore } from "@/stores/CompanyStore";
 
 const SMSActivityDropDownActions = ({
   smsActivity,
@@ -48,7 +49,7 @@ const SMSActivityDropDownActions = ({
 
   const handleDelete = async () => {
     const value = {
-      company: selectedCompany,
+      company: selectedCompany!.slug,
       id: smsActivity.id.toString(),
     };
     await deleteSMSActivity.mutateAsync(value);

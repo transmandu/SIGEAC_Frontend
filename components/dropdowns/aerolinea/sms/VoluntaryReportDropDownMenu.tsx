@@ -1,10 +1,13 @@
 import { useDeleteVoluntaryReport } from "@/actions/sms/reporte_voluntario/actions";
+import { AcceptVoluntaryReport } from "@/components/forms/aerolinea/sms/AcceptVoluntaryForm";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useGetDangerIdentificationWithAllById } from "@/hooks/sms/useGetDangerIdentificationWithAllById";
+import { useCompanyStore } from "@/stores/CompanyStore";
 import { VoluntaryReport } from "@/types";
 import { PDFDownloadLink, PDFViewer } from "@react-pdf/renderer";
 import { format } from "date-fns";
@@ -33,9 +36,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "../../../ui/dialog";
-import { useGetDangerIdentificationWithAllById } from "@/hooks/sms/useGetDangerIdentificationWithAllById";
-import { AcceptVoluntaryReport } from "../forms/AcceptVoluntaryForm";
-import { useCompanyStore } from "@/stores/CompanyStore";
 
 const VoluntaryReportDropdownActions = ({
   voluntaryReport,
@@ -63,7 +63,7 @@ const VoluntaryReportDropdownActions = ({
 
   const handleDelete = async (id: number | string) => {
     const value = {
-      company: selectedCompany,
+      company: selectedCompany!.slug,
       id: id.toString(),
     };
     await deleteVoluntaryReport.mutateAsync(value);
@@ -252,7 +252,6 @@ const VoluntaryReportDropdownActions = ({
               <DialogTitle className="text-center"></DialogTitle>
               <DialogDescription></DialogDescription>
             </DialogHeader>
-
             <AcceptVoluntaryReport
               onClose={() => setOpenAccept(false)}
               initialData={voluntaryReport}

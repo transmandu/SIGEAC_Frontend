@@ -5,6 +5,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useCompanyStore } from "@/stores/CompanyStore";
 import { DangerIdentification } from "@/types";
 import {
   ClipboardPen,
@@ -17,6 +18,7 @@ import {
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import CreateAnalysisForm from "../../../forms/aerolinea/sms/CreateAnalysisForm";
+import CreateDangerIdentificationForm from "../../../forms/aerolinea/sms/CreateIdentificationForm";
 import { Button } from "../../../ui/button";
 import {
   Dialog,
@@ -27,7 +29,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "../../../ui/dialog";
-import CreateDangerIdentificationForm from "../../../forms/aerolinea/sms/CreateIdentificationForm";
 
 const DangerIdentificationDropdownActions = ({
   dangerIdentification,
@@ -46,7 +47,7 @@ const DangerIdentificationDropdownActions = ({
 
   const handleDelete = async (id: number | string) => {
     const value = {
-      company: selectedCompany,
+      company: selectedCompany!.slug,
       id: id.toString(),
     };
     if (value.company) {

@@ -63,7 +63,7 @@ const MitigationTableDropdownActions = ({
 
   const handleDelete = async (id: number | string) => {
     const value = {
-      company: selectedCompany,
+      company: selectedCompany!.slug,
       id: id.toString(),
     };
     await deleteMitigationPlan.mutateAsync(value);
@@ -72,7 +72,7 @@ const MitigationTableDropdownActions = ({
 
   const handleCloseReport = async (id: number | string, result: string) => {
     const value = {
-      company: selectedCompany,
+      company: selectedCompany!.slug,
       data: {
         mitigation_id: id,
         result: result,

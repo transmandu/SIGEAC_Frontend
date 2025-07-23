@@ -3,13 +3,9 @@
 import CourseDropdownActions from "@/components/dropdowns/aerolinea/sms/CourseDropdownActions";
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
 import { Badge } from "@/components/ui/badge";
+import { dateFormat } from "@/lib/utils";
 import { Course } from "@/types";
 import { ColumnDef } from "@tanstack/react-table";
-import { format } from "date-fns";
-import { es } from "date-fns/locale";
-import { Badge } from "@/components/ui/badge";
-import CourseDropdownActions from "@/components/misc/CourseDropdownActions";
-import { dateFormat } from "@/lib/utils";
 
 export const columns: ColumnDef<Course>[] = [
   {

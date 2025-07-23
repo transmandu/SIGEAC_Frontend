@@ -2,6 +2,7 @@ import {
   useDeleteCourse,
   useFinishCourse,
 } from "@/actions/general/cursos/actions";
+import { AddAtendanceForm } from "@/components/forms/AddAtendanceForm";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -22,6 +23,7 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { AddToCourseForm } from "../../../forms/aerolinea/sms/AddToCourseForm";
 import { CreateCourseForm } from "../../../forms/aerolinea/sms/CreateCourseForm";
 import { Button } from "../../../ui/button";
 import {
@@ -33,8 +35,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "../../../ui/dialog";
-import { useRouter } from "next/navigation";
-import { AddToCourseForm } from "../../../forms/aerolinea/sms/AddToCourseForm";
 
 const CourseDropdownActions = ({ course }: { course: Course }) => {
   const [open, setOpen] = useState<boolean>(false);
@@ -51,7 +51,7 @@ const CourseDropdownActions = ({ course }: { course: Course }) => {
   const handleDelete = async () => {
     const value = {
       id: course.id.toString(),
-      company: selectedCompany,
+      company: selectedCompany!.slug,
     };
     await deleteCourse.mutateAsync(value);
     setOpenDelete(false);

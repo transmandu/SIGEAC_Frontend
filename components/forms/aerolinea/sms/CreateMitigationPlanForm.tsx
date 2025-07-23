@@ -30,17 +30,17 @@ import {
   useCreateMitigationPlan,
   useUpdateMitigationPlan,
 } from "@/actions/sms/planes_de_mitigation/actions";
-import { MitigationPlan } from "@/types";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "../ui/select";
-import { Separator } from "../ui/separator";
-import { Textarea } from "../ui/textarea";
+} from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
+import { Textarea } from "@/components/ui/textarea";
 import { useCompanyStore } from "@/stores/CompanyStore";
+import { MitigationPlan } from "@/types";
 
 const FormSchema = z.object({
   description: z
@@ -92,7 +92,7 @@ export default function CreateMitigationPlanForm({
   const onSubmit = async (data: FormSchemaType) => {
     if (isEditing && initialData) {
       const value = {
-        company: selectedCompany,
+        company: selectedCompany!.slug,
         id: initialData.id.toString(),
         data: {
           ...data,
@@ -101,7 +101,7 @@ export default function CreateMitigationPlanForm({
       await updateMitigationPlan.mutateAsync(value);
     } else {
       const value = {
-        company: selectedCompany,
+        company: selectedCompany!.slug,
         data: {
           ...data,
           danger_identification_id: id,
