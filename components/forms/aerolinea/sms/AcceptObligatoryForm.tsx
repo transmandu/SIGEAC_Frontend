@@ -51,12 +51,12 @@ export function AcceptObligatoryReport({ onClose, initialData }: FormProps) {
   const onSubmit = async (data: FormSchemaType) => {
     if (initialData) {
       const value = {
-        company: selectedCompany,
+        company: selectedCompany!.slug,
         id: initialData.id.toString(),
         data: {
           report_number: data.report_number,
           status: "ABIERTO",
-          image: undefined, 
+          image: undefined,
           document: undefined,
           danger_identification_id: initialData.danger_identification?.id,
           description: initialData.description,

@@ -41,7 +41,7 @@ const ShowVoluntaryReport = () => {
 
   const value = {
     id: report_id,
-    company: selectedCompany,
+    company: selectedCompany!.slug,
   };
 
   const {

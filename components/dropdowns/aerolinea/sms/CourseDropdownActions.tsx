@@ -60,7 +60,7 @@ const CourseDropdownActions = ({ course }: { course: Course }) => {
   const handleCloseCourse = async () => {
     const value = {
       id: course.id.toString(),
-      company: selectedCompany,
+      company: selectedCompany!.slug,
     };
     await finishCourse.mutateAsync(value);
     setOpenStatus(false);

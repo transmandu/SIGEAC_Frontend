@@ -712,6 +712,7 @@ export type User = {
   }[];
   permissions: Permission[];
   companies: Company[];
+  employee: Employee[];
 };
 
 export type Employee = {

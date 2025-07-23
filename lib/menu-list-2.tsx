@@ -2,7 +2,7 @@
 
 import { Company } from "@/types";
 import { format } from "date-fns";
-import { LucideIcon, LayoutGrid, CreditCardIcon, UserRoundCog, PackageSearch, ScrollText, SquarePen, ClipboardPen, ShieldAlert, AreaChartIcon, Activity, ClipboardList, HandCoins, Receipt, Landmark, BookUser, PackageOpen, PlaneIcon, PackagePlus, ClipboardCopy, Wrench, Plane, BookCheck, Drill, Award, Blocks, User2, Building2, Globe } from "lucide-react";
+import { LucideIcon, LayoutGrid, CreditCardIcon, UserRoundCog, PackageSearch, ScrollText, SquarePen, ClipboardPen, ShieldAlert, AreaChartIcon, Activity, ClipboardList, HandCoins, Receipt, Landmark, BookUser, PackageOpen, PlaneIcon, PackagePlus, ClipboardCopy, Wrench, Plane, BookCheck, Drill, Award, Blocks, User2, Building2, Globe, Cat } from "lucide-react";
 
 type Submenu = {
   href: string;
@@ -66,6 +66,15 @@ export function getMenuList(
       groupLabel: "General",
       moduleValue: "",
       menus: [
+        {
+          href: `/${currentCompany?.slug}/general/cursos`,
+          label: "Cursos SMS",
+          roles: ["JEFE_ADMINISTRACION", "SUPERUSER", "JEFE_ALMACEN", "JEFE_COMPRAS", "JEFE_SMS", "JEFE_DESARROLLO", "JEFE_CONTADURIA", "JEFE_RRHH", "JEFE_OPERACIONES", "JEFE_MANTENIMIENTO", "JEFE_PLANIFICACION"],
+          submenus: [],
+          active:
+            pathname === `/${currentCompany?.slug}/general/cursos`,
+          icon: Cat,
+        },
         {
           href: `/${currentCompany?.slug}/general/inventario`,
           label: "Inventario",
@@ -410,18 +419,19 @@ export function getMenuList(
         roles: ["SUPERUSER"],
         submenus: [
           {
-            href: `/${currentCompany?.slug}/sms/planificacion/cursos`,
-            label: "Cursos SMS",
-            roles: ["SUPERUSER"],
-            active:
-              pathname === `/${currentCompany?.slug}/planificacion/cursos`,
-          },
-          {
             href: `/${currentCompany?.slug}/sms/planificacion/actividades`,
             label: "Actividades SMS",
             roles: ["SUPERUSER"],
             active: pathname === `/${currentCompany?.slug}/planificacion/actividades`,
           },
+          {
+                    href: `/${currentCompany?.slug}/sms/planificacion/capacitacion_personal`,
+                    label: "Capacitacion SMS",
+                    roles: ["SUPERUSER"],
+                    active:
+                      pathname ===
+                      `/${currentCompany?.slug}/planificacion/capacitacion_personal`,
+                  },
         ],
       },
       {

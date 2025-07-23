@@ -271,7 +271,7 @@ export function CreateObligatoryReportForm({
   const onSubmit = async (data: FormSchemaType) => {
     if (isEditing && initialData && data.report_number) {
       const value = {
-        company: selectedCompany,
+        company: selectedCompany!.slug,
         id: initialData.id.toString(),
         data: {
           image: data.image,

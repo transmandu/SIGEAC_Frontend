@@ -24,14 +24,14 @@ const ShowSMSActivity = () => {
     data: activity,
     isLoading: isActivityLoading,
     isError: activityError,
-  } = useGetSMSActivityById({ company: selectedCompany, id: activity_id });
+  } = useGetSMSActivityById({ company: selectedCompany!.slug, id: activity_id });
 
   const {
     data: employees,
     isLoading: isEmployeesLoading,
     isError: employeeError,
   } = useGetActivityEnrolledEmployees({
-    company: selectedCompany,
+    company: selectedCompany!.slug,
     activity_id: activity_id.toString(),
   });
 

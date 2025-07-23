@@ -39,7 +39,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "../ui/select";
+} from "@/components/ui/select";
 
 interface FormProps {
   onClose: () => void;
@@ -94,7 +94,7 @@ export function CreateCourseForm({
     if (initialData && isEditing) {
       const value = {
         id: initialData.id,
-        company: selectedCompany,
+        company: selectedCompany!.slug,
         data: {
           name: data.name,
           description: data.description,
@@ -109,7 +109,7 @@ export function CreateCourseForm({
       const v = await updateCourse.mutateAsync(value);
     } else {
       const value = {
-        company: selectedCompany,
+        company: selectedCompany!.slug,
         course: data,
       };
       try {

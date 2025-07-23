@@ -97,7 +97,7 @@ export default function CreateMitigationMeasureForm({
   const onSubmit = async (data: FormSchemaType) => {
     if (isEditing && initialData) {
       const value = {
-        company: selectedCompany,
+        company: selectedCompany!.slug,
         id: initialData.id,
         data: {
           ...data,
@@ -106,7 +106,7 @@ export default function CreateMitigationMeasureForm({
       await updateMitigationMeasure.mutateAsync(value);
     } else {
       const value = {
-        company: selectedCompany,
+        company: selectedCompany!.slug,
         data: {
           ...data,
           mitigation_plan_id: id,

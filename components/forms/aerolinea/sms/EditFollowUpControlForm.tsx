@@ -75,7 +75,7 @@ export function EditFollowUpControlForm({ onClose, initialData }: FormProps) {
 
   const onSubmit = async (data: FormSchemaType) => {
     const formattedData = {
-      company: selectedCompany,
+      company: selectedCompany!.slug,
       id: initialData.id.toString(),
       data: {
         ...data,

@@ -206,7 +206,7 @@ export default function CreateDangerIdentificationForm({
   const onSubmit = async (data: FormSchemaType) => {
     if (initialData && isEditing) {
       const values = {
-        company: selectedCompany,
+        company: selectedCompany!.slug,
         id: initialData.id.toString(),
         data: {
           ...data,
@@ -215,7 +215,7 @@ export default function CreateDangerIdentificationForm({
       await updateDangerIdentification.mutateAsync(values);
     } else {
       const response = await createDangerIdentification.mutateAsync({
-        company: selectedCompany,
+        company: selectedCompany!.slug,
         id,
         reportType,
         data,

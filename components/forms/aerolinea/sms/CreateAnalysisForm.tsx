@@ -86,7 +86,7 @@ export default function CreateAnalysisForm({
   const onSubmit = async (data: FormSchemaType) => {
     if (isEditing && initialData) {
       const value = {
-        company: selectedCompany,
+        company: selectedCompany!.slug,
         id: initialData.id.toString(),
         data: {
           ...data,
@@ -98,7 +98,7 @@ export default function CreateAnalysisForm({
       id = id.toString();
       if (name === "mitigacion") {
         const values = {
-          company: selectedCompany,
+          company: selectedCompany!.slug,
           data: {
             ...data,
             result: data.probability + data.severity,
@@ -108,7 +108,7 @@ export default function CreateAnalysisForm({
         await createAnalysis.mutateAsync(values);
       } else {
         const values = {
-          company: selectedCompany,
+          company: selectedCompany!.slug,
           data: {
             ...data,
             result: data.probability + data.severity,

@@ -42,7 +42,7 @@ const ShowObligatoryReport = () => {
   const { selectedCompany } = useCompanyStore();
 
   const value = {
-    company: selectedCompany,
+    company: selectedCompany!.slug,
     id: obligatory_id,
   };
 

@@ -48,11 +48,11 @@ export function AcceptVoluntaryReport({ onClose, initialData }: FormProps) {
   });
   const onSubmit = async (data: FormSchemaType) => {
     const value = {
-      company: selectedCompany,
+      company: selectedCompany!.slug,
       id: initialData.id.toString(),
       data: {
         ...initialData,
-        report_number: data.report_number, // Sobrescribe solo report_number
+        report_number: data.report_number,
         image: undefined,
         document: undefined,
         status: "ABIERTO",

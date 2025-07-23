@@ -75,7 +75,7 @@ export default function CreateFollowUpControlForm({ onClose, id }: FormProps) {
     medida_id: string;
   }>();
   const { selectedCompany } = useCompanyStore();
-  
+
   const { createFollowUpControl } = useCreateFollowUpControl();
   const form = useForm<FormSchemaType>({
     resolver: zodResolver(FormSchema),
@@ -84,7 +84,7 @@ export default function CreateFollowUpControlForm({ onClose, id }: FormProps) {
 
   const onSubmit = async (data: FormSchemaType) => {
     const values = {
-      company: selectedCompany,
+      company: selectedCompany!.slug,
       data: {
         ...data,
         mitigation_measure_id: id,
