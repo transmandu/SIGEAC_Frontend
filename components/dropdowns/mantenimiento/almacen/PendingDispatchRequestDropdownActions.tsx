@@ -74,13 +74,14 @@ const PendingDispatchRequestDropdownActions
 
     const { user } = useAuth();
 
-    const { mutate: employeeMutate, data: employees, isPending: employeesLoading, isError: employeesError } = useGetWarehousesEmployees();
+    const { mutate: employeeMutate, data: employees, isPending: employeesLoading, isError: employeesError } = useGetWarehousesEmployees(selectedCompany?.slug);
 
     useEffect(() => {
       if (selectedStation) {
-        employeeMutate(Number(selectedStation))
+        employeeMutate({location_id: Number(selectedStation)})
       }
     }, [selectedStation, employeeMutate])
+
     const handleAprove = async (data: z.infer<typeof formSchema>) => {
       const newQty = request.batch.article_count - Number(request.batch.articles[0].quantity);
       const qtyToBuy = Math.max(request.batch.min_quantity - newQty + 1, 0);
@@ -90,14 +91,19 @@ const PendingDispatchRequestDropdownActions
         status: "aprobado",
         approved_by: `${user?.first_name} ${user?.last_name}`
       }
-      await updateDispatchStatus.mutateAsync(formattedData);
+      await updateDispatchStatus.mutateAsync({
+        id: formattedData.id,
+        status: formattedData.status,
+        approved_by: formattedData.approved_by,
+        delivered_by: formattedData.delivered_by,
+        company: selectedCompany!.slug
+      });
       if (request.batch.category !== 'herramienta' && (newQty < request.batch.min_quantity)) {
         const reqData = {
           justification: `Restock por solicitud de salida de ${request.batch.name} - ${request.batch.articles[0].part_number}`,
           requested_by: `${user?.first_name} ${user?.last_name}`,
           created_by: user!.id,
           type: "AVIACION",
-          company: selectedCompany!.split(" ").join("").toLowerCase(),
           location_id: selectedStation!,
           articles: [
             {
@@ -113,7 +119,7 @@ const PendingDispatchRequestDropdownActions
             }
           ]
         }
-        createRequisition.mutateAsync(reqData)
+        createRequisition.mutateAsync({data: reqData, company: selectedCompany!.slug})
       }
       setOpen(false)
     }

@@ -43,8 +43,8 @@ export const useCreateDirectArticle = () => {
 
   const createMutation = useMutation({
       mutationKey: ["articles"],
-      mutationFn: async (data: ConsumableArticle | ComponentArticle | ToolArticle) => {
-          await axiosInstance.post('/hangar74/article', data,
+      mutationFn: async ({data, company}: {company: string, data: ConsumableArticle | ComponentArticle | ToolArticle}) => {
+          await axiosInstance.post(`/${company}/article`, data,
             {
             headers: {
               'Content-Type': 'multipart/form-data',
@@ -75,8 +75,8 @@ export const useDeleteArticle = () => {
   const queryClient = useQueryClient()
 
   const deleteMutation = useMutation({
-      mutationFn: async (id: number | string) => {
-          await axiosInstance.delete(`/hangar74/article/${id}`)
+      mutationFn: async ({id, company}: {id: number | string, company: string}) => {
+          await axiosInstance.delete(`/${company}/article/${id}`)
         },
       onSuccess: () => {
           queryClient.invalidateQueries({queryKey: ['articles']})
@@ -103,10 +103,10 @@ export const useUpdateArticleStatus = () => {
 
   const updateArticleStatusMutation = useMutation({
       mutationKey: ["articles"],
-      mutationFn: async ({id, status}: {
-        id: number, status: string
+      mutationFn: async ({id, status, company}: {
+        id: number, status: string, company: string
       }) => {
-          await axiosInstance.put(`/hangar74/update-article-status/${id}`, {
+          await axiosInstance.put(`/${company}/update-article-status/${id}`, {
             status: status
           })
         },
@@ -136,28 +136,31 @@ export const useConfirmIncomingArticle = () => {
 
   const confirmIncomingArticleMutation = useMutation({
       mutationKey: ["articles"],
-      mutationFn: async (values: {
-        id?: number
-        serial?: string,
-        part_number: string,
-        alternative_part_number?: string[],
-        description: string,
-        zone: string,
-        manufacturer_id?: number | string,
-        condition_id?: number | string,
-        batches_id: string,
-        is_special?: boolean,
-        status: string,
-        caducate_date?: string,
-        quantity?: string | number,
-        fabrication_date?:string,
-        calendar_date?: string,
-        certificate_8130?: File | string,
-        certificate_fabricant?: File | string,
-        certificate_vendor?: File | string,
-        image?: File | string,
+      mutationFn: async ({values, company}: {
+        values: {
+          id?: number
+          serial?: string,
+          part_number: string,
+          alternative_part_number?: string[],
+          description: string,
+          zone: string,
+          manufacturer_id?: number | string,
+          condition_id?: number | string,
+          batches_id: string,
+          is_special?: boolean,
+          status: string,
+          caducate_date?: string,
+          quantity?: string | number,
+          fabrication_date?:string,
+          calendar_date?: string,
+          certificate_8130?: File | string,
+          certificate_fabricant?: File | string,
+          certificate_vendor?: File | string,
+          image?: File | string,
+        },
+        company: string
       }) => {
-          await axiosInstance.post(`/hangar74/update-article-warehouse/${values.id}`, {
+          await axiosInstance.post(`/${company}/update-article-warehouse/${values.id}`, {
             ...values
           },
           {

@@ -28,8 +28,8 @@ export const useCreateWorkOrder = () => {
   const queryClient = useQueryClient()
 
   const createMutation = useMutation({
-      mutationFn: async (data: CreateWOData) => {
-          await axiosInstance.post('/hangar74/work-orders', data)
+      mutationFn: async ({data, company}: {data: CreateWOData, company: string}) => {
+          await axiosInstance.post(`/${company}/work-orders`, data)
         },
       onSuccess: () => {
           queryClient.invalidateQueries({queryKey: ['work-orders'], exact: false})
@@ -55,8 +55,8 @@ export const useDeleteWorkOrder = () => {
   const queryClient = useQueryClient()
 
   const deleteMutation = useMutation({
-      mutationFn: async (id: number | string) => {
-          await axiosInstance.delete(`/hangar74/work-orders/${id}`)
+      mutationFn: async ({id, company}: {id: number | string, company: string}) => {
+          await axiosInstance.delete(`/${company}/work-orders/${id}`)
         },
       onSuccess: () => {
         queryClient.invalidateQueries({queryKey: ['work-orders'], exact: false})
@@ -84,8 +84,8 @@ export const useUpdateWorkOrderTaskStatus = () => {
   const queryClient = useQueryClient()
 
   const updateMutation = useMutation({
-      mutationFn: async ({task_id, status}: {task_id: string, status: string}) => {
-          await axiosInstance.put(`/hangar74/update-status-work-order-task/${task_id}`, {status})
+      mutationFn: async ({task_id, status, company}: {task_id: string, status: string, company: string}) => {
+          await axiosInstance.put(`/${company}/update-status-work-order-task/${task_id}`, {status})
         },
       onSuccess: () => {
           queryClient.invalidateQueries({queryKey: ['work-order'], exact: false})
@@ -111,12 +111,12 @@ export const useUpdateWorkOrderTask = () => {
   const queryClient = useQueryClient()
 
   const updateMutation = useMutation({
-      mutationFn: async (data: {
+      mutationFn: async ({data, company}: {data: {
         id: string,
         inspector_responsable?: string,
         technician_responsable?: string,
-      }) => {
-          await axiosInstance.put(`/hangar74/update-work-order-task/${data.id}`, data)
+      }, company: string}) => {
+          await axiosInstance.put(`/${company}/update-work-order-task/${data.id}`, data)
         },
       onSuccess: () => {
           queryClient.invalidateQueries({queryKey: ['work-orders'], exact: false})

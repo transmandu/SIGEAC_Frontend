@@ -87,12 +87,11 @@ export function CreateBatchForm({ onClose }: FormProps) {
   const onSubmit = async (data: FormSchemaType) => {
     const formattedData = {
       ...data,
-      company: selectedCompany!.slug,
       slug: generateSlug(data.name),
       min_quantity: Number(data.min_quantity),
-      warehouse_id: Number(data.warehouse_id)
+      warehouse_id: Number(data.warehouse_id),
     }
-    await createBatch.mutateAsync(formattedData);
+    await createBatch.mutateAsync({data: formattedData, company: selectedCompany!.slug});
     onClose();
   }
 

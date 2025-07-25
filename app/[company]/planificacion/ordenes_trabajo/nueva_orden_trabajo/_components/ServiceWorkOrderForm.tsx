@@ -111,7 +111,7 @@ const ServiceWorkOrderForm = () => {
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [selectedService, setSelectedService] = useState<number | null>(null);
   const [articleAvailability, setArticleAvailability] = useState<ArticleAvailability[]>([]);
-  const { selectedStation } = useCompanyStore();
+  const { selectedStation, selectedCompany } = useCompanyStore();
   const { createWorkOrder } = useCreateWorkOrder();
   const { data: aircrafts, isLoading: isAircraftsLoading } = useGetMaintenanceAircrafts();
   const { data: services, isLoading: isServicesLoading } = useGetServicesByManufacturer(selectedAircraft);
@@ -237,14 +237,21 @@ const ServiceWorkOrderForm = () => {
     const formattedData = {
       ...data,
       date: format(data.date, "yyyy-MM-dd"),
-      work_order_task: data.work_order_task.map(task => ({
-        task_id: task.task_id.toString(),
-        ata: task.ata
+      work_order_task: selectedTasks.map(task => ({
+        description_task: task.description,
+        ata: task.ata,
+        task_number: task.task_id.toString(),
+        origin_manual: task.service_name,
+        task_items: task.task_items.map(item => ({
+          part_number: item.article_part_number,
+          alternate_part_number: item.article_alt_part_number,
+          serial: item.article_serial
+        }))
       })),
     };
-    //await createWorkOrder.mutateAsync(formattedData);
+    await createWorkOrder.mutateAsync({data: formattedData, company: selectedCompany!.slug});
     form.reset();
-    router.push('/hangar74/planificacion/ordenes_trabajo');
+    router.push(`/${selectedCompany!.slug}/planificacion/ordenes_trabajo`);
   };
 
   // Agrupar por servicio para el panel izquierdo
@@ -766,7 +773,7 @@ const ServiceWorkOrderForm = () => {
             <Button
               type="button"
               variant="outline"
-              onClick={() => router.push('/hangar74/planificacion/ordenes_trabajo')}
+              onClick={() => router.push(`/${selectedCompany!.slug}/planificacion/ordenes_trabajo`)}
             >
               Cancelar
             </Button>

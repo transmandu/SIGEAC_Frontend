@@ -117,21 +117,19 @@ export function CreateGeneralRequisitionForm({ onClose, initialData, isEditing, 
   useEffect(() => {
     if (user && selectedCompany && selectedStation) {
       form.setValue("created_by", user.id.toString())
-      form.setValue("company", selectedCompany.split(" ").join(""))
       form.setValue("location_id", selectedStation)
     }
     if (initialData && selectedCompany) {
       form.reset(initialData); // Set initial form values
-      form.setValue("company", selectedCompany.split(" ").join(""))
     }
   }, [user, initialData, form, selectedCompany, selectedStation])
 
   useEffect(() => {
     if (selectedStation) {
-      mutate(Number(selectedStation))
+      mutate({location_id: Number(selectedStation), company: selectedCompany!.slug})
       employeesMutation(Number(selectedStation))
     }
-  }, [selectedStation, mutate, employeesMutation])
+  }, [selectedStation, mutate, employeesMutation, selectedCompany])
 
   useEffect(() => {
     form.setValue("articles", selectedBatches)
@@ -212,10 +210,14 @@ export function CreateGeneralRequisitionForm({ onClose, initialData, isEditing, 
   };
 
   const onSubmit = async (data: FormSchemaType) => {
-    if (isEditing && id) {
-      await updateRequisition.mutateAsync({ data, id });
+    const formattedData = {
+      ...data,
+      type: "GENERAL",
+    }
+    if (isEditing) {
+      await updateRequisition.mutateAsync({id: id!, data: formattedData, company: selectedCompany!.slug})
     } else {
-      await createRequisition.mutateAsync(data);
+      await createRequisition.mutateAsync({data: formattedData, company: selectedCompany!.slug})
     }
     onClose();
   };

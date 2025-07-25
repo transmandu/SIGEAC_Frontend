@@ -40,9 +40,9 @@ const QuotePage = () => {
   const handleDelete = async (id: number, company: string) => {
     await deleteQuote.mutateAsync({
       id,
-      company
+      company: selectedCompany!.slug
     });
-    router.push(`/${company}/general/cotizaciones`);
+    router.push(`/${selectedCompany!.slug}/general/cotizaciones`);
   };
 
   return (
@@ -102,7 +102,7 @@ const QuotePage = () => {
           </DialogHeader>
           <DialogFooter>
             <Button type="button" variant={"destructive"} onClick={() => setOpenDelete(false)}>Cancelar</Button>
-            <Button onClick={() => handleDelete(data!.id, selectedCompany!.split(" ").join(""))} disabled={deleteQuote.isPending}>{deleteQuote.isPending ? <Loader2 className="animate-spin size-4" /> : "Confirmar"}</Button>
+            <Button onClick={() => handleDelete(data!.id, selectedCompany!.slug)} disabled={deleteQuote.isPending}>{deleteQuote.isPending ? <Loader2 className="animate-spin size-4" /> : "Confirmar"}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

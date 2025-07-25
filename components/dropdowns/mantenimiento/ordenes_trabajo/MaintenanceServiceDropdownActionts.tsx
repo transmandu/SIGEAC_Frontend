@@ -10,16 +10,18 @@ import { Loader2, MoreHorizontal, Trash2 } from "lucide-react"
 import { useState } from "react"
 import { Button } from "../../../ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "../../../ui/dialog"
+import { useCompanyStore } from "@/stores/CompanyStore"
 
 const MaintenanceServiceDropdownActions = ({ service }: { service: MaintenanceService }) => {
 
   const [openDelete, setOpenDelete] = useState<boolean>(false)
 
   const { deleteService } = useDeleteService()
+  const { selectedCompany } = useCompanyStore()
 
   const handleDelete = async (id: string) => {
     try {
-      await deleteService.mutateAsync({ id });
+      await deleteService.mutateAsync({ id, company: selectedCompany!.slug });
     } catch (error) {
       console.log(error)
     } finally {

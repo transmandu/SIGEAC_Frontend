@@ -10,6 +10,7 @@ import { z } from "zod"
 import { Separator } from "../../../ui/separator"
 import { useCreateCertificate } from "@/actions/mantenimiento/ingenieria/certificados/actions"
 import { Loader2 } from "lucide-react"
+import { useCompanyStore } from "@/stores/CompanyStore" 
 
 const FormSchema = z.object({
   name: z.string().min(3, {
@@ -26,6 +27,7 @@ interface FormProps {
 export function CreateCertificateForm({ onClose }: FormProps) {
 
   const { createCertificate } = useCreateCertificate()
+  const { selectedCompany } = useCompanyStore()
 
   const form = useForm<FormSchemaType>({
     resolver: zodResolver(FormSchema),
@@ -36,7 +38,7 @@ export function CreateCertificateForm({ onClose }: FormProps) {
 
 
   const onSubmit = async (data: FormSchemaType) => {
-    await createCertificate.mutateAsync(data)
+    await createCertificate.mutateAsync({data, company: selectedCompany!.slug})
     onClose()
   }
 

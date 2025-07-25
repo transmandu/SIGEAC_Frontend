@@ -13,6 +13,7 @@ import { useState } from "react";
 import { AircraftInfoForm } from "../forms/mantenimiento/aeronaves/AircraftInfoForm";
 import { AircraftPartsInfoForm } from "../forms/mantenimiento/aeronaves/AircraftPartsForm";
 import { useCreateMaintenanceAircraft } from "@/actions/mantenimiento/planificacion/aeronaves/actions";
+import { useCompanyStore } from "@/stores/CompanyStore";
 
 interface AircraftPart {
   part_name: string;
@@ -45,18 +46,22 @@ export function CreateMaintenanceAircraftDialog() {
   const [aircraftData, setAircraftData] = useState<AircraftInfoType>(); // Datos de la aeronave
   const [partsData, setPartsData] = useState<PartsData>({ parts: [] }); // Datos de las partes (motores, hélices, etc.)
   const { createMaintenanceAircraft } = useCreateMaintenanceAircraft()
+  const { selectedCompany } = useCompanyStore()
 
   // Función para manejar el envío final del formulario
   const handleSubmit = async () => {
     if (aircraftData && partsData) {
       try {
         await createMaintenanceAircraft.mutateAsync({
-          aircraft: {
-            ...aircraftData,
-            flight_hours: Number(aircraftData.flight_hours),
-            flight_cycles: Number(aircraftData.flight_cycles),
+          data: {
+            aircraft: {
+              ...aircraftData,
+              flight_hours: Number(aircraftData.flight_hours),
+              flight_cycles: Number(aircraftData.flight_cycles),
+            },
+            parts: partsData.parts,
           },
-          parts: partsData.parts,
+          company: selectedCompany!.slug
         });
         setOpen(false);
       } catch (error) {

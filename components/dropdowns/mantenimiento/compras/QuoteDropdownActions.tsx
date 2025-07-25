@@ -35,16 +35,17 @@ const QuoteDropdownActions = ({ quote }: { quote: Quote }) => {
     const data = {
       status: "RECHAZADA",
       updated_by: `${user?.first_name} ${user?.last_name}`,
-      company: selectedCompany!.split(" ").join("").toLowerCase(),
+      company: selectedCompany!.slug,
     };
 
     await updateStatusQuote.mutateAsync({ id, data });
     await updateStatusRequisition.mutateAsync({
-      id: quote.requisition_order.id, data: {
+      id: quote.requisition_order.id, 
+      data: {
         status: "PROCESO",
         updated_by: `${user?.first_name} ${user?.last_name}`,
-        company: selectedCompany!.split(" ").join("").toLowerCase(),
-      }
+      },
+      company: selectedCompany!.slug
     })
     setOpenReject(false);
   }
@@ -59,24 +60,24 @@ const QuoteDropdownActions = ({ quote }: { quote: Quote }) => {
       vendor_id: Number(quote.vendor.id),
       created_by: `${user?.first_name} ${user?.last_name}`,
       articles_purchase_orders: quote.article_quote_order,
-      company: selectedCompany!.split(" ").join("").toLowerCase(),
       quote_order_id: Number(quote.id),
     }
 
     const data = {
       status: "APROBADO",
       updated_by: `${user?.first_name} ${user?.last_name}`,
-      company: selectedCompany!.split(" ").join("").toLowerCase(),
+      company: selectedCompany!.slug,
     };
 
     await updateStatusQuote.mutateAsync({ id, data });
-    await createPurchaseOrder.mutateAsync(poData);
+    await createPurchaseOrder.mutateAsync({data: poData, company: selectedCompany!.slug});
     await updateStatusRequisition.mutateAsync({
-      id: quote.requisition_order.id, data: {
+      id: quote.requisition_order.id, 
+      data: {
         status: "APROBADO",
         updated_by: `${user?.first_name} ${user?.last_name}`,
-        company: selectedCompany!.split(" ").join("").toLowerCase(),
-      }
+      },
+      company: selectedCompany!.slug
     })
 
     setOpenApprove(false);

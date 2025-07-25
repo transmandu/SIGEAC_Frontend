@@ -149,8 +149,8 @@ const CreateComponentForm = ({ initialData, isEditing }: {
 
   useEffect(() => {
     if (selectedStation) {
-      mutate(Number(selectedStation))
-      verifyMutation(Number(selectedStation))
+      mutate({location_id: Number(selectedStation), company: selectedCompany!.slug})
+      verifyMutation()
     }
   }, [selectedStation, mutate, verifyMutation])
 
@@ -193,13 +193,16 @@ const CreateComponentForm = ({ initialData, isEditing }: {
     }
     if (isEditing) {
       confirmIncoming.mutateAsync({
-        ...values,
-        id: initialData?.id,
-        caducate_date: caducateDate && format(caducateDate, "yyyy-MM-dd"),
-        fabrication_date: fabricationDate && format(fabricationDate, "yyyy-MM-dd"),
-        calendar_date: calendarDate && format(calendarDate, "yyyy-MM-dd"),
-        batches_id: values.batches_id,
-        status: "Stored"
+        values: {
+          ...values,
+          id: initialData?.id,
+          caducate_date: caducateDate && format(caducateDate, "yyyy-MM-dd"),
+          fabrication_date: fabricationDate && format(fabricationDate, "yyyy-MM-dd"),
+          calendar_date: calendarDate && format(calendarDate, "yyyy-MM-dd"),
+          batches_id: values.batches_id,
+          status: "Stored"
+        },
+        company: selectedCompany!.slug
       })
       router.push(`/${selectedCompany?.slug}/almacen/ingreso/en_recepcion`)
     } else {

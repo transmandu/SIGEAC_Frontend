@@ -47,7 +47,7 @@ export function EditToolBoxForm({ onClose, initialData }: FormProps) {
 
   const [openArticles, setOpenArticles] = useState(false);
 
-  const { selectedStation } = useCompanyStore()
+  const { selectedStation, selectedCompany } = useCompanyStore()
 
   const { updateToolBox } = useUpdateToolBox()
 
@@ -95,7 +95,7 @@ export function EditToolBoxForm({ onClose, initialData }: FormProps) {
       delivered_by: `${user?.first_name} ${user?.last_name}`,
       id: initialData.id,
     }
-    await updateToolBox.mutateAsync(formattedData)
+    await updateToolBox.mutateAsync({data: formattedData, company: selectedCompany!.slug})
     onClose();
   }
 

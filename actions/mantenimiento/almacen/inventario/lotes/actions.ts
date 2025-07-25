@@ -1,5 +1,4 @@
 import axiosInstance from "@/lib/axios"
-import { useCompanyStore } from "@/stores/CompanyStore"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 
@@ -15,7 +14,6 @@ type BatchType = {
   zone?: string,
   warehouse_id?: number,
   category?: string,
-  company: string
 }
 
 export const useCreateBatch = () => {
@@ -23,8 +21,8 @@ export const useCreateBatch = () => {
     const queryClient = useQueryClient()
  
     const createMutation = useMutation({
-        mutationFn: async (data: BatchType) => {
-            await axiosInstance.post(`/${data.company}/batches`, data)
+        mutationFn: async ({data, company}: {data: BatchType, company: string}) => {
+            await axiosInstance.post(`/${company}/batches`, data)
           },
         onSuccess: () => {
             queryClient.invalidateQueries({queryKey: ['batches']})
@@ -51,8 +49,8 @@ export const useDeleteBatch = () => {
   const queryClient = useQueryClient()
 
   const deleteMutation = useMutation({
-      mutationFn: async (id: number | string) => {
-          await axiosInstance.delete(`/hangar74/batches/${id}`)
+      mutationFn: async ({id, company}: {id: number | string, company: string}) => {
+          await axiosInstance.delete(`/${company}/batches/${id}`)
         },
       onSuccess: () => {
           queryClient.invalidateQueries({queryKey: ['batches']})

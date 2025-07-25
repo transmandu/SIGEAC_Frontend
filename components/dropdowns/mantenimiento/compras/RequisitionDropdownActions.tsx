@@ -68,7 +68,7 @@ const RequisitionsDropdownActions = ({ req }: { req: Requisition }) => {
   const handleDelete = async (id: number, company: string) => {
     await deleteRequisition.mutateAsync({
       id,
-      company
+      company: selectedCompany!.slug
     });
     setOpenDelete(false)
   }
@@ -78,11 +78,11 @@ const RequisitionsDropdownActions = ({ req }: { req: Requisition }) => {
     const data = {
       status,
       updated_by,
-      company,
     };
     await updateStatusRequisition.mutateAsync({
       id,
-      data
+      data,
+      company: selectedCompany!.slug
     });
     setOpenReject(false)
   }
@@ -129,7 +129,7 @@ const RequisitionsDropdownActions = ({ req }: { req: Requisition }) => {
           </DialogHeader>
           <DialogFooter>
             <Button type="button" variant={"destructive"} onClick={() => setOpenDelete(false)}>Cancelar</Button>
-            <Button onClick={() => handleDelete(req.id, selectedCompany.split(" ").join(""))} disabled={deleteRequisition.isPending} className="bg-primary text-white">{deleteRequisition.isPending ? <Loader2 className="animate-spin size-4" /> : "Confirmar"}</Button>
+            <Button onClick={() => handleDelete(req.id, selectedCompany!.slug)} disabled={deleteRequisition.isPending} className="bg-primary text-white">{deleteRequisition.isPending ? <Loader2 className="animate-spin size-4" /> : "Confirmar"}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -155,7 +155,7 @@ const RequisitionsDropdownActions = ({ req }: { req: Requisition }) => {
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button onClick={() => handleReject(req.id, `${user?.first_name} ${user?.last_name}`, "RECHAZADO", selectedCompany.split(" ").join(""))} disabled={updateStatusRequisition.isPending} className="bg-primary text-white">{updateStatusRequisition.isPending ? <Loader2 className="animate-spin size-4" /> : "Confirmar"}</Button>
+            <Button onClick={() => handleReject(req.id, `${user?.first_name} ${user?.last_name}`, "RECHAZADO", selectedCompany!.slug)} disabled={updateStatusRequisition.isPending} className="bg-primary text-white">{updateStatusRequisition.isPending ? <Loader2 className="animate-spin size-4" /> : "Confirmar"}</Button>
             <Button type="button" variant={"destructive"} onClick={() => setOpenReject(false)}>Cancelar</Button>
           </DialogFooter>
         </DialogContent>

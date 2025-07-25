@@ -13,6 +13,7 @@ import { useState } from "react"
 import { EditToolBoxForm } from "../../../forms/mantenimiento/almacen/EditToolBoxForm"
 import { Button } from "../../../ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "../../../ui/dialog"
+import { useCompanyStore } from "@/stores/CompanyStore"
 
 const ToolBoxDropdownActions = ({ id, initialData }: { id: number, initialData: ToolBox }) => {
 
@@ -20,10 +21,12 @@ const ToolBoxDropdownActions = ({ id, initialData }: { id: number, initialData: 
 
   const [openEdit, setOpenEdit] = useState<boolean>(false)
 
+  const { selectedCompany } = useCompanyStore()
+
   const { deleteToolBox } = useDeleteToolBox()
 
   const handleDelete = async (id: number) => {
-    await deleteToolBox.mutateAsync(id);
+    await deleteToolBox.mutateAsync({id, company: selectedCompany!.slug});
     setOpen(false);
   }
   return (

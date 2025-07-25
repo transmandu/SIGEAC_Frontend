@@ -27,8 +27,8 @@ export const useCreateMaintenanceAircraft = () => {
   const queryClient = useQueryClient()
 
   const createMutation = useMutation({
-      mutationFn: async (data: CreateAircraftWithPartsData) => {
-          await axiosInstance.post('/hangar74/aircrafts', data)
+      mutationFn: async ({data, company}: {data: CreateAircraftWithPartsData, company: string}) => {
+          await axiosInstance.post(`/${company}/aircrafts`, data)
         },
       onSuccess: () => {
           queryClient.invalidateQueries({queryKey: ['aircrafts']})
@@ -54,8 +54,8 @@ export const useDeleteMaintenanceAircraft = () => {
   const queryClient = useQueryClient()
 
   const deleteMutation = useMutation({
-      mutationFn: async (id: number | string) => {
-          await axiosInstance.delete(`/hangar74/aircrafts/${id}`)
+      mutationFn: async ({id, company}: {id: number | string, company: string}) => {
+          await axiosInstance.delete(`/${company}/aircrafts/${id}`)
         },
       onSuccess: () => {
         queryClient.invalidateQueries({queryKey: ['aircrafts'], exact: false})

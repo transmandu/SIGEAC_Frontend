@@ -12,15 +12,17 @@ import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { Button } from "../../../ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "../../../ui/dialog"
+import { useCompanyStore } from "@/stores/CompanyStore"
 
 const ArticleDropdownActions = ({ id, serial, part_number }: { id: string | number, serial: string, part_number: string }) => {
 
   const [open, setOpen] = useState<boolean>(false)
   const router = useRouter()
+  const { selectedCompany } = useCompanyStore()
   const { deleteArticle } = useDeleteArticle()
 
   const handleDelete = (id: number | string) => {
-    deleteArticle.mutate(id, {
+    deleteArticle.mutate({id, company: selectedCompany!.slug}, {
       onSuccess: () => setOpen(false), // Cierra el modal solo si la eliminación fue exitosa
     });
   }
@@ -41,7 +43,7 @@ const ArticleDropdownActions = ({ id, serial, part_number }: { id: string | numb
             </DropdownMenuItem>
           </DialogTrigger>
           <DropdownMenuItem className="cursor-pointer" onClick={() => {
-            router.push(`/hangar74/almacen/inventario/gestion/${part_number}/${serial}`)
+            router.push(`/${selectedCompany?.slug}/almacen/inventario/gestion/${part_number}/${serial}`)
           }}>
             <EyeIcon className="size-5" />
           </DropdownMenuItem>

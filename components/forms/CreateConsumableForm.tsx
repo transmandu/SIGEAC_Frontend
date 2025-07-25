@@ -36,7 +36,8 @@ import { Checkbox } from "../ui/checkbox"
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "../ui/command"
 import { Label } from "../ui/label"
 import { Textarea } from "../ui/textarea"
-import { MultiInputField } from "./MultiInputField"
+import { MultiInputField } from "../misc/MultiInputField"
+
 
 
 const formSchema = z.object({
@@ -144,7 +145,7 @@ const CreateConsumableForm = ({ initialData, isEditing }: {
 
   useEffect(() => {
     if (selectedStation) {
-      mutate(Number(selectedStation))
+      mutate({location_id: Number(selectedStation), company: selectedCompany!.slug})
     }
   }, [selectedStation, mutate])
 
@@ -202,7 +203,7 @@ const CreateConsumableForm = ({ initialData, isEditing }: {
         status: "Stored"
       }
 
-      await confirmIncoming.mutateAsync(formattedValues)
+      await confirmIncoming.mutateAsync({values: formattedValues, company: selectedCompany!.slug})
       router.push(`/${selectedCompany?.slug}/almacen/ingreso/en_recepcion`)
     } else {
       createArticle.mutate({company: selectedCompany!.slug, data: {

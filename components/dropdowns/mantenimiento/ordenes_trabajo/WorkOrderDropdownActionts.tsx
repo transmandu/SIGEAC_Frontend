@@ -11,16 +11,18 @@ import { useState } from "react"
 import { Button } from "../../../ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "../../../ui/dialog"
 import Link from "next/link"
+import { useCompanyStore } from "@/stores/CompanyStore"
 
 const WorkOrderDropdownActions = ({ work_order }: { work_order: WorkOrder }) => {
 
   const [openDelete, setOpenDelete] = useState<boolean>(false)
 
   const { deleteWorkOrder } = useDeleteWorkOrder()
+  const { selectedCompany } = useCompanyStore()
 
   const handleDelete = async (id: string) => {
     try {
-      await deleteWorkOrder.mutateAsync(id);
+      await deleteWorkOrder.mutateAsync({id, company: selectedCompany!.slug});
     } catch (error) {
       console.log(error)
     } finally {

@@ -144,7 +144,7 @@ const CreateConsumableForm = ({ initialData, isEditing }: {
 
   useEffect(() => {
     if (selectedStation) {
-      mutate(Number(selectedStation))
+      mutate({location_id: Number(selectedStation), company: selectedCompany!.slug})
     }
   }, [selectedStation, mutate])
 
@@ -202,10 +202,10 @@ const CreateConsumableForm = ({ initialData, isEditing }: {
         status: "Stored"
       }
 
-      await confirmIncoming.mutateAsync(formattedValues)
-      router.push("/hangar74/almacen/ingreso/en_recepcion")
+      await confirmIncoming.mutateAsync({values: formattedValues, company: selectedCompany!.slug})
+      router.push(`/${selectedCompany?.slug}/almacen/ingreso/en_recepcion`)
     } else {
-      createArticle.mutate(formattedValues);
+      createArticle.mutate({company: selectedCompany!.slug, data: formattedValues});
     }
   }
   return (

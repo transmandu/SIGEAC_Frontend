@@ -27,6 +27,7 @@ import { useForm } from "react-hook-form"
 import { z } from "zod"
 import CertificatesCombobox from './_components/TagCombobox'
 import Image from "next/image"
+import { useRouter } from "next/navigation"
 
 interface Article {
   part_number: string;
@@ -106,6 +107,7 @@ const CreateRequisitionPage = () => {
   const { data: aircrafts, isLoading: isAircraftsLoading, isError: isAircraftsError } = useGetMaintenanceAircrafts()
   const { createRequisition } = useCreateRequisition()
   const [selectedBatches, setSelectedBatches] = useState<Batch[]>([])
+  const router = useRouter()
 
   const form = useForm<FormSchemaType>({
     resolver: zodResolver(FormSchema),
@@ -121,17 +123,16 @@ const CreateRequisitionPage = () => {
   useEffect(() => {
     if (user && selectedCompany && selectedStation) {
       form.setValue("created_by", user.id.toString())
-      form.setValue("company", selectedCompany.split(" ").join(""))
       form.setValue("location_id", selectedStation)
     }
   }, [user, form, selectedCompany, selectedStation])
 
   useEffect(() => {
     if (selectedStation) {
-      mutate(Number(selectedStation))
+      mutate({location_id: Number(selectedStation), company: selectedCompany!.slug})
       employeesMutation(Number(selectedStation))
     }
-  }, [selectedStation, mutate, employeesMutation])
+  }, [selectedStation, mutate, employeesMutation, selectedCompany])
 
   useEffect(() => {
     form.setValue("articles", selectedBatches)
@@ -224,12 +225,13 @@ const CreateRequisitionPage = () => {
   };
 
   const onSubmit = async (data: FormSchemaType) => {
-    await createRequisition.mutateAsync({
+    const formattedData = {
       ...data,
-      type: "AVIACION",
-    });
-    // console.log(data)
-  };
+      type: "GENERAL",
+    }
+    await createRequisition.mutateAsync({data: formattedData, company: selectedCompany!.slug})
+    router.push(`/${selectedCompany!.slug}/general/requisiciones`)
+  }
 
   return (
     <ContentLayout title='Requisición'>

@@ -19,6 +19,7 @@ import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import CreateNoRutineDialog from './CreateNoRutineDialog'
 import { useUpdateNoRoutineTask } from '@/actions/mantenimiento/planificacion/ordenes_trabajo/no_rutinarios/actions'
+import { useCompanyStore } from "@/stores/CompanyStore"
 
 // Esquema del formulario para asignación de responsables
 const assignmentFormSchema = z.object({
@@ -49,6 +50,7 @@ export const TaskDetailsDialog = ({
   const { updateWorkOrderTask } = useUpdateWorkOrderTask()
   const { updateNoRoutineTask } = useUpdateNoRoutineTask()
   const { updateTaskStatus } = useUpdateWorkOrderTaskStatus()
+  const { selectedCompany } = useCompanyStore()
 
   // Formulario para asignación
   const form = useForm<z.infer<typeof assignmentFormSchema>>({
@@ -66,13 +68,17 @@ export const TaskDetailsDialog = ({
     try {
       if (isNonRoutine) {
         await updateNoRoutineTask.mutateAsync({
-          id: selectedTask.id.toString(),
-          status: "CERRADO",
+          data: {
+            id: selectedTask.id.toString(),
+            status: "CERRADO",
+          },
+          company: selectedCompany!.slug
         })
       } else {
         await updateTaskStatus.mutateAsync({
           task_id: selectedTask.id.toString(),
-          status: "CERRADO"
+          status: "CERRADO",
+          company: selectedCompany!.slug
         })
       }
       onOpenChange(false)
@@ -87,13 +93,19 @@ export const TaskDetailsDialog = ({
     try {
       if (isNonRoutine) {
         await updateNoRoutineTask.mutateAsync({
-          id: selectedTask.id.toString(),
-          ...values
+          data: {
+            id: selectedTask.id.toString(),
+            ...values
+          },
+          company: selectedCompany!.slug
         })
       } else {
         await updateWorkOrderTask.mutateAsync({
-          id: selectedTask.id.toString(),
-          ...values
+          data: {
+            id: selectedTask.id.toString(),
+            ...values
+          },
+          company: selectedCompany!.slug
         })
       }
       setIsEditing(false)

@@ -117,11 +117,10 @@ export function CompletePurchaseForm({ onClose, po }: FormProps) {
         usa_tracking: article.usa_tracking,
         ock_tracking: article.ock_tracking,
       })),
-      company: selectedCompany!.replace(/\s/g, "").toLowerCase(),
       total,
       updated_by: `${user?.first_name} ${user?.last_name}`
     };
-    await completePurchase.mutateAsync({ id: po.id, data: { ...finalData } })
+    await completePurchase.mutateAsync({ id: po.id, data: { ...finalData }, company: selectedCompany!.slug })
     onClose()
 
   }

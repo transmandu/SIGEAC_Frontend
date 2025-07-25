@@ -95,7 +95,7 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
 
   const { createDispatchRequest } = useCreateDispatchRequest();
 
-  const { selectedStation } = useCompanyStore();
+  const { selectedStation, selectedCompany } = useCompanyStore();
 
   const {
     mutate,
@@ -118,7 +118,7 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
 
   useEffect(() => {
     if (selectedStation) {
-      mutate(Number(selectedStation))
+      mutate({location_id: Number(selectedStation), company: selectedCompany!.slug})
     }
   }, [selectedStation, mutate])
 
@@ -162,10 +162,10 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
       created_by: user?.first_name + " " + user?.last_name,
       submission_date: format(data.submission_date, "yyyy-MM-dd"),
       category: "consumible",
-      user_id: user!.id,
+      user_id: Number(user!.id),
     };
     console.log(formattedData);
-    await createDispatchRequest.mutateAsync(formattedData);
+    await createDispatchRequest.mutateAsync({data: formattedData, company: selectedCompany!.slug});
     onClose();
   };
 
