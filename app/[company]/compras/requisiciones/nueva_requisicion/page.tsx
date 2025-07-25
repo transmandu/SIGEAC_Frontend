@@ -103,7 +103,7 @@ const CreateRequisitionPage = () => {
   const { mutate, data } = useGetBatchesByLocationId();
   const { selectedCompany, selectedStation } = useCompanyStore()
   const { mutate: employeesMutation, data: employees, isPending: employeesLoading } = useGetDepartamentEmployees();
-  const { data: secondaryUnits, isLoading: secondaryUnitLoading } = useGetSecondaryUnits()
+  const { data: secondaryUnits, isLoading: secondaryUnitLoading } = useGetSecondaryUnits(selectedCompany?.slug);
   const { data: aircrafts, isLoading: isAircraftsLoading, isError: isAircraftsError } = useGetMaintenanceAircrafts()
   const { createRequisition } = useCreateRequisition()
   const [selectedBatches, setSelectedBatches] = useState<Batch[]>([])
@@ -123,6 +123,7 @@ const CreateRequisitionPage = () => {
   useEffect(() => {
     if (user && selectedCompany && selectedStation) {
       form.setValue("created_by", user.id.toString())
+      form.setValue("company", selectedCompany?.slug)
       form.setValue("location_id", selectedStation)
     }
   }, [user, form, selectedCompany, selectedStation])    

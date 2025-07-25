@@ -1,27 +1,31 @@
 import axiosInstance from "@/lib/axios";
-import {
-  Pilot
-} from "@/types";
+import { Pilot } from "@/types";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
-interface PilotData {
-  employee_dni: string;
-  license_number: string;
+interface PilotSchema {
+  company: string;
+  data: {
+    employee_dni: string;
+    license_number: string;
+  };
 }
 
-interface updatePilotData {
+interface updatePilotSchema {
+  company: string;
   id: string;
-  employee_dni: string;
-  license_number: string;
+  data: {
+    employee_dni: string;
+    license_number: string;
+  };
 }
 
 export const useCreatePilot = () => {
   const queryClient = useQueryClient();
   const createMutation = useMutation({
     mutationKey: ["pilots"],
-    mutationFn: async (data: PilotData) => {
-      await axiosInstance.post("/transmandu/pilots", data, {
+    mutationFn: async ({ company, data }: PilotSchema) => {
+      await axiosInstance.post(`/${company}/pilots`, data, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
@@ -71,29 +75,27 @@ export const useDeletePilot = () => {
 };
 
 export const useUpdatePilot = () => {
-
-  const queryClient = useQueryClient()
+  const queryClient = useQueryClient();
 
   const updatePilotMutation = useMutation({
-      mutationKey: ["pilots"],
-      mutationFn: async (data: updatePilotData) => {
-          await axiosInstance.put(`/transmandu/pilots/${data.id}`, data)
-        },
-      onSuccess: () => {
-          queryClient.invalidateQueries({queryKey: ['pilots']})
-          toast.success("¡Actualizado!", {
-              description: `El piloto ha sido actualizada correctamente.`
-          })
-        },
-      onError: (error) => {
-          toast.error('Oops!', {
-            description: 'No se pudo actualizar el piloto...'
-          })
-          console.log(error)
-        },
-      }
-  )
+    mutationKey: ["pilots"],
+    mutationFn: async ({ company, id, data }: updatePilotSchema) => {
+      await axiosInstance.put(`/${company}/pilots/${id}`, data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["pilots"] });
+      toast.success("¡Actualizado!", {
+        description: `El piloto ha sido actualizada correctamente.`,
+      });
+    },
+    onError: (error) => {
+      toast.error("Oops!", {
+        description: "No se pudo actualizar el piloto...",
+      });
+      console.log(error);
+    },
+  });
   return {
     updatePilot: updatePilotMutation,
-  }
-}
+  };
+};

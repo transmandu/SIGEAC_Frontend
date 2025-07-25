@@ -1,5 +1,8 @@
-'use client';
-import { useCreateSecondaryUnit, useCreateUnit } from "@/actions/general/unidades/actions";
+"use client";
+import {
+  useCreateSecondaryUnit,
+  useCreateUnit,
+} from "@/actions/general/unidades/actions";
 import {
   Form,
   FormControl,
@@ -16,12 +19,12 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-} from "@/components/ui/command"
+} from "@/components/ui/command";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@/components/ui/popover"
+} from "@/components/ui/popover";
 import { Input } from "@/components/ui/input";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Check, ChevronsUpDown, Loader2 } from "lucide-react";
@@ -31,7 +34,7 @@ import { Button } from "../../ui/button";
 import { useGetUnits } from "@/hooks/general/unidades/useGetPrimaryUnits";
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
-
+import { useCompanyStore } from "@/stores/CompanyStore";
 
 const formSchema = z.object({
   secondary_unit: z.string().min(3, {
@@ -40,38 +43,40 @@ const formSchema = z.object({
   convertion_rate: z.coerce.number(),
   quantity_unit: z.coerce.number(),
   unit_id: z.number(),
-})
-
+});
 
 interface FormProps {
-  onClose: () => void,
+  onClose: () => void;
 }
 
 export default function CreateSecondaryUnitForm({ onClose }: FormProps) {
-  const [open, setOpen] = useState(false)
-  const [value, setValue] = useState("")
+  const { selectedCompany } = useCompanyStore();
+  const [open, setOpen] = useState(false);
+  const [value, setValue] = useState("");
   const { createSecondaryUnit } = useCreateSecondaryUnit();
-  const { data: primaryUnits, isLoading: primaryLoading } = useGetUnits()
+  const { data: primaryUnits, isLoading: primaryLoading } = useGetUnits(
+    selectedCompany?.slug
+  );
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       convertion_rate: 0,
     },
-  })
+  });
   const { control } = form;
 
   useEffect(() => {
     if (value) {
-      form.setValue("unit_id", Number(value))
+      form.setValue("unit_id", Number(value));
     }
-  }, [form, value])
+  }, [form, value]);
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     await createSecondaryUnit.mutate({
       ...values,
     });
-    onClose()
-  }
+    onClose();
+  };
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)}>
@@ -82,7 +87,10 @@ export default function CreateSecondaryUnitForm({ onClose }: FormProps) {
             <FormItem>
               <FormLabel>Nombre</FormLabel>
               <FormControl>
-                <Input placeholder="EJ: C. de 24u, Paquete de 6u, etc..." {...field} />
+                <Input
+                  placeholder="EJ: C. de 24u, Paquete de 6u, etc..."
+                  {...field}
+                />
               </FormControl>
               <FormDescription>
                 Este será el nombre de su unidad.
@@ -98,7 +106,10 @@ export default function CreateSecondaryUnitForm({ onClose }: FormProps) {
             <FormItem>
               <FormLabel>Unidades</FormLabel>
               <FormControl>
-                <Input placeholder="EJ: Kilogramo, Litro, Mililitro" {...field} />
+                <Input
+                  placeholder="EJ: Kilogramo, Litro, Mililitro"
+                  {...field}
+                />
               </FormControl>
               <FormDescription>
                 ¿Cuantas unidades trae su unidad secundaria?
@@ -123,9 +134,13 @@ export default function CreateSecondaryUnitForm({ onClose }: FormProps) {
                       aria-expanded={open}
                       className="w-[200px] justify-between"
                     >
-                      {primaryUnits && (value
-                        ? primaryUnits.find((primaryUnits) => primaryUnits.id.toString() === value)?.label
-                        : "Seleccione...")}
+                      {primaryUnits &&
+                        (value
+                          ? primaryUnits.find(
+                              (primaryUnits) =>
+                                primaryUnits.id.toString() === value
+                            )?.label
+                          : "Seleccione...")}
                       <ChevronsUpDown className="opacity-50" />
                     </Button>
                   </PopoverTrigger>
@@ -133,26 +148,33 @@ export default function CreateSecondaryUnitForm({ onClose }: FormProps) {
                     <Command>
                       <CommandInput placeholder="Buscar unidad primaria..." />
                       <CommandList>
-                        <CommandEmpty>No existen unidades primarias.</CommandEmpty>
+                        <CommandEmpty>
+                          No existen unidades primarias.
+                        </CommandEmpty>
                         <CommandGroup>
-                          {primaryUnits && primaryUnits.map((primaryUnit) => (
-                            <CommandItem
-                              key={primaryUnit.id}
-                              value={primaryUnit.id.toString()}
-                              onSelect={(currentValue) => {
-                                setValue(currentValue === value ? "" : currentValue)
-                                setOpen(false)
-                              }}
-                            >
-                              {primaryUnit.label}
-                              <Check
-                                className={cn(
-                                  "ml-auto",
-                                  value === primaryUnit.id.toString() ? "opacity-100" : "opacity-0"
-                                )}
-                              />
-                            </CommandItem>
-                          ))}
+                          {primaryUnits &&
+                            primaryUnits.map((primaryUnit) => (
+                              <CommandItem
+                                key={primaryUnit.id}
+                                value={primaryUnit.id.toString()}
+                                onSelect={(currentValue) => {
+                                  setValue(
+                                    currentValue === value ? "" : currentValue
+                                  );
+                                  setOpen(false);
+                                }}
+                              >
+                                {primaryUnit.label}
+                                <Check
+                                  className={cn(
+                                    "ml-auto",
+                                    value === primaryUnit.id.toString()
+                                      ? "opacity-100"
+                                      : "opacity-0"
+                                  )}
+                                />
+                              </CommandItem>
+                            ))}
                         </CommandGroup>
                       </CommandList>
                     </Command>
@@ -182,10 +204,18 @@ export default function CreateSecondaryUnitForm({ onClose }: FormProps) {
             </FormItem>
           )}
         />
-        <Button className="bg-primary mt-2 text-white hover:bg-blue-900 disabled:bg-primary/70" disabled={createSecondaryUnit?.isPending} type="submit">
-          {createSecondaryUnit?.isPending ? <Loader2 className="size-4 animate-spin" /> : <p>Crear</p>}
+        <Button
+          className="bg-primary mt-2 text-white hover:bg-blue-900 disabled:bg-primary/70"
+          disabled={createSecondaryUnit?.isPending}
+          type="submit"
+        >
+          {createSecondaryUnit?.isPending ? (
+            <Loader2 className="size-4 animate-spin" />
+          ) : (
+            <p>Crear</p>
+          )}
         </Button>
       </form>
     </Form>
-  )
+  );
 }

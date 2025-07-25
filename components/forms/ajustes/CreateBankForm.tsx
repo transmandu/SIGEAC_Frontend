@@ -1,4 +1,4 @@
-'use client';
+"use client";
 import { useCreateBank } from "@/actions/general/banco_cuentas/bancos/actions";
 import {
   Form,
@@ -23,7 +23,7 @@ import { Loader2 } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Button } from "../../ui/button";
-
+import { useCompanyStore } from "@/stores/CompanyStore";
 
 const formSchema = z.object({
   name: z.string().min(3, {
@@ -32,14 +32,14 @@ const formSchema = z.object({
   type: z.string().min(1, {
     message: "El tipo debe ser valido.",
   }),
-})
-
+});
 
 interface FormProps {
-  onClose: () => void,
+  onClose: () => void;
 }
 
 export default function CreateBankForm({ onClose }: FormProps) {
+  const { selectedCompany } = useCompanyStore();
   const { createBank } = useCreateBank();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -47,15 +47,19 @@ export default function CreateBankForm({ onClose }: FormProps) {
       name: "",
       type: "",
     },
-  })
+  });
   const { control } = form;
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    await createBank.mutateAsync({
-      ...values,
-      slug: generateSlug(values.name)
-    });
-    onClose()
-  }
+    const formData = {
+      company: selectedCompany!.slug,
+      data: {
+        ...values,
+        slug: generateSlug(values.name),
+      },
+    };
+    await createBank.mutateAsync(formData);
+    onClose();
+  };
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)}>
@@ -92,17 +96,23 @@ export default function CreateBankForm({ onClose }: FormProps) {
                   <SelectItem value="EXTRANJERO">Extranjero</SelectItem>
                 </SelectContent>
               </Select>
-              <FormDescription>
-                Este sera el tipo de su banco.
-              </FormDescription>
+              <FormDescription>Este sera el tipo de su banco.</FormDescription>
               <FormMessage />
             </FormItem>
           )}
         />
-        <Button className="bg-primary mt-2 text-white hover:bg-blue-900 disabled:bg-primary/70" disabled={createBank?.isPending} type="submit">
-          {createBank?.isPending ? <Loader2 className="size-4 animate-spin" /> : <p>Crear</p>}
+        <Button
+          className="bg-primary mt-2 text-white hover:bg-blue-900 disabled:bg-primary/70"
+          disabled={createBank?.isPending}
+          type="submit"
+        >
+          {createBank?.isPending ? (
+            <Loader2 className="size-4 animate-spin" />
+          ) : (
+            <p>Crear</p>
+          )}
         </Button>
       </form>
     </Form>
-  )
+  );
 }

@@ -3,10 +3,27 @@
 import { useCreateCreditPayment } from "@/actions/aerolinea/pagos_creditos/actions";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, } from "@/components/ui/form";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Popover, PopoverContent, PopoverTrigger, } from "@/components/ui/popover";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, } from "@/components/ui/select";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useGetBankAccounts } from "@/hooks/general/cuentas_bancarias/useGetBankAccounts";
 import { cn } from "@/lib/utils";
 import { Credit } from "@/types";
@@ -17,6 +34,7 @@ import { CalendarIcon, Loader2 } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { AmountInput } from "../../../misc/AmountInput";
+import { useCompanyStore } from "@/stores/CompanyStore";
 
 interface FormProps {
   onClose: () => void;
@@ -25,7 +43,10 @@ interface FormProps {
 
 export function CreditPaymentForm({ onClose, credit }: FormProps) {
   const { createCreditPayment } = useCreateCreditPayment();
-  const { data: accounts, isLoading: isAccLoading } = useGetBankAccounts();
+  const { selectedCompany } = useCompanyStore();
+  const { data: accounts, isLoading: isAccLoading } = useGetBankAccounts(
+    selectedCompany?.slug
+  );
   // Calcular el monto pendiente por pagar
   const pendingAmount = Number(credit.debt) - Number(credit.payed_amount || 0);
   const formSchema = z
@@ -203,8 +224,8 @@ export function CreditPaymentForm({ onClose, credit }: FormProps) {
           />
         </div>
         {form.watch("pay_method") !== "EFECTIVO" && (
-            <div className="flex gap-2">
-              <FormField
+          <div className="flex gap-2">
+            <FormField
               control={form.control}
               name="bank_account_id"
               render={({ field }) => (
@@ -254,8 +275,8 @@ export function CreditPaymentForm({ onClose, credit }: FormProps) {
                 </FormItem>
               )}
             />
-            </div>
-          )}
+          </div>
+        )}
         <FormField
           control={form.control}
           name="pay_amount"

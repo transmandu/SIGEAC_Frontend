@@ -9,11 +9,17 @@ import { useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { BankAccount } from '@/types';
 import LoadingPage from '@/components/misc/LoadingPage';
+import { useCompanyStore } from '@/stores/CompanyStore';
 
 const BankAccountsPage = () => {
+  const { selectedCompany } = useCompanyStore();
   const params = useParams();
   const id = params?.id ?? ""; // Asegurar que siempre haya un valor
-  const { data: accounts, isLoading, error } = useGetBankAccounts();
+  const {
+    data: accounts,
+    isLoading,
+    error,
+  } = useGetBankAccounts(selectedCompany?.slug);
   const [filteredAccounts, setFilteredAccounts] = useState<BankAccount[]>([]);
 
   useEffect(() => {
