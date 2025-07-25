@@ -25,6 +25,7 @@ import { Loader2 } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Button } from "../../ui/button";
+import { useCompanyStore } from "@/stores/CompanyStore";
 
 const formSchema = z.object({
   name: z.string().min(3, {
@@ -45,7 +46,8 @@ interface FormProps {
 
 export default function CreateBankAccountForm({ onClose }: FormProps) {
   const { createBankAccount } = useCreateBankAccount();
-  const { data: banks } = useGetBanks();
+  const { selectedCompany } = useCompanyStore();
+  const { data: banks } = useGetBanks(selectedCompany?.slug);
   const { data: companies } = useGetCompanies();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),

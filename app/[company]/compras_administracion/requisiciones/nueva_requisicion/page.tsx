@@ -1,32 +1,62 @@
-"use client"
+"use client";
 
-import { useCreateRequisition } from "@/actions/mantenimiento/compras/requisiciones/actions"
-import { CreateBatchDialog } from '@/components/dialogs/CreateBatchDialog'
-import { ContentLayout } from '@/components/layout/ContentLayout'
-import { Button } from "@/components/ui/button"
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
-import { Label } from '@/components/ui/label'
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Separator } from "@/components/ui/separator"
-import { Textarea } from "@/components/ui/textarea"
-import { useAuth } from "@/contexts/AuthContext"
-import { useGetDepartamentEmployees } from "@/hooks/administracion/useGetDepartamentEmployees"
-import { useGetSecondaryUnits } from "@/hooks/general/unidades/useGetSecondaryUnits"
-import { useGetMaintenanceAircrafts } from '@/hooks/mantenimiento/planificacion/useGetMaintenanceAircrafts'
-import { cn } from "@/lib/utils"
-import { useCompanyStore } from "@/stores/CompanyStore"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { Check, ChevronsUpDown, Loader2, MinusCircle, PlusCircle } from "lucide-react"
-import { useEffect, useState } from "react"
-import { useForm } from "react-hook-form"
-import { z } from "zod"
-import CertificatesCombobox from './_components/TagCombobox'
-import { useGetBatchesByLocationId } from "@/hooks/mantenimiento/almacen/renglones/useGetBatchesByLocationId"
-import Image from "next/image"
+import { useCreateRequisition } from "@/actions/mantenimiento/compras/requisiciones/actions";
+import { CreateBatchDialog } from "@/components/dialogs/CreateBatchDialog";
+import { ContentLayout } from "@/components/layout/ContentLayout";
+import { Button } from "@/components/ui/button";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
+import { Textarea } from "@/components/ui/textarea";
+import { useAuth } from "@/contexts/AuthContext";
+import { useGetDepartamentEmployees } from "@/hooks/administracion/useGetDepartamentEmployees";
+import { useGetSecondaryUnits } from "@/hooks/general/unidades/useGetSecondaryUnits";
+import { useGetMaintenanceAircrafts } from "@/hooks/mantenimiento/planificacion/useGetMaintenanceAircrafts";
+import { cn } from "@/lib/utils";
+import { useCompanyStore } from "@/stores/CompanyStore";
+import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  Check,
+  ChevronsUpDown,
+  Loader2,
+  MinusCircle,
+  PlusCircle,
+} from "lucide-react";
+import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import CertificatesCombobox from "./_components/TagCombobox";
+import { useGetBatchesByLocationId } from "@/hooks/mantenimiento/almacen/renglones/useGetBatchesByLocationId";
+import Image from "next/image";
 
 interface Article {
   part_number: string;
@@ -49,63 +79,91 @@ interface Batch {
 }
 
 const FormSchema = z.object({
-  justification: z.string({ required_error: "La justificación es obligatoria" }).min(2, {
-    message: "La justificación debe tener al menos 2 caracteres."
-  }),
+  justification: z
+    .string({ required_error: "La justificación es obligatoria" })
+    .min(2, {
+      message: "La justificación debe tener al menos 2 caracteres.",
+    }),
   company: z.string(),
   aircraft_id: z.string({ message: "Debe elegir una aeronave." }),
   location_id: z.string(),
-  type: z.string({ required_error: "Debe seleccionar un tipo de requisición." }),
+  type: z.string({
+    required_error: "Debe seleccionar un tipo de requisición.",
+  }),
   created_by: z.string(),
-  requested_by: z.string({ required_error: "Debe ingresar quien lo solicita." }),
-  image: z.instanceof(File, { message: "Debe ser un archivo válido" })
-    .refine(file => file.size <= 5 * 1024 * 1024, "Max 5MB")
-    .refine(file => ['image/jpeg', 'image/png'].includes(file.type), "Solo JPEG/PNG")
+  requested_by: z.string({
+    required_error: "Debe ingresar quien lo solicita.",
+  }),
+  image: z
+    .instanceof(File, { message: "Debe ser un archivo válido" })
+    .refine((file) => file.size <= 5 * 1024 * 1024, "Max 5MB")
+    .refine(
+      (file) => ["image/jpeg", "image/png"].includes(file.type),
+      "Solo JPEG/PNG"
+    )
     .optional(),
-  articles: z.array(
-    z.object({
-      batch: z.string(),
-      batch_name: z.string(),
-      category: z.string(),
-      batch_articles: z.array(
-        z.object({
-          part_number: z.string().optional(),
-          alt_part_number: z.string().optional(),
-          justification: z.string({ required_error: "Debe ingresar una justificación." }),
-          manual: z.string({ required_error: "Debe ingresar un manual de referencia." }),
-          reference_cod: z.string({ required_error: "Debe ingresar el código de referencia." }),
-          pma: z.string().optional(),
-          quantity: z.number().min(1, "Debe ingresar una cantidad válida"),
-          image: z.instanceof(File).optional(),
-          unit: z.string().optional(),
-          certificates: z.array(z.string()).optional(),
-        })
-      ),
-    })
-  ).refine(
-    (articles) => articles.every((batch) =>
-      batch.batch_articles.every((article) =>
-        batch.category !== "consumible" || article.unit
-      )
+  articles: z
+    .array(
+      z.object({
+        batch: z.string(),
+        batch_name: z.string(),
+        category: z.string(),
+        batch_articles: z.array(
+          z.object({
+            part_number: z.string().optional(),
+            alt_part_number: z.string().optional(),
+            justification: z.string({
+              required_error: "Debe ingresar una justificación.",
+            }),
+            manual: z.string({
+              required_error: "Debe ingresar un manual de referencia.",
+            }),
+            reference_cod: z.string({
+              required_error: "Debe ingresar el código de referencia.",
+            }),
+            pma: z.string().optional(),
+            quantity: z.number().min(1, "Debe ingresar una cantidad válida"),
+            image: z.instanceof(File).optional(),
+            unit: z.string().optional(),
+            certificates: z.array(z.string()).optional(),
+          })
+        ),
+      })
+    )
+    .refine(
+      (articles) =>
+        articles.every((batch) =>
+          batch.batch_articles.every(
+            (article) => batch.category !== "consumible" || article.unit
+          )
+        ),
+      {
+        message: "La unidad secundaria es obligatoria para consumibles",
+        path: ["articles"],
+      }
     ),
-    {
-      message: "La unidad secundaria es obligatoria para consumibles",
-      path: ["articles"],
-    }
-  ),
 });
 
-type FormSchemaType = z.infer<typeof FormSchema>
+type FormSchemaType = z.infer<typeof FormSchema>;
 
 const CreateRequisitionPage = () => {
-  const { user } = useAuth()
+  const { user } = useAuth();
   const { mutate, data } = useGetBatchesByLocationId();
-  const { selectedCompany, selectedStation } = useCompanyStore()
-  const { mutate: employeesMutation, data: employees, isPending: employeesLoading } = useGetDepartamentEmployees();
-  const { data: secondaryUnits, isLoading: secondaryUnitLoading } = useGetSecondaryUnits()
-  const { data: aircrafts, isLoading: isAircraftsLoading, isError: isAircraftsError } = useGetMaintenanceAircrafts()
-  const { createRequisition } = useCreateRequisition()
-  const [selectedBatches, setSelectedBatches] = useState<Batch[]>([])
+  const { selectedCompany, selectedStation } = useCompanyStore();
+  const {
+    mutate: employeesMutation,
+    data: employees,
+    isPending: employeesLoading,
+  } = useGetDepartamentEmployees();
+  const { data: secondaryUnits, isLoading: secondaryUnitLoading } =
+    useGetSecondaryUnits(selectedCompany?.slug);
+  const {
+    data: aircrafts,
+    isLoading: isAircraftsLoading,
+    isError: isAircraftsError,
+  } = useGetMaintenanceAircrafts();
+  const { createRequisition } = useCreateRequisition();
+  const [selectedBatches, setSelectedBatches] = useState<Batch[]>([]);
 
   const form = useForm<FormSchemaType>({
     resolver: zodResolver(FormSchema),
@@ -116,28 +174,32 @@ const CreateRequisitionPage = () => {
       requested_by: "",
       image: undefined,
     },
-  })
+  });
 
   useEffect(() => {
     if (user && selectedCompany && selectedStation) {
-      form.setValue("created_by", user.id.toString())
-      form.setValue("company", selectedCompany.split(" ").join(""))
-      form.setValue("location_id", selectedStation)
+      form.setValue("created_by", user.id.toString());
+      form.setValue("company", selectedCompany?.slug);
+      form.setValue("location_id", selectedStation);
     }
-  }, [user, form, selectedCompany, selectedStation])
+  }, [user, form, selectedCompany, selectedStation]);
 
   useEffect(() => {
     if (selectedStation) {
-      mutate(Number(selectedStation))
-      employeesMutation(Number(selectedStation))
+      mutate(Number(selectedStation));
+      employeesMutation(Number(selectedStation));
     }
-  }, [selectedStation, mutate, employeesMutation])
+  }, [selectedStation, mutate, employeesMutation]);
 
   useEffect(() => {
-    form.setValue("articles", selectedBatches)
-  }, [selectedBatches, form])
+    form.setValue("articles", selectedBatches);
+  }, [selectedBatches, form]);
 
-  const handleBatchSelect = (batchName: string, batchId: string, batch_category: string) => {
+  const handleBatchSelect = (
+    batchName: string,
+    batchId: string,
+    batch_category: string
+  ) => {
     setSelectedBatches((prev) => {
       const exists = prev.some((b) => b.batch === batchId);
       if (exists) {
@@ -149,14 +211,16 @@ const CreateRequisitionPage = () => {
           batch: batchId,
           batch_name: batchName,
           category: batch_category,
-          batch_articles: [{
-            part_number: "",
-            alt_part_number: "",
-            justification: "",
-            manual: "",
-            reference_cod: "",
-            quantity: 0
-          }]
+          batch_articles: [
+            {
+              part_number: "",
+              alt_part_number: "",
+              justification: "",
+              manual: "",
+              reference_cod: "",
+              quantity: 0,
+            },
+          ],
         },
       ];
     });
@@ -172,11 +236,11 @@ const CreateRequisitionPage = () => {
       prev.map((batch) =>
         batch.batch === batchName
           ? {
-            ...batch,
-            batch_articles: batch.batch_articles.map((article, i) =>
-              i === index ? { ...article, [field]: value } : article
-            ),
-          }
+              ...batch,
+              batch_articles: batch.batch_articles.map((article, i) =>
+                i === index ? { ...article, [field]: value } : article
+              ),
+            }
           : batch
       )
     );
@@ -187,16 +251,19 @@ const CreateRequisitionPage = () => {
       prev.map((batch) =>
         batch.batch === batchName
           ? {
-            ...batch,
-            batch_articles: [...batch.batch_articles, {
-              part_number: "",
-              alt_part_number: "",
-              justification: "",
-              manual: "",
-              reference_cod: "",
-              quantity: 0
-            }]
-          }
+              ...batch,
+              batch_articles: [
+                ...batch.batch_articles,
+                {
+                  part_number: "",
+                  alt_part_number: "",
+                  justification: "",
+                  manual: "",
+                  reference_cod: "",
+                  quantity: 0,
+                },
+              ],
+            }
           : batch
       )
     );
@@ -207,11 +274,11 @@ const CreateRequisitionPage = () => {
       prevBatches.map((batch) =>
         batch.batch === batchName
           ? {
-            ...batch,
-            batch_articles: batch.batch_articles.filter(
-              (_, index) => index !== articleIndex
-            ),
-          }
+              ...batch,
+              batch_articles: batch.batch_articles.filter(
+                (_, index) => index !== articleIndex
+              ),
+            }
           : batch
       )
     );
@@ -232,13 +299,21 @@ const CreateRequisitionPage = () => {
   };
 
   return (
-    <ContentLayout title='Requisición'>
-      <div className='space-y-6'>
-        <h1 className='text-5xl font-bold text-center'>Crear Nueva Requisición</h1>
-        <p className='text-muted-foreground text-center italic'>Ingrese la información para crear una requisición de uno o múltiples artículos.</p>
+    <ContentLayout title="Requisición">
+      <div className="space-y-6">
+        <h1 className="text-5xl font-bold text-center">
+          Crear Nueva Requisición
+        </h1>
+        <p className="text-muted-foreground text-center italic">
+          Ingrese la información para crear una requisición de uno o múltiples
+          artículos.
+        </p>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col space-y-3">
-            <div className='flex gap-2'>
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="flex flex-col space-y-3"
+          >
+            <div className="flex gap-2">
               <FormField
                 control={form.control}
                 name="requested_by"
@@ -257,17 +332,22 @@ const CreateRequisitionPage = () => {
                               !field.value && "text-muted-foreground"
                             )}
                           >
-                            {
-                              employeesLoading && <Loader2 className="size-4 animate-spin mr-2" />
-                            }
+                            {employeesLoading && (
+                              <Loader2 className="size-4 animate-spin mr-2" />
+                            )}
                             {field.value
                               ? employees?.find(
-                                (employee) => `${employee.first_name} ${employee.last_name}` === field.value
-                              )?.first_name + " " + employees?.find(
-                                (employee) => `${employee.first_name} ${employee.last_name}` === field.value
-                              )?.last_name
-                              : "Elige al solicitante..."
-                            }
+                                  (employee) =>
+                                    `${employee.first_name} ${employee.last_name}` ===
+                                    field.value
+                                )?.first_name +
+                                " " +
+                                employees?.find(
+                                  (employee) =>
+                                    `${employee.first_name} ${employee.last_name}` ===
+                                    field.value
+                                )?.last_name
+                              : "Elige al solicitante..."}
                             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                           </Button>
                         </FormControl>
@@ -276,20 +356,26 @@ const CreateRequisitionPage = () => {
                         <Command>
                           <CommandInput placeholder="Busque un empleado..." />
                           <CommandList>
-                            <CommandEmpty className="text-sm p-2 text-center">No se ha encontrado ningún empleado.</CommandEmpty>
+                            <CommandEmpty className="text-sm p-2 text-center">
+                              No se ha encontrado ningún empleado.
+                            </CommandEmpty>
                             <CommandGroup>
                               {employees?.map((employee) => (
                                 <CommandItem
                                   value={`${employee.first_name} ${employee.last_name}`}
                                   key={employee.id}
                                   onSelect={() => {
-                                    form.setValue("requested_by", `${employee.first_name} ${employee.last_name}`)
+                                    form.setValue(
+                                      "requested_by",
+                                      `${employee.first_name} ${employee.last_name}`
+                                    );
                                   }}
                                 >
                                   <Check
                                     className={cn(
                                       "mr-2 h-4 w-4",
-                                      `${employee.first_name} ${employee.last_name}` === field.value
+                                      `${employee.first_name} ${employee.last_name}` ===
+                                        field.value
                                         ? "opacity-100"
                                         : "opacity-0"
                                     )}
@@ -324,17 +410,20 @@ const CreateRequisitionPage = () => {
                               !field.value && "text-muted-foreground"
                             )}
                           >
-                            {
-                              isAircraftsLoading && <Loader2 className="size-4 animate-spin mr-2" />
-                            }
+                            {isAircraftsLoading && (
+                              <Loader2 className="size-4 animate-spin mr-2" />
+                            )}
                             {field.value
                               ? aircrafts?.find(
-                                (aircraft) => aircraft.id.toString() === field.value
-                              )?.acronym + " - " + aircrafts?.find(
-                                (aircraft) => aircraft.id.toString() === field.value
-                              )?.manufacturer.name
-                              : "Selec. la aeronave..."
-                            }
+                                  (aircraft) =>
+                                    aircraft.id.toString() === field.value
+                                )?.acronym +
+                                " - " +
+                                aircrafts?.find(
+                                  (aircraft) =>
+                                    aircraft.id.toString() === field.value
+                                )?.manufacturer.name
+                              : "Selec. la aeronave..."}
                             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                           </Button>
                         </FormControl>
@@ -343,14 +432,19 @@ const CreateRequisitionPage = () => {
                         <Command>
                           <CommandInput placeholder="Busque un empleado..." />
                           <CommandList>
-                            <CommandEmpty className="text-sm p-2 text-center">No se ha encontrado ninguna aeronave.</CommandEmpty>
+                            <CommandEmpty className="text-sm p-2 text-center">
+                              No se ha encontrado ninguna aeronave.
+                            </CommandEmpty>
                             <CommandGroup>
                               {aircrafts?.map((aircraft) => (
                                 <CommandItem
                                   value={aircraft.id.toString()}
                                   key={aircraft.id}
                                   onSelect={() => {
-                                    form.setValue("aircraft_id", aircraft.id.toString())
+                                    form.setValue(
+                                      "aircraft_id",
+                                      aircraft.id.toString()
+                                    );
                                   }}
                                 >
                                   <Check
@@ -361,7 +455,8 @@ const CreateRequisitionPage = () => {
                                         : "opacity-0"
                                     )}
                                   />
-                                  {aircraft.acronym} - {aircraft.manufacturer.name}
+                                  {aircraft.acronym} -{" "}
+                                  {aircraft.manufacturer.name}
                                 </CommandItem>
                               ))}
                             </CommandGroup>
@@ -388,7 +483,8 @@ const CreateRequisitionPage = () => {
                           role="combobox"
                           className={cn(
                             "w-[200px] justify-between",
-                            selectedBatches.length === 0 && "text-muted-foreground"
+                            selectedBatches.length === 0 &&
+                              "text-muted-foreground"
                           )}
                         >
                           {selectedBatches.length > 0
@@ -404,18 +500,28 @@ const CreateRequisitionPage = () => {
                         <CommandList>
                           <CommandEmpty>No existen renglones...</CommandEmpty>
                           <CommandGroup>
-                            <div className="flex justify-center m-2"><CreateBatchDialog /></div>
+                            <div className="flex justify-center m-2">
+                              <CreateBatchDialog />
+                            </div>
                             {data &&
                               data.map((batch) => (
                                 <CommandItem
                                   key={batch.name}
                                   value={batch.name}
-                                  onSelect={() => handleBatchSelect(batch.name, batch.id.toString(), batch.category)}
+                                  onSelect={() =>
+                                    handleBatchSelect(
+                                      batch.name,
+                                      batch.id.toString(),
+                                      batch.category
+                                    )
+                                  }
                                 >
                                   <Check
                                     className={cn(
                                       "mr-2 h-4 w-4",
-                                      selectedBatches.some((b) => b.batch === batch.id.toString())
+                                      selectedBatches.some(
+                                        (b) => b.batch === batch.id.toString()
+                                      )
                                         ? "opacity-100"
                                         : "opacity-0"
                                     )}
@@ -429,11 +535,21 @@ const CreateRequisitionPage = () => {
                     </PopoverContent>
                   </Popover>
                   <div className="mt-4 space-y-4">
-                    <ScrollArea className={cn("pr-4", selectedBatches.length > 2 ? "h-[300px]" : "")}>
+                    <ScrollArea
+                      className={cn(
+                        "pr-4",
+                        selectedBatches.length > 2 ? "h-[300px]" : ""
+                      )}
+                    >
                       {selectedBatches.map((batch) => (
-                        <div key={batch.batch} className="mb-6 p-4 bg-gray-50 rounded-lg border">
+                        <div
+                          key={batch.batch}
+                          className="mb-6 p-4 bg-gray-50 rounded-lg border"
+                        >
                           <div className="flex items-center justify-between mb-3">
-                            <h4 className="font-semibold text-lg text-gray-800">{batch.batch_name}</h4>
+                            <h4 className="font-semibold text-lg text-gray-800">
+                              {batch.batch_name}
+                            </h4>
                             <Button
                               variant="ghost"
                               type="button"
@@ -446,17 +562,32 @@ const CreateRequisitionPage = () => {
                             </Button>
                           </div>
 
-                          <ScrollArea className={cn("pr-3", batch.batch_articles.length > 2 ? "h-[550px]" : "")}>
+                          <ScrollArea
+                            className={cn(
+                              "pr-3",
+                              batch.batch_articles.length > 2 ? "h-[550px]" : ""
+                            )}
+                          >
                             <div className="space-y-4">
                               {batch.batch_articles.map((article, index) => (
-                                <div key={index} className="p-3 bg-white rounded-md border shadow-sm">
+                                <div
+                                  key={index}
+                                  className="p-3 bg-white rounded-md border shadow-sm"
+                                >
                                   <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3">
                                     <div>
                                       <Label>Número de parte</Label>
                                       <Input
                                         placeholder="Ej: 12345-678"
                                         value={article.part_number}
-                                        onChange={(e) => handleArticleChange(batch.batch, index, "part_number", e.target.value)}
+                                        onChange={(e) =>
+                                          handleArticleChange(
+                                            batch.batch,
+                                            index,
+                                            "part_number",
+                                            e.target.value
+                                          )
+                                        }
                                       />
                                     </div>
                                     <div>
@@ -464,7 +595,14 @@ const CreateRequisitionPage = () => {
                                       <Input
                                         placeholder="Ej: ALT-123"
                                         value={article.alt_part_number || ""}
-                                        onChange={(e) => handleArticleChange(batch.batch, index, "alt_part_number", e.target.value)}
+                                        onChange={(e) =>
+                                          handleArticleChange(
+                                            batch.batch,
+                                            index,
+                                            "alt_part_number",
+                                            e.target.value
+                                          )
+                                        }
                                       />
                                     </div>
                                     <div>
@@ -472,7 +610,14 @@ const CreateRequisitionPage = () => {
                                       <Input
                                         placeholder="Número de manual"
                                         value={article.manual}
-                                        onChange={(e) => handleArticleChange(batch.batch, index, "manual", e.target.value)}
+                                        onChange={(e) =>
+                                          handleArticleChange(
+                                            batch.batch,
+                                            index,
+                                            "manual",
+                                            e.target.value
+                                          )
+                                        }
                                       />
                                     </div>
                                     <div>
@@ -480,7 +625,14 @@ const CreateRequisitionPage = () => {
                                       <Input
                                         placeholder="Código interno"
                                         value={article.reference_cod}
-                                        onChange={(e) => handleArticleChange(batch.batch, index, "reference_cod", e.target.value)}
+                                        onChange={(e) =>
+                                          handleArticleChange(
+                                            batch.batch,
+                                            index,
+                                            "reference_cod",
+                                            e.target.value
+                                          )
+                                        }
                                       />
                                     </div>
                                   </div>
@@ -491,7 +643,14 @@ const CreateRequisitionPage = () => {
                                       <Input
                                         placeholder="PMA del artículo"
                                         value={article.pma || ""}
-                                        onChange={(e) => handleArticleChange(batch.batch, index, "pma", e.target.value)}
+                                        onChange={(e) =>
+                                          handleArticleChange(
+                                            batch.batch,
+                                            index,
+                                            "pma",
+                                            e.target.value
+                                          )
+                                        }
                                       />
                                     </div>
                                     <div>
@@ -499,14 +658,24 @@ const CreateRequisitionPage = () => {
                                       <Select
                                         disabled={secondaryUnitLoading}
                                         value={article.unit}
-                                        onValueChange={(value) => handleArticleChange(batch.batch, index, "unit", value)}
+                                        onValueChange={(value) =>
+                                          handleArticleChange(
+                                            batch.batch,
+                                            index,
+                                            "unit",
+                                            value
+                                          )
+                                        }
                                       >
                                         <SelectTrigger>
                                           <SelectValue placeholder="Seleccionar unidad" />
                                         </SelectTrigger>
                                         <SelectContent>
                                           {secondaryUnits?.map((secU) => (
-                                            <SelectItem key={secU.id} value={secU.id.toString()}>
+                                            <SelectItem
+                                              key={secU.id}
+                                              value={secU.id.toString()}
+                                            >
                                               {secU.secondary_unit}
                                             </SelectItem>
                                           ))}
@@ -520,7 +689,14 @@ const CreateRequisitionPage = () => {
                                         min="1"
                                         placeholder="Ej: 2"
                                         value={article.quantity}
-                                        onChange={(e) => handleArticleChange(batch.batch, index, "quantity", Number(e.target.value))}
+                                        onChange={(e) =>
+                                          handleArticleChange(
+                                            batch.batch,
+                                            index,
+                                            "quantity",
+                                            Number(e.target.value)
+                                          )
+                                        }
                                       />
                                     </div>
                                     <div>
@@ -529,14 +705,23 @@ const CreateRequisitionPage = () => {
                                         type="file"
                                         accept="image/*"
                                         className="cursor-pointer"
-                                        onChange={(e) => handleArticleChange(batch.batch, index, "image", e.target.files?.[0])}
+                                        onChange={(e) =>
+                                          handleArticleChange(
+                                            batch.batch,
+                                            index,
+                                            "image",
+                                            e.target.files?.[0]
+                                          )
+                                        }
                                       />
                                     </div>
-                                    <div className='flex w-full gap-4 xl:col-span-4 col-span-2'>
-                                      <div className='w-full'>
+                                    <div className="flex w-full gap-4 xl:col-span-4 col-span-2">
+                                      <div className="w-full">
                                         <Label>Certificados</Label>
                                         <CertificatesCombobox
-                                          selectedCertificates={article.certificates || []}
+                                          selectedCertificates={
+                                            article.certificates || []
+                                          }
                                           onCertificatesChange={(selected) =>
                                             handleArticleChange(
                                               batch.batch,
@@ -547,18 +732,26 @@ const CreateRequisitionPage = () => {
                                           }
                                         />
                                       </div>
-                                      <div className='w-full'>
+                                      <div className="w-full">
                                         <Label>Justificación</Label>
                                         <Textarea
                                           value={article.justification}
-                                          onChange={(e) => handleArticleChange(batch.batch, index, "justification", e.target.value)}
+                                          onChange={(e) =>
+                                            handleArticleChange(
+                                              batch.batch,
+                                              index,
+                                              "justification",
+                                              e.target.value
+                                            )
+                                          }
                                           placeholder="Justificación para este artículo"
                                         />
                                       </div>
                                     </div>
                                   </div>
 
-                                  {form.formState.errors.articles?.[index]?.batch_articles?.[index]?.unit && (
+                                  {form.formState.errors.articles?.[index]
+                                    ?.batch_articles?.[index]?.unit && (
                                     <p className="text-red-500 text-xs mt-2">
                                       La unidad es obligatoria para consumibles.
                                     </p>
@@ -569,7 +762,12 @@ const CreateRequisitionPage = () => {
                                       variant="ghost"
                                       type="button"
                                       size="sm"
-                                      onClick={() => removeArticleFromBatch(batch.batch, index)}
+                                      onClick={() =>
+                                        removeArticleFromBatch(
+                                          batch.batch,
+                                          index
+                                        )
+                                      }
                                       className="text-red-500 hover:text-red-600"
                                     >
                                       <MinusCircle className="size-4 mr-1" />
@@ -648,13 +846,15 @@ const CreateRequisitionPage = () => {
             <Button disabled={createRequisition.isPending}>
               {createRequisition.isPending ? (
                 <Loader2 className="ml-2 h-4 w-4 animate-spin" />
-              ) : "Crear Requisición"}
+              ) : (
+                "Crear Requisición"
+              )}
             </Button>
           </form>
         </Form>
       </div>
     </ContentLayout>
-  )
-}
+  );
+};
 
-export default CreateRequisitionPage
+export default CreateRequisitionPage;

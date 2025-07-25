@@ -1,16 +1,16 @@
-import axios from '@/lib/axios';
-import { Convertion } from '@/types';
-import { useQuery } from '@tanstack/react-query';
+import axios from "@/lib/axios";
+import { Convertion } from "@/types";
+import { useQuery } from "@tanstack/react-query";
 
-
-const fetchSecondaryUnits = async (): Promise<Convertion[]> => {
-  const {data} = await axios.get(`/hangar74/convertion`);
+const fetchSecondaryUnits = async (company?: string): Promise<Convertion[]> => {
+  const { data } = await axios.get(`/${company}/convertion`);
   return data;
 };
 
-export const useGetSecondaryUnits = () => {
+export const useGetSecondaryUnits = (company?: string) => {
   return useQuery<Convertion[]>({
     queryKey: ["secondary-units"],
-    queryFn: fetchSecondaryUnits,
+    queryFn: () => fetchSecondaryUnits(company),
+    enabled: !!company,
   });
 };

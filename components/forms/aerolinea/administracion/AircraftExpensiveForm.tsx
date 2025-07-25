@@ -132,7 +132,7 @@ export function AircraftExpensiveForm({ acronym, onClose }: FormProps) {
       ],
     },
   });
-  const {selectedCompany} = useCompanyStore();
+  const { selectedCompany } = useCompanyStore();
   const { createCashMovementForAircraft } = useCashMovementForAircraft();
   const {
     data: employees,
@@ -141,9 +141,11 @@ export function AircraftExpensiveForm({ acronym, onClose }: FormProps) {
   } = useGetEmployeesByCompany(selectedCompany?.slug);
   const { data: cashes, isLoading: isCashesLoading } = useGetCash();
   const { data: bankaccounts, isLoading: isBankAccLoading } =
-    useGetBankAccounts();
+    useGetBankAccounts(selectedCompany?.slug);
   const { data: accounts, isLoading: isAccountLoading } = useGetAccountant();
-  const { data: vendors, isLoading: isVendorLoading } = useGetVendors(selectedCompany?.slug);
+  const { data: vendors, isLoading: isVendorLoading } = useGetVendors(
+    selectedCompany?.slug
+  );
 
   // Get accountant_id from form values to fetch categories
   const accountantId = form.watch(
@@ -160,7 +162,6 @@ export function AircraftExpensiveForm({ acronym, onClose }: FormProps) {
     control: form.control,
     name: "movements",
   });
-
 
   async function onSubmit(formData: z.infer<typeof formSchema>) {
     interface AircraftExpenseFormData {

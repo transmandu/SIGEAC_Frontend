@@ -1,5 +1,5 @@
 import axiosInstance from "@/lib/axios";
-import { pieChartData, ReportsByArea } from "@/types";
+import { pieChartData } from "@/types";
 import { useQuery } from "@tanstack/react-query";
 
 const fetcVoluntaryReportsCountedByAirportLocation = async (
@@ -20,7 +20,7 @@ export const useGetVoluntaryReportsCountedByAirportLocation = (
 ) => {
   return useQuery<pieChartData[]>({
     queryKey: [
-      "voluntary-reports/counted-by-airport-location?from=${from}&to=${to}",
+      "voluntary-reports-counted-by-airport-location",
     ], // Incluye el ID en la clave de la query
     queryFn: () =>
       fetcVoluntaryReportsCountedByAirportLocation(company, from, to), // Pasa el ID a la función fetchUser
