@@ -3,11 +3,14 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 interface JobTitleFormSchema {
-  name: string;
-  description: string;
-  department: {
-    id: number;
-  };
+  company: string;
+  data: { name: string; description: string };
+}
+
+interface UpdateJobTitleFormSchema {
+  company: string;
+  id: string;
+  data: { name: string; description: string };
 }
 
 // Crear un cargo
@@ -15,8 +18,8 @@ export const useCreateJobTitle = () => {
   const queryClient = useQueryClient();
 
   const createMutation = useMutation({
-    mutationFn: async (data: JobTitleFormSchema) =>
-      await axiosInstance.post("/job_titles", data),
+    mutationFn: async ({ company, data }: JobTitleFormSchema) =>
+      await axiosInstance.post(`/${company}/job_titles`, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["job_titles"] });
       toast.success("¡Creado!", {
@@ -38,8 +41,8 @@ export const useUpdateJobTitle = () => {
   const queryClient = useQueryClient();
 
   const updateMutation = useMutation({
-    mutationFn: async (data: JobTitleFormSchema & { id: number }) =>
-      await axiosInstance.put(`/job_titles/${data.id}`, data),
+    mutationFn: async ({ company, id, data }: UpdateJobTitleFormSchema) =>
+      await axiosInstance.put(`/${company}/job_titles/${id}`, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["job_titles"] });
       toast.success("¡Actualizado!", {
