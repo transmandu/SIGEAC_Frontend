@@ -3,7 +3,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 interface CourseData {
-  company: string | null;
+  company: string;
   course: {
     name: string;
     description: string;
@@ -17,7 +17,7 @@ interface CourseData {
 }
 
 interface updateCourseData {
-  company: string | null;
+  company: string;
   id: string;
   data: {
     name: string;
@@ -34,17 +34,13 @@ interface updateCourseData {
 export const useCreateCourse = () => {
   const queryClient = useQueryClient();
   const createMutation = useMutation({
-    mutationFn: async (data: CourseData) => {
-      console.log("data from create course", data.course);
-      await axiosInstance.post(
-        `/general/${data.company}/create-course`,
-        data.course,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        }
-      );
+    mutationFn: async ({ company, course }: CourseData) => {
+      console.log("data from create course", course);
+      await axiosInstance.post(`/general/${company}/create-course`, course, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["department-courses"] });
@@ -103,7 +99,7 @@ export const useFinishCourse = () => {
       company,
       id,
     }: {
-      company: string | null;
+      company: string;
       id: string;
     }) => {
       await axiosInstance.patch(`/general/${company}/finish-course/${id}`);

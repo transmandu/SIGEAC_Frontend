@@ -24,6 +24,7 @@ import {
   useCreatePilot,
   useUpdatePilot,
 } from "@/actions/ajustes/globales/piloto/actions";
+import { useCompanyStore } from "@/stores/CompanyStore";
 
 const FormSchema = z.object({
   employee_dni: z.string(),
@@ -44,6 +45,7 @@ export function CreatePilotForm({
   initialData,
   isEditing,
 }: FormProps) {
+  const { selectedCompany } = useCompanyStore();
   const { createPilot } = useCreatePilot();
   const { updatePilot } = useUpdatePilot();
 
@@ -58,13 +60,16 @@ export function CreatePilotForm({
   const onSubmit = async (data: FormSchemaType) => {
     if (isEditing && initialData) {
       const formattedData = {
-        ...data,
+        company: selectedCompany!.slug,
         id: initialData.id.toString(),
+        data: { ...data },
       };
-      console.log("formattedData is the next one ", formattedData);
       await updatePilot.mutateAsync(formattedData);
     } else {
-      await createPilot.mutateAsync(data);
+      await createPilot.mutateAsync({
+        company: selectedCompany!.slug,
+        data: data,
+      });
     }
 
     onClose();

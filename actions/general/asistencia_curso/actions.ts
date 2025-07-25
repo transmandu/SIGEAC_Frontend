@@ -9,7 +9,7 @@ interface EmployeeSelected {
 }
 
 interface CourseAttendaceData {
-  company: string | null;
+  company: string;
   course_id: string;
   employees_list: {
     addedEmployees: EmployeeSelected[];
@@ -53,11 +53,14 @@ export const useCreateCourseAttendance = () => {
 export const useMarkAttendance = () => {
   const queryClient = useQueryClient();
   const markAttendanceMutation = useMutation({
-    mutationFn: async (data: CourseAttendaceData) => {
-      console.log("THIS IS DATA FROM MARK ATTENDANCE", data);
+    mutationFn: async ({
+      company,
+      course_id,
+      employees_list,
+    }: CourseAttendaceData) => {
       await axiosInstance.patch(
-        `/general/${data.company}/mark-attendance/${data.course_id}`,
-        data.employees_list
+        `/general/${company}/mark-attendance/${course_id}`,
+        employees_list
       );
     },
     onSuccess: () => {

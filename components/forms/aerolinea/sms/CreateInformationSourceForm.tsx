@@ -7,7 +7,7 @@ import {
   FormField,
   FormItem,
   FormLabel,
-  FormMessage
+  FormMessage,
 } from "@/components/ui/form";
 
 import { Input } from "@/components/ui/input";
@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Loader2 } from "lucide-react";
+import { useCompanyStore } from "@/stores/CompanyStore";
 
 const FormSchema = z.object({
   type: z.string(),
@@ -39,14 +40,17 @@ interface FormProps {
 
 export function CreateInformationSourceForm({ onClose }: FormProps) {
   const { createInformationSource } = useCreateInformationSource();
-
+  const { selectedCompany } = useCompanyStore();
   const form = useForm<FormSchemaType>({
     resolver: zodResolver(FormSchema),
     defaultValues: {},
   });
 
   const onSubmit = async (data: FormSchemaType) => {
-    await createInformationSource.mutateAsync(data);
+    await createInformationSource.mutateAsync({
+      company: selectedCompany!.slug,
+      data: data,
+    });
     onClose();
   };
 
@@ -67,7 +71,7 @@ export function CreateInformationSourceForm({ onClose }: FormProps) {
               <FormItem>
                 <FormLabel>Nombre de la Fuente</FormLabel>
                 <FormControl>
-                  <Input placeholder="" {...field} maxLength={20}/>
+                  <Input placeholder="" {...field} maxLength={20} />
                 </FormControl>
                 <FormMessage className="text-xs" />
               </FormItem>

@@ -25,6 +25,7 @@ import {
   SelectValue,
 } from "../../../ui/select";
 import { Separator } from "../../../ui/separator";
+import { useCompanyStore } from "@/stores/CompanyStore";
 
 const FormSchema = z.object({
   name: z.string(),
@@ -40,6 +41,7 @@ interface FormProps {
 
 export function EditInformationSourceForm({ onClose, initialData }: FormProps) {
   const { updateInformationSource } = useUpdateInformationSource();
+  const { selectedCompany } = useCompanyStore();
   const form = useForm<FormSchemaType>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
@@ -50,8 +52,9 @@ export function EditInformationSourceForm({ onClose, initialData }: FormProps) {
 
   const onSubmit = async (data: FormSchemaType) => {
     const formattedData = {
-      ...data,
+      company: selectedCompany!.slug,
       id: initialData.id.toString(),
+      data: { ...data },
     };
     await updateInformationSource.mutateAsync(formattedData);
     onClose();
