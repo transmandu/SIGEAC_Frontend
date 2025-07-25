@@ -1,4 +1,4 @@
-'use client';
+"use client";
 import { useCreateCard } from "@/actions/general/banco_cuentas/tarjetas/actions";
 import {
   Form,
@@ -24,7 +24,7 @@ import { z } from "zod";
 import { Button } from "../../ui/button";
 import { useGetBankAccounts } from "@/hooks/general/cuentas_bancarias/useGetBankAccounts";
 import { generateSlug } from "@/lib/utils";
-
+import { useCompanyStore } from "@/stores/CompanyStore";
 
 const formSchema = z.object({
   name: z.string().min(3, {
@@ -37,17 +37,19 @@ const formSchema = z.object({
     message: "El tipo debe ser valido.",
   }),
   bank_account_id: z.string({
-    message: "Debe elegir una cuenta."
+    message: "Debe elegir una cuenta.",
   }),
-})
-
+});
 
 interface FormProps {
-  onClose: () => void,
+  onClose: () => void;
 }
 
 export default function CreateCardForm({ onClose }: FormProps) {
-  const { data: accounts, isLoading: isAccLoading } = useGetBankAccounts()
+  const { selectedCompany } = useCompanyStore();
+  const { data: accounts, isLoading: isAccLoading } = useGetBankAccounts(
+    selectedCompany!.slug
+  );
   const { createCard } = useCreateCard();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -55,15 +57,15 @@ export default function CreateCardForm({ onClose }: FormProps) {
       name: "",
       type: "",
     },
-  })
+  });
   const { control } = form;
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     await createCard.mutateAsync({
       ...values,
-      slug: generateSlug(values.name)
+      slug: generateSlug(values.name),
     });
-    onClose()
-  }
+    onClose();
+  };
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)}>
@@ -104,18 +106,31 @@ export default function CreateCardForm({ onClose }: FormProps) {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Cuenta</FormLabel>
-                <Select disabled={isAccLoading} onValueChange={field.onChange} defaultValue={field.value}>
+                <Select
+                  disabled={isAccLoading}
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                >
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder={isAccLoading ? <Loader2 className="animate-spin" /> : "Seleccione un tipo..."} />
+                      <SelectValue
+                        placeholder={
+                          isAccLoading ? (
+                            <Loader2 className="animate-spin" />
+                          ) : (
+                            "Seleccione un tipo..."
+                          )
+                        }
+                      />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {
-                      accounts && accounts.map((acc) => (
-                        <SelectItem value={acc.id.toString()} key={acc.id}>{acc.name} - {acc.bank.name}</SelectItem>
-                      ))
-                    }
+                    {accounts &&
+                      accounts.map((acc) => (
+                        <SelectItem value={acc.id.toString()} key={acc.id}>
+                          {acc.name} - {acc.bank.name}
+                        </SelectItem>
+                      ))}
                   </SelectContent>
                 </Select>
                 <FormDescription>
@@ -131,7 +146,10 @@ export default function CreateCardForm({ onClose }: FormProps) {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Tipo de Tarjeta</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                >
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Seleccione un tipo..." />
@@ -149,12 +167,19 @@ export default function CreateCardForm({ onClose }: FormProps) {
               </FormItem>
             )}
           />
-
         </div>
-        <Button className="bg-primary mt-2 text-white hover:bg-blue-900 disabled:bg-primary/70" disabled={createCard?.isPending} type="submit">
-          {createCard?.isPending ? <Loader2 className="size-4 animate-spin" /> : <p>Registrar</p>}
+        <Button
+          className="bg-primary mt-2 text-white hover:bg-blue-900 disabled:bg-primary/70"
+          disabled={createCard?.isPending}
+          type="submit"
+        >
+          {createCard?.isPending ? (
+            <Loader2 className="size-4 animate-spin" />
+          ) : (
+            <p>Registrar</p>
+          )}
         </Button>
       </form>
     </Form>
-  )
+  );
 }

@@ -2,17 +2,16 @@ import axios from "@/lib/axios";
 import { Module } from "@/types";
 import { useQuery } from "@tanstack/react-query";
 
-const fetchModules = async (company?: string): Promise<Module[]> => {
-  const response = await axios.get(`/${company}/modules`);
+const fetchModules = async (): Promise<Module[]> => {
+  const response = await axios.get(`/modules`);
   const permissions = response.data;
   return permissions;
 };
 
-export const useGetModules = (company?: string) => {
+export const useGetModules = () => {
   return useQuery<Module[]>({
     queryKey: ["modules"],
-    queryFn: () => fetchModules(company),
+    queryFn: fetchModules,
     staleTime: 1000 * 60 * 5, // 5 minutos
-    enabled: !!company,
   });
 };

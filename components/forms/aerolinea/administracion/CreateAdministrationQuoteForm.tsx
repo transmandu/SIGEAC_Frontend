@@ -136,7 +136,7 @@ export function CreateAdministrationQuoteForm({
         amount: article.amount,
         serial: article.serial || "",
       })),
-      company: selectedCompany!.split(" ").join("").toLowerCase(),
+      company: selectedCompany!.slug,
       created_by: user?.id.toString() || "",
       quote_date: data.quote_date,
     };
