@@ -34,23 +34,24 @@ interface DateParams {
   to?: string
 }
 
-const fetchCashMovementByAccount = async (cashId: string, params: DateParams = {}): Promise<AccountMovement[]> => {
+const fetchCashMovementByAccount = async (cashId: string, params: DateParams = {}, company?: string): Promise<AccountMovement[]> => {
   //parámetros de consulta para la URL
   const queryParams = new URLSearchParams()
   if (params.from) queryParams.append("from", params.from)
   if (params.to) queryParams.append("to", params.to)
 
   // Construir la URL con los parámetros
-  const url = `/transmandu/movements-by-accounts/${cashId}?${queryParams.toString()}`
+  const url = `/${company}/movements-by-accounts/${cashId}?${queryParams.toString()}`
 
   const { data } = await axiosInstance.get(url)
   return data
 }
 
-export const useGetCashMovementByAccount = (cashId: string, dateParams: DateParams = {}) => {
+export const useGetCashMovementByAccount = (cashId: string, dateParams: DateParams = {}, company?: string) => {
   return useQuery<AccountMovement[]>({
-    queryKey: ["movements-by-accounts", cashId, dateParams.from, dateParams.to],
-    queryFn: () => fetchCashMovementByAccount(cashId, dateParams),
+    queryKey: ["movements-by-accounts", cashId, dateParams.from, dateParams.to, company],
+    queryFn: () => fetchCashMovementByAccount(cashId, dateParams, company),
     staleTime: 1000 * 60 * 5, // 5 minutos
+    enabled: !!cashId && !!company, // Solo ejecuta la consulta si hay un ID y una compañía
   })
 }

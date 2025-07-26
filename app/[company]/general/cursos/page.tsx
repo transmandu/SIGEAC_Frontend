@@ -15,7 +15,7 @@ const CoursePage = () => {
     data: courses,
     isLoading,
     isError,
-  } = useGetCoursesByDeparment({company: selectedCompany?.slug, department: "SMS"});
+  } = useGetCoursesByDeparment(selectedCompany?.slug);
 
   return (
     <ContentLayout title="Cursos">

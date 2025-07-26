@@ -4,13 +4,14 @@ import { Button } from "@/components/ui/button"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { useAuth } from "@/contexts/AuthContext"
-import { useGetDepartamentEmployees } from "@/hooks/administracion/useGetDepartamentEmployees"
 import { useGetSecondaryUnits } from "@/hooks/general/unidades/useGetSecondaryUnits"
 import { useGetBatchesByLocationId } from "@/hooks/mantenimiento/almacen/renglones/useGetBatchesByLocationId"
+import { useGetUserDepartamentEmployees } from "@/hooks/sistema/empleados/useGetUserDepartamentEmployees"
 import { cn } from "@/lib/utils"
 import { useCompanyStore } from "@/stores/CompanyStore"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Check, ChevronsUpDown, Loader2, MinusCircle } from "lucide-react"
+import Image from "next/image"
 import { useEffect, useState } from "react"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
@@ -21,7 +22,6 @@ import { ScrollArea } from "../../../ui/scroll-area"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../../ui/select"
 import { Separator } from "../../../ui/separator"
 import { Textarea } from "../../../ui/textarea"
-import Image from "next/image"
 
 const FormSchema = z.object({
   justification: z.string({ message: "La justificación debe ser válida." }).min(2, { message: "La justificación debe ser válida." }),
@@ -96,10 +96,9 @@ export function CreateGeneralRequisitionForm({ onClose, initialData, isEditing, 
 
   const { selectedCompany, selectedStation } = useCompanyStore()
 
-  const { mutate: employeesMutation, data: employees, isPending: employeesLoading } = useGetDepartamentEmployees();
+  const { data: employees, isPending: employeesLoading } = useGetUserDepartamentEmployees(selectedCompany?.slug);
 
   const { data: secondaryUnits, isLoading: secondaryUnitLoading } = useGetSecondaryUnits()
-
 
   const { createRequisition } = useCreateRequisition()
 
@@ -117,21 +116,20 @@ export function CreateGeneralRequisitionForm({ onClose, initialData, isEditing, 
   useEffect(() => {
     if (user && selectedCompany && selectedStation) {
       form.setValue("created_by", user.id.toString())
-      form.setValue("company", selectedCompany.split(" ").join(""))
+      form.setValue("company", selectedCompany.slug)
       form.setValue("location_id", selectedStation)
     }
     if (initialData && selectedCompany) {
       form.reset(initialData); // Set initial form values
-      form.setValue("company", selectedCompany.split(" ").join(""))
+      form.setValue("company", selectedCompany.slug)
     }
   }, [user, initialData, form, selectedCompany, selectedStation])
 
   useEffect(() => {
     if (selectedStation) {
       mutate(Number(selectedStation))
-      employeesMutation(Number(selectedStation))
     }
-  }, [selectedStation, mutate, employeesMutation])
+  }, [selectedStation, mutate])
 
   useEffect(() => {
     form.setValue("articles", selectedBatches)

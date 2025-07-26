@@ -3,19 +3,19 @@ import { Course } from "@/types";
 import { useQuery } from "@tanstack/react-query";
 
 const fetchCoursesByDepartment = async (
-  { company, department }: { company?: string, department?: string }
+  company?: string
 ): Promise<Course[]> => {
   const { data } = await axiosInstance.get(
-    `/${company}/courses-by-department/${department}`
+    `/${company}/courses-by-department`
   );
   return data;
 };
 
-export const useGetCoursesByDeparment = ({ company, department }: { company?: string, department?: string }) => {
+export const useGetCoursesByDeparment = (company?: string) => {
   return useQuery<Course[]>({
     queryKey: ["department-courses"],
-    queryFn: () => fetchCoursesByDepartment({company, department}),
+    queryFn: () => fetchCoursesByDepartment(company),
     staleTime: 1000 * 60 * 5, // 5 minutos
-    enabled: !!company && !!department,
+    enabled: !!company,
   });
 };

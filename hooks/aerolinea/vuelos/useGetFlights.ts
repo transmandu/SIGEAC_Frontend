@@ -5,14 +5,14 @@ import { AdministrationFlight } from '@/types';
 import { useQuery } from '@tanstack/react-query';
 import { useSearchParams } from 'next/navigation';
 
-export const useGetAdministrationFlights = () => {
+export const useGetAdministrationFlights = (company?: string) => {
   const searchParams = useSearchParams();
   const from = searchParams.get("from");
   const to = searchParams.get("to");
   return useQuery<AdministrationFlight[], Error>({
     queryKey: ['credit-flight-payment', from, to],
     queryFn: async () => {
-      const  {data}  = await axiosInstance.get('/transmandu/flights', {
+      const  {data}  = await axiosInstance.get(`/${company}/flights`, {
       params: {
         from,
         to,
