@@ -12,16 +12,21 @@ interface IArticlesInTransit {
   image?: File | string,
 }
 
-
-const fetchInTransitArticles = async (location_id: string | null): Promise<IArticlesInTransit[]> => {
-  const {data} = await axios.get(`/hangar74/articles-in-transit/${location_id}`);
+const fetchInTransitArticles = async (
+  location_id: string | null,
+  company?: string
+): Promise<IArticlesInTransit[]> => {
+  const { data } = await axios.get(`/${company}/articles-in-transit/${location_id}`);
   return data;
 };
 
-export const useGetInTransitArticles = (location_id: string | null) => {
+export const useGetInTransitArticles = (
+  location_id: string | null,
+  company?: string
+) => {
   return useQuery<IArticlesInTransit[], Error>({
-    queryKey: ["in-transit-articles"],
-    queryFn: () => fetchInTransitArticles(location_id),
-    enabled: !!location_id
+    queryKey: ["in-transit-articles", company, location_id],
+    queryFn: () => fetchInTransitArticles(location_id, company!),
+    enabled: !!location_id && !!company
   });
 };

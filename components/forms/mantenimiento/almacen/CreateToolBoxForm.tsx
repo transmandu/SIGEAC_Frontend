@@ -56,7 +56,7 @@ export function CreateToolBoxForm({ onClose, initialData }: FormProps) {
 
   const [filteredBatches, setFilteredBatches] = useState<BatchesWithCountProp[]>([]);
 
-  const { selectedStation } = useCompanyStore()
+  const { selectedStation, selectedCompany } = useCompanyStore()
 
   const { createToolBox } = useCreateToolBox()
 
@@ -86,7 +86,7 @@ export function CreateToolBoxForm({ onClose, initialData }: FormProps) {
 
   useEffect(() => {
     if (selectedStation) {
-      mutate(Number(selectedStation))
+      mutate({location_id: Number(selectedStation), company: selectedCompany!.slug})
     }
   }, [selectedStation, mutate])
 
@@ -108,7 +108,7 @@ export function CreateToolBoxForm({ onClose, initialData }: FormProps) {
       created_by: `${user?.first_name} ${user?.last_name}`,
       delivered_by: `${user?.first_name} ${user?.last_name}`,
     }
-    await createToolBox.mutateAsync(formattedData)
+    await createToolBox.mutateAsync({data: formattedData, company: selectedCompany!.slug})
     onClose();
   }
 

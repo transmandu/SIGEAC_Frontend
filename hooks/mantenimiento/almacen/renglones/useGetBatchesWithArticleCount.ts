@@ -12,7 +12,7 @@ const fetchBatchesWithArticlesCount = async ({company, location_id}: {company?: 
 
 export const useGetBatchesWithArticlesCount = ({company, location_id}: {company?: string, location_id: string | null}) => {
   return useQuery<BatchesWithCountProp[], Error>({
-    queryKey: ["batches"],
+    queryKey: ["batches", "company"],
     queryFn: () => fetchBatchesWithArticlesCount({company, location_id}),
     enabled: !!location_id && !!company
   });

@@ -9,13 +9,15 @@ import { Loader2, MoreHorizontal, Trash2 } from "lucide-react"
 import { useState } from "react"
 import { Button } from "../../../ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "../../../ui/dialog"
+import { useCompanyStore } from "@/stores/CompanyStore"
 
 const BatchDropdownActions = ({ id }: { id: string | number }) => {
 
   const [open, setOpen] = useState<boolean>(false)
+  const { selectedCompany } = useCompanyStore()
   const { deleteBatch } = useDeleteBatch()
   const handleDelete = async (id: number | string) => {
-    await deleteBatch.mutateAsync(id);
+    await deleteBatch.mutateAsync({id, company: selectedCompany!.slug});
     setOpen(false);
   }
   return (

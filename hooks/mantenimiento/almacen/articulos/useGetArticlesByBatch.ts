@@ -64,14 +64,14 @@ export interface IArticleByBatch {
   }[]
 }
 
-const fetchArticlesByBatch = async (location_id: number, slug: string): Promise<IArticleByBatch> => {
-  const {data} = await axios.post(`/hangar74/batches/${slug}`, {location_id});
+const fetchArticlesByBatch = async (location_id: number, slug: string, company?: string): Promise<IArticleByBatch> => {
+  const {data} = await axios.post(`/${company}/batches/${slug}`, {location_id});
   return data[0];
 };
 
-export const useGetArticlesByBatch = (location_id: number, slug: string) => {
+export const useGetArticlesByBatch = (location_id: number, slug: string, company?: string) => {
   return useMutation<IArticleByBatch, Error, number>({
-    mutationKey: ["articles"],
-    mutationFn: () => fetchArticlesByBatch(location_id, slug),
+    mutationKey: ["articles", company],
+    mutationFn: () => fetchArticlesByBatch(location_id, slug, company),
   });
 };

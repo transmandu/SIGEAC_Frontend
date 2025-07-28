@@ -21,8 +21,8 @@ export const useCreateBatch = () => {
     const queryClient = useQueryClient()
 
     const createMutation = useMutation({
-        mutationFn: async (data: BatchType) => {
-            await axiosInstance.post('/hangar74/batches', data)
+        mutationFn: async ({data, company}: {data: BatchType, company: string}) => {
+            await axiosInstance.post(`/${company}/batches`, data)
           },
         onSuccess: () => {
             queryClient.invalidateQueries({queryKey: ['batches']})

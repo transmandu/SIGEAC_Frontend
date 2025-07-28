@@ -73,7 +73,7 @@ export function ComponentDispatchForm({ onClose }: FormProps) {
 
   const { createDispatchRequest } = useCreateDispatchRequest();
 
-  const { selectedStation } = useCompanyStore();
+  const { selectedStation, selectedCompany } = useCompanyStore();
 
   const { mutate, data: batches, isPending: isBatchesLoading, isError } = useGetBatchesWithInWarehouseArticles();
 
@@ -83,7 +83,7 @@ export function ComponentDispatchForm({ onClose }: FormProps) {
 
   useEffect(() => {
     if (selectedStation) {
-      mutate(Number(selectedStation))
+      mutate({location_id: Number(selectedStation), company: selectedCompany!.slug})
     }
   }, [selectedStation, mutate])
 
@@ -116,8 +116,11 @@ export function ComponentDispatchForm({ onClose }: FormProps) {
       category: "componente",
     }
     await createDispatchRequest.mutateAsync({
-      ...formattedData,
-      user_id: user!.id
+      data: {
+        ...formattedData,
+        user_id: Number(user!.id)
+      },
+      company: selectedCompany!.slug
     });
     onClose();
   }

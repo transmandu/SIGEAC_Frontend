@@ -16,6 +16,7 @@ import { z } from "zod";
 import { Button } from "../../../ui/button";
 import { Textarea } from "../../../ui/textarea";
 import { useAddPrelimItem } from "@/actions/mantenimiento/planificacion/ordenes_trabajo/inspecccion_preliminar/actions";
+import { useCompanyStore } from "@/stores/CompanyStore";
 
 
 const formSchema = z.object({
@@ -38,6 +39,7 @@ interface FormProps {
 
 export default function AddInspectionItemForm({ onClose, id }: FormProps) {
   const { updateAddInspectionItem } = useAddPrelimItem();
+  const { selectedCompany } = useCompanyStore();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -52,7 +54,7 @@ export default function AddInspectionItemForm({ onClose, id }: FormProps) {
       ...values,
       id,
     }
-    await updateAddInspectionItem.mutateAsync(formattedValues)
+    await updateAddInspectionItem.mutateAsync({data: formattedValues, company: selectedCompany!.slug})
     onClose()
   }
   return (

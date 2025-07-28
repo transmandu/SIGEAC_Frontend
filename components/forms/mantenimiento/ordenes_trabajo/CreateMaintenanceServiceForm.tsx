@@ -131,7 +131,7 @@ export function CreateMaintenanceServiceForm({ onClose }: CreateMaintenanceServi
 
   useEffect(() => {
     if (selectedStation) {
-      mutate(Number(selectedStation))
+      mutate({location_id: Number(selectedStation)})
     }
   }, [selectedStation, mutate])
 
@@ -168,7 +168,7 @@ export function CreateMaintenanceServiceForm({ onClose }: CreateMaintenanceServi
       tasks: tasksData.tasks, // Datos de las tareas
     };
     try {
-      await createService.mutateAsync(payload);
+      await createService.mutateAsync({data: payload, company: selectedCompany!.slug});
     } catch (error) {
       console.log(error)
     } finally {

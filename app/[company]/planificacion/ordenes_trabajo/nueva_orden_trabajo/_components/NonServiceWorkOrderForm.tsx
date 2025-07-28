@@ -63,7 +63,7 @@ interface TaskInProgress {
 const NonServiceWorkOrderForm = () => {
   const [selectedAircraft, setSelectedAircraft] = useState<string | null>(null);
   const [tasks, setTasks] = useState<TaskInProgress[]>([]);
-  const { selectedStation } = useCompanyStore();
+  const { selectedStation, selectedCompany } = useCompanyStore();
   const { createWorkOrder } = useCreateWorkOrder()
   const { data: aircrafts, isLoading: isAircraftsLoading, isError: isAircraftsError } = useGetMaintenanceAircrafts();
   const router = useRouter();
@@ -147,9 +147,9 @@ const NonServiceWorkOrderForm = () => {
       ...data,
       date: format(data.date, "yyyy-MM-dd")
     };
-    await createWorkOrder.mutateAsync(formattedData);
+    await createWorkOrder.mutateAsync({data: formattedData, company: selectedCompany!.slug});
     form.reset();
-    router.push('/hangar74/planificacion/ordenes_trabajo');
+    router.push(`/${selectedCompany!.slug}/planificacion/ordenes_trabajo`);
   };
 
   return (

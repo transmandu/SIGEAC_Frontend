@@ -12,12 +12,14 @@ import { useState } from "react"
 import { Button } from "../../../ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "../../../ui/dialog"
 import { useRouter } from "next/navigation"
+import { useCompanyStore } from "@/stores/CompanyStore"
 
 const InReceptionDropdownActions = ({ id }: { id: number }) => {
 
   const [open, setOpen] = useState<boolean>(false)
 
   const router = useRouter()
+  const { selectedCompany } = useCompanyStore()
 
   const { updateArticleStatus } = useUpdateArticleStatus()
 
@@ -25,6 +27,7 @@ const InReceptionDropdownActions = ({ id }: { id: number }) => {
     await updateArticleStatus.mutateAsync({
       id,
       status,
+      company: selectedCompany!.slug,
     });
     setOpen(false);
   }
@@ -38,7 +41,7 @@ const InReceptionDropdownActions = ({ id }: { id: number }) => {
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="center" className="flex gap-2 justify-center">
-          <DropdownMenuItem onClick={() => router.push(`/hangar74/almacen/ingreso/confirmar_ingreso/${id}`)} className="cursor-pointer">
+          <DropdownMenuItem onClick={() => router.push(`/${selectedCompany?.slug}/almacen/ingreso/confirmar_ingreso/${id}`)} className="cursor-pointer">
             <ClipboardCheck className="size-5" />
           </DropdownMenuItem>
           <DialogTrigger asChild>

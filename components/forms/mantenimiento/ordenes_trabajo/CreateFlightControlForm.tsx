@@ -22,6 +22,7 @@ import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { Calendar } from "../../../ui/calendar";
 import { useCreateFlightControl } from "@/actions/mantenimiento/planificacion/vuelos/actions";
+import { useCompanyStore } from "@/stores/CompanyStore";
 
 
 const formSchema = z.object({
@@ -42,6 +43,7 @@ interface FormProps {
 
 export default function CreateFlightControlForm({ onClose }: FormProps) {
   const { createFlightControl } = useCreateFlightControl()
+  const { selectedCompany } = useCompanyStore()
   const { data: aircrafts, isLoading: isAircraftsLoading, isError: isAircraftsError } = useGetMaintenanceAircrafts()
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -56,7 +58,7 @@ export default function CreateFlightControlForm({ onClose }: FormProps) {
   })
   const { control } = form;
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    await createFlightControl.mutateAsync(values)
+    await createFlightControl.mutateAsync({data: values, company: selectedCompany!.slug})
     onClose()
   }
   return (

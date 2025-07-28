@@ -11,17 +11,20 @@ import { ClipboardCheck, EyeIcon, Loader2, MoreHorizontal } from "lucide-react"
 import { useState } from "react"
 import { Button } from "../../../ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "../../../ui/dialog"
+import { useCompanyStore } from "@/stores/CompanyStore"
 
 const InTransitArticleDropdownActions = ({ id }: { id: number }) => {
 
   const [open, setOpen] = useState<boolean>(false)
+  const { selectedCompany } = useCompanyStore()
 
   const { updateArticleStatus } = useUpdateArticleStatus()
 
   const handleStatusUpdate = async (id: number, status: string) => {
     await updateArticleStatus.mutateAsync({
       id: id,
-      status: status
+      status: status,
+      company: selectedCompany!.slug,
     });
     setOpen(false);
   }

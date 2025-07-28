@@ -11,8 +11,8 @@ export const useCreateCertificate = () => {
   const queryClient = useQueryClient()
 
   const createMutation = useMutation({
-      mutationFn: async (data: CreateCertificateData) => {
-          await axiosInstance.post('/hangar74/certificate', data)
+      mutationFn: async ({data, company}: {data: CreateCertificateData, company: string}) => {
+          await axiosInstance.post(`/${company}/certificate`, data)
         },
       onSuccess: () => {
           queryClient.invalidateQueries({queryKey: ['certificates']})
@@ -38,8 +38,8 @@ export const useDeleteCertificate = () => {
   const queryClient = useQueryClient()
 
   const deleteMutation = useMutation({
-      mutationFn: async (id: number | string) => {
-          await axiosInstance.delete(`/hangar74/certificate/${id}`)
+      mutationFn: async ({id, company}: {id: number | string, company: string}) => {
+          await axiosInstance.delete(`/${company}/certificate/${id}`)
         },
       onSuccess: () => {
         queryClient.invalidateQueries({queryKey: ['certificates'], exact: false})

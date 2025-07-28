@@ -11,15 +11,17 @@ import { Loader2, MoreHorizontal, Trash2 } from "lucide-react"
 import { useState } from "react"
 import { Button } from "../../../ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "../../../ui/dialog"
+import { useCompanyStore } from "@/stores/CompanyStore" 
 
 const CertificateDropdownActions = ({ id }: { id: string | number }) => {
 
   const [open, setOpen] = useState<boolean>(false)
 
   const { deleteCertificate } = useDeleteCertificate()
+  const { selectedCompany } = useCompanyStore()
 
   const handleDelete = async (id: number | string) => {
-    await deleteCertificate.mutateAsync(id);
+    await deleteCertificate.mutateAsync({id, company: selectedCompany!.slug});
     setOpen(false);
   }
   return (

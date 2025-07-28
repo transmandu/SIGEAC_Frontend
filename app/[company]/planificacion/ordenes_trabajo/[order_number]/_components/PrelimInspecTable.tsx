@@ -32,6 +32,7 @@ import { z } from "zod"
 import { columns } from "../columns"
 import { DataTable } from "../data-table"
 import { Loader2, Printer } from "lucide-react"
+import { useCompanyStore } from "@/stores/CompanyStore"
 
 // Esquema de validación con Zod
 const createPrelimnSchema = z.object({
@@ -42,6 +43,7 @@ const createPrelimnSchema = z.object({
 const PrelimInspecTable = ({ work_order }: { work_order: WorkOrder }) => {
   const { createPrelimInspection } = useCreatePrelimInspection()
   const { updatePrelimInspection } = useUpdatePrelimInspection()
+  const { selectedCompany } = useCompanyStore()
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [isFinishOpen, setIsFinishOpen] = useState(false)
 
@@ -57,16 +59,22 @@ const PrelimInspecTable = ({ work_order }: { work_order: WorkOrder }) => {
   const handleFinishInspection = async () => {
     if (!work_order?.preliminary_inspection) return
     await updatePrelimInspection.mutateAsync({
-      id: work_order.preliminary_inspection.id.toString(),
-      status: "FINALIZADO",
+      data: {
+        id: work_order.preliminary_inspection.id.toString(),
+        status: "FINALIZADO",
+      },
+      company: selectedCompany!.slug
     })
     setIsFinishOpen(false)
   }
 
   const handleCreateInspection = async (values: z.infer<typeof createPrelimnSchema>) => {
     await createPrelimInspection.mutateAsync({
-      ...values,
-      work_order_id: work_order.id.toString(),
+      data: {
+        ...values,
+        work_order_id: work_order.id.toString(),
+      },
+      company: selectedCompany!.slug
     })
   }
   return (

@@ -40,7 +40,7 @@ const fetchArticleById = async (id: string, company?: string): Promise<EditingAr
 
 export const useGetArticleById = (id: string, company?: string) => {
   return useQuery<EditingArticle>({
-    queryKey: ["article"],
+    queryKey: ["article", id, company],
     queryFn: () => fetchArticleById(id, company),
     enabled: !!id && !!company
   });

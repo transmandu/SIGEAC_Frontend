@@ -96,15 +96,14 @@ export function CreateRequisitionForm({ onClose }: FormProps) {
   useEffect(() => {
     if (user && selectedCompany) {
       form.setValue("created_by", user.id.toString())
-      form.setValue("company", selectedCompany.split(" ").join(""))
     }
   }, [user, form, selectedCompany])
 
   useEffect(() => {
     if (selectedStation) {
-      mutate(Number(selectedStation))
+      mutate({location_id: Number(selectedStation), company: selectedCompany!.slug})
     }
-  }, [selectedStation, mutate])
+  }, [selectedStation, mutate, selectedCompany])
 
   useEffect(() => {
     form.setValue("articles", selectedBatches)
@@ -176,8 +175,8 @@ export function CreateRequisitionForm({ onClose }: FormProps) {
       work_order_id: Number(data.work_order_id),
       aircraft_id: Number(data.aircraft_id).toString(),
     }
-    await createRequisition.mutateAsync(formattedData)
-    onClose()
+    await createRequisition.mutateAsync({data: formattedData, company: selectedCompany!.slug})
+    onClose();
   }
   return (
     <Form {...form}>

@@ -35,9 +35,9 @@ const RequisitionPage = () => {
   const handleDelete = async (id: number, company: string) => {
     await deleteRequisition.mutateAsync({
       id,
-      company
+      company: selectedCompany!.slug
     });
-    router.push(`/${company}/general/requisiciones`);
+    router.push(`/${selectedCompany!.slug}/compras_administracion/requisiciones`);
   };
 
   return (
@@ -228,7 +228,7 @@ const RequisitionPage = () => {
             </Button>
             <Button
               className={cn(data?.status === 'aprobado' ? "hidden" : "flex")}
-              onClick={() => handleDelete(data!.id, selectedCompany!.split(" ").join(""))}
+              onClick={() => handleDelete(data!.id, selectedCompany!.slug)}
               disabled={deleteRequisition.isPending}
             >
               {deleteRequisition.isPending ? <Loader2 className="animate-spin size-4 mr-2" /> : null}

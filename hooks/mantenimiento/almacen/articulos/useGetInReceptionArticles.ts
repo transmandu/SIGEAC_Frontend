@@ -1,16 +1,22 @@
 import axios from '@/lib/axios';
 import { Article } from '@/types';
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 
-const fetchInReceptionArticles = async (location_id: string | null): Promise<Article[]> => {
-  const {data} = await axios.get(`/hangar74/articles-in-reception/${location_id}`);
+const fetchInReceptionArticles = async (
+  location_id: string | null,
+  company?: string
+): Promise<Article[]> => {
+  const { data } = await axios.get(`/${company}/articles-in-reception/${location_id}`);
   return data;
 };
 
-export const useGetInReceptionArticles = (location_id: string | null) => {
+export const useGetInReceptionArticles = (
+  location_id: string | null,
+  company?: string
+) => {
   return useQuery<Article[], Error>({
-    queryKey: ["in-reception-articles"],
-    queryFn: () => fetchInReceptionArticles(location_id),
-    enabled: !!location_id
+    queryKey: ["in-reception-articles", company, location_id],
+    queryFn: () => fetchInReceptionArticles(location_id, company!),
+    enabled: !!location_id && !!company
   });
 };

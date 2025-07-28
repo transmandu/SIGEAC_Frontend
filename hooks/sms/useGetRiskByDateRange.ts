@@ -22,7 +22,7 @@ export const useGetRiskCountByDateRange = (
 ) => {
   return useQuery<pieChartData[]>({
     queryKey: [
-      "/transmandu/risk/count-by-date-range?reportType=${reportType}&from=${from}&to=${to}",
+      "transmandu-risk-count-by-date-range",
     ],
     queryFn: () => fetchRiskCountByDateRange(company, from, to, reportType),
     staleTime: 1000 * 60 * 5, // 5 minutos

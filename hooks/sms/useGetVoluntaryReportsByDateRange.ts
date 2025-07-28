@@ -8,7 +8,7 @@ const fetchVoluntaryReportsByDateRange = async (
   to: string
 ) => {
   const { data } = await axiosInstance.get(
-    `/transmandu/sms/voluntary-reports-date-range?from=${from}&to=${to}`
+    `/${company}/sms/voluntary-reports-date-range?from=${from}&to=${to}`
   );
   return data;
 };
@@ -20,7 +20,8 @@ export const useGetVoluntaryReportsByDateRange = (
 ) => {
   return useQuery<VoluntaryReport[]>({
     queryKey: ["voluntary-reports-by-date-range"],
-    queryFn: () => fetchVoluntaryReportsByDateRange(company,from, to),
+    queryFn: () => fetchVoluntaryReportsByDateRange(company, from, to),
     staleTime: 1000 * 60 * 5, // 5 minutos
+    enabled: !!company,
   });
 };

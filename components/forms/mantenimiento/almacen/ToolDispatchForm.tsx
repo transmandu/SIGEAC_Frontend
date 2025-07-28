@@ -71,15 +71,15 @@ export function ToolDispatchForm({ onClose }: FormProps) {
 
   const { createDispatchRequest } = useCreateDispatchRequest();
 
-  const { selectedStation } = useCompanyStore();
+  const { selectedStation, selectedCompany } = useCompanyStore();
 
   const { mutate, data: batches, isPending: isBatchesLoading, isError: batchesError } = useGetBatchesWithInWarehouseArticles();
 
   useEffect(() => {
     if (selectedStation) {
-      mutate(Number(selectedStation))
+      mutate({location_id: Number(selectedStation), company: selectedCompany!.slug})
     }
-  }, [selectedStation, mutate])
+  }, [selectedStation, mutate, selectedCompany])
 
   useEffect(() => {
     if (batches) {
@@ -108,9 +108,9 @@ export function ToolDispatchForm({ onClose }: FormProps) {
       created_by: user?.first_name + " " + user?.last_name,
       submission_date: format(data.submission_date, "yyyy-MM-dd"),
       category: "herramienta",
-      user_id: user!.id
+      user_id: Number(user!.id)
     }
-    await createDispatchRequest.mutateAsync(formattedData);
+    await createDispatchRequest.mutateAsync({data: formattedData, company: selectedCompany!.slug});
     onClose();
   }
 

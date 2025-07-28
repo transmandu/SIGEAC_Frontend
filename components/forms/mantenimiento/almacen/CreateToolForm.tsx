@@ -108,7 +108,7 @@ const CreateToolForm = ({ initialData, isEditing }: {
 
   useEffect(() => {
     if (selectedStation) {
-      mutate(Number(selectedStation))
+      mutate({location_id: Number(selectedStation), company: selectedCompany!.slug})
     }
   }, [selectedStation, mutate])
 
@@ -146,12 +146,15 @@ const CreateToolForm = ({ initialData, isEditing }: {
     }
     if (isEditing) {
       confirmIncoming.mutate({
-        ...values,
-        id: initialData?.id,
-        certificate_8130: values.certificate_8130 || initialData?.certifcate_8130,
-        certificate_fabricant: values.certificate_fabricant || initialData?.certifcate_fabricant,
-        certificate_vendor: values.certificate_vendor || initialData?.certifcate_vendor,
-        status: "Stored"
+        values: {
+          ...values,
+          id: initialData?.id,
+          certificate_8130: values.certificate_8130 || initialData?.certifcate_8130,
+          certificate_fabricant: values.certificate_fabricant || initialData?.certifcate_fabricant,
+          certificate_vendor: values.certificate_vendor || initialData?.certifcate_vendor,
+          status: "Stored"
+        },
+        company: selectedCompany!.slug
       })
       router.push(`/${selectedCompany?.slug}/almacen/ingreso/en_recepcion`)
     } else {
