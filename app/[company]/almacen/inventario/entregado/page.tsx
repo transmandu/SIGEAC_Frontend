@@ -25,9 +25,10 @@ import {
 
 const InventarioPage = () => {
 
-  const { selectedStation } = useCompanyStore();
-
-  const { data: articles, isLoading: isArticlesLoading, isError } = useGetDispatchedArticles(selectedStation ?? undefined);
+  const { selectedStation, selectedCompany } = useCompanyStore();
+  const { data: articles, isLoading: isArticlesLoading, isError } = useGetDispatchedArticles({location_id: selectedStation ?? undefined, 
+    company: selectedCompany?.slug
+  });
 
   return (
     <ContentLayout title='Inventario'>
