@@ -1,11 +1,17 @@
+import { useDeleteAircraft } from "@/actions/aerolinea/aeronaves/actions";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useCompanyStore } from "@/stores/CompanyStore";
+import { Aircraft } from "@/types";
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
 import {
   Banknote,
+  EditIcon,
   EyeIcon,
   Loader2,
   MoreHorizontal,
@@ -13,10 +19,13 @@ import {
   Trash2,
   TrendingUp,
 } from "lucide-react";
-import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { AircraftExpensiveForm } from "../../../forms/aerolinea/administracion/AircraftExpensiveForm";
+import { EditAircraftForm } from "../../../forms/aerolinea/administracion/EditAircraftForm";
+import { Badge } from "../../../ui/badge";
 import { Button } from "../../../ui/button";
-import { useDeleteAircraft } from "@/actions/aerolinea/aeronaves/actions";
 import {
   Dialog,
   DialogContent,
@@ -25,15 +34,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "../../../ui/dialog";
-import { format } from "date-fns";
-import { es } from "date-fns/locale";
-import { EditIcon } from "lucide-react";
-import { Badge } from "../../../ui/badge";
-import { EditAircraftForm } from "../../../forms/aerolinea/administracion/EditAircraftForm";
-import { AircraftExpensiveForm } from "../../../forms/aerolinea/administracion/AircraftExpensiveForm";
-import Link from "next/link";
-import { Aircraft } from "@/types";
-import { useGetAircraftByAcronym } from "@/hooks/aerolinea/aeronaves/useGetAircraftByAcronym";
 
 export const AircraftDropdownActions = ({
   aircraft,
@@ -47,17 +47,16 @@ export const AircraftDropdownActions = ({
   const { deleteAircraft } = useDeleteAircraft();
   const [openEdit, setOpenEdit] = useState<boolean>(false);
   const [openForm, setOpenForm] = useState<boolean>(false);
+  const {selectedCompany} = useCompanyStore();
 
   const handleViewStats = () => {
     router.push(
-      `/transmandu/administracion/gestion_vuelos/aviones/${aircraft.acronym}`
+      `/${selectedCompany?.slug}/administracion/gestion_vuelos/aviones/${aircraft.acronym}`
     );
   };
 
   const handleDelete = (acronym: string) => {
-    deleteAircraft.mutate(acronym, {
-      onSuccess: () => setOpenDelete(false), // Cierra el modal solo si la eliminación fue exitosa
-    });
+    deleteAircraft.mutate({acronym, company: selectedCompany!.slug});
   };
 
   const handleViewDetails = () => {
@@ -88,7 +87,7 @@ export const AircraftDropdownActions = ({
           </DropdownMenuItem>
           <DropdownMenuItem>
             <Link
-              href={`/transmandu/administracion/gestion_vuelos/aviones/${aircraft.acronym}/registrar_gasto`}
+              href={`/${selectedCompany?.slug}/administracion/gestion_vuelos/aviones/${aircraft.acronym}/registrar_gasto`}
             >
               <Banknote className="size-5 text-red-500" />
             </Link>

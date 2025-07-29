@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger, } from "@/components/ui/popover";
 import { useGetVendors } from "@/hooks/general/proveedores/useGetVendors";
 import { cn } from "@/lib/utils";
+import { useCompanyStore } from "@/stores/CompanyStore";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
 import { es } from "date-fns/locale/es";
@@ -15,7 +16,6 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Calendar } from "../../../ui/calendar";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList, } from "../../../ui/command";
-import { useCompanyStore } from "@/stores/CompanyStore";
 
 const formSchema = z
   .object({

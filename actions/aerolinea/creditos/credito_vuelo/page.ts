@@ -6,8 +6,8 @@ export const useCreateCreditFlight = () => {
 
   const queryCreditFlight = useQueryClient()
   const createMutation = useMutation({
-    mutationFn: async (data: any) => {
-          await axiosInstance.post('/transmandu/credits-with-flights', data)
+    mutationFn: async ({data, company}: {data: any, company?: string}) => {
+          await axiosInstance.post(`/${company}/credits-with-flights`, data)
         },
         onSuccess: () => {
           queryCreditFlight.invalidateQueries({queryKey: ['credit-flight']})

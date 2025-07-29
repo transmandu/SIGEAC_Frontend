@@ -4,12 +4,10 @@ import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 
 export const useCreateAircraft = () => {
-
     const queryAircraft = useQueryClient()
     const createMutation = useMutation({
-        mutationFn: async (data: any) => {
-            // await axiosInstance.post('/transmandu/aircrafts-administration', data)
-            await axiosInstance.post('/transmandu/aircrafts', data)
+        mutationFn: async ({data, company}: {data: any, company: string}) => {
+            await axiosInstance.post(`/${company}/aircrafts`, data)
           },
         onSuccess: () => {
             queryAircraft.invalidateQueries({queryKey: ['aircrafts']})
@@ -35,8 +33,8 @@ export const useDeleteAircraft = () => {
   const queryAircraft = useQueryClient()
 
   const deleteMutation = useMutation({
-      mutationFn: async (acronym: string) => {
-          await axiosInstance.delete(`/transmandu/aircrafts/${acronym}`)
+      mutationFn: async ({company, acronym}: {acronym: string, company: string}) => {
+          await axiosInstance.delete(`/${company}/aircrafts/${acronym}`)
         },
       onSuccess: () => {
 
@@ -105,13 +103,14 @@ interface AircraftExpenseFormData {
 export const useCashMovementForAircraft = () => {
   const queryAircraft = useQueryClient();
   const createMutation = useMutation({
-    mutationFn: async (data: {
+    mutationFn: async ({company, acronym, data}: {
+      company?: string;
       acronym: string;
-      formData: AircraftExpenseFormData
+      data: AircraftExpenseFormData;
     }) => {
       const response = await axiosInstance.post(
-        `/transmandu/cash-movement-aircraft/${data.acronym}/expenses`,
-        data.formData
+        `/${company}/cash-movement-aircraft/${acronym}/expenses`,
+        data
       );
       return response.data as CashMovement;
     },

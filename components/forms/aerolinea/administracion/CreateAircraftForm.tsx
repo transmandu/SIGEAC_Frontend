@@ -101,12 +101,9 @@ export function CreateAircraftForm({ onClose }: FormProps) {
     defaultValues: {},
   });
 
-  const onSubmit = (data: FormSchemaType) => {
-    createAircraft.mutate(data, {
-      onSuccess: () => {
-        onClose(); // Cierra el modal solo si la creación fue exitosa
-      },
-    });
+  const onSubmit = async (data: FormSchemaType) => {
+    createAircraft.mutateAsync({company: selectedCompany!.slug, data});
+    onClose();
   };
 
   return (
@@ -373,7 +370,7 @@ export function CreateAircraftForm({ onClose }: FormProps) {
             <Separator className="flex-1" />
           </div>
           <Button type="submit" disabled={createAircraft.isPending}>
-            {createAircraft.isPending ? "Enviando..." : "Enviar"}
+            {createAircraft.isPending ? <Loader2 className="animate-spin"/> : "Crear"}
           </Button>
         </div>
       </form>

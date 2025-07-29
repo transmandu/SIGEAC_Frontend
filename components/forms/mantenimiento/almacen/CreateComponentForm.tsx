@@ -152,7 +152,7 @@ const CreateComponentForm = ({ initialData, isEditing }: {
       mutate({location_id: Number(selectedStation), company: selectedCompany!.slug})
       verifyMutation()
     }
-  }, [selectedStation, mutate, verifyMutation])
+  }, [selectedStation, mutate, verifyMutation, selectedCompany])
 
 
 

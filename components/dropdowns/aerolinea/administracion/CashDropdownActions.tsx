@@ -1,23 +1,23 @@
 import { useDeleteCash } from "@/actions/aerolinea/cajas/actions";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, } from "@/components/ui/dropdown-menu";
+import { getCurrencySymbol } from "@/lib/utils";
+import { useCompanyStore } from "@/stores/CompanyStore";
 import { Cash } from "@/types";
 import { EyeIcon, Loader2, MoreHorizontal, Trash2, TrendingUp, } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Button } from "../../../ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, } from "../../../ui/dialog";
-import { getCurrencySymbol } from "@/lib/utils";
 
 const CashDropdownActions = ({ id, cash }: { id: string; cash: Cash }) => {
   const [openCash, setOpenCash] = useState<boolean>(false);
   const [openDelete, setOpenDelete] = useState<boolean>(false);
   const router = useRouter();
   const { deleteCash } = useDeleteCash();
+  const  { selectedCompany } = useCompanyStore();
 
   const handleDelete = (id: number | string) => {
-    deleteCash.mutate(id, {
-      onSuccess: () => setOpenDelete(false), // Cierra el modal solo si la eliminación fue exitosa
-    });
+    deleteCash.mutate({id, company: selectedCompany!.slug});
   };
 
   const handleViewDetails = () => {
@@ -25,7 +25,7 @@ const CashDropdownActions = ({ id, cash }: { id: string; cash: Cash }) => {
   };
 
   const handleViewStats = () => {
-    router.push(`/transmandu/administracion/gestion_cajas/cajas/${id}`);
+    router.push(`/${selectedCompany?.slug}/administracion/gestion_cajas/cajas/${id}`);
   };
 
   return (

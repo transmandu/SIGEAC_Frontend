@@ -4,6 +4,7 @@ import { useCreateCash } from "@/actions/aerolinea/cajas/actions";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { useCompanyStore } from "@/stores/CompanyStore";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -42,17 +43,14 @@ interface FormProps {
 
 export function CreateCashForm({ onClose }: FormProps) {
   const { createCash } = useCreateCash();
+  const {selectedCompany} = useCompanyStore();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {},
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    createCash.mutate(values, {
-      onSuccess: () => {
-        onClose(); // Cierra el modal solo si la creación fue exitosa
-      },
-    });
+    createCash.mutateAsync({ data: values, company: selectedCompany!.slug });
   }
 
   return (

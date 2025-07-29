@@ -4,15 +4,16 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogTrigger, } from "@/components/ui/dialog";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useCompanyStore } from "@/stores/CompanyStore";
 
 export function CreditRentingDialog({ id }: { id?: string }) {
   const [openActions, setOpenActions] = useState(false);
-
+  const {selectedCompany} = useCompanyStore();
   const router = useRouter();
 
   const handleViewStats = () => {
     router.push(
-      "/transmandu/administracion/creditos/credito_arrendamiento/resumen_credito"
+      `/${selectedCompany?.slug}/administracion/creditos/credito_arrendamiento/resumen_credito`
     );
   };
 
@@ -29,7 +30,7 @@ export function CreditRentingDialog({ id }: { id?: string }) {
             Resumen de Crédito
           </Button>
         </DialogTrigger>
-      </Dialog> 
+      </Dialog>
     </>
   );
 }

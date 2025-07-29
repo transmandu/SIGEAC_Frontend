@@ -3,15 +3,16 @@
 import { useCreateCategory } from "@/actions/aerolinea/categorias/actions";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, } from "@/components/ui/form";
-import { Popover, PopoverContent, PopoverTrigger, } from "@/components/ui/popover";
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList, } from "../../../ui/command";
 import { Input } from "@/components/ui/input";
+import { Popover, PopoverContent, PopoverTrigger, } from "@/components/ui/popover";
 import { useGetAccountant } from "@/hooks/aerolinea/cuentas_contables/useGetAccountant";
+import { cn } from "@/lib/utils";
+import { useCompanyStore } from "@/stores/CompanyStore";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Check, ChevronsUpDown, Loader2 } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { cn } from "@/lib/utils";
-import { Check, ChevronsUpDown, Loader2 } from "lucide-react";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList, } from "../../../ui/command";
 
 const formSchema = z.object({
   name: z
@@ -36,17 +37,15 @@ interface FormProps {
 export function CreateCategoryForm({ onClose }: FormProps) {
   const { createCategory } = useCreateCategory();
   const { data: accounts, isLoading: isAccountLoading } = useGetAccountant();
+  const { selectedCompany } = useCompanyStore();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {},
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    createCategory.mutate(values, {
-      onSuccess: () => {
-        onClose();
-      },
-    });
+    createCategory.mutateAsync({ data: values, company: selectedCompany?.slug });
+    onClose()
   }
 
   return (

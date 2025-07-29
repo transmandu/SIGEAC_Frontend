@@ -7,13 +7,13 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, } from 
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger, } from "@/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, } from "@/components/ui/select";
-import { useGetEmployeesByCompany } from "@/hooks/administracion/useGetEmployees";
 import { useGetCash } from "@/hooks/aerolinea/cajas/useGetCash";
 import { useGetCategoriesByAccountant } from "@/hooks/aerolinea/categorias_cuentas/useGetCategoriesByAcountant";
 import { useGetAccountant } from "@/hooks/aerolinea/cuentas_contables/useGetAccountant";
 import { useGetClients } from "@/hooks/general/clientes/useGetClients";
 import { useGetBankAccounts } from "@/hooks/general/cuentas_bancarias/useGetBankAccounts";
 import { useGetVendors } from "@/hooks/general/proveedores/useGetVendors";
+import { useGetEmployeesByDepartment } from "@/hooks/sistema/useGetEmployeesByDepartament";
 import { cn } from "@/lib/utils";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -24,7 +24,6 @@ import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList, } from "../../../ui/command";
-import { useGetEmployeesByDepartment } from "@/hooks/sistema/useGetEmployeesByDepartament";
 
 const formSchema = z.object({
   employee_responsible: z.string({
@@ -116,7 +115,7 @@ export function CreateCashMovementForm({ onClose }: FormProps) {
   }, [form, cashes]);
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    createCashMovement.mutate(values, {
+    createCashMovement.mutateAsync(values, {
       onSuccess: () => {
         onClose();
       },

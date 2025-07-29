@@ -107,10 +107,10 @@ const CreateToolForm = ({ initialData, isEditing }: {
   const { data: manufacturers, isLoading: isManufacturerLoading, isError: isManufacturerError } = useGetManufacturers(selectedCompany?.slug)
 
   useEffect(() => {
-    if (selectedStation) {
+    if (selectedStation && selectedCompany) {
       mutate({location_id: Number(selectedStation), company: selectedCompany!.slug})
     }
-  }, [selectedStation, mutate])
+  }, [selectedStation, mutate, selectedCompany])
 
   useEffect(() => {
     if (batches) {
@@ -164,7 +164,6 @@ const CreateToolForm = ({ initialData, isEditing }: {
     }
   }
 
-  console.log(form.watch("image"))
   return (
     <Form {...form}>
       <form encType="multipart/form-data" className="flex flex-col gap-4 max-w-6xl mx-auto" onSubmit={form.handleSubmit(onSubmit)}>

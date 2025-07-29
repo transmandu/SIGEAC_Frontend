@@ -140,9 +140,9 @@ export function CreateGeneralRequisitionForm({
 
   useEffect(() => {
     if (selectedStation) {
-      mutate(Number(selectedStation))
+      mutate({location_id: Number(selectedStation), company: selectedCompany?.slug});
     }
-  }, [selectedStation, mutate])
+  }, [selectedStation, mutate, selectedCompany])
 
   useEffect(() => {
     form.setValue("articles", selectedBatches);

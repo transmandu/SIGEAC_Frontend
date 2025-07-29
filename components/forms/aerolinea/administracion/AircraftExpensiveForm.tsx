@@ -26,23 +26,22 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useGetCash } from "@/hooks/aerolinea/cajas/useGetCash";
-import { useGetAccountant } from "@/hooks/aerolinea/cuentas_contables/useGetAccountant";
 import { useGetCategoriesByAccountant } from "@/hooks/aerolinea/categorias_cuentas/useGetCategoriesByAcountant";
-import { useGetEmployeesByCompany } from "@/hooks/administracion/useGetEmployees";
+import { useGetAccountant } from "@/hooks/aerolinea/cuentas_contables/useGetAccountant";
 import { useGetBankAccounts } from "@/hooks/general/cuentas_bancarias/useGetBankAccounts";
+import { useGetVendors } from "@/hooks/general/proveedores/useGetVendors";
+import { useGetEmployeesByCompany } from "@/hooks/sistema/empleados/useGetEmployees";
 import { cn } from "@/lib/utils";
+import { useCompanyStore } from "@/stores/CompanyStore";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
 import { es } from "date-fns/locale/es";
 import { CalendarIcon, Loader2, MinusCircle, PlusCircle } from "lucide-react";
-import { useEffect } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
 import { z } from "zod";
 import { Label } from "../../../ui/label";
 import { Separator } from "../../../ui/separator";
 import { Textarea } from "../../../ui/textarea";
-import { useGetVendors } from "@/hooks/general/proveedores/useGetVendors";
-import { useCompanyStore } from "@/stores/CompanyStore";
 
 // Esquema para los gastos
 const cash_movement_detailsSchema = z.object({
@@ -136,7 +135,6 @@ export function AircraftExpensiveForm({ acronym, onClose }: FormProps) {
   const { createCashMovementForAircraft } = useCashMovementForAircraft();
   const {
     data: employees,
-
     isPending: isEmployeesLoading,
   } = useGetEmployeesByCompany(selectedCompany?.slug);
   const { data: cashes, isLoading: isCashesLoading } = useGetCash();
@@ -164,23 +162,6 @@ export function AircraftExpensiveForm({ acronym, onClose }: FormProps) {
   });
 
   async function onSubmit(formData: z.infer<typeof formSchema>) {
-    interface AircraftExpenseFormData {
-      date: Date;
-      movements: {
-        cash_id: string;
-        bank_account_id?: string | null;
-        total_amount: number;
-        reference_cod: string;
-        employee_responsible: string;
-        vendor_id: string;
-        cash_movement_details: {
-          accountant_id: string;
-          category_id: string;
-          details: string;
-          amount: number;
-        }[];
-      }[];
-    }
 
     const transformedData = {
       ...formData,
@@ -195,15 +176,8 @@ export function AircraftExpensiveForm({ acronym, onClose }: FormProps) {
         ),
       })),
     };
-
-    createCashMovementForAircraft.mutate(
-      { acronym, formData: transformedData },
-      {
-        onSuccess: () => {
-          onClose();
-        },
-      }
-    );
+    await createCashMovementForAircraft.mutateAsync({acronym, data: transformedData, company: selectedCompany?.slug});
+    onClose()
   }
 
   const addMovement = () => {

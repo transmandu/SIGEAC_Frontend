@@ -83,15 +83,22 @@ export function CreateBatchForm({ onClose }: FormProps) {
     }
   }, [name, batches, clearErrors, setError])
 
-
   const onSubmit = async (data: FormSchemaType) => {
+    const company = selectedCompany?.slug;
+    if (!company) {
+      setError("name", {
+        type: "manual",
+        message: "No se ha seleccionado una compañia."
+      });
+      return;
+    }
     const formattedData = {
       ...data,
       slug: generateSlug(data.name),
       min_quantity: Number(data.min_quantity),
       warehouse_id: Number(data.warehouse_id),
     }
-    await createBatch.mutateAsync({data: formattedData, company: selectedCompany!.slug});
+    await createBatch.mutateAsync({data: formattedData, company});
     onClose();
   }
 

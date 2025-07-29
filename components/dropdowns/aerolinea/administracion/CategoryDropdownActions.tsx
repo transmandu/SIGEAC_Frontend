@@ -5,16 +5,15 @@ import { Button } from "../../../ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, } from "../../../ui/dialog";
 import { useDeleteCategory } from "@/actions/aerolinea/categorias/actions";
 import { EditCategoryForm } from "../../../forms/aerolinea/administracion/EditCategoryForm";
+import { useCompanyStore } from "@/stores/CompanyStore";
 
 const CategoryDropdownActions = ({ id }: { id: string }) => {
   const [openDelete, setOpenDelete] = useState<boolean>(false);
   const { deleteCategory } = useDeleteCategory();
   const [openEdit, setOpenEdit] = useState<boolean>(false);
-
-  const handleDelete = (id: number | string) => {
-    deleteCategory.mutate(id, {
-      onSuccess: () => setOpenDelete(false),
-    });
+  const {selectedCompany} = useCompanyStore();
+  const handleDelete = async (id: number | string) => {
+    await deleteCategory.mutateAsync({id, company: selectedCompany!.slug});
   };
 
   return (

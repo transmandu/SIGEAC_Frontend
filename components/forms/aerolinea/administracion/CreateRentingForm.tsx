@@ -120,11 +120,8 @@ export function CreateRentingForm({ onClose }: FormProps) {
   );
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    createRenting.mutate(values, {
-      onSuccess: () => {
-        onClose(); // Cierra el modal solo si la creación fue exitosa
-      },
-    });
+    await createRenting.mutateAsync({data: values, company: selectedCompany?.slug});
+    onClose()
   }
 
   return (
