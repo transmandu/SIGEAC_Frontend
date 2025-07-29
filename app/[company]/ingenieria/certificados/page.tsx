@@ -7,10 +7,12 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useGetCertificates } from '@/hooks/mantenimiento/ingenieria/useGetCertificates';
 import { columns } from './columns';
 import { DataTable } from './data-table';
+import { useCompanyStore } from '@/stores/CompanyStore';
 
 const InventarioPage = () => {
   const { user } = useAuth();
-  const { data: certificates, isLoading, isError } = useGetCertificates()
+  const { selectedCompany } = useCompanyStore();
+  const { data: certificates, isLoading, isError } = useGetCertificates(selectedCompany?.slug)
 
   if (isLoading) {
     return <LoadingPage />;
@@ -22,7 +24,7 @@ const InventarioPage = () => {
         <Breadcrumb>
           <BreadcrumbList>
             <BreadcrumbItem>
-              <BreadcrumbLink href="/hangar74/dashboard">Inicio</BreadcrumbLink>
+              <BreadcrumbLink href={`/${selectedCompany?.slug}/dashboard`}>Inicio</BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>General</BreadcrumbItem>

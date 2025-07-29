@@ -7,14 +7,17 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { useCompanyStore } from "@/stores/CompanyStore"
 
 const AgregarPage = () => {
+  const { selectedCompany } = useCompanyStore();
+
   return (
     <ContentLayout title='Registro de Articulo'>
       <Breadcrumb>
         <BreadcrumbList>
           <BreadcrumbItem>
-            <BreadcrumbLink href="/hangar74/dashboard">Inicio</BreadcrumbLink>
+            <BreadcrumbLink href={`/${selectedCompany?.slug}/dashboard`}>Inicio</BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>Carga Administrativa</BreadcrumbItem>
@@ -26,13 +29,13 @@ const AgregarPage = () => {
               </DropdownMenuTrigger>
               <DropdownMenuContent align="start">
                 <DropdownMenuItem>
-                  <BreadcrumbLink href="/hangar74/almacen/inventario/entregado">Ingreso de Articulo</BreadcrumbLink>
+                  <BreadcrumbLink href={`/${selectedCompany?.slug}/almacen/inventario/entregado`}>Ingreso de Articulo</BreadcrumbLink>
                 </DropdownMenuItem>
                 <DropdownMenuItem>
-                  <BreadcrumbLink href="/hangar74/almacen/inventario/gestion">Articulos de Transito</BreadcrumbLink>
+                  <BreadcrumbLink href={`/${selectedCompany?.slug}/almacen/inventario/gestion`}>Articulos de Transito</BreadcrumbLink>
                 </DropdownMenuItem>
                 <DropdownMenuItem>
-                  <BreadcrumbLink href="/hangar74/almacen/inventario/entregado">Articulos en Recepcion</BreadcrumbLink>
+                  <BreadcrumbLink href={`/${selectedCompany?.slug}/almacen/inventario/entregado`}>Articulos en Recepcion</BreadcrumbLink>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>

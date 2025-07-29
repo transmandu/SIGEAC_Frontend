@@ -47,13 +47,13 @@ const fetchArticle = async (
 };
 
 export const useGetArticle = (
-  company: string,
   location_id: string,
   slug: string,
-  serial: string
+  serial: string,
+  company?: string,
 ) => {
   return useMutation<IGetArticle>({
     mutationKey: ["article", company, location_id, slug, serial],
-    mutationFn: () => fetchArticle(company, location_id, slug, serial),
+    mutationFn: () => fetchArticle(company!, location_id, slug, serial),
   });
 };

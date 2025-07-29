@@ -45,7 +45,7 @@ const RequisitionsPage = () => {
         <Breadcrumb>
           <BreadcrumbList>
             <BreadcrumbItem>
-              <BreadcrumbLink href="/hangar74/dashboard">Inicio</BreadcrumbLink>
+              <BreadcrumbLink href={`/${selectedCompany?.slug}/dashboard`}>Inicio</BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>General</BreadcrumbItem>

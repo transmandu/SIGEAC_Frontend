@@ -13,9 +13,9 @@ const BatchDetailPage = () => {
 
   const { slug } = useParams<{ slug: string }>()
 
-  const { selectedStation } = useCompanyStore();
+  const { selectedStation, selectedCompany } = useCompanyStore();
 
-  const { mutate, data: batch, isPending: isBatchesLoading, isError } = useGetArticlesByBatch(Number(selectedStation), slug);
+  const { mutate, data: batch, isPending: isBatchesLoading, isError } = useGetArticlesByBatch(Number(selectedStation), slug, selectedCompany?.slug);
 
   useEffect(() => {
     if (selectedStation) {

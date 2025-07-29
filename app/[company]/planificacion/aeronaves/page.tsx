@@ -6,10 +6,12 @@ import { useGetMaintenanceAircrafts } from '@/hooks/mantenimiento/planificacion/
 import React from 'react'
 import { DataTable } from './data-table'
 import { columns } from './columns'
+import { useCompanyStore } from '@/stores/CompanyStore'
 
 const AircraftsPage = () => {
 
-  const { data: aircrafts, isLoading, isError } = useGetMaintenanceAircrafts()
+  const { selectedCompany } = useCompanyStore();
+  const { data: aircrafts, isLoading, isError } = useGetMaintenanceAircrafts(selectedCompany?.slug)
 
   if (isLoading) {
     return <LoadingPage />

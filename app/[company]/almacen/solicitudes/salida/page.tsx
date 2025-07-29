@@ -15,11 +15,11 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 const DispatchRequestPage = () => {
-  const { selectedStation } = useCompanyStore();
+  const { selectedStation, selectedCompany } = useCompanyStore();
   const { mutate, data: dispatches, isPending: isDispatchesLoading, isError } = useGetDispatchesByLocation()
   useEffect(() => {
     if (selectedStation) {
-      mutate(Number(selectedStation))
+      mutate({location_id: Number(selectedStation), company: selectedCompany?.slug})
     }
   }, [selectedStation, mutate])
 
@@ -29,7 +29,7 @@ const DispatchRequestPage = () => {
         <Breadcrumb>
           <BreadcrumbList>
             <BreadcrumbItem>
-              <BreadcrumbLink href="/hangar74/dashboard">Inicio</BreadcrumbLink>
+              <BreadcrumbLink href={`/${selectedCompany?.slug}/dashboard`}>Inicio</BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>Almacen</BreadcrumbItem>
@@ -41,10 +41,10 @@ const DispatchRequestPage = () => {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="start">
                   <DropdownMenuItem>
-                    <BreadcrumbLink href="/hangar74/almacen/solicitudes/pendiente">Pendientes</BreadcrumbLink>
+                    <BreadcrumbLink href={`/${selectedCompany?.slug}/almacen/solicitudes/pendiente`}>Pendientes</BreadcrumbLink>
                   </DropdownMenuItem>
                   <DropdownMenuItem>
-                    <BreadcrumbLink href="/hangar74/almacen/solicitudes/salida">Salida</BreadcrumbLink>
+                    <BreadcrumbLink href={`/${selectedCompany?.slug}/almacen/solicitudes/salida`}>Salida</BreadcrumbLink>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>

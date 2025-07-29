@@ -36,7 +36,7 @@ const InventarioPage = () => {
         <Breadcrumb>
           <BreadcrumbList>
             <BreadcrumbItem>
-              <BreadcrumbLink href="/hangar74/dashboard">Inicio</BreadcrumbLink>
+              <BreadcrumbLink href={`/${selectedCompany?.slug}/dashboard`}>Inicio</BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>Almacen</BreadcrumbItem>
@@ -48,10 +48,10 @@ const InventarioPage = () => {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="start">
                   <DropdownMenuItem>
-                    <BreadcrumbLink href="/hangar74/almacen/inventario/gestion">Gestion</BreadcrumbLink>
+                    <BreadcrumbLink href={`/${selectedCompany?.slug}/almacen/inventario/gestion`}>Gestion</BreadcrumbLink>
                   </DropdownMenuItem>
                   <DropdownMenuItem>
-                    <BreadcrumbLink href="/hangar74/almacen/inventario/entregado">Entregados</BreadcrumbLink>
+                    <BreadcrumbLink href={`/${selectedCompany?.slug}/almacen/inventario/entregado`}>Entregados</BreadcrumbLink>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>

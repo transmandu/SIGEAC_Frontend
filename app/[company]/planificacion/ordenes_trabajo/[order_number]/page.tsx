@@ -11,10 +11,12 @@ import { useGetWorkOrderByOrderNumber } from '@/hooks/mantenimiento/planificacio
 import { useParams } from 'next/navigation';
 import WorkOrderAircraftDetailsCards from './_components/WorkOrderAircraftDetailsCards';
 import WorkOrderTasksDetails from './_components/WorkOrderTasksDetails';
+import { useCompanyStore } from '@/stores/CompanyStore';
 
 const WorkOrderPage = () => {
-  const { order_number } = useParams<{ order_number: string }>();
-  const { data: work_order, isLoading: isWorkOrderLoading, isError: isWorkOrderError } = useGetWorkOrderByOrderNumber(order_number);
+  const { order_number } = useParams<{order_number: string }>();
+  const { selectedCompany } = useCompanyStore();
+  const { data: work_order, isLoading: isWorkOrderLoading, isError: isWorkOrderError } = useGetWorkOrderByOrderNumber(order_number, selectedCompany?.slug);
 
   if (isWorkOrderLoading || (work_order && work_order.order_number !== order_number)) {
     return <LoadingPage />;

@@ -14,7 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Separator } from "@/components/ui/separator"
 import { Textarea } from "@/components/ui/textarea"
 import { useAuth } from "@/contexts/AuthContext"
-import { useGetDepartamentEmployees } from "@/hooks/administracion/useGetDepartamentEmployees"
+import { useGetUserDepartamentEmployees } from "@/hooks/sistema/empleados/useGetUserDepartamentEmployees"
 import { useGetSecondaryUnits } from "@/hooks/general/unidades/useGetSecondaryUnits"
 import { useGetMaintenanceAircrafts } from '@/hooks/mantenimiento/planificacion/useGetMaintenanceAircrafts'
 import { cn } from "@/lib/utils"
@@ -102,7 +102,7 @@ const CreateRequisitionPage = () => {
   const { user } = useAuth()
   const { mutate, data } = useGetBatchesByLocationId();
   const { selectedCompany, selectedStation } = useCompanyStore()
-  const { mutate: employeesMutation, data: employees, isPending: employeesLoading } = useGetDepartamentEmployees();
+  const { data: employees, isPending: employeesLoading } = useGetUserDepartamentEmployees(selectedCompany?.slug);
   const { data: secondaryUnits, isLoading: secondaryUnitLoading } = useGetSecondaryUnits(selectedCompany?.slug);
   const { data: aircrafts, isLoading: isAircraftsLoading, isError: isAircraftsError } = useGetMaintenanceAircrafts()
   const { createRequisition } = useCreateRequisition()
@@ -131,9 +131,8 @@ const CreateRequisitionPage = () => {
   useEffect(() => {
     if (selectedStation) {
       mutate({location_id: Number(selectedStation), company: selectedCompany!.slug})
-      employeesMutation(Number(selectedStation))
     }
-  }, [selectedStation, mutate, employeesMutation, selectedCompany])
+  }, [selectedStation, mutate, selectedCompany])
 
   useEffect(() => {
     form.setValue("articles", selectedBatches)

@@ -10,9 +10,9 @@ import { DataTable } from './data-table';
 
 const WorkOrdersPage = () => {
 
-  const { selectedStation } = useCompanyStore();
+  const { selectedStation, selectedCompany } = useCompanyStore();
 
-  const { data: work_orders, isLoading, isError } = useGetWorkOrders(selectedStation ?? null);
+  const { data: work_orders, isLoading, isError } = useGetWorkOrders(selectedStation ?? null, selectedCompany?.slug);
 
   console.log(selectedStation)
 

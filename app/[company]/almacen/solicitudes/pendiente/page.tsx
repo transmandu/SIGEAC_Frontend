@@ -14,15 +14,15 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 const DispatchRequestPage = () => {
-  const { selectedStation } = useCompanyStore();
-  const { data: dispatches, isPending: isDispatchesLoading, isError } = useGetPendingDispatches(selectedStation ?? undefined)
+  const { selectedStation, selectedCompany } = useCompanyStore();
+  const { data: dispatches, isPending: isDispatchesLoading, isError } = useGetPendingDispatches({location_id: selectedStation ?? undefined, company: selectedCompany?.slug})
   return (
     <ContentLayout title='Salida'>
       <div className='flex flex-col gap-y-2'>
         <Breadcrumb>
           <BreadcrumbList>
             <BreadcrumbItem>
-              <BreadcrumbLink href="/hangar74/dashboard">Inicio</BreadcrumbLink>
+              <BreadcrumbLink href={`/${selectedCompany?.slug}/dashboard`}>Inicio</BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>Almacen</BreadcrumbItem>
@@ -34,10 +34,10 @@ const DispatchRequestPage = () => {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="start">
                   <DropdownMenuItem>
-                    <BreadcrumbLink href="/hangar74/almacen/solicitudes/pendiente">Pendientes</BreadcrumbLink>
+                    <BreadcrumbLink href={`/${selectedCompany?.slug}/almacen/solicitudes/pendiente`}>Pendientes</BreadcrumbLink>
                   </DropdownMenuItem>
                   <DropdownMenuItem>
-                    <BreadcrumbLink href="/hangar74/almacen/solicitudes/salida">Salida</BreadcrumbLink>
+                    <BreadcrumbLink href={`/${selectedCompany?.slug}/almacen/solicitudes/salida`}>Salida</BreadcrumbLink>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>

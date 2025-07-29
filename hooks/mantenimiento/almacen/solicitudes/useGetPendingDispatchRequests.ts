@@ -14,8 +14,8 @@ const fetchPendingDispatchesRequests = async ({
 };
 
 export const useGetPendingDispatches = ({
-  company,
   location_id,
+  company,
 }: {
   company?: string;
   location_id?: string;

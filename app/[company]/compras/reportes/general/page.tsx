@@ -12,17 +12,19 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { useGetGeneralReport } from '@/hooks/mantenimiento/compras/useGetGeneralReport'
+import { useCompanyStore } from '@/stores/CompanyStore'
 import { PDFDownloadLink } from '@react-pdf/renderer'
 
 
 const GeneralReportPage = () => {
+  const { selectedCompany } = useCompanyStore();
   const { data: report, isError, isLoading } = useGetGeneralReport()
   return (
     <ContentLayout title="Reporte General">
       <Breadcrumb>
         <BreadcrumbList>
           <BreadcrumbItem>
-            <BreadcrumbLink href="/hangar74/dashboard">Inicio</BreadcrumbLink>
+            <BreadcrumbLink href={`/${selectedCompany?.slug}/dashboard`}>Inicio</BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>Compras</BreadcrumbItem>
@@ -36,13 +38,13 @@ const GeneralReportPage = () => {
               </DropdownMenuTrigger>
               <DropdownMenuContent align="start">
                 <DropdownMenuItem>
-                  <BreadcrumbLink href="/hangar74/almacen/compras/reportes/general">Reporte General</BreadcrumbLink>
+                  <BreadcrumbLink href={`/${selectedCompany?.slug}/almacen/compras/reportes/general`}>Reporte General</BreadcrumbLink>
                 </DropdownMenuItem>
                 <DropdownMenuItem>
-                  <BreadcrumbLink href="/hangar74/almacen/compras/reportes/aeronaves">Reporte de Aeronaves</BreadcrumbLink>
+                  <BreadcrumbLink href={`/${selectedCompany?.slug}/almacen/compras/reportes/aeronaves`}>Reporte de Aeronaves</BreadcrumbLink>
                 </DropdownMenuItem>
                 <DropdownMenuItem>
-                  <BreadcrumbLink href="/hangar74/almacen/compras/reportes/proveedores">Reportes de Proveedores</BreadcrumbLink>
+                  <BreadcrumbLink href={`/${selectedCompany?.slug}/almacen/compras/reportes/proveedores`}>Reportes de Proveedores</BreadcrumbLink>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>

@@ -11,8 +11,8 @@ import { useGetToolBoxes } from '@/hooks/mantenimiento/almacen/caja_herramientas
 import LoadingPage from '@/components/misc/LoadingPage'
 
 const DispatchRequestPage = () => {
-  const { selectedStation } = useCompanyStore();
-  const { data: toolBoxes, isLoading, isError } = useGetToolBoxes(selectedStation ?? null)
+  const { selectedStation, selectedCompany } = useCompanyStore();
+  const { data: toolBoxes, isLoading, isError } = useGetToolBoxes(selectedStation ?? null, selectedCompany?.slug)
   if (isLoading) {
     return <LoadingPage />
   }

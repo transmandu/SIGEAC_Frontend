@@ -5,9 +5,11 @@ import LoadingPage from '@/components/misc/LoadingPage'
 import { useGetMaintenanceServices } from '@/hooks/mantenimiento/planificacion/useGetMaintenanceServices'
 import { columns } from './columns'
 import { DataTable } from './data-table'
+import { useCompanyStore } from '@/stores/CompanyStore'
 
 const AircraftsPage = () => {
-  const { data: services, isLoading } = useGetMaintenanceServices()
+  const { selectedCompany } = useCompanyStore();
+  const { data: services, isLoading } = useGetMaintenanceServices(selectedCompany?.slug)
   if (isLoading) return <LoadingPage />
   return (
     <ContentLayout title='Aeronaves'>

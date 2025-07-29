@@ -10,10 +10,12 @@ import LoadingPage from '@/components/misc/LoadingPage';
 import { ChevronDown, ChevronRight } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { useCompanyStore } from '@/stores/CompanyStore';
 
 const MaintenanceAircraftPage = () => {
   const { acronym } = useParams<{ acronym: string }>();
-  const { data, isLoading } = useGetMaintenanceAircraftByAcronym(acronym);
+  const { selectedCompany } = useCompanyStore();
+  const { data, isLoading } = useGetMaintenanceAircraftByAcronym(acronym, selectedCompany?.slug);
   const [expandedParts, setExpandedParts] = React.useState<Record<string, boolean>>({});
 
   if (isLoading) {

@@ -25,10 +25,10 @@ import { useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
 const ArticlePage = () => {
-  const { selectedStation } = useCompanyStore();
+  const { selectedStation, selectedCompany } = useCompanyStore();
   const [date, setDate] = useState<Date>()
   const params = useParams<{ slug: string, serial: string }>();
-  const { mutate, data, isPending, isError } = useGetArticle(selectedStation!, params.slug, params.serial);
+  const { mutate, data, isPending, isError } = useGetArticle(selectedStation!, params.slug, params.serial, selectedCompany?.slug);
 
   useEffect(() => {
     if (selectedStation) {

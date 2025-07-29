@@ -15,7 +15,7 @@ const ConfirmIncomingPage = () => {
     return <LoadingPage />
   }
   if (isError) {
-    redirect("/hangar74/dashboard")
+    redirect(`/${selectedCompany?.slug}/dashboard`)
   }
   return (
     <ContentLayout title='Confirmar Ingreso'>

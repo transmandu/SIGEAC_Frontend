@@ -15,9 +15,9 @@ import {
 } from "@/components/ui/dropdown-menu"
 const InventarioPage = () => {
 
-  const { selectedStation } = useCompanyStore();
+  const { selectedStation, selectedCompany } = useCompanyStore();
 
-  const { data: articles, isLoading: isArticlesLoading, isError } = useGetInReceptionArticles(selectedStation ?? null);
+  const { data: articles, isLoading: isArticlesLoading, isError } = useGetInReceptionArticles(selectedStation ?? null, selectedCompany?.slug);
 
   return (
     <ContentLayout title='Inventario'>
@@ -25,7 +25,7 @@ const InventarioPage = () => {
         <Breadcrumb>
           <BreadcrumbList>
             <BreadcrumbItem>
-              <BreadcrumbLink href="/hangar74/dashboard">Inicio</BreadcrumbLink>
+              <BreadcrumbLink href={`/${selectedCompany?.slug}/dashboard`}>Inicio</BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>Carga Administrativa</BreadcrumbItem>
@@ -37,13 +37,13 @@ const InventarioPage = () => {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="start">
                   <DropdownMenuItem>
-                    <BreadcrumbLink href="/hangar74/almacen/inventario/entregado">Ingreso de Articulo</BreadcrumbLink>
+                    <BreadcrumbLink href={`/${selectedCompany?.slug}/almacen/inventario/entregado`}>Ingreso de Articulo</BreadcrumbLink>
                   </DropdownMenuItem>
                   <DropdownMenuItem>
-                    <BreadcrumbLink href="/hangar74/almacen/inventario/gestion">Articulos de Transito</BreadcrumbLink>
+                    <BreadcrumbLink href={`/${selectedCompany?.slug}/almacen/inventario/gestion`}>Articulos de Transito</BreadcrumbLink>
                   </DropdownMenuItem>
                   <DropdownMenuItem>
-                    <BreadcrumbLink href="/hangar74/almacen/inventario/entregado">Articulos en Recepcion</BreadcrumbLink>
+                    <BreadcrumbLink href={`/${selectedCompany?.slug}/almacen/inventario/entregado`}>Articulos en Recepcion</BreadcrumbLink>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
