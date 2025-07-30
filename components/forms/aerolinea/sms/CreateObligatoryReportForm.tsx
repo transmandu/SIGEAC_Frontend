@@ -30,18 +30,14 @@ import {
 } from "@/components/ui/popover";
 import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/contexts/AuthContext";
+import { useGetAircraftAcronyms } from "@/hooks/aerolinea/aeronaves/useGetAircraftAcronyms";
 import { useGetPilots } from "@/hooks/sms/useGetPilots";
 import { cn } from "@/lib/utils";
+import { useCompanyStore } from "@/stores/CompanyStore";
 import { ObligatoryReport } from "@/types";
-import { format, isValid, parse } from "date-fns";
+import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import {
-  CalendarIcon,
-  Check,
-  ChevronsUpDown,
-  ClockIcon,
-  Loader2,
-} from "lucide-react";
+import { CalendarIcon, Check, ChevronsUpDown, Loader2 } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import {
@@ -51,16 +47,14 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-} from "../../../ui/command";
+} from "@/components/ui/command";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "../../../ui/select";
-import { useCompanyStore } from "@/stores/CompanyStore";
-import { useGetAircraftAcronyms } from "@/hooks/aerolinea/aeronaves/useGetAircraftAcronyms";
+} from "@/components/ui/select";
 interface FormProps {
   isEditing?: boolean;
   initialData?: ObligatoryReport;
@@ -211,7 +205,9 @@ export function CreateObligatoryReportForm({
 
   // No estoy seguro si esto va aca lol
   const { selectedCompany } = useCompanyStore();
-  const { data: pilots, isLoading: isLoadingPilots } = useGetPilots();
+  const { data: pilots, isLoading: isLoadingPilots } = useGetPilots(
+    selectedCompany?.slug
+  );
   const { data: aircrafts, isLoading: isLoadingAircrafts } =
     useGetAircraftAcronyms(selectedCompany?.slug);
 
@@ -324,10 +320,10 @@ export function CreateObligatoryReportForm({
         const response = await createObligatoryReport.mutateAsync(value);
         if (shouldEnableField) {
           router.push(
-            `/${selectedCompany}/sms/reportes/reportes_obligatorios/${response.obligatory_report_id}`
+            `/${selectedCompany?.slug}/sms/reportes/reportes_obligatorios/${response.obligatory_report_id}`
           );
         } else {
-          router.push(`/${selectedCompany}/dashboard`);
+          router.push(`/${selectedCompany?.slug}/dashboard`);
         }
       } catch (error) {
         console.error("Error al crear reporte:", error);

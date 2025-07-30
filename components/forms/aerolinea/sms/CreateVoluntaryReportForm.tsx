@@ -59,7 +59,7 @@ export function CreateVoluntaryReportForm({
   isEditing,
   initialData,
 }: FormProps) {
-  const { selectedCompany } = useCompanyStore();
+  const { selectedCompany, selectedStation } = useCompanyStore();
   const { createVoluntaryReport } = useCreateVoluntaryReport();
   const { updateVoluntaryReport } = useUpdateVoluntaryReport();
   const [isAnonymous, setIsAnonymous] = useState(true);
@@ -225,8 +225,8 @@ export function CreateVoluntaryReportForm({
         data: {
           ...data,
           status: initialData.status,
-          id: initialData.id,
           danger_identification_id: initialData?.danger_identification_id,
+          location_id: selectedStation,
         },
       };
       await updateVoluntaryReport.mutateAsync(value);
@@ -235,6 +235,7 @@ export function CreateVoluntaryReportForm({
         company: selectedCompany!.slug,
         reportData: {
           ...data,
+          location_id: selectedStation,
           status: shouldEnableField ? "ABIERTO" : "PROCESO",
         },
       };
@@ -242,10 +243,10 @@ export function CreateVoluntaryReportForm({
         const response = await createVoluntaryReport.mutateAsync(value);
         if (shouldEnableField) {
           router.push(
-            `/${selectedCompany}/sms/reportes/reportes_voluntarios/${response.voluntary_report_id}`
+            `/${selectedCompany?.slug}/sms/reportes/reportes_voluntarios/${response.voluntary_report_id}`
           );
         } else {
-          router.push(`/${selectedCompany}/dashboard`);
+          router.push(`/${selectedCompany?.slug}/dashboard`);
         }
       } catch (error) {
         console.error("Error al crear el reporte:", error);
