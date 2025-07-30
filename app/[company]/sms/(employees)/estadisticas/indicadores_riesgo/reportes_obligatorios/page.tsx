@@ -23,12 +23,12 @@ const ObligatoryReportIndicators = () => {
   // Obtener fechas por defecto
   const currentDate = new Date();
   const previousMonth = subMonths(currentDate, 1);
-  
+
   const defaultFirstRange = {
     from: format(startOfMonth(currentDate), "yyyy-MM-dd"),
     to: format(currentDate, "yyyy-MM-dd"),
   };
-  
+
   const defaultSecondRange = {
     from: format(startOfMonth(previousMonth), "yyyy-MM-dd"),
     to: format(endOfMonth(previousMonth), "yyyy-MM-dd"),
@@ -60,7 +60,7 @@ const ObligatoryReportIndicators = () => {
     isLoading: isLoadingBarChart,
     isError: isErrorBarChart,
   } = useGetTotalReportsStatsByYear(
-    selectedCompany,
+    selectedCompany?.slug!,
     params.from_first,
     params.to_first
   );
@@ -70,7 +70,7 @@ const ObligatoryReportIndicators = () => {
     isLoading: isLoadingObligatoryAverageData,
     isError: isErrorObligatoryAverageData,
   } = useGetObligatoryReportAverage(
-    selectedCompany,
+    selectedCompany?.slug!,
     params.from_first,
     params.to_first,
     params.from_second,
