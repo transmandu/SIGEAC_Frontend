@@ -34,9 +34,13 @@ import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { CalendarIcon, Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { Calendar } from "../../../ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "../../../ui/popover";
-import { Textarea } from "../../../ui/textarea";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Textarea } from "@/components/ui/textarea";
 import { useRouter } from "next/navigation";
 import router from "next/router";
 import { useCompanyStore } from "@/stores/CompanyStore";
@@ -159,7 +163,7 @@ export default function CreateDangerIdentificationForm({
   const { selectedCompany } = useCompanyStore();
   const [consequences, setConsequences] = useState<string[]>([]);
   const { data: informationSources, isLoading: isLoadingSources } =
-    useGetInformationSources();
+    useGetInformationSources(selectedCompany?.slug);
   const { createDangerIdentification } = useCreateDangerIdentification();
   const { updateDangerIdentification } = useUpdateDangerIdentification();
   const [defaultValuesLoaded, setDefaultValuesLoaded] = useState(false);
@@ -221,7 +225,7 @@ export default function CreateDangerIdentificationForm({
         data,
       });
       router.push(
-        `/${selectedCompany}/sms/gestion_reportes/peligros_identificados/${response.danger_identification_id}`
+        `/${selectedCompany?.slug}/sms/gestion_reportes/peligros_identificados/${response.danger_identification_id}`
       );
     }
     onClose();

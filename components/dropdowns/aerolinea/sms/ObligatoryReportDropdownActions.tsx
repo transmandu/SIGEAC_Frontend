@@ -21,11 +21,9 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { AcceptObligatoryReport } from "../../../forms/aerolinea/sms/AcceptObligatoryForm";
-import CreateDangerIdentificationForm from "../../../forms/aerolinea/sms/CreateIdentificationForm";
-import { CreateObligatoryReportForm } from "../../../forms/aerolinea/sms/CreateObligatoryReportForm";
-import ObligatoryReportPdf from "../../../pdf/sms/ObligatoryReportPdf";
-import { Button } from "../../../ui/button";
+import CreateDangerIdentificationForm from "@/components/forms/aerolinea/sms/CreateIdentificationForm";
+import { CreateObligatoryReportForm } from "@/components/forms/aerolinea/sms/CreateObligatoryReportForm";
+import ObligatoryReportPdf from "@/components/pdf/sms/ObligatoryReportPdf";
 import {
   Dialog,
   DialogContent,
@@ -34,15 +32,17 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "../../../ui/dialog";
+} from "@/components/ui/dialog";
 import { useCompanyStore } from "@/stores/CompanyStore";
+import { Button } from "@/components/ui/button";
+import { AcceptObligatoryReport } from "@/components/forms/aerolinea/sms/AcceptObligatoryForm";
 
 const ObligatoryReportDropdownActions = ({
   obligatoryReport,
 }: {
   obligatoryReport: ObligatoryReport;
 }) => {
-  console.log(obligatoryReport);
+  const { selectedCompany } = useCompanyStore();
   const [openDelete, setOpenDelete] = useState<boolean>(false);
   const [openCreateDangerIdentification, setOpenCreateDangerIdentification] =
     useState<boolean>(false);
@@ -55,16 +55,16 @@ const ObligatoryReportDropdownActions = ({
 
   const { deleteObligatoryReport } = useDeleteObligatoryReport();
 
-  const { data: dangerIdentification } = useGetDangerIdentificationWithAllById(
-    obligatoryReport?.danger_identification?.id
-  );
+  const { data: dangerIdentification } = useGetDangerIdentificationWithAllById({
+    company: selectedCompany?.slug,
+    id: obligatoryReport?.danger_identification?.id.toString(),
+  });
 
-  const { selectedCompany } = useCompanyStore();
   const handleDelete = async (id: number | string) => {
     const value = {
       company: selectedCompany!.slug,
       id: id.toString(),
-    }
+    };
     await deleteObligatoryReport.mutateAsync(value);
     setOpenDelete(false);
   };

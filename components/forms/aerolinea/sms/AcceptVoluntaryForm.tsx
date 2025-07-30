@@ -28,7 +28,7 @@ interface FormProps {
 
 export function AcceptVoluntaryReport({ onClose, initialData }: FormProps) {
   const { acceptVoluntaryReport } = useAcceptVoluntaryReport();
-  const { selectedCompany } = useCompanyStore();
+  const { selectedCompany, selectedStation } = useCompanyStore();
   const FormSchema = z.object({
     report_number: z
       .string({
@@ -56,6 +56,7 @@ export function AcceptVoluntaryReport({ onClose, initialData }: FormProps) {
         image: undefined,
         document: undefined,
         status: "ABIERTO",
+        location_id: selectedStation,
       },
     };
     try {

@@ -7,7 +7,7 @@ import {
 import { useQuery } from "@tanstack/react-query";
 
 const fetchDangerIdentifications = async (
-  company: string | null
+  company?: string
 ): Promise<DangerIdentification[]> => {
   const { data } = await axiosInstance.get(
     `/${company}/sms/danger-identifications`
@@ -15,7 +15,7 @@ const fetchDangerIdentifications = async (
   return data;
 };
 
-export const useGetDangerIdentifications = (company: string | null) => {
+export const useGetDangerIdentifications = (company?: string) => {
   return useQuery<DangerIdentification[]>({
     queryKey: ["danger-identifications"],
     queryFn: () => fetchDangerIdentifications(company),

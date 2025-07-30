@@ -19,6 +19,7 @@ interface VoluntaryReportData {
     email?: string;
     image?: File | string;
     document?: File | string;
+    location_id: string | null;
   };
 }
 interface UpdateVoluntaryReportData {
@@ -40,6 +41,7 @@ interface UpdateVoluntaryReportData {
     reporter_email?: string;
     image?: File | string;
     document?: File | string;
+    location_id: string | null;
   };
 }
 
@@ -47,10 +49,10 @@ export const useCreateVoluntaryReport = () => {
   const queryClient = useQueryClient();
   const createMutation = useMutation({
     mutationKey: ["voluntary-reports"],
-    mutationFn: async (data: VoluntaryReportData) => {
+    mutationFn: async ({ company, reportData }: VoluntaryReportData) => {
       const response = await axiosInstance.post(
-        `/${data.company}/sms/voluntary-reports`,
-        data.reportData,
+        `/${company}/sms/voluntary-reports`,
+        reportData,
         {
           headers: {
             "Content-Type": "multipart/form-data",
@@ -152,7 +154,7 @@ export const useAcceptVoluntaryReport = () => {
 
   const acceptVoluntaryReportMutation = useMutation({
     mutationFn: async ({ company, id, data }: UpdateVoluntaryReportData) => {
-      console.log('LLAMDO DEL END POINT');
+      console.log("LLAMDO DEL END POINT");
       const response = await axiosInstance.patch(
         `/${company}/sms/accept-voluntary-reports/${id}`,
         data

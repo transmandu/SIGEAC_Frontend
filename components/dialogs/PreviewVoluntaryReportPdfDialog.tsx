@@ -19,6 +19,7 @@ import VoluntaryReportPdf from "../pdf/sms/VoluntaryReportPdf";
 import { DangerIdentification, VoluntaryReport } from "@/types";
 import { format } from "date-fns";
 import { useGetDangerIdentificationWithAllById } from "@/hooks/sms/useGetDangerIdentificationWithAllById";
+import { useCompanyStore } from "@/stores/CompanyStore";
 
 interface PreviewProps {
   title: string;
@@ -29,10 +30,12 @@ export default function PreviewVoluntaryReportPdfDialog({
   title,
   voluntaryReport,
 }: PreviewProps) {
+  const { selectedCompany } = useCompanyStore();
   const [open, setOpen] = useState(false);
-  const { data: dangerIdentification } = useGetDangerIdentificationWithAllById(
-    voluntaryReport.danger_identification_id
-  );
+  const { data: dangerIdentification } = useGetDangerIdentificationWithAllById({
+    company: selectedCompany?.slug,
+    id: voluntaryReport?.danger_identification_id?.toString(),
+  });
   return (
     <>
       <Card className="flex">

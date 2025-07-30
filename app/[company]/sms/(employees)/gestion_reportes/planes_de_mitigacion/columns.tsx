@@ -80,7 +80,7 @@ const MeasuresCell = ({
             {measures.length > 0 && planId && (
               <div className="mt-4 flex justify-end">
                 <Link
-                  href={`/${selectedCompany}/sms/gestion_reportes/planes_de_mitigacion/${planId}/medidas`}
+                  href={`/${selectedCompany?.slug}/sms/gestion_reportes/planes_de_mitigacion/${planId}/medidas`}
                   passHref
                 >
                   <Button variant="default" size="sm">

@@ -17,15 +17,15 @@ type Params = {
 const FollowUpControlPage = () => {
   const { plan_id, medida_id } = useParams<Params>();
   const { selectedCompany } = useCompanyStore();
-  const value = {
-    company: selectedCompany!.slug,
-    measure_id: medida_id,
-  };
+
   const {
     data: measureFollowUpControls,
     isLoading,
     isError,
-  } = useGetMeasureFollowUpControl(value);
+  } = useGetMeasureFollowUpControl({
+    company: selectedCompany?.slug,
+    measure_id: medida_id,
+  });
 
   return (
     <ContentLayout title="Controles de seguimiento">

@@ -14,7 +14,7 @@ const MitigationPlanPage = () => {
     data: mitigationTable,
     isLoading,
     isError,
-  } = useGetMitigationTable(selectedCompany);
+  } = useGetMitigationTable(selectedCompany?.slug);
 
   return (
     <ContentLayout title="Planes de Mitigacion">

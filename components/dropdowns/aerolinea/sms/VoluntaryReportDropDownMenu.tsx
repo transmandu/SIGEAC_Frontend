@@ -23,10 +23,10 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import CreateDangerIdentificationForm from "../../../forms/aerolinea/sms/CreateIdentificationForm";
-import { CreateVoluntaryReportForm } from "../../../forms/aerolinea/sms/CreateVoluntaryReportForm";
-import VoluntaryReportPdf from "../../../pdf/sms/VoluntaryReportPdf";
-import { Button } from "../../../ui/button";
+import CreateDangerIdentificationForm from "@/components/forms/aerolinea/sms/CreateIdentificationForm";
+import { CreateVoluntaryReportForm } from "@/components/forms/aerolinea/sms/CreateVoluntaryReportForm";
+import VoluntaryReportPdf from "@/components/pdf/sms/VoluntaryReportPdf";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -35,7 +35,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "../../../ui/dialog";
+} from "@/components/ui/dialog";
 
 const VoluntaryReportDropdownActions = ({
   voluntaryReport,
@@ -57,9 +57,10 @@ const VoluntaryReportDropdownActions = ({
   const [openDelete, setOpenDelete] = useState<boolean>(false);
   const router = useRouter();
 
-  const { data: dangerIdentification } = useGetDangerIdentificationWithAllById(
-    voluntaryReport.danger_identification_id
-  );
+  const { data: dangerIdentification } = useGetDangerIdentificationWithAllById({
+    company: selectedCompany?.slug,
+    id: voluntaryReport?.danger_identification_id?.toString(),
+  });
 
   const handleDelete = async (id: number | string) => {
     const value = {

@@ -9,8 +9,9 @@ import { useCompanyStore } from "@/stores/CompanyStore";
 
 const DangerIdentificationsPage = () => {
   const { selectedCompany } = useCompanyStore();
-  const { data, isLoading, isError } =
-    useGetDangerIdentifications(selectedCompany);
+  const { data, isLoading, isError } = useGetDangerIdentifications(
+    selectedCompany?.slug
+  );
 
   if (isLoading) {
     return <LoadingPage />;
