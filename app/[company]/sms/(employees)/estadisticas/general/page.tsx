@@ -87,7 +87,7 @@ const GeneralReportStats = () => {
     isError: isErrorBarChart,
     refetch: refetchBarChart,
   } = useGetTotalReportsStatsByYear(
-    selectedCompany,
+    selectedCompany?.slug!,
     params.from || format(startOfMonth(new Date()), "yyyy-MM-dd"),
     params.to || format(new Date(), "yyyy-MM-dd")
   );
@@ -98,6 +98,7 @@ const GeneralReportStats = () => {
     isError: isErrorIdentificationData,
     refetch: refetchIdentificationData,
   } = useGetTotalDangerIdentificationsCountedByType(
+    selectedCompany?.slug!,
     params.from || format(startOfMonth(new Date()), "yyyy-MM-dd"),
     params.to || format(new Date(), "yyyy-MM-dd")
   );
@@ -108,6 +109,7 @@ const GeneralReportStats = () => {
     isError: isErrorReportsByAreaData,
     refetch: refetchReportsByAreaData,
   } = useGetTotalReportsCountedByArea(
+    selectedCompany?.slug!,
     params.from || format(startOfMonth(new Date()), "yyyy-MM-dd"),
     params.to || format(new Date(), "yyyy-MM-dd")
   );
@@ -118,6 +120,7 @@ const GeneralReportStats = () => {
     isError: isErrorTotalRiskData,
     refetch: refetchTotalRiskData,
   } = useGetTotalRiskCountByDateRange(
+    selectedCompany?.slug!,
     params.from || format(startOfMonth(new Date()), "yyyy-MM-dd"),
     params.to || format(new Date(), "yyyy-MM-dd")
   );
@@ -128,6 +131,7 @@ const GeneralReportStats = () => {
     isError: isErrorReportSourceTypeData,
     refetch: refetchReportSourceTypeChart,
   } = useGetTotalIdentificationStatsBySourceType(
+    selectedCompany?.slug!,
     params.from || format(startOfMonth(new Date()), "yyyy-MM-dd"),
     params.to || format(new Date(), "yyyy-MM-dd")
   );
@@ -138,6 +142,7 @@ const GeneralReportStats = () => {
     isError: isErrorReportSourceNameData,
     refetch: refetchReportSourceNameChart,
   } = useGetTotalIdentificationStatsBySourceName(
+    selectedCompany?.slug!,
     params.from || format(startOfMonth(new Date()), "yyyy-MM-dd"),
     params.to || format(new Date(), "yyyy-MM-dd")
   );
@@ -148,6 +153,7 @@ const GeneralReportStats = () => {
     isError: isErrorTotalPostRiskData,
     refetch: refetchTotalPostRiskData,
   } = useGetTotalPostRiskCountByDateRange(
+    selectedCompany?.slug!,
     params.from || format(startOfMonth(new Date()), "yyyy-MM-dd"),
     params.to || format(new Date(), "yyyy-MM-dd")
   );
@@ -297,8 +303,6 @@ const GeneralReportStats = () => {
               params.from &&
               params.to && (
                 <BarChartComponent
-                  from={params.from}
-                  to={params.to}
                   height="100%"
                   width="100%"
                   data={barChartData}

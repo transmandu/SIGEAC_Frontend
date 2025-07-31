@@ -6,7 +6,7 @@ const fetchCoursesByDepartment = async (
   company?: string
 ): Promise<Course[]> => {
   const { data } = await axiosInstance.get(
-    `/${company}/courses-by-department`
+    `/general/${company}/courses-by-department`
   );
   return data;
 };

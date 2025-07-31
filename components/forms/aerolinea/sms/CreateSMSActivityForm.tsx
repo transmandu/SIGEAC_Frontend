@@ -26,7 +26,11 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Calendar } from "@/components/ui/calendar";
 import { Input } from "@/components/ui/input";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import {
   Select,
   SelectContent,
@@ -76,9 +80,9 @@ export default function CreateSMSActivityForm({
   initialData,
 }: FormProps) {
   const router = useRouter();
-  const { selectedCompany } = useCompanyStore();
+  const { selectedCompany, selectedStation } = useCompanyStore();
   const { data: employees, isLoading: isLoadingEmployees } =
-    useGetEmployeesByDepartment("DFS", selectedCompany?.slug);
+    useGetEmployeesByDepartment("DFS", selectedStation, selectedCompany?.slug);
 
   const { createSMSActivity } = useCreateSMSActivity();
   const { updateSMSActivity } = useUpdateSMSActivity();
@@ -122,8 +126,11 @@ export default function CreateSMSActivityForm({
       await updateSMSActivity.mutateAsync(value);
     } else {
       try {
-        await createSMSActivity.mutateAsync({ company: selectedCompany!.slug, data });
-        router.push(`/${selectedCompany}/sms/planificacion/actividades`);
+        await createSMSActivity.mutateAsync({
+          company: selectedCompany!.slug,
+          data,
+        });
+        router.push(`/${selectedCompany?.slug}/sms/planificacion/actividades`);
       } catch (error) {
         console.error("Error al crear la actividad", error);
       }
@@ -138,7 +145,6 @@ export default function CreateSMSActivityForm({
         className="flex flex-col space-y-3"
       >
         <FormLabel className="text-lg text-center m-2"></FormLabel>
-
 
         <div className="flex gap-9 items-center justify-between">
           <FormField
@@ -155,7 +161,6 @@ export default function CreateSMSActivityForm({
             )}
           />
 
-
           <FormField
             control={form.control}
             name="activity_name"
@@ -170,7 +175,6 @@ export default function CreateSMSActivityForm({
             )}
           />
         </div>
-
 
         <div className="flex gap-2 items-center justify-center">
           <FormField
@@ -298,8 +302,6 @@ export default function CreateSMSActivityForm({
           />
         </div>
 
-
-
         <div className="flex gap-4 justify-center items-center">
           <FormField
             control={form.control}
@@ -314,7 +316,6 @@ export default function CreateSMSActivityForm({
               </FormItem>
             )}
           />
-
 
           <FormField
             control={form.control}
@@ -331,35 +332,33 @@ export default function CreateSMSActivityForm({
           />
         </div>
 
+        <FormField
+          control={form.control}
+          name="topics"
+          render={({ field }) => (
+            <FormItem className="w-full">
+              <FormLabel>Temas Abordados</FormLabel>
+              <FormControl>
+                <Input {...field} maxLength={200} />
+              </FormControl>
+              <FormMessage className="text-xs" />
+            </FormItem>
+          )}
+        />
 
         <FormField
-              control={form.control}
-              name="topics"
-              render={({ field }) => (
-                <FormItem className="w-full">
-                  <FormLabel>Temas Abordados</FormLabel>
-                  <FormControl>
-                     <Input  {...field} maxLength={200} />
-                  </FormControl>
-                   <FormMessage className="text-xs" />
-                </FormItem>
-              )}
-            />
-
-
-          <FormField
-              control={form.control}
-              name="description"
-              render={({ field }) => (
-                <FormItem className="w-full">
-                  <FormLabel>Descripción</FormLabel>
-                  <FormControl>
-                     <Input  {...field} maxLength={200} />
-                  </FormControl>
-                   <FormMessage className="text-xs" />
-                </FormItem>
-              )}
-            />
+          control={form.control}
+          name="description"
+          render={({ field }) => (
+            <FormItem className="w-full">
+              <FormLabel>Descripción</FormLabel>
+              <FormControl>
+                <Input {...field} maxLength={200} />
+              </FormControl>
+              <FormMessage className="text-xs" />
+            </FormItem>
+          )}
+        />
 
         <div className="flex gap-4 justify-center items-center">
           <FormField

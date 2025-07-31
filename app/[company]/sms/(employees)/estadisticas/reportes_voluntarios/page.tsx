@@ -72,7 +72,7 @@ const Statistics = () => {
     isLoading: isLoadingBarChart,
     refetch: refetchBarChart,
   } = useGetVoluntaryReportingStatsByYear(
-    selectedCompany,
+    selectedCompany?.slug!,
     params.from!,
     params.to!,
     "voluntary"
@@ -83,7 +83,7 @@ const Statistics = () => {
     isLoading: isLoadingDynamicData,
     refetch: refetchDynamicChart,
   } = useGetDangerIdentificationsCountedByType(
-    selectedCompany,
+    selectedCompany?.slug!,
     params.from!,
     params.to!,
     "voluntary"
@@ -94,7 +94,7 @@ const Statistics = () => {
     isLoading: isLoadingPieCharData,
     refetch: refetchPieChart,
   } = useGetReportsCountedByArea(
-    selectedCompany,
+    selectedCompany?.slug!,
     params.from!,
     params.to!,
     "voluntary"
@@ -105,7 +105,7 @@ const Statistics = () => {
     isLoading: isLoadingRisk,
     refetch: refetchRisk,
   } = useGetRiskCountByDateRange(
-    selectedCompany,
+    selectedCompany?.slug!,
     params.from!,
     params.to!,
     "voluntary"
@@ -116,7 +116,7 @@ const Statistics = () => {
     isLoading: isLoadingPostRisk,
     refetch: refetchPostRisk,
   } = useGetPostRiskCountByDateRange(
-    selectedCompany,
+    selectedCompany?.slug!,
     params.from!,
     params.to!,
     "voluntary"
@@ -127,7 +127,7 @@ const Statistics = () => {
     isLoading: isLoadingReportsByLocationData,
     refetch: refetchAirportLocationData,
   } = useGetVoluntaryReportsCountedByAirportLocation(
-    selectedCompany,
+    selectedCompany?.slug!,
     params.from!,
     params.to!
   );
@@ -137,7 +137,7 @@ const Statistics = () => {
     isLoading: isLoadingSourceName,
     refetch: refetchDynamicSourceNameChart,
   } = useGetIdentificationStatsBySourceName(
-    selectedCompany,
+    selectedCompany?.slug!,
     params.from!,
     params.to!,
     "voluntary"
@@ -148,7 +148,7 @@ const Statistics = () => {
     isLoading: isLoadingSourceType,
     refetch: refetchDynamicSourceTypeChart,
   } = useGetIdentificationStatsBySourceType(
-    selectedCompany,
+    selectedCompany?.slug!,
     params.from!,
     params.to!,
     "voluntary"

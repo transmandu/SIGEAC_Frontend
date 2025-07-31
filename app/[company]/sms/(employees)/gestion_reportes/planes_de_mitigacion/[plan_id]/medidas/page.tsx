@@ -16,7 +16,7 @@ const MitigationMeasurePage = () => {
     data: mitigationMeasure,
     isLoading,
     isError,
-  } = useGetMitigationMeasure({ company: selectedCompany!.slug, plan_id });
+  } = useGetMitigationMeasure({ company: selectedCompany?.slug, plan_id });
 
   return (
     <ContentLayout title="Medidas de Mitigacion">

@@ -114,7 +114,7 @@ const Statistics = () => {
     isLoading: isLoadingBarChart,
     refetch: refetchBarChart,
   } = useGetVoluntaryReportingStatsByYear(
-    selectedCompany,
+    selectedCompany?.slug!,
     params.from!,
     params.to!,
     "obligatory"
@@ -125,7 +125,7 @@ const Statistics = () => {
     isLoading: isLoadingDynamicData,
     refetch: refetchDynamicChart,
   } = useGetDangerIdentificationsCountedByType(
-    selectedCompany,
+    selectedCompany?.slug!,
     params.from!,
     params.to!,
     "obligatory"
@@ -136,7 +136,7 @@ const Statistics = () => {
     isLoading: isLoadingPieCharData,
     refetch: refetchPieChart,
   } = useGetReportsCountedByArea(
-    selectedCompany,
+    selectedCompany?.slug!,
     params.from!,
     params.to!,
     "obligatory"
@@ -147,7 +147,7 @@ const Statistics = () => {
     isLoading: isLoadingRisk,
     refetch: refetchRisk,
   } = useGetRiskCountByDateRange(
-    selectedCompany,
+    selectedCompany?.slug!,
     params.from!,
     params.to!,
     "obligatory"
@@ -158,7 +158,7 @@ const Statistics = () => {
     isLoading: isLoadingPostRisk,
     refetch: refetchPostRisk,
   } = useGetPostRiskCountByDateRange(
-    selectedCompany,
+    selectedCompany?.slug!,
     params.from!,
     params.to!,
     "obligatory"
@@ -169,7 +169,7 @@ const Statistics = () => {
     isLoading: isLoadingSourceName,
     refetch: refetchDynamicSourceNameChart,
   } = useGetIdentificationStatsBySourceName(
-    selectedCompany,
+    selectedCompany?.slug!,
     params.from!,
     params.to!,
     "obligatory"
@@ -180,7 +180,7 @@ const Statistics = () => {
     isLoading: isLoadingSourceType,
     refetch: refetchDynamicSourceTypeChart,
   } = useGetIdentificationStatsBySourceType(
-    selectedCompany,
+    selectedCompany?.slug!,
     params.from!,
     params.to!,
     "obligatory"
@@ -369,9 +369,7 @@ const Statistics = () => {
               </div>
             ) : barChartData ? (
               <BarChartComponent
-                from={params.from!}
-                to={params.to!}
-                height="100%"
+                height="100%" 
                 width="100%"
                 data={barChartData}
                 title="Peligros Identificados vs Gestionados"

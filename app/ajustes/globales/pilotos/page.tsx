@@ -5,9 +5,11 @@ import { columns } from "./columns";
 import { DataTable } from "./data-table";
 import LoadingPage from "@/components/misc/LoadingPage";
 import { useGetPilots } from "@/hooks/sms/useGetPilots";
+import { useCompanyStore } from "@/stores/CompanyStore";
 
 const PilotsPage = () => {
-  const { data, isLoading, isError } = useGetPilots();
+  const { selectedCompany } = useCompanyStore();
+  const { data, isLoading, isError } = useGetPilots(selectedCompany?.slug);
   if (isLoading) {
     return <LoadingPage />;
   }

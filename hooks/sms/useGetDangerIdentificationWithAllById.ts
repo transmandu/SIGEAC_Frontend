@@ -1,5 +1,5 @@
 import axiosInstance from "@/lib/axios";
-import { DangerIdentificationWithAll, MitigationTable } from "@/types";
+import { MitigationTable } from "@/types";
 import { useQuery } from "@tanstack/react-query";
 
 const fetDangerIdentificationWithAllById = async ({

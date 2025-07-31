@@ -17,19 +17,20 @@ import { es } from "date-fns/locale";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { useTheme } from "next-themes";
+import { useCompanyStore } from "@/stores/CompanyStore";
 
 // Component for FollowUpControl cell
 const FollowUpControlCell = ({
   followUpControls,
   planId,
-  measureId
+  measureId,
 }: {
   followUpControls: FollowUpControl[];
   planId: string | number;
   measureId: string | number;
 }) => {
   const { theme } = useTheme();
-
+  const { selectedCompany } = useCompanyStore();
   return (
     <Badge className="flex flex-col justify-center h-8 bg-blue-300 rounded-full text-black">
       {followUpControls.length ? (
@@ -39,9 +40,11 @@ const FollowUpControlCell = ({
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogDescription className={`font-semibold ${
-                theme === "light" ? "text-black" : "text-white"
-              }`}>
+              <DialogDescription
+                className={`font-semibold ${
+                  theme === "light" ? "text-black" : "text-white"
+                }`}
+              >
                 Controles de Seguimiento de las Medidas
               </DialogDescription>
             </DialogHeader>
@@ -66,7 +69,7 @@ const FollowUpControlCell = ({
             </div>
 
             <Link
-              href={`/transmandu/sms/gestion_reportes/planes_de_mitigacion/${planId}/medidas/${measureId}/controles_de_seguimiento`}
+              href={`/${selectedCompany?.slug}/sms/gestion_reportes/planes_de_mitigacion/${planId}/medidas/${measureId}/controles_de_seguimiento`}
             >
               <div className="flex justify-end mt-4">
                 <Button className="w-1/3">Ver mas</Button>

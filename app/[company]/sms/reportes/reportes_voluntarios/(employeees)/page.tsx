@@ -9,7 +9,9 @@ import { DataTable } from "./data-table";
 
 const VoluntaryReportsPage = () => {
   const { selectedCompany } = useCompanyStore();
-  const { data, isLoading, isError } = useGetVoluntaryReports(selectedCompany);
+  const { data, isLoading, isError } = useGetVoluntaryReports(
+    selectedCompany?.slug
+  );
 
   if (isLoading) {
     return <LoadingPage />;

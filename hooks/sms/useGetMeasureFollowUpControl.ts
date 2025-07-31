@@ -3,14 +3,11 @@ import { FollowUpControl } from "@/types";
 import { useQuery } from "@tanstack/react-query";
 
 interface data {
-  company: string | null;
+  company?: string;
   measure_id: string;
 }
 
-const fetchMeasureFollowUpControl = async ({
-  company,
-  measure_id,
-}: data) => {
+const fetchMeasureFollowUpControl = async ({ company, measure_id }: data) => {
   const { data } = await axiosInstance.get(
     `/${company}/sms/measure/${measure_id}/controls`
   );

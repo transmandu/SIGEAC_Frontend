@@ -9,7 +9,9 @@ import { useCompanyStore } from "@/stores/CompanyStore";
 
 const ObligatoryReportsPage = () => {
   const { selectedCompany } = useCompanyStore();
-  const { data, isLoading, isError } = useGetObligatoryReports(selectedCompany);
+  const { data, isLoading, isError } = useGetObligatoryReports(
+    selectedCompany?.slug
+  );
   if (isLoading) {
     return <LoadingPage />;
   }

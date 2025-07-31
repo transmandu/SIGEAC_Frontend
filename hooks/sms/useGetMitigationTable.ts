@@ -3,13 +3,13 @@ import { MitigationTable } from "@/types";
 import { useQuery } from "@tanstack/react-query";
 
 const fetchMitigationTable = async (
-  company: string | null
+  company?: string
 ): Promise<MitigationTable[]> => {
   const { data } = await axiosInstance.get(`/${company}/sms/analysis`);
   return data;
 };
 
-export const useGetMitigationTable = (company: string | null) => {
+export const useGetMitigationTable = (company?: string) => {
   return useQuery<MitigationTable[]>({
     queryKey: ["analysis"],
     queryFn: () => fetchMitigationTable(company),

@@ -1,6 +1,7 @@
 "use client";
 import CreateDangerIdentificationDialog from "@/components/dialogs/CreateDangerIdentificationDialog";
 import CreateVoluntaryReportDialog from "@/components/dialogs/CreateVoluntaryReportDialog";
+import DeleteVoluntaryReportDialog from "@/components/dialogs/DeleteVoluntaryReportDialog";
 import DeleteVoluntaryReprotDialog from "@/components/dialogs/DeleteVoluntaryReportDialog";
 import PreviewVoluntaryReportPdfDialog from "@/components/dialogs/PreviewVoluntaryReportPdfDialog";
 import { ContentLayout } from "@/components/layout/ContentLayout";
@@ -41,7 +42,7 @@ const ShowVoluntaryReport = () => {
 
   const value = {
     id: report_id,
-    company: selectedCompany!.slug,
+    company: selectedCompany?.slug,
   };
 
   const {
@@ -88,8 +89,8 @@ const ShowVoluntaryReport = () => {
               />
             </div>
             <div className="flex items-center py-2">
-              <DeleteVoluntaryReprotDialog
-                company={selectedCompany}
+              <DeleteVoluntaryReportDialog
+                company={selectedCompany!.slug}
                 id={voluntaryReport.id.toString()}
               />
             </div>

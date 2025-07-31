@@ -27,7 +27,10 @@ const ShowDangerIdentification = () => {
     data: dangerIdentification,
     isLoading,
     isError,
-  } = useGetDangerIdentificationById(identification_id);
+  } = useGetDangerIdentificationById({
+    company: selectedCompany?.slug,
+    id: identification_id,
+  });
 
   const status =
     dangerIdentification?.voluntary_report?.status ??
@@ -67,7 +70,7 @@ const ShowDangerIdentification = () => {
             <div className="flex items-center py-2">
               <DeleteDangerIdentificationDialog
                 id={dangerIdentification.id}
-                company={selectedCompany}
+                company={selectedCompany!.slug}
               />
             </div>
           </>

@@ -14,7 +14,7 @@ const SMSTrainingPage = () => {
     data: employeeTraining,
     isLoading,
     isError,
-  } = useGetSMSTraining(selectedCompany);
+  } = useGetSMSTraining(selectedCompany?.slug);
 
   return (
     <ContentLayout title="Capacitacion de SMS">

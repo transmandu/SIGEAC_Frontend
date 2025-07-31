@@ -6,7 +6,7 @@ const fetcVoluntaryReportById = async ({
   company,
   id,
 }: {
-  company: string | null;
+  company?: string;
   id: string;
 }) => {
   const { data } = await axiosInstance.get(
@@ -40,7 +40,7 @@ export const useGetVoluntaryReportById = ({
   company,
   id,
 }: {
-  company: string | null;
+  company?: string;
   id: string;
 }) => {
   return useQuery<GetVoluntaryReport>({
