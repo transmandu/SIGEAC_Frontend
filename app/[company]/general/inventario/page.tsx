@@ -21,13 +21,13 @@ import { Input } from '@/components/ui/input';
 import SearchSection from './_components/SearchSection';
 
 const InventarioPage = () => {
-  const { selectedStation } = useCompanyStore();
+  const { selectedStation, selectedCompany } = useCompanyStore();
   const [searchTerm, setSearchTerm] = useState('');
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
   // Consultas a la API
   const { data: allBatches, isLoading: isLoadingBatches, isError: isBatchesError, error: batchesError } =
-    useGetBatchesWithArticlesCount(selectedStation ?? undefined);
+    useGetBatchesWithArticlesCount({company: selectedCompany?.slug, location_id: selectedStation ?? undefined});
 
   const { data: searchedBatches, isLoading: isLoadingSearch, isError: isSearchError, error: searchError } =
     useSearchBatchesByPartNumber(selectedStation ?? undefined, debouncedSearchTerm || undefined);

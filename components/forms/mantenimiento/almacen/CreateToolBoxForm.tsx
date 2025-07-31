@@ -85,10 +85,10 @@ export function CreateToolBoxForm({ onClose, initialData }: FormProps) {
   const isToolSelected = (value: string) => selectedTools.includes(value);
 
   useEffect(() => {
-    if (selectedStation) {
+    if (selectedStation && selectedCompany) {
       mutate({location_id: Number(selectedStation), company: selectedCompany!.slug})
     }
-  }, [selectedStation, mutate])
+  }, [selectedStation, mutate, selectedCompany])
 
   useEffect(() => {
     if (batches) {

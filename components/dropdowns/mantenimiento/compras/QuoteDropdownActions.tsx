@@ -38,9 +38,9 @@ const QuoteDropdownActions = ({ quote }: { quote: Quote }) => {
       company: selectedCompany!.slug,
     };
 
-    await updateStatusQuote.mutateAsync({ id, data });
+    await updateStatusQuote.mutateAsync({ id, data, company: selectedCompany!.slug });
     await updateStatusRequisition.mutateAsync({
-      id: quote.requisition_order.id, 
+      id: quote.requisition_order.id,
       data: {
         status: "PROCESO",
         updated_by: `${user?.first_name} ${user?.last_name}`,
@@ -69,10 +69,10 @@ const QuoteDropdownActions = ({ quote }: { quote: Quote }) => {
       company: selectedCompany!.slug,
     };
 
-    await updateStatusQuote.mutateAsync({ id, data });
+    await updateStatusQuote.mutateAsync({ id, data, company: selectedCompany!.slug });
     await createPurchaseOrder.mutateAsync({data: poData, company: selectedCompany!.slug});
     await updateStatusRequisition.mutateAsync({
-      id: quote.requisition_order.id, 
+      id: quote.requisition_order.id,
       data: {
         status: "APROBADO",
         updated_by: `${user?.first_name} ${user?.last_name}`,

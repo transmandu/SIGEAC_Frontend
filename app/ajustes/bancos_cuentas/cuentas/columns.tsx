@@ -85,13 +85,4 @@ export const columns: ColumnDef<BankAccount>[] = [
         <span className='font-bold flex justify-center italic'>{row.original.account_type}</span>
       </>
   },
-  {
-    id: "actions",
-    cell: ({ row }) => {
-      const id = row.original.id
-      return (
-        <WarehouseDropdownActions id={id.toString()} />
-      )
-    },
-  },
 ]

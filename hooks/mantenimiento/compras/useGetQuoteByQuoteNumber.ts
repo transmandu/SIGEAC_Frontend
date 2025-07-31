@@ -3,7 +3,7 @@ import { Quote } from '@/types';
 import { useQuery } from '@tanstack/react-query';
 
 const fetchQuoteByQuoteNumber = async (company: string | null, quote_number: string): Promise<Quote> => {
-  const {data} = await axiosInstance.get(`/show-quote/${company}/${quote_number}`);
+  const {data} = await axiosInstance.get(`/${company}/show-quote/${quote_number}`);
   return data[0];
 };
 

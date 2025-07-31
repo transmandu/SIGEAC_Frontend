@@ -9,7 +9,7 @@ const fetchPendingDispatchesRequests = async ({
   company: string;
   location_id?: string;
 }): Promise<DispatchRequest[]> => {
-  const { data } = await axios.get(`/${company}/show-dispatch-in-process/${location_id}`);
+  const { data } = await axios.get(`/${company}/${location_id}/show-dispatch-in-process`);
   return data;
 };
 

@@ -11,5 +11,6 @@ export const useGetMaintenanceAircrafts = (company?: string) => {
   return useQuery<MaintenanceAircraft[], Error>({
     queryKey: ["aircrafts", company],
     queryFn: () => fetchAircrafts(company),
+    enabled: !!company,
   });
 };

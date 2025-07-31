@@ -1,3 +1,5 @@
+"use client"
+
 import RegisterArticleForm from "@/components/forms/mantenimiento/almacen/RegisterArticleForm"
 import { ContentLayout } from "@/components/layout/ContentLayout"
 import { Breadcrumb, BreadcrumbEllipsis, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb"

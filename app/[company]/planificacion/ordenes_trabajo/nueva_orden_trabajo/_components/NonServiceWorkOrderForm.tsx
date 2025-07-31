@@ -65,7 +65,7 @@ const NonServiceWorkOrderForm = () => {
   const [tasks, setTasks] = useState<TaskInProgress[]>([]);
   const { selectedStation, selectedCompany } = useCompanyStore();
   const { createWorkOrder } = useCreateWorkOrder()
-  const { data: aircrafts, isLoading: isAircraftsLoading, isError: isAircraftsError } = useGetMaintenanceAircrafts();
+  const { data: aircrafts, isLoading: isAircraftsLoading, isError: isAircraftsError } = useGetMaintenanceAircrafts(selectedCompany?.slug);
   const router = useRouter();
 
   const form = useForm<ManualWorkOrderFormValues>({

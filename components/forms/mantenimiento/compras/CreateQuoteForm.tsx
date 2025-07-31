@@ -173,14 +173,14 @@ export function CreateQuoteForm({
         amount: Number(article.unit_price) * Number(article.quantity),
       })),
     };
-    await createQuote.mutateAsync(formattedData);
+    await createQuote.mutateAsync({ data: formattedData, company: selectedCompany!.slug });
     await updateStatusRequisition.mutateAsync({
       id: req.id,
       data: {
         status: "COTIZADO",
         updated_by: `${user?.first_name} ${user?.last_name}`,
-        company: selectedCompany!.slug,
       },
+      company: selectedCompany!.slug,
     });
     onClose();
   };

@@ -12,7 +12,7 @@ import {
   useReactTable,
 } from "@tanstack/react-table"
 
-import { CreateAdministrationRequisitionDialog } from "@/components/dialogs/CreateAdministrationRequisitionDialog"
+import { CreateRequisitionDialog } from "@/components/dialogs/CreateRequisitionDialog"
 import { DataTablePagination } from "@/components/tables/DataTablePagination"
 import { DataTableViewOptions } from "@/components/tables/DataTableViewOptions"
 import {
@@ -71,7 +71,7 @@ export function DataTable<TData, TValue>({
     <div>
       <div className="flex items-center py-4">
         <div className="flex gap-x-2 items-center">
-          <CreateAdministrationRequisitionDialog />
+          <CreateRequisitionDialog />
         </div>
         <DataTableViewOptions table={table} />
       </div>

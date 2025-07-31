@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { useAuth } from "@/contexts/AuthContext"
-import { useGetDepartamentEmployees } from "@/hooks/administracion/useGetDepartamentEmployees"
 import { cn } from "@/lib/utils"
 import { useCompanyStore } from "@/stores/CompanyStore"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -18,6 +17,7 @@ import { ScrollArea } from "../../../ui/scroll-area"
 import { Separator } from "../../../ui/separator"
 import { Textarea } from "../../../ui/textarea"
 import { useCreateRequisition } from "@/actions/aerolinea/compras/requisiciones/actions"
+import { useGetUserDepartamentEmployees } from "@/hooks/sistema/empleados/useGetUserDepartamentEmployees"
 
 const FormSchema = z.object({
   justification: z.string().min(2, { message: "La justificación debe ser válida." }),
@@ -55,7 +55,7 @@ interface BatchArticle {
 export function CreateAdministrationRequisitionForm({ onClose, initialData, isEditing, id }: FormProps) {
   const { user } = useAuth()
   const { selectedCompany, selectedStation } = useCompanyStore()
-  const { mutate: employeesMutation, data: employees, isPending: employeesLoading } = useGetDepartamentEmployees();
+  const { data: employees, isPending: employeesLoading } = useGetUserDepartamentEmployees(selectedCompany.slug);
   const { createRequisition } = useCreateRequisition()
   const [batches, setBatches] = useState<{ batch_articles: BatchArticle[] }[]>([{ batch_articles: [] }])
 
@@ -69,20 +69,15 @@ export function CreateAdministrationRequisitionForm({ onClose, initialData, isEd
   useEffect(() => {
     if (user && selectedCompany && selectedStation) {
       form.setValue("created_by", user.id.toString())
-      form.setValue("company", selectedCompany.split(" ").join(""))
+      form.setValue("company", selectedCompany.slug)
       form.setValue("location_id", selectedStation)
     }
     if (initialData && selectedCompany) {
       form.reset(initialData);
-      form.setValue("company", selectedCompany.split(" ").join(""))
+      form.setValue("company", selectedCompany.slug)
     }
   }, [user, initialData, form, selectedCompany, selectedStation])
 
-  useEffect(() => {
-    if (selectedStation) {
-      employeesMutation(Number(selectedStation))
-    }
-  }, [selectedStation, employeesMutation])
 
   useEffect(() => {
     form.setValue("articles", batches)

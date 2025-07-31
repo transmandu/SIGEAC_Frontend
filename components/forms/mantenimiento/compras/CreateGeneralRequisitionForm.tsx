@@ -111,7 +111,7 @@ export function CreateGeneralRequisitionForm({
 
   const { data: employees, isPending: employeesLoading } = useGetUserDepartamentEmployees(selectedCompany?.slug);
 
-  const { data: secondaryUnits, isLoading: secondaryUnitLoading } = useGetSecondaryUnits()
+  const { data: secondaryUnits, isLoading: secondaryUnitLoading } = useGetSecondaryUnits(selectedCompany?.slug);
 
   const { createRequisition } = useCreateRequisition();
 

@@ -15,8 +15,8 @@ const RequisitionsPage = () => {
   const { user } = useAuth();
   const { selectedCompany, selectedStation } = useCompanyStore();
   const { data: requisitions, isLoading, isError } = useGetRequisition(
-    selectedCompany?.slug || null,
-    selectedStation || null
+    selectedCompany?.slug,
+    selectedStation || undefined,
   );
 
   const [filteredRequisitions, setFilteredRequisitions] = useState<Requisition[]>([]);

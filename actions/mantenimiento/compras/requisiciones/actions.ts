@@ -92,7 +92,7 @@ export const useDeleteRequisition = () => {
 
   const deleteMutation = useMutation({
       mutationFn: async ({id, company}: {id: number, company: string}) => {
-          await axiosInstance.post(`/${company}/delete-requisition-order/${id}`, {company})
+          await axiosInstance.delete(`/${company}/delete-requisition-order/${id}`)
         },
       onSuccess: () => {
           queryClient.invalidateQueries({queryKey: ['requisitions-orders']})
