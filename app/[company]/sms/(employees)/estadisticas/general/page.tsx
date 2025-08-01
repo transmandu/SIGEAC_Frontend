@@ -306,7 +306,9 @@ const GeneralReportStats = () => {
                   height="100%"
                   width="100%"
                   data={barChartData}
-                  title="Peligros Identificados vs Gestionados"
+                    title="Peligros Identificados vs Gestionados"
+                    bar_first_name="Identificados"
+                    bar_second_name="Gestionados"
                 />
               )
             ) : (

@@ -7,6 +7,11 @@ import { useTheme } from "next-themes";
 import { useState } from "react";
 import { Cell, Pie, PieChart, ResponsiveContainer } from "recharts";
 
+// Función para truncar a 2 decimales sin redondear
+const formatPercent = (percent: number) => {
+  const fixed = Math.floor(percent * 10000) / 100; // Multiplicamos por 10000, truncamos y dividimos entre 100
+  return fixed.toFixed(2); // Aseguramos 2 decimales (puede terminar en .00)
+};
 
 interface CustomizedLabelProps {
   cx: number;
@@ -38,6 +43,7 @@ const PieChartComponent = ({
 }: PieChartComponentProps) => {
   const [activeIndex, setActiveIndex] = useState<number>(0);
   const { theme } = useTheme();
+
   const renderCustomizedLabel = ({
     cx,
     cy,
@@ -59,10 +65,10 @@ const PieChartComponent = ({
         fill={theme === "light" ? "black" : "white"}
         textAnchor={x > cx ? "start" : "end"}
         dominantBaseline="bottom"
-        fontSize="20px" // Ajusta el tamaño de la fuente
-        fontFamily="Arial" // Ajusta la fuente
+        fontSize="20px"
+        fontFamily="Arial"
       >
-        <tspan x={x} dy="-1em">{`${(percent * 100).toFixed(0)}%`}</tspan>
+        <tspan x={x} dy="-1em">{`${formatPercent(percent)}%`}</tspan>
         <tspan x={x} dy="1em">{`${payload.name}`}</tspan>
       </text>
     );
@@ -70,8 +76,8 @@ const PieChartComponent = ({
 
   const onPieEnter = (_: void, index: number) => {
     setActiveIndex(index);
-    //console.log(activeIndex);
   };
+
   return (
     <>
       <h1 className="text-sm font-semibold">{title}</h1>
@@ -106,4 +112,5 @@ const PieChartComponent = ({
     </>
   );
 };
+
 export default PieChartComponent;

@@ -2,7 +2,38 @@
 
 import { Company } from "@/types";
 import { format } from "date-fns";
-import { LucideIcon, LayoutGrid, CreditCardIcon, UserRoundCog, PackageSearch, ScrollText, SquarePen, ClipboardPen, ShieldAlert, AreaChartIcon, Activity, ClipboardList, HandCoins, Receipt, Landmark, BookUser, PackageOpen, PlaneIcon, PackagePlus, ClipboardCopy, Wrench, Plane, BookCheck, Drill, Award, Blocks, User2, Building2, Globe, Cat } from "lucide-react";
+import {
+  LucideIcon,
+  LayoutGrid,
+  CreditCardIcon,
+  UserRoundCog,
+  PackageSearch,
+  ScrollText,
+  SquarePen,
+  ClipboardPen,
+  ShieldAlert,
+  AreaChartIcon,
+  Activity,
+  ClipboardList,
+  HandCoins,
+  Receipt,
+  Landmark,
+  BookUser,
+  PackageOpen,
+  PlaneIcon,
+  PackagePlus,
+  ClipboardCopy,
+  Wrench,
+  Plane,
+  BookCheck,
+  Drill,
+  Award,
+  Blocks,
+  User2,
+  Building2,
+  Globe,
+  Cat,
+} from "lucide-react";
 
 type Submenu = {
   href: string;
@@ -36,8 +67,11 @@ export function getMenuList(
   const date = format(new Date(), "yyyy-MM-dd");
   // Verificar acceso por rol
   const hasRoleAccess = (menuItem: { roles?: string[] }): boolean => {
-    return !menuItem.roles || menuItem.roles.length === 0 ||
-           menuItem.roles.some(role => userRoles.includes(role));
+    return (
+      !menuItem.roles ||
+      menuItem.roles.length === 0 ||
+      menuItem.roles.some((role) => userRoles.includes(role))
+    );
   };
 
   // Verificar si el módulo está activo para la compañía
@@ -45,7 +79,7 @@ export function getMenuList(
     // Si no requiere módulo específico o no hay compañía seleccionada, está activo
     if (!moduleValue || !currentCompany) return true;
     // Verificar si la compañía tiene este módulo
-    return currentCompany.modules.some(m => m.value === moduleValue);
+    return currentCompany.modules.some((m) => m.value === moduleValue);
   };
 
   const fullMenu: Group[] = [
@@ -68,17 +102,41 @@ export function getMenuList(
       menus: [
         {
           href: `/${currentCompany?.slug}/general/cursos`,
-          label: "Cursos SMS",
-          roles: ["JEFE_ADMINISTRACION", "SUPERUSER", "JEFE_ALMACEN", "JEFE_COMPRAS", "JEFE_SMS", "JEFE_DESARROLLO", "JEFE_CONTADURIA", "JEFE_RRHH", "JEFE_OPERACIONES", "JEFE_MANTENIMIENTO", "JEFE_PLANIFICACION"],
-          submenus: [],
-          active:
-            pathname === `/${currentCompany?.slug}/general/cursos`,
+          label: "Cursos",
+          roles: [
+            "JEFE_ADMINISTRACION",
+            "SUPERUSER",
+            "JEFE_ALMACEN",
+            "JEFE_COMPRAS",
+            "JEFE_SMS",
+            "JEFE_DESARROLLO",
+            "JEFE_CONTADURIA",
+            "JEFE_RRHH",
+            "JEFE_OPERACIONES",
+            "JEFE_MANTENIMIENTO",
+            "JEFE_PLANIFICACION",
+          ],
+          active: pathname === `/${currentCompany?.slug}/general/cursos`,
           icon: Cat,
+          submenus: [
+            {
+              href: `/${currentCompany?.slug}/general/cursos`,
+              label: "Lista de Cursos",
+              active: pathname === `/${currentCompany?.slug}/general/cursos`,
+            },
+            {
+              href: `/${currentCompany?.slug}/general/cursos/estadisticas`,
+              label: "Estadisticas",
+              active: pathname === `/${currentCompany?.slug}/general/cursos/estadisticas`,
+            },
+          ],
         },
         {
           href: `/${currentCompany?.slug}/general/inventario`,
           label: "Inventario",
-          active: pathname.includes(`/${currentCompany?.slug}/general/inventario`),
+          active: pathname.includes(
+            `/${currentCompany?.slug}/general/inventario`
+          ),
           icon: PackageSearch,
           roles: [],
           submenus: [],
@@ -86,7 +144,9 @@ export function getMenuList(
         {
           href: `/${currentCompany?.slug}/general/requisiciones`,
           label: "Requisiciones",
-          active: pathname.includes(`/${currentCompany?.slug}/general/requisiciones`),
+          active: pathname.includes(
+            `/${currentCompany?.slug}/general/requisiciones`
+          ),
           icon: ScrollText,
           roles: [],
           submenus: [],
@@ -94,33 +154,33 @@ export function getMenuList(
       ],
     },
     {
-            groupLabel: "Desarrollo",
-            moduleValue: "development",
-            menus: [
-              {
-                href: `/${currentCompany?.slug}/desarrollo`,
-                label: "Actividades",
-                active: pathname.includes(`/${currentCompany?.slug}/desarrollo`),
-                icon: SquarePen,
-                roles: ["ANALISTA_DESARROLLO", "JEFE_DESARROLLO", "SUPERUSER"],
-                submenus: [
-                  {
-                    href: `/${currentCompany?.slug}/desarrollo/actividades_diarias/registro/${date}/`,
-                    label: "Registro de Actividades",
-                    active:
-                      pathname ===
-                      `/${currentCompany?.slug}/desarrollo/actividades_diarias/registro/`,
-                  },
-                  {
-                    href: `/${currentCompany?.slug}/desarrollo/actividades_diarias`,
-                    label: "Gestion de Actividades",
-                    active:
-                      pathname ===
-                      `/${currentCompany?.slug}/desarrollo/actividades_diarias/`,
-                  },
-                ],
-              },
-            ],
+      groupLabel: "Desarrollo",
+      moduleValue: "development",
+      menus: [
+        {
+          href: `/${currentCompany?.slug}/desarrollo`,
+          label: "Actividades",
+          active: pathname.includes(`/${currentCompany?.slug}/desarrollo`),
+          icon: SquarePen,
+          roles: ["ANALISTA_DESARROLLO", "JEFE_DESARROLLO", "SUPERUSER"],
+          submenus: [
+            {
+              href: `/${currentCompany?.slug}/desarrollo/actividades_diarias/registro/${date}/`,
+              label: "Registro de Actividades",
+              active:
+                pathname ===
+                `/${currentCompany?.slug}/desarrollo/actividades_diarias/registro/`,
+            },
+            {
+              href: `/${currentCompany?.slug}/desarrollo/actividades_diarias`,
+              label: "Gestion de Actividades",
+              active:
+                pathname ===
+                `/${currentCompany?.slug}/desarrollo/actividades_diarias/`,
+            },
+          ],
+        },
+      ],
     },
     {
       groupLabel: "Administración",
@@ -349,7 +409,9 @@ export function getMenuList(
         {
           href: `/${currentCompany?.slug}/sms`,
           label: "Gestion de Reportes",
-          active: pathname.includes(`/${currentCompany?.slug}/sms/gestion_reportes`),
+          active: pathname.includes(
+            `/${currentCompany?.slug}/sms/gestion_reportes`
+          ),
           icon: ShieldAlert,
           roles: ["ANALISTA_SMS", "JEFE_SMS", "SUPERUSER"],
           submenus: [
@@ -375,91 +437,99 @@ export function getMenuList(
           href: `/${currentCompany?.slug}/sms`,
           label: "Estadisticas",
           icon: AreaChartIcon,
-          active: pathname.includes(`/${currentCompany?.slug}/sms/estadisticas`),
+          active: pathname.includes(
+            `/${currentCompany?.slug}/sms/estadisticas`
+          ),
           roles: ["ANALISTA_SMS", "JEFE_SMS", "SUPERUSER"],
           submenus: [
             {
               href: `/${currentCompany?.slug}/sms/estadisticas/general`,
               label: "General",
               roles: ["ANALISTA_SMS", "JEFE_SMS", "SUPERUSER"],
-              active: pathname === `/${currentCompany?.slug}/sms/estadisticas/general`,
+              active:
+                pathname ===
+                `/${currentCompany?.slug}/sms/estadisticas/general`,
             },
 
-          {
-            href: `/${currentCompany?.slug}/sms/estadisticas/reportes_voluntarios`,
-            label: "Reportes Voluntarios",
-            roles: ["ANALISTA_SMS", "JEFE_SMS", "SUPERUSER"],
-            active:
-              pathname ===
-              `/${currentCompany?.slug}/sms/estadisticas/reportes_voluntarios`,
-          },
-          {
-            href: `/${currentCompany?.slug}/sms/estadisticas/reportes_obligatorios`,
-            label: "Reportes Obligatorios",
-            roles: ["ANALISTA_SMS", "JEFE_SMS", "SUPERUSER"],
-            active:
-              pathname ===
-              `/${currentCompany?.slug}/sms/estadisticas/reportes_obligatorios`,
-          },
-          {
-            href: `/${currentCompany?.slug}/sms/estadisticas/indicadores_riesgo`,
-            label: "Indicadores de Riesgo",
-            roles: ["ANALISTA_SMS", "JEFE_SMS", "SUPERUSER"],
-            active:
-              pathname ===
-              `/${currentCompany?.slug}/sms/estadisticas/indicadores_riesgo`,
-          },
-        ],
-      },
-      {
-        href: "",
-        label: "Planificacion",
-        active: pathname.includes(`/${currentCompany?.slug}/sms/planificacion`),
-        icon: Activity,
-        roles: ["SUPERUSER"],
-        submenus: [
-          {
-            href: `/${currentCompany?.slug}/sms/planificacion/actividades`,
-            label: "Actividades SMS",
-            roles: ["SUPERUSER"],
-            active: pathname === `/${currentCompany?.slug}/planificacion/actividades`,
-          },
-          {
-                    href: `/${currentCompany?.slug}/sms/planificacion/capacitacion_personal`,
-                    label: "Capacitacion SMS",
-                    roles: ["SUPERUSER"],
-                    active:
-                      pathname ===
-                      `/${currentCompany?.slug}/planificacion/capacitacion_personal`,
-                  },
-        ],
-      },
-      {
-        href: `/${currentCompany?.slug}/sms`,
-        label: "Reportes",
-        active: pathname.includes(`/${currentCompany?.slug}/sms`),
-        icon: ClipboardPen,
-        roles: [],
-        submenus: [
-          {
-            href: `/${currentCompany?.slug}/sms/reportes/reportes_voluntarios/nuevo_reporte`,
-            label: "Reportes Voluntarios",
-            roles: [],
-            active:
-              pathname ===
-              `/${currentCompany?.slug}/sms/reportes/reportes_voluntarios/nuevo_reporte`,
-          },
-          {
-            href: `/${currentCompany?.slug}/sms/reportes/reportes_obligatorios/nuevo_reporte`,
-            label: "Reportes Obligatorios",
-            roles: [],
-            active:
-              pathname ===
-              `/${currentCompany?.slug}/sms/reportes/reportes_obligatorios/nuevo_reporte`,
-          },
-        ],
-      },
-    ],
+            {
+              href: `/${currentCompany?.slug}/sms/estadisticas/reportes_voluntarios`,
+              label: "Reportes Voluntarios",
+              roles: ["ANALISTA_SMS", "JEFE_SMS", "SUPERUSER"],
+              active:
+                pathname ===
+                `/${currentCompany?.slug}/sms/estadisticas/reportes_voluntarios`,
+            },
+            {
+              href: `/${currentCompany?.slug}/sms/estadisticas/reportes_obligatorios`,
+              label: "Reportes Obligatorios",
+              roles: ["ANALISTA_SMS", "JEFE_SMS", "SUPERUSER"],
+              active:
+                pathname ===
+                `/${currentCompany?.slug}/sms/estadisticas/reportes_obligatorios`,
+            },
+            {
+              href: `/${currentCompany?.slug}/sms/estadisticas/indicadores_riesgo`,
+              label: "Indicadores de Riesgo",
+              roles: ["ANALISTA_SMS", "JEFE_SMS", "SUPERUSER"],
+              active:
+                pathname ===
+                `/${currentCompany?.slug}/sms/estadisticas/indicadores_riesgo`,
+            },
+          ],
+        },
+        {
+          href: "",
+          label: "Planificacion",
+          active: pathname.includes(
+            `/${currentCompany?.slug}/sms/planificacion`
+          ),
+          icon: Activity,
+          roles: ["SUPERUSER"],
+          submenus: [
+            {
+              href: `/${currentCompany?.slug}/sms/planificacion/actividades`,
+              label: "Actividades SMS",
+              roles: ["SUPERUSER"],
+              active:
+                pathname ===
+                `/${currentCompany?.slug}/planificacion/actividades`,
+            },
+            {
+              href: `/${currentCompany?.slug}/sms/planificacion/capacitacion_personal`,
+              label: "Capacitacion SMS",
+              roles: ["SUPERUSER"],
+              active:
+                pathname ===
+                `/${currentCompany?.slug}/planificacion/capacitacion_personal`,
+            },
+          ],
+        },
+        {
+          href: `/${currentCompany?.slug}/sms`,
+          label: "Reportes",
+          active: pathname.includes(`/${currentCompany?.slug}/sms`),
+          icon: ClipboardPen,
+          roles: [],
+          submenus: [
+            {
+              href: `/${currentCompany?.slug}/sms/reportes/reportes_voluntarios/nuevo_reporte`,
+              label: "Reportes Voluntarios",
+              roles: [],
+              active:
+                pathname ===
+                `/${currentCompany?.slug}/sms/reportes/reportes_voluntarios/nuevo_reporte`,
+            },
+            {
+              href: `/${currentCompany?.slug}/sms/reportes/reportes_obligatorios/nuevo_reporte`,
+              label: "Reportes Obligatorios",
+              roles: [],
+              active:
+                pathname ===
+                `/${currentCompany?.slug}/sms/reportes/reportes_obligatorios/nuevo_reporte`,
+            },
+          ],
+        },
+      ],
     },
     {
       groupLabel: "Compras",
@@ -468,7 +538,9 @@ export function getMenuList(
         {
           href: `/${currentCompany?.slug}/compras/requisiciones`,
           label: "Requisiciones",
-          active: pathname.includes(`/${currentCompany?.slug}/compras/requisiciones`),
+          active: pathname.includes(
+            `/${currentCompany?.slug}/compras/requisiciones`
+          ),
           icon: ClipboardList,
           roles: ["ANALISTA_COMPRAS", "JEFE_COMPRAS", "SUPERUSER"],
           submenus: [],
@@ -476,7 +548,9 @@ export function getMenuList(
         {
           href: `/${currentCompany?.slug}/compras/cotizaciones`,
           label: "Cotizaciones",
-          active: pathname.includes(`/${currentCompany?.slug}/compras/cotizaciones`),
+          active: pathname.includes(
+            `/${currentCompany?.slug}/compras/cotizaciones`
+          ),
           icon: HandCoins,
           roles: ["ANALISTA_COMPRAS", "JEFE_COMPRAS", "SUPERUSER"],
           submenus: [],
@@ -484,9 +558,16 @@ export function getMenuList(
         {
           href: `/${currentCompany?.slug}/compras/ordenes_compra`,
           label: "Ordenes de Compra",
-          active: pathname.includes(`/${currentCompany?.slug}/compras/ordenes_compra`),
+          active: pathname.includes(
+            `/${currentCompany?.slug}/compras/ordenes_compra`
+          ),
           icon: Receipt,
-          roles: ["ANALISTA_COMPRAS", "JEFE_COMPRAS", "SUPERUSER", "JEFE_ADMINISTRACION"],
+          roles: [
+            "ANALISTA_COMPRAS",
+            "JEFE_COMPRAS",
+            "SUPERUSER",
+            "JEFE_ADMINISTRACION",
+          ],
           submenus: [],
         },
       ],
@@ -537,7 +618,9 @@ export function getMenuList(
         {
           href: "",
           label: "Solicitudes",
-          active: pathname.includes(`/${currentCompany?.slug}/almacen/solicitudes`),
+          active: pathname.includes(
+            `/${currentCompany?.slug}/almacen/solicitudes`
+          ),
           icon: ClipboardCopy,
           roles: ["ANALISTA_ALMACEN", "JEFE_ALMACEN", "SUPERUSER"],
           submenus: [
@@ -545,19 +628,24 @@ export function getMenuList(
               href: `/${currentCompany?.slug}/almacen/solicitudes/pendiente`,
               label: "Pendiente",
               active:
-                pathname === `/${currentCompany?.slug}/almacen/solicitudes/pendiente`,
+                pathname ===
+                `/${currentCompany?.slug}/almacen/solicitudes/pendiente`,
             },
             {
               href: `/${currentCompany?.slug}/almacen/solicitudes/salida`,
               label: "Salida",
-              active: pathname === `/${currentCompany?.slug}/almacen/solicitudes/salida`,
+              active:
+                pathname ===
+                `/${currentCompany?.slug}/almacen/solicitudes/salida`,
             },
           ],
         },
         {
           href: `/${currentCompany?.slug}/almacen/inventario`,
           label: "Inventario",
-          active: pathname.includes(`/${currentCompany?.slug}/almacen/inventario`),
+          active: pathname.includes(
+            `/${currentCompany?.slug}/almacen/inventario`
+          ),
           icon: PackageOpen,
           roles: ["ANALISTA_ALMACEN", "JEFE_ALMACEN", "SUPERUSER"],
           submenus: [
@@ -565,14 +653,17 @@ export function getMenuList(
               href: `/${currentCompany?.slug}/almacen/inventario/gestion`,
               label: "Gestión",
               active:
-                pathname === `/${currentCompany?.slug}/almacen/inventario/gestion` ||
-                pathname === `/${currentCompany?.slug}/almacen/inventario/gestion/crear`,
+                pathname ===
+                  `/${currentCompany?.slug}/almacen/inventario/gestion` ||
+                pathname ===
+                  `/${currentCompany?.slug}/almacen/inventario/gestion/crear`,
             },
             {
               href: `/${currentCompany?.slug}/almacen/inventario/entregado`,
               label: "Entregado",
               active:
-                pathname === `/${currentCompany?.slug}/almacen/inventario/entregado`,
+                pathname ===
+                `/${currentCompany?.slug}/almacen/inventario/entregado`,
             },
           ],
         },
@@ -599,41 +690,38 @@ export function getMenuList(
             `/${currentCompany?.slug}/planificacion/ordenes_trabajo`
           ),
           icon: SquarePen,
-          roles: [
-            "ANALISTA_ADMINISTRACION",
-            "JEFE_PLANIFICACION",
-            "SUPERUSER",
-          ],
+          roles: ["ANALISTA_ADMINISTRACION", "JEFE_PLANIFICACION", "SUPERUSER"],
           submenus: [
             {
               href: `/${currentCompany?.slug}/planificacion/ordenes_trabajo/`,
               label: "Gestionar Ordenes",
               active:
-                pathname === `/${currentCompany?.slug}/planificacion/ordenes_trabajo`,
+                pathname ===
+                `/${currentCompany?.slug}/planificacion/ordenes_trabajo`,
             },
           ],
         },
         {
           href: `/${currentCompany?.slug}/planificacion/aeronaves`,
           label: "Aeronaves",
-          active: pathname.includes(`/${currentCompany?.slug}/planificacion/reportes`),
+          active: pathname.includes(
+            `/${currentCompany?.slug}/planificacion/reportes`
+          ),
           icon: Plane,
-          roles: [
-            "ANALISTA_PLANIFICACION",
-            "JEFE_PLANIFICACION",
-            "SUPERUSER",
-          ],
+          roles: ["ANALISTA_PLANIFICACION", "JEFE_PLANIFICACION", "SUPERUSER"],
           submenus: [
             {
               href: `/${currentCompany?.slug}/planificacion/aeronaves`,
               label: "Gestión de Aeronaves",
-              active: pathname === `/${currentCompany?.slug}/planificacion/aeronaves`,
+              active:
+                pathname === `/${currentCompany?.slug}/planificacion/aeronaves`,
             },
             {
               href: `/${currentCompany?.slug}/planificacion/aeronaves/partes`,
               label: "Gestión de Partes",
               active:
-                pathname === `/${currentCompany?.slug}/planificacion/aeronaves/partes`,
+                pathname ===
+                `/${currentCompany?.slug}/planificacion/aeronaves/partes`,
             },
           ],
         },
@@ -644,11 +732,7 @@ export function getMenuList(
             `/${currentCompany?.slug}/planificacion/control_vuelos`
           ),
           icon: BookCheck,
-          roles: [
-            "ANALISTA_PLANIFICACION",
-            "JEFE_PLANIFICACION",
-            "SUPERUSER",
-          ],
+          roles: ["ANALISTA_PLANIFICACION", "JEFE_PLANIFICACION", "SUPERUSER"],
           submenus: [
             {
               href: `/${currentCompany?.slug}/planificacion/control_vuelos/vuelos`,
@@ -675,13 +759,11 @@ export function getMenuList(
         {
           href: `/${currentCompany?.slug}/mantenimiento/servicios`,
           label: "Servicios",
-          active: pathname.includes(`/${currentCompany?.slug}/mantenimiento/servicios`),
+          active: pathname.includes(
+            `/${currentCompany?.slug}/mantenimiento/servicios`
+          ),
           icon: Drill,
-          roles: [
-            "ANALISTA_PLANIFICACION",
-            "JEFE_PLANIFICACION",
-            "SUPERUSER",
-          ],
+          roles: ["ANALISTA_PLANIFICACION", "JEFE_PLANIFICACION", "SUPERUSER"],
           submenus: [],
         },
       ],
@@ -693,7 +775,9 @@ export function getMenuList(
         {
           href: `/${currentCompany?.slug}/ingenieria/certificados`,
           label: "Certificados",
-          active: pathname.includes(`/${currentCompany?.slug}/ingenieria/certificados`),
+          active: pathname.includes(
+            `/${currentCompany?.slug}/ingenieria/certificados`
+          ),
           icon: Award,
           roles: ["SUPERUSER"],
           submenus: [],
@@ -752,7 +836,11 @@ export function getMenuList(
           label: "Bancos",
           active: pathname.includes("/bancos_cuentas"),
           icon: Landmark,
-          roles: ["SUPERUSER", "ANALISTA_ADMINISTRACION", "JEFE_ADMINISTRACION"],
+          roles: [
+            "SUPERUSER",
+            "ANALISTA_ADMINISTRACION",
+            "JEFE_ADMINISTRACION",
+          ],
           submenus: [
             {
               href: "/ajustes/bancos_cuentas/bancos",
@@ -790,8 +878,7 @@ export function getMenuList(
           active: pathname.includes("/sistema/modulos"),
           icon: Blocks,
           roles: ["ADMIN", "SUPERUSER"],
-          submenus: [
-          ],
+          submenus: [],
         },
         {
           href: "/sistema/usuarios_permisos",
@@ -861,25 +948,25 @@ export function getMenuList(
   ];
 
   // 4. Filtrar el menú completo
-  return fullMenu
-    // Filtrar grupos por módulo activo
-    .filter(group => isModuleActive(group.moduleValue))
-    // Filtrar menús y submenús
-    .map(group => ({
-      ...group,
-      menus: group.menus
-        .filter(menu =>
-          isModuleActive(menu.moduleValue) &&
-          hasRoleAccess(menu)
-        )
-        .map(menu => ({
-          ...menu,
-          submenus: menu.submenus.filter(sub =>
-            isModuleActive(sub.moduleValue) &&
-            hasRoleAccess(sub)
-          ),
-        })),
-    }))
-    // Eliminar grupos vacíos
-    .filter(group => group.menus.length > 0);
+  return (
+    fullMenu
+      // Filtrar grupos por módulo activo
+      .filter((group) => isModuleActive(group.moduleValue))
+      // Filtrar menús y submenús
+      .map((group) => ({
+        ...group,
+        menus: group.menus
+          .filter(
+            (menu) => isModuleActive(menu.moduleValue) && hasRoleAccess(menu)
+          )
+          .map((menu) => ({
+            ...menu,
+            submenus: menu.submenus.filter(
+              (sub) => isModuleActive(sub.moduleValue) && hasRoleAccess(sub)
+            ),
+          })),
+      }))
+      // Eliminar grupos vacíos
+      .filter((group) => group.menus.length > 0)
+  );
 }

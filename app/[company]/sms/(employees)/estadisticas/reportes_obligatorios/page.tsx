@@ -369,10 +369,12 @@ const Statistics = () => {
               </div>
             ) : barChartData ? (
               <BarChartComponent
-                height="100%" 
+                height="100%"
                 width="100%"
                 data={barChartData}
                 title="Peligros Identificados vs Gestionados"
+                bar_first_name="Identificados"
+                bar_second_name="Gestionados"
               />
             ) : (
               <p className="text-sm text-muted-foreground">

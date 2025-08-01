@@ -200,7 +200,7 @@ export type Company = {
   id: number;
   name: string;
   description: string;
-  slug: string,
+  slug: string;
   rif: string;
   cod_inac: string;
   fiscal_address: string;
@@ -214,11 +214,11 @@ export type Company = {
 };
 
 export type Module = {
-  id: number,
-  label: string,
-  value: string,
-  registered_by: string,
-}
+  id: number;
+  label: string;
+  value: string;
+  registered_by: string;
+};
 
 export interface ComponentArticle extends Article {
   caducate_date?: string;
@@ -479,7 +479,6 @@ export type Manufacturer = {
   type: "AIRCRAFT" | "PART";
   description: string;
 };
-
 
 export type Vendor = {
   id: string | number;
@@ -923,10 +922,10 @@ export type DangerIdentificationsByType = {
   identifications_number: string;
 };
 
-export type ReportingStats = {
-  total_reports: number;
-  open_reports: number;
-  closed_reports: number;
+export type GeneralStats = {
+  total: number;
+  open: number;
+  closed: number;
 };
 
 export type pieChartData = {
@@ -1017,4 +1016,10 @@ export type SMSTraining = {
   expiration: Date;
   status: string;
   is_initial: boolean;
+};
+
+export type CourseStats = {
+  pending_courses: number;
+  completed_courses: number;
+  total_courses: number;
 };

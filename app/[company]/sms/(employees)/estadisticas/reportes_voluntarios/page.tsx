@@ -329,6 +329,8 @@ const Statistics = () => {
                 width="100%"
                 data={barChartData}
                 title="Peligros Identificados"
+                bar_first_name="Identificados"
+                bar_second_name="Gestionados"
               />
             ) : (
               <p className="text-sm text-muted-foreground">

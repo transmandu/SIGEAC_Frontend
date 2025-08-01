@@ -78,15 +78,15 @@ const VoluntaryReportIndicators = () => {
       setResultArrayData([
         {
           name: "Reportes en Proceso",
-          value: barChartData.open_reports,
+          value: barChartData.open,
         },
         {
           name: "Reportes Gestionados",
-          value: barChartData.closed_reports,
+          value: barChartData.closed,
         },
       ]);
       setResult(
-        (barChartData.closed_reports * 100) / barChartData.total_reports
+        (barChartData.closed * 100) / barChartData.total
       );
     } else {
       setResultArrayData([]);
@@ -120,6 +120,8 @@ const VoluntaryReportIndicators = () => {
                   width="100%"
                   data={barChartData}
                   title="Peligros Identificados vs Gestionados"
+                  bar_first_name="Identificados"
+                  bar_second_name="Gestionados"
                 />
               )
             ) : (
