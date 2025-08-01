@@ -87,9 +87,9 @@ const GeneralReportStats = () => {
     isError: isErrorBarChart,
     refetch: refetchBarChart,
   } = useGetTotalReportsStatsByYear(
-    selectedCompany?.slug!,
     params.from || format(startOfMonth(new Date()), "yyyy-MM-dd"),
-    params.to || format(new Date(), "yyyy-MM-dd")
+    params.to || format(new Date(), "yyyy-MM-dd"),
+    selectedCompany?.slug
   );
 
   const {
@@ -98,9 +98,9 @@ const GeneralReportStats = () => {
     isError: isErrorIdentificationData,
     refetch: refetchIdentificationData,
   } = useGetTotalDangerIdentificationsCountedByType(
-    selectedCompany?.slug!,
     params.from || format(startOfMonth(new Date()), "yyyy-MM-dd"),
-    params.to || format(new Date(), "yyyy-MM-dd")
+    params.to || format(new Date(), "yyyy-MM-dd"),
+    selectedCompany?.slug
   );
 
   const {
@@ -109,9 +109,9 @@ const GeneralReportStats = () => {
     isError: isErrorReportsByAreaData,
     refetch: refetchReportsByAreaData,
   } = useGetTotalReportsCountedByArea(
-    selectedCompany?.slug!,
     params.from || format(startOfMonth(new Date()), "yyyy-MM-dd"),
-    params.to || format(new Date(), "yyyy-MM-dd")
+    params.to || format(new Date(), "yyyy-MM-dd"),
+    selectedCompany?.slug
   );
 
   const {
@@ -120,9 +120,9 @@ const GeneralReportStats = () => {
     isError: isErrorTotalRiskData,
     refetch: refetchTotalRiskData,
   } = useGetTotalRiskCountByDateRange(
-    selectedCompany?.slug!,
     params.from || format(startOfMonth(new Date()), "yyyy-MM-dd"),
-    params.to || format(new Date(), "yyyy-MM-dd")
+    params.to || format(new Date(), "yyyy-MM-dd"),
+    selectedCompany?.slug
   );
 
   const {
@@ -131,9 +131,9 @@ const GeneralReportStats = () => {
     isError: isErrorReportSourceTypeData,
     refetch: refetchReportSourceTypeChart,
   } = useGetTotalIdentificationStatsBySourceType(
-    selectedCompany?.slug!,
     params.from || format(startOfMonth(new Date()), "yyyy-MM-dd"),
-    params.to || format(new Date(), "yyyy-MM-dd")
+    params.to || format(new Date(), "yyyy-MM-dd"),
+    selectedCompany?.slug
   );
 
   const {
@@ -142,9 +142,9 @@ const GeneralReportStats = () => {
     isError: isErrorReportSourceNameData,
     refetch: refetchReportSourceNameChart,
   } = useGetTotalIdentificationStatsBySourceName(
-    selectedCompany?.slug!,
     params.from || format(startOfMonth(new Date()), "yyyy-MM-dd"),
-    params.to || format(new Date(), "yyyy-MM-dd")
+    params.to || format(new Date(), "yyyy-MM-dd"),
+    selectedCompany?.slug
   );
 
   const {
@@ -153,9 +153,9 @@ const GeneralReportStats = () => {
     isError: isErrorTotalPostRiskData,
     refetch: refetchTotalPostRiskData,
   } = useGetTotalPostRiskCountByDateRange(
-    selectedCompany?.slug!,
     params.from || format(startOfMonth(new Date()), "yyyy-MM-dd"),
-    params.to || format(new Date(), "yyyy-MM-dd")
+    params.to || format(new Date(), "yyyy-MM-dd"),
+    selectedCompany?.slug
   );
 
   useEffect(() => {

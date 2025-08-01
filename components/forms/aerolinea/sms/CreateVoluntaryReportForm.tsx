@@ -38,7 +38,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
 import { VoluntaryReport } from "@/types";
-import { format } from "date-fns";
+import { addDays, format } from "date-fns";
 import { es } from "date-fns/locale";
 import { CalendarIcon, Loader2 } from "lucide-react";
 import Image from "next/image";
@@ -59,6 +59,7 @@ export function CreateVoluntaryReportForm({
   isEditing,
   initialData,
 }: FormProps) {
+  console.log("initial data thattt ", initialData);
   const { selectedCompany, selectedStation } = useCompanyStore();
   const { createVoluntaryReport } = useCreateVoluntaryReport();
   const { updateVoluntaryReport } = useUpdateVoluntaryReport();
@@ -187,11 +188,13 @@ export function CreateVoluntaryReportForm({
       description: initialData?.description || "",
       possible_consequences: initialData?.possible_consequences || "",
       airport_location: initialData?.airport_location || "",
+      
       identification_date: initialData?.identification_date
-        ? new Date(initialData.identification_date)
+        ? addDays(new Date(initialData.identification_date), 1)
         : new Date(),
+      
       report_date: initialData?.report_date
-        ? new Date(initialData.report_date)
+        ? addDays(new Date(initialData.report_date), 1)
         : new Date(),
 
       // Campos del reporter - solo se asignan si existen en initialData

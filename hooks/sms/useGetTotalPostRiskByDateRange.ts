@@ -3,9 +3,9 @@ import { pieChartData } from "@/types";
 import { useQuery } from "@tanstack/react-query";
 
 const fetchTotalPostRiskCountByDateRange = async (
-  company: string | null,
   from: string,
-  to: string
+  to: string,
+  company?: string
 ): Promise<pieChartData[]> => {
   const { data } = await axiosInstance.get(
     `/${company}/sms/total-post-risk/count-by-date-range?from=${from}&to=${to}`
@@ -14,13 +14,13 @@ const fetchTotalPostRiskCountByDateRange = async (
 };
 
 export const useGetTotalPostRiskCountByDateRange = (
-  company: string | null,
   from: string,
-  to: string
+  to: string,
+  company?: string
 ) => {
   return useQuery<pieChartData[]>({
     queryKey: ["total-post-risk-count-by-date-range"],
-    queryFn: () => fetchTotalPostRiskCountByDateRange(company, from, to),
+    queryFn: () => fetchTotalPostRiskCountByDateRange(from, to, company),
     staleTime: 1000 * 60 * 5, // 5 minutos
     enabled: !!company,
   });

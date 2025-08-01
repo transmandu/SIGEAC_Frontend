@@ -2,7 +2,6 @@
 import CreateDangerIdentificationDialog from "@/components/dialogs/CreateDangerIdentificationDialog";
 import CreateVoluntaryReportDialog from "@/components/dialogs/CreateVoluntaryReportDialog";
 import DeleteVoluntaryReportDialog from "@/components/dialogs/DeleteVoluntaryReportDialog";
-import DeleteVoluntaryReprotDialog from "@/components/dialogs/DeleteVoluntaryReportDialog";
 import PreviewVoluntaryReportPdfDialog from "@/components/dialogs/PreviewVoluntaryReportPdfDialog";
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import { Badge } from "@/components/ui/badge";
@@ -16,6 +15,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { useGetVoluntaryReportById } from "@/hooks/sms/useGetVoluntaryReportById";
+import { dateFormat } from "@/lib/utils";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -39,17 +39,14 @@ import { useParams } from "next/navigation";
 const ShowVoluntaryReport = () => {
   const { report_id } = useParams<{ report_id: string }>();
   const { selectedCompany } = useCompanyStore();
-
-  const value = {
-    id: report_id,
-    company: selectedCompany?.slug,
-  };
-
   const {
     data: voluntaryReport,
     isLoading,
     isError,
-  } = useGetVoluntaryReportById(value);
+  } = useGetVoluntaryReportById({
+    id: report_id,
+    company: selectedCompany?.slug,
+  });
 
   return (
     <ContentLayout title="Reportes Voluntarios">
@@ -71,7 +68,7 @@ const ShowVoluntaryReport = () => {
             <div className="flex items-center py-2">
               <Button variant="outline" size="sm" className="h-8">
                 <Link
-                  href={`/transmandu/sms/gestion_reportes/peligros_identificados/${voluntaryReport.danger_identification_id}`}
+                  href={`/${selectedCompany?.slug}/sms/gestion_reportes/peligros_identificados/${voluntaryReport.danger_identification_id}`}
                 >
                   Ver Identificación de Peligro
                 </Link>
@@ -140,7 +137,7 @@ const ShowVoluntaryReport = () => {
                 <div className="flex items-center gap-2">
                   <Calendar className="w-5 h-5 text-gray-600 dark:text-gray-300" />
                   <p className="text-gray-700 dark:text-gray-300">
-                    {format(voluntaryReport.report_date, "PPP", { locale: es })}
+                    {dateFormat(voluntaryReport.report_date, "PPP")}
                   </p>
                 </div>
               </div>
@@ -203,9 +200,7 @@ const ShowVoluntaryReport = () => {
                   <span className="font-semibold">
                     Fecha de Identificación:
                   </span>{" "}
-                  {format(voluntaryReport.identification_date, "PPP", {
-                    locale: es,
-                  })}
+                  {dateFormat(voluntaryReport.identification_date, "PPP")}
                 </p>
               </div>
             </div>

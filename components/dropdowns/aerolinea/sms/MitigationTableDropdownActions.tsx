@@ -148,8 +148,6 @@ const MitigationTableDropdownActions = ({
               )
             ) : null}
 
-
-
             {!mitigationTable.id && (
               <DropdownMenuItem
                 onClick={() => setOpenCreateDangerIdentification(true)}
@@ -160,8 +158,10 @@ const MitigationTableDropdownActions = ({
 
             {mitigationTable.mitigation_plan?.id &&
               mitigationTable.mitigation_plan.analysis !== null &&
-              getResult(mitigationTable.mitigation_plan.analysis.result) ===
-                "ACEPTABLE" &&
+              (getResult(mitigationTable.mitigation_plan.analysis.result) ===
+                "ACEPTABLE" ||
+                getResult(mitigationTable.mitigation_plan.analysis.result) ===
+                  "TOLERABLE") &&
               mitigationTable.voluntary_report?.status !== "CERRADO" &&
               mitigationTable.obligatory_report?.status !== "CERRADO" && (
                 <DropdownMenuItem onClick={() => setCloseReport(true)}>
