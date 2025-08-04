@@ -44,7 +44,7 @@ interface FormProps {
 export default function CreateFlightControlForm({ onClose }: FormProps) {
   const { createFlightControl } = useCreateFlightControl()
   const { selectedCompany } = useCompanyStore()
-  const { data: aircrafts, isLoading: isAircraftsLoading, isError: isAircraftsError } = useGetMaintenanceAircrafts()
+  const { data: aircrafts, isLoading: isAircraftsLoading, isError: isAircraftsError } = useGetMaintenanceAircrafts(selectedCompany?.slug)
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {

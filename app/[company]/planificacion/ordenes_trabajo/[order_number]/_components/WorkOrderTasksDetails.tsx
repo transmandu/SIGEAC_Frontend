@@ -9,6 +9,7 @@ import {
 import { useCheckWorkOrderArticles } from "@/hooks/mantenimiento/planificacion/useCheckWorkOrderArticles"
 import { cn } from "@/lib/utils"
 import { WorkOrder } from "@/types"
+import { useCompanyStore } from "@/stores/CompanyStore"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useMemo, useState } from "react"
 import { useForm } from "react-hook-form"
@@ -38,11 +39,12 @@ type AssignmentFormValues = z.infer<typeof assignmentFormSchema>
 type WorkOrderTask = WorkOrder["work_order_tasks"][0]
 
 const WorkOrderTasksDetails = ({ work_order }: { work_order: WorkOrder }) => {
+  const { selectedCompany } = useCompanyStore()
   const [selectedTask, setSelectedTask] = useState<WorkOrderTask | null>(null)
   const [isDetailsOpen, setIsDetailsOpen] = useState(false)
   const [isCreateOpen, setIsCreateOpen] = useState(false)
   const [articleAvailability, setArticleAvailability] = useState<ArticleAvailability[]>([]);
-  const { data, mutateAsync: check_mutate, isPending: isCheckLoading } = useCheckWorkOrderArticles()
+  const { data, mutateAsync: check_mutate, isPending: isCheckLoading } = useCheckWorkOrderArticles(selectedCompany?.slug)
 
   // Formulario para asignación de personal
   const form = useForm<AssignmentFormValues>({
@@ -62,6 +64,11 @@ const WorkOrderTasksDetails = ({ work_order }: { work_order: WorkOrder }) => {
 
 
   const handleCheckTaskItems = async () => {
+    if (!selectedCompany?.slug) {
+      toast.error("No hay una compañía seleccionada");
+      return;
+    }
+    
     try {
       const taskIds = work_order.work_order_tasks.map(task => task.id);
       const result = await check_mutate(taskIds);

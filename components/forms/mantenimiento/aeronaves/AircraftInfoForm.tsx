@@ -28,8 +28,16 @@ const AircraftInfoSchema = z.object({
   serial: z.string().min(1, "El serial es obligatorio"),
   model: z.string().min(1, "El modelo es obligatorio"),
   acronym: z.string().min(1, "El acrónimo es obligatorio"),
-  flight_hours: z.string(),
-  flight_cycles: z.string(),
+  flight_hours: z.string()
+    .refine((val) => {
+      const num = parseInt(val);
+      return !isNaN(num) && num >= 0;
+    }, "Debe ser un número entero mayor o igual a 0"),
+  flight_cycles: z.string()
+    .refine((val) => {
+      const num = parseInt(val);
+      return !isNaN(num) && num >= 0;
+    }, "Debe ser un número entero mayor o igual a 0"),
   fabricant_date: z.date(),
   comments: z.string().optional(),
   location_id: z.string().min(1, "La ubicación es obligatoria"),
@@ -362,7 +370,19 @@ export function AircraftInfoForm({ onNext, onBack, initialData }: AircraftInfoFo
               <FormItem>
                 <FormLabel>Horas de Vuelo</FormLabel>
                 <FormControl>
-                  <Input type="number" placeholder="Ej: 15000" {...field} />
+                  <Input 
+                    type="number" 
+                    min="0" 
+                    step="1" 
+                    placeholder="Ej: 15000" 
+                    {...field} 
+                    onKeyDown={(e) => {
+                      // Prevenir números negativos y decimales
+                      if (e.key === '-' || e.key === '.' || e.key === ',') {
+                        e.preventDefault();
+                      }
+                    }}
+                  />
                 </FormControl>
                 <FormDescription className="text-xs">
                   Horas totales de vuelo de la aeronave.
@@ -378,7 +398,19 @@ export function AircraftInfoForm({ onNext, onBack, initialData }: AircraftInfoFo
               <FormItem>
                 <FormLabel>Ciclos</FormLabel>
                 <FormControl>
-                  <Input type="number" placeholder="Ej: 500" {...field} />
+                  <Input 
+                    type="number" 
+                    min="0" 
+                    step="1" 
+                    placeholder="Ej: 500" 
+                    {...field} 
+                    onKeyDown={(e) => {
+                      // Prevenir números negativos y decimales
+                      if (e.key === '-' || e.key === '.' || e.key === ',') {
+                        e.preventDefault();
+                      }
+                    }}
+                  />
                 </FormControl>
                 <FormDescription className="text-xs">
                   Ciclos totales de la aeronave.

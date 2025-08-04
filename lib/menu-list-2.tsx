@@ -681,7 +681,7 @@ export function getMenuList(
     },
     {
       groupLabel: "Planificación",
-      moduleValue: "planning",
+      moduleValue: "planification",
       menus: [
         {
           href: `/${currentCompany?.slug}/planificacion/ordenes_trabajo`,

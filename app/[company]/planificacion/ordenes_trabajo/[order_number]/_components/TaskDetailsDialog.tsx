@@ -46,11 +46,11 @@ export const TaskDetailsDialog = ({
   const [isEditing, setIsEditing] = useState(false)
 
   // Hooks para datos y mutaciones
-  const { data: technicians, isLoading: isTechniciansLoading } = useGetWorkOrderEmployees()
   const { updateWorkOrderTask } = useUpdateWorkOrderTask()
   const { updateNoRoutineTask } = useUpdateNoRoutineTask()
   const { updateTaskStatus } = useUpdateWorkOrderTaskStatus()
   const { selectedCompany } = useCompanyStore()
+  const { data: technicians, isLoading: isTechniciansLoading } = useGetWorkOrderEmployees(selectedCompany?.slug)
 
   // Formulario para asignación
   const form = useForm<z.infer<typeof assignmentFormSchema>>({

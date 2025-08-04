@@ -11,5 +11,6 @@ export const useGetWorkOrderByOrderNumber = (order_number: string, company?: str
   return useQuery<WorkOrder, Error>({
     queryKey: ["work-order", order_number, company],
     queryFn: () => fetchWOByOrderNumber(order_number, company),
+    enabled: !!company,
   });
 };

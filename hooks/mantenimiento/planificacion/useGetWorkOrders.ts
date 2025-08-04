@@ -3,7 +3,7 @@ import { WorkOrder } from '@/types';
 import { useMutation, useQuery } from '@tanstack/react-query';
 
 const fetchWorkOrders = async (location_id: string | null, company?: string): Promise<WorkOrder[]> => {
-  const {data} = await axios.get(`/${company}/all-work-orders/${location_id}`);
+  const {data} = await axios.get(`/${company}/${location_id}/all-work-orders`);
   return data;
 };
 

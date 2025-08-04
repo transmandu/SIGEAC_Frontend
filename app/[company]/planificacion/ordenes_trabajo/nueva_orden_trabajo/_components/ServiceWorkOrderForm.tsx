@@ -115,7 +115,7 @@ const ServiceWorkOrderForm = () => {
   const { createWorkOrder } = useCreateWorkOrder();
   const { data: aircrafts, isLoading: isAircraftsLoading } = useGetMaintenanceAircrafts();
   const { data: services, isLoading: isServicesLoading } = useGetServicesByManufacturer(selectedAircraft);
-  const { data, mutateAsync: check_mutate, isPending: isCheckLoading } = useCheckWorkOrderArticles()
+  const { data, mutateAsync: check_mutate, isPending: isCheckLoading } = useCheckWorkOrderArticles(selectedCompany?.slug)
   const router = useRouter();
 
   const form = useForm<WorkOrderFormValues>({
@@ -142,6 +142,11 @@ const ServiceWorkOrderForm = () => {
   }, [selectedStation, form]);
 
   const handleCheckTaskItems = async () => {
+    if (!selectedCompany?.slug) {
+      toast.error("No hay una compañía seleccionada");
+      return;
+    }
+    
     try {
       const taskIds = selectedTasks.map(task => task.task_id);
       const result = await check_mutate(taskIds);
