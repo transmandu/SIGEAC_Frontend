@@ -121,13 +121,13 @@ export default function AircraftExpensesPage() {
   const {data: employees, isLoading: isEmployeesLoading } = useGetEmployeesByDepartment("DAR", selectedCompany?.slug);
   const { data: cashes, isLoading: isCashesLoading } = useGetCash();
   const { data: bankaccounts, isLoading: isBankAccLoading } =
-    useGetBankAccounts(selectedCompany?.slug);
-  const { data: accounts, isLoading: isAccountLoading } = useGetAccountant();
+    useGetBankAccounts();
+  const { data: accounts, isLoading: isAccountLoading } = useGetAccountant(selectedCompany?.slug);
   const { data: vendors, isLoading: isVendorLoading } =
     useGetVendors(selectedCompany?.slug);
   const { data: clients, isLoading: isClientLoading } = useGetClients(selectedCompany?.slug);
   const { data: allCategories, isLoading: isAllCategoriesLoading } =
-    useGetCategory();
+    useGetCategory(selectedCompany?.slug);
 
   const {
     fields: movementFields,
@@ -150,7 +150,10 @@ export default function AircraftExpensesPage() {
         })),
       })),
     };
-    await createCashMovement.mutateAsync(transformedData);
+    await createCashMovement.mutateAsync({
+      data: transformedData,
+      company: selectedCompany!.slug,
+    });
   }
 
 

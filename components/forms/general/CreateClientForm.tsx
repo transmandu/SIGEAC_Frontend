@@ -82,7 +82,7 @@ export function CreateClientForm({ onClose }: FormProps) {
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    createClient.mutate({company: selectedCompany!.split(" ").join(""), data: values});
+    createClient.mutate({company: selectedCompany!.slug, data: values});
   }
 
   return (

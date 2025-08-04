@@ -58,7 +58,7 @@ export default function CreateVendorForm({ onClose }: FormProps) {
     try {
       await createVendor.mutateAsync({
         ...values,
-        company: selectedCompany!.split(" ").join("") ?? null,
+        company: selectedCompany!.slug,
       })
     } catch (error) {
     }

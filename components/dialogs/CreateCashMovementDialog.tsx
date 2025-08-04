@@ -1,13 +1,14 @@
 "use client";
-
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogTrigger, } from "@/components/ui/dialog";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import DateFilterUpdate from "../forms/aerolinea/administracion/CreateFilterDatesUpdate";
+import { useCompanyStore } from "@/stores/CompanyStore";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import DateFilterUpdate from "../forms/aerolinea/administracion/CreateFilterDatesUpdate";
 
-export function CashMovementDialog({ id }: { id?: string }) {
+export function CashMovementDialog() {
+  const {selectedCompany} = useCompanyStore();
   const [openActionsIncome, setOpenActionsIncome] = useState(false);
   const [openActionsOutput, setOpenActionsOutput] = useState(false);
 
@@ -15,13 +16,13 @@ export function CashMovementDialog({ id }: { id?: string }) {
 
   const handleViewStatsIncome = () => {
     router.push(
-      "/transmandu/administracion/gestion_cajas/movimientos/reporte_ingresos"
+      `/${selectedCompany?.slug}/administracion/gestion_cajas/movimientos/reporte_ingresos`
     );
   };
 
   const handleViewStatsOutput = () => {
     router.push(
-      "/transmandu/administracion/gestion_cajas/movimientos/reporte_egresos"
+      `/${selectedCompany?.slug}/administracion/gestion_cajas/movimientos/reporte_egresos`
     );
   };
 
@@ -31,7 +32,7 @@ export function CashMovementDialog({ id }: { id?: string }) {
       {/*Dialogo para registrar un movimiento de caja*/}
       <Link
         href={
-          "/transmandu/administracion/gestion_cajas/movimientos/registrar_movimiento"
+          `/${selectedCompany?.slug}/administracion/gestion_cajas/movimientos/registrar_movimiento`
         }
       >
         <Button

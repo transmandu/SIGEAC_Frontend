@@ -6,8 +6,8 @@ import { toast } from "sonner"
 export const useCreateAccount = () => {
     const queryAccount = useQueryClient()
     const createMutation = useMutation({
-        mutationFn: async (data: any) => {
-            await axiosInstance.post('/transmandu/accountants', data)
+        mutationFn: async ({data, company}: {data: any, company: string}) => {
+            await axiosInstance.post(`/${company}/accountants`, data)
           },
         onSuccess: () => {
             queryAccount.invalidateQueries({queryKey: ['accountants']})
@@ -71,11 +71,11 @@ export const useGetAccount = (id: string | null) => {
 export const useUpdateAccount = () => {
   const queryAccount = useQueryClient();
   const updateMutation = useMutation({
-    mutationFn: async (values: {
+    mutationFn: async ({values, company}: {values: {
       id: string
       name: string,
-      category?: string }) => {
-      await axiosInstance.patch(`/transmandu/accountants/${values.id}`, {
+      category?: string }, company: string}) => {
+      await axiosInstance.patch(`/${company}/accountants/${values.id}`, {
         name: values.name,
         category: values.category ?? null,
       });

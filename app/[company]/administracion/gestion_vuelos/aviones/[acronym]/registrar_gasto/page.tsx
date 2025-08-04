@@ -110,8 +110,8 @@ export default function AircraftExpensesPage() {
   const {data: employees, isLoading: isEmployeesLoading } = useGetEmployeesByDepartment("DAR", selectedCompany?.slug);
   const { data: cashes, isLoading: isCashesLoading } = useGetCash();
   const { data: bankaccounts, isLoading: isBankAccLoading } =
-    useGetBankAccounts(selectedCompany?.slug);
-  const { data: accounts, isLoading: isAccountLoading } = useGetAccountant();
+    useGetBankAccounts();
+  const { data: accounts, isLoading: isAccountLoading } = useGetAccountant(selectedCompany?.slug);
   const { data: vendors, isLoading: isVendorLoading } = useGetVendors(selectedCompany?.slug);
 
   // Get accountant_id from form values to fetch categories
@@ -119,7 +119,7 @@ export default function AircraftExpensesPage() {
     "movements.0.cash_movement_details.0.accountant_id"
   );
   const { data: allCategories, isLoading: isAllCategoriesLoading } =
-    useGetCategory();
+    useGetCategory(selectedCompany?.slug);
 
   const {
     fields: movementFields,
@@ -143,7 +143,8 @@ export default function AircraftExpensesPage() {
     };
     await createCashMovementForAircraft.mutateAsync({
       acronym,
-      formData: transformedData,
+      data: transformedData,
+      company: selectedCompany!.slug,
     });
   }
 

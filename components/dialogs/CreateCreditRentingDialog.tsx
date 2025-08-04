@@ -2,11 +2,11 @@
 
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogTrigger, } from "@/components/ui/dialog";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { useCompanyStore } from "@/stores/CompanyStore";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 
-export function CreditRentingDialog({ id }: { id?: string }) {
+export function CreditRentingDialog() {
   const [openActions, setOpenActions] = useState(false);
   const {selectedCompany} = useCompanyStore();
   const router = useRouter();

@@ -18,6 +18,8 @@ import { SummaryCard } from "@/components/cards/SummaryCard";
 import months from "@/components/cards/ConfigMonths";
 import MovementDetailsDialog from "@/components/dialogs/MovementDetailsDialog";
 import { ContentLayout } from "@/components/layout/ContentLayout";
+import { useCompanyStore } from "@/stores/CompanyStore";
+import LoadingPage from "@/components/misc/LoadingPage";
 
 type MonthlyData = {
   name: string;
@@ -37,8 +39,9 @@ interface CustomTooltipProps {
 }
 
 const OutputDashboard = () => {
+  const {selectedCompany} = useCompanyStore();
   const router = useRouter();
-  const { data, isLoading, isError } = useGetOutputStatistics();
+  const { data, isLoading, isError } = useGetOutputStatistics(selectedCompany?.slug);
 
   // Obtener años disponibles
   const availableYears = useMemo(() => {
@@ -235,13 +238,7 @@ const OutputDashboard = () => {
   };
 
   // Estados de carga y error
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <Loader2 className="h-8 w-8 animate-spin" />
-      </div>
-    );
-  }
+  if (isLoading) return <LoadingPage />;
 
   if (isError) {
     return (

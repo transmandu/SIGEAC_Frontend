@@ -18,6 +18,7 @@ import { SummaryCard } from "@/components/cards/SummaryCard";
 import months from "@/components/cards/ConfigMonths";
 import MovementDetailsDialog from "@/components/dialogs/MovementDetailsDialog";
 import { ContentLayout } from "@/components/layout/ContentLayout";
+import { useCompanyStore } from "@/stores/CompanyStore";
 
 type MonthlyData = {
   name: string;
@@ -37,8 +38,9 @@ interface CustomTooltipProps {
 }
 
 const IncomeDashboard = () => {
+  const { selectedCompany } = useCompanyStore();
   const router = useRouter();
-  const { data, isLoading, isError } = useGetIncomeStatistics();
+  const { data, isLoading, isError } = useGetIncomeStatistics(selectedCompany?.slug);
 
   // Obtener años disponibles
   const availableYears = useMemo(() => {

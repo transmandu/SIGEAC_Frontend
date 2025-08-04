@@ -14,6 +14,7 @@ import { Input } from "../../../ui/input";
 import { Label } from "../../../ui/label";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { cn } from "@/lib/utils";
+import { useCompanyStore } from "@/stores/CompanyStore";
 
 const getFormSchema = (hasCategories: boolean) => z.object({
   name: z
@@ -64,6 +65,7 @@ type categoryField = {
 const AccountForm = ({ id, onClose, isEditing = false }: FormProps) => {
   const [initialValues, setInitialValues] = useState<Accountant | null>(null);
     const [checked, setChecked] = useState(false);
+    const {selectedCompany} = useCompanyStore();
     const { updateAccount } = useUpdateAccount();
     const { createAccount } = useCreateAccount();
     const { data } = useGetAccount(id ?? null);
@@ -141,16 +143,16 @@ const AccountForm = ({ id, onClose, isEditing = false }: FormProps) => {
   const onSubmitAccount = async (values: z.infer<typeof formSchema>) => {
     try {
       if (isEditing && initialValues) {
-        await updateAccount.mutateAsync({
+        await updateAccount.mutateAsync({values: {
           id: initialValues.id.toString(),
           name: values.name,
           category: checked ? values.category : undefined,
-        });
+        }, company: selectedCompany!.slug});
       } else {
-        await createAccount.mutateAsync({
+        await createAccount.mutateAsync({data: {
           ...values,
           category: checked ? values.category : undefined,
-        });
+        }, company: selectedCompany!.slug});
       }
       form.reset();
       onClose();

@@ -21,5 +21,6 @@ export const useGetAdministrationFlights = (company?: string) => {
     return data;
   },
   refetchOnWindowFocus: false,
+  enabled: !!company,
   });
 };

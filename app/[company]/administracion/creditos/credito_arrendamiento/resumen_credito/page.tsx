@@ -9,10 +9,12 @@ import { ArrowLeft, Loader2, CreditCard } from "lucide-react"
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts"
 import { formatCurrency, formatDate } from "@/lib/utils"
 import { useGetCreditStatisticsRentings } from "@/hooks/aerolinea/creditos/useGetCreditStatisticsRentings"
+import { useCompanyStore } from "@/stores/CompanyStore"
 
 const CreditStatisticsRentingPage = () => {
   const router = useRouter()
-  const { data, isLoading, isError } = useGetCreditStatisticsRentings()
+  const {selectedCompany} = useCompanyStore()
+  const { data, isLoading, isError } = useGetCreditStatisticsRentings(selectedCompany?.slug)
   const [showCreditsTable, setShowCreditsTable] = useState(false)
   const [activeBar, setActiveBar] = useState<string | null>(null)
 
