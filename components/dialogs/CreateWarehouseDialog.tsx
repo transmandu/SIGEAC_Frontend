@@ -6,9 +6,9 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
-import CreateRoleForm from "../forms/CreateRoleForm"
+import CreateRoleForm from "../forms/general/CreateRoleForm"
 import { Button } from "../ui/button"
-import CreateWarehouseForm from "../forms/CreateWarehouseForm"
+import CreateWarehouseForm from "../forms/ajustes/CreateWarehouseForm"
 
 const CreateWarehouseDialog = () => {
   return (

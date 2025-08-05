@@ -3,7 +3,7 @@
 import { ColumnDef } from "@tanstack/react-table"
 
 import PermissionsDialog from "@/components/dialogs/PermissionsDialog"
-import RolesDropdownActions from "@/components/misc/RolesDropdownActions"
+import RolesDropdownActions from "@/components/dropdowns/ajustes/RolesDropdownActions"
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader"
 import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"

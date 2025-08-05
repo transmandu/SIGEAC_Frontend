@@ -8,14 +8,14 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger
+  DialogTrigger,
 } from "@/components/ui/dialog";
 import { useGetDangerIdentificationWithAllById } from "@/hooks/sms/useGetDangerIdentificationWithAllById";
+import { useCompanyStore } from "@/stores/CompanyStore";
 import { ObligatoryReport } from "@/types";
 import { PDFViewer } from "@react-pdf/renderer";
 import { useState } from "react";
 import ObligatoryReportPdf from "../pdf/sms/ObligatoryReportPdf";
-import { Download } from "lucide-react";
 
 interface PreviewProps {
   title: string;
@@ -26,10 +26,12 @@ export default function PreviewVoluntaryReportPdfDialog({
   title,
   obligatoryReport,
 }: PreviewProps) {
+  const { selectedCompany } = useCompanyStore();
   const [open, setOpen] = useState(false);
-  const { data: dangerIdentification } = useGetDangerIdentificationWithAllById(
-    obligatoryReport?.danger_identification?.id
-  );
+  const { data: dangerIdentification } = useGetDangerIdentificationWithAllById({
+    company: selectedCompany?.slug,
+    id: obligatoryReport?.danger_identification?.id.toString(),
+  });
   return (
     <>
       <Card className="flex">

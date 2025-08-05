@@ -1,16 +1,28 @@
 import axios from '@/lib/axios';
 import { DispatchRequest } from '@/types';
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 
-const fetchPendingDispatchesRequests = async (location_id?: string): Promise<DispatchRequest[]> => {
-  const {data} = await axios.get(`/hangar74/show-dispatch-in-process/${location_id}`);
+const fetchPendingDispatchesRequests = async ({
+  company,
+  location_id,
+}: {
+  company: string;
+  location_id?: string;
+}): Promise<DispatchRequest[]> => {
+  const { data } = await axios.get(`/${company}/${location_id}/show-dispatch-in-process`);
   return data;
 };
 
-export const useGetPendingDispatches = (location_id?: string) => {
+export const useGetPendingDispatches = ({
+  location_id,
+  company,
+}: {
+  company?: string;
+  location_id?: string;
+}) => {
   return useQuery<DispatchRequest[], Error>({
-    queryKey: ["dispatches-requests-in-process"],
-    queryFn: () => fetchPendingDispatchesRequests(location_id),
-    enabled: !!location_id
+    queryKey: ['dispatches-requests-in-process', company, location_id],
+    queryFn: () => fetchPendingDispatchesRequests({ company: company!, location_id: location_id!}),
+    enabled: !!location_id && !!company,
   });
 };

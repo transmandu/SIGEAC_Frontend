@@ -5,8 +5,10 @@ import {
   Activity,
   AreaChartIcon,
   Award,
+  Blocks,
   BookCheck,
   BookUser,
+  Building2,
   Cat,
   ClipboardCopy,
   ClipboardList,
@@ -54,7 +56,7 @@ type Group = {
   menus: Menu[];
 };
 
-export type CompanyMenu = "transmandu" | "hangar 74";
+export type CompanyMenu = string;
 
 export function getMenuList(
   pathname: string,
@@ -64,12 +66,12 @@ export function getMenuList(
   const date = format(new Date(), "yyyy-MM-dd");
   function hasAccess(menuItem: Menu | Submenu): boolean {
     if (!menuItem.roles || menuItem.roles.length === 0) {
-      return true; // No roles specified, so everyone has access
+      return true;
     }
     return menuItem.roles.some((role) => userRoles.includes(role));
   }
   return (
-    company === "transmandu"
+    company === "Transmandu"
       ? [
           {
             groupLabel: "",

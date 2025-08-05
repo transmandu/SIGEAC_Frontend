@@ -10,7 +10,7 @@ import {
   DialogTrigger
 } from "@/components/ui/dialog"
 import { useState } from "react"
-import CreateVendorForm from "../forms/CreateVendorForm"
+import CreateVendorForm from "../forms/general/CreateVendorForm"
 
 export function CreateVendorDialog() {
   const [open, setOpen] = useState(false);

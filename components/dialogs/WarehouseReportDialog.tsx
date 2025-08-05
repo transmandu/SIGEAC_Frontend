@@ -29,8 +29,10 @@ export function WarehouseReportDialog() {
   const { selectedStation, selectedCompany } = useCompanyStore()
   const [open, setOpen] = useState(false);
   const [manufacturer, setManufacturer] = useState<string | null>(null)
-  const { data: manufacturers, isLoading } = useGetManufacturers(selectedCompany?.split(" ").join(""));
-  const { data, isLoading: reportLoading } = useGetWarehouseReport(selectedStation ?? null);
+  const { data: manufacturers, isLoading } = useGetManufacturers(selectedCompany?.slug);
+  const { data, isLoading: reportLoading } = useGetWarehouseReport({company: selectedCompany?.slug, location_id: selectedStation});
+
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>

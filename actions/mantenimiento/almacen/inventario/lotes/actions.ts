@@ -19,10 +19,10 @@ type BatchType = {
 export const useCreateBatch = () => {
 
     const queryClient = useQueryClient()
-
+ 
     const createMutation = useMutation({
-        mutationFn: async (data: BatchType) => {
-            await axiosInstance.post('/hangar74/batches', data)
+        mutationFn: async ({data, company}: {data: BatchType, company: string}) => {
+            await axiosInstance.post(`/${company}/batches`, data)
           },
         onSuccess: () => {
             queryClient.invalidateQueries({queryKey: ['batches']})
@@ -49,8 +49,8 @@ export const useDeleteBatch = () => {
   const queryClient = useQueryClient()
 
   const deleteMutation = useMutation({
-      mutationFn: async (id: number | string) => {
-          await axiosInstance.delete(`/hangar74/batches/${id}`)
+      mutationFn: async ({id, company}: {id: number | string, company: string}) => {
+          await axiosInstance.delete(`/${company}/batches/${id}`)
         },
       onSuccess: () => {
           queryClient.invalidateQueries({queryKey: ['batches']})

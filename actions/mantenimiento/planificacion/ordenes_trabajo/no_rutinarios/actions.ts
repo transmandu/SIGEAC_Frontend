@@ -28,8 +28,8 @@ export const useCreateNoRutine = () => {
   const queryClient = useQueryClient()
 
   const createMutation = useMutation({
-      mutationFn: async (data: CreateNoRutineData) => {
-          await axiosInstance.post('/hangar74/non-routine', data)
+      mutationFn: async ({data, company}: {data: CreateNoRutineData, company: string}) => {
+          await axiosInstance.post(`/${company}/non-routine`, data)
         },
       onSuccess: () => {
           queryClient.invalidateQueries({queryKey: ['work-orders'], exact: false})
@@ -55,13 +55,13 @@ export const useUpdateNoRoutineTask = () => {
   const queryClient = useQueryClient()
 
   const updateMutation = useMutation({
-      mutationFn: async (data: {
+      mutationFn: async ({data, company}: {data: {
         id: string,
         inspector_responsable?: string,
         technician_responsable?: string,
         status?: string,
-      }) => {
-          await axiosInstance.put(`/hangar74/no-routine-task/${data.id}`, data)
+      }, company: string}) => {
+          await axiosInstance.put(`/${company}/no-routine-task/${data.id}`, data)
         },
       onSuccess: () => {
           queryClient.invalidateQueries({queryKey: ['work-orders'], exact: false})

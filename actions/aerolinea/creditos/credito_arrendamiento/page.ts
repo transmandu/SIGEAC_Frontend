@@ -6,8 +6,8 @@ export const useCreateCreditRent = () => {
 
   const queryCreditRent = useQueryClient()
   const createMutation = useMutation({
-    mutationFn: async (data: any) => {
-          await axiosInstance.post('/transmandu/credits-with-rents', data) //todos los creditos con un id de renta vinculado
+    mutationFn: async ({data, company}: {data: any, company?: string}) => {
+          await axiosInstance.post(`/${company}/credits-with-rents`, data) //todos los creditos con un id de renta vinculado
         },
         onSuccess: () => {
           queryCreditRent.invalidateQueries({queryKey: ['credit-rent']})

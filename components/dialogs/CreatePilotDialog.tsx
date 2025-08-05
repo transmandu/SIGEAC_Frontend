@@ -11,7 +11,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { useState } from "react";
-import { CreatePilotForm } from "../forms/CreatePilotForm";
+import { CreatePilotForm } from "../forms/general/CreatePilotForm";
 
 export default function CreatePilotDialog() {
   const [open, setOpen] = useState(false);

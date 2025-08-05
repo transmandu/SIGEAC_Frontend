@@ -3,6 +3,7 @@
 import { Ellipsis } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useMemo } from "react";
 
 import { CollapseMenuButton } from "@/components/sidebar/CollapseMenuButton";
 import { Button } from "@/components/ui/button";
@@ -11,32 +12,44 @@ import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
-  TooltipTrigger
+  TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { getMenuList } from "@/lib/menu-list";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
+import { useCompanyStore } from "@/stores/CompanyStore";
+import { getMenuList } from "@/lib/menu-list-2";
 
 interface MenuProps {
   isOpen: boolean | undefined;
-  company: 'transmandu' | "hangar 74"
 }
 
-
-export function Menu({ isOpen, company }: MenuProps) {
-
-  const { user } = useAuth()
-
-  const userRoles = user?.roles?.map(role => role.name) || [];
-
+export function Menu({ isOpen }: MenuProps) {
+  const { user } = useAuth();
   const pathname = usePathname();
+  const {selectedCompany} = useCompanyStore();
 
-  const menuList = getMenuList(pathname, company, userRoles);
+  // Memoize the menu list to prevent unnecessary recalculations
+  const menuList = useMemo(() => {
+    const userRoles = user?.roles?.map((role) => role.name) || [];
+    return getMenuList(pathname, selectedCompany, userRoles);
+  }, [pathname, selectedCompany, user?.roles]);
+
+  // Calculate the minimum height for the menu container
+  const menuContainerHeight = useMemo(() => {
+    return isOpen === undefined
+      ? "calc(100vh - 48px - 36px - 16px - 32px)"
+      : "calc(100vh - 32px - 40px - 32px)";
+  }, [isOpen]);
 
   return (
     <ScrollArea className="[&>div>div[style]]:!block">
-      <nav className="mt-8 h-full w-full">
-        <ul className="flex flex-col min-h-[calc(100vh-48px-36px-16px-32px)] lg:min-h-[calc(100vh-32px-40px-32px)] items-start space-y-1 px-2">
+      <nav className="mt-8 h-full w-full" aria-label="Main navigation">
+        <ul
+          className={cn(
+            "flex flex-col items-start space-y-1 px-2",
+            `min-h-[${menuContainerHeight}]`
+          )}
+        >
           {menuList.map(({ groupLabel, menus }, index) => (
             <li className={cn("w-full", groupLabel ? "pt-4" : "")} key={index}>
               {(isOpen && groupLabel) || isOpen === undefined ? (

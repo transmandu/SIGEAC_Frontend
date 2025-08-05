@@ -10,7 +10,7 @@ import {
   DialogTrigger
 } from "@/components/ui/dialog"
 import { useState } from "react"
-import { CreateToolBoxForm } from "../forms/CreateToolBoxForm"
+import { CreateToolBoxForm } from "../forms/mantenimiento/almacen/CreateToolBoxForm"
 
 export function CreateToolBoxDialog() {
   const [open, setOpen] = useState(false);

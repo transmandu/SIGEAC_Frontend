@@ -3,18 +3,28 @@ import { Article, Batch } from '@/types';
 import { useMutation } from '@tanstack/react-query';
 
 interface BatchesWithCountProp extends Batch {
-  articles: Article[],
-  batch_id: number,
+  articles: Article[];
+  batch_id: number;
 }
 
-const fetchBatchesWithInWarehouseArticles = async (location_id: number): Promise<BatchesWithCountProp[]> => {
-  const {data} = await axios.post('/hangar74/items-for-dispatch', { location_id });
+const fetchBatchesWithInWarehouseArticles = async ({
+  location_id,
+  company,
+}: {
+  location_id: number;
+  company: string;
+}): Promise<BatchesWithCountProp[]> => {
+  const { data } = await axios.post(`/${company}/items-for-dispatch`, { location_id });
   return data;
 };
 
 export const useGetBatchesWithInWarehouseArticles = () => {
-  return useMutation<BatchesWithCountProp[], Error, number>({
-    mutationKey: ["batches"],
+  return useMutation<
+    BatchesWithCountProp[],
+    Error,
+    { location_id: number; company: string }
+  >({
+    mutationKey: ['batches-in-warehouse'],
     mutationFn: fetchBatchesWithInWarehouseArticles,
   });
 };

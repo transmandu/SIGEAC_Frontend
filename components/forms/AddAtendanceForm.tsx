@@ -73,7 +73,7 @@ export function AddAtendanceForm({ onClose, initialData }: FormProps) {
 
   const value = {
     course_id: initialData.id.toString(),
-    company: selectedCompany,
+    company: selectedCompany!.slug,
   };
   const { data: employeesData, isLoading: isLoadingEnrolledEmployee } =
     useGetCourseEnrolledEmployees(value);
@@ -152,7 +152,7 @@ export function AddAtendanceForm({ onClose, initialData }: FormProps) {
 
   const onSubmit = async (data: FormSchemaType) => {
     const value = {
-      company: selectedCompany,
+      company: selectedCompany!.slug,
       course_id: initialData?.id.toString(),
       employees_list: {
         addedEmployees: data.addedEmployees,

@@ -10,7 +10,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { useState } from "react";
-import { CreateAircraftForm } from "../forms/CreateAircraftForm";
+import { CreateAircraftForm } from "../forms/aerolinea/administracion/CreateAircraftForm";
 import { ScrollArea } from "../ui/scroll-area";
 
 export function CreateAircraftDialog() {

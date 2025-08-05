@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 
 
 const fetchQuotes = async (companyId: string | null, locationId: string | null): Promise<Quote[]> => {
-  const {data} = await axios.get(`/quotes/${companyId}/${locationId}`);
+  const {data} = await axios.get(`/${companyId}/${locationId}/quotes`);
   return data;
 };
 

@@ -1,0 +1,35 @@
+'use client'
+import { ContentLayout } from '@/components/layout/ContentLayout'
+import LoadingPage from '@/components/misc/LoadingPage'
+import { useGetPurchaseOrders } from '@/hooks/mantenimiento/compras/useGetPurchaseOrders'
+import { useCompanyStore } from '@/stores/CompanyStore'
+import { columns } from './columns'
+import { DataTable } from './data-table'
+
+const PurchaseOrdersPage = () => {
+  const { selectedStation, selectedCompany } = useCompanyStore();
+  const { data: po, isLoading, isError } = useGetPurchaseOrders(selectedCompany && selectedCompany.slug || null,
+    selectedStation || null);
+
+  if (isLoading) {
+    <LoadingPage />
+  }
+
+  return (
+    <ContentLayout title='Cotizaciones'>
+      <div className='flex flex-col gap-y-2'>
+        {
+          po && (
+            <DataTable columns={columns} data={po} />
+
+          )
+        }
+        {
+          isError && <p className='text-sm text-muted-foreground'>Ha ocurrido un error al cargar las cotizaciones...</p>
+        }
+      </div>
+    </ContentLayout>
+  )
+}
+
+export default PurchaseOrdersPage

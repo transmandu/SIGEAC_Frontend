@@ -4,10 +4,11 @@ import { useQuery } from "@tanstack/react-query";
 
 const fetchTotalIdentificationStatsBySourceName = async (
   from: string,
-  to: string
+  to: string,
+  company?: string
 ): Promise<pieChartData[]> => {
   const { data } = await axiosInstance.get(
-    `/transmandu/sms/total-danger-identifications/information-source/count-by-name?from=${from}&to=${to}`
+    `/${company}/sms/total-danger-identifications-information-source-count-by-name?from=${from}&to=${to}`
   );
   return data;
 };
@@ -15,12 +16,12 @@ const fetchTotalIdentificationStatsBySourceName = async (
 export const useGetTotalIdentificationStatsBySourceName = (
   from: string,
   to: string,
+  company?: string
 ) => {
   return useQuery<pieChartData[]>({
-    queryKey: [
-      "/transmandu/total-danger-identifications/information-source/count-by-name?from=${from}&to=${to}",
-    ],
-    queryFn: () => fetchTotalIdentificationStatsBySourceName(from, to),
+    queryKey: ["total-danger-identifications-information-source-count-by-name"],
+    queryFn: () => fetchTotalIdentificationStatsBySourceName(from, to, company),
     staleTime: 1000 * 60 * 5, // 5 minutos
+    enabled: !!company,
   });
 };

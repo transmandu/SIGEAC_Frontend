@@ -200,6 +200,7 @@ export type Company = {
   id: number;
   name: string;
   description: string;
+  slug: string;
   rif: string;
   cod_inac: string;
   fiscal_address: string;
@@ -207,8 +208,16 @@ export type Company = {
   alt_phone_number: number;
   cod_iata: string;
   cod_oaci: string;
+  modules: Module[];
   created_at: string;
   updated_at: string;
+};
+
+export type Module = {
+  id: number;
+  label: string;
+  value: string;
+  registered_by: string;
 };
 
 export interface ComponentArticle extends Article {
@@ -471,14 +480,6 @@ export type Manufacturer = {
   description: string;
 };
 
-export type Module = {
-  id: number;
-  name: string;
-  description: string;
-  registered_by: string;
-  company: Company;
-};
-
 export type Vendor = {
   id: string | number;
   name: string;
@@ -697,7 +698,7 @@ export type Unit = {
 };
 
 export type User = {
-  id: number;
+  id: string;
   username: string;
   first_name: string;
   last_name: string;
@@ -710,6 +711,7 @@ export type User = {
   }[];
   permissions: Permission[];
   companies: Company[];
+  employee: Employee[];
 };
 
 export type Employee = {
@@ -920,10 +922,10 @@ export type DangerIdentificationsByType = {
   identifications_number: string;
 };
 
-export type ReportingStats = {
-  total_reports: number;
-  open_reports: number;
-  closed_reports: number;
+export type GeneralStats = {
+  total: number;
+  open: number;
+  closed: number;
 };
 
 export type pieChartData = {
@@ -1014,4 +1016,10 @@ export type SMSTraining = {
   expiration: Date;
   status: string;
   is_initial: boolean;
+};
+
+export type CourseStats = {
+  pending_courses: number;
+  completed_courses: number;
+  total_courses: number;
 };

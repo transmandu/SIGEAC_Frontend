@@ -10,7 +10,7 @@ import {
   DialogTrigger
 } from "@/components/ui/dialog"
 import { useState } from "react"
-import CreateSecondaryUnitForm from "../forms/CreateSecondaryUnitForm"
+import CreateSecondaryUnitForm from "../forms/ajustes/CreateSecondaryUnitForm"
 
 export function CreateSecondaryUnitDialog() {
   const [open, setOpen] = useState(false);

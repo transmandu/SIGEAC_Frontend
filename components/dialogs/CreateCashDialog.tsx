@@ -10,7 +10,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { useState } from "react";
-import { CreateCashForm } from "../forms/CreateCashForm";
+import { CreateCashForm } from "../forms/aerolinea/administracion/CreateCashForm";
 
 export function CashDialog() {
   const [open, setOpen] = useState(false);

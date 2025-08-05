@@ -10,7 +10,7 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { CreateDepartmentForm } from '@/components/forms/CreateDepartmentForm';
+import { CreateDepartmentForm } from '@/components/forms/general/CreateDepartmentForm';
 
 export function CreateDepartmentDialog() {
   const [open, setOpen] = useState(false);

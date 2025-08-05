@@ -32,7 +32,7 @@ export function CreditFlightDialog({ id }: { id?: string }) {
             Resumen de Crédito
           </Button>
         </DialogTrigger>
-      </Dialog> 
+      </Dialog>
     </>
   );
 }

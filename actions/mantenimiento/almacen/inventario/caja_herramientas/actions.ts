@@ -17,8 +17,8 @@ export const useCreateToolBox = () => {
 
     const createMutation = useMutation({
         mutationKey: ["tool-box"],
-        mutationFn: async (data: ToolBoxProps) => {
-            await axiosInstance.post('/hangar74/tool-box', data,
+        mutationFn: async ({data, company}: {data: ToolBoxProps, company: string}) => {
+            await axiosInstance.post(`/${company}/tool-box`, data,
               {
               headers: {
                 'Content-Type': 'multipart/form-data',
@@ -50,8 +50,8 @@ export const useUpdateToolBox = () => {
 
   const updateToolBoxMutation = useMutation({
       mutationKey: ["update-tool-box"],
-      mutationFn: async (data: ToolBoxProps) => {
-          await axiosInstance.put(`/hangar74/tool-box/${data.id}`, data)
+      mutationFn: async ({data, company}: {data: ToolBoxProps, company: string}) => {
+          await axiosInstance.put(`/${company}/tool-box/${data.id}`, data)
         },
       onSuccess: () => {
           queryClient.invalidateQueries({queryKey: ['tool-boxes']})
@@ -77,8 +77,8 @@ export const useDeleteToolBox = () => {
   const queryClient = useQueryClient()
 
   const deleteMutation = useMutation({
-      mutationFn: async (id: number | string) => {
-          await axiosInstance.delete(`/hangar74/tool-box/${id}`)
+      mutationFn: async ({id, company}: {id: number | string, company: string}) => {
+          await axiosInstance.delete(`/${company}/tool-box/${id}`)
         },
       onSuccess: () => {
           queryClient.invalidateQueries({queryKey: ['tool-boxes']})

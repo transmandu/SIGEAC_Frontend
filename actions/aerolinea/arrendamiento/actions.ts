@@ -6,8 +6,8 @@ export const useCreateRenting = () => {
 
   const queryRenting = useQueryClient()
   const createMutation = useMutation({
-    mutationFn: async (data: any) => {
-          await axiosInstance.post('/transmandu/rentings', data)
+    mutationFn: async ({data, company}: {data: any, company?: string}) => {
+          await axiosInstance.post(`/${company}/rentings`, data)
         },
         onSuccess: () => {
           queryRenting.invalidateQueries({queryKey: ['renting']})

@@ -3,7 +3,7 @@ import { ObligatoryReport } from "@/types";
 import { useQuery } from "@tanstack/react-query";
 
 const fetchObligatoryReports = async (
-  company: string | null
+  company?: string
 ): Promise<ObligatoryReport[]> => {
   const { data } = await axiosInstance.get(
     `/${company}/sms/obligatory-reports`
@@ -11,7 +11,7 @@ const fetchObligatoryReports = async (
   return data;
 };
 
-export const useGetObligatoryReports = (company: string | null) => {
+export const useGetObligatoryReports = (company?: string) => {
   return useQuery<ObligatoryReport[]>({
     queryKey: ["obligatory-reports"],
     queryFn: () => fetchObligatoryReports(company),

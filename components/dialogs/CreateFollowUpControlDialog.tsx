@@ -11,7 +11,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { useState } from "react";
-import CreateFollowUpControlForm from "../forms/CreateFollowUpControlForm";
+import CreateFollowUpControlForm from "../forms/aerolinea/sms/CreateFollowUpControlForm";
 import { useParams } from "next/navigation";
 
 export default function CreateFollowUpControlDialog() {

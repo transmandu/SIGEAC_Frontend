@@ -12,15 +12,16 @@ export interface FlightCreditsResponse {
   credits_total_amount: number
 }
 
-const fetchCreditStatisticsFlights = async (): Promise<FlightCreditsResponse[]> => {
-  const { data } = await axiosInstance.get("/transmandu/credits-statistics-flights")
+const fetchCreditStatisticsFlights = async (company?: string): Promise<FlightCreditsResponse[]> => {
+  const { data } = await axiosInstance.get(`/${company}/credits-statistics-flights`)
   return data
 }
 
-export const useGetCreditStatisticsFlights = () => {
+export const useGetCreditStatisticsFlights = (company?: string) => {
   return useQuery<FlightCreditsResponse[]>({
     queryKey: ["credits-statistics-flights"],
-    queryFn: fetchCreditStatisticsFlights,
+    queryFn: () => fetchCreditStatisticsFlights(company),
     staleTime: 1000 * 60 * 5, // 5 minutos
+    enabled: !!company // Solo ejecuta la consulta si hay una empresa
   })
 }

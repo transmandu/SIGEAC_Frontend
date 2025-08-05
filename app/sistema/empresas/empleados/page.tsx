@@ -1,13 +1,11 @@
 "use client";
 
 import { ContentLayout } from "@/components/layout/ContentLayout";
-import { useAuth } from "@/contexts/AuthContext";
+import { useGetEmployeesByCompany } from "@/hooks/sistema/empleados/useGetEmployees";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { Loader2 } from "lucide-react";
-import { useEffect } from "react";
 import { columns } from "./columns";
 import { DataTable } from "./data-table";
-import { useGetEmployeesByCompany } from "@/hooks/administracion/useGetEmployees";
 
 const EmployeePage = () => {
   const { selectedCompany } = useCompanyStore();
@@ -16,7 +14,7 @@ const EmployeePage = () => {
     data: employees,
     isPending: loading,
     isError: error,
-  } = useGetEmployeesByCompany(selectedCompany?.split(" ").join(""));
+  } = useGetEmployeesByCompany(selectedCompany?.slug);
 
 
   return (

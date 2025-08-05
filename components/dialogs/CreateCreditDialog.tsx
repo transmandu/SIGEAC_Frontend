@@ -4,8 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, } from "@/components/ui/dialog";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import DateFilterUpdate from "../forms/CreateFilterDatesUpdate";
-import { CreateCreditForm } from "../forms/CreateCreditForm";
+import DateFilterUpdate from "../forms/aerolinea/administracion/CreateFilterDatesUpdate";
+import { CreateCreditForm } from "../forms/aerolinea/administracion/CreateCreditForm";
 
 export function CreditDialog({ id }: { id?: string }) {
   const [openActions, setOpenActions] = useState(false);
@@ -37,7 +37,7 @@ export function CreditDialog({ id }: { id?: string }) {
         <DialogContent
           className="sm:max-w-[480px]"
           onInteractOutside={(e) => {
-            e.preventDefault(); 
+            e.preventDefault();
           }}
         >
           <DialogHeader>
@@ -59,7 +59,7 @@ export function CreditDialog({ id }: { id?: string }) {
             Resumen de Crédito
           </Button>
         </DialogTrigger>
-      </Dialog> 
+      </Dialog>
     </>
   );
 }

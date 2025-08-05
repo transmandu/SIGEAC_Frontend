@@ -10,7 +10,7 @@ import {
   DialogTrigger
 } from "@/components/ui/dialog"
 import { useState } from "react"
-import CreateFlightControlForm from "../forms/CreateFlightControlForm"
+import CreateFlightControlForm from "../forms/mantenimiento/ordenes_trabajo/CreateFlightControlForm"
 
 export function CreateFlightControlDialog() {
   const [open, setOpen] = useState(false);

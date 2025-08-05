@@ -14,7 +14,7 @@ const JobTitlePage = () => {
     data: jobTitles,
     isLoading: loading,
     isError: error,
-  } = useGetJobTitles(selectedCompany?.split(" ").join(""));
+  } = useGetJobTitles(selectedCompany?.slug);
 
   return (
     <ContentLayout title="Cargos">

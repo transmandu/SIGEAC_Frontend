@@ -10,7 +10,7 @@ import {
   DialogTrigger
 } from "@/components/ui/dialog"
 import { useState } from "react"
-import { CreateBatchForm } from "../forms/CreateBatchForm"
+import { CreateBatchForm } from "../forms/mantenimiento/almacen/CreateBatchForm"
 
 export function CreateBatchDialog() {
   const [open, setOpen] = useState<boolean>(false);

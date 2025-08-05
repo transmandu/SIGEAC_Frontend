@@ -11,9 +11,9 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { useState } from "react";
-import { CreateVoluntaryReportForm } from "../forms/CreateVoluntaryReportForm";
+import { CreateVoluntaryReportForm } from "../forms/aerolinea/sms/CreateVoluntaryReportForm";
 import { Analysis, DangerIdentification, VoluntaryReport } from "@/types";
-import CreateAnalysisForm from "../forms/CreateAnalysisForm";
+import CreateAnalysisForm from "../forms/aerolinea/sms/CreateAnalysisForm";
 
 interface FormProps {
   id: string | number; // ID AL CUAL SERA ASIGNADO EL ANALISIS, MITIGATION OR IDENTIFICATION

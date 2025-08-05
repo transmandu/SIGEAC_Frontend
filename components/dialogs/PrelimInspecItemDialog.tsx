@@ -10,7 +10,7 @@ import {
   DialogTrigger
 } from "@/components/ui/dialog"
 import { useState } from "react"
-import AddInspectionItemForm from "../forms/AddInspectionItemForm"
+import AddInspectionItemForm from "../forms/mantenimiento/ordenes_trabajo/AddInspectionItemForm"
 
 export function PrelimInspectItemDialog({ id }: { id: string }) {
   const [open, setOpen] = useState(false);

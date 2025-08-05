@@ -38,7 +38,7 @@ const DateFilter = () => {
     const query = {
       from: format(dateRange?.from || defaultFrom, "yyyy-MM-dd"),
       to: format(dateRange?.to || defaultTo, "yyyy-MM-dd"),
-      company: selectedCompany?.split(" ").join(""),
+      company: selectedCompany?.slug,
       location_id: selectedStation,
     };
 

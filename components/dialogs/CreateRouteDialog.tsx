@@ -10,7 +10,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { useState } from "react";
-import RouteForm from "../forms/CreateRouteForm";
+import RouteForm from "../forms/aerolinea/administracion/CreateRouteForm";
 
 export function RouteDialog() {
   const [open, setOpen] = useState(false);

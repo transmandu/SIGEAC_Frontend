@@ -26,8 +26,8 @@ export const useCreateMaintenanceService = () => {
   const queryClient = useQueryClient()
 
   const createMutation = useMutation({
-      mutationFn: async (data: CreateServiceData) => {
-          await axiosInstance.post('/hangar74/service-task', data)
+      mutationFn: async ({data, company}: {data: CreateServiceData, company: string}) => {
+          await axiosInstance.post(`/${company}/service-task`, data)
         },
       onSuccess: () => {
           queryClient.invalidateQueries({queryKey: ['maintenance-services']})
@@ -54,8 +54,8 @@ export const useDeleteService = () => {
   const queryClient = useQueryClient()
 
   const deleteMutation = useMutation({
-      mutationFn: async ({id}: {id: string}) => {
-          await axiosInstance.delete(`/hangar74/service-task/${id}`)
+      mutationFn: async ({id, company}: {id: string, company: string}) => {
+          await axiosInstance.delete(`/${company}/service-task/${id}`)
         },
       onSuccess: () => {
           queryClient.invalidateQueries({queryKey: ['maintenance-services']})

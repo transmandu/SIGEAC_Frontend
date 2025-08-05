@@ -74,5 +74,4 @@ export async function verifySession() {
 export async function deleteSession() {
     cookies().delete(cookieConfig.name)
     cookies().delete('auth_token')
-    redirect('/login')
 }

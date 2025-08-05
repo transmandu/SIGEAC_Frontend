@@ -10,7 +10,7 @@ import {
   DialogTrigger
 } from "@/components/ui/dialog"
 import { useState } from "react"
-import { CreateCompanyForm } from "../forms/CreateCompanyForm"
+import { CreateCompanyForm } from "../forms/general/CreateCompanyForm"
 
 export function CreateWorkOrderDialog() {
   const [open, setOpen] = useState(false);

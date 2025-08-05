@@ -10,8 +10,8 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { useState } from "react";
-import { FlightForm } from "../forms/CreateFlightForm";
-import DateFilterUpdate from "../forms/CreateFilterDatesUpdate";
+import { FlightForm } from "../forms/aerolinea/administracion/CreateFlightForm";
+import DateFilterUpdate from "../forms/aerolinea/administracion/CreateFilterDatesUpdate";
 
 export function CreateFlightDialog() {
   const [openFlightDialog, setOpenFlightDialog] = useState(false);

@@ -10,7 +10,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { useState } from "react";
-import { CreateClientForm } from "../forms/CreateClientForm";
+import { CreateClientForm } from "../forms/general/CreateClientForm";
 
 export function CreateClientDialog() {
   const [open, setOpen] = useState(false);
