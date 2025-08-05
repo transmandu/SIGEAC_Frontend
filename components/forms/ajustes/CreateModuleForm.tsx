@@ -35,7 +35,6 @@ interface FormProps {
 
 export function CreateModuleForm({ onClose }: FormProps) {
   const { createModule } = useCreateModule();
-  const { data: accounts, isLoading: isModuleLoading } = useGetModules();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {},

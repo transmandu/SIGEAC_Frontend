@@ -38,10 +38,10 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/contexts/AuthContext";
-import { useGetDepartamentEmployees } from "@/hooks/administracion/useGetDepartamentEmployees";
 import { useGetSecondaryUnits } from "@/hooks/general/unidades/useGetSecondaryUnits";
 import { useGetBatchesByLocationId } from "@/hooks/mantenimiento/almacen/renglones/useGetBatchesByLocationId";
 import { useGetMaintenanceAircrafts } from "@/hooks/mantenimiento/planificacion/useGetMaintenanceAircrafts";
+import { useGetUserDepartamentEmployees } from "@/hooks/sistema/empleados/useGetUserDepartamentEmployees";
 import { cn } from "@/lib/utils";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -52,11 +52,12 @@ import {
   MinusCircle,
   PlusCircle,
 } from "lucide-react";
+import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import CertificatesCombobox from "./_components/TagCombobox";
-import Image from "next/image";
 
 interface Article {
   part_number: string;
@@ -151,10 +152,9 @@ const CreateRequisitionPage = () => {
   const { mutate, data } = useGetBatchesByLocationId();
   const { selectedCompany, selectedStation } = useCompanyStore();
   const {
-    mutate: employeesMutation,
     data: employees,
     isPending: employeesLoading,
-  } = useGetDepartamentEmployees();
+  } = useGetUserDepartamentEmployees(selectedCompany?.slug);
   const { data: secondaryUnits, isLoading: secondaryUnitLoading } =
     useGetSecondaryUnits(selectedCompany?.slug);
   const {
@@ -188,9 +188,8 @@ const CreateRequisitionPage = () => {
   useEffect(() => {
     if (selectedStation) {
       mutate({location_id: Number(selectedStation), company: selectedCompany!.slug})
-      employeesMutation(Number(selectedStation))
     }
-  }, [selectedStation, mutate, employeesMutation, selectedCompany])
+  }, [selectedStation, mutate, selectedCompany])
 
   useEffect(() => {
     form.setValue("articles", selectedBatches);

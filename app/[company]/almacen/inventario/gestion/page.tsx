@@ -26,7 +26,7 @@ const InventarioPage = () => {
 
   const { selectedCompany, selectedStation } = useCompanyStore();
 
-  const { data: batches, isLoading: isBatchesLoading, isError } = useGetBatchesWithArticlesCount({company: selectedCompany?.slug, location_id: selectedStation});
+  const { data: batches, isLoading: isBatchesLoading, isError } = useGetBatchesWithArticlesCount({company: selectedCompany?.slug, location_id: selectedStation ?? undefined});
 
   return (
     <ContentLayout title='Gestion de Inventario'>

@@ -9,7 +9,7 @@ import LoadingPage from '@/components/misc/LoadingPage'
 
 const PurchaseOrdersPage = () => {
   const { selectedStation, selectedCompany } = useCompanyStore();
-  const { data: po, isLoading, isError } = useGetPurchaseOrders(selectedCompany && selectedCompany.split(' ').join('') || null,
+  const { data: po, isLoading, isError } = useGetPurchaseOrders(selectedCompany && selectedCompany.slug || null,
     selectedStation || null);
 
   if (isLoading) {

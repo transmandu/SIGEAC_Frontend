@@ -10,7 +10,7 @@ import LoadingPage from '@/components/misc/LoadingPage'
 
 const QuotesOrdersPage = () => {
   const { selectedStation, selectedCompany } = useCompanyStore();
-  const { data: quotes, isLoading, isError } = useGetQuotes(selectedCompany && selectedCompany.split(' ').join('') || null,
+  const { data: quotes, isLoading, isError } = useGetQuotes(selectedCompany && selectedCompany.slug || null,
     selectedStation || null);
 
   if (isLoading) {

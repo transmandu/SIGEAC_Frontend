@@ -11,7 +11,7 @@ import { useCompanyStore } from "@/stores/CompanyStore";
 
 const MitigationMeasuresPage = () => {
   const { selectedCompany } = useCompanyStore();
-  const { data, isLoading, isError } = useGetMitigationTable(selectedCompany);
+  const { data, isLoading, isError } = useGetMitigationTable(selectedCompany?.slug);
 
   if (isLoading) {
     return <LoadingPage />;

@@ -96,13 +96,13 @@ const ShowObligatoryReport = () => {
               title={"Editar"}
             />
           </div>
-        )}
+        )}x
 
         {/* Botón para eliminar reporte */}
         {obligatoryReport && obligatoryReport.status === "ABIERTO" && (
           <div className="flex items-center py-4">
             <DeleteObligatoryReportDialog
-              company={selectedCompany}
+              company={selectedCompany!.slug}
               id={obligatoryReport.id.toString()}
             />
           </div>

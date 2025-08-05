@@ -11,13 +11,11 @@ import { useCompanyStore } from "@/stores/CompanyStore";
 const CoursePage = () => {
   const { selectedCompany } = useCompanyStore();
 
-  console.log(selectedCompany);
-
   const {
     data: courseData,
     isLoading,
     isError,
-  } = useGetCoursesByDeparment(selectedCompany);
+  } = useGetCoursesByDeparment(selectedCompany?.slug);
 
   return (
     <ContentLayout title="Cursos">
