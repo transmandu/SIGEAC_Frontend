@@ -57,7 +57,7 @@ export function CreateBatchForm({ onClose }: FormProps) {
 
   const { createBatch } = useCreateBatch();
 
-  const { data: batches } = useGetBatchesWithArticlesCount({company: selectedCompany?.slug, location_id: selectedStation});
+  const { data: batches } = useGetBatchesWithArticlesCount({company: selectedCompany?.slug, location_id: selectedStation!});
 
 
   const form = useForm<FormSchemaType>({

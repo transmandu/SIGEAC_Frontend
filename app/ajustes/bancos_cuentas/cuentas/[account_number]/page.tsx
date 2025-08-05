@@ -12,7 +12,7 @@ import { useCompanyStore } from "@/stores/CompanyStore";
 
 const BankAccountsPage = () => {
   const { selectedCompany } = useCompanyStore();
-  const { data: cards, isLoading, error } = useGetCards(selectedCompany?.slug);
+  const { data: cards, isLoading, error } = useGetCards();
   const [filteredCards, setFilteredCards] = useState<Card[]>([]);
   const params = useParams();
   const account_number = params?.account_number ?? ""; // Asegurar que siempre haya un valor

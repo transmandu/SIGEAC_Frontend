@@ -27,7 +27,7 @@ const WarehouseDropdownActions
 
     useEffect(() => {
       if (selectedCompany) {
-        setCompany(selectedCompany);
+        setCompany(selectedCompany?.slug);
       }
     }, [selectedCompany])
 

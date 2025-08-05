@@ -1,6 +1,6 @@
-import { useGetEmployeeById } from "@/hooks/administracion/useGetEmployeeById";
+import { useGetEmployeeById } from "@/hooks/sistema/empleados/useGetEmployeeById";
+import { Loader2 } from "lucide-react";
 import { useState } from "react";
-import LoadingPage from "../misc/LoadingPage";
 import { Button } from "../ui/button";
 import {
   Dialog,
@@ -10,7 +10,6 @@ import {
   DialogTrigger,
 } from "../ui/dialog";
 import { Separator } from "../ui/separator";
-import { Loader2 } from "lucide-react";
 
 const ResponsibleResumeDialog = ({ id }: { id: string }) => {
   const { data: employee, isLoading } = useGetEmployeeById(id);

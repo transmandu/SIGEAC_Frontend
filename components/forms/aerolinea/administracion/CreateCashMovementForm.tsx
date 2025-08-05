@@ -3,10 +3,27 @@
 import { useCreateCashMovement } from "@/actions/aerolinea/movimientos/actions";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, } from "@/components/ui/form";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Popover, PopoverContent, PopoverTrigger, } from "@/components/ui/popover";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, } from "@/components/ui/select";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useGetCash } from "@/hooks/aerolinea/cajas/useGetCash";
 import { useGetCategoriesByAccountant } from "@/hooks/aerolinea/categorias_cuentas/useGetCategoriesByAcountant";
 import { useGetAccountant } from "@/hooks/aerolinea/cuentas_contables/useGetAccountant";
@@ -23,7 +40,14 @@ import { CalendarIcon, Check, ChevronsUpDown, Loader2 } from "lucide-react";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList, } from "../../../ui/command";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "../../../ui/command";
 
 const formSchema = z.object({
   employee_responsible: z.string({
@@ -86,13 +110,18 @@ export function CreateCashMovementForm({ onClose }: FormProps) {
   const accountantId = form.watch("accountant_id");
 
   const { createCashMovement } = useCreateCashMovement();
-  const {selectedCompany} = useCompanyStore();
-  const {data: employees, isLoading: isEmployeesLoading } = useGetEmployeesByDepartment("DAR", selectedCompany?.slug);
+  const { selectedCompany } = useCompanyStore();
+  const { data: employees, isLoading: isEmployeesLoading } =
+    useGetEmployeesByDepartment("DAR", selectedCompany?.slug);
   const { data: cashes, isLoading: isCashesLoading } = useGetCash();
   const { data: bankaccounts, isLoading: isBankAccLoading } =
     useGetBankAccounts(selectedCompany?.slug);
-  const { data: vendors, isLoading: isVendorLoading } = useGetVendors(selectedCompany?.slug);
-  const { data: clients, isLoading: isClientLoading } = useGetClients(selectedCompany?.slug);
+  const { data: vendors, isLoading: isVendorLoading } = useGetVendors(
+    selectedCompany?.slug
+  );
+  const { data: clients, isLoading: isClientLoading } = useGetClients(
+    selectedCompany?.slug
+  );
   const { data: accounts, isLoading: isAccountLoading } = useGetAccountant();
   const { data: categories, isLoading: isCategoryLoading } =
     useGetCategoriesByAccountant(accountantId || "");
@@ -115,10 +144,9 @@ export function CreateCashMovementForm({ onClose }: FormProps) {
   }, [form, cashes]);
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    createCashMovement.mutateAsync(values, {
-      onSuccess: () => {
-        onClose();
-      },
+    createCashMovement.mutateAsync({
+      data: values,
+      company: selectedCompany!.slug,
     });
   }
 
@@ -565,14 +593,12 @@ export function CreateCashMovementForm({ onClose }: FormProps) {
                             <p>
                               {
                                 employees?.find(
-                                  (employee) =>
-                                    employee.dni === field.value
+                                  (employee) => employee.dni === field.value
                                 )?.first_name
                               }{" "}
                               {
                                 employees?.find(
-                                  (employee) =>
-                                    employee.dni === field.value
+                                  (employee) => employee.dni === field.value
                                 )?.last_name
                               }
                             </p>

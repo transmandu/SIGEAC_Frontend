@@ -9,7 +9,7 @@ import { useCompanyStore } from "@/stores/CompanyStore";
 
 const BankAccountsPage = () => {
   const { selectedCompany } = useCompanyStore();
-  const { data: cards, isLoading, error } = useGetCards(selectedCompany?.slug);
+  const { data: cards, isLoading, error } = useGetCards();
   return (
     <ContentLayout title={"Almacenes"}>
       <h1 className="text-4xl font-bold text-center mb-2">

@@ -1,13 +1,13 @@
 "use client";
 
 import {
-    Form,
-    FormControl,
-    FormDescription,
-    FormField,
-    FormItem,
-    FormLabel,
-    FormMessage,
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
 } from "@/components/ui/form";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -30,7 +30,7 @@ interface FormProps {
 }
 
 export default function AddClientBalanceForm({ onClose, dni }: FormProps) {
-  const {selectedCompany} = useCompanyStore();
+  const { selectedCompany } = useCompanyStore();
   const { updateBalance } = useUpdateBalance();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -42,7 +42,7 @@ export default function AddClientBalanceForm({ onClose, dni }: FormProps) {
 
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
     updateBalance.mutate(
-      { dni, data, company: selectedCompany!.split(" ").join("") },
+      { dni, data, company: selectedCompany!.slug },
       {
         onSuccess: () => onClose(), // Cierra solo si la mutación tiene éxito
         onError: (error) => console.log(error), // Manejo de errores

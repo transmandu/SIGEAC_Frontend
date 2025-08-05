@@ -55,7 +55,7 @@ interface BatchArticle {
 export function CreateAdministrationRequisitionForm({ onClose, initialData, isEditing, id }: FormProps) {
   const { user } = useAuth()
   const { selectedCompany, selectedStation } = useCompanyStore()
-  const { data: employees, isPending: employeesLoading } = useGetUserDepartamentEmployees(selectedCompany.slug);
+  const { data: employees, isPending: employeesLoading } = useGetUserDepartamentEmployees(selectedCompany?.slug);
   const { createRequisition } = useCreateRequisition()
   const [batches, setBatches] = useState<{ batch_articles: BatchArticle[] }[]>([{ batch_articles: [] }])
 

@@ -13,7 +13,7 @@ const DepartmentPage = () => {
     data: departments,
     isPending: loading,
     isError: error,
-  } = useGetDepartments(selectedCompany?.slug(" ").join());
+  } = useGetDepartments(selectedCompany?.slug);
 
   return (
     <ContentLayout title="Departamentos">

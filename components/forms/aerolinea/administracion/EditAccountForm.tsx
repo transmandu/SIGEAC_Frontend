@@ -11,7 +11,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { useGetAccountById } from "@/hooks/aerolinea/cuentas_contables/useGetAccountById";
+import { useCompanyStore } from "@/stores/CompanyStore";
 import { Accountant } from "@/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -43,6 +43,7 @@ export function EditAccountantForm({
   accountant,
   onClose,
 }: EditAccountFormProps) {
+  const { selectedCompany } = useCompanyStore();
   const { updateAccount } = useUpdateAccount();
   const form = useForm<FormSchemaType>({
     resolver: zodResolver(formSchema),
@@ -51,14 +52,17 @@ export function EditAccountantForm({
       category: accountant?.category?.id.toString(),
     },
   });
-//prueba a ver
+  //prueba a ver
   const OnSubmit = async (formData: FormSchemaType) => {
     const data = {
       id: accountant.id.toString(),
       name: formData.name,
       category: formData.category,
     };
-    await updateAccount.mutateAsync(data);
+    await updateAccount.mutateAsync({
+      values: data,
+      company: selectedCompany!.slug,
+    });
     onClose();
   };
 

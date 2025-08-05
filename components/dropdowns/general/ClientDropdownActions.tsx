@@ -49,7 +49,7 @@ const ClientDropdownActions = ({ client }: { client: Client }) => {
   };
 
   const handleDelete = (dni: string) => {
-    deleteClient.mutate({dni, company: selectedCompany!.split(" ").join("")}, {
+    deleteClient.mutate({dni, company: selectedCompany!.slug}, {
       onSuccess: () => setOpenDelete(false), // Cierra el modal solo si la eliminación fue exitosa
     });
   };

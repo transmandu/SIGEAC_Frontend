@@ -52,7 +52,13 @@ const ObligatoryReportIndicators = () => {
       to_second: urlParams.get("to_second") || defaultSecondRange.to,
     };
     setParams(newParams);
-  }, [searchParams]);
+  }, [
+    searchParams,
+    defaultFirstRange.to,
+    defaultFirstRange.from,
+    defaultSecondRange.from,
+    defaultSecondRange.to,
+  ]);
 
   // Obtener datos
   const {

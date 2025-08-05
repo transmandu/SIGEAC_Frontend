@@ -40,7 +40,7 @@ export function SheetMenu() {
         </SheetHeader>
         <CompanySelect />
         {
-          selectedCompany && selectedStation ? <Menu isOpen company={selectedCompany.name} /> :
+          selectedCompany && selectedStation ? <Menu isOpen/> :
 
             <p className="text-sm text-muted-foreground text-center mt-10">Por favor, seleccione una <strong>Empresa</strong> y una <strong>Estacion</strong>.</p>
         }

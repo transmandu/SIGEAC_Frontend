@@ -71,9 +71,7 @@ export function CompletePurchaseForm({ onClose, po }: FormProps) {
     selectedCompany!.slug
   );
 
-  const { data: cards, isLoading: isCardsLoading } = useGetCards(
-    selectedCompany!.slug
-  );
+  const { data: cards, isLoading: isCardsLoading } = useGetCards();
 
   const { completePurchase } = useCompletePurchase();
 
@@ -132,7 +130,11 @@ export function CompletePurchaseForm({ onClose, po }: FormProps) {
       total,
       updated_by: `${user?.first_name} ${user?.last_name}`,
     };
-    await completePurchase.mutateAsync({ id: po.id, data: { ...finalData }, company: selectedCompany!.slug });
+    await completePurchase.mutateAsync({
+      id: po.id,
+      data: { ...finalData },
+      company: selectedCompany!.slug,
+    });
     onClose();
   };
 

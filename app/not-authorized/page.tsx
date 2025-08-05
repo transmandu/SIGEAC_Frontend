@@ -13,7 +13,7 @@ export default function NotAuthorized() {
         <Hand className='size-[110px] text-rose-600' />
         <h1 className='font-bold text-7xl text-center'>¡Acceso Denegado!</h1>
         <p className='text-lg text-muted-foreground text-center'>Lo sentimos, pero no puedes acceder a esta página en este momento. Es posible que necesites permisos especiales o que hayas introducido una dirección web incorrecta.</p>
-        <Link href={`/${selectedCompany!.slug}/dashboard`}>
+        <Link href={`/${selectedCompany?.slug}/dashboard`}>
           <Button className='bg-primary text-white hover:bg-transparent hover:text-black hover:border hover:border-black'>Volver</Button>
         </Link>
       </div>

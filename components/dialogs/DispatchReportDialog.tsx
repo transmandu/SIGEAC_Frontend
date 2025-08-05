@@ -1,4 +1,4 @@
-'use client'
+"use client";
 
 import { useState } from "react";
 import { format } from "date-fns";
@@ -13,17 +13,21 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger
+  DialogTrigger,
 } from "@/components/ui/dialog";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue
+  SelectValue,
 } from "@/components/ui/select";
 import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 
 import { useCompanyStore } from "@/stores/CompanyStore";
@@ -38,8 +42,11 @@ export function DispatchReportDialog() {
   const [startDate, setStartDate] = useState<Date | undefined>();
   const [endDate, setEndDate] = useState<Date | undefined>();
 
-  const { data: dispatchReport, isLoading: isLoadingDispatchReport } = useGetDispatchReport(selectedStation ?? null);
-  const { data: aircrafts, isLoading: isLoadingAircrafts } = useGetAircrafts(selectedCompany?.replace(/\s/g, ""));
+  const { data: dispatchReport, isLoading: isLoadingDispatchReport } =
+    useGetDispatchReport(selectedStation ?? null);
+  const { data: aircrafts, isLoading: isLoadingAircrafts } = useGetAircrafts(
+    selectedCompany?.slug
+  );
 
   const isDateRangeInvalid = startDate && endDate && endDate < startDate;
 
@@ -101,15 +108,23 @@ export function DispatchReportDialog() {
             </p>
             <div className="flex gap-2 items-center justify-center">
               <Select
-                onValueChange={(value) => setAircraft(value === "all" ? null : value)}
+                onValueChange={(value) =>
+                  setAircraft(value === "all" ? null : value)
+                }
               >
-                <SelectTrigger disabled={isLoadingAircrafts} className="w-[200px]">
+                <SelectTrigger
+                  disabled={isLoadingAircrafts}
+                  className="w-[200px]"
+                >
                   <SelectValue placeholder="Todos los aviones" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Todos los aviones</SelectItem>
                   {aircrafts?.map((aircraft) => (
-                    <SelectItem key={aircraft.id} value={aircraft.id.toString()}>
+                    <SelectItem
+                      key={aircraft.id}
+                      value={aircraft.id.toString()}
+                    >
                       {aircraft.acronym ?? `Aeronave #${aircraft.id}`}
                     </SelectItem>
                   ))}
@@ -156,7 +171,9 @@ export function DispatchReportDialog() {
                         !startDate && "text-muted-foreground"
                       )}
                     >
-                      {startDate ? format(startDate, "PPP", { locale: es }) : "Seleccionar fecha"}
+                      {startDate
+                        ? format(startDate, "PPP", { locale: es })
+                        : "Seleccionar fecha"}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0" align="start">
@@ -182,7 +199,9 @@ export function DispatchReportDialog() {
                         !endDate && "text-muted-foreground"
                       )}
                     >
-                      {endDate ? format(endDate, "PPP", { locale: es }) : "Seleccionar fecha"}
+                      {endDate
+                        ? format(endDate, "PPP", { locale: es })
+                        : "Seleccionar fecha"}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0" align="start">
@@ -191,7 +210,9 @@ export function DispatchReportDialog() {
                       selected={endDate}
                       onSelect={setEndDate}
                       initialFocus
-                      disabled={(date) => startDate ? date < startDate : false}
+                      disabled={(date) =>
+                        startDate ? date < startDate : false
+                      }
                     />
                   </PopoverContent>
                 </Popover>
