@@ -85,7 +85,7 @@ export function ComponentDispatchForm({ onClose }: FormProps) {
     if (selectedStation) {
       mutate({location_id: Number(selectedStation), company: selectedCompany!.slug})
     }
-  }, [selectedStation, mutate])
+  }, [selectedStation, selectedCompany, mutate])
 
   useEffect(() => {
     if (batches) {

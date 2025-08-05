@@ -203,7 +203,7 @@ export function CreateEmployeeForm({ onSuccess }: { onSuccess?: () => void }) {
         department_id: data.department_id,
         job_title_id: data.job_title_id,
         location_id: data.location_id,
-        company: selectedCompany!.split(" ").join(""),
+        company: selectedCompany!.slug,
       };
 
       // Solo incluir datos de usuario si createUser es true
