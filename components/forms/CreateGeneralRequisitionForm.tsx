@@ -7,6 +7,7 @@ import { useAuth } from "@/contexts/AuthContext"
 import { useGetDepartamentEmployees } from "@/hooks/administracion/useGetDepartamentEmployees"
 import { useGetSecondaryUnits } from "@/hooks/general/unidades/useGetSecondaryUnits"
 import { useGetBatchesByLocationId } from "@/hooks/mantenimiento/almacen/renglones/useGetBatchesByLocationId"
+import { useGetMaintenanceAircrafts } from '@/hooks/mantenimiento/planificacion/useGetMaintenanceAircrafts'
 import { cn } from "@/lib/utils"
 import { useCompanyStore } from "@/stores/CompanyStore"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -28,6 +29,7 @@ const FormSchema = z.object({
   company: z.string(),
   location_id: z.string(),
   type: z.string({ message: "Debe seleccionar un tipo de requisición." }),
+  aircraft_id: z.string().optional(),
   created_by: z.string(),
   requested_by: z.string({ message: "Debe ingresar quien lo solicita." }),
   image: z.instanceof(File)
@@ -105,6 +107,9 @@ export function CreateGeneralRequisitionForm({ onClose, initialData, isEditing, 
   const { updateRequisition } = useUpdateRequisition()
 
   const [selectedBatches, setSelectedBatches] = useState<Batch[]>([])
+
+  const { data: aircrafts, isLoading: isAircraftsLoading, isError: isAircraftsError } = useGetMaintenanceAircrafts()
+
 
   const form = useForm<FormSchemaType>({
     resolver: zodResolver(FormSchema),
@@ -314,6 +319,78 @@ export function CreateGeneralRequisitionForm({ onClose, initialData, isEditing, 
               </FormItem>
             )}
           />
+        {form.watch("type") === "AVIACION" && (
+          <FormField
+            control={form.control}
+            name="aircraft_id"
+            render={({ field }) => (
+              <FormItem className="w-[250px] space-y-1.5">
+                <FormLabel>Aeronave</FormLabel>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <FormControl>
+                      <Button
+                        disabled={isAircraftsLoading}
+                        variant="outline"
+                        role="combobox"
+                        className={cn(
+                          "justify-between",
+                          !field.value && "text-muted-foreground"
+                        )}
+                      >
+                        {isAircraftsLoading && (
+                          <Loader2 className="size-4 animate-spin mr-2" />
+                        )}
+                        {field.value
+                          ? aircrafts?.find(
+                              (aircraft) => aircraft.id.toString() === field.value
+                            )?.acronym +
+                            " - " +
+                            aircrafts?.find(
+                              (aircraft) => aircraft.id.toString() === field.value
+                            )?.manufacturer.name
+                          : "Selec. la aeronave..."}
+                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                      </Button>
+                    </FormControl>
+                  </PopoverTrigger>
+                  <PopoverContent className="p-0">
+                    <Command>
+                      <CommandInput placeholder="Busque una aeronave..." />
+                      <CommandList>
+                        <CommandEmpty className="text-sm p-2 text-center">
+                          No se ha encontrado ninguna aeronave.
+                        </CommandEmpty>
+                        <CommandGroup>
+                          {aircrafts?.map((aircraft) => (
+                            <CommandItem
+                              value={aircraft.id.toString()}
+                              key={aircraft.id}
+                              onSelect={() => {
+                                form.setValue("aircraft_id", aircraft.id.toString());
+                              }}
+                            >
+                              <Check
+                                className={cn(
+                                  "mr-2 h-4 w-4",
+                                  aircraft.id.toString() === field.value
+                                    ? "opacity-100"
+                                    : "opacity-0"
+                                )}
+                              />
+                              {aircraft.acronym} - {aircraft.manufacturer.name}
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
         </div>
         <FormField
           control={form.control}

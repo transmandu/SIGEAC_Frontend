@@ -112,6 +112,15 @@ export const columns: ColumnDef<Requisition>[] = [
     )
   },
   {
+    accessorKey: "aircraft.acronym",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Aeronave" />
+    ),
+    cell: ({ row }) => (
+      <p className="flex justify-center font-medium">{row.original.aircraft.acronym}</p>
+    )
+  },
+  {
     accessorKey: "actions",
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Acciones" />
