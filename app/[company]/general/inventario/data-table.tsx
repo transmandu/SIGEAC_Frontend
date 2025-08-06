@@ -42,6 +42,11 @@ export function DataTable<TData, TValue>({
 }: DataTableProps<TData, TValue>) {
   const [data, setData] = useState<TData[]>(initialData)
   const [partNumberFilter, setPartNumberFilter] = useState("")
+
+  // Sincronizar datos cuando cambie el initialData
+  useEffect(() => {
+    setData(initialData)
+  }, [initialData])
   const [sorting, setSorting] = useState<SortingState>([])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>(
     []
