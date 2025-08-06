@@ -1,5 +1,4 @@
 import { Input } from "@/components/ui/input";
-import { Loader2 } from "lucide-react";
 
 const SearchSection = ({
   searchTerm,

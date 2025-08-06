@@ -33,6 +33,7 @@ import {
   Building2,
   Globe,
   Cat,
+  CalendarFold,
 } from "lucide-react";
 
 type Submenu = {
@@ -683,6 +684,16 @@ export function getMenuList(
       groupLabel: "Planificación",
       moduleValue: "planification",
       menus: [
+          {
+          href: `/${currentCompany?.slug}/planificacion/calendario`,
+          label: "Calendario de Servicios",
+          active: pathname.includes(
+            `/${currentCompany?.slug}/planificacion/calendario`
+          ),
+          icon: CalendarFold,
+          roles: ["ANALISTA_ADMINISTRACION", "JEFE_PLANIFICACION", "SUPERUSER"],
+          submenus: [],
+        },
         {
           href: `/${currentCompany?.slug}/planificacion/ordenes_trabajo`,
           label: "Ordenes de Trabajo",

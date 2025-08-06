@@ -1,11 +1,6 @@
 'use client';
 
 import { ContentLayout } from '@/components/layout/ContentLayout';
-import { useGetBatchesWithArticlesCount } from '@/hooks/mantenimiento/almacen/renglones/useGetBatchesWithArticleCount';
-import { useCompanyStore } from '@/stores/CompanyStore';
-import { Loader2 } from 'lucide-react';
-import { columns } from './columns';
-import { DataTable } from './data-table';
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -13,12 +8,16 @@ import {
   BreadcrumbList,
   BreadcrumbPage,
   BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb"
-import { useSearchBatchesByPartNumber } from '@/hooks/mantenimiento/almacen/renglones/useGetBatchesByArticlePartNumber';
-import { useMemo, useState } from 'react';
+} from "@/components/ui/breadcrumb";
 import { useDebounce } from '@/hooks/helpers/useDebounce';
-import { Input } from '@/components/ui/input';
+import { useSearchBatchesByPartNumber } from '@/hooks/mantenimiento/almacen/renglones/useGetBatchesByArticlePartNumber';
+import { useGetBatchesWithArticlesCount } from '@/hooks/mantenimiento/almacen/renglones/useGetBatchesWithArticleCount';
+import { useCompanyStore } from '@/stores/CompanyStore';
+import { Loader2 } from 'lucide-react';
+import { useMemo, useState } from 'react';
 import SearchSection from './_components/SearchSection';
+import { columns } from './columns';
+import { DataTable } from './data-table';
 
 const InventarioPage = () => {
   const { selectedStation, selectedCompany } = useCompanyStore();

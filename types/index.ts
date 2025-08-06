@@ -297,6 +297,14 @@ export type MaintenanceAircraftPart = {
   aircraft: MaintenanceAircraft;
 };
 
+export type PlanificationEvent = {
+  id: number;
+  start: string,
+  end: string,
+  title: string,
+  description: string,
+}
+
 export type FlightControl = {
   flight_number: string;
   aircraft_operator: string;
