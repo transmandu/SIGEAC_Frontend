@@ -117,7 +117,9 @@ export const columns: ColumnDef<Requisition>[] = [
       <DataTableColumnHeader column={column} title="Aeronave" />
     ),
     cell: ({ row }) => (
-      <p className="flex justify-center font-medium">{row.original.aircraft.acronym}</p>
+      <p className="text-center italic text-muted-foreground">
+        {row.original?.aircraft?.acronym || "N/A"}
+      </p>
     )
   },
   {
