@@ -4,6 +4,7 @@ import { toast } from "sonner";
 
 interface CourseData {
   company: string;
+  location_id: string;
   course: {
     name: string;
     description: string;
@@ -34,13 +35,17 @@ interface updateCourseData {
 export const useCreateCourse = () => {
   const queryClient = useQueryClient();
   const createMutation = useMutation({
-    mutationFn: async ({ company, course }: CourseData) => {
+    mutationFn: async ({ company, location_id, course }: CourseData) => {
       console.log("data from create course", course);
-      await axiosInstance.post(`/general/${company}/create-course`, course, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
+      await axiosInstance.post(
+        `/general/${company}/${location_id}/create-course`,
+        course,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["department-courses"] });
@@ -95,17 +100,12 @@ export const useDeleteCourse = () => {
 export const useFinishCourse = () => {
   const queryClient = useQueryClient();
   const deleteMutation = useMutation({
-    mutationFn: async ({
-      company,
-      id,
-    }: {
-      company: string;
-      id: string;
-    }) => {
+    mutationFn: async ({ company, id }: { company: string; id: string }) => {
       await axiosInstance.patch(`/general/${company}/finish-course/${id}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["finish-course"] });
+      queryClient.invalidateQueries({ queryKey: ["department-courses"] });
       toast.success("Finalizado!", {
         description: `¡El curso ha sido finalizado correctamente!`,
       });
