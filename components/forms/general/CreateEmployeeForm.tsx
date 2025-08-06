@@ -162,21 +162,17 @@ export function CreateEmployeeForm({ onSuccess }: { onSuccess?: () => void }) {
   });
 
   // Generar username automáticamente
+  // Watch form values
+  const shouldCreateUser = form.watch("createUser");
+  const firstName = form.watch("first_name");
+  const lastName = form.watch("last_name");
+
   useEffect(() => {
-    if (
-      form.watch("createUser") &&
-      form.watch("first_name") &&
-      form.watch("last_name")
-    ) {
-      const username =
-        `${form.getValues("first_name").charAt(0)}${form.getValues("last_name")}`.toLowerCase();
+    if (shouldCreateUser && firstName && lastName) {
+      const username = `${firstName.charAt(0)}${lastName}`.toLowerCase();
       form.setValue("username", username);
     }
-  }, [
-    form.watch("createUser"),
-    form.watch("first_name"),
-    form.watch("last_name"),
-  ]);
+  }, [shouldCreateUser, firstName, lastName, form]);
 
   // Manejar selección de roles
   const handleRoleSelect = (roleId: string) => {
