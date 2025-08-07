@@ -1,7 +1,7 @@
 "use client";
 
 import { useCreateRequisition } from "@/actions/mantenimiento/compras/requisiciones/actions";
-import { CreateBatchDialog } from "@/components/dialogs/CreateBatchDialog";
+import { CreateBatchDialog } from "@/components/dialogs/mantenimiento/almacen/CreateBatchDialog";
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import { Button } from "@/components/ui/button";
 import {

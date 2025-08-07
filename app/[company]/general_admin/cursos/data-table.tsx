@@ -1,7 +1,7 @@
 "use client";
 
-import CreateCourseDialog from "@/components/dialogs/CreateCourseDialog";
-import CreateFollowUpControlDialog from "@/components/dialogs/CreateFollowUpControlDialog";
+import CreateCourseDialog from "@/components/dialogs/general/CreateCourseDialog";
+import CreateFollowUpControlDialog from "@/components/dialogs/aerolinea/sms/CreateFollowUpControlDialog";
 import { DataTablePagination } from "@/components/tables/DataTablePagination";
 import { DataTableViewOptions } from "@/components/tables/DataTableViewOptions";
 import {

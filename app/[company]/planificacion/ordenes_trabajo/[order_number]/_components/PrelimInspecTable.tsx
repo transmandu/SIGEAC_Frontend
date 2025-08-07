@@ -1,6 +1,6 @@
 "use client"
 import { useCreatePrelimInspection, useUpdatePrelimInspection } from "@/actions/mantenimiento/planificacion/ordenes_trabajo/inspecccion_preliminar/actions"
-import { PrelimInspectItemDialog } from "@/components/dialogs/PrelimInspecItemDialog"
+import { PrelimInspectItemDialog } from "@/components/dialogs/mantenimiento/ordenes_trabajo/PrelimInspecItemDialog"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"

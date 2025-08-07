@@ -4,7 +4,7 @@ import { ColumnDef } from "@tanstack/react-table"
 
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader"
 
-import { ReturnWarehouseDialog } from "@/components/dialogs/ReturnWarehouseDialog"
+import { ReturnWarehouseDialog } from "@/components/dialogs/mantenimiento/almacen/ReturnWarehouseDialog"
 import { Checkbox } from "@/components/ui/checkbox"
 import {
   Tooltip,

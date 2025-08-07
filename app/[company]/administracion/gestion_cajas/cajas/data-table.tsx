@@ -24,7 +24,7 @@ import {
 } from "@/components/ui/table";
 import { ListRestart } from "lucide-react";
 import { useState } from "react";
-import { CashDialog } from "@/components/dialogs/CreateCashDialog";
+import { CashDialog } from "@/components/dialogs/aerolinea/administracion/CreateCashDialog";
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];

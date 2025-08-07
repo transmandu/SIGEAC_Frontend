@@ -23,7 +23,7 @@ import {
 } from "@/components/ui/table"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
-import { CreateMaintenanceAircraftDialog } from "@/components/dialogs/CreateMaintenanceAircraftDialog"
+import { CreateMaintenanceAircraftDialog } from "@/components/dialogs/mantenimiento/aeronaves/CreateMaintenanceAircraftDialog"
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]

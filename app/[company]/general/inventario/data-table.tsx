@@ -12,7 +12,7 @@ import {
   useReactTable,
 } from "@tanstack/react-table"
 
-import { DispatchRequestDialog } from "@/components/dialogs/DispatchRequestDialog"
+import { RegisterDispatchRequestDialog } from "@/components/dialogs/mantenimiento/almacen/RegisterDispatchRequestDialog"
 import { DataTablePagination } from "@/components/tables/DataTablePagination"
 import { DataTableViewOptions } from "@/components/tables/DataTableViewOptions"
 import {
@@ -70,7 +70,7 @@ export function DataTable<TData, TValue>({
     <div>
       <div className="flex items-center py-4">
         <div className="flex gap-x-2 items-center">
-          <DispatchRequestDialog />
+          <RegisterDispatchRequestDialog />
         </div>
         <DataTableViewOptions table={table} />
       </div>

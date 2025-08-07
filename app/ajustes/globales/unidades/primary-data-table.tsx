@@ -27,8 +27,8 @@ import {
 } from "@/components/ui/table"
 import { ListRestart } from "lucide-react"
 import { useState } from "react"
-import { CreateCompanyDialog } from "@/components/dialogs/CreateCompanyDialog"
-import { CreateUnitDialog } from "@/components/dialogs/CreateUnitDialog"
+import { CreateCompanyDialog } from "@/components/dialogs/ajustes/CreateCompanyDialog"
+import { CreateUnitDialog } from "@/components/dialogs/ajustes/CreateUnitDialog"
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]

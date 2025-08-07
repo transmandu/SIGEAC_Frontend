@@ -6,7 +6,7 @@ import { DailyReportForm } from '@/components/forms/aerolinea/desarollo/DailyRep
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
 import { useGetDailyActivityReport } from '@/hooks/aerolinea/desarrollo/useGetDailyActivities';
 import { useParams } from 'next/navigation';
-import ConfirmCreateActivityReportDialog from '@/components/dialogs/CreateActivityReportDialog';
+import ConfirmCreateActivityReportDialog from '@/components/dialogs/aerolinea/desarollo/CreateActivityReportDialog';
 import { useCreateActivityReport } from '@/actions/aerolinea/desarrollo/reportes_diarios/actions';
 import { useAuth } from '@/contexts/AuthContext';
 import LoadingPage from '@/components/misc/LoadingPage';

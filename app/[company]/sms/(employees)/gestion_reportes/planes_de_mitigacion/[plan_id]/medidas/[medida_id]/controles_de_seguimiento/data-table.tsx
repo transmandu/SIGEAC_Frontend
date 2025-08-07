@@ -1,6 +1,6 @@
 "use client";
 
-import CreateFollowUpControlDialog from "@/components/dialogs/CreateFollowUpControlDialog";
+import CreateFollowUpControlDialog from "@/components/dialogs/aerolinea/sms/CreateFollowUpControlDialog";
 import { DataTablePagination } from "@/components/tables/DataTablePagination";
 import { DataTableViewOptions } from "@/components/tables/DataTableViewOptions";
 import {

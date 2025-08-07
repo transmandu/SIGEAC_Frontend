@@ -22,7 +22,7 @@ import { PDFDownloadLink } from "@react-pdf/renderer";
 import { Printer, FileText } from "lucide-react";
 
 import { useState } from "react";
-import { DailyReportDialog } from "@/components/dialogs/DailyReportDialog";
+import { DailyReportDialog } from "@/components/dialogs/aerolinea/desarollo/DailyReportDialog";
 
 const ActivityReportsByIdPage = ({ params }: { params: { id: string } }) => {
   const { data: report, isLoading } = useGetUserActivity(params.id);

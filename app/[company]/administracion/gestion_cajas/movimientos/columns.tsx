@@ -6,12 +6,12 @@ import { CashMovement } from "@/types";
 import { addDays, format } from "date-fns";
 import { es } from "date-fns/locale/es";
 import CashMovementDropdownActions from "@/components/dropdowns/aerolinea/administracion/CashMovementDropdownActions";
-import BankAccountResumeDialog from "@/components/dialogs/BankAccountResumeDialog";
-import CashResumeDialog from "@/components/dialogs/CashResumeDialog";
+import BankAccountResumeDialog from "@/components/dialogs/ajustes/BankAccountResumeDialog";
+import CashResumeDialog from "@/components/dialogs/aerolinea/administracion/CashResumeDialog";
 import { formatCurrencyJ } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
-import ClientResumeDialog from "@/components/dialogs/ClientResumeDialog";
-import VendorResumeDialog from "@/components/dialogs/VendorResumeDialog";
+import ClientResumeDialog from "@/components/dialogs/aerolinea/administracion/ClientResumeDialog";
+import VendorResumeDialog from "@/components/dialogs/aerolinea/administracion/VendorResumeDialog";
 import { FileDownIcon } from "lucide-react";
 import Image from "next/image";
 

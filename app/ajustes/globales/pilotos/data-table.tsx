@@ -11,7 +11,7 @@ import {
   SortingState,
   useReactTable,
 } from "@tanstack/react-table";
-import { CreateManufacturerDialog } from "@/components/dialogs/CreateManufacturerDialog";
+import { CreateManufacturerDialog } from "@/components/dialogs/general/CreateManufacturerDialog";
 import { DataTablePagination } from "@/components/tables/DataTablePagination";
 import { DataTableViewOptions } from "@/components/tables/DataTableViewOptions";
 import { Button } from "@/components/ui/button";
@@ -25,8 +25,8 @@ import {
 } from "@/components/ui/table";
 import { ListRestart } from "lucide-react";
 import { useState } from "react";
-import { CreateVendorDialog } from "@/components/dialogs/CreateVendorDialog";
-import CreatePilotDialog from "@/components/dialogs/CreatePilotDialog";
+import { CreateVendorDialog } from "@/components/dialogs/mantenimiento/compras/CreateVendorDialog";
+import CreatePilotDialog from "@/components/dialogs/ajustes/CreatePilotDialog";
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];

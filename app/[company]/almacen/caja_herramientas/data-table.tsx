@@ -12,7 +12,7 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 
-import { CreateToolBoxDialog } from "@/components/dialogs/CreateToolBoxDialog";
+import { CreateToolBoxDialog } from "@/components/dialogs/mantenimiento/almacen/CreateToolBoxDialog";
 import { DataTablePagination } from "@/components/tables/DataTablePagination";
 import { DataTableViewOptions } from "@/components/tables/DataTableViewOptions";
 import {

@@ -12,7 +12,7 @@ import {
   useReactTable,
 } from "@tanstack/react-table"
 
-import { CreateRoleDialog } from "@/components/dialogs/CreateRoleDialog"
+import { CreateRoleDialog } from "@/components/dialogs/general/CreateRoleDialog"
 import { DataTablePagination } from "@/components/tables/DataTablePagination"
 import { DataTableViewOptions } from "@/components/tables/DataTableViewOptions"
 import { Button } from "@/components/ui/button"

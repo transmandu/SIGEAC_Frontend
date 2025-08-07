@@ -12,7 +12,7 @@ import {
   useReactTable,
 } from "@tanstack/react-table"
 
-import { CreateSecondaryUnitDialog } from "@/components/dialogs/CreateSecondaryUnitDialog"
+import { CreateSecondaryUnitDialog } from "@/components/dialogs/ajustes/CreateSecondaryUnitDialog"
 import { DataTablePagination } from "@/components/tables/DataTablePagination"
 import { Button } from "@/components/ui/button"
 import {
