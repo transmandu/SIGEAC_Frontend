@@ -319,134 +319,137 @@ export function CreateGeneralRequisitionForm({ onClose, initialData, isEditing, 
               </FormItem>
             )}
           />
-        {form.watch("type") === "AVIACION" && (
-          <FormField
-            control={form.control}
-            name="aircraft_id"
-            render={({ field }) => (
-              <FormItem className="w-[250px] space-y-1.5">
-                <FormLabel>Aeronave</FormLabel>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <FormControl>
-                      <Button
-                        disabled={isAircraftsLoading}
-                        variant="outline"
-                        role="combobox"
-                        className={cn(
-                          "justify-between",
-                          !field.value && "text-muted-foreground"
-                        )}
-                      >
-                        {isAircraftsLoading && (
-                          <Loader2 className="size-4 animate-spin mr-2" />
-                        )}
-                        {field.value
-                          ? aircrafts?.find(
-                              (aircraft) => aircraft.id.toString() === field.value
-                            )?.acronym +
-                            " - " +
-                            aircrafts?.find(
-                              (aircraft) => aircraft.id.toString() === field.value
-                            )?.manufacturer.name
-                          : "Selec. la aeronave..."}
-                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                      </Button>
-                    </FormControl>
-                  </PopoverTrigger>
-                  <PopoverContent className="p-0">
-                    <Command>
-                      <CommandInput placeholder="Busque una aeronave..." />
-                      <CommandList>
-                        <CommandEmpty className="text-sm p-2 text-center">
-                          No se ha encontrado ninguna aeronave.
-                        </CommandEmpty>
-                        <CommandGroup>
-                          {aircrafts?.map((aircraft) => (
-                            <CommandItem
-                              value={aircraft.id.toString()}
-                              key={aircraft.id}
-                              onSelect={() => {
-                                form.setValue("aircraft_id", aircraft.id.toString());
-                              }}
-                            >
-                              <Check
-                                className={cn(
-                                  "mr-2 h-4 w-4",
-                                  aircraft.id.toString() === field.value
-                                    ? "opacity-100"
-                                    : "opacity-0"
-                                )}
-                              />
-                              {aircraft.acronym} - {aircraft.manufacturer.name}
-                            </CommandItem>
-                          ))}
-                        </CommandGroup>
-                      </CommandList>
-                    </Command>
-                  </PopoverContent>
-                </Popover>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        )}
         </div>
         <FormField
           control={form.control}
           name="articles"
           render={({ field }: { field: any }) => (
             <FormItem className="flex flex-col">
-              <FormLabel>Artículos</FormLabel>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <FormControl>
-                    <Button
-                      variant="outline"
-                      disabled={isBatchesLoading}
-                      role="combobox"
-                      className={cn(
-                        "w-[200px] justify-between",
-                        selectedBatches.length === 0 && "text-muted-foreground"
-                      )}
-                    >
-                      {selectedBatches.length > 0
-                        ? `${selectedBatches.length} reng. seleccionados`
-                        : "Selec. un renglón..."}
-                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                    </Button>
-                  </FormControl>
-                </PopoverTrigger>
-                <PopoverContent className="w-[200px] p-0">
-                  <Command>
-                    <CommandInput placeholder="Buscar..." />
-                    <CommandList>
-                      <CommandEmpty>No existen renglones...</CommandEmpty>
-                      <CommandGroup>
-                        <div className="flex justify-center m-2"><CreateBatchDialog /></div>
-                        {data &&
-                          data.map((batch) => (
-                            <CommandItem
-                              key={batch.name}
-                              value={batch.name}
-                              onSelect={() => handleBatchSelect(batch.name, batch.id.toString(), batch.category)}
+              <div className="flex gap-4 items-end">
+                <FormItem className="flex flex-col w-[200px]">
+                  <FormLabel>Artículos</FormLabel>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <FormControl>
+                          <Button
+                            variant="outline"
+                            disabled={isBatchesLoading}
+                            role="combobox"
+                            className={cn(
+                              "justify-between",
+                              selectedBatches.length === 0 && "text-muted-foreground"
+                            )}
+                          >
+                            {selectedBatches.length > 0
+                              ? `${selectedBatches.length} reng. seleccionados`
+                              : "Selec. un renglón..."}
+                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-[200px] p-0">
+                        <Command>
+                          <CommandInput placeholder="Buscar..." />
+                          <CommandList>
+                            <CommandEmpty>No existen renglones...</CommandEmpty>
+                            <CommandGroup>
+                              <div className="flex justify-center m-2"><CreateBatchDialog /></div>
+                              {data &&
+                                data.map((batch) => (
+                                  <CommandItem
+                                    key={batch.name}
+                                    value={batch.name}
+                                    onSelect={() => handleBatchSelect(batch.name, batch.id.toString(), batch.category)}
+                                  >
+                                    <Check
+                                      className={cn(
+                                        "",
+                                        selectedBatches.some((b) => b.batch === batch.id.toString())
+                                          ? "opacity-100"
+                                          : "opacity-0"
+                                      )}
+                                    />
+                                    {batch.name}
+                                  </CommandItem>
+                                ))}
+                            </CommandGroup>
+                          </CommandList>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
+                  </FormItem>
+              {form.watch("type") === "AVIACION" && (
+                <FormField
+                  control={form.control}
+                  name="aircraft_id"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-col w-[200px]">
+                      <FormLabel>Aeronave</FormLabel>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <FormControl>
+                            <Button
+                              disabled={isAircraftsLoading}
+                              variant="outline"
+                              role="combobox"
+                              className={cn(
+                                "justify-between",
+                                !field.value && "text-muted-foreground"
+                              )}
                             >
-                              <Check
-                                className={cn(
-                                  "",
-                                  selectedBatches.some((b) => b.batch === batch.id.toString())
-                                    ? "opacity-100"
-                                    : "opacity-0"
-                                )}
-                              />
-                              {batch.name}
-                            </CommandItem>
-                          ))}
-                      </CommandGroup>
-                    </CommandList>
-                  </Command>
-                </PopoverContent>
-              </Popover>
+                              {isAircraftsLoading && (
+                                <Loader2 className="size-4 animate-spin mr-2" />
+                              )}
+                              {field.value
+                                ? aircrafts?.find(
+                                    (aircraft) => aircraft.id.toString() === field.value
+                                  )?.acronym +
+                                  " - " +
+                                  aircrafts?.find(
+                                    (aircraft) => aircraft.id.toString() === field.value
+                                  )?.manufacturer.name
+                                : "Selec. la aeronave..."}
+                              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                            </Button>
+                          </FormControl>
+                        </PopoverTrigger>
+                        <PopoverContent className="p-0">
+                          <Command>
+                            <CommandInput placeholder="Busque una aeronave..." />
+                            <CommandList>
+                              <CommandEmpty className="text-sm p-2 text-center">
+                                No se ha encontrado ninguna aeronave.
+                              </CommandEmpty>
+                              <CommandGroup>
+                                {aircrafts?.map((aircraft) => (
+                                  <CommandItem
+                                    value={aircraft.id.toString()}
+                                    key={aircraft.id}
+                                    onSelect={() => {
+                                      form.setValue("aircraft_id", aircraft.id.toString());
+                                    }}
+                                  >
+                                    <Check
+                                      className={cn(
+                                        "mr-2 h-4 w-4",
+                                        aircraft.id.toString() === field.value
+                                          ? "opacity-100"
+                                          : "opacity-0"
+                                      )}
+                                    />
+                                    {aircraft.acronym} - {aircraft.manufacturer.name}
+                                  </CommandItem>
+                                ))}
+                              </CommandGroup>
+                            </CommandList>
+                          </Command>
+                        </PopoverContent>
+                      </Popover>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}</div>
               <div className="mt-4 space-y-4">
                 <ScrollArea className={cn("", selectedBatches.length > 2 ? "h-[300px]" : "")}>
                   {selectedBatches.map((batch) => (
