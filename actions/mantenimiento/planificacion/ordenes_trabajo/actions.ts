@@ -28,8 +28,10 @@ export const useCreateWorkOrder = () => {
   const queryClient = useQueryClient()
 
   const createMutation = useMutation({
-      mutationFn: async ({data, company}: {data: CreateWOData, company: string}) => {
-          await axiosInstance.post(`/${company}/work-orders`, data)
+      mutationFn: async ({data, company, eventId}: {data: CreateWOData, company: string, eventId?: string}) => {
+          await axiosInstance.post(`/${company}/work-orders`, data, {
+            params: { eventId }
+          })
         },
       onSuccess: () => {
           queryClient.invalidateQueries({queryKey: ['work-orders'], exact: false})

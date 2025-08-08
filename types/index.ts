@@ -299,10 +299,26 @@ export type MaintenanceAircraftPart = {
 
 export type PlanificationEvent = {
   id: number;
+  start_date: string,
+  end_date: string,
   start: string,
   end: string,
   title: string,
   description: string,
+  priority: "LOW" | "MEDIUM" | "HIGH",
+  calendarId: string,
+}
+
+export type WorkOrderTaskEvent = {
+  id: number;
+  start_date: string,
+  end_date: string,
+  start: string,
+  end: string,
+  title: string,
+  description: string,
+  priority: "LOW" | "MEDIUM" | "HIGH",
+  calendarId: string,
 }
 
 export type FlightControl = {

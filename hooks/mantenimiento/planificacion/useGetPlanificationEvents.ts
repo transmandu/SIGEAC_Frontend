@@ -1,28 +1,27 @@
+import { description } from '@/components/misc/TestChart';
 import axios from '@/lib/axios';
+import { useCompanyStore } from '@/stores/CompanyStore';
 import { PlanificationEvent } from '@/types';
 import { useQuery } from '@tanstack/react-query';
+import { format } from 'date-fns';
 
-// Función para formatear fechas (si es necesario)
-const formatToScheduleXDate = (dateString: string): string => {
-  // Ejemplo: Si tu API devuelve 'DD/MM/YYYY HH:mm' → 'YYYY-MM-DD HH:mm'
-  const [datePart, timePart] = dateString.split(' ');
-  const [day, month, year] = datePart.split('/');
-  return `${year}-${month}-${day} ${timePart}`;
-};
 
-const fetchPlanificationEvents = async (company: string | undefined): Promise<PlanificationEvent[]> => {
-  const { data } = await axios.get(`/${company}/planification-events`);
-  return data.map((event: PlanificationEvent) => ({
+const fetchPlanificationEvents = async ({company, location_id}: {company?: string, location_id: string | null }): Promise<PlanificationEvent[]> => {
+  const { data } = await axios.get(`/${company}/${location_id}/planification-events`);
+  const events  = data.map((event: PlanificationEvent) => ({
     ...event,
-    start: formatToScheduleXDate(event.start), // Aplica formato si es necesario
-    end: formatToScheduleXDate(event.end),
+    start: format(event.start_date, "yyyy-MM-dd HH:mm"),
+    end: format(event.end_date, "yyyy-MM-dd HH:mm"),
+    calendarId: event.priority
   }));
+  return events
 };
 
-export const useGetPlanificationEvents = (company: string | undefined) => {
+export const useGetPlanificationEvents = () => {
+  const {selectedCompany, selectedStation} = useCompanyStore();
   return useQuery<PlanificationEvent[], Error>({
-    queryKey: ["planification-events", company],
-    queryFn: () => fetchPlanificationEvents(company),
-    enabled: !!company,
+    queryKey: ["planification-events", selectedStation, selectedCompany?.slug],
+    queryFn: () => fetchPlanificationEvents({ company: selectedCompany?.slug, location_id: selectedStation }),
+    enabled: !!selectedCompany && !!selectedStation,
   });
 };

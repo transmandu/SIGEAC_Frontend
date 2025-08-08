@@ -1,18 +1,25 @@
 "use client";
-import { Calendar } from "@/components/calendar/Calendar";
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import LoadingPage from "@/components/misc/LoadingPage";
 import { useGetPlanificationEvents } from "@/hooks/mantenimiento/planificacion/useGetPlanificationEvents";
 import { useTheme } from "next-themes";
+import { Calendar } from "./_components/calendar";
+import { useEffect } from "react";
 
 const CalendarServicesPage = () => {
+
+
   const { theme } = useTheme();
 
-  // const { data: events, isLoading, error } = useGetPlanificationEvents("tu-company-id");
+  const { data: events, isLoading, error } = useGetPlanificationEvents();
 
-  // if (isLoading) return <LoadingPage />; // Muestra un spinner
+  useEffect(() => {
+    console.log("Eventos actualizados:", events);
+  }, [events]);
 
-  // if (error) return <div>Error al cargar eventos</div>;
+  if (isLoading) return <LoadingPage  />; // Muestra un spinner
+
+  if (error) return <div>Error al cargar eventos {error.message}</div>;
 
   return (
     <ContentLayout title="Planificación de Servicios">
@@ -21,10 +28,9 @@ const CalendarServicesPage = () => {
         <p className='text-muted-foreground italic text-sm'>Aquí puede llevar un registro de todas las aeronaves registradas en el sistema. <br />Puede crear o editar las aeronaves de ser necesarios.</p>
       </div>
       <Calendar
-      events={[]}
+      events={events || []}
       theme={theme === "dark" ? "dark" : "light"} // Pasa el tema dinámico
       />
-
     </ContentLayout>
   );
 };

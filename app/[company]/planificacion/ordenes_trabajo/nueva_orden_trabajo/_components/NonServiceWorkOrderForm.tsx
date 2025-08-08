@@ -17,7 +17,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { CalendarIcon, Check, ChevronsUpDown, Loader2, MinusCircle, PlusCircle } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -61,6 +61,8 @@ interface TaskInProgress {
 }
 
 const NonServiceWorkOrderForm = () => {
+  const searchParams = useSearchParams();
+  const eventId = searchParams.get("eventId") || null;
   const [selectedAircraft, setSelectedAircraft] = useState<string | null>(null);
   const [tasks, setTasks] = useState<TaskInProgress[]>([]);
   const { selectedStation, selectedCompany } = useCompanyStore();
@@ -147,7 +149,7 @@ const NonServiceWorkOrderForm = () => {
       ...data,
       date: format(data.date, "yyyy-MM-dd")
     };
-    await createWorkOrder.mutateAsync({data: formattedData, company: selectedCompany!.slug});
+    await createWorkOrder.mutateAsync({data: formattedData, company: selectedCompany!.slug}, eventId);
     form.reset();
     router.push(`/${selectedCompany!.slug}/planificacion/ordenes_trabajo`);
   };
