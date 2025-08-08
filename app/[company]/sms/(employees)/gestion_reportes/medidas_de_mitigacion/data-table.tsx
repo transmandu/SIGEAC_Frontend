@@ -24,7 +24,7 @@ import {
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-import CreateVoluntaryReportDialog from "@/components/dialogs/CreateVoluntaryReportDialog";
+import CreateVoluntaryReportDialog from "@/components/dialogs/aerolinea/sms/CreateVoluntaryReportDialog";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];

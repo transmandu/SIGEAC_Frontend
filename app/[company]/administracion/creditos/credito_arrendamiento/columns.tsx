@@ -8,7 +8,7 @@ import { es } from "date-fns/locale/es";
 import CreditDropdownActions from "@/components/dropdowns/aerolinea/administracion/CreditDropdownActions";
 import { Badge } from "@/components/ui/badge";
 import { formatCurrency } from "@/lib/utils";
-import ClientResumeDialog from "@/components/dialogs/ClientResumeDialog";
+import ClientResumeDialog from "@/components/dialogs/aerolinea/administracion/ClientResumeDialog";
 
 export const columns: ColumnDef<Credit>[] = [
   {

@@ -15,7 +15,7 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb"
 import { useSearchBatchesByPartNumber } from '@/hooks/mantenimiento/almacen/renglones/useGetBatchesByArticlePartNumber';
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { useDebounce } from '@/hooks/helpers/useDebounce';
 import { Input } from '@/components/ui/input';
 import SearchSection from './_components/SearchSection';
@@ -25,21 +25,37 @@ const InventarioPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
+  // Loading de transición de 500ms cuando cambia el término de búsqueda
+  const [transitionLoading, setTransitionLoading] = useState(false);
+  useEffect(() => {
+    setTransitionLoading(true);
+    const timeout = setTimeout(() => setTransitionLoading(false), 500);
+    return () => clearTimeout(timeout);
+  }, [debouncedSearchTerm]);
+
   // Consultas a la API
   const { data: allBatches, isLoading: isLoadingBatches, isError: isBatchesError, error: batchesError } =
     useGetBatchesWithArticlesCount({company: selectedCompany?.slug, location_id: selectedStation ?? undefined});
 
   const { data: searchedBatches, isLoading: isLoadingSearch, isError: isSearchError, error: searchError } =
-    useSearchBatchesByPartNumber(selectedStation ?? undefined, debouncedSearchTerm || undefined);
+    useSearchBatchesByPartNumber( selectedCompany?.slug, selectedStation ?? undefined, debouncedSearchTerm || undefined);
 
   // Memoización de batches a mostrar
   const displayedBatches = useMemo(() => {
     if (!allBatches) return [];
-    if (!debouncedSearchTerm || debouncedSearchTerm === "") return allBatches;
-    if (searchedBatches) {
+
+    // Si el input (debounced) está vacío, mostrar todos los batches
+    if (!debouncedSearchTerm || debouncedSearchTerm.trim() === "") {
+      return allBatches;
+    }
+
+    // Si hay término de búsqueda y hay resultados, filtrar
+    if (searchedBatches && searchedBatches.length > 0) {
       const searchedBatchIds = new Set(searchedBatches.map(b => b.id));
       return allBatches.filter(batch => searchedBatchIds.has(batch.id));
     }
+
+    // Si hay término de búsqueda pero no hay resultados, retornar array vacío
     return [];
   }, [allBatches, searchedBatches, debouncedSearchTerm]);
 
@@ -54,7 +70,7 @@ const InventarioPage = () => {
         <Breadcrumb>
           <BreadcrumbList>
             <BreadcrumbItem>
-              <BreadcrumbLink href="/hangar74/dashboard">Inicio</BreadcrumbLink>
+              <BreadcrumbLink href={`/${selectedCompany?.slug}/dashboard`}>Inicio</BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
@@ -83,8 +99,8 @@ const InventarioPage = () => {
               <DataTable
                 columns={columns}
                 initialData={displayedBatches}
-                isSearching={!!debouncedSearchTerm}
-                searchTerm={debouncedSearchTerm}
+                isSearching={!!debouncedSearchTerm && debouncedSearchTerm.trim() !== ""}
+                searchTerm={debouncedSearchTerm && debouncedSearchTerm.trim() !== "" ? debouncedSearchTerm : ""}
               />
             )}
 

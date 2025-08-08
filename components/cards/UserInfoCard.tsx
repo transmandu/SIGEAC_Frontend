@@ -10,7 +10,7 @@ import Image from "next/image"
 import { Badge } from "../ui/badge"
 import { Button } from "../ui/button"
 import { User } from "@/types"
-import { EditUserDialog } from "../dialogs/EditUserDialog"
+import { EditUserDialog } from "../dialogs/ajustes/EditUserDialog"
 
 const UserInfoCard = ({ user }: {
   user: User

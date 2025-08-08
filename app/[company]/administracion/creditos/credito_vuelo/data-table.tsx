@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow,} from "@/components/ui/table";
 import { ListRestart } from "lucide-react";
 import { useState } from "react";
-import { CreditFlightDialog } from "@/components/dialogs/CreateCreditFlightDialog";
+import { CreditFlightDialog } from "@/components/dialogs/aerolinea/administracion/CreateCreditFlightDialog";
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];

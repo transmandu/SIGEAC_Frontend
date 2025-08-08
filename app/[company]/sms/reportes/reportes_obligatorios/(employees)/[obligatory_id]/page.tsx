@@ -1,8 +1,8 @@
 "use client";
-import CreateDangerIdentificationDialog from "@/components/dialogs/CreateDangerIdentificationDialog";
-import CreateObligatoryDialog from "@/components/dialogs/CreateObligatoryDialog";
-import DeleteObligatoryReportDialog from "@/components/dialogs/DeleteObligatoryReportDialog";
-import PreviewObligatoryReportPdfDialog from "@/components/dialogs/PreviewObligatoryReportPdfDialog";
+import CreateDangerIdentificationDialog from "@/components/dialogs/aerolinea/sms/CreateDangerIdentificationDialog";
+import CreateObligatoryDialog from "@/components/dialogs/aerolinea/sms/CreateObligatoryDialog";
+import DeleteObligatoryReportDialog from "@/components/dialogs/aerolinea/sms/DeleteObligatoryReportDialog";
+import PreviewObligatoryReportPdfDialog from "@/components/dialogs/aerolinea/sms/PreviewObligatoryReportPdfDialog";
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";

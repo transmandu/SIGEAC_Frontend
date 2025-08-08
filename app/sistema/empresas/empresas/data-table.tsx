@@ -11,7 +11,7 @@ import {
   SortingState,
   useReactTable,
 } from "@tanstack/react-table"
-import { ModuleDialog } from "@/components/dialogs/ModuleDialog"
+import { ModuleDialog } from "@/components/dialogs/ajustes/ModuleDialog"
 import { DataTablePagination } from "@/components/tables/DataTablePagination"
 import { DataTableViewOptions } from "@/components/tables/DataTableViewOptions"
 import {
@@ -23,7 +23,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { useState } from "react"
-import { CreateCompanyDialog } from "@/components/dialogs/CreateCompanyDialog"
+import { CreateCompanyDialog } from "@/components/dialogs/ajustes/CreateCompanyDialog"
 
 
 interface DataTableProps<TData, TValue> {

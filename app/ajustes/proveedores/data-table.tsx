@@ -1,6 +1,6 @@
 "use client";
 
-import { CreateVendorDialog } from "@/components/dialogs/CreateVendorDialog";
+import { CreateVendorDialog } from "@/components/dialogs/mantenimiento/compras/CreateVendorDialog";
 import { DataTablePagination } from "@/components/tables/DataTablePagination";
 import { DataTableViewOptions } from "@/components/tables/DataTableViewOptions";
 import { Button } from "@/components/ui/button";
