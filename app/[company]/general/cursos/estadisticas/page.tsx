@@ -1,5 +1,5 @@
 "use client";
-import BarChartComponent from "@/components/charts/BarChartComponent";
+import BarChartCourseComponent from "@/components/charts/BarChartCourseComponent";
 import PieChartComponent from "@/components/charts/PieChartComponent";
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import DataFilter from "@/components/misc/DataFilter";
@@ -44,6 +44,7 @@ const CourseStatsPage = () => {
   }, [searchParams, pathname]);
 
   // Hook calls for data fetching
+  
   const {
     data: barChartData,
     isLoading: isLoadingBarChart,
@@ -66,7 +67,7 @@ const CourseStatsPage = () => {
       value: barChartData?.closed ?? 0,
     },
   ];
-  console.log(pieChartData);
+
   useEffect(() => {
     refetchBarChart();
   }, [params.from, params.to, refetchBarChart]);
@@ -91,7 +92,7 @@ const CourseStatsPage = () => {
               <Loader2 className="size-24 animate-spin" />
             </div>
           ) : barChartData ? (
-            <BarChartComponent
+            <BarChartCourseComponent
               height="100%"
               width="100%"
               data={barChartData}

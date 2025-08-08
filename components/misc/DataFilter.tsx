@@ -27,8 +27,9 @@ const DateFilter = () => {
   const params = useSearchParams();
   const pathname = usePathname();
 
-  const from = params.get("from") || "";
-  const to = params.get("to") || "";
+  const from =
+    params.get("from") || format(startOfMonth(new Date()), "yyyy-MM-dd");
+  const to = params.get("to") || format(new Date(), "yyyy-MM-dd");
 
   const defaultFrom = startOfMonth(new Date());
   const defaultTo = endOfDay(new Date());
@@ -68,7 +69,9 @@ const DateFilter = () => {
     pushToUrl(tempDate);
   };
 
-  const convertDateRangeToPeriod = (dateRange: DateRange | undefined): Period | undefined => {
+  const convertDateRangeToPeriod = (
+    dateRange: DateRange | undefined
+  ): Period | undefined => {
     if (dateRange && dateRange.from && dateRange.to) {
       return { from: dateRange.from, to: dateRange.to };
     }
@@ -89,7 +92,11 @@ const DateFilter = () => {
           variant={"outline"}
           className="lg:w-auto w-full h-9 rounded-md px-3 font-normal bg-primary hover:bg-primary/90 hover:text-white border-none focus:ring-offset-0 focus:ring-transparent outline-none text-white focus:bg-white/30 transition"
         >
-          <span>{convertDateRangeToPeriod(date || initialDate) ? formatDateRange(convertDateRangeToPeriod(date || initialDate)!) : "Seleccionar rango"}</span>
+          <span>
+            {convertDateRangeToPeriod(date || initialDate)
+              ? formatDateRange(convertDateRangeToPeriod(date || initialDate)!)
+              : "Seleccionar rango"}
+          </span>
           <ChevronDown className="size-4 mr-2 opacity-50" />
         </Button>
       </PopoverTrigger>
