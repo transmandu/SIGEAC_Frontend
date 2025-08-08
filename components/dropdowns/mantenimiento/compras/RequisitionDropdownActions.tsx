@@ -8,12 +8,15 @@ import {
 import { useAuth } from "@/contexts/AuthContext"
 import { useCompanyStore } from "@/stores/CompanyStore"
 import { Requisition } from "@/types"
-import { ClipboardCheck, ClipboardX, Loader2, MoreHorizontal, Trash2 } from "lucide-react"
+import { ClipboardCheck, ClipboardX, Loader2, MoreHorizontal, Trash2, FileDown } from "lucide-react"
 import { useState } from "react"
 import { CreateQuoteForm } from "../../../forms/mantenimiento/compras/CreateQuoteForm"
 import { Button } from "../../../ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "../../../ui/dialog"
 import LoadingPage from "../../../misc/LoadingPage"
+import { PDFDownloadLink } from "@react-pdf/renderer"
+import RequisitionReportPdf from "@/components/pdf/RequisitionReportPdf"
+
 
 function transformApiData(apiData: any) {
   return {
@@ -113,6 +116,14 @@ const RequisitionsDropdownActions = ({ req }: { req: Requisition }) => {
               </>
             )
           }
+          <PDFDownloadLink
+            fileName={`${req.order_number}.pdf`}
+            document={<RequisitionReportPdf requisition={req} />}
+          >
+            <DropdownMenuItem className="cursor-pointer">
+              <FileDown className="size-5 text-blue-600 hover:text-blue-700" />
+            </DropdownMenuItem>
+          </PDFDownloadLink>
           <DropdownMenuItem onClick={() => setOpenDelete(true)} className="cursor-pointer">
             <Trash2 className="size-5 text-red-500" />
           </DropdownMenuItem>
