@@ -1,5 +1,4 @@
 "use client";
-import BarChartComponent from "@/components/charts/BarChartComponent";
 import BarChartCourseComponent from "@/components/charts/BarChartCourseComponent";
 import PieChartComponent from "@/components/charts/PieChartComponent";
 import { ContentLayout } from "@/components/layout/ContentLayout";
@@ -45,6 +44,7 @@ const CourseStatsPage = () => {
   }, [searchParams, pathname]);
 
   // Hook calls for data fetching
+  
   const {
     data: barChartData,
     isLoading: isLoadingBarChart,
@@ -67,7 +67,7 @@ const CourseStatsPage = () => {
       value: barChartData?.closed ?? 0,
     },
   ];
-  console.log(pieChartData);
+
   useEffect(() => {
     refetchBarChart();
   }, [params.from, params.to, refetchBarChart]);

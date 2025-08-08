@@ -3,12 +3,13 @@ import { useQuery } from "@tanstack/react-query";
 
 interface IdNameSchema {
   id: string;
-  name: string; 
+  name: string;
+  description: string;
 }
 
 interface data {
-  from: string;
-  to: string;
+  from: string | null;
+  to: string | null;
   status: string;
   company?: string;
   location_id: string;
@@ -22,7 +23,7 @@ const fetchCoursesByStatusDateRange = async ({
   location_id,
 }: data) => {
   const { data } = await axiosInstance.get(
-    `/general/${company}/${location_id}/course-by-status-date-range?searchStatus=${status}&from=${from}&to=${to}`
+    `/general/${company}/${location_id}/courses-by-status-date-range?searchStatus=${status}&from=${from}&to=${to}`
   );
   return data;
 };

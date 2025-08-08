@@ -3,16 +3,17 @@
 import { GeneralStats } from "@/types";
 import { useTheme } from "next-themes";
 import {
-    Bar,
-    BarChart,
-    CartesianGrid,
-    Legend,
-    ResponsiveContainer,
-    Tooltip,
-    XAxis,
-    YAxis,
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Legend,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
 } from "recharts";
 import CourseListDialog from "../dialogs/CourseListDialog";
+import { useState } from "react";
 
 interface BarChartProps {
   data: GeneralStats;
@@ -51,9 +52,17 @@ const BarChartCourseComponent = ({
       ]
     : [];
 
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [message, setMessage] = useState("");
   const handleClick = (message: string) => {
-      console.log("click", message);
-      <CourseListDialog title="this is the title"/>
+    setMessage(message === "ABIERTO" ? "Planificados" : "Ejecutados");
+    // Alternativa con if-else tradicional:
+    if (message === "ABIERTO") {
+      setMessage("Planificados");
+    } else {
+      setMessage("Ejecutados");
+    }
+    setIsDialogOpen(true);
   };
   return (
     <>
@@ -95,7 +104,7 @@ const BarChartCourseComponent = ({
               name={`${bar_first_name}`}
               stackId="a"
               fill={theme === "light" ? "#80d5c0" : "#89f4c7"}
-              onClick={() => handleClick("Abierto")}
+              onClick={() => handleClick("ABIERTO")}
             />
 
             <Bar
@@ -103,13 +112,19 @@ const BarChartCourseComponent = ({
               name={`${bar_second_name}`}
               stackId="a"
               fill={theme === "light" ? "#8ea7f0" : "#8f8dfe"}
-              onClick={() => handleClick("Cerrado")}
+              onClick={() => handleClick("CERRADO")}
             />
           </BarChart>
         ) : (
           <p>No hay datos disponibles para mostrar el gráfico.</p>
         )}
       </ResponsiveContainer>
+
+      <CourseListDialog
+        title={`Detalles de cursos "}`}
+        open={isDialogOpen}
+        onOpenChange={setIsDialogOpen}
+      />
     </>
   );
 };

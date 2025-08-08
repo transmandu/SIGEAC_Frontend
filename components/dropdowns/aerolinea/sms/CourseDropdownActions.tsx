@@ -101,7 +101,7 @@ const CourseDropdownActions = ({ course }: { course: Course }) => {
 
             <DropdownMenuItem
               onClick={() => {
-                router.push(`/${selectedCompany}/general/cursos/${course.id}`);
+                router.push(`/${selectedCompany?.slug}/general/cursos/${course.id}`);
               }}
             >
               <EyeIcon className="size-5" />
