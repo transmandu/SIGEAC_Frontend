@@ -23,7 +23,7 @@ import { PDFDownloadLink } from "@react-pdf/renderer";
 import { format } from "date-fns";
 import { Drill, NotepadText } from "lucide-react";
 import { useState } from "react";
-import WarehouseReportPdf from "@/components/pdf/GeneralWarehouseReport";
+import WarehouseReportPdf from "@/components/pdf/almacen/GeneralWarehouseReport";
 
 export function WarehouseReportDialog() {
   const { selectedStation, selectedCompany } = useCompanyStore()
