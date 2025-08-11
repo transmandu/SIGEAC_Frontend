@@ -17,7 +17,7 @@ import { non_user_columns } from "./noncolumns";
 import { DataTable } from "./data-table";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
-import ActivitiesReportPdf from "@/components/pdf/ActivityReport";
+import ActivitiesReportPdf from "@/components/pdf/desarrollo/ActivityReport";
 import { PDFDownloadLink } from "@react-pdf/renderer";
 import { Printer, FileText } from "lucide-react";
 

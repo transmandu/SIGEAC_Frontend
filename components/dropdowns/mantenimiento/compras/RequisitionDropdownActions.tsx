@@ -15,7 +15,7 @@ import { Button } from "../../../ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "../../../ui/dialog"
 import LoadingPage from "../../../misc/LoadingPage"
 import { PDFDownloadLink } from "@react-pdf/renderer"
-import RequisitionReportPdf from "@/components/pdf/RequisitionReportPdf"
+import RequisitionReportPdf from "@/components/pdf/almacen/RequisitionReportPdf"
 
 
 function transformApiData(apiData: any) {
