@@ -1,70 +1,99 @@
 import React from "react";
-import { Document, Page, Text, StyleSheet, View } from "@react-pdf/renderer";
+import { Document, Page, Text, StyleSheet, View, Image as PDFImage } from "@react-pdf/renderer";
+import { format, parseISO } from "date-fns";
+import { es } from "date-fns/locale";
 
-interface Requisition {
+export interface Requisition {
+  id: number;
   order_number: string;
-  // otros campos si los tienes
-}
-
-interface RequisitionReportPdfProps {
-  requisition: Requisition;
+  status: string;
+  created_by: string;
+  requested_by: string;
+  batch: {
+    name: string;
+    batch_articles: {
+      article_part_number: string;
+      quantity: number;
+      unit?: string;
+      image: string;
+    }[];
+  }[];
+  received_by: string;
+  justification: string;
+  arrival_date: string | Date;
+  submission_date: string | Date;
+  work_order: string;
+  aircraft: string;
+  type: "GENERAL" | "AVIACION";
 }
 
 const styles = StyleSheet.create({
   page: {
     padding: 30,
     fontSize: 10,
-    backgroundColor: "#f7f7f7",
+    backgroundColor: "#ffffffff",
   },
-  header: {
-    textAlign: "center",
+
+  /** HEADER **/
+  headerWrapper: {
+    width: "100%",
+    alignSelf: "center",
     marginBottom: 20,
   },
-  title: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#3f51b5",
+  headerTable: {
+    flexDirection: "row",
+    width: "100%",
   },
-  subtitle: {
-    fontSize: 10,
-    marginTop: 4,
-    color: "#666",
+  headerCell: {
+    justifyContent: "center",
+    padding: 4,
   },
+  logoCell: {
+    width: "33%",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  logo: {
+    height: 40,
+    objectFit: "contain",
+  },
+  titleCell: {
+    width: "34%",
+    alignItems: "center",
+    justifyContent: "flex-end",
+    paddingVertical: 4,
+  },
+  titleText: {
+    fontSize: 16,
+    fontWeight: "extrabold",
+  },
+  rightCell: {
+    width: "33%",
+    justifyContent: "center",
+    alignItems: "flex-end",
+    paddingRight: 4,
+  },
+  rightText: {
+    fontSize: 9,
+    textAlign: "right",
+    marginBottom: 2,
+  },
+
+  /** BODY **/
   section: {
     marginBottom: 12,
     padding: 10,
     backgroundColor: "#fff",
     borderRadius: 6,
   },
-  fieldGroup: {
-    marginBottom: 6,
-  },
-  fieldText: {
-    fontSize: 10,
-    marginBottom: 2,
-  },
   subTitle: {
     fontSize: 12,
     fontWeight: "bold",
     marginBottom: 6,
   },
-  rowHeader: {
-    flexDirection: "row",
-    backgroundColor: "#e0e0e0",
-    paddingVertical: 4,
-    fontWeight: "bold",
-    marginTop: 6,
-  },
-  row: {
-    flexDirection: "row",
-    borderBottomWidth: 1,
-    borderBottomColor: "#ccc",
-    paddingVertical: 3,
-  },
-  col: {
-    width: "25%",
-    textAlign: "center",
-    paddingHorizontal: 4,
+  fieldText: {
+    fontSize: 10,
+    marginBottom: 2,
   },
   noRecords: {
     fontSize: 12,
@@ -74,21 +103,65 @@ const styles = StyleSheet.create({
   },
 });
 
-const RequisitionReportPdf: React.FC<RequisitionReportPdfProps> = ({ requisition }) => {
+const RequisitionReportPdf = ({
+  requisition,
+  aircraftFilter = null,
+  startDate,
+  endDate,
+}: {
+  requisition: Requisition;
+  aircraftFilter?: string | null;
+  startDate?: Date;
+  endDate?: Date;
+}) => {
+  // En caso de que quieras filtrar por aeronave o fechas en el futuro
+  const matchesAircraft = aircraftFilter ? requisition.aircraft === aircraftFilter : true;
+  const matchesStart = startDate ? (parseISO(requisition.submission_date.toString()) >= startDate) : true;
+  const matchesEnd = endDate ? (parseISO(requisition.submission_date.toString()) <= endDate) : true;
+
+  const shouldDisplay = matchesAircraft && matchesStart && matchesEnd;
+
   return (
     <Document>
-      <Page size="A4" style={styles.page}>
-        <View style={styles.header}>
-          <Text style={styles.title}>Reporte de Salidas de Almacén</Text>
-          <Text style={styles.subtitle}>
-            Fecha de generación: 
-          </Text>
-          
-            <Text style={styles.subtitle}>Filtrado por Aeronave: </Text>
-            <Text style={styles.subtitle}>Desde: </Text>
-            <Text style={styles.subtitle}>Hasta: </Text>
+      <Page size="LETTER" style={styles.page}>
+        <View fixed>
+          <View style={styles.headerWrapper}>
+            <View style={styles.headerTable}>
+              {/* Columna Izquierda: Logo */}
+              <View style={[styles.headerCell, styles.logoCell]}>
+                <PDFImage src="/tmd_nombre.png" style={styles.logo} />
+              </View>
+
+              {/* Columna Centro: Título */}
+              <View style={[styles.headerCell, styles.titleCell]}>
+                <Text style={styles.titleText}>REQUISICIÓN</Text>
+              </View>
+
+              {/* Columna Derecha: Número y Fecha */}
+              <View style={styles.rightCell}>
+                <Text style={styles.rightText}>{requisition.order_number}</Text>
+                <Text style={styles.rightText}>
+                  FECHA: {requisition.submission_date
+                    ? format(new Date(requisition.submission_date), "PPP", { locale: es })
+                    : "Fecha no disponible"}
+                </Text>
+              </View>
+            </View>
+          </View>
         </View>
-        {/* Aquí podrías usar requisition para mostrar datos */}
+
+        {shouldDisplay ? (
+          <View style={styles.section}>
+            {/* Aquí puedes mapear requisition.batch y requisition.batch_articles */}
+            <Text style={styles.subTitle}>Número de Orden: {requisition.order_number}</Text>
+            <Text style={styles.fieldText}>Estado: {requisition.status}</Text>
+            <Text style={styles.fieldText}>Solicitado por: {requisition.requested_by}</Text>
+            <Text style={styles.fieldText}>Aeronave: {requisition.aircraft}</Text>
+            <Text style={styles.fieldText}>Justificación: {requisition.justification}</Text>
+          </View>
+        ) : (
+          <Text style={styles.noRecords}>No hay registros para los filtros aplicados.</Text>
+        )}
       </Page>
     </Document>
   );
