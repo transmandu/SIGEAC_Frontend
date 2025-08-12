@@ -197,7 +197,6 @@ const RequisitionReportPdf = ({
             </View>
 
             <View style={[tableStyles.cellNoRight, tableStyles.dataCell, { width: "75%" }]}>
-              <Text>{requisition.created_by ?? "—"}</Text>
             </View>
           </View>
 
@@ -208,7 +207,6 @@ const RequisitionReportPdf = ({
             </View>
 
             <View style={[tableStyles.cellBase, tableStyles.dataCell, { width: "40%" }]}>
-              <Text>{requisition.requested_by ?? "—"}</Text>
             </View>
 
             <View style={[tableStyles.cellBase, tableStyles.headerCell, { width: "20%" }]}>
@@ -216,7 +214,6 @@ const RequisitionReportPdf = ({
             </View>
 
             <View style={[tableStyles.cellNoRight, tableStyles.dataCell, { width: "20%" }]}>
-              <Text>{requisition.id ?? "—"}</Text>
             </View>
           </View>
 
@@ -227,7 +224,6 @@ const RequisitionReportPdf = ({
             </View>
 
             <View style={[tableStyles.cellNoRight, tableStyles.dataCell, { width: "75%" }]}>
-              <Text>{requisition.status ?? "—"}</Text>
             </View>
           </View>
         </View>
@@ -237,7 +233,6 @@ const RequisitionReportPdf = ({
             {/* Aquí puedes mapear requisition.batch y requisition.batch_articles */}
             <Text style={styles.subTitle}>Número de Orden: {requisition.order_number}</Text>
             <Text style={styles.fieldText}>Estado: {requisition.status}</Text>
-            <Text style={styles.fieldText}>Solicitado por: {requisition.requested_by}</Text>
             <Text style={styles.fieldText}>Aeronave: {requisition.aircraft?.acronym ?? "N/A"}</Text>
             <Text style={styles.fieldText}>Justificación: {requisition.justification}</Text>
           </View>
