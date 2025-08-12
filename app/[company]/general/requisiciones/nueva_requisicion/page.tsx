@@ -339,13 +339,13 @@ const CreateRequisitionPage = () => {
                             {field.value
                               ? employees?.find(
                                   (employee) =>
-                                    `${employee.first_name} ${employee.last_name}` ===
+                                    `${employee.dni}` ===
                                     field.value
                                 )?.first_name +
                                 " " +
                                 employees?.find(
                                   (employee) =>
-                                    `${employee.first_name} ${employee.last_name}` ===
+                                    `${employee.dni}` ===
                                     field.value
                                 )?.last_name
                               : "Elige al solicitante..."}
@@ -363,19 +363,19 @@ const CreateRequisitionPage = () => {
                             <CommandGroup>
                               {employees?.map((employee) => (
                                 <CommandItem
-                                  value={`${employee.first_name} ${employee.last_name}`}
+                                  value={`${employee.dni}`}
                                   key={employee.id}
                                   onSelect={() => {
                                     form.setValue(
                                       "requested_by",
-                                      `${employee.first_name} ${employee.last_name}`
+                                      `${employee.dni}`
                                     );
                                   }}
                                 >
                                   <Check
                                     className={cn(
                                       "mr-2 h-4 w-4",
-                                      `${employee.first_name} ${employee.last_name}` ===
+                                      `${employee.dni}` ===
                                         field.value
                                         ? "opacity-100"
                                         : "opacity-0"

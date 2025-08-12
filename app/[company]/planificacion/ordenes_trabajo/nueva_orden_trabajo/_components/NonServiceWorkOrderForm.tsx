@@ -62,7 +62,7 @@ interface TaskInProgress {
 
 const NonServiceWorkOrderForm = () => {
   const searchParams = useSearchParams();
-  const eventId = searchParams.get("eventId") || null;
+  const eventId = searchParams.get("eventId") || undefined;
   const [selectedAircraft, setSelectedAircraft] = useState<string | null>(null);
   const [tasks, setTasks] = useState<TaskInProgress[]>([]);
   const { selectedStation, selectedCompany } = useCompanyStore();
@@ -149,7 +149,7 @@ const NonServiceWorkOrderForm = () => {
       ...data,
       date: format(data.date, "yyyy-MM-dd")
     };
-    await createWorkOrder.mutateAsync({data: formattedData, company: selectedCompany!.slug}, eventId);
+    await createWorkOrder.mutateAsync({data: formattedData, company: selectedCompany!.slug, eventId});
     form.reset();
     router.push(`/${selectedCompany!.slug}/planificacion/ordenes_trabajo`);
   };
@@ -162,7 +162,7 @@ const NonServiceWorkOrderForm = () => {
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           <div className='flex gap-6 items-center justify-center w-full'>
             <div className='w-full grid grid-cols-1 md:grid-cols-2 gap-2'>
-              <FormField
+              <FormField 
                 control={form.control}
                 name="aircraft_id"
                 render={({ field }) => (

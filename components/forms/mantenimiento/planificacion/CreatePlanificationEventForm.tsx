@@ -1,9 +1,12 @@
 "use client"
 
-import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { z } from "zod"
+import { useCreatePlanificationEvent } from "@/actions/mantenimiento/planificacion/eventos/actions"
+import { Button } from "@/components/ui/button"
+import { Calendar } from "@/components/ui/calendar"
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command'
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
+import { Input } from "@/components/ui/input"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import {
   Select,
   SelectContent,
@@ -11,17 +14,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
-import { Button } from "@/components/ui/button"
-import { Calendar } from "@/components/ui/calendar"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { CalendarIcon, ClockIcon } from "lucide-react"
-import { format } from "date-fns"
+import { useGetMaintenanceAircrafts } from "@/hooks/mantenimiento/planificacion/useGetMaintenanceAircrafts"
 import { cn } from "@/lib/utils"
-import { es } from "date-fns/locale"
-import { useCreatePlanificationEvent } from "@/actions/mantenimiento/planificacion/eventos/actions"
 import { useCompanyStore } from "@/stores/CompanyStore"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { format } from "date-fns"
+import { es } from "date-fns/locale"
+import { CalendarIcon, Check, ChevronsUpDown, Loader2 } from "lucide-react"
+import { useState } from "react"
+import { useForm } from "react-hook-form"
+import { z } from "zod"
 
 const formSchema = z.object({
   title: z.string().min(2, {
@@ -31,6 +34,7 @@ const formSchema = z.object({
   start_date: z.string(),
   end_date: z.string(),
   priority: z.string(),
+  aircraft_id: z.string(),
 })
 
 const CreatePlanificationEventForm = ({
@@ -40,8 +44,10 @@ const CreatePlanificationEventForm = ({
   date?: string,
   onClose: (open: boolean) => void
 }) => {
+  const [selectedAircraft, setSelectedAircraft] = useState<string | null>(null)
   const {selectedCompany, selectedStation} = useCompanyStore()
   const {createPlanificationEvent} = useCreatePlanificationEvent()
+  const { data: aircrafts, isLoading: isAircraftsLoading, isError: isAircraftsError } = useGetMaintenanceAircrafts(selectedCompany?.slug);
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -86,6 +92,100 @@ const CreatePlanificationEventForm = ({
             </FormItem>
           )}
         />
+
+        {/* Prioridad y Aeronave */}
+        <div className="flex gap-2 items-center">
+          <FormField
+            control={form.control}
+            name="aircraft_id"
+            render={({ field }) => (
+              <FormItem className="flex flex-col space-y-3 mt-1.5 w-full">
+                <FormLabel>Aeronave</FormLabel>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <FormControl>
+                      <Button
+                        disabled={isAircraftsLoading || isAircraftsError}
+                        variant="outline"
+                        role="combobox"
+                        className={cn(
+                          "justify-between",
+                          !field.value && "text-muted-foreground"
+                        )}
+                      >
+                        {
+                          isAircraftsLoading && <Loader2 className="size-4 animate-spin mr-2" />
+                        }
+                        {field.value
+                          ? <p>{aircrafts?.find(
+                            (aircraft) => `${aircraft.id.toString()}` === field.value
+                          )?.acronym}</p>
+                          : "Elige la aeronave..."
+                        }
+                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                      </Button>
+                    </FormControl>
+                  </PopoverTrigger>
+                  <PopoverContent className="p-0">
+                    <Command>
+                      <CommandInput placeholder="Busque una aeronave..." />
+                      <CommandList>
+                        <CommandEmpty className="text-xs p-2 text-center">No se ha encontrado ninguna aeronave.</CommandEmpty>
+                        <CommandGroup>
+                          {aircrafts?.map((aircraft) => (
+                            <CommandItem
+                              value={`${aircraft.id}`}
+                              key={aircraft.id}
+                              onSelect={() => {
+                                form.setValue("aircraft_id", aircraft.id.toString());
+                                setSelectedAircraft(aircraft.manufacturer.id.toString());
+                              }}
+                            >
+                              <Check
+                                className={cn(
+                                  "mr-2 h-4 w-4",
+                                  `${aircraft.id.toString()}` === field.value
+                                    ? "opacity-100"
+                                    : "opacity-0"
+                                )}
+                              />
+                              {
+                                <p>{aircraft.acronym} - {aircraft.manufacturer.name}</p>
+                              }
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="priority"
+            render={({ field }) => (
+              <FormItem className="w-full">
+                <FormLabel>Prioridad</FormLabel>
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Seleccione la prioridad..." />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="HIGH">Alta</SelectItem>
+                    <SelectItem value="MEDIUM">Media</SelectItem>
+                    <SelectItem value="LOW">Baja</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
 
         {/* Descripción */}
         <FormField
@@ -239,30 +339,6 @@ const CreatePlanificationEventForm = ({
             </FormItem>
           )}
         />
-
-        <FormField
-          control={form.control}
-          name="priority"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Prioridad</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a verified email to display" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  <SelectItem value="HIGH">Alta</SelectItem>
-                  <SelectItem value="MEDIUM">Media</SelectItem>
-                  <SelectItem value="LOW">Baja</SelectItem>
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
         <Button type="submit">Crear Evento</Button>
       </form>
     </Form>

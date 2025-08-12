@@ -115,7 +115,7 @@ export const Calendar = ({ events, theme = "light" }: CalendarProps) => {
   });
 
   const customComponents = useMemo(() => ({
-    eventModal: ({ calendarEvent, close }: { calendarEvent: PlanificationEvent; close: () => void }) => {
+    eventModal: ({ calendarEvent }: { calendarEvent: PlanificationEvent; close: () => void }) => {
       const startDate = new Date(calendarEvent.start);
       const endDate = new Date(calendarEvent.end);
 
@@ -143,17 +143,25 @@ export const Calendar = ({ events, theme = "light" }: CalendarProps) => {
               </div>
             )}
           </div>
-          <div className="flex justify-center">
-            <Button
-              variant="outline"
-              onClick={() => {
-                console.log('Acción ejecutada para:', calendarEvent.id);
-                close();
-              }}
-            >
-              <Link href={`/${selectedCompany?.slug}/planificacion/ordenes_trabajo/nueva_orden_trabajo?eventId=${calendarEvent.id}`} className="flex items-center">Generar OT <Hammer className="ml-2" /></Link>
-            </Button>
-          </div>
+          {
+            calendarEvent && calendarEvent.work_order ? (
+              <div className="flex justify-center">
+                <Button
+                  variant="outline"
+                >
+                  <Link href={`/${selectedCompany?.slug}/planificacion/ordenes_trabajo/${calendarEvent.work_order.order_number}`} className="flex items-center">Ver detalles - OT<Hammer className="ml-2" /></Link>
+                </Button>
+              </div>
+            ) : (
+              <div className="flex justify-center">
+                <Button
+                  variant="outline"
+                >
+                  <Link href={`/${selectedCompany?.slug}/planificacion/ordenes_trabajo/nueva_orden_trabajo?eventId=${calendarEvent.id}`} className="flex items-center">Generar OT <Hammer className="ml-2" /></Link>
+                </Button>
+              </div>
+            )
+          }
         </div>
       );
     },

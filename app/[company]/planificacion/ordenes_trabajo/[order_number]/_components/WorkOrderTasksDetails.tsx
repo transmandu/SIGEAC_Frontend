@@ -68,7 +68,7 @@ const WorkOrderTasksDetails = ({ work_order }: { work_order: WorkOrder }) => {
       toast.error("No hay una compañía seleccionada");
       return;
     }
-    
+
     try {
       const taskIds = work_order.work_order_tasks.map(task => task.id);
       const result = await check_mutate(taskIds);
@@ -121,6 +121,7 @@ const WorkOrderTasksDetails = ({ work_order }: { work_order: WorkOrder }) => {
         </TabsContent>
         <TabsContent value="rut" className="space-y-4">
           <RoutineTasksList
+            work_order_id={work_order.id}
             tasks={work_order.work_order_tasks}
             onTaskClick={openTaskDetails}
             onCheckArticles={handleCheckTaskItems}

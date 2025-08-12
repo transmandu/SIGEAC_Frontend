@@ -126,7 +126,7 @@ const CreateRequisitionPage = () => {
       form.setValue("company", selectedCompany?.slug)
       form.setValue("location_id", selectedStation)
     }
-  }, [user, form, selectedCompany, selectedStation])    
+  }, [user, form, selectedCompany, selectedStation])
 
   useEffect(() => {
     if (selectedStation) {
@@ -285,7 +285,7 @@ const CreateRequisitionPage = () => {
                                   value={`${employee.first_name} ${employee.last_name}`}
                                   key={employee.id}
                                   onSelect={() => {
-                                    form.setValue("requested_by", `${employee.first_name} ${employee.last_name}`)
+                                    form.setValue("requested_by", `${employee.dni}`)
                                   }}
                                 >
                                   <Check

@@ -8,13 +8,15 @@ import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { cn } from "@/lib/utils"
 import { WorkOrder } from "@/types"
-import { Check, Filter, Grid, List, Loader2, PackageCheck, Search } from "lucide-react"
+import { Check, Filter, Grid, List, Loader2, PackageCheck, Plus, Search } from "lucide-react"
 import { useState } from "react"
 import TaskCard from "./TaskCard"
+import { AddRoutineTaskDialog } from "./AddRoutineTaskDialog"
 
 type WorkOrderTask = WorkOrder["work_order_tasks"][0]
 
 interface RoutineTasksListProps {
+  work_order_id: string,
   tasks: WorkOrderTask[]
   onTaskClick: (task: WorkOrderTask) => void
   onCheckArticles: () => Promise<void>
@@ -22,6 +24,7 @@ interface RoutineTasksListProps {
 }
 
 export const RoutineTasksList = ({
+  work_order_id,
   tasks,
   onTaskClick,
   onCheckArticles,
@@ -114,9 +117,10 @@ export const RoutineTasksList = ({
             {isCheckLoading ? (
               <Loader2 className="w-4 h-4 animate-spin" />
             ) : (
-              <p className="flex gap-2 items-center text-sm">Verificar Articulos <PackageCheck className="h-4 w-4" /></p>
+              <p className="flex gap-2 items-center text-sm"><PackageCheck className="h-4 w-4" /> Verificar Articulos</p>
             )}
           </Button>
+          <AddRoutineTaskDialog work_order_id={work_order_id}   />
         </div>
       </div>
 

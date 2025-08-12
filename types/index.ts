@@ -307,6 +307,10 @@ export type PlanificationEvent = {
   description: string,
   priority: "LOW" | "MEDIUM" | "HIGH",
   calendarId: string,
+  work_order?: {
+    id: string,
+    order_number: string;
+  }
 }
 
 export type WorkOrderTaskEvent = {
