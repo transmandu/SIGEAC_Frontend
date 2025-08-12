@@ -33,6 +33,8 @@ const BarChartCourseComponent = ({
   bar_second_name,
 }: BarChartProps) => {
   const { theme } = useTheme();
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [message, setMessage] = useState("");
 
   if (!data.closed && !data.open) {
     return (
@@ -52,11 +54,7 @@ const BarChartCourseComponent = ({
       ]
     : [];
 
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [message, setMessage] = useState("");
   const handleClick = (message: string) => {
-    setMessage(message === "ABIERTO" ? "Planificados" : "Ejecutados");
-    // Alternativa con if-else tradicional:
     if (message === "ABIERTO") {
       setMessage("Planificados");
     } else {
@@ -121,7 +119,7 @@ const BarChartCourseComponent = ({
       </ResponsiveContainer>
 
       <CourseListDialog
-        title={`Detalles de cursos "}`}
+        title={`Detalles de cursos ${message}`}
         open={isDialogOpen}
         onOpenChange={setIsDialogOpen}
       />

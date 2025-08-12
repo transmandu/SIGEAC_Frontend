@@ -43,7 +43,7 @@ export function DispatchReportDialog() {
   const [endDate, setEndDate] = useState<Date | undefined>();
 
   const { data: dispatchReport, isLoading: isLoadingDispatchReport } =
-    useGetDispatchReport(selectedStation ?? null);
+    useGetDispatchReport(selectedStation ?? null, selectedCompany?.slug);
   const { data: aircrafts, isLoading: isLoadingAircrafts } = useGetAircrafts(
     selectedCompany?.slug
   );
