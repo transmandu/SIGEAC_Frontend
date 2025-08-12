@@ -1,31 +1,8 @@
 import React from "react";
 import { Document, Page, Text, StyleSheet, View, Image as PDFImage } from "@react-pdf/renderer";
-import { format, parseISO } from "date-fns";
+import { format } from "date-fns";
 import { es } from "date-fns/locale";
-
-export interface Requisition {
-  id: number;
-  order_number: string;
-  status: string;
-  created_by: string;
-  requested_by: string;
-  batch: {
-    name: string;
-    batch_articles: {
-      article_part_number: string;
-      quantity: number;
-      unit?: string;
-      image: string;
-    }[];
-  }[];
-  received_by: string;
-  justification: string;
-  arrival_date: string | Date;
-  submission_date: string | Date;
-  work_order: string;
-  aircraft: string;
-  type: "GENERAL" | "AVIACION";
-}
+import { Requisition as RequisitionType } from "@/types";
 
 const styles = StyleSheet.create({
   page: {
@@ -103,21 +80,21 @@ const styles = StyleSheet.create({
   },
 });
 
-const RequisitionReportPdf = ({
+const RequisitionReportPdf = ({ 
   requisition,
   aircraftFilter = null,
   startDate,
   endDate,
 }: {
-  requisition: Requisition;
+  requisition: RequisitionType;
   aircraftFilter?: string | null;
   startDate?: Date;
   endDate?: Date;
 }) => {
   // En caso de que quieras filtrar por aeronave o fechas en el futuro
-  const matchesAircraft = aircraftFilter ? requisition.aircraft === aircraftFilter : true;
-  const matchesStart = startDate ? (parseISO(requisition.submission_date.toString()) >= startDate) : true;
-  const matchesEnd = endDate ? (parseISO(requisition.submission_date.toString()) <= endDate) : true;
+  const matchesAircraft = aircraftFilter ? (requisition.aircraft?.acronym === aircraftFilter) : true;
+  const matchesStart = startDate ? new Date(requisition.submission_date) >= startDate : true;
+  const matchesEnd = endDate ? new Date(requisition.submission_date) <= endDate : true;
 
   const shouldDisplay = matchesAircraft && matchesStart && matchesEnd;
 
@@ -156,7 +133,7 @@ const RequisitionReportPdf = ({
             <Text style={styles.subTitle}>Número de Orden: {requisition.order_number}</Text>
             <Text style={styles.fieldText}>Estado: {requisition.status}</Text>
             <Text style={styles.fieldText}>Solicitado por: {requisition.requested_by}</Text>
-            <Text style={styles.fieldText}>Aeronave: {requisition.aircraft}</Text>
+            <Text style={styles.fieldText}>Aeronave: {requisition.aircraft?.acronym ?? "N/A"}</Text>
             <Text style={styles.fieldText}>Justificación: {requisition.justification}</Text>
           </View>
         ) : (

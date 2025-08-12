@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 
 export interface DispatchReport {
   id: number;
+  request_number: string;
   status: string;
   requested_by: string;
   approved_by: string;
@@ -37,7 +38,7 @@ export const useGetDispatchReport = (
 ) => {
   return useQuery<DispatchReport[], Error>({
     queryKey: ['dispatch-report', company, location_id],
-    queryFn: () => fetchDispatchReport(company!, location_id!),
+    queryFn: () => fetchDispatchReport(location_id!, company!),
     enabled: !!company && !!location_id,
   });
 };

@@ -56,7 +56,7 @@ export default function CourseListDialog({
 
   useEffect(() => {
     refetchCharData();
-  }, [from, to]);
+  }, [from, to, refetchCharData]);
 
   console.log("from", from, "to", to);
   return (
