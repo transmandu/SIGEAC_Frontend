@@ -1,6 +1,6 @@
 "use client";
 
-import { useAddWorkOrderTask } from "@/actions/mantenimiento/planificacion/ordenes_trabajo/actions";
+import { useAddWorkOrderTask } from "@/actions/mantenimiento/planificacion/ordenes_trabajo/rutinarios/actions";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -23,7 +23,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2, MinusCircle, Plus, PlusCircle } from "lucide-react";
+import { MinusCircle, Plus, PlusCircle } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
 import { z } from "zod";
