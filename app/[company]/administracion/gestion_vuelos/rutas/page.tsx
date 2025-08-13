@@ -5,7 +5,7 @@ import { columns } from "./columns";
 import { DataTable } from "./data-table";
 import { useGetRoute } from "@/hooks/aerolinea/rutas/useGetRoutes";
 import LoadingPage from "@/components/misc/LoadingPage";
-import { RouteDialog } from "@/components/dialogs/CreateRouteDialog";
+import { RouteDialog } from "@/components/dialogs/aerolinea/administracion/CreateRouteDialog";
 
 const FehaPage = () => {
   const { data, isLoading, isError } = useGetRoute();

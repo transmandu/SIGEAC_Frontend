@@ -24,7 +24,7 @@ import {
 } from "@/components/ui/table";
 import { ListRestart } from "lucide-react";
 import { useState } from "react";
-import { CreateClientDialog } from "@/components/dialogs/CreateClientDialog";
+import { CreateClientDialog } from "@/components/dialogs/aerolinea/administracion/CreateClientDialog";
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];

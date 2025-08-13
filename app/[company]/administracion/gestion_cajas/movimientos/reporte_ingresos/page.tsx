@@ -16,7 +16,7 @@ import type { CashMovement } from "@/types";
 import { useGetIncomeStatistics } from "@/hooks/aerolinea/movimientos/useGetIncomeStatistics";
 import { SummaryCard } from "@/components/cards/SummaryCard";
 import months from "@/components/cards/ConfigMonths";
-import MovementDetailsDialog from "@/components/dialogs/MovementDetailsDialog";
+import MovementDetailsDialog from "@/components/dialogs/aerolinea/administracion/MovementDetailsDialog";
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import { useCompanyStore } from "@/stores/CompanyStore";
 

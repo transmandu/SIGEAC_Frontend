@@ -1,7 +1,7 @@
 "use client";
-import CreateAnalysesDialog from "@/components/dialogs/CreateAnalysesDialog";
-import CreateDangerIdentificationDialog from "@/components/dialogs/CreateDangerIdentificationDialog";
-import DeleteDangerIdentificationDialog from "@/components/dialogs/DeleteDangerIdentificationDialog";
+import CreateAnalysesDialog from "@/components/dialogs/aerolinea/sms/CreateAnalysesDialog";
+import CreateDangerIdentificationDialog from "@/components/dialogs/aerolinea/sms/CreateDangerIdentificationDialog";
+import DeleteDangerIdentificationDialog from "@/components/dialogs/aerolinea/sms/DeleteDangerIdentificationDialog";
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import LoadingPage from "@/components/misc/LoadingPage";
 import { Badge } from "@/components/ui/badge";

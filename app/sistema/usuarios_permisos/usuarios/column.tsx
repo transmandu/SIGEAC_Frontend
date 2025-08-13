@@ -10,7 +10,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 
-import RolesDialog from "@/components/dialogs/RolesDialog"
+import RolesDialog from "@/components/dialogs/general/RolesDialog"
 import UserDropdownActions from "@/components/dropdowns/ajustes/UserDropdownActions"
 import { Badge } from "@/components/ui/badge"
 import { User } from "@/types"

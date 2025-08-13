@@ -1,7 +1,7 @@
 'use client'
 
 import ChildrenInfoCard from '@/components/cards/ChildrenInfoCard';
-import CertificatesDialog from '@/components/dialogs/CertificatesDialog';
+import CertificatesDialog from '@/components/dialogs/mantenimiento/almacen/CertificatesDialog';
 import { ContentLayout } from '@/components/layout/ContentLayout';
 import { Button } from '@/components/ui/button';
 import { Calendar } from "@/components/ui/calendar";

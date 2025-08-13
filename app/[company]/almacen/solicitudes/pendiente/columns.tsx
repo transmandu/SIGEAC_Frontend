@@ -4,7 +4,7 @@ import { ColumnDef } from "@tanstack/react-table"
 
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader"
 
-import DispatchArticlesDialog from "@/components/dialogs/DispatchArticlesDialog"
+import DispatchArticlesDialog from "@/components/dialogs/mantenimiento/almacen/DispatchArticlesDialog"
 import PendingDispatchRequestDropdownActions from "@/components/dropdowns/mantenimiento/almacen/PendingDispatchRequestDropdownActions"
 import { Checkbox } from "@/components/ui/checkbox"
 import { DispatchRequest } from "@/types"

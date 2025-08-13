@@ -51,7 +51,7 @@ export function CreateCourseForm({
   isEditing,
   initialData,
 }: FormProps) {
-  const { selectedCompany } = useCompanyStore();
+  const { selectedCompany, selectedStation } = useCompanyStore();
   const { createCourse } = useCreateCourse();
   const { updateCourse } = useUpdateCourse();
 
@@ -106,14 +106,14 @@ export function CreateCourseForm({
           end_date: data.end_date,
         },
       };
-      const v = await updateCourse.mutateAsync(value);
+      updateCourse.mutateAsync(value);
     } else {
-      const value = {
-        company: selectedCompany!.slug,
-        course: data,
-      };
       try {
-        await createCourse.mutateAsync(value);
+        await createCourse.mutateAsync({
+          company: selectedCompany!.slug,
+          location_id: selectedStation!,
+          course: data,
+        });
       } catch (error) {
         console.error("Error al crear el curso:", error);
       }

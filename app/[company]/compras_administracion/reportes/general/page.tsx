@@ -2,7 +2,7 @@
 
 import { ContentLayout } from '@/components/layout/ContentLayout'
 import DateFilter from '@/components/misc/DateFilter'
-import GeneralSalesReportPdf from '@/components/pdf/GeneralSalesReport'
+import GeneralSalesReportPdf from '@/components/pdf/compras/GeneralSalesReport'
 import { Breadcrumb, BreadcrumbEllipsis, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb"
 import { Button } from '@/components/ui/button'
 import {

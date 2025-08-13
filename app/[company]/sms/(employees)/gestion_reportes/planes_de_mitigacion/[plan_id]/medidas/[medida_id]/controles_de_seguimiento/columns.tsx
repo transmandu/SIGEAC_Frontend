@@ -4,13 +4,13 @@ import { ColumnDef } from "@tanstack/react-table";
 
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
 
-import DocumentDisplayDialog from "@/components/dialogs/DocumentDisplayDialog";
+import DocumentDisplayDialog from "@/components/dialogs/aerolinea/sms/DocumentDisplayDialog";
 import FollowUpControlDropdownActions from "@/components/dropdowns/aerolinea/sms/FollowUpControlDropdownActions";
 import { Button } from "@/components/ui/button";
 import { FollowUpControl } from "@/types";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import ImageDisplayDialog from "@/components/dialogs/ImageDisplayDialog";
+import ImageDisplayDialog from "@/components/dialogs/aerolinea/sms/ImageDisplayDialog";
 
 export const columns: ColumnDef<FollowUpControl>[] = [
 

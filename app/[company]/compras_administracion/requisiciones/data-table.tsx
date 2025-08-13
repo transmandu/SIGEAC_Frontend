@@ -12,7 +12,7 @@ import {
   useReactTable,
 } from "@tanstack/react-table"
 
-import { CreateAdministrationRequisitionDialog } from "@/components/dialogs/CreateAdministrationRequisitionDialog"
+import { CreateAdministrationRequisitionDialog } from "@/components/dialogs/aerolinea/administracion/CreateAdministrationRequisitionDialog"
 import { DataTablePagination } from "@/components/tables/DataTablePagination"
 import { DataTableViewOptions } from "@/components/tables/DataTableViewOptions"
 import {

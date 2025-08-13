@@ -12,7 +12,7 @@ import {
   useReactTable,
 } from "@tanstack/react-table"
 
-import { RegisterDispatchRequestDialog } from "@/components/dialogs/RegisterDispatchRequestDialog"
+import { RegisterDispatchRequestDialog } from "@/components/dialogs/mantenimiento/almacen/RegisterDispatchRequestDialog"
 import { DataTablePagination } from "@/components/tables/DataTablePagination"
 import { DataTableViewOptions } from "@/components/tables/DataTableViewOptions"
 import {
@@ -25,7 +25,7 @@ import {
 } from "@/components/ui/table"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
-import { DispatchReportDialog } from "@/components/dialogs/DispatchReportDialog"
+import { DispatchReportDialog } from "@/components/dialogs/mantenimiento/almacen/DispatchReportDialog"
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]

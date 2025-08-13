@@ -1,7 +1,7 @@
 "use client";
 
-import AircraftResumeDialog from "@/components/dialogs/AircraftResumeDialog";
-import ClientResumeDialog from "@/components/dialogs/ClientResumeDialog";
+import AircraftResumeDialog from "@/components/dialogs/aerolinea/administracion/AircraftResumeDialog";
+import ClientResumeDialog from "@/components/dialogs/aerolinea/administracion/ClientResumeDialog";
 import FlightDropdownActions from "@/components/dropdowns/aerolinea/administracion/FlightDropdownActions";
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
 import { Badge } from "@/components/ui/badge";

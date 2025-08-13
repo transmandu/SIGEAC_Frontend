@@ -1,6 +1,6 @@
 "use client"
 
-import { CreateMaintenanceServiceDialog } from "@/components/dialogs/CreateMaintenanceServiceDialog"
+import { CreateMaintenanceServiceDialog } from "@/components/dialogs/mantenimiento/ordenes_trabajo/CreateMaintenanceServiceDialog"
 import { DataTablePagination } from "@/components/tables/DataTablePagination"
 import { DataTableViewOptions } from "@/components/tables/DataTableViewOptions"
 import {

@@ -21,7 +21,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { DispatchRequest, WorkOrder, Convertion } from "@/types"
-import DispatchArticlesDialog from "@/components/dialogs/DispatchArticlesDialog"
+import DispatchArticlesDialog from "@/components/dialogs/mantenimiento/almacen/DispatchArticlesDialog"
 import { format } from "date-fns"
 import { es } from "date-fns/locale"
 import { Badge } from "@/components/ui/badge"

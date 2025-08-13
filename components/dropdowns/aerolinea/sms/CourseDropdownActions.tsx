@@ -23,9 +23,9 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { AddToCourseForm } from "../../../forms/aerolinea/sms/AddToCourseForm";
-import { CreateCourseForm } from "../../../forms/aerolinea/sms/CreateCourseForm";
-import { Button } from "../../../ui/button";
+import { AddToCourseForm } from "@/components/forms/aerolinea/sms/AddToCourseForm";
+import { CreateCourseForm } from "@/components/forms/aerolinea/sms/CreateCourseForm";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -34,7 +34,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "../../../ui/dialog";
+} from "@/components/ui/dialog";
 
 const CourseDropdownActions = ({ course }: { course: Course }) => {
   const [open, setOpen] = useState<boolean>(false);
@@ -49,20 +49,18 @@ const CourseDropdownActions = ({ course }: { course: Course }) => {
 
   const router = useRouter();
   const handleDelete = async () => {
-    const value = {
+    await deleteCourse.mutateAsync({
       id: course.id.toString(),
       company: selectedCompany!.slug,
-    };
-    await deleteCourse.mutateAsync(value);
+    });
     setOpenDelete(false);
   };
 
   const handleCloseCourse = async () => {
-    const value = {
+    await finishCourse.mutateAsync({
       id: course.id.toString(),
       company: selectedCompany!.slug,
-    };
-    await finishCourse.mutateAsync(value);
+    });
     setOpenStatus(false);
   };
 
@@ -103,7 +101,7 @@ const CourseDropdownActions = ({ course }: { course: Course }) => {
 
             <DropdownMenuItem
               onClick={() => {
-                router.push(`/${selectedCompany}/general/cursos/${course.id}`);
+                router.push(`/${selectedCompany?.slug}/general/cursos/${course.id}`);
               }}
             >
               <EyeIcon className="size-5" />
@@ -230,7 +228,7 @@ const CourseDropdownActions = ({ course }: { course: Course }) => {
           <DialogFooter className="flex flex-col-reverse gap-2 md:gap-0">
             <Button
               className="bg-rose-400 hover:bg-white hover:text-black hover:border hover:border-black"
-              onClick={() => setOpenDelete(false)}
+              onClick={() => setOpenStatus(false)}
               type="submit"
             >
               Cancelar

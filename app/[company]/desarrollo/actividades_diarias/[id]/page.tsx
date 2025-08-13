@@ -17,12 +17,12 @@ import { non_user_columns } from "./noncolumns";
 import { DataTable } from "./data-table";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
-import ActivitiesReportPdf from "@/components/pdf/ActivityReport";
+import ActivitiesReportPdf from "@/components/pdf/desarrollo/ActivityReport";
 import { PDFDownloadLink } from "@react-pdf/renderer";
 import { Printer, FileText } from "lucide-react";
 
 import { useState } from "react";
-import { DailyReportDialog } from "@/components/dialogs/DailyReportDialog";
+import { DailyReportDialog } from "@/components/dialogs/aerolinea/desarollo/DailyReportDialog";
 
 const ActivityReportsByIdPage = ({ params }: { params: { id: string } }) => {
   const { data: report, isLoading } = useGetUserActivity(params.id);

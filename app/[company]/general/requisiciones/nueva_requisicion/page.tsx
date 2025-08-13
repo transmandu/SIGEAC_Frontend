@@ -1,7 +1,7 @@
 "use client";
 
 import { useCreateRequisition } from "@/actions/mantenimiento/compras/requisiciones/actions";
-import { CreateBatchDialog } from "@/components/dialogs/CreateBatchDialog";
+import { CreateBatchDialog } from "@/components/dialogs/mantenimiento/almacen/CreateBatchDialog";
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import { Button } from "@/components/ui/button";
 import {
@@ -300,13 +300,13 @@ const CreateRequisitionPage = () => {
   }
 
   return (
-    <ContentLayout title="Requisición">
+    <ContentLayout title="Solicitud de Compra">
       <div className="space-y-6">
         <h1 className="text-5xl font-bold text-center">
-          Crear Nueva Requisición
+          Crear Nueva Solicitud de Compra
         </h1>
         <p className="text-muted-foreground text-center italic">
-          Ingrese la información para crear una requisición de uno o múltiples
+          Ingrese la información para crear una solicitud de compra de uno o múltiples
           artículos.
         </p>
         <Form {...form}>
@@ -848,7 +848,7 @@ const CreateRequisitionPage = () => {
               {createRequisition.isPending ? (
                 <Loader2 className="ml-2 h-4 w-4 animate-spin" />
               ) : (
-                "Crear Requisición"
+                "Crear Solicitud de Compra"
               )}
             </Button>
           </form>
