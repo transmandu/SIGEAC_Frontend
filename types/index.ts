@@ -383,6 +383,7 @@ export type WorkOrderTask = {
     work_order_task: Omit<WorkOrderTask, "non_routine">;
     no_routine_task?: Omit<WorkOrderTask, "non_routine">[];
   };
+  task_events?: WorkOrderTaskEvent[];
 };
 
 export interface WorkOrder extends Request {

@@ -58,7 +58,7 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import CreateNoRutineDialog from "./CreateNoRutineDialog";
-import { create } from "domain";
+
 
 const assignmentFormSchema = z.object({
   technician_responsable: z.string().min(1, "Debe seleccionar un técnico"),
@@ -117,7 +117,7 @@ export const TaskDetailsDialog = ({
         startDate: new Date(),
         totalHours: 8,
         hoursPerDay: 4,
-        events: [],
+        events: []
       },
     },
   });
@@ -149,6 +149,22 @@ export const TaskDetailsDialog = ({
     }
   };
 
+  const handleScheduleSubmit = async () => {
+    if (!selectedTask) return;
+    try {
+      if (scheduling.events?.length) {
+        await createTaskEvents.mutateAsync({
+          data: scheduling.events,
+          task_id: selectedTask.id.toString(),
+        });
+      }
+    } catch (error) {
+      console.error("Error al crear eventos de la tarea:", error);
+    } finally {
+      onOpenChange(false)
+    }
+  }
+
   const onSubmit = async (values: z.infer<typeof assignmentFormSchema>) => {
     const { scheduling, ...data } = values;
     const updateTaskData = {
@@ -156,10 +172,7 @@ export const TaskDetailsDialog = ({
       inspector_responsable: data.inspector_responsable,
       total_hours: scheduling.totalHours.toString(),
     };
-    const updateScheduleData = {
-      taskEvents: scheduling.events,
-    };
-    console.log("this is updateScheduleData", updateScheduleData);
+
     if (!selectedTask) return;
     try {
       if (isNonRoutine) {
@@ -178,20 +191,19 @@ export const TaskDetailsDialog = ({
           },
           company: selectedCompany!.slug,
         });
-        if (updateScheduleData.taskEvents?.length) {
-          await createTaskEvents.mutateAsync({
-            data: updateScheduleData.taskEvents,
-            task_id: selectedTask.id.toString(),
-          });
-        }
       }
       setIsEditing(false);
     } catch (error) {
       console.error("Error al actualizar la tarea:", error);
     } finally {
-      onOpenChange(false);
+      if(!selectedTask.task_events) {
+        setCurrentStep("schedule")
+      } else {
+        onOpenChange(false);
+      }
     }
   };
+
 
   useEffect(() => {
     if (selectedTask) {
@@ -479,76 +491,112 @@ export const TaskDetailsDialog = ({
             )}
             {currentStep === "schedule" && (
               <div className="space-y-4">
-                <div className="space-y-2 flex space-x-4">
-                  <div>
-                    <FormLabel>Fecha de Inicio</FormLabel>
-                    <Calendar
-                      mode="single"
-                      selected={scheduling?.startDate}
-                      onSelect={(date) =>
-                        date && setValue("scheduling.startDate", date)
-                      }
-                      className="rounded-md border w-full"
-                    />
-                  </div>
-                  <div className="space-y-3 w-full">
-                    <div className="space-y-2">
-                      <FormLabel>Horas Totales</FormLabel>
-                      <Input
-                        type="number"
-                        min="1"
-                        value={scheduling?.totalHours || 0}
-                        onChange={(e) =>
-                          setValue(
-                            "scheduling.totalHours",
-                            parseInt(e.target.value) || 0
-                          )
-                        }
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <FormLabel>Horas por Día</FormLabel>
-                      <Input
-                        type="number"
-                        min="1"
-                        value={scheduling?.hoursPerDay || 0}
-                        onChange={(e) =>
-                          setValue(
-                            "scheduling.hoursPerDay",
-                            parseInt(e.target.value) || 0
-                          )
-                        }
-                      />
-                    </div>
-                    {scheduling?.events?.length ? (
-                      <div className="space-y-2">
-                        {scheduling?.events?.length ? (
-                          <div className="space-y-2">
-                            <FormLabel className="p-2">
-                              Eventos Programados
-                            </FormLabel>
-                            <div className="border rounded-md divide-y max-h-[200px] overflow-y-auto">
-                              {scheduling.events.map((event, index) => (
-                                <div key={index} className="p-3">
-                                  <div className="font-medium">
-                                    {event.title}
-                                  </div>
-                                  <div className="text-sm text-muted-foreground">
-                                    {format(event.start, "PPP", { locale: es })}{" "}
-                                    - {format(event.start, "p")} a{" "}
-                                    {format(event.end, "p")}
-                                  </div>
-                                </div>
-                              ))}
+                {
+                  selectedTask.task_events && selectedTask.task_events.length > 0 ? (
+                    <div className="space-y-2 flex space-x-4">
+                      {selectedTask.task_events.map((event) => {
+                        const startDate = new Date(event.start)
+                        const endDate  = new Date(event.end)
+                        console.log(event.id, startDate, endDate)
+                        return (
+                          <div
+                          key={event.id}
+                          className="flex items-start gap-4 rounded-lg border p-3 hover:bg-muted transition"
+                          >
+                            {/* Fecha y hora */}
+                            <div className="text-xs text-muted-foreground w-28 flex-shrink-0">
+                              {`${format(startDate, "d 'de' MMMM 'de' yyyy, H:mm", { locale: es })} – ${format(endDate, "d 'de' MMMM 'de' yyyy, H:mm", { locale: es })}`}
+                            </div>
+
+                            {/* Contenido */}
+                            <div className="flex flex-col">
+                              <div className="font-medium text-sm">{event.title}</div>
+                              {event.description && (
+                                <div className="text-xs text-muted-foreground">{event.description}</div>
+                              )}
                             </div>
                           </div>
-                        ) : (
-                          "No hay eventos programados."
-                        )}
+                        )
+
+                        }
+                      )}
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      <div className="space-y-2 flex space-x-4">
+                        <div>
+                          <FormLabel>Fecha de Inicio</FormLabel>
+                          <Calendar
+                            mode="single"
+                            selected={scheduling?.startDate}
+                            onSelect={(date) =>
+                              date && setValue("scheduling.startDate", date)
+                            }
+                            className="rounded-md border w-full"
+                          />
+                        </div>
+                        <div className="space-y-3 w-full">
+                          <div className="space-y-2">
+                            <FormLabel>Horas Totales</FormLabel>
+                            <Input
+                              type="number"
+                              min="1"
+                              value={scheduling?.totalHours || 0}
+                              onChange={(e) =>
+                                setValue(
+                                  "scheduling.totalHours",
+                                  parseInt(e.target.value) || 0
+                                )
+                              }
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <FormLabel>Horas por Día</FormLabel>
+                            <Input
+                              type="number"
+                              min="1"
+                              value={scheduling?.hoursPerDay || 0}
+                              onChange={(e) =>
+                                setValue(
+                                  "scheduling.hoursPerDay",
+                                  parseInt(e.target.value) || 0
+                                )
+                              }
+                            />
+                          </div>
+                          {scheduling?.events?.length ? (
+                            <div className="space-y-2">
+                              {scheduling?.events?.length ? (
+                                <div className="space-y-2">
+                                  <FormLabel className="p-2">
+                                    Eventos Programados
+                                  </FormLabel>
+                                  <div className="border rounded-md divide-y max-h-[200px] overflow-y-auto">
+                                    {scheduling.events.map((event, index) => (
+                                      <div key={index} className="p-3">
+                                        <div className="font-medium">
+                                          {event.title}
+                                        </div>
+                                        <div className="text-sm text-muted-foreground">
+                                          {format(event.start, "PPP", { locale: es })}{" "}
+                                          - {format(event.start, "p")} a{" "}
+                                          {format(event.end, "p")}
+                                        </div>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              ) : (
+                                "No hay eventos programados."
+                              )}
+                            </div>
+                          ) : null}
+                        </div>
                       </div>
-                    ) : null}
-                  </div>
-                </div>
+                    </div>
+                  )
+                }
+
               </div>
             )}
             <DialogFooter className="sm:justify-between mt-5">
@@ -593,9 +641,13 @@ export const TaskDetailsDialog = ({
                     <ChevronLeft className="h-4 w-4" />
                     Volver a asignación
                   </Button>
-                  <Button onClick={() => onOpenChange(false)}>
-                    Guardar programación
-                  </Button>
+                  {
+                   selectedTask.task_events && selectedTask.task_events.length < 1 && (
+                      <Button disabled={createTaskEvents.isPending} onClick={handleScheduleSubmit} type="button">
+                        {createTaskEvents.isPending ? <Loader2 className="animate-spin" /> : "Crear Eventos"}
+                      </Button>
+                    )
+                  }
                 </>
               )}
             </DialogFooter>

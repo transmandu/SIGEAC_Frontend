@@ -9,11 +9,9 @@ import {
   createViewMonthGrid,
   createViewWeek
 } from "@schedule-x/calendar";
-import { createDragAndDropPlugin } from '@schedule-x/drag-and-drop';
 import { createEventModalPlugin } from '@schedule-x/event-modal';
 import { createEventsServicePlugin } from '@schedule-x/events-service';
 import { ScheduleXCalendar, useNextCalendarApp } from "@schedule-x/react";
-import { createResizePlugin } from '@schedule-x/resize';
 import "@schedule-x/theme-default/dist/index.css";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -76,8 +74,6 @@ export const Calendar = ({ events, theme = "light" }: CalendarProps) => {
 
   const eventsServiceRef = useRef(createEventsServicePlugin());
   const eventModal = useMemo(() => createEventModalPlugin(), []);
-  const dragAndDrop = useMemo(() => createDragAndDropPlugin(), []);
-  const resizePlugin = useMemo(() => createResizePlugin(30), []);
 
   const { updatePlanificationEvent } = useUpdatePlanificationEvent();
 
@@ -89,7 +85,7 @@ export const Calendar = ({ events, theme = "light" }: CalendarProps) => {
     locale: "es-ES",
     defaultView: "month",
     isResponsive: true,
-    plugins: [dragAndDrop, eventsServiceRef.current, eventModal, resizePlugin],
+    plugins: [eventsServiceRef.current, eventModal],
     dayBoundaries: { start: '06:00', end: '18:00' },
     callbacks: {
       onDoubleClickDate: (date: string) => {
@@ -141,17 +137,6 @@ export const Calendar = ({ events, theme = "light" }: CalendarProps) => {
                 <span>{calendarEvent.description}</span>
               </div>
             )}
-          </div>
-          <div className="flex justify-center">
-            <Button
-              variant="outline"
-              onClick={() => {
-                console.log('Acción ejecutada para:', calendarEvent.id);
-                close();
-              }}
-            >
-              <Link href={`/${selectedCompany?.slug}/planificacion/ordenes_trabajo/nueva_orden_trabajo?eventId=${calendarEvent.id}`} className="flex items-center">Generar OT <Hammer className="ml-2" /></Link>
-            </Button>
           </div>
         </div>
       );

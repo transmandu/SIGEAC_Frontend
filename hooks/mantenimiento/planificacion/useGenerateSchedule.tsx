@@ -1,6 +1,6 @@
 // src/hooks/mantenimiento/planificacion/useAutoScheduleGenerator.ts
 import { WorkOrderTask } from "@/types"
-import { addDays, addHours, format } from "date-fns"
+import { addDays, addHours, format, startOfDay } from "date-fns"
 import { useEffect } from "react"
 import { UseFormSetValue } from "react-hook-form"
 
@@ -31,7 +31,7 @@ export const useAutoScheduleGenerator = (
     if (!totalHours || !hoursPerDay || !startDate) return
 
     let remainingHours = totalHours
-    let currentDate = new Date(startDate)
+    let currentDate = format(new Date(startDate), "yyyy-MM-dd 7:00")
     let dayCount = 1
     const events: Event[] = []
 
@@ -48,7 +48,7 @@ export const useAutoScheduleGenerator = (
 
       remainingHours -= hoursToday
       dayCount++
-      currentDate = addDays(currentDate, 1)
+      currentDate = format(addDays(currentDate, 1), "yyyy-MM-dd 7:00")
     }
 
     setValue("scheduling.events", events)

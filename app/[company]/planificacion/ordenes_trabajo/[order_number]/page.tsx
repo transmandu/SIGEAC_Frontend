@@ -60,7 +60,17 @@ const WorkOrderPage = () => {
         </div>
         </TabsContent>
         <TabsContent value="calendar" className="space-y-4">
-          <Calendar events={[]} />
+          {work_order && (
+            <Calendar
+              events={
+                work_order.work_order_tasks.flatMap(task =>
+                  task.task_events!.map(event => ({
+                    ...event
+                  }))
+                )
+              }
+            />
+          )}
         </TabsContent>
       </Tabs>
     </ContentLayout>
