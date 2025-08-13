@@ -89,7 +89,7 @@ const PendingDispatchRequestDropdownActions
         ...data,
         id: Number(request.id),
         status: "aprobado",
-        approved_by: `${user?.first_name} ${user?.last_name}`
+        approved_by: `${user?.employee[0].dni}`
       }
       await updateDispatchStatus.mutateAsync({
         id: formattedData.id,
@@ -101,7 +101,7 @@ const PendingDispatchRequestDropdownActions
       if (request.batch.category !== 'herramienta' && (newQty < request.batch.min_quantity)) {
         const reqData = {
           justification: `Restock por solicitud de salida de ${request.batch.name} - ${request.batch.articles[0].part_number}`,
-          requested_by: `${user?.first_name} ${user?.last_name}`,
+          requested_by: `${user?.employee[0].dni}`,
           created_by: user!.id,
           type: "AVIACION",
           location_id: selectedStation!,
@@ -185,7 +185,7 @@ const PendingDispatchRequestDropdownActions
                             }
                             {
                               employees && employees.map((employee) => (
-                                <SelectItem key={employee.dni} value={`${employee.first_name} ${employee.last_name}`}>{employee.first_name} {employee.last_name}</SelectItem>
+                                <SelectItem key={employee.dni} value={`${employee.dni}`}>{employee.first_name} {employee.last_name}</SelectItem>
                               ))
                             }
                           </SelectContent>

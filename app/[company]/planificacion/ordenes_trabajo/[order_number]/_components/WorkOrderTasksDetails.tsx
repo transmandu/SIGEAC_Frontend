@@ -121,13 +121,13 @@ const WorkOrderTasksDetails = ({ work_order }: { work_order: WorkOrder }) => {
         </TabsContent>
         <TabsContent value="rut" className="space-y-4">
           <RoutineTasksList
-            work_order_id={work_order.id}
+            work_order_id={work_order.id.toString()}
             tasks={work_order.work_order_tasks}
             onTaskClick={openTaskDetails}
             onCheckArticles={handleCheckTaskItems}
             isCheckLoading={isCheckLoading}
           />
-          <TaskDetailsDialog selectedTask={selectedTask} open={isDetailsOpen} onOpenChange={setIsDetailsOpen} />
+          <TaskDetailsDialog selectedTask={selectedTask!} open={isDetailsOpen} onOpenChange={setIsDetailsOpen} />
         </TabsContent>
         <TabsContent value="norut">
           <NonRoutineTasksList

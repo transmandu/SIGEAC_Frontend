@@ -113,7 +113,7 @@ const ServiceWorkOrderForm = () => {
   const [articleAvailability, setArticleAvailability] = useState<ArticleAvailability[]>([]);
   const { selectedStation, selectedCompany } = useCompanyStore();
   const { createWorkOrder } = useCreateWorkOrder();
-  const { data: aircrafts, isLoading: isAircraftsLoading } = useGetMaintenanceAircrafts();
+  const { data: aircrafts, isLoading: isAircraftsLoading } = useGetMaintenanceAircrafts(selectedCompany?.slug);
   const { data: services, isLoading: isServicesLoading } = useGetServicesByManufacturer(selectedAircraft);
   const { data, mutateAsync: check_mutate, isPending: isCheckLoading } = useCheckWorkOrderArticles(selectedCompany?.slug)
   const router = useRouter();
@@ -146,7 +146,7 @@ const ServiceWorkOrderForm = () => {
       toast.error("No hay una compañía seleccionada");
       return;
     }
-    
+
     try {
       const taskIds = selectedTasks.map(task => task.task_id);
       const result = await check_mutate(taskIds);

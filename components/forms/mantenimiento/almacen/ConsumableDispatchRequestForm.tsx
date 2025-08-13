@@ -45,9 +45,12 @@ import {
 import { Label } from "../../../ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "../../../ui/popover";
 import { Textarea } from "../../../ui/textarea";
+import { useGetDepartments } from "@/hooks/sistema/departamento/useGetDepartment";
+import { useGetWarehousesEmployees } from "@/hooks/mantenimiento/almacen/empleados/useGetWarehousesEmployees";
 
 const FormSchema = z.object({
   requested_by: z.string(),
+  delivered_by: z.string(),
   submission_date: z.date({
     message: "Debe ingresar la fecha.",
   }),
@@ -83,6 +86,8 @@ interface BatchesWithCountProp extends Batch {
 export function ConsumableDispatchForm({ onClose }: FormProps) {
   const { user } = useAuth();
 
+  const { selectedStation, selectedCompany } = useCompanyStore();
+
   const [open, setOpen] = useState(false);
 
   const [quantity, setQuantity] = useState("");
@@ -95,22 +100,24 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
 
   const { createDispatchRequest } = useCreateDispatchRequest();
 
-  const { selectedStation, selectedCompany } = useCompanyStore();
+  const  {data: departments, isLoading: isDepartmentsLo} = useGetDepartments(selectedCompany?.slug)
+
 
   const {
     mutate,
     data: batches,
     isPending: isBatchesLoading,
-    isError,
   } = useGetBatchesWithInWarehouseArticles();
 
-  const { data: employees, isLoading: employeesLoading, isError: employeesError } = useGetWorkOrderEmployees();
+  const { data: employees, isLoading: employeesLoading } = useGetWorkOrderEmployees(selectedCompany?.slug);
+
+  const { mutate: employeeMutate, data: warehouseEmployees, isPending: warehouseEmployeesLoading, isError: employeesError } = useGetWarehousesEmployees(selectedCompany?.slug);
 
   const form = useForm<FormSchemaType>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
       justification: "",
-      requested_by: `${user?.first_name} ${user?.last_name}`,
+      requested_by: `${user?.employee[0].dni}`,
       destination_place: "",
       status: "proceso",
     },
@@ -119,6 +126,7 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
   useEffect(() => {
     if (selectedStation) {
       mutate({location_id: Number(selectedStation), company: selectedCompany!.slug})
+      employeeMutate({location_id: Number(selectedStation)})
     }
   }, [selectedStation, selectedCompany, mutate])
 
@@ -159,12 +167,14 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
     const formattedData = {
       ...data,
       articles: [{ ...data.articles }],
-      created_by: user?.first_name + " " + user?.last_name,
+      created_by: user!.username,
       submission_date: format(data.submission_date, "yyyy-MM-dd"),
       category: "consumible",
+      status: "APROBADO",
+      approved_by: user?.employee[0].dni,
+      delivered_by: data.delivered_by,
       user_id: Number(user!.id),
     };
-    console.log(formattedData);
     await createDispatchRequest.mutateAsync({data: formattedData, company: selectedCompany!.slug});
     onClose();
   };
@@ -207,6 +217,33 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
         <div className="grid grid-cols-2 gap-2">
           <FormField
             control={form.control}
+            name="delivered_by"
+            render={({ field }) => (
+              <FormItem className="w-full">
+                <FormLabel>Entregado por:</FormLabel>
+                <Select onValueChange={field.onChange}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Seleccione el responsable..." />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {
+                      warehouseEmployeesLoading && <Loader2 className="size-4 animate-spin" />
+                    }
+                    {
+                      warehouseEmployees && warehouseEmployees.map((employee) => (
+                        <SelectItem key={employee.dni} value={`${employee.dni}`}>{employee.first_name} {employee.last_name}</SelectItem>
+                      ))
+                    }
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
             name="requested_by"
             render={({ field }) => (
               <FormItem>
@@ -225,7 +262,7 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
                       employees.map((employee) => (
                         <SelectItem
                           key={employee.id}
-                          value={`${employee.first_name} ${employee.last_name}`}
+                          value={`${employee.dni}`}
                         >
                           {employee.first_name} {employee.last_name} -{" "}
                           {employee.job_title.name}
@@ -241,7 +278,7 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
             control={form.control}
             name="submission_date"
             render={({ field }) => (
-              <FormItem className="flex flex-col mt-2.5">
+              <FormItem className="flex flex-col mt-2.5 w-full">
                 <FormLabel>Fecha de Solicitud</FormLabel>
                 <Popover>
                   <PopoverTrigger asChild>
@@ -282,21 +319,29 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
             )}
           />
           <FormField
-            control={form.control}
-            name="destination_place"
-            render={({ field }) => (
-              <FormItem className="col-span-2">
-                <FormLabel>Destino</FormLabel>
+          control={form.control}
+          name="destination_place"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Destino</FormLabel>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
                 <FormControl>
-                  <Input
-                    placeholder="Ej: Jefatura de Desarrollo, etc..."
-                    {...field}
-                  />
+                  <SelectTrigger>
+                    <SelectValue placeholder="Seleccione..." />
+                  </SelectTrigger>
                 </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+                <SelectContent>
+                  {
+                    departments && departments.map((department) => (
+                      <SelectItem key={department.id} value={department.id.toString()}>{department.name}</SelectItem>
+                    ))
+                  }
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
         </div>
         <div className="space-y-3">
           <div className="flex gap-2">

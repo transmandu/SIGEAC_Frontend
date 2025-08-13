@@ -789,15 +789,15 @@ export function getMenuList(
           active: pathname.includes(
             `/${currentCompany?.slug}/ingenieria/certificados`
           ),
-          icon: Award,
+          icon: Award,  
           roles: ["SUPERUSER"],
           submenus: [],
         },
         {
-          href: `/${currentCompany?.slug}/general/requisiciones/nueva_requisicion`,
+          href: `/${currentCompany?.slug}/ingenieria/requisiciones/nueva_requisicion`,
           label: "Solicitudes de Compras",
           active: pathname.includes(
-            `/${currentCompany?.slug}/general/requisiciones/nueva_requisicion`
+            `/${currentCompany?.slug}/ingenieria/requisiciones/nueva_requisicion`
           ),
           icon: ScrollText,
           roles: ["SUPERUSER"],

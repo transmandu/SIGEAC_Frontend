@@ -12,7 +12,7 @@ import {
   useReactTable,
 } from "@tanstack/react-table"
 
-import { RegisterDispatchRequestDialog } from "@/components/dialogs/mantenimiento/almacen/RegisterDispatchRequestDialog"
+import { CreateBatchDialog } from "@/components/dialogs/mantenimiento/almacen/CreateBatchDialog"
 import { DataTablePagination } from "@/components/tables/DataTablePagination"
 import { DataTableViewOptions } from "@/components/tables/DataTableViewOptions"
 import {
@@ -23,34 +23,33 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { useDebounce } from "@/hooks/helpers/useDebounce"
-import { useEffect, useState } from "react"
-import { Input } from "@/components/ui/input"
+import { useRouter } from "next/navigation"
+import { useState } from "react"
+import { RegisterDispatchRequestDialog } from "@/components/dialogs/mantenimiento/almacen/RegisterDispatchRequestDialog"
+import { CreateRequisitionDialog } from "@/components/dialogs/mantenimiento/compras/CreateRequisitionDialog"
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
-  initialData: TData[],
-  isSearching?: boolean,
-  searchTerm?: string,
+  data: TData[]
 }
 
 export function DataTable<TData, TValue>({
   columns,
-  initialData,
-  isSearching = false,
-  searchTerm = '',
+  data,
 }: DataTableProps<TData, TValue>) {
-  const [data, setData] = useState<TData[]>(initialData)
-  const [partNumberFilter, setPartNumberFilter] = useState("")
 
-  // Sincronizar datos cuando cambie el initialData
-  useEffect(() => {
-    setData(initialData)
-  }, [initialData])
   const [sorting, setSorting] = useState<SortingState>([])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>(
     []
   )
+
+  const locations = [
+    {
+      label: 'Puerto Ordaz',
+      value: 'pzo'
+    }
+  ]
+
   const table = useReactTable({
     data,
     columns,
@@ -66,9 +65,16 @@ export function DataTable<TData, TValue>({
     }
   })
 
+  const router = useRouter();
+
+  const isFiltered = table.getState().columnFilters.length > 0
+
   return (
     <div>
       <div className="flex items-center py-4">
+        <div className="flex gap-x-2 items-center">
+          <CreateRequisitionDialog />
+        </div>
         <DataTableViewOptions table={table} />
       </div>
       <div className="rounded-md border mb-4">

@@ -242,10 +242,10 @@ export const NonRoutineTasksList = ({
         </div>
       )}
       <TaskDetailsDialog
-        selectedTask={selectedTask}
+        selectedTask={selectedTask!}
         open={isDetailsOpen}
         onOpenChange={setIsDetailsOpen}
-        mainTask={mainTask}
+        mainTask={mainTask!}
         isNonRoutine={!!mainTask}
       />
     </div>

@@ -32,7 +32,7 @@ interface Requisition {
 
 
 const fetchRequisitionByOrderNumber = async ({company, order_number}:{company: string | undefined, order_number: string}): Promise<Requisition> => {
-  const {data} = await axios.get(`/show-requisition-order/${company}/${order_number}`);
+  const {data} = await axios.get(`/${company}/show-requisition-order/${order_number}`);
   return data[0];
 };
 

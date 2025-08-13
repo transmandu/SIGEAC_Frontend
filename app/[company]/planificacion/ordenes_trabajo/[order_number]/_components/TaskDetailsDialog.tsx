@@ -85,7 +85,7 @@ type TaskDetailsDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   isNonRoutine?: boolean;
-  mainTask: WorkOrder["work_order_tasks"][0];
+  mainTask?: WorkOrder["work_order_tasks"][0];
 };
 
 export const TaskDetailsDialog = ({
