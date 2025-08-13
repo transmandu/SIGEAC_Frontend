@@ -60,7 +60,7 @@ const styles = StyleSheet.create({
   section: {
     marginBottom: 12,
     padding: 10,
-    backgroundColor: "#fff",
+    backgroundColor: "#dfdadaff",
     borderRadius: 6,
   },
   subTitle: {
@@ -77,6 +77,63 @@ const styles = StyleSheet.create({
     color: "#f44336",
     textAlign: "center",
     marginVertical: 20,
+  },
+});
+
+/** estilos de la tabla (reemplaza tableStyles actual) **/
+const tableStyles = StyleSheet.create({
+  // wrapper: bordes L/R/B (no top) — de este modo el "marco" comienza en la segunda fila
+  tableWrapper: {
+    width: "100%",
+    marginBottom: 10,
+    borderLeftWidth: 1,
+    borderRightWidth: 1,
+    borderBottomWidth: 1,
+    borderColor: "#000",
+  },
+  // Primera fila (sin bordes)
+  rowFirst: {
+    flexDirection: "row",
+    paddingVertical: 6,
+    paddingHorizontal: 8,
+  },
+  titleRowText: {
+    fontSize: 10,
+    fontWeight: "bold",
+    textTransform: "uppercase",
+    // centra el título; si prefieres left, cambia textAlign
+    textAlign: "center",
+  },
+  // Filas a partir de la segunda: cada fila tiene borderTop (línea horizontal de separación)
+  rowWithBorders: {
+    flexDirection: "row",
+    borderTopWidth: 1,
+    borderColor: "#000",
+  },
+  // celdas base (con borde derecho para separar verticalmente)
+  cellBase: {
+    paddingVertical: 6,
+    paddingHorizontal: 6,
+    fontSize: 9,
+    borderRightWidth: 1,
+    borderColor: "#000",
+    justifyContent: "center",
+  },
+  // celdas que no deberían mostrar la línea derecha (última celda de fila)
+  cellNoRight: {
+    paddingVertical: 6,
+    paddingHorizontal: 6,
+    fontSize: 9,
+    justifyContent: "center",
+  },
+  // estilos para las celdas 'titulo' (labels)
+  headerCell: {
+    backgroundColor: "#d9d9d9",
+    fontWeight: "bold",
+  },
+  // estilos para las celdas 'datos'
+  dataCell: {
+    backgroundColor: "#f2f2f2",
   },
 });
 
@@ -127,12 +184,55 @@ const RequisitionReportPdf = ({
           </View>
         </View>
 
+        <View style={tableStyles.tableWrapper}>
+          {/* Fila 1: título sin bordes internos ni superior */}
+          <View style={tableStyles.rowFirst}>
+            <Text style={tableStyles.titleRowText}>DEPARTAMENTO EMISOR</Text>
+          </View>
+
+          {/* Fila 2: Departamento (label / dato) */}
+          <View style={tableStyles.rowWithBorders}>
+            <View style={[tableStyles.cellBase, tableStyles.headerCell, { width: "25%" }]}>
+              <Text>DEPARTAMENTO:</Text>
+            </View>
+
+            <View style={[tableStyles.cellNoRight, tableStyles.dataCell, { width: "75%" }]}>
+            </View>
+          </View>
+
+          {/* Fila 3: Responsable y N° ficha / C.I. (4 celdas) */}
+          <View style={tableStyles.rowWithBorders}>
+            <View style={[tableStyles.cellBase, tableStyles.headerCell, { width: "20%" }]}>
+              <Text>RESPONSABLE:</Text>
+            </View>
+
+            <View style={[tableStyles.cellBase, tableStyles.dataCell, { width: "40%" }]}>
+            </View>
+
+            <View style={[tableStyles.cellBase, tableStyles.headerCell, { width: "20%" }]}>
+              <Text>N° FICHA / C.I.:</Text>
+            </View>
+
+            <View style={[tableStyles.cellNoRight, tableStyles.dataCell, { width: "20%" }]}>
+            </View>
+          </View>
+
+          {/* Fila 4: Cargo (label / dato) */}
+          <View style={tableStyles.rowWithBorders}>
+            <View style={[tableStyles.cellBase, tableStyles.headerCell, { width: "25%" }]}>
+              <Text>CARGO:</Text>
+            </View>
+
+            <View style={[tableStyles.cellNoRight, tableStyles.dataCell, { width: "75%" }]}>
+            </View>
+          </View>
+        </View>
+
         {shouldDisplay ? (
           <View style={styles.section}>
             {/* Aquí puedes mapear requisition.batch y requisition.batch_articles */}
             <Text style={styles.subTitle}>Número de Orden: {requisition.order_number}</Text>
             <Text style={styles.fieldText}>Estado: {requisition.status}</Text>
-            <Text style={styles.fieldText}>Solicitado por: {requisition.requested_by}</Text>
             <Text style={styles.fieldText}>Aeronave: {requisition.aircraft?.acronym ?? "N/A"}</Text>
             <Text style={styles.fieldText}>Justificación: {requisition.justification}</Text>
           </View>
