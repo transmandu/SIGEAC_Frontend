@@ -143,7 +143,7 @@ export function getMenuList(
         },
         {
           href: `/${currentCompany?.slug}/general/requisiciones`,
-          label: "Requisiciones",
+          label: "Solicitudes de Compra",
           active: pathname.includes(
             `/${currentCompany?.slug}/general/requisiciones`
           ),
@@ -784,7 +784,7 @@ export function getMenuList(
         },
         {
           href: `/${currentCompany?.slug}/general/requisiciones/nueva_requisicion`,
-          label: "Requisiciones",
+          label: "Solicitudes de Compras",
           active: pathname.includes(
             `/${currentCompany?.slug}/general/requisiciones/nueva_requisicion`
           ),

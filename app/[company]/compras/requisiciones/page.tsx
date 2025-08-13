@@ -51,20 +51,20 @@ const RequisitionsPage = () => {
             <BreadcrumbItem>General</BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbPage>Requisiciones de Compra</BreadcrumbPage>
+              <BreadcrumbPage>Solicitudes de Compra</BreadcrumbPage>
             </BreadcrumbItem>
           </BreadcrumbList>
         </Breadcrumb>
         <h1 className="text-4xl font-bold text-center">Requisiciones de Compra</h1>
         <p className="text-sm text-muted-foreground text-center italic">
-          Aquí puede observar todas las requisiciones generales. <br />Filtre y/o busque si desea una en específico.
+          Aquí puede observar todas las solicitudes de compra generales. <br />Filtre y/o busque si desea una en específico.
         </p>
         {filteredRequisitions.length > 0 ? (
           <DataTable columns={columns} data={filteredRequisitions} />
         ) : (
           <DataTable columns={columns} data={[]} />
         )}
-        {isError && <p className="text-muted-foreground italic">Ha ocurrido un error al cargar las requisiciones...</p>}
+        {isError && <p className="text-muted-foreground italic">Ha ocurrido un error al cargar las solicitudes de compra...</p>}
       </div>
     </ContentLayout>
   );
