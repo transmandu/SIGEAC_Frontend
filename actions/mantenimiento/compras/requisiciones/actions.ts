@@ -8,7 +8,7 @@ interface CreateRequisitionData {
   requested_by: string,
   created_by: number | string,
   aircraft_id?: string,
-  work_order_id?: number,
+  work_order_id?: string,
   type: string,
   image?: File,
   articles: {

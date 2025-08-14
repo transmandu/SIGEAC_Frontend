@@ -67,7 +67,6 @@ const FormSchema = z.object({
 type FormSchemaType = z.infer<typeof FormSchema>
 
 
-
 export function CreateUserForm() {
 
   const { data: users, error, isLoading } = useGetUsers();
@@ -142,6 +141,9 @@ export function CreateUserForm() {
     );
   };
 
+  const isRoleSelected = (value: string) => selectedRoles.includes(value);
+
+
   // Usar useEffect para actualizar el valor del formulario
   useEffect(() => {
     form.setValue('roles', selectedRoles);
@@ -176,8 +178,6 @@ export function CreateUserForm() {
       console.error("Error al crear usuario:", error);
     }
   };
-
-  const isRoleSelected = (value: string) => selectedRoles.includes(value);
 
   return (
     <Form {...form}>
