@@ -175,8 +175,9 @@ export function CreateRequisitionForm({ onClose }: FormProps) {
       work_order_id: Number(data.work_order_id),
       aircraft_id: Number(data.aircraft_id).toString(),
     }
-    await createRequisition.mutateAsync({data: formattedData, company: selectedCompany!.slug})
-    onClose();
+    console.log(formattedData)
+    // await createRequisition.mutateAsync({data: formattedData, company: selectedCompany!.slug})
+    // onClose();
   }
   return (
     <Form {...form}>

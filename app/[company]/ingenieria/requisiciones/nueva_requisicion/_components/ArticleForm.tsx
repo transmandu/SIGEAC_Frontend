@@ -124,7 +124,7 @@ export default function AircraftsArticlesForm({ aircrafts, batches }: {
     <div className="space-y-6">
       {/* Selección de aeronaves */}
       <div>
-        <h2 className="font-bold mb-2">Seleccionar aeronaves</h2>
+        <h2 className="font-bold mb-2">Seleccionar aeronave(s)</h2>
         {aircrafts.map((aircraft) => (
           <div key={aircraft.id} className="flex items-center gap-2 mb-2">
             <Checkbox
@@ -151,7 +151,7 @@ export default function AircraftsArticlesForm({ aircrafts, batches }: {
           {/* Selección de batches */}
           <div className="mb-4">
             {batches.map((batch) => (
-              <div key={batch.batch_name} className="flex items-center gap-2 mb-2">
+              <div key={batch.id} className="flex items-center gap-2 mb-2">
                 <Checkbox
                   checked={aircraft.articles.some(
                     (b) => b.batch === batch.id.toString()
