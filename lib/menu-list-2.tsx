@@ -127,7 +127,9 @@ export function getMenuList(
             {
               href: `/${currentCompany?.slug}/general/cursos/estadisticas`,
               label: "Estadisticas",
-              active: pathname === `/${currentCompany?.slug}/general/cursos/estadisticas`,
+              active:
+                pathname ===
+                `/${currentCompany?.slug}/general/cursos/estadisticas`,
             },
           ],
         },
@@ -488,15 +490,23 @@ export function getMenuList(
           submenus: [
             {
               href: `/${currentCompany?.slug}/sms/planificacion/actividades`,
-              label: "Actividades SMS",
+              label: "Actividades",
               roles: ["SUPERUSER"],
               active:
                 pathname ===
                 `/${currentCompany?.slug}/planificacion/actividades`,
             },
             {
+              href: `/${currentCompany?.slug}/sms/planificacion/actividades/calendario`,
+              label: "Calendario Actividades",
+              roles: ["SUPERUSER"],
+              active:
+                pathname ===
+                `/${currentCompany?.slug}/planificacion/actividades/calendario`,
+            },
+            {
               href: `/${currentCompany?.slug}/sms/planificacion/capacitacion_personal`,
-              label: "Capacitacion SMS",
+              label: "Capacitacion",
               roles: ["SUPERUSER"],
               active:
                 pathname ===

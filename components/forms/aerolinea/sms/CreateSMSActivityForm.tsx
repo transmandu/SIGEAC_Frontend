@@ -69,15 +69,17 @@ const FormSchema = z
 type FormSchemaType = z.infer<typeof FormSchema>;
 
 interface FormProps {
-  onClose: () => void;
+  onClose: (open: boolean) => void;
   initialData?: SMSActivity;
   isEditing?: boolean;
+  selectedDate?: string;
 }
 
 export default function CreateSMSActivityForm({
   onClose,
   isEditing,
   initialData,
+  selectedDate,
 }: FormProps) {
   const router = useRouter();
   const { selectedCompany, selectedStation } = useCompanyStore();
@@ -93,9 +95,7 @@ export default function CreateSMSActivityForm({
       activity_name: initialData?.activity_name,
       activity_number: initialData?.activity_number,
 
-      start_date: initialData?.start_date
-        ? new Date(initialData?.start_date)
-        : new Date(),
+      start_date: selectedDate ? new Date(selectedDate) : undefined,
       end_date: initialData?.end_date
         ? new Date(initialData?.end_date)
         : new Date(),
@@ -111,7 +111,7 @@ export default function CreateSMSActivityForm({
       executed_by: initialData?.executed_by,
     },
   });
-
+  
   const onSubmit = async (data: FormSchemaType) => {
     console.log("data from sms activity form", data);
     if (isEditing && initialData) {
@@ -135,7 +135,7 @@ export default function CreateSMSActivityForm({
         console.error("Error al crear la actividad", error);
       }
     }
-    onClose();
+    onClose(true);
   };
 
   return (
@@ -267,7 +267,7 @@ export default function CreateSMSActivityForm({
             name="hour"
             render={({ field }) => (
               <FormItem className="w-full">
-                <FormLabel>Hora de vuelo</FormLabel>
+                <FormLabel>Hora de Inicio</FormLabel>
                 <FormControl>
                   <Input
                     type="time"
@@ -292,7 +292,7 @@ export default function CreateSMSActivityForm({
             name="duration"
             render={({ field }) => (
               <FormItem className="w-full">
-                <FormLabel>Duración del Curso</FormLabel>
+                <FormLabel>Duración de la Actividad</FormLabel>
                 <FormControl>
                   <Input {...field} maxLength={20} />
                 </FormControl>

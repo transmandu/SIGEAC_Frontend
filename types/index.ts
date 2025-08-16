@@ -297,6 +297,34 @@ export type MaintenanceAircraftPart = {
   aircraft: MaintenanceAircraft;
 };
 
+export type PlanificationEvent = {
+  id: number;
+  start_date: string,
+  end_date: string,
+  start: string,
+  end: string,
+  title: string,
+  description: string,
+  priority: "LOW" | "MEDIUM" | "HIGH",
+  calendarId: string,
+  work_order?: {
+    id: string,
+    order_number: string;
+  }
+}
+
+export type WorkOrderTaskEvent = {
+  id: number;
+  start_date: string,
+  end_date: string,
+  start: string,
+  end: string,
+  title: string,
+  description: string,
+  priority: "LOW" | "MEDIUM" | "HIGH",
+  calendarId: string,
+}
+
 export type FlightControl = {
   flight_number: string;
   aircraft_operator: string;
