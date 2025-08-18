@@ -5,8 +5,8 @@ import { toast } from "sonner";
 export const useCreateCashMovement = () => {
   const queryCashMovement = useQueryClient();
   const createMutation = useMutation({
-    mutationFn: async (data: any) => {
-      await axiosInstance.post("/transmandu/cash-movements", data);
+    mutationFn: async ({data, company}: {data: any, company: string}) => {
+      await axiosInstance.post(`/${company}/cash-movements`, data);
     },
     onSuccess: () => {
       queryCashMovement.invalidateQueries({ queryKey: ["cash-movements"] });

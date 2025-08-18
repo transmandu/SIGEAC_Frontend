@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import {
   ColumnDef,
@@ -10,12 +10,10 @@ import {
   getSortedRowModel,
   SortingState,
   useReactTable,
-} from "@tanstack/react-table"
-
-import CreateWarehouseDialog from "@/components/dialogs/CreateWarehouseDialog"
-import { DataTablePagination } from "@/components/tables/DataTablePagination"
-import { DataTableViewOptions } from "@/components/tables/DataTableViewOptions"
-import { Button } from "@/components/ui/button"
+} from "@tanstack/react-table";
+import { DataTablePagination } from "@/components/tables/DataTablePagination";
+import { DataTableViewOptions } from "@/components/tables/DataTableViewOptions";
+import { Button } from "@/components/ui/button";
 import {
   Table,
   TableBody,
@@ -23,26 +21,21 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table"
-import { ListRestart } from "lucide-react"
-import { useState } from "react"
-import { CreateConditionDialog } from "@/components/dialogs/CreateConditionDialog"
-
+} from "@/components/ui/table";
+import { ListRestart } from "lucide-react";
+import { useState } from "react";
+import { CreateClientDialog } from "@/components/dialogs/aerolinea/administracion/CreateClientDialog";
+import { CreateConditionDialog } from "@/components/dialogs/ajustes/CreateConditionDialog";
 interface DataTableProps<TData, TValue> {
-  columns: ColumnDef<TData, TValue>[]
-  data: TData[]
+  columns: ColumnDef<TData, TValue>[];
+  data: TData[];
 }
-
 export function DataTable<TData, TValue>({
   columns,
   data,
 }: DataTableProps<TData, TValue>) {
-
-  const [sorting, setSorting] = useState<SortingState>([])
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>(
-    []
-  )
-
+  const [sorting, setSorting] = useState<SortingState>([]);
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const table = useReactTable({
     data,
     columns,
@@ -54,16 +47,17 @@ export function DataTable<TData, TValue>({
     getFilteredRowModel: getFilteredRowModel(),
     state: {
       sorting,
-      columnFilters
-    }
-  })
+      columnFilters,
+    },
+  });
 
-  const isFiltered = table.getState().columnFilters.length > 0
+  const isFiltered = table.getState().columnFilters.length > 0;
 
   return (
     <div>
       <div className="flex items-center py-4">
         <div className="flex gap-x-2 items-center">
+          <CreateConditionDialog />
           {isFiltered && (
             <Button
               variant="ghost"
@@ -74,7 +68,6 @@ export function DataTable<TData, TValue>({
               <ListRestart className="ml-2 h-4 w-4" />
             </Button>
           )}
-          <CreateConditionDialog />
         </div>
         <DataTableViewOptions table={table} />
       </div>
@@ -89,11 +82,11 @@ export function DataTable<TData, TValue>({
                       {header.isPlaceholder
                         ? null
                         : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )}
                     </TableHead>
-                  )
+                  );
                 })}
               </TableRow>
             ))}
@@ -107,14 +100,20 @@ export function DataTable<TData, TValue>({
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext()
+                      )}
                     </TableCell>
                   ))}
                 </TableRow>
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={columns.length} className="h-24 text-center text-muted-foreground">
+                <TableCell
+                  colSpan={columns.length}
+                  className="h-24 text-center text-muted-foreground"
+                >
                   No se ha encontrado ningún resultado...
                 </TableCell>
               </TableRow>
@@ -124,5 +123,5 @@ export function DataTable<TData, TValue>({
       </div>
       <DataTablePagination table={table} />
     </div>
-  )
+  );
 }

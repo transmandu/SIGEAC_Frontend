@@ -3,7 +3,8 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 interface CourseData {
-  company: string | null;
+  company: string;
+  location_id: string;
   course: {
     name: string;
     description: string;
@@ -11,12 +12,13 @@ interface CourseData {
     time: string;
     start_date: Date;
     end_date: Date;
+    course_type: string;
     instructor?: string;
   };
 }
 
 interface updateCourseData {
-  company: string | null;
+  company: string;
   id: string;
   data: {
     name: string;
@@ -24,6 +26,7 @@ interface updateCourseData {
     duration: string;
     time: string;
     instructor?: string;
+    course_type: string;
     start_date: Date;
     end_date: Date;
   };
@@ -32,12 +35,17 @@ interface updateCourseData {
 export const useCreateCourse = () => {
   const queryClient = useQueryClient();
   const createMutation = useMutation({
-    mutationFn: async (data: CourseData) => {
-      await axiosInstance.post(`/general/${data.company}/create-course`, data, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
+    mutationFn: async ({ company, location_id, course }: CourseData) => {
+      console.log("data from create course", course);
+      await axiosInstance.post(
+        `/general/${company}/${location_id}/create-course`,
+        course,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["department-courses"] });
@@ -63,11 +71,11 @@ export const useDeleteCourse = () => {
   const queryClient = useQueryClient();
   const deleteMutation = useMutation({
     mutationFn: async ({
-      id,
       company,
+      id,
     }: {
-      id: string;
       company: string | null;
+      id: string;
     }) => {
       await axiosInstance.delete(`/general/${company}/delete-course/${id}`);
     },
@@ -86,6 +94,31 @@ export const useDeleteCourse = () => {
 
   return {
     deleteCourse: deleteMutation,
+  };
+};
+
+export const useFinishCourse = () => {
+  const queryClient = useQueryClient();
+  const deleteMutation = useMutation({
+    mutationFn: async ({ company, id }: { company: string; id: string }) => {
+      await axiosInstance.patch(`/general/${company}/finish-course/${id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["finish-course"] });
+      queryClient.invalidateQueries({ queryKey: ["department-courses"] });
+      toast.success("Finalizado!", {
+        description: `¡El curso ha sido finalizado correctamente!`,
+      });
+    },
+    onError: (e) => {
+      toast.error("Oops!", {
+        description: "¡Hubo un error al finalizar un curso!",
+      });
+    },
+  });
+
+  return {
+    finishCourse: deleteMutation,
   };
 };
 

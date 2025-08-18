@@ -18,29 +18,38 @@ interface SMSActivityData {
   executed_by: string;
 }
 interface updateSMSActivityData {
+  company: string | null;
   id: string;
-  activity_name: string;
-  activity_number: string;
-  start_date: Date;
-  end_date: Date;
-  hour: string;
-  duration: string;
-  place: string;
-  topics: string;
-  objetive: string;
-  description: string;
-  authorized_by: string;
-  planned_by: string;
-  executed_by: string;
-  status: string;
+  data: {
+    activity_name: string;
+    activity_number: string;
+    start_date: Date;
+    end_date: Date;
+    hour: string;
+    duration: string;
+    place: string;
+    topics: string;
+    objetive: string;
+    description: string;
+    authorized_by: string;
+    planned_by: string;
+    executed_by: string;
+    status: string;
+  };
 }
 
 export const useCreateSMSActivity = () => {
   const queryClient = useQueryClient();
   const createMutation = useMutation({
-    mutationFn: async (data: SMSActivityData) => {
+    mutationFn: async ({
+      company,
+      data,
+    }: {
+      company: string | null;
+      data: SMSActivityData;
+    }) => {
       const response = await axiosInstance.post(
-        "/transmandu/sms/sms-activities",
+        `/${company}/sms/activities`,
         data,
         {
           headers: {
@@ -72,8 +81,14 @@ export const useDeleteSMSActivity = () => {
   const queryClient = useQueryClient();
 
   const deleteMutation = useMutation({
-    mutationFn: async (id: number | string) => {
-      await axiosInstance.delete(`/transmandu/sms/sms-activities/${id}`);
+    mutationFn: async ({
+      company,
+      id,
+    }: {
+      company: string | null;
+      id: string;
+    }) => {
+      await axiosInstance.delete(`/${company}/sms/activities/${id}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["sms-activities"] }); // No se cual key va aca pero estoy seguro que no es esa
@@ -97,9 +112,9 @@ export const useUpdateSMSActivity = () => {
   const queryClient = useQueryClient();
 
   const updateSMSActivityMutation = useMutation({
-    mutationFn: async (data: updateSMSActivityData) => {
+    mutationFn: async ({ company, id, data }: updateSMSActivityData) => {
       const response = await axiosInstance.patch(
-        `/transmandu/sms/sms-activities/${data.id}`,
+        `/${company}/sms/activities/${id}`,
         data
       );
       return response.data;

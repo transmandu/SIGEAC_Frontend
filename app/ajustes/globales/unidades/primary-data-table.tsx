@@ -12,7 +12,7 @@ import {
   useReactTable,
 } from "@tanstack/react-table"
 
-import { CreatePermissionDialog } from "@/components/dialogs/CreatePermissionDialog"
+
 import { DataTablePagination } from "@/components/tables/DataTablePagination"
 import { DataTableViewOptions } from "@/components/tables/DataTableViewOptions"
 import { Button } from "@/components/ui/button"
@@ -27,8 +27,8 @@ import {
 } from "@/components/ui/table"
 import { ListRestart } from "lucide-react"
 import { useState } from "react"
-import { CreateCompanyDialog } from "@/components/dialogs/CreateCompanyDialog"
-import { CreateUnitDialog } from "@/components/dialogs/CreateUnitDialog"
+import { CreateCompanyDialog } from "@/components/dialogs/ajustes/CreateCompanyDialog"
+import { CreateUnitDialog } from "@/components/dialogs/ajustes/CreateUnitDialog"
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]

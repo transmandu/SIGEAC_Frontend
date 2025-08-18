@@ -27,8 +27,8 @@ export const useCreateDispatchRequest = () => {
 
     const createMutation = useMutation({
         mutationKey: ["dispatch-request"],
-        mutationFn: async (data: IDispatchRequestAction) => {
-            await axiosInstance.post('/hangar74/dispatch-order', data,
+        mutationFn: async ({data, company}: {data: IDispatchRequestAction, company: string}) => {
+            await axiosInstance.post(`/${company}/dispatch-order`, data,
               {
               headers: {
                 'Content-Type': 'multipart/form-data',
@@ -60,13 +60,14 @@ export const useUpdateStatusDispatchRequest = () => {
   const queryClient = useQueryClient()
   const updateStatusMutation = useMutation({
       mutationKey: ["dispatch-request-approve"],
-      mutationFn: async ({id, status, approved_by, delivered_by}: {
+      mutationFn: async ({id, status, approved_by, delivered_by, company}: {
         id: string | number,
         status: string,
         approved_by: string,
         delivered_by: string,
+        company: string,
       }) => {
-          await axiosInstance.put(`/hangar74/update-status-dispatch/${id}`, {status: status, approved_by: approved_by, delivered_by: delivered_by})
+          await axiosInstance.put(`/${company}/update-status-dispatch/${id}`, {status: status, approved_by: approved_by, delivered_by: delivered_by})
         },
       onSuccess: () => {
           queryClient.invalidateQueries({queryKey: ['dispatches-requests-in-process']}),

@@ -3,7 +3,8 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 interface DangerIdentificationData {
-  id: number | string; // Este id es el del reporte al cual sera asignado la identificacion (CREO)
+  company: string | null;
+  id: string | number;
   reportType: string;
   data: {
     danger: string;
@@ -15,30 +16,38 @@ interface DangerIdentificationData {
     consequence_to_evaluate: string;
     root_cause_analysis: string;
     information_source_id: string;
-  }
+  };
 }
 
 interface UpdateDangerIdentification {
-  id: number | string;
-  current_defenses: string;
-  risk_management_start_date: Date;
-  danger: string;
-  danger_area: string;
-  danger_type: string;
-  description: string;
-  possible_consequences: string;
-  consequence_to_evaluate: string;
-  root_cause_analysis: string;
-  information_source_id: number | string;
+  company: string | null;
+  id: string;
+  data: {
+    current_defenses: string;
+    risk_management_start_date: Date;
+    danger: string;
+    danger_area: string;
+    danger_type: string;
+    description: string;
+    possible_consequences: string;
+    consequence_to_evaluate: string;
+    root_cause_analysis: string;
+    information_source_id: number | string;
+  };
 }
 
 export const useCreateDangerIdentification = () => {
   const queryClient = useQueryClient();
   const createMutation = useMutation({
     mutationKey: ["danger-identifications/${id}"],
-    mutationFn: async ({data, reportType, id}: DangerIdentificationData) => {
+    mutationFn: async ({
+      company,
+      reportType,
+      id,
+      data,
+    }: DangerIdentificationData) => {
       const response = await axiosInstance.post(
-        `/transmandu/sms/danger-identifications/${id}/${reportType}`,
+        `/${company}/sms/danger-identifications/${reportType}/${id}/`,
         data,
         {
           headers: {
@@ -71,15 +80,21 @@ export const useCreateDangerIdentification = () => {
 
 export const useDeleteDangerIdentification = () => {
   const queryClient = useQueryClient();
-
   const deleteMutation = useMutation({
-    mutationFn: async (id: number | string) => {
+    mutationFn: async ({
+      company,
+      id,
+    }: {
+      company: string | null;
+      id: string;
+    }) => {
       await axiosInstance.delete(
-        `/transmandu/sms/danger-identifications/${id}`
+        `/${company}/sms/danger-identifications/${id}`
       );
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["danger-identifications"] });
+      queryClient.invalidateQueries({ queryKey: ["voluntary-reports"] });
       queryClient.invalidateQueries({
         queryKey: ["danger-identification-by-id"],
       });
@@ -99,41 +114,14 @@ export const useDeleteDangerIdentification = () => {
   };
 };
 
-export const useDeleteVoluntaryReport = () => {
-  const queryClient = useQueryClient();
-
-  const deleteMutation = useMutation({
-    mutationKey: ["voluntary-reports"],
-    mutationFn: async (id: number | string) => {
-      await axiosInstance.delete(`/transmandu/sms/voluntary-reports/${id}`);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["danger-identifications"] });
-      queryClient.invalidateQueries({ queryKey: ["voluntary-reports"] });
-      toast.success("¡Eliminado!", {
-        description: `¡El reporte ha sido eliminada correctamente!`,
-      });
-    },
-    onError: (e) => {
-      toast.error("Oops!", {
-        description: "¡Hubo un error al eliminar el reporte!",
-      });
-    },
-  });
-
-  return {
-    deleteVoluntaryReport: deleteMutation,
-  };
-};
-
 export const useUpdateDangerIdentification = () => {
   const queryClient = useQueryClient();
 
   const updateDangerIdentificationtMutation = useMutation({
     mutationKey: ["danger-identifications"],
-    mutationFn: async (data: UpdateDangerIdentification) => {
+    mutationFn: async ({ company, data, id }: UpdateDangerIdentification) => {
       await axiosInstance.patch(
-        `/transmandu/sms/danger-identifications/${data.id}`,
+        `/${company}/sms/danger-identifications/${id}`,
         data
       );
     },

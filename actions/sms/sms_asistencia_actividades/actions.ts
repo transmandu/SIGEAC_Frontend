@@ -9,6 +9,7 @@ interface EmployeeSelected {
 }
 
 interface SMSActivityAttendanceData {
+  company: string | null;
   activity_id: string;
   data: {
     addedEmployees: EmployeeSelected[];
@@ -19,9 +20,13 @@ interface SMSActivityAttendanceData {
 export const useCreateSMSActivityAttendance = () => {
   const queryClient = useQueryClient();
   const createMutation = useMutation({
-    mutationFn: async ({ data, activity_id }: SMSActivityAttendanceData) => {
+    mutationFn: async ({
+      company,
+      data,
+      activity_id,
+    }: SMSActivityAttendanceData) => {
       const response = await axiosInstance.post(
-        `/transmandu/sms/activities/${activity_id}/enrollements`,
+        `/${company}/sms/activities/${activity_id}/enrollements`,
         data,
         {
           headers: {

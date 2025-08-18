@@ -8,24 +8,29 @@ import {
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
-interface InformationSourceData {
-  name: string;
-  type: string;
+interface InformationSourceSchema {
+  company: string;
+  data: {
+    name: string;
+    type: string;
+  };
 }
 
-interface UpdateInformationSourceData {
-  id:   string;
-  name: string;
-  type: string;
+interface UpdateInformationSourceSchema {
+  company: string;
+  id: string;
+  data: {
+    name: string;
+    type: string;
+  };
 }
-
 
 export const useCreateInformationSource = () => {
   const queryClient = useQueryClient();
   const createMutation = useMutation({
     mutationKey: ["information-sources"],
-    mutationFn: async (data: InformationSourceData) => {
-      await axiosInstance.post("/transmandu/information-sources", data, {
+    mutationFn: async ({ company, data }: InformationSourceSchema) => {
+      await axiosInstance.post(`/${company}/information-sources`, data, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
@@ -48,7 +53,6 @@ export const useCreateInformationSource = () => {
     createInformationSource: createMutation,
   };
 };
-
 
 export const useDeleteInformationSource = () => {
   const queryClient = useQueryClient();
@@ -75,31 +79,32 @@ export const useDeleteInformationSource = () => {
   };
 };
 
-
 export const useUpdateInformationSource = () => {
-
-  const queryClient = useQueryClient()
+  const queryClient = useQueryClient();
 
   const updateInformationSourceMutation = useMutation({
-      mutationKey: ["information-sources"],
-      mutationFn: async (data: UpdateInformationSourceData) => {
-          await axiosInstance.put(`/transmandu/information-sources/${data.id}`, data)
-        },
-      onSuccess: () => {
-          queryClient.invalidateQueries({queryKey: ['information-sources']})
-          toast.success("¡Actualizado!", {
-              description: `La fuente ha sido actualizada correctamente.`
-          })
-        },
-      onError: (error) => {
-          toast.error('Oops!', {
-            description: 'No se pudo actualizar la fuente...'
-          })
-          console.log(error)
-        },
-      }
-  )
+    mutationKey: ["information-sources"],
+    mutationFn: async ({
+      company,
+      id,
+      data,
+    }: UpdateInformationSourceSchema) => {
+      await axiosInstance.put(`/${company}/information-sources/${id}`, data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["information-sources"] });
+      toast.success("¡Actualizado!", {
+        description: `La fuente ha sido actualizada correctamente.`,
+      });
+    },
+    onError: (error) => {
+      toast.error("Oops!", {
+        description: "No se pudo actualizar la fuente...",
+      });
+      console.log(error);
+    },
+  });
   return {
     updateInformationSource: updateInformationSourceMutation,
-  }
-}
+  };
+};

@@ -1,6 +1,6 @@
 "use client"
 
-import WarehouseDropdownActions from "@/components/misc/WarehouseDropdownActions"
+import WarehouseDropdownActions from "@/components/dropdowns/ajustes/WarehouseDropdownActions"
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader"
 import { Bank } from "@/types"
 import { ColumnDef } from "@tanstack/react-table"
@@ -28,14 +28,5 @@ export const columns: ColumnDef<Bank>[] = [
       <>
         <span className='text-muted-foreground flex justify-center italic'>{row.original.type}</span>
       </>
-  },
-  {
-    id: "actions",
-    cell: ({ row }) => {
-      const id = row.original.id
-      return (
-        <WarehouseDropdownActions id={id.toString()} />
-      )
-    },
   },
 ]

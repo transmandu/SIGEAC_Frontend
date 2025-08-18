@@ -34,8 +34,8 @@ export const useCreatePurchaseOrder = () => {
   const queryClient = useQueryClient()
 
   const createMutation = useMutation({
-      mutationFn: async (data: CreatePurchaseOrderData) => {
-          await axiosInstance.post('/purchase-order', data)
+      mutationFn: async ({data, company}: {data: CreatePurchaseOrderData, company: string}) => {
+          await axiosInstance.post(`/${company}/purchase-order`, data)
         },
       onSuccess: () => {
           queryClient.invalidateQueries({queryKey: ['purchase-orders']})
@@ -62,7 +62,7 @@ export const useCompletePurchase = () => {
   const queryClient = useQueryClient()
 
   const completePurchaseMutation = useMutation({
-      mutationFn: async ({id, data}: {id: number, data: {
+      mutationFn: async ({id, data, company}: {id: number, data: {
         tax: string,
         wire_fee: string,
         total: number,
@@ -74,10 +74,9 @@ export const useCompletePurchase = () => {
         bank_account_id: string,
         card_id?: string,
         invoice?: File,
-        company: string,
         articles_purchase_orders: POArticles[]
-      }}) => {
-          await axiosInstance.put(`/purchase-order/${id}`, data)
+      }, company: string}) => {
+          await axiosInstance.put(`/${company}/purchase-order/${id}`, data)
         },
       onSuccess: () => {
           queryClient.invalidateQueries({queryKey: ['purchase-orders']})
@@ -104,7 +103,7 @@ export const useDeleteQuote = () => {
 
   const deleteMutation = useMutation({
       mutationFn: async ({id, company}: {id: number, company: string}) => {
-          await axiosInstance.post(`/delete-quote/${id}`, {company})
+          await axiosInstance.post(`/${company}/delete-quote/${id}`, {company})
         },
       onSuccess: () => {
           queryClient.invalidateQueries({queryKey: ['purchase-orders']})

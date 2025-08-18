@@ -2,17 +2,26 @@ import axiosInstance from "@/lib/axios";
 import { VoluntaryReport } from "@/types";
 import { useQuery } from "@tanstack/react-query";
 
-const fetchVoluntaryReportsByDateRange = async (from: string, to: string) => {
+const fetchVoluntaryReportsByDateRange = async (
+  company: string | null,
+  from: string,
+  to: string
+) => {
   const { data } = await axiosInstance.get(
-    `/transmandu/sms/voluntary-reports/date-range?from=${from}&to=${to}`
+    `/${company}/sms/voluntary-reports-date-range?from=${from}&to=${to}`
   );
   return data;
 };
 
-export const useGetVoluntaryReportsByDateRange = (from: string, to: string) => {
+export const useGetVoluntaryReportsByDateRange = (
+  company: string | null,
+  from: string,
+  to: string
+) => {
   return useQuery<VoluntaryReport[]>({
-    queryKey: ["voluntary-reports/date-range/from=${from}&to=${to}"],
-    queryFn: () => fetchVoluntaryReportsByDateRange(from, to),
+    queryKey: ["voluntary-reports-by-date-range"],
+    queryFn: () => fetchVoluntaryReportsByDateRange(company, from, to),
     staleTime: 1000 * 60 * 5, // 5 minutos
+    enabled: !!company,
   });
 };

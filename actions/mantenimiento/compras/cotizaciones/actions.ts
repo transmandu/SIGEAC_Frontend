@@ -25,8 +25,8 @@ export const useCreateQuote = () => {
   const queryClient = useQueryClient()
 
   const createMutation = useMutation({
-      mutationFn: async (data: CreateQuoteData) => {
-          await axiosInstance.post('/quote', data)
+      mutationFn: async ({data, company}: {data: CreateQuoteData, company?: string}) => {
+          await axiosInstance.post(`/${company}/quote`, data)
         },
       onSuccess: () => {
           queryClient.invalidateQueries({queryKey: ['quotes']})
@@ -53,12 +53,11 @@ export const useUpdateQuoteStatus = () => {
   const queryClient = useQueryClient()
 
   const updateStatusMutation = useMutation({
-      mutationFn: async ({id, data}: {id: number, data: {
+      mutationFn: async ({id, data, company}: {id: number,company: string, data: {
         status: string,
         updated_by: string,
-        company: string,
       }}) => {
-          await axiosInstance.put(`/quote-order-update-status/${id}`, data)
+          await axiosInstance.put(`/${company}/quote-order-update-status/${id}`, data)
         },
       onSuccess: () => {
           queryClient.invalidateQueries({queryKey: ['quotes']})

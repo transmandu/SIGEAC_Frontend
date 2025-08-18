@@ -12,7 +12,7 @@ import {
   useReactTable,
 } from "@tanstack/react-table"
 
-import { CreateUserDialog } from "@/components/dialogs/CreateUserDialog"
+import { CreateUserDialog } from "@/components/dialogs/ajustes/CreateUserDialog"
 import { DataTableFacetedFilter } from "@/components/tables/DataTableFacetedFilter"
 import { DataTablePagination } from "@/components/tables/DataTablePagination"
 import { DataTableViewOptions } from "@/components/tables/DataTableViewOptions"

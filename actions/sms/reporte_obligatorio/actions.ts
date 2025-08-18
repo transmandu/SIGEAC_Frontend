@@ -25,33 +25,35 @@ interface ObligatoryReportData {
 }
 
 interface UpdateObligatoryReportData {
-  id: number | string;
-  report_number: string;
-  description: string;
-  incident_location: string;
-  report_date: Date;
-  incident_date: Date;
-  incident_time: string;
-  flight_time: string;
-  pilot_id: string | number;
-  copilot_id: string | number;
-  aircraft_id: string | number;
-  flight_number: string;
-  flight_origin: string;
-  flight_destiny: string;
-  flight_alt_destiny: string;
-  incidents?: string[];
-  status: string;
-  danger_identification_id: string | number | null;
-  other_incidents?: string;
-  image?: string | File;
-  document?: string | File;
+  company: string | null;
+  id: string;
+  data: {
+    report_number: string;
+    description: string;
+    incident_location: string;
+    report_date: Date;
+    incident_date: Date;
+    incident_time: string;
+    flight_time: string;
+    pilot_id: string | number;
+    copilot_id: string | number;
+    aircraft_id: string | number;
+    flight_number: string;
+    flight_origin: string;
+    flight_destiny: string;
+    flight_alt_destiny: string;
+    incidents?: string[];
+    status: string;
+    danger_identification_id: string | number | null;
+    other_incidents?: string;
+    image?: string | File;
+    document?: string | File;
+  };
 }
 
 export const useCreateObligatoryReport = () => {
   const queryClient = useQueryClient();
   const createMutation = useMutation({
-    mutationKey: ["obligatory-reports"],
     mutationFn: async (data: ObligatoryReportData) => {
       const response = await axiosInstance.post(
         "/transmandu/sms/obligatory-reports",
@@ -87,8 +89,14 @@ export const useDeleteObligatoryReport = () => {
 
   const deleteMutation = useMutation({
     mutationKey: ["obligatory-reports"],
-    mutationFn: async (id: number | string) => {
-      await axiosInstance.delete(`/transmandu/sms/obligatory-reports/${id}`);
+    mutationFn: async ({
+      company,
+      id,
+    }: {
+      company: string | null;
+      id: string;
+    }) => {
+      await axiosInstance.delete(`/${company}/sms/obligatory-reports/${id}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["danger-identifications"] });
@@ -114,10 +122,9 @@ export const useUpdateObligatoryReport = () => {
 
   const updateObligatoryReportMutation = useMutation({
     mutationKey: ["obligatory-reports"],
-    mutationFn: async (data: UpdateObligatoryReportData) => {
-      console.log("antes de hacer el post", data);
+    mutationFn: async ({ company, id, data }: UpdateObligatoryReportData) => {
       await axiosInstance.post(
-        `/transmandu/sms/update/obligatory-reports/${data.id}`,
+        `/${company}/sms/update-obligatory-reports/${id}`,
         data,
         {
           headers: {
@@ -149,10 +156,9 @@ export const useAcceptObligatoryReport = () => {
 
   const acceptObligatoryReportMutation = useMutation({
     mutationKey: ["obligatory-reports"],
-    mutationFn: async (data: UpdateObligatoryReportData) => {
-      console.log("antes de hacer el post", data);
+    mutationFn: async ({ company, id, data }: UpdateObligatoryReportData) => {
       await axiosInstance.patch(
-        `/transmandu/sms/accept/obligatory-reports/${data.id}`,
+        `/${company}/sms/accept-obligatory-reports/${id}`,
         data
       );
     },

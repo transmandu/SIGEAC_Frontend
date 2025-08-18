@@ -3,15 +3,15 @@ import { Requisition } from '@/types';
 import { useQuery } from '@tanstack/react-query';
 
 
-const fetchRequisition = async (companyId: string | null, locationId: string | null): Promise<Requisition[]> => {
-  const {data} = await axios.get(`/requisition-orders/${companyId}/${locationId}`);
+const fetchRequisition = async (company?: string, location_id?: string): Promise<Requisition[]> => {
+  const {data} = await axios.get(`/${company}/${location_id}/requisition-orders`);
   return data;
 };
 
-export const useGetRequisition = (companyId: string | null, locationId: string | null) => {
+export const useGetRequisition = (company?: string, location_id?: string) => {
   return useQuery<Requisition[]>({
     queryKey: ["requisitions-orders"],
-    queryFn: () => fetchRequisition(companyId, locationId),
-    enabled: !!companyId && !!locationId
+    queryFn: () => fetchRequisition(company, location_id),
+    enabled: !!company && !!location_id
   });
 };

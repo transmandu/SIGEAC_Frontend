@@ -12,7 +12,7 @@ import {
   useReactTable,
 } from "@tanstack/react-table"
 
-import CreateWarehouseDialog from "@/components/dialogs/CreateWarehouseDialog"
+import CreateWarehouseDialog from "@/components/dialogs/ajustes/CreateWarehouseDialog"
 import { DataTablePagination } from "@/components/tables/DataTablePagination"
 import { DataTableViewOptions } from "@/components/tables/DataTableViewOptions"
 import { Button } from "@/components/ui/button"
@@ -26,7 +26,7 @@ import {
 } from "@/components/ui/table"
 import { ListRestart } from "lucide-react"
 import { useState } from "react"
-import { CreateEmployeeDialog } from "@/components/dialogs/CreateEmployeeDialog"
+import { CreateEmployeeDialog } from "@/components/dialogs/general/CreateEmployeeDialog"
 
 
 interface DataTableProps<TData, TValue> {

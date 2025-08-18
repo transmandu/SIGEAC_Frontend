@@ -2,34 +2,46 @@ import axios from '@/lib/axios';
 import { useQuery } from '@tanstack/react-query';
 
 export interface WarehouseReport {
-  name: string,
-  ata_code: string,
-  articles_quantity: number,
-  location: string,
-  warehouse: string,
-  description: string,
+  name: string;
+  ata_code: string;
+  articles_quantity: number;
+  location: string;
+  warehouse: string;
+  description: string;
   articles: {
-    part_number: string,
-    part_number_quantity: number,
-    aircraft: number,
-    stored: number,
-    dispatch:{
-              quantity: 1,
-              location: string
-            }[]
-    }[],
-}[]
+    part_number: string;
+    part_number_quantity: number;
+    aircraft: number;
+    stored: number;
+    dispatch: {
+      quantity: number;
+      location: string;
+    }[];
+  }[];
+}
 
-
-const fetchWarehouseReport = async (location_id: string | null): Promise<WarehouseReport[]> => {
-  const {data} = await axios.get(`/hangar74/articles/${location_id}`);
+const fetchWarehouseReport = async ({
+  company,
+  location_id,
+}: {
+  location_id: string;
+  company?: string;
+}): Promise<WarehouseReport[]> => {
+  const { data } = await axios.get(`/${company}/${location_id}/warehouse-report`);
   return data;
 };
 
-export const useGetWarehouseReport = (location_id: string | null) => {
+export const useGetWarehouseReport = ({
+  company,
+  location_id,
+}: {
+  company?: string;
+  location_id: string | null;
+}) => {
   return useQuery<WarehouseReport[], Error>({
-    queryKey: ["warehouse-report"],
-    queryFn: () => fetchWarehouseReport(location_id),
-    enabled: !!location_id,
+    queryKey: ['warehouse-report', company, location_id],
+    queryFn: () =>
+      fetchWarehouseReport({company: company!, location_id: location_id!}),
+    enabled: !!company && !!location_id,
   });
 };

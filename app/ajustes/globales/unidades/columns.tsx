@@ -6,7 +6,7 @@ import { DataTableColumnHeader } from "@/components/tables/DataTableHeader"
 
 import { Checkbox } from "@/components/ui/checkbox"
 import { Unit } from "@/types"
-import UnitDropdownActions from "@/components/misc/UnitDropdownActions"
+import UnitDropdownActions from "@/components/dropdowns/ajustes/UnitDropdownActions"
 
 export const columns: ColumnDef<Unit>[] = [
   // {

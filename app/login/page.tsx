@@ -1,4 +1,4 @@
-import { LoginForm } from '@/components/forms/LoginForm'
+import { LoginForm } from '@/components/forms/ajustes/LoginForm'
 import { ThemeToggler } from '@/components/layout/ThemeToggler'
 import Logo from '@/components/misc/Logo'
 

@@ -12,7 +12,7 @@ import {
   useReactTable,
 } from "@tanstack/react-table"
 
-import { CreateBankDialog } from "@/components/dialogs/CreateBankDialog"
+import { CreateBankDialog } from "@/components/dialogs/ajustes/CreateBankDialog"
 import { DataTablePagination } from "@/components/tables/DataTablePagination"
 import { DataTableViewOptions } from "@/components/tables/DataTableViewOptions"
 import { Button } from "@/components/ui/button"

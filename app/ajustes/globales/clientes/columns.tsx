@@ -1,10 +1,11 @@
-"use client"
+"use client";
 
-import WarehouseDropdownActions from "@/components/misc/WarehouseDropdownActions"
-import { DataTableColumnHeader } from "@/components/tables/DataTableHeader"
-import { Client } from "@/types"
-import { ColumnDef } from "@tanstack/react-table"
-import Link from "next/link"
+import { ColumnDef } from "@tanstack/react-table";
+import { Client } from "@/types";
+import ClientDropdownActions from "@/components/dropdowns/general/ClientDropdownActions";
+import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
+import { cn, formatCurrency } from "@/lib/utils";
+import { Badge } from "@/components/ui/badge";
 
 export const columns: ColumnDef<Client>[] = [
   {
@@ -12,52 +13,54 @@ export const columns: ColumnDef<Client>[] = [
     header: ({ column }) => (
       <DataTableColumnHeader filter column={column} title="Nombre" />
     ),
-    meta: { title: 'Nombre' },
-    cell: ({ row }) =>
-      <>
-        <Link href={`/ajustes/clientes/${row.original.id}`} className='font-bold flex justify-center hover:scale-110 transition-all ease-in '>{row.original.name ?? "N/A"}</Link>
-      </>
+    meta: { title: "Nombre" },
+    cell: ({ row }) => (
+      <div className="flex justify-center font-bold">{row.original.name}</div>
+    ),
   },
   {
-    accessorKey: "email",
+    accessorKey: "dni",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Correo Electronico" />
+      <DataTableColumnHeader filter column={column} title="RIF / C.I" />
     ),
-    meta: { title: 'Email' },
-    cell: ({ row }) =>
-      <>
-        <span className='text-muted-foreground flex justify-center italic'>{row.original.email}</span>
-      </>
+    meta: { title: "RIF / C.I" },
+    cell: ({ row }) => (
+      <div className="flex justify-center font-bold">{row.original.dni_type}-{row.original.dni}</div>
+    ),
   },
   {
-    accessorKey: "phone_number",
+    accessorKey: "phone",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Nro. de TLF" />
+      <DataTableColumnHeader filter column={column} title="Nro. TLF" />
     ),
-    meta: { title: 'Nro. de TLF' },
-    cell: ({ row }) =>
-      <>
-        <span className='text-muted-foreground flex justify-center italic'>{row.original.phone}</span>
-      </>
+    meta: { title: "Nro. TLF" },
+    cell: ({ row }) => (
+      <div className="flex justify-center">
+        <span className="text-muted-foreground italic">
+          {row.original.phone}
+        </span>
+      </div>
+    ),
   },
   {
     accessorKey: "address",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Ubiación" />
+      <DataTableColumnHeader filter column={column} title="Ubicacion" />
     ),
-    meta: { title: 'Ubicacion' },
-    cell: ({ row }) =>
-      <>
-        <span className='text-muted-foreground flex justify-center italic'>{row.original.address}</span>
-      </>
+    meta: { title: "Ubicacion" },
+    cell: ({ row }) => (
+      <div className="flex justify-center">
+        <span className="text-muted-foreground italic">
+          {row.original.address}
+        </span>
+      </div>
+    ),
   },
   {
     id: "actions",
     cell: ({ row }) => {
-      const id = row.original.id
-      return (
-        <WarehouseDropdownActions id={id.toString()} />
-      )
+      const client = row.original;
+      return <ClientDropdownActions client={client} />;
     },
   },
-]
+];

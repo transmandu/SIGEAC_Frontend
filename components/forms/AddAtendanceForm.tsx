@@ -1,6 +1,6 @@
 "use client";
 
-import { useCreateCourseAttendance } from "@/actions/general/asistencia_curso/actions";
+import { useMarkAttendance } from "@/actions/general/asistencia_curso/actions";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -10,6 +10,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { useGetCourseEnrolledEmployees } from "@/hooks/sms/useGetCourseEnrolledEmployees";
 import { cn } from "@/lib/utils";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { Course } from "@/types";
@@ -27,7 +28,6 @@ import {
   CommandList,
 } from "../ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
-import { useGetCourseEnrolledEmployees } from "@/hooks/sms/useGetCourseEnrolledEmployees";
 
 interface FormProps {
   onClose: () => void;
@@ -66,14 +66,14 @@ type FormSchemaType = z.infer<typeof FormSchema>;
 export function AddAtendanceForm({ onClose, initialData }: FormProps) {
   const [open, setOpen] = useState(false);
   const { selectedCompany } = useCompanyStore();
-  const { createCourseAttendance } = useCreateCourseAttendance();
+  const { markAttendance } = useMarkAttendance();
   const [employeeSelections, setEmployeeSelections] = useState<
     EmployeeSelection[]
   >([]);
 
   const value = {
     course_id: initialData.id.toString(),
-    company: selectedCompany,
+    company: selectedCompany!.slug,
   };
   const { data: employeesData, isLoading: isLoadingEnrolledEmployee } =
     useGetCourseEnrolledEmployees(value);
@@ -152,7 +152,7 @@ export function AddAtendanceForm({ onClose, initialData }: FormProps) {
 
   const onSubmit = async (data: FormSchemaType) => {
     const value = {
-      company: selectedCompany,
+      company: selectedCompany!.slug,
       course_id: initialData?.id.toString(),
       employees_list: {
         addedEmployees: data.addedEmployees,
@@ -160,9 +160,9 @@ export function AddAtendanceForm({ onClose, initialData }: FormProps) {
       },
     };
     try {
-      await createCourseAttendance.mutateAsync(value);
+      await markAttendance.mutateAsync(value);
     } catch (error) {
-      console.error("Error al inscribir", error);
+      console.error("Error en asistencia", error);
     }
     onClose();
   };

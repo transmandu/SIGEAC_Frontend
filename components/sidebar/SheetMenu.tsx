@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/sheet";
 import Image from "next/image";
 import { useCompanyStore } from "@/stores/CompanyStore";
-import CompanySelectMobile from "../selects/CompanySelectMobile";
+import CompanySelect from "../selects/CompanySelect";
 
 export function SheetMenu() {
 
@@ -33,14 +33,14 @@ export function SheetMenu() {
             variant="link"
             asChild
           >
-            <Link href={selectedCompany === "hangar 74" ? "/hangar74/dashboard" : "/transmandu/dashboard"} className="flex items-center gap-2">
+            <Link href={`/${selectedCompany?.slug}/dashboard`} className="flex items-center gap-2">
               <Image src={'/logo.png'} width={150} height={150} alt="Logo" />
             </Link>
           </Button>
         </SheetHeader>
-        <CompanySelectMobile />
+        <CompanySelect />
         {
-          selectedCompany && selectedStation ? <Menu isOpen company={selectedCompany} /> :
+          selectedCompany && selectedStation ? <Menu isOpen/> :
 
             <p className="text-sm text-muted-foreground text-center mt-10">Por favor, seleccione una <strong>Empresa</strong> y una <strong>Estacion</strong>.</p>
         }

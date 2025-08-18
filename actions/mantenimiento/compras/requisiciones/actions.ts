@@ -8,9 +8,8 @@ interface CreateRequisitionData {
   requested_by: string,
   created_by: number | string,
   aircraft_id?: string,
-  work_order_id?: number,
+  work_order_id?: string,
   type: string,
-  company: string,
   image?: File,
   articles: {
     batch: string,
@@ -31,8 +30,8 @@ export const useCreateRequisition = () => {
   const queryClient = useQueryClient()
 
   const createMutation = useMutation({
-      mutationFn: async (data: CreateRequisitionData) => {
-          await axiosInstance.post('/requisition-order', data,
+      mutationFn: async ({data, company}: {data: CreateRequisitionData, company: string}) => {
+          await axiosInstance.post(`/${company}/requisition-order`, data,
             {
             headers: {
               'Content-Type': 'multipart/form-data',
@@ -65,8 +64,8 @@ export const useUpdateRequisition = () => {
   const queryClient = useQueryClient()
 
   const updateMutation = useMutation({
-      mutationFn: async ({data, id}: {id: string | number, data: CreateRequisitionData}) => {
-          await axiosInstance.put(`/requisition-order/${id}`, data)
+      mutationFn: async ({data, id, company}: {id: string | number, data: CreateRequisitionData, company: string}) => {
+          await axiosInstance.put(`/${company}/requisition-order/${id}`, data)
         },
       onSuccess: () => {
           queryClient.invalidateQueries({queryKey: ['requisitions-orders']})
@@ -93,7 +92,7 @@ export const useDeleteRequisition = () => {
 
   const deleteMutation = useMutation({
       mutationFn: async ({id, company}: {id: number, company: string}) => {
-          await axiosInstance.post(`/delete-requisition-order/${id}`, {company})
+          await axiosInstance.delete(`/${company}/delete-requisition-order/${id}`)
         },
       onSuccess: () => {
           queryClient.invalidateQueries({queryKey: ['requisitions-orders']})
@@ -119,12 +118,11 @@ export const useUpdateRequisitionStatus = () => {
   const queryClient = useQueryClient()
 
   const updateStatusMutation = useMutation({
-      mutationFn: async ({id, data}: {id: number, data: {
+      mutationFn: async ({id, data, company}: {id: number, data: {
         status: string,
         updated_by: string,
-        company: string,
-      }}) => {
-          await axiosInstance.put(`/requisition-order-update-status/${id}`, data)
+      }, company: string}) => {
+          await axiosInstance.put(`/${company}/requisition-order-update-status/${id}`, data)
         },
       onSuccess: () => {
           queryClient.invalidateQueries({queryKey: ['requisitions-orders']})

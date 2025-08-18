@@ -12,15 +12,16 @@ export interface RentingCreditsResponse {
   credits_total_amount: number
 }
 
-const fetchCreditStatisticsRenting = async (): Promise<RentingCreditsResponse> => {
-  const { data } = await axiosInstance.get("/transmandu/credits-statistics-rentings")
+const fetchCreditStatisticsRenting = async (company?: string): Promise<RentingCreditsResponse> => {
+  const { data } = await axiosInstance.get(`/${company}/credits-statistics-rentings`)
   return data
 }
 
-export const useGetCreditStatisticsRentings = () => {
+export const useGetCreditStatisticsRentings = (company?: string) => {
   return useQuery<RentingCreditsResponse>({
     queryKey: ["credits-statistics-rentings"],
-    queryFn: fetchCreditStatisticsRenting,
+    queryFn: () => fetchCreditStatisticsRenting(company),
     staleTime: 1000 * 60 * 5, // 5 minutos
+    enabled: !!company
   })
 }

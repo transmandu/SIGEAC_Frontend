@@ -1,6 +1,6 @@
 "use client";
 
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import qs from "query-string";
 import {
   Popover,
@@ -8,21 +8,78 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Button } from "../ui/button";
-import { format, startOfMonth, endOfMonth } from "date-fns";
+import { format, startOfMonth, endOfMonth, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ChevronDown } from "lucide-react";
 import { toast } from "sonner";
 import { Calendar } from "../ui/calendar";
 
-const DoubleMonthRangeFilter = () => {
+interface DoubleDateFilterProps {
+  initialFirstRange?: { start: string; end: string };
+  initialSecondRange?: { start: string; end: string };
+  onDateChange: (ranges: {
+    firstRange: { start: string; end: string };
+    secondRange: { start: string; end: string };
+  }) => void;
+}
+
+const DoubleDateFilter = ({
+  initialFirstRange,
+  initialSecondRange,
+  onDateChange,
+}: DoubleDateFilterProps) => {
   const router = useRouter();
   const pathname = usePathname();
+  const searchParams = useSearchParams();
 
-  const [firstRange, setFirstRange] = useState<{ from?: Date; to?: Date }>({});
-  const [secondRange, setSecondRange] = useState<{ from?: Date; to?: Date }>(
-    {}
+  // Inicializar estados con los valores de las props
+  const [firstRange, setFirstRange] = useState<{ from?: Date; to?: Date }>(
+    () => {
+      if (initialFirstRange) {
+        return {
+          from: parseISO(initialFirstRange.start),
+          to: parseISO(initialFirstRange.end),
+        };
+      }
+      return {};
+    }
   );
+
+  const [secondRange, setSecondRange] = useState<{ from?: Date; to?: Date }>(
+    () => {
+      if (initialSecondRange) {
+        return {
+          from: parseISO(initialSecondRange.start),
+          to: parseISO(initialSecondRange.end),
+        };
+      }
+      return {};
+    }
+  );
+
+  // Sincronizar con cambios en los parámetros de la URL
+  useEffect(() => {
+    const params = new URLSearchParams(searchParams.toString());
+    const fromFirst = params.get("from_first");
+    const toFirst = params.get("to_first");
+    const fromSecond = params.get("from_second");
+    const toSecond = params.get("to_second");
+
+    if (fromFirst && toFirst) {
+      setFirstRange({
+        from: parseISO(fromFirst),
+        to: parseISO(toFirst),
+      });
+    }
+
+    if (fromSecond && toSecond) {
+      setSecondRange({
+        from: parseISO(fromSecond),
+        to: parseISO(toSecond),
+      });
+    }
+  }, [searchParams]);
 
   const pushToUrl = () => {
     if (!firstRange.from || !secondRange.from) {
@@ -42,12 +99,27 @@ const DoubleMonthRangeFilter = () => {
       ? endOfMonth(secondRange.to)
       : endOfMonth(secondRange.from);
 
-    // Crear la query
+    // Formatear fechas como strings
+    const ranges = {
+      firstRange: {
+        start: format(fromFirst, "yyyy-MM-dd"),
+        end: format(toFirst, "yyyy-MM-dd"),
+      },
+      secondRange: {
+        start: format(fromSecond, "yyyy-MM-dd"),
+        end: format(toSecond, "yyyy-MM-dd"),
+      },
+    };
+
+    // Llamar a la función de callback
+    onDateChange(ranges);
+
+    // También actualizar la URL directamente
     const query = {
-      from_first: format(fromFirst, "yyyy-MM-dd"),
-      to_first: format(toFirst, "yyyy-MM-dd"),
-      from_second: format(fromSecond, "yyyy-MM-dd"),
-      to_second: format(toSecond, "yyyy-MM-dd"),
+      from_first: ranges.firstRange.start,
+      to_first: ranges.firstRange.end,
+      from_second: ranges.secondRange.start,
+      to_second: ranges.secondRange.end,
     };
 
     const url = qs.stringifyUrl(
@@ -65,6 +137,10 @@ const DoubleMonthRangeFilter = () => {
       if (!prev.from || prev.to) {
         return { from: month, to: undefined };
       }
+      // Si el mes seleccionado es anterior al from, intercambiar
+      if (month < prev.from) {
+        return { from: month, to: prev.from };
+      }
       return { ...prev, to: month };
     });
   };
@@ -76,18 +152,35 @@ const DoubleMonthRangeFilter = () => {
       if (!prev.from || prev.to) {
         return { from: month, to: undefined };
       }
+      // Si el mes seleccionado es anterior al from, intercambiar
+      if (month < prev.from) {
+        return { from: month, to: prev.from };
+      }
       return { ...prev, to: month };
     });
   };
 
+  const resetFilters = () => {
+    setFirstRange({});
+    setSecondRange({});
+
+    // Limpiar también los parámetros de la URL
+    const url = qs.stringifyUrl(
+      { url: pathname, query: {} },
+      { skipEmptyString: true, skipNull: true }
+    );
+    router.push(url);
+  };
+
   return (
     <div className="flex flex-col justify-center gap-4">
-      <div className="flex  justify-center gap-4">
+      <div className="flex justify-center gap-4">
         {/* Primer selector */}
         <Popover>
           <PopoverTrigger asChild>
             <Button className="w-1/3">
               <span>
+                
                 {firstRange.from
                   ? `${format(firstRange.from, "MMMM yyyy", { locale: es })} ${
                       firstRange.to
@@ -143,14 +236,7 @@ const DoubleMonthRangeFilter = () => {
       </div>
       {/* Botones */}
       <div className="flex justify-center items-center gap-2">
-        <Button
-          onClick={() => {
-            setFirstRange({});
-            setSecondRange({});
-          }}
-          className="w-90px"
-          variant="outline"
-        >
+        <Button onClick={resetFilters} className="w-90px" variant="outline">
           Reiniciar
         </Button>
         <Button
@@ -165,4 +251,7 @@ const DoubleMonthRangeFilter = () => {
   );
 };
 
-export default DoubleMonthRangeFilter;
+export default DoubleDateFilter;
+
+
+

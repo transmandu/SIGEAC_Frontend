@@ -14,8 +14,8 @@ export const useCreatePrelimInspection = () => {
   const queryClient = useQueryClient()
 
   const createMutation = useMutation({
-      mutationFn: async (data: CreatePrelimInspection) => {
-          await axiosInstance.post('/hangar74/preliminary-inspection', data)
+      mutationFn: async ({data, company}: {data: CreatePrelimInspection, company: string}) => {
+          await axiosInstance.post(`/${company}/preliminary-inspection`, data)
         },
       onSuccess: () => {
           queryClient.invalidateQueries({queryKey: ['work-order'], exact: false})
@@ -42,13 +42,13 @@ export const useAddPrelimItem = () => {
   const queryClient = useQueryClient()
 
   const updateMutation = useMutation({
-      mutationFn: async (data: {
+      mutationFn: async ({data, company}: {data: {
         id: string,
         ata: string,
         description: string,
         location: string,
-      }) => {
-          await axiosInstance.post(`/hangar74/preliminary-inspection-items/${data.id}`, data)
+      }, company: string}) => {
+          await axiosInstance.post(`/${company}/preliminary-inspection-items/${data.id}`, data)
         },
       onSuccess: () => {
           queryClient.invalidateQueries({queryKey: ['work-orders'], exact: false})
@@ -74,11 +74,11 @@ export const useUpdatePrelimInspection = () => {
   const queryClient = useQueryClient()
 
   const updateMutation = useMutation({
-      mutationFn: async (data: {
+      mutationFn: async ({data, company}: {data: {
         id: string,
         status: string,
-      }) => {
-          await axiosInstance.patch(`/hangar74/preliminary-inspection/${data.id}`, data)
+      }, company: string}) => {
+          await axiosInstance.patch(`/${company}/preliminary-inspection/${data.id}`, data)
         },
       onSuccess: () => {
           queryClient.invalidateQueries({queryKey: ['work-orders'], exact: false})

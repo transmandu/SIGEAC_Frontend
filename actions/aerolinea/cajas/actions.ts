@@ -6,8 +6,8 @@ export const useCreateCash = () => {
 
   const queryCash = useQueryClient()
   const createMutation = useMutation({
-    mutationFn: async (data: any) => {
-      await axiosInstance.post('/transmandu/cash', data)
+    mutationFn: async ({data, company}: {data: any, company: string}) => {
+      await axiosInstance.post(`/${company}/cash`, data)
     },
     onSuccess: () => {
       queryCash.invalidateQueries({queryKey: ['cashes']})
@@ -31,8 +31,8 @@ export const useDeleteCash = () => {
   const queryCash = useQueryClient()
 
   const deleteMutation = useMutation({
-      mutationFn: async (id: number | string) => {
-          await axiosInstance.delete(`/transmandu/cash/${id}`)
+      mutationFn: async ({id, company}: {id: number | string, company: string}) => {
+          await axiosInstance.delete(`/${company}/cash/${id}`)
         },
       onSuccess: () => {
 

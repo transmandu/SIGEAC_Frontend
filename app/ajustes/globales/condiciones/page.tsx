@@ -1,41 +1,38 @@
-'use client'
+"use client";
 
-import { ContentLayout } from '@/components/layout/ContentLayout';
-import { useGetConditions } from '@/hooks/administracion/useGetConditions';
-import { Loader2 } from 'lucide-react';
-import { columns } from './columns';
-import { DataTable } from './data-table';
+import { ContentLayout } from "@/components/layout/ContentLayout";
+import LoadingPage from "@/components/misc/LoadingPage";
+import { useGetConditions } from "@/hooks/administracion/useGetConditions";
+import { useCompanyStore } from "@/stores/CompanyStore";
+import { columns } from "./columns";
+import { DataTable } from "./data-table";
 
-const AlmacenesPage = () => {
 
-  const { data: conditions, isLoading, error } = useGetConditions();
+const ClientsPage = () => {
+const {selectedCompany} = useCompanyStore();
+const { data, isLoading, isError } = useGetConditions(selectedCompany?.slug);
+
+  if (isLoading) {
+    return <LoadingPage />;
+  }
+
   return (
-    <ContentLayout title={'Almacenes'}>
-      <h1 className='text-4xl font-bold text-center mb-2'>Control de Condiciones</h1>
-      <p className='text-sm text-muted-foreground text-center'>
-        Lleve un control de las diferentes condiciones que un articulo pueda tener.
+    <ContentLayout title="Condiciones">
+      {" "}
+      <h1 className="text-5xl font-bold text-center mt-2">
+        Control de Clientes
+      </h1>
+      <p className="text-sm text-muted-foreground text-center italic mt-2">
+        Aquí puede llevar el control de los clientes registrados.
       </p>
-      {
-        isLoading && (
-          <div className='grid mt-72 place-content-center'>
-            <Loader2 className='w-12 h-12 animate-spin' />
-          </div>
-        )
-      }
-      {
-        error && (
-          <div className='grid mt-72 place-content-center'>
-            <p className='text-sm text-muted-foreground'>Ha ocurrido un error al cargar los almacenes...</p>
-          </div>
-        )
-      }
-      {
-        conditions && (
-          <DataTable columns={columns} data={conditions} />
-        )
-      }
+      {data && <DataTable columns={columns} data={data} />}
+      {isError && (
+        <p className="text-muted-foreground text-sm italic text-center">
+          Ha ocurrido un error al cargar los clientes...
+        </p>
+      )}
     </ContentLayout>
-  )
-}
+  );
+};
 
-export default AlmacenesPage
+export default ClientsPage;

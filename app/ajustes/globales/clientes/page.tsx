@@ -1,42 +1,39 @@
-'use client'
+"use client";
 
-import { ContentLayout } from '@/components/layout/ContentLayout';
-import { Loader2 } from 'lucide-react';
-import { columns } from './columns';
-import { DataTable } from './data-table';
-import { useGetClients } from '@/hooks/general/clientes/useGetClients';
-import { useCompanyStore } from '@/stores/CompanyStore';
+import { ContentLayout } from "@/components/layout/ContentLayout";
+import { DataTable } from "./data-table";
+import { columns } from "./columns";
+import { useGetClients } from "@/hooks/general/clientes/useGetClients";
+import LoadingPage from "@/components/misc/LoadingPage";
+import { useCompanyStore } from "@/stores/CompanyStore";
 
-const BanksPage = () => {
-  const {selectedCompany} = useCompanyStore();
-  const { data: clients, isLoading, error } = useGetClients(selectedCompany?.split(' ').join(''));
+
+// CAMBIAR ID POR CDI, RIF O LO QUE SEA
+const ClientsPage = () => {
+const {selectedCompany} = useCompanyStore();
+const { data, isLoading, isError } = useGetClients(selectedCompany?.slug);
+
+  if (isLoading) {
+    return <LoadingPage />;
+  }
+
   return (
-    <ContentLayout title={'Almacenes'}>
-      <h1 className='text-4xl font-bold text-center mb-2'>Control de Clientes</h1>
-      <p className='text-sm text-muted-foreground text-center'>
-        Lleve un control de los diferentes clientes que se han registrado.
+    <ContentLayout title="Clientes">
+      {" "}
+      <h1 className="text-5xl font-bold text-center mt-2">
+        Control de Clientes
+      </h1>
+      <p className="text-sm text-muted-foreground text-center italic mt-2">
+        Aquí puede llevar el control de los clientes registrados.
       </p>
-      {
-        isLoading && (
-          <div className='grid mt-72 place-content-center'>
-            <Loader2 className='w-12 h-12 animate-spin' />
-          </div>
-        )
-      }
-      {
-        error && (
-          <div className='grid mt-72 place-content-center'>
-            <p className='text-sm text-muted-foreground'>Ha ocurrido un error al cargar los clientes...</p>
-          </div>
-        )
-      }
-      {
-        clients && (
-          <DataTable columns={columns} data={clients} />
-        )
-      }
+      {data && <DataTable columns={columns} data={data} />}
+      {isError && (
+        <p className="text-muted-foreground text-sm italic text-center">
+          Ha ocurrido un error al cargar los clientes...
+        </p>
+      )}
     </ContentLayout>
-  )
-}
+  );
+};
 
-export default BanksPage
+export default ClientsPage;

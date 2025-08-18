@@ -12,7 +12,7 @@ import {
   useReactTable,
 } from "@tanstack/react-table"
 
-import { CreateBankAccountDialog } from "@/components/dialogs/CreateBankAccountDialog"
+import { CreateBankAccountDialog } from "@/components/dialogs/ajustes/CreateBankAccountDialog"
 import { DataTablePagination } from "@/components/tables/DataTablePagination"
 import { DataTableViewOptions } from "@/components/tables/DataTableViewOptions"
 import { Button } from "@/components/ui/button"
@@ -26,7 +26,7 @@ import {
 } from "@/components/ui/table"
 import { ListRestart } from "lucide-react"
 import { useState } from "react"
-import { CreateCardDialog } from "@/components/dialogs/CreateCardDialog"
+import { CreateCardDialog } from "@/components/dialogs/ajustes/CreateCardDialog"
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]

@@ -1,22 +1,19 @@
-'use client';
+"use client";
 
-import Link from "next/link";
 import { Menu } from "@/components/sidebar/Menu";
 import { SidebarToggle } from "@/components/sidebar/SidebarToggle";
 import { Button } from "@/components/ui/button";
 import { useSidebarToggle } from "@/hooks/helpers/use-sidebar-toggle";
 import { useStore } from "@/hooks/helpers/use-store";
-import { CompanyMenu } from "@/lib/menu-list";
 import { cn } from "@/lib/utils";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import Image from "next/image";
+import Link from "next/link";
 
 export function Sidebar() {
   const sidebar = useStore(useSidebarToggle, (state) => state);
-  const { selectedCompany, selectedStation } = useCompanyStore()
-
+  const { selectedCompany, selectedStation } = useCompanyStore();
   if (!sidebar) return null;
-
   return (
     <aside
       className={cn(
@@ -34,16 +31,21 @@ export function Sidebar() {
           variant="link"
           asChild
         >
-          <Link href={`/${selectedCompany?.split(" ").join("")}/dashboard`} className="flex items-center gap-2">
-            <Image src={'/logo.png'} width={150} height={150} alt="Logo" />
+          <Link
+            href={`/${selectedCompany?.slug}/dashboard`}
+            className="flex items-center gap-2"
+          >
+            <Image src={"/logo.png"} width={150} height={150} alt="Logo" />
           </Link>
         </Button>
-        {
-          selectedCompany && selectedStation ? <Menu isOpen={sidebar?.isOpen} company={selectedCompany as CompanyMenu} /> :
-
-            <p className="text-sm text-muted-foreground text-center mt-10">Por favor, seleccione una <strong>Empresa</strong> y una <strong>Estacion</strong>.</p>
-
-        }
+        {selectedCompany && selectedStation ? (
+          <Menu isOpen={sidebar?.isOpen}  />
+        ) : (
+          <p className="text-sm text-muted-foreground text-center mt-10">
+            Por favor, seleccione una <strong>Empresa</strong> y una{" "}
+            <strong>Estacion</strong>.
+          </p>
+        )}
       </div>
     </aside>
   );

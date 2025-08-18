@@ -17,8 +17,8 @@ export const useCreateFlightControl = () => {
   const queryClient = useQueryClient()
 
   const createMutation = useMutation({
-      mutationFn: async (data: CreateFlightControlData) => {
-          await axiosInstance.post('/hangar74/flight-control', data)
+      mutationFn: async ({data, company}: {data: CreateFlightControlData, company: string}) => {
+          await axiosInstance.post(`/${company}/flight-control`, data)
         },
       onSuccess: () => {
           queryClient.invalidateQueries({queryKey: ['flight-control']})

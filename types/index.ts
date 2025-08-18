@@ -200,6 +200,7 @@ export type Company = {
   id: number;
   name: string;
   description: string;
+  slug: string;
   rif: string;
   cod_inac: string;
   fiscal_address: string;
@@ -207,8 +208,16 @@ export type Company = {
   alt_phone_number: number;
   cod_iata: string;
   cod_oaci: string;
+  modules: Module[];
   created_at: string;
   updated_at: string;
+};
+
+export type Module = {
+  id: number;
+  label: string;
+  value: string;
+  registered_by: string;
 };
 
 export interface ComponentArticle extends Article {
@@ -249,7 +258,6 @@ export type Department = {
   id: number;
   address: string;
   type: string;
-  is_main_base: string;
   cod_iata: string;
   acronym: string;
   name: string;
@@ -287,6 +295,34 @@ export type MaintenanceAircraftPart = {
   sub_parts: MaintenanceAircraftPart[];
   aircraft: MaintenanceAircraft;
 };
+
+export type PlanificationEvent = {
+  id: number;
+  start_date: string,
+  end_date: string,
+  start: string,
+  end: string,
+  title: string,
+  description: string,
+  priority: "LOW" | "MEDIUM" | "HIGH",
+  calendarId: string,
+  work_order?: {
+    id: string,
+    order_number: string;
+  }
+}
+
+export type WorkOrderTaskEvent = {
+  id: number;
+  start_date: string,
+  end_date: string,
+  start: string,
+  end: string,
+  title: string,
+  description: string,
+  priority: "LOW" | "MEDIUM" | "HIGH",
+  calendarId: string,
+}
 
 export type FlightControl = {
   flight_number: string;
@@ -346,6 +382,7 @@ export type WorkOrderTask = {
     work_order_task: Omit<WorkOrderTask, "non_routine">;
     no_routine_task?: Omit<WorkOrderTask, "non_routine">[];
   };
+  task_events?: WorkOrderTaskEvent[];
 };
 
 export interface WorkOrder extends Request {
@@ -399,20 +436,20 @@ export interface DispatchRequest extends Request {
 }
 
 export type Flight = {
-  id: number,
-  guide_code: string,
-  client: Client,
-  route: Route,
-  aircraft: Aircraft,
-  date: string,
-  details: string,
-  fee: string,
-  total_amount: string,
-  type: "CARGA" | "PAX" | "CHART",
-  payed_amount: string,
-  debt_status: "PENDIENTE" | "PAGADO",
-  bank_account: BankAccount,
-}
+  id: number;
+  guide_code: string;
+  client: Client;
+  route: Route;
+  aircraft: Aircraft;
+  date: string;
+  details: string;
+  fee: string;
+  total_amount: string;
+  type: "CARGA" | "PAX" | "CHART";
+  payed_amount: string;
+  debt_status: "PENDIENTE" | "PAGADO";
+  bank_account: BankAccount;
+};
 
 export type AdministrationFlight = {
   id: string;
@@ -451,7 +488,6 @@ export type JobTitle = {
   id: number;
   name: string;
   description: string;
-  department: Department;
 };
 
 export type Location = {
@@ -469,14 +505,6 @@ export type Manufacturer = {
   name: string;
   type: "AIRCRAFT" | "PART";
   description: string;
-};
-
-export type Module = {
-  id: number;
-  name: string;
-  description: string;
-  registered_by: string;
-  company: Company;
 };
 
 export type Vendor = {
@@ -643,14 +671,14 @@ export type AdministrationRequisition = {
 };
 
 export type Role = {
-  id: number,
-  name: string,
-  label: string,
+  id: number;
+  name: string;
+  label: string;
   company: {
-    name: string,
-    description: string,
-  }[]
-}
+    name: string;
+    description: string;
+  }[];
+};
 
 export type Route = {
   id: number;
@@ -697,7 +725,7 @@ export type Unit = {
 };
 
 export type User = {
-  id: number;
+  id: string;
   username: string;
   first_name: string;
   last_name: string;
@@ -710,6 +738,7 @@ export type User = {
   }[];
   permissions: Permission[];
   companies: Company[];
+  employee: Employee[];
 };
 
 export type Employee = {
@@ -920,10 +949,10 @@ export type DangerIdentificationsByType = {
   identifications_number: string;
 };
 
-export type ReportingStats = {
-  total_reports: number;
-  open_reports: number;
-  closed_reports: number;
+export type GeneralStats = {
+  total: number;
+  open: number;
+  closed: number;
 };
 
 export type pieChartData = {
@@ -996,6 +1025,28 @@ export type Course = {
   time: string;
   start_date: Date;
   end_date: Date;
+  course_type: string;
   instructor?: string;
   status: string;
+};
+
+export type CourseAttendance = {
+  course: Course;
+  employee_dni: string;
+  employee: Employee;
+};
+
+export type SMSTraining = {
+  employee: Employee;
+  course: Course;
+  last_enrollment: CourseAttendance;
+  expiration: Date;
+  status: string;
+  is_initial: boolean;
+};
+
+export type CourseStats = {
+  pending_courses: number;
+  completed_courses: number;
+  total_courses: number;
 };

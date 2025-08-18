@@ -33,15 +33,15 @@ interface EditingArticle extends Article {
     }
   },
 }
-const fetchArticleById = async (id: string, location_id: string | null): Promise<EditingArticle> => {
-  const {data} = await axios.get(`/hangar74/show-article-by-location/${location_id}/${id}`);
+const fetchArticleById = async (id: string, company?: string): Promise<EditingArticle> => {
+  const {data} = await axios.get(`/${company}/article/${id}`);
   return data;
 };
 
-export const useGetArticleById = (id: string, location_id: string | null) => {
+export const useGetArticleById = (id: string, company?: string) => {
   return useQuery<EditingArticle>({
-    queryKey: ["article"],
-    queryFn: () => fetchArticleById(id, location_id),
-    enabled: !!location_id
+    queryKey: ["article", id, company],
+    queryFn: () => fetchArticleById(id, company),
+    enabled: !!id && !!company
   });
 };

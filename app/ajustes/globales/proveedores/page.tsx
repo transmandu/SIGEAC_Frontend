@@ -9,7 +9,7 @@ import { useCompanyStore } from '@/stores/CompanyStore'
 
 const VendorsPage = () => {
   const { selectedCompany } = useCompanyStore();
-  const { data: vendors, isLoading, error } = useGetVendors(selectedCompany?.split(" ").join(""));
+  const { data: vendors, isLoading, error } = useGetVendors(selectedCompany?.slug);
   return (
     <ContentLayout title='Permisos'>
       <h1 className='text-5xl font-bold text-center mt-2'>

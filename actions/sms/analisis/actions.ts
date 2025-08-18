@@ -4,19 +4,32 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 interface AnalysesData {
-  probability: string;
-  severity: string;
-  result: string;
-  mitigation_plan_id?: string;
-  danger_identification_id?: string;
+  company: string | null;
+  data: {
+    probability: string;
+    severity: string;
+    result: string;
+    mitigation_plan_id?: string;
+    danger_identification_id?: string;
+  };
+}
+
+interface UpdateAnalysisData {
+  company: string | null;
+  id: string;
+  data: {
+    probability: string;
+    severity: string;
+    result: string;
+  };
 }
 
 export const useCreateAnalysis = () => {
   const queryClient = useQueryClient();
   const createMutation = useMutation({
     mutationKey: ["analysis"],
-    mutationFn: async (data: AnalysesData) => {
-      await axiosInstance.post("/transmandu/sms/analysis", data, {
+    mutationFn: async ({ data, company }: AnalysesData) => {
+      await axiosInstance.post(`/${company}/sms/analysis`, data, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
@@ -25,7 +38,9 @@ export const useCreateAnalysis = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["analysis"] });
       queryClient.invalidateQueries({ queryKey: ["danger-identifications"] });
-      queryClient.invalidateQueries({ queryKey: ["danger-identification-by-id"] });
+      queryClient.invalidateQueries({
+        queryKey: ["danger-identification-by-id"],
+      });
       toast.success("¡Creado!", {
         description: ` El análisis ha sido creado correctamente.`,
       });
@@ -71,8 +86,8 @@ export const useUpdateAnalyses = () => {
   const queryClient = useQueryClient();
   const updateAnalysesMutation = useMutation({
     mutationKey: ["analysis"],
-    mutationFn: async (data: Analysis) => {
-      await axiosInstance.put(`/transmandu/sms/analysis/${data.id}`, data);
+    mutationFn: async ({ company, data, id }: UpdateAnalysisData) => {
+      await axiosInstance.patch(`/${company}/sms/analysis/${id}`, data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["analysis"] });

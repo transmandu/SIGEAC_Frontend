@@ -9,8 +9,8 @@ export const useCreateArticle = () => {
     const queryClient = useQueryClient()
 
     const createMutation = useMutation({
-        mutationFn: async (data: ConsumableArticle) => {
-            await axiosInstance.post('/hangar74/articles', data)
+        mutationFn: async ({data, company}: {data: ConsumableArticle, company: string}) => {
+            await axiosInstance.post(`/${company}/articles`, data)
           },
         onSuccess: () => {
             queryClient.invalidateQueries({queryKey: ['articles']})

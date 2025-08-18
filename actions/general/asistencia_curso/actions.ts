@@ -9,7 +9,7 @@ interface EmployeeSelected {
 }
 
 interface CourseAttendaceData {
-  company: string | null;
+  company: string;
   course_id: string;
   employees_list: {
     addedEmployees: EmployeeSelected[];
@@ -53,11 +53,19 @@ export const useCreateCourseAttendance = () => {
 export const useMarkAttendance = () => {
   const queryClient = useQueryClient();
   const markAttendanceMutation = useMutation({
-    mutationFn: async (data: CourseAttendaceData) => {
-      await axiosInstance.patch(`/general/${data.company}/mark-attendance/${data.course_id}`, data);
+    mutationFn: async ({
+      company,
+      course_id,
+      employees_list,
+    }: CourseAttendaceData) => {
+      await axiosInstance.patch(
+        `/general/${company}/mark-attendance/${course_id}`,
+        employees_list
+      );
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["department-courses"] });
+      queryClient.invalidateQueries({ queryKey: ["employees-course"] });
       toast.success("¡Actualizado!", {
         description: `El analisis ha sido actualizada correctamente.`,
       });

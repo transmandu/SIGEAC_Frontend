@@ -20,14 +20,22 @@ export interface IArticleByCategory {
   image: string,
 }
 
-const fetchArticlesByCategory = async (location_id: number, category: string): Promise<IArticleByCategory[]> => {
-  const {data} = await axios.post(`/hangar74/articles-by-category/${category}`, {location_id});
+const fetchArticlesByCategory = async (
+  location_id: number,
+  category: string,
+  company?: string
+): Promise<IArticleByCategory[]> => {
+  const { data } = await axios.post(`/${company}/articles-by-category/${category}`, { location_id });
   return data;
 };
 
-export const useGetArticlesByCategory = (location_id: number, category: string) => {
-  return useMutation<IArticleByCategory[], Error, number>({
-    mutationKey: ["articles"],
-    mutationFn: () => fetchArticlesByCategory(location_id, category),
+export const useGetArticlesByCategory = (
+  location_id: number,
+  category: string,
+  company?: string
+) => {
+  return useMutation<IArticleByCategory[], Error>({
+    mutationKey: ["articles-by-category", company, location_id, category],
+    mutationFn: () => fetchArticlesByCategory(location_id, category, company!),
   });
 };

@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 
 
 const fetchPurchaseOrders = async (companyId: string | null, locationId: string | null): Promise<PurchaseOrder[]> => {
-  const {data} = await axios.get(`/purchase-orders/${companyId}/${locationId}`);
+  const {data} = await axios.get(`/${companyId}/${locationId}/purchase-orders`);
   return data;
 };
 

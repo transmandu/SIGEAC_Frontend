@@ -30,6 +30,36 @@
   --chart-3: 197 37% 24%;
   --chart-4: 43 74% 66%;
   --chart-5: 27 87% 67%;
+  /*
+    Estilos del Calendario
+  */
+  --sx-color-primary: #6750a4;
+  --sx-color-on-primary: #fff;
+  --sx-color-primary-container: #eaddff;
+  --sx-color-on-primary-container: #21005e;
+  --sx-color-secondary: #625b71;
+  --sx-color-on-secondary: #fff;
+  --sx-color-secondary-container: #e8def8;
+  --sx-color-on-secondary-container: #1e192b;
+  --sx-color-tertiary: #7d5260;
+  --sx-color-on-tertiary: #fff;
+  --sx-color-tertiary-container: #ffd8e4;
+  --sx-color-on-tertiary-container: #370b1e;
+  --sx-color-surface: #fef7ff;
+  --sx-color-surface-dim: #ded8e1;
+  --sx-color-surface-bright: #fef7ff;
+  --sx-color-on-surface: #1c1b1f;
+  --sx-color-surface-container: #f3edf7;
+  --sx-color-surface-container-low: #f7f2fa;
+  --sx-color-surface-container-high: #ece6f0;
+  --sx-color-background: #fff;
+  --sx-color-on-background: #1c1b1f;
+  --sx-color-outline: #79747e;
+  --sx-color-outline-variant: #c4c7c5;
+  --sx-color-shadow: #000;
+  --sx-color-surface-tint: #6750a4;
+  --sx-color-neutral: var(--sx-color-outline);
+  --sx-color-neutral-variant: var(--sx-color-outline-variant);
 }
 .dark  {
   --background: 226 50% 10%;
@@ -58,7 +88,13 @@
   --chart-4: 280 65% 60%;
   --chart-5: 340 75% 55%;
 }
+}
 
+.sx-react-calendar-wrapper {
+  width: 1200px;
+  max-width: 100vw;
+  height: 800px;
+  max-height: 90vh;
 }
 
 @layer base {

@@ -30,23 +30,23 @@ export interface AircraftStatistics {
       [month: string]: CashMovement[]
     }
   }
-  outputs: { 
+  outputs: {
     [year: string]: {
-      [month: string]: CashMovement[]  
+      [month: string]: CashMovement[]
     }
   }
 }
 
-const fetchFlightsByAircraft = async (aircraftAcronym: string): Promise<AircraftStatistics> => {
-  const { data } = await axiosInstance.get(`/transmandu/aircraft-statistics/${aircraftAcronym}`);
+const fetchFlightsByAircraft = async (aircraftAcronym: string, company?: string): Promise<AircraftStatistics> => {
+  const { data } = await axiosInstance.get(`/${company}/aircraft-statistics/${aircraftAcronym}`);
   return data;
 };
 
-export const useGetAircraftStatistics = (aircraftAcronym: string) => {
+export const useGetAircraftStatistics = (aircraftAcronym: string, company?: string) => {
   return useQuery<AircraftStatistics>({
-    queryKey: ["flights", aircraftAcronym],
-    queryFn: () => fetchFlightsByAircraft(aircraftAcronym),
+    queryKey: ["flights", aircraftAcronym, company],
+    queryFn: () => fetchFlightsByAircraft(aircraftAcronym, company),
     staleTime: 1000 * 60 * 5, // 5 minutos
-    enabled: !!aircraftAcronym,
+    enabled: !!aircraftAcronym && !!company,
   });
 };

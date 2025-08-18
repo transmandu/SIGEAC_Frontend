@@ -3,7 +3,7 @@ import { Course } from "@/types";
 import { useQuery } from "@tanstack/react-query";
 
 const fetchCoursesByDepartment = async (
-  company: string | null
+  company?: string
 ): Promise<Course[]> => {
   const { data } = await axiosInstance.get(
     `/general/${company}/courses-by-department`
@@ -11,7 +11,7 @@ const fetchCoursesByDepartment = async (
   return data;
 };
 
-export const useGetCoursesByDeparment = (company: string | null) => {
+export const useGetCoursesByDeparment = (company?: string) => {
   return useQuery<Course[]>({
     queryKey: ["department-courses"],
     queryFn: () => fetchCoursesByDepartment(company),

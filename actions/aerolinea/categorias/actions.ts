@@ -5,8 +5,8 @@ import { toast } from "sonner"
 export const useCreateCategory = () => {
     const queryCategory = useQueryClient()
     const createMutation = useMutation({
-        mutationFn: async (data: any) => {
-            await axiosInstance.post('/transmandu/accountants-categories', data)
+        mutationFn: async ({data, company}:{data: any, company?: string}) => {
+            await axiosInstance.post(`/${company}/accountants-categories`, data)
           },
         onSuccess: () => {
             queryCategory.invalidateQueries({queryKey: ['category']})
@@ -29,8 +29,8 @@ export const useCreateCategory = () => {
 export const useDeleteCategory = () => {
   const queryCategory = useQueryClient()
   const deleteMutation = useMutation({
-      mutationFn: async (id: number | string) => {
-          await axiosInstance.delete(`/transmandu/accountants-categories/${id}`)
+      mutationFn: async ({company, id}: {id: number | string, company?: string}) => {
+          await axiosInstance.delete(`/${company}/accountants-categories/${id}`)
         },
       onSuccess: () => {
 

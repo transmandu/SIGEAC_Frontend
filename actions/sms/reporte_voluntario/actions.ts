@@ -3,48 +3,56 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 interface VoluntaryReportData {
-  report_number?: string;
-  identification_date: Date;
-  report_date: Date;
-  danger_location: string;
-  danger_area: string;
-  description: string;
-  possible_consequences: string;
-  status: string;
-  name?: string;
-  last_name?: string;
-  phone?: string;
-  email?: string;
-  image?: File | string;
-  document?: File | string;
+  company: string | null;
+  reportData: {
+    report_number?: string;
+    identification_date: Date;
+    report_date: Date;
+    danger_location: string;
+    danger_area: string;
+    description: string;
+    possible_consequences: string;
+    status: string;
+    name?: string;
+    last_name?: string;
+    phone?: string;
+    email?: string;
+    image?: File | string;
+    document?: File | string;
+    location_id: string | null;
+  };
 }
 interface UpdateVoluntaryReportData {
-  id: number;
-  report_number?: string;
-  report_date: Date;
-  identification_date: Date;
-  danger_location: string;
-  danger_area: string;
-  description: string;
-  possible_consequences: string;
-  danger_identification_id: number;
-  status: string;
-  reporter_name?: string;
-  reporter_last_name?: string;
-  reporter_phone?: string;
-  reporter_email?: string;
-  image?: File | string;
-  document?: File | string;
+  company: string | null;
+  id: string;
+  data: {
+    report_number?: string;
+    report_date: Date;
+    identification_date: Date;
+    danger_location: string;
+    danger_area: string;
+    description: string;
+    possible_consequences: string;
+    danger_identification_id: number;
+    status: string;
+    reporter_name?: string;
+    reporter_last_name?: string;
+    reporter_phone?: string;
+    reporter_email?: string;
+    image?: File | string;
+    document?: File | string;
+    location_id: string | null;
+  };
 }
 
 export const useCreateVoluntaryReport = () => {
   const queryClient = useQueryClient();
   const createMutation = useMutation({
     mutationKey: ["voluntary-reports"],
-    mutationFn: async (data: VoluntaryReportData) => {
+    mutationFn: async ({ company, reportData }: VoluntaryReportData) => {
       const response = await axiosInstance.post(
-        "/transmandu/sms/voluntary-reports",
-        data,
+        `/${company}/sms/voluntary-reports`,
+        reportData,
         {
           headers: {
             "Content-Type": "multipart/form-data",
@@ -76,8 +84,14 @@ export const useDeleteVoluntaryReport = () => {
 
   const deleteMutation = useMutation({
     mutationKey: ["voluntary-reports"],
-    mutationFn: async (id: number | string) => {
-      await axiosInstance.delete(`/transmandu/sms/voluntary-reports/${id}`);
+    mutationFn: async ({
+      company,
+      id,
+    }: {
+      company: string | null;
+      id: string | number;
+    }) => {
+      await axiosInstance.delete(`/${company}/sms/voluntary-reports/${id}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["danger-identifications"] });
@@ -104,9 +118,9 @@ export const useUpdateVoluntaryReport = () => {
 
   const updateVoluntaryReportMutation = useMutation({
     mutationKey: ["voluntary-reports"],
-    mutationFn: async (data: UpdateVoluntaryReportData) => {
+    mutationFn: async ({ company, id, data }: UpdateVoluntaryReportData) => {
       const response = await axiosInstance.post(
-        `/transmandu/sms/update/voluntary-reports/${data.id}`,
+        `/${company}/sms/update-voluntary-reports/${id}`,
         data,
         {
           headers: {
@@ -139,10 +153,10 @@ export const useAcceptVoluntaryReport = () => {
   const queryClient = useQueryClient();
 
   const acceptVoluntaryReportMutation = useMutation({
-    mutationKey: ["voluntary-reports"],
-    mutationFn: async (data: UpdateVoluntaryReportData) => {
+    mutationFn: async ({ company, id, data }: UpdateVoluntaryReportData) => {
+      console.log("LLAMDO DEL END POINT");
       const response = await axiosInstance.patch(
-        `/transmandu/sms/accept/voluntary-reports/${data.id}`,
+        `/${company}/sms/accept-voluntary-reports/${id}`,
         data
       );
       return response.data;

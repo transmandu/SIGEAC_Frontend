@@ -7,13 +7,13 @@ type ArticleAvailability = Array<{
   warehouse?: string;
 }>;
 
-const checkArticles = async (tasks: number[]): Promise<ArticleAvailability> => {
-  const { data } = await axiosInstance.post(`/hangar74/get-work-order-articles`, { tasks });
+const checkArticles = async (tasks: number[], company?: string): Promise<ArticleAvailability> => {
+  const { data } = await axiosInstance.post(`/${company}/get-work-order-articles`, { tasks });
   return data;
 };
 
-export const useCheckWorkOrderArticles = () => {
+export const useCheckWorkOrderArticles = (company?: string) => {
   return useMutation<ArticleAvailability, Error, number[]>({
-    mutationFn: checkArticles,
+    mutationFn: (tasks: number[]) => checkArticles(tasks, company),
   });
 };

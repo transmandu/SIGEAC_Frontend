@@ -6,8 +6,8 @@ export const useUpdateBalance = () => {
   const queryClient = useQueryClient();
 
   const updateMutation = useMutation({
-    mutationFn: async ({ dni, data, company }: { dni: string; data: any, company: string }) => {
-      await axiosInstance.patch(`/${company}/clients-add-balance/${dni}`, data);
+    mutationFn: async ({ id, data, company }: { id: string; data: any, company: string }) => {
+      await axiosInstance.patch(`/${company}/clients-add-balance/${id}`, data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['clients'] });

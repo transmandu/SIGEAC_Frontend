@@ -1,6 +1,6 @@
 "use client";
 
-import { LayoutGrid, LogOut, MailIcon, User2 } from "lucide-react";
+import { LayoutGrid, Loader2, LogOut, MailIcon, User2 } from "lucide-react";
 import Link from "next/link";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -35,7 +35,7 @@ export function UserNav() {
               >
                 <Avatar className="h-8 w-8">
                   <AvatarImage src="#" alt="Avatar" />
-                  <AvatarFallback className="bg-transparent">{`${user?.first_name[0]}${user?.last_name[0]}`}</AvatarFallback>
+                  <AvatarFallback className="bg-transparent">{loading ? <Loader2 className="animate-spin" /> : `${user?.first_name[0]}${user?.last_name[0]}`}</AvatarFallback>
                 </Avatar>
               </Button>
             </DropdownMenuTrigger>
