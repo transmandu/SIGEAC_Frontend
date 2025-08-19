@@ -1,5 +1,5 @@
 "use client";
-import { useUpdateSMSActivity } from "@/actions/sms/sms_actividades/actions";
+import { useUpdateCalendarSMSActivity } from "@/actions/sms/sms_actividades/actions";
 import CreateSMSActivityDialog from "@/components/dialogs/aerolinea/sms/CreateSMSActivityDialog";
 // import { useUpdatePlanificationEvent } from "@/actions/mantenimiento/planificacion/eventos/actions";
 // import CreatePlanificationEventDialog from "@/components/dialogs/mantenimiento/planificacion/calendario/CreatePlanificationEventDialog";
@@ -89,7 +89,7 @@ export const Calendar = ({ events, theme = "light" }: CalendarProps) => {
   const dragAndDrop = useMemo(() => createDragAndDropPlugin(), []);
   const resizePlugin = useMemo(() => createResizePlugin(30), []);
 
-  const { updateSMSActivity } = useUpdateSMSActivity();
+  const { updateCalendarSMSActivity } = useUpdateCalendarSMSActivity();
 
   // ✅ Esta llamada es correcta, fuera de useMemo
   const calendar = useNextCalendarApp({
@@ -103,25 +103,38 @@ export const Calendar = ({ events, theme = "light" }: CalendarProps) => {
     dayBoundaries: { start: "06:00", end: "18:00" },
     callbacks: {
       onDoubleClickDate: (date: string) => {
-        console.log("this is date fom onDoubleClickDate", date);
-        setSelectedDate(`${date}`);
+        // console.log("this is date fom onDoubleClickDate", date);
+        setSelectedDate(`${date} 0:00`);
         setIsDialogOpen(true);
       },
       onDoubleClickDateTime: (dateTime: string) => {
-        console.log("this is date fom onDoubleClickDateTime", dateTime);
+        // console.log("this is date fom onDoubleClickDateTime", dateTime);
         setSelectedDate(dateTime);
         setIsDialogOpen(true);
       },
       onEventUpdate: async (event) => {
-        // await updateSMSActivity.mutateAsync({
-        //   company: selectedCompany!.slug,
-        //   id: event.id as string,
-        //   data: {
-        //     ...event,
-        //     start_date: event.start,
-        //     end_date: event.end,
-        //   },
-        // });
+        // console.log("this is event I SWEAR", event);
+        // console.log(typeof event.start);
+        // console.log("start", event.start);
+        // console.log("end", event.end);
+
+        const start_time = event.start.split(" ")[1];
+        const end_time = event.end.split(" ")[1];
+
+        console.log("start_time", start_time);
+        console.log("end_time", end_time);
+
+        await updateCalendarSMSActivity.mutateAsync({
+          company: selectedCompany!.slug,
+          id: event.id as string,
+          data: {
+            ...event,
+            start_date: new Date(event.start),
+            end_date: new Date(event.end),
+            start_time: start_time,
+            end_time: end_time,
+          },
+        });
       },
     },
   });

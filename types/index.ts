@@ -299,31 +299,31 @@ export type MaintenanceAircraftPart = {
 
 export type PlanificationEvent = {
   id: number;
-  start_date: string,
-  end_date: string,
-  start: string,
-  end: string,
-  title: string,
-  description: string,
-  priority: "LOW" | "MEDIUM" | "HIGH",
-  calendarId: string,
+  start_date: string;
+  end_date: string;
+  start: string;
+  end: string;
+  title: string;
+  description: string;
+  priority: "LOW" | "MEDIUM" | "HIGH";
+  calendarId: string;
   work_order?: {
-    id: string,
+    id: string;
     order_number: string;
-  }
-}
+  };
+};
 
 export type WorkOrderTaskEvent = {
   id: number;
-  start_date: string,
-  end_date: string,
-  start: string,
-  end: string,
-  title: string,
-  description: string,
-  priority: "LOW" | "MEDIUM" | "HIGH",
-  calendarId: string,
-}
+  start_date: string;
+  end_date: string;
+  start: string;
+  end: string;
+  title: string;
+  description: string;
+  priority: "LOW" | "MEDIUM" | "HIGH";
+  calendarId: string;
+};
 
 export type FlightControl = {
   flight_number: string;
@@ -993,8 +993,8 @@ export type SMSActivity = {
   activity_number: string;
   start_date: Date;
   end_date: Date;
-  hour: string;
-  duration: string;
+  start_time: string;
+  end_time: string;
   place: string;
   topics: string;
   objetive: string;

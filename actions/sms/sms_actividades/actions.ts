@@ -7,8 +7,8 @@ interface SMSActivityData {
   activity_number: string;
   start_date: Date;
   end_date: Date;
-  hour: string;
-  duration: string;
+  start_time: string;
+  end_time: string;
   place: string;
   topics: string;
   objetive: string;
@@ -25,8 +25,8 @@ interface updateSMSActivityData {
     activity_number: string;
     start_date: Date;
     end_date: Date;
-    hour: string;
-    duration: string;
+    start_time: string;
+    end_time: string;
     place: string;
     topics: string;
     objetive: string;
@@ -134,5 +134,42 @@ export const useUpdateSMSActivity = () => {
   });
   return {
     updateSMSActivity: updateSMSActivityMutation,
+  };
+};
+
+export const useUpdateCalendarSMSActivity = () => {
+  const queryClient = useQueryClient();
+
+  const updateSMSActivityMutation = useMutation({
+    mutationFn: async ({
+      company,
+      id,
+      data,
+    }: {
+      company: string;
+      id: string;
+      data: any;
+    }) => {
+      const response = await axiosInstance.patch(
+        `/${company}/sms/update-calendar-activity/${id}`,
+        data
+      );
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["sms-calendar-activities"] });
+      toast.success("¡Actualizado!", {
+        description: `La actividad ha sido actualizada correctamente.`,
+      });
+    },
+    onError: (error) => {
+      toast.error("Oops!", {
+        description: "No se pudo actualizar la actividad...",
+      });
+      console.log(error);
+    },
+  });
+  return {
+    updateCalendarSMSActivity: updateSMSActivityMutation,
   };
 };

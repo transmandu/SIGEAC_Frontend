@@ -19,7 +19,7 @@ const CalendarServicesPage = () => {
   if (error) return <div>Error al cargar eventos {error.message}</div>;
   
   return (
-    <ContentLayout title="Planificación de Servicios">
+    <ContentLayout title="Planificación de Actividades SMS">
       <div className="flex flex-col text-center justify-center gap-2 mb-6">
         <h1 className="font-bold text-5xl">Calendario de Actividades SMS</h1>
         <p className="text-muted-foreground italic text-sm">

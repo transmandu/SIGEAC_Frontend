@@ -489,20 +489,20 @@ export function getMenuList(
           roles: ["SUPERUSER"],
           submenus: [
             {
-              href: `/${currentCompany?.slug}/sms/planificacion/actividades`,
-              label: "Actividades",
-              roles: ["SUPERUSER"],
-              active:
-                pathname ===
-                `/${currentCompany?.slug}/planificacion/actividades`,
-            },
-            {
               href: `/${currentCompany?.slug}/sms/planificacion/actividades/calendario`,
               label: "Calendario Actividades",
               roles: ["SUPERUSER"],
               active:
                 pathname ===
                 `/${currentCompany?.slug}/planificacion/actividades/calendario`,
+            },
+            {
+              href: `/${currentCompany?.slug}/sms/planificacion/actividades`,
+              label: "Actividades",
+              roles: ["SUPERUSER"],
+              active:
+                pathname ===
+                `/${currentCompany?.slug}/planificacion/actividades`,
             },
             {
               href: `/${currentCompany?.slug}/sms/planificacion/capacitacion_personal`,
