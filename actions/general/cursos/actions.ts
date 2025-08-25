@@ -1,4 +1,5 @@
 import axiosInstance from "@/lib/axios";
+import { useCompanyStore } from "@/stores/CompanyStore";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
@@ -8,10 +9,10 @@ interface CourseData {
   course: {
     name: string;
     description: string;
-    duration: string;
-    time: string;
     start_date: Date;
     end_date: Date;
+    start_time: string;
+    end_time: string;
     course_type: string;
     instructor?: string;
   };
@@ -23,12 +24,12 @@ interface updateCourseData {
   data: {
     name: string;
     description: string;
-    duration: string;
-    time: string;
     instructor?: string;
     course_type: string;
     start_date: Date;
     end_date: Date;
+    start_time: string;
+    end_time: string;
   };
 }
 
@@ -148,5 +149,43 @@ export const useUpdateCourse = () => {
   });
   return {
     updateCourse: updateMutation,
+  };
+};
+
+export const useUpdateCourseCalendar = () => {
+  const { selectedCompany } = useCompanyStore();
+  const queryClient = useQueryClient();
+
+  const updateCourseMutation = useMutation({
+    mutationFn: async ({
+      company,
+      id,
+      data,
+    }: {
+      company: string;
+      id: string;
+      data: any;
+    }) => {
+      const response = await axiosInstance.patch(
+        `/general/${company}/update-course-calendar/${id}`,
+        data
+      );
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["course-calendar"] });
+      toast.success("¡Actualizado!", {
+        description: `El curso se ha sido actualizada correctamente.`,
+      });
+    },
+    onError: (error) => {
+      toast.error("Oops!", {
+        description: "No se pudo actualizar el curso...",
+      });
+      console.log(error);
+    },
+  });
+  return {
+    updateCourseCalendar: updateCourseMutation,
   };
 };

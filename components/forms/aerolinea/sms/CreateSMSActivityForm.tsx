@@ -14,16 +14,6 @@ import {
   useCreateSMSActivity,
   useUpdateSMSActivity,
 } from "@/actions/sms/sms_actividades/actions";
-import { cn } from "@/lib/utils";
-import { SMSActivity } from "@/types";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Separator } from "@radix-ui/react-select";
-import { addDays, format } from "date-fns";
-import { es } from "date-fns/locale";
-import { CalendarIcon, Loader2 } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
 import { Calendar } from "@/components/ui/calendar";
 import { Input } from "@/components/ui/input";
 import {
@@ -38,9 +28,19 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useCompanyStore } from "@/stores/CompanyStore";
-import { useGetEmployeesByDepartment } from "@/hooks/sistema/useGetEmployeesByDepartament";
 import { Textarea } from "@/components/ui/textarea";
+import { useGetEmployeesByDepartment } from "@/hooks/sistema/useGetEmployeesByDepartament";
+import { cn } from "@/lib/utils";
+import { useCompanyStore } from "@/stores/CompanyStore";
+import { SMSActivity } from "@/types";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Separator } from "@radix-ui/react-select";
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
+import { CalendarIcon, Loader2 } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
 
 const FormSchema = z
   .object({
@@ -95,13 +95,19 @@ export default function CreateSMSActivityForm({
       activity_name: initialData?.activity_name,
       activity_number: initialData?.activity_number,
 
-      start_date: selectedDate ? new Date(selectedDate) : undefined,
+      start_date: initialData?.start_date
+        ? new Date(initialData.start_date)
+        : selectedDate
+          ? new Date(selectedDate)
+          : new Date(),
+
       end_date: initialData?.end_date
         ? new Date(initialData?.end_date)
         : undefined,
 
-      start_time:
-        initialData?.start_time || selectedDate
+      start_time: initialData?.start_time
+        ? initialData?.start_time
+        : selectedDate
           ? selectedDate?.split(" ")[1]
           : undefined,
 

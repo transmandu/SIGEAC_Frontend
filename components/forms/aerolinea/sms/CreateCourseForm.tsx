@@ -42,14 +42,16 @@ import {
 } from "@/components/ui/select";
 
 interface FormProps {
-  onClose: () => void;
+  onClose: (open: boolean) => void;
   initialData?: Course;
   isEditing?: boolean;
+  selectedDate?: string;
 }
 export function CreateCourseForm({
   onClose,
   isEditing,
   initialData,
+  selectedDate,
 }: FormProps) {
   const { selectedCompany, selectedStation } = useCompanyStore();
   const { createCourse } = useCreateCourse();
@@ -58,8 +60,6 @@ export function CreateCourseForm({
   const FormSchema = z.object({
     name: z.string(),
     description: z.string(),
-    duration: z.string(),
-    time: z.string(),
     course_type: z.string(),
     instructor: z.string().optional(),
     end_date: z
@@ -68,6 +68,8 @@ export function CreateCourseForm({
     start_date: z
       .date()
       .refine((val) => !isNaN(val.getTime()), { message: "Fecha no valida" }),
+    end_time: z.string(),
+    start_time: z.string(),
   });
 
   type FormSchemaType = z.infer<typeof FormSchema>;
@@ -79,14 +81,28 @@ export function CreateCourseForm({
       course_type: initialData?.course_type || "",
       description: initialData?.description,
       instructor: initialData?.instructor,
-      time: initialData?.time,
-      duration: initialData?.duration,
+
       start_date: initialData?.start_date
         ? new Date(initialData.start_date)
-        : new Date(),
+        : selectedDate
+          ? new Date(selectedDate)
+          : undefined,
+
       end_date: initialData?.end_date
         ? new Date(initialData.end_date)
-        : new Date(),
+        : undefined,
+
+      start_time: initialData
+        ? initialData.start_time
+        : selectedDate
+          ? selectedDate.split(" ")[1]
+          : undefined,
+
+      end_time: initialData
+        ? initialData.end_time
+        : selectedDate
+          ? selectedDate.split(" ")[1]
+          : undefined,
     },
   });
 
@@ -98,12 +114,12 @@ export function CreateCourseForm({
         data: {
           name: data.name,
           description: data.description,
-          duration: data.name,
-          time: data.time,
           instructor: data.instructor,
           start_date: data.start_date,
-          course_type: data.course_type,
           end_date: data.end_date,
+          start_time: data.start_time,
+          end_time: data.end_time,
+          course_type: data.course_type,
         },
       };
       updateCourse.mutateAsync(value);
@@ -118,7 +134,7 @@ export function CreateCourseForm({
         console.error("Error al crear el curso:", error);
       }
     }
-    onClose();
+    onClose(false);
   };
 
   return (
@@ -127,15 +143,56 @@ export function CreateCourseForm({
         onSubmit={form.handleSubmit(onSubmit)}
         className="flex flex-col space-y-3"
       >
-        <FormLabel className="text-lg text-center">Curso</FormLabel>
+        <FormLabel className="text-lg text-center">Formulario Curso</FormLabel>
 
         <div className="flex flex-col gap-2 items-center justify-center  ">
-          <div className="flex justify-center items-center gap-10">
+          <div className="flex  justify-center items-center w-full gap-10">
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem className="w-full">
+                  <FormLabel>Nombre del Curso</FormLabel>
+                  <FormControl>
+                    <Input placeholder="" {...field} />
+                  </FormControl>
+                  <FormMessage className="text-xs" />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="course_type"
+              render={({ field }) => (
+                <FormItem className="w-full">
+                  <FormLabel>Tipo de Curso</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Seleccionar Curso" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="RECURRENTE">RECURRENTE</SelectItem>
+                      <SelectItem value="INICIAL">INICIAL</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+
+          <div className="flex w-full justify-center items-center gap-10">
             <FormField
               control={form.control}
               name="start_date"
               render={({ field }) => (
-                <FormItem className="flex flex-col mt-2.5">
+                <FormItem className=" w-full flexflex flex-col mt-2.5">
                   <FormLabel>Fecha de Inicio</FormLabel>
                   <Popover>
                     <PopoverTrigger asChild>
@@ -175,11 +232,41 @@ export function CreateCourseForm({
                 </FormItem>
               )}
             />
+
+            <FormField
+              control={form.control}
+              name="start_time"
+              render={({ field }) => (
+                <FormItem className="w-full">
+                  <FormLabel>Hora de Inicio</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="time"
+                      {...field}
+                      onChange={(e) => {
+                        // Validamos que el formato sea correcto
+                        if (
+                          e.target.value.match(
+                            /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/
+                          )
+                        ) {
+                          field.onChange(e.target.value);
+                        }
+                      }}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+
+          <div className="flex  justify-center items-center w-full gap-10">
             <FormField
               control={form.control}
               name="end_date"
               render={({ field }) => (
-                <FormItem className="flex flex-col mt-2.5">
+                <FormItem className="flex flex-col mt-2.5 w-full">
                   <FormLabel>Fecha Final</FormLabel>
                   <Popover>
                     <PopoverTrigger asChild>
@@ -219,68 +306,13 @@ export function CreateCourseForm({
                 </FormItem>
               )}
             />
-          </div>
-
-          <FormField
-            control={form.control}
-            name="name"
-            render={({ field }) => (
-              <FormItem className="w-full">
-                <FormLabel>Nombre del Curso</FormLabel>
-                <FormControl>
-                  <Input placeholder="" {...field} />
-                </FormControl>
-                <FormMessage className="text-xs" />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="course_type"
-            render={({ field }) => (
-              <FormItem className="w-full">
-                <FormLabel>Tipo de Curso</FormLabel>
-                <Select
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Seleccionar Curso" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="RECURRENTE">RECURRENTE</SelectItem>
-                    <SelectItem value="INICIAL">INICIAL</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <div className="flex w-full gap-10">
-            <FormField
-              control={form.control}
-              name="duration"
-              render={({ field }) => (
-                <FormItem className="w-full">
-                  <FormLabel>Duracion</FormLabel>
-                  <FormControl>
-                    <Input placeholder="" {...field} />
-                  </FormControl>
-                  <FormMessage className="text-xs" />
-                </FormItem>
-              )}
-            />
 
             <FormField
               control={form.control}
-              name="time"
+              name="end_time"
               render={({ field }) => (
                 <FormItem className="w-full">
-                  <FormLabel>Hora del Curso</FormLabel>
+                  <FormLabel>Hora Final</FormLabel>
                   <FormControl>
                     <Input
                       type="time"

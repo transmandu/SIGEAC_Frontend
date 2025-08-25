@@ -1,6 +1,7 @@
 "use client";
-import { useUpdateCalendarSMSActivity } from "@/actions/sms/sms_actividades/actions";
+import { useUpdateCourseCalendar } from "@/actions/general/cursos/actions";
 import CreateSMSActivityDialog from "@/components/dialogs/aerolinea/sms/CreateSMSActivityDialog";
+import CreateCourseCalendarDialog from "@/components/dialogs/general/CreateCourseCalendarDialog";
 import { Button } from "@/components/ui/button";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import {
@@ -85,8 +86,7 @@ export const Calendar = ({ events, theme = "light" }: CalendarProps) => {
   const dragAndDrop = useMemo(() => createDragAndDropPlugin(), []);
   const resizePlugin = useMemo(() => createResizePlugin(30), []);
 
-  const { updateCalendarSMSActivity } = useUpdateCalendarSMSActivity();
-
+  const { updateCourseCalendar } = useUpdateCourseCalendar();
   // ✅ Esta llamada es correcta, fuera de useMemo
   const calendar = useNextCalendarApp({
     views: [createViewMonthGrid(), createViewWeek(), createViewDay()],
@@ -109,11 +109,7 @@ export const Calendar = ({ events, theme = "light" }: CalendarProps) => {
       onEventUpdate: async (event) => {
         const start_time = event.start.split(" ")[1];
         const end_time = event.end.split(" ")[1];
-
-        console.log("start_time", start_time);
-        console.log("end_time", end_time);
-
-        await updateCalendarSMSActivity.mutateAsync({
+        await updateCourseCalendar.mutateAsync({
           company: selectedCompany!.slug,
           id: event.id as string,
           data: {
@@ -204,7 +200,7 @@ export const Calendar = ({ events, theme = "light" }: CalendarProps) => {
         calendarApp={calendar}
         customComponents={customComponents}
       />
-      <CreateSMSActivityDialog
+      <CreateCourseCalendarDialog
         open={isDialogOpen}
         onOpenChange={setIsDialogOpen}
         selectedDate={selectedDate}

@@ -120,8 +120,15 @@ export function getMenuList(
           icon: Cat,
           submenus: [
             {
+              href: `/${currentCompany?.slug}/general/cursos/calendario`,
+              label: "Calendario",
+              active:
+                pathname ===
+                `/${currentCompany?.slug}/general/cursos/calendario`,
+            },
+            {
               href: `/${currentCompany?.slug}/general/cursos`,
-              label: "Lista de Cursos",
+              label: "Cursos",
               active: pathname === `/${currentCompany?.slug}/general/cursos`,
             },
             {
