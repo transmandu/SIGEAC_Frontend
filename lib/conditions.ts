@@ -9,7 +9,7 @@ export const conditions = [
   },
   {
     value: 'Inspeccioando',
-    label: "Inspeccioando"
+    label: "Inspeccionado"
   },
   {
     value: 'Reparable',
