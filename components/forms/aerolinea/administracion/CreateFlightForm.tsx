@@ -110,9 +110,7 @@ export function FlightForm({ onClose }: FormProps) {
   const { createFlight } = useCreateFlight();
   const {selectedCompany} = useCompanyStore();
   const { data: routes, isLoading: isRouteLoading, isError } = useGetRoute();
-  const { data: accounts, isLoading: isAccLoading } = useGetBankAccounts(
-    selectedCompany?.slug
-  );
+  const { data: accounts, isLoading: isAccLoading } = useGetBankAccounts();
   const [kg, setKg] = useState("0");
   const {
     data: clients,

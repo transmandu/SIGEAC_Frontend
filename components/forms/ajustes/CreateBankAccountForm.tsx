@@ -47,7 +47,7 @@ interface FormProps {
 export default function CreateBankAccountForm({ onClose }: FormProps) {
   const { createBankAccount } = useCreateBankAccount();
   const { selectedCompany } = useCompanyStore();
-  const { data: banks } = useGetBanks(selectedCompany?.slug);
+  const { data: banks } = useGetBanks();
   const { data: companies } = useGetCompanies();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),

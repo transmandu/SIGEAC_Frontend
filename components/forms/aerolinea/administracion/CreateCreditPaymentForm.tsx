@@ -44,9 +44,7 @@ interface FormProps {
 export function CreditPaymentForm({ onClose, credit }: FormProps) {
   const { createCreditPayment } = useCreateCreditPayment();
   const { selectedCompany } = useCompanyStore();
-  const { data: accounts, isLoading: isAccLoading } = useGetBankAccounts(
-    selectedCompany?.slug
-  );
+  const { data: accounts, isLoading: isAccLoading } = useGetBankAccounts();
   // Calcular el monto pendiente por pagar
   const pendingAmount = Number(credit.debt) - Number(credit.payed_amount || 0);
   const formSchema = z
