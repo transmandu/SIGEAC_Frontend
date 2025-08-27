@@ -128,7 +128,9 @@ export function getMenuList(
             {
               href: `/${currentCompany?.slug}/general/cursos/estadisticas`,
               label: "Estadisticas",
-              active: pathname === `/${currentCompany?.slug}/general/cursos/estadisticas`,
+              active:
+                pathname ===
+                `/${currentCompany?.slug}/general/cursos/estadisticas`,
             },
           ],
         },
@@ -139,7 +141,24 @@ export function getMenuList(
             `/${currentCompany?.slug}/general/inventario`
           ),
           icon: PackageSearch,
-          roles: [],
+          roles: [
+            "SUPERUSER",
+            "REGULAR",
+            "GUEST",
+            "JEFE_ALMACEN",
+            "ANALISTA_ALMACEN",
+            "ANALISTA_COMPRAS",
+            "ANALISTA_DESARROLLO",
+            "ANALISTA_PLANIFICACION",
+            "JEFE_PLANIFICACION",
+            "JEFE_ALMACENAMIENTO",
+            "ANALISTA_ADMINISTRACION",
+            "RRHH_ADMINISTRACION",
+            "JEFE_ADMINISTRACION",
+            "CONTADOR_ADMINISTRACION",
+            "TESTER",
+            "ENGINEERING",
+          ],
           submenus: [],
         },
         {
@@ -149,7 +168,24 @@ export function getMenuList(
             `/${currentCompany?.slug}/general/requisiciones`
           ),
           icon: ScrollText,
-          roles: [],
+          roles: [
+            "SUPERUSER",
+            "REGULAR",
+            "GUEST",
+            "JEFE_ALMACEN",
+            "ANALISTA_ALMACEN",
+            "ANALISTA_COMPRAS",
+            "ANALISTA_DESARROLLO",
+            "ANALISTA_PLANIFICACION",
+            "JEFE_PLANIFICACION",
+            "JEFE_ALMACENAMIENTO",
+            "ANALISTA_ADMINISTRACION",
+            "RRHH_ADMINISTRACION",
+            "JEFE_ADMINISTRACION",
+            "CONTADOR_ADMINISTRACION",
+            "TESTER",
+            "ENGINEERING",
+          ],
           submenus: [],
         },
       ],
@@ -684,7 +720,7 @@ export function getMenuList(
       groupLabel: "Planificación",
       moduleValue: "planification",
       menus: [
-          {
+        {
           href: `/${currentCompany?.slug}/planificacion/calendario`,
           label: "Calendario de Servicios",
           active: pathname.includes(
