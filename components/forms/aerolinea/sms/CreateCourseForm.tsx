@@ -30,7 +30,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { Course } from "@/types";
-import { format } from "date-fns";
+import { addDays, format } from "date-fns";
 import { es } from "date-fns/locale";
 import { CalendarIcon, Loader2 } from "lucide-react";
 import {
@@ -57,20 +57,26 @@ export function CreateCourseForm({
   const { createCourse } = useCreateCourse();
   const { updateCourse } = useUpdateCourse();
 
-  const FormSchema = z.object({
-    name: z.string(),
-    description: z.string(),
-    course_type: z.string(),
-    instructor: z.string().optional(),
-    end_date: z
-      .date()
-      .refine((val) => !isNaN(val.getTime()), { message: "Fecha no valida" }),
-    start_date: z
-      .date()
-      .refine((val) => !isNaN(val.getTime()), { message: "Fecha no valida" }),
-    end_time: z.string(),
-    start_time: z.string(),
-  });
+  const FormSchema = z
+    .object({
+      name: z.string(),
+      description: z.string(),
+      course_type: z.string(),
+      instructor: z.string().optional(),
+      end_date: z
+        .date()
+        .refine((val) => !isNaN(val.getTime()), { message: "Fecha no válida" }),
+      start_date: z
+        .date()
+        .refine((val) => !isNaN(val.getTime()), { message: "Fecha no válida" }),
+      end_time: z.string(),
+      start_time: z.string(),
+    })
+    .refine((data) => data.end_date >= data.start_date, {
+      message:
+        "La fecha de fin debe ser igual o posterior a la fecha de inicio",
+      path: ["end_date"], // Esto hace que el error se muestre en el campo end_date
+    });
 
   type FormSchemaType = z.infer<typeof FormSchema>;
 
@@ -83,13 +89,13 @@ export function CreateCourseForm({
       instructor: initialData?.instructor,
 
       start_date: initialData?.start_date
-        ? new Date(initialData.start_date)
+        ? addDays(new Date(initialData.start_date), 1)
         : selectedDate
           ? new Date(selectedDate)
           : undefined,
 
       end_date: initialData?.end_date
-        ? new Date(initialData.end_date)
+        ? addDays(new Date(initialData.end_date), 1)
         : undefined,
 
       start_time: initialData
@@ -192,7 +198,7 @@ export function CreateCourseForm({
               control={form.control}
               name="start_date"
               render={({ field }) => (
-                <FormItem className=" w-full flexflex flex-col mt-2.5">
+                <FormItem className="flex flex-col mt-2.5 w-full">
                   <FormLabel>Fecha de Inicio</FormLabel>
                   <Popover>
                     <PopoverTrigger asChild>
@@ -200,7 +206,7 @@ export function CreateCourseForm({
                         <Button
                           variant={"outline"}
                           className={cn(
-                            "w-[240px] pl-3 text-left font-normal",
+                            "w-full pl-3 text-left font-normal",
                             !field.value && "text-muted-foreground"
                           )}
                         >
@@ -209,7 +215,7 @@ export function CreateCourseForm({
                               locale: es,
                             })
                           ) : (
-                            <span>Seleccione una fecha...</span>
+                            <span>Seleccionar Fecha de Inicio</span>
                           )}
                           <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                         </Button>
@@ -220,11 +226,21 @@ export function CreateCourseForm({
                         mode="single"
                         selected={field.value}
                         onSelect={field.onChange}
-                        disabled={(date) =>
-                          date > new Date() || date < new Date("1900-01-01")
-                        }
+                        disabled={false} // Solo deshabilitar fechas futuras
                         initialFocus
-                        locale={es}
+                        fromYear={1988} // Año mínimo que se mostrará
+                        toYear={new Date().getFullYear() + 5} // Año máximo (actual)
+                        captionLayout="dropdown-buttons" // Selectores de año/mes
+                        components={{
+                          Dropdown: (props) => (
+                            <select
+                              {...props}
+                              className="bg-popover text-popover-foreground"
+                            >
+                              {props.children}
+                            </select>
+                          ),
+                        }}
                       />
                     </PopoverContent>
                   </Popover>
@@ -267,14 +283,14 @@ export function CreateCourseForm({
               name="end_date"
               render={({ field }) => (
                 <FormItem className="flex flex-col mt-2.5 w-full">
-                  <FormLabel>Fecha Final</FormLabel>
+                  <FormLabel>Fecha de Finalización</FormLabel>
                   <Popover>
                     <PopoverTrigger asChild>
                       <FormControl>
                         <Button
                           variant={"outline"}
                           className={cn(
-                            "w-[240px] pl-3 text-left font-normal",
+                            "w-full pl-3 text-left font-normal",
                             !field.value && "text-muted-foreground"
                           )}
                         >
@@ -283,7 +299,7 @@ export function CreateCourseForm({
                               locale: es,
                             })
                           ) : (
-                            <span>Seleccione una fecha...</span>
+                            <span>Seleccionar Fecha</span>
                           )}
                           <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                         </Button>
@@ -294,11 +310,21 @@ export function CreateCourseForm({
                         mode="single"
                         selected={field.value}
                         onSelect={field.onChange}
-                        disabled={(date) =>
-                          date > new Date() || date < new Date("1900-01-01")
-                        }
+                        disabled={false} // Solo deshabilitar fechas futuras
                         initialFocus
-                        locale={es}
+                        fromYear={1980} // Año mínimo que se mostrará
+                        toYear={new Date().getFullYear() + 5} // Año máximo (actual)
+                        captionLayout="dropdown-buttons" // Selectores de año/mes
+                        components={{
+                          Dropdown: (props) => (
+                            <select
+                              {...props}
+                              className="bg-popover text-popover-foreground"
+                            >
+                              {props.children}
+                            </select>
+                          ),
+                        }}
                       />
                     </PopoverContent>
                   </Popover>

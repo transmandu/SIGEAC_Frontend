@@ -7,7 +7,7 @@ const fetchCoursesById = async ({
   company,
 }: {
   id: string;
-  company: string | null;
+  company?: string;
 }): Promise<Course> => {
   const { data } = await axiosInstance.get(
     `/general/${company}/course-by/${id}`
@@ -20,7 +20,7 @@ export const useGetCourseById = ({
   company,
 }: {
   id: string;
-  company: string | null;
+  company?: string;
 }) => {
   const value = {
     id: id,

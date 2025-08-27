@@ -210,7 +210,7 @@ const RiskMatrix: FC<RiskMatrixProps> = ({
             </tr>
           ))}
         </tbody>
-      </table>
+      </table>w
 
       {/* Leyenda */}
       <div className="mt-4 p-2 bg-gray-100 rounded-lg w-full max-w-md text-xs">

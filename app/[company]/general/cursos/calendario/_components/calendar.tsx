@@ -21,7 +21,7 @@ import { ClockIcon, Hammer, NotebookIcon, PencilLine } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useRef, useState, useMemo } from "react";
 
-interface SMSActivities {
+interface courseEvent {
   id: number;
   title: string;
   start: string;
@@ -30,7 +30,7 @@ interface SMSActivities {
 }
 
 type CalendarProps = {
-  events: SMSActivities[];
+  events: courseEvent[];
   theme?: "dark" | "light";
 };
 
@@ -129,7 +129,7 @@ export const Calendar = ({ events, theme = "light" }: CalendarProps) => {
       eventModal: ({
         calendarEvent,
       }: {
-        calendarEvent: SMSActivities;
+        calendarEvent: courseEvent;
         close: () => void;
       }) => {
         const startDate = new Date(calendarEvent.start);
