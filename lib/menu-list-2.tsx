@@ -32,7 +32,7 @@ import {
   User2,
   Building2,
   Globe,
-  Cat,
+  Presentation,
   CalendarFold,
 } from "lucide-react";
 
@@ -118,7 +118,7 @@ export function getMenuList(
             "JEFE_PLANIFICACION",
           ],
           active: pathname === `/${currentCompany?.slug}/general/cursos`,
-          icon: Cat,
+          icon: Presentation,
           submenus: [
             {
               href: `/${currentCompany?.slug}/general/cursos`,
@@ -135,6 +135,39 @@ export function getMenuList(
           ],
         },
         {
+          href: `/${currentCompany?.slug}/general/reporte`,
+          label: "SMS Reportes",
+          active: pathname.includes(`/${currentCompany?.slug}/reporte`),
+          icon: ClipboardPen,
+          roles: [],
+          submenus: [
+            {
+              href: `/${currentCompany?.slug}/general/reporte/voluntario`,
+              label: "Voluntario",
+              roles: [],
+              active:
+                pathname ===
+                `/${currentCompany?.slug}/general/reporte/voluntario`,
+            },
+            {
+              href: `/${currentCompany?.slug}/general/reporte/obligatorio`,
+              label: "Obligatorio",
+              roles: [],
+              active:
+                pathname ===
+                `/${currentCompany?.slug}/general/reporte/obligatorio`,
+            },
+            {
+              href: `/${currentCompany?.slug}/general/reporte/codigos_qr`,
+              label: "Codigos QR",
+              roles: [],
+              active:
+                pathname ===
+                `/${currentCompany?.slug}/general/reporte/codigos_qr`,
+            },
+          ],
+        },
+        {
           href: `/${currentCompany?.slug}/general/inventario`,
           label: "Inventario",
           active: pathname.includes(
@@ -143,8 +176,6 @@ export function getMenuList(
           icon: PackageSearch,
           roles: [
             "SUPERUSER",
-            "REGULAR",
-            "GUEST",
             "JEFE_ALMACEN",
             "ANALISTA_ALMACEN",
             "ANALISTA_COMPRAS",
@@ -170,8 +201,6 @@ export function getMenuList(
           icon: ScrollText,
           roles: [
             "SUPERUSER",
-            "REGULAR",
-            "GUEST",
             "JEFE_ALMACEN",
             "ANALISTA_ALMACEN",
             "ANALISTA_COMPRAS",
@@ -538,31 +567,6 @@ export function getMenuList(
               active:
                 pathname ===
                 `/${currentCompany?.slug}/planificacion/capacitacion_personal`,
-            },
-          ],
-        },
-        {
-          href: `/${currentCompany?.slug}/sms`,
-          label: "Reportes",
-          active: pathname.includes(`/${currentCompany?.slug}/sms`),
-          icon: ClipboardPen,
-          roles: [],
-          submenus: [
-            {
-              href: `/${currentCompany?.slug}/sms/reportes/reportes_voluntarios/nuevo_reporte`,
-              label: "Reportes Voluntarios",
-              roles: [],
-              active:
-                pathname ===
-                `/${currentCompany?.slug}/sms/reportes/reportes_voluntarios/nuevo_reporte`,
-            },
-            {
-              href: `/${currentCompany?.slug}/sms/reportes/reportes_obligatorios/nuevo_reporte`,
-              label: "Reportes Obligatorios",
-              roles: [],
-              active:
-                pathname ===
-                `/${currentCompany?.slug}/sms/reportes/reportes_obligatorios/nuevo_reporte`,
             },
           ],
         },
