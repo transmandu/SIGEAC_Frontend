@@ -259,7 +259,7 @@ const ClientDropdownActions = ({ client }: { client: Client }) => {
           <DialogHeader>
             <DialogTitle>Registrar Saldo a Favor</DialogTitle>
           </DialogHeader>
-          <AddClientBalanceForm
+          <AddClientBalanceFworm
             id={client.id.toString()}
             onClose={() => setOpenAddBalance(false)}
           />
