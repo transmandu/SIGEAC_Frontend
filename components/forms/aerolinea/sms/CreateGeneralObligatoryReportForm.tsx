@@ -50,7 +50,7 @@ import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { CalendarIcon, Check, ChevronsUpDown, Loader2 } from "lucide-react";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 interface FormProps {
   isEditing?: boolean;
   initialData?: ObligatoryReport;
@@ -159,6 +159,7 @@ export function CreateGeneralObligatoryReportForm({
 
   const { createObligatoryReport } = useCreateObligatoryReport();
   const router = useRouter();
+  const { company } = useParams<{ company: string }>();
 
   const [showOtherInput, setShowOtherInput] = useState(
     initialData?.other_incidents ? true : false
@@ -177,13 +178,12 @@ export function CreateGeneralObligatoryReportForm({
     return []; // Devuelve un array vacío si initialData?.incidents es null o undefined
   });
 
-  // No estoy seguro si esto va aca lol
-  const { selectedCompany } = useCompanyStore();
+
   const { data: pilots, isLoading: isLoadingPilots } = useGetPilots(
-    selectedCompany?.slug
+    company
   );
   const { data: aircrafts, isLoading: isLoadingAircrafts } =
-    useGetAircraftAcronyms(selectedCompany?.slug);
+    useGetAircraftAcronyms(company);
 
   const OPTIONS_LIST = [
     "La aereonave aterriza quedándose solo con el combustible de reserva o menos",
@@ -261,7 +261,7 @@ export function CreateGeneralObligatoryReportForm({
 
     try {
       createObligatoryReport.mutateAsync(value);
-      router.push(`/${selectedCompany?.slug}/dashboard`);
+      router.push(`/${company}/dashboard`);
     } catch (error) {
       console.error("Error al crear reporte:", error);
     }
@@ -297,7 +297,7 @@ export function CreateGeneralObligatoryReportForm({
             name="incident_location"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Lugar dwegweel Incidente</FormLabel>
+                <FormLabel>Lugar del Incidente</FormLabel>
                 <FormControl>
                   <Input placeholder="" {...field} maxLength={50} />
                 </FormControl>

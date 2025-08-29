@@ -1,15 +1,15 @@
 "use client";
 
-import { CreateGeneralObligatoryReportForm } from "@/components/forms/aerolinea/sms/CreateGeneralObligatoryReportForm";
+import { CreateObligatoryReportForm } from "@/components/forms/aerolinea/sms/CreateObligatoryReportForm";
 import { ContentLayout } from "@/components/layout/ContentLayout";
 
 const CreateObligatoryReport = () => {
   return (
     <ContentLayout title="Creacion de Reporte Obligatorio">
       <div className="flex flex-col justify-center items-center">
-        <CreateGeneralObligatoryReportForm
+        <CreateObligatoryReportForm
           onClose={() => false}
-        ></CreateGeneralObligatoryReportForm>
+        ></CreateObligatoryReportForm>
       </div>
     </ContentLayout>
   );

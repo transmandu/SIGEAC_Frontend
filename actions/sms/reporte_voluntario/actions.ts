@@ -19,7 +19,6 @@ interface VoluntaryReportData {
     email?: string;
     image?: File | string;
     document?: File | string;
-    location_id: string | null;
   };
 }
 interface UpdateVoluntaryReportData {
@@ -41,7 +40,6 @@ interface UpdateVoluntaryReportData {
     reporter_email?: string;
     image?: File | string;
     document?: File | string;
-    location_id: string | null;
   };
 }
 

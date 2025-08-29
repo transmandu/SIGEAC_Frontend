@@ -60,7 +60,7 @@ export function CreateVoluntaryReportForm({
   initialData,
 }: FormProps) {
   console.log("initial data thattt ", initialData);
-  const { selectedCompany, selectedStation } = useCompanyStore();
+  const { selectedCompany } = useCompanyStore();
   const { createVoluntaryReport } = useCreateVoluntaryReport();
   const { updateVoluntaryReport } = useUpdateVoluntaryReport();
   const [isAnonymous, setIsAnonymous] = useState(true);
@@ -229,7 +229,6 @@ export function CreateVoluntaryReportForm({
           ...data,
           status: initialData.status,
           danger_identification_id: initialData?.danger_identification_id,
-          location_id: selectedStation,
         },
       };
       await updateVoluntaryReport.mutateAsync(value);
@@ -238,7 +237,6 @@ export function CreateVoluntaryReportForm({
         company: selectedCompany!.slug,
         reportData: {
           ...data,
-          location_id: selectedStation,
           status: shouldEnableField ? "ABIERTO" : "PROCESO",
         },
       };
@@ -395,30 +393,7 @@ export function CreateVoluntaryReportForm({
         </div>
 
         <div className="flex gap-2 items-center justify-center">
-          <FormField
-            control={form.control}
-            name="danger_location"
-            render={({ field }) => (
-              <FormItem className="w-full">
-                <FormLabel>Base de Localizacion</FormLabel>
-                <Select
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Seleccionar localización" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="PZO">Puerto Ordaz</SelectItem>
-                    <SelectItem value="CBL">Ciudad Bolívar</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+                                                          
           <FormField
             control={form.control}
             name="danger_area"

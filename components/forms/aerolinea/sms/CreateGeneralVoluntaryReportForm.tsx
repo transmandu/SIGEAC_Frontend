@@ -21,6 +21,7 @@ import {
 } from "@/actions/sms/reporte_voluntario/actions";
 import { Calendar } from "@/components/ui/calendar";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 import {
   Popover,
   PopoverContent,
@@ -35,17 +36,14 @@ import {
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
-import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
 import { VoluntaryReport } from "@/types";
 import { addDays, format } from "date-fns";
 import { es } from "date-fns/locale";
 import { CalendarIcon, Loader2 } from "lucide-react";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { Label } from "@/components/ui/label";
-import { useCompanyStore } from "@/stores/CompanyStore";
 
 interface FormProps {
   onClose: () => void;
@@ -59,7 +57,7 @@ export function CreateGeneralVoluntaryReportForm({
   isEditing,
   initialData,
 }: FormProps) {
-  const { selectedCompany, selectedStation } = useCompanyStore();
+  const { company } = useParams<{ company: string }>();
   const { createVoluntaryReport } = useCreateVoluntaryReport();
   const { updateVoluntaryReport } = useUpdateVoluntaryReport();
   const [isAnonymous, setIsAnonymous] = useState(true);
@@ -190,6 +188,7 @@ export function CreateGeneralVoluntaryReportForm({
   });
 
   const onSubmit = async (data: FormSchemaType) => {
+    //console.log("DATA THIS IS THE DATA FROM SUBMIT RVP", data);
     if (isAnonymous) {
       data.reporter_name = "";
       data.reporter_last_name = "";
@@ -199,28 +198,31 @@ export function CreateGeneralVoluntaryReportForm({
 
     if (initialData && isEditing) {
       const value = {
-        company: selectedCompany!.slug,
+        company: company,
         id: initialData.id.toString(),
         data: {
           ...data,
           status: initialData.status,
           danger_identification_id: initialData?.danger_identification_id,
-          location_id: selectedStation,
         },
       };
       await updateVoluntaryReport.mutateAsync(value);
     } else {
       const value = {
-        company: selectedCompany!.slug,
+        company: company,
         reportData: {
           ...data,
-          location_id: selectedStation,
           status: "PROCESO",
         },
       };
       try {
         await createVoluntaryReport.mutateAsync(value);
-        router.push(`/${selectedCompany?.slug}/dashboard`);
+        // router.push(
+        //   `https://sigeac-one.vercel.app/acceso_publico/${company}}/sms/crear_reporte/voluntario`
+        // );
+        router.push(
+          `localhost:3000/acceso_publico/${company}}/sms/crear_reporte/voluntario`
+        );
       } catch (error) {
         console.error("Error al crear el reporte:", error);
       }
@@ -374,6 +376,7 @@ export function CreateGeneralVoluntaryReportForm({
               </FormItem>
             )}
           />
+
           <FormField
             control={form.control}
             name="danger_area"
