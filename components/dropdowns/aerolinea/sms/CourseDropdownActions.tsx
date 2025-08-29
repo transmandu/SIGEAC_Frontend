@@ -2,7 +2,7 @@ import {
   useDeleteCourse,
   useFinishCourse,
 } from "@/actions/general/cursos/actions";
-import { AddAtendanceForm } from "@/components/forms/AddAtendanceForm";
+import { AddAttendanceForm } from "@/components/forms/AddAtendanceForm";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -35,6 +35,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { startOfDay } from "date-fns";
 
 const CourseDropdownActions = ({ course }: { course: Course }) => {
   const [open, setOpen] = useState<boolean>(false);
@@ -64,10 +65,11 @@ const CourseDropdownActions = ({ course }: { course: Course }) => {
     setOpenStatus(false);
   };
 
-  const realNow: Date = new Date();
-  realNow.setDate(realNow.getDate() - 1);
+  const realNow = startOfDay(new Date());
+  const CourseDate = startOfDay(course.end_date);
 
-  const CourseDate: Date = new Date(course.end_date);
+  // console.log("this is real now", realNow);
+  // console.log("this is courseDate : Date = new Date blablabla", CourseDate);
 
   return (
     <>
@@ -84,7 +86,7 @@ const CourseDropdownActions = ({ course }: { course: Course }) => {
             align="center"
             className="flex-col gap-2 justify-center"
           >
-            {course.status !== "FINALIZADO" && (
+            {course.status !== "CERRADO" && (
               <DialogTrigger asChild>
                 <DropdownMenuItem onClick={() => setOpenDelete(true)}>
                   <Trash2 className="size-5 text-red-500" />
@@ -92,7 +94,7 @@ const CourseDropdownActions = ({ course }: { course: Course }) => {
                 </DropdownMenuItem>
               </DialogTrigger>
             )}
-            {course.status !== "FINALIZADO" && (
+            {course.status !== "CERRADO" && (
               <DropdownMenuItem onClick={() => setOpenEdit(true)}>
                 <ClipboardPenLine className="size-5" />
                 <p className="pl-2">Editar</p>
@@ -101,28 +103,30 @@ const CourseDropdownActions = ({ course }: { course: Course }) => {
 
             <DropdownMenuItem
               onClick={() => {
-                router.push(`/${selectedCompany?.slug}/general/cursos/${course.id}`);
+                router.push(
+                  `/${selectedCompany?.slug}/general/cursos/${course.id}`
+                );
               }}
             >
               <EyeIcon className="size-5" />
               <p className="pl-2">Ver</p>
             </DropdownMenuItem>
 
-            {CourseDate >= realNow && (
+            {CourseDate >= realNow && course.status !== "CERRADO" && (
               <DropdownMenuItem onClick={() => setOpenAdd(true)}>
                 <Plus className="size-5" />
                 <p className="pl-2">Agregar personas</p>
               </DropdownMenuItem>
             )}
 
-            {CourseDate <= realNow && course.status !== "FINALIZADO" && (
+            {CourseDate <= realNow && course.status !== "CERRADO" && (
               <DropdownMenuItem onClick={() => setOpenAttendance(true)}>
                 <UserCheck className="size-5" />
                 <p className="pl-2">Asistencia</p>
               </DropdownMenuItem>
             )}
 
-            {CourseDate <= realNow && course.status !== "FINALIZADO" && (
+            {CourseDate <= realNow && course.status !== "CERRADO" && (
               <DropdownMenuItem onClick={() => setOpenStatus(true)}>
                 <LockKeyholeOpen className="size-5 text-green-400" />
                 <p className="pl-2">Finalizar</p>
@@ -205,7 +209,7 @@ const CourseDropdownActions = ({ course }: { course: Course }) => {
               Asistencia de personas
             </DialogTitle>
             <DialogDescription className="text-center"></DialogDescription>
-            <AddAtendanceForm
+            <AddAttendanceForm
               initialData={course}
               onClose={() => setOpenAttendance(false)}
             />

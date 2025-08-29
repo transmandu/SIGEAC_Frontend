@@ -14,16 +14,6 @@ import {
   useCreateSMSActivity,
   useUpdateSMSActivity,
 } from "@/actions/sms/sms_actividades/actions";
-import { cn } from "@/lib/utils";
-import { SMSActivity } from "@/types";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Separator } from "@radix-ui/react-select";
-import { format } from "date-fns";
-import { es } from "date-fns/locale";
-import { CalendarIcon, Loader2 } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
 import { Calendar } from "@/components/ui/calendar";
 import { Input } from "@/components/ui/input";
 import {
@@ -38,8 +28,19 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useCompanyStore } from "@/stores/CompanyStore";
+import { Textarea } from "@/components/ui/textarea";
 import { useGetEmployeesByDepartment } from "@/hooks/sistema/useGetEmployeesByDepartament";
+import { cn } from "@/lib/utils";
+import { useCompanyStore } from "@/stores/CompanyStore";
+import { SMSActivity } from "@/types";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Separator } from "@radix-ui/react-select";
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
+import { CalendarIcon, Loader2 } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
 
 const FormSchema = z
   .object({
@@ -51,8 +52,8 @@ const FormSchema = z
     end_date: z
       .date()
       .refine((val) => !isNaN(val.getTime()), { message: "Fecha inválida" }),
-    hour: z.string(),
-    duration: z.string(),
+    start_time: z.string(),
+    end_time: z.string(),
     place: z.string(),
     topics: z.string(),
     objetive: z.string(),
@@ -69,15 +70,17 @@ const FormSchema = z
 type FormSchemaType = z.infer<typeof FormSchema>;
 
 interface FormProps {
-  onClose: () => void;
+  onClose: (open: boolean) => void;
   initialData?: SMSActivity;
   isEditing?: boolean;
+  selectedDate?: string;
 }
 
 export default function CreateSMSActivityForm({
   onClose,
   isEditing,
   initialData,
+  selectedDate,
 }: FormProps) {
   const router = useRouter();
   const { selectedCompany, selectedStation } = useCompanyStore();
@@ -86,7 +89,6 @@ export default function CreateSMSActivityForm({
 
   const { createSMSActivity } = useCreateSMSActivity();
   const { updateSMSActivity } = useUpdateSMSActivity();
-
   const form = useForm<FormSchemaType>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
@@ -94,14 +96,22 @@ export default function CreateSMSActivityForm({
       activity_number: initialData?.activity_number,
 
       start_date: initialData?.start_date
-        ? new Date(initialData?.start_date)
-        : new Date(),
+        ? new Date(initialData.start_date)
+        : selectedDate
+          ? new Date(selectedDate)
+          : new Date(),
+
       end_date: initialData?.end_date
         ? new Date(initialData?.end_date)
-        : new Date(),
+        : undefined,
 
-      hour: initialData?.hour,
-      duration: initialData?.duration,
+      start_time: initialData?.start_time
+        ? initialData?.start_time
+        : selectedDate
+          ? selectedDate?.split(" ")[1]
+          : undefined,
+
+      end_time: initialData?.end_time,
       place: initialData?.place,
       topics: initialData?.topics,
       objetive: initialData?.objetive,
@@ -135,7 +145,7 @@ export default function CreateSMSActivityForm({
         console.error("Error al crear la actividad", error);
       }
     }
-    onClose();
+    onClose(true);
   };
 
   return (
@@ -181,7 +191,7 @@ export default function CreateSMSActivityForm({
             control={form.control}
             name="start_date"
             render={({ field }) => (
-              <FormItem className="flex flex-col mt-2.5">
+              <FormItem className="w-full flex flex-col mt-2.5">
                 <FormLabel>Inicio de Actividad</FormLabel>
                 <Popover>
                   <PopoverTrigger asChild>
@@ -220,9 +230,36 @@ export default function CreateSMSActivityForm({
           />
           <FormField
             control={form.control}
+            name="start_time"
+            render={({ field }) => (
+              <FormItem className="w-full">
+                <FormLabel>Hora de Inicio</FormLabel>
+                <FormControl>
+                  <Input
+                    type="time"
+                    {...field}
+                    onChange={(e) => {
+                      // Validamos que el formato sea correcto
+                      if (
+                        e.target.value.match(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/)
+                      ) {
+                        field.onChange(e.target.value);
+                      }
+                    }}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
+        <div className="flex gap-4 justify-center items-center">
+          <FormField
+            control={form.control}
             name="end_date"
             render={({ field }) => (
-              <FormItem className="flex flex-col mt-2.5">
+              <FormItem className="w-full flex flex-col mt-2.5">
                 <FormLabel>Final de Actividad</FormLabel>
                 <Popover>
                   <PopoverTrigger asChild>
@@ -259,15 +296,13 @@ export default function CreateSMSActivityForm({
               </FormItem>
             )}
           />
-        </div>
 
-        <div className="flex gap-4 justify-center items-center">
           <FormField
             control={form.control}
-            name="hour"
+            name="end_time"
             render={({ field }) => (
               <FormItem className="w-full">
-                <FormLabel>Hora de vuelo</FormLabel>
+                <FormLabel>Hora Final</FormLabel>
                 <FormControl>
                   <Input
                     type="time"
@@ -283,20 +318,6 @@ export default function CreateSMSActivityForm({
                   />
                 </FormControl>
                 <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="duration"
-            render={({ field }) => (
-              <FormItem className="w-full">
-                <FormLabel>Duración del Curso</FormLabel>
-                <FormControl>
-                  <Input {...field} maxLength={20} />
-                </FormControl>
-                <FormMessage className="text-xs" />
               </FormItem>
             )}
           />
@@ -353,7 +374,7 @@ export default function CreateSMSActivityForm({
             <FormItem className="w-full">
               <FormLabel>Descripción</FormLabel>
               <FormControl>
-                <Input {...field} maxLength={200} />
+                <Textarea {...field} maxLength={200} />
               </FormControl>
               <FormMessage className="text-xs" />
             </FormItem>

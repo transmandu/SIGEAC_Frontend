@@ -19,16 +19,13 @@ import { useParams } from "next/navigation";
 const ShowCourse = () => {
   const { course_id } = useParams<{ course_id: string }>();
   const { selectedCompany } = useCompanyStore();
-  const value = {
-    id: course_id,
-    company: selectedCompany!.slug,
-  };
+
   const {
     data: course,
     isLoading: isCourseLoading,
     isError: courseError,
-  } = useGetCourseById(value);
-  console.log(course);
+  } = useGetCourseById({ id: course_id, company: selectedCompany?.slug });
+
   return (
     <ContentLayout title="Detalles del Curso">
       {/* Contenido principal */}
@@ -89,8 +86,8 @@ const ShowCourse = () => {
                     </div>
                     <Badge
                       className={`font-bold ${
-                        course.status === "COMPLETADO"
-                          ? "bg-green-400"
+                        course.status === "CERRADO"
+                          ? "bg-red-600"
                           : course.status === "EN_PROGRESO"
                             ? "bg-yellow-400"
                             : course.status === "PLANIFICADO"
@@ -103,12 +100,6 @@ const ShowCourse = () => {
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-auto">
-                    <div>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">
-                        Duración:
-                      </p>
-                      <p className="font-medium">{course.duration || "N/A"}</p>
-                    </div>
                     <div>
                       <p className="text-sm text-gray-500 dark:text-gray-400">
                         Instructor:
@@ -133,9 +124,13 @@ const ShowCourse = () => {
                     <div className="space-y-2">
                       <div>
                         <p className="text-sm text-gray-500 dark:text-gray-400">
-                          Horario:
+                          Horario de Inicio:
                         </p>
-                        <p>{course.time || "N/A"}</p>
+                        <p>{course.start_time || "N/A"}</p>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                          Horario de Finalización:
+                        </p>
+                        <p>{course.end_time || "N/A"}</p>
                       </div>
                     </div>
                   </div>

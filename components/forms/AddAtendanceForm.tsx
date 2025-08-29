@@ -63,7 +63,7 @@ const FormSchema = z.object({
 
 type FormSchemaType = z.infer<typeof FormSchema>;
 
-export function AddAtendanceForm({ onClose, initialData }: FormProps) {
+export function AddAttendanceForm({ onClose, initialData }: FormProps) {
   const [open, setOpen] = useState(false);
   const { selectedCompany } = useCompanyStore();
   const { markAttendance } = useMarkAttendance();

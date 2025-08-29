@@ -121,8 +121,15 @@ export function getMenuList(
           icon: Presentation,
           submenus: [
             {
+              href: `/${currentCompany?.slug}/general/cursos/calendario`,
+              label: "Calendario",
+              active:
+                pathname ===
+                `/${currentCompany?.slug}/general/cursos/calendario`,
+            },
+            {
               href: `/${currentCompany?.slug}/general/cursos`,
-              label: "Lista de Cursos",
+              label: "Cursos",
               active: pathname === `/${currentCompany?.slug}/general/cursos`,
             },
             {
@@ -131,39 +138,6 @@ export function getMenuList(
               active:
                 pathname ===
                 `/${currentCompany?.slug}/general/cursos/estadisticas`,
-            },
-          ],
-        },
-        {
-          href: `/${currentCompany?.slug}/general/reporte`,
-          label: "SMS Reportes",
-          active: pathname.includes(`/${currentCompany?.slug}/reporte`),
-          icon: ClipboardPen,
-          roles: [],
-          submenus: [
-            {
-              href: `/${currentCompany?.slug}/general/reporte/voluntario`,
-              label: "Voluntario",
-              roles: [],
-              active:
-                pathname ===
-                `/${currentCompany?.slug}/general/reporte/voluntario`,
-            },
-            {
-              href: `/${currentCompany?.slug}/general/reporte/obligatorio`,
-              label: "Obligatorio",
-              roles: [],
-              active:
-                pathname ===
-                `/${currentCompany?.slug}/general/reporte/obligatorio`,
-            },
-            {
-              href: `/${currentCompany?.slug}/general/reporte/codigos_qr`,
-              label: "Codigos QR",
-              roles: [],
-              active:
-                pathname ===
-                `/${currentCompany?.slug}/general/reporte/codigos_qr`,
             },
           ],
         },
@@ -553,8 +527,16 @@ export function getMenuList(
           roles: ["SUPERUSER"],
           submenus: [
             {
+              href: `/${currentCompany?.slug}/sms/planificacion/actividades/calendario`,
+              label: "Calendario Actividades",
+              roles: ["SUPERUSER"],
+              active:
+                pathname ===
+                `/${currentCompany?.slug}/planificacion/actividades/calendario`,
+            },
+            {
               href: `/${currentCompany?.slug}/sms/planificacion/actividades`,
-              label: "Actividades SMS",
+              label: "Actividades",
               roles: ["SUPERUSER"],
               active:
                 pathname ===
@@ -562,7 +544,7 @@ export function getMenuList(
             },
             {
               href: `/${currentCompany?.slug}/sms/planificacion/capacitacion_personal`,
-              label: "Capacitacion SMS",
+              label: "Capacitacion",
               roles: ["SUPERUSER"],
               active:
                 pathname ===

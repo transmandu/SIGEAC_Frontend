@@ -31,6 +31,7 @@ import { Separator } from "@radix-ui/react-select";
 import RiskMatrix from "../../../misc/RiskMatrix";
 import { useRouter } from "next/navigation";
 import { useCompanyStore } from "@/stores/CompanyStore";
+import { useEffect, useState } from "react";
 
 const FormSchema = z.object({
   severity: z.string(),
@@ -73,6 +74,7 @@ export default function CreateAnalysisForm({
     { name: "IMPROBABLE", value: "2" },
     { name: "EXTREMADAMENTE_IMPROBABLE", value: "1" },
   ];
+
   const form = useForm<FormSchemaType>({
     resolver: zodResolver(FormSchema),
     defaultValues: initialData
@@ -80,8 +82,27 @@ export default function CreateAnalysisForm({
           probability: initialData.probability,
           severity: initialData.severity,
         }
-      : {},
+      : { probability: "", severity: "" },
   });
+
+  const [currentSelection, setCurrentSelection] = useState("");
+
+  // Actualizar la selección actual cuando cambian los valores
+  useEffect(() => {
+    const probability = form.watch("probability");
+    const severity = form.watch("severity");
+
+    if (probability && severity) {
+      setCurrentSelection(`${probability}${severity}`);
+    } else {
+      setCurrentSelection("");
+    }
+  }, [form.watch("probability"), form.watch("severity")]);
+
+  const handleCellClick = (probability: string, severity: string) => {
+    form.setValue("probability", probability);
+    form.setValue("severity", severity);
+  };
 
   const onSubmit = async (data: FormSchemaType) => {
     if (isEditing && initialData) {
@@ -129,6 +150,10 @@ export default function CreateAnalysisForm({
     onClose();
   };
 
+  // Obtener valores actuales del formulario
+  const currentProbability = form.watch("probability");
+  const currentSeverity = form.watch("severity");
+
   return (
     <Form {...form}>
       <form
@@ -143,9 +168,17 @@ export default function CreateAnalysisForm({
           render={({ field }) => (
             <FormItem>
               <FormLabel>Probabilidad del riesgo</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
+              <Select
+                onValueChange={(value) => {
+                  field.onChange(value);
+                  setCurrentSelection(value + (currentSeverity || ""));
+                }}
+                value={field.value}
+              >
                 <FormControl>
-                  <SelectTrigger>
+                  <SelectTrigger
+                    className={field.value ? "bg-blue-50 border-blue-300" : ""}
+                  >
                     <SelectValue placeholder="Seleccionar probabilidad de riesgo" />
                   </SelectTrigger>
                 </FormControl>
@@ -170,9 +203,17 @@ export default function CreateAnalysisForm({
           render={({ field }) => (
             <FormItem>
               <FormLabel>Severidad del riesgo</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
+              <Select
+                onValueChange={(value) => {
+                  field.onChange(value);
+                  setCurrentSelection((currentProbability || "") + value);
+                }}
+                value={field.value}
+              >
                 <FormControl>
-                  <SelectTrigger>
+                  <SelectTrigger
+                    className={field.value ? "bg-blue-50 border-blue-300" : ""}
+                  >
                     <SelectValue placeholder="Seleccionar severidad del peligro" />
                   </SelectTrigger>
                 </FormControl>
@@ -190,13 +231,18 @@ export default function CreateAnalysisForm({
           )}
         />
 
-        <RiskMatrix></RiskMatrix>
+        <RiskMatrix
+          onCellClick={handleCellClick}
+          selectedProbability={currentProbability}
+          selectedSeverity={currentSeverity}
+        />
+
         <div className="flex justify-between items-center gap-x-4">
           <Separator className="flex-1" />
           <p className="text-muted-foreground">SIGEAC</p>
           <Separator className="flex-1" />
         </div>
-        <Button>Enviar</Button>
+        <Button type="submit">Enviar</Button>
       </form>
     </Form>
   );

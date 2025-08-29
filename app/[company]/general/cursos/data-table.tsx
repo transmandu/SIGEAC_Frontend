@@ -1,7 +1,6 @@
 "use client";
 
 import CreateCourseDialog from "@/components/dialogs/general/CreateCourseDialog";
-import CreateFollowUpControlDialog from "@/components/dialogs/aerolinea/sms/CreateFollowUpControlDialog";
 import { DataTablePagination } from "@/components/tables/DataTablePagination";
 import { DataTableViewOptions } from "@/components/tables/DataTableViewOptions";
 import {
@@ -23,7 +22,6 @@ import {
   SortingState,
   useReactTable,
 } from "@tanstack/react-table";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 interface DataTableProps<TData, TValue> {
