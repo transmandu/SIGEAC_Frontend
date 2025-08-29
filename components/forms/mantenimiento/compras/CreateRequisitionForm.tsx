@@ -70,15 +70,14 @@ export function CreateRequisitionForm({ onClose }: FormProps) {
 
   const { mutate, data, isPending } = useGetBatchesByLocationId();
 
-  const { selectedStation } = useCompanyStore()
+  const { selectedStation, selectedCompany } = useCompanyStore()
 
-  const { data: employees, isLoading: employeesLoading, isError: employeesError } = useGetWorkOrderEmployees();
+  const { data: employees, isLoading: employeesLoading, isError: employeesError } = useGetWorkOrderEmployees(selectedCompany?.slug);
 
-  const { data: aircrafts, isLoading: aircraftsLoading, isError: aircraftsError } = useGetMaintenanceAircrafts();
+  const { data: aircrafts, isLoading: aircraftsLoading, isError: aircraftsError } = useGetMaintenanceAircrafts(selectedCompany?.slug);
 
-  const { data: workOrders, isLoading: workOrdersLoading, isError: workOrdersError } = useGetWorkOrders(selectedStation ?? null)
+  const { data: workOrders, isLoading: workOrdersLoading, isError: workOrdersError } = useGetWorkOrders(selectedStation ?? null, selectedCompany?.slug)
 
-  const { selectedCompany } = useCompanyStore()
 
   const { createRequisition } = useCreateRequisition()
 

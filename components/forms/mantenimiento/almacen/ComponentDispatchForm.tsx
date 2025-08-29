@@ -77,9 +77,9 @@ export function ComponentDispatchForm({ onClose }: FormProps) {
 
   const { mutate, data: batches, isPending: isBatchesLoading, isError } = useGetBatchesWithInWarehouseArticles();
 
-  const { data: employees, isLoading: employeesLoading, isError: employeesError } = useGetWorkOrderEmployees();
+  const { data: employees, isLoading: employeesLoading, isError: employeesError } = useGetWorkOrderEmployees(selectedCompany?.slug);
 
-  const { data: workOrders, isLoading } = useGetWorkOrders(selectedStation ?? null);
+  const { data: workOrders, isLoading } = useGetWorkOrders(selectedStation ?? null, selectedCompany?.slug);
 
   useEffect(() => {
     if (selectedStation) {
