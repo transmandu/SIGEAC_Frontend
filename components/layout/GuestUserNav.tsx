@@ -53,8 +53,6 @@ export function GuestUserNav() {
       <DropdownMenuContent className="w-56" align="end" forceMount>
         <DropdownMenuSeparator />
         <DropdownMenuGroup></DropdownMenuGroup>
-        <DropdownMenuSeparator />
-        <DropdownMenuSeparator />
         <DropdownMenuGroup>
           <DropdownMenuItem className="hover:cursor-pointer" asChild>
             <Link href="/login" className="flex items-center">
