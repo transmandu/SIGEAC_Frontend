@@ -3,7 +3,7 @@ import { Document, Page, Text, StyleSheet, View, Image as PDFImage } from "@reac
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { Requisition as RequisitionType } from "@/types";
-import { registerPdfFonts, pdfFontStyles } from "@/lib/fontmanager"
+import { registerPdfFonts } from "@/lib/fontmanager"
 
 registerPdfFonts();
 
@@ -46,7 +46,7 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
   },
   titleText: {
-    fontSize: 21,
+    fontSize: 20,
     fontWeight: "bold",
   },
   rightCell: {
@@ -171,7 +171,8 @@ const RequisitionReportPdf = ({
 
               {/* Columna Centro: Título */}
               <View style={[styles.headerCell, styles.titleCell]}>
-                <Text style={styles.titleText}>REQUISICIÓN</Text>
+                <Text style={styles.titleText}>SOLICITUD</Text>
+                <Text style={styles.titleText}>DE COMPRA</Text>
               </View>
 
               {/* Columna Derecha: Número y Fecha */}
@@ -187,12 +188,12 @@ const RequisitionReportPdf = ({
           </View>
         </View>
 
+        {/* Fila 1: título sin bordes internos ni superior */}
         <View style={tableStyles.rowFirst}>
           <Text style={tableStyles.titleRowText}>DEPARTAMENTO EMISOR</Text>
         </View>
 
         <View style={tableStyles.tableWrapper}>
-          {/* Fila 1: título sin bordes internos ni superior */}
 
           {/* Fila 2: Departamento (label / dato) */}
           <View style={tableStyles.rowWithBorders}>
@@ -208,12 +209,12 @@ const RequisitionReportPdf = ({
             <View style={[tableStyles.cellBase, tableStyles.headerCell, { width: "20%" }]}>
               <Text>RESPONSABLE:</Text>
             </View>
-            <View style={[tableStyles.cellBase, tableStyles.dataCell, { width: "40%" }]}>
+            <View style={[tableStyles.cellBase, tableStyles.dataCell, { width: "47%" }]}>
             </View>
-            <View style={[tableStyles.cellBase, tableStyles.headerCell, { width: "20%" }]}>
+            <View style={[tableStyles.cellBase, tableStyles.headerCell, { width: "18%" }]}>
               <Text>N° FICHA / C.I.:</Text>
             </View>
-            <View style={[tableStyles.cellNoRight, tableStyles.dataCell, { width: "20%" }]}>
+            <View style={[tableStyles.cellNoRight, tableStyles.dataCell, { width: "15%" }]}>
             </View>
           </View>
 
