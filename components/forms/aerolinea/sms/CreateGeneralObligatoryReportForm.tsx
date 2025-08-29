@@ -178,10 +178,7 @@ export function CreateGeneralObligatoryReportForm({
     return []; // Devuelve un array vacío si initialData?.incidents es null o undefined
   });
 
-
-  const { data: pilots, isLoading: isLoadingPilots } = useGetPilots(
-    company
-  );
+  const { data: pilots, isLoading: isLoadingPilots } = useGetPilots(company);
   const { data: aircrafts, isLoading: isLoadingAircrafts } =
     useGetAircraftAcronyms(company);
 
@@ -261,7 +258,8 @@ export function CreateGeneralObligatoryReportForm({
 
     try {
       createObligatoryReport.mutateAsync(value);
-      router.push(`/${company}/dashboard`);
+      //router.push(`/${company}/dashboard`);
+      router.push(`https://sigeac-one.vercel.app/login`);
     } catch (error) {
       console.error("Error al crear reporte:", error);
     }

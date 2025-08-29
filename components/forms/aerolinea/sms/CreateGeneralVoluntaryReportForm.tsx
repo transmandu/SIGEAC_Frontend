@@ -217,12 +217,10 @@ export function CreateGeneralVoluntaryReportForm({
       };
       try {
         await createVoluntaryReport.mutateAsync(value);
+        router.push(`https://sigeac-one.vercel.app/login`);
         // router.push(
-        //   `https://sigeac-one.vercel.app/acceso_publico/${company}}/sms/crear_reporte/voluntario`
+        //   `localhost:3000/acceso_publico/${company}}/sms/crear_reporte/voluntario`
         // );
-        router.push(
-          `localhost:3000/acceso_publico/${company}}/sms/crear_reporte/voluntario`
-        );
       } catch (error) {
         console.error("Error al crear el reporte:", error);
       }
