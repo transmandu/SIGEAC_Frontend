@@ -141,6 +141,39 @@ export function getMenuList(
             },
           ],
         },
+         {
+          href: `/${currentCompany?.slug}/general/reporte`,
+          label: "SMS Reportes",
+          active: pathname.includes(`/${currentCompany?.slug}/reporte`),
+          icon: ClipboardPen,
+          roles: [],
+          submenus: [
+            {
+              href: `/${currentCompany?.slug}/general/reporte/voluntario`,
+              label: "Voluntario",
+              roles: [],
+              active:
+                pathname ===
+                `/${currentCompany?.slug}/general/reporte/voluntario`,
+            },
+            {
+              href: `/${currentCompany?.slug}/general/reporte/obligatorio`,
+              label: "Obligatorio",
+              roles: [],
+              active:
+                pathname ===
+                `/${currentCompany?.slug}/general/reporte/obligatorio`,
+            },
+            {
+              href: `/${currentCompany?.slug}/general/reporte/codigos_qr`,
+              label: "Codigos QR",
+              roles: [],
+              active:
+                pathname ===
+                `/${currentCompany?.slug}/general/reporte/codigos_qr`,
+            },
+          ],
+        },
         {
           href: `/${currentCompany?.slug}/general/inventario`,
           label: "Inventario",
