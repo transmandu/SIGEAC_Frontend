@@ -59,7 +59,6 @@ export function CreateVoluntaryReportForm({
   isEditing,
   initialData,
 }: FormProps) {
-  console.log("initial data thattt ", initialData);
   const { selectedCompany } = useCompanyStore();
   const { createVoluntaryReport } = useCreateVoluntaryReport();
   const { updateVoluntaryReport } = useUpdateVoluntaryReport();
@@ -214,6 +213,7 @@ export function CreateVoluntaryReportForm({
   });
 
   const onSubmit = async (data: FormSchemaType) => {
+
     if (isAnonymous) {
       data.reporter_name = "";
       data.reporter_last_name = "";
@@ -240,6 +240,7 @@ export function CreateVoluntaryReportForm({
           status: shouldEnableField ? "ABIERTO" : "PROCESO",
         },
       };
+      console.log("THIS IS DATA SENT", value);
       try {
         const response = await createVoluntaryReport.mutateAsync(value);
         if (shouldEnableField) {
@@ -393,7 +394,31 @@ export function CreateVoluntaryReportForm({
         </div>
 
         <div className="flex gap-2 items-center justify-center">
-                                                          
+          <FormField
+            control={form.control}
+            name="danger_location"
+            render={({ field }) => (
+              <FormItem className="w-full">
+                <FormLabel>Base de Localizacion</FormLabel>
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Seleccionar localización" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="PZO">Puerto Ordaz</SelectItem>
+                    <SelectItem value="CBL">Ciudad Bolívar</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
           <FormField
             control={form.control}
             name="danger_area"
