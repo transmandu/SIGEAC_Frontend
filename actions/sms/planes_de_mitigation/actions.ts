@@ -1,12 +1,4 @@
 import axiosInstance from "@/lib/axios";
-import {
-  ComponentArticle,
-  ConsumableArticle,
-  DispatchRequest,
-  InformationSource,
-  MitigationPlan,
-  Request,
-} from "@/types";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
@@ -30,7 +22,7 @@ interface UpdateMitigationPlanData {
   };
 }
 
-interface closeReportData {
+interface updateStatus {
   company: string | null;
   data: {
     mitigation_id: number | string;
@@ -129,12 +121,14 @@ export const useCloseReport = () => {
   const queryClient = useQueryClient();
   const closeReportMutation = useMutation({
     mutationKey: ["close-report"],
-    mutationFn: async ({ data, company }: closeReportData) => {
+    mutationFn: async ({ data, company }: updateStatus) => {
+      console.log("mitigation_id", data.mitigation_id);
       await axiosInstance.patch(
-        `/${company}/sms/close-report/${data.mitigation_id}`,
+        `/${company}/sms/close_report/${data.mitigation_id}`,
         data
       );
     },
+
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["mitigation-plans"] });
       queryClient.invalidateQueries({ queryKey: ["voluntary-reports"] });
@@ -153,5 +147,37 @@ export const useCloseReport = () => {
   });
   return {
     closeReportByMitigationId: closeReportMutation,
+  };
+};
+
+export const useOpenReport = () => {
+  const queryClient = useQueryClient();
+  const openReportMutation = useMutation({
+    mutationKey: ["open-report"],
+    mutationFn: async ({ data, company }: updateStatus) => {
+      await axiosInstance.patch(
+        `/${company}/sms/open_report/${data.mitigation_id}`,
+        data
+      );
+    },
+
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["mitigation-plans"] });
+      queryClient.invalidateQueries({ queryKey: ["voluntary-reports"] });
+      queryClient.invalidateQueries({ queryKey: ["obligatory-reports"] });
+      queryClient.invalidateQueries({ queryKey: ["analysis"] });
+      toast.success("Reporte Cerrado!", {
+        description: `Se ha abierto el reporte correctamente.`,
+      });
+    },
+    onError: (error) => {
+      toast.error("Oops!", {
+        description: "No se pudo abrir el reporte...",
+      });
+      console.log(error);
+    },
+  });
+  return {
+    openReportByMitigationId: openReportMutation,
   };
 };
