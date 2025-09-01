@@ -74,7 +74,7 @@ const QrCodePage = () => {
             rel="noopener noreferrer"
             className={`underline text-sm mt-2 break-all max-w-xs text-center ${
               theme === "light"
-                ? "text-red-600 hover:text-blue-800"
+                ? "text-purple-600 hover:text-blue-800"
                 : "text-white hover:text-gray-300"
             }`}
           >
@@ -101,7 +101,7 @@ const QrCodePage = () => {
             <QRCodeSVG
               value={qrValueObligatory}
               size={256}
-              bgColor="#3088FF"
+              bgColor="#FF1900"
               level="H"
               fgColor="#FFF"
               marginSize={1}
@@ -116,7 +116,7 @@ const QrCodePage = () => {
             rel="noopener noreferrer"
             className={`underline text-sm mt-2 break-all max-w-xs text-center ${
               theme === "light"
-                ? "text-red-600 hover:text-blue-800"
+                ? "text-purple-600 hover:text-blue-800"
                 : "text-white hover:text-gray-300"
             }`}
           >
