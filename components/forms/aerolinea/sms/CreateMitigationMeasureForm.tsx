@@ -210,9 +210,8 @@ export default function CreateMitigationMeasureForm({
                       mode="single"
                       selected={field.value}
                       onSelect={field.onChange}
-                      disabled={(date) => date > new Date()} // Solo deshabilitar fechas futuras
                       initialFocus
-                      fromYear={1980} // Año mínimo que se mostrará
+                      fromYear={2000} // Año mínimo que se mostrará
                       toYear={new Date().getFullYear()} // Año máximo (actual)
                       captionLayout="dropdown-buttons" // Selectores de año/mes
                       components={{
@@ -265,9 +264,8 @@ export default function CreateMitigationMeasureForm({
                       mode="single"
                       selected={field.value || undefined} // Convert null to undefined
                       onSelect={field.onChange}
-                      disabled={(date) => date > new Date()}
                       initialFocus
-                      fromYear={1980}
+                      fromYear={2000}
                       toYear={new Date().getFullYear()}
                       captionLayout="dropdown-buttons"
                       components={{

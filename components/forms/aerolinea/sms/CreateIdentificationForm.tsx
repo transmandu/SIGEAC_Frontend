@@ -30,7 +30,7 @@ import { useGetInformationSources } from "@/hooks/sms/useGetInformationSource";
 import { cn } from "@/lib/utils";
 import { DangerIdentification } from "@/types";
 import { Separator } from "@radix-ui/react-select";
-import { format } from "date-fns";
+import { addDays, format } from "date-fns";
 import { es } from "date-fns/locale";
 import { CalendarIcon, Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -186,7 +186,7 @@ export default function CreateDangerIdentificationForm({
       information_source_id: initialData?.information_source.id.toString(),
       current_defenses: initialData?.current_defenses || "",
       risk_management_start_date: initialData?.risk_management_start_date
-        ? new Date(initialData.risk_management_start_date)
+        ? addDays(new Date(initialData.risk_management_start_date), 1)
         : new Date(),
       consequence_to_evaluate: initialData?.consequence_to_evaluate || "",
       danger_area: initialData?.danger_area || "",
@@ -288,9 +288,8 @@ export default function CreateDangerIdentificationForm({
                       mode="single"
                       selected={field.value}
                       onSelect={field.onChange}
-                      disabled={(date) => date > new Date()} // Solo deshabilitar fechas futuras
                       initialFocus
-                      fromYear={1980} // Año mínimo que se mostrará
+                      fromYear={2000} // Año mínimo que se mostrará
                       toYear={new Date().getFullYear()} // Año máximo (actual)
                       captionLayout="dropdown-buttons" // Selectores de año/mes
                       components={{

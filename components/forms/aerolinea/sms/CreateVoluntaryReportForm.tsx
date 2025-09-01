@@ -145,7 +145,7 @@ export function CreateVoluntaryReportForm({
       .optional(),
     image: z
       .instanceof(File)
-      .refine((file) => file.size <= 5 * 1024 * 1024, "Max 5MB")
+      .refine((file) => file.size <= 10 * 1024 * 1024, "Max 10MB")
       .refine(
         (file) => ["image/jpeg", "image/png"].includes(file.type),
         "Solo JPEG/PNG"
@@ -154,7 +154,7 @@ export function CreateVoluntaryReportForm({
 
     document: z
       .instanceof(File)
-      .refine((file) => file.size <= 5 * 1024 * 1024, "Máximo 5MB")
+      .refine((file) => file.size <= 10 * 1024 * 1024, "Máximo 10MB")
       .refine(
         (file) => file.type === "application/pdf",
         "Solo se permiten archivos PDF"
@@ -240,7 +240,6 @@ export function CreateVoluntaryReportForm({
           status: shouldEnableField ? "ABIERTO" : "PROCESO",
         },
       };
-      console.log("THIS IS DATA SENT", value);
       try {
         const response = await createVoluntaryReport.mutateAsync(value);
         if (shouldEnableField) {
@@ -315,9 +314,8 @@ export function CreateVoluntaryReportForm({
                       mode="single"
                       selected={field.value}
                       onSelect={field.onChange}
-                      disabled={(date) => date > new Date()} // Solo deshabilitar fechas futuras
                       initialFocus
-                      fromYear={1980} // Año mínimo que se mostrará
+                      fromYear={2000} // Año mínimo que se mostrará
                       toYear={new Date().getFullYear()} // Año máximo (actual)
                       captionLayout="dropdown-buttons" // Selectores de año/mes
                       components={{
@@ -369,9 +367,8 @@ export function CreateVoluntaryReportForm({
                       mode="single"
                       selected={field.value}
                       onSelect={field.onChange}
-                      disabled={(date) => date > new Date()} // Solo deshabilitar fechas futuras
                       initialFocus
-                      fromYear={1980} // Año mínimo que se mostrará
+                      fromYear={2000} // Año mínimo que se mostrará
                       toYear={new Date().getFullYear()} // Año máximo (actual)
                       captionLayout="dropdown-buttons" // Selectores de año/mes
                       components={{
