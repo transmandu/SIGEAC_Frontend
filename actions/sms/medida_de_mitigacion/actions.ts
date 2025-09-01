@@ -70,6 +70,7 @@ export const useDeleteMitigationMeasure = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["mitigation-measures"] });
+      queryClient.invalidateQueries({ queryKey: ["analysis"] });
       toast.success("¡Eliminado!", {
         description: `¡La medida de mitigacion ha sido eliminado correctamente!`,
       });
@@ -99,6 +100,7 @@ export const useUpdateMitigationMeasure = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["mitigation-measures"] });
+      queryClient.invalidateQueries({ queryKey: ["analysis"] });
       toast.success("¡Actualizado!", {
         description: `La medida de mitigacion ha sido actualizada correctamente.`,
       });
