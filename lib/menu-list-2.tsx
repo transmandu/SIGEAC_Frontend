@@ -128,7 +128,9 @@ export function getMenuList(
             {
               href: `/${currentCompany?.slug}/general/cursos/estadisticas`,
               label: "Estadisticas",
-              active: pathname === `/${currentCompany?.slug}/general/cursos/estadisticas`,
+              active:
+                pathname ===
+                `/${currentCompany?.slug}/general/cursos/estadisticas`,
             },
           ],
         },
@@ -666,6 +668,13 @@ export function getMenuList(
                 pathname ===
                 `/${currentCompany?.slug}/almacen/inventario/entregado`,
             },
+            {
+              href: `/${currentCompany?.slug}/almacen/inventario/gestion_cantidades`,
+              label: "Gestión de Cantidades", //Nombre Provicional
+              active:
+                pathname ===
+                `/${currentCompany?.slug}/almacen/inventario/gestion_cantidades`,
+            },
           ],
         },
         {
@@ -684,7 +693,7 @@ export function getMenuList(
       groupLabel: "Planificación",
       moduleValue: "planification",
       menus: [
-          {
+        {
           href: `/${currentCompany?.slug}/planificacion/calendario`,
           label: "Calendario de Servicios",
           active: pathname.includes(
@@ -789,7 +798,7 @@ export function getMenuList(
           active: pathname.includes(
             `/${currentCompany?.slug}/ingenieria/certificados`
           ),
-          icon: Award,  
+          icon: Award,
           roles: ["SUPERUSER"],
           submenus: [],
         },
