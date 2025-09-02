@@ -137,12 +137,12 @@ export const useUpdateCourse = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["department-courses"] });
       toast.success("¡Creado!", {
-        description: ` La identificacion de peligro ha sido creado correctamente.`,
+        description: ` El curso ha sido actulizado correctamente`,
       });
     },
     onError: (error) => {
       toast.error("Oops!", {
-        description: "No se pudo crear la identificacion de peligro...",
+        description: "No se pudo actualizar el curso...",
       });
       console.log(error);
     },
