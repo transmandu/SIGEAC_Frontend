@@ -318,7 +318,7 @@ export function CreateGeneralObligatoryReportForm({
             )}
           />
         </div>
-        <div className="flex flex-col sm:flex-grow gap-2 items-center justify-center">
+        <div className="flex flex-col sm:flex-row gap-2 items-center justify-center">
           <FormField
             control={form.control}
             name="incident_date"
@@ -428,7 +428,7 @@ export function CreateGeneralObligatoryReportForm({
           />
         </div>
 
-        <div className="flex flex-col sm:flex-grow gap-2 justify-center items-center">
+        <div className="flex flex-col sm:flex-row gap-2 justify-center items-center">
           <FormField
             control={form.control}
             name="pilot_id"
@@ -542,7 +542,7 @@ export function CreateGeneralObligatoryReportForm({
             )}
           />
         </div>
-        <div className="flex flex-col sm:flex-grow gap-4 justify-center items-center">
+        <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
           <FormField
             control={form.control}
             name="flight_time"
