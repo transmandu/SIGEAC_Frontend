@@ -5,7 +5,7 @@ import { GuestContentLayout } from "@/components/layout/GuestContentLayout";
 
 const CreateObligatoryReport = () => {
   return (
-    <GuestContentLayout title="Creación de Reporte Obligatorio">
+    <GuestContentLayout title="Reporte Obligatorio">
       <div className="flex flex-col justify-center items-center">
         <CreateGeneralObligatoryReportForm
           onClose={() => false}
