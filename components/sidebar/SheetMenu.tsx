@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import { MenuIcon } from "lucide-react";
 import Link from "next/link";
@@ -14,11 +14,11 @@ import {
 import Image from "next/image";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import CompanySelect from "../selects/CompanySelect";
+import { useAuth } from "@/contexts/AuthContext";
 
 export function SheetMenu() {
-
-  const { selectedCompany, selectedStation } = useCompanyStore()
-
+  const { selectedCompany, selectedStation } = useCompanyStore();
+  const { user } = useAuth();
   return (
     <Sheet>
       <SheetTrigger className="lg:hidden" asChild>
@@ -33,17 +33,23 @@ export function SheetMenu() {
             variant="link"
             asChild
           >
-            <Link href={`/${selectedCompany?.slug}/dashboard`} className="flex items-center gap-2">
-              <Image src={'/logo.png'} width={150} height={150} alt="Logo" />
+            <Link
+              href={user ? `/login` : `/${selectedCompany?.slug}/dashboard`}
+              className="flex items-center gap-2"
+            >
+              <Image src={"/logo.png"} width={150} height={150} alt="Logo" />
             </Link>
           </Button>
         </SheetHeader>
         <CompanySelect />
-        {
-          selectedCompany && selectedStation ? <Menu isOpen/> :
-
-            <p className="text-sm text-muted-foreground text-center mt-10">Por favor, seleccione una <strong>Empresa</strong> y una <strong>Estacion</strong>.</p>
-        }
+        {selectedCompany && selectedStation ? (
+          <Menu isOpen />
+        ) : (
+          <p className="text-sm text-muted-foreground text-center mt-10">
+            Por favor, seleccione una <strong>Empresa</strong> y una{" "}
+            <strong>Estacion</strong>.
+          </p>
+        )}
       </SheetContent>
     </Sheet>
   );
