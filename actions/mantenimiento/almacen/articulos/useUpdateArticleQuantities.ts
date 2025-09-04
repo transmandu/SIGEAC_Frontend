@@ -21,9 +21,8 @@ export const useUpdateArticleQuantities = () => {
       company: string;
       location_id: string;
     }) => {
-      await axiosInstance.post(`/${company}/update-article-quantities`, {
+      await axiosInstance.post(`/${company}/${location_id}/update-article-quantities`, {
         quantities,
-        location_id
       });
     },
     onSuccess: () => {
