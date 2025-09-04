@@ -81,7 +81,7 @@ const CreateComponentForm = ({ initialData, isEditing }: {
 
   const { data: conditions, isLoading: isConditionsLoading, error: isConditionsError } = useGetConditions();
 
-  const { mutate: verifyMutation, data: components } = useGetArticlesByCategory(Number(selectedStation), "componente")
+  const { mutate: verifyMutation, data: components } = useGetArticlesByCategory(Number(selectedStation),"componente", selectedCompany?.slug)
 
   const formSchema = z.object({
     article_type: z.string().optional(),

@@ -668,13 +668,6 @@ export function getMenuList(
                 pathname ===
                 `/${currentCompany?.slug}/almacen/inventario/entregado`,
             },
-            {
-              href: `/${currentCompany?.slug}/almacen/inventario/gestion_cantidades`,
-              label: "Gestión de Cantidades", //Nombre Provicional
-              active:
-                pathname ===
-                `/${currentCompany?.slug}/almacen/inventario/gestion_cantidades`,
-            },
           ],
         },
         {
@@ -683,6 +676,16 @@ export function getMenuList(
           roles: ["ANALISTA_ALMACEN", "JEFE_ALMACEN", "SUPERUSER"],
           active: pathname.includes(
             `/${currentCompany?.slug}/almacen/caja_herramientas`
+          ),
+          icon: Wrench,
+          submenus: [],
+        },
+        {
+          href: `/${currentCompany?.slug}/almacen/gestion_cantidades`,
+          label: "Gestión de Cantidades",
+          roles: ["JEFE_ALMACEN", "SUPERUSER"],
+          active: pathname.includes(
+            `/${currentCompany?.slug}/almacen/gestion_cantidades`
           ),
           icon: Wrench,
           submenus: [],
