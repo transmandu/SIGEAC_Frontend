@@ -12,6 +12,7 @@ export interface IWarehouseArticle {
     serial: string | null;
     description: string;
     zone: string;
+    quantity: number;
   }[];
 }
 

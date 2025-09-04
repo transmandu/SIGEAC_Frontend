@@ -47,6 +47,7 @@ const GestionCantidadesPage = () => {
 
   // Obtener todos los batches con artículos
   const { data: batches, isLoading, isError } = useGetAllWarehouseArticles(selectedCompany?.slug, selectedStation!);
+  const { updateQuantities } = useUpdateArticleQuantities();
 
   // Obtener zonas únicas para el filtro
   const availableZones = useMemo(() => {
@@ -81,15 +82,14 @@ const GestionCantidadesPage = () => {
     })).filter(batch => batch.articles.length > 0); // Solo mostrar batches que tienen artículos después del filtro
   }, [batches, selectedZone, partNumberFilter]);
 
-  const { updateQuantities } = useUpdateArticleQuantities();
-
   // Initialize quantities when articles are loaded
   useEffect(() => {
     if (batches) {
       const initialQuantities: Record<number, number> = {};
       batches.forEach(batch => {
         batch.articles.forEach(article => {
-          initialQuantities[article.id] = 0; // Inicializar en 0 ya que no hay quantity en la nueva estructura
+          // Inicializar con la cantidad actual del backend (cantidad en almacén)
+          initialQuantities[article.id] = article.quantity || 0;
         });
       });
       setQuantities(initialQuantities);
@@ -98,6 +98,10 @@ const GestionCantidadesPage = () => {
 
   const handleQuantityChange = useCallback((articleId: number, newQuantity: string) => {
     const numQuantity = parseFloat(newQuantity) || 0;
+    
+    // No permitir valores negativos
+    if (numQuantity < 0) return;
+    
     setQuantities(prev => ({
       ...prev,
       [articleId]: numQuantity
@@ -123,7 +127,8 @@ const GestionCantidadesPage = () => {
       company: selectedCompany!.slug,
       location_id: selectedStation!
     };
-
+    
+    console.log("requestPayload", requestPayload);
     // Enviar al backend
     updateQuantities.mutate(requestPayload);
   };
@@ -142,8 +147,18 @@ const GestionCantidadesPage = () => {
 
   // Función para obtener artículos modificados (reutilizable)
   const getModifiedArticles = useCallback(() => {
-    return Object.entries(quantities).filter(([, quantity]) => quantity > 0);
-  }, [quantities]);
+    return Object.entries(quantities).filter(([articleId, quantity]) => {
+      // Buscar el artículo original en los batches
+      let originalQuantity = 0;
+      batches?.forEach(batch => {
+        const article = batch.articles.find(a => a.id === parseInt(articleId));
+        if (article) originalQuantity = article.quantity || 0;
+      });
+      
+      // Solo considerar modificado si la cantidad cambió respecto al valor original
+      return quantity !== originalQuantity;
+    });
+  }, [quantities, batches]);
 
   // Número de artículos modificados
   const modifiedCount = useMemo(() => getModifiedArticles().length, [getModifiedArticles]);
@@ -155,25 +170,25 @@ const GestionCantidadesPage = () => {
     return { totalArticles, filteredArticles };
   }, [batches, filteredBatches]);
 
-  // if (isLoading) {
-  //   return (
-  //     <ContentLayout title='Gestión de Cantidades'>
-  //       <div className='flex w-full h-full justify-center items-center'>
-  //         <Loader2 className='size-24 animate-spin mt-48' />
-  //       </div>
-  //     </ContentLayout>
-  //   );
-  // }
+  if (isLoading) {
+    return (
+      <ContentLayout title='Gestión de Cantidades'>
+        <div className='flex w-full h-full justify-center items-center'>
+          <Loader2 className='size-24 animate-spin mt-48' />
+        </div>
+      </ContentLayout>
+    );
+  }
 
-  // if (isError) {
-  //   return (
-  //     <ContentLayout title='Gestión de Cantidades'>
-  //       <div className='text-center py-8'>
-  //         <p className='text-sm text-muted-foreground'>Ha ocurrido un error al cargar los artículos...</p>
-  //       </div>
-  //     </ContentLayout>
-  //   );
-  // }
+  if (isError) {
+    return (
+      <ContentLayout title='Gestión de Cantidades'>
+        <div className='text-center py-8'>
+          <p className='text-sm text-muted-foreground'>Ha ocurrido un error al cargar los artículos...</p>
+        </div>
+      </ContentLayout>
+    );
+  }
 
   return (
     <ContentLayout title='Gestión de Cantidades'>

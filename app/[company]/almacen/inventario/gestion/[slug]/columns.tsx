@@ -205,11 +205,14 @@ export const columns: ColumnDef<ColumnI>[] = [
     ),
     cell: ({ row }) => {
       const { quantity, consumable } = row.original;
+      
+      // Validar que quantity sea un número válido
+      const validQuantity = quantity != null && !isNaN(Number(quantity)) ? Number(quantity) : 0;
 
       return (
         <div className="flex justify-center">
-          <Badge className={quantity <= 0 ? "bg-yellow-500" : "bg-green-500"}>
-            {consumable ? quantity.toFixed(2) : quantity.toFixed(2)} {row.original.unit_secondary}
+          <Badge className={validQuantity <= 0 ? "bg-yellow-500" : "bg-green-500"}>
+            {validQuantity.toFixed(2)} {row.original.unit_secondary}
           </Badge>
         </div>
       );

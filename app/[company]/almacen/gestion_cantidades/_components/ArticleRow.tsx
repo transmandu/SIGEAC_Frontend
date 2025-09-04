@@ -13,7 +13,7 @@ interface ArticleRowProps {
 // Componente memozado para artículos individuales
 export const ArticleRow = React.memo(({ 
   article, 
-  quantity, 
+  quantity,
   onQuantityChange 
 }: ArticleRowProps) => (
   <div className='grid grid-cols-1 md:grid-cols-3 gap-3 p-3 border rounded-lg bg-card hover:bg-muted/50 transition-colors'>
@@ -40,7 +40,7 @@ export const ArticleRow = React.memo(({
       </label>
       <div className='p-2 bg-muted rounded-md text-center'>
         <div className='text-xl font-bold text-primary'>
-          {quantity}
+          {article.quantity || 0}
         </div>
         <div className='text-xs text-muted-foreground'>
           Unidades
@@ -60,7 +60,7 @@ export const ArticleRow = React.memo(({
         value={quantity || ''}
         onChange={(e) => onQuantityChange(article.id, e.target.value)}
         className={`text-center text-base font-medium h-9 ${
-          quantity > 0 ? 'border-orange-500 bg-orange-50' : ''
+          quantity !== (article.quantity || 0) ? 'border-orange-500 bg-orange-50' : ''
         }`}
         placeholder='0'
       />
