@@ -210,7 +210,7 @@ const CreateConsumableForm = ({
     if (batches) {
       // Filtrar los batches por categoría
       const filtered = batches.filter(
-        (batch) => batch.category === "CONSUMIBLE"
+        (batch) => batch.category === "consumible"
       );
       setFilteredBatches(filtered);
     }
