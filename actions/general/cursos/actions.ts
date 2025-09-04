@@ -37,7 +37,6 @@ export const useCreateCourse = () => {
   const queryClient = useQueryClient();
   const createMutation = useMutation({
     mutationFn: async ({ company, location_id, course }: CourseData) => {
-      console.log("data from create course", course);
       await axiosInstance.post(
         `/general/${company}/${location_id}/create-course`,
         course,
