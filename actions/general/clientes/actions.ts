@@ -9,6 +9,7 @@ interface CreateClientSchema {
   address?: string,
   dni: string,
   dni_type: string,
+  pay_credit_days?: string
 }
 
 export const useCreateClient = () => {
@@ -46,8 +47,8 @@ export const useDeleteClient = () => {
   const queryClient = useQueryClient()
 
   const deleteMutation = useMutation({
-      mutationFn: async ({dni, company}: {dni: string, company: string}) => {
-          await axiosInstance.delete(`/${company}/clients/${dni}`)
+      mutationFn: async ({id, company}: {id: string, company: string}) => {
+          await axiosInstance.delete(`/${company}/clients/${id}`)
         },
       onSuccess: () => {
 
@@ -73,8 +74,8 @@ export const useUpdateClient = () => {
   const queryClient = useQueryClient();
 
   const updateMutation = useMutation({
-    mutationFn: async ({ dni, data, company }: { dni: string; data: any, company: string }) => {
-      await axiosInstance.put(`/${company}/clients/${dni}`, data);
+    mutationFn: async ({ id, data, company }: { id: string; data: any, company: string }) => {
+      await axiosInstance.put(`/${company}/clients/${id}`, data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['clients'] });

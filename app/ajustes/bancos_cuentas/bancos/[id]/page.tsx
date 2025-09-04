@@ -19,7 +19,7 @@ const BankAccountsPage = () => {
     data: accounts,
     isLoading,
     error,
-  } = useGetBankAccounts(selectedCompany?.slug);
+  } = useGetBankAccounts();
   const [filteredAccounts, setFilteredAccounts] = useState<BankAccount[]>([]);
 
   useEffect(() => {

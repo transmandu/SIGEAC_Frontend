@@ -96,7 +96,7 @@ const ShowObligatoryReport = () => {
               title={"Editar"}
             />
           </div>
-        )}x
+        )}
 
         {/* Botón para eliminar reporte */}
         {obligatoryReport && obligatoryReport.status === "ABIERTO" && (

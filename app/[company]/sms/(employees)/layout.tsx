@@ -3,7 +3,7 @@ import React from "react";
 
 const SMSLayout = ({ children }: { children: React.ReactNode }) => {
   return (
-    <ProtectedRoute roles={["ANALISTA_SMS", "JEFE_SMS", "SUPERUSER"]}>
+    <ProtectedRoute roles={[]}>
       {children}
     </ProtectedRoute>
   );

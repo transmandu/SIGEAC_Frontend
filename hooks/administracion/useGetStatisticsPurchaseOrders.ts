@@ -52,7 +52,7 @@ const fetchStatisticsPurchaseOrders = async (location_id: string | null): Promis
     const { data } = await axiosInstance.get(`/completed-purchases-statistics/${location_id}`)
     return data
 }
-  
+
 export const useGetStatisticsPurchaseOrders = (location_id: string | null) => {
     return useQuery<Statistics>({
       queryKey: ["purchase-orders"],

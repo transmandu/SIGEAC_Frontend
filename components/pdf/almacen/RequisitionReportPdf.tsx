@@ -140,7 +140,7 @@ const tableStyles = StyleSheet.create({
 
 
 
-const RequisitionReportPdf = ({ 
+const RequisitionReportPdf = ({
   requisition,
   aircraftFilter = null,
   startDate,

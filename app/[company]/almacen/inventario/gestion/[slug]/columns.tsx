@@ -113,7 +113,7 @@ export const columns: ColumnDef<ColumnI>[] = [
           <Tooltip>
             <TooltipTrigger className="w-full flex justify-center">
               <p className="font-medium italic text-center">
-                {row.original.serial ?? "N/A"}
+                {row.original.serial ? row.original.serial : "N/A"}
               </p>
             </TooltipTrigger>
             <TooltipContent>

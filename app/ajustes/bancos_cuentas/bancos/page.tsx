@@ -5,11 +5,9 @@ import { useGetBanks } from "@/hooks/general/bancos/useGetBanks";
 import { Loader2 } from "lucide-react";
 import { columns } from "./columns";
 import { DataTable } from "./data-table";
-import { useCompanyStore } from "@/stores/CompanyStore";
 
 const BanksPage = () => {
-  const { selectedCompany } = useCompanyStore();
-  const { data: banks, isLoading, error } = useGetBanks(selectedCompany?.slug);
+  const { data: banks, isLoading, error } = useGetBanks();
   return (
     <ContentLayout title={"Almacenes"}>
       <h1 className="text-4xl font-bold text-center mb-2">Control de Bancos</h1>

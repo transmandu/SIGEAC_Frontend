@@ -57,15 +57,7 @@ const formSchema = z.object({
     .max(100, {
       message: "La dirección tiene un máximo 100 caracteres.",
     }).optional(),
-  pay_credit_days: z.coerce
-    .number({
-      invalid_type_error: "Debe ingresar un número válido",
-    })
-    .min(0, {
-      message: "Debe agregar un plazo en días para pagar el crédito.",
-    })
-    .int("Debe ser un número entero")
-    .max(730, { message: "Máximo 730 días" }).optional(),
+  pay_credit_days: z.string().optional()
 });
 
 interface FormProps {

@@ -115,10 +115,7 @@ export function CreateRentingForm({ onClose }: FormProps) {
       type: "AERONAVE"
     },
   });
-  const { data: accounts, isLoading: isAccLoading } = useGetBankAccounts(
-    selectedCompany?.slug
-  );
-
+  const { data: accounts, isLoading: isAccLoading } = useGetBankAccounts();
   async function onSubmit(values: z.infer<typeof formSchema>) {
     await createRenting.mutateAsync({data: values, company: selectedCompany?.slug});
     onClose()

@@ -13,7 +13,7 @@ const BankAccountsPage = () => {
     data: accounts,
     isLoading,
     error,
-  } = useGetBankAccounts(selectedCompany?.slug);
+  } = useGetBankAccounts();
   return (
     <ContentLayout title={"Almacenes"}>
       <h1 className="text-4xl font-bold text-center mb-2">

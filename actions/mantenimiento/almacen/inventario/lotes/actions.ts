@@ -19,7 +19,7 @@ type BatchType = {
 export const useCreateBatch = () => {
 
     const queryClient = useQueryClient()
- 
+
     const createMutation = useMutation({
         mutationFn: async ({data, company}: {data: BatchType, company: string}) => {
             await axiosInstance.post(`/${company}/batches`, data)

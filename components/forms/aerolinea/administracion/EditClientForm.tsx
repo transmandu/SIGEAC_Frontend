@@ -113,7 +113,7 @@ export function EditClientForm({ onClose, client }: EditClientFormProps) {
       pay_credit_days: formData.pay_credit_days,
     };
     await updateClient.mutateAsync({
-      dni: client.dni,
+      id: client.id.toString(),
       data,
       company: selectedCompany!.slug,
     });

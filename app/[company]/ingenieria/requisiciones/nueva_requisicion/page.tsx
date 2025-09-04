@@ -34,6 +34,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/contexts/AuthContext";
 import { useGetSecondaryUnits } from "@/hooks/general/unidades/useGetSecondaryUnits";
 import { useGetBatchesByLocationId } from "@/hooks/mantenimiento/almacen/renglones/useGetBatchesByLocationId";
@@ -42,6 +43,7 @@ import { useGetWorkOrders } from "@/hooks/mantenimiento/planificacion/useGetWork
 import { useGetUserDepartamentEmployees } from "@/hooks/sistema/empleados/useGetUserDepartamentEmployees";
 import { cn } from "@/lib/utils";
 import { useCompanyStore } from "@/stores/CompanyStore";
+import { WorkOrder } from "@/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Check, ChevronsUpDown, Loader2, MinusCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -52,30 +54,25 @@ import { z } from "zod";
 interface Article {
   part_number: string;
   alt_part_number?: string;
-  justification: string;
   manual: string;
   reference_cod: string;
   pma?: string;
   quantity: number;
   image?: File;
   unit?: string;
+  observation?: string,
   certificates?: string[];
 }
 
-interface Batch {
-  batch: string;
-  batch_name: string;
-  category: string;
-  batch_articles: Article[];
-}
-
-interface AircraftWithArticles {
+interface BackendAircraft {
   aircraft_id: string;
-  articles: Batch[];
+  articles: {
+    batch_id: string;
+    batch_articles: Article[];
+  }[];
 }
 
 const FormSchema = z.object({
-  justification: z.string().min(2, "La justificación debe tener al menos 2 caracteres."),
   company: z.string(),
   location_id: z.string(),
   work_order_id: z.string(),
@@ -92,20 +89,18 @@ const FormSchema = z.object({
       aircraft_id: z.string(),
       articles: z.array(
         z.object({
-          batch: z.string(),
-          batch_name: z.string(),
-          category: z.string(),
+          batch_id: z.string(),
           batch_articles: z.array(
             z.object({
               part_number: z.string().optional(),
               alt_part_number: z.string().optional(),
-              justification: z.string({ required_error: "Debe ingresar una justificación." }),
               manual: z.string({ required_error: "Debe ingresar un manual de referencia." }),
               reference_cod: z.string({ required_error: "Debe ingresar el código de referencia." }),
               pma: z.string().optional(),
               quantity: z.number().min(1, "Debe ingresar una cantidad válida"),
               image: z.instanceof(File).optional(),
               unit: z.string().optional(),
+              observation: z.string().optional(),
               certificates: z.array(z.string()).optional(),
             })
           ),
@@ -129,13 +124,13 @@ const CreateRequisitionPage = () => {
   const router = useRouter();
 
   const [selectedAircrafts, setSelectedAircrafts] = useState<string[]>([]);
-  const [aircraftsData, setAircraftsData] = useState<AircraftWithArticles[]>([]);
+  const [selectedWorkOrder, setSelectedWorkOrder] = useState<string | null>(null);
+  const [aircraftsData, setAircraftsData] = useState<BackendAircraft[]>([]);
   const [openAircraft, setOpenAircraft] = useState(false);
 
   const form = useForm<FormSchemaType>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
-      justification: "",
       type: "AVIACION",
       requested_by: "",
       created_by: `${user?.username}`,
@@ -145,6 +140,7 @@ const CreateRequisitionPage = () => {
 
   useEffect(() => {
     if (user && selectedCompany && selectedStation) {
+      console.log("first")
       form.setValue("created_by", user.id.toString());
       form.setValue("company", selectedCompany?.slug);
       form.setValue("location_id", selectedStation);
@@ -157,19 +153,23 @@ const CreateRequisitionPage = () => {
     }
   }, [selectedStation, mutate, selectedCompany]);
 
-  const handleAircraftSelect = (aircraftId: string) => {
-    setSelectedAircrafts(prev =>
-      prev.includes(aircraftId)
-        ? prev.filter(id => id !== aircraftId)
-        : [...prev, aircraftId]
-    );
-
-    setAircraftsData(prev => {
-      const exists = prev.find(a => a.aircraft_id === aircraftId);
-      if (exists) return prev;
+const handleAircraftSelect = (aircraftId: string) => {
+  const isSelected = selectedAircrafts.includes(aircraftId);
+  setSelectedAircrafts(prev =>
+    isSelected
+      ? prev.filter(id => id !== aircraftId)
+      : [...prev, aircraftId]
+  );
+  setAircraftsData(prev => {
+    if (isSelected) {
+      // Si la aeronave ya estaba seleccionada y ahora se des-selecciona, la quitamos
+      return prev.filter(a => a.aircraft_id !== aircraftId);
+    } else {
+      // Si no existía, la agregamos
       return [...prev, { aircraft_id: aircraftId, articles: [] }];
-    });
-  };
+    }
+  });
+};
 
   const isAircraftSelected = (aircraftId: string) => selectedAircrafts.includes(aircraftId);
 
@@ -179,16 +179,21 @@ const CreateRequisitionPage = () => {
         a.aircraft_id === aircraftId
           ? {
               ...a,
-              articles: a.articles.some(b => b.batch === batch.id.toString())
-                ? a.articles.filter(b => b.batch !== batch.id.toString())
+              articles: a.articles.some(b => b.batch_id === batch.id.toString())
+                ? a.articles.filter(b => b.batch_id !== batch.id.toString())
                 : [
                     ...a.articles,
                     {
-                      batch: batch.id.toString(),
-                      batch_name: batch.name,
-                      category: batch.category,
+                      batch_id: batch.id.toString(),
                       batch_articles: [
-                        { part_number: "", alt_part_number: "", justification: "", manual: "", reference_cod: "", quantity: 0 },
+                        {
+                          part_number: "",
+                          alt_part_number: "",
+                          justification: "",
+                          manual: "",
+                          reference_cod: "",
+                          quantity: 0
+                        }
                       ],
                     },
                   ],
@@ -198,14 +203,20 @@ const CreateRequisitionPage = () => {
     );
   };
 
-  const handleArticleChange = (aircraftId: string, batchId: string, index: number, field: keyof Article, value: any) => {
+  const handleArticleChange = (
+    aircraftId: string,
+    batchId: string,
+    index: number,
+    field: keyof Article,
+    value: any
+  ) => {
     setAircraftsData(prev =>
       prev.map(a =>
         a.aircraft_id === aircraftId
           ? {
               ...a,
               articles: a.articles.map(batch =>
-                batch.batch === batchId
+                batch.batch_id === batchId
                   ? {
                       ...batch,
                       batch_articles: batch.batch_articles.map((art, i) =>
@@ -220,6 +231,7 @@ const CreateRequisitionPage = () => {
     );
   };
 
+
   const addArticle = (aircraftId: string, batchId: string) => {
     setAircraftsData(prev =>
       prev.map(a =>
@@ -227,12 +239,20 @@ const CreateRequisitionPage = () => {
           ? {
               ...a,
               articles: a.articles.map(batch =>
-                batch.batch === batchId
+                batch.batch_id === batchId
                   ? {
                       ...batch,
                       batch_articles: [
                         ...batch.batch_articles,
-                        { part_number: "", alt_part_number: "", justification: "", manual: "", reference_cod: "", quantity: 0 },
+                        {
+                          part_number: "",
+                          alt_part_number: "",
+                          justification: "",
+                          manual: "",
+                          reference_cod: "",
+                          observation: "",
+                          quantity: 0
+                        }
                       ],
                     }
                   : batch
@@ -250,7 +270,7 @@ const CreateRequisitionPage = () => {
           ? {
               ...a,
               articles: a.articles.map(batch =>
-                batch.batch === batchId
+                batch.batch_id === batchId
                   ? {
                       ...batch,
                       batch_articles: batch.batch_articles.filter((_, i) => i !== index),
@@ -263,21 +283,27 @@ const CreateRequisitionPage = () => {
     );
   };
 
+
   const removeBatchFromAircraft = (aircraftId: string, batchId: string) => {
     setAircraftsData(prev =>
       prev.map(a =>
         a.aircraft_id === aircraftId
-          ? { ...a, articles: a.articles.filter(b => b.batch !== batchId) }
+          ? { ...a, articles: a.articles.filter(b => b.batch_id !== batchId) }
           : a
       )
     );
   };
+
 
   const onSubmit = async (data: FormSchemaType) => {
     // await createRequisition.mutateAsync({ data: { ...data, aircrafts: aircraftsData }, company: selectedCompany!.slug });
     // router.push(`/${selectedCompany!.slug}/general/requisiciones`);
     console.log(data)
   };
+
+  useEffect(() => {
+    form.setValue("aircrafts", aircraftsData)
+  },[aircraftsData])
 
   return (
     <ContentLayout title="Solicitud de Compra">
@@ -338,41 +364,6 @@ const CreateRequisitionPage = () => {
                   </FormItem>
                 )}
               />
-
-              {/* Aeronaves */}
-              <FormField
-                control={form.control}
-                name="aircrafts"
-                render={() => (
-                  <FormItem className="flex flex-col w-full">
-                    <FormLabel>Aeronave(s)</FormLabel>
-                    <Popover open={openAircraft} onOpenChange={setOpenAircraft}>
-                      <PopoverTrigger asChild>
-                        <Button disabled={isAircraftsLoading} variant="outline" className="justify-between">
-                          {selectedAircrafts.length > 0 ? `${selectedAircrafts.length} seleccionadas` : "Seleccione aeronave(s)..."}
-                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="p-0">
-                        <Command>
-                          <CommandInput placeholder="Buscar aeronave..." />
-                          <CommandList>
-                            <CommandEmpty>No hay aeronaves disponibles.</CommandEmpty>
-                            <CommandGroup>
-                              {aircrafts?.map(aircraft => (
-                                <CommandItem key={aircraft.id} value={aircraft.id.toString()} onSelect={() => handleAircraftSelect(aircraft.id.toString())}>
-                                  <Check className={cn("mr-2 h-4 w-4", isAircraftSelected(aircraft.id.toString()) ? "opacity-100" : "opacity-0")} />
-                                  {aircraft.acronym}
-                                </CommandItem>
-                              ))}
-                            </CommandGroup>
-                          </CommandList>
-                        </Command>
-                      </PopoverContent>
-                    </Popover>
-                  </FormItem>
-                )}
-              />
               {/* Orden de Trabajo */}
 
               <FormField
@@ -408,7 +399,10 @@ const CreateRequisitionPage = () => {
                                 <CommandItem
                                   value={`${workOrder.aircraft.acronym} - ${workOrder.order_number}`}
                                   key={workOrder.id}
-                                  onSelect={() => form.setValue("work_order_id", `${workOrder.id}`)}
+                                  onSelect={() => {
+                                    form.setValue("work_order_id", `${workOrder.id}`)
+                                    handleAircraftSelect(workOrder.aircraft.id.toString())
+                                  }}
                                 >
                                   <Check className={cn("mr-2 h-4 w-4", `${workOrder.id}` === field.value ? "opacity-100" : "opacity-0")} />
                                   {workOrder.aircraft.acronym} {workOrder.order_number}
@@ -423,102 +417,245 @@ const CreateRequisitionPage = () => {
                   </FormItem>
                 )}
               />
-
+              {/* Aeronaves */}
+              <FormField
+                control={form.control}
+                name="aircrafts"
+                render={() => (
+                  <FormItem className="flex flex-col w-full">
+                    <FormLabel>Aeronave(s)</FormLabel>
+                    <Popover open={openAircraft} onOpenChange={setOpenAircraft}>
+                      <PopoverTrigger asChild>
+                        <Button disabled={isAircraftsLoading} variant="outline" className="justify-between">
+                          {selectedAircrafts.length > 0 ? `${selectedAircrafts.length} seleccionadas` : "Seleccione aeronave(s)..."}
+                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="p-0">
+                        <Command>
+                          <CommandInput placeholder="Buscar aeronave..." />
+                          <CommandList>
+                            <CommandEmpty>No hay aeronaves disponibles.</CommandEmpty>
+                            <CommandGroup>
+                              {aircrafts?.map(aircraft => (
+                                <CommandItem key={aircraft.id} value={aircraft.id.toString()} onSelect={() => handleAircraftSelect(aircraft.id.toString())}>
+                                  <Check className={cn("mr-2 h-4 w-4", isAircraftSelected(aircraft.id.toString()) ? "opacity-100" : "opacity-0")} />
+                                  {aircraft.acronym}
+                                </CommandItem>
+                              ))}
+                            </CommandGroup>
+                          </CommandList>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
+                  </FormItem>
+                )}
+              />
             </div>
             {/* Batches + Artículos por Aeronave */}
             {aircraftsData.map(a => {
-              const aircraftInfo = aircrafts?.find(ac => ac.id.toString() === a.aircraft_id);
-              return (
-                <div key={a.aircraft_id} className="border p-4 rounded-lg space-y-4">
-                  <h3 className="font-semibold">Aeronave: {aircraftInfo?.acronym}</h3>
+            const aircraftInfo = aircrafts?.find(ac => ac.id.toString() === a.aircraft_id);
+            return (
+              <div key={a.aircraft_id} className="border p-4 rounded-lg space-y-4">
+                <h3 className="font-semibold">Aeronave: {aircraftInfo?.acronym}</h3>
 
-                  {/* Selección de Batches */}
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button variant="outline" className="w-[200px] justify-between">
-                        {a.articles.length > 0 ? `${a.articles.length} renglones selec...` : "Selec. renglón(es)..."}
-                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="p-0">
-                      <Command>
-                        <CommandInput placeholder="Buscar renglón..." />
-                        <CommandList>
-                          <CommandEmpty>No hay renglones disponibles.</CommandEmpty>
-                          <CommandGroup>
-                            <div className="flex justify-center m-2"><CreateBatchDialog /></div>
-                            {batches?.map(batch => (
-                              <CommandItem key={batch.id} value={batch.id.toString()} onSelect={() => handleBatchSelectForAircraft(a.aircraft_id, batch)}>
-                                <Check className={cn("mr-2 h-4 w-4", a.articles.some(b => b.batch === batch.id.toString()) ? "opacity-100" : "opacity-0")} />
-                                {batch.name}
-                              </CommandItem>
-                            ))}
-                          </CommandGroup>
-                        </CommandList>
-                      </Command>
-                    </PopoverContent>
-                  </Popover>
+                {/* Selección de Batches */}
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" className="w-[200px] justify-between">
+                      {a.articles.length > 0
+                        ? `${a.articles.length} renglones selec...`
+                        : "Selec. renglón(es)..."}
+                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="p-0">
+                    <Command>
+                      <CommandInput placeholder="Buscar renglón..." />
+                      <CommandList>
+                        <CommandEmpty>No hay renglones disponibles.</CommandEmpty>
+                        <CommandGroup>
+                          <div className="flex justify-center m-2"><CreateBatchDialog /></div>
+                          {batches?.map(batch => (
+                            <CommandItem
+                              key={batch.id}
+                              value={batch.id.toString()}
+                              onSelect={() => handleBatchSelectForAircraft(a.aircraft_id, batch)}
+                            >
+                              <Check
+                                className={cn(
+                                  "mr-2 h-4 w-4",
+                                  a.articles.some(b => b.batch_id === batch.id.toString())
+                                    ? "opacity-100"
+                                    : "opacity-0"
+                                )}
+                              />
+                              {batch.name}
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
 
-                  {/* Artículos por Batch */}
-                  <div className="space-y-4">
-                    {a.articles.map(batch => (
-                      <div key={batch.batch} className="border p-3 rounded-md space-y-3 bg-gray-50">
+                {/* Artículos por Batch */}
+                <div className="space-y-4">
+                  {a.articles.map(batch => {
+                    const batchInfo = batches?.find(b => b.id.toString() === batch.batch_id);
+
+                    return (
+                      <div key={batch.batch_id} className="border p-3 rounded-md space-y-3 bg-gray-50">
                         <div className="flex justify-between items-center">
-                          <h4 className="font-medium">{batch.batch_name}</h4>
-                          <Button variant="ghost" size="sm" onClick={() => removeBatchFromAircraft(a.aircraft_id, batch.batch)} className="text-red-500">
+                          <h4 className="font-medium">{batchInfo?.name || "Lote sin nombre"}</h4>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => removeBatchFromAircraft(a.aircraft_id, batch.batch_id)}
+                            className="text-red-500"
+                          >
                             <MinusCircle className="mr-1" />Eliminar lote
                           </Button>
                         </div>
 
                         {batch.batch_articles.map((article, index) => (
-                          <div key={index} className="p-4 border rounded-md bg-white space-y-2">
+                          <div key={index} className="p-4 border rounded-md bg-white space-y-4">
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
 
                               <div className="flex flex-col justify-center gap-2">
                                 <Label>N° de Parte</Label>
-                                <Input placeholder="N° de parte" value={article.part_number} onChange={e => handleArticleChange(a.aircraft_id, batch.batch, index, "part_number", e.target.value)} />
+                                <Input
+                                  placeholder="N° de parte"
+                                  value={article.part_number}
+                                  onChange={e =>
+                                    handleArticleChange(a.aircraft_id, batch.batch_id, index, "part_number", e.target.value)
+                                  }
+                                />
                               </div>
 
                               <div className="flex flex-col gap-2">
                                 <Label>N/P Alterno</Label>
-                                <Input placeholder="N/P Alterno" value={article.alt_part_number || ""} onChange={e => handleArticleChange(a.aircraft_id, batch.batch, index, "alt_part_number", e.target.value)} />
+                                <Input
+                                  placeholder="N/P Alterno"
+                                  value={article.alt_part_number || ""}
+                                  onChange={e =>
+                                    handleArticleChange(a.aircraft_id, batch.batch_id, index, "alt_part_number", e.target.value)
+                                  }
+                                />
                               </div>
 
                               <div className="flex flex-col gap-2">
                                 <Label>Manual</Label>
-                                <Input placeholder="Manual" value={article.manual} onChange={e => handleArticleChange(a.aircraft_id, batch.batch, index, "manual", e.target.value)} />
+                                <Input
+                                  placeholder="Manual"
+                                  value={article.manual}
+                                  onChange={e =>
+                                    handleArticleChange(a.aircraft_id, batch.batch_id, index, "manual", e.target.value)
+                                  }
+                                />
                               </div>
 
                               <div className="flex flex-col gap-2">
                                 <Label>Cod. de Referencia</Label>
-                                <Input placeholder="Código Referencia" value={article.reference_cod} onChange={e => handleArticleChange(a.aircraft_id, batch.batch, index, "reference_cod", e.target.value)} />
+                                <Input
+                                  placeholder="Código Referencia"
+                                  value={article.reference_cod}
+                                  onChange={e =>
+                                    handleArticleChange(a.aircraft_id, batch.batch_id, index, "reference_cod", e.target.value)
+                                  }
+                                />
                               </div>
                             </div>
 
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                              <Input placeholder="PMA" value={article.pma || ""} onChange={e => handleArticleChange(a.aircraft_id, batch.batch, index, "pma", e.target.value)} />
-                              <Select value={article.unit} onValueChange={v => handleArticleChange(a.aircraft_id, batch.batch, index, "unit", v)}>
-                                <SelectTrigger><SelectValue placeholder="Unidad Secundaria" /></SelectTrigger>
-                                <SelectContent>
-                                  {secondaryUnits?.map(u => <SelectItem key={u.id} value={u.id.toString()}>{u.secondary_unit}</SelectItem>)}
-                                </SelectContent>
-                              </Select>
-                              <Input type="number" placeholder="Cantidad" value={article.quantity} onChange={e => handleArticleChange(a.aircraft_id, batch.batch, index, "quantity", Number(e.target.value))} />
-                              <Input type="file" accept="image/*" onChange={e => handleArticleChange(a.aircraft_id, batch.batch, index, "image", e.target.files?.[0])} />
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+
+                              <div className="flex flex-col gap-2">
+                                <Label>PMA</Label>
+                                <Input
+                                  placeholder="PMA"
+                                  value={article.pma || ""}
+                                  onChange={e =>
+                                    handleArticleChange(a.aircraft_id, batch.batch_id, index, "pma", e.target.value)
+                                  }
+                                />
+                              </div>
+
+                              <div className="flex flex-col gap-2">
+                                <Label>Unidad</Label>
+                                <Select
+                                  value={article.unit}
+                                  onValueChange={v =>
+                                    handleArticleChange(a.aircraft_id, batch.batch_id, index, "unit", v)
+                                  }
+                                >
+                                  <SelectTrigger><SelectValue placeholder="Unidad Secundaria" /></SelectTrigger>
+                                  <SelectContent>
+                                    {secondaryUnits?.map(u => (
+                                      <SelectItem key={u.id} value={u.id.toString()}>
+                                        {u.secondary_unit}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </div>
+
+                              <div className="flex flex-col gap-2">
+                                <Label>Cantidad</Label>
+                                <Input
+                                  type="number"
+                                  placeholder="Cantidad"
+                                  value={article.quantity}
+                                  onChange={e =>
+                                    handleArticleChange(a.aircraft_id, batch.batch_id, index, "quantity", Number(e.target.value))
+                                  }
+                                />
+                              </div>
+
+                              <div className="flex flex-col gap-2">
+                                <Label>Imagen</Label>
+                                <Input
+                                  type="file"
+                                  accept="image/*"
+                                  onChange={e =>
+                                    handleArticleChange(a.aircraft_id, batch.batch_id, index, "image", e.target.files?.[0])
+                                  }
+                                />
+                              </div>
+                              <div className="flex flex-col gap-2 col-span-4">
+                                <Label>Observaciones</Label>
+                                <Textarea
+                                  onChange={e =>
+                                    handleArticleChange(a.aircraft_id, batch.batch_id, index, "observation", e.target.value)
+                                  }
+                                />
+                              </div>
                             </div>
+
                             <div className="flex justify-end space-x-2">
-                              <Button size="sm" variant="outline" onClick={() => removeArticle(a.aircraft_id, batch.batch, index)}>Eliminar artículo</Button>
-                              <Button size="sm" variant="outline" onClick={() => addArticle(a.aircraft_id, batch.batch)}>Agregar artículo</Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => removeArticle(a.aircraft_id, batch.batch_id, index)}
+                              >
+                                Eliminar artículo
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => addArticle(a.aircraft_id, batch.batch_id)}
+                              >
+                                Agregar artículo
+                              </Button>
                             </div>
                           </div>
                         ))}
                       </div>
-                    ))}
-                  </div>
+                    );
+                  })}
                 </div>
-              );
+              </div>
+            );
             })}
-
             <div className="flex justify-center">
               <Button type="submit" className="mt-4">Crear Solicitud</Button>
             </div>

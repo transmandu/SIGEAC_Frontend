@@ -147,15 +147,15 @@ const ShowSMSActivity = () => {
                     <div className="space-y-2">
                       <div>
                         <p className="text-sm text-gray-500 dark:text-gray-400">
-                          Hora:
+                          Hora de Inicio:
                         </p>
-                        <p>{activity.hour}</p>
+                        <p>{activity.start_time}</p>
                       </div>
                       <div>
                         <p className="text-sm text-gray-500 dark:text-gray-400">
-                          Duración:
+                          Hora Final:
                         </p>
-                        <p>{activity.duration || "N/A"}</p>
+                        <p>{activity.end_time || "N/A"}</p>
                       </div>
                       <div>
                         <p className="text-sm text-gray-500 dark:text-gray-400">

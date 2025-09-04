@@ -32,7 +32,7 @@ import {
   User2,
   Building2,
   Globe,
-  Cat,
+  Presentation,
   CalendarFold,
 } from "lucide-react";
 
@@ -110,7 +110,6 @@ export function getMenuList(
             "JEFE_ALMACEN",
             "JEFE_COMPRAS",
             "JEFE_SMS",
-            "JEFE_DESARROLLO",
             "JEFE_CONTADURIA",
             "JEFE_RRHH",
             "JEFE_OPERACIONES",
@@ -118,11 +117,18 @@ export function getMenuList(
             "JEFE_PLANIFICACION",
           ],
           active: pathname === `/${currentCompany?.slug}/general/cursos`,
-          icon: Cat,
+          icon: Presentation,
           submenus: [
             {
+              href: `/${currentCompany?.slug}/general/cursos/calendario`,
+              label: "Calendario",
+              active:
+                pathname ===
+                `/${currentCompany?.slug}/general/cursos/calendario`,
+            },
+            {
               href: `/${currentCompany?.slug}/general/cursos`,
-              label: "Lista de Cursos",
+              label: "Cursos",
               active: pathname === `/${currentCompany?.slug}/general/cursos`,
             },
             {
@@ -134,6 +140,39 @@ export function getMenuList(
             },
           ],
         },
+         {
+          href: `/${currentCompany?.slug}/general/reporte`,
+          label: "SMS Reportes",
+          active: pathname.includes(`/${currentCompany?.slug}/reporte`),
+          icon: ClipboardPen,
+          roles: [],
+          submenus: [
+            {
+              href: `/${currentCompany?.slug}/general/reporte/voluntario`,
+              label: "Voluntario",
+              roles: [],
+              active:
+                pathname ===
+                `/${currentCompany?.slug}/general/reporte/voluntario`,
+            },
+            {
+              href: `/${currentCompany?.slug}/general/reporte/obligatorio`,
+              label: "Obligatorio",
+              roles: [],
+              active:
+                pathname ===
+                `/${currentCompany?.slug}/general/reporte/obligatorio`,
+            },
+            {
+              href: `/${currentCompany?.slug}/general/reporte/codigos_qr`,
+              label: "Codigos QR",
+              roles: [],
+              active:
+                pathname ===
+                `/${currentCompany?.slug}/general/reporte/codigos_qr`,
+            },
+          ],
+        },
         {
           href: `/${currentCompany?.slug}/general/inventario`,
           label: "Inventario",
@@ -141,7 +180,21 @@ export function getMenuList(
             `/${currentCompany?.slug}/general/inventario`
           ),
           icon: PackageSearch,
-          roles: [],
+          roles: [
+            "SUPERUSER",
+            "JEFE_ALMACEN",
+            "ANALISTA_ALMACEN",
+            "ANALISTA_COMPRAS",
+            "ANALISTA_PLANIFICACION",
+            "JEFE_PLANIFICACION",
+            "JEFE_ALMACENAMIENTO",
+            "ANALISTA_ADMINISTRACION",
+            "RRHH_ADMINISTRACION",
+            "JEFE_ADMINISTRACION",
+            "CONTADOR_ADMINISTRACION",
+            "TESTER",
+            "ENGINEERING",
+          ],
           submenus: [],
         },
         {
@@ -151,7 +204,22 @@ export function getMenuList(
             `/${currentCompany?.slug}/general/requisiciones`
           ),
           icon: ScrollText,
-          roles: [],
+          roles: [
+            "SUPERUSER",
+            "JEFE_ALMACEN",
+            "ANALISTA_ALMACEN",
+            "ANALISTA_COMPRAS",
+            "ANALISTA_DESARROLLO",
+            "ANALISTA_PLANIFICACION",
+            "JEFE_PLANIFICACION",
+            "JEFE_ALMACENAMIENTO",
+            "ANALISTA_ADMINISTRACION",
+            "RRHH_ADMINISTRACION",
+            "JEFE_ADMINISTRACION",
+            "CONTADOR_ADMINISTRACION",
+            "TESTER",
+            "ENGINEERING",
+          ],
           submenus: [],
         },
       ],
@@ -490,8 +558,16 @@ export function getMenuList(
           roles: ["SUPERUSER"],
           submenus: [
             {
+              href: `/${currentCompany?.slug}/sms/planificacion/actividades/calendario`,
+              label: "Calendario Actividades",
+              roles: ["SUPERUSER"],
+              active:
+                pathname ===
+                `/${currentCompany?.slug}/planificacion/actividades/calendario`,
+            },
+            {
               href: `/${currentCompany?.slug}/sms/planificacion/actividades`,
-              label: "Actividades SMS",
+              label: "Actividades",
               roles: ["SUPERUSER"],
               active:
                 pathname ===
@@ -499,36 +575,11 @@ export function getMenuList(
             },
             {
               href: `/${currentCompany?.slug}/sms/planificacion/capacitacion_personal`,
-              label: "Capacitacion SMS",
+              label: "Capacitacion",
               roles: ["SUPERUSER"],
               active:
                 pathname ===
                 `/${currentCompany?.slug}/planificacion/capacitacion_personal`,
-            },
-          ],
-        },
-        {
-          href: `/${currentCompany?.slug}/sms`,
-          label: "Reportes",
-          active: pathname.includes(`/${currentCompany?.slug}/sms`),
-          icon: ClipboardPen,
-          roles: [],
-          submenus: [
-            {
-              href: `/${currentCompany?.slug}/sms/reportes/reportes_voluntarios/nuevo_reporte`,
-              label: "Reportes Voluntarios",
-              roles: [],
-              active:
-                pathname ===
-                `/${currentCompany?.slug}/sms/reportes/reportes_voluntarios/nuevo_reporte`,
-            },
-            {
-              href: `/${currentCompany?.slug}/sms/reportes/reportes_obligatorios/nuevo_reporte`,
-              label: "Reportes Obligatorios",
-              roles: [],
-              active:
-                pathname ===
-                `/${currentCompany?.slug}/sms/reportes/reportes_obligatorios/nuevo_reporte`,
             },
           ],
         },
@@ -577,7 +628,7 @@ export function getMenuList(
     },
     {
       groupLabel: "Carga Administrativa",
-      moduleValue: "administrative_load",
+      moduleValue: "warehouse",
       menus: [
         {
           href: "",
@@ -628,18 +679,18 @@ export function getMenuList(
           roles: ["ANALISTA_ALMACEN", "JEFE_ALMACEN", "SUPERUSER"],
           submenus: [
             {
-              href: `/${currentCompany?.slug}/almacen/solicitudes/pendiente`,
-              label: "Pendiente",
-              active:
-                pathname ===
-                `/${currentCompany?.slug}/almacen/solicitudes/pendiente`,
-            },
-            {
               href: `/${currentCompany?.slug}/almacen/solicitudes/salida`,
               label: "Salida",
               active:
                 pathname ===
                 `/${currentCompany?.slug}/almacen/solicitudes/salida`,
+            },
+            {
+              href: `/${currentCompany?.slug}/almacen/solicitudes/pendiente`,
+              label: "Pendiente",
+              active:
+                pathname ===
+                `/${currentCompany?.slug}/almacen/solicitudes/pendiente`,
             },
           ],
         },
@@ -821,7 +872,7 @@ export function getMenuList(
       groupLabel: "Ajustes",
       menus: [
         {
-          href: "/ajustes/empresas",
+          href: "/ajustes/globales",
           label: "Globales",
           active: pathname.includes("/ajustes/globales"),
           icon: Globe,
@@ -835,12 +886,12 @@ export function getMenuList(
             {
               href: "/ajustes/globales/fabricantes",
               label: "Fabricantes",
-              active: pathname === "/administracion/globales/fabricantes",
+              active: pathname === "/ajustes/globales/fabricantes",
             },
             {
               href: "/ajustes/globales/proveedores",
               label: "Proveedores",
-              active: pathname === "/administracion/globales/proveedores",
+              active: pathname === "/ajustes/globales/proveedores",
             },
             {
               href: "/ajustes/globales/clientes",
@@ -960,7 +1011,7 @@ export function getMenuList(
               active: pathname === "/sistema/empresas/departamentos",
             },
             {
-              href: "/sistema/empresas/departamentos",
+              href: "/sistema/empresas/almacenes",
               label: "Administrar Almacenes",
               active: pathname === "/sistema/empresas/almacenes",
             },

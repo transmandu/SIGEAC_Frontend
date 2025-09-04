@@ -122,7 +122,7 @@ export function CreateObligatoryReportForm({
       flight_number: z.string(),
       flight_origin: z
         .string()
-        .min(4, {
+        .min(3, {
           message: "El origen del vuelo debe tener al menos 3 caracteres.",
         })
         .max(4, {

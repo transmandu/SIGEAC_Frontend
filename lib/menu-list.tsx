@@ -714,7 +714,7 @@ export function getMenuList(
               },
               {
                 href: "/hangar74/general/requisiciones",
-                label: "Requisiciones",
+                label: "Solicitudes de Compra",
                 active: pathname.includes("/hangar74/general/requisiciones"),
                 icon: ScrollText,
                 roles: [],

@@ -36,17 +36,22 @@ export const MultiInputField = ({
           value={inputValue}
           onChange={(e) => setInputValue(e.target.value)}
           placeholder={placeholder}
-          onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addValue())} className='w-[300px]'
+          onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addValue())}
+          className="w-[300px] max-w-full"
         />
         <Button type="button" onClick={addValue}>
           Agregar
         </Button>
       </div>
 
-      <div className="grid grid-cols-3 gap-4 w-full">
+      {/* Aquí está el contenedor de los tags */}
+      <div className="flex flex-wrap gap-4 w-full">
         {values.map((value, index) => (
-          <div key={index} className="flex items-center gap-1 bg-gray-100 px-2 py-1 rounded">
-            <span>{value}</span>
+          <div
+            key={index}
+            className="flex items-center gap-1 bg-gray-100 px-2 py-1 rounded max-w-full min-w-[100px] truncate"
+          >
+            <span className="truncate">{value}</span>
             <button
               type="button"
               onClick={() => removeValue(index)}

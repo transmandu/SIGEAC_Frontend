@@ -6,7 +6,7 @@ const fetchToolBoxes = async (
   location_id: string | null,
   company?: string
 ): Promise<ToolBox[]> => {
-  const { data } = await axios.get(`/${company}/index-tool-box/${location_id}`);
+  const { data } = await axios.get(`/${company}/${location_id}/index-tool-box`);
   return data;
 };
 

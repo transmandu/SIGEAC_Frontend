@@ -139,7 +139,7 @@ export function AircraftExpensiveForm({ acronym, onClose }: FormProps) {
   } = useGetEmployeesByCompany(selectedCompany?.slug);
   const { data: cashes, isLoading: isCashesLoading } = useGetCash();
   const { data: bankaccounts, isLoading: isBankAccLoading } =
-    useGetBankAccounts(selectedCompany?.slug);
+    useGetBankAccounts();
   const { data: accounts, isLoading: isAccountLoading } = useGetAccountant();
   const { data: vendors, isLoading: isVendorLoading } = useGetVendors(
     selectedCompany?.slug

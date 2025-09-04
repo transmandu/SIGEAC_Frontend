@@ -2,36 +2,37 @@
 
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import LoadingPage from "@/components/misc/LoadingPage";
+import { useGetConditions } from "@/hooks/administracion/useGetConditions";
+import { useCompanyStore } from "@/stores/CompanyStore";
 import { columns } from "./columns";
 import { DataTable } from "./data-table";
-import { useGetVendors } from "@/hooks/general/proveedores/useGetVendors";
-import { useCompanyStore } from "@/stores/CompanyStore";
 
-const AdministrationVendor = () => {
-  const { selectedCompany } = useCompanyStore();
-  const { data, isLoading, isError } = useGetVendors(selectedCompany?.slug);
+
+const ClientsPage = () => {
+const {selectedCompany} = useCompanyStore();
+const { data, isLoading, isError } = useGetConditions(selectedCompany?.slug);
 
   if (isLoading) {
     return <LoadingPage />;
   }
 
   return (
-    <ContentLayout title="Empresa">
+    <ContentLayout title="Condiciones">
       {" "}
       <h1 className="text-5xl font-bold text-center mt-2">
-        Control de Proveedores/Beneficiarios
+        Control de Clientes
       </h1>
       <p className="text-sm text-muted-foreground text-center italic mt-2">
-        Aquí puede llevar el control de los proveedores y beneficiarios.
+        Aquí puede llevar el control de los clientes registrados.
       </p>
       {data && <DataTable columns={columns} data={data} />}
       {isError && (
         <p className="text-muted-foreground text-sm italic text-center">
-          Ha ocurrido un error al cargar los proveedores...
+          Ha ocurrido un error al cargar los clientes...
         </p>
       )}
     </ContentLayout>
   );
 };
 
-export default AdministrationVendor;
+export default ClientsPage;

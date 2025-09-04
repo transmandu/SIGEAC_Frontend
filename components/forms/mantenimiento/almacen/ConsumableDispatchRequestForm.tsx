@@ -128,7 +128,7 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
       mutate({location_id: Number(selectedStation), company: selectedCompany!.slug})
       employeeMutate({location_id: Number(selectedStation)})
     }
-  }, [selectedStation, selectedCompany, mutate])
+  }, [selectedStation, selectedCompany, mutate, employeeMutate])
 
   useEffect(() => {
     if (batches) {

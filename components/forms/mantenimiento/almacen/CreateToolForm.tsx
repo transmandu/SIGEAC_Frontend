@@ -173,7 +173,7 @@ const CreateToolForm = ({ initialData, isEditing }: {
               control={form.control}
               name="part_number"
               render={({ field }) => (
-                <FormItem className="w-full xl:w-1/3">
+                <FormItem className="w-full xl:w-1/3 min-w-0">
                   <FormLabel>Numero de Parte</FormLabel>
                   <FormControl>
                     <Input placeholder="EJ: 234ABAC" {...field} />
@@ -189,7 +189,7 @@ const CreateToolForm = ({ initialData, isEditing }: {
               control={form.control}
               name="alternative_part_number"
               render={({ field }) => (
-                <FormItem>
+                <FormItem className="w-full xl:w-2/3 min-w-0">
                   <FormLabel>Nro. de Parte Alternos</FormLabel>
                   <FormControl>
                     <MultiInputField

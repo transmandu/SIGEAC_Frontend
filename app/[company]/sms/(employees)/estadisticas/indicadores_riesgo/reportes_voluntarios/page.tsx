@@ -133,7 +133,7 @@ const VoluntaryReportIndicators = () => {
           </div>
 
           <div
-            className="flex flex-col justify-center items-center 
+            className="flex flex-col justify-center items-center
           p-4 rounded-lg shadow border"
           >
             {isLoadingBarChart && barChartData !== null ? (

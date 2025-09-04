@@ -57,39 +57,6 @@ export const columns: ColumnDef<Client>[] = [
     ),
   },
   {
-    accessorKey: "debt",
-    header: ({ column }) => (
-      <DataTableColumnHeader filter column={column} title="Saldo" />
-    ),
-    meta: { title: "Saldo" },
-    cell: ({ row }) => (
-      <div className="flex justify-center">
-        <Badge
-          className={cn(
-            "",
-            row.original.balance < 0 ? "bg-red-500" : "bg-green-500"
-          )}
-        >
-          {formatCurrency(row.original.balance)}
-        </Badge>
-      </div>
-    ),
-  },
-  {
-    accessorKey: "pay_credit_days",
-    header: ({ column }) => (
-      <DataTableColumnHeader filter column={column} title="Días de Crédito" />
-    ),
-    meta: { title: "Días de Crédito" },
-    cell: ({ row }) => (
-      <div className="flex justify-center">
-        <span className="text-muted-foreground italic">
-          {row.original.pay_credit_days}
-        </span>
-      </div>
-    ),
-  },
-  {
     id: "actions",
     cell: ({ row }) => {
       const client = row.original;

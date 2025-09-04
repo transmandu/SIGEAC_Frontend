@@ -370,12 +370,12 @@ export function AircraftInfoForm({ onNext, onBack, initialData }: AircraftInfoFo
               <FormItem>
                 <FormLabel>Horas de Vuelo</FormLabel>
                 <FormControl>
-                  <Input 
-                    type="number" 
-                    min="0" 
-                    step="1" 
-                    placeholder="Ej: 15000" 
-                    {...field} 
+                  <Input
+                    type="number"
+                    min="0"
+                    step="1"
+                    placeholder="Ej: 15000"
+                    {...field}
                     onKeyDown={(e) => {
                       // Prevenir números negativos y decimales
                       if (e.key === '-' || e.key === '.' || e.key === ',') {
@@ -398,12 +398,12 @@ export function AircraftInfoForm({ onNext, onBack, initialData }: AircraftInfoFo
               <FormItem>
                 <FormLabel>Ciclos</FormLabel>
                 <FormControl>
-                  <Input 
-                    type="number" 
-                    min="0" 
-                    step="1" 
-                    placeholder="Ej: 500" 
-                    {...field} 
+                  <Input
+                    type="number"
+                    min="0"
+                    step="1"
+                    placeholder="Ej: 500"
+                    {...field}
                     onKeyDown={(e) => {
                       // Prevenir números negativos y decimales
                       if (e.key === '-' || e.key === '.' || e.key === ',') {

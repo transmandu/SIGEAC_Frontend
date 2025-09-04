@@ -236,8 +236,8 @@ const CreateRequisitionPage = () => {
   return (
     <ContentLayout title='Requisición'>
       <div className='space-y-6'>
-        <h1 className='text-5xl font-bold text-center'>Crear Nueva Requisición</h1>
-        <p className='text-muted-foreground text-center italic'>Ingrese la información para crear una requisición de uno o múltiples artículos.</p>
+        <h1 className='text-5xl font-bold text-center'>Crear Nueva Sol. de Compra</h1>
+        <p className='text-muted-foreground text-center italic'>Ingrese la información para crear una sol. de compra de uno o múltiples artículos.</p>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col space-y-3">
             <div className='flex gap-2'>

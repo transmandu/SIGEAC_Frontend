@@ -26,10 +26,10 @@ const formSchema = z.object({
 
 interface FormProps {
   onClose: () => void;
-  dni: string;
+  id: string;
 }
 
-export default function AddClientBalanceForm({ onClose, dni }: FormProps) {
+export default function AddClientBalanceForm({ onClose, id }: FormProps) {
   const { selectedCompany } = useCompanyStore();
   const { updateBalance } = useUpdateBalance();
   const form = useForm<z.infer<typeof formSchema>>({
@@ -42,7 +42,7 @@ export default function AddClientBalanceForm({ onClose, dni }: FormProps) {
 
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
     updateBalance.mutate(
-      { dni, data, company: selectedCompany!.slug },
+      { id, data, company: selectedCompany!.slug },
       {
         onSuccess: () => onClose(), // Cierra solo si la mutación tiene éxito
         onError: (error) => console.log(error), // Manejo de errores

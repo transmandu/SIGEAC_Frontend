@@ -5,6 +5,7 @@ import { useGetWarehouses } from '@/hooks/administracion/useGetWarehouses';
 import { Loader2 } from 'lucide-react';
 import { columns } from './columns';
 import { DataTable } from './data-table';
+import { useCompanyStore } from '@/stores/CompanyStore';
 
 const AlmacenesPage = () => {
   const { data: warehouses, isLoading, error } = useGetWarehouses();

@@ -44,12 +44,12 @@ const ClientDropdownActions = ({ client }: { client: Client }) => {
 
   const handleViewStats = () => {
     router.push(
-      `/transmandu/administracion/gestion_general/clientes/${client.dni}`
+      `/ajustes/globales/clientes/${client.dni}`
     );
   };
 
-  const handleDelete = (dni: string) => {
-    deleteClient.mutate({dni, company: selectedCompany!.slug}, {
+  const handleDelete = (id: string) => {
+    deleteClient.mutate({id: client.id.toString(), company: selectedCompany!.slug}, {
       onSuccess: () => setOpenDelete(false), // Cierra el modal solo si la eliminación fue exitosa
     });
   };
@@ -260,7 +260,7 @@ const ClientDropdownActions = ({ client }: { client: Client }) => {
             <DialogTitle>Registrar Saldo a Favor</DialogTitle>
           </DialogHeader>
           <AddClientBalanceForm
-            dni={client.dni.toString()}
+            id={client.id.toString()}
             onClose={() => setOpenAddBalance(false)}
           />
         </DialogContent>

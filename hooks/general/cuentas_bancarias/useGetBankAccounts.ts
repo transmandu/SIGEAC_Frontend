@@ -7,10 +7,9 @@ const fetchBankAccounts = async (): Promise<BankAccount[]> => {
   return data;
 };
 
-export const useGetBankAccounts = (company?: string) => {
+export const useGetBankAccounts = () => {
   return useQuery<BankAccount[]>({
-    queryKey: ["bank-accounts", company],
+    queryKey: ["bank-accounts"],
     queryFn: fetchBankAccounts,
-    enabled: !!company,
   });
 };

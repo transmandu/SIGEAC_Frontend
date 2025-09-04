@@ -203,7 +203,7 @@ const CreateConsumableForm = ({
   useEffect(() => {
     if (selectedStation) {
       mutate({location_id: Number(selectedStation), company: selectedCompany!.slug})
-    } 
+    }
   }, [selectedStation, selectedCompany, mutate]);
 
   useEffect(() => {

@@ -162,7 +162,7 @@ const NonServiceWorkOrderForm = () => {
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           <div className='flex gap-6 items-center justify-center w-full'>
             <div className='w-full grid grid-cols-1 md:grid-cols-2 gap-2'>
-              <FormField 
+              <FormField
                 control={form.control}
                 name="aircraft_id"
                 render={({ field }) => (

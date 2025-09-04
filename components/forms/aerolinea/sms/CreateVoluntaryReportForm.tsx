@@ -59,8 +59,7 @@ export function CreateVoluntaryReportForm({
   isEditing,
   initialData,
 }: FormProps) {
-  console.log("initial data thattt ", initialData);
-  const { selectedCompany, selectedStation } = useCompanyStore();
+  const { selectedCompany } = useCompanyStore();
   const { createVoluntaryReport } = useCreateVoluntaryReport();
   const { updateVoluntaryReport } = useUpdateVoluntaryReport();
   const [isAnonymous, setIsAnonymous] = useState(true);
@@ -188,11 +187,11 @@ export function CreateVoluntaryReportForm({
       description: initialData?.description || "",
       possible_consequences: initialData?.possible_consequences || "",
       airport_location: initialData?.airport_location || "",
-      
+
       identification_date: initialData?.identification_date
         ? addDays(new Date(initialData.identification_date), 1)
         : new Date(),
-      
+
       report_date: initialData?.report_date
         ? addDays(new Date(initialData.report_date), 1)
         : new Date(),
@@ -214,6 +213,7 @@ export function CreateVoluntaryReportForm({
   });
 
   const onSubmit = async (data: FormSchemaType) => {
+
     if (isAnonymous) {
       data.reporter_name = "";
       data.reporter_last_name = "";
@@ -229,7 +229,6 @@ export function CreateVoluntaryReportForm({
           ...data,
           status: initialData.status,
           danger_identification_id: initialData?.danger_identification_id,
-          location_id: selectedStation,
         },
       };
       await updateVoluntaryReport.mutateAsync(value);
@@ -238,10 +237,10 @@ export function CreateVoluntaryReportForm({
         company: selectedCompany!.slug,
         reportData: {
           ...data,
-          location_id: selectedStation,
           status: shouldEnableField ? "ABIERTO" : "PROCESO",
         },
       };
+      console.log("THIS IS DATA SENT", value);
       try {
         const response = await createVoluntaryReport.mutateAsync(value);
         if (shouldEnableField) {
@@ -419,6 +418,7 @@ export function CreateVoluntaryReportForm({
               </FormItem>
             )}
           />
+
           <FormField
             control={form.control}
             name="danger_area"

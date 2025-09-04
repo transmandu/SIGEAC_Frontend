@@ -11,7 +11,7 @@ export const useCreateCompany = () => {
         onSuccess: () => {
             queryCategory.invalidateQueries({queryKey: ['companies']})
             toast("¡Creado!", {
-                description: `¡La empresa se ha creado correctamente!`
+                description: `¡La empresa ha creada correctamente!`
             })
           },
         onError: (error) => {

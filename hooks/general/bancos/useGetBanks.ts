@@ -2,15 +2,14 @@ import axios from "@/lib/axios";
 import { Bank } from "@/types";
 import { useQuery } from "@tanstack/react-query";
 
-const fetchBanks = async (company?: string): Promise<Bank[]> => {
-  const { data } = await axios.get(`/${company}/banks`);
+const fetchBanks = async (): Promise<Bank[]> => {
+  const { data } = await axios.get(`/banks`);
   return data;
 };
 
-export const useGetBanks = (company?: string) => {
+export const useGetBanks = () => {
   return useQuery<Bank[]>({
-    queryKey: ["banks",company],
-    queryFn: () => fetchBanks(company),
-    enabled: !!company,
+    queryKey: ["banks"],
+    queryFn: fetchBanks,
   });
 };

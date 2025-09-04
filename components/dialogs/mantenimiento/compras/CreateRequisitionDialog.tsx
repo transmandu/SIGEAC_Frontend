@@ -23,13 +23,13 @@ export function CreateRequisitionDialog() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button onClick={() => setOpen(true)} variant={'outline'} className="flex items-center justify-center gap-2 h-8 border-dashed">Nueva Req.</Button>
+        <Button onClick={() => setOpen(true)} variant={'outline'} className="flex items-center justify-center gap-2 h-8 border-dashed">Nueva Solicitud</Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[680px]">
         <DialogHeader>
-          <DialogTitle>Creación de Requisición</DialogTitle>
+          <DialogTitle>Creación de Sol. de Compra</DialogTitle>
           <DialogDescription>
-            Genere una requisición mediante el siguiente formulario
+            Genere una solicitud de compra mediante el siguiente formulario
           </DialogDescription>
         </DialogHeader>
         {

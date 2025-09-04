@@ -2,10 +2,10 @@
 
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import { useGetCards } from "@/hooks/general/tarjetas/useGetCards";
+import { useCompanyStore } from "@/stores/CompanyStore";
 import { Loader2 } from "lucide-react";
 import { columns } from "./columns";
 import { DataTable } from "./data-table";
-import { useCompanyStore } from "@/stores/CompanyStore";
 
 const BankAccountsPage = () => {
   const { selectedCompany } = useCompanyStore();
