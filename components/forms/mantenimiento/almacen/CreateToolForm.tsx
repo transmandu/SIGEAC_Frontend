@@ -115,7 +115,7 @@ const CreateToolForm = ({ initialData, isEditing }: {
   useEffect(() => {
     if (batches) {
       // Filtrar los batches por categoría
-      const filtered = batches.filter((batch) => batch.category === "HERRAMIENTA");
+      const filtered = batches.filter((batch) => batch.category === "herramienta");
       setFilteredBatches(filtered);
     }
   }, [batches]);

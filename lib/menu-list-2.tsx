@@ -731,6 +731,16 @@ export function getMenuList(
           icon: Wrench,
           submenus: [],
         },
+        {
+          href: `/${currentCompany?.slug}/almacen/gestion_cantidades`,
+          label: "Gestión de Cantidades",
+          roles: ["JEFE_ALMACEN", "SUPERUSER"],
+          active: pathname.includes(
+            `/${currentCompany?.slug}/almacen/gestion_cantidades`
+          ),
+          icon: Wrench,
+          submenus: [],
+        },
       ],
     },
     {
