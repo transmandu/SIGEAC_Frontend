@@ -13,15 +13,13 @@ export const useUpdateArticleQuantities = () => {
   const updateQuantitiesMutation = useMutation({
     mutationKey: ["update-article-quantities"],
     mutationFn: async ({ 
-      company,
-      location_id, 
+      company, 
       quantities 
     }: { 
       quantities: IUpdateQuantityData[];
       company: string;
-      location_id: string;
     }) => {
-      await axiosInstance.patch(`/${company}/${location_id}/update-article-quantities`, {
+      await axiosInstance.patch(`/${company}/update-article-quantities`, {
         quantities,
       });
     },

@@ -20,6 +20,7 @@ export const useCreateArticle = () => {
           },
         onSuccess: () => {
             queryClient.invalidateQueries({queryKey: ['articles']})
+            queryClient.invalidateQueries({queryKey: ['warehouse-articles']})
             toast.success("¡Creado!", {
                 description: `El articulo ha sido creado correctamente.`
             })
@@ -53,6 +54,7 @@ export const useCreateDirectArticle = () => {
         },
       onSuccess: () => {
           queryClient.invalidateQueries({queryKey: ['articles']})
+          queryClient.invalidateQueries({queryKey: ['warehouse-articles']})
           toast.success("¡Creado!", {
               description: `El articulo ha sido creado correctamente.`
           })
@@ -80,6 +82,7 @@ export const useDeleteArticle = () => {
         },
       onSuccess: () => {
           queryClient.invalidateQueries({queryKey: ['articles']})
+          // queryClient.invalidateQueries({queryKey: ['warehouse-articles']})
           toast.success("¡Eliminado!", {
               description: `¡El articulo ha sido eliminado correctamente!`
           })
@@ -113,6 +116,7 @@ export const useUpdateArticleStatus = () => {
       onSuccess: () => {
           queryClient.invalidateQueries({queryKey: ['in-transit-articles']})
           queryClient.invalidateQueries({queryKey: ['in-reception-articles']})
+          queryClient.invalidateQueries({queryKey: ['warehouse-articles']})
           toast.success("¡Actualizado!", {
               description: `El articulo ha sido actualizado correctamente.`
           })
@@ -175,6 +179,7 @@ export const useConfirmIncomingArticle = () => {
           queryClient.invalidateQueries({queryKey: ['in-reception-articles']})
           queryClient.invalidateQueries({queryKey: ['articles']})
           queryClient.invalidateQueries({queryKey: ['batches']})
+          queryClient.invalidateQueries({queryKey: ['warehouse-articles']})
           toast.success("¡Actualizado!", {
               description: `El articulo ha sido actualizado correctamente.`
           })

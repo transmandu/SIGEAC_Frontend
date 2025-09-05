@@ -14,6 +14,7 @@ export const useCreateArticle = () => {
           },
         onSuccess: () => {
             queryClient.invalidateQueries({queryKey: ['articles']})
+            queryClient.invalidateQueries({queryKey: ['warehouse-articles']})
             toast.success("¡Creado!", {
                 description: `El articulo ha sido creado correctamente.`
             })

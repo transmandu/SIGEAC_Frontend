@@ -125,7 +125,6 @@ const GestionCantidadesPage = () => {
         new_quantity: quantity
       })),
       company: selectedCompany!.slug,
-      location_id: selectedStation!
     };
     
     console.log("requestPayload", requestPayload);
@@ -398,6 +397,7 @@ const GestionCantidadesPage = () => {
                     key={article.id}
                     article={article}
                     quantity={quantities[article.id] || 0}
+                    meditionUnit={batch.medition_unit}
                     onQuantityChange={handleQuantityChange}
                   />
                 ))}

@@ -8,12 +8,14 @@ export type Article = IWarehouseArticle['articles'][0];
 interface ArticleRowProps {
   article: Article;
   quantity: number;
+  meditionUnit: string;
   onQuantityChange: (articleId: number, newQuantity: string) => void;
 }
 // Componente memozado para artículos individuales
 export const ArticleRow = React.memo(({ 
   article, 
   quantity,
+  meditionUnit,
   onQuantityChange 
 }: ArticleRowProps) => (
   <div className='grid grid-cols-1 md:grid-cols-3 gap-3 p-3 border rounded-lg bg-card hover:bg-muted/50 transition-colors'>
@@ -43,7 +45,7 @@ export const ArticleRow = React.memo(({
           {article.quantity || 0}
         </div>
         <div className='text-xs text-muted-foreground'>
-          Unidades
+          {meditionUnit.charAt(0).toUpperCase() + meditionUnit.slice(1).toLowerCase()}
         </div>
       </div>
     </div>
@@ -65,7 +67,7 @@ export const ArticleRow = React.memo(({
         placeholder='0'
       />
       <div className='text-xs text-muted-foreground text-center mt-0.5'>
-        Unidades
+        {meditionUnit.charAt(0).toUpperCase() + meditionUnit.slice(1).toLowerCase()}
       </div>
     </div>
   </div>
