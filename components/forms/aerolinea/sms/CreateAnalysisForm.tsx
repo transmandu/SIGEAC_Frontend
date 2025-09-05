@@ -139,7 +139,7 @@ export default function CreateAnalysisForm({
         try {
           await createAnalysis.mutateAsync(values);
           router.push(
-            `/${selectedCompany}/sms/gestion_reportes/planes_de_mitigacion`
+            `/${selectedCompany?.slug}/sms/gestion_reportes/planes_de_mitigacion`
           );
         } catch (error) {
           console.error("Error al crear el análisis:", error);

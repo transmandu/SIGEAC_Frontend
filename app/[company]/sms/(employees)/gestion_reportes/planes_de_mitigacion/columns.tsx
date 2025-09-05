@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -17,6 +18,7 @@ import Link from "next/link";
 import { Card } from "@/components/ui/card";
 import { getResult } from "@/lib/utils";
 import { useCompanyStore } from "@/stores/CompanyStore";
+import { formatDate } from "date-fns";
 
 // Componente para mostrar las medidas de mitigación (responsive)
 const MeasuresCell = ({
@@ -55,35 +57,55 @@ const MeasuresCell = ({
             <DialogTitle className="text-lg font-semibold">
               Medidas de Mitigación
             </DialogTitle>
+            <DialogDescription>
+              Una lista de las medidas asociadas a este plan de mitigación.
+            </DialogDescription>
           </DialogHeader>
 
-          <Card className="p-4">
+          <Card className="p-4 rounded-lg shadow-sm transition-shadow hover:shadow-md">
             {measures.length > 0 ? (
-              <ol className="space-y-2 max-h-[60vh] overflow-y-auto pr-2">
+              <ol className="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
                 {measures.map((measure, index) => (
-                  <li key={measure.id} className="flex items-start">
-                    <span className="mr-2 font-medium text-primary shrink-0">
+                  <li
+                    key={measure.id}
+                    className="flex items-start p-3 bg-gray-50 dark:bg-gray-800 rounded-md transition-transform transform hover:scale-[1.01] hover:shadow-sm"
+                  >
+                    <span className="mr-3 mt-1 font-medium text-blue-600 dark:text-blue-400 shrink-0 text-base">
                       {index + 1}.
                     </span>
-                    <span className="text-sm break-words">
-                      {measure.description}
-                    </span>
+                    <div className="flex flex-col text-sm text-gray-700 dark:text-gray-300 break-words leading-relaxed">
+                      {/* Descripción en una sola línea */}
+                      <div className="flex items-start">
+                        <p className="font-bold mr-1">Descripción:</p>
+                        <span>{measure.description}</span>
+                      </div>
+
+                      {/* Fecha en una sola línea */}
+                      <div className="flex items-start">
+                        <p className="font-bold mr-1">Fecha Estimada:</p>
+                        <span>{formatDate(measure.estimated_date, "P")}</span>
+                      </div>
+                    </div>
                   </li>
                 ))}
               </ol>
             ) : (
-              <p className="text-muted-foreground">
-                No hay medidas asociadas a este plan de mitigación
+              <p className="text-center text-gray-400 dark:text-gray-500 py-8">
+                No hay medidas asociadas a este plan de mitigación.
               </p>
             )}
 
             {measures.length > 0 && planId && (
-              <div className="mt-4 flex justify-end">
+              <div className="mt-6 flex justify-end">
                 <Link
                   href={`/${selectedCompany?.slug}/sms/gestion_reportes/planes_de_mitigacion/${planId}/medidas`}
                   passHref
                 >
-                  <Button variant="default" size="sm">
+                  <Button
+                    variant="default"
+                    size="sm"
+                    className="transition-colors duration-200"
+                  >
                     Ver todas las medidas
                   </Button>
                 </Link>
@@ -217,19 +239,9 @@ export const columns: ColumnDef<MitigationTable>[] = [
     id: "actions",
     cell: ({ row }) => {
       const mitigationTable = row.original;
-      const shouldShowActions =
-        (mitigationTable.voluntary_report &&
-          mitigationTable.voluntary_report.status !== "CERRADO") ||
-        (mitigationTable.obligatory_report &&
-          mitigationTable.obligatory_report.status !== "CERRADO");
-
-      return shouldShowActions ? (
-        <div className="flex justify-center">
-          <MitigationTableDropdownActions mitigationTable={mitigationTable} />
-        </div>
-      ) : null;
+      return (
+        <MitigationTableDropdownActions mitigationTable={mitigationTable} />
+      );
     },
-    size: 60,
-    minSize: 50,
   },
 ];

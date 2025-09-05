@@ -238,7 +238,7 @@ export function CreateGeneralVoluntaryReportForm({
           Reporte Voluntario de Peligro
         </FormLabel>
 
-        <div className="flex gap-2 items-center justify-center  ">
+        <div className="flex flex-col sm:flex-row gap-2 items-center justify-center  ">
           <FormField
             control={form.control}
             name="identification_date"
@@ -271,9 +271,8 @@ export function CreateGeneralVoluntaryReportForm({
                       mode="single"
                       selected={field.value}
                       onSelect={field.onChange}
-                      disabled={(date) => date > new Date()} // Solo deshabilitar fechas futuras
                       initialFocus
-                      fromYear={1980} // Año mínimo que se mostrará
+                      fromYear={2000} // Año mínimo que se mostrará
                       toYear={new Date().getFullYear()} // Año máximo (actual)
                       captionLayout="dropdown-buttons" // Selectores de año/mes
                       components={{
@@ -325,9 +324,8 @@ export function CreateGeneralVoluntaryReportForm({
                       mode="single"
                       selected={field.value}
                       onSelect={field.onChange}
-                      disabled={(date) => date > new Date()} // Solo deshabilitar fechas futuras
                       initialFocus
-                      fromYear={1980} // Año mínimo que se mostrará
+                      fromYear={2000} // Año mínimo que se mostrará
                       toYear={new Date().getFullYear()} // Año máximo (actual)
                       captionLayout="dropdown-buttons" // Selectores de año/mes
                       components={{

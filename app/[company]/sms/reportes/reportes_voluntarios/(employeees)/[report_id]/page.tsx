@@ -348,62 +348,22 @@ const ShowVoluntaryReport = () => {
             </Dialog>
           )}
 
-          {voluntaryReport?.document && (
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button
-                  variant="outline"
-                  className="w-full flex items-center gap-2"
-                >
-                  <File className="w-4 h-4" />
-                  Ver Documento Adjunto
-                </Button>
-              </DialogTrigger>
-
-              <DialogContent className="max-w-7xl h-[90vh] flex flex-col">
-                <DialogHeader>
-                  <DialogTitle className="flex items-center gap-2">
-                    <File className="w-5 h-5" />
-                    Documento Adjunto
-                  </DialogTitle>
-                </DialogHeader>
-
-                <div className="flex-1 overflow-hidden">
-                  <div className="flex flex-col items-center gap-4 w-full h-full">
-                    <div className="w-full flex justify-end">
-                      <a
-                        href={
-                          voluntaryReport.document.startsWith(
-                            "data:application/pdf"
-                          )
-                            ? voluntaryReport.document
-                            : `data:application/pdf;base64,${voluntaryReport.document}`
-                        }
-                        download="reporte-voluntario.pdf"
-                        className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700"
-                      >
-                        Descargar PDF
-                      </a>
-                    </div>
-
-                    <iframe
-                      src={
-                        voluntaryReport.document.startsWith(
-                          "data:application/pdf"
-                        )
-                          ? voluntaryReport.document
-                          : `data:application/pdf;base64,${voluntaryReport.document}`
-                      }
-                      width="100%"
-                      height="100%"
-                      className="border rounded-md flex-1"
-                      title="Documento PDF"
-                    />
-                  </div>
-                </div>
-              </DialogContent>
-            </Dialog>
-          )}
+          <div className="flex justify-center items-center">
+            {voluntaryReport?.document && (
+              <a
+                href={
+                  voluntaryReport.document.startsWith("data:application/pdf")
+                    ? voluntaryReport.document
+                    : `data:application/pdf;base64,${voluntaryReport.document}`
+                }
+                download="reporte-voluntario.pdf"
+                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700"
+              >
+                <File className="w-4 h-4" />
+                Descargar Documento Adjunto
+              </a>
+            )}
+          </div>
         </div>
 
         {isError && (

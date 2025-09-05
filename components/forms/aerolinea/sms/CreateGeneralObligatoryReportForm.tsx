@@ -318,7 +318,7 @@ export function CreateGeneralObligatoryReportForm({
             )}
           />
         </div>
-        <div className="flex gap-2 items-center justify-center">
+        <div className="flex flex-col sm:flex-row gap-2 items-center justify-center">
           <FormField
             control={form.control}
             name="incident_date"
@@ -351,7 +351,6 @@ export function CreateGeneralObligatoryReportForm({
                       mode="single"
                       selected={field.value}
                       onSelect={field.onChange}
-                      disabled={(date) => date > new Date()} // Solo deshabilitar fechas futuras
                       initialFocus
                       fromYear={1980} // Año mínimo que se mostrará
                       toYear={new Date().getFullYear()} // Año máximo (actual)
@@ -405,7 +404,7 @@ export function CreateGeneralObligatoryReportForm({
                       mode="single"
                       selected={field.value}
                       onSelect={field.onChange}
-                      disabled={(date) => date > new Date()} // Solo deshabilitar fechas futuras
+
                       initialFocus
                       fromYear={1980} // Año mínimo que se mostrará
                       toYear={new Date().getFullYear()} // Año máximo (actual)
@@ -429,7 +428,7 @@ export function CreateGeneralObligatoryReportForm({
           />
         </div>
 
-        <div className="flex gap-2 justify-center items-center">
+        <div className="flex flex-col sm:flex-row gap-2 justify-center items-center">
           <FormField
             control={form.control}
             name="pilot_id"
@@ -543,7 +542,7 @@ export function CreateGeneralObligatoryReportForm({
             )}
           />
         </div>
-        <div className="flex gap-4 justify-center items-center">
+        <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
           <FormField
             control={form.control}
             name="flight_time"
@@ -613,7 +612,7 @@ export function CreateGeneralObligatoryReportForm({
           />
         </div>
 
-        <div className="grid grid-cols-3 gap-4 justify-center items-center">
+        <div className="grid grid-cols-1  sm:grid-cols-3 gap-4 justify-center items-center">
           <FormField
             control={form.control}
             name="flight_origin"

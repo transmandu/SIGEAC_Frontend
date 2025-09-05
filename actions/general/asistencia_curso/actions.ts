@@ -63,16 +63,17 @@ export const useMarkAttendance = () => {
         employees_list
       );
     },
-    onSuccess: () => {
+    onSuccess: (course_id) => {
       queryClient.invalidateQueries({ queryKey: ["department-courses"] });
-      queryClient.invalidateQueries({ queryKey: ["employees-course"] });
+      queryClient.invalidateQueries({ queryKey: ["employees-course",course_id] });
+      queryClient.invalidateQueries({ queryKey: ["sms-training"] });
       toast.success("¡Actualizado!", {
-        description: `El analisis ha sido actualizada correctamente.`,
+        description: `La asistancia ha sido actualizada correctamente.`,
       });
     },
     onError: (error) => {
       toast.error("Oops!", {
-        description: "No se pudo actualizar el analisis...",
+        description: "No se pudo actualizar la asistencia...",
       });
       console.log(error);
     },

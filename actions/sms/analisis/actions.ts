@@ -39,7 +39,7 @@ export const useCreateAnalysis = () => {
       queryClient.invalidateQueries({ queryKey: ["analysis"] });
       queryClient.invalidateQueries({ queryKey: ["danger-identifications"] });
       queryClient.invalidateQueries({
-        queryKey: ["danger-identification-by-id"],
+        queryKey: ["danger-identification"],
       });
       toast.success("¡Creado!", {
         description: ` El análisis ha sido creado correctamente.`,

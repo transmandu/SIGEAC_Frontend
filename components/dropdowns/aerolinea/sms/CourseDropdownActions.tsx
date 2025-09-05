@@ -112,14 +112,14 @@ const CourseDropdownActions = ({ course }: { course: Course }) => {
               <p className="pl-2">Ver</p>
             </DropdownMenuItem>
 
-            {CourseDate >= realNow && course.status !== "CERRADO" && (
+            {CourseDate <= realNow && course.status === "ABIERTO" && (
               <DropdownMenuItem onClick={() => setOpenAdd(true)}>
                 <Plus className="size-5" />
                 <p className="pl-2">Agregar personas</p>
               </DropdownMenuItem>
             )}
 
-            {CourseDate <= realNow && course.status !== "CERRADO" && (
+            {CourseDate <= realNow && course.status === "ABIERTO" && (
               <DropdownMenuItem onClick={() => setOpenAttendance(true)}>
                 <UserCheck className="size-5" />
                 <p className="pl-2">Asistencia</p>
