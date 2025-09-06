@@ -7,7 +7,7 @@ const fetchWorkOrderEmployees = async (company: string): Promise<Employee[]> => 
     throw new Error('Company is required');
   }
   
-  console.log(`Fetching employees for company: ${company}`);
+  // console.log(`Fetching employees for company: ${company}`);
   const { data } = await axiosInstance.get(`/${company}/employees`);
   return data;
 };
@@ -15,7 +15,7 @@ const fetchWorkOrderEmployees = async (company: string): Promise<Employee[]> => 
 export const useGetWorkOrderEmployees = (company?: string) => {
   const isEnabled = !!company;
   
-  console.log(`useGetWorkOrderEmployees - company: ${company}, enabled: ${isEnabled}`);
+  // console.log(`useGetWorkOrderEmployees - company: ${company}, enabled: ${isEnabled}`);
   
   return useQuery<Employee[]>({
     queryKey: ['employees', company], // Cambiado para usar la misma key que otros hooks de empleados

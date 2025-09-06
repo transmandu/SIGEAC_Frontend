@@ -8,6 +8,7 @@ import { useAuth } from "@/contexts/AuthContext"
 import { useGetBatchesWithInWarehouseArticles } from "@/hooks/mantenimiento/almacen/renglones/useGetBatchesWithInWarehouseArticles"
 import { useGetWorkOrderEmployees } from "@/hooks/mantenimiento/planificacion/useGetWorkOrderEmployees"
 import { useGetWorkOrders } from "@/hooks/mantenimiento/planificacion/useGetWorkOrders"
+import { useGetDepartments } from "@/hooks/sistema/departamento/useGetDepartment"
 import { cn } from "@/lib/utils"
 import { useCompanyStore } from "@/stores/CompanyStore"
 import { Article, Batch } from "@/types"
@@ -81,6 +82,8 @@ export function ComponentDispatchForm({ onClose }: FormProps) {
 
   const { data: workOrders, isLoading } = useGetWorkOrders(selectedStation ?? null, selectedCompany?.slug);
 
+  const { data: departments, isLoading: isDepartmentsLoading } = useGetDepartments(selectedCompany?.slug);
+
   useEffect(() => {
     if (selectedStation) {
       mutate({location_id: Number(selectedStation), company: selectedCompany!.slug})
@@ -100,7 +103,7 @@ export function ComponentDispatchForm({ onClose }: FormProps) {
     defaultValues: {
       articles: [],
       justification: "",
-      requested_by: `${user?.first_name} ${user?.last_name}`,
+      requested_by: "",
       destination_place: "",
       status: "proceso",
     },
@@ -111,7 +114,7 @@ export function ComponentDispatchForm({ onClose }: FormProps) {
   const onSubmit = async (data: FormSchemaType) => {
     const formattedData = {
       ...data,
-      created_by: user?.first_name + " " + user?.last_name,
+      created_by: user!.employee[0].dni,
       submission_date: format(data.submission_date, "yyyy-MM-dd"),
       category: "componente",
     }
@@ -150,7 +153,7 @@ export function ComponentDispatchForm({ onClose }: FormProps) {
                     }
                     {
                       employees && employees.map((employee) => (
-                        <SelectItem key={employee.id} value={`${employee.first_name} ${employee.last_name}`}>{employee.first_name} {employee.last_name} - {employee.job_title.name}</SelectItem>
+                        <SelectItem key={employee.id} value={`${employee.dni}`}>{employee.first_name} {employee.last_name} - {employee.job_title.name}</SelectItem>
                       ))
                     }
                   </SelectContent>
@@ -259,9 +262,23 @@ export function ComponentDispatchForm({ onClose }: FormProps) {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Destino</FormLabel>
-                <FormControl>
-                  <Input className="w-[230px]" placeholder="Ej: Jefatura de Desarrollo, etc..." {...field} />
-                </FormControl>
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <FormControl>
+                    <SelectTrigger className="w-[230px]">
+                      <SelectValue placeholder="Seleccione..." />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {
+                      isDepartmentsLoading && <Loader2 className="size-4 animate-spin" />
+                    }
+                    {
+                      departments && departments.map((department) => (
+                        <SelectItem key={department.id} value={department.id.toString()}>{department.name}</SelectItem>
+                      ))
+                    }
+                  </SelectContent>
+                </Select>
                 <FormMessage />
               </FormItem>
             )}

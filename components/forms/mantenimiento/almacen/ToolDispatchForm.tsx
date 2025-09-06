@@ -6,6 +6,8 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input"
 import { useAuth } from "@/contexts/AuthContext"
 import { useGetBatchesWithInWarehouseArticles } from "@/hooks/mantenimiento/almacen/renglones/useGetBatchesWithInWarehouseArticles"
+import { useGetWorkOrderEmployees } from "@/hooks/mantenimiento/planificacion/useGetWorkOrderEmployees"
+import { useGetDepartments } from "@/hooks/sistema/departamento/useGetDepartment"
 import { cn } from "@/lib/utils"
 import { useCompanyStore } from "@/stores/CompanyStore"
 import { Article, Batch } from "@/types"
@@ -20,6 +22,13 @@ import { Calendar } from "../../../ui/calendar"
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "../../../ui/command"
 import { Popover, PopoverContent, PopoverTrigger } from "../../../ui/popover"
 import { Textarea } from "../../../ui/textarea"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 
 
 const FormSchema = z.object({
@@ -71,6 +80,10 @@ export function ToolDispatchForm({ onClose }: FormProps) {
 
   const { mutate, data: batches, isPending: isBatchesLoading, isError: batchesError } = useGetBatchesWithInWarehouseArticles();
 
+  const { data: employees, isLoading: employeesLoading, isError: employeesError } = useGetWorkOrderEmployees(selectedCompany?.slug);
+
+  const { data: departments, isLoading: isDepartmentsLoading } = useGetDepartments(selectedCompany?.slug);
+
   useEffect(() => {
     if (selectedStation) {
       mutate({location_id: Number(selectedStation), company: selectedCompany!.slug})
@@ -90,7 +103,7 @@ export function ToolDispatchForm({ onClose }: FormProps) {
     defaultValues: {
       articles: [],
       justification: "",
-      requested_by: `${user?.first_name} ${user?.last_name}`,
+      requested_by: "",
       destination_place: "",
       status: "proceso",
     },
@@ -101,7 +114,7 @@ export function ToolDispatchForm({ onClose }: FormProps) {
   const onSubmit = async (data: FormSchemaType) => {
     const formattedData = {
       ...data,
-      created_by: user?.first_name + " " + user?.last_name,
+      created_by: user!.employee[0].dni,
       submission_date: format(data.submission_date, "yyyy-MM-dd"),
       category: "herramienta",
       user_id: Number(user!.id)
@@ -122,10 +135,24 @@ export function ToolDispatchForm({ onClose }: FormProps) {
             name="requested_by"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Solicitante</FormLabel>
-                <FormControl>
-                  <Input className="w-[240px] disabled:opacity-85" defaultValue={`${user?.first_name} ${user?.last_name}`} disabled {...field} />
-                </FormControl>
+                <FormLabel>Recibe / MTTO</FormLabel>
+                <Select onValueChange={field.onChange}>
+                  <FormControl>
+                    <SelectTrigger className="w-[240px]">
+                      <SelectValue placeholder="Seleccione el responsable..." />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {
+                      employeesLoading && <Loader2 className="size-4 animate-spin" />
+                    }
+                    {
+                      employees && employees.map((employee) => (
+                        <SelectItem key={employee.id} value={`${employee.dni}`}>{employee.first_name} {employee.last_name} - {employee.job_title.name}</SelectItem>
+                      ))
+                    }
+                  </SelectContent>
+                </Select>
                 <FormMessage />
               </FormItem>
             )}
@@ -234,9 +261,23 @@ export function ToolDispatchForm({ onClose }: FormProps) {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Destino</FormLabel>
-                <FormControl>
-                  <Input className="w-[230px]" placeholder="Ej: Jefatura de Desarrollo, etc..." {...field} />
-                </FormControl>
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <FormControl>
+                    <SelectTrigger className="w-[230px]">
+                      <SelectValue placeholder="Seleccione..." />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {
+                      isDepartmentsLoading && <Loader2 className="size-4 animate-spin" />
+                    }
+                    {
+                      departments && departments.map((department) => (
+                        <SelectItem key={department.id} value={department.id.toString()}>{department.name}</SelectItem>
+                      ))
+                    }
+                  </SelectContent>
+                </Select>
                 <FormMessage />
               </FormItem>
             )}
