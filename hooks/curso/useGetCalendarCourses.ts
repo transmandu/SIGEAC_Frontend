@@ -8,6 +8,8 @@ interface calendarCourse {
   description: string;
   start: string;
   end: string;
+  course_type: string;
+  calendarId: string;
 }
 
 const fetchCourseForCalendar = async (
