@@ -54,7 +54,6 @@ const formSchema = z.object({
 
 const PendingDispatchRequestDropdownActions
   = ({ request }: { request: DispatchRequest }) => {
-console.log("request -----", request)
     const form = useForm<z.infer<typeof formSchema>>({
       resolver: zodResolver(formSchema),
       defaultValues: {
@@ -98,11 +97,7 @@ console.log("request -----", request)
         delivered_by: formattedData.delivered_by,
         company: selectedCompany!.slug
       });
-      console.log("Antes del if -----")
-      console.log("this is the  category", request.batch.category);
       if (request.batch.category !== 'herramienta' && (newQty < request.batch.min_quantity)) {
-        console.log("Dentro del if -----")
-        console.log("batch . agl", request.batch.articles[0])
         const reqData = {
           justification: `Restock por solicitud de salida de ${request.batch.name} - ${request.batch.articles[0].part_number}`,
           requested_by: `${user?.employee[0].dni}`,
@@ -123,7 +118,6 @@ console.log("request -----", request)
             }
           ]
         }
-        console.log('reqData -----', reqData)
         createRequisition.mutateAsync({data: reqData, company: selectedCompany!.slug})
       }
       setOpen(false)

@@ -114,7 +114,7 @@ export function ToolDispatchForm({ onClose }: FormProps) {
   const onSubmit = async (data: FormSchemaType) => {
     const formattedData = {
       ...data,
-      created_by: user!.employee[0].dni,
+      created_by: `${user?.employee[0].dni}`,
       submission_date: format(data.submission_date, "yyyy-MM-dd"),
       category: "herramienta",
       user_id: Number(user!.id)
