@@ -16,15 +16,15 @@ export interface IWarehouseArticle {
   }[];
 }
 
-const fetchAllWarehouseArticles = async (company?: string, location_id?: string): Promise<IWarehouseArticle[]> => {
-  const { data } = await axios.get(`/${company}/${location_id}/batches-with-articles-by-loc`);
+const fetchWarehouseConsumableArticles = async (company?: string, location_id?: string): Promise<IWarehouseArticle[]> => {
+  const { data } = await axios.get(`/${company}/${location_id}/batches-with-consumable-articles-by-location`);
   return data;
 };
 
-export const useGetAllWarehouseArticles = (company?: string, location_id?: string) => {
+export const useGetWarehouseConsumableArticles = (company?: string, location_id?: string) => {
   return useQuery<IWarehouseArticle[], Error>({
     queryKey: ["warehouse-articles", company, location_id],
-    queryFn: () => fetchAllWarehouseArticles(company, location_id),
+    queryFn: () => fetchWarehouseConsumableArticles(company, location_id),
     enabled: !!company && !!location_id,
   });
 };

@@ -7,10 +7,10 @@ export interface IUpdateQuantityData {
   new_quantity: number;
 }
 
-export const useUpdateArticleQuantities = () => {
+export const useUpdateConsumableArticleQuantities = () => {
   const queryClient = useQueryClient();
 
-  const updateQuantitiesMutation = useMutation({
+  const updateConsumableQuantitiesMutation = useMutation({
     mutationKey: ["update-article-quantities"],
     mutationFn: async ({ 
       company, 
@@ -19,7 +19,7 @@ export const useUpdateArticleQuantities = () => {
       quantities: IUpdateQuantityData[];
       company: string;
     }) => {
-      await axiosInstance.patch(`/${company}/update-article-quantities`, {
+      await axiosInstance.patch(`/${company}/update-consumable-article-quantities`, {
         quantities,
       });
     },
@@ -39,6 +39,6 @@ export const useUpdateArticleQuantities = () => {
   });
 
   return {
-    updateQuantities: updateQuantitiesMutation,
+    updateQuantities: updateConsumableQuantitiesMutation,
   };
 };
