@@ -50,7 +50,7 @@ export const useCreateCourseAttendance = () => {
   };
 };
 
-export const useMarkAttendance = () => {
+export const useMarkCourseAttendance = () => {
   const queryClient = useQueryClient();
   const markAttendanceMutation = useMutation({
     mutationFn: async ({
@@ -63,9 +63,11 @@ export const useMarkAttendance = () => {
         employees_list
       );
     },
-    onSuccess: (course_id) => {
+    onSuccess: (_, data) => {
       queryClient.invalidateQueries({ queryKey: ["department-courses"] });
-      queryClient.invalidateQueries({ queryKey: ["employees-course",course_id] });
+      queryClient.invalidateQueries({
+        queryKey: ["employees-course", data.course_id],
+      });
       queryClient.invalidateQueries({ queryKey: ["sms-training"] });
       toast.success("¡Actualizado!", {
         description: `La asistancia ha sido actualizada correctamente.`,
@@ -79,6 +81,6 @@ export const useMarkAttendance = () => {
     },
   });
   return {
-    markAttendance: markAttendanceMutation,
+    markCourseAttendance: markAttendanceMutation,
   };
 };

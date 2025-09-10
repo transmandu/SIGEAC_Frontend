@@ -6,7 +6,7 @@ const fetchSMSActivityById = async ({
   company,
   id,
 }: {
-  company: string | null;
+  company?: string;
   id: string;
 }) => {
   const { data } = await axiosInstance.get(`/${company}/sms/activities/${id}`);
@@ -17,7 +17,7 @@ export const useGetSMSActivityById = ({
   company,
   id,
 }: {
-  company: string | null;
+  company?: string;
   id: string;
 }) => {
   return useQuery<SMSActivity>({

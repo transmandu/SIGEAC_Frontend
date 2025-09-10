@@ -2,27 +2,7 @@ import {
   useDeleteCourse,
   useFinishCourse,
 } from "@/actions/general/cursos/actions";
-import { AddAttendanceForm } from "@/components/forms/AddAtendanceForm";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { useCompanyStore } from "@/stores/CompanyStore";
-import { Course } from "@/types";
-import {
-  ClipboardPenLine,
-  EyeIcon,
-  Loader2,
-  LockKeyholeOpen,
-  MoreHorizontal,
-  Plus,
-  Trash2,
-  UserCheck,
-} from "lucide-react";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { AddCourseAttendanceForm } from "@/components/forms/aerolinea/sms/AddCourseAtendanceForm";
 import { AddToCourseForm } from "@/components/forms/aerolinea/sms/AddToCourseForm";
 import { CreateCourseForm } from "@/components/forms/aerolinea/sms/CreateCourseForm";
 import { Button } from "@/components/ui/button";
@@ -35,7 +15,27 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { useCompanyStore } from "@/stores/CompanyStore";
+import { Course } from "@/types";
 import { startOfDay } from "date-fns";
+import {
+  ClipboardPenLine,
+  EyeIcon,
+  Loader2,
+  LockKeyholeOpen,
+  MoreHorizontal,
+  Plus,
+  Trash2,
+  UserCheck,
+} from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 const CourseDropdownActions = ({ course }: { course: Course }) => {
   const [open, setOpen] = useState<boolean>(false);
@@ -67,9 +67,6 @@ const CourseDropdownActions = ({ course }: { course: Course }) => {
 
   const realNow = startOfDay(new Date());
   const CourseDate = startOfDay(course.end_date);
-
-  // console.log("this is real now", realNow);
-  // console.log("this is courseDate : Date = new Date blablabla", CourseDate);
 
   return (
     <>
@@ -209,7 +206,7 @@ const CourseDropdownActions = ({ course }: { course: Course }) => {
               Asistencia de personas
             </DialogTitle>
             <DialogDescription className="text-center"></DialogDescription>
-            <AddAttendanceForm
+            <AddCourseAttendanceForm
               initialData={course}
               onClose={() => setOpenAttendance(false)}
             />

@@ -6,7 +6,7 @@ import { ContentLayout } from "@/components/layout/ContentLayout";
 const CreateSMSActivity = () => {
   return (
     <ContentLayout title="Creacion de Actividad SMS " >
-      <div className="flex flex-col justify-center items-center">
+      <div className="">
         <CreateSMSActivityForm
           onClose={() => false}
         ></CreateSMSActivityForm>

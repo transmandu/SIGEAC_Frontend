@@ -1,6 +1,6 @@
 "use client";
 
-import { useMarkAttendance } from "@/actions/general/asistencia_curso/actions";
+import { useMarkCourseAttendance } from "@/actions/general/asistencia_curso/actions";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -26,8 +26,12 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-} from "../ui/command";
-import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
+} from "@/components/ui/command";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 
 interface FormProps {
   onClose: () => void;
@@ -63,10 +67,10 @@ const FormSchema = z.object({
 
 type FormSchemaType = z.infer<typeof FormSchema>;
 
-export function AddAttendanceForm({ onClose, initialData }: FormProps) {
+export function AddCourseAttendanceForm({ onClose, initialData }: FormProps) {
   const [open, setOpen] = useState(false);
   const { selectedCompany } = useCompanyStore();
-  const { markAttendance } = useMarkAttendance();
+  const { markCourseAttendance } = useMarkCourseAttendance();
   const [employeeSelections, setEmployeeSelections] = useState<
     EmployeeSelection[]
   >([]);
@@ -160,7 +164,7 @@ export function AddAttendanceForm({ onClose, initialData }: FormProps) {
       },
     };
     try {
-      await markAttendance.mutateAsync(value);
+      await markCourseAttendance.mutateAsync(value);
     } catch (error) {
       console.error("Error en asistencia", error);
     }

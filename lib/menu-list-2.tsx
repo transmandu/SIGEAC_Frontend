@@ -3,37 +3,37 @@
 import { Company } from "@/types";
 import { format } from "date-fns";
 import {
-  LucideIcon,
-  LayoutGrid,
-  CreditCardIcon,
-  UserRoundCog,
-  PackageSearch,
-  ScrollText,
-  SquarePen,
-  ClipboardPen,
-  ShieldAlert,
   AreaChartIcon,
-  Activity,
-  ClipboardList,
-  HandCoins,
-  Receipt,
-  Landmark,
-  BookUser,
-  PackageOpen,
-  PlaneIcon,
-  PackagePlus,
-  ClipboardCopy,
-  Wrench,
-  Plane,
-  BookCheck,
-  Drill,
   Award,
   Blocks,
-  User2,
+  BookCheck,
+  BookUser,
   Building2,
-  Globe,
-  Presentation,
+  CalendarClock,
   CalendarFold,
+  ClipboardCopy,
+  ClipboardList,
+  ClipboardPen,
+  CreditCardIcon,
+  Drill,
+  Globe,
+  HandCoins,
+  Landmark,
+  LayoutGrid,
+  LucideIcon,
+  PackageOpen,
+  PackagePlus,
+  PackageSearch,
+  Plane,
+  PlaneIcon,
+  Presentation,
+  Receipt,
+  ScrollText,
+  ShieldAlert,
+  SquarePen,
+  User2,
+  UserRoundCog,
+  Wrench,
 } from "lucide-react";
 
 type Submenu = {
@@ -140,7 +140,7 @@ export function getMenuList(
             },
           ],
         },
-         {
+        {
           href: `/${currentCompany?.slug}/general/reporte`,
           label: "SMS Reportes",
           active: pathname.includes(`/${currentCompany?.slug}/reporte`),
@@ -550,17 +550,17 @@ export function getMenuList(
         },
         {
           href: "",
-          label: "Planificacion",
+          label: "Planificación",
           active: pathname.includes(
             `/${currentCompany?.slug}/sms/planificacion`
           ),
-          icon: Activity,
-          roles: ["SUPERUSER"],
+          icon: CalendarClock,
+          roles: ["SUPERUSER", "JEFE_SMS", "ANALISTA_SMS"],
           submenus: [
             {
               href: `/${currentCompany?.slug}/sms/planificacion/actividades/calendario`,
               label: "Calendario Actividades",
-              roles: ["SUPERUSER"],
+              roles: ["SUPERUSER", "JEFE_SMS", "ANALISTA_SMS"],
               active:
                 pathname ===
                 `/${currentCompany?.slug}/planificacion/actividades/calendario`,
@@ -568,15 +568,15 @@ export function getMenuList(
             {
               href: `/${currentCompany?.slug}/sms/planificacion/actividades`,
               label: "Actividades",
-              roles: ["SUPERUSER"],
+              roles: ["SUPERUSER", "JEFE_SMS", "ANALISTA_SMS"],
               active:
                 pathname ===
                 `/${currentCompany?.slug}/planificacion/actividades`,
             },
             {
               href: `/${currentCompany?.slug}/sms/planificacion/capacitacion_personal`,
-              label: "Capacitacion",
-              roles: ["SUPERUSER"],
+              label: "Capacitación",
+              roles: ["SUPERUSER", "JEFE_SMS", "ANALISTA_SMS"],
               active:
                 pathname ===
                 `/${currentCompany?.slug}/planificacion/capacitacion_personal`,

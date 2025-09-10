@@ -1,7 +1,6 @@
 "use client";
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import { Badge } from "@/components/ui/badge";
-import { useGetActivityEnrolledEmployees } from "@/hooks/sms/useGetEnrolledEmployees";
 import { useGetSMSActivityById } from "@/hooks/sms/useGetSMSActivityById";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { format } from "date-fns";
@@ -15,6 +14,7 @@ import {
   Users,
 } from "lucide-react";
 import { useParams } from "next/navigation";
+import { useGetSMSActivityEnrolledEmployees } from "@/hooks/sms/useGetSMSActivityEnrolledEmployees";
 
 const ShowSMSActivity = () => {
   const { selectedCompany } = useCompanyStore();
@@ -24,14 +24,17 @@ const ShowSMSActivity = () => {
     data: activity,
     isLoading: isActivityLoading,
     isError: activityError,
-  } = useGetSMSActivityById({ company: selectedCompany!.slug, id: activity_id });
+  } = useGetSMSActivityById({
+    company: selectedCompany?.slug,
+    id: activity_id,
+  });
 
   const {
     data: employees,
     isLoading: isEmployeesLoading,
     isError: employeeError,
-  } = useGetActivityEnrolledEmployees({
-    company: selectedCompany!.slug,
+  } = useGetSMSActivityEnrolledEmployees({
+    company: selectedCompany?.slug,
     activity_id: activity_id.toString(),
   });
 
@@ -59,7 +62,7 @@ const ShowSMSActivity = () => {
               {/* Sección superior con información básica */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Tarjeta de información básica */}
-                <div className="bg-gray-100 dark:bg-gray-800 p-5 rounded-lg space-y-3">
+                <div className="border border-gray-300 dark:bg-gray-800 p-5 rounded-lg space-y-3">
                   <div className="flex items-center gap-2">
                     <FileText className="w-5 h-5 text-gray-600 dark:text-gray-300" />
                     <p className="text-lg font-medium text-gray-700 dark:text-gray-300">
@@ -83,7 +86,7 @@ const ShowSMSActivity = () => {
                 </div>
 
                 {/* Tarjeta de estado */}
-                <div className="bg-gray-100 dark:bg-gray-800 p-5 rounded-lg flex flex-col">
+                <div className="border border-gray-300 dark:bg-gray-800 p-5 rounded-lg flex flex-col">
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-2">
                       <AlertCircle className="w-5 h-5 text-gray-600 dark:text-gray-300" />
@@ -139,7 +142,7 @@ const ShowSMSActivity = () => {
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Columna 1 */}
                 <div className="space-y-6">
-                  <div className="bg-gray-100 dark:bg-gray-800 p-5 rounded-lg">
+                  <div className="border border-gray-300 dark:bg-gray-800 p-5 rounded-lg">
                     <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
                       <Calendar className="w-5 h-5" />
                       Horario
@@ -168,7 +171,7 @@ const ShowSMSActivity = () => {
                     </div>
                   </div>
 
-                  <div className="bg-gray-100 dark:bg-gray-800 p-5 rounded-lg">
+                  <div className="border border-gray-300 dark:bg-gray-800 p-5 rounded-lg">
                     <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
                       <FileText className="w-5 h-5" />
                       Temas
@@ -181,7 +184,7 @@ const ShowSMSActivity = () => {
 
                 {/* Columna 2 */}
                 <div className="space-y-6">
-                  <div className="bg-gray-100 dark:bg-gray-800 p-5 rounded-lg">
+                  <div className="border border-gray-300 dark:bg-gray-800 p-5 rounded-lg">
                     <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
                       <FileText className="w-5 h-5" />
                       Objetivo
@@ -191,7 +194,7 @@ const ShowSMSActivity = () => {
                     </p>
                   </div>
 
-                  <div className="bg-gray-100 dark:bg-gray-800 p-5 rounded-lg">
+                  <div className="border border-gray-300 dark:bg-gray-800 p-5 rounded-lg">
                     <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
                       <FileText className="w-5 h-5" />
                       Descripción
@@ -206,7 +209,7 @@ const ShowSMSActivity = () => {
 
             {/* Sección de empleados al final */}
             <div className="mt-8">
-              <div className="bg-gray-100 dark:bg-gray-800 p-6 rounded-lg">
+              <div className="border border-gray-300 dark:bg-gray-800 p-6 rounded-lg">
                 <div className="flex items-center justify-between mb-6">
                   <h2 className="text-xl font-semibold flex items-center gap-2">
                     <Users className="w-6 h-6 text-blue-600" />
@@ -220,7 +223,7 @@ const ShowSMSActivity = () => {
                     <Loader2 className="size-8 animate-spin text-blue-500" />
                   </div>
                 ) : employeeError ? (
-                  <div className="bg-red-100 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 flex items-center gap-3">
+                  <div className="border dark:bg-red-900/20 border-red-200 dark:border-red-800 rounded-lg p-4 flex items-center gap-3">
                     <AlertCircle className="w-5 h-5 text-red-500" />
                     <p className="text-red-700 dark:text-gray-300">
                       Error al cargar la lista de empleados

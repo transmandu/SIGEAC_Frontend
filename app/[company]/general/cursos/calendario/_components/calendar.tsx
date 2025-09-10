@@ -44,34 +44,36 @@ type CalendarProps = {
 };
 
 const eventStatus = {
-  CERRADO: {
-    colorName: "HIGH",
-    lightColors: {
-      main: "#000", // BLUE
-      container: "#FF1C1C", //RED
-      onContainer: "#FFF", //
-    },
-    darkColors: {
-      main: "#FFF", //WHITE
-      container: "#FF0A0A", //RED
-      onContainer: "#FFF",
-    },
-  },
+  // GREEN
   ABIERTO: {
-    colorName: "MEDIUM",
+    colorName: "abierto",
     lightColors: {
-      main: "#000", // YELLOW
-      container: "#1EE319", // GREEN
-      onContainer: "#000", //BLACK
+      main: "#2ADE99", // rojo fuerte
+      container: "#B3FFCC",
+      onContainer: "#000",
     },
     darkColors: {
-      main: "#FFF",
-      container: "#0FFA42", // DARK GREEN
-      onContainer: "#000", //WHITE
+      main: "#2ADE99", // rojo fuerte
+      container: "#B3FFCC",
+      onContainer: "#000",
     },
   },
-  PROCESO: {
-    colorName: "LOW",
+  // RED
+  CERRADO: {
+    colorName: "cerrado",
+    lightColors: {
+      main: "#FF1A1A", //
+      container: "#FFA8A8",
+      onContainer: "#000",
+    },
+    darkColors: {
+      main: "#FF1A1A",
+      container: "#FA9B9B",
+      onContainer: "#000",
+    },
+  },
+  PENDIENTE: {
+    colorName: "pendiente",
     lightColors: {
       main: "#10b981", // verde
       container: "#d1fae5",
@@ -86,7 +88,6 @@ const eventStatus = {
 };
 
 export const Calendar = ({ events, theme = "light" }: CalendarProps) => {
-  const { selectedCompany } = useCompanyStore();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<string | undefined>();
 
@@ -96,7 +97,6 @@ export const Calendar = ({ events, theme = "light" }: CalendarProps) => {
   const resizePlugin = useMemo(() => createResizePlugin(30), []);
 
   const { updateCourseCalendar } = useUpdateCourseCalendar();
-  // ✅ Esta llamada es correcta, fuera de useMemo
   const calendar = useNextCalendarApp({
     views: [createViewMonthGrid(), createViewWeek(), createViewDay()],
     calendars: eventStatus,
@@ -118,17 +118,22 @@ export const Calendar = ({ events, theme = "light" }: CalendarProps) => {
       onEventUpdate: async (event) => {
         const start_time = event.start.split(" ")[1];
         const end_time = event.end.split(" ")[1];
-        await updateCourseCalendar.mutateAsync({
-          company: selectedCompany!.slug,
-          id: event.id as string,
-          data: {
-            ...event,
-            start_date: new Date(event.start),
-            end_date: new Date(event.end),
-            start_time: start_time,
-            end_time: end_time,
-          },
-        });
+
+        try {
+          await updateCourseCalendar.mutateAsync({
+            id: event.id as string,
+            data: {
+              ...event,
+              start_date: new Date(event.start),
+              end_date: new Date(event.end),
+              start_time: start_time,
+              end_time: end_time,
+              status: event.calendarId,
+            },
+          });
+        } catch (error) {
+          console.error("Error al actualizar el evento:", error);
+        }
       },
     },
   });
