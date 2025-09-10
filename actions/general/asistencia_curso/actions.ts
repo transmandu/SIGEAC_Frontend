@@ -59,7 +59,7 @@ export const useMarkCourseAttendance = () => {
       employees_list,
     }: CourseAttendaceData) => {
       await axiosInstance.patch(
-        `/general/${company}/mark-attendance/${course_id}`,
+        `/general/${company}/course/${course_id}/mark-attendance`,
         employees_list
       );
     },

@@ -15,7 +15,7 @@ const fetchGetEnrolledEmployees = async ({
   company: string | null;
 }): Promise<EnrolledEmployees> => {
   const { data } = await axiosInstance.get(
-    `/general/${company}/enrolled-employees/${course_id}`
+    `/general/${company}/employee-attendance-course-status/${course_id}`
   );
   return data;
 };

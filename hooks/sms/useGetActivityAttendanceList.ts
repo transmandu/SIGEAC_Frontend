@@ -8,30 +8,37 @@ interface EmployeeData {
   last_name: string;
   dni: string;
 }
+interface AttendanceData {
+  id: string;
+  attended: Boolean;
+  employee_dni: string;
+  sms_activity_id: string;
+  employee: EmployeeData;
+}
 
-const fetchEnrolledEmployees = async ({
+const fetchAttendanceList = async ({
   company,
   activity_id,
 }: {
   company?: string;
   activity_id: string;
-}): Promise<EmployeeData[]> => {
+}): Promise<AttendanceData[]> => {
   const { data } = await axiosInstance.get(
-    `/${company}/sms/activities/${activity_id}/enrolled-employees`
+    `/${company}/sms/activities/${activity_id}/attendance-list`
   );
   return data;
 };
 
-export const useGetSMSActivityEnrolledEmployees = ({
+export const useGetActivityAttendanceList = ({
   company,
   activity_id,
 }: {
-  company?: string ;
+  company?: string;
   activity_id: string;
 }) => {
-  return useQuery<EmployeeData[], Error>({
-    queryKey: ["sms-activity-enrolled-employees"], // Incluye el activity_id en la clave
-    queryFn: () => fetchEnrolledEmployees({ company, activity_id }),
+  return useQuery<AttendanceData[], Error>({
+    queryKey: ["sms-activity-attendance-list"], // Incluye el activity_id en la clave
+    queryFn: () => fetchAttendanceList({ company, activity_id }),
     staleTime: 1000 * 60 * 5, // 5 minutos
     enabled: !!company, // Solo ejecuta si activity_id tiene valor
   });

@@ -2,19 +2,21 @@
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import { Badge } from "@/components/ui/badge";
 import { useGetSMSActivityById } from "@/hooks/sms/useGetSMSActivityById";
+import { useGetActivityAttendanceList } from "@/hooks/sms/useGetActivityAttendanceList";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import {
   AlertCircle,
   Calendar,
+  CheckCheck,
   FileText,
   Loader2,
   MapPin,
   Users,
+  X,
 } from "lucide-react";
 import { useParams } from "next/navigation";
-import { useGetSMSActivityEnrolledEmployees } from "@/hooks/sms/useGetSMSActivityEnrolledEmployees";
 
 const ShowSMSActivity = () => {
   const { selectedCompany } = useCompanyStore();
@@ -30,10 +32,10 @@ const ShowSMSActivity = () => {
   });
 
   const {
-    data: employees,
-    isLoading: isEmployeesLoading,
-    isError: employeeError,
-  } = useGetSMSActivityEnrolledEmployees({
+    data: attendedList,
+    isLoading: isAttendedListLoading,
+    isError: attendedListError,
+  } = useGetActivityAttendanceList({
     company: selectedCompany?.slug,
     activity_id: activity_id.toString(),
   });
@@ -160,9 +162,18 @@ const ShowSMSActivity = () => {
                         </p>
                         <p>{activity.end_time || "N/A"}</p>
                       </div>
+                      <h2 className="font-bold">Cronograma de Actividades</h2>
                       <div>
                         <p className="text-sm text-gray-500 dark:text-gray-400">
-                          Fecha fin:
+                          Fecha:
+                        </p>
+                        <p>
+                          {format(activity.end_date, "PPP", { locale: es })}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                          Fecha:
                         </p>
                         <p>
                           {format(activity.end_date, "PPP", { locale: es })}
@@ -215,21 +226,21 @@ const ShowSMSActivity = () => {
                     <Users className="w-6 h-6 text-blue-600" />
                     Empleados Inscritos
                   </h2>
-                  <Badge>{employees?.length || 0} participantes</Badge>
+                  <Badge>{attendedList?.length || 0} participantes</Badge>
                 </div>
 
-                {isEmployeesLoading ? (
+                {isAttendedListLoading ? (
                   <div className="flex justify-center py-8">
                     <Loader2 className="size-8 animate-spin text-blue-500" />
                   </div>
-                ) : employeeError ? (
+                ) : attendedListError ? (
                   <div className="border dark:bg-red-900/20 border-red-200 dark:border-red-800 rounded-lg p-4 flex items-center gap-3">
                     <AlertCircle className="w-5 h-5 text-red-500" />
                     <p className="text-red-700 dark:text-gray-300">
                       Error al cargar la lista de empleados
                     </p>
                   </div>
-                ) : employees && employees.length > 0 ? (
+                ) : attendedList && attendedList.length > 0 ? (
                   <div className="overflow-x-auto">
                     <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                       <thead className="bg-gray-50 dark:bg-gray-700">
@@ -238,18 +249,31 @@ const ShowSMSActivity = () => {
                             Nombre Completo
                           </th>
                           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                            Asistencia
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                             DNI
                           </th>
                         </tr>
                       </thead>
                       <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                        {employees.map((employee) => (
-                          <tr key={employee.id}>
+                        {attendedList.map((attended) => (
+                          <tr key={attended.id}>
                             <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
-                              {employee.first_name} {employee.last_name}
+                              {attended.employee.first_name}{" "}
+                              {attended.employee.last_name}
+                            </td>
+                            <td className="flex flex-col px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
+                              {attended.attended ? (
+                                // Si attended.attended es true
+                                <CheckCheck className="text-green-500 size-5" />
+                              ) : (
+                                // Si attended.attended es false
+                                <X className="text-red-500 size-5" />
+                              )}
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                              {employee.dni}
+                              {attended.employee_dni}
                             </td>
                           </tr>
                         ))}

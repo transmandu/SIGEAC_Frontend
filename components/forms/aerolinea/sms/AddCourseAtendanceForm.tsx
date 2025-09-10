@@ -236,8 +236,8 @@ export function AddCourseAttendanceForm({ onClose, initialData }: FormProps) {
                                 )}
                               />
                               {employee.first_name} {employee.last_name} -{" "}
-                              {employee.dni} <br />({employee.job_title}
-                              {employee.department})
+                              {employee.dni} <br />({employee.job_title}{" "}
+                              {employee.department}){" "}
                               {employee.wasEnrolled && (
                                 <span className="ml-2 text-xs text-muted-foreground">
                                   (Asitió)
