@@ -174,7 +174,7 @@ export function AddToCourseForm({ onClose, initialData }: FormProps) {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        <FormLabel className="text-lg font-semibold">
+        <FormLabel className="text-lg font-light">
           Gestionar participantes del curso
         </FormLabel>
 

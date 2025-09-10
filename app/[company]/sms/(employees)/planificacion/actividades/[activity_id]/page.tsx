@@ -96,12 +96,12 @@ const ShowSMSActivity = () => {
                     </div>
                     <Badge
                       className={`font-bold ${
-                        activity.status === "COMPLETADA"
+                        activity.status === "ABIERTO"
                           ? "bg-green-400"
-                          : activity.status === "EN_PROGRESO"
+                          : activity.status === "PROCESO"
                             ? "bg-yellow-400"
-                            : activity.status === "PLANIFICADA"
-                              ? "bg-blue-400"
+                            : activity.status === "CERRADO"
+                              ? "bg-red-400"
                               : "bg-gray-500"
                       }`}
                     >

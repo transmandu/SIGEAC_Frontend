@@ -186,7 +186,7 @@ const CourseDropdownActions = ({ course }: { course: Course }) => {
         <Dialog open={openAdd} onOpenChange={setOpenAdd}>
           <DialogContent className="flex flex-col max-w-2xl m-2">
             <DialogHeader>
-              <DialogTitle className="text-center font-light">
+              <DialogTitle className="text-center font-bold">
                 Agregar o eliminar personas
               </DialogTitle>
               <DialogDescription className="text-center"></DialogDescription>

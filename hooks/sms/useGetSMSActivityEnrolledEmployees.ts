@@ -2,9 +2,11 @@ import axiosInstance from "@/lib/axios";
 import { Employee } from "@/types";
 import { useQuery } from "@tanstack/react-query";
 
-interface EnrolledEmployees {
-  attended: Employee[];
-  not_attended: Employee[];
+interface EmployeeData {
+  id: string;
+  first_name: string;
+  last_name: string;
+  dni: string;
 }
 
 const fetchEnrolledEmployees = async ({
@@ -13,7 +15,7 @@ const fetchEnrolledEmployees = async ({
 }: {
   company?: string;
   activity_id: string;
-}): Promise<Employee[]> => {
+}): Promise<EmployeeData[]> => {
   const { data } = await axiosInstance.get(
     `/${company}/sms/activities/${activity_id}/enrolled-employees`
   );
@@ -27,7 +29,7 @@ export const useGetSMSActivityEnrolledEmployees = ({
   company?: string ;
   activity_id: string;
 }) => {
-  return useQuery<Employee[], Error>({
+  return useQuery<EmployeeData[], Error>({
     queryKey: ["sms-activity-enrolled-employees"], // Incluye el activity_id en la clave
     queryFn: () => fetchEnrolledEmployees({ company, activity_id }),
     staleTime: 1000 * 60 * 5, // 5 minutos
