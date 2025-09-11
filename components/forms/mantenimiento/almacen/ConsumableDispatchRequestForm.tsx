@@ -100,8 +100,9 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
 
   const { createDispatchRequest } = useCreateDispatchRequest();
 
-  const  {data: departments, isLoading: isDepartmentsLo} = useGetDepartments(selectedCompany?.slug)
-
+  const { data: departments, isLoading: isDepartmentsLo } = useGetDepartments(
+    selectedCompany?.slug
+  );
 
   const {
     mutate,
@@ -109,9 +110,19 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
     isPending: isBatchesLoading,
   } = useGetBatchesWithInWarehouseArticles();
 
-  const { data: employees, isLoading: employeesLoading } = useGetWorkOrderEmployees(selectedCompany?.slug);
+  const { data: employees, isLoading: employeesLoading } =
+    useGetWorkOrderEmployees({
+      company: selectedCompany?.slug,
+      location_id: selectedStation?.toString(),
+      acronym: "MAMP",
+    });
 
-  const { mutate: employeeMutate, data: warehouseEmployees, isPending: warehouseEmployeesLoading, isError: employeesError } = useGetWarehousesEmployees(selectedCompany?.slug);
+  const {
+    mutate: employeeMutate,
+    data: warehouseEmployees,
+    isPending: warehouseEmployeesLoading,
+    isError: employeesError,
+  } = useGetWarehousesEmployees(selectedCompany?.slug);
 
   const form = useForm<FormSchemaType>({
     resolver: zodResolver(FormSchema),
@@ -125,10 +136,13 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
 
   useEffect(() => {
     if (selectedStation) {
-      mutate({location_id: Number(selectedStation), company: selectedCompany!.slug})
-      employeeMutate({location_id: Number(selectedStation)})
+      mutate({
+        location_id: Number(selectedStation),
+        company: selectedCompany!.slug,
+      });
+      employeeMutate({ location_id: Number(selectedStation) });
     }
-  }, [selectedStation, selectedCompany, mutate, employeeMutate])
+  }, [selectedStation, selectedCompany, mutate, employeeMutate]);
 
   useEffect(() => {
     if (batches) {
@@ -175,7 +189,10 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
       delivered_by: data.delivered_by,
       user_id: Number(user!.id),
     };
-    await createDispatchRequest.mutateAsync({data: formattedData, company: selectedCompany!.slug});
+    await createDispatchRequest.mutateAsync({
+      data: formattedData,
+      company: selectedCompany!.slug,
+    });
     onClose();
   };
 
@@ -228,14 +245,18 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {
-                      warehouseEmployeesLoading && <Loader2 className="size-4 animate-spin" />
-                    }
-                    {
-                      warehouseEmployees && warehouseEmployees.map((employee) => (
-                        <SelectItem key={employee.dni} value={`${employee.dni}`}>{employee.first_name} {employee.last_name}</SelectItem>
-                      ))
-                    }
+                    {warehouseEmployeesLoading && (
+                      <Loader2 className="size-4 animate-spin" />
+                    )}
+                    {warehouseEmployees &&
+                      warehouseEmployees.map((employee) => (
+                        <SelectItem
+                          key={employee.dni}
+                          value={`${employee.dni}`}
+                        >
+                          {employee.first_name} {employee.last_name}
+                        </SelectItem>
+                      ))}
                   </SelectContent>
                 </Select>
                 <FormMessage />
@@ -260,10 +281,7 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
                     )}
                     {employees &&
                       employees.map((employee) => (
-                        <SelectItem
-                          key={employee.id}
-                          value={`${employee.dni}`}
-                        >
+                        <SelectItem key={employee.id} value={`${employee.dni}`}>
                           {employee.first_name} {employee.last_name} -{" "}
                           {employee.job_title.name}
                         </SelectItem>
@@ -319,29 +337,36 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
             )}
           />
           <FormField
-          control={form.control}
-          name="destination_place"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Destino</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Seleccione..." />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {
-                    departments && departments.map((department) => (
-                      <SelectItem key={department.id} value={department.id.toString()}>{department.name}</SelectItem>
-                    ))
-                  }
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+            control={form.control}
+            name="destination_place"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Destino</FormLabel>
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Seleccione..." />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {departments &&
+                      departments.map((department) => (
+                        <SelectItem
+                          key={department.id}
+                          value={department.id.toString()}
+                        >
+                          {department.name}
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
         </div>
         <div className="space-y-3">
           <div className="flex gap-2">
