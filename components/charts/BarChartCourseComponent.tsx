@@ -1,6 +1,4 @@
 "use client";
-
-import { GeneralStats } from "@/types";
 import { useTheme } from "next-themes";
 import {
   Bar,
@@ -15,8 +13,20 @@ import {
 import CourseListDialog from "../dialogs/CourseListDialog";
 import { useState } from "react";
 
+interface GeneralStats {
+  attended: number;
+  not_attended: number;
+  total: number;
+}
+interface courseStats {
+  attended: number;
+  not_attended: number;
+  total: number;
+  attended_percentage: number;
+  not_attended_percentage: number;
+}
 interface BarChartProps {
-  data: GeneralStats;
+  data: courseStats;
   title: string;
   width: string;
   height: string;
@@ -35,8 +45,8 @@ const BarChartCourseComponent = ({
   const { theme } = useTheme();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [message, setMessage] = useState("");
-
-  if (!data.closed && !data.open) {
+  console.log("DATA FROM COURSE", data);
+  if (!data.attended && !data.not_attended) {
     return (
       <p className="text-lg text-muted-foreground">
         No hay datos para mostrar.
@@ -48,12 +58,12 @@ const BarChartCourseComponent = ({
     ? [
         {
           total: data.total,
-          open: data.open,
-          closed: data.closed,
+          attended: data.attended,
+          not_attended: data.not_attended,
         },
       ]
     : [];
-
+  console.log("value this is the data", values);
   const handleClick = (message: string) => {
     if (message === "ABIERTO") {
       setMessage("Planificados");
@@ -65,7 +75,7 @@ const BarChartCourseComponent = ({
   return (
     <>
       <h1 className="text-sm font-semibold">{title}</h1>
-      <ResponsiveContainer width={width} height={height} aspect={1}>
+      <ResponsiveContainer width={width} height={height} aspect={3}>
         {values ? (
           <BarChart
             width={300}
@@ -98,7 +108,7 @@ const BarChartCourseComponent = ({
             <Tooltip />
             <Legend />
             <Bar
-              dataKey="open"
+              dataKey="attended"
               name={`${bar_first_name}`}
               stackId="a"
               fill={theme === "light" ? "#80d5c0" : "#89f4c7"}
@@ -106,7 +116,7 @@ const BarChartCourseComponent = ({
             />
 
             <Bar
-              dataKey="closed"
+              dataKey="not_attended"
               name={`${bar_second_name}`}
               stackId="a"
               fill={theme === "light" ? "#8ea7f0" : "#8f8dfe"}
@@ -118,11 +128,11 @@ const BarChartCourseComponent = ({
         )}
       </ResponsiveContainer>
 
-      <CourseListDialog
+      {/* <CourseListDialog
         title={`Detalles de cursos ${message}`}
         open={isDialogOpen}
         onOpenChange={setIsDialogOpen}
-      />
+      /> */}
     </>
   );
 };

@@ -1,7 +1,9 @@
 "use client";
+import BarChartCourseComponent from "@/components/charts/BarChartCourseComponent";
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import { Badge } from "@/components/ui/badge";
 import { useGetCourseAttendanceList } from "@/hooks/curso/useGetCourseAttendanceList";
+import { useGetCourseAttendanceStats } from "@/hooks/curso/useGetCourseAttendanceStats";
 import { useGetCourseById } from "@/hooks/curso/useGetCourseById";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { format } from "date-fns";
@@ -35,6 +37,12 @@ const ShowCourse = () => {
     isLoading: isAttendanceListLoading,
     isError: isAttendanceListError,
   } = useGetCourseAttendanceList({ course_id, company: selectedCompany?.slug });
+
+  const {
+    data: AttendanceStats,
+    isLoading: AttendanceStatsLoading,
+    isError: isAttendanceStatsError,
+  } = useGetCourseAttendanceStats(course_id);
 
   return (
     <ContentLayout title="Detalles del Curso">
@@ -266,6 +274,19 @@ const ShowCourse = () => {
             </p>
           </div>
         )}
+        <div className="border border-gray-300 dark:bg-gray-800 p-6 rounded-lg">
+          Holaa this is the new content{" "}
+            {AttendanceStats && (
+              <BarChartCourseComponent
+                height="100%"
+                width="100%"
+                title="Estadisticas de Asistencia"
+                data={AttendanceStats}
+                bar_first_name="Asistentes"
+                bar_second_name="Inasistentes"
+              ></BarChartCourseComponent>
+            )}
+        </div>
       </div>
     </ContentLayout>
   );
