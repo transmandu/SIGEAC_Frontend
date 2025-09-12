@@ -13,6 +13,8 @@ export interface IWarehouseArticle {
     description: string;
     zone: string;
     quantity: number;
+    status: string; // "stored" | "dispatch" | etc.
+    article_type: string; // "componente" | "consumible" | "herramienta"
   }[];
 }
 
