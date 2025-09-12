@@ -1,5 +1,5 @@
 import axiosInstance from "@/lib/axios";
-import { Employee, Warehouse } from "@/types";
+import { Employee } from "@/types";
 import { useQuery } from "@tanstack/react-query";
 
 const fetchWorkOrderEmployees = async ({
@@ -31,7 +31,7 @@ export const useGetWorkOrderEmployees = ({
   location_id?: string;
   acronym: string;
 }) => {
-  const isEnabled = !!company;
+  const isEnabled = !!company && !!location_id;
 
   // console.log(
   //   `useGetWorkOrderEmployees - company: ${company}, enabled: ${isEnabled}`

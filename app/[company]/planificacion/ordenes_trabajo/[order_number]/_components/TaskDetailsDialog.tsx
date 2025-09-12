@@ -104,9 +104,13 @@ export const TaskDetailsDialog = ({
   const { updateNoRoutineTask } = useUpdateNoRoutineTask();
   const { updateTaskStatus } = useUpdateWorkOrderTaskStatus();
   const { createTaskEvents } = useCreateTaskEvents();
-  const { selectedCompany } = useCompanyStore();
+  const { selectedCompany, selectedStation } = useCompanyStore();
   const { data: technicians, isLoading: isTechniciansLoading } =
-    useGetWorkOrderEmployees(selectedCompany?.slug);
+    useGetWorkOrderEmployees({
+      company: selectedCompany?.slug,
+      location_id: selectedStation!,
+      acronym: 'MAMP'
+    });
 
   const form = useForm<z.infer<typeof assignmentFormSchema>>({
     resolver: zodResolver(assignmentFormSchema),
