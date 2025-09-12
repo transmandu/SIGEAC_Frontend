@@ -256,7 +256,7 @@ const CreateConsumableForm = ({
       caducate_date: caducateDate && format(caducateDate, "yyyy-MM-dd"),
       fabrication_date:
         fabricationDate && format(fabricationDate, "yyyy-MM-dd"),
-      batches_id: Number(values.batches_id),
+      batches_id: values.batches_id,
       convertion_id: secondarySelected?.id,
     };
 
@@ -886,10 +886,10 @@ const CreateConsumableForm = ({
         <div>
           <Button
             className="bg-primary text-white hover:bg-blue-900 disabled:bg-slate-50 disabled:border-dashed disabled:border-black"
-            disabled={createArticle?.isPending || confirmIncoming.isPending || editArticle.isLoading}
+            disabled={createArticle?.isPending || confirmIncoming.isPending || editArticle.isPending}
             type="submit"
           >
-            {createArticle?.isPending || confirmIncoming.isPending || editArticle.isLoading ? (
+            {createArticle?.isPending || confirmIncoming.isPending || editArticle.isPending ? (
               "Cargando..."
             ) : (
               <p>{isEditing && initialData?.id ? "Actualizar Artículo" : isEditing ? "Confirmar Ingreso" : "Crear Articulo"}</p>

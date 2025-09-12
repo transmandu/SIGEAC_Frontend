@@ -179,7 +179,7 @@ export const Calendar = ({ events, theme = "light" }: CalendarProps) => {
         );
       },
     }),
-    []
+    [selectedCompany?.slug]
   );
 
   // ✅ Refrescar eventos en el servicio solo cuando cambian

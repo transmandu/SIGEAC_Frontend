@@ -88,16 +88,16 @@ export default function CreateAnalysisForm({
   const [currentSelection, setCurrentSelection] = useState("");
 
   // Actualizar la selección actual cuando cambian los valores
-  useEffect(() => {
-    const probability = form.watch("probability");
-    const severity = form.watch("severity");
+  const watchedProbability = form.watch("probability");
+  const watchedSeverity = form.watch("severity");
 
-    if (probability && severity) {
-      setCurrentSelection(`${probability}${severity}`);
+  useEffect(() => {
+    if (watchedProbability && watchedSeverity) {
+      setCurrentSelection(`${watchedProbability}${watchedSeverity}`);
     } else {
       setCurrentSelection("");
     }
-  }, [form.watch("probability"), form.watch("severity")]);
+  }, [watchedProbability, watchedSeverity, form]);
 
   const handleCellClick = (probability: string, severity: string) => {
     form.setValue("probability", probability);
