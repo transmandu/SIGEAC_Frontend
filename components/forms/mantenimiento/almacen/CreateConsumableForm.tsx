@@ -3,6 +3,7 @@
 import {
   useConfirmIncomingArticle,
   useCreateArticle,
+  useEditArticle,
 } from "@/actions/mantenimiento/almacen/inventario/articulos/actions";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -173,6 +174,8 @@ const CreateConsumableForm = ({
 
   const { confirmIncoming } = useConfirmIncomingArticle();
 
+  const { editArticle } = useEditArticle();
+
   const { selectedStation, selectedCompany } = useCompanyStore();
 
   const {
@@ -248,7 +251,7 @@ const CreateConsumableForm = ({
   }, [form, secondarySelected, secondaryQuantity]);
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    const formattedValues = {
+    const baseFormattedValues = {
       ...values,
       caducate_date: caducateDate && format(caducateDate, "yyyy-MM-dd"),
       fabrication_date:
@@ -256,9 +259,34 @@ const CreateConsumableForm = ({
       batches_id: Number(values.batches_id),
       convertion_id: secondarySelected?.id,
     };
-    if (isEditing) {
-      const formattedValues = {
-        ...values,
+
+    if (isEditing && initialData?.id) {
+      // Modo edición - usar el nuevo hook de edición
+      const editFormattedValues = {
+        ...baseFormattedValues,
+        id: initialData.id,
+        certificate_8130:
+          values.certificate_8130 || initialData?.certifcate_8130,
+        certificate_fabricant:
+          values.certificate_fabricant || initialData?.certifcate_fabricant,
+        certificate_vendor:
+          values.certificate_vendor || initialData?.certifcate_vendor,
+      };
+
+      try {
+        await editArticle.mutateAsync({
+          data: editFormattedValues,
+          company: selectedCompany!.slug
+        });
+        // Redirigir después de la edición exitosa
+        router.push(`/${selectedCompany?.slug}/almacen/inventario/gestion`);
+      } catch (error) {
+        console.error('Error editing article:', error);
+      }
+    } else if (isEditing) {
+      // Modo confirmación de ingreso (artículos en tránsito)
+      const confirmFormattedValues = {
+        ...baseFormattedValues,
         id: initialData?.id,
         certificate_8130:
           values.certificate_8130 || initialData?.certifcate_8130,
@@ -269,11 +297,12 @@ const CreateConsumableForm = ({
         status: "Stored",
       };
 
-      await confirmIncoming.mutateAsync({values: formattedValues, company: selectedCompany!.slug})
+      await confirmIncoming.mutateAsync({values: confirmFormattedValues, company: selectedCompany!.slug})
       router.push(`/${selectedCompany?.slug}/almacen/ingreso/en_recepcion`)
     } else {
+      // Modo creación
       createArticle.mutate({
-        data: formattedValues,
+        data: baseFormattedValues,
         company: selectedCompany!.slug,
       });
     }
@@ -857,13 +886,13 @@ const CreateConsumableForm = ({
         <div>
           <Button
             className="bg-primary text-white hover:bg-blue-900 disabled:bg-slate-50 disabled:border-dashed disabled:border-black"
-            disabled={createArticle?.isPending || confirmIncoming.isPending}
+            disabled={createArticle?.isPending || confirmIncoming.isPending || editArticle.isLoading}
             type="submit"
           >
-            {createArticle?.isPending || confirmIncoming.isPending ? (
+            {createArticle?.isPending || confirmIncoming.isPending || editArticle.isLoading ? (
               "Cargando..."
             ) : (
-              <p>{isEditing ? "Confirmar Ingreso" : "Crear Articulo"}</p>
+              <p>{isEditing && initialData?.id ? "Actualizar Artículo" : isEditing ? "Confirmar Ingreso" : "Crear Articulo"}</p>
             )}
           </Button>
         </div>
