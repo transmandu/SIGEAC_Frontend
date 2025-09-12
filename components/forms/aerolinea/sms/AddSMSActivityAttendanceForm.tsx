@@ -166,7 +166,6 @@ export function AddSMSActivityAttendanceForm({
       },
     };
     try {
-      console.log("THIS IS THE VALUE FROM ATTENDANCE FORM ", value);
       await markSMSActivityAttendance.mutateAsync(value);
     } catch (error) {
       console.error("Error en asistencia", error);

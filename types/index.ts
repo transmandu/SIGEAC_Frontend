@@ -957,7 +957,7 @@ export type GeneralStats = {
 
 export type pieChartData = {
   name: string;
-  value: number;
+  value: number | undefined;
 };
 
 export type Areas = {

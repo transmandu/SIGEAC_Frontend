@@ -8,6 +8,7 @@ import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import {
   AlertCircle,
+  AreaChartIcon,
   Calendar,
   CheckCheck,
   FileText,
@@ -17,6 +18,10 @@ import {
   X,
 } from "lucide-react";
 import { useParams } from "next/navigation";
+import { useGetSMSActivityAttendanceStats } from "@/hooks/sms/useGetSMSActivityAttendanceStats";
+import { useGetSMSActivityAttendanceStatus } from "@/hooks/sms/useGetSMSActivityAttendanceStatus";
+import BarChartCourseComponent from "@/components/charts/BarChartCourseComponent";
+import PieChartComponent from "@/components/charts/PieChartComponent";
 
 const ShowSMSActivity = () => {
   const { selectedCompany } = useCompanyStore();
@@ -39,6 +44,25 @@ const ShowSMSActivity = () => {
     company: selectedCompany?.slug,
     activity_id: activity_id.toString(),
   });
+
+  const {
+    data: AttendanceStats,
+    isLoading: isAttendanceStatsLoading,
+    isError: isAttendanceStatsError,
+  } = useGetSMSActivityAttendanceStats(activity_id);
+
+  const PieChartData = AttendanceStats
+    ? [
+        {
+          name: "Asistentes",
+          value: AttendanceStats.attended,
+        },
+        {
+          name: "Inasistentes",
+          value: AttendanceStats.not_attended,
+        },
+      ]
+    : [];
 
   return (
     <ContentLayout title="Actividad de SMS">
@@ -300,6 +324,54 @@ const ShowSMSActivity = () => {
             </p>
           </div>
         )}
+
+        {/* Sección de Estadísticas */}
+        <div className="mt-8">
+          <div className="flex justify-start items-center dark:bg-gray-800 p-6 rounded-lg gap-2">
+            <AreaChartIcon className="size-8 text-blue-500" />
+            <h1 className="text-lg font-bold">Estadísticas de la Actividad</h1>
+          </div>
+
+          {isAttendanceStatsLoading ? (
+            <div className="flex justify-center items-center h-64 border border-gray-300 dark:bg-gray-800 rounded-lg">
+              <Loader2 className="size-12 animate-spin text-blue-500" />
+              <span className="ml-3 text-gray-600 dark:text-gray-300">
+                Cargando estadísticas...
+              </span>
+            </div>
+          ) : isAttendanceStatsError ? (
+            <div className="border dark:bg-red-900/20 border-red-200 dark:border-red-800 rounded-lg p-6 flex items-center gap-3">
+              <AlertCircle className="w-6 h-6 text-red-500" />
+              <p className="text-red-700 dark:text-gray-300">
+                Error al cargar las estadísticas de asistencia
+              </p>
+            </div>
+          ) : AttendanceStats ? (
+            <div className="flex border border-gray-300 dark:bg-gray-800 p-6 rounded-lg">
+              <BarChartCourseComponent
+                height="100%"
+                width="100%"
+                title=""
+                data={AttendanceStats}
+                bar_first_name="Asistente"
+                bar_second_name="Inasistente"
+              />
+              <PieChartComponent
+                data={PieChartData}
+                radius={160}
+                height="50%"
+                width="50%"
+                title=""
+              />
+            </div>
+          ) : (
+            <div className="border border-gray-300 dark:bg-gray-800 p-6 rounded-lg text-center">
+              <p className="text-gray-500 dark:text-gray-400">
+                No hay datos estadísticos disponibles para este curso
+              </p>
+            </div>
+          )}
+        </div>
       </div>
     </ContentLayout>
   );

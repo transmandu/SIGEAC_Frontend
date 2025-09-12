@@ -27,7 +27,7 @@ export const useGetCourseById = ({
     company: company,
   };
   return useQuery<Course>({
-    queryKey: ["course-by-id", company],
+    queryKey: ["course-by-id", id],
     queryFn: () => fetchCoursesById(value),
     staleTime: 1000 * 60 * 5, // 5 minutos
     enabled: !!company,

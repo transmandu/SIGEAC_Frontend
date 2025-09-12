@@ -27,7 +27,7 @@ interface courseStats {
 }
 interface BarChartProps {
   data: courseStats;
-  title: string;
+  title?: string;
   width: string;
   height: string;
   bar_first_name: string;
@@ -45,10 +45,10 @@ const BarChartCourseComponent = ({
   const { theme } = useTheme();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [message, setMessage] = useState("");
-  console.log("DATA FROM COURSE", data);
+  console.log("ASISTENCIAS STATS", data);
   if (!data.attended && !data.not_attended) {
     return (
-      <p className="text-lg text-muted-foreground">
+      <p className=" text-center text-lg text-muted-foreground">
         No hay datos para mostrar.
       </p>
     );
@@ -63,7 +63,6 @@ const BarChartCourseComponent = ({
         },
       ]
     : [];
-  console.log("value this is the data", values);
   const handleClick = (message: string) => {
     if (message === "ABIERTO") {
       setMessage("Planificados");
@@ -74,8 +73,8 @@ const BarChartCourseComponent = ({
   };
   return (
     <>
-      <h1 className="text-sm font-semibold">{title}</h1>
-      <ResponsiveContainer width={width} height={height} aspect={3}>
+      <h1 className="text-sm font-semibold">{title ?? ""}</h1>
+      <ResponsiveContainer width={width} height={height} aspect={1}>
         {values ? (
           <BarChart
             width={300}

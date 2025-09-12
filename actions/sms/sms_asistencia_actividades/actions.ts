@@ -45,12 +45,25 @@ export const useCreateSMSActivityAttendance = () => {
       );
       return response.data;
     },
-    onSuccess: () => {
+    onSuccess: (_, data) => {
       queryClient.invalidateQueries({ queryKey: ["sms-activity-attendance"] });
       queryClient.invalidateQueries({ queryKey: ["enrollment-status"] });
       queryClient.invalidateQueries({
         queryKey: ["enrolled-employees"],
       });
+
+      queryClient.invalidateQueries({
+        queryKey: ["sms-activity", data.activity_id],
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: ["sms-activity-attendance-list"],
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: ["sms-activity-attendance-stats"],
+      });
+
       toast.success("Actualizado!", {
         description: `Actualizacion de personas en la actividad`,
       });
@@ -80,8 +93,20 @@ export const useMarkSMSActivityAttendance = () => {
         employees_list
       );
     },
-    onSuccess: (_,data) => {
+    onSuccess: (_, data) => {
+      queryClient.invalidateQueries({
+        queryKey: ["sms-activity", data.activity_id],
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: ["sms-activity-attendance-list"],
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: ["sms-activity-attendance-stats"],
+      });
       queryClient.invalidateQueries({ queryKey: ["sms-activities"] });
+      
       queryClient.invalidateQueries({
         queryKey: ["sms-activity-attendance-status", data.activity_id],
       });

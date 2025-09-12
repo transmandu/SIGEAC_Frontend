@@ -31,7 +31,17 @@ export const useCreateCourseAttendance = () => {
         }
       );
     },
-    onSuccess: () => {
+    onSuccess: (_, data) => {
+      queryClient.invalidateQueries({
+        queryKey: ["course-attendance-stats", data.course_id],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["sms-activity-attendance-list", data.course_id],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["course-by-id", data.course_id],
+      });
+
       queryClient.invalidateQueries({ queryKey: ["department-courses"] });
       queryClient.invalidateQueries({ queryKey: ["enrollment-status"] });
       toast.success("Modificado!", {
@@ -64,6 +74,16 @@ export const useMarkCourseAttendance = () => {
       );
     },
     onSuccess: (_, data) => {
+      queryClient.invalidateQueries({
+        queryKey: ["course-attendance-stats", data.course_id],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["sms-activity-attendance-list", data.course_id],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["course-by-id", data.course_id],
+      });
+
       queryClient.invalidateQueries({ queryKey: ["department-courses"] });
       queryClient.invalidateQueries({
         queryKey: ["employees-course", data.course_id],
