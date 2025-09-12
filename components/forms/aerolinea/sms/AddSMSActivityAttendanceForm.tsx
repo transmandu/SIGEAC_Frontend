@@ -1,7 +1,15 @@
 "use client";
 
-import { useMarkAttendance } from "@/actions/general/asistencia_curso/actions";
+import { useMarkSMSActivityAttendance } from "@/actions/sms/sms_asistencia_actividades/actions";
 import { Button } from "@/components/ui/button";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
 import {
   Form,
   FormControl,
@@ -10,28 +18,24 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { useGetCourseEnrolledEmployees } from "@/hooks/sms/useGetCourseEnrolledEmployees";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { useGetSMSActivityAttendanceStatus } from "@/hooks/sms/useGetSMSActivityAttendanceStatus";
 import { cn } from "@/lib/utils";
 import { useCompanyStore } from "@/stores/CompanyStore";
-import { Course } from "@/types";
+import { SMSActivity } from "@/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Check, ChevronsUpDown } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "../ui/command";
-import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 
 interface FormProps {
   onClose: () => void;
-  initialData: Course;
+  initialData: SMSActivity;
 }
 
 interface EmployeeSelection {
@@ -63,20 +67,23 @@ const FormSchema = z.object({
 
 type FormSchemaType = z.infer<typeof FormSchema>;
 
-export function AddAttendanceForm({ onClose, initialData }: FormProps) {
+export function AddSMSActivityAttendanceForm({
+  onClose,
+  initialData,
+}: FormProps) {
   const [open, setOpen] = useState(false);
   const { selectedCompany } = useCompanyStore();
-  const { markAttendance } = useMarkAttendance();
+  const { markSMSActivityAttendance } = useMarkSMSActivityAttendance();
   const [employeeSelections, setEmployeeSelections] = useState<
     EmployeeSelection[]
   >([]);
 
   const value = {
-    course_id: initialData.id.toString(),
+    activity_id: initialData.id.toString(),
     company: selectedCompany!.slug,
   };
   const { data: employeesData, isLoading: isLoadingEnrolledEmployee } =
-    useGetCourseEnrolledEmployees(value);
+    useGetSMSActivityAttendanceStatus(value);
 
   const form = useForm<FormSchemaType>({
     resolver: zodResolver(FormSchema),
@@ -152,15 +159,14 @@ export function AddAttendanceForm({ onClose, initialData }: FormProps) {
 
   const onSubmit = async (data: FormSchemaType) => {
     const value = {
-      company: selectedCompany!.slug,
-      course_id: initialData?.id.toString(),
+      activity_id: initialData?.id.toString(),
       employees_list: {
         addedEmployees: data.addedEmployees,
         removedEmployees: data.removedEmployees,
       },
     };
     try {
-      await markAttendance.mutateAsync(value);
+      await markSMSActivityAttendance.mutateAsync(value);
     } catch (error) {
       console.error("Error en asistencia", error);
     }

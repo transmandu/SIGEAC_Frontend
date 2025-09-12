@@ -72,7 +72,7 @@ export const columns: ColumnDef<SMSActivity>[] = [
             <Badge
               className={`justify-center items-center text-center font-bold font-sans
           ${
-            row.original.status === "PENDIENTE"
+            row.original.status === "CERRADO"
               ? "bg-red-400"
               : "bg-green-500" // Color gris oscuro (puedes ajustar el tono)
           }`}

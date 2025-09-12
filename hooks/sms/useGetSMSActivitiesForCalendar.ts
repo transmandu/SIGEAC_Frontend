@@ -8,6 +8,7 @@ interface SMSActivities {
   description: string;
   start: string;
   end: string;
+  calendarId: string;
 }
 
 const fetchSMSActivitiesForCalendar = async (

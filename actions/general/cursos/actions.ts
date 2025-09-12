@@ -37,7 +37,6 @@ export const useCreateCourse = () => {
   const queryClient = useQueryClient();
   const createMutation = useMutation({
     mutationFn: async ({ company, location_id, course }: CourseData) => {
-      console.log("data from create course", course);
       await axiosInstance.post(
         `/general/${company}/${location_id}/create-course`,
         course,
@@ -157,17 +156,14 @@ export const useUpdateCourseCalendar = () => {
   const queryClient = useQueryClient();
 
   const updateCourseMutation = useMutation({
-    mutationFn: async ({
-      company,
-      id,
-      data,
-    }: {
-      company: string;
-      id: string;
-      data: any;
-    }) => {
+    mutationFn: async ({ id, data }: { id: string; data: any }) => {
+      if (data.status === "CERRADO") {
+        throw new Error(
+          "No se puede actualizar el calendario de un curso con estatus CERRADO."
+        );
+      }
       const response = await axiosInstance.patch(
-        `/general/${company}/update-course-calendar/${id}`,
+        `/general/${selectedCompany?.slug}/update-course-calendar/${id}`,
         data
       );
       return response.data;
@@ -179,12 +175,15 @@ export const useUpdateCourseCalendar = () => {
       });
     },
     onError: (error) => {
+      // ✅ Mostramos el mensaje de error personalizado
+      const errorMessage = error.message || "No se pudo actualizar el curso...";
       toast.error("Oops!", {
-        description: "No se pudo actualizar el curso...",
+        description: errorMessage,
       });
       console.log(error);
     },
   });
+
   return {
     updateCourseCalendar: updateCourseMutation,
   };

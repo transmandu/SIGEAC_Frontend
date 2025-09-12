@@ -957,7 +957,7 @@ export type GeneralStats = {
 
 export type pieChartData = {
   name: string;
-  value: number;
+  value: number | undefined;
 };
 
 export type Areas = {
@@ -1008,12 +1008,6 @@ export type SMSActivityAttendance = {
   sms_activity_id: number;
   employee_id: number;
   attended: boolean;
-};
-
-//LISTA DE EMPLEADOS QUE ESTAN INSCRITOS EN UNA ACTIVIDAD Y LOS QUE NO
-export type EmplooyesEnrolled = {
-  enrolled: Employee[];
-  not_enrolled: Employee[];
 };
 
 export type Course = {

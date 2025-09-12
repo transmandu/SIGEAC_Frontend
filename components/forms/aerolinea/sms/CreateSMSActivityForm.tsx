@@ -62,11 +62,22 @@ const FormSchema = z
     planned_by: z.string(),
     executed_by: z.string(),
   })
-  .refine((data) => data.end_date >= data.start_date, {
-    message: "La fecha final debe ser mayor o igual a la fecha de inicio",
-    path: ["end_date"],
-  });
+  .refine(
+    (data) => {
+      const start = new Date(data.start_date);
+      const end = new Date(data.end_date);
 
+      // Comparar solo las fechas (ignorar horas)
+      start.setHours(0, 0, 0, 0);
+      end.setHours(0, 0, 0, 0);
+
+      return end >= start;
+    },
+    {
+      message: "La fecha final debe ser mayor o igual a la fecha de inicio",
+      path: ["end_date"],
+    }
+  );
 type FormSchemaType = z.infer<typeof FormSchema>;
 
 interface FormProps {
@@ -85,7 +96,7 @@ export default function CreateSMSActivityForm({
   const router = useRouter();
   const { selectedCompany, selectedStation } = useCompanyStore();
   const { data: employees, isLoading: isLoadingEmployees } =
-    useGetEmployeesByDepartment("DFS", selectedStation, selectedCompany?.slug);
+    useGetEmployeesByDepartment("SMS", selectedStation, selectedCompany?.slug);
 
   const { createSMSActivity } = useCreateSMSActivity();
   const { updateSMSActivity } = useUpdateSMSActivity();
@@ -228,33 +239,7 @@ export default function CreateSMSActivityForm({
               </FormItem>
             )}
           />
-          <FormField
-            control={form.control}
-            name="start_time"
-            render={({ field }) => (
-              <FormItem className="w-full">
-                <FormLabel>Hora de Inicio</FormLabel>
-                <FormControl>
-                  <Input
-                    type="time"
-                    {...field}
-                    onChange={(e) => {
-                      // Validamos que el formato sea correcto
-                      if (
-                        e.target.value.match(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/)
-                      ) {
-                        field.onChange(e.target.value);
-                      }
-                    }}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
 
-        <div className="flex gap-4 justify-center items-center">
           <FormField
             control={form.control}
             name="end_date"
@@ -292,6 +277,33 @@ export default function CreateSMSActivityForm({
                     />
                   </PopoverContent>
                 </Popover>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
+        <div className="flex gap-4 justify-center items-center">
+          <FormField
+            control={form.control}
+            name="start_time"
+            render={({ field }) => (
+              <FormItem className="w-full">
+                <FormLabel>Hora de Inicio</FormLabel>
+                <FormControl>
+                  <Input
+                    type="time"
+                    {...field}
+                    onChange={(e) => {
+                      // Validamos que el formato sea correcto
+                      if (
+                        e.target.value.match(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/)
+                      ) {
+                        field.onChange(e.target.value);
+                      }
+                    }}
+                  />
+                </FormControl>
                 <FormMessage />
               </FormItem>
             )}

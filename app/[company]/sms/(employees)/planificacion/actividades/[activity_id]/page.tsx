@@ -1,20 +1,27 @@
 "use client";
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import { Badge } from "@/components/ui/badge";
-import { useGetActivityEnrolledEmployees } from "@/hooks/sms/useGetEnrolledEmployees";
 import { useGetSMSActivityById } from "@/hooks/sms/useGetSMSActivityById";
+import { useGetActivityAttendanceList } from "@/hooks/sms/useGetActivityAttendanceList";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import {
   AlertCircle,
+  AreaChartIcon,
   Calendar,
+  CheckCheck,
   FileText,
   Loader2,
   MapPin,
   Users,
+  X,
 } from "lucide-react";
 import { useParams } from "next/navigation";
+import { useGetSMSActivityAttendanceStats } from "@/hooks/sms/useGetSMSActivityAttendanceStats";
+import { useGetSMSActivityAttendanceStatus } from "@/hooks/sms/useGetSMSActivityAttendanceStatus";
+import BarChartCourseComponent from "@/components/charts/BarChartCourseComponent";
+import PieChartComponent from "@/components/charts/PieChartComponent";
 
 const ShowSMSActivity = () => {
   const { selectedCompany } = useCompanyStore();
@@ -24,16 +31,38 @@ const ShowSMSActivity = () => {
     data: activity,
     isLoading: isActivityLoading,
     isError: activityError,
-  } = useGetSMSActivityById({ company: selectedCompany!.slug, id: activity_id });
+  } = useGetSMSActivityById({
+    company: selectedCompany?.slug,
+    id: activity_id,
+  });
 
   const {
-    data: employees,
-    isLoading: isEmployeesLoading,
-    isError: employeeError,
-  } = useGetActivityEnrolledEmployees({
-    company: selectedCompany!.slug,
+    data: attendedList,
+    isLoading: isAttendedListLoading,
+    isError: attendedListError,
+  } = useGetActivityAttendanceList({
+    company: selectedCompany?.slug,
     activity_id: activity_id.toString(),
   });
+
+  const {
+    data: AttendanceStats,
+    isLoading: isAttendanceStatsLoading,
+    isError: isAttendanceStatsError,
+  } = useGetSMSActivityAttendanceStats(activity_id);
+
+  const PieChartData = AttendanceStats
+    ? [
+        {
+          name: "Asistentes",
+          value: AttendanceStats.attended,
+        },
+        {
+          name: "Inasistentes",
+          value: AttendanceStats.not_attended,
+        },
+      ]
+    : [];
 
   return (
     <ContentLayout title="Actividad de SMS">
@@ -59,7 +88,7 @@ const ShowSMSActivity = () => {
               {/* Sección superior con información básica */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Tarjeta de información básica */}
-                <div className="bg-gray-100 dark:bg-gray-800 p-5 rounded-lg space-y-3">
+                <div className="border border-gray-300 dark:bg-gray-800 p-5 rounded-lg space-y-3">
                   <div className="flex items-center gap-2">
                     <FileText className="w-5 h-5 text-gray-600 dark:text-gray-300" />
                     <p className="text-lg font-medium text-gray-700 dark:text-gray-300">
@@ -83,7 +112,7 @@ const ShowSMSActivity = () => {
                 </div>
 
                 {/* Tarjeta de estado */}
-                <div className="bg-gray-100 dark:bg-gray-800 p-5 rounded-lg flex flex-col">
+                <div className="border border-gray-300 dark:bg-gray-800 p-5 rounded-lg flex flex-col">
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-2">
                       <AlertCircle className="w-5 h-5 text-gray-600 dark:text-gray-300" />
@@ -93,12 +122,12 @@ const ShowSMSActivity = () => {
                     </div>
                     <Badge
                       className={`font-bold ${
-                        activity.status === "COMPLETADA"
+                        activity.status === "ABIERTO"
                           ? "bg-green-400"
-                          : activity.status === "EN_PROGRESO"
+                          : activity.status === "PROCESO"
                             ? "bg-yellow-400"
-                            : activity.status === "PLANIFICADA"
-                              ? "bg-blue-400"
+                            : activity.status === "CERRADO"
+                              ? "bg-red-400"
                               : "bg-gray-500"
                       }`}
                     >
@@ -139,7 +168,7 @@ const ShowSMSActivity = () => {
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Columna 1 */}
                 <div className="space-y-6">
-                  <div className="bg-gray-100 dark:bg-gray-800 p-5 rounded-lg">
+                  <div className="border border-gray-300 dark:bg-gray-800 p-5 rounded-lg">
                     <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
                       <Calendar className="w-5 h-5" />
                       Horario
@@ -157,9 +186,18 @@ const ShowSMSActivity = () => {
                         </p>
                         <p>{activity.end_time || "N/A"}</p>
                       </div>
+                      <h2 className="font-bold">Cronograma de Actividades</h2>
                       <div>
                         <p className="text-sm text-gray-500 dark:text-gray-400">
-                          Fecha fin:
+                          Fecha:
+                        </p>
+                        <p>
+                          {format(activity.end_date, "PPP", { locale: es })}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                          Fecha:
                         </p>
                         <p>
                           {format(activity.end_date, "PPP", { locale: es })}
@@ -168,7 +206,7 @@ const ShowSMSActivity = () => {
                     </div>
                   </div>
 
-                  <div className="bg-gray-100 dark:bg-gray-800 p-5 rounded-lg">
+                  <div className="border border-gray-300 dark:bg-gray-800 p-5 rounded-lg">
                     <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
                       <FileText className="w-5 h-5" />
                       Temas
@@ -181,7 +219,7 @@ const ShowSMSActivity = () => {
 
                 {/* Columna 2 */}
                 <div className="space-y-6">
-                  <div className="bg-gray-100 dark:bg-gray-800 p-5 rounded-lg">
+                  <div className="border border-gray-300 dark:bg-gray-800 p-5 rounded-lg">
                     <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
                       <FileText className="w-5 h-5" />
                       Objetivo
@@ -191,7 +229,7 @@ const ShowSMSActivity = () => {
                     </p>
                   </div>
 
-                  <div className="bg-gray-100 dark:bg-gray-800 p-5 rounded-lg">
+                  <div className="border border-gray-300 dark:bg-gray-800 p-5 rounded-lg">
                     <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
                       <FileText className="w-5 h-5" />
                       Descripción
@@ -206,27 +244,27 @@ const ShowSMSActivity = () => {
 
             {/* Sección de empleados al final */}
             <div className="mt-8">
-              <div className="bg-gray-100 dark:bg-gray-800 p-6 rounded-lg">
+              <div className="border border-gray-300 dark:bg-gray-800 p-6 rounded-lg">
                 <div className="flex items-center justify-between mb-6">
                   <h2 className="text-xl font-semibold flex items-center gap-2">
                     <Users className="w-6 h-6 text-blue-600" />
                     Empleados Inscritos
                   </h2>
-                  <Badge>{employees?.length || 0} participantes</Badge>
+                  <Badge>{attendedList?.length || 0} participantes</Badge>
                 </div>
 
-                {isEmployeesLoading ? (
+                {isAttendedListLoading ? (
                   <div className="flex justify-center py-8">
                     <Loader2 className="size-8 animate-spin text-blue-500" />
                   </div>
-                ) : employeeError ? (
-                  <div className="bg-red-100 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 flex items-center gap-3">
+                ) : attendedListError ? (
+                  <div className="border dark:bg-red-900/20 border-red-200 dark:border-red-800 rounded-lg p-4 flex items-center gap-3">
                     <AlertCircle className="w-5 h-5 text-red-500" />
                     <p className="text-red-700 dark:text-gray-300">
                       Error al cargar la lista de empleados
                     </p>
                   </div>
-                ) : employees && employees.length > 0 ? (
+                ) : attendedList && attendedList.length > 0 ? (
                   <div className="overflow-x-auto">
                     <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                       <thead className="bg-gray-50 dark:bg-gray-700">
@@ -235,18 +273,31 @@ const ShowSMSActivity = () => {
                             Nombre Completo
                           </th>
                           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                            Asistencia
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                             DNI
                           </th>
                         </tr>
                       </thead>
                       <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                        {employees.map((employee) => (
-                          <tr key={employee.id}>
+                        {attendedList.map((attended) => (
+                          <tr key={attended.id}>
                             <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
-                              {employee.first_name} {employee.last_name}
+                              {attended.employee.first_name}{" "}
+                              {attended.employee.last_name}
+                            </td>
+                            <td className="flex flex-col px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
+                              {attended.attended ? (
+                                // Si attended.attended es true
+                                <CheckCheck className="text-green-500 size-5" />
+                              ) : (
+                                // Si attended.attended es false
+                                <X className="text-red-500 size-5" />
+                              )}
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                              {employee.dni}
+                              {attended.employee_dni}
                             </td>
                           </tr>
                         ))}
@@ -273,6 +324,54 @@ const ShowSMSActivity = () => {
             </p>
           </div>
         )}
+
+        {/* Sección de Estadísticas */}
+        <div className="mt-8">
+          <div className="flex justify-start items-center dark:bg-gray-800 p-6 rounded-lg gap-2">
+            <AreaChartIcon className="size-8 text-blue-500" />
+            <h1 className="text-lg font-bold">Estadísticas de la Actividad</h1>
+          </div>
+
+          {isAttendanceStatsLoading ? (
+            <div className="flex justify-center items-center h-64 border border-gray-300 dark:bg-gray-800 rounded-lg">
+              <Loader2 className="size-12 animate-spin text-blue-500" />
+              <span className="ml-3 text-gray-600 dark:text-gray-300">
+                Cargando estadísticas...
+              </span>
+            </div>
+          ) : isAttendanceStatsError ? (
+            <div className="border dark:bg-red-900/20 border-red-200 dark:border-red-800 rounded-lg p-6 flex items-center gap-3">
+              <AlertCircle className="w-6 h-6 text-red-500" />
+              <p className="text-red-700 dark:text-gray-300">
+                Error al cargar las estadísticas de asistencia
+              </p>
+            </div>
+          ) : AttendanceStats ? (
+            <div className="flex border border-gray-300 dark:bg-gray-800 p-6 rounded-lg">
+              <BarChartCourseComponent
+                height="100%"
+                width="100%"
+                title=""
+                data={AttendanceStats}
+                bar_first_name="Asistente"
+                bar_second_name="Inasistente"
+              />
+              <PieChartComponent
+                data={PieChartData}
+                radius={160}
+                height="50%"
+                width="50%"
+                title=""
+              />
+            </div>
+          ) : (
+            <div className="border border-gray-300 dark:bg-gray-800 p-6 rounded-lg text-center">
+              <p className="text-gray-500 dark:text-gray-400">
+                No hay datos estadísticos disponibles para este curso
+              </p>
+            </div>
+          )}
+        </div>
       </div>
     </ContentLayout>
   );

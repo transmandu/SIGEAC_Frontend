@@ -1,5 +1,6 @@
 "use client";
 
+import { useMarkCourseAttendance } from "@/actions/general/asistencia_curso/actions";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -9,13 +10,13 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { useGetCourseEnrollementStatus } from "@/hooks/curso/useGetCourseEnrollementStatus";
+import { useGetCourseEnrolledEmployees } from "@/hooks/sms/useGetCourseEnrolledEmployees";
 import { cn } from "@/lib/utils";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { Course } from "@/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Check, ChevronsUpDown } from "lucide-react";
-import { useEffect, useState, useCallback } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import {
@@ -26,8 +27,11 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { useCreateCourseAttendance } from "@/actions/general/asistencia_curso/actions";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 
 interface FormProps {
   onClose: () => void;
@@ -63,10 +67,10 @@ const FormSchema = z.object({
 
 type FormSchemaType = z.infer<typeof FormSchema>;
 
-export function AddToCourseForm({ onClose, initialData }: FormProps) {
+export function AddCourseAttendanceForm({ onClose, initialData }: FormProps) {
   const [open, setOpen] = useState(false);
   const { selectedCompany } = useCompanyStore();
-  const { createCourseAttendance } = useCreateCourseAttendance();
+  const { markCourseAttendance } = useMarkCourseAttendance();
   const [employeeSelections, setEmployeeSelections] = useState<
     EmployeeSelection[]
   >([]);
@@ -76,7 +80,7 @@ export function AddToCourseForm({ onClose, initialData }: FormProps) {
     company: selectedCompany!.slug,
   };
   const { data: employeesData, isLoading: isLoadingEnrolledEmployee } =
-    useGetCourseEnrollementStatus(value);
+    useGetCourseEnrolledEmployees(value);
 
   const form = useForm<FormSchemaType>({
     resolver: zodResolver(FormSchema),
@@ -116,7 +120,7 @@ export function AddToCourseForm({ onClose, initialData }: FormProps) {
   useEffect(() => {
     if (employeesData) {
       const selections: EmployeeSelection[] = [
-        ...(employeesData.enrolled?.map((e) => ({
+        ...(employeesData.attended?.map((e) => ({
           dni: e.dni,
           first_name: e.first_name,
           last_name: e.last_name,
@@ -125,7 +129,7 @@ export function AddToCourseForm({ onClose, initialData }: FormProps) {
           isSelected: true,
           wasEnrolled: true,
         })) || []),
-        ...(employeesData.not_enrolled?.map((e) => ({
+        ...(employeesData.not_attended?.map((e) => ({
           dni: e.dni,
           first_name: e.first_name,
           last_name: e.last_name,
@@ -160,9 +164,9 @@ export function AddToCourseForm({ onClose, initialData }: FormProps) {
       },
     };
     try {
-      await createCourseAttendance.mutateAsync(value);
+      await markCourseAttendance.mutateAsync(value);
     } catch (error) {
-      console.error("Error al inscribir", error);
+      console.error("Error en asistencia", error);
     }
     onClose();
   };
@@ -174,8 +178,8 @@ export function AddToCourseForm({ onClose, initialData }: FormProps) {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        <FormLabel className="text-lg font-light">
-          Gestionar participantes del curso
+        <FormLabel className="text-lg font-semibold">
+          Gestionar asistentes al curso
         </FormLabel>
 
         <FormField
@@ -232,11 +236,11 @@ export function AddToCourseForm({ onClose, initialData }: FormProps) {
                                 )}
                               />
                               {employee.first_name} {employee.last_name} -{" "}
-                              {employee.dni} <br />({employee.job_title}
-                              {employee.department})
+                              {employee.dni} <br />({employee.job_title}{" "}
+                              {employee.department}){" "}
                               {employee.wasEnrolled && (
                                 <span className="ml-2 text-xs text-muted-foreground">
-                                  (inscrito)
+                                  (Asitió)
                                 </span>
                               )}
                             </CommandItem>
