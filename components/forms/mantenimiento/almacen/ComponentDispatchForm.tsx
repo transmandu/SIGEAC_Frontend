@@ -1,74 +1,92 @@
-"use client"
+"use client";
 
-import { useCreateDispatchRequest } from "@/actions/mantenimiento/almacen/solicitudes/salida/action"
-import { Button } from "@/components/ui/button"
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
-import { useAuth } from "@/contexts/AuthContext"
-import { useGetBatchesWithInWarehouseArticles } from "@/hooks/mantenimiento/almacen/renglones/useGetBatchesWithInWarehouseArticles"
-import { useGetWorkOrderEmployees } from "@/hooks/mantenimiento/planificacion/useGetWorkOrderEmployees"
-import { useGetWorkOrders } from "@/hooks/mantenimiento/planificacion/useGetWorkOrders"
+import { useCreateDispatchRequest } from "@/actions/mantenimiento/almacen/solicitudes/salida/action";
+import { Button } from "@/components/ui/button";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { useAuth } from "@/contexts/AuthContext";
+import { useGetBatchesWithInWarehouseArticles } from "@/hooks/mantenimiento/almacen/renglones/useGetBatchesWithInWarehouseArticles";
+import { useGetWorkOrderEmployees } from "@/hooks/mantenimiento/planificacion/useGetWorkOrderEmployees";
+import { useGetWorkOrders } from "@/hooks/mantenimiento/planificacion/useGetWorkOrders";
 import { useGetDepartments } from "@/hooks/sistema/departamento/useGetDepartment"
-import { cn } from "@/lib/utils"
-import { useCompanyStore } from "@/stores/CompanyStore"
-import { Article, Batch } from "@/types"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { format } from "date-fns"
-import { es } from "date-fns/locale"
-import { CalendarIcon, Check, ChevronsUpDown, Loader2 } from "lucide-react"
-import { useEffect, useState } from "react"
-import { useForm } from "react-hook-form"
-import { z } from "zod"
-import { Calendar } from "../../../ui/calendar"
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "../../../ui/command"
-import { Popover, PopoverContent, PopoverTrigger } from "../../../ui/popover"
-import { Textarea } from "../../../ui/textarea"
+import { cn } from "@/lib/utils";
+import { useCompanyStore } from "@/stores/CompanyStore";
+import { Article, Batch } from "@/types";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
+import { CalendarIcon, Check, ChevronsUpDown, Loader2 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { Calendar } from "../../../ui/calendar";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "../../../ui/command";
+import { Popover, PopoverContent, PopoverTrigger } from "../../../ui/popover";
+import { Textarea } from "../../../ui/textarea";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
+} from "@/components/ui/select";
 
 const FormSchema = z.object({
   requested_by: z.string(),
   submission_date: z.date({
-    message: "Debe ingresar la fecha."
+    message: "Debe ingresar la fecha.",
   }),
-  articles: z.array(z.object({
-    article_id: z.coerce.number(),
-    serial: z.string().nullable(),
-    quantity: z.number(),
-    batch_id: z.number(),
-  }), {
-    message: "Debe seleccionar el (los) articulos que se van a despachar."
-  }),
+  articles: z.array(
+    z.object({
+      article_id: z.coerce.number(),
+      serial: z.string().nullable(),
+      quantity: z.number(),
+      batch_id: z.number(),
+    }),
+    {
+      message: "Debe seleccionar el (los) articulos que se van a despachar.",
+    }
+  ),
   justification: z.string({
-    message: "Debe ingresar una justificación de la salida."
+    message: "Debe ingresar una justificación de la salida.",
   }),
   destination_place: z.string(),
   status: z.string(),
-})
+});
 
-type FormSchemaType = z.infer<typeof FormSchema>
+type FormSchemaType = z.infer<typeof FormSchema>;
 
 interface FormProps {
-  onClose: () => void
+  onClose: () => void;
 }
 
 interface BatchesWithCountProp extends Batch {
-  articles: Article[],
-  batch_id: number,
+  articles: Article[];
+  batch_id: number;
 }
 
 export function ComponentDispatchForm({ onClose }: FormProps) {
-
   const { user } = useAuth();
 
   const [open, setOpen] = useState(false);
 
-  const [filteredBatches, setFilteredBatches] = useState<BatchesWithCountProp[]>([]);
+  const [filteredBatches, setFilteredBatches] = useState<
+    BatchesWithCountProp[]
+  >([]);
 
   const [articleSelected, setArticleSelected] = useState<Article>();
 
@@ -76,24 +94,44 @@ export function ComponentDispatchForm({ onClose }: FormProps) {
 
   const { selectedStation, selectedCompany } = useCompanyStore();
 
-  const { mutate, data: batches, isPending: isBatchesLoading, isError } = useGetBatchesWithInWarehouseArticles();
+  const {
+    mutate,
+    data: batches,
+    isPending: isBatchesLoading,
+    isError,
+  } = useGetBatchesWithInWarehouseArticles();
 
-  const { data: employees, isLoading: employeesLoading, isError: employeesError } = useGetWorkOrderEmployees(selectedCompany?.slug);
-
-  const { data: workOrders, isLoading } = useGetWorkOrders(selectedStation ?? null, selectedCompany?.slug);
+  const {
+    data: employees,
+    isLoading: employeesLoading,
+    isError: employeesError,
+  } = useGetWorkOrderEmployees({
+    company: selectedCompany?.slug,
+    location_id: selectedStation?.toString(),
+    acronym: "MANP",
+  });
+  const { data: workOrders, isLoading } = useGetWorkOrders(
+    selectedStation ?? null,
+    selectedCompany?.slug
+  );
 
   const { data: departments, isLoading: isDepartmentsLoading } = useGetDepartments(selectedCompany?.slug);
 
   useEffect(() => {
     if (selectedStation) {
-      mutate({location_id: Number(selectedStation), company: selectedCompany!.slug})
+      mutate({
+        location_id: Number(selectedStation),
+        company: selectedCompany!.slug,
+      });
     }
-  }, [selectedStation, selectedCompany, mutate])
+  }, [selectedStation, selectedCompany, mutate]);
 
   useEffect(() => {
     if (batches) {
       // Filtrar los batches por categoría
-      const filtered = batches.filter((batch) => batch.category === "componente");
+      const filtered = batches.filter(
+        (batch) => batch.category === "componente"
+      );
       setFilteredBatches(filtered);
     }
   }, [batches]);
@@ -117,23 +155,37 @@ export function ComponentDispatchForm({ onClose }: FormProps) {
       created_by: `${user?.employee[0].dni}`,
       submission_date: format(data.submission_date, "yyyy-MM-dd"),
       category: "componente",
-    }
+    };
     await createDispatchRequest.mutateAsync({
       data: {
         ...formattedData,
-        user_id: Number(user!.id)
+        user_id: Number(user!.id),
       },
-      company: selectedCompany!.slug
+      company: selectedCompany!.slug,
     });
     onClose();
-  }
+  };
 
-  const handleArticleSelect = (id: number, serial: string | null, batch_id: number) => {
-    setValue('articles', [{ article_id: Number(id), serial: serial ? serial : null, quantity: 1, batch_id: Number(batch_id) }])
+  const handleArticleSelect = (
+    id: number,
+    serial: string | null,
+    batch_id: number
+  ) => {
+    setValue("articles", [
+      {
+        article_id: Number(id),
+        serial: serial ? serial : null,
+        quantity: 1,
+        batch_id: Number(batch_id),
+      },
+    ]);
   };
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col space-y-3 w-full">
+      <form
+        onSubmit={form.handleSubmit(onSubmit)}
+        className="flex flex-col space-y-3 w-full"
+      >
         <div className="flex gap-2">
           <FormField
             control={form.control}
@@ -186,22 +238,39 @@ export function ComponentDispatchForm({ onClose }: FormProps) {
                     <Command>
                       <CommandInput placeholder="Selec. el componente..." />
                       <CommandList>
-                        <CommandEmpty>No se han encontrado componentes...</CommandEmpty>
-                        {
-                          filteredBatches?.map((batch) => (
-                            <CommandGroup key={batch.batch_id} heading={batch.name}>
-                              {
-                                batch.articles.map((article) => (
-                                  <CommandItem key={article.id} onSelect={() => {
-                                    handleArticleSelect(article.id!, article?.serial ?? null, batch.batch_id)
-                                    setArticleSelected(article)
-                                  }}><Check className={cn("mr-2 h-4 w-4", articleSelected?.id === article.id ? "opacity-100" : "opacity-0")} />
-                                    {article.serial}</CommandItem>
-                                ))
-                              }
-                            </CommandGroup>
-                          ))
-                        }
+                        <CommandEmpty>
+                          No se han encontrado componentes...
+                        </CommandEmpty>
+                        {filteredBatches?.map((batch) => (
+                          <CommandGroup
+                            key={batch.batch_id}
+                            heading={batch.name}
+                          >
+                            {batch.articles.map((article) => (
+                              <CommandItem
+                                key={article.id}
+                                onSelect={() => {
+                                  handleArticleSelect(
+                                    article.id!,
+                                    article?.serial ?? null,
+                                    batch.batch_id
+                                  );
+                                  setArticleSelected(article);
+                                }}
+                              >
+                                <Check
+                                  className={cn(
+                                    "mr-2 h-4 w-4",
+                                    articleSelected?.id === article.id
+                                      ? "opacity-100"
+                                      : "opacity-0"
+                                  )}
+                                />
+                                {article.serial}
+                              </CommandItem>
+                            ))}
+                          </CommandGroup>
+                        ))}
                       </CommandList>
                     </Command>
                   </PopoverContent>
@@ -230,7 +299,7 @@ export function ComponentDispatchForm({ onClose }: FormProps) {
                       >
                         {field.value ? (
                           format(field.value, "PPP", {
-                            locale: es
+                            locale: es,
                           })
                         ) : (
                           <span>Seleccione una fecha...</span>
@@ -291,15 +360,28 @@ export function ComponentDispatchForm({ onClose }: FormProps) {
             <FormItem>
               <FormLabel>Justificacion</FormLabel>
               <FormControl>
-                <Textarea rows={5} className="w-full" placeholder="EJ: Se necesita para la limpieza de..." {...field} />
+                <Textarea
+                  rows={5}
+                  className="w-full"
+                  placeholder="EJ: Se necesita para la limpieza de..."
+                  {...field}
+                />
               </FormControl>
             </FormItem>
           )}
         />
-        <Button className="bg-primary mt-2 text-white hover:bg-blue-900 disabled:bg-primary/70" disabled={createDispatchRequest?.isPending} type="submit">
-          {createDispatchRequest?.isPending ? <Loader2 className="size-4 animate-spin" /> : <p>Crear</p>}
+        <Button
+          className="bg-primary mt-2 text-white hover:bg-blue-900 disabled:bg-primary/70"
+          disabled={createDispatchRequest?.isPending}
+          type="submit"
+        >
+          {createDispatchRequest?.isPending ? (
+            <Loader2 className="size-4 animate-spin" />
+          ) : (
+            <p>Crear</p>
+          )}
         </Button>
       </form>
-    </Form >
-  )
+    </Form>
+  );
 }
