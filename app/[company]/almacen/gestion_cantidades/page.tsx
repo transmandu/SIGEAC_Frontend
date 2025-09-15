@@ -12,39 +12,71 @@ import {
 } from "@/components/ui/breadcrumb";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { Loader2, Package, Save } from "lucide-react";
-import React, { useCallback } from "react";
+import React, { useCallback, useMemo } from "react";
 import { toast } from "sonner";
 import { useGetWarehouseConsumableArticles } from "@/hooks/mantenimiento/almacen/articulos/useGetWarehouseConsumableArticles";
+import { useGetAllWarehouseZones } from "@/hooks/mantenimiento/almacen/articulos/useGetAllWarehouseZones";
 import { useUpdateArticleQuantityAndZone } from "@/actions/mantenimiento/almacen/articulos/useUpdateArticleQuantityAndZone";
-import { FilterPanel } from "./_components/FilterPanel";
 import { BatchCard } from "./_components/BatchCard";
 import { EmptyState } from "./_components/EmptyState";
+import { PaginationControls } from "./_components/PaginationControls";
 import { useArticleChanges } from "./_components/hooks/useArticleChanges";
+import { useBackendPagination } from "./_components/hooks/usePagination";
 import { useFilters } from "./_components/hooks/useFilters";
+import { FilterPanel } from "./_components/FilterPanel";
+import LoadingPage from "@/components/misc/LoadingPage";
 const GestionCantidadesPage = () => {
   const { selectedCompany, selectedStation } = useCompanyStore();
 
-  // Obtener todos los batches con artículos
+  // Hook de paginación del backend
   const {
-    data: batches,
+    currentPage,
+    itemsPerPage,
+    createPaginationInfo,
+    createPaginationActions,
+    scrollTargetRef,
+  } = useBackendPagination({ initialPage: 1, initialPerPage: 25 });
+
+  // Obtener todos los batches con artículos enviando page y per_page al backend
+  const {
+    data: response,
     isLoading,
     isError,
-  } = useGetWarehouseConsumableArticles(
-    selectedCompany?.slug,
-    selectedStation!
-  );
+    error,
+  } = useGetWarehouseConsumableArticles(currentPage, itemsPerPage);
 
-  // Hooks personalizados para lógica separada
+  // Obtener todas las zonas del almacén para los selects
+  const {
+    data: allWarehouseZones,
+    isLoading: isLoadingZones,
+  } = useGetAllWarehouseZones();
+
+  // Extraer batches y paginationInfo de la respuesta
+  const batches = response?.batches || [];
+  const paginationInfo = createPaginationInfo(response?.pagination);
+  const paginationActions = createPaginationActions(paginationInfo.totalPages);
+
+  // Hook para filtros
+  const {
+    state: filterState,
+    actions: filterActions,
+    stats: filterStats,
+  } = useFilters(batches);
+
+  // Crear stats personalizados con todas las zonas del almacén
+  const customFilterStats = useMemo(() => ({
+    ...filterStats,
+    availableZones: (allWarehouseZones as string[]) || [], // Usar todas las zonas del almacén
+  }), [filterStats, allWarehouseZones]);
+
+
+
+  // Hook para manejar cambios en artículos usando batches filtrados
   const {
     state: { quantities, zones, hasChanges },
     actions: { handleQuantityChange, handleZoneChange },
     utils: { getModifiedArticles, modifiedCount },
-  } = useArticleChanges(batches);
-
-  const {
-    stats: { filteredBatches, availableZones, hasActiveFilters },
-    actions: { clearFilters },
-  } = useFilters(batches);
+  } = useArticleChanges(filterStats.filteredBatches || []);
 
   const { updateArticleQuantityAndZone } = useUpdateArticleQuantityAndZone();
 
@@ -65,30 +97,29 @@ const GestionCantidadesPage = () => {
       company: selectedCompany!.slug,
     };
 
+
     updateArticleQuantityAndZone.mutate(requestPayload);
   }, [getModifiedArticles, selectedCompany, updateArticleQuantityAndZone]);
 
+
   if (isLoading) {
     return (
-      <ContentLayout title="Gestión de Cantidades y Ubicaciones">
-        <div className="flex w-full h-full justify-center items-center">
-          <Loader2 className="size-24 animate-spin mt-48" />
-        </div>
-      </ContentLayout>
+      <LoadingPage/>
     );
   }
 
-  if (isError) {
-    return (
-      <ContentLayout title="Gestión de Cantidades y Ubicaciones">
-        <div className="text-center py-8">
-          <p className="text-sm text-muted-foreground">
-            Ha ocurrido un error al cargar los artículos...
-          </p>
-        </div>
-      </ContentLayout>
-    );
-  }
+  // if (isError) {
+  //   return (
+  //     <ContentLayout title="Gestión de Cantidades y Ubicaciones">
+  //       <div className="text-center py-8">
+  //         <p className="text-sm text-muted-foreground">
+  //           Ha ocurrido un error al cargar los artículos...
+  //         </p>
+  //       </div>
+  //     </ContentLayout>
+  //   );
+  // }
+
 
   return (
     <ContentLayout title="Gestión de Cantidades y Ubicaciones">
@@ -112,8 +143,8 @@ const GestionCantidadesPage = () => {
           </BreadcrumbList>
         </Breadcrumb>
 
-        {/* Filtros */}
-        <FilterPanel batches={batches} />
+        {/* Scroll target para paginación */}
+        <div ref={scrollTargetRef} className="scroll-mt-4" />
 
         {/* Header */}
         <div className="flex items-center justify-between">
@@ -141,24 +172,56 @@ const GestionCantidadesPage = () => {
           </Button>
         </div>
 
-        {/* Articles by Batch */}
-        {filteredBatches.map((batch) => (
+        {/* Filter Panel */}
+        <FilterPanel 
+          batches={batches}
+          filterState={filterState}
+          filterActions={filterActions}
+          stats={customFilterStats}
+        />
+
+        {/* Performance Info */}
+        <div className="bg-muted/50 p-3 rounded-lg">
+          <p className="text-sm text-muted-foreground">
+            Mostrando {paginationInfo.from} - {paginationInfo.to} de {paginationInfo.totalItems} batches
+            • Página {paginationInfo.currentPage} de {paginationInfo.totalPages}
+            • {paginationInfo.itemsPerPage} por página
+            {filterStats.hasActiveFilters && (
+              <span className="ml-2 text-blue-600">
+                • {filterStats.articleCounts.filteredArticles} artículos filtrados
+              </span>
+            )}
+            {/* Info de zonas */}
+            <span className="ml-2 text-green-600">
+              • {isLoadingZones ? "Cargando zonas..." : `${(allWarehouseZones as string[])?.length || 0} zonas disponibles`}
+            </span>
+          </p>
+        </div>
+
+        {/* Articles by Batch - Datos filtrados */}
+        {filterStats.filteredBatches && Array.isArray(filterStats.filteredBatches) && filterStats.filteredBatches.map((batch) => (
           <BatchCard
             key={batch.batch_id}
             batch={batch}
             quantities={quantities}
             zones={zones}
-            availableZones={availableZones}
+            availableZones={(allWarehouseZones as string[]) || []} // Todas las zonas del inventario
             onQuantityChange={handleQuantityChange}
             onZoneChange={handleZoneChange}
           />
         ))}
 
+        {/* Pagination Controls */}
+        <PaginationControls
+          paginationInfo={paginationInfo}
+          paginationActions={paginationActions}
+        />
+
         {/* Empty State */}
-        {filteredBatches && filteredBatches.length === 0 && (
+        {(!filterStats.filteredBatches || !Array.isArray(filterStats.filteredBatches) || filterStats.filteredBatches.length === 0) && !isLoading && (
           <EmptyState 
-            hasActiveFilters={hasActiveFilters} 
-            onClearFilters={clearFilters} 
+            hasActiveFilters={filterStats.hasActiveFilters} 
+            onClearFilters={filterActions.clearFilters} 
           />
         )}
       </div>

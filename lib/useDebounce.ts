@@ -1,4 +1,3 @@
-// hooks/useDebouncedInput.ts
 import { useEffect, useState } from 'react';
 
 export function useDebouncedInput(initialValue: string, onDebounce: (value: string) => void, delay = 500) {
@@ -15,4 +14,20 @@ export function useDebouncedInput(initialValue: string, onDebounce: (value: stri
   }, [value, delay, onDebounce]);
 
   return [value, setValue] as const;
+}
+
+export function useDebounce<T>(value: T, delay: number): T {
+  const [debouncedValue, setDebouncedValue] = useState<T>(value);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [value, delay]);
+
+  return debouncedValue;
 }

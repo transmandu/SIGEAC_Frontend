@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -7,6 +7,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { SearchableZoneSelect } from "./SearchableZoneSelect";
 import { IWarehouseArticle } from "@/hooks/mantenimiento/almacen/articulos/useGetWarehouseConsumableArticles";
 
 // Tipo para artículos individuales
@@ -26,8 +27,41 @@ export const ArticleRow = React.memo(
   ({ article, quantity, zone, meditionUnit, availableZones, onQuantityChange, onZoneChange }: ArticleRowProps) => {
     const isComponent = article.article_type === 'componente';
     
+    // Usar todas las zonas disponibles del inventario - con validación estricta
+    const allAvailableZones = React.useMemo(() => {
+      // Inicializar array vacío por defecto
+      let zones = new Set<string>();
+      
+      // Solo procesar si availableZones es un array válido
+      if (availableZones && Array.isArray(availableZones)) {
+        try {
+          availableZones.forEach((zone) => {
+            if (zone && typeof zone === 'string') {
+              zones.add(zone);
+            }
+          });
+        } catch (error) {
+          console.error("Error processing available zones:", error);
+        }
+      }
+      
+      // Asegurar que la zona actual del artículo esté incluida
+      if (article.zone && typeof article.zone === 'string') {
+        zones.add(article.zone);
+      }
+      if (zone && typeof zone === 'string') {
+        zones.add(zone);
+      }
+      
+      // Devolver todas las zonas disponibles
+      return Array.from(zones).sort();
+    }, [availableZones, article.zone, zone]);
+    
     return (
-    <div className="grid grid-cols-1 md:grid-cols-4 gap-3 p-3 border rounded-lg bg-card hover:bg-muted/50 transition-colors">
+    <div 
+      className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-3 p-3 border rounded-lg bg-card hover:bg-muted/50 transition-colors"
+      onClick={(e) => e.stopPropagation()}
+    >
       {/* Article Info */}
       <div className="flex flex-col">
         <label className="text-xs font-medium text-muted-foreground mb-1">
@@ -60,36 +94,41 @@ export const ArticleRow = React.memo(
         </div>
       </div>
 
-      {/* Zone Selection */}
+      {/* Current Location */}
       <div className="flex flex-col">
         <label className="text-xs font-medium text-muted-foreground mb-1">
-          Zona de Localización
+          Ubicación Actual
         </label>
-        <Select 
-          value={zone} 
-          onValueChange={(newZone) => onZoneChange(article.id, newZone)}
-        >
-          <SelectTrigger 
-            className={`h-9 ${
-              zone !== article.zone
-                ? "border-blue-500 bg-blue-50"
-                : ""
-            }`}
-          >
-            <SelectValue placeholder="Seleccionar zona" />
-          </SelectTrigger>
-          <SelectContent>
-            {availableZones.map((availableZone) => (
-              <SelectItem key={availableZone} value={availableZone}>
-                {availableZone}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <div className="p-2 bg-muted rounded-md text-center">
+          <div className="text-sm font-medium text-primary">
+            {article.zone || "Sin zona"}
+          </div>
+        </div>
         <div className="text-xs text-muted-foreground text-center mt-0.5">
-          Ubicación actual
+          Zona original
         </div>
       </div>
+
+        {/* New Zone Selection */}
+        <div className="flex flex-col">
+          <label className="text-xs font-medium text-muted-foreground mb-1">
+            Nueva Ubicación
+          </label>
+          <SearchableZoneSelect
+            value={zone || ""}
+            onValueChange={(value) => {
+              if (value && typeof onZoneChange === 'function') {
+                onZoneChange(article.id, value);
+              }
+            }}
+            availableZones={allAvailableZones}
+            placeholder="Seleccionar zona..."
+            className={zone !== article.zone ? "border-blue-500 bg-blue-50" : ""}
+          />
+          <div className="text-xs text-muted-foreground text-center mt-0.5">
+            {zone !== article.zone ? "Modificada" : "Sin cambios"}
+          </div>
+        </div>
 
       {/* New Quantity */}
       <div className="flex flex-col">

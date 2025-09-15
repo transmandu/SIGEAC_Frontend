@@ -20,8 +20,9 @@ export const BatchCard = React.memo(({
   onQuantityChange, 
   onZoneChange 
 }: BatchCardProps) => {
+
   return (
-    <Card className="mb-5">
+    <Card className="mb-5" onClick={(e) => e.stopPropagation()}>
       <CardHeader className="pb-2 pt-2.5">
         <CardTitle className="text-lg">{batch.name}</CardTitle>
         <CardDescription className="text-sm">

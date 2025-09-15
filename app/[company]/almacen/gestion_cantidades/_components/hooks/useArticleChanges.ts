@@ -28,14 +28,16 @@ export const useArticleChanges = (batches: IWarehouseArticle[] | undefined) => {
 
   // Initialize quantities and zones when articles are loaded
   useEffect(() => {
-    if (batches) {
+    if (batches && Array.isArray(batches)) {
       const initialQuantities: Record<number, number> = {};
       const initialZones: Record<number, string> = {};
       batches.forEach((batch) => {
-        batch.articles.forEach((article) => {
-          initialQuantities[article.id] = article.quantity || 0;
-          initialZones[article.id] = article.zone;
-        });
+        if (batch && batch.articles && Array.isArray(batch.articles)) {
+          batch.articles.forEach((article) => {
+            initialQuantities[article.id] = article.quantity || 0;
+            initialZones[article.id] = article.zone;
+          });
+        }
       });
       setQuantities(initialQuantities);
       setZones(initialZones);
@@ -71,14 +73,16 @@ export const useArticleChanges = (batches: IWarehouseArticle[] | undefined) => {
 
   const resetChanges = useCallback(() => {
     setHasChanges(false);
-    if (batches) {
+    if (batches && Array.isArray(batches)) {
       const initialQuantities: Record<number, number> = {};
       const initialZones: Record<number, string> = {};
       batches.forEach((batch) => {
-        batch.articles.forEach((article) => {
-          initialQuantities[article.id] = article.quantity || 0;
-          initialZones[article.id] = article.zone;
-        });
+        if (batch && batch.articles && Array.isArray(batch.articles)) {
+          batch.articles.forEach((article) => {
+            initialQuantities[article.id] = article.quantity || 0;
+            initialZones[article.id] = article.zone;
+          });
+        }
       });
       setQuantities(initialQuantities);
       setZones(initialZones);
@@ -89,7 +93,15 @@ export const useArticleChanges = (batches: IWarehouseArticle[] | undefined) => {
   const getModifiedArticles = useCallback((): ModifiedArticle[] => {
     const modifiedArticles: ModifiedArticle[] = [];
 
-    batches?.forEach((batch) => {
+    if (!batches || !Array.isArray(batches)) {
+      return modifiedArticles;
+    }
+
+    batches.forEach((batch) => {
+      if (!batch || !batch.articles || !Array.isArray(batch.articles)) {
+        return;
+      }
+      
       batch.articles.forEach((article) => {
         const currentQuantity = quantities[article.id] ?? article.quantity;
         const currentZone = zones[article.id] ?? article.zone;

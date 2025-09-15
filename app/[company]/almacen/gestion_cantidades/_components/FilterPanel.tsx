@@ -10,19 +10,41 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ChevronDown, Filter, Search, X } from "lucide-react";
-import { useFilters } from "./hooks/useFilters";
+import { SearchableZoneFilter } from "./SearchableZoneFilter";
 import { IWarehouseArticle } from "@/hooks/mantenimiento/almacen/articulos/useGetWarehouseConsumableArticles";
 
 interface FilterPanelProps {
   batches: IWarehouseArticle[] | undefined;
+  filterState: {
+    selectedZone: string;
+    partNumberFilter: string;
+    filtersExpanded: boolean;
+  };
+  filterActions: {
+    setSelectedZone: (zone: string) => void;
+    setPartNumberFilter: (filter: string) => void;
+    setFiltersExpanded: (expanded: boolean) => void;
+    clearFilters: () => void;
+  };
+  stats: {
+    availableZones: string[];
+    hasActiveFilters: boolean;
+    articleCounts: {
+      totalArticles: number;
+      filteredArticles: number;
+    };
+  };
 }
 
-export const FilterPanel = React.memo(({ batches }: FilterPanelProps) => {
-  const {
-    state: { selectedZone, partNumberFilter, filtersExpanded },
-    actions: { setSelectedZone, setPartNumberFilter, setFiltersExpanded, clearFilters },
-    stats: { availableZones, hasActiveFilters, articleCounts },
-  } = useFilters(batches);
+export const FilterPanel = React.memo(({ 
+  batches, 
+  filterState, 
+  filterActions, 
+  stats 
+}: FilterPanelProps) => {
+  const { selectedZone, partNumberFilter, filtersExpanded } = filterState;
+  const { setSelectedZone, setPartNumberFilter, setFiltersExpanded, clearFilters } = filterActions;
+  const { availableZones, hasActiveFilters, articleCounts } = stats;
 
   return (
     <Card className="mb-4 overflow-hidden">
@@ -104,19 +126,11 @@ export const FilterPanel = React.memo(({ batches }: FilterPanelProps) => {
               <label className="text-sm font-medium text-muted-foreground">
                 Zona de Almacén
               </label>
-              <Select value={selectedZone} onValueChange={setSelectedZone}>
-                <SelectTrigger className="transition-all duration-200 hover:border-primary/50">
-                  <SelectValue placeholder="Todas las zonas" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todas las zonas</SelectItem>
-                  {availableZones.map((zone) => (
-                    <SelectItem key={zone} value={zone}>
-                      {zone}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <SearchableZoneFilter
+                value={selectedZone}
+                onValueChange={setSelectedZone}
+                availableZones={availableZones}
+              />
             </div>
 
             {/* Filtro por Número de Parte */}

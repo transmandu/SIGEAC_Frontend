@@ -1,5 +1,6 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useState, useEffect } from "react";
 import { IWarehouseArticle } from "@/hooks/mantenimiento/almacen/articulos/useGetWarehouseConsumableArticles";
+import { useDebounce } from "@/lib/useDebounce";
 
 export interface FilterState {
   selectedZone: string;
@@ -28,6 +29,10 @@ export const useFilters = (batches: IWarehouseArticle[] | undefined) => {
   const [selectedZone, setSelectedZone] = useState<string>("all");
   const [partNumberFilter, setPartNumberFilter] = useState<string>("");
   const [filtersExpanded, setFiltersExpanded] = useState<boolean>(false);
+  
+  // Debounce el filtro de número de parte para mejorar rendimiento
+  const debouncedPartNumberFilter = useDebounce(partNumberFilter, 300);
+
 
   // Obtener zonas únicas para el filtro
   const availableZones = useMemo(() => {
@@ -57,16 +62,17 @@ export const useFilters = (batches: IWarehouseArticle[] | undefined) => {
 
           // Filtro por número de parte (búsqueda parcial, case insensitive)
           const partNumberMatch =
-            partNumberFilter === "" ||
+            debouncedPartNumberFilter === "" ||
             article.part_number
               .toLowerCase()
-              .includes(partNumberFilter.toLowerCase());
+              .includes(debouncedPartNumberFilter.toLowerCase());
 
           return zoneMatch && partNumberMatch;
         }),
       }))
       .filter((batch) => batch.articles.length > 0);
-  }, [batches, selectedZone, partNumberFilter]);
+  }, [batches, selectedZone, debouncedPartNumberFilter]);
+
 
   // Verificar si hay filtros activos
   const hasActiveFilters = useMemo(
