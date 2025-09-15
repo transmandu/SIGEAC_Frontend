@@ -110,6 +110,7 @@ export function getMenuList(
             "JEFE_ALMACEN",
             "JEFE_COMPRAS",
             "JEFE_SMS",
+            "ANALISTA_SMS",
             "JEFE_CONTADURIA",
             "JEFE_RRHH",
             "JEFE_OPERACIONES",
