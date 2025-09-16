@@ -107,7 +107,7 @@ export const SearchableZoneFilter = React.memo(({
               
               {filteredZones.length === 0 && searchQuery ? (
                 <CommandEmpty className="py-6 text-center text-sm text-muted-foreground">
-                  No se encontraron zonas con "{searchQuery}"
+                  No se encontraron zonas con {searchQuery}
                 </CommandEmpty>
               ) : (
                 filteredZones.map((zone) => (

@@ -90,7 +90,7 @@ const eventStatus = {
 export const Calendar = ({ events, theme = "light" }: CalendarProps) => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<string | undefined>();
-
+  const { selectedCompany } = useCompanyStore();
   const eventsServiceRef = useRef(createEventsServicePlugin());
   const eventModal = useMemo(() => createEventModalPlugin(), []);
   const dragAndDrop = useMemo(() => createDragAndDropPlugin(), []);
@@ -197,7 +197,7 @@ export const Calendar = ({ events, theme = "light" }: CalendarProps) => {
         );
       },
     }),
-    [selectedCompany?.slug]
+    []
   );
 
   // ✅ Refrescar eventos en el servicio solo cuando cambian
