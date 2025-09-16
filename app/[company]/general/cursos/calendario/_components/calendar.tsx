@@ -17,7 +17,14 @@ import { createResizePlugin } from "@schedule-x/resize";
 import "@schedule-x/theme-default/dist/index.css";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { ClockIcon, Hammer, NotebookIcon, PencilLine } from "lucide-react";
+import {
+  ClockIcon,
+  GraduationCap,
+  Hammer,
+  NotebookIcon,
+  PencilLine,
+  RefreshCw,
+} from "lucide-react";
 import Link from "next/link";
 import { useEffect, useRef, useState, useMemo } from "react";
 
@@ -27,6 +34,8 @@ interface courseEvent {
   start: string;
   end: string;
   description: string;
+  course_type: string;
+  calendarId: string;
 }
 
 type CalendarProps = {
@@ -34,35 +43,37 @@ type CalendarProps = {
   theme?: "dark" | "light";
 };
 
-const priorityCalendars = {
-  HIGH: {
-    colorName: "HIGH",
+const eventStatus = {
+  // GREEN
+  ABIERTO: {
+    colorName: "abierto",
     lightColors: {
-      main: "#ef4444", // rojo fuerte
-      container: "#fee2e2",
-      onContainer: "#7f1d1d",
+      main: "#2ADE99", // rojo fuerte
+      container: "#B3FFCC",
+      onContainer: "#000",
     },
     darkColors: {
-      main: "#fca5a5",
-      container: "#7f1d1d",
-      onContainer: "#fecaca",
+      main: "#2ADE99", // rojo fuerte
+      container: "#B3FFCC",
+      onContainer: "#000",
     },
   },
-  MEDIUM: {
-    colorName: "MEDIUM",
+  // RED
+  CERRADO: {
+    colorName: "cerrado",
     lightColors: {
-      main: "#f59e0b", // naranja
-      container: "#fef3c7",
-      onContainer: "#78350f",
+      main: "#FF1A1A", //
+      container: "#FFA8A8",
+      onContainer: "#000",
     },
     darkColors: {
-      main: "#fde68a",
-      container: "#78350f",
-      onContainer: "#fef3c7",
+      main: "#FF1A1A",
+      container: "#FA9B9B",
+      onContainer: "#000",
     },
   },
-  LOW: {
-    colorName: "LOW",
+  PENDIENTE: {
+    colorName: "pendiente",
     lightColors: {
       main: "#10b981", // verde
       container: "#d1fae5",
@@ -77,7 +88,6 @@ const priorityCalendars = {
 };
 
 export const Calendar = ({ events, theme = "light" }: CalendarProps) => {
-  const { selectedCompany } = useCompanyStore();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<string | undefined>();
 
@@ -87,10 +97,9 @@ export const Calendar = ({ events, theme = "light" }: CalendarProps) => {
   const resizePlugin = useMemo(() => createResizePlugin(30), []);
 
   const { updateCourseCalendar } = useUpdateCourseCalendar();
-  // ✅ Esta llamada es correcta, fuera de useMemo
   const calendar = useNextCalendarApp({
     views: [createViewMonthGrid(), createViewWeek(), createViewDay()],
-    calendars: priorityCalendars,
+    calendars: eventStatus,
     events,
     locale: "es-ES",
     defaultView: "month",
@@ -109,17 +118,22 @@ export const Calendar = ({ events, theme = "light" }: CalendarProps) => {
       onEventUpdate: async (event) => {
         const start_time = event.start.split(" ")[1];
         const end_time = event.end.split(" ")[1];
-        await updateCourseCalendar.mutateAsync({
-          company: selectedCompany!.slug,
-          id: event.id as string,
-          data: {
-            ...event,
-            start_date: new Date(event.start),
-            end_date: new Date(event.end),
-            start_time: start_time,
-            end_time: end_time,
-          },
-        });
+
+        try {
+          await updateCourseCalendar.mutateAsync({
+            id: event.id as string,
+            data: {
+              ...event,
+              start_date: new Date(event.start),
+              end_date: new Date(event.end),
+              start_time: start_time,
+              end_time: end_time,
+              status: event.calendarId,
+            },
+          });
+        } catch (error) {
+          console.error("Error al actualizar el evento:", error);
+        }
       },
     },
   });
@@ -139,7 +153,7 @@ export const Calendar = ({ events, theme = "light" }: CalendarProps) => {
           <div className="text-foreground p-6 rounded-lg shadow-xl max-w-md w-full border border-border">
             <div className="flex gap-2 items-center mb-4">
               <PencilLine />
-              <h3 className="text-xl font-semibold">{calendarEvent.title}</h3>
+              <h3 className="text-xl font-semibold">{calendarEvent?.title}</h3>
             </div>
 
             <div className="space-y-4 mb-6">
@@ -151,28 +165,32 @@ export const Calendar = ({ events, theme = "light" }: CalendarProps) => {
                   </span>
                 </div>
               </div>
-
               {calendarEvent.title && (
                 <div className="flex items-start text-sm">
                   <NotebookIcon className="w-4 h-4 mr-2 mt-0.5" />
                   <span>{calendarEvent.title}</span>
                 </div>
               )}
+              {calendarEvent.calendarId && (
+                <div className="flex items-start text-sm">
+                  <RefreshCw className="w-4 h-4 mr-2 mt-0.5" />
+                  <span>{calendarEvent.calendarId}</span>
+                </div>
+              )}
+              {calendarEvent.course_type && (
+                <div className="flex items-start text-sm">
+                  <GraduationCap className="w-4 h-4 mr-2 mt-0.5" />
+                  <span>{calendarEvent.course_type}</span>
+                </div>
+              )}
             </div>
-            {calendarEvent && calendarEvent.description ? (
+            {calendarEvent.description ? (
               <div className="flex justify-center">
                 <span>{calendarEvent.description}</span>
               </div>
             ) : (
               <div className="flex justify-center">
-                <Button variant="outline">
-                  <Link
-                    href={`/${selectedCompany?.slug}/planificacion/ordenes_trabajo/nueva_orden_trabajo?eventId=${calendarEvent.id}`}
-                    className="flex items-center"
-                  >
-                    Generar OT <Hammer className="ml-2" />
-                  </Link>
-                </Button>
+                <Button variant="outline"></Button>
               </div>
             )}
           </div>

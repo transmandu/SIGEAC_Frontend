@@ -5,9 +5,11 @@ import { useQuery } from "@tanstack/react-query";
 interface SMSActivities {
   id: number;
   title: string;
-  description: string;
   start: string;
   end: string;
+  description: string;
+  calendarId: string;
+  status: "ABIERTO" | "CERRADO" | "PENDIENTE"; // Asegúrate de que esta propiedad existe
 }
 
 const fetchSMSActivitiesForCalendar = async (

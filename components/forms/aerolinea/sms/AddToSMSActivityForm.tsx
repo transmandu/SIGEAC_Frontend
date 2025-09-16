@@ -38,6 +38,8 @@ interface EmployeeSelection {
   dni: string;
   first_name: string;
   last_name: string;
+  job_title: string;
+  department: string;
   isSelected: boolean;
   wasEnrolled: boolean;
 }
@@ -119,6 +121,8 @@ export function AddToSMSActivity({ onClose, initialData }: FormProps) {
           dni: e.dni,
           first_name: e.first_name,
           last_name: e.last_name,
+          job_title: e.job_title.name,
+          department: e.department.name,
           isSelected: true,
           wasEnrolled: true,
         })) || []),
@@ -126,6 +130,8 @@ export function AddToSMSActivity({ onClose, initialData }: FormProps) {
           dni: e.dni,
           first_name: e.first_name,
           last_name: e.last_name,
+          job_title: e.job_title.name,
+          department: e.department.name,
           isSelected: false,
           wasEnrolled: false,
         })) || []),

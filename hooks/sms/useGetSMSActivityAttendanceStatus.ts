@@ -7,33 +7,33 @@ interface EnrolledEmployees {
   not_attended: Employee[];
 }
 
-const fetchGetEnrolledEmployees = async ({
-  course_id,
+const fetchGetActivityAttendanceStatus = async ({
+  activity_id,
   company,
 }: {
-  course_id: string;
+  activity_id: string;
   company: string | null;
 }): Promise<EnrolledEmployees> => {
   const { data } = await axiosInstance.get(
-    `/general/${company}/employee-attendance-course-status/${course_id}`
+    `/${company}/sms/activities/${activity_id}/employee-attendance-status`
   );
   return data;
 };
 
-export const useGetCourseEnrolledEmployees = ({
-  course_id,
+export const useGetSMSActivityAttendanceStatus = ({
+  activity_id,
   company,
 }: {
   company: string | null;
-  course_id: string;
+  activity_id: string;
 }) => {
   const value = {
-    course_id: course_id,
+    activity_id: activity_id,
     company: company,
   };
   return useQuery<EnrolledEmployees>({
-    queryKey: ["employees-course",course_id],
-    queryFn: () => fetchGetEnrolledEmployees(value),
+    queryKey: ["sms-activity-attendance-status",activity_id],
+    queryFn: () => fetchGetActivityAttendanceStatus(value),
     staleTime: 1000 * 60 * 5, // 5 minutos
   });
 };

@@ -1,4 +1,5 @@
 import axiosInstance from "@/lib/axios";
+import { useCompanyStore } from "@/stores/CompanyStore";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
@@ -150,6 +151,11 @@ export const useUpdateCalendarSMSActivity = () => {
       id: string;
       data: any;
     }) => {
+      if (data.status === "CERRADO") {
+        throw new Error(
+          "No se puede actualizar la actividad de un curso con estatus CERRADO."
+        );
+      }
       const response = await axiosInstance.patch(
         `/${company}/sms/update-calendar-activity/${id}`,
         data
@@ -171,5 +177,33 @@ export const useUpdateCalendarSMSActivity = () => {
   });
   return {
     updateCalendarSMSActivity: updateSMSActivityMutation,
+  };
+};
+
+export const useCloseSMSActivity = () => {
+  const queryClient = useQueryClient();
+  const { selectedCompany } = useCompanyStore();
+  const closeSMSActivityMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const response = await axiosInstance.patch(
+        `/${selectedCompany?.slug}/sms/close-sms-activity/${id}`
+      );
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["sms-activities"] });
+      toast.success("Cerrado", {
+        description: `La actividad se ha cerrado.`,
+      });
+    },
+    onError: (error) => {
+      toast.error("Oops!", {
+        description: "No se pudo cerrar la actividad...",
+      });
+      console.log(error);
+    },
+  });
+  return {
+    closeSMSActivity: closeSMSActivityMutation,
   };
 };

@@ -87,7 +87,7 @@ const CourseStatsPage = () => {
 
       <div className="grid sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-2 2xl:grid-cols-2 gap-4">
         <div className="flex flex-col justify-center items-center p-4 rounded-lg shadow border">
-          {isLoadingBarChart ? (
+          {/* {isLoadingBarChart ? (
             <div className="flex justify-center items-center h-48">
               <Loader2 className="size-24 animate-spin" />
             </div>
@@ -104,7 +104,7 @@ const CourseStatsPage = () => {
             <p className="text-sm text-muted-foreground">
               Ha ocurrido un error al cargar los datos de los cursos...
             </p>
-          )}
+          )} */}
         </div>
 
         <div className="flex flex-col justify-center items-center p-4 rounded-lg shadow border">
