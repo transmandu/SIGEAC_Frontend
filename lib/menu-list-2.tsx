@@ -738,7 +738,7 @@ export function getMenuList(
           active: pathname.includes(
             `/${currentCompany?.slug}/almacen/gestion_cantidades`
           ),
-          icon: Wrench,
+          icon: SquarePen,
           submenus: [],
         },
       ],
