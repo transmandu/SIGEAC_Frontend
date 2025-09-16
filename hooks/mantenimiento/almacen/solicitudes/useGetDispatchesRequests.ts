@@ -28,6 +28,7 @@ const fetchDispatchesRequests = async ({
   company?: string;
 }): Promise<IDispatch[]> => {
   const { data } = await axios.post(`/${company}/show-dispatch`, { location_id });
+  console.log(data);
   return data;
 };
 

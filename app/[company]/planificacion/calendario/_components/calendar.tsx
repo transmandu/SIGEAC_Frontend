@@ -165,7 +165,7 @@ export const Calendar = ({ events, theme = "light" }: CalendarProps) => {
         </div>
       );
     },
-  }), []);
+  }), [selectedCompany?.slug]);
 
   // ✅ Refrescar eventos en el servicio solo cuando cambian
   useEffect(() => {

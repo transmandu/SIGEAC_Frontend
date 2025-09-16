@@ -735,11 +735,11 @@ e            "ANALISTA_SMS",
         {
           href: `/${currentCompany?.slug}/almacen/gestion_cantidades`,
           label: "Gestión de Cantidades",
-          roles: ["JEFE_ALMACEN", "SUPERUSER"],
+          roles: ["ANALISTA_ALMACEN" ,"JEFE_ALMACEN", "SUPERUSER"],
           active: pathname.includes(
             `/${currentCompany?.slug}/almacen/gestion_cantidades`
           ),
-          icon: Wrench,
+          icon: SquarePen,
           submenus: [],
         },
       ],

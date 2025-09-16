@@ -83,11 +83,19 @@ export const columns: ColumnDef<DispatchRequest>[] = [
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Articulos" />
     ),
-    cell: ({ row }) => (
-      <div className="flex justify-center">
-        <DispatchArticlesDialog articles={row.original.batch.articles} work_order={row.original.work_order?.order_number!} />
-      </div>
-    )
+    cell: ({ row }) => {
+      // Transform articles to match the expected interface
+      const transformedArticles = row.original.batch.articles.map(article => ({
+        ...article,
+        unit: article.unit && article.unit.length > 0 ? article.unit[0].secondary_unit : undefined
+      }));
+      
+      return (
+        <div className="flex justify-center">
+          <DispatchArticlesDialog articles={transformedArticles} work_order={row.original.work_order?.order_number!} />
+        </div>
+      )
+    }
   },
   {
     id: "actions",

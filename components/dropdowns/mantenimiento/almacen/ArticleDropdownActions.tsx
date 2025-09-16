@@ -7,7 +7,7 @@ import {
 
 
 import { useDeleteArticle } from "@/actions/mantenimiento/almacen/inventario/articulos/actions"
-import { EyeIcon, Loader2, MoreHorizontal, Trash2 } from "lucide-react"
+import { EditIcon, EyeIcon, Loader2, MoreHorizontal, Trash2 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { Button } from "../../../ui/button"
@@ -37,16 +37,21 @@ const ArticleDropdownActions = ({ id, serial, part_number }: { id: string | numb
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="center" className="flex gap-2 justify-center">
-          <DialogTrigger asChild>
-            <DropdownMenuItem className="cursor-pointer">
-              <Trash2 className='size-5 text-red-500' />
-            </DropdownMenuItem>
-          </DialogTrigger>
+          <DropdownMenuItem className="cursor-pointer" onClick={() => {
+            router.push(`/${selectedCompany?.slug}/almacen/inventario/gestion/${part_number}/${serial}/editar`)
+          }}>
+            <EditIcon className="size-5 text-blue-500" />
+          </DropdownMenuItem>
           <DropdownMenuItem className="cursor-pointer" onClick={() => {
             router.push(`/${selectedCompany?.slug}/almacen/inventario/gestion/${part_number}/${serial}`)
           }}>
             <EyeIcon className="size-5" />
           </DropdownMenuItem>
+          <DialogTrigger asChild>
+            <DropdownMenuItem className="cursor-pointer">
+              <Trash2 className='size-5 text-red-500' />
+            </DropdownMenuItem>
+          </DialogTrigger>
         </DropdownMenuContent>
       </DropdownMenu>
       <DialogContent>

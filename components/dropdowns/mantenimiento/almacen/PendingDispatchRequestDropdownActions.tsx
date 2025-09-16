@@ -54,7 +54,6 @@ const formSchema = z.object({
 
 const PendingDispatchRequestDropdownActions
   = ({ request }: { request: DispatchRequest }) => {
-
     const form = useForm<z.infer<typeof formSchema>>({
       resolver: zodResolver(formSchema),
       defaultValues: {
@@ -113,7 +112,7 @@ const PendingDispatchRequestDropdownActions
                 {
                   quantity: qtyToBuy,
                   part_number: request.batch.articles[0].part_number,
-                  unit: request.batch.articles[0].unit[0].id,
+                  unit: request.batch.articles[0].unit[0]?.id,
                 }
               ]
             }

@@ -1,67 +1,93 @@
-"use client"
+"use client";
 
-import { useCreateDispatchRequest } from "@/actions/mantenimiento/almacen/solicitudes/salida/action"
-import { Button } from "@/components/ui/button"
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
-import { useAuth } from "@/contexts/AuthContext"
-import { useGetBatchesWithInWarehouseArticles } from "@/hooks/mantenimiento/almacen/renglones/useGetBatchesWithInWarehouseArticles"
-import { cn } from "@/lib/utils"
-import { useCompanyStore } from "@/stores/CompanyStore"
-import { Article, Batch } from "@/types"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { format } from "date-fns"
-import { es } from "date-fns/locale"
-import { CalendarIcon, Check, ChevronsUpDown, Loader2 } from "lucide-react"
-import { useEffect, useState } from "react"
-import { useForm } from "react-hook-form"
-import { z } from "zod"
-import { Calendar } from "../../../ui/calendar"
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "../../../ui/command"
-import { Popover, PopoverContent, PopoverTrigger } from "../../../ui/popover"
-import { Textarea } from "../../../ui/textarea"
-
+import { useCreateDispatchRequest } from "@/actions/mantenimiento/almacen/solicitudes/salida/action";
+import { Button } from "@/components/ui/button";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { useAuth } from "@/contexts/AuthContext";
+import { useGetBatchesWithInWarehouseArticles } from "@/hooks/mantenimiento/almacen/renglones/useGetBatchesWithInWarehouseArticles";
+import { useGetWorkOrderEmployees } from "@/hooks/mantenimiento/planificacion/useGetWorkOrderEmployees";
+import { useGetDepartments } from "@/hooks/sistema/departamento/useGetDepartment";
+import { cn } from "@/lib/utils";
+import { useCompanyStore } from "@/stores/CompanyStore";
+import { Article, Batch } from "@/types";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
+import { CalendarIcon, Check, ChevronsUpDown, Loader2 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { Calendar } from "../../../ui/calendar";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "../../../ui/command";
+import { Popover, PopoverContent, PopoverTrigger } from "../../../ui/popover";
+import { Textarea } from "../../../ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const FormSchema = z.object({
   requested_by: z.string(),
   submission_date: z.date({
-    message: "Debe ingresar la fecha."
+    message: "Debe ingresar la fecha.",
   }),
-  articles: z.array(z.object({
-    article_id: z.coerce.number(),
-    serial: z.string().nullable(),
-    quantity: z.number(),
-    batch_id: z.number(),
-  }), {
-    message: "Debe seleccionar el (los) articulos que se van a despachar."
-  }),
+  articles: z.array(
+    z.object({
+      article_id: z.coerce.number(),
+      serial: z.string().nullable(),
+      quantity: z.number(),
+      batch_id: z.number(),
+    }),
+    {
+      message: "Debe seleccionar el (los) articulos que se van a despachar.",
+    }
+  ),
   justification: z.string({
-    message: "Debe ingresar una justificación de la salida."
+    message: "Debe ingresar una justificación de la salida.",
   }),
   destination_place: z.string(),
   status: z.string(),
-})
+});
 
-type FormSchemaType = z.infer<typeof FormSchema>
+type FormSchemaType = z.infer<typeof FormSchema>;
 
 interface FormProps {
-  onClose: () => void
+  onClose: () => void;
 }
 
 interface BatchesWithCountProp extends Batch {
-  articles: Article[],
-  batch_id: number,
+  articles: Article[];
+  batch_id: number;
 }
 
 export function ToolDispatchForm({ onClose }: FormProps) {
-
   const { user } = useAuth();
 
   const [open, setOpen] = useState(false);
 
   const [openBatches, setOpenBatches] = useState(false);
 
-  const [filteredBatches, setFilteredBatches] = useState<BatchesWithCountProp[]>([]);
+  const [filteredBatches, setFilteredBatches] = useState<
+    BatchesWithCountProp[]
+  >([]);
 
   const [articleSelected, setArticleSelected] = useState<Article>();
 
@@ -69,18 +95,41 @@ export function ToolDispatchForm({ onClose }: FormProps) {
 
   const { selectedStation, selectedCompany } = useCompanyStore();
 
-  const { mutate, data: batches, isPending: isBatchesLoading, isError: batchesError } = useGetBatchesWithInWarehouseArticles();
+  const {
+    mutate,
+    data: batches,
+    isPending: isBatchesLoading,
+    isError: batchesError,
+  } = useGetBatchesWithInWarehouseArticles();
+
+  const {
+    data: employees,
+    isLoading: employeesLoading,
+    isError: employeesError,
+  } = useGetWorkOrderEmployees({
+    company: selectedCompany?.slug,
+    location_id: selectedStation!,
+    acronym: "MANP",
+  });
+
+  const { data: departments, isLoading: isDepartmentsLoading } =
+    useGetDepartments(selectedCompany?.slug);
 
   useEffect(() => {
     if (selectedStation) {
-      mutate({location_id: Number(selectedStation), company: selectedCompany!.slug})
+      mutate({
+        location_id: Number(selectedStation),
+        company: selectedCompany!.slug,
+      });
     }
-  }, [selectedStation, mutate, selectedCompany])
+  }, [selectedStation, mutate, selectedCompany]);
 
   useEffect(() => {
     if (batches) {
       // Filtrar los batches por categoría
-      const filtered = batches.filter((batch) => batch.category === "herramienta");
+      const filtered = batches.filter(
+        (batch) => batch.category === "herramienta"
+      );
       setFilteredBatches(filtered);
     }
   }, [batches]);
@@ -90,7 +139,7 @@ export function ToolDispatchForm({ onClose }: FormProps) {
     defaultValues: {
       articles: [],
       justification: "",
-      requested_by: `${user?.first_name} ${user?.last_name}`,
+      requested_by: "",
       destination_place: "",
       status: "proceso",
     },
@@ -101,31 +150,64 @@ export function ToolDispatchForm({ onClose }: FormProps) {
   const onSubmit = async (data: FormSchemaType) => {
     const formattedData = {
       ...data,
-      created_by: user?.first_name + " " + user?.last_name,
+      created_by: `${user?.employee[0].dni}`,
       submission_date: format(data.submission_date, "yyyy-MM-dd"),
       category: "herramienta",
-      user_id: Number(user!.id)
-    }
-    await createDispatchRequest.mutateAsync({data: formattedData, company: selectedCompany!.slug});
+      user_id: Number(user!.id),
+    };
+    await createDispatchRequest.mutateAsync({
+      data: formattedData,
+      company: selectedCompany!.slug,
+    });
     onClose();
-  }
+  };
 
-  const handleArticleSelect = (id: number, serial: string | null, batch_id: number) => {
-    setValue('articles', [{ article_id: Number(id), serial: serial ? serial : null, quantity: 1, batch_id: Number(batch_id) }])
+  const handleArticleSelect = (
+    id: number,
+    serial: string | null,
+    batch_id: number
+  ) => {
+    setValue("articles", [
+      {
+        article_id: Number(id),
+        serial: serial ? serial : null,
+        quantity: 1,
+        batch_id: Number(batch_id),
+      },
+    ]);
   };
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col space-y-3 w-full">
+      <form
+        onSubmit={form.handleSubmit(onSubmit)}
+        className="flex flex-col space-y-3 w-full"
+      >
         <div className="flex gap-2">
           <FormField
             control={form.control}
             name="requested_by"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Solicitante</FormLabel>
-                <FormControl>
-                  <Input className="w-[240px] disabled:opacity-85" defaultValue={`${user?.first_name} ${user?.last_name}`} disabled {...field} />
-                </FormControl>
+                <FormLabel>Recibe / MTTO</FormLabel>
+                <Select onValueChange={field.onChange}>
+                  <FormControl>
+                    <SelectTrigger className="w-[240px]">
+                      <SelectValue placeholder="Seleccione el responsable..." />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {employeesLoading && (
+                      <Loader2 className="size-4 animate-spin" />
+                    )}
+                    {employees &&
+                      employees.map((employee) => (
+                        <SelectItem key={employee.id} value={`${employee.dni}`}>
+                          {employee.first_name} {employee.last_name} -{" "}
+                          {employee.job_title.name}
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
                 <FormMessage />
               </FormItem>
             )}
@@ -154,26 +236,56 @@ export function ToolDispatchForm({ onClose }: FormProps) {
                     <Command>
                       <CommandInput placeholder="Buscar una herramienta" />
                       <CommandList>
-                        <CommandEmpty className="flex justify-center">{
-                          isBatchesLoading ? <Loader2 className="size-4 animate-spin" />
-                            : batchesError ? <p>Ha ocurrido un error al cargar las herramientas</p> :
-                              <p className="text-sm text-muted-foreground italic">No se han encontrado herramientas disponibles...</p>}</CommandEmpty>
-                        {
-                          filteredBatches?.map((batch) => (
-                            <CommandGroup key={batch.batch_id} heading={batch.name}>
-                              {
-                                batch.articles.map((article) => (
-                                  <CommandItem disabled={article.status === 'InUse'} key={article.id} onSelect={() => {
-                                    handleArticleSelect(article.id!, article.serial ? article.serial : null, batch.batch_id)
-                                    setArticleSelected(article)
-                                  }}><Check className={cn("mr-2 h-4 w-4", articleSelected?.id === article.id ? "opacity-100" : "opacity-0")} />
-                                    <p className="font-medium"><span className="text-muted-foreground">SN: </span>{article.serial} {article.status === 'InUse' && "- En uso"}</p>
-                                  </CommandItem>
-                                ))
-                              }
-                            </CommandGroup>
-                          ))
-                        }
+                        <CommandEmpty className="flex justify-center">
+                          {isBatchesLoading ? (
+                            <Loader2 className="size-4 animate-spin" />
+                          ) : batchesError ? (
+                            <p>
+                              Ha ocurrido un error al cargar las herramientas
+                            </p>
+                          ) : (
+                            <p className="text-sm text-muted-foreground italic">
+                              No se han encontrado herramientas disponibles...
+                            </p>
+                          )}
+                        </CommandEmpty>
+                        {filteredBatches?.map((batch) => (
+                          <CommandGroup
+                            key={batch.batch_id}
+                            heading={batch.name}
+                          >
+                            {batch.articles.map((article) => (
+                              <CommandItem
+                                disabled={article.status === "InUse"}
+                                key={article.id}
+                                onSelect={() => {
+                                  handleArticleSelect(
+                                    article.id!,
+                                    article.serial ? article.serial : null,
+                                    batch.batch_id
+                                  );
+                                  setArticleSelected(article);
+                                }}
+                              >
+                                <Check
+                                  className={cn(
+                                    "mr-2 h-4 w-4",
+                                    articleSelected?.id === article.id
+                                      ? "opacity-100"
+                                      : "opacity-0"
+                                  )}
+                                />
+                                <p className="font-medium">
+                                  <span className="text-muted-foreground">
+                                    SN:{" "}
+                                  </span>
+                                  {article.serial}{" "}
+                                  {article.status === "InUse" && "- En uso"}
+                                </p>
+                              </CommandItem>
+                            ))}
+                          </CommandGroup>
+                        ))}
                       </CommandList>
                     </Command>
                   </PopoverContent>
@@ -202,7 +314,7 @@ export function ToolDispatchForm({ onClose }: FormProps) {
                       >
                         {field.value ? (
                           format(field.value, "PPP", {
-                            locale: es
+                            locale: es,
                           })
                         ) : (
                           <span>Seleccione una fecha...</span>
@@ -234,9 +346,30 @@ export function ToolDispatchForm({ onClose }: FormProps) {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Destino</FormLabel>
-                <FormControl>
-                  <Input className="w-[230px]" placeholder="Ej: Jefatura de Desarrollo, etc..." {...field} />
-                </FormControl>
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                >
+                  <FormControl>
+                    <SelectTrigger className="w-[230px]">
+                      <SelectValue placeholder="Seleccione..." />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {isDepartmentsLoading && (
+                      <Loader2 className="size-4 animate-spin" />
+                    )}
+                    {departments &&
+                      departments.map((department) => (
+                        <SelectItem
+                          key={department.id}
+                          value={department.id.toString()}
+                        >
+                          {department.name}
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
                 <FormMessage />
               </FormItem>
             )}
@@ -249,15 +382,28 @@ export function ToolDispatchForm({ onClose }: FormProps) {
             <FormItem>
               <FormLabel>Justificacion</FormLabel>
               <FormControl>
-                <Textarea rows={5} className="w-full" placeholder="EJ: Se necesita para la limpieza de..." {...field} />
+                <Textarea
+                  rows={5}
+                  className="w-full"
+                  placeholder="EJ: Se necesita para la limpieza de..."
+                  {...field}
+                />
               </FormControl>
             </FormItem>
           )}
         />
-        <Button className="bg-primary mt-2 text-white hover:bg-blue-900 disabled:bg-primary/70" disabled={createDispatchRequest?.isPending} type="submit">
-          {createDispatchRequest?.isPending ? <Loader2 className="size-4 animate-spin" /> : <p>Crear</p>}
+        <Button
+          className="bg-primary mt-2 text-white hover:bg-blue-900 disabled:bg-primary/70"
+          disabled={createDispatchRequest?.isPending}
+          type="submit"
+        >
+          {createDispatchRequest?.isPending ? (
+            <Loader2 className="size-4 animate-spin" />
+          ) : (
+            <p>Crear</p>
+          )}
         </Button>
       </form>
-    </Form >
-  )
+    </Form>
+  );
 }

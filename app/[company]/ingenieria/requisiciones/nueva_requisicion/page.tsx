@@ -303,7 +303,7 @@ const handleAircraftSelect = (aircraftId: string) => {
 
   useEffect(() => {
     form.setValue("aircrafts", aircraftsData)
-  },[aircraftsData])
+  },[aircraftsData, form])
 
   return (
     <ContentLayout title="Solicitud de Compra">

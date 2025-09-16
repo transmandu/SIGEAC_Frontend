@@ -20,6 +20,7 @@ export const useCreateArticle = () => {
           },
         onSuccess: () => {
             queryClient.invalidateQueries({queryKey: ['articles']})
+            queryClient.invalidateQueries({queryKey: ['warehouse-articles']})
             toast.success("¡Creado!", {
                 description: `El articulo ha sido creado correctamente.`
             })
@@ -53,6 +54,7 @@ export const useCreateDirectArticle = () => {
         },
       onSuccess: () => {
           queryClient.invalidateQueries({queryKey: ['articles']})
+          queryClient.invalidateQueries({queryKey: ['warehouse-articles']})
           toast.success("¡Creado!", {
               description: `El articulo ha sido creado correctamente.`
           })
@@ -80,6 +82,7 @@ export const useDeleteArticle = () => {
         },
       onSuccess: () => {
           queryClient.invalidateQueries({queryKey: ['articles']})
+          // queryClient.invalidateQueries({queryKey: ['warehouse-articles']})
           toast.success("¡Eliminado!", {
               description: `¡El articulo ha sido eliminado correctamente!`
           })
@@ -113,6 +116,7 @@ export const useUpdateArticleStatus = () => {
       onSuccess: () => {
           queryClient.invalidateQueries({queryKey: ['in-transit-articles']})
           queryClient.invalidateQueries({queryKey: ['in-reception-articles']})
+          queryClient.invalidateQueries({queryKey: ['warehouse-articles']})
           toast.success("¡Actualizado!", {
               description: `El articulo ha sido actualizado correctamente.`
           })
@@ -175,6 +179,7 @@ export const useConfirmIncomingArticle = () => {
           queryClient.invalidateQueries({queryKey: ['in-reception-articles']})
           queryClient.invalidateQueries({queryKey: ['articles']})
           queryClient.invalidateQueries({queryKey: ['batches']})
+          queryClient.invalidateQueries({queryKey: ['warehouse-articles']})
           toast.success("¡Actualizado!", {
               description: `El articulo ha sido actualizado correctamente.`
           })
@@ -189,5 +194,69 @@ export const useConfirmIncomingArticle = () => {
   )
   return {
   confirmIncoming: confirmIncomingArticleMutation,
+  }
+}
+
+export const useEditArticle = () => {
+
+  const queryClient = useQueryClient()
+
+  const editArticleMutation = useMutation({
+      mutationKey: ["articles"],
+      mutationFn: async ({data, company}: {
+        company: string, 
+        data: {
+          id: number
+          part_number: string
+          alternative_part_number?: string[]
+          description: string
+          zone: string
+          manufacturer_id?: number | string
+          condition_id?: number | string
+          batches_id: string | number
+          is_special?: boolean
+          is_managed?: boolean
+          caducate_date?: string
+          fabrication_date?: string
+          quantity?: number
+          calendar_date?: string
+          certificate_8130?: File | string
+          certificate_fabricant?: File | string
+          certificate_vendor?: File | string
+          image?: File | string
+          serial?: string
+          hour_date?: string
+          cycle_date?: string
+          convertion_id?: number
+        }
+      }) => {
+          await axiosInstance.post(`/${company}/update-article-warehouse/${data.id}`, data,
+            {
+            headers: {
+              'Content-Type': 'multipart/form-data',
+            }
+          })
+        },
+      onSuccess: () => {
+          queryClient.invalidateQueries({queryKey: ['article']})
+          queryClient.invalidateQueries({queryKey: ['articles']})
+          queryClient.invalidateQueries({queryKey: ['warehouse-articles']})
+          queryClient.invalidateQueries({queryKey: ['batches']})
+          queryClient.invalidateQueries({queryKey: ['in-transit-articles']})
+          queryClient.invalidateQueries({queryKey: ['in-reception-articles']})
+          toast.success("¡Actualizado!", {
+              description: `El articulo ha sido actualizado correctamente.`
+          })
+        },
+      onError: (error) => {
+          toast.error('Oops!', {
+            description: 'No se pudo actualizar el articulo...'
+          })
+          // console.log(error)
+        },
+      }
+  )
+  return {
+    editArticle: editArticleMutation,
   }
 }

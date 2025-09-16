@@ -2,27 +2,26 @@ import axiosInstance from "@/lib/axios";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
-export interface IUpdateQuantityData {
+export interface IUpdateArticleData {
   article_id: number;
-  new_quantity: number;
+  new_quantity?: number;
+  new_zone?: string;
 }
 
-export const useUpdateArticleQuantities = () => {
+export const useUpdateArticleQuantityAndZone = () => {
   const queryClient = useQueryClient();
 
-  const updateQuantitiesMutation = useMutation({
-    mutationKey: ["update-article-quantities"],
+  const updateArticleQuantityAndZoneMutation = useMutation({
+    mutationKey: ["update-article-quantity-zone"],
     mutationFn: async ({ 
-      company,
-      location_id, 
-      quantities 
+      company, 
+      updates 
     }: { 
-      quantities: IUpdateQuantityData[];
+      updates: IUpdateArticleData[];
       company: string;
-      location_id: string;
     }) => {
-      await axiosInstance.patch(`/${company}/${location_id}/update-article-quantities`, {
-        quantities,
+      await axiosInstance.patch(`/${company}/update-article-quantities-zones`, {
+        updates,
       });
     },
     onSuccess: () => {
@@ -30,17 +29,17 @@ export const useUpdateArticleQuantities = () => {
       queryClient.invalidateQueries({ queryKey: ["articles"] });
       queryClient.invalidateQueries({ queryKey: ["batches"] });
       toast.success("¡Actualizado!", {
-        description: "Las cantidades han sido actualizadas correctamente."
+        description: "Las cantidades y ubicaciones han sido actualizadas correctamente."
       });
     },
     onError: (error) => {
       toast('Hey', {
-        description: `No se creo correctamente: ${error}`
+        description: `No se actualizó correctamente: ${error}`
       })
     },
   });
 
   return {
-    updateQuantities: updateQuantitiesMutation,
+    updateArticleQuantityAndZone: updateArticleQuantityAndZoneMutation,
   };
 };

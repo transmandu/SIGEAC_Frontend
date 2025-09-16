@@ -207,7 +207,7 @@ export const columns: ColumnDef<ColumnI>[] = [
       const { quantity, consumable } = row.original;
       
       // Validar que quantity sea un número válido
-      const validQuantity = quantity != null && !isNaN(Number(quantity)) ? Number(quantity) : 0;
+      const validQuantity = quantity != null && !isNaN(Number(quantity)) ? Number(quantity) : 1;
 
       return (
         <div className="flex justify-center">

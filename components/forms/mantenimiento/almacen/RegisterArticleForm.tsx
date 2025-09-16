@@ -48,7 +48,7 @@ interface IRegisterArticleProps {
 
 const RegisterArticleForm = ({ isEditing = false, initialData }: IRegisterArticleProps) => {
 
-  const [type, setType] = useState(initialData?.batches.category.toLowerCase() ?? "consumible");
+  const [type, setType] = useState(initialData?.batches?.category?.toLowerCase() ?? "consumible");
   function handleTypeSelect(data: string) {
     setType(data);
   }
@@ -58,7 +58,7 @@ const RegisterArticleForm = ({ isEditing = false, initialData }: IRegisterArticl
       {
         !isEditing && <p className='text-sm text-muted-foreground'>Seleccione el tipo de articulo a registrar:</p>
       }
-      <Select disabled={isEditing} defaultValue={initialData?.batches.category.toLowerCase()} onValueChange={handleTypeSelect}>
+      <Select disabled={isEditing} defaultValue={initialData?.batches?.category?.toLowerCase()} onValueChange={handleTypeSelect}>
         <SelectTrigger className="w-[230px]">
           <SelectValue placeholder='Seleccionar...' />
         </SelectTrigger>
