@@ -55,10 +55,10 @@ const ShowDangerIdentification = () => {
   return (
     <ContentLayout title="Identificación de Peligro">
       {/* Botones de acción */}
-      <div className="flex justify-evenly flex-wrap gap-2">
+      <div className="flex justify-evenly flex-wrap gap-4 mb-6">
         {dangerIdentification && status === "ABIERTO" && (
           <>
-            <div className="flex items-center py-2">
+            <div className="flex items-center">
               <CreateDangerIdentificationDialog
                 title="Editar Identificación"
                 id={id}
@@ -67,7 +67,7 @@ const ShowDangerIdentification = () => {
                 reportType={reportType}
               />
             </div>
-            <div className="flex items-center py-2">
+            <div className="flex items-center">
               <DeleteDangerIdentificationDialog
                 id={dangerIdentification.id}
                 company={selectedCompany!.slug}
@@ -79,7 +79,7 @@ const ShowDangerIdentification = () => {
         {dangerIdentification &&
           !dangerIdentification.analysis &&
           status === "ABIERTO" && (
-            <div className="flex items-center py-2">
+            <div className="flex items-center">
               <CreateAnalysesDialog
                 buttonTitle="Crear Análisis"
                 name="identification"
@@ -89,7 +89,7 @@ const ShowDangerIdentification = () => {
           )}
 
         {dangerIdentification?.analysis && status === "ABIERTO" && (
-          <div className="flex items-center py-2">
+          <div className="flex items-center">
             <CreateAnalysesDialog
               buttonTitle="Editar Análisis"
               name="identification"
@@ -102,43 +102,43 @@ const ShowDangerIdentification = () => {
       </div>
 
       {/* Contenido principal */}
-      <div className="flex flex-col justify-center items-center border border-gray-300 rounded-lg p-6 gap-y-4 shadow-md dark:border-gray-700">
+      <div className="flex flex-col justify-center items-center border border-gray-300 rounded-lg p-8 gap-6 shadow-md dark:border-gray-700">
         <div className="flex items-center gap-3">
-          <AlertTriangle className="w-8 h-8 text-yellow-600" />
-          <h1 className="text-2xl font-semibold text-center text-gray-800 dark:text-white">
+          <AlertTriangle className="w-10 h-10 text-yellow-600" />
+          <h1 className="text-3xl font-bold text-center text-gray-800 dark:text-white">
             Detalles de Identificación de Peligro
           </h1>
         </div>
 
         {dangerIdentification && (
-          <div className="w-full max-w-2xl space-y-4">
+          <div className="w-full space-y-6">
             {/* Información básica del peligro - Ahora con 3 columnas */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg">
-                <div className="flex items-center justify-center gap-2">
-                  <AlertTriangle className="w-5 h-5 text-gray-600 dark:text-gray-300 flex-shrink-0" />
-                  <p className="text-base font-medium text-gray-700 dark:text-gray-300">
-                    <span className="font-semibold">Peligro:</span>{" "}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="border border-gray-300 dark:border-gray-600 p-6 rounded-lg space-y-3">
+                <div className="flex items-center justify-center gap-3">
+                  <AlertTriangle className="w-6 h-6 text-gray-600 dark:text-gray-300 flex-shrink-0" />
+                  <p className="text-lg font-semibold text-gray-700 dark:text-gray-300">
+                    <span className="font-bold">Peligro:</span>{" "}
                     {dangerIdentification.danger}
                   </p>
                 </div>
               </div>
 
-              <div className="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg">
-                <div className="flex items-center gap-2">
-                  <Layers className="w-5 h-5 text-gray-600 dark:text-gray-300 flex-shrink-0" />
-                  <p className="text-base font-medium text-gray-700 dark:text-gray-300">
-                    <span className="font-semibold">Área de Peligro:</span>{" "}
+              <div className="border border-gray-300 dark:border-gray-600 p-6 rounded-lg">
+                <div className="flex items-center gap-3">
+                  <Layers className="w-6 h-6 text-gray-600 dark:text-gray-300 flex-shrink-0" />
+                  <p className="text-lg font-semibold text-gray-700 dark:text-gray-300">
+                    <span className="font-bold">Área de Peligro:</span>{" "}
                     {dangerIdentification.danger_area}
                   </p>
                 </div>
               </div>
 
-              <div className="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg">
-                <div className="flex items-center gap-2">
-                  <FileText className="w-5 h-5 text-gray-600 dark:text-gray-300 flex-shrink-0" />
-                  <p className="text-base font-medium text-gray-700 dark:text-gray-300">
-                    <span className="font-semibold">Tipo de Peligro:</span>{" "}
+              <div className="border border-gray-300 dark:border-gray-600 p-6 rounded-lg">
+                <div className="flex items-center gap-3">
+                  <FileText className="w-6 h-6 text-gray-600 dark:text-gray-300 flex-shrink-0" />
+                  <p className="text-lg font-semibold text-gray-700 dark:text-gray-300">
+                    <span className="font-bold">Tipo de Peligro:</span>{" "}
                     {dangerIdentification.danger_type}
                   </p>
                 </div>
@@ -147,28 +147,30 @@ const ShowDangerIdentification = () => {
 
             {/* Fuente de información */}
             {dangerIdentification.information_source && (
-              <div className="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg">
-                <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
-                  <Info className="w-5 h-5" />
+              <div className="border border-gray-300 dark:border-gray-600 p-6 rounded-lg">
+                <h3 className="text-xl font-semibold mb-4 flex items-center gap-3">
+                  <Info className="w-6 h-6" />
                   Fuente de Información
                 </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  <div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-1">
                     <p className="font-medium text-gray-700 dark:text-gray-300">
                       Nombre:
                     </p>
-                    <p>{dangerIdentification.information_source.name}</p>
+                    <p className="text-gray-600 dark:text-gray-400">
+                      {dangerIdentification.information_source.name}
+                    </p>
                   </div>
-                  <div>
+                  <div className="space-y-1">
                     <p className="font-medium text-gray-700 dark:text-gray-300">
                       Método de identificación:
                     </p>
                     <Badge
-                      className={`justify-center items-center text-center font-bold font-sans ${
+                      className={`justify-center items-center text-center font-bold text-sm px-3 py-1 ${
                         dangerIdentification.information_source.type ===
                         "PROACTIVO"
-                          ? "bg-green-400"
-                          : "bg-red-400"
+                          ? "bg-green-200 text-green-800 border-green-200 dark:bg-green-900/40 dark:text-green-300 dark:border-green-700"
+                          : "bg-red-100 text-red-800 border-red-200 dark:bg-red-900/30 dark:text-red-300 dark:border-red-700"
                       }`}
                     >
                       {dangerIdentification.information_source.type}
@@ -179,30 +181,32 @@ const ShowDangerIdentification = () => {
             )}
 
             {/* Descripción */}
-            <div className="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg">
-              <h3 className="text-lg font-semibold mb-2 flex items-center gap-2">
-                <FileText className="w-5 h-5" />
+            <div className="border border-gray-300 dark:border-gray-600 p-6 rounded-lg">
+              <h3 className="text-xl font-semibold mb-4 flex items-center gap-3">
+                <FileText className="w-6 h-6" />
                 Descripción
               </h3>
-              <p className="text-gray-700 dark:text-gray-300">
+              <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
                 {dangerIdentification.description || "N/A"}
               </p>
             </div>
 
             {/* Consecuencias */}
             {dangerIdentification.possible_consequences && (
-              <div className="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg">
-                <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
-                  <List className="w-5 h-5" />
+              <div className="border border-gray-300 dark:border-gray-600 p-6 rounded-lg">
+                <h3 className="text-xl font-semibold mb-4 flex items-center gap-3">
+                  <List className="w-6 h-6" />
                   Posibles Consecuencias
                 </h3>
-                <ul className="space-y-2">
+                <ul className="space-y-3">
                   {dangerIdentification.possible_consequences
                     .split(",")
                     .map((consequence, index) => (
-                      <li key={index} className="flex items-start gap-2">
-                        <ChevronRight className="w-4 h-4 mt-1 flex-shrink-0 text-gray-500" />
-                        <span>{consequence.trim()}</span>
+                      <li key={index} className="flex items-start gap-3">
+                        <ChevronRight className="w-5 h-5 mt-1 flex-shrink-0 text-gray-500" />
+                        <span className="text-gray-600 dark:text-gray-400">
+                          {consequence.trim()}
+                        </span>
                       </li>
                     ))}
                 </ul>
@@ -210,12 +214,12 @@ const ShowDangerIdentification = () => {
             )}
 
             {/* Análisis de causa raíz */}
-            <div className="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg">
-              <h3 className="text-lg font-semibold mb-2 flex items-center gap-2">
-                <AlertCircle className="w-5 h-5" />
+            <div className="border border-gray-300 dark:border-gray-600 p-6 rounded-lg">
+              <h3 className="text-xl font-semibold mb-4 flex items-center gap-3">
+                <AlertCircle className="w-6 h-6" />
                 Análisis de Causa Raíz
               </h3>
-              <p className="text-gray-700 dark:text-gray-300">
+              <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
                 {dangerIdentification.root_cause_analysis || "N/A"}
               </p>
             </div>
@@ -223,10 +227,10 @@ const ShowDangerIdentification = () => {
         )}
 
         {isError && (
-          <div className="flex flex-col justify-center items-center border border-red-200 rounded-lg p-6 gap-y-4 shadow-md bg-red-50 dark:bg-red-900/20 dark:border-red-800">
+          <div className="border border-red-300 dark:border-red-700 rounded-lg p-8 w-full flex flex-col items-center gap-6">
             <div className="flex flex-col items-center gap-4">
-              <AlertCircle className="h-12 w-12 text-red-500" />
-              <h1 className="text-2xl font-semibold text-center text-red-600 dark:text-red-400">
+              <AlertCircle className="h-14 w-14 text-red-500" />
+              <h1 className="text-2xl font-bold text-center text-red-600 dark:text-red-400">
                 Error al cargar la identificación
               </h1>
               <p className="text-lg text-red-700 dark:text-red-300 text-center">
@@ -236,14 +240,14 @@ const ShowDangerIdentification = () => {
                 <Button
                   variant="outline"
                   onClick={() => window.location.reload()}
-                  className="border-red-300 text-red-700 hover:bg-red-100 dark:hover:bg-red-800/30"
+                  className="border-red-300 text-red-700 hover:bg-red-100 dark:hover:bg-red-800/30 h-10 px-4"
                 >
                   Reintentar
                 </Button>
                 <Link href="/transmandu/sms/peligros_identificados">
                   <Button
                     variant="outline"
-                    className="hover:bg-gray-100 dark:hover:bg-gray-700"
+                    className="hover:bg-gray-100 dark:hover:bg-gray-700 h-10 px-4"
                   >
                     Volver a la lista
                   </Button>

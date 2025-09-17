@@ -51,13 +51,15 @@ export const columns: ColumnDef<Course>[] = [
     },
   },
   {
-    accessorKey: "Hora",
+    accessorKey: "hora de iniciio",
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Hora" />
     ),
-    meta: { title: "Nombre" },
+    meta: { title: "Hora de Inicio" },
     cell: ({ row }) => {
-      return <div className="flex justify-center">{row.original.time}</div>;
+      return (
+        <div className="flex justify-center">{row.original.start_time}</div>
+      );
     },
   },
   {

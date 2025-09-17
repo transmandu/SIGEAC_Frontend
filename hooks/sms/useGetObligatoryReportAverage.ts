@@ -1,6 +1,11 @@
 import axiosInstance from "@/lib/axios";
-import { AverageReportsResponse } from "@/types";
+import { StatsByMonth } from "@/types";
 import { useQuery } from "@tanstack/react-query";
+
+interface AverageReportsResponse {
+  oldest_range: StatsByMonth;
+  newest_range: StatsByMonth;
+};
 
 const fetchObligatoryReportAverage = async (
   company: string | null,

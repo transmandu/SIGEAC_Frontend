@@ -60,7 +60,8 @@ const FormSchema = z
     description: z.string(),
     authorized_by: z.string(),
     planned_by: z.string(),
-    executed_by: z.string(),
+    executed_by: z.string().optional(),
+    title: z.string(),
   })
   .refine(
     (data) => {
@@ -104,6 +105,7 @@ export default function CreateSMSActivityForm({
     resolver: zodResolver(FormSchema),
     defaultValues: {
       activity_name: initialData?.activity_name,
+      title: initialData?.title,
       activity_number: initialData?.activity_number,
 
       start_date: initialData?.start_date
@@ -127,8 +129,8 @@ export default function CreateSMSActivityForm({
       topics: initialData?.topics,
       objetive: initialData?.objetive,
       description: initialData?.description,
-      authorized_by: initialData?.authorized_by,
-      planned_by: initialData?.planned_by,
+      authorized_by: initialData?.authorized_by.dni,
+      planned_by: initialData?.planned_by.dni,
       executed_by: initialData?.executed_by,
     },
   });
@@ -184,6 +186,20 @@ export default function CreateSMSActivityForm({
 
           <FormField
             control={form.control}
+            name="title"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Titulo de la Actividad</FormLabel>
+                <FormControl>
+                  <Input {...field} maxLength={100} />
+                </FormControl>
+                <FormMessage className="text-xs" />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
             name="activity_name"
             render={({ field }) => (
               <FormItem>
@@ -202,15 +218,15 @@ export default function CreateSMSActivityForm({
             control={form.control}
             name="start_date"
             render={({ field }) => (
-              <FormItem className="w-full flex flex-col mt-2.5">
-                <FormLabel>Inicio de Actividad</FormLabel>
+              <FormItem className="flex flex-col mt-2.5 w-full">
+                <FormLabel>Fecha de Inicio</FormLabel>
                 <Popover>
                   <PopoverTrigger asChild>
                     <FormControl>
                       <Button
                         variant={"outline"}
                         className={cn(
-                          "w-[240px] pl-3 text-left font-normal",
+                          "w-full pl-3 text-left font-normal",
                           !field.value && "text-muted-foreground"
                         )}
                       >
@@ -219,7 +235,7 @@ export default function CreateSMSActivityForm({
                             locale: es,
                           })
                         ) : (
-                          <span>Seleccione una fecha...</span>
+                          <span>Seleccionar Fecha de Inicio</span>
                         )}
                         <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                       </Button>
@@ -230,8 +246,21 @@ export default function CreateSMSActivityForm({
                       mode="single"
                       selected={field.value}
                       onSelect={field.onChange}
+                      disabled={false} // Solo deshabilitar fechas futuras
                       initialFocus
-                      locale={es}
+                      fromYear={1988} // Año mínimo que se mostrará
+                      toYear={new Date().getFullYear() + 5} // Año máximo (actual)
+                      captionLayout="dropdown-buttons" // Selectores de año/mes
+                      components={{
+                        Dropdown: (props) => (
+                          <select
+                            {...props}
+                            className="bg-popover text-popover-foreground"
+                          >
+                            {props.children}
+                          </select>
+                        ),
+                      }}
                     />
                   </PopoverContent>
                 </Popover>
@@ -244,15 +273,15 @@ export default function CreateSMSActivityForm({
             control={form.control}
             name="end_date"
             render={({ field }) => (
-              <FormItem className="w-full flex flex-col mt-2.5">
-                <FormLabel>Final de Actividad</FormLabel>
+              <FormItem className="flex flex-col mt-2.5 w-full">
+                <FormLabel>Fecha Final</FormLabel>
                 <Popover>
                   <PopoverTrigger asChild>
                     <FormControl>
                       <Button
                         variant={"outline"}
                         className={cn(
-                          "w-[240px] pl-3 text-left font-normal",
+                          "w-full pl-3 text-left font-normal",
                           !field.value && "text-muted-foreground"
                         )}
                       >
@@ -261,7 +290,7 @@ export default function CreateSMSActivityForm({
                             locale: es,
                           })
                         ) : (
-                          <span>Seleccione una fecha...</span>
+                          <span>Seleccionar Fecha de Inicio</span>
                         )}
                         <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                       </Button>
@@ -272,8 +301,21 @@ export default function CreateSMSActivityForm({
                       mode="single"
                       selected={field.value}
                       onSelect={field.onChange}
+                      disabled={false} // Solo deshabilitar fechas futuras
                       initialFocus
-                      locale={es}
+                      fromYear={1988} // Año mínimo que se mostrará
+                      toYear={new Date().getFullYear() + 5} // Año máximo (actual)
+                      captionLayout="dropdown-buttons" // Selectores de año/mes
+                      components={{
+                        Dropdown: (props) => (
+                          <select
+                            {...props}
+                            className="bg-popover text-popover-foreground"
+                          >
+                            {props.children}
+                          </select>
+                        ),
+                      }}
                     />
                   </PopoverContent>
                 </Popover>
@@ -384,7 +426,7 @@ export default function CreateSMSActivityForm({
           name="description"
           render={({ field }) => (
             <FormItem className="w-full">
-              <FormLabel>Descripción</FormLabel>
+              <FormLabel>Observaciones</FormLabel>
               <FormControl>
                 <Textarea {...field} maxLength={200} />
               </FormControl>

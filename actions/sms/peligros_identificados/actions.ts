@@ -39,7 +39,6 @@ interface UpdateDangerIdentification {
 export const useCreateDangerIdentification = () => {
   const queryClient = useQueryClient();
   const createMutation = useMutation({
-    mutationKey: ["danger-identifications/${id}"],
     mutationFn: async ({
       company,
       reportType,
@@ -47,7 +46,7 @@ export const useCreateDangerIdentification = () => {
       data,
     }: DangerIdentificationData) => {
       const response = await axiosInstance.post(
-        `/${company}/sms/danger-identifications/${reportType}/${id}/`,
+        `/${company}/sms/danger-identifications/${reportType}/${id}`,
         data,
         {
           headers: {

@@ -109,7 +109,7 @@ const CourseDropdownActions = ({ course }: { course: Course }) => {
               <p className="pl-2">Ver</p>
             </DropdownMenuItem>
 
-            {CourseDate <= realNow && course.status === "ABIERTO" && (
+            {course.status === "ABIERTO" && (
               <DropdownMenuItem onClick={() => setOpenAdd(true)}>
                 <Plus className="size-5" />
                 <p className="pl-2">Agregar personas</p>

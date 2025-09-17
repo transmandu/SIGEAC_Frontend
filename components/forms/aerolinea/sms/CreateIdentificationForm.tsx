@@ -19,6 +19,12 @@ import {
   useCreateDangerIdentification,
   useUpdateDangerIdentification,
 } from "@/actions/sms/peligros_identificados/actions";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import {
   Select,
   SelectContent,
@@ -26,24 +32,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import { useGetInformationSources } from "@/hooks/sms/useGetInformationSource";
 import { cn } from "@/lib/utils";
+import { useCompanyStore } from "@/stores/CompanyStore";
 import { DangerIdentification } from "@/types";
 import { Separator } from "@radix-ui/react-select";
 import { addDays, format } from "date-fns";
 import { es } from "date-fns/locale";
 import { CalendarIcon, Loader2 } from "lucide-react";
-import { useEffect, useState } from "react";
-import { Calendar } from "@/components/ui/calendar";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { Textarea } from "@/components/ui/textarea";
 import { useRouter } from "next/navigation";
-import router from "next/router";
-import { useCompanyStore } from "@/stores/CompanyStore";
+import { useEffect, useState } from "react";
 // HAY DATOS QUE VIENEN DEL REPORTE
 // COMO FECHA DE REPORTE E IDENTIFICACION
 // A LADO DEL CODIGO TENDRA EL TIPO DE REPORTE (RVP-RSO) DETECTADO DEL ORIGEN DEL REPORTE
@@ -163,7 +162,7 @@ export default function CreateDangerIdentificationForm({
   const { selectedCompany } = useCompanyStore();
   const [consequences, setConsequences] = useState<string[]>([]);
   const { data: informationSources, isLoading: isLoadingSources } =
-    useGetInformationSources(selectedCompany?.slug);
+    useGetInformationSources();
   const { createDangerIdentification } = useCreateDangerIdentification();
   const { updateDangerIdentification } = useUpdateDangerIdentification();
   const [defaultValuesLoaded, setDefaultValuesLoaded] = useState(false);
@@ -178,7 +177,6 @@ export default function CreateDangerIdentificationForm({
     "OTROS",
   ];
   const DANGER_TYPES = ["ORGANIZACIONAL", "TECNICO", "HUMANO", "NATURAL"];
-  console.log("estos son los datos iniciales ", initialData);
   const form = useForm<FormSchemaType>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
@@ -218,6 +216,7 @@ export default function CreateDangerIdentificationForm({
       };
       await updateDangerIdentification.mutateAsync(values);
     } else {
+      console.log(data);
       const response = await createDangerIdentification.mutateAsync({
         company: selectedCompany!.slug,
         id,
@@ -385,7 +384,6 @@ export default function CreateDangerIdentificationForm({
                       .split(",")
                       .map((consequence) => consequence.trim()); // Separa por comas y elimina espacios en blanco
                     setConsequences(newConsequences);
-                    console.log("Consecuencias:", consequences); // Muestra las consecuencias en la consola
                     // Aquí puedes hacer lo que necesites con el array de consecuencias
                   }}
                 />
