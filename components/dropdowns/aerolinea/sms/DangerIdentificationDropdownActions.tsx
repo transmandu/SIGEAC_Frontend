@@ -17,9 +17,9 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import CreateAnalysisForm from "../../../forms/aerolinea/sms/CreateAnalysisForm";
-import CreateDangerIdentificationForm from "../../../forms/aerolinea/sms/CreateIdentificationForm";
-import { Button } from "../../../ui/button";
+import CreateAnalysisForm from "@/components/forms/aerolinea/sms/CreateAnalysisForm";
+import CreateDangerIdentificationForm from "@/components/forms/aerolinea/sms/CreateIdentificationForm";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -28,7 +28,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "../../../ui/dialog";
+} from "@/components/ui/dialog";
 
 const DangerIdentificationDropdownActions = ({
   dangerIdentification,

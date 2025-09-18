@@ -296,374 +296,391 @@ export function CreateVoluntaryReportForm({
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit(onSubmit)}
-        className="flex flex-col space-y-3"
+        className="w-full max-w-4xl mx-auto p-6 space-y-6"
       >
-        <FormLabel className="text-lg text-center">
+        <FormLabel className="text-2xl font-bold text-center w-full block">
           Reporte Voluntario de Peligro
         </FormLabel>
 
-        {shouldEnableField && (
+        <div className="space-y-6">
+          {shouldEnableField && (
+            <FormField
+              control={form.control}
+              name="report_number"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Código del Reporte Voluntario</FormLabel>
+                  <FormControl>
+                    <Input placeholder="" {...field} maxLength={4} />
+                  </FormControl>
+                  <FormMessage className="text-xs" />
+                </FormItem>
+              )}
+            />
+          )}
+
+          {/* Sección de Fechas */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <FormField
+              control={form.control}
+              name="identification_date"
+              render={({ field }) => (
+                <FormItem className="flex flex-col">
+                  <FormLabel>Fecha de Identificación</FormLabel>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <FormControl>
+                        <Button
+                          variant={"outline"}
+                          className={cn(
+                            "w-full pl-3 text-left font-normal",
+                            !field.value && "text-muted-foreground"
+                          )}
+                        >
+                          {field.value ? (
+                            format(field.value, "PPP", { locale: es })
+                          ) : (
+                            <span>Seleccione una fecha</span>
+                          )}
+                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                        </Button>
+                      </FormControl>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={field.value}
+                        onSelect={field.onChange}
+                        initialFocus
+                        fromYear={2000}
+                        toYear={new Date().getFullYear()}
+                        captionLayout="dropdown-buttons"
+                        components={{
+                          Dropdown: (props) => (
+                            <select
+                              {...props}
+                              className="bg-popover text-popover-foreground"
+                            >
+                              {props.children}
+                            </select>
+                          ),
+                        }}
+                      />
+                    </PopoverContent>
+                  </Popover>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="report_date"
+              render={({ field }) => (
+                <FormItem className="flex flex-col">
+                  <FormLabel>Fecha de Reporte</FormLabel>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <FormControl>
+                        <Button
+                          variant={"outline"}
+                          className={cn(
+                            "w-full pl-3 text-left font-normal",
+                            !field.value && "text-muted-foreground"
+                          )}
+                        >
+                          {field.value ? (
+                            format(field.value, "PPP", { locale: es })
+                          ) : (
+                            <span>Seleccione una fecha</span>
+                          )}
+                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                        </Button>
+                      </FormControl>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={field.value}
+                        onSelect={field.onChange}
+                        initialFocus
+                        fromYear={2000}
+                        toYear={new Date().getFullYear()}
+                        captionLayout="dropdown-buttons"
+                        components={{
+                          Dropdown: (props) => (
+                            <select
+                              {...props}
+                              className="bg-popover text-popover-foreground"
+                            >
+                              {props.children}
+                            </select>
+                          ),
+                        }}
+                      />
+                    </PopoverContent>
+                  </Popover>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+
+          {/* Sección de Localización */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <FormField
+              control={form.control}
+              name="danger_location"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Base de Localización</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Seleccionar localización" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="PZO">Puerto Ordaz</SelectItem>
+                      <SelectItem value="CBL">Ciudad Bolívar</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="danger_area"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Área de Identificación</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Seleccionar área" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="OPERACIONES">OPERACIONES</SelectItem>
+                      <SelectItem value="MANTENIMIENTO">
+                        MANTENIMIENTO
+                      </SelectItem>
+                      <SelectItem value="ADMINISTRACION_RRHH">
+                        ADMINISTRACION Y RRHH
+                      </SelectItem>
+                      <SelectItem value="CONTROL_CALIDAD">
+                        CONTROL DE CALIDAD
+                      </SelectItem>
+                      <SelectItem value="IT">
+                        TECNOLOGIA E INFORMACION
+                      </SelectItem>
+                      <SelectItem value="AVSEC">AVSEC</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+
           <FormField
             control={form.control}
-            name="report_number"
+            name="airport_location"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Código del Reporte Voluntario</FormLabel>
+                <FormLabel>Lugar de Identificación</FormLabel>
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Seleccionar" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="CALLE_RODAJE">
+                      CALLE DE RODAJE
+                    </SelectItem>
+                    <SelectItem value="HANGAR13B">HANGAR13B</SelectItem>
+                    <SelectItem value="HANGAR17/18C">HANGAR17/18 C</SelectItem>
+                    <SelectItem value="AEROPUERTO_CANAIMA">
+                      AEROPUERTO CANAIMA
+                    </SelectItem>
+                    <SelectItem value="PLATAFORMA">PLATAFORMA</SelectItem>
+                    <SelectItem value="PISTA_ATERRIZAJE">
+                      PISTA DE ATERRIZAJE
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          {/* Sección de Descripción y Consecuencias */}
+          <FormField
+            control={form.control}
+            name="description"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Descripción de peligro</FormLabel>
                 <FormControl>
-                  <Input placeholder="" {...field} maxLength={4} />
+                  <Textarea
+                    placeholder="Breve descripción del peligro"
+                    {...field}
+                    className="min-h-[100px]"
+                  />
                 </FormControl>
                 <FormMessage className="text-xs" />
               </FormItem>
             )}
           />
-        )}
-        <div className="flex gap-2 items-center justify-center  ">
-          <FormField
-            control={form.control}
-            name="identification_date"
-            render={({ field }) => (
-              <FormItem className="flex flex-col mt-2.5 w-full">
-                <FormLabel>Fecha de Identificacion</FormLabel>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <FormControl>
-                      <Button
-                        variant={"outline"}
-                        className={cn(
-                          "w-full pl-3 text-left font-normal",
-                          !field.value && "text-muted-foreground"
-                        )}
-                      >
-                        {field.value ? (
-                          format(field.value, "PPP", {
-                            locale: es,
-                          })
-                        ) : (
-                          <span>Seleccione una fecha</span>
-                        )}
-                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                      </Button>
-                    </FormControl>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={field.value}
-                      onSelect={field.onChange}
-                      initialFocus
-                      fromYear={2000} // Año mínimo que se mostrará
-                      toYear={new Date().getFullYear()} // Año máximo (actual)
-                      captionLayout="dropdown-buttons" // Selectores de año/mes
-                      components={{
-                        Dropdown: (props) => (
-                          <select
-                            {...props}
-                            className="bg-popover text-popover-foreground"
-                          >
-                            {props.children}
-                          </select>
-                        ),
-                      }}
-                    />
-                  </PopoverContent>
-                </Popover>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="report_date"
-            render={({ field }) => (
-              <FormItem className="flex flex-col mt-2.5 w-full">
-                <FormLabel>Fecha de Reporte</FormLabel>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <FormControl>
-                      <Button
-                        variant={"outline"}
-                        className={cn(
-                          "w-full pl-3 text-left font-normal",
-                          !field.value && "text-muted-foreground"
-                        )}
-                      >
-                        {field.value ? (
-                          format(field.value, "PPP", {
-                            locale: es,
-                          })
-                        ) : (
-                          <span>Seleccione una fecha</span>
-                        )}
-                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                      </Button>
-                    </FormControl>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={field.value}
-                      onSelect={field.onChange}
-                      initialFocus
-                      fromYear={2000} // Año mínimo que se mostrará
-                      toYear={new Date().getFullYear()} // Año máximo (actual)
-                      captionLayout="dropdown-buttons" // Selectores de año/mes
-                      components={{
-                        Dropdown: (props) => (
-                          <select
-                            {...props}
-                            className="bg-popover text-popover-foreground"
-                          >
-                            {props.children}
-                          </select>
-                        ),
-                      }}
-                    />
-                  </PopoverContent>
-                </Popover>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
 
-        <div className="flex gap-2 items-center justify-center">
-          <FormField
-            control={form.control}
-            name="danger_location"
-            render={({ field }) => (
-              <FormItem className="w-full">
-                <FormLabel>Base de Localizacion</FormLabel>
-                <Select
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Seleccionar localización" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="PZO">Puerto Ordaz</SelectItem>
-                    <SelectItem value="CBL">Ciudad Bolívar</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="danger_area"
-            render={({ field }) => (
-              <FormItem className="w-full">
-                <FormLabel>Area de identificación</FormLabel>
-                <Select
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Seleccionar área" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="OPERACIONES">OPERACIONES</SelectItem>
-                    <SelectItem value="MANTENIMIENTO">MANTENIMIENTO</SelectItem>
-                    <SelectItem value="ADMINISTRACION_RRHH">
-                      ADMINISTRACION Y RRHH
-                    </SelectItem>
-                    <SelectItem value="CONTROL_CALIDAD">
-                      CONTROL DE CALIDAD
-                    </SelectItem>
-                    <SelectItem value="IT">TECNOLOGIA E INFORMACION</SelectItem>
-                    <SelectItem value="AVSEC">AVSEC</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-
-        <FormField
-          control={form.control}
-          name="airport_location"
-          render={({ field }) => (
-            <FormItem className="w-full">
-              <FormLabel>Lugar de Identificacion</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Seleccionar" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  <SelectItem value="CALLE_RODAJE">CALLE DE RODAJE</SelectItem>
-                  <SelectItem value="HANGAR13B">HANGAR13B</SelectItem>
-                  <SelectItem value="HANGAR17/18C">HANGAR17/18 C</SelectItem>
-                  <SelectItem value="AEROPUERTO_CANAIMA">
-                    AEROPUERTO CANAIMA
-                  </SelectItem>
-                  <SelectItem value="PLATAFORMA">PLATAFORMA</SelectItem>
-                  <SelectItem value="PISTA_ATERRIZAJE">
-                    PISTA DE ATERRIZAJE
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="description"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Descripcion de peligro</FormLabel>
-              <FormControl>
-                <Input placeholder="Breve descripcion del peligro" {...field} />
-              </FormControl>
-              <FormMessage className="text-xs" />
-            </FormItem>
-          )}
-        />
-
-        {/* Interfaz mejorada para consecuencias */}
-        <FormItem>
-          <FormLabel>Consecuencias segun su criterio</FormLabel>
-          <div className="space-y-2">
-            <div className="flex gap-2">
-              <Input
-                placeholder="Escriba una consecuencia"
-                value={newConsequence}
-                onChange={(e) => setNewConsequence(e.target.value)}
-                onKeyPress={handleKeyPress}
-              />
-              <Button type="button" onClick={addConsequence} size="icon">
-                <Plus className="h-4 w-4" />
-              </Button>
-            </div>
-
+          <FormItem>
+            <FormLabel>Consecuencias según su criterio</FormLabel>
             <div className="space-y-2">
-              {consequences.map((consequence, index) => (
-                <div key={index} className="flex items-center gap-2">
-                  <div className="flex-1 p-2 border rounded-md bg-muted/20">
-                    {consequence}
-                  </div>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => removeConsequence(index)}
+              <div className="flex gap-2">
+                <Input
+                  placeholder="Escriba una consecuencia"
+                  value={newConsequence}
+                  onChange={(e) => setNewConsequence(e.target.value)}
+                  onKeyPress={handleKeyPress}
+                />
+                <Button type="button" onClick={addConsequence} size="icon">
+                  <Plus className="h-4 w-4" />
+                </Button>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {consequences.map((consequence, index) => (
+                  <div
+                    key={index}
+                    className="flex items-center gap-1 p-2 border rounded-md bg-muted/20 text-sm"
                   >
-                    <X className="h-4 w-4" />
-                  </Button>
-                </div>
-              ))}
+                    <span>{consequence}</span>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => removeConsequence(index)}
+                      className="h-6 w-6"
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
-          <FormMessage className="text-xs" />
-        </FormItem>
+            <FormMessage className="text-xs" />
+          </FormItem>
 
-        {/* Campo oculto para mantener el valor del formulario */}
-        <FormField
-          control={form.control}
-          name="possible_consequences"
-          render={({ field }) => (
-            <FormItem className="hidden">
-              <FormControl>
-                <Input type="hidden" {...field} />
-              </FormControl>
-              <FormMessage className="text-xs" />
-            </FormItem>
-          )}
-        />
-
-        <div>
-          <Checkbox
-            checked={isAnonymous}
-            onCheckedChange={(checked) => {
-              // Asegurarse de que el valor sea un booleano
-              if (typeof checked === "boolean") {
-                setIsAnonymous(checked);
-                console.log(checked);
-              }
-            }}
-            value={isAnonymous.toString()} // Convertimos el booleano a string
+          {/* Campo oculto para el valor del formulario */}
+          <FormField
+            control={form.control}
+            name="possible_consequences"
+            render={({ field }) => (
+              <FormItem className="hidden">
+                <FormControl>
+                  <Input type="hidden" {...field} />
+                </FormControl>
+                <FormMessage className="text-xs" />
+              </FormItem>
+            )}
           />
-          <Label className="ml-2 text-sm">Reporte anónimo</Label>
         </div>
 
-        {!isAnonymous && (
-          <div className="grid grid-cols-2 gap-2">
-            <FormField
-              control={form.control}
-              name="reporter_name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Nombre</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Nombre de quien reporta" {...field} />
-                  </FormControl>
-                  <FormMessage className="text-xs" />
-                </FormItem>
-              )}
+        {/* Sección de Información del Reportero */}
+        <div className="space-y-4">
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="anonymous-report"
+              checked={isAnonymous}
+              onCheckedChange={(checked) => {
+                if (typeof checked === "boolean") {
+                  setIsAnonymous(checked);
+                }
+              }}
             />
-
-            <FormField
-              control={form.control}
-              name="reporter_last_name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Apellido</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Apellido de quien reporta" {...field} />
-                  </FormControl>
-                  <FormMessage className="text-xs" />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="reporter_email"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Correo electrónico</FormLabel>
-                  <FormControl>
-                    <Input placeholder="ejemplo@gmail.com" {...field} />
-                  </FormControl>
-                  <FormMessage className="text-xs" />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="reporter_phone"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Teléfono</FormLabel>
-                  <FormControl>
-                    <Input placeholder="" {...field} />
-                  </FormControl>
-                  <FormMessage className="text-xs" />
-                </FormItem>
-              )}
-            />
+            <Label htmlFor="anonymous-report" className="text-sm">
+              Reporte anónimo
+            </Label>
           </div>
-        )}
 
-        <div className="flex justify-center items-center gap-2">
+          {!isAnonymous && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <FormField
+                control={form.control}
+                name="reporter_name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Nombre</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Nombre de quien reporta" {...field} />
+                    </FormControl>
+                    <FormMessage className="text-xs" />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="reporter_last_name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Apellido</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="Apellido de quien reporta"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage className="text-xs" />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="reporter_email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Correo electrónico</FormLabel>
+                    <FormControl>
+                      <Input placeholder="ejemplo@gmail.com" {...field} />
+                    </FormControl>
+                    <FormMessage className="text-xs" />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="reporter_phone"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Teléfono</FormLabel>
+                    <FormControl>
+                      <Input placeholder="" {...field} />
+                    </FormControl>
+                    <FormMessage className="text-xs" />
+                  </FormItem>
+                )}
+              />
+            </div>
+          )}
+        </div>
+
+        {/* Sección de Carga de Archivos */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <FormField
             control={form.control}
             name="image"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Imagen del Reporte</FormLabel>
-
                 <div className="flex items-center gap-4">
                   {field.value ? (
                     <div className="relative">
@@ -691,7 +708,6 @@ export function CreateVoluntaryReportForm({
                       />
                     </div>
                   ) : null}
-
                   <FormControl>
                     <Input
                       type="file"
@@ -700,12 +716,10 @@ export function CreateVoluntaryReportForm({
                     />
                   </FormControl>
                 </div>
-
                 <FormMessage />
               </FormItem>
             )}
           />
-
           <FormField
             control={form.control}
             name="document"
@@ -737,12 +751,16 @@ export function CreateVoluntaryReportForm({
           />
         </div>
 
-        <div className="flex justify-between items-center gap-x-4">
+        <div className="flex justify-center items-center gap-x-4">
           <Separator className="flex-1" />
           <p className="text-muted-foreground">SIGEAC</p>
           <Separator className="flex-1" />
         </div>
-        <Button disabled={createVoluntaryReport.isPending}>
+        <Button
+          type="submit"
+          disabled={createVoluntaryReport.isPending}
+          className="w-full"
+        >
           {createVoluntaryReport.isPending ? (
             <Loader2 className="size-4 animate-spin" />
           ) : (

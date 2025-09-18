@@ -1,5 +1,14 @@
 "use client";
 
+import { DataTablePagination } from "@/components/tables/DataTablePagination";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import {
   ColumnDef,
   ColumnFiltersState,
@@ -11,20 +20,9 @@ import {
   SortingState,
   useReactTable,
 } from "@tanstack/react-table";
-import { DataTablePagination } from "@/components/tables/DataTablePagination";
-import { DataTableViewOptions } from "@/components/tables/DataTableViewOptions";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-import CreateVoluntaryReportDialog from "@/components/dialogs/aerolinea/sms/CreateVoluntaryReportDialog";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];

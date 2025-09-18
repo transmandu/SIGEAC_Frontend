@@ -9,7 +9,6 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-
 import { Input } from "@/components/ui/input";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -40,14 +39,9 @@ import { DangerIdentification } from "@/types";
 import { Separator } from "@radix-ui/react-select";
 import { addDays, format } from "date-fns";
 import { es } from "date-fns/locale";
-import { CalendarIcon, Loader2, Plus, X } from "lucide-react"; // Se importan Plus y X
+import { CalendarIcon, Loader2, Plus, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-
-// Función de ayuda para contar comas (utilizada por Zod)
-function contCommas(text: string): number {
-  return (text.match(/,/g) || []).length;
-}
 
 // El esquema de Zod se mantiene exactamente igual.
 const FormSchema = z.object({
@@ -59,13 +53,10 @@ const FormSchema = z.object({
     .max(245, {
       message: "El peligro no debe exceder los 245 caracteres",
     }),
-
   danger_area: z.string(),
-
   risk_management_start_date: z
     .date()
     .refine((val) => !isNaN(val.getTime()), { message: "Invalid Date" }),
-
   current_defenses: z
     .string()
     .min(3, {
@@ -82,7 +73,6 @@ const FormSchema = z.object({
     .max(245, {
       message: "La descripcion deben exceder los 245 caracteres",
     }),
-
   possible_consequences: z
     .string()
     .min(3, {
@@ -99,9 +89,7 @@ const FormSchema = z.object({
     .max(245, {
       message: "La consecuencia a evaluar no debe exceder los 245 caracteres",
     }),
-
   danger_type: z.string(),
-
   root_cause_analysis: z
     .string()
     .min(3, {
@@ -137,7 +125,6 @@ export default function CreateDangerIdentificationForm({
   const { updateDangerIdentification } = useUpdateDangerIdentification();
   const router = useRouter();
 
-  // Estados locales para manejar las listas de cada campo
   const [defenses, setDefenses] = useState<string[]>([]);
   const [newDefense, setNewDefense] = useState("");
 
@@ -402,16 +389,19 @@ export default function CreateDangerIdentificationForm({
                 <Plus className="h-4 w-4" />
               </Button>
             </div>
-            <div className="space-y-2">
+            {/* ////// CAMBIO AQUÍ ////// */}
+            <div className="flex flex-wrap gap-2 pt-2">
               {defenses.map((item, index) => (
-                <div key={index} className="flex items-center gap-2">
-                  <div className="flex-1 p-2 border rounded-md bg-muted/20">
-                    {item}
-                  </div>
+                <div
+                  key={index}
+                  className="flex items-center gap-2 bg-muted/40 border rounded-md p-2"
+                >
+                  <span className="text-sm">{item}</span>
                   <Button
                     type="button"
                     variant="ghost"
                     size="icon"
+                    className="h-5 w-5"
                     onClick={() => removeDefense(index)}
                   >
                     <X className="h-4 w-4" />
@@ -448,16 +438,19 @@ export default function CreateDangerIdentificationForm({
                 <Plus className="h-4 w-4" />
               </Button>
             </div>
-            <div className="space-y-2">
+            {/* ////// CAMBIO AQUÍ ////// */}
+            <div className="flex flex-wrap gap-2 pt-2">
               {consequences.map((item, index) => (
-                <div key={index} className="flex items-center gap-2">
-                  <div className="flex-1 p-2 border rounded-md bg-muted/20">
-                    {item}
-                  </div>
+                <div
+                  key={index}
+                  className="flex items-center gap-2 bg-muted/40 border rounded-md p-2"
+                >
+                  <span className="text-sm">{item}</span>
                   <Button
                     type="button"
                     variant="ghost"
                     size="icon"
+                    className="h-5 w-5"
                     onClick={() => removeConsequence(index)}
                   >
                     <X className="h-4 w-4" />
@@ -467,6 +460,7 @@ export default function CreateDangerIdentificationForm({
             </div>
           </div>
         </FormItem>
+        
         <FormField
           control={form.control}
           name="possible_consequences"
@@ -591,16 +585,19 @@ export default function CreateDangerIdentificationForm({
                 <Plus className="h-4 w-4" />
               </Button>
             </div>
-            <div className="space-y-2">
+            {/* ////// CAMBIO AQUÍ ////// */}
+            <div className="flex flex-wrap gap-2 pt-2">
               {analyses.map((item, index) => (
-                <div key={index} className="flex items-center gap-2">
-                  <div className="flex-1 p-2 border rounded-md bg-muted/20">
-                    {item}
-                  </div>
+                <div
+                  key={index}
+                  className="flex items-center gap-2 bg-muted/40 border rounded-md p-2"
+                >
+                  <span className="text-sm">{item}</span>
                   <Button
                     type="button"
                     variant="ghost"
                     size="icon"
+                    className="h-5 w-5"
                     onClick={() => removeAnalysis(index)}
                   >
                     <X className="h-4 w-4" />
