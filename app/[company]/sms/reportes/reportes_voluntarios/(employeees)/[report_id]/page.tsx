@@ -21,8 +21,10 @@ import {
   AlertCircle,
   AlertTriangle,
   Calendar,
+  ChevronRight,
   File,
   FileText,
+  List,
   Loader2,
   Mail,
   MapPin,
@@ -184,6 +186,9 @@ const ShowVoluntaryReport = () => {
                     {voluntaryReport.danger_location || "N/A"}
                   </p>
                 </div>
+                <div>
+                  
+                </div>
                 <div className="md:col-span-2 space-y-1">
                   <p className="font-medium text-gray-700 dark:text-gray-300">
                     Localización exacta:
@@ -225,9 +230,24 @@ const ShowVoluntaryReport = () => {
                   <AlertTriangle className="w-6 h-6" />
                   Posibles Consecuencias
                 </h3>
-                <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
-                  {voluntaryReport.possible_consequences || "N/A"}
-                </p>
+                {voluntaryReport.possible_consequences && (
+                  <div className="border border-gray-300 dark:border-gray-600 p-6 rounded-lg w-full">
+                    <ul className="space-y-3">
+                      {voluntaryReport.possible_consequences.split(",").map(
+                        (consequence, index) =>
+                          // Se añade una comprobación para no renderizar elementos vacíos
+                          consequence.trim() && (
+                            <li key={index} className="flex items-start gap-3">
+                              <ChevronRight className="w-5 h-5 mt-1 flex-shrink-0 text-gray-500" />
+                              <span className="text-gray-600 dark:text-gray-400">
+                                {consequence.trim()}
+                              </span>
+                            </li>
+                          )
+                      )}
+                    </ul>
+                  </div>
+                )}
               </div>
             </div>
 

@@ -16,6 +16,7 @@ import {
   Info,
   Layers,
   List,
+  Shield,
 } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
@@ -145,73 +146,99 @@ const ShowDangerIdentification = () => {
               </div>
             </div>
 
-            {/* Fuente de información */}
-            {dangerIdentification.information_source && (
-              <div className="border border-gray-300 dark:border-gray-600 p-6 rounded-lg">
-                <h3 className="text-xl font-semibold mb-4 flex items-center gap-3">
-                  <Info className="w-6 h-6" />
-                  Fuente de Información
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-1">
-                    <p className="font-medium text-gray-700 dark:text-gray-300">
-                      Nombre:
-                    </p>
-                    <p className="text-gray-600 dark:text-gray-400">
-                      {dangerIdentification.information_source.name}
-                    </p>
-                  </div>
-                  <div className="space-y-1">
-                    <p className="font-medium text-gray-700 dark:text-gray-300">
-                      Método de identificación:
-                    </p>
-                    <Badge
-                      className={`justify-center items-center text-center font-bold text-sm px-3 py-1 ${
-                        dangerIdentification.information_source.type ===
-                        "PROACTIVO"
-                          ? "bg-green-200 text-green-800 border-green-200 dark:bg-green-900/40 dark:text-green-300 dark:border-green-700"
-                          : "bg-red-100 text-red-800 border-red-200 dark:bg-red-900/30 dark:text-red-300 dark:border-red-700"
-                      }`}
-                    >
-                      {dangerIdentification.information_source.type}
-                    </Badge>
+            <div className="flex gap-2">
+              {/* Fuente de información */}
+              {dangerIdentification.information_source && (
+                <div className="border border-gray-300 dark:border-gray-600 p-6 rounded-lg w-full">
+                  <h3 className="text-xl font-semibold mb-4 flex items-center gap-3">
+                    <Info className="w-6 h-6" />
+                    Fuente de Información
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                      <p className="font-medium text-gray-700 dark:text-gray-300">
+                        Nombre:
+                      </p>
+                      <p className="text-gray-600 dark:text-gray-400">
+                        {dangerIdentification.information_source.name}
+                      </p>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="font-medium text-gray-700 dark:text-gray-300">
+                        Método de identificación:
+                      </p>
+                      <Badge
+                        className={`justify-center items-center text-center font-bold text-sm px-3 py-1 ${
+                          dangerIdentification.information_source.type ===
+                          "PROACTIVO"
+                            ? "bg-green-200 text-green-800 border-green-200 dark:bg-green-900/40 dark:text-green-300 dark:border-green-700"
+                            : "bg-red-100 text-red-800 border-red-200 dark:bg-red-900/30 dark:text-red-300 dark:border-red-700"
+                        }`}
+                      >
+                        {dangerIdentification.information_source.type}
+                      </Badge>
+                    </div>
                   </div>
                 </div>
-              </div>
-            )}
+              )}
 
-            {/* Descripción */}
-            <div className="border border-gray-300 dark:border-gray-600 p-6 rounded-lg">
-              <h3 className="text-xl font-semibold mb-4 flex items-center gap-3">
-                <FileText className="w-6 h-6" />
-                Descripción
-              </h3>
-              <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
-                {dangerIdentification.description || "N/A"}
-              </p>
+              {/* Descripción */}
+              <div className="border border-gray-300 dark:border-gray-600 p-6 rounded-lg w-full">
+                <h3 className="text-xl font-semibold mb-4 flex items-center gap-3">
+                  <FileText className="w-6 h-6" />
+                  Descripción
+                </h3>
+                <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
+                  {dangerIdentification.description || "N/A"}
+                </p>
+              </div>
             </div>
 
-            {/* Consecuencias */}
-            {dangerIdentification.possible_consequences && (
-              <div className="border border-gray-300 dark:border-gray-600 p-6 rounded-lg">
-                <h3 className="text-xl font-semibold mb-4 flex items-center gap-3">
-                  <List className="w-6 h-6" />
-                  Posibles Consecuencias
-                </h3>
-                <ul className="space-y-3">
-                  {dangerIdentification.possible_consequences
-                    .split(",")
-                    .map((consequence, index) => (
-                      <li key={index} className="flex items-start gap-3">
-                        <ChevronRight className="w-5 h-5 mt-1 flex-shrink-0 text-gray-500" />
-                        <span className="text-gray-600 dark:text-gray-400">
-                          {consequence.trim()}
-                        </span>
-                      </li>
-                    ))}
-                </ul>
-              </div>
-            )}
+            <div className=" flex gap-2">
+              {/* Consecuencias */}
+              {dangerIdentification.possible_consequences && (
+                <div className="border border-gray-300 dark:border-gray-600 p-6 rounded-lg w-full">
+                  <h3 className="text-xl font-semibold mb-4 flex items-center gap-3">
+                    <List className="w-6 h-6" />
+                    Posibles Consecuencias
+                  </h3>
+                  <ul className="space-y-3">
+                    {dangerIdentification.possible_consequences
+                      .split(",")
+                      .map((consequence, index) => (
+                        <li key={index} className="flex items-start gap-3">
+                          <ChevronRight className="w-5 h-5 mt-1 flex-shrink-0 text-gray-500" />
+                          <span className="text-gray-600 dark:text-gray-400">
+                            {consequence.trim()}
+                          </span>
+                        </li>
+                      ))}
+                  </ul>
+                </div>
+              )}
+
+              {/* Defensas actuales */}
+              {dangerIdentification.current_defenses && (
+                <div className="border border-gray-300 dark:border-gray-600 p-6 rounded-lg w-full">
+                  <h3 className="text-xl font-semibold mb-4 flex items-center gap-3">
+                    <Shield className="w-6 h-6" />
+                    Defensas Actuales
+                  </h3>
+                  <ul className="space-y-3">
+                    {dangerIdentification.current_defenses
+                      .split(",")
+                      .map((defense, index) => (
+                        <li key={index} className="flex items-start gap-3">
+                          <ChevronRight className="w-5 h-5 mt-1 flex-shrink-0 text-gray-500" />
+                          <span className="text-gray-600 dark:text-gray-400">
+                            {defense.trim()}
+                          </span>
+                        </li>
+                      ))}
+                  </ul>
+                </div>
+              )}
+            </div>
 
             {/* Análisis de causa raíz */}
             <div className="border border-gray-300 dark:border-gray-600 p-6 rounded-lg">
@@ -219,9 +246,18 @@ const ShowDangerIdentification = () => {
                 <AlertCircle className="w-6 h-6" />
                 Análisis de Causa Raíz
               </h3>
-              <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
-                {dangerIdentification.root_cause_analysis || "N/A"}
-              </p>
+              <ul className="space-y-3">
+                {dangerIdentification.root_cause_analysis
+                  .split(",")
+                  .map((analysis, index) => (
+                    <li key={index} className="flex items-start gap-3">
+                      <ChevronRight className="w-5 h-5 mt-1 flex-shrink-0 text-gray-500" />
+                      <span className="text-gray-600 dark:text-gray-400">
+                        {analysis.trim()}
+                      </span>
+                    </li>
+                  ))}
+              </ul>
             </div>
           </div>
         )}

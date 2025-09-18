@@ -9,7 +9,6 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-
 import { Input } from "@/components/ui/input";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -40,7 +39,7 @@ import { cn } from "@/lib/utils";
 import { VoluntaryReport } from "@/types";
 import { addDays, format } from "date-fns";
 import { es } from "date-fns/locale";
-import { CalendarIcon, Loader2 } from "lucide-react";
+import { CalendarIcon, Loader2, Plus, X } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -52,8 +51,7 @@ interface FormProps {
   initialData?: VoluntaryReport;
   isEditing?: boolean;
 }
-// { onClose }: FormProps
-// lo de arriba va en prop
+
 export function CreateVoluntaryReportForm({
   onClose,
   isEditing,
@@ -64,6 +62,8 @@ export function CreateVoluntaryReportForm({
   const { updateVoluntaryReport } = useUpdateVoluntaryReport();
   const [isAnonymous, setIsAnonymous] = useState(true);
   const router = useRouter();
+  const [consequences, setConsequences] = useState<string[]>([]);
+  const [newConsequence, setNewConsequence] = useState("");
 
   const { user } = useAuth();
 
@@ -175,6 +175,14 @@ export function CreateVoluntaryReportForm({
       ) {
         setIsAnonymous(false);
       }
+
+      // Inicializar las consecuencias si hay datos iniciales
+      if (initialData.possible_consequences) {
+        const initialConsequences = initialData.possible_consequences
+          .split(",")
+          .filter((item) => item.trim() !== "");
+        setConsequences(initialConsequences);
+      }
     }
   }, [initialData, isEditing]); // Only run when these values change
 
@@ -212,8 +220,36 @@ export function CreateVoluntaryReportForm({
     },
   });
 
-  const onSubmit = async (data: FormSchemaType) => {
+  // Agregar una consecuencia
+  const addConsequence = () => {
+    if (newConsequence.trim() !== "") {
+      setConsequences([...consequences, newConsequence.trim()]);
+      setNewConsequence("");
 
+      // Actualizar el campo del formulario
+      const updatedConsequences = [...consequences, newConsequence.trim()];
+      form.setValue("possible_consequences", updatedConsequences.join(","));
+    }
+  };
+
+  // Eliminar una consecuencia
+  const removeConsequence = (index: number) => {
+    const updatedConsequences = consequences.filter((_, i) => i !== index);
+    setConsequences(updatedConsequences);
+
+    // Actualizar el campo del formulario
+    form.setValue("possible_consequences", updatedConsequences.join(","));
+  };
+
+  // Manejar la tecla Enter en el input
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      addConsequence();
+    }
+  };
+
+  const onSubmit = async (data: FormSchemaType) => {
     if (isAnonymous) {
       data.reporter_name = "";
       data.reporter_last_name = "";
@@ -493,17 +529,52 @@ export function CreateVoluntaryReportForm({
             </FormItem>
           )}
         />
+
+        {/* Interfaz mejorada para consecuencias */}
+        <FormItem>
+          <FormLabel>Consecuencias segun su criterio</FormLabel>
+          <div className="space-y-2">
+            <div className="flex gap-2">
+              <Input
+                placeholder="Escriba una consecuencia"
+                value={newConsequence}
+                onChange={(e) => setNewConsequence(e.target.value)}
+                onKeyPress={handleKeyPress}
+              />
+              <Button type="button" onClick={addConsequence} size="icon">
+                <Plus className="h-4 w-4" />
+              </Button>
+            </div>
+
+            <div className="space-y-2">
+              {consequences.map((consequence, index) => (
+                <div key={index} className="flex items-center gap-2">
+                  <div className="flex-1 p-2 border rounded-md bg-muted/20">
+                    {consequence}
+                  </div>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => removeConsequence(index)}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </div>
+          <FormMessage className="text-xs" />
+        </FormItem>
+
+        {/* Campo oculto para mantener el valor del formulario */}
         <FormField
           control={form.control}
           name="possible_consequences"
           render={({ field }) => (
-            <FormItem>
-              <FormLabel>Consecuencias segun su criterio</FormLabel>
+            <FormItem className="hidden">
               <FormControl>
-                <Textarea
-                  placeholder="Si son varias, separar por una coma (,)"
-                  {...field}
-                />
+                <Input type="hidden" {...field} />
               </FormControl>
               <FormMessage className="text-xs" />
             </FormItem>
