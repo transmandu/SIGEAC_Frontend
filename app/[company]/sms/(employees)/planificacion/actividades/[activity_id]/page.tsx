@@ -11,9 +11,11 @@ import { addDays, format } from "date-fns";
 import { es } from "date-fns/locale";
 import {
   AlertCircle,
+  AlertTriangle,
   AreaChartIcon,
   Calendar,
   CheckCheck,
+  ChevronRight,
   FileText,
   Hash,
   Loader2,
@@ -247,9 +249,25 @@ const ShowSMSActivity = () => {
                       <FileText className="h-5 w-5" />
                       Temas
                     </h3>
-                    <p className="whitespace-pre-line">
-                      {activity.topics || "N/A"}
-                    </p>
+                    {activity.topics && (
+                      <ul className="space-y-3">
+                        {activity.topics.split(",").map(
+                          (topic, index) =>
+                            // Se añade una comprobación para no renderizar elementos vacíos
+                            topic.trim() && (
+                              <li
+                                key={index}
+                                className="flex items-start gap-3"
+                              >
+                                <ChevronRight className="w-5 h-5 mt-1 flex-shrink-0 text-gray-500" />
+                                <span className="text-gray-600 dark:text-gray-400">
+                                  {topic.trim()}
+                                </span>
+                              </li>
+                            )
+                        )}
+                      </ul>
+                    )}
                   </div>
                 </div>
 
