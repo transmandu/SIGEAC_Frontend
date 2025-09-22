@@ -160,7 +160,7 @@ export default function CreateSMSActivityForm({
         executed_by: initialData.executed_by || "",
       });
     }
-  }, [isEditing, initialData, employees, form.reset]); // Dependencias del efecto
+  }, [isEditing, initialData, employees, form.reset, form]); // Dependencias del efecto
   // ======================= FIN DE LA SOLUCIÓN =======================
   console.log("THIS IS INITIAL DATA", initialData);
   useEffect(() => {
