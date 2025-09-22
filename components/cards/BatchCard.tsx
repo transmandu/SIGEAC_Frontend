@@ -1,24 +1,28 @@
 import React from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArticleRow } from "./ArticleRow";
+import { ArticleRow } from "../tables/ArticleRow";
 import { IWarehouseArticle } from "@/hooks/mantenimiento/almacen/articulos/useGetWarehouseConsumableArticles";
 
 interface BatchCardProps {
   batch: IWarehouseArticle;
   quantities: Record<number, number>;
   zones: Record<number, string>;
+  justifications: Record<number, string>;
   availableZones: string[];
   onQuantityChange: (articleId: number, newQuantity: string) => void;
   onZoneChange: (articleId: number, newZone: string) => void;
+  onJustificationChange: (articleId: number, justification: string) => void;
 }
 
 export const BatchCard = React.memo(({ 
   batch, 
   quantities, 
   zones, 
+  justifications,
   availableZones, 
   onQuantityChange, 
-  onZoneChange 
+  onZoneChange,
+  onJustificationChange
 }: BatchCardProps) => {
 
   return (
@@ -39,10 +43,12 @@ export const BatchCard = React.memo(({
               article={article}
               quantity={quantities[article.id] || 0}
               zone={zones[article.id] || article.zone}
+              justification={justifications[article.id] || ""}
               meditionUnit={batch.medition_unit}
               availableZones={availableZones}
               onQuantityChange={onQuantityChange}
               onZoneChange={onZoneChange}
+              onJustificationChange={onJustificationChange}
             />
           ))}
         </div>

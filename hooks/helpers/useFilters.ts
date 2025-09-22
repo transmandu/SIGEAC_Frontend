@@ -25,6 +25,22 @@ export interface FilterStats {
   };
 }
 
+// Component prop types  
+export interface BaseArticleProps {
+  article: IWarehouseArticle["articles"][0];
+  quantity: number;
+  zone: string;
+  justification: string;
+  meditionUnit: string;
+  availableZones: string[];
+}
+
+export interface ArticleChangeHandlers {
+  onQuantityChange: (articleId: number, newQuantity: string) => void;
+  onZoneChange: (articleId: number, newZone: string) => void;
+  onJustificationChange: (articleId: number, justification: string) => void;
+}
+
 export const useFilters = (batches: IWarehouseArticle[] | undefined) => {
   const [selectedZone, setSelectedZone] = useState<string>("all");
   const [partNumberFilter, setPartNumberFilter] = useState<string>("");
@@ -36,16 +52,14 @@ export const useFilters = (batches: IWarehouseArticle[] | undefined) => {
 
   // Obtener zonas únicas para el filtro
   const availableZones = useMemo(() => {
-    if (!batches) return [];
-    const zones: string[] = [];
+    if (!batches?.length) return [];
+    const zones = new Set<string>();
     batches.forEach((batch) => {
-      batch.articles.forEach((article) => {
-        if (!zones.includes(article.zone)) {
-          zones.push(article.zone);
-        }
+      batch.articles?.forEach((article) => {
+        if (article.zone) zones.add(article.zone);
       });
     });
-    return zones.sort();
+    return Array.from(zones).sort();
   }, [batches]);
 
   // Filtrar batches según los filtros aplicados

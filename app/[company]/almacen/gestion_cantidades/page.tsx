@@ -11,115 +11,59 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import { useCompanyStore } from "@/stores/CompanyStore";
-import { Loader2, Package, Save } from "lucide-react";
-import React, { useCallback, useMemo } from "react";
-import { toast } from "sonner";
+import { Package, Save, History } from "lucide-react";
+import React, { useState } from "react";
 import { useGetWarehouseConsumableArticles } from "@/hooks/mantenimiento/almacen/articulos/useGetWarehouseConsumableArticles";
 import { useGetAllWarehouseZones } from "@/hooks/mantenimiento/almacen/articulos/useGetAllWarehouseZones";
-import { useUpdateArticleQuantityAndZone } from "@/actions/mantenimiento/almacen/articulos/useUpdateArticleQuantityAndZone";
-import { BatchCard } from "./_components/BatchCard";
-import { EmptyState } from "./_components/EmptyState";
-import { PaginationControls } from "./_components/PaginationControls";
+import { BatchCard } from "@/components/cards/BatchCard";
+import { EmptyState } from "@/components/misc/EmptyState";
+import { PaginationControls } from "@/components/tables/PaginationControls";
 import { useArticleChanges } from "./_components/hooks/useArticleChanges";
-import { useBackendPagination } from "./_components/hooks/usePagination";
-import { useFilters } from "./_components/hooks/useFilters";
-import { FilterPanel } from "./_components/FilterPanel";
+import { useBackendPagination } from "@/hooks/helpers/usePagination";
+import { useFilters } from "@/hooks/helpers/useFilters";
+import { FilterPanel } from "@/components/misc/FilterPanel";
+import { ChangesPanel } from "@/components/misc/ChangesPanel";
+import { useSaveChanges } from "./_components/hooks/useSaveChanges";
+import { PAGINATION_CONFIG } from "./_components/constants";
 import LoadingPage from "@/components/misc/LoadingPage";
+
 const GestionCantidadesPage = () => {
-  const { selectedCompany, selectedStation } = useCompanyStore();
+  const { selectedCompany } = useCompanyStore();
+  const [changesExpanded, setChangesExpanded] = useState(false);
 
-  // Hook de paginación del backend
-  const {
-    currentPage,
-    itemsPerPage,
-    createPaginationInfo,
-    createPaginationActions,
-    scrollTargetRef,
-  } = useBackendPagination({ initialPage: 1, initialPerPage: 25 });
+  // Data fetching
+  const { currentPage, itemsPerPage, createPaginationInfo, createPaginationActions, scrollTargetRef } = 
+    useBackendPagination({ 
+      initialPage: PAGINATION_CONFIG.INITIAL_PAGE, 
+      initialPerPage: PAGINATION_CONFIG.INITIAL_PER_PAGE 
+    });
+  
+  const { data: response, isLoading } = useGetWarehouseConsumableArticles(currentPage, itemsPerPage);
+  const { data: allWarehouseZones, isLoading: isLoadingZones } = useGetAllWarehouseZones();
 
-  // Obtener todos los batches con artículos enviando page y per_page al backend
-  const {
-    data: response,
-    isLoading,
-    isError,
-    error,
-  } = useGetWarehouseConsumableArticles(currentPage, itemsPerPage);
-
-  // Obtener todas las zonas del almacén para los selects
-  const {
-    data: allWarehouseZones,
-    isLoading: isLoadingZones,
-  } = useGetAllWarehouseZones();
-
-  // Extraer batches y paginationInfo de la respuesta
+  // Data processing
   const batches = response?.batches || [];
   const paginationInfo = createPaginationInfo(response?.pagination);
   const paginationActions = createPaginationActions(paginationInfo.totalPages);
 
-  // Hook para filtros
+  // Filters
+  const { state: filterState, actions: filterActions, stats: filterStats } = useFilters(batches);
+
+  // Article changes management
   const {
-    state: filterState,
-    actions: filterActions,
-    stats: filterStats,
-  } = useFilters(batches);
+    state: { quantities, zones, justifications, hasChanges },
+    actions: { handleQuantityChange, handleZoneChange, handleJustificationChange },
+    utils: { getModifiedArticles, modifiedCount, articlesWithoutJustificationCount, canSave },
+  } = useArticleChanges(filterStats.filteredBatches);
 
-  // Crear stats personalizados con todas las zonas del almacén
-  const customFilterStats = useMemo(() => ({
-    ...filterStats,
-    availableZones: (allWarehouseZones as string[]) || [], // Usar todas las zonas del almacén
-  }), [filterStats, allWarehouseZones]);
+  // Save changes hook
+  const { handleSave, isSaving } = useSaveChanges({
+    getModifiedArticles,
+    articlesWithoutJustificationCount,
+    companySlug: selectedCompany?.slug || "",
+  });
 
-
-
-  // Hook para manejar cambios en artículos usando batches filtrados
-  const {
-    state: { quantities, zones, hasChanges },
-    actions: { handleQuantityChange, handleZoneChange },
-    utils: { getModifiedArticles, modifiedCount },
-  } = useArticleChanges(filterStats.filteredBatches || []);
-
-  const { updateArticleQuantityAndZone } = useUpdateArticleQuantityAndZone();
-
-  const handleSave = useCallback(() => {
-    const modifiedEntries = getModifiedArticles();
-
-    if (modifiedEntries.length === 0) {
-      toast.info("No hay cambios para guardar");
-      return;
-    }
-
-    const requestPayload = {
-      updates: modifiedEntries.map((entry) => ({
-        article_id: entry.articleId,
-        ...(entry.quantityChanged && { new_quantity: entry.newQuantity }),
-        ...(entry.zoneChanged && { new_zone: entry.newZone }),
-      })),
-      company: selectedCompany!.slug,
-    };
-
-
-    updateArticleQuantityAndZone.mutate(requestPayload);
-  }, [getModifiedArticles, selectedCompany, updateArticleQuantityAndZone]);
-
-
-  if (isLoading) {
-    return (
-      <LoadingPage/>
-    );
-  }
-
-  // if (isError) {
-  //   return (
-  //     <ContentLayout title="Gestión de Cantidades y Ubicaciones">
-  //       <div className="text-center py-8">
-  //         <p className="text-sm text-muted-foreground">
-  //           Ha ocurrido un error al cargar los artículos...
-  //         </p>
-  //       </div>
-  //     </ContentLayout>
-  //   );
-  // }
-
+  if (isLoading) return <LoadingPage />;
 
   return (
     <ContentLayout title="Gestión de Cantidades y Ubicaciones">
@@ -128,9 +72,7 @@ const GestionCantidadesPage = () => {
         <Breadcrumb>
           <BreadcrumbList>
             <BreadcrumbItem>
-              <BreadcrumbLink href={`/${selectedCompany?.slug}/dashboard`}>
-                Inicio
-              </BreadcrumbLink>
+              <BreadcrumbLink href={`/${selectedCompany?.slug}/dashboard`}>Inicio</BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>Almacén</BreadcrumbItem>
@@ -143,7 +85,6 @@ const GestionCantidadesPage = () => {
           </BreadcrumbList>
         </Breadcrumb>
 
-        {/* Scroll target para paginación */}
         <div ref={scrollTargetRef} className="scroll-mt-4" />
 
         {/* Header */}
@@ -156,20 +97,33 @@ const GestionCantidadesPage = () => {
             <p className="text-sm text-muted-foreground mt-2">
               Actualiza las cantidades de consumibles y las ubicaciones de componentes en el almacén
             </p>
-          </div>
-          <Button
-            onClick={handleSave}
-            disabled={!hasChanges}
-            className="flex items-center gap-2"
-          >
-            <Save className="h-4 w-4" />
-            Guardar Cambios
-            {hasChanges && modifiedCount > 0 && (
-              <span className="ml-1 bg-red-500 text-white text-xs px-2 py-1 rounded-full">
-                {modifiedCount}
-              </span>
+            {hasChanges && articlesWithoutJustificationCount > 0 && (
+              <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded-md">
+                <p className="text-sm text-red-700">
+                  ⚠ <strong>{articlesWithoutJustificationCount}</strong> artículo(s) necesitan justificación para proceder
+                </p>
+              </div>
             )}
-          </Button>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" asChild>
+              <a href={`/${selectedCompany?.slug}/almacen/gestion_cantidades/historial`} className="flex items-center gap-2">
+                <History className="h-4 w-4" />
+                Ver Historial
+              </a>
+            </Button>
+            <Button onClick={handleSave} disabled={!canSave} className="flex items-center gap-2">
+              <Save className="h-4 w-4" />
+              {!hasChanges ? "Sin Cambios" : !canSave ? "Justificación Requerida" : "Guardar Cambios"}
+              {modifiedCount > 0 && (
+                <span className={`ml-1 text-white text-xs px-2 py-1 rounded-full ${
+                  canSave ? "bg-green-500" : "bg-red-500"
+                }`}>
+                  {modifiedCount}{!canSave && " ⚠"}
+                </span>
+              )}
+            </Button>
+          </div>
         </div>
 
         {/* Filter Panel */}
@@ -177,7 +131,18 @@ const GestionCantidadesPage = () => {
           batches={batches}
           filterState={filterState}
           filterActions={filterActions}
-          stats={customFilterStats}
+          stats={{
+            ...filterStats,
+            availableZones: (allWarehouseZones as string[]) || []
+          }}
+        />
+
+        {/* Changes Panel */}
+        <ChangesPanel
+          modifiedArticles={getModifiedArticles()}
+          isExpanded={changesExpanded}
+          onToggleExpanded={setChangesExpanded}
+          batches={batches}
         />
 
         {/* Performance Info */}
@@ -185,44 +150,38 @@ const GestionCantidadesPage = () => {
           <p className="text-sm text-muted-foreground">
             Mostrando {paginationInfo.from} - {paginationInfo.to} de {paginationInfo.totalItems} batches
             • Página {paginationInfo.currentPage} de {paginationInfo.totalPages}
-            • {paginationInfo.itemsPerPage} por página
             {filterStats.hasActiveFilters && (
               <span className="ml-2 text-blue-600">
                 • {filterStats.articleCounts.filteredArticles} artículos filtrados
               </span>
             )}
-            {/* Info de zonas */}
             <span className="ml-2 text-green-600">
               • {isLoadingZones ? "Cargando zonas..." : `${(allWarehouseZones as string[])?.length || 0} zonas disponibles`}
             </span>
           </p>
         </div>
 
-        {/* Articles by Batch - Datos filtrados */}
-        {filterStats.filteredBatches && Array.isArray(filterStats.filteredBatches) && filterStats.filteredBatches.map((batch) => (
+        {/* Articles by Batch */}
+        {filterStats.filteredBatches?.map((batch) => (
           <BatchCard
             key={batch.batch_id}
             batch={batch}
             quantities={quantities}
             zones={zones}
-            availableZones={(allWarehouseZones as string[]) || []} // Todas las zonas del inventario
+            justifications={justifications}
+            availableZones={(allWarehouseZones as string[]) || []}
             onQuantityChange={handleQuantityChange}
             onZoneChange={handleZoneChange}
+            onJustificationChange={handleJustificationChange}
           />
         ))}
 
-        {/* Pagination Controls */}
-        <PaginationControls
-          paginationInfo={paginationInfo}
-          paginationActions={paginationActions}
-        />
+        {/* Pagination */}
+        <PaginationControls paginationInfo={paginationInfo} paginationActions={paginationActions} />
 
         {/* Empty State */}
-        {(!filterStats.filteredBatches || !Array.isArray(filterStats.filteredBatches) || filterStats.filteredBatches.length === 0) && !isLoading && (
-          <EmptyState 
-            hasActiveFilters={filterStats.hasActiveFilters} 
-            onClearFilters={filterActions.clearFilters} 
-          />
+        {(!filterStats.filteredBatches?.length && !isLoading) && (
+          <EmptyState hasActiveFilters={filterStats.hasActiveFilters} onClearFilters={filterActions.clearFilters} />
         )}
       </div>
     </ContentLayout>

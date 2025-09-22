@@ -6,6 +6,7 @@ export interface IUpdateArticleData {
   article_id: number;
   new_quantity?: number;
   new_zone?: string;
+  justification?: string;
 }
 
 export const useUpdateArticleQuantityAndZone = () => {

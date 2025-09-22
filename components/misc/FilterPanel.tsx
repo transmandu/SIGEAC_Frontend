@@ -2,15 +2,8 @@ import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { ChevronDown, Filter, Search, X } from "lucide-react";
-import { SearchableZoneFilter } from "./SearchableZoneFilter";
+import { SearchableZoneSelect } from "../selects/SearchableZoneSelect";
 import { IWarehouseArticle } from "@/hooks/mantenimiento/almacen/articulos/useGetWarehouseConsumableArticles";
 
 interface FilterPanelProps {
@@ -126,10 +119,11 @@ export const FilterPanel = React.memo(({
               <label className="text-sm font-medium text-muted-foreground">
                 Zona de Almacén
               </label>
-              <SearchableZoneFilter
-                value={selectedZone}
-                onValueChange={setSelectedZone}
-                availableZones={availableZones}
+              <SearchableZoneSelect
+                value={selectedZone === "all" ? "Todas las zonas" : selectedZone}
+                onValueChange={(value) => setSelectedZone(value === "Todas las zonas" || !value ? "all" : value)}
+                availableZones={["Todas las zonas", ...availableZones]}
+                placeholder="Todas las zonas"
               />
             </div>
 
