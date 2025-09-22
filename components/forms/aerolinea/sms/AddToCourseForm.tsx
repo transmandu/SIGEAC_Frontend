@@ -14,7 +14,7 @@ import { cn } from "@/lib/utils";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { Course } from "@/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Check, ChevronsUpDown } from "lucide-react";
+import { Check, ChevronsUpDown, Loader2 } from "lucide-react";
 import { useEffect, useState, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -26,7 +26,11 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { useCreateCourseAttendance } from "@/actions/general/asistencia_curso/actions";
 
 interface FormProps {
@@ -256,7 +260,12 @@ export function AddToCourseForm({ onClose, initialData }: FormProps) {
           <Button variant="outline" onClick={onClose}>
             Cancelar
           </Button>
-          <Button type="submit">Guardar cambios</Button>
+          <Button type="submit" disabled={createCourseAttendance.isPending}>
+            {createCourseAttendance.isPending ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : null}
+            Guardar cambios
+          </Button>
         </div>
       </form>
     </Form>
