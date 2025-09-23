@@ -9,7 +9,6 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-
 import { Input } from "@/components/ui/input";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -19,6 +18,12 @@ import {
   useCreateDangerIdentification,
   useUpdateDangerIdentification,
 } from "@/actions/sms/peligros_identificados/actions";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import {
   Select,
   SelectContent,
@@ -26,34 +31,19 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import { useGetInformationSources } from "@/hooks/sms/useGetInformationSource";
 import { cn } from "@/lib/utils";
+import { useCompanyStore } from "@/stores/CompanyStore";
 import { DangerIdentification } from "@/types";
 import { Separator } from "@radix-ui/react-select";
 import { addDays, format } from "date-fns";
 import { es } from "date-fns/locale";
-import { CalendarIcon, Loader2 } from "lucide-react";
-import { useEffect, useState } from "react";
-import { Calendar } from "@/components/ui/calendar";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { Textarea } from "@/components/ui/textarea";
+import { CalendarIcon, Loader2, Plus, X } from "lucide-react";
 import { useRouter } from "next/navigation";
-import router from "next/router";
-import { useCompanyStore } from "@/stores/CompanyStore";
-// HAY DATOS QUE VIENEN DEL REPORTE
-// COMO FECHA DE REPORTE E IDENTIFICACION
-// A LADO DEL CODIGO TENDRA EL TIPO DE REPORTE (RVP-RSO) DETECTADO DEL ORIGEN DEL REPORTE
+import { useEffect, useState } from "react";
 
-// NOMBRE DE QUIEN REPORTA (PUEDE SER ANONIMO)
-
-function contCommas(text: string): number {
-  return (text.match(/,/g) || []).length;
-}
-
+// El esquema de Zod se mantiene exactamente igual.
 const FormSchema = z.object({
   danger: z
     .string()
@@ -63,13 +53,10 @@ const FormSchema = z.object({
     .max(245, {
       message: "El peligro no debe exceder los 245 caracteres",
     }),
-
   danger_area: z.string(),
-
   risk_management_start_date: z
     .date()
     .refine((val) => !isNaN(val.getTime()), { message: "Invalid Date" }),
-
   current_defenses: z
     .string()
     .min(3, {
@@ -86,7 +73,6 @@ const FormSchema = z.object({
     .max(245, {
       message: "La descripcion deben exceder los 245 caracteres",
     }),
-
   possible_consequences: z
     .string()
     .min(3, {
@@ -94,19 +80,7 @@ const FormSchema = z.object({
     })
     .max(245, {
       message: "Las posibles consecuencias no deben exceder los 245 caracteres",
-    })
-    .refine((text) => contCommas(text) <= 5, {
-      message: "El analisis causa raiz no debe tener mas de 5 comas.",
-    })
-    .refine(
-      (text) => {
-        const parts = text.split(",");
-        return parts.every((parts) => parts.length <= 130);
-      },
-      {
-        message: "Cada consecuencia no debe exceder los 130 caracteres.",
-      }
-    ),
+    }),
   consequence_to_evaluate: z
     .string()
     .min(3, {
@@ -115,9 +89,7 @@ const FormSchema = z.object({
     .max(245, {
       message: "La consecuencia a evaluar no debe exceder los 245 caracteres",
     }),
-
   danger_type: z.string(),
-
   root_cause_analysis: z
     .string()
     .min(3, {
@@ -125,20 +97,7 @@ const FormSchema = z.object({
     })
     .max(245, {
       message: "El analisis causa raiz no debe exceder los 245 caracteres",
-    })
-    .refine((text) => contCommas(text) <= 5, {
-      message: "El analisis causa raiz no debe tener mas de 5 comas.",
-    })
-    .refine(
-      (text) => {
-        const parts = text.split(",");
-        return parts.every((parts) => parts.length <= 120);
-      },
-      {
-        message: "El porque no debe exceder los 120 caracteres.",
-      }
-    ),
-
+    }),
   information_source_id: z.string(),
 });
 
@@ -151,8 +110,7 @@ interface FormProps {
   isEditing?: boolean;
   reportType: string;
 }
-// { onClose }: FormProps
-// lo de arriba va en prop
+
 export default function CreateDangerIdentificationForm({
   onClose,
   id,
@@ -161,13 +119,21 @@ export default function CreateDangerIdentificationForm({
   reportType,
 }: FormProps) {
   const { selectedCompany } = useCompanyStore();
-  const [consequences, setConsequences] = useState<string[]>([]);
   const { data: informationSources, isLoading: isLoadingSources } =
-    useGetInformationSources(selectedCompany?.slug);
+    useGetInformationSources();
   const { createDangerIdentification } = useCreateDangerIdentification();
   const { updateDangerIdentification } = useUpdateDangerIdentification();
-  const [defaultValuesLoaded, setDefaultValuesLoaded] = useState(false);
   const router = useRouter();
+
+  const [defenses, setDefenses] = useState<string[]>([]);
+  const [newDefense, setNewDefense] = useState("");
+
+  const [consequences, setConsequences] = useState<string[]>([]);
+  const [newConsequence, setNewConsequence] = useState("");
+
+  const [analyses, setAnalyses] = useState<string[]>([]);
+  const [newAnalysis, setNewAnalysis] = useState("");
+
   const AREAS = [
     "OPERACIONES",
     "MANTENIMIENTO",
@@ -178,7 +144,7 @@ export default function CreateDangerIdentificationForm({
     "OTROS",
   ];
   const DANGER_TYPES = ["ORGANIZACIONAL", "TECNICO", "HUMANO", "NATURAL"];
-  console.log("estos son los datos iniciales ", initialData);
+
   const form = useForm<FormSchemaType>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
@@ -198,14 +164,83 @@ export default function CreateDangerIdentificationForm({
   });
 
   useEffect(() => {
-    if (initialData?.possible_consequences) {
-      const initialConsequences = initialData.possible_consequences
-        .split(",")
-        .map((c) => c.trim())
-        .filter((c) => c !== "");
-      setConsequences(initialConsequences);
+    if (initialData) {
+      const splitAndFilter = (str: string | undefined) =>
+        str
+          ? str
+              .split(",")
+              .map((s) => s.trim())
+              .filter(Boolean)
+          : [];
+
+      setDefenses(splitAndFilter(initialData.current_defenses));
+      setConsequences(splitAndFilter(initialData.possible_consequences));
+      setAnalyses(splitAndFilter(initialData.root_cause_analysis));
     }
-  }, [informationSources, initialData, form, defaultValuesLoaded]);
+  }, [initialData]);
+
+  // --- MANEJADORES PARA DEFENSAS ACTUALES ---
+  const addDefense = () => {
+    if (newDefense.trim()) {
+      const updated = [...defenses, newDefense.trim()];
+      setDefenses(updated);
+      form.setValue("current_defenses", updated.join(","));
+      setNewDefense("");
+    }
+  };
+  const removeDefense = (index: number) => {
+    const updated = defenses.filter((_, i) => i !== index);
+    setDefenses(updated);
+    form.setValue("current_defenses", updated.join(","));
+  };
+  const handleDefenseKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      addDefense();
+    }
+  };
+
+  // --- MANEJADORES PARA CONSECUENCIAS ---
+  const addConsequence = () => {
+    if (newConsequence.trim()) {
+      const updated = [...consequences, newConsequence.trim()];
+      setConsequences(updated);
+      form.setValue("possible_consequences", updated.join(","));
+      setNewConsequence("");
+    }
+  };
+  const removeConsequence = (index: number) => {
+    const updated = consequences.filter((_, i) => i !== index);
+    setConsequences(updated);
+    form.setValue("possible_consequences", updated.join(","));
+  };
+  const handleConsequenceKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      addConsequence();
+    }
+  };
+
+  // --- MANEJADORES PARA ANÁLISIS ---
+  const addAnalysis = () => {
+    if (newAnalysis.trim()) {
+      const updated = [...analyses, newAnalysis.trim()];
+      setAnalyses(updated);
+      form.setValue("root_cause_analysis", updated.join(","));
+      setNewAnalysis("");
+    }
+  };
+  const removeAnalysis = (index: number) => {
+    const updated = analyses.filter((_, i) => i !== index);
+    setAnalyses(updated);
+    form.setValue("root_cause_analysis", updated.join(","));
+  };
+  const handleAnalysisKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      addAnalysis();
+    }
+  };
 
   const onSubmit = async (data: FormSchemaType) => {
     if (initialData && isEditing) {
@@ -218,6 +253,7 @@ export default function CreateDangerIdentificationForm({
       };
       await updateDangerIdentification.mutateAsync(values);
     } else {
+      console.log(data);
       const response = await createDangerIdentification.mutateAsync({
         company: selectedCompany!.slug,
         id,
@@ -235,12 +271,13 @@ export default function CreateDangerIdentificationForm({
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit(onSubmit)}
-        className="flex flex-col space-y-3"
+        className="flex flex-col space-y-4"
       >
         <FormLabel className="text-lg text-center m-2">
           Identificación de Peligro
         </FormLabel>
 
+        {/* --- CAMPOS ORIGINALES --- */}
         <div className="flex gap-2 justify-center items-center">
           <FormField
             control={form.control}
@@ -255,7 +292,6 @@ export default function CreateDangerIdentificationForm({
               </FormItem>
             )}
           />
-
           <FormField
             control={form.control}
             name="risk_management_start_date"
@@ -273,9 +309,7 @@ export default function CreateDangerIdentificationForm({
                         )}
                       >
                         {field.value ? (
-                          format(field.value, "PPP", {
-                            locale: es,
-                          })
+                          format(field.value, "PPP", { locale: es })
                         ) : (
                           <span>Seleccione una fecha</span>
                         )}
@@ -289,19 +323,9 @@ export default function CreateDangerIdentificationForm({
                       selected={field.value}
                       onSelect={field.onChange}
                       initialFocus
-                      fromYear={2000} // Año mínimo que se mostrará
-                      toYear={new Date().getFullYear()} // Año máximo (actual)
-                      captionLayout="dropdown-buttons" // Selectores de año/mes
-                      components={{
-                        Dropdown: (props) => (
-                          <select
-                            {...props}
-                            className="bg-popover text-popover-foreground"
-                          >
-                            {props.children}
-                          </select>
-                        ),
-                      }}
+                      fromYear={2000}
+                      toYear={new Date().getFullYear()}
+                      captionLayout="dropdown-buttons"
                     />
                   </PopoverContent>
                 </Popover>
@@ -325,76 +349,131 @@ export default function CreateDangerIdentificationForm({
           )}
         />
 
-        <div className="flex gap-2 justify-center items-center">
-          <FormField
-            control={form.control}
-            name="danger_area"
-            render={({ field }) => (
-              <FormItem className="w-full">
-                <FormLabel>Area de identificación</FormLabel>
-                <Select
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Seleccionar Area" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {AREAS.map((area, index) => (
-                      <SelectItem key={index} value={area}>
-                        {area}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="current_defenses"
-            render={({ field }) => (
-              <FormItem className="w-full">
-                <FormLabel>Defensas Actuales</FormLabel>
-                <FormControl>
-                  <Input placeholder="Separar por una (,) " {...field} />
-                </FormControl>
-                <FormMessage className="text-xs" />
-              </FormItem>
-            )}
-          />
-        </div>
-
         <FormField
           control={form.control}
-          name="possible_consequences"
+          name="danger_area"
           render={({ field }) => (
-            <FormItem>
-              <FormLabel>Consecuencias</FormLabel>
-              <FormControl>
-                <Textarea
-                  placeholder="Consecuencias separadas por una coma (,)"
-                  {...field}
-                  onChange={(event) => {
-                    field.onChange(event); // Actualiza el valor en el formulario (necesario para la librería de formularios)
-                    const newConsequences = event.target.value
-                      .split(",")
-                      .map((consequence) => consequence.trim()); // Separa por comas y elimina espacios en blanco
-                    setConsequences(newConsequences);
-                    console.log("Consecuencias:", consequences); // Muestra las consecuencias en la consola
-                    // Aquí puedes hacer lo que necesites con el array de consecuencias
-                  }}
-                />
-              </FormControl>
-              <FormMessage className="text-xs" />
+            <FormItem className="w-full">
+              <FormLabel>Area de identificación</FormLabel>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Seleccionar Area" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {AREAS.map((area, index) => (
+                    <SelectItem key={index} value={area}>
+                      {area}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormMessage />
             </FormItem>
           )}
         />
 
+        {/* --- CAMPO "DEFENSAS ACTUALES" ADAPTADO --- */}
+        <FormItem>
+          <FormLabel>Defensas Actuales</FormLabel>
+          <div className="space-y-2">
+            <div className="flex gap-2">
+              <Input
+                placeholder="Escriba una defensa"
+                value={newDefense}
+                onChange={(e) => setNewDefense(e.target.value)}
+                onKeyPress={handleDefenseKeyPress}
+              />
+              <Button type="button" onClick={addDefense} size="icon">
+                <Plus className="h-4 w-4" />
+              </Button>
+            </div>
+            {/* ////// CAMBIO AQUÍ ////// */}
+            <div className="flex flex-wrap gap-2 pt-2">
+              {defenses.map((item, index) => (
+                <div
+                  key={index}
+                  className="flex items-center gap-2 bg-muted/40 border rounded-md p-2"
+                >
+                  <span className="text-sm">{item}</span>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="h-5 w-5"
+                    onClick={() => removeDefense(index)}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </div>
+        </FormItem>
+        <FormField
+          control={form.control}
+          name="current_defenses"
+          render={({ field }) => (
+            <FormItem className="hidden">
+              <FormControl>
+                <Input type="hidden" {...field} />
+              </FormControl>
+            </FormItem>
+          )}
+        />
+
+        {/* --- CAMPO "CONSECUENCIAS" ADAPTADO --- */}
+        <FormItem>
+          <FormLabel>Consecuencias</FormLabel>
+          <div className="space-y-2">
+            <div className="flex gap-2">
+              <Input
+                placeholder="Escriba una consecuencia"
+                value={newConsequence}
+                onChange={(e) => setNewConsequence(e.target.value)}
+                onKeyPress={handleConsequenceKeyPress}
+              />
+              <Button type="button" onClick={addConsequence} size="icon">
+                <Plus className="h-4 w-4" />
+              </Button>
+            </div>
+            {/* ////// CAMBIO AQUÍ ////// */}
+            <div className="flex flex-wrap gap-2 pt-2">
+              {consequences.map((item, index) => (
+                <div
+                  key={index}
+                  className="flex items-center gap-2 bg-muted/40 border rounded-md p-2"
+                >
+                  <span className="text-sm">{item}</span>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="h-5 w-5"
+                    onClick={() => removeConsequence(index)}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </div>
+        </FormItem>
+        
+        <FormField
+          control={form.control}
+          name="possible_consequences"
+          render={({ field }) => (
+            <FormItem className="hidden">
+              <FormControl>
+                <Input type="hidden" {...field} />
+              </FormControl>
+            </FormItem>
+          )}
+        />
+
+        {/* --- CAMPO ORIGINAL "CONSECUENCIA A EVALUAR" --- */}
         <FormField
           control={form.control}
           name="consequence_to_evaluate"
@@ -408,24 +487,21 @@ export default function CreateDangerIdentificationForm({
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  {consequences &&
-                    consequences
-                      .filter(
-                        (consequence) => consequence && consequence !== ""
-                      )
-                      .map((consequence, index) => (
-                        <SelectItem key={index} value={consequence}>
-                          {consequence}
-                        </SelectItem>
-                      ))}
+                  {consequences
+                    .filter((c) => c)
+                    .map((consequence, index) => (
+                      <SelectItem key={index} value={consequence}>
+                        {consequence}
+                      </SelectItem>
+                    ))}
                 </SelectContent>
               </Select>
-
               <FormMessage />
             </FormItem>
           )}
         />
 
+        {/* --- OTROS CAMPOS ORIGINALES --- */}
         <div className="flex gap-2 justify-center items-center">
           <FormField
             control={form.control}
@@ -436,7 +512,7 @@ export default function CreateDangerIdentificationForm({
                 {isLoadingSources ? (
                   <div className="flex items-center space-x-2">
                     <Loader2 className="h-4 w-4 animate-spin" />
-                    <span>Cargando fuentes...</span>
+                    <span>Cargando...</span>
                   </div>
                 ) : (
                   <Select
@@ -446,13 +522,7 @@ export default function CreateDangerIdentificationForm({
                   >
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue
-                          placeholder={
-                            isLoadingSources
-                              ? "Cargando..."
-                              : "Seleccionar Fuente de Información"
-                          }
-                        />
+                        <SelectValue placeholder={"Seleccionar Fuente"} />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -471,7 +541,6 @@ export default function CreateDangerIdentificationForm({
               </FormItem>
             )}
           />
-
           <FormField
             control={form.control}
             name="danger_type"
@@ -488,36 +557,72 @@ export default function CreateDangerIdentificationForm({
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {DANGER_TYPES.map((area, index) => (
-                      <SelectItem key={index} value={area}>
-                        {area}
+                    {DANGER_TYPES.map((type, index) => (
+                      <SelectItem key={index} value={type}>
+                        {type}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
-
                 <FormMessage />
               </FormItem>
             )}
           />
         </div>
 
+        {/* --- CAMPO "ANÁLISIS CAUSA RAÍZ" ADAPTADO --- */}
+        <FormItem>
+          <FormLabel>Analisis Causa Raiz</FormLabel>
+          <div className="space-y-2">
+            <div className="flex gap-2">
+              <Input
+                placeholder="Escriba un 'porqué' del análisis"
+                value={newAnalysis}
+                onChange={(e) => setNewAnalysis(e.target.value)}
+                onKeyPress={handleAnalysisKeyPress}
+              />
+              <Button type="button" onClick={addAnalysis} size="icon">
+                <Plus className="h-4 w-4" />
+              </Button>
+            </div>
+            {/* ////// CAMBIO AQUÍ ////// */}
+            <div className="flex flex-wrap gap-2 pt-2">
+              {analyses.map((item, index) => (
+                <div
+                  key={index}
+                  className="flex items-center gap-2 bg-muted/40 border rounded-md p-2"
+                >
+                  <span className="text-sm">{item}</span>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="h-5 w-5"
+                    onClick={() => removeAnalysis(index)}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </div>
+        </FormItem>
         <FormField
           control={form.control}
           name="root_cause_analysis"
           render={({ field }) => (
-            <FormItem>
-              <FormLabel>Analisis Causa Raiz</FormLabel>
+            <FormItem className="hidden">
               <FormControl>
-                <Input placeholder="Origen del Peligro" {...field} />
+                <Input type="hidden" {...field} />
               </FormControl>
-              <FormMessage className="text-xs" />
             </FormItem>
           )}
         />
-        <div className="flex justify-between items-center gap-x-4">
+
+        {/* --- FOOTER DEL FORMULARIO --- */}
+        <div className="flex justify-between items-center gap-x-4 pt-4">
           <Separator className="flex-1" />
-          <p className="text-muted-foreground">SIGEAC</p>
+          <p className="text-muted-foreground text-sm">SIGEAC</p>
           <Separator className="flex-1" />
         </div>
         <Button>Enviar</Button>

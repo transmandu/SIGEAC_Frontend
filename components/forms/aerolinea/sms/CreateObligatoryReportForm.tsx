@@ -349,7 +349,7 @@ export function CreateObligatoryReportForm({
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit(onSubmit)}
-        className="flex flex-col space-y-3"
+        className="flex w-full flex-col space-y-3"
       >
         <FormLabel className="text-lg text-center m-2">
           Reporte Obligatorio de suceso

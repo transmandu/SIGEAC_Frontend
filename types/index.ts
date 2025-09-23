@@ -974,11 +974,6 @@ export type StatsByMonth = {
   to: string;
 };
 
-export type AverageReportsResponse = {
-  oldest_range: StatsByMonth;
-  newest_range: StatsByMonth;
-};
-
 export type DangerIdentificationWithAll = {
   id: number;
   description: string;
@@ -988,6 +983,7 @@ export type DangerIdentificationWithAll = {
 
 export type SMSActivity = {
   id: number;
+  title: string;
   activity_name: string;
   activity_number: string;
   start_date: Date;
@@ -998,8 +994,8 @@ export type SMSActivity = {
   topics: string;
   objetive: string;
   description: string;
-  authorized_by: string;
-  planned_by: string;
+  authorized_by: Employee;
+  planned_by: Employee;
   executed_by: string;
   status: string;
 };

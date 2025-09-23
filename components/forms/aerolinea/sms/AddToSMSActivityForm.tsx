@@ -14,8 +14,8 @@ import { useGetEnrolledStatus } from "@/hooks/sms/useGetEnrolledStatus";
 import { cn } from "@/lib/utils";
 import { SMSActivity } from "@/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Check, ChevronsUpDown } from "lucide-react";
-import { useCallback, useEffect, useState } from "react"; // Importa useCallback
+import { Check, ChevronsUpDown, Loader2 } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import {
@@ -26,7 +26,11 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { useCompanyStore } from "@/stores/CompanyStore";
 
 interface FormProps {
@@ -44,7 +48,6 @@ interface EmployeeSelection {
   wasEnrolled: boolean;
 }
 
-// Esquema del formulario modificado
 const FormSchema = z.object({
   addedEmployees: z.array(
     z.object({
@@ -86,7 +89,6 @@ export function AddToSMSActivity({ onClose, initialData }: FormProps) {
     },
   });
 
-  // Envuelve updateFormValues en useCallback
   const updateFormValues = useCallback(
     (selections: EmployeeSelection[]) => {
       const added = selections.filter((e) => e.isSelected && !e.wasEnrolled);
@@ -110,10 +112,9 @@ export function AddToSMSActivity({ onClose, initialData }: FormProps) {
         }))
       );
     },
-    [form] // La dependencia ahora es el objeto 'form'
+    [form]
   );
 
-  // Inicializar la lista de empleados
   useEffect(() => {
     if (employeesData) {
       const selections: EmployeeSelection[] = [
@@ -140,12 +141,24 @@ export function AddToSMSActivity({ onClose, initialData }: FormProps) {
       setEmployeeSelections(selections);
       updateFormValues(selections);
     }
-  }, [employeesData, updateFormValues]); // Agrega updateFormValues a las dependencias
+  }, [employeesData, updateFormValues]);
 
   const toggleEmployeeSelection = (dni: string) => {
     const newSelections = employeeSelections.map((emp) =>
       emp.dni === dni ? { ...emp, isSelected: !emp.isSelected } : emp
     );
+
+    setEmployeeSelections(newSelections);
+    updateFormValues(newSelections);
+  };
+
+  const toggleAllEmployees = () => {
+    const allSelected = employeeSelections.every((emp) => emp.isSelected);
+
+    const newSelections = employeeSelections.map((emp) => ({
+      ...emp,
+      isSelected: !allSelected,
+    }));
 
     setEmployeeSelections(newSelections);
     updateFormValues(newSelections);
@@ -161,7 +174,7 @@ export function AddToSMSActivity({ onClose, initialData }: FormProps) {
       },
     };
     try {
-      createSMSActivityAttendance.mutateAsync(value);
+      await createSMSActivityAttendance.mutateAsync(value);
     } catch (error) {
       console.error("Error al inscribir", error);
     }
@@ -212,6 +225,18 @@ export function AddToSMSActivity({ onClose, initialData }: FormProps) {
                   <PopoverContent className="w-[400px] p-0">
                     <Command>
                       <CommandInput placeholder="Buscar empleados..." />
+                      <div className="p-2 border-b">
+                        <Button
+                          variant="ghost"
+                          className="w-full justify-start h-8"
+                          onClick={toggleAllEmployees}
+                        >
+                          <Check className="mr-2 h-4 w-4" />
+                          {employeeSelections.every((emp) => emp.isSelected)
+                            ? "Deseleccionar todos"
+                            : "Seleccionar todos"}
+                        </Button>
+                      </div>
                       <CommandList>
                         <CommandEmpty>No se encontraron empleados</CommandEmpty>
 
@@ -256,7 +281,15 @@ export function AddToSMSActivity({ onClose, initialData }: FormProps) {
           <Button variant="outline" onClick={onClose}>
             Cancelar
           </Button>
-          <Button type="submit">Guardar cambios</Button>
+          <Button
+            type="submit"
+            disabled={createSMSActivityAttendance.isPending}
+          >
+            {createSMSActivityAttendance.isPending ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : null}
+            Guardar cambios
+          </Button>
         </div>
       </form>
     </Form>

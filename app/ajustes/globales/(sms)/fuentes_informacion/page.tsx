@@ -5,10 +5,10 @@ import LoadingPage from "@/components/misc/LoadingPage";
 import { useGetInformationSources } from "@/hooks/sms/useGetInformationSource";
 import { columns } from "./columns";
 import { DataTable } from "./data-table";
+import { useCompanyStore } from "@/stores/CompanyStore";
 
 const InformationSourcePage = () => {
   const { data, isLoading, isError } = useGetInformationSources();
-
   if (isLoading) {
     return <LoadingPage />;
   }

@@ -45,7 +45,8 @@ export default function CreateDangerIdentificationDialog({
           </DialogTrigger>
 
           {!isEditing && !initialData ? (
-            <DialogContent className="flex flex-col max-w-2xl m-2">
+            // ===== CAMBIO AQUÍ: Añadidas clases para scroll =====
+            <DialogContent className="flex flex-col max-w-2xl m-2 max-h-[calc(100vh-theme(spacing.16))] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle></DialogTitle>
                 <DialogDescription></DialogDescription>
@@ -57,7 +58,8 @@ export default function CreateDangerIdentificationDialog({
               />
             </DialogContent>
           ) : (
-            <DialogContent className="flex flex-col max-w-2xl m-2">
+            // ===== CAMBIO AQUÍ: Añadidas clases para scroll =====
+            <DialogContent className="flex flex-col max-w-6xl m-2 max-h-[calc(100vh-theme(spacing.16))] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle></DialogTitle>
                 <DialogDescription></DialogDescription>

@@ -5,6 +5,7 @@ import { toast } from "sonner";
 
 interface SMSActivityData {
   activity_name: string;
+  title: string;
   activity_number: string;
   start_date: Date;
   end_date: Date;
@@ -16,13 +17,14 @@ interface SMSActivityData {
   description: string;
   authorized_by: string;
   planned_by: string;
-  executed_by: string;
+  executed_by?: string;
 }
 interface updateSMSActivityData {
   company: string | null;
   id: string;
   data: {
     activity_name: string;
+    title: string;
     activity_number: string;
     start_date: Date;
     end_date: Date;
@@ -34,7 +36,7 @@ interface updateSMSActivityData {
     description: string;
     authorized_by: string;
     planned_by: string;
-    executed_by: string;
+    executed_by?: string;
     status: string;
   };
 }
@@ -120,8 +122,9 @@ export const useUpdateSMSActivity = () => {
       );
       return response.data;
     },
-    onSuccess: () => {
+    onSuccess: (_, data) => {
       queryClient.invalidateQueries({ queryKey: ["sms-activities"] });
+      queryClient.invalidateQueries({ queryKey: ["sms-activity", data.id] });
       toast.success("¡Actualizado!", {
         description: `La actividad ha sido actualizada correctamente.`,
       });

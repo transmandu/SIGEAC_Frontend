@@ -14,7 +14,7 @@ import { cn } from "@/lib/utils";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { Course } from "@/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Check, ChevronsUpDown } from "lucide-react";
+import { Check, ChevronsUpDown, Loader2 } from "lucide-react";
 import { useEffect, useState, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -26,7 +26,11 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { useCreateCourseAttendance } from "@/actions/general/asistencia_curso/actions";
 
 interface FormProps {
@@ -86,7 +90,6 @@ export function AddToCourseForm({ onClose, initialData }: FormProps) {
     },
   });
 
-  // Ahora 'form' completo es la dependencia de useCallback
   const updateFormValues = useCallback(
     (selections: EmployeeSelection[]) => {
       const added = selections.filter((e) => e.isSelected && !e.wasEnrolled);
@@ -110,7 +113,7 @@ export function AddToCourseForm({ onClose, initialData }: FormProps) {
         }))
       );
     },
-    [form] // La dependencia ahora es el objeto 'form'
+    [form]
   );
 
   useEffect(() => {
@@ -145,6 +148,18 @@ export function AddToCourseForm({ onClose, initialData }: FormProps) {
     const newSelections = employeeSelections.map((emp) =>
       emp.dni === dni ? { ...emp, isSelected: !emp.isSelected } : emp
     );
+
+    setEmployeeSelections(newSelections);
+    updateFormValues(newSelections);
+  };
+
+  const toggleAllEmployees = () => {
+    const allSelected = employeeSelections.every((emp) => emp.isSelected);
+
+    const newSelections = employeeSelections.map((emp) => ({
+      ...emp,
+      isSelected: !allSelected,
+    }));
 
     setEmployeeSelections(newSelections);
     updateFormValues(newSelections);
@@ -211,9 +226,20 @@ export function AddToCourseForm({ onClose, initialData }: FormProps) {
                   <PopoverContent className="w-[400px] p-0">
                     <Command>
                       <CommandInput placeholder="Buscar empleados..." />
+                      <div className="p-2 border-b">
+                        <Button
+                          variant="ghost"
+                          className="w-full justify-start h-8"
+                          onClick={toggleAllEmployees}
+                        >
+                          <Check className="mr-2 h-4 w-4" />
+                          {employeeSelections.every((emp) => emp.isSelected)
+                            ? "Deseleccionar todos"
+                            : "Seleccionar todos"}
+                        </Button>
+                      </div>
                       <CommandList>
                         <CommandEmpty>No se encontraron empleados</CommandEmpty>
-
                         <CommandGroup heading="Todos los empleados">
                           {employeeSelections.map((employee) => (
                             <CommandItem
@@ -256,7 +282,12 @@ export function AddToCourseForm({ onClose, initialData }: FormProps) {
           <Button variant="outline" onClick={onClose}>
             Cancelar
           </Button>
-          <Button type="submit">Guardar cambios</Button>
+          <Button type="submit" disabled={createCourseAttendance.isPending}>
+            {createCourseAttendance.isPending ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : null}
+            Guardar cambios
+          </Button>
         </div>
       </form>
     </Form>

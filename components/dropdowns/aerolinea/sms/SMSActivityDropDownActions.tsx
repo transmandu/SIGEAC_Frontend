@@ -116,7 +116,7 @@ const SMSActivityDropDownActions = ({
             <p className="pl-2">Ver</p>
           </DropdownMenuItem>
 
-          {ActivityDate <= realNow && smsActivity.status === "ABIERTO" && (
+          {smsActivity.status === "ABIERTO" && (
             <DropdownMenuItem onClick={() => setOpenAdd(true)}>
               <Plus className="size-5" />
               <p className="pl-2">Agregar personas</p>
