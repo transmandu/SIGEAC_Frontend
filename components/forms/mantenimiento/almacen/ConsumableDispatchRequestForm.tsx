@@ -114,7 +114,7 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
     useGetWorkOrderEmployees({
       company: selectedCompany?.slug,
       location_id: selectedStation?.toString(),
-      acronym: "MAMP",
+      acronym: "MANP",
     });
 
   const {

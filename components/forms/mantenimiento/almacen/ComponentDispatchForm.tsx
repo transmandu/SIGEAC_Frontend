@@ -110,6 +110,7 @@ export function ComponentDispatchForm({ onClose }: FormProps) {
     location_id: selectedStation?.toString(),
     acronym: "MANP",
   });
+
   const { data: workOrders, isLoading } = useGetWorkOrders(
     selectedStation ?? null,
     selectedCompany?.slug
