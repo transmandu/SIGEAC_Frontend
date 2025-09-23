@@ -70,6 +70,78 @@ export type Article = {
   image?: File | string;
 };
 
+// Tipo específico para artículos de ferretería
+export type HardwareArticle = {
+  id?: number;
+  article_type: "ferreteria";
+  part_number: string;
+  alternative_part_number?: string[];
+  description: string;
+  zone: string;
+  manufacturer_id: string;
+  condition_id: string;
+  batches_id: number;
+  quantity: number;
+  status?: string;
+  
+  // Información básica de ferretería
+  brand?: string; // Marca comercial
+  model?: string; // Modelo específico
+  category?: string; // Categoría principal
+  subcategory?: string; // Subcategoría
+  
+  // Especificaciones físicas
+  size?: string; // Tamaño/Dimensión principal
+  material?: string; // Material de construcción
+  color?: string; // Color/Acabado
+  weight?: number; // Peso
+  
+  // Dimensiones detalladas
+  diameter?: string; // Diámetro
+  length?: string; // Longitud
+  width?: string; // Ancho
+  height?: string; // Alto
+  thickness?: string; // Grosor
+  
+  // Especificaciones técnicas
+  thread_type?: string; // Tipo de rosca (tornillos, tuercas)
+  hardness?: string; // Dureza del material
+  surface_treatment?: string; // Tratamiento superficial
+  temperature_range?: string; // Rango de temperatura de operación
+  
+  // Especificaciones eléctricas (si aplica)
+  voltage_rating?: string; // Voltaje nominal
+  current_rating?: string; // Corriente nominal
+  power_rating?: string; // Potencia nominal
+  pressure_rating?: string; // Presión nominal
+  
+  // Características especiales
+  is_corrosion_resistant?: boolean; // Resistente a la corrosión
+  is_waterproof?: boolean; // Resistente al agua
+  
+  // Información comercial
+  unit_cost?: number; // Costo unitario
+  supplier_code?: string; // Código del proveedor
+  barcode?: string; // Código de barras
+  
+  // Información de uso
+  usage_application?: string; // Aplicación/Uso específico
+  storage_requirements?: string; // Requisitos de almacenamiento
+  safety_notes?: string; // Notas de seguridad
+  warranty_period?: string; // Período de garantía
+  
+  // Documentación (opcional para ferretería)
+  image?: File | string;
+  technical_datasheet?: File | string; // Hoja de datos técnicos
+  safety_datasheet?: File | string; // Hoja de seguridad
+  
+  // Metadatos
+  created_at?: Date;
+  updated_at?: Date;
+  created_by?: string;
+  updated_by?: string;
+};
+
 export type Bank = {
   id: number;
   name: string;
