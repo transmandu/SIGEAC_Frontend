@@ -159,7 +159,7 @@ const CreateComponentForm = ({ initialData, isEditing }: {
   useEffect(() => {
     if (batches) {
       // Filtrar los batches por categoría
-      const filtered = batches.filter((batch) => batch.category === "componente");
+      const filtered = batches.filter((batch) => batch.category === "COMPONENTE");
       console.log("filtered from use effect ", filtered);
       setFilteredBatches(filtered);
     }

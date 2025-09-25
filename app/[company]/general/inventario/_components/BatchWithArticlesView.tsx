@@ -35,7 +35,10 @@ export function BatchWithArticlesView({ batches, companySlug }: BatchWithArticle
       {batches.map((batchData) => {
         const isExpanded = expandedBatches[batchData.batch.id];
         const totalArticles = batchData.articles.length;
-        const totalQuantity = batchData.articles.reduce((sum, article) => sum + article.quantity, 0);
+        const totalQuantity = batchData.articles.reduce((sum, article) => {
+          const quantity = typeof article.quantity === 'string' ? parseInt(article.quantity) || 0 : article.quantity;
+          return sum + quantity;
+        }, 0);
 
         return (
           <Card key={batchData.batch.id} className="border-l-4 border-l-blue-500">
@@ -65,7 +68,7 @@ export function BatchWithArticlesView({ batches, companySlug }: BatchWithArticle
                       </Link>
                     </CardTitle>
                     <p className="text-sm text-muted-foreground mt-1">
-                      {batchData.batch.description}
+                      {batchData.batch.description || "Sin descripción"}
                     </p>
                   </div>
                 </div>
@@ -86,7 +89,7 @@ export function BatchWithArticlesView({ batches, companySlug }: BatchWithArticle
                   <Hash className="h-4 w-4 text-muted-foreground" />
                   <div>
                     <p className="text-xs text-muted-foreground">Código ATA</p>
-                    <p className="text-sm font-medium">{batchData.batch.ata_code}</p>
+                    <p className="text-sm font-medium">{batchData.batch.ata_code || "N/A"}</p>
                   </div>
                 </div>
                 
@@ -140,7 +143,7 @@ export function BatchWithArticlesView({ batches, companySlug }: BatchWithArticle
                         <TableRow key={article.id} className="hover:bg-muted/30">
                           <TableCell>
                             <span className="font-medium text-blue-600">{article.part_number}</span>
-                            {article.alternative_part_number.length > 0 && (
+                            {article.alternative_part_number && article.alternative_part_number.length > 0 && (
                               <div className="text-xs text-muted-foreground mt-1">
                                 Alt: {article.alternative_part_number.join(", ")}
                               </div>
@@ -152,7 +155,7 @@ export function BatchWithArticlesView({ batches, companySlug }: BatchWithArticle
                             </span>
                           </TableCell>
                           <TableCell>
-                            <span className="text-sm">{article.description}</span>
+                            <span className="text-sm">{article.description || "N/A"}</span>
                           </TableCell>
                           <TableCell>
                             <Badge variant="secondary" className="font-bold">
@@ -172,7 +175,7 @@ export function BatchWithArticlesView({ batches, companySlug }: BatchWithArticle
                           </TableCell>
                           <TableCell>
                             <span className="text-muted-foreground italic text-sm">
-                              {article.manufacturer}
+                              {article.manufacturer || "N/A"}
                             </span>
                           </TableCell>
                         </TableRow>

@@ -201,11 +201,13 @@ const CreateConsumableForm = ({
     data: batches,
     isPending: isBatchesLoading,
     isError,
+    error,
   } = useGetBatchesByLocationId();
 
+
   useEffect(() => {
-    if (selectedStation) {
-      mutate({location_id: Number(selectedStation), company: selectedCompany!.slug})
+    if (selectedStation && selectedCompany) {
+      mutate({location_id: Number(selectedStation), company: selectedCompany.slug})
     }
   }, [selectedStation, selectedCompany, mutate]);
 
@@ -213,7 +215,7 @@ const CreateConsumableForm = ({
     if (batches) {
       // Filtrar los batches por categoría
       const filtered = batches.filter(
-        (batch) => batch.category === "consumible"
+        (batch) => batch.category === "CONSUMIBLE"
       );
       setFilteredBatches(filtered);
     }
@@ -230,7 +232,7 @@ const CreateConsumableForm = ({
     defaultValues: {
       part_number: initialData?.part_number || undefined,
       alternative_part_number: initialData?.alternative_part_number || [],
-      batches_id: initialData?.batches.id?.toString() || undefined,
+      batches_id: initialData?.batches.id?.toString() || "",
       manufacturer_id: initialData?.manufacturer?.id.toString() || undefined,
       condition_id: initialData?.condition?.id.toString() || undefined,
       description: initialData?.description || "",
@@ -670,7 +672,7 @@ const CreateConsumableForm = ({
                   <FormLabel>Lote del Articulo</FormLabel>
                   <Select
                     onValueChange={field.onChange}
-                    defaultValue={field.value}
+                    value={field.value}
                   >
                     <FormControl>
                       <SelectTrigger>

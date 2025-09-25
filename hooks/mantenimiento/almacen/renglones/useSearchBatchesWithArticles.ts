@@ -8,13 +8,13 @@ export interface BatchWithArticles {
     id: number;
     name: string;
     slug: string;
-    description: string;
+    description: string | null;
     category: string;
-    ata_code: string;
-    brand: string;
+    ata_code: string | null;
+    brand: string | null;
     warehouse_name: string;
-    warehouse_id: number;
-    min_quantity: number;
+    warehouse_id: number | string;
+    min_quantity: number | string;
     medition_unit: string;
   };
   
@@ -22,19 +22,19 @@ export interface BatchWithArticles {
   articles: {
     id: number;
     part_number: string;
-    alternative_part_number: string[];
-    description: string;
+    alternative_part_number: string[] | null;
+    description: string | null;
     serial: string;
-    quantity: number;
+    quantity: number | string;
     zone: string;
     condition: string;
-    manufacturer: string;
-    unit_secondary: string;
+    manufacturer: string | null;
+    unit_secondary: string | null;
     status: string;
-    cost: number;
-    image?: string;
-    certificates?: string[];
-    article_type: "CONSUMABLE" | "COMPONENT" | "TOOL";
+    cost: number | null;
+    image?: string | null;
+    certificates?: string[] | null;
+    article_type: "CONSUMABLE" | "COMPONENT" | "TOOL" | null;
     
     // Información específica del tipo de artículo
     tool?: {
@@ -82,11 +82,9 @@ const searchBatchesWithArticles = async (
   location_id: string,
   part_number: string
 ): Promise<BatchWithArticles[]> => {
-  const { data } = await axiosInstance.post(`/${company}/${location_id}/search-batches-with-articles`, {
+  const { data } = await axiosInstance.get(`/${company}/${location_id}/search-articles-with-batch`, {
     params: { location_id, part_number }
   });
-  // const { data } = await axiosInstance.get(`/${company}/${location_id}/search-article-with-batch/${part_number}`);
-  console.log(data);
   return data;
 };
 
