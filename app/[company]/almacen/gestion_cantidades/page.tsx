@@ -16,13 +16,14 @@ import React, { useCallback, useMemo } from "react";
 import { toast } from "sonner";
 import { useGetWarehouseConsumableArticles } from "@/hooks/mantenimiento/almacen/articulos/useGetWarehouseConsumableArticles";
 import { useGetAllWarehouseZones } from "@/hooks/mantenimiento/almacen/articulos/useGetAllWarehouseZones";
+import { useSearchBatchesByPartNumber } from "@/hooks/mantenimiento/almacen/renglones/useGetBatchesByArticlePartNumber";
 import { useUpdateArticleQuantityAndZone } from "@/actions/mantenimiento/almacen/articulos/useUpdateArticleQuantityAndZone";
 import { BatchCard } from "./_components/BatchCard";
 import { EmptyState } from "./_components/EmptyState";
 import { PaginationControls } from "./_components/PaginationControls";
 import { useArticleChanges } from "./_components/hooks/useArticleChanges";
 import { useBackendPagination } from "./_components/hooks/usePagination";
-import { useFilters } from "./_components/hooks/useFilters";
+import { useGlobalSearch } from "./_components/hooks/useGlobalSearch";
 import { FilterPanel } from "./_components/FilterPanel";
 import LoadingPage from "@/components/misc/LoadingPage";
 const GestionCantidadesPage = () => {
@@ -56,18 +57,12 @@ const GestionCantidadesPage = () => {
   const paginationInfo = createPaginationInfo(response?.pagination);
   const paginationActions = createPaginationActions(paginationInfo.totalPages);
 
-  // Hook para filtros
+  // Hook para búsqueda global y filtros
   const {
     state: filterState,
     actions: filterActions,
     stats: filterStats,
-  } = useFilters(batches);
-
-  // Crear stats personalizados con todas las zonas del almacén
-  const customFilterStats = useMemo(() => ({
-    ...filterStats,
-    availableZones: (allWarehouseZones as string[]) || [], // Usar todas las zonas del almacén
-  }), [filterStats, allWarehouseZones]);
+  } = useGlobalSearch(batches, (allWarehouseZones as string[]) || []);
 
 
 
@@ -177,18 +172,33 @@ const GestionCantidadesPage = () => {
           batches={batches}
           filterState={filterState}
           filterActions={filterActions}
-          stats={customFilterStats}
+          stats={filterStats}
         />
 
         {/* Performance Info */}
         <div className="bg-muted/50 p-3 rounded-lg">
           <p className="text-sm text-muted-foreground">
-            Mostrando {paginationInfo.from} - {paginationInfo.to} de {paginationInfo.totalItems} batches
-            • Página {paginationInfo.currentPage} de {paginationInfo.totalPages}
-            • {paginationInfo.itemsPerPage} por página
-            {filterStats.hasActiveFilters && (
-              <span className="ml-2 text-blue-600">
-                • {filterStats.articleCounts.filteredArticles} artículos filtrados
+            {filterStats.isSearching ? (
+              <span className="text-blue-600">🔍 Buscando en toda la base de datos...</span>
+            ) : filterState.partNumberFilter ? (
+              <span>
+                ✅ Resultados de búsqueda global
+                {filterStats.hasActiveFilters && (
+                  <span className="ml-2 text-blue-600">
+                    • {filterStats.articleCounts.filteredArticles} artículos encontrados
+                  </span>
+                )}
+              </span>
+            ) : (
+              <span>
+                Mostrando {paginationInfo.from} - {paginationInfo.to} de {paginationInfo.totalItems} batches
+                • Página {paginationInfo.currentPage} de {paginationInfo.totalPages}
+                • {paginationInfo.itemsPerPage} por página
+                {filterStats.hasActiveFilters && (
+                  <span className="ml-2 text-blue-600">
+                    • {filterStats.articleCounts.filteredArticles} artículos filtrados
+                  </span>
+                )}
               </span>
             )}
             {/* Info de zonas */}
@@ -211,14 +221,16 @@ const GestionCantidadesPage = () => {
           />
         ))}
 
-        {/* Pagination Controls */}
-        <PaginationControls
-          paginationInfo={paginationInfo}
-          paginationActions={paginationActions}
-        />
+        {/* Pagination Controls - Ocultar durante búsqueda global */}
+        {!filterState.partNumberFilter && (
+          <PaginationControls
+            paginationInfo={paginationInfo}
+            paginationActions={paginationActions}
+          />
+        )}
 
         {/* Empty State */}
-        {(!filterStats.filteredBatches || !Array.isArray(filterStats.filteredBatches) || filterStats.filteredBatches.length === 0) && !isLoading && (
+        {(!filterStats.filteredBatches || !Array.isArray(filterStats.filteredBatches) || filterStats.filteredBatches.length === 0) && !isLoading && !filterStats.isSearching && (
           <EmptyState 
             hasActiveFilters={filterStats.hasActiveFilters} 
             onClearFilters={filterActions.clearFilters} 
