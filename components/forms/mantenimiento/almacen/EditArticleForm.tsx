@@ -35,12 +35,20 @@ import { Article, Batch, Convertion } from "@/types"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { format, addYears, subYears } from "date-fns"
 import { es } from 'date-fns/locale'
-import { CalendarIcon, FileUpIcon, Loader2, Save } from "lucide-react"
+import { CalendarIcon, FileUpIcon, Loader2, Save, Check, ChevronsUpDown } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 import { MultiInputField } from "../../../misc/MultiInputField"
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command"
 
 interface EditingArticle extends Article {
   batches: Batch,
@@ -126,6 +134,7 @@ const EditArticleForm = ({ initialData, onSuccess }: EditArticleFormProps) => {
   const [fabricationDate, setFabricationDate] = useState<Date>()
   const [caducateDate, setCaducateDate] = useState<Date>()
   const [filteredBatches, setFilteredBatches] = useState<Batch[]>()
+  const [batchOpen, setBatchOpen] = useState(false)
 
   const { editArticle } = useEditArticle()
 
@@ -383,35 +392,76 @@ const EditArticleForm = ({ initialData, onSuccess }: EditArticleFormProps) => {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Lote</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    value={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue 
-                          placeholder={
-                            isBatchesLoading ? (
-                              <Loader2 className="size-4 animate-spin" />
-                            ) : (
-                              "Seleccione lote..."
-                            )
-                          }
-                        />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {filteredBatches &&
-                        filteredBatches.map((batch) => (
-                          <SelectItem
-                            key={batch.id}
-                            value={batch.id.toString()}
-                          >
-                            {batch.name} - {batch.warehouse_name}
-                          </SelectItem>
-                        ))}
-                    </SelectContent>
-                  </Select>
+                  <Popover open={batchOpen} onOpenChange={setBatchOpen}>
+                    <PopoverTrigger asChild>
+                      <FormControl>
+                        <Button
+                          variant="outline"
+                          role="combobox"
+                          aria-expanded={batchOpen}
+                          className={cn(
+                            "w-full justify-between h-auto min-h-[2.5rem] py-2",
+                            !field.value && "text-muted-foreground"
+                          )}
+                          disabled={isBatchesLoading}
+                        >
+                          {isBatchesLoading ? (
+                            <div className="flex items-center">
+                              <Loader2 className="size-4 animate-spin mr-2" />
+                              <span>Cargando lotes...</span>
+                            </div>
+                          ) : field.value ? (
+                            <div className="flex flex-col overflow-hidden">
+                              <span className="font-medium truncate">
+                                {filteredBatches?.find((batch) => batch.id.toString() === field.value)?.name}
+                              </span>
+                              <span className="text-xs text-muted-foreground truncate">
+                                {filteredBatches?.find((batch) => batch.id.toString() === field.value)?.warehouse_name}
+                              </span>
+                            </div>
+                          ) : (
+                            "Buscar lote..."
+                          )}
+                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        </Button>
+                      </FormControl>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-[400px] p-0">
+                      <Command>
+                        <CommandInput placeholder="Buscar lote..." />
+                        <CommandList>
+                          <CommandEmpty>
+                            No se han encontrado lotes...
+                          </CommandEmpty>
+                          <CommandGroup>
+                            {filteredBatches?.map((batch) => (
+                              <CommandItem
+                                key={batch.id}
+                                value={`${batch.name} ${batch.warehouse_name}`}
+                                onSelect={() => {
+                                  form.setValue("batches_id", batch.id.toString());
+                                  setBatchOpen(false);
+                                }}
+                              >
+                                <Check
+                                  className={cn(
+                                    "mr-2 h-4 w-4",
+                                    field.value === batch.id.toString()
+                                      ? "opacity-100"
+                                      : "opacity-0"
+                                  )}
+                                />
+                                <div className="flex flex-col">
+                                  <span className="font-medium">{batch.name}</span>
+                                  <span className="text-sm text-muted-foreground">{batch.warehouse_name}</span>
+                                </div>
+                              </CommandItem>
+                            ))}
+                          </CommandGroup>
+                        </CommandList>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
                   <FormMessage />
                 </FormItem>
               )}

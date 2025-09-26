@@ -8,6 +8,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command"
 
 import { useConfirmIncomingArticle, useCreateArticle } from "@/actions/mantenimiento/almacen/inventario/articulos/actions"
 import { Calendar } from "@/components/ui/calendar"
@@ -29,7 +37,7 @@ import { Article, Batch } from "@/types"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { addYears, format, subYears } from "date-fns"
 import { es } from 'date-fns/locale'
-import { CalendarIcon, FileUpIcon, Loader2 } from "lucide-react"
+import { CalendarIcon, FileUpIcon, Loader2, Check, ChevronsUpDown } from "lucide-react"
 import Image from "next/image"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
@@ -60,6 +68,7 @@ const CreateComponentForm = ({ initialData, isEditing }: {
 }) => {
 
   const [filteredBatches, setFilteredBatches] = useState<Batch[]>()
+  const [batchOpen, setBatchOpen] = useState(false)
 
   const [fabricationDate, setFabricationDate] = useState<Date>()
 
@@ -597,30 +606,79 @@ const CreateComponentForm = ({ initialData, isEditing }: {
               render={({ field }) => (
                 <FormItem className={cn("", isEditing ? "col-span-2" : "col-span-1")}>
                   <FormLabel>Lote del Articulo</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder={isBatchesLoading ? <Loader2 className="size-4 animate-spin" /> : "Seleccione lote..."} />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {
-                        filteredBatches && filteredBatches.map((batch) => (
-                          <SelectItem key={batch.name} value={batch.id.toString()}>{batch.name} - {batch.warehouse_name}</SelectItem>
-                        ))
-                      }
-                      {
-                        !filteredBatches || filteredBatches?.length <= 0 && (
-                          <p className="text-sm text-muted-foreground p-2 text-center">No se han encontrado lotes....</p>
-                        )
-                      }
-                      {
-                        isError && (
-                          <p className="text-sm text-muted-foreground p-2 text-center">Ha ocurrido un error al cargar los lotes...</p>
-                        )
-                      }
-                    </SelectContent>
-                  </Select>
+                  <Popover open={batchOpen} onOpenChange={setBatchOpen}>
+                    <PopoverTrigger asChild>
+                      <FormControl>
+                        <Button
+                          variant="outline"
+                          role="combobox"
+                          aria-expanded={batchOpen}
+                          className={cn(
+                            "w-full justify-between h-auto min-h-[2.5rem] py-2",
+                            !field.value && "text-muted-foreground"
+                          )}
+                          disabled={isBatchesLoading}
+                        >
+                          {isBatchesLoading ? (
+                            <div className="flex items-center">
+                              <Loader2 className="size-4 animate-spin mr-2" />
+                              <span>Cargando lotes...</span>
+                            </div>
+                          ) : field.value ? (
+                            <div className="flex flex-col overflow-hidden">
+                              <span className="font-medium truncate">
+                                {filteredBatches?.find((batch) => batch.id.toString() === field.value)?.name}
+                              </span>
+                              <span className="text-xs text-muted-foreground truncate">
+                                {filteredBatches?.find((batch) => batch.id.toString() === field.value)?.warehouse_name}
+                              </span>
+                            </div>
+                          ) : (
+                            "Buscar lote..."
+                          )}
+                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        </Button>
+                      </FormControl>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-[400px] p-0">
+                      <Command>
+                        <CommandInput placeholder="Buscar lote..." />
+                        <CommandList>
+                          <CommandEmpty>
+                            {isError ? 
+                              "Ha ocurrido un error al cargar los lotes..." : 
+                              "No se han encontrado lotes..."
+                            }
+                          </CommandEmpty>
+                          <CommandGroup>
+                            {filteredBatches?.map((batch) => (
+                              <CommandItem
+                                key={batch.id}
+                                value={`${batch.name} ${batch.warehouse_name}`}
+                                onSelect={() => {
+                                  form.setValue("batches_id", batch.id.toString());
+                                  setBatchOpen(false);
+                                }}
+                              >
+                                <Check
+                                  className={cn(
+                                    "mr-2 h-4 w-4",
+                                    field.value === batch.id.toString()
+                                      ? "opacity-100"
+                                      : "opacity-0"
+                                  )}
+                                />
+                                <div className="flex flex-col">
+                                  <span className="font-medium">{batch.name}</span>
+                                  <span className="text-sm text-muted-foreground">{batch.warehouse_name}</span>
+                                </div>
+                              </CommandItem>
+                            ))}
+                          </CommandGroup>
+                        </CommandList>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
                   <FormDescription>
                     Lote a asignar el articulo.
                   </FormDescription>

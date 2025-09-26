@@ -1,5 +1,6 @@
 import axiosInstance from "@/lib/axios";
 import { useQuery } from "@tanstack/react-query";
+import axios from '@/lib/axios';
 
 // Interface para batch con sus artículos relacionados
 export interface BatchWithArticles {
@@ -77,16 +78,21 @@ export interface BatchWithArticles {
   }[];
 }
 
-const searchBatchesWithArticles = async (
-  company: string,
-  location_id: string,
-  part_number: string
-): Promise<BatchWithArticles[]> => {
-  const { data } = await axiosInstance.get(`/${company}/${location_id}/search-articles-with-batch`, {
-    params: { location_id, part_number }
-  });
+const searchBatchesWithArticles = async ({
+  location_id,
+  company,
+  part_number,
+}: {
+  location_id: number;
+  company?: string;
+  part_number: string;
+}): Promise<BatchWithArticles[]> => {
+  const { data } = await axios.get(`/${company}/${location_id}/search-articles-with-batch`, { params: { part_number } });
   return data;
 };
+
+
+
 
 export const useSearchBatchesWithArticles = (
   company?: string,
@@ -95,7 +101,7 @@ export const useSearchBatchesWithArticles = (
 ) => {
   return useQuery<BatchWithArticles[], Error>({
     queryKey: ["search-batches-with-articles", company, location_id, part_number],
-    queryFn: () => searchBatchesWithArticles(company!, location_id!, part_number!),
+    queryFn: () => searchBatchesWithArticles({location_id: Number(location_id!), company: company!, part_number: part_number!}),
     enabled: !!company && !!location_id && !!part_number,
     staleTime: 5 * 60 * 1000, // 5 minutos de cache
   });
