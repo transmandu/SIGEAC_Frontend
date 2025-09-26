@@ -1,5 +1,6 @@
 'use client'
 
+import CreateFlightControlForm from "@/components/forms/mantenimiento/ordenes_trabajo/CreateFlightControlForm"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -10,7 +11,6 @@ import {
   DialogTrigger
 } from "@/components/ui/dialog"
 import { useState } from "react"
-import { FlightForm } from "@/components/forms/aerolinea/administracion/CreateFlightForm"
 
 export function CreateFlightControlDialog() {
   const [open, setOpen] = useState(false);
@@ -26,7 +26,7 @@ export function CreateFlightControlDialog() {
             Cree un vuelo rellenando la información necesaria.
           </DialogDescription>
         </DialogHeader>
-        <FlightForm onClose={() => setOpen(false)} />
+        <CreateFlightControlForm onClose={() => setOpen(false)} />
       </DialogContent>
     </Dialog>
   )
