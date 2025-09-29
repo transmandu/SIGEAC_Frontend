@@ -246,6 +246,7 @@ export function CreateGeneralRequisitionForm({
       ...data,
       type: "GENERAL",
     }
+    console.log(formattedData);
     if (isEditing) {
       await updateRequisition.mutateAsync({id: id!, data: formattedData, company: selectedCompany!.slug})
     } else {
