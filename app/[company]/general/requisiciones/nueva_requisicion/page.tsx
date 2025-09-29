@@ -294,6 +294,32 @@ const CreateRequisitionPage = () => {
       ...data,
       type: "GENERAL",
     }
+    
+    // Console log para ver qué se está enviando al backend
+    console.log("=== DATOS ENVIADOS AL BACKEND ===");
+    console.log("Datos completos:", formattedData);
+    console.log("Imagen principal:", formattedData.image);
+    console.log("Tipo de imagen principal:", formattedData.image ? typeof formattedData.image : "No hay imagen");
+    console.log("Tamaño de imagen principal:", formattedData.image ? formattedData.image.size : "No hay imagen");
+    console.log("Nombre de archivo:", formattedData.image ? formattedData.image.name : "No hay imagen");
+    
+    // Revisar imágenes en artículos
+    formattedData.articles.forEach((batch, batchIndex) => {
+      console.log(`Batch ${batchIndex} (${batch.batch_name}):`);
+      batch.batch_articles.forEach((article, articleIndex) => {
+        if (article.image) {
+          console.log(`  Artículo ${articleIndex} - imagen:`, article.image);
+          console.log(`  Artículo ${articleIndex} - tipo:`, typeof article.image);
+          console.log(`  Artículo ${articleIndex} - tamaño:`, article.image.size);
+          console.log(`  Artículo ${articleIndex} - nombre:`, article.image.name);
+        } else {
+          console.log(`  Artículo ${articleIndex} - sin imagen`);
+        }
+      });
+    });
+    
+    console.log("=== FIN DE DATOS ===");
+    
     await createRequisition.mutateAsync({data: formattedData, company: selectedCompany!.slug})
     router.push(`/${selectedCompany!.slug}/general/requisiciones`)
   }
