@@ -246,7 +246,43 @@ export function CreateGeneralRequisitionForm({
       ...data,
       type: "GENERAL",
     }
-    console.log(formattedData);
+    
+    // Console log detallado para ver qué se está enviando al backend
+    console.log("=== DATOS ENVIADOS AL BACKEND (CreateGeneralRequisitionForm) ===");
+    console.log("Datos completos:", formattedData);
+    console.log("Imagen principal:", formattedData.image);
+    if (formattedData.image) {
+      console.log("Propiedades de la imagen principal:");
+      console.log("  - Tipo:", typeof formattedData.image);
+      console.log("  - Es File?:", formattedData.image instanceof File);
+      console.log("  - Tamaño:", formattedData.image.size, "bytes");
+      console.log("  - Nombre:", formattedData.image.name);
+      console.log("  - Tipo MIME:", formattedData.image.type);
+    }
+    
+    // Revisar imágenes en artículos
+    if (formattedData.articles && formattedData.articles.length > 0) {
+      console.log("Artículos con imágenes:");
+      formattedData.articles.forEach((batch, batchIndex) => {
+        console.log(`Batch ${batchIndex} (${batch.batch_name}):`);
+        if (batch.batch_articles) {
+          batch.batch_articles.forEach((article, articleIndex) => {
+            if (article.image) {
+              console.log(`  Artículo ${articleIndex}:`);
+              console.log(`    - Tipo:`, typeof article.image);
+              console.log(`    - Es File?:`, article.image instanceof File);
+              console.log(`    - Tamaño:`, article.image.size, "bytes");
+              console.log(`    - Nombre:`, article.image.name);
+              console.log(`    - Tipo MIME:`, article.image.type);
+            } else {
+              console.log(`  Artículo ${articleIndex}: sin imagen`);
+            }
+          });
+        }
+      });
+    }
+    console.log("=== FIN DE DATOS ===");
+    
     if (isEditing) {
       await updateRequisition.mutateAsync({id: id!, data: formattedData, company: selectedCompany!.slug})
     } else {
