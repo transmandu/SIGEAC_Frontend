@@ -176,6 +176,8 @@ const RequisitionPage = () => {
                                     : `data:image/jpeg;base64,${article.image}`}
                                   alt={`Imagen del artículo ${article.article_part_number}`}
                                   className='max-h-48 object-contain border rounded-md'
+                                  width={300}
+                                  height={200}
                                   onError={(e) => {
                                     (e.target as HTMLImageElement).style.display = 'none';
                                   }}

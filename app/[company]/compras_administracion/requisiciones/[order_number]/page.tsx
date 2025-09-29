@@ -68,6 +68,8 @@ const RequisitionPage = () => {
                     : `data:image/jpeg;base64,${data.image}`}
                   alt="Imagen de la requisición"
                   className="w-[250px] h-[250px] object-contain border rounded-md"
+                  width={250}
+                  height={250}
                   onError={(e) => {
                     (e.target as HTMLImageElement).style.display = 'none';
                   }}
@@ -176,6 +178,8 @@ const RequisitionPage = () => {
                                     : `data:image/jpeg;base64,${article.image}`}
                                   alt={`Imagen del artículo ${article.article_part_number}`}
                                   className='max-h-48 object-contain border rounded-md'
+                                  width={300}
+                                  height={200}
                                   onError={(e) => {
                                     (e.target as HTMLImageElement).style.display = 'none';
                                   }}

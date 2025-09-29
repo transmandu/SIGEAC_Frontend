@@ -628,6 +628,8 @@ const CreateRequisitionPage = () => {
                         src={URL.createObjectURL(field.value)}
                         alt="Preview"
                         className="h-16 w-16 rounded-md object-cover"
+                        width={64}
+                        height={64}
                       />
                     )}
                     <FormControl>
