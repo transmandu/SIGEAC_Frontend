@@ -270,6 +270,7 @@ export type MaintenanceClient = {
   email: string;
   address: string;
   phone_number: string;
+  authorizing: "PROPIETARIO" | "EXPLOTADOR";
 };
 
 export type MaintenanceAircraft = {

@@ -23,7 +23,7 @@ import {
 } from "@/components/ui/tooltip"
 import { Batch, WorkOrder } from "@/types"
 import Link from "next/link"
-import { format } from "date-fns"
+import { format, parseISO } from "date-fns"
 import { es } from "date-fns/locale"
 import WorkOrderDropdownActions from "@/components/dropdowns/mantenimiento/ordenes_trabajo/WorkOrderDropdownActionts"
 
@@ -139,7 +139,7 @@ export const columns: ColumnDef<WorkOrder>[] = [
       <DataTableColumnHeader column={column} title="Fecha" />
     ),
     cell: ({ row }) => (
-      <p className="flex justify-center">{row.original.date ? format(row.original.date, "PPP", { locale: es }) : "N/A"}</p>
+      <p className="flex justify-center">{row.original.date ? format(parseISO(row.original.date), "PPP", { locale: es }) : "N/A"}</p>
     )
   },
   {

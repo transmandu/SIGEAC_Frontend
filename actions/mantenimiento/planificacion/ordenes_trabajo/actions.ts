@@ -16,6 +16,9 @@ interface CreateWOData {
   date: string;
   aircraft_id: string;
   location_id: string;
+  client_id?: number;
+  client_name?: string;
+  authorizing?: "PROPIETARIO" | "EXPLOTADOR";
   work_order_task?: {
     description_task: string;
     ata: string;
@@ -42,10 +45,12 @@ export const useCreateWorkOrder = () => {
       company: string;
       eventId?: string;
     }) => {
-      await axiosInstance.post(`/${company}/work-orders`, {
+      const payload = {
         ...data,
         eventId: eventId,
-      });
+      };
+      
+      await axiosInstance.post(`/${company}/work-orders`, payload);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({

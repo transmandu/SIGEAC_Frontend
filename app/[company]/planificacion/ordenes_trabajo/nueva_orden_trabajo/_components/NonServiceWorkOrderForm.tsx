@@ -28,7 +28,7 @@ const manualWorkOrderSchema = z.object({
   approved_by: z.string().min(1, 'Aprobado por es obligatorio'),
   reviewed_by: z.string().min(1, 'Revisado por es obligatorio'),
   location_id: z.string().min(1, 'La ubicación es obligatoria'),
-  authorizing: z.string({
+  authorizing: z.enum(["PROPIETARIO", "EXPLOTADOR"], {
     message: "Debe elegir al autorizante."
   }),
   aircraft_id: z.string(),
@@ -145,10 +145,19 @@ const NonServiceWorkOrderForm = () => {
   }, [tasks, form]);
 
   const onSubmit = async (data: ManualWorkOrderFormValues) => {
+    // Encontrar el aircraft seleccionado para obtener la información del cliente
+    const selectedAircraftData = aircrafts?.find(aircraft => aircraft.id.toString() === data.aircraft_id);
+    
     const formattedData = {
       ...data,
-      date: format(data.date, "yyyy-MM-dd")
+      date: format(data.date, "yyyy-MM-dd"),
+      client_id: selectedAircraftData?.client.id,
+      client_name: selectedAircraftData?.client.name,
+      // authorizing ya viene del formulario, no necesitamos duplicarlo
     };
+    
+    console.log("🚀 [NonServiceWorkOrderForm] Datos enviados al backend:", formattedData);
+    
     await createWorkOrder.mutateAsync({data: formattedData, company: selectedCompany!.slug, eventId});
     form.reset();
     router.push(`/${selectedCompany!.slug}/planificacion/ordenes_trabajo`);
@@ -205,6 +214,7 @@ const NonServiceWorkOrderForm = () => {
                                   key={aircraft.id}
                                   onSelect={() => {
                                     form.setValue("aircraft_id", aircraft.id.toString());
+                                    form.setValue("authorizing", aircraft.client.authorizing);
                                     setSelectedAircraft(aircraft.manufacturer.id.toString());
                                   }}
                                 >
@@ -236,26 +246,44 @@ const NonServiceWorkOrderForm = () => {
               <FormField
                 control={form.control}
                 name="authorizing"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Autorizado Por:</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Quién autoriza..." />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="PROPIETARIO">Propietario</SelectItem>
-                        <SelectItem value="EXPLOTADOR">Explotador</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormDescription>
-
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                render={({ field }) => {
+                  // Obtener la aeronave seleccionada para mostrar su cliente
+                  const selectedAircraftData = aircrafts?.find(aircraft => 
+                    aircraft.id.toString() === form.watch("aircraft_id")
+                  );
+                  
+                  return (
+                    <FormItem>
+                      <FormLabel>Autorizado Por:</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Quién autoriza..." />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {selectedAircraftData?.client ? (
+                            <SelectItem value={selectedAircraftData.client.authorizing}>
+                              {selectedAircraftData.client.name} ({selectedAircraftData.client.authorizing})
+                            </SelectItem>
+                          ) : (
+                            <>
+                              <SelectItem value="PROPIETARIO">Propietario</SelectItem>
+                              <SelectItem value="EXPLOTADOR">Explotador</SelectItem>
+                            </>
+                          )}
+                        </SelectContent>
+                      </Select>
+                      <FormDescription>
+                        {selectedAircraftData?.client 
+                          ? `Cliente: ${selectedAircraftData.client.name}`
+                          : "Selecciona una aeronave para ver el cliente autorizado"
+                        }
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  );
+                }}
               />
               <FormField
                 control={form.control}
