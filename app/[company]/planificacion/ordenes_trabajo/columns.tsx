@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 
 import { Checkbox } from "@/components/ui/checkbox"
+import { Badge } from "@/components/ui/badge"
 import {
   Tooltip,
   TooltipContent,
@@ -79,6 +80,31 @@ export const columns: ColumnDef<WorkOrder>[] = [
     cell: ({ row }) => (
       <p className="flex justify-center text-muted-foreground">{row.original.description}</p>
     )
+  },
+  {
+    accessorKey: "status",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Estado" />
+    ),
+    cell: ({ row }) => {
+      const status = row.original.status;
+      
+      return (
+        <div className="flex justify-center">
+          <Badge
+            className={`font-semibold ${
+              status === "ABIERTO"
+                ? "bg-green-500 hover:bg-green-600 text-white dark:bg-green-600 dark:hover:bg-green-700"
+                : status === "CERRADO"
+                  ? "bg-red-500 hover:bg-red-600 text-white dark:bg-red-600 dark:hover:bg-red-700"
+                  : "bg-gray-500 hover:bg-gray-600 text-white dark:bg-gray-600 dark:hover:bg-gray-700"
+            }`}
+          >
+            {status}
+          </Badge>
+        </div>
+      )
+    }
   },
   {
     accessorKey: "elaborated_by",
