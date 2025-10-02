@@ -53,7 +53,7 @@ export const columns: ColumnDef<MaintenanceAircraft>[] = [
       <DataTableColumnHeader filter column={column} title="Matricula" />
     ),
     cell: ({ row }) => (
-      <Link href={`/hangar74/planificacion/aeronaves/${row.original.acronym}`} className="flex justify-center font-bold italic">{row.original.acronym}</Link>
+      <Link href={`/estelar/planificacion/aeronaves/${row.original.acronym}`} className="flex justify-center font-bold italic">{row.original.acronym}</Link>
     )
   },
   {
