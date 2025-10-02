@@ -17,8 +17,11 @@ import { ScrollArea } from "../../../ui/scroll-area"
 const PartSchema: any = z.object({
   part_name: z.string().min(1, "Nombre obligatorio").max(50),
   part_number: z.string().min(1, "Número obligatorio").regex(/^[A-Za-z0-9\-]+$/),
-  part_hours: z.number().min(0).max(100000).optional(),
-  part_cycles: z.number().min(0).max(50000).optional(),
+  serial: z.string().min(1, "Serial obligatorio").max(50),
+  time_since_new: z.number().min(0).max(100000).optional(),  // Time Since New
+  time_since_overhaul: z.number().min(0).max(100000).optional(),  // Time Since Overhaul
+  cycles_since_new: z.number().min(0).max(50000).optional(),  // Cycles Since New
+  cycles_since_overhaul: z.number().min(0).max(50000).optional(),  // Cycles Since Overhaul
   condition_type: z.enum(["NEW", "OVERHAULED"]),
   is_father: z.boolean().default(false),
   sub_parts: z.array(z.lazy(() => PartSchema)).optional()
@@ -86,7 +89,7 @@ export function AircraftPartsInfoForm({ onNext, onBack, initialData }: {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 mt-8">
         <ScrollArea className={fields.length > 3 ? "h-[530px]" : "h-[360px]"}>
           {fields.map((field, index) => (
             <PartSection
@@ -102,7 +105,7 @@ export function AircraftPartsInfoForm({ onNext, onBack, initialData }: {
           ))}
         </ScrollArea>
 
-        <div className="flex flex-col space-y-4">
+        <div className="flex flex-col space-y-6 mt-8">
           <Button
             type="button"
             variant="outline"
@@ -113,7 +116,7 @@ export function AircraftPartsInfoForm({ onNext, onBack, initialData }: {
             Agregar Parte Principal
           </Button>
 
-          <div className="flex justify-between pt-4">
+          <div className="flex justify-between pt-6">
             <Button type="button" variant="outline" onClick={onBack}>
               Anterior
             </Button>
@@ -138,7 +141,7 @@ function PartSection({ form, index, path, onRemove, onToggleExpand, isExpanded, 
   const sub_parts = form.watch(`${path}.sub_parts`) || [];
 
   return (
-    <div className="mb-6 border rounded-lg p-4 bg-white shadow-sm">
+    <div className="mb-8 border rounded-lg p-4 bg-white shadow-sm">
       <div className="flex justify-between items-center mb-3">
         <div className="flex items-center space-x-2">
           <button type="button" onClick={onToggleExpand} className="text-muted-foreground">
@@ -188,48 +191,67 @@ function PartSection({ form, index, path, onRemove, onToggleExpand, isExpanded, 
             />
           </div>
 
-          <FormField
-            control={form.control}
-            name={`${path}.condition_type`}
-            render={({ field }) => (
-              <FormItem className="space-y-3">
-                <FormLabel>Condición</FormLabel>
-                <FormControl>
-                  <RadioGroup
-                    onValueChange={field.onChange}
-                    value={field.value}
-                    className="flex space-x-4"
-                  >
-                    <FormItem className="flex items-center space-x-2 space-y-0">
-                      <FormControl>
-                        <RadioGroupItem value="NEW" />
-                      </FormControl>
-                      <FormLabel className="font-normal">Nueva</FormLabel>
-                    </FormItem>
-                    <FormItem className="flex items-center space-x-2 space-y-0">
-                      <FormControl>
-                        <RadioGroupItem value="OVERHAULED" />
-                      </FormControl>
-                      <FormLabel className="font-normal">Overhauled</FormLabel>
-                    </FormItem>
-                  </RadioGroup>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
             <FormField
               control={form.control}
-              name={`${path}.part_hours`}
+              name={`${path}.serial`}
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Horas de Vuelo</FormLabel>
+                  <FormLabel>Serial</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Ej: PCE-PC0444" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+
+          <div className="mt-6">
+            <FormField
+              control={form.control}
+              name={`${path}.condition_type`}
+              render={({ field }) => (
+                <FormItem className="space-y-3">
+                  <FormLabel>Condición</FormLabel>
+                  <FormControl>
+                    <RadioGroup
+                      onValueChange={field.onChange}
+                      value={field.value}
+                      className="flex space-x-4"
+                    >
+                      <FormItem className="flex items-center space-x-2 space-y-0">
+                        <FormControl>
+                          <RadioGroupItem value="NEW" />
+                        </FormControl>
+                        <FormLabel className="font-normal">Nueva</FormLabel>
+                      </FormItem>
+                      <FormItem className="flex items-center space-x-2 space-y-0">
+                        <FormControl>
+                          <RadioGroupItem value="OVERHAULED" />
+                        </FormControl>
+                        <FormLabel className="font-normal">Overhauled</FormLabel>
+                      </FormItem>
+                    </RadioGroup>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+            <FormField
+              control={form.control}
+              name={`${path}.time_since_new`}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>TSN (Time Since New)</FormLabel>
                   <FormControl>
                     <Input
                       type="number"
-                      placeholder="Ej: 1500"
+                      step="0.1"
+                      placeholder="Ej: 15377.50"
                       {...field}
                       onChange={e => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
                       value={field.value ?? ""}
@@ -241,14 +263,15 @@ function PartSection({ form, index, path, onRemove, onToggleExpand, isExpanded, 
             />
             <FormField
               control={form.control}
-              name={`${path}.part_cycles`}
+              name={`${path}.time_since_overhaul`}
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Ciclos</FormLabel>
+                  <FormLabel>TSO (Time Since Overhaul)</FormLabel>
                   <FormControl>
                     <Input
                       type="number"
-                      placeholder="Ej: 300"
+                      step="0.1"
+                      placeholder="Ej: 2496.8"
                       {...field}
                       onChange={e => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
                       value={field.value ?? ""}
@@ -260,21 +283,64 @@ function PartSection({ form, index, path, onRemove, onToggleExpand, isExpanded, 
             />
           </div>
 
-          <FormField
-            control={form.control}
-            name={`${path}.is_father`}
-            render={({ field }) => (
-              <FormItem className="flex items-center space-x-2">
-                <FormControl>
-                  <Checkbox
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                  />
-                </FormControl>
-                <FormLabel className="!mt-0">Contiene subpartes</FormLabel>
-              </FormItem>
-            )}
-          />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+            <FormField
+              control={form.control}
+              name={`${path}.cycles_since_new`}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>CSN (Cycles Since New)</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      placeholder="Ej: 21228"
+                      {...field}
+                      onChange={e => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
+                      value={field.value ?? ""}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name={`${path}.cycles_since_overhaul`}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>CSO (Cycles Since Overhaul)</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      placeholder="Ej: 3865"
+                      {...field}
+                      onChange={e => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
+                      value={field.value ?? ""}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+
+          <div className="mt-6">
+            <FormField
+              control={form.control}
+              name={`${path}.is_father`}
+              render={({ field }) => (
+                <FormItem className="flex items-center space-x-2">
+                  <FormControl>
+                    <Checkbox
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                  <FormLabel className="!mt-0">Contiene subpartes</FormLabel>
+                </FormItem>
+              )}
+            />
+          </div>
 
           {hassub_parts && (
             <div className="mt-4 pl-4 border-l-2 border-gray-200">

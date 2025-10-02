@@ -7,6 +7,7 @@ aircraft: {
   manufacturer_id: string,
     client_id: string,
     serial: string,
+    model?: string,
     acronym: string,
     flight_hours: number,
     flight_cycles: number,
@@ -17,8 +18,24 @@ aircraft: {
 parts: {
   part_name: string;
   part_number: string;
-  part_hours: number;
-  part_cycles: number;
+  serial: string;
+  time_since_new: number;  // Time Since New
+  time_since_overhaul: number;  // Time Since Overhaul
+  cycles_since_new: number;  // Cycles Since New
+  cycles_since_overhaul: number;  // Cycles Since Overhaul
+  condition_type: "NEW" | "OVERHAULED";
+  is_father: boolean;
+  sub_parts?: {
+    part_name: string;
+    part_number: string;
+    serial: string;
+    time_since_new?: number;
+    time_since_overhaul?: number;
+    cycles_since_new?: number;
+    cycles_since_overhaul?: number;
+    condition_type: "NEW" | "OVERHAULED";
+    is_father: boolean;
+  }[];
 }[]
 }
 
@@ -28,6 +45,7 @@ export const useCreateMaintenanceAircraft = () => {
 
   const createMutation = useMutation({
       mutationFn: async ({data, company}: {data: CreateAircraftWithPartsData, company: string}) => {
+          console.log("📡 Enviando al backend:", data);
           await axiosInstance.post(`/${company}/aircrafts`, data)
         },
       onSuccess: () => {

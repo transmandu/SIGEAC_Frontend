@@ -11,8 +11,21 @@ import { Separator } from "@/components/ui/separator"
 import { Input } from "@/components/ui/input"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { AircraftAssigment, MaintenanceAircraft, MaintenanceAircraftPart } from "@/types"
+import { MaintenanceAircraft, MaintenanceAircraftPart } from "@/types"
 
+// Tipo local para assignments (estructura extendida para UI)
+type AircraftAssignment = {
+  id: string
+  removed_date: string | null
+  assigned_date: string
+  hours_at_installation: string
+  cycles_at_installation: string
+  aircraft_part: MaintenanceAircraftPart & {
+    total_flight_hours?: number
+    total_flight_cycles?: number
+    parent_part_id?: string | null
+  }
+}
 
 // =========================
 // Utilidades
@@ -46,30 +59,30 @@ export type PartNode = {
   children: PartNode[]
 }
 
-function buildTreeFromAssignments(assignments: AircraftAssigment[]): PartNode[] {
+function buildTreeFromAssignments(assignments: AircraftAssignment[]): PartNode[] {
   // Si el primer assignment ya tiene sub_parts, asumimos árbol completo
   const anyHasSub = assignments.some((a) => a.aircraft_part?.sub_parts?.length)
   if (anyHasSub) {
     // Map recursivo directo desde sub_parts
-    const mapFromPart = (part: MaintenanceAircraftPart, meta: Pick<AircraftAssigment, "id" | "assigned_date" | "hours_at_installation" | "cycles_at_installation">): PartNode => ({
-      key: (part as any).id ? String((part as any).id) : part.part_number,
-      assignment_id: meta.id,
+    const mapFromPart = (part: MaintenanceAircraftPart, meta: Pick<AircraftAssignment, "id" | "assigned_date" | "hours_at_installation" | "cycles_at_installation">): PartNode => ({
+      key: part.part_number,
+      assignment_id: typeof meta.id === 'string' ? parseInt(meta.id) : meta.id,
       assigned_date: meta.assigned_date,
       hours_at_installation: meta.hours_at_installation,
       cycles_at_installation: meta.cycles_at_installation,
       part,
-      children: (part.sub_parts || []).map((sp) => mapFromPart(sp, meta)),
+      children: (part.sub_parts ?? []).map((sp) => mapFromPart(sp, meta)),
     })
     return assignments
       .filter((a) => a.removed_date === null)
       .map((a) => mapFromPart(a.aircraft_part, a))
   }
 
-  // Si viene plano, ensamblamos usando parent_part_id
+  // Si viene plano, ensamblamos usando parent_part_id (que referencia al id del padre)
   const current = assignments.filter((a) => a.removed_date === null)
   const nodes: PartNode[] = current.map((a) => ({
-    key: (a.aircraft_part as any).id ? String((a.aircraft_part as any).id) : a.aircraft_part.part_number,
-    assignment_id: a.id,
+    key: a.id, // Usar el ID como key
+    assignment_id: typeof a.id === 'string' ? parseInt(a.id) : a.id,
     assigned_date: a.assigned_date,
     hours_at_installation: a.hours_at_installation,
     cycles_at_installation: a.cycles_at_installation,
@@ -81,15 +94,11 @@ function buildTreeFromAssignments(assignments: AircraftAssigment[]): PartNode[] 
 
   const roots: PartNode[] = []
   for (const n of nodes) {
-    const parentId = n.part.parent_part_id
-    // Intento 1: match por id si existe
-    if (parentId && byKey.has(parentId)) {
-      byKey.get(parentId)!.children.push(n)
-      continue
-    }
-    // Intento 2: match por part_number
-    if (parentId && byKey.has(parentId)) {
-      byKey.get(parentId)!.children.push(n)
+    const extendedPart = n.part as MaintenanceAircraftPart & { parent_part_id?: string | null }
+    const parentId = extendedPart.parent_part_id
+    // Match por parent_part_id (debe coincidir con el id de otra parte)
+    if (parentId && byKey.has(String(parentId))) {
+      byKey.get(String(parentId))!.children.push(n)
     } else {
       roots.push(n)
     }
@@ -128,9 +137,9 @@ function TreeNode({ node, depth = 0 }: { node: PartNode; depth?: number }) {
           <div className="flex items-center gap-2">
             <Badge variant="outline" className="capitalize">{p.condition_type || "—"}</Badge>
             <div className="hidden sm:flex items-center gap-2 text-xs text-muted-foreground">
-              <span>H: {p.total_flight_hours ?? "—"}</span>
+              <span>H: {p.time_since_new ?? p.part_hours ?? "—"}</span>
               <Separator orientation="vertical" className="h-4" />
-              <span>C: {p.total_flight_cycles ?? "—"}</span>
+              <span>C: {p.cycles_since_new ?? p.part_cycles ?? "—"}</span>
             </div>
           </div>
         </div>
@@ -158,10 +167,43 @@ export function PlanificationAircraftTab({ aircraft }: { aircraft: MaintenanceAi
   const [q, setQ] = useState("")
   const listRef = useRef<HTMLDivElement>(null)
 
-  const currentAssignments = useMemo(
-    () => (aircraft.aircraft_assignments || []).filter((a) => a.removed_date === null),
-    [aircraft.aircraft_assignments]
-  )
+  // Convertir aircraft_parts al formato de assignments para el UI
+  const currentAssignments = useMemo(() => {
+    // Si tenemos aircraft_parts, convertirlos al formato de assignments
+    if (aircraft.aircraft_parts && aircraft.aircraft_parts.length > 0) {
+      const assignments: AircraftAssignment[] = [];
+      
+      // Convertir las horas de vuelo de la aeronave (vienen como string "4,324.00")
+      const aircraftHours = parseFloat(String(aircraft.flight_hours).replace(/,/g, '')) || 0;
+      const aircraftCycles = parseFloat(String(aircraft.flight_cycles).replace(/,/g, '')) || 0;
+
+      aircraft.aircraft_parts.forEach((part: any) => {
+        // Convertir strings a números
+        const partHours = parseFloat(part.time_since_new || part.part_hours || 0);
+        const partCycles = parseFloat(part.cycles_since_new || part.part_cycles || 0);
+        
+        const assignment: AircraftAssignment = {
+          id: String(part.id),
+          removed_date: null,
+          assigned_date: aircraft.fabricant_date || new Date().toISOString(),
+          // Mostrar directamente las horas/ciclos de la parte sin calcular
+          hours_at_installation: String(partHours.toFixed(1)),
+          cycles_at_installation: String(partCycles.toFixed(1)),
+          aircraft_part: {
+            ...part,
+            total_flight_hours: partHours,
+            total_flight_cycles: partCycles,
+            parent_part_id: part.aircraft_part_id, // Usar el ID del padre directamente
+          }
+        };
+        
+        assignments.push(assignment);
+      });
+
+      return assignments;
+    }
+    return [];
+  }, [aircraft.aircraft_parts, aircraft.fabricant_date, aircraft.flight_hours, aircraft.flight_cycles])
 
   // Resumen rápido de partes
   const totalParts = currentAssignments.length
@@ -175,8 +217,8 @@ export function PlanificationAircraftTab({ aircraft }: { aircraft: MaintenanceAi
   }, [currentAssignments])
 
   const totals = useMemo(() => {
-    const hours = sum(currentAssignments.map((a) => asNum(a.aircraft_part?.total_flight_hours || 0)))
-    const cycles = sum(currentAssignments.map((a) => asNum(a.aircraft_part?.total_flight_cycles || 0)))
+    const hours = sum(currentAssignments.map((a: AircraftAssignment) => asNum(a.aircraft_part?.total_flight_hours || 0)))
+    const cycles = sum(currentAssignments.map((a: AircraftAssignment) => asNum(a.aircraft_part?.total_flight_cycles || 0)))
     return { hours, cycles }
   }, [currentAssignments])
 
@@ -188,7 +230,7 @@ export function PlanificationAircraftTab({ aircraft }: { aircraft: MaintenanceAi
   const filteredFlat = useMemo(() => {
     if (!q) return flat
     const qq = q.toLowerCase()
-    return flat.filter((a) => {
+    return flat.filter((a: AircraftAssignment) => {
       const p = a.aircraft_part
       return (
         p.part_name?.toLowerCase().includes(qq) ||
@@ -354,7 +396,7 @@ export function PlanificationAircraftTab({ aircraft }: { aircraft: MaintenanceAi
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {filteredFlat.map((a) => (
+                      {filteredFlat.map((a: AircraftAssignment) => (
                         <TableRow key={a.id}>
                           <TableCell className="font-medium">{a.aircraft_part.part_name}</TableCell>
                           <TableCell className="hidden sm:table-cell">{a.aircraft_part.part_number}</TableCell>

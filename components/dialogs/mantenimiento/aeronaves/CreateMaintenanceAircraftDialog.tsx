@@ -18,9 +18,38 @@ import { useCompanyStore } from "@/stores/CompanyStore";
 interface AircraftPart {
   part_name: string;
   part_number: string;
-  part_hours: number;
-  part_cycles: number;
-  condition_type: "NEW" | "OVERHAULED"
+  serial: string;
+  time_since_new?: number;
+  time_since_overhaul?: number;
+  cycles_since_new?: number;
+  cycles_since_overhaul?: number;
+  condition_type: "NEW" | "OVERHAULED";
+  is_father: boolean;
+  sub_parts?: AircraftPart[];
+}
+
+// Tipo que coincide con lo que espera el API
+interface AircraftPartAPI {
+  part_name: string;
+  part_number: string;
+  serial: string;
+  time_since_new: number;
+  time_since_overhaul: number;
+  cycles_since_new: number;
+  cycles_since_overhaul: number;
+  condition_type: "NEW" | "OVERHAULED";
+  is_father: boolean;
+  sub_parts?: {
+    part_name: string;
+    part_number: string;
+    serial: string;
+    time_since_new?: number;
+    time_since_overhaul?: number;
+    cycles_since_new?: number;
+    cycles_since_overhaul?: number;
+    condition_type: "NEW" | "OVERHAULED";
+    is_father: boolean;
+  }[];
 }
 
 interface AircraftInfoType {
@@ -48,10 +77,43 @@ export function CreateMaintenanceAircraftDialog() {
   const { createMaintenanceAircraft } = useCreateMaintenanceAircraft()
   const { selectedCompany } = useCompanyStore()
 
+  // Función para transformar las partes asegurando que tengan todos los campos requeridos
+  const transformPart = (part: AircraftPart): AircraftPartAPI => {
+    const transformed: AircraftPartAPI = {
+      part_name: part.part_name,
+      part_number: part.part_number,
+      serial: part.serial,
+      time_since_new: part.time_since_new ?? 0,
+      time_since_overhaul: part.time_since_overhaul ?? 0,
+      cycles_since_new: part.cycles_since_new ?? 0,
+      cycles_since_overhaul: part.cycles_since_overhaul ?? 0,
+      condition_type: part.condition_type,
+      is_father: part.is_father,
+    };
+    
+    if (part.sub_parts && part.sub_parts.length > 0) {
+      transformed.sub_parts = part.sub_parts.map(sp => ({
+        part_name: sp.part_name,
+        part_number: sp.part_number,
+        serial: sp.serial,
+        time_since_new: sp.time_since_new ?? 0,
+        time_since_overhaul: sp.time_since_overhaul ?? 0,
+        cycles_since_new: sp.cycles_since_new ?? 0,
+        cycles_since_overhaul: sp.cycles_since_overhaul ?? 0,
+        condition_type: sp.condition_type,
+        is_father: sp.is_father,
+      }));
+    }
+    
+    return transformed;
+  };
+
   // Función para manejar el envío final del formulario
   const handleSubmit = async () => {
     if (aircraftData && partsData) {
       try {
+        const transformedParts: AircraftPartAPI[] = partsData.parts.map(transformPart);
+        
         await createMaintenanceAircraft.mutateAsync({
           data: {
             aircraft: {
@@ -59,7 +121,7 @@ export function CreateMaintenanceAircraftDialog() {
               flight_hours: Number(aircraftData.flight_hours),
               flight_cycles: Number(aircraftData.flight_cycles),
             },
-            parts: partsData.parts,
+            parts: transformedParts,
           },
           company: selectedCompany!.slug
         });
@@ -144,8 +206,12 @@ export function CreateMaintenanceAircraftDialog() {
                     <div className="text-sm space-y-1">
                       <p><span className="font-medium">Nombre:</span> {part.part_name}</p>
                       <p><span className="font-medium">Número de Parte:</span> {part.part_number}</p>
-                      <p><span className="font-medium">Horas de Vuelo:</span> {part.part_hours}</p>
-                      <p><span className="font-medium">Ciclos de Vuelo:</span> {part.part_cycles}</p>
+                      <p><span className="font-medium">Serial:</span> {part.serial}</p>
+                      <p><span className="font-medium">TSN:</span> {part.time_since_new ?? 0}</p>
+                      <p><span className="font-medium">TSO:</span> {part.time_since_overhaul ?? 0}</p>
+                      <p><span className="font-medium">CSN:</span> {part.cycles_since_new ?? 0}</p>
+                      <p><span className="font-medium">CSO:</span> {part.cycles_since_overhaul ?? 0}</p>
+                      <p><span className="font-medium">Condición:</span> {part.condition_type}</p>
                     </div>
                   </div>
                 ))}

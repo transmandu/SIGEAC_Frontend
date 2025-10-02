@@ -30,14 +30,31 @@ import { AircraftInfoForm } from "@/components/forms/mantenimiento/aeronaves/Air
 interface AircraftPart {
     part_name: string;
     part_number: string;
-    total_flight_hours: number;
-    total_flight_cycles: number;
+    serial: string;
+    time_since_new: number;  // Time Since New
+    time_since_overhaul: number;  // Time Since Overhaul
+    cycles_since_new: number;  // Cycles Since New
+    cycles_since_overhaul: number;  // Cycles Since Overhaul
     condition_type: "NEW" | "OVERHAULED";
+    is_father: boolean;
+    sub_parts?: {
+        part_name: string;
+        part_number: string;
+        serial: string;
+        time_since_new?: number;
+        time_since_overhaul?: number;
+        cycles_since_new?: number;
+        cycles_since_overhaul?: number;
+        condition_type: "NEW" | "OVERHAULED";
+        is_father: boolean;
+    }[];
 }
 
 interface AircraftInfoType {
     manufacturer_id: string;
+    client_id: string;
     serial: string;
+    model?: string;
     acronym: string;
     flight_hours: string;
     flight_cycles: string;
@@ -71,12 +88,14 @@ export default function NewAircraftPage() {
                     },
                     company: selectedCompany!.slug,
                 });
+                
                 // redirección opcional
                 router.push(`/${selectedCompany?.slug}/planificacion/aeronaves`);
             } catch (error) {
                 console.error(error);
             }
         }
+        
     };
 
     const handleNext = () => setCurrentStep((prev) => prev + 1);

@@ -9,6 +9,7 @@ interface CreateClientSchema {
   address?: string,
   dni: string,
   dni_type: string,
+  authorizing: "PROPIETARIO" | "EXPLOTADOR",
   pay_credit_days?: string
 }
 

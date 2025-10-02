@@ -57,6 +57,9 @@ const formSchema = z.object({
     .max(100, {
       message: "La dirección tiene un máximo 100 caracteres.",
     }).optional(),
+  authorizing: z.enum(["PROPIETARIO", "EXPLOTADOR"], {
+    message: "Debe seleccionar si es Propietario o Explotador.",
+  }),
   pay_credit_days: z.string().optional()
 });
 
@@ -182,6 +185,33 @@ export function CreateClientForm({ onClose }: FormProps) {
                 <FormControl className="w-[420px]">
                   <Input placeholder="Ingresa la dirección" {...field} />
                 </FormControl>
+                <FormMessage className="text-xs" />
+              </FormItem>
+            )}
+          />
+        </div>
+        
+        <div className="flex gap-2 items-center justify-center">
+          <FormField
+            control={form.control}
+            name="authorizing"
+            render={({ field }) => (
+              <FormItem className="w-full">
+                <FormLabel>Tipo de Cliente</FormLabel>
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Seleccione el tipo de cliente..." />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="PROPIETARIO">Propietario</SelectItem>
+                    <SelectItem value="EXPLOTADOR">Explotador</SelectItem>
+                  </SelectContent>
+                </Select>
                 <FormMessage className="text-xs" />
               </FormItem>
             )}

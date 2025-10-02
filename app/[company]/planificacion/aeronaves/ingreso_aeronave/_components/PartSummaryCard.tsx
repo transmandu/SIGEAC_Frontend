@@ -58,8 +58,23 @@ export function PartSummaryCard({ part, index, level }: {
                     <div className="grid grid-cols-2 gap-3">
                         <InfoItem label="Nombre" value={part.part_name} />
                         <InfoItem label="Número de Parte" value={part.part_number} />
-                        <InfoItem label="Horas de vuelo" value={part.total_flight_hours} />
-                        <InfoItem label="Ciclos" value={part.total_flight_cycles} />
+                        <InfoItem label="Serial" value={part.serial} />
+                        <InfoItem 
+                            label="TSN (Time Since New)" 
+                            value={part.time_since_new ? `${part.time_since_new.toLocaleString()} hrs` : "No especificado"} 
+                        />
+                        <InfoItem 
+                            label="TSO (Time Since Overhaul)" 
+                            value={part.time_since_overhaul ? `${part.time_since_overhaul.toLocaleString()} hrs` : "No especificado"} 
+                        />
+                        <InfoItem 
+                            label="CSN (Cycles Since New)" 
+                            value={part.cycles_since_new ? part.cycles_since_new.toLocaleString() : "No especificado"} 
+                        />
+                        <InfoItem 
+                            label="CSO (Cycles Since Overhaul)" 
+                            value={part.cycles_since_overhaul ? part.cycles_since_overhaul.toLocaleString() : "No especificado"} 
+                        />
                         <InfoItem
                             label="Condición"
                             value={part.condition_type === "NEW" ? "Nueva" : "Reacondicionada"}

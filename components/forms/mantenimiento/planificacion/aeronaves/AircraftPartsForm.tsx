@@ -14,14 +14,14 @@ import { ChevronDown, ChevronRight, Folder, FolderOpen, Layers, Layers2, MinusCi
 import { useState } from "react"
 import { Control, useFieldArray, useForm, useWatch } from "react-hook-form"
 import { z } from "zod"
-import { ScrollArea } from "../../../ui/scroll-area"
+import { ScrollArea } from "@/components/ui/scroll-area"
 
 // Esquema recursivo para partes/subpartes
 const PartSchema: any = z.object({
   part_name: z.string().min(1, "Nombre obligatorio").max(50),
   part_number: z.string().min(1, "Número obligatorio").regex(/^[A-Za-z0-9\-]+$/),
-  total_flight_hours: z.number().min(0).max(100000).optional(),
-  total_flight_cycles: z.number().min(0).max(50000).optional(),
+  total_flight_hours: z.number().min(0).optional(),
+  total_flight_cycles: z.number().min(0).optional(),
   condition_type: z.enum(["NEW", "OVERHAULED"]),
   is_father: z.boolean().default(false),
   sub_parts: z.array(z.lazy(() => PartSchema)).optional()

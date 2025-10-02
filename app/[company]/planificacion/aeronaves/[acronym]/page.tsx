@@ -16,11 +16,9 @@ import {
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import React from "react";
 
-import { useGetMaintenanceAircraftByAcronym } from "@/hooks/planificacion/useGetMaitenanceAircraftByAcronym";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import {
   Calendar,
@@ -33,47 +31,12 @@ import {
   MapPin,
   Plane,
   Puzzle,
-  Wrench,
 } from "lucide-react";
 import { useParams } from "next/navigation";
 import LoadingPage from "@/components/misc/LoadingPage";
 import { ContentLayout } from "@/components/layout/ContentLayout";
-
-// Types are assumed to be available in your project:
-// import type { MaintenanceAircraft, MaintenanceAircraftPart, AircraftAssigment } from "@/types";
-
-type MaintenanceAircraft = {
-  id: number;
-  client: any; // Minimal typing for UI safety
-  manufacturer: any;
-  serial: string;
-  acronym: string;
-  flight_hours: number;
-  flight_cycles: number;
-  fabricant_date: string;
-  aircraft_assignments: AircraftAssigment[];
-  location: any;
-  comments: string;
-};
-
-type AircraftAssigment = {
-  id: number;
-  hours_at_installation: string;
-  cycles_at_installation: string;
-  removed_date: string | null;
-  assigned_date: string;
-  aircraft_part: MaintenanceAircraftPart;
-};
-
-type MaintenanceAircraftPart = {
-  part_number: string;
-  part_name: string;
-  condition_type: string;
-  total_flight_hours: number;
-  total_flight_cycles: number;
-  sub_parts: MaintenanceAircraftPart[];
-  parent_part_id: string | null;
-};
+import { useGetMaintenanceAircraftByAcronym } from "@/hooks/mantenimiento/planificacion/useGetMaitenanceAircraftByAcronym";
+import type { MaintenanceAircraft, MaintenanceAircraftPart } from "@/types";
 
 // ---------- helpers ----------
 const labelFor = (obj: any): string => {
@@ -115,25 +78,25 @@ const ConditionBadge = ({ condition }: { condition: string }) => {
   return <Badge variant={variant as any}>{condition || "—"}</Badge>;
 };
 
-const PartRow = ({ p, depth = 0 }: { p: MaintenanceAircraftPart; depth?: number }) => {
+const PartRow = ({ p, depth = 0, index = 0 }: { p: MaintenanceAircraftPart; depth?: number; index?: number }) => {
   const hasChildren = p.sub_parts && p.sub_parts.length > 0;
   return (
-    <AccordionItem value={`${p.part_number}-${depth}`} className="border-none">
+    <AccordionItem value={`${p.part_number}-${depth}-${index}`} className="border-none">
       <AccordionTrigger className="px-0 hover:no-underline">
         <div className="flex items-start gap-3 w-full">
           <div className="min-w-4 mt-1" style={{ paddingLeft: depth * 12 }}>
             <ChevronRight className="h-4 w-4 opacity-60" />
           </div>
           <div className="flex-1">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <Puzzle className="h-4 w-4 text-muted-foreground" />
               <span className="font-medium truncate">{p.part_name}</span>
-              <Badge variant="outline" className="font-mono text-[10px]">{p.part_number}</Badge>
+              <Badge variant="outline" className="font-mono text-[10px]">PN: {p.part_number}</Badge>
               <ConditionBadge condition={p.condition_type} />
             </div>
-            <div className="text-xs text-muted-foreground mt-1 flex gap-3">
-              <span className="flex items-center gap-1"><Gauge className="h-3 w-3" /> FH {p.total_flight_hours}</span>
-              <span className="flex items-center gap-1"><Layers className="h-3 w-3" /> FC {p.total_flight_cycles}</span>
+            <div className="text-xs text-muted-foreground mt-1 flex gap-3 flex-wrap">
+              <span className="flex items-center gap-1"><Gauge className="h-3 w-3" /> TSN: {parseFloat(String(p.time_since_new ?? p.part_hours ?? 0)).toLocaleString()}</span>
+              <span className="flex items-center gap-1"><Layers className="h-3 w-3" /> CSN: {parseFloat(String(p.cycles_since_new ?? p.part_cycles ?? 0)).toLocaleString()}</span>
             </div>
           </div>
         </div>
@@ -141,8 +104,8 @@ const PartRow = ({ p, depth = 0 }: { p: MaintenanceAircraftPart; depth?: number 
       <AccordionContent className="pl-7">
         {hasChildren ? (
           <Accordion type="multiple" className="w-full">
-            {p.sub_parts.map((sp, idx) => (
-              <PartRow key={`${p.part_number}-${idx}`} p={sp} depth={(depth ?? 0) + 1} />
+            {(p.sub_parts ?? []).map((sp, idx) => (
+              <PartRow key={`${sp.part_number}-${idx}`} p={sp} depth={(depth ?? 0) + 1} index={idx} />
             ))}
           </Accordion>
         ) : (
@@ -153,50 +116,6 @@ const PartRow = ({ p, depth = 0 }: { p: MaintenanceAircraftPart; depth?: number 
   );
 };
 
-const AssignmentsTable = ({ rows }: { rows: AircraftAssigment[] }) => (
-  <Card>
-    <CardHeader className="pb-2">
-      <CardTitle className="text-sm flex items-center gap-2"><Wrench className="h-4 w-4" /> Historial de instalaciones</CardTitle>
-      <CardDescription className="text-xs">Partes instaladas/retiradas para esta aeronave</CardDescription>
-    </CardHeader>
-    <CardContent>
-      <div className="rounded-md border overflow-hidden">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="w-[28%]">Parte</TableHead>
-              <TableHead>PN</TableHead>
-              <TableHead className="hidden md:table-cell">FH @Instalación</TableHead>
-              <TableHead className="hidden md:table-cell">FC @Instalación</TableHead>
-              <TableHead>Asignada</TableHead>
-              <TableHead>Retirada</TableHead>
-              <TableHead className="hidden md:table-cell">Condición</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {rows?.length ? (
-              rows.map((r) => (
-                <TableRow key={r.id}>
-                  <TableCell className="font-medium">{r.aircraft_part.part_name}</TableCell>
-                  <TableCell className="font-mono text-xs">{r.aircraft_part.part_number}</TableCell>
-                  <TableCell className="hidden md:table-cell">{r.hours_at_installation}</TableCell>
-                  <TableCell className="hidden md:table-cell">{r.cycles_at_installation}</TableCell>
-                  <TableCell>{formatDate(r.assigned_date)}</TableCell>
-                  <TableCell>{formatDate(r.removed_date)}</TableCell>
-                  <TableCell className="hidden md:table-cell"><ConditionBadge condition={r.aircraft_part.condition_type} /></TableCell>
-                </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell colSpan={7} className="text-center text-sm text-muted-foreground">Sin registros</TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </div>
-    </CardContent>
-  </Card>
-);
 
 // ---------- Main component ----------
 export default function AircraftDetailsPage() {
@@ -242,10 +161,10 @@ export default function AircraftDetailsPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                    <Stat icon={Gauge} label="Flight Hours" value={aircraft.flight_hours} />
-                    <Stat icon={Layers} label="Flight Cycles" value={aircraft.flight_cycles} />
+                    <Stat icon={Gauge} label="Flight Hours" value={typeof aircraft.flight_hours === 'string' ? aircraft.flight_hours : aircraft.flight_hours.toLocaleString()} />
+                    <Stat icon={Layers} label="Flight Cycles" value={typeof aircraft.flight_cycles === 'string' ? aircraft.flight_cycles : aircraft.flight_cycles.toLocaleString()} />
                     <Stat icon={Calendar} label="Fabricación" value={formatDate(aircraft.fabricant_date)} />
-                    <Stat icon={Wrench} label="Asignaciones" value={aircraft.aircraft_assignments?.length ?? 0} />
+                    <Stat icon={Puzzle} label="Partes Instaladas" value={aircraft.aircraft_parts?.length ?? 0} />
                   </div>
                 </CardContent>
               </Card>
@@ -256,29 +175,25 @@ export default function AircraftDetailsPage() {
                 <div className="lg:col-span-2 space-y-4">
                   <Card>
                     <CardHeader className="pb-2">
-                      <CardTitle className="text-sm flex items-center gap-2"><Puzzle className="h-4 w-4" /> Árbol de componentes</CardTitle>
+                      <CardTitle className="text-sm flex items-center gap-2"><Puzzle className="h-4 w-4" /> Partes instaladas</CardTitle>
                       <CardDescription className="text-xs">Estructura jerárquica de partes y subpartes</CardDescription>
                     </CardHeader>
                     <CardContent>
-                      <ScrollArea className="h-[360px] pr-4">
-                        {aircraft.aircraft_assignments?.length ? (
+                      <ScrollArea className="h-[500px] pr-4">
+                        {aircraft.aircraft_parts?.length ? (
                           <Accordion type="multiple" className="w-full">
-                            {Array.from(
-                              new Map(
-                                aircraft.aircraft_assignments.map((a) => [a.aircraft_part.part_number, a.aircraft_part])
-                              ).values()
-                            ).map((root, idx) => (
-                              <PartRow key={`${root.part_number}-${idx}`} p={root} />
+                            {aircraft.aircraft_parts.map((root, idx) => (
+                              <PartRow key={`${root.part_number}-${idx}`} p={root} index={idx} />
                             ))}
                           </Accordion>
                         ) : (
-                          <div className="text-sm text-muted-foreground">No hay partes asociadas.</div>
+                          <div className="text-sm text-muted-foreground text-center py-8">
+                            Sin partes registradas
+                          </div>
                         )}
                       </ScrollArea>
                     </CardContent>
                   </Card>
-
-                  <AssignmentsTable rows={aircraft.aircraft_assignments || []} />
                 </div>
 
                 {/* Right: Notes & meta */}
