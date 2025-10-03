@@ -45,7 +45,7 @@ export const useCreateMaintenanceAircraft = () => {
 
   const createMutation = useMutation({
       mutationFn: async ({data, company}: {data: CreateAircraftWithPartsData, company: string}) => {
-          console.log("📡 Enviando al backend:", data);
+
           await axiosInstance.post(`/${company}/aircrafts`, data)
         },
       onSuccess: () => {

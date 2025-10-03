@@ -4,7 +4,6 @@ import { useQuery } from '@tanstack/react-query';
 
 const fetchAircrafts = async (company?: string): Promise<MaintenanceAircraft[]> => {
   const {data} = await axios.get(`/${company}/aircrafts`);
-  console.log(data);
   return data;
 };
 
