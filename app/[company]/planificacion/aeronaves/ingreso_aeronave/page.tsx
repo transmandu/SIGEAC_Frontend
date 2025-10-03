@@ -28,26 +28,33 @@ import { useRouter } from "next/navigation";
 import { AircraftInfoForm } from "@/components/forms/mantenimiento/aeronaves/AircraftInfoForm";
 
 interface AircraftPart {
+    category?: "ENGINE" | "APU" | "POWER_PLANT" | "PROPELLER"; // Solo frontend
     part_name: string;
     part_number: string;
     serial: string;
-    time_since_new: number;  // Time Since New
-    time_since_overhaul: number;  // Time Since Overhaul
-    cycles_since_new: number;  // Cycles Since New
-    cycles_since_overhaul: number;  // Cycles Since Overhaul
+    brand: string;
+    time_since_new?: number;  // Time Since New
+    time_since_overhaul?: number;  // Time Since Overhaul
+    cycles_since_new?: number;  // Cycles Since New
+    cycles_since_overhaul?: number;  // Cycles Since Overhaul
     condition_type: "NEW" | "OVERHAULED";
     is_father: boolean;
-    sub_parts?: {
-        part_name: string;
-        part_number: string;
-        serial: string;
-        time_since_new?: number;
-        time_since_overhaul?: number;
-        cycles_since_new?: number;
-        cycles_since_overhaul?: number;
-        condition_type: "NEW" | "OVERHAULED";
-        is_father: boolean;
-    }[];
+    sub_parts?: AircraftPart[];
+}
+
+// Tipo que coincide con lo que espera el API (sin category y con valores por defecto)
+interface AircraftPartAPI {
+    part_name: string;
+    part_number: string;
+    serial: string;
+    brand: string;
+    time_since_new: number;
+    time_since_overhaul: number;
+    cycles_since_new: number;
+    cycles_since_overhaul: number;
+    condition_type: "NEW" | "OVERHAULED";
+    is_father: boolean;
+    sub_parts?: AircraftPartAPI[];
 }
 
 interface AircraftInfoType {
@@ -74,9 +81,36 @@ export default function NewAircraftPage() {
     const { createMaintenanceAircraft } = useCreateMaintenanceAircraft();
     const { selectedCompany } = useCompanyStore();
     const router = useRouter()
+
+    // Función para transformar las partes y eliminar el campo 'category' (solo frontend)
+    const transformPart = (part: AircraftPart): AircraftPartAPI => {
+        const { category, ...partWithoutCategory } = part;
+        
+        const transformed: AircraftPartAPI = {
+            part_name: partWithoutCategory.part_name,
+            part_number: partWithoutCategory.part_number,
+            serial: partWithoutCategory.serial,
+            brand: partWithoutCategory.brand,
+            time_since_new: partWithoutCategory.time_since_new ?? 0,
+            time_since_overhaul: partWithoutCategory.time_since_overhaul ?? 0,
+            cycles_since_new: partWithoutCategory.cycles_since_new ?? 0,
+            cycles_since_overhaul: partWithoutCategory.cycles_since_overhaul ?? 0,
+            condition_type: partWithoutCategory.condition_type,
+            is_father: partWithoutCategory.is_father,
+        };
+        
+        if (part.sub_parts && part.sub_parts.length > 0) {
+            transformed.sub_parts = part.sub_parts.map(transformPart);
+        }
+        
+        return transformed;
+    };
+
     const handleSubmit = async () => {
         if (aircraftData && partsData) {
             try {
+                const transformedParts = partsData.parts.map(transformPart);
+
                 await createMaintenanceAircraft.mutateAsync({
                     data: {
                         aircraft: {
@@ -84,7 +118,7 @@ export default function NewAircraftPage() {
                             flight_hours: Number(aircraftData.flight_hours),
                             flight_cycles: Number(aircraftData.flight_cycles),
                         },
-                        parts: partsData.parts,
+                        parts: transformedParts,
                     },
                     company: selectedCompany!.slug,
                 });

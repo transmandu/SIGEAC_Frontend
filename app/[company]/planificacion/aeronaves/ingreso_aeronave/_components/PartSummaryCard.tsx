@@ -59,6 +59,7 @@ export function PartSummaryCard({ part, index, level }: {
                         <InfoItem label="Nombre" value={part.part_name} />
                         <InfoItem label="Número de Parte" value={part.part_number} />
                         <InfoItem label="Serial" value={part.serial} />
+                        <InfoItem label="Marca" value={part.brand} />
                         <InfoItem 
                             label="TSN (Time Since New)" 
                             value={part.time_since_new ? `${part.time_since_new.toLocaleString()} hrs` : "No especificado"} 
