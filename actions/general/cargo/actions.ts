@@ -19,7 +19,7 @@ export const useCreateJobTitle = () => {
 
   const createMutation = useMutation({
     mutationFn: async ({ company, data }: JobTitleFormSchema) =>
-      await axiosInstance.post(`/${company}/job_titles`, data),
+      await axiosInstance.post(`/job_titles`, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["job_titles"] });
       toast.success("¡Creado!", {
