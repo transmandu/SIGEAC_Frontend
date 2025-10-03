@@ -3,7 +3,7 @@
   import { useQuery } from '@tanstack/react-query';
 
   const fetchJobTitles = async (company: string | undefined): Promise<JobTitle[]> => {
-    const {data} = await axios.get(`/${company}/job-titles`);
+    const {data} = await axios.get(`/job-titles`);
     return data;
   };
 
