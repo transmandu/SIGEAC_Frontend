@@ -11,6 +11,7 @@ import {
   Building2,
   CalendarClock,
   CalendarFold,
+  ClipboardCheck,
   ClipboardCopy,
   ClipboardList,
   ClipboardPen,
@@ -581,6 +582,22 @@ export function getMenuList(
               active:
                 pathname ===
                 `/${currentCompany?.slug}/planificacion/capacitacion_personal`,
+            },
+          ],
+        },
+        {
+          href: "",
+          label: "Encuestas",
+          active: pathname.includes(`/${currentCompany?.slug}/sms/encuestas`),
+          icon: ClipboardCheck,
+          roles: ["SUPERUSER", "JEFE_SMS", "ANALISTA_SMS"],
+          submenus: [
+            {
+              href: `/${currentCompany?.slug}/sms/encuestas/crear`,
+              label: "Crear",
+              roles: ["SUPERUSER", "JEFE_SMS", "ANALISTA_SMS"],
+              active:
+                pathname === `/${currentCompany?.slug}/sms/encuestas/crear`,
             },
           ],
         },
