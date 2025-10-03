@@ -15,9 +15,8 @@ import { ScrollArea } from "../../../ui/scroll-area"
 
 // Tipos de categoría para las partes
 export const PART_CATEGORIES = {
-  ENGINE: "Motor",
+  ENGINE: "Fuentes de Poder",
   APU: "APU",
-  POWER_PLANT: "Planta de Poder",
   PROPELLER: "Hélice"
 } as const;
 
@@ -33,10 +32,6 @@ const CATEGORY_CONFIG = {
     icon: Zap,
     colorName: "amber" as const
   },
-  POWER_PLANT: {
-    icon: Plane,
-    colorName: "purple" as const
-  },
   PROPELLER: {
     icon: Fan,
     colorName: "green" as const
@@ -44,7 +39,7 @@ const CATEGORY_CONFIG = {
 } as const;
 
 // Helper para generar clases de Tailwind dinámicamente
-const getColorClasses = (color: "blue" | "amber" | "purple" | "green") => ({
+const getColorClasses = (color: "blue" | "amber" | "green") => ({
   color: `text-${color}-600 dark:text-${color}-400`,
   bgColor: `bg-${color}-50 dark:bg-${color}-950/30`,
   borderColor: `border-${color}-200 dark:border-${color}-800`,
@@ -53,7 +48,7 @@ const getColorClasses = (color: "blue" | "amber" | "purple" | "green") => ({
 
 // Esquema recursivo para partes/subpartes
 const PartSchema: any = z.object({
-  category: z.enum(["ENGINE", "APU", "POWER_PLANT", "PROPELLER"]).optional(), // Solo para frontend
+  category: z.enum(["ENGINE", "APU", "PROPELLER"]).optional(), // Solo para frontend
   part_name: z.string().min(1, "Nombre obligatorio").max(50),
   part_number: z.string().min(1, "Número obligatorio").regex(/^[A-Za-z0-9\-]+$/),
   serial: z.string().min(1, "Serial obligatorio").max(50),
@@ -93,7 +88,6 @@ export function AircraftPartsInfoForm({ onNext, onBack, initialData }: {
   const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>({
     ENGINE: false,
     APU: false,
-    POWER_PLANT: false,
     PROPELLER: false
   });
 
@@ -101,7 +95,6 @@ export function AircraftPartsInfoForm({ onNext, onBack, initialData }: {
   const [notApplicableCategories, setNotApplicableCategories] = useState<Record<string, boolean>>({
     ENGINE: false,
     APU: false,
-    POWER_PLANT: false,
     PROPELLER: false
   });
 
@@ -449,7 +442,7 @@ function PartSection({ form, index, path, onRemove, onToggleExpand, isExpanded, 
               name={`${path}.part_name` as any}
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Nombre</FormLabel>
+                  <FormLabel>Modelo</FormLabel>
                   <FormControl>
                     <Input placeholder="Ej: Motor" {...field} />
                   </FormControl>
@@ -501,38 +494,6 @@ function PartSection({ form, index, path, onRemove, onToggleExpand, isExpanded, 
             />
           </div>
 
-          <div className="mt-6">
-            <FormField
-              control={form.control}
-              name={`${path}.condition_type` as any}
-              render={({ field }) => (
-                <FormItem className="space-y-3">
-                  <FormLabel>Condición</FormLabel>
-                  <FormControl>
-                    <RadioGroup
-                      onValueChange={field.onChange}
-                      value={field.value}
-                      className="flex space-x-4"
-                    >
-                      <FormItem className="flex items-center space-x-2 space-y-0">
-                        <FormControl>
-                          <RadioGroupItem value="NEW" />
-                        </FormControl>
-                        <FormLabel className="font-normal">Nueva</FormLabel>
-                      </FormItem>
-                      <FormItem className="flex items-center space-x-2 space-y-0">
-                        <FormControl>
-                          <RadioGroupItem value="OVERHAULED" />
-                        </FormControl>
-                        <FormLabel className="font-normal">Overhauled</FormLabel>
-                      </FormItem>
-                    </RadioGroup>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
             <FormField

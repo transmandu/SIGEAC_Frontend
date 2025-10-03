@@ -16,7 +16,7 @@ import { useCreateMaintenanceAircraft } from "@/actions/mantenimiento/planificac
 import { useCompanyStore } from "@/stores/CompanyStore";
 
 interface AircraftPart {
-  category?: "ENGINE" | "APU" | "POWER_PLANT" | "PROPELLER"; // Solo frontend
+  category?: "ENGINE" | "APU" | "PROPELLER"; // Solo frontend
   part_name: string;
   part_number: string;
   serial: string;

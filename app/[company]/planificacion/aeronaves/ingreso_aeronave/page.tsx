@@ -28,7 +28,7 @@ import { useRouter } from "next/navigation";
 import { AircraftInfoForm } from "@/components/forms/mantenimiento/aeronaves/AircraftInfoForm";
 
 interface AircraftPart {
-    category?: "ENGINE" | "APU" | "POWER_PLANT" | "PROPELLER"; // Solo frontend
+    category?: "ENGINE" | "APU" | "PROPELLER"; // Solo frontend
     part_name: string;
     part_number: string;
     serial: string;
