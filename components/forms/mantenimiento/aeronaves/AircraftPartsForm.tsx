@@ -57,6 +57,7 @@ const PartSchema: any = z.object({
   part_name: z.string().min(1, "Nombre obligatorio").max(50),
   part_number: z.string().min(1, "Número obligatorio").regex(/^[A-Za-z0-9\-]+$/),
   serial: z.string().min(1, "Serial obligatorio").max(50),
+  brand: z.string().min(1, "Marca obligatoria").max(50),
   time_since_new: z.number().min(0).optional(),  // Time Since New
   time_since_overhaul: z.number().min(0).optional(),  // Time Since Overhaul
   cycles_since_new: z.number().min(0).optional(),  // Cycles Since New
@@ -192,7 +193,7 @@ export function AircraftPartsInfoForm({ onNext, onBack, initialData }: {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 mt-8">
-        <ScrollArea className="h-[530px]">
+        <ScrollArea className="h-[600px]">
           {/* Grid de Categorías - Diseño 2x2 Mejorado */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-6 px-1">
             {Object.entries(PART_CATEGORIES).map(([categoryKey, categoryLabel]) => {
@@ -392,7 +393,7 @@ export function AircraftPartsInfoForm({ onNext, onBack, initialData }: {
           )}
         </ScrollArea>
 
-          <div className="flex justify-between pt-6">
+          <div className="flex justify-between pt-8 mt-4">
             <Button type="button" variant="outline" onClick={onBack}>
               Anterior
             </Button>
@@ -480,6 +481,19 @@ function PartSection({ form, index, path, onRemove, onToggleExpand, isExpanded, 
                   <FormLabel>Serial</FormLabel>
                   <FormControl>
                     <Input placeholder="Ej: PCE-PC0444" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name={`${path}.brand` as any}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Marca</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Ej: Pratt & Whitney" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

@@ -19,6 +19,7 @@ parts: {
   part_name: string;
   part_number: string;
   serial: string;
+  brand: string;
   time_since_new: number;  // Time Since New
   time_since_overhaul: number;  // Time Since Overhaul
   cycles_since_new: number;  // Cycles Since New
@@ -29,6 +30,7 @@ parts: {
     part_name: string;
     part_number: string;
     serial: string;
+    brand: string;
     time_since_new?: number;
     time_since_overhaul?: number;
     cycles_since_new?: number;
@@ -45,7 +47,7 @@ export const useCreateMaintenanceAircraft = () => {
 
   const createMutation = useMutation({
       mutationFn: async ({data, company}: {data: CreateAircraftWithPartsData, company: string}) => {
-
+          console.log("📡 Enviando al backend:", data);
           await axiosInstance.post(`/${company}/aircrafts`, data)
         },
       onSuccess: () => {

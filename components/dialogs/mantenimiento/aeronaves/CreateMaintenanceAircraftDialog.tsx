@@ -20,6 +20,7 @@ interface AircraftPart {
   part_name: string;
   part_number: string;
   serial: string;
+  brand: string;
   time_since_new?: number;
   time_since_overhaul?: number;
   cycles_since_new?: number;
@@ -34,6 +35,7 @@ interface AircraftPartAPI {
   part_name: string;
   part_number: string;
   serial: string;
+  brand: string;
   time_since_new: number;
   time_since_overhaul: number;
   cycles_since_new: number;
@@ -78,6 +80,7 @@ export function CreateMaintenanceAircraftDialog() {
       part_name: partWithoutCategory.part_name,
       part_number: partWithoutCategory.part_number,
       serial: partWithoutCategory.serial,
+      brand: partWithoutCategory.brand,
       time_since_new: partWithoutCategory.time_since_new ?? 0,
       time_since_overhaul: partWithoutCategory.time_since_overhaul ?? 0,
       cycles_since_new: partWithoutCategory.cycles_since_new ?? 0,
@@ -223,6 +226,7 @@ export function CreateMaintenanceAircraftDialog() {
                             
                             <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-slate-600 dark:text-slate-400">
                               <p><span className="font-medium">Serial:</span> {part.serial}</p>
+                              <p><span className="font-medium">Marca:</span> {part.brand}</p>
                               <p><span className="font-medium">Condición:</span> {part.condition_type === 'NEW' ? 'Nueva' : 'Overhauled'}</p>
                               <p><span className="font-medium">TSN:</span> {part.time_since_new ?? 0}h</p>
                               <p><span className="font-medium">TSO:</span> {part.time_since_overhaul ?? 0}h</p>
