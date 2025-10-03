@@ -791,13 +791,6 @@ export function getMenuList(
               active:
                 pathname === `/${currentCompany?.slug}/planificacion/aeronaves`,
             },
-            {
-              href: `/${currentCompany?.slug}/planificacion/aeronaves/partes`,
-              label: "Gestión de Partes",
-              active:
-                pathname ===
-                `/${currentCompany?.slug}/planificacion/aeronaves/partes`,
-            },
           ],
         },
         {
