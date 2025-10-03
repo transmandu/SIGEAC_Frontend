@@ -57,10 +57,10 @@ const PartSchema: any = z.object({
   part_name: z.string().min(1, "Nombre obligatorio").max(50),
   part_number: z.string().min(1, "Número obligatorio").regex(/^[A-Za-z0-9\-]+$/),
   serial: z.string().min(1, "Serial obligatorio").max(50),
-  time_since_new: z.number().min(0).max(100000).optional(),  // Time Since New
-  time_since_overhaul: z.number().min(0).max(100000).optional(),  // Time Since Overhaul
-  cycles_since_new: z.number().min(0).max(50000).optional(),  // Cycles Since New
-  cycles_since_overhaul: z.number().min(0).max(50000).optional(),  // Cycles Since Overhaul
+  time_since_new: z.number().min(0).optional(),  // Time Since New
+  time_since_overhaul: z.number().min(0).optional(),  // Time Since Overhaul
+  cycles_since_new: z.number().min(0).optional(),  // Cycles Since New
+  cycles_since_overhaul: z.number().min(0).optional(),  // Cycles Since Overhaul
   condition_type: z.enum(["NEW", "OVERHAULED"]),
   is_father: z.boolean().default(false),
   sub_parts: z.array(z.lazy(() => PartSchema)).optional()
@@ -90,10 +90,10 @@ export function AircraftPartsInfoForm({ onNext, onBack, initialData }: {
 
   const [expandedParts, setExpandedParts] = useState<Record<number, boolean>>({});
   const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>({
-    ENGINE: true,
-    APU: true,
-    POWER_PLANT: true,
-    PROPELLER: true
+    ENGINE: false,
+    APU: false,
+    POWER_PLANT: false,
+    PROPELLER: false
   });
 
   // Estado para rastrear qué categorías están marcadas como "No Aplica"
