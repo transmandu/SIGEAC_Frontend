@@ -755,7 +755,7 @@ export function getMenuList(
             `/${currentCompany?.slug}/planificacion/calendario`
           ),
           icon: CalendarFold,
-          roles: ["ANALISTA_ADMINISTRACION", "JEFE_PLANIFICACION", "SUPERUSER"],
+          roles: ["ANALISTA_PLANIFICACION", "JEFE_PLANIFICACION", "SUPERUSER"],
           submenus: [],
         },
         {
@@ -765,7 +765,7 @@ export function getMenuList(
             `/${currentCompany?.slug}/planificacion/ordenes_trabajo`
           ),
           icon: SquarePen,
-          roles: ["ANALISTA_ADMINISTRACION", "JEFE_PLANIFICACION", "SUPERUSER"],
+          roles: ["ANALISTA_PLANIFICACION", "JEFE_PLANIFICACION", "SUPERUSER"],
           submenus: [
             {
               href: `/${currentCompany?.slug}/planificacion/ordenes_trabajo/`,
