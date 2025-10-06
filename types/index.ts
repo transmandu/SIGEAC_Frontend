@@ -1042,3 +1042,26 @@ export type CourseStats = {
   completed_courses: number;
   total_courses: number;
 };
+
+export type Option = {
+  id: string;
+  option: string;
+};
+
+export type Question = {
+  id: string;
+  question: string;
+  type: string;
+  is_required: boolean
+  options?: Option[];
+};
+
+export type Form = {
+  id: string;
+  name: string;
+  description: string;
+  registered_by: string;
+  updated_by: string;
+  location: Location;
+  questions: Question[];
+};

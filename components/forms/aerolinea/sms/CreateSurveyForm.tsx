@@ -21,18 +21,7 @@ import { Separator } from "@/components/ui/separator";
 import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useState } from "react";
-
-// Hook de mutación simulado
-const useCreateSurveyForm = () => ({
-  createForm: {
-    isPending: false,
-    mutateAsync: async (data: any) => {
-      console.log("Datos a enviar para crear el formulario:", data);
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      return { success: true };
-    },
-  },
-});
+import { useCreateSurvey } from "@/actions/sms/survey/actions";
 
 interface FormProps {
   onClose: () => void;
@@ -74,7 +63,7 @@ const QuestionSchema = z
 // Esquema principal del formulario
 const FormSchema = z.object({
   name: z.string().min(3, "El nombre debe tener al menos 3 caracteres."),
-  description: z.string().min(10, "La descripción es obligatoria."),
+  description: z.string().min(3, "La descripción es obligatoria."),
   questions: z
     .array(QuestionSchema)
     .min(1, "Debe agregar al menos una pregunta"),
@@ -143,7 +132,7 @@ function QuestionItem({
   const displayText = questionValue || `Pregunta ${questionIndex + 1}`;
 
   return (
-    <div className="p-4 border rounded-lg space-y-4">
+    <div className="p-4 border rounded-lg space-y-4 bg-white">
       {/* Header de la pregunta - Siempre visible */}
       <div className="flex justify-between items-center">
         <div className="flex items-center space-x-2 flex-1">
@@ -315,9 +304,8 @@ function QuestionItem({
 }
 
 export function CreateSurveyForm({ onClose }: FormProps) {
-  const { selectedCompany, selectedStation } = useCompanyStore();
-  const fixedLocationId = selectedStation;
-  const { createForm } = useCreateSurveyForm();
+  const { selectedStation } = useCompanyStore();
+  const { createSurvey } = useCreateSurvey();
 
   const form = useForm<FormSchemaType>({
     resolver: zodResolver(FormSchema),
@@ -350,7 +338,7 @@ export function CreateSurveyForm({ onClose }: FormProps) {
   };
 
   const onSubmit = async (data: FormSchemaType) => {
-    if (!fixedLocationId) {
+    if (!selectedStation) {
       console.error(
         "ERROR: No se pudo determinar el location_id (selectedStation)."
       );
@@ -361,7 +349,7 @@ export function CreateSurveyForm({ onClose }: FormProps) {
     const formPayload = {
       name: data.name,
       description: data.description,
-      location_id: fixedLocationId,
+      location_id: selectedStation,
       questions: data.questions.map((question) => {
         // Para preguntas OPEN, no enviar el campo options en absoluto
         if (question.type === "OPEN") {
@@ -378,10 +366,10 @@ export function CreateSurveyForm({ onClose }: FormProps) {
       }),
     };
 
-    console.log("Payload final:", formPayload);
+    //console.log("Payload final:", formPayload);
 
     try {
-      await createForm.mutateAsync(formPayload);
+      await createSurvey.mutateAsync(formPayload);
       form.reset();
       onClose();
     } catch (error) {
@@ -393,7 +381,7 @@ export function CreateSurveyForm({ onClose }: FormProps) {
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit(onSubmit)}
-        className="w-full max-w-4xl mx-auto p-6 space-y-6"
+        className="w-full max-w-6xl mx-auto p-6 space-y-6" // Cambiado a max-w-6xl para más espacio
       >
         <FormLabel className="text-2xl font-bold text-center w-full block">
           Creación de Encuesta
@@ -433,7 +421,7 @@ export function CreateSurveyForm({ onClose }: FormProps) {
             )}
           />
 
-          {/* Sección de Preguntas */}
+          {/* Sección de Preguntas - EN DOS COLUMNAS */}
           <div className="space-y-4">
             <div className="flex justify-between items-center">
               <FormLabel className="text-lg font-semibold">Preguntas</FormLabel>
@@ -448,16 +436,19 @@ export function CreateSurveyForm({ onClose }: FormProps) {
               </Button>
             </div>
 
-            {fields.map((field, questionIndex: number) => (
-              <QuestionItem
-                key={field.id}
-                questionIndex={questionIndex}
-                field={field}
-                form={form}
-                remove={remove}
-                fieldsLength={fields.length}
-              />
-            ))}
+            {/* Contenedor de dos columnas */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {fields.map((field, questionIndex: number) => (
+                <QuestionItem
+                  key={field.id}
+                  questionIndex={questionIndex}
+                  field={field}
+                  form={form}
+                  remove={remove}
+                  fieldsLength={fields.length}
+                />
+              ))}
+            </div>
           </div>
         </div>
 
@@ -470,10 +461,10 @@ export function CreateSurveyForm({ onClose }: FormProps) {
         {/* Botón de Envío */}
         <Button
           type="submit"
-          disabled={createForm.isPending || !fixedLocationId}
+          disabled={createSurvey.isPending || !selectedStation}
           className="w-full"
         >
-          {createForm.isPending ? (
+          {createSurvey.isPending ? (
             <Loader2 className="size-4 animate-spin" />
           ) : (
             "Crear Encuesta"

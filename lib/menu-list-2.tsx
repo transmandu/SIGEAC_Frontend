@@ -565,7 +565,7 @@ export function getMenuList(
               roles: ["SUPERUSER", "JEFE_SMS", "ANALISTA_SMS"],
               active:
                 pathname ===
-                `/${currentCompany?.slug}/planificacion/actividades/calendario`,
+                `/${currentCompany?.slug}/sms/planificacion/actividades/calendario`,
             },
             {
               href: `/${currentCompany?.slug}/sms/planificacion/actividades`,
@@ -573,7 +573,7 @@ export function getMenuList(
               roles: ["SUPERUSER", "JEFE_SMS", "ANALISTA_SMS"],
               active:
                 pathname ===
-                `/${currentCompany?.slug}/planificacion/actividades`,
+                `/${currentCompany?.slug}/sms/planificacion/actividades`,
             },
             {
               href: `/${currentCompany?.slug}/sms/planificacion/capacitacion_personal`,
@@ -581,23 +581,30 @@ export function getMenuList(
               roles: ["SUPERUSER", "JEFE_SMS", "ANALISTA_SMS"],
               active:
                 pathname ===
-                `/${currentCompany?.slug}/planificacion/capacitacion_personal`,
+                `/${currentCompany?.slug}/sms/planificacion/capacitacion_personal`,
             },
           ],
         },
         {
           href: "",
-          label: "Encuestas",
-          active: pathname.includes(`/${currentCompany?.slug}/sms/encuestas`),
+          label: "Gestión de Encuestas",
+          active: pathname.includes(`/${currentCompany?.slug}/sms/gestion_encuestas`),
           icon: ClipboardCheck,
           roles: ["SUPERUSER", "JEFE_SMS", "ANALISTA_SMS"],
           submenus: [
             {
-              href: `/${currentCompany?.slug}/sms/encuestas/crear`,
+              href: `/${currentCompany?.slug}/sms/gestion_encuestas/crear`,
               label: "Crear",
               roles: ["SUPERUSER", "JEFE_SMS", "ANALISTA_SMS"],
               active:
-                pathname === `/${currentCompany?.slug}/sms/encuestas/crear`,
+                pathname === `/${currentCompany?.slug}/sms/gestion_encuestas/crear`,
+            },
+            {
+              href: `/${currentCompany?.slug}/sms/gestion_encuestas/lista`,
+              label: "Lista",
+              roles: ["SUPERUSER", "JEFE_SMS", "ANALISTA_SMS"],
+              active:
+                pathname === `/${currentCompany?.slug}/sms/gestion_encuestas/lista`,
             },
           ],
         },
