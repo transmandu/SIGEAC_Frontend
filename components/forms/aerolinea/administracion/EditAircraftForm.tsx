@@ -183,34 +183,15 @@ export function EditAircraftForm({ aircraft, onClose }: EditAircraftFormProps) {
               </FormItem>
             )}
           />
+          {/* Campo de ubicación oculto - mantiene el valor actual */}
           <FormField
             control={form.control}
             name="location_id"
             render={({ field }) => (
-              <FormItem className="w-full">
-                <FormLabel>Ubicacion</FormLabel>
-                <Select
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Locación a donde pertenecerá" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {locationsData &&
-                      locationsData[0].locations.map((location) => (
-                        <SelectItem
-                          key={location.id}
-                          value={location.id.toString()}
-                        >
-                          {location.address}
-                        </SelectItem>
-                      ))}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
+              <FormItem className="hidden">
+                <FormControl>
+                  <input type="hidden" {...field} />
+                </FormControl>
               </FormItem>
             )}
           />

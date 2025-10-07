@@ -11,16 +11,38 @@ import {
 } from "@/components/ui/dialog";
 import { useState } from "react";
 import { AircraftInfoForm } from "@/components/forms/mantenimiento/aeronaves/AircraftInfoForm";
-import { AircraftPartsInfoForm } from "@/components/forms/mantenimiento/aeronaves/AircraftPartsForm";
+import { AircraftPartsInfoForm, PART_CATEGORIES } from "@/components/forms/mantenimiento/aeronaves/AircraftPartsForm";
 import { useCreateMaintenanceAircraft } from "@/actions/mantenimiento/planificacion/aeronaves/actions";
 import { useCompanyStore } from "@/stores/CompanyStore";
 
 interface AircraftPart {
+  category?: "ENGINE" | "APU" | "PROPELLER"; // Solo frontend
   part_name: string;
   part_number: string;
-  part_hours: number;
-  part_cycles: number;
-  condition_type: "NEW" | "OVERHAULED"
+  serial: string;
+  brand: string;
+  time_since_new?: number;
+  time_since_overhaul?: number;
+  cycles_since_new?: number;
+  cycles_since_overhaul?: number;
+  condition_type: "NEW" | "OVERHAULED";
+  is_father: boolean;
+  sub_parts?: AircraftPart[];
+}
+
+// Tipo que coincide con lo que espera el API
+interface AircraftPartAPI {
+  part_name: string;
+  part_number: string;
+  serial: string;
+  brand: string;
+  time_since_new: number;
+  time_since_overhaul: number;
+  cycles_since_new: number;
+  cycles_since_overhaul: number;
+  condition_type: "NEW" | "OVERHAULED";
+  is_father: boolean;
+  sub_parts?: AircraftPartAPI[];
 }
 
 interface AircraftInfoType {
@@ -48,10 +70,39 @@ export function CreateMaintenanceAircraftDialog() {
   const { createMaintenanceAircraft } = useCreateMaintenanceAircraft()
   const { selectedCompany } = useCompanyStore()
 
+  // Función para transformar las partes asegurando que tengan todos los campos requeridos
+  // y eliminando el campo 'category' que es solo para el frontend
+  const transformPart = (part: AircraftPart): AircraftPartAPI => {
+    // Omitimos 'category' al desestructurar
+    const { category, ...partWithoutCategory } = part;
+    
+    const transformed: AircraftPartAPI = {
+      part_name: partWithoutCategory.part_name,
+      part_number: partWithoutCategory.part_number,
+      serial: partWithoutCategory.serial,
+      brand: partWithoutCategory.brand,
+      time_since_new: partWithoutCategory.time_since_new ?? 0,
+      time_since_overhaul: partWithoutCategory.time_since_overhaul ?? 0,
+      cycles_since_new: partWithoutCategory.cycles_since_new ?? 0,
+      cycles_since_overhaul: partWithoutCategory.cycles_since_overhaul ?? 0,
+      condition_type: partWithoutCategory.condition_type,
+      is_father: partWithoutCategory.is_father,
+    };
+    
+    // Transformar subpartes recursivamente
+    if (part.sub_parts && part.sub_parts.length > 0) {
+      transformed.sub_parts = part.sub_parts.map(transformPart);
+    }
+    
+    return transformed;
+  };
+
   // Función para manejar el envío final del formulario
   const handleSubmit = async () => {
     if (aircraftData && partsData) {
       try {
+        const transformedParts = partsData.parts.map(transformPart);
+        
         await createMaintenanceAircraft.mutateAsync({
           data: {
             aircraft: {
@@ -59,7 +110,7 @@ export function CreateMaintenanceAircraftDialog() {
               flight_hours: Number(aircraftData.flight_hours),
               flight_cycles: Number(aircraftData.flight_cycles),
             },
-            parts: partsData.parts,
+            parts: transformedParts,
           },
           company: selectedCompany!.slug
         });
@@ -134,21 +185,90 @@ export function CreateMaintenanceAircraftDialog() {
               </div>
             </div>
 
-            {/* Resumen de las partes */}
+            {/* Resumen de las partes - Agrupadas por categoría */}
             <div>
-              <h4 className="font-medium mb-2">Información de las Partes</h4>
-              <div className="space-y-2">
-                {partsData.parts.map((part, index) => (
-                  <div key={index} className="p-3 border rounded-lg">
-                    <p className="font-medium">Parte {index + 1}</p>
-                    <div className="text-sm space-y-1">
-                      <p><span className="font-medium">Nombre:</span> {part.part_name}</p>
-                      <p><span className="font-medium">Número de Parte:</span> {part.part_number}</p>
-                      <p><span className="font-medium">Horas de Vuelo:</span> {part.part_hours}</p>
-                      <p><span className="font-medium">Ciclos de Vuelo:</span> {part.part_cycles}</p>
+              <h4 className="font-medium mb-3 flex items-center gap-2">
+                <span className="text-lg">⚙️</span>
+                Partes Registradas ({partsData.parts.length})
+              </h4>
+              
+              <div className="space-y-4">
+                {/* Agrupar partes por categoría */}
+                {Object.entries(PART_CATEGORIES).map(([categoryKey, categoryLabel]) => {
+                  const categoryParts = partsData.parts.filter(p => p.category === categoryKey);
+                  
+                  if (categoryParts.length === 0) return null;
+
+                  return (
+                    <div key={categoryKey} className="border rounded-lg overflow-hidden">
+                      {/* Header de la categoría */}
+                      <div className="bg-slate-100 dark:bg-slate-800 px-4 py-2 border-b">
+                        <h5 className="font-semibold text-sm flex items-center justify-between">
+                          <span>{categoryLabel}</span>
+                          <span className="text-xs bg-slate-200 dark:bg-slate-700 px-2 py-1 rounded-full">
+                            {categoryParts.length} {categoryParts.length === 1 ? 'parte' : 'partes'}
+                          </span>
+                        </h5>
+                      </div>
+
+                      {/* Lista de partes en esta categoría */}
+                      <div className="p-3 space-y-2">
+                        {categoryParts.map((part, idx) => (
+                          <div key={idx} className="bg-slate-50 dark:bg-slate-900/50 p-3 rounded-md border border-slate-200 dark:border-slate-700">
+                            <div className="flex items-start justify-between mb-2">
+                              <p className="font-medium text-sm text-slate-900 dark:text-slate-100">
+                                {part.part_name}
+                              </p>
+                              <span className="text-xs bg-slate-200 dark:bg-slate-700 px-2 py-0.5 rounded">
+                                {part.part_number}
+                              </span>
+                            </div>
+                            
+                            <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-slate-600 dark:text-slate-400">
+                              <p><span className="font-medium">Serial:</span> {part.serial}</p>
+                              <p><span className="font-medium">Marca:</span> {part.brand}</p>
+                              <p><span className="font-medium">Condición:</span> {part.condition_type === 'NEW' ? 'Nueva' : 'Overhauled'}</p>
+                              <p><span className="font-medium">TSN:</span> {part.time_since_new ?? 0}h</p>
+                              <p><span className="font-medium">TSO:</span> {part.time_since_overhaul ?? 0}h</p>
+                              <p><span className="font-medium">CSN:</span> {part.cycles_since_new ?? 0}</p>
+                              <p><span className="font-medium">CSO:</span> {part.cycles_since_overhaul ?? 0}</p>
+                            </div>
+
+                            {/* Mostrar subpartes si existen */}
+                            {part.sub_parts && part.sub_parts.length > 0 && (
+                              <div className="mt-2 pl-3 border-l-2 border-slate-300 dark:border-slate-600">
+                                <p className="text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
+                                  Subpartes ({part.sub_parts.length})
+                                </p>
+                                {part.sub_parts.map((subpart, subIdx) => (
+                                  <div key={subIdx} className="text-xs text-slate-500 dark:text-slate-500 mb-1">
+                                    • {subpart.part_name} ({subpart.part_number})
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
+
+                {/* Mostrar categorías sin partes */}
+                {Object.entries(PART_CATEGORIES).map(([categoryKey, categoryLabel]) => {
+                  const categoryParts = partsData.parts.filter(p => p.category === categoryKey);
+                  
+                  if (categoryParts.length > 0) return null;
+
+                  return (
+                    <div key={categoryKey} className="border border-dashed rounded-lg p-4 bg-slate-50 dark:bg-slate-900/30">
+                      <p className="text-sm text-slate-500 dark:text-slate-400 flex items-center gap-2">
+                        <span className="font-medium">{categoryLabel}:</span>
+                        <span className="italic">No aplica</span>
+                      </p>
+                    </div>
+                  );
+                })}
               </div>
             </div>
 

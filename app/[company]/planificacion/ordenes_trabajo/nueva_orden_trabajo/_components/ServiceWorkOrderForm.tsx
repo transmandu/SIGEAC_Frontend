@@ -239,9 +239,15 @@ const ServiceWorkOrderForm = () => {
   }, [selectedTasks, form]);
 
   const onSubmit = async (data: WorkOrderFormValues) => {
+    // Encontrar el aircraft seleccionado para obtener la información del cliente
+    const selectedAircraftData = aircrafts?.find(aircraft => aircraft.id.toString() === data.aircraft_id);
+    
     const formattedData = {
       ...data,
       date: format(data.date, "yyyy-MM-dd"),
+      client_id: selectedAircraftData?.client.id,
+      client_name: selectedAircraftData?.client.name,
+      authorizing: selectedAircraftData?.client.authorizing,
       work_order_task: selectedTasks.map(task => ({
         description_task: task.description,
         ata: task.ata,
@@ -254,6 +260,11 @@ const ServiceWorkOrderForm = () => {
         }))
       })),
     };
+    
+    console.log("🚀 [ServiceWorkOrderForm] Datos enviados al backend:", formattedData);
+    console.log("📋 [ServiceWorkOrderForm] Cliente seleccionado:", selectedAircraftData?.client);
+    console.log("✈️ [ServiceWorkOrderForm] Aeronave seleccionada:", selectedAircraftData?.acronym);
+    
     await createWorkOrder.mutateAsync({data: formattedData, company: selectedCompany!.slug});
     form.reset();
     router.push(`/${selectedCompany!.slug}/planificacion/ordenes_trabajo`);

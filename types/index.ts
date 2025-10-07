@@ -270,6 +270,7 @@ export type MaintenanceClient = {
   email: string;
   address: string;
   phone_number: string;
+  authorizing: "PROPIETARIO" | "EXPLOTADOR";
 };
 
 export type MaintenanceAircraft = {
@@ -278,8 +279,8 @@ export type MaintenanceAircraft = {
   manufacturer: Manufacturer;
   serial: string;
   acronym: string;
-  flight_hours: number;
-  flight_cycles: number;
+  flight_hours: number | string;  // Puede venir como "4,324.00"
+  flight_cycles: number | string;  // Puede venir como "324.00"
   fabricant_date: string;
   aircraft_parts: MaintenanceAircraftPart[];
   location: Location;
@@ -287,13 +288,22 @@ export type MaintenanceAircraft = {
 };
 
 export type MaintenanceAircraftPart = {
+  id?: number;
   part_number: string;
   part_name: string;
+  serial?: string;
   condition_type: string;
-  part_hours: number;
-  part_cycles: number;
-  sub_parts: MaintenanceAircraftPart[];
-  aircraft: MaintenanceAircraft;
+  time_since_new?: number | string;
+  time_since_overhaul?: number | string;
+  cycles_since_new?: number | string;
+  cycles_since_overhaul?: number | string;
+  part_hours?: number;  // Alias para time_since_new (compatibilidad)
+  part_cycles?: number;  // Alias para cycles_since_new (compatibilidad)
+  is_father?: boolean;
+  aircraft_id?: string;
+  aircraft_part_id?: string | null;  // ID del padre (null si es raíz)
+  sub_parts?: MaintenanceAircraftPart[];
+  aircraft?: MaintenanceAircraft;
 };
 
 export type PlanificationEvent = {

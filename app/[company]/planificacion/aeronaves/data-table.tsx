@@ -23,7 +23,9 @@ import {
 } from "@/components/ui/table"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
-import { CreateMaintenanceAircraftDialog } from "@/components/dialogs/mantenimiento/aeronaves/CreateMaintenanceAircraftDialog"
+import Link from "next/link"
+import { useCompanyStore } from "@/stores/CompanyStore"
+import { Button } from "@/components/ui/button"
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
@@ -55,6 +57,8 @@ export function DataTable<TData, TValue>({
     }
   })
 
+  const { selectedCompany } = useCompanyStore()
+
   const router = useRouter();
 
   const isFiltered = table.getState().columnFilters.length > 0
@@ -62,7 +66,9 @@ export function DataTable<TData, TValue>({
   return (
     <div>
       <div className="flex items-center py-4">
-        <CreateMaintenanceAircraftDialog />
+        <Link href={`/${selectedCompany?.slug}/planificacion/aeronaves/ingreso_aeronave`}>
+          <Button variant={"ghost"}>Registrar Aeronave</Button>
+        </Link>
         <DataTableViewOptions table={table} />
       </div>
       <div className="rounded-md border mb-4">
