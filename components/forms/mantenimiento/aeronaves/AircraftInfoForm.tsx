@@ -3,9 +3,9 @@
 import { Button } from "@/components/ui/button"
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
-import { useGetClients } from "@/hooks/general/clientes/useGetClients"
 import { useGetManufacturers } from "@/hooks/general/condiciones/useGetConditions"
 import { useGetLocationsByCompanyId } from "@/hooks/sistema/useGetLocationsByCompanyId"
+import { useGetClients } from "@/hooks/general/clientes/useGetClients"
 import { cn } from "@/lib/utils"
 import { useCompanyStore } from "@/stores/CompanyStore"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -24,7 +24,10 @@ import { Textarea } from "../../../ui/textarea"
 // Esquema de validación para el Paso 1 (Información de la aeronave)
 const AircraftInfoSchema = z.object({
   manufacturer_id: z.string().min(1, "Debe seleccionar un fabricante"),
-  client_id: z.string().min(1, "Debe seleccionar un cliente"),
+  client_name: z.string().min(1, "El nombre del cliente es obligatorio"),
+  authorizing: z.enum(["PROPIETARIO", "EXPLOTADOR"], {
+    required_error: "Debe seleccionar el tipo de autorización",
+  }),
   serial: z.string().min(1, "El serial es obligatorio"),
   model: z.string().min(1, "El modelo es obligatorio"),
   acronym: z.string().min(1, "El acrónimo es obligatorio"),
@@ -53,12 +56,18 @@ interface AircraftInfoFormProps {
 
 export function AircraftInfoForm({ onNext, onBack, initialData }: AircraftInfoFormProps) {
   const {selectedCompany} = useCompanyStore()
-  const { data: clients, isLoading: isClientsLoading, isError: isClientsError } = useGetClients(selectedCompany?.slug);
   const { data: locations, isPending: isLocationsLoading, isError: isLocationsError, mutate } = useGetLocationsByCompanyId();
   const { data: manufacturers, isLoading: isManufacturersLoading, isError: isManufacturersError } = useGetManufacturers(selectedCompany?.slug);
+  const { data: clients } = useGetClients(selectedCompany?.slug);
 
   // Estado para controlar el mes que se muestra en el calendario
   const [displayMonth, setDisplayMonth] = useState<Date>(new Date());
+  
+  // Estados para el combobox de clientes
+  const [openClient, setOpenClient] = useState(false);
+  const [clientSearchValue, setClientSearchValue] = useState("");
+  const [showCreateClientForm, setShowCreateClientForm] = useState(false);
+  const [newClientAuthorizing, setNewClientAuthorizing] = useState<"PROPIETARIO" | "EXPLOTADOR">("PROPIETARIO");
 
   useEffect(() => {
     mutate(2)
@@ -68,6 +77,18 @@ export function AircraftInfoForm({ onNext, onBack, initialData }: AircraftInfoFo
     resolver: zodResolver(AircraftInfoSchema),
     defaultValues: initialData || {},
   });
+
+  // Actualizar formulario cuando lleguen los initialData
+  useEffect(() => {
+    if (initialData) {
+      // Resetear el formulario con los nuevos datos
+      form.reset(initialData);
+      // Sincronizar el valor de búsqueda del cliente
+      if (initialData.client_name) {
+        setClientSearchValue(initialData.client_name);
+      }
+    }
+  }, [initialData, form]);
 
   // Establecer automáticamente la primera ubicación disponible
   useEffect(() => {
@@ -84,18 +105,24 @@ export function AircraftInfoForm({ onNext, onBack, initialData }: AircraftInfoFo
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col space-y-3">
+        <div className="mt-6"></div> {/* Separación después de los tabs */}
         <div className='grid grid-cols-2 w-full gap-4'>
           <FormField
             control={form.control}
-            name="client_id"
+            name="client_name"
             render={({ field }) => (
-              <FormItem className="flex flex-col space-y-3 mt-1.5">
-                <FormLabel>Cliente</FormLabel>
-                <Popover>
+              <FormItem className="flex flex-col">
+                <FormLabel>Nombre del Cliente *</FormLabel>
+                <Popover open={openClient} onOpenChange={(open) => {
+                  setOpenClient(open);
+                  if (!open) {
+                    setShowCreateClientForm(false);
+                    setNewClientAuthorizing("PROPIETARIO");
+                  }
+                }}>
                   <PopoverTrigger asChild>
                     <FormControl>
                       <Button
-                        disabled={isClientsLoading || isClientsError}
                         variant="outline"
                         role="combobox"
                         className={cn(
@@ -103,44 +130,123 @@ export function AircraftInfoForm({ onNext, onBack, initialData }: AircraftInfoFo
                           !field.value && "text-muted-foreground"
                         )}
                       >
-                        {
-                          isClientsLoading && <Loader2 className="size-4 animate-spin mr-2" />
-                        }
-                        {field.value
-                          ? <p>{clients?.find(
-                            (client) => `${client.id.toString()}` === field.value
-                          )?.name}</p>
-                          : "Elige al cliente..."
-                        }
+                        {field.value || "Seleccionar o escribir cliente..."}
                         <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                       </Button>
                     </FormControl>
                   </PopoverTrigger>
-                  <PopoverContent className="p-0">
+                  <PopoverContent className="w-full p-0">
                     <Command>
-                      <CommandInput placeholder="Busque un cliente..." />
+                      <CommandInput 
+                        placeholder="Buscar o escribir cliente..." 
+                        value={clientSearchValue}
+                        onValueChange={(value) => {
+                          setClientSearchValue(value);
+                          // Actualizar el campo del formulario mientras escribe
+                          form.setValue("client_name", value);
+                        }}
+                      />
                       <CommandList>
-                        <CommandEmpty className="text-sm p-2 text-center">No se ha encontrado ningún cliente.</CommandEmpty>
+                        <CommandEmpty>
+                          <div className="p-3">
+                            {!showCreateClientForm ? (
+                              <div className="text-center">
+                            <p className="text-sm text-muted-foreground mb-3">
+                              No se encontró &quot;{clientSearchValue}&quot;
+                            </p>
+                                <Button
+                                  size="sm"
+                                  onClick={() => setShowCreateClientForm(true)}
+                                  disabled={!clientSearchValue.trim()}
+                                >
+                                  Crear cliente &quot;{clientSearchValue}&quot;
+                                </Button>
+                              </div>
+                            ) : (
+                              <div className="space-y-3">
+                                <div className="text-center">
+                                  <p className="text-sm font-medium mb-2">
+                                    Crear cliente: &quot;{clientSearchValue}&quot;
+                                  </p>
+                                </div>
+                                
+                                <div className="space-y-2">
+                                  <label className="text-xs font-medium text-muted-foreground">
+                                    Tipo de Autorización *
+                                  </label>
+                                  <Select 
+                                    value={newClientAuthorizing} 
+                                    onValueChange={(value: "PROPIETARIO" | "EXPLOTADOR") => setNewClientAuthorizing(value)}
+                                  >
+                                    <SelectTrigger className="h-8">
+                                      <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="PROPIETARIO">Propietario</SelectItem>
+                                      <SelectItem value="EXPLOTADOR">Explotador</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+
+                                <div className="flex gap-2">
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => {
+                                      setShowCreateClientForm(false);
+                                      setNewClientAuthorizing("PROPIETARIO");
+                                    }}
+                                    className="flex-1"
+                                  >
+                                    Cancelar
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    onClick={() => {
+                                      // Solo establecer valores en el formulario
+                                      form.setValue("client_name", clientSearchValue);
+                                      form.setValue("authorizing", newClientAuthorizing);
+                                      setOpenClient(false);
+                                      setShowCreateClientForm(false);
+                                    }}
+                                    className="flex-1"
+                                  >
+                                    Crear
+                                  </Button>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </CommandEmpty>
                         <CommandGroup>
-                          {clients?.map((client) => (
+                          {clients
+                            ?.filter((client: any) => client.authorizing) // Solo mostrar clientes con authorizing
+                            ?.map((client: any) => (
                             <CommandItem
-                              value={`${client.id}`}
+                              value={client.name}
                               key={client.id}
-                              onSelect={() => {
-                                form.setValue("client_id", client.id.toString())
+                              onSelect={(currentValue) => {
+                                const selectedClient = clients?.find(c => c.name === currentValue) as any;
+                                form.setValue("client_name", currentValue);
+                                if (selectedClient?.authorizing) {
+                                  form.setValue("authorizing", selectedClient.authorizing);
+                                } else {
+                                  form.setValue("authorizing", "PROPIETARIO");
+                                }
+                                setClientSearchValue(currentValue);
+                                setOpenClient(false);
                               }}
                             >
                               <Check
                                 className={cn(
                                   "mr-2 h-4 w-4",
-                                  `${client.id.toString()}` === field.value
-                                    ? "opacity-100"
-                                    : "opacity-0"
+                                  client.name === field.value ? "opacity-100" : "opacity-0"
                                 )}
                               />
-                              {
-                                <p>{client.name}</p>
-                              }
+                              {client.name}
+                              <span className="ml-auto text-xs text-muted-foreground">
+                                {client.authorizing === "PROPIETARIO" ? "Prop." : "Expl."}
+                              </span>
                             </CommandItem>
                           ))}
                         </CommandGroup>
@@ -149,12 +255,13 @@ export function AircraftInfoForm({ onNext, onBack, initialData }: AircraftInfoFo
                   </PopoverContent>
                 </Popover>
                 <FormDescription className="text-xs">
-                  Cliente propietario de la aeronave.
+                  Seleccione un cliente existente o escriba un nombre para crear uno nuevo.
                 </FormDescription>
                 <FormMessage />
               </FormItem>
             )}
           />
+          
           <FormField
             control={form.control}
             name="manufacturer_id"
@@ -174,7 +281,7 @@ export function AircraftInfoForm({ onNext, onBack, initialData }: AircraftInfoFo
                         )}
                       >
                         {
-                          isClientsLoading && <Loader2 className="size-4 animate-spin mr-2" />
+                          isManufacturersLoading && <Loader2 className="size-4 animate-spin mr-2" />
                         }
                         {field.value
                           ? <p>{manufacturers?.find(

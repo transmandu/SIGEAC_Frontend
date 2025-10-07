@@ -13,6 +13,7 @@ import { useState } from "react";
 import { AircraftInfoForm } from "@/components/forms/mantenimiento/aeronaves/AircraftInfoForm";
 import { AircraftPartsInfoForm, PART_CATEGORIES } from "@/components/forms/mantenimiento/aeronaves/AircraftPartsForm";
 import { useCreateMaintenanceAircraft } from "@/actions/mantenimiento/planificacion/aeronaves/actions";
+import { useCreateClient } from "@/actions/general/clientes/actions";
 import { useCompanyStore } from "@/stores/CompanyStore";
 
 interface AircraftPart {
@@ -47,8 +48,9 @@ interface AircraftPartAPI {
 
 interface AircraftInfoType {
   manufacturer_id: string;
-  client_id: string;
+  client_name: string;
   serial: string;
+  model?: string;
   acronym: string;
   flight_hours: string;
   flight_cycles: string;
@@ -68,6 +70,7 @@ export function CreateMaintenanceAircraftDialog() {
   const [aircraftData, setAircraftData] = useState<AircraftInfoType>(); // Datos de la aeronave
   const [partsData, setPartsData] = useState<PartsData>({ parts: [] }); // Datos de las partes (motores, hélices, etc.)
   const { createMaintenanceAircraft } = useCreateMaintenanceAircraft()
+  const { createClient } = useCreateClient();
   const { selectedCompany } = useCompanyStore()
 
   // Función para transformar las partes asegurando que tengan todos los campos requeridos
@@ -101,14 +104,36 @@ export function CreateMaintenanceAircraftDialog() {
   const handleSubmit = async () => {
     if (aircraftData && partsData) {
       try {
+        // First, create the client with minimal data
+        const clientResponse = await createClient.mutateAsync({
+          company: selectedCompany!.slug,
+          data: {
+            name: aircraftData.client_name,
+            dni: "00000000", // Default DNI
+            dni_type: "V", // Default DNI type
+            authorizing: "PROPIETARIO" as const, // Default authorizing
+          }
+        });
+
+        // Extract client ID from response
+        const clientId = clientResponse.client?.id || clientResponse.id;
+
         const transformedParts = partsData.parts.map(transformPart);
         
+        // Create aircraft with the new client ID
         await createMaintenanceAircraft.mutateAsync({
           data: {
             aircraft: {
-              ...aircraftData,
+              manufacturer_id: aircraftData.manufacturer_id,
+              client_id: clientId.toString(),
+              serial: aircraftData.serial,
+              model: aircraftData.model,
+              acronym: aircraftData.acronym,
               flight_hours: Number(aircraftData.flight_hours),
               flight_cycles: Number(aircraftData.flight_cycles),
+              fabricant_date: aircraftData.fabricant_date,
+              comments: aircraftData.comments,
+              location_id: aircraftData.location_id,
             },
             parts: transformedParts,
           },

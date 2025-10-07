@@ -69,6 +69,32 @@ export const useCreateMaintenanceAircraft = () => {
   }
 }
 
+export const useUpdateMaintenanceAircraft = () => {
+  const queryClient = useQueryClient();
+
+  const updateMutation = useMutation({
+    mutationFn: async ({ acronym, data, company }: { acronym: string; data: CreateAircraftWithPartsData, company: string }) => {
+      await axiosInstance.put(`/${company}/aircrafts/${acronym}`, data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['aircrafts'] });
+      queryClient.invalidateQueries({ queryKey: ['aircraft'] });
+      toast.success("¡Actualizado!", {
+        description: "¡La aeronave se ha actualizado correctamente!",
+      });
+    },
+    onError: (error) => {
+      toast.error("Oops!", {
+        description: `Hubo un error al actualizar la aeronave: ${error}`,
+      });
+    },
+  });
+
+  return {
+    updateMaintenanceAircraft: updateMutation,
+  };
+};
+
 export const useDeleteMaintenanceAircraft = () => {
 
   const queryClient = useQueryClient()

@@ -21,7 +21,8 @@ export const useCreateClient = () => {
       mutationFn: async ({company, data}: {
         company: string | null, data: CreateClientSchema
       }) => {
-          await axiosInstance.post(`/${company}/clients`, data)
+          const response = await axiosInstance.post(`/${company}/clients`, data)
+          return response.data
         },
       onSuccess: () => {
           queryClient.invalidateQueries({queryKey: ['clients']})
