@@ -265,12 +265,12 @@ export default function NewAircraftPage() {
                                         Anterior
                                     </Button>
                                     <Button
-                                        disabled={createMaintenanceAircraft.isPending}
+                                        disabled={createMaintenanceAircraft.isPending || createClient.isPending}
                                         type="button"
                                         onClick={handleSubmit}
                                         className="min-w-[180px]"
                                     >
-                                        {createMaintenanceAircraft.isPending ? (
+                                        {(createMaintenanceAircraft.isPending || createClient.isPending) ? (
                                             <>
                                                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                                                 Procesando...
