@@ -40,6 +40,15 @@ const fmtDate = (d?: string | Date | null) => {
   return format(date, "PPP", { locale: es })
 }
 
+// Formatear números con máximo 2 decimales, eliminando ceros innecesarios
+const fmtNumber = (n: unknown): string => {
+  if (n === null || n === undefined || n === "") return "—"
+  const num = typeof n === "number" ? n : Number(n)
+  if (isNaN(num)) return "—"
+  // Redondear a 2 decimales y convertir a string, eliminando ceros innecesarios
+  return Number(num.toFixed(2)).toString()
+}
+
 const asNum = (n: unknown) => (typeof n === "number" ? n : Number(n))
 
 const sum = (arr: number[]) => arr.reduce((a, b) => a + b, 0)
@@ -140,17 +149,17 @@ function TreeNode({ node, depth = 0 }: { node: PartNode; depth?: number }) {
           <div className="flex items-center gap-2">
             <Badge variant="outline" className="capitalize">{p.condition_type || "—"}</Badge>
             <div className="hidden sm:flex items-center gap-2 text-xs text-muted-foreground">
-              <span>H: {p.time_since_new ?? p.part_hours ?? "—"}</span>
+              <span>H: {fmtNumber(p.time_since_new ?? p.part_hours)}</span>
               <Separator orientation="vertical" className="h-4" />
-              <span>C: {p.cycles_since_new ?? p.part_cycles ?? "—"}</span>
+              <span>C: {fmtNumber(p.cycles_since_new ?? p.part_cycles)}</span>
             </div>
           </div>
         </div>
       </summary>
       <div className="ml-8 mt-2 grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs text-muted-foreground">
         <div className="flex items-center gap-1"><CalendarIcon className="h-3.5 w-3.5" /> Instalado: <span className="ml-1 text-foreground">{fmtDate(node.assigned_date)}</span></div>
-        <div className="flex items-center gap-1"><Clock className="h-3.5 w-3.5" /> Horas al instalar: <span className="ml-1 text-foreground">{node.hours_at_installation || "—"}</span></div>
-        <div className="flex items-center gap-1"><RotateCcw className="h-3.5 w-3.5" /> Ciclos al instalar: <span className="ml-1 text-foreground">{node.cycles_at_installation || "—"}</span></div>
+        <div className="flex items-center gap-1"><Clock className="h-3.5 w-3.5" /> Horas al instalar: <span className="ml-1 text-foreground">{fmtNumber(node.hours_at_installation)}</span></div>
+        <div className="flex items-center gap-1"><RotateCcw className="h-3.5 w-3.5" /> Ciclos al instalar: <span className="ml-1 text-foreground">{fmtNumber(node.cycles_at_installation)}</span></div>
       </div>
       {hasChildren && (
         <div className="mt-1 space-y-1">
@@ -530,9 +539,9 @@ export function PlanificationAircraftTab({ aircraft }: { aircraft: MaintenanceAi
                                 <TableCell className="font-medium">{a.aircraft_part.part_name}</TableCell>
                                 <TableCell className="hidden sm:table-cell">{a.aircraft_part.part_number}</TableCell>
                                 <TableCell className="hidden md:table-cell"><Badge variant="secondary" className="capitalize">{a.aircraft_part.condition_type}</Badge></TableCell>
-                                <TableCell className="hidden md:table-cell">{a.aircraft_part.total_flight_hours} / {a.aircraft_part.total_flight_cycles}</TableCell>
+                                <TableCell className="hidden md:table-cell">{fmtNumber(a.aircraft_part.total_flight_hours)} / {fmtNumber(a.aircraft_part.total_flight_cycles)}</TableCell>
                                 <TableCell className="hidden lg:table-cell">{fmtDate(a.assigned_date)}</TableCell>
-                                <TableCell className="text-right">{a.hours_at_installation} / {a.cycles_at_installation}</TableCell>
+                                <TableCell className="text-right">{fmtNumber(a.hours_at_installation)} / {fmtNumber(a.cycles_at_installation)}</TableCell>
                               </TableRow>
                             ))}
                           </TableBody>
@@ -566,9 +575,9 @@ export function PlanificationAircraftTab({ aircraft }: { aircraft: MaintenanceAi
                                 <TableCell className="font-medium">{a.aircraft_part.part_name}</TableCell>
                                 <TableCell className="hidden sm:table-cell">{a.aircraft_part.part_number}</TableCell>
                                 <TableCell className="hidden md:table-cell"><Badge variant="secondary" className="capitalize">{a.aircraft_part.condition_type}</Badge></TableCell>
-                                <TableCell className="hidden md:table-cell">{a.aircraft_part.total_flight_hours} / {a.aircraft_part.total_flight_cycles}</TableCell>
+                                <TableCell className="hidden md:table-cell">{fmtNumber(a.aircraft_part.total_flight_hours)} / {fmtNumber(a.aircraft_part.total_flight_cycles)}</TableCell>
                                 <TableCell className="hidden lg:table-cell">{fmtDate(a.assigned_date)}</TableCell>
-                                <TableCell className="text-right">{a.hours_at_installation} / {a.cycles_at_installation}</TableCell>
+                                <TableCell className="text-right">{fmtNumber(a.hours_at_installation)} / {fmtNumber(a.cycles_at_installation)}</TableCell>
                               </TableRow>
                             ))}
                           </TableBody>
@@ -602,9 +611,9 @@ export function PlanificationAircraftTab({ aircraft }: { aircraft: MaintenanceAi
                                 <TableCell className="font-medium">{a.aircraft_part.part_name}</TableCell>
                                 <TableCell className="hidden sm:table-cell">{a.aircraft_part.part_number}</TableCell>
                                 <TableCell className="hidden md:table-cell"><Badge variant="secondary" className="capitalize">{a.aircraft_part.condition_type}</Badge></TableCell>
-                                <TableCell className="hidden md:table-cell">{a.aircraft_part.total_flight_hours} / {a.aircraft_part.total_flight_cycles}</TableCell>
+                                <TableCell className="hidden md:table-cell">{fmtNumber(a.aircraft_part.total_flight_hours)} / {fmtNumber(a.aircraft_part.total_flight_cycles)}</TableCell>
                                 <TableCell className="hidden lg:table-cell">{fmtDate(a.assigned_date)}</TableCell>
-                                <TableCell className="text-right">{a.hours_at_installation} / {a.cycles_at_installation}</TableCell>
+                                <TableCell className="text-right">{fmtNumber(a.hours_at_installation)} / {fmtNumber(a.cycles_at_installation)}</TableCell>
                               </TableRow>
                             ))}
                           </TableBody>
