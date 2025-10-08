@@ -55,8 +55,8 @@ const PartSchema: any = z.object({
   brand: z.string().min(1, "Marca obligatoria").max(50),
   time_since_new: z.number().min(0).optional(),  // Time Since New
   time_since_overhaul: z.number().min(0).optional(),  // Time Since Overhaul
-  cycles_since_new: z.number().min(0).optional(),  // Cycles Since New
-  cycles_since_overhaul: z.number().min(0).optional(),  // Cycles Since Overhaul
+  cycles_since_new: z.number().int("Debe ser un número entero").min(0).optional(),  // Cycles Since New (entero)
+  cycles_since_overhaul: z.number().int("Debe ser un número entero").min(0).optional(),  // Cycles Since Overhaul (entero)
   condition_type: z.enum(["NEW", "OVERHAULED"]),
   is_father: z.boolean().default(false),
   sub_parts: z.array(z.lazy(() => PartSchema)).optional()
@@ -505,11 +505,21 @@ function PartSection({ form, index, path, onRemove, onToggleExpand, isExpanded, 
                   <FormControl>
                     <Input
                       type="number"
-                      step="0.1"
+                      step="0.01"
+                      min="0"
                       placeholder="Ej: 15377.50"
                       {...field}
                       onChange={e => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
                       value={field.value ?? ""}
+                      onInput={(e) => {
+                        // Limitar a 2 decimales
+                        const value = (e.target as HTMLInputElement).value;
+                        const parts = value.split('.');
+                        if (parts.length === 2 && parts[1].length > 2) {
+                          (e.target as HTMLInputElement).value = `${parts[0]}.${parts[1].slice(0, 2)}`;
+                          field.onChange(Number((e.target as HTMLInputElement).value));
+                        }
+                      }}
                     />
                   </FormControl>
                   <FormMessage />
@@ -525,11 +535,21 @@ function PartSection({ form, index, path, onRemove, onToggleExpand, isExpanded, 
                   <FormControl>
                     <Input
                       type="number"
-                      step="0.1"
-                      placeholder="Ej: 2496.8"
+                      step="0.01"
+                      min="0"
+                      placeholder="Ej: 2496.80"
                       {...field}
                       onChange={e => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
                       value={field.value ?? ""}
+                      onInput={(e) => {
+                        // Limitar a 2 decimales
+                        const value = (e.target as HTMLInputElement).value;
+                        const parts = value.split('.');
+                        if (parts.length === 2 && parts[1].length > 2) {
+                          (e.target as HTMLInputElement).value = `${parts[0]}.${parts[1].slice(0, 2)}`;
+                          field.onChange(Number((e.target as HTMLInputElement).value));
+                        }
+                      }}
                     />
                   </FormControl>
                   <FormMessage />
@@ -548,10 +568,18 @@ function PartSection({ form, index, path, onRemove, onToggleExpand, isExpanded, 
                   <FormControl>
                     <Input
                       type="number"
+                      step="1"
+                      min="0"
                       placeholder="Ej: 21228"
                       {...field}
                       onChange={e => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
                       value={field.value ?? ""}
+                      onKeyDown={(e) => {
+                        // Prevenir números negativos y decimales
+                        if (e.key === '-' || e.key === '.' || e.key === ',') {
+                          e.preventDefault();
+                        }
+                      }}
                     />
                   </FormControl>
                   <FormMessage />
@@ -567,10 +595,18 @@ function PartSection({ form, index, path, onRemove, onToggleExpand, isExpanded, 
                   <FormControl>
                     <Input
                       type="number"
+                      step="1"
+                      min="0"
                       placeholder="Ej: 3865"
                       {...field}
                       onChange={e => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
                       value={field.value ?? ""}
+                      onKeyDown={(e) => {
+                        // Prevenir números negativos y decimales
+                        if (e.key === '-' || e.key === '.' || e.key === ',') {
+                          e.preventDefault();
+                        }
+                      }}
                     />
                   </FormControl>
                   <FormMessage />
