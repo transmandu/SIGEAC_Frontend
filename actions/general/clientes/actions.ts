@@ -77,7 +77,7 @@ export const useUpdateClient = () => {
 
   const updateMutation = useMutation({
     mutationFn: async ({ id, data, company }: { id: string; data: any, company: string }) => {
-      await axiosInstance.put(`/${company}/clients/${id}`, data);
+      await axiosInstance.patch(`/${company}/clients/${id}`, data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['clients'] });

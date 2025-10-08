@@ -128,7 +128,7 @@ const WorkOrderAircraftDetailsCards = ({ work_order }: { work_order: WorkOrder }
                   work_order.aircraft.aircraft_parts.map((part) => (
                     <div className='flex flex-col justify-center text-center' key={part.part_number}>
                       <p className="text-sm text-gray-600">{part.part_name}</p>
-                      <p className="font-medium">{part.part_hours} hrs. - {part.part_cycles} cyc.</p>
+                      <p className="font-medium">{part.time_since_new} hrs. - {part.cycles_since_new} cyc.</p>
                     </div>
                   ))
                 }
@@ -137,7 +137,7 @@ const WorkOrderAircraftDetailsCards = ({ work_order }: { work_order: WorkOrder }
           }
         </CardContent>
         <CardFooter className="flex justify-center">
-          <Link href={`/hangar74/planificacion/aeronaves/${work_order?.aircraft.acronym}`}>
+          <Link href={`/${work_order?.aircraft.client.company?.slug || 'hangar74'}/planificacion/aeronaves`}>
             <Button>Ver Aeronave</Button>
           </Link>
         </CardFooter>
