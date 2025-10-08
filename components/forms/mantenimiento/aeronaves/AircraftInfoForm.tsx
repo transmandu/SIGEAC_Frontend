@@ -33,14 +33,22 @@ const AircraftInfoSchema = z.object({
   acronym: z.string().min(1, "El acrónimo es obligatorio"),
   flight_hours: z.string()
     .refine((val) => {
-      const num = parseInt(val);
+      const num = parseFloat(val);
       return !isNaN(num) && num >= 0;
-    }, "Debe ser un número entero mayor o igual a 0"),
+    }, "Debe ser un número mayor o igual a 0")
+    .refine((val) => {
+      const parts = val.split('.');
+      return parts.length === 1 || (parts.length === 2 && parts[1].length <= 2);
+    }, "Solo se permiten hasta 2 decimales"),
   flight_cycles: z.string()
     .refine((val) => {
-      const num = parseInt(val);
+      const num = parseFloat(val);
       return !isNaN(num) && num >= 0;
-    }, "Debe ser un número entero mayor o igual a 0"),
+    }, "Debe ser un número mayor o igual a 0")
+    .refine((val) => {
+      const parts = val.split('.');
+      return parts.length === 1 || (parts.length === 2 && parts[1].length <= 2);
+    }, "Solo se permiten hasta 2 decimales"),
   fabricant_date: z.date(),
   comments: z.string().optional(),
   location_id: z.string().min(1, "La ubicación es obligatoria"),
@@ -568,12 +576,12 @@ export function AircraftInfoForm({ onNext, onBack, initialData }: AircraftInfoFo
                   <Input
                     type="number"
                     min="0"
-                    step="1"
+                    step="0.01"
                     placeholder="Ej: 15000"
                     {...field}
                     onKeyDown={(e) => {
-                      // Prevenir números negativos y decimales
-                      if (e.key === '-' || e.key === '.' || e.key === ',') {
+                      // Prevenir números negativos
+                      if (e.key === '-') {
                         e.preventDefault();
                       }
                     }}
@@ -596,12 +604,12 @@ export function AircraftInfoForm({ onNext, onBack, initialData }: AircraftInfoFo
                   <Input
                     type="number"
                     min="0"
-                    step="1"
+                    step="0.01"
                     placeholder="Ej: 500"
                     {...field}
                     onKeyDown={(e) => {
-                      // Prevenir números negativos y decimales
-                      if (e.key === '-' || e.key === '.' || e.key === ',') {
+                      // Prevenir números negativos
+                      if (e.key === '-') {
                         e.preventDefault();
                       }
                     }}

@@ -17,8 +17,10 @@ import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { CalendarFold, Clock3, Eye, FileCheck2, MapPin, PencilLine, Printer, RefreshCw, User } from 'lucide-react'
 import Link from 'next/link'
+import { useCompanyStore } from '@/stores/CompanyStore'
 
 const WorkOrderAircraftDetailsCards = ({ work_order }: { work_order: WorkOrder }) => {
+  const { selectedCompany } = useCompanyStore();
 
   const handlePrint = async () => {
     try {
@@ -137,7 +139,7 @@ const WorkOrderAircraftDetailsCards = ({ work_order }: { work_order: WorkOrder }
           }
         </CardContent>
         <CardFooter className="flex justify-center">
-          <Link href={`/${work_order?.aircraft.client.company?.slug || 'hangar74'}/planificacion/aeronaves`}>
+          <Link href={`/${selectedCompany?.slug || 'hangar74'}/planificacion/aeronaves`}>
             <Button>Ver Aeronave</Button>
           </Link>
         </CardFooter>
