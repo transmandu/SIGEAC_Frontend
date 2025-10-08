@@ -53,6 +53,15 @@ const formatDate = (iso?: string | null) => {
   return Number.isNaN(d.getTime()) ? String(iso) : d.toLocaleDateString();
 };
 
+// Formatear números con máximo 2 decimales, eliminando ceros innecesarios
+const fmtNumber = (n: unknown): string => {
+  if (n === null || n === undefined || n === "") return "—"
+  const num = typeof n === "number" ? n : Number(n)
+  if (isNaN(num)) return "—"
+  // Redondear a 2 decimales y convertir a string, eliminando ceros innecesarios
+  return Number(num.toFixed(2)).toString()
+};
+
 const Stat = ({ icon: Icon, label, value }: { icon: any; label: string; value: React.ReactNode }) => (
   <Card className="border-dashed">
     <CardHeader className="py-3">
@@ -95,8 +104,8 @@ const PartRow = ({ p, depth = 0, index = 0 }: { p: MaintenanceAircraftPart; dept
               <ConditionBadge condition={p.condition_type} />
             </div>
             <div className="text-xs text-muted-foreground mt-1 flex gap-3 flex-wrap">
-              <span className="flex items-center gap-1"><Gauge className="h-3 w-3" /> TSN: {parseFloat(String(p.time_since_new ?? p.part_hours ?? 0)).toLocaleString()}</span>
-              <span className="flex items-center gap-1"><Layers className="h-3 w-3" /> CSN: {parseFloat(String(p.cycles_since_new ?? p.part_cycles ?? 0)).toLocaleString()}</span>
+              <span className="flex items-center gap-1"><Gauge className="h-3 w-3" /> TSN: {fmtNumber(p.time_since_new ?? p.part_hours)}</span>
+              <span className="flex items-center gap-1"><Layers className="h-3 w-3" /> CSN: {fmtNumber(p.cycles_since_new ?? p.part_cycles)}</span>
             </div>
           </div>
         </div>
@@ -161,8 +170,8 @@ export default function AircraftDetailsPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                    <Stat icon={Gauge} label="Flight Hours" value={typeof aircraft.flight_hours === 'string' ? aircraft.flight_hours : aircraft.flight_hours.toLocaleString()} />
-                    <Stat icon={Layers} label="Flight Cycles" value={typeof aircraft.flight_cycles === 'string' ? aircraft.flight_cycles : aircraft.flight_cycles.toLocaleString()} />
+                    <Stat icon={Gauge} label="Flight Hours" value={fmtNumber(aircraft.flight_hours)} />
+                    <Stat icon={Layers} label="Flight Cycles" value={fmtNumber(aircraft.flight_cycles)} />
                     <Stat icon={Calendar} label="Fabricación" value={formatDate(aircraft.fabricant_date)} />
                     <Stat icon={Puzzle} label="Partes Instaladas" value={aircraft.aircraft_parts?.length ?? 0} />
                   </div>
