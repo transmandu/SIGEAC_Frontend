@@ -870,32 +870,37 @@ export function getMenuList(
           label: "Globales",
           active: pathname.includes("/ajustes/globales"),
           icon: Globe,
-          roles: ["ANALISTA_ALMACEN", "JEFE_ALMACEN", "SUPERUSER"],
+          roles: [],
           submenus: [
             {
               href: "/ajustes/globales/unidades",
               label: "Unidades",
               active: pathname === "/ajustes/globales/unidades",
+              roles: ["JEFE_ALMACEN", "ANALISTA_ALMACEN", "SUPERUSER"],
             },
             {
               href: "/ajustes/globales/fabricantes",
               label: "Fabricantes",
               active: pathname === "/ajustes/globales/fabricantes",
+              roles: ["JEFE_ALMACEN", "ANALISTA_ALMACEN", "JEFE_PLANIFICACION", "ANALISTA_PLANIFICACION", "SUPERUSER"],
             },
             {
               href: "/ajustes/globales/proveedores",
               label: "Proveedores",
               active: pathname === "/ajustes/globales/proveedores",
+              roles: ["JEFE_COMPRAS", "ANALISTA_COMPRAS", "SUPERUSER"],
             },
             {
               href: "/ajustes/globales/clientes",
               label: "Clientes",
               active: pathname === "/ajustes/globales/clientes",
+              roles: ["JEFE_ADMINISTRACION", "ANALISTA_ADMINISTRACION", "SUPERUSER"],
             },
             {
               href: "/ajustes/globales/condiciones",
               label: "Condiciones",
               active: pathname === "/ajustes/globales/condiciones",
+              roles: ["JEFE_ALMACEN", "ANALISTA_ALMACEN", "JEFE_PLANIFICACION", "ANALISTA_PLANIFICACION", "SUPERUSER"],
             },
             {
               href: "/ajustes/globales/fuentes_informacion",

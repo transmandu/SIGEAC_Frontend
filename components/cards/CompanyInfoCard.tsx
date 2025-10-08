@@ -37,10 +37,6 @@ const CompanyInfoCard = ({ user }: {
       <CardContent className="space-y-2">
         <div className="flex justify-around gap-2">
           <div className="flex gap-2">
-            <h3 className="text-muted-foreground">C. INAC:</h3>
-            <p>ABCD1234</p>
-          </div>
-          <div className="flex gap-2">
             <h3 className="text-muted-foreground">RIF:</h3>
             <p className="text-clip">J-91039801</p>
           </div>
