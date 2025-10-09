@@ -7,11 +7,41 @@ import { Input } from "@/components/ui/input"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { useToast } from "@/components/ui/use-toast"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { ChevronDown, ChevronRight, MinusCircle, PlusCircle, Cog, Zap, Fan, Plane } from "lucide-react"
+import { ChevronDown, ChevronRight, MinusCircle, PlusCircle, Cog, Zap, Fan, Plane, Check, ChevronsUpDown } from "lucide-react"
 import { useState } from "react"
 import { useFieldArray, useForm, UseFormReturn, FieldArrayWithId } from "react-hook-form"
 import { z } from "zod"
 import { ScrollArea } from "../../../ui/scroll-area"
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "../../../ui/command"
+import { Popover, PopoverContent, PopoverTrigger } from "../../../ui/popover"
+import { cn } from "@/lib/utils"
+import { useGetManufacturers } from "@/hooks/general/fabricantes/useGetManufacturers"
+import { useCompanyStore } from "@/stores/CompanyStore"
+import { ManufacturerCombobox } from "./ManufacturerCombobox"
+
+// Función para formatear números según el separador decimal detectado
+const fmtNumber = (n: unknown): string => {
+  if (n == null || n === "") return ""
+  
+  const str = String(n).trim()
+  if (!str) return ""
+  
+  const lastDot = str.lastIndexOf(".")
+  const lastComma = str.lastIndexOf(",")
+  
+  // Determinar locale y parsear según posición de separadores
+  const isEuropean = lastComma > lastDot || (lastComma !== -1 && lastDot === -1)
+  const num = isEuropean 
+    ? Number(str.replace(/\./g, "").replace(",", "."))
+    : Number(str.replace(/,/g, ""))
+  
+  if (isNaN(num)) return ""
+  
+  return num.toLocaleString(isEuropean ? "de-DE" : "en-US", { 
+    minimumFractionDigits: 2, 
+    maximumFractionDigits: 2 
+  })
+}
 
 // Tipos de categoría para las partes
 export const PART_CATEGORIES = {
@@ -74,6 +104,9 @@ export function AircraftPartsInfoForm({ onNext, onBack, initialData }: {
   initialData?: PartsFormType
 }) {
   const { toast } = useToast();
+  const { selectedCompany } = useCompanyStore();
+  const { data: manufacturers } = useGetManufacturers(selectedCompany?.slug);
+  
   const form = useForm<PartsFormType>({
     resolver: zodResolver(PartsFormSchema),
     defaultValues: initialData || { parts: [{ condition_type: "NEW" }] }
@@ -90,6 +123,7 @@ export function AircraftPartsInfoForm({ onNext, onBack, initialData }: {
     APU: false,
     PROPELLER: false
   });
+
 
   // Estado para rastrear qué categorías están marcadas como "No Aplica"
   const [notApplicableCategories, setNotApplicableCategories] = useState<Record<string, boolean>>({
@@ -311,6 +345,7 @@ export function AircraftPartsInfoForm({ onNext, onBack, initialData }: {
                                 onToggleExpand={() => toggleExpand(index)}
                                 isExpanded={expandedParts[index]}
                                 onAddSubpart={addSubpart}
+                                manufacturers={manufacturers}
                               />
                             ))}
                           </div>
@@ -379,6 +414,7 @@ export function AircraftPartsInfoForm({ onNext, onBack, initialData }: {
                     onToggleExpand={() => toggleExpand(index)}
                     isExpanded={expandedParts[index]}
                     onAddSubpart={addSubpart}
+                    manufacturers={manufacturers}
                   />
                 ))}
               </div>
@@ -397,7 +433,7 @@ export function AircraftPartsInfoForm({ onNext, onBack, initialData }: {
   );
 }
 
-function PartSection({ form, index, path, onRemove, onToggleExpand, isExpanded, onAddSubpart }: {
+function PartSection({ form, index, path, onRemove, onToggleExpand, isExpanded, onAddSubpart, manufacturers }: {
   form: UseFormReturn<PartsFormType>;
   index: number;
   path: string;
@@ -405,6 +441,7 @@ function PartSection({ form, index, path, onRemove, onToggleExpand, isExpanded, 
   onToggleExpand: () => void;
   isExpanded: boolean;
   onAddSubpart: (path: string) => void;
+  manufacturers?: any[];
 }) {
   const hassub_parts = form.watch(`${path}.is_father` as `parts.${number}.is_father`);
   const sub_parts = form.watch(`${path}.sub_parts` as `parts.${number}.sub_parts`) || [];
@@ -483,13 +520,15 @@ function PartSection({ form, index, path, onRemove, onToggleExpand, isExpanded, 
               control={form.control}
               name={`${path}.brand` as any}
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Marca</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Ej: Pratt & Whitney" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
+                <ManufacturerCombobox
+                  value={field.value}
+                  onChange={(value) => form.setValue(`${path}.brand` as any, value)}
+                  manufacturers={manufacturers}
+                  label="Marca"
+                  placeholder="Seleccionar o crear marca..."
+                  filterType={category || "GENERAL"}
+                  showTypeSelector={true}
+                />
               )}
             />
           </div>
@@ -504,20 +543,44 @@ function PartSection({ form, index, path, onRemove, onToggleExpand, isExpanded, 
                   <FormLabel>TSN (Time Since New)</FormLabel>
                   <FormControl>
                     <Input
-                      type="number"
-                      step="0.01"
-                      min="0"
+                      type="text"
                       placeholder="Ej: 15377.50"
-                      {...field}
-                      onChange={e => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
-                      value={field.value ?? ""}
-                      onInput={(e) => {
-                        // Limitar a 2 decimales
-                        const value = (e.target as HTMLInputElement).value;
-                        const parts = value.split('.');
-                        if (parts.length === 2 && parts[1].length > 2) {
-                          (e.target as HTMLInputElement).value = `${parts[0]}.${parts[1].slice(0, 2)}`;
-                          field.onChange(Number((e.target as HTMLInputElement).value));
+                      value={field.value !== undefined ? (typeof field.value === 'number' ? fmtNumber(field.value) : String(field.value)) : ""}
+                      onChange={e => {
+                        if (e.target.value === "") {
+                          field.onChange(undefined);
+                          return;
+                        }
+                        // Permitir escribir libremente, solo filtrar caracteres no válidos
+                        const value = e.target.value.replace(/[^\d.,]/g, '');
+                        field.onChange(value);
+                      }}
+                      onBlur={(e) => {
+                        if (e.target.value === "") {
+                          field.onChange(undefined);
+                          return;
+                        }
+                        
+                        // Detectar formato y normalizar correctamente
+                        const value = e.target.value;
+                        const lastDot = value.lastIndexOf('.');
+                        const lastComma = value.lastIndexOf(',');
+                        
+                        let normalized: string;
+                        if (lastComma > lastDot) {
+                          // Formato europeo: 1.234,50 → eliminar puntos, cambiar coma por punto
+                          normalized = value.replace(/\./g, "").replace(",", ".");
+                        } else {
+                          // Formato US: 1,234.50 → eliminar comas, mantener punto
+                          normalized = value.replace(/,/g, "");
+                        }
+                        
+                        const num = parseFloat(normalized);
+                        
+                        if (!isNaN(num)) {
+                          // Redondear a 2 decimales y guardar como número
+                          const rounded = Math.round(num * 100) / 100;
+                          field.onChange(rounded);
                         }
                       }}
                     />
@@ -534,20 +597,44 @@ function PartSection({ form, index, path, onRemove, onToggleExpand, isExpanded, 
                   <FormLabel>TSO (Time Since Overhaul)</FormLabel>
                   <FormControl>
                     <Input
-                      type="number"
-                      step="0.01"
-                      min="0"
+                      type="text"
                       placeholder="Ej: 2496.80"
-                      {...field}
-                      onChange={e => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
-                      value={field.value ?? ""}
-                      onInput={(e) => {
-                        // Limitar a 2 decimales
-                        const value = (e.target as HTMLInputElement).value;
-                        const parts = value.split('.');
-                        if (parts.length === 2 && parts[1].length > 2) {
-                          (e.target as HTMLInputElement).value = `${parts[0]}.${parts[1].slice(0, 2)}`;
-                          field.onChange(Number((e.target as HTMLInputElement).value));
+                      value={field.value !== undefined ? (typeof field.value === 'number' ? fmtNumber(field.value) : String(field.value)) : ""}
+                      onChange={e => {
+                        if (e.target.value === "") {
+                          field.onChange(undefined);
+                          return;
+                        }
+                        // Permitir escribir libremente, solo filtrar caracteres no válidos
+                        const value = e.target.value.replace(/[^\d.,]/g, '');
+                        field.onChange(value);
+                      }}
+                      onBlur={(e) => {
+                        if (e.target.value === "") {
+                          field.onChange(undefined);
+                          return;
+                        }
+                        
+                        // Detectar formato y normalizar correctamente
+                        const value = e.target.value;
+                        const lastDot = value.lastIndexOf('.');
+                        const lastComma = value.lastIndexOf(',');
+                        
+                        let normalized: string;
+                        if (lastComma > lastDot) {
+                          // Formato europeo: 1.234,50 → eliminar puntos, cambiar coma por punto
+                          normalized = value.replace(/\./g, "").replace(",", ".");
+                        } else {
+                          // Formato US: 1,234.50 → eliminar comas, mantener punto
+                          normalized = value.replace(/,/g, "");
+                        }
+                        
+                        const num = parseFloat(normalized);
+                        
+                        if (!isNaN(num)) {
+                          // Redondear a 2 decimales y guardar como número
+                          const rounded = Math.round(num * 100) / 100;
+                          field.onChange(rounded);
                         }
                       }}
                     />
@@ -647,6 +734,7 @@ function PartSection({ form, index, path, onRemove, onToggleExpand, isExpanded, 
                     onToggleExpand={() => { }}
                     isExpanded={true}
                     onAddSubpart={onAddSubpart}
+                    manufacturers={manufacturers}
                   />
                 </div>
               ))}

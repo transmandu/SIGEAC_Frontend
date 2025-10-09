@@ -32,7 +32,7 @@ const formSchema = z.object({
   description: z.string().min(3, {
     message: "La descripcion debe tener al menos 3 carácters.",
   }),
-  type: z.enum(["AIRCRAFT", "PART"], {
+  type: z.enum(["AIRCRAFT", "ENGINE", "APU", "PROPELLER", "GENERAL"], {
     required_error: "Debe seleccionar un tipo",
   }),
 })
@@ -52,7 +52,7 @@ export default function CreateManufacturerForm({ onClose }: FormProps) {
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: "",
-      type: "AIRCRAFT",
+      type: "GENERAL",
       description: "",
     },
   })
@@ -99,16 +99,20 @@ export default function CreateManufacturerForm({ onClose }: FormProps) {
                 </FormControl>
                 <SelectContent>
                   <SelectItem value="AIRCRAFT">Aeronave</SelectItem>
-                  <SelectItem value="PART">Parte</SelectItem>
+                  <SelectItem value="ENGINE">Fuentes de Poder</SelectItem>
+                  <SelectItem value="APU">APU</SelectItem>
+                  <SelectItem value="PROPELLER">Hélice</SelectItem>
+                  <SelectItem value="GENERAL">Piezas en General</SelectItem>
                 </SelectContent>
               </Select>
               <FormDescription>
-                Indique si es de parte o de aeronave.
+                Indique el tipo de fabricante.
               </FormDescription>
               <FormMessage />
             </FormItem>
           )}
         />
+        
         <FormField
           control={form.control}
           name="description"

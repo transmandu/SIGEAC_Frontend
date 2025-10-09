@@ -5,7 +5,7 @@ import { toast } from "sonner"
 interface ManufacturerSchema {
     name: string,
     description: string,
-    type: "AIRCRAFT" | "PART",
+    type: "AIRCRAFT" | "ENGINE" | "APU" | "PROPELLER" | "GENERAL",
 }
 
 export const useCreateManufacturer = () => {
@@ -16,7 +16,8 @@ export const useCreateManufacturer = () => {
         mutationFn: async ({company, data}: {
           company: string | undefined, data: ManufacturerSchema
         }) => {
-            await axiosInstance.post(`/${company}/manufacturers`, data)
+            const response = await axiosInstance.post(`/${company}/manufacturers`, data)
+            return response.data
           },
         onSuccess: () => {
             queryClient.invalidateQueries({queryKey: ['manufacturers']})

@@ -20,6 +20,31 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { Popover, PopoverContent, PopoverTrigger } from "../../../ui/popover"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../../ui/select"
 import { Textarea } from "../../../ui/textarea"
+import { ManufacturerCombobox } from "./ManufacturerCombobox"
+
+// Función para formatear números según el separador decimal detectado
+const fmtNumber = (n: unknown): string => {
+  if (n == null || n === "") return ""
+  
+  const str = String(n).trim()
+  if (!str) return ""
+  
+  const lastDot = str.lastIndexOf(".")
+  const lastComma = str.lastIndexOf(",")
+  
+  // Determinar locale y parsear según posición de separadores
+  const isEuropean = lastComma > lastDot || (lastComma !== -1 && lastDot === -1)
+  const num = isEuropean 
+    ? Number(str.replace(/\./g, "").replace(",", "."))
+    : Number(str.replace(/,/g, ""))
+  
+  if (isNaN(num)) return ""
+  
+  return num.toLocaleString(isEuropean ? "de-DE" : "en-US", { 
+    minimumFractionDigits: 2, 
+    maximumFractionDigits: 2 
+  })
+}
 
 // Esquema de validación para el Paso 1 (Información de la aeronave)
 const AircraftInfoSchema = z.object({
@@ -32,14 +57,14 @@ const AircraftInfoSchema = z.object({
   model: z.string().min(1, "El modelo es obligatorio"),
   acronym: z.string().min(1, "El acrónimo es obligatorio"),
   flight_hours: z.string()
+    .min(1, "Las horas de vuelo son obligatorias")
     .refine((val) => {
-      const num = parseFloat(val);
+      if (!val || val.trim() === "") return false;
+      // Soportar ambos formatos: punto y coma como decimal
+      const normalized = val.replace(/\./g, "").replace(",", ".");
+      const num = parseFloat(normalized);
       return !isNaN(num) && num >= 0;
-    }, "Debe ser un número mayor o igual a 0")
-    .refine((val) => {
-      const parts = val.split('.');
-      return parts.length === 1 || (parts.length === 2 && parts[1].length <= 2);
-    }, "Solo se permiten hasta 2 decimales"),
+    }, "Debe ser un número mayor o igual a 0"),
   flight_cycles: z.string()
     .refine((val) => {
       const num = parseInt(val);
@@ -82,8 +107,18 @@ export function AircraftInfoForm({ onNext, onBack, initialData }: AircraftInfoFo
   // Actualizar formulario cuando lleguen los initialData
   useEffect(() => {
     if (initialData) {
-      // Resetear el formulario con los nuevos datos
-      form.reset(initialData);
+      // Formatear flight_hours si existe
+      const formattedData = { ...initialData };
+      if (initialData.flight_hours && initialData.flight_hours !== "") {
+        const formatted = fmtNumber(initialData.flight_hours);
+        if (formatted) {
+          formattedData.flight_hours = formatted;
+        }
+      }
+      
+      // Resetear el formulario con los datos formateados
+      form.reset(formattedData);
+      
       // Sincronizar el valor de búsqueda del cliente
       if (initialData.client_name) {
         setClientSearchValue(initialData.client_name);
@@ -100,6 +135,45 @@ export function AircraftInfoForm({ onNext, onBack, initialData }: AircraftInfoFo
   }, [locations, form]);
 
   const onSubmit = (data: AircraftInfoType) => {
+    // Convertir flight_hours de formato visual a número
+    const flightHoursValue = data.flight_hours;
+    if (flightHoursValue && typeof flightHoursValue === 'string' && flightHoursValue.trim() !== '') {
+      // Detectar formato y normalizar correctamente
+      const lastDot = flightHoursValue.lastIndexOf('.');
+      const lastComma = flightHoursValue.lastIndexOf(',');
+      
+      let normalized: string;
+      if (lastComma > lastDot) {
+        // Formato europeo: 1.234,50 → eliminar puntos, cambiar coma por punto
+        normalized = flightHoursValue.replace(/\./g, "").replace(",", ".");
+      } else {
+        // Formato US: 1,234.50 → eliminar comas, mantener punto
+        normalized = flightHoursValue.replace(/,/g, "");
+      }
+      
+      const num = parseFloat(normalized);
+      
+      if (!isNaN(num)) {
+        // Redondear a 2 decimales para evitar problemas de precisión
+        const rounded = Math.round(num * 100) / 100;
+        data.flight_hours = String(rounded);
+      } else {
+        // Si no es un número válido, mostrar error
+        form.setError('flight_hours', {
+          type: 'manual',
+          message: 'El valor ingresado no es un número válido'
+        });
+        return;
+      }
+    } else {
+      // Si el campo está vacío, mostrar error
+      form.setError('flight_hours', {
+        type: 'manual',
+        message: 'Las horas de vuelo son obligatorias'
+      });
+      return;
+    }
+    
     onNext(data);
   };
 
@@ -267,70 +341,18 @@ export function AircraftInfoForm({ onNext, onBack, initialData }: AircraftInfoFo
             control={form.control}
             name="manufacturer_id"
             render={({ field }) => (
-              <FormItem className="flex flex-col space-y-3 mt-1.5">
-                <FormLabel>Fabricante</FormLabel>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <FormControl>
-                      <Button
-                        disabled={isManufacturersLoading || isManufacturersError}
-                        variant="outline"
-                        role="combobox"
-                        className={cn(
-                          "justify-between",
-                          !field.value && "text-muted-foreground"
-                        )}
-                      >
-                        {
-                          isManufacturersLoading && <Loader2 className="size-4 animate-spin mr-2" />
-                        }
-                        {field.value
-                          ? <p>{manufacturers?.find(
-                            (manufacturer) => `${manufacturer.id.toString()}` === field.value
-                          )?.name}</p>
-                          : "Elige al fabricante..."
-                        }
-                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                      </Button>
-                    </FormControl>
-                  </PopoverTrigger>
-                  <PopoverContent className="p-0">
-                    <Command>
-                      <CommandInput placeholder="Busque un fabricante..." />
-                      <CommandList>
-                        <CommandEmpty className="text-sm p-2 text-center">No se ha encontrado ningún fabricante.</CommandEmpty>
-                        <CommandGroup>
-                          {manufacturers?.filter((m) => m.type === 'AIRCRAFT').map((manufacturer) => (
-                            <CommandItem
-                              value={`${manufacturer.id}`}
-                              key={manufacturer.id}
-                              onSelect={() => {
-                                form.setValue("manufacturer_id", manufacturer.id.toString())
-                              }}
-                            >
-                              <Check
-                                className={cn(
-                                  "mr-2 h-4 w-4",
-                                  `${manufacturer.id.toString()}` === field.value
-                                    ? "opacity-100"
-                                    : "opacity-0"
-                                )}
-                              />
-                              {
-                                <p>{manufacturer.name}</p>
-                              }
-                            </CommandItem>
-                          ))}
-                        </CommandGroup>
-                      </CommandList>
-                    </Command>
-                  </PopoverContent>
-                </Popover>
-                <FormDescription className="text-xs">
-                  Fabricante de la aeronave.
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
+              <ManufacturerCombobox
+                value={field.value}
+                onChange={field.onChange}
+                manufacturers={manufacturers}
+                isLoading={isManufacturersLoading}
+                isError={isManufacturersError}
+                label="Fabricante"
+                description="Fabricante de la aeronave."
+                placeholder="Seleccionar o crear fabricante..."
+                filterType="AIRCRAFT"
+                showTypeSelector={false}
+              />
             )}
           />
           <div className="flex gap-2">
@@ -459,24 +481,44 @@ export function AircraftInfoForm({ onNext, onBack, initialData }: AircraftInfoFo
                 <FormLabel>Horas de Vuelo</FormLabel>
                 <FormControl>
                   <Input
-                    type="number"
-                    min="0"
-                    step="0.01"
+                    type="text"
                     placeholder="Ej: 15000"
-                    {...field}
-                    onKeyDown={(e) => {
-                      // Prevenir números negativos
-                      if (e.key === '-') {
-                        e.preventDefault();
-                      }
+                    value={field.value || ""}
+                    onChange={(e) => {
+                      // Permitir escribir libremente, solo filtrar caracteres no válidos
+                      const value = e.target.value.replace(/[^\d.,]/g, '');
+                      field.onChange(value);
                     }}
-                    onInput={(e) => {
-                      // Limitar a 2 decimales
-                      const value = (e.target as HTMLInputElement).value;
-                      const parts = value.split('.');
-                      if (parts.length === 2 && parts[1].length > 2) {
-                        (e.target as HTMLInputElement).value = `${parts[0]}.${parts[1].slice(0, 2)}`;
-                        field.onChange((e.target as HTMLInputElement).value);
+                    onBlur={(e) => {
+                      const value = e.target.value.trim();
+                      if (!value) {
+                        // Si está vacío, no hacer nada (la validación del form lo manejará)
+                        return;
+                      }
+                      
+                      // Detectar formato y normalizar correctamente
+                      const lastDot = value.lastIndexOf('.');
+                      const lastComma = value.lastIndexOf(',');
+                      
+                      let normalized: string;
+                      if (lastComma > lastDot) {
+                        // Formato europeo: 1.234,50 → eliminar puntos, cambiar coma por punto
+                        normalized = value.replace(/\./g, "").replace(",", ".");
+                      } else {
+                        // Formato US: 1,234.50 → eliminar comas, mantener punto
+                        normalized = value.replace(/,/g, "");
+                      }
+                      
+                      const num = parseFloat(normalized);
+                      
+                      if (!isNaN(num)) {
+                        // Redondear a 2 decimales
+                        const rounded = Math.round(num * 100) / 100;
+                        // Formatear para visualización
+                        const formatted = fmtNumber(String(rounded));
+                        if (formatted) {
+                          field.onChange(formatted);
+                        }
                       }
                     }}
                   />

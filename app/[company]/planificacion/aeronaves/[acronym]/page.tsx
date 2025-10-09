@@ -55,11 +55,29 @@ const formatDate = (iso?: string | null) => {
 
 // Formatear números con máximo 2 decimales, eliminando ceros innecesarios
 const fmtNumber = (n: unknown): string => {
-  if (n === null || n === undefined || n === "") return "—"
-  const num = typeof n === "number" ? n : Number(n)
+  if (n == null || n === "") return "—"
+  
+  const str = String(n).trim()
+  if (!str) return "—"
+  
+  const lastDot = str.lastIndexOf(".")
+  const lastComma = str.lastIndexOf(",")
+  
+  // Determinar locale y parsear según posición de separadores
+  const isEuropean = lastComma > lastDot || (lastComma !== -1 && lastDot === -1)
+  const num = isEuropean 
+    ? Number(str.replace(/\./g, "").replace(",", "."))
+    : Number(str.replace(/,/g, ""))
+  
   if (isNaN(num)) return "—"
-  // Redondear a 2 decimales y convertir a string, eliminando ceros innecesarios
-  return Number(num.toFixed(2)).toString()
+  
+  // Redondear a 2 decimales para evitar problemas de precisión de punto flotante
+  const rounded = Math.round(num * 100) / 100
+  
+  return rounded.toLocaleString(isEuropean ? "de-DE" : "en-US", { 
+    minimumFractionDigits: 2, 
+    maximumFractionDigits: 2 
+  })
 };
 
 const Stat = ({ icon: Icon, label, value }: { icon: any; label: string; value: React.ReactNode }) => (
