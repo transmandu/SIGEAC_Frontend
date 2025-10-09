@@ -87,10 +87,10 @@ export default function NewAircraftPage() {
         
         return {
             ...rest,
-            time_since_new: rest.time_since_new ?? 0,
-            time_since_overhaul: rest.time_since_overhaul ?? 0,
-            cycles_since_new: rest.cycles_since_new ?? 0,
-            cycles_since_overhaul: rest.cycles_since_overhaul ?? 0,
+            time_since_new: Math.round((rest.time_since_new ?? 0) * 100) / 100,
+            time_since_overhaul: Math.round((rest.time_since_overhaul ?? 0) * 100) / 100,
+            cycles_since_new: Math.round(rest.cycles_since_new ?? 0),
+            cycles_since_overhaul: Math.round(rest.cycles_since_overhaul ?? 0),
             part_type,
             sub_parts: part.sub_parts?.map(transformPart)
         };

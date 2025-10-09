@@ -156,7 +156,7 @@ export function AircraftInfoForm({ onNext, onBack, initialData }: AircraftInfoFo
       if (!isNaN(num)) {
         // Redondear a 2 decimales para evitar problemas de precisión
         const rounded = Math.round(num * 100) / 100;
-        data.flight_hours = String(rounded);
+        data.flight_hours = rounded.toFixed(2);
       } else {
         // Si no es un número válido, mostrar error
         form.setError('flight_hours', {
