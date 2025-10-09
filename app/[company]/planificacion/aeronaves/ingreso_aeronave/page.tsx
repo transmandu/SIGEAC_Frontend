@@ -1,8 +1,9 @@
 "use client";
 
-import { useCreateMaintenanceAircraft } from "@/actions/mantenimiento/planificacion/aeronaves/actions";
+import { useCreateMaintenanceAircraft, AircraftPartAPI } from "@/actions/mantenimiento/planificacion/aeronaves/actions";
 import { useCreateClient } from "@/actions/general/clientes/actions";
 import { useGetClients } from "@/hooks/general/clientes/useGetClients";
+import { useGetManufacturers } from "@/hooks/general/condiciones/useGetConditions";
 import { AircraftPartsInfoForm } from "@/components/forms/mantenimiento/aeronaves/AircraftPartsForm";
 import { AircraftInfoForm } from "@/components/forms/mantenimiento/aeronaves/AircraftInfoForm";
 import { ContentLayout } from "@/components/layout/ContentLayout";
@@ -10,8 +11,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useCompanyStore } from "@/stores/CompanyStore";
-import { ArrowLeft, CheckCircle, Loader2, Plane, Settings } from "lucide-react";
+import { ArrowLeft, CheckCircle, Loader2, Plane, Settings, ChevronDown } from "lucide-react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { InfoItem } from "./_components/InfoItem";
@@ -22,7 +24,7 @@ interface AircraftPart {
     part_name: string;
     part_number: string;
     serial: string;
-    brand: string;
+    manufacturer_id: string;
     time_since_new?: number;  // Time Since New
     time_since_overhaul?: number;  // Time Since Overhaul
     cycles_since_new?: number;  // Cycles Since New
@@ -30,22 +32,6 @@ interface AircraftPart {
     condition_type: "NEW" | "OVERHAULED";
     is_father: boolean;
     sub_parts?: AircraftPart[];
-}
-
-// Tipo que coincide con lo que espera el API (sin category y con valores por defecto)
-interface AircraftPartAPI {
-    part_name: string;
-    part_number: string;
-    serial: string;
-    brand: string;
-    time_since_new: number;
-    time_since_overhaul: number;
-    cycles_since_new: number;
-    cycles_since_overhaul: number;
-    condition_type: "NEW" | "OVERHAULED";
-    is_father: boolean;
-    part_type: "engine" | "apu" | "propeller"; // Campo requerido por el backend
-    sub_parts?: AircraftPartAPI[];
 }
 
 interface AircraftInfoType {
@@ -74,6 +60,7 @@ export default function NewAircraftPage() {
     const { selectedCompany } = useCompanyStore();
     const { createClient } = useCreateClient();
     const { data: clients } = useGetClients(selectedCompany?.slug);
+    const { data: manufacturers } = useGetManufacturers(selectedCompany?.slug);
     const router = useRouter();
 
     // Función para transformar las partes del frontend al formato API
@@ -81,9 +68,9 @@ export default function NewAircraftPage() {
         const { category, ...rest } = part;
         
         // Mapear categoría a part_type
-        const part_type = category === "APU" ? "apu" : 
-                         category === "PROPELLER" ? "propeller" : 
-                         "engine"; // Default: engine
+        const part_type = category === "APU" ? "APU" : 
+                         category === "PROPELLER" ? "PROPELLER" : 
+                         "ENGINE"; // Default: engine
         
         return {
             ...rest,
@@ -219,15 +206,17 @@ export default function NewAircraftPage() {
                                         </CardHeader>
                                         <CardContent className="p-4 space-y-3">
                                             <div className="grid grid-cols-2 gap-3">
-                                                <InfoItem label="Fabricante" value={aircraftData?.manufacturer_id} />
+                                                <InfoItem 
+                                                    label="Fabricante" 
+                                                    value={manufacturers?.find(m => m.id.toString() === aircraftData?.manufacturer_id)?.name || aircraftData?.manufacturer_id} 
+                                                />
                                                 <InfoItem label="Serial" value={aircraftData?.serial} />
                                                 <InfoItem label="Acrónimo" value={aircraftData?.acronym} />
                                                 <InfoItem label="Horas de Vuelo" value={aircraftData?.flight_hours} />
                                                 <InfoItem
                                                     label="Fecha de Fabricación"
-                                                    value={aircraftData?.fabricant_date?.toLocaleDateString()}
+                                                    value={aircraftData?.fabricant_date?.getFullYear().toString()}
                                                 />
-                                                <InfoItem label="Ubicación" value={aircraftData?.location_id} />
                                             </div>
                                         </CardContent>
                                     </Card>
@@ -244,15 +233,69 @@ export default function NewAircraftPage() {
                                         </CardHeader>
                                         <CardContent className="p-4">
                                             <ScrollArea className="h-[300px]">
-                                                <div className="space-y-3">
-                                                    {partsData.parts.map((part, index) => (
-                                                        <PartSummaryCard
-                                                            key={index}
-                                                            part={part}
-                                                            index={index}
-                                                            level={0}
-                                                        />
-                                                    ))}
+                                                <div className="space-y-4">
+                                                    {/* Fuentes de Poder */}
+                                                    {partsData.parts.filter(p => p.category === "ENGINE").length > 0 && (
+                                                        <div className="space-y-2">
+                                                            <h4 className="font-semibold text-sm text-blue-600 dark:text-blue-400">
+                                                                Fuentes de Poder ({partsData.parts.filter(p => p.category === "ENGINE").length})
+                                                            </h4>
+                                                            <div className="space-y-2 pl-2">
+                                                                {partsData.parts
+                                                                    .filter(p => p.category === "ENGINE")
+                                                                    .map((part, index) => (
+                                                                        <PartSummaryCard
+                                                                            key={index}
+                                                                            part={part}
+                                                                            index={index}
+                                                                            level={0}
+                                                                        />
+                                                                    ))}
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                    
+                                                    {/* APU */}
+                                                    {partsData.parts.filter(p => p.category === "APU").length > 0 && (
+                                                        <div className="space-y-2">
+                                                            <h4 className="font-semibold text-sm text-green-600 dark:text-green-400">
+                                                                APU ({partsData.parts.filter(p => p.category === "APU").length})
+                                                            </h4>
+                                                            <div className="space-y-2 pl-2">
+                                                                {partsData.parts
+                                                                    .filter(p => p.category === "APU")
+                                                                    .map((part, index) => (
+                                                                        <PartSummaryCard
+                                                                            key={index}
+                                                                            part={part}
+                                                                            index={index}
+                                                                            level={0}
+                                                                        />
+                                                                    ))}
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                    
+                                                    {/* Hélices */}
+                                                    {partsData.parts.filter(p => p.category === "PROPELLER").length > 0 && (
+                                                        <div className="space-y-2">
+                                                            <h4 className="font-semibold text-sm text-orange-600 dark:text-orange-400">
+                                                                Hélices ({partsData.parts.filter(p => p.category === "PROPELLER").length})
+                                                            </h4>
+                                                            <div className="space-y-2 pl-2">
+                                                                {partsData.parts
+                                                                    .filter(p => p.category === "PROPELLER")
+                                                                    .map((part, index) => (
+                                                                        <PartSummaryCard
+                                                                            key={index}
+                                                                            part={part}
+                                                                            index={index}
+                                                                            level={0}
+                                                                        />
+                                                                    ))}
+                                                            </div>
+                                                        </div>
+                                                    )}
                                                 </div>
                                             </ScrollArea>
                                         </CardContent>

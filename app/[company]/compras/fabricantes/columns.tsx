@@ -54,9 +54,8 @@ export const columns: ColumnDef<Manufacturer>[] = [
   {
     id: "actions",
     cell: ({ row }) => {
-      const id = row.original.id
       return (
-        <ManufacturerDropdownActions id={id.toString()} />
+        <ManufacturerDropdownActions manufacturer={row.original} />
       )
     },
   },

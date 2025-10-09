@@ -2,7 +2,22 @@ import axiosInstance from "@/lib/axios"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner";
 
-interface CreateAircraftWithPartsData {
+export interface AircraftPartAPI {
+  part_name: string;
+  part_number: string;
+  serial: string;
+  manufacturer_id: string;
+  time_since_new: number;
+  time_since_overhaul: number;
+  cycles_since_new: number;
+  cycles_since_overhaul: number;
+  condition_type: "NEW" | "OVERHAULED";
+  is_father: boolean;
+  part_type: "ENGINE" | "APU" | "PROPELLER";
+  sub_parts?: AircraftPartAPI[];
+}
+
+export interface CreateAircraftWithPartsData {
 aircraft: {
   manufacturer_id: string,
     client_id: string,
@@ -15,30 +30,7 @@ aircraft: {
     comments?: string,
     location_id: string,
 },
-parts: {
-  part_name: string;
-  part_number: string;
-  serial: string;
-  brand: string;
-  time_since_new: number;  // Time Since New
-  time_since_overhaul: number;  // Time Since Overhaul
-  cycles_since_new: number;  // Cycles Since New
-  cycles_since_overhaul: number;  // Cycles Since Overhaul
-  condition_type: "NEW" | "OVERHAULED";
-  is_father: boolean;
-  sub_parts?: {
-    part_name: string;
-    part_number: string;
-    serial: string;
-    brand: string;
-    time_since_new?: number;
-    time_since_overhaul?: number;
-    cycles_since_new?: number;
-    cycles_since_overhaul?: number;
-    condition_type: "NEW" | "OVERHAULED";
-    is_father: boolean;
-  }[];
-}[]
+parts: AircraftPartAPI[]
 }
 
 export const useCreateMaintenanceAircraft = () => {

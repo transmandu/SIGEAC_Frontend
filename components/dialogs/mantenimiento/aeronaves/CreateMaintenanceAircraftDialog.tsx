@@ -12,7 +12,7 @@ import {
 import { useState } from "react";
 import { AircraftInfoForm } from "@/components/forms/mantenimiento/aeronaves/AircraftInfoForm";
 import { AircraftPartsInfoForm, PART_CATEGORIES } from "@/components/forms/mantenimiento/aeronaves/AircraftPartsForm";
-import { useCreateMaintenanceAircraft } from "@/actions/mantenimiento/planificacion/aeronaves/actions";
+import { useCreateMaintenanceAircraft, AircraftPartAPI } from "@/actions/mantenimiento/planificacion/aeronaves/actions";
 import { useCreateClient } from "@/actions/general/clientes/actions";
 import { useCompanyStore } from "@/stores/CompanyStore";
 
@@ -21,7 +21,7 @@ interface AircraftPart {
   part_name: string;
   part_number: string;
   serial: string;
-  brand: string;
+  manufacturer_id: string;
   time_since_new?: number;
   time_since_overhaul?: number;
   cycles_since_new?: number;
@@ -29,21 +29,6 @@ interface AircraftPart {
   condition_type: "NEW" | "OVERHAULED";
   is_father: boolean;
   sub_parts?: AircraftPart[];
-}
-
-// Tipo que coincide con lo que espera el API
-interface AircraftPartAPI {
-  part_name: string;
-  part_number: string;
-  serial: string;
-  brand: string;
-  time_since_new: number;
-  time_since_overhaul: number;
-  cycles_since_new: number;
-  cycles_since_overhaul: number;
-  condition_type: "NEW" | "OVERHAULED";
-  is_father: boolean;
-  sub_parts?: AircraftPartAPI[];
 }
 
 interface AircraftInfoType {
@@ -77,19 +62,25 @@ export function CreateMaintenanceAircraftDialog() {
   // y eliminando el campo 'category' que es solo para el frontend
   const transformPart = (part: AircraftPart): AircraftPartAPI => {
     // Omitimos 'category' al desestructurar
-    const { category, ...partWithoutCategory } = part;
+    const { category, ...rest } = part;
+    
+    // Mapear categoría a part_type (en MAYÚSCULAS)
+    const part_type = category === "APU" ? "APU" : 
+                     category === "PROPELLER" ? "PROPELLER" : 
+                     "ENGINE"; // Default: ENGINE
     
     const transformed: AircraftPartAPI = {
-      part_name: partWithoutCategory.part_name,
-      part_number: partWithoutCategory.part_number,
-      serial: partWithoutCategory.serial,
-      brand: partWithoutCategory.brand,
-      time_since_new: partWithoutCategory.time_since_new ?? 0,
-      time_since_overhaul: partWithoutCategory.time_since_overhaul ?? 0,
-      cycles_since_new: partWithoutCategory.cycles_since_new ?? 0,
-      cycles_since_overhaul: partWithoutCategory.cycles_since_overhaul ?? 0,
-      condition_type: partWithoutCategory.condition_type,
-      is_father: partWithoutCategory.is_father,
+      part_name: rest.part_name,
+      part_number: rest.part_number,
+      serial: rest.serial,
+      manufacturer_id: rest.manufacturer_id,
+      time_since_new: rest.time_since_new ?? 0,
+      time_since_overhaul: rest.time_since_overhaul ?? 0,
+      cycles_since_new: rest.cycles_since_new ?? 0,
+      cycles_since_overhaul: rest.cycles_since_overhaul ?? 0,
+      condition_type: rest.condition_type,
+      is_father: rest.is_father,
+      part_type,
     };
     
     // Transformar subpartes recursivamente
@@ -251,7 +242,7 @@ export function CreateMaintenanceAircraftDialog() {
                             
                             <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-slate-600 dark:text-slate-400">
                               <p><span className="font-medium">Serial:</span> {part.serial}</p>
-                              <p><span className="font-medium">Marca:</span> {part.brand}</p>
+                              <p><span className="font-medium">Fabricante:</span> {part.manufacturer_id}</p>
                               <p><span className="font-medium">Condición:</span> {part.condition_type === 'NEW' ? 'Nueva' : 'Overhauled'}</p>
                               <p><span className="font-medium">TSN:</span> {part.time_since_new ?? 0}h</p>
                               <p><span className="font-medium">TSO:</span> {part.time_since_overhaul ?? 0}h</p>

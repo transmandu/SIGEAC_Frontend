@@ -82,7 +82,7 @@ const PartSchema: any = z.object({
   part_name: z.string().min(1, "Nombre obligatorio").max(50),
   part_number: z.string().min(1, "Número obligatorio").regex(/^[A-Za-z0-9\-]+$/),
   serial: z.string().min(1, "Serial obligatorio").max(50),
-  brand: z.string().min(1, "Marca obligatoria").max(50),
+  manufacturer_id: z.string().min(1, "Fabricante obligatorio"),
   time_since_new: z.number().min(0).optional(),  // Time Since New
   time_since_overhaul: z.number().min(0).optional(),  // Time Since Overhaul
   cycles_since_new: z.number().int("Debe ser un número entero").min(0).optional(),  // Cycles Since New (entero)
@@ -518,11 +518,11 @@ function PartSection({ form, index, path, onRemove, onToggleExpand, isExpanded, 
             />
             <FormField
               control={form.control}
-              name={`${path}.brand` as any}
+              name={`${path}.manufacturer_id` as any}
               render={({ field }) => (
                 <ManufacturerCombobox
                   value={field.value}
-                  onChange={(value) => form.setValue(`${path}.brand` as any, value)}
+                  onChange={(value) => form.setValue(`${path}.manufacturer_id` as any, value)}
                   manufacturers={manufacturers}
                   label="Marca"
                   placeholder="Seleccionar o crear marca..."
