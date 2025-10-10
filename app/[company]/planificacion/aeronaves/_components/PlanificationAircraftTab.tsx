@@ -3,7 +3,7 @@
 import { useMemo, useRef, useState } from "react"
 import { format } from "date-fns"
 import { es } from "date-fns/locale"
-import { Plane, Hash, MapPin, Calendar as CalendarIcon, Layers, Search, PackageCheck, CircleDot, Clock, RotateCcw, ChevronRight, Component, Package, Edit, Cog, Zap, Fan } from "lucide-react"
+import { Plane, Hash, Calendar as CalendarIcon, Layers, Search, PackageCheck, CircleDot, Clock, RotateCcw, ChevronRight, Component, Package, Edit, Cog, Zap, Fan } from "lucide-react"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -47,6 +47,14 @@ const fmtNumber = (n: unknown): string => {
   if (isNaN(num)) return "—"
   // Redondear a 2 decimales y convertir a string, eliminando ceros innecesarios
   return Number(num.toFixed(2)).toString()
+}
+
+// Extraer solo el año de una fecha
+const fmtYear = (d?: string | Date | null) => {
+  if (!d) return "—"
+  const date = typeof d === "string" ? new Date(d) : d
+  if (isNaN(date.getTime())) return "—"
+  return date.getFullYear().toString()
 }
 
 const asNum = (n: unknown) => (typeof n === "number" ? n : Number(n))
@@ -376,10 +384,7 @@ export function PlanificationAircraftTab({ aircraft }: { aircraft: MaintenanceAi
                   <div className="font-medium">{aircraft.serial || "—"}</div>
 
                   <div className="flex items-center gap-2 text-muted-foreground"><CalendarIcon className="h-4 w-4" /> Fabricación</div>
-                  <div className="font-medium">{fmtDate(aircraft.fabricant_date)}</div>
-
-                  <div className="flex items-center gap-2 text-muted-foreground"><MapPin className="h-4 w-4" /> Ubicación</div>
-                  <div className="font-medium">{aircraft?.location?.address ?? aircraft?.location?.name ?? "—"}</div>
+                  <div className="font-medium">{fmtYear(aircraft.fabricant_date)}</div>
                 </div>
                 <Separator className="my-4" />
                 <div className="grid grid-cols-2 gap-3 text-sm">
