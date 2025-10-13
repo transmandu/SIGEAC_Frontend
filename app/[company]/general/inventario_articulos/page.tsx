@@ -10,10 +10,12 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { useCompanyStore } from '@/stores/CompanyStore';
-import { Loader2, Package, Wrench, Box } from 'lucide-react';
+import { Loader2, Package, Wrench, Box, X } from 'lucide-react';
 import { useState } from 'react';
-import { columns, flattenArticles } from './columns';
+import { columns, flattenArticles, IArticleSimple } from './columns';
 import { DataTable } from './data-table';
 import { useGetWarehouseConsumableArticles } from '@/hooks/mantenimiento/almacen/articulos/useGetWarehouseConsumableArticles';
 
@@ -29,6 +31,7 @@ type ArticleType = 'COMPONENTE' | 'CONSUMIBLE' | 'HERRAMIENTA';
 const InventarioArticulosPage = () => {
   const { selectedCompany } = useCompanyStore();
   const [activeTab, setActiveTab] = useState<ArticleType>('COMPONENTE');
+  const [partNumberSearch, setPartNumberSearch] = useState('');
 
   // ============================================
   // DATA FETCHING
@@ -62,17 +65,34 @@ const InventarioArticulosPage = () => {
     (activeTab === 'CONSUMIBLE' && isLoadingConsumibles) ||
     (activeTab === 'HERRAMIENTA' && isLoadingHerramientas);
 
-  const getCurrentData = () => {
+  const getCurrentData = (): IArticleSimple[] => {
+    let articles: IArticleSimple[];
     switch (activeTab) {
       case 'COMPONENTE':
-        return flattenArticles(componentesData);
+        articles = flattenArticles(componentesData);
+        break;
       case 'CONSUMIBLE':
-        return flattenArticles(consumiblesData);
+        articles = flattenArticles(consumiblesData);
+        break;
       case 'HERRAMIENTA':
-        return flattenArticles(herramientasData);
+        articles = flattenArticles(herramientasData);
+        break;
       default:
-        return [];
+        articles = [];
     }
+
+    // Filtrar por part number si hay búsqueda
+    if (partNumberSearch.trim()) {
+      return articles.filter(article => 
+        article.part_number.toLowerCase().includes(partNumberSearch.toLowerCase())
+      );
+    }
+    
+    return articles;
+  };
+
+  const handleClearSearch = () => {
+    setPartNumberSearch('');
   };
 
   // ============================================
@@ -102,6 +122,34 @@ const InventarioArticulosPage = () => {
           <p className='text-sm text-muted-foreground italic'>
             Visualiza todos los artículos del inventario organizados por tipo
           </p>
+        </div>
+
+        {/* Búsqueda General */}
+        <div className="space-y-2">
+          <div className="relative max-w-2xl mx-auto">
+            <Input
+              placeholder="Búsqueda General - Nro. de Parte (Ej: 65-50587-4, TORNILLO, ALT-123...)"
+              value={partNumberSearch}
+              onChange={(e) => setPartNumberSearch(e.target.value)}
+              className="pr-8 h-11"
+            />
+            {partNumberSearch && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 p-0"
+                onClick={handleClearSearch}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            )}
+          </div>
+          {partNumberSearch && (
+            <p className="text-xs text-muted-foreground text-center">
+              Filtrando por: <span className="font-medium text-foreground">{partNumberSearch}</span>
+              {' '}• {getCurrentData().length} resultado(s)
+            </p>
+          )}
         </div>
 
         {/* Tabs */}

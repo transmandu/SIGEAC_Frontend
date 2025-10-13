@@ -21,9 +21,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { useState, useMemo } from "react"
-import { X } from "lucide-react"
+import { useState } from "react"
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
@@ -40,24 +38,12 @@ export function DataTable<TData, TValue>({
   const [sorting, setSorting] = useState<SortingState>([])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
-  const [partNumberSearch, setPartNumberSearch] = useState("")
-
-  // ============================================
-  // DATA FILTERING
-  // ============================================
-  const filteredData = useMemo(() => {
-    if (!partNumberSearch.trim()) return data;
-    
-    return data.filter((item: any) => 
-      item.part_number?.toLowerCase().includes(partNumberSearch.toLowerCase())
-    );
-  }, [data, partNumberSearch]);
 
   // ============================================
   // TABLE CONFIGURATION
   // ============================================
   const table = useReactTable({
-    data: filteredData,
+    data,
     columns,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
@@ -74,49 +60,10 @@ export function DataTable<TData, TValue>({
   })
 
   // ============================================
-  // EVENT HANDLERS
-  // ============================================
-  const handleClearSearch = () => {
-    setPartNumberSearch('');
-  };
-
-  // ============================================
   // RENDER
   // ============================================
   return (
     <div className="space-y-4">
-      {/* Búsqueda por Part Number */}
-      <div className="space-y-3">
-        <h2 className="text-lg font-semibold text-center">
-          Búsqueda Organizada - Nro. de Parte
-        </h2>
-        <div className="relative max-w-xl mx-auto">
-          <Input
-            placeholder="Ej: 65-50587-4, TORNILLO, ALT-123..."
-            value={partNumberSearch}
-            onChange={(e) => setPartNumberSearch(e.target.value)}
-            className="pr-8"
-          />
-          {partNumberSearch && (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 p-0"
-              onClick={handleClearSearch}
-            >
-              <X className="h-4 w-4" />
-            </Button>
-          )}
-        </div>
-        {partNumberSearch && (
-          <p className="text-xs text-muted-foreground text-center">
-            Filtrando por: <span className="font-medium text-foreground">{partNumberSearch}</span>
-            {' '}• {filteredData.length} resultado(s)
-          </p>
-        )}
-      </div>
-
-      {/* Tabla */}
       <div className="rounded-md border">
         <Table>
           <TableHeader>

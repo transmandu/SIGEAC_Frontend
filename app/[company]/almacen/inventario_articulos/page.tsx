@@ -131,17 +131,14 @@ const InventarioArticulosAlmacenPage = () => {
           </p>
         </div>
 
-        {/* Búsqueda por Part Number */}
-        <div className="space-y-3">
-          <h2 className="text-lg font-semibold text-center">
-            Búsqueda Organizada - Nro. de Parte
-          </h2>
-          <div className="relative max-w-xl mx-auto">
+        {/* Búsqueda General */}
+        <div className="space-y-2">
+          <div className="relative max-w-2xl mx-auto">
             <Input
-              placeholder="Ej: 65-50587-4, TORNILLO, ALT-123..."
+              placeholder="Búsqueda General - Nro. de Parte (Ej: 65-50587-4, TORNILLO, ALT-123...)"
               value={partNumberSearch}
               onChange={(e) => setPartNumberSearch(e.target.value)}
-              className="pr-8"
+              className="pr-8 h-11"
             />
             {partNumberSearch && (
               <Button

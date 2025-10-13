@@ -23,8 +23,6 @@ import {
 } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
 import { useState } from "react"
-import { Input } from "@/components/ui/input"
-import { Search } from "lucide-react"
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
@@ -38,7 +36,6 @@ export function DataTable<TData, TValue>({
   const [sorting, setSorting] = useState<SortingState>([])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
-  const [globalFilter, setGlobalFilter] = useState("")
 
   const table = useReactTable({
     data,
@@ -50,29 +47,15 @@ export function DataTable<TData, TValue>({
     onColumnFiltersChange: setColumnFilters,
     getFilteredRowModel: getFilteredRowModel(),
     onColumnVisibilityChange: setColumnVisibility,
-    onGlobalFilterChange: setGlobalFilter,
     state: {
       sorting,
       columnFilters,
       columnVisibility,
-      globalFilter,
     },
   })
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-2">
-        <div className="relative flex-1">
-          <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Buscar en todos los campos..."
-            value={globalFilter ?? ""}
-            onChange={(event) => setGlobalFilter(event.target.value)}
-            className="pl-8"
-          />
-        </div>
-      </div>
-
       <div className="rounded-md border">
         <Table>
           <TableHeader>
