@@ -175,10 +175,10 @@ export function getMenuList(
           ],
         },
         {
-          href: `/${currentCompany?.slug}/general/inventario`,
+          href: `/${currentCompany?.slug}/general/inventario_articulos`,
           label: "Inventario",
           active: pathname.includes(
-            `/${currentCompany?.slug}/general/inventario`
+            `/${currentCompany?.slug}/general/inventario_articulos`
           ),
           icon: PackageSearch,
           roles: [
@@ -705,20 +705,16 @@ export function getMenuList(
           roles: ["ANALISTA_ALMACEN", "JEFE_ALMACEN", "SUPERUSER"],
           submenus: [
             {
-              href: `/${currentCompany?.slug}/almacen/inventario/gestion`,
+              href: `/${currentCompany?.slug}/almacen/inventario_articulos`,
               label: "Gestión",
               active:
-                pathname ===
-                  `/${currentCompany?.slug}/almacen/inventario/gestion` ||
-                pathname ===
-                  `/${currentCompany?.slug}/almacen/inventario/gestion/crear`,
+                pathname === `/${currentCompany?.slug}/almacen/inventario_articulos`,
             },
             {
               href: `/${currentCompany?.slug}/almacen/inventario/entregado`,
               label: "Entregado",
               active:
-                pathname ===
-                `/${currentCompany?.slug}/almacen/inventario/entregado`,
+                pathname === `/${currentCompany?.slug}/almacen/inventario/entregado`,
             },
           ],
         },

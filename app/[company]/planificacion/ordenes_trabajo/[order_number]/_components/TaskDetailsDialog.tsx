@@ -109,7 +109,7 @@ export const TaskDetailsDialog = ({
     useGetWorkOrderEmployees({
       company: selectedCompany?.slug,
       location_id: selectedStation!,
-      acronym: 'MAMP'
+      acronym: 'MANP'
     });
 
   const form = useForm<z.infer<typeof assignmentFormSchema>>({
