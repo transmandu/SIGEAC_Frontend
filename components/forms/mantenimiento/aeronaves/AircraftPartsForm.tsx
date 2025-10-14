@@ -45,7 +45,7 @@ const fmtNumber = (n: unknown): string => {
 
 // Tipos de categoría para las partes
 export const PART_CATEGORIES = {
-  ENGINE: "Fuentes de Poder",
+  ENGINE: "Plantas de Poder",
   APU: "APU",
   PROPELLER: "Hélice"
 } as const;

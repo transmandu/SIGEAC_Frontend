@@ -234,11 +234,11 @@ export default function NewAircraftPage() {
                                         <CardContent className="p-4">
                                             <ScrollArea className="h-[300px]">
                                                 <div className="space-y-4">
-                                                    {/* Fuentes de Poder */}
+                                                    {/* Plantas de Poder */}
                                                     {partsData.parts.filter(p => p.category === "ENGINE").length > 0 && (
                                                         <div className="space-y-2">
                                                             <h4 className="font-semibold text-sm text-blue-600 dark:text-blue-400">
-                                                                Fuentes de Poder ({partsData.parts.filter(p => p.category === "ENGINE").length})
+                                                                Plantas de Poder ({partsData.parts.filter(p => p.category === "ENGINE").length})
                                                             </h4>
                                                             <div className="space-y-2 pl-2">
                                                                 {partsData.parts
