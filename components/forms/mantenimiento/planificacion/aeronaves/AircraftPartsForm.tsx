@@ -338,60 +338,27 @@ function PartSection({ form, index, path, level, onRemove, onToggleExpand, isExp
               />
             </div>
 
-            {/* Condición y Subpartes */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <FormField
-                control={form.control}
-                name={`${path}.condition_type`}
-                render={({ field }) => (
-                  <FormItem className="space-y-3">
-                    <FormLabel>Condición</FormLabel>
-                    <FormControl>
-                      <RadioGroup
-                        onValueChange={field.onChange}
-                        value={field.value}
-                        className="flex flex-col space-y-1"
-                      >
-                        <FormItem className="flex items-center space-x-2 space-y-0">
-                          <FormControl>
-                            <RadioGroupItem value="NEW" />
-                          </FormControl>
-                          <FormLabel className="font-normal">Nueva</FormLabel>
-                        </FormItem>
-                        <FormItem className="flex items-center space-x-2 space-y-0">
-                          <FormControl>
-                            <RadioGroupItem value="OVERHAULED" />
-                          </FormControl>
-                          <FormLabel className="font-normal">Reacondicionada</FormLabel>
-                        </FormItem>
-                      </RadioGroup>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name={`${path}.is_father`}
-                render={({ field }) => (
-                  <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-                    <FormControl>
-                      <Checkbox
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
-                    </FormControl>
-                    <div className="space-y-1 leading-none">
-                      <FormLabel>Esta parte contiene subpartes</FormLabel>
-                      <p className="text-xs text-muted-foreground">
-                        Marque si necesita agregar componentes dentro de esta parte
-                      </p>
-                    </div>
-                  </FormItem>
-                )}
-              />
-            </div>
+            {/* Subpartes */}
+            <FormField
+              control={form.control}
+              name={`${path}.is_father`}
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                  <FormControl>
+                    <Checkbox
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                  <div className="space-y-1 leading-none">
+                    <FormLabel>Esta parte contiene subpartes</FormLabel>
+                    <p className="text-xs text-muted-foreground">
+                      Marque si necesita agregar componentes dentro de esta parte
+                    </p>
+                  </div>
+                </FormItem>
+              )}
+            />
 
             {/* Subpartes */}
             {hassub_parts && (

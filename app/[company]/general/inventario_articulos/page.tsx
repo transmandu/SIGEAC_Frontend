@@ -17,7 +17,7 @@ import { Loader2, Package, Wrench, Box, X } from 'lucide-react';
 import { useState } from 'react';
 import { columns, flattenArticles, IArticleSimple } from './columns';
 import { DataTable } from './data-table';
-import { useGetWarehouseConsumableArticles } from '@/hooks/mantenimiento/almacen/articulos/useGetWarehouseConsumableArticles';
+import { useGetWarehouseArticlesByCategory } from '@/hooks/mantenimiento/almacen/articulos/useGetWarehouseArticlesByCategory';
 
 type ArticleType = 'COMPONENTE' | 'CONSUMIBLE' | 'HERRAMIENTA';
 
@@ -36,21 +36,21 @@ const InventarioArticulosPage = () => {
   // ============================================
   // DATA FETCHING
   // ============================================
-  const { data: componentesData, isLoading: isLoadingComponentes } = useGetWarehouseConsumableArticles(
+  const { data: componentesData, isLoading: isLoadingComponentes } = useGetWarehouseArticlesByCategory(
     1, 
     1000, 
     'COMPONENTE',
     activeTab === 'COMPONENTE'
   );
 
-  const { data: consumiblesData, isLoading: isLoadingConsumibles } = useGetWarehouseConsumableArticles(
+  const { data: consumiblesData, isLoading: isLoadingConsumibles } = useGetWarehouseArticlesByCategory(
     1, 
     1000, 
     'CONSUMIBLE',
     activeTab === 'CONSUMIBLE'
   );
 
-  const { data: herramientasData, isLoading: isLoadingHerramientas } = useGetWarehouseConsumableArticles(
+  const { data: herramientasData, isLoading: isLoadingHerramientas } = useGetWarehouseArticlesByCategory(
     1, 
     1000, 
     'HERRAMIENTA',

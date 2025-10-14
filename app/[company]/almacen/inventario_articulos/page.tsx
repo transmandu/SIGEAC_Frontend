@@ -17,7 +17,7 @@ import { Loader2, Package, Wrench, Box, X } from 'lucide-react';
 import { useState } from 'react';
 import { columns, IArticleSimple } from './columns';
 import { DataTable } from './data-table';
-import { useGetWarehouseConsumableArticles } from '@/hooks/mantenimiento/almacen/articulos/useGetWarehouseConsumableArticles';
+import { useGetWarehouseConsumableArticles } from '@/hooks/mantenimiento/almacen/articulos/useGetWarehouseArticlesByCategory';
 
 type ArticleType = 'COMPONENTE' | 'CONSUMIBLE' | 'HERRAMIENTA';
 

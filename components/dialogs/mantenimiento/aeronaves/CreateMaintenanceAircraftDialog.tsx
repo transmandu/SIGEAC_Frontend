@@ -243,7 +243,6 @@ export function CreateMaintenanceAircraftDialog() {
                             <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-slate-600 dark:text-slate-400">
                               <p><span className="font-medium">Serial:</span> {part.serial}</p>
                               <p><span className="font-medium">Fabricante:</span> {part.manufacturer_id}</p>
-                              <p><span className="font-medium">Condición:</span> {part.condition_type === 'NEW' ? 'Nueva' : 'Overhauled'}</p>
                               <p><span className="font-medium">TSN:</span> {part.time_since_new ?? 0}h</p>
                               <p><span className="font-medium">TSO:</span> {part.time_since_overhaul ?? 0}h</p>
                               <p><span className="font-medium">CSN:</span> {part.cycles_since_new ?? 0}</p>
