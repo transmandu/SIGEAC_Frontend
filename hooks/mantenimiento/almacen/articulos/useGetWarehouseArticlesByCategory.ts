@@ -8,6 +8,7 @@ export interface IWarehouseArticle {
   medition_unit: string;
   article_count: number;
   articles: {
+    alternative_part_number: any;
     id: number;
     part_number: string;
     serial: string | null;
@@ -31,14 +32,14 @@ export interface WarehouseResponse {
   };
 }
 
-const fetchWarehouseConsumableArticles = async (
+const fetchWarehouseArticlesByCategory = async (
   location_id: string | null,
   category: string,
   company?: string,
   page: number = 1,
   per_page: number = 25
 ): Promise<WarehouseResponse> => {
-  const { data } = await axiosInstance.get(`/${company}/${location_id}/batches-with-articles-by-category?category=${category}&page=${page}&per_page=${per_page}`);
+  const { data } = await axiosInstance.get(`/${company}/${location_id}/articles-by-category?category=${category}&page=${page}&per_page=${per_page}`);
   
   return {
     batches: data.data || [],
@@ -53,7 +54,7 @@ const fetchWarehouseConsumableArticles = async (
   };
 };
 
-export const useGetWarehouseConsumableArticles = (
+export const useGetWarehouseArticlesByCategory = (
   page: number = 1, 
   per_page: number = 25, 
   category: string,
@@ -62,7 +63,7 @@ export const useGetWarehouseConsumableArticles = (
   const { selectedCompany, selectedStation } = useCompanyStore();
   return useQuery<WarehouseResponse, Error>({
     queryKey: ["warehouse-articles", selectedCompany?.slug, selectedStation, page, per_page, category],
-    queryFn: () => fetchWarehouseConsumableArticles(selectedStation, category, selectedCompany?.slug, page, per_page),
+    queryFn: () => fetchWarehouseArticlesByCategory(selectedStation, category, selectedCompany?.slug, page, per_page),
     enabled: enabled && !!selectedCompany && !!selectedStation,
   });
 };

@@ -8,7 +8,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { SearchableZoneSelect } from "./SearchableZoneSelect";
-import { IWarehouseArticle } from "@/hooks/mantenimiento/almacen/articulos/useGetWarehouseConsumableArticles";
+import { IWarehouseArticle } from "@/hooks/mantenimiento/almacen/articulos/useGetWarehouseArticlesByCategory";
 
 // Tipo para artículos individuales
 export type Article = IWarehouseArticle["articles"][0];
