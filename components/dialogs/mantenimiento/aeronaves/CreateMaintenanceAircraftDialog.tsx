@@ -194,7 +194,7 @@ export function CreateMaintenanceAircraftDialog() {
               <div className="space-y-1 text-sm">
                 <p><span className="font-medium">Fabricante:</span> {aircraftData?.manufacturer_id}</p>
                 <p><span className="font-medium">Serial:</span> {aircraftData?.serial}</p>
-                <p><span className="font-medium">Acrónimo:</span> {aircraftData?.acronym}</p>
+                <p><span className="font-medium">Matrícula:</span> {aircraftData?.model}</p>
                 <p><span className="font-medium">Horas de Vuelo:</span> {aircraftData?.flight_hours}</p>
                 <p><span className="font-medium">Fecha de Fabricación:</span> {aircraftData?.fabricant_date?.toLocaleDateString()}</p>
                 <p><span className="font-medium">Ubicación:</span> {aircraftData?.location_id}</p>

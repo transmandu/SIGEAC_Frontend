@@ -278,6 +278,7 @@ export type MaintenanceAircraft = {
   client: MaintenanceClient;
   manufacturer: Manufacturer;
   serial: string;
+  model: string;
   acronym: string;
   flight_hours: number | string;  // Puede venir como "4,324.00"
   flight_cycles: number | string;  // Puede venir como "324.00"
@@ -367,11 +368,18 @@ export type ServiceTask = {
   }[];
 };
 
+export type AssignedTechnician = {
+  name: string;
+  hours: number;
+};
+
 export type WorkOrderTask = {
   id: number;
   description_task: string;
   status: string;
   technician_responsable?: string;
+  assigned_technicians?: AssignedTechnician[];
+  total_man_hours?: number;
   inspector_responsable?: string;
   ata: string;
   task_number: string;

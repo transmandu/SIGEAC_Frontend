@@ -149,7 +149,8 @@ export const RoutineTasksList = ({
                 <TableHead>ATA</TableHead>
                 <TableHead>Descripción</TableHead>
                 <TableHead>Artículos</TableHead>
-                <TableHead>Técnico</TableHead>
+                <TableHead>Técnicos</TableHead>
+                <TableHead>H/H</TableHead>
                 <TableHead>Inspector</TableHead>
                 <TableHead>Estado</TableHead>
               </TableRow>
@@ -180,9 +181,31 @@ export const RoutineTasksList = ({
                     )}
                   </TableCell>
                   <TableCell>
-                    {task.technician_responsable || (
+                    {task.assigned_technicians && task.assigned_technicians.length > 0 ? (
+                      <div className="flex flex-col gap-1">
+                        {task.assigned_technicians.slice(0, 2).map((tech, idx) => (
+                          <Badge key={idx} variant="outline" className="text-xs">
+                            {tech.name}
+                          </Badge>
+                        ))}
+                        {task.assigned_technicians.length > 2 && (
+                          <span className="text-xs text-muted-foreground">
+                            +{task.assigned_technicians.length - 2} más
+                          </span>
+                        )}
+                      </div>
+                    ) : task.technician_responsable ? (
+                      <Badge variant="outline">{task.technician_responsable}</Badge>
+                    ) : (
                       <span className="text-muted-foreground">No asignado</span>
                     )}
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant="secondary" className="font-mono">
+                      {task.assigned_technicians?.reduce((sum, t) => sum + t.hours, 0).toFixed(1) || 
+                       task.total_man_hours?.toFixed(1) || 
+                       '8.0'}
+                    </Badge>
                   </TableCell>
                   <TableCell>
                     {task.inspector_responsable || (

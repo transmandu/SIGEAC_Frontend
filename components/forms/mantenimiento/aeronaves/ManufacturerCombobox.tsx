@@ -175,7 +175,7 @@ export function ManufacturerCombobox({
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="ENGINE">Fuentes de Poder</SelectItem>
+                              <SelectItem value="ENGINE">Plantas de Poder</SelectItem>
                               <SelectItem value="APU">APU</SelectItem>
                               <SelectItem value="PROPELLER">Hélice</SelectItem>
                               <SelectItem value="GENERAL">General</SelectItem>

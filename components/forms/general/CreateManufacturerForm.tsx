@@ -99,7 +99,7 @@ export default function CreateManufacturerForm({ onClose }: FormProps) {
                 </FormControl>
                 <SelectContent>
                   <SelectItem value="AIRCRAFT">Aeronave</SelectItem>
-                  <SelectItem value="ENGINE">Fuentes de Poder</SelectItem>
+                  <SelectItem value="ENGINE">Plantas de Poder</SelectItem>
                   <SelectItem value="APU">APU</SelectItem>
                   <SelectItem value="PROPELLER">Hélice</SelectItem>
                   <SelectItem value="GENERAL">Piezas en General</SelectItem>

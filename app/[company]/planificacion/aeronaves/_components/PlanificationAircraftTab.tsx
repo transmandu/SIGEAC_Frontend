@@ -422,8 +422,8 @@ export function PlanificationAircraftTab({ aircraft }: { aircraft: MaintenanceAi
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-2 gap-3 text-sm">
-                  <div className="flex items-center gap-2 text-muted-foreground"><Hash className="h-4 w-4" /> Acrónimo</div>
-                  <div className="font-medium">{aircraft.acronym || "—"}</div>
+                  <div className="flex items-center gap-2 text-muted-foreground"><Hash className="h-4 w-4" /> Matrícula</div>
+                  <div className="font-medium">{aircraft.model || "—"}</div>
 
                   <div className="flex items-center gap-2 text-muted-foreground"><Hash className="h-4 w-4" /> Serial</div>
                   <div className="font-medium">{aircraft.serial || "—"}</div>
@@ -478,12 +478,12 @@ export function PlanificationAircraftTab({ aircraft }: { aircraft: MaintenanceAi
                 <div className="py-10 text-center text-sm text-muted-foreground">Sin partes instaladas.</div>
               ) : (
                 <div ref={listRef} className="space-y-4">
-                  {/* Fuentes de Poder */}
+                  {/* Plantas de Poder */}
                   {partsByCategory.ENGINE.length > 0 && (
                     <div className="space-y-2">
                       <div className="flex items-center gap-2 text-sm font-medium text-blue-600 dark:text-blue-400">
                         <Cog className="h-4 w-4" />
-                        Fuentes de Poder ({partsByCategory.ENGINE.length})
+                        Plantas de Poder ({partsByCategory.ENGINE.length})
                       </div>
                       <div className="ml-4 space-y-1">
                         {partsByCategory.ENGINE.map((node) => (
