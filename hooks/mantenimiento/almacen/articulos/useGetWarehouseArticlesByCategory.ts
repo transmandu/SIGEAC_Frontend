@@ -10,6 +10,7 @@ export interface IWarehouseArticle {
   articles: {
     id: number;
     part_number: string;
+    alternative_part_number: string | null;
     serial: string | null;
     description: string;
     zone: string;
@@ -38,8 +39,9 @@ const fetchWarehouseArticlesByCategory = async (
   page: number = 1,
   per_page: number = 25
 ): Promise<WarehouseResponse> => {
-  const { data } = await axiosInstance.get(`/${company}/${location_id}/batches-with-articles-by-category?category=${category}&page=${page}&per_page=${per_page}`);
+  const { data } = await axiosInstance.get(`/${company}/${location_id}/articles-by-category?category=${category}&page=${page}&per_page=${per_page}`);
   
+  console.log(data);
   return {
     batches: data.data || [],
     pagination: {

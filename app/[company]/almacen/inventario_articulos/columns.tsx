@@ -8,6 +8,7 @@ import { CheckCircle2, XCircle, Clock } from "lucide-react"
 export interface IArticleSimple {
   id: number;
   part_number: string;
+  alternative_part_number: string | null;
   description: string;
   quantity: number;
   zone: string;
@@ -47,7 +48,8 @@ const getStatusBadge = (status: string | null | undefined) => {
   )
 }
 
-export const columns: ColumnDef<IArticleSimple>[] = [
+// Columnas base (sin serial)
+const baseColumns: ColumnDef<IArticleSimple>[] = [
   {
     accessorKey: "part_number",
     header: ({ column }) => (
@@ -62,16 +64,33 @@ export const columns: ColumnDef<IArticleSimple>[] = [
     }
   },
   {
-    accessorKey: "serial",
+    accessorKey: "alternative_part_number",
     header: ({ column }) => (
-      <DataTableColumnHeader filter column={column} title="Serial" />
+      <DataTableColumnHeader filter column={column} title="Part Number Alterno" />
     ),
     cell: ({ row }) => (
-      <div className="text-center font-mono text-sm">
-        {row.original.serial || <span className="text-muted-foreground italic">N/A</span>}
+      <div className="text-center font-medium">
+        {row.original.alternative_part_number || <span className="text-muted-foreground italic">N/A</span>}
       </div>
     )
   },
+];
+
+// Columna de serial (solo para componentes)
+const serialColumn: ColumnDef<IArticleSimple> = {
+  accessorKey: "serial",
+  header: ({ column }) => (
+    <DataTableColumnHeader filter column={column} title="Serial" />
+  ),
+  cell: ({ row }) => (
+    <div className="text-center font-mono text-sm">
+      {row.original.serial || <span className="text-muted-foreground italic">N/A</span>}
+    </div>
+  )
+};
+
+// Columnas comunes a todos los tipos
+const commonColumns: ColumnDef<IArticleSimple>[] = [
   {
     accessorKey: "description",
     header: ({ column }) => (
@@ -124,16 +143,23 @@ export const columns: ColumnDef<IArticleSimple>[] = [
       </div>
     )
   },
-  // {
-  //   accessorKey: "batch_name",
-  //   header: ({ column }) => (
-  //     <DataTableColumnHeader filter column={column} title="Lote" />
-  //   ),
-  //   cell: ({ row }) => (
-  //     <div className="text-center text-sm text-muted-foreground">
-  //       {row.original.batch_name}
-  //     </div>
-  //   )
-  // },
-]
+];
+
+/**
+ * Genera las columnas apropiadas según el tipo de artículo
+ * @param articleType - Tipo de artículo ('COMPONENTE', 'CONSUMIBLE', 'HERRAMIENTA')
+ * @returns Array de columnas
+ */
+export const getColumnsForArticleType = (articleType: 'COMPONENTE' | 'CONSUMIBLE' | 'HERRAMIENTA'): ColumnDef<IArticleSimple>[] => {
+  // Solo los componentes tienen serial
+  if (articleType === 'COMPONENTE') {
+    return [...baseColumns, serialColumn, ...commonColumns];
+  }
+  
+  // Consumibles y herramientas no tienen serial
+  return [...baseColumns, ...commonColumns];
+};
+
+// Columnas por defecto (con serial)
+export const columns: ColumnDef<IArticleSimple>[] = getColumnsForArticleType('COMPONENTE');
 

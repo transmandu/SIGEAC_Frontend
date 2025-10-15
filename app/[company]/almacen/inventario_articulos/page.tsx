@@ -15,45 +15,32 @@ import { Button } from "@/components/ui/button";
 import { useCompanyStore } from '@/stores/CompanyStore';
 import { Loader2, Package, Wrench, Box, X } from 'lucide-react';
 import { useState } from 'react';
-import { columns, IArticleSimple } from './columns';
+import { getColumnsForArticleType, IArticleSimple } from './columns';
 import { DataTable } from './data-table';
-import { useGetWarehouseConsumableArticles } from '@/hooks/mantenimiento/almacen/articulos/useGetWarehouseArticlesByCategory';
+import { useGetWarehouseArticlesByCategory } from '@/hooks/mantenimiento/almacen/articulos/useGetWarehouseArticlesByCategory';
 
 type ArticleType = 'COMPONENTE' | 'CONSUMIBLE' | 'HERRAMIENTA';
+
+const ARTICLE_TABS = [
+  { value: 'COMPONENTE' as ArticleType, icon: Box, label: 'Componentes' },
+  { value: 'CONSUMIBLE' as ArticleType, icon: Package, label: 'Consumibles' },
+  { value: 'HERRAMIENTA' as ArticleType, icon: Wrench, label: 'Herramientas' },
+];
 
 const InventarioArticulosAlmacenPage = () => {
   const { selectedCompany } = useCompanyStore();
   const [activeTab, setActiveTab] = useState<ArticleType>('COMPONENTE');
   const [partNumberSearch, setPartNumberSearch] = useState('');
 
-  const { data: componentesData, isLoading: isLoadingComponentes } = useGetWarehouseConsumableArticles(
+  const { data: articlesData, isLoading } = useGetWarehouseArticlesByCategory(
     1, 
     1000, 
-    'COMPONENTE',
-    activeTab === 'COMPONENTE'
+    activeTab,
+    true
   );
-
-  const { data: consumiblesData, isLoading: isLoadingConsumibles } = useGetWarehouseConsumableArticles(
-    1, 
-    1000, 
-    'CONSUMIBLE',
-    activeTab === 'CONSUMIBLE'
-  );
-
-  const { data: herramientasData, isLoading: isLoadingHerramientas } = useGetWarehouseConsumableArticles(
-    1, 
-    1000, 
-    'HERRAMIENTA',
-    activeTab === 'HERRAMIENTA'
-  );
-
-  const isLoading = 
-    (activeTab === 'COMPONENTE' && isLoadingComponentes) ||
-    (activeTab === 'CONSUMIBLE' && isLoadingConsumibles) ||
-    (activeTab === 'HERRAMIENTA' && isLoadingHerramientas);
 
   // Aplanar los artículos de todos los batches
-  const flattenArticles = (data: typeof componentesData): IArticleSimple[] => {
+  const flattenArticles = (data: typeof articlesData): IArticleSimple[] => {
     if (!data?.batches) return [];
     
     return data.batches
@@ -61,6 +48,7 @@ const InventarioArticulosAlmacenPage = () => {
         batch.articles.map(article => ({
           id: article.id,
           part_number: article.part_number,
+          alternative_part_number: article.alternative_part_number,
           serial: article.serial,
           description: article.description,
           zone: article.zone,
@@ -75,20 +63,7 @@ const InventarioArticulosAlmacenPage = () => {
   };
 
   const getCurrentData = (): IArticleSimple[] => {
-    let articles: IArticleSimple[];
-    switch (activeTab) {
-      case 'COMPONENTE':
-        articles = flattenArticles(componentesData);
-        break;
-      case 'CONSUMIBLE':
-        articles = flattenArticles(consumiblesData);
-        break;
-      case 'HERRAMIENTA':
-        articles = flattenArticles(herramientasData);
-        break;
-      default:
-        articles = [];
-    }
+    const articles = flattenArticles(articlesData);
 
     // Filtrar por part number si hay búsqueda
     if (partNumberSearch.trim()) {
@@ -165,58 +140,30 @@ const InventarioArticulosAlmacenPage = () => {
           className="w-full"
         >
           <TabsList className="grid w-full grid-cols-3 h-auto">
-            <TabsTrigger 
-              value="COMPONENTE" 
-              className="flex items-center justify-center gap-2 py-3 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
-            >
-              <Box className="h-5 w-5" />
-              <span className="font-semibold">Componentes</span>
-            </TabsTrigger>
-            <TabsTrigger 
-              value="CONSUMIBLE" 
-              className="flex items-center justify-center gap-2 py-3 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
-            >
-              <Package className="h-5 w-5" />
-              <span className="font-semibold">Consumibles</span>
-            </TabsTrigger>
-            <TabsTrigger 
-              value="HERRAMIENTA" 
-              className="flex items-center justify-center gap-2 py-3 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
-            >
-              <Wrench className="h-5 w-5" />
-              <span className="font-semibold">Herramientas</span>
-            </TabsTrigger>
+            {ARTICLE_TABS.map(({ value, icon: Icon, label }) => (
+              <TabsTrigger 
+                key={value}
+                value={value} 
+                className="flex items-center justify-center gap-2 py-3 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+              >
+                <Icon className="h-5 w-5" />
+                <span className="font-semibold">{label}</span>
+              </TabsTrigger>
+            ))}
           </TabsList>
 
-          <TabsContent value="COMPONENTE" className="mt-6">
-            {isLoading ? (
-              <div className='flex w-full h-full justify-center items-center min-h-[300px]'>
-                <Loader2 className='size-24 animate-spin' />
-              </div>
-            ) : (
-              <DataTable columns={columns} data={getCurrentData()} />
-            )}
-          </TabsContent>
-
-          <TabsContent value="CONSUMIBLE" className="mt-6">
-            {isLoading ? (
-              <div className='flex w-full h-full justify-center items-center min-h-[300px]'>
-                <Loader2 className='size-24 animate-spin' />
-              </div>
-            ) : (
-              <DataTable columns={columns} data={getCurrentData()} />
-            )}
-          </TabsContent>
-
-          <TabsContent value="HERRAMIENTA" className="mt-6">
-            {isLoading ? (
-              <div className='flex w-full h-full justify-center items-center min-h-[300px]'>
-                <Loader2 className='size-24 animate-spin' />
-              </div>
-            ) : (
-              <DataTable columns={columns} data={getCurrentData()} />
-            )}
-          </TabsContent>
+          {/* Tab Content */}
+          {ARTICLE_TABS.map(({ value }) => (
+            <TabsContent key={value} value={value} className="mt-6">
+              {isLoading ? (
+                <div className='flex w-full h-full justify-center items-center min-h-[300px]'>
+                  <Loader2 className='size-24 animate-spin' />
+                </div>
+              ) : (
+                <DataTable columns={getColumnsForArticleType(activeTab)} data={getCurrentData()} />
+              )}
+            </TabsContent>
+          ))}
         </Tabs>
       </div>
     </ContentLayout>

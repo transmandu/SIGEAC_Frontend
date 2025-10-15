@@ -53,23 +53,15 @@ import { WorkOrder } from "@/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { ChevronLeft, Loader2, Pencil, User2, PlusCircle, X, Users, ChevronDown, ChevronUp } from "lucide-react";
-import { useEffect, useState, useMemo } from "react";
-import { useForm, useFieldArray } from "react-hook-form";
+import { ChevronLeft, Loader2, Pencil, User2 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
 import { z } from "zod";
 import CreateNoRutineDialog from "./CreateNoRutineDialog";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 
 const assignmentFormSchema = z.object({
-  technician_responsable: z.string().optional(),
-  assigned_technicians: z.array(
-    z.object({
-      name: z.string().min(1, "Debe seleccionar un técnico"),
-      hours: z.number().min(0.5, "Mínimo 0.5 horas").max(24, "Máximo 24 horas"),
-    })
-  ).min(1, "Debe asignar al menos un técnico"),
+  technician_responsable: z.string().min(1, "Debe seleccionar un técnico"),
   inspector_responsable: z.string().optional(),
   scheduling: z.object({
     startDate: z.date(),
@@ -107,7 +99,6 @@ export const TaskDetailsDialog = ({
     "assign"
   );
   const [isEditing, setIsEditing] = useState(false);
-  const [openTechnicianIndex, setOpenTechnicianIndex] = useState<number | null>(0);
 
   const { updateWorkOrderTask } = useUpdateWorkOrderTask();
   const { updateNoRoutineTask } = useUpdateNoRoutineTask();
@@ -125,11 +116,6 @@ export const TaskDetailsDialog = ({
     resolver: zodResolver(assignmentFormSchema),
     defaultValues: {
       technician_responsable: selectedTask?.technician_responsable || "",
-      assigned_technicians: selectedTask?.assigned_technicians && selectedTask.assigned_technicians.length > 0 
-        ? selectedTask.assigned_technicians 
-        : selectedTask?.technician_responsable 
-          ? [{ name: selectedTask.technician_responsable, hours: 8 }] 
-          : [{ name: "", hours: 8 }],
       inspector_responsable: selectedTask?.inspector_responsable || "",
       scheduling: {
         startDate: new Date(),
@@ -140,19 +126,8 @@ export const TaskDetailsDialog = ({
     },
   });
 
-  const { watch, setValue, handleSubmit, control } = form;
+  const { watch, setValue, handleSubmit } = form;
   const scheduling = watch("scheduling");
-  const assignedTechnicians = watch("assigned_technicians");
-  
-  const { fields, append, remove } = useFieldArray({
-    control,
-    name: "assigned_technicians",
-  });
-
-  // Calcula automáticamente las horas hombre totales
-  const totalManHours = useMemo(() => {
-    return assignedTechnicians?.reduce((total, tech) => total + (tech.hours || 0), 0) || 0;
-  }, [assignedTechnicians]);
 
   // Hook que genera la programación automáticamente
   useAutoScheduleGenerator(scheduling, selectedTask, setValue);
@@ -195,15 +170,9 @@ export const TaskDetailsDialog = ({
   }
 
   const onSubmit = async (values: z.infer<typeof assignmentFormSchema>) => {
-    const { scheduling, assigned_technicians, ...data } = values;
-    
-    // Calcular las horas hombre totales
-    const calculatedManHours = assigned_technicians.reduce((total, tech) => total + tech.hours, 0);
-    
+    const { scheduling, ...data } = values;
     const updateTaskData = {
-      technician_responsable: assigned_technicians[0]?.name || "", // Mantener retrocompatibilidad
-      assigned_technicians: assigned_technicians,
-      total_man_hours: calculatedManHours,
+      technician_responsable: data.technician_responsable,
       inspector_responsable: data.inspector_responsable,
       total_hours: scheduling.totalHours.toString(),
     };
@@ -244,11 +213,6 @@ export const TaskDetailsDialog = ({
     if (selectedTask) {
       form.reset({
         technician_responsable: selectedTask.technician_responsable || "",
-        assigned_technicians: selectedTask?.assigned_technicians && selectedTask.assigned_technicians.length > 0 
-          ? selectedTask.assigned_technicians 
-          : selectedTask?.technician_responsable 
-            ? [{ name: selectedTask.technician_responsable, hours: 8 }] 
-            : [{ name: "", hours: 8 }],
         inspector_responsable: selectedTask.inspector_responsable || "",
         scheduling: {
           startDate: new Date(),
@@ -259,7 +223,6 @@ export const TaskDetailsDialog = ({
       });
       setIsEditing(false);
       setCurrentStep("assign");
-      setOpenTechnicianIndex(0); // Abrir el primer técnico por defecto
     }
   }, [selectedTask, form]);
 
@@ -304,10 +267,9 @@ export const TaskDetailsDialog = ({
               </Button>
             </div>
             {currentStep === "assign" && (
-              <ScrollArea className="max-h-[60vh] pr-4">
-                <div className="space-y-4 w-full">
-                  {/* Información básica de la tarea */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 place-content-center">
+              <div className="space-y-4 w-full">
+                {/* Información básica de la tarea */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 place-content-center">
                   <div>
                     <h3 className="font-medium">Descripción</h3>
                     <p className="text-sm text-muted-foreground">
@@ -355,195 +317,61 @@ export const TaskDetailsDialog = ({
 
                 {/* Sección de responsables */}
                 {isEditing ||
-                (!selectedTask.assigned_technicians?.length && !selectedTask.technician_responsable &&
+                (!selectedTask.technician_responsable &&
                   !selectedTask.inspector_responsable) ? (
-                  <div className="flex flex-col gap-4">
-                    {/* Técnicos Asignados */}
-                    <Card className="border-2">
-                      <CardHeader className="pb-3">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <CardTitle className="text-lg flex items-center gap-2">
-                              <Users className="h-5 w-5" />
-                              Técnicos Asignados
-                            </CardTitle>
-                            <CardDescription className="text-xs mt-1">
-                              Agregue los técnicos que trabajarán en esta tarea
-                            </CardDescription>
-                          </div>
-                          <Badge variant="secondary" className="text-sm">
-                            {totalManHours.toFixed(1)} h/h totales
-                          </Badge>
-                        </div>
-                      </CardHeader>
-                      <CardContent className="p-0">
-                        <ScrollArea className="max-h-[300px] px-4 py-3">
-                          <div className="space-y-2">
-                            {fields.map((field, index) => {
-                              const techName = form.watch(`assigned_technicians.${index}.name`);
-                              const techHours = form.watch(`assigned_technicians.${index}.hours`);
-                              const isOpen = openTechnicianIndex === index;
-                              
-                              return (
-                                <Collapsible 
-                                  key={field.id} 
-                                  open={isOpen}
-                                  onOpenChange={(open) => setOpenTechnicianIndex(open ? index : null)}
-                                >
-                                  <div className="rounded-lg border bg-gradient-to-r from-primary/5 to-transparent">
-                                    <CollapsibleTrigger asChild>
-                                      <div className="flex items-center justify-between p-3 cursor-pointer hover:bg-muted/30 transition-colors rounded-lg">
-                                        <div className="flex items-center gap-3 flex-1">
-                                          <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary font-semibold text-sm">
-                                            {index + 1}
-                                          </div>
-                                          <div className="flex-1">
-                                            <p className="font-medium text-sm">
-                                              {techName || "Técnico sin asignar"}
-                                            </p>
-                                            <p className="text-xs text-muted-foreground">
-                                              {techHours} horas de trabajo
-                                            </p>
-                                          </div>
-                                        </div>
-                                        <div className="flex items-center gap-2">
-                                          {fields.length > 1 && (
-                                            <Button
-                                              type="button"
-                                              variant="ghost"
-                                              size="icon"
-                                              className="h-8 w-8 text-red-500 hover:text-red-700 hover:bg-red-50"
-                                              onClick={(e) => {
-                                                e.stopPropagation();
-                                                remove(index);
-                                                if (openTechnicianIndex === index) {
-                                                  setOpenTechnicianIndex(null);
-                                                }
-                                              }}
-                                            >
-                                              <X className="h-4 w-4" />
-                                            </Button>
-                                          )}
-                                          {isOpen ? (
-                                            <ChevronUp className="h-4 w-4 text-muted-foreground" />
-                                          ) : (
-                                            <ChevronDown className="h-4 w-4 text-muted-foreground" />
-                                          )}
-                                        </div>
-                                      </div>
-                                    </CollapsibleTrigger>
-                                    
-                                    <CollapsibleContent>
-                                      <div className="px-3 pb-3 pt-1 space-y-3 border-t">
-                                        <FormField
-                                          control={form.control}
-                                          name={`assigned_technicians.${index}.name`}
-                                          render={({ field }) => (
-                                            <FormItem>
-                                              <FormLabel className="text-xs font-medium">
-                                                Seleccionar Técnico
-                                              </FormLabel>
-                                              <Select
-                                                onValueChange={field.onChange}
-                                                value={field.value}
-                                                disabled={isTechniciansLoading}
-                                              >
-                                                <FormControl>
-                                                  <SelectTrigger className="h-9">
-                                                    <SelectValue placeholder="Seleccione un técnico" />
-                                                  </SelectTrigger>
-                                                </FormControl>
-                                                <SelectContent>
-                                                  {isTechniciansLoading ? (
-                                                    <div className="flex justify-center py-2">
-                                                      <Loader2 className="animate-spin h-4 w-4" />
-                                                    </div>
-                                                  ) : (
-                                                    technicians?.map((tech) => (
-                                                      <SelectItem 
-                                                        key={tech.dni} 
-                                                        value={`${tech.first_name} ${tech.last_name}`}
-                                                      >
-                                                        {tech.first_name} {tech.last_name}
-                                                      </SelectItem>
-                                                    ))
-                                                  )}
-                                                </SelectContent>
-                                              </Select>
-                                              <FormMessage className="text-xs" />
-                                            </FormItem>
-                                          )}
-                                        />
-                                        <FormField
-                                          control={form.control}
-                                          name={`assigned_technicians.${index}.hours`}
-                                          render={({ field }) => (
-                                            <FormItem>
-                                              <FormLabel className="text-xs font-medium">
-                                                Horas de trabajo
-                                              </FormLabel>
-                                              <FormControl>
-                                                <Input
-                                                  type="number"
-                                                  step="0.5"
-                                                  min="0.5"
-                                                  max="24"
-                                                  className="h-9"
-                                                  placeholder="8"
-                                                  {...field}
-                                                  onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
-                                                />
-                                              </FormControl>
-                                              <FormMessage className="text-xs" />
-                                            </FormItem>
-                                          )}
-                                        />
-                                      </div>
-                                    </CollapsibleContent>
+                  <div className="flex flex-col gap-2">
+                    <div className="flex gap-2">
+                      <FormField
+                        control={form.control}
+                        name="technician_responsable"
+                        render={({ field }) => (
+                          <FormItem className="w-full">
+                            <FormLabel>Técnico Responsable</FormLabel>
+                            <Select
+                              onValueChange={field.onChange}
+                              value={field.value}
+                              disabled={isTechniciansLoading}
+                            >
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Seleccione un técnico" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                {isTechniciansLoading ? (
+                                  <div className="flex justify-center py-2">
+                                    <Loader2 className="animate-spin h-4 w-4" />
                                   </div>
-                                </Collapsible>
-                              );
-                            })}
-                          </div>
-                        </ScrollArea>
-                        
-                        <div className="px-4 pb-3 pt-2 border-t">
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            className="w-full border-dashed"
-                            onClick={() => {
-                              append({ name: "", hours: 8 });
-                              setOpenTechnicianIndex(fields.length);
-                            }}
-                          >
-                            <PlusCircle className="h-4 w-4 mr-2" />
-                            Agregar Técnico
-                          </Button>
-                        </div>
-                      </CardContent>
-                    </Card>
-
-                    {/* Inspector Responsable */}
-                    <FormField
-                      control={form.control}
-                      name="inspector_responsable"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Inspector Responsable (Opcional)</FormLabel>
-                          <FormControl>
-                            <Input
-                              placeholder="Ingrese inspector..."
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    {/* Botones de acción */}
+                                ) : (
+                                  technicians?.map((tech) => (
+                                    <SelectItem key={tech.dni} value={`${tech.first_name} ${tech.last_name}`}>
+                                      {tech.first_name} {tech.last_name}
+                                    </SelectItem>
+                                  ))
+                                )}
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="inspector_responsable"
+                        render={({ field }) => (
+                          <FormItem className="w-full">
+                            <FormLabel>Inspector Responsable (Opcional)</FormLabel>
+                            <FormControl>
+                              <Input
+                                placeholder="Ingrese inspector..."
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
                     <div className="flex justify-end gap-2 mt-2">
                       <Button
                         type="button"
@@ -569,75 +397,58 @@ export const TaskDetailsDialog = ({
                     </div>
                   </div>
                 ) : (
-                  <div className="space-y-4">
-                    {/* Técnicos Asignados - Vista de solo lectura */}
-                    <Card className="border-2">
-                      <CardHeader className="pb-3">
-                        <div className="flex items-center justify-between">
-                          <CardTitle className="text-base flex items-center gap-2">
-                            <Users className="h-5 w-5 text-primary" />
-                            Técnicos Asignados
-                          </CardTitle>
-                          <div className="flex items-center gap-2">
-                            <Badge variant="secondary" className="text-sm font-semibold">
-                              {selectedTask.assigned_technicians?.reduce((sum, t) => sum + t.hours, 0).toFixed(1) || 
-                               selectedTask.total_man_hours?.toFixed(1) || 
-                               '8.0'} h/h totales
-                            </Badge>
-                            {selectedTask.status === "ABIERTO" && (
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => setIsEditing(true)}
-                                className="h-8 w-8"
-                              >
-                                <Pencil className="h-4 w-4" />
-                              </Button>
-                            )}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Técnico responsable */}
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <h3 className="font-medium">Técnico Responsable</h3>
+                        {selectedTask.status === "ABIERTO" && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => setIsEditing(true)}
+                            className="h-8 w-8"
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                        )}
+                      </div>
+
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <div className="flex items-center gap-2 cursor-pointer hover:bg-muted/50 p-2 rounded">
+                            <User2 className="h-4 w-4" />
+                            <span>{selectedTask.technician_responsable}</span>
                           </div>
-                        </div>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="space-y-2">
-                          {selectedTask.assigned_technicians && selectedTask.assigned_technicians.length > 0 ? (
-                            selectedTask.assigned_technicians.map((tech, index) => (
-                              <div 
-                                key={index} 
-                                className="flex items-center justify-between p-3 rounded-lg border bg-muted/30"
-                              >
-                                <div className="flex items-center gap-2">
-                                  <User2 className="h-4 w-4 text-muted-foreground" />
-                                  <span className="font-medium">{tech.name}</span>
-                                </div>
-                                <Badge variant="outline" className="font-mono">
-                                  {tech.hours} hrs
-                                </Badge>
-                              </div>
-                            ))
-                          ) : selectedTask.technician_responsable ? (
-                            <div className="flex items-center justify-between p-3 rounded-lg border bg-muted/30">
-                              <div className="flex items-center gap-2">
-                                <User2 className="h-4 w-4 text-muted-foreground" />
-                                <span className="font-medium">{selectedTask.technician_responsable}</span>
-                              </div>
-                              <Badge variant="outline" className="font-mono">
-                                8 hrs
-                              </Badge>
-                            </div>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-60">
+                          <h4 className="font-medium mb-2">
+                            Técnicos anteriores
+                          </h4>
+                          {selectedTask.old_technician?.length ? (
+                            <ul className="space-y-1">
+                              {selectedTask.old_technician.map(
+                                (tech, index) => (
+                                  <li key={index} className="text-sm">
+                                    {tech}
+                                  </li>
+                                )
+                              )}
+                            </ul>
                           ) : (
-                            <p className="text-sm text-muted-foreground text-center py-4">
-                              No hay técnicos asignados
+                            <p className="text-sm text-muted-foreground">
+                              No hay técnicos anteriores
                             </p>
                           )}
-                        </div>
-                      </CardContent>
-                    </Card>
+                        </PopoverContent>
+                      </Popover>
+                    </div>
 
                     {/* Inspector responsable */}
                     <div className="space-y-2">
                       <h3 className="font-medium">Inspector Responsable</h3>
-                      <div className="flex items-center gap-2 p-3 rounded-lg border bg-muted/30">
-                        <User2 className="h-4 w-4 text-muted-foreground" />
+                      <div className="flex items-center gap-2 p-2">
+                        <User2 className="h-4 w-4" />
                         <span>
                           {selectedTask.inspector_responsable || "No asignado"}
                         </span>
@@ -680,8 +491,7 @@ export const TaskDetailsDialog = ({
                     </ScrollArea>
                   </div>
                 )}
-                </div>
-              </ScrollArea>
+              </div>
             )}
             {currentStep === "schedule" && (
               <div className="space-y-4">
