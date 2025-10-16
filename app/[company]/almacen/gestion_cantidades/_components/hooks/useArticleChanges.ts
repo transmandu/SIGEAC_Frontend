@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { IWarehouseArticle } from "@/hooks/mantenimiento/almacen/articulos/useGetWarehouseConsumableArticles";
+import { IWarehouseArticle } from "@/hooks/mantenimiento/almacen/articulos/useGetWarehouseArticlesByCategory";
 
 export interface ArticleChanges {
   quantities: Record<number, number>;

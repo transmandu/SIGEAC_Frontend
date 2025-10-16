@@ -1,8 +1,8 @@
 import { useCallback, useMemo, useState } from "react";
 import { useDebounce } from "@/lib/useDebounce";
 import { useSearchBatchesByPartNumber } from "@/hooks/mantenimiento/almacen/renglones/useGetBatchesByArticlePartNumber";
-import { useGetWarehouseConsumableArticles } from "@/hooks/mantenimiento/almacen/articulos/useGetWarehouseConsumableArticles";
-import { IWarehouseArticle } from "@/hooks/mantenimiento/almacen/articulos/useGetWarehouseConsumableArticles";
+import { useGetWarehouseArticlesByCategory } from "@/hooks/mantenimiento/almacen/articulos/useGetWarehouseArticlesByCategory";
+import { IWarehouseArticle } from "@/hooks/mantenimiento/almacen/articulos/useGetWarehouseArticlesByCategory";
 import { useCompanyStore } from "@/stores/CompanyStore";
 
 export interface GlobalSearchState {
@@ -56,7 +56,7 @@ export const useGlobalSearch = (paginatedBatches: IWarehouseArticle[] | undefine
   const { 
     data: allBatchesResponse, 
     isLoading: isLoadingAllBatches 
-  } = useGetWarehouseConsumableArticles(
+  } = useGetWarehouseArticlesByCategory(
     1, 
     1000, // Obtener muchos más registros para la búsqueda global
     "CONSUMIBLE", // Category parameter

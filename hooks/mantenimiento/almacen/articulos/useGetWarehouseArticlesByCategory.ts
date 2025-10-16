@@ -9,6 +9,7 @@ export interface IWarehouseArticle {
   article_count: number;
   articles: {
     id: number;
+    alternative_part_number: string | null;
     part_number: string;
     serial: string | null;
     description: string;
@@ -31,7 +32,7 @@ export interface WarehouseResponse {
   };
 }
 
-const fetchWarehouseConsumableArticles = async (
+const fetchWarehouseArticlesByCategory = async (
   location_id: string | null,
   category: string,
   company?: string,
@@ -53,7 +54,7 @@ const fetchWarehouseConsumableArticles = async (
   };
 };
 
-export const useGetWarehouseConsumableArticles = (
+export const useGetWarehouseArticlesByCategory = (
   page: number = 1, 
   per_page: number = 25, 
   category: string,
@@ -62,7 +63,7 @@ export const useGetWarehouseConsumableArticles = (
   const { selectedCompany, selectedStation } = useCompanyStore();
   return useQuery<WarehouseResponse, Error>({
     queryKey: ["warehouse-articles", selectedCompany?.slug, selectedStation, page, per_page, category],
-    queryFn: () => fetchWarehouseConsumableArticles(selectedStation, category, selectedCompany?.slug, page, per_page),
+    queryFn: () => fetchWarehouseArticlesByCategory(selectedStation, category, selectedCompany?.slug, page, per_page),
     enabled: enabled && !!selectedCompany && !!selectedStation,
   });
 };
