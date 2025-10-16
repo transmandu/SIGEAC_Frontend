@@ -43,7 +43,9 @@ export const useCreateCourseAttendance = () => {
       });
 
       queryClient.invalidateQueries({ queryKey: ["department-courses"] });
-      queryClient.invalidateQueries({ queryKey: ["enrollment-status"] });
+
+      queryClient.invalidateQueries({ queryKey: ["enrollment-status-by-course",data.course_id] });
+
       toast.success("Modificado!", {
         description: `La lista de personas ha sido modificada`,
       });

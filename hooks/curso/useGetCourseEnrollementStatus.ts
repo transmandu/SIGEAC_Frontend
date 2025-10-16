@@ -47,7 +47,7 @@ export const useGetCourseEnrollementStatus = ({
     company: company,
   };
   return useQuery<EmplooyesEnrolled>({
-    queryKey: ["enrollment-status"],
+    queryKey: ["enrollment-status-by-course",course_id],
     queryFn: () => fetchGetCourseEnrollementStatus(value),
     staleTime: 1000 * 60 * 5, // 5 minutos
   });

@@ -47,7 +47,7 @@ export const useCreateSMSActivityAttendance = () => {
     },
     onSuccess: (_, data) => {
       queryClient.invalidateQueries({ queryKey: ["sms-activity-attendance"] });
-      queryClient.invalidateQueries({ queryKey: ["enrollment-status"] });
+      queryClient.invalidateQueries({ queryKey: ["enrollment-status-by-activity",data.activity_id] });
       queryClient.invalidateQueries({
         queryKey: ["enrolled-employees"],
       });
