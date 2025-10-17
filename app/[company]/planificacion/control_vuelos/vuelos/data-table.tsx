@@ -25,6 +25,10 @@ import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { CreateMaintenanceAircraftDialog } from "@/components/dialogs/mantenimiento/aeronaves/CreateMaintenanceAircraftDialog"
 import { CreateFlightControlDialog } from "@/components/dialogs/aerolinea/administracion/CreateFlightControl"
+import { Button } from "@/components/ui/button"
+import { History } from "lucide-react"
+import Link from "next/link"
+import { useCompanyStore } from "@/stores/CompanyStore"
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
@@ -57,14 +61,23 @@ export function DataTable<TData, TValue>({
   })
 
   const router = useRouter();
+  const { selectedCompany } = useCompanyStore();
 
   const isFiltered = table.getState().columnFilters.length > 0
 
   return (
     <div>
-      <div className="flex items-center py-4">
+      <div className="flex items-center justify-between py-4">
         <CreateFlightControlDialog />
-        <DataTableViewOptions table={table} />
+        <div className="flex items-center gap-2">
+          <Link href={`/${selectedCompany?.slug}/planificacion/control_vuelos/historial_vuelo`}>
+            <Button variant="outline" size="sm" className="flex items-center gap-2">
+              <History className="h-4 w-4" />
+              Historial de Vuelos
+            </Button>
+          </Link>
+          <DataTableViewOptions table={table} />
+        </div>
       </div>
       <div className="rounded-md border mb-4">
         <Table>

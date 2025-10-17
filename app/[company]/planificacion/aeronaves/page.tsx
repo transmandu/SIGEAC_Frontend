@@ -174,7 +174,7 @@ const AircraftsPage = () => {
             {query && (
               <Badge variant="secondary" className="gap-1.5 px-3 py-1">
                 <Search className="h-3.5 w-3.5" />
-                "{query}"
+                {query}
               </Badge>
             )}
             <button
@@ -305,7 +305,7 @@ const AircraftsPage = () => {
             <h3 className="text-xl font-semibold mb-2">No se encontraron aeronaves</h3>
             <p className="text-muted-foreground text-center max-w-md">
               {query ? (
-                <>No hay resultados para <span className="font-semibold">"{query}"</span></>
+                <>No hay resultados para <span className="font-semibold">{query}</span></>
               ) : (
                 'Intenta ajustar los filtros de búsqueda'
               )}

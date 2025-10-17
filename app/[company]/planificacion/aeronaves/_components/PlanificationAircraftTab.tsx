@@ -1,8 +1,9 @@
 "use client"
 
 import { useMemo, useRef, useState } from "react"
-import { format, parseISO, getYear } from "date-fns"
+import { format, parseISO, getYear, startOfMonth, endOfMonth } from "date-fns"
 import { es } from "date-fns/locale"
+import { useGetAverageCyclesAndHours } from "@/hooks/aerolinea/vuelos/useGetAverageCyclesAndHours"
 import { Plane, Hash, Calendar as CalendarIcon, Layers, Search, PackageCheck, CircleDot, Clock, RotateCcw, ChevronRight, Component, Package, Edit, Cog, Zap, Fan } from "lucide-react"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -144,6 +145,78 @@ const PART_TYPE_CONFIG = [
     label: "Hélice"
   }
 ] as const;
+
+// =========================
+// Componente de estadísticas mensuales
+// =========================
+function MonthlyFlightStats({ acronym }: { acronym: string }) {
+  // Obtener el primer y último día del mes actual
+  const currentDate = new Date();
+  const firstDay = startOfMonth(currentDate);
+  const lastDay = endOfMonth(currentDate);
+
+  const dateRange = {
+    first_date: format(firstDay, 'yyyy-MM-dd'),
+    second_date: format(lastDay, 'yyyy-MM-dd')
+  };
+
+  const { selectedCompany } = useCompanyStore();
+  const { data, isLoading } = useGetAverageCyclesAndHours(selectedCompany?.slug, acronym, dateRange);
+
+  if (isLoading) {
+    return (
+      <div className="grid gap-1">
+        <div className="flex items-center justify-between px-3 py-2">
+          <span className="flex items-center gap-2">
+            <Clock className="h-4 w-4" /> Promedio de horas
+          </span>
+          <span className="text-muted-foreground">Cargando...</span>
+        </div>
+        <div className="flex items-center justify-between px-3 py-2">
+          <span className="flex items-center gap-2">
+            <Clock className="h-4 w-4" /> Promedio de ciclos
+          </span>
+          <span className="text-muted-foreground">Cargando...</span>
+        </div>
+        <div className="flex items-center justify-between px-3 py-2">
+          <span className="flex items-center gap-2">
+            <Clock className="h-4 w-4" /> Total de vuelos
+          </span>
+          <span className="text-muted-foreground">Cargando...</span>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="grid gap-1">
+      <div className="flex items-center justify-between px-3 py-2">
+        <span className="flex items-center gap-2">
+          <Clock className="h-4 w-4" /> Promedio de horas
+        </span>
+        <span>
+          {data ? fmtNumber(data.average_flight_hours) : '—'}
+        </span>
+      </div>
+      <div className="flex items-center justify-between px-3 py-2">
+        <span className="flex items-center gap-2">
+          <Clock className="h-4 w-4" /> Promedio de ciclos
+        </span>
+        <span>
+          {data ? fmtNumber(data.average_flight_cycles) : '—'}
+        </span>
+      </div>
+      <div className="flex items-center justify-between px-3 py-2">
+        <span className="flex items-center gap-2">
+          <Clock className="h-4 w-4" /> Total de vuelos
+        </span>
+        <span>
+          {data ? data.total_flights || '0' : '—'}
+        </span>
+      </div>
+    </div>
+  );
+}
 
 // =========================
 // Componente de fila de parte
@@ -443,24 +516,28 @@ export function PlanificationAircraftTab({ aircraft }: { aircraft: MaintenanceAi
 
             <Card className="border-muted/40">
               <CardHeader>
-                <CardTitle className="text-base">Resumen de partes instaladas</CardTitle>
+                <CardTitle className="text-base">Resumen de Vuelo</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 gap-3">
-                  <div className="flex items-center justify-between rounded-md border bg-background px-3 py-2">
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground"><PackageCheck className="h-4 w-4" /> Partes instaladas</div>
-                    <div className="text-base font-semibold">{totalParts}</div>
-                  </div>
-
                   <div className="rounded-md border">
                     <div className="flex items-center justify-between border-b px-3 py-2 text-sm">
                       <span className="text-muted-foreground">Totales estimados</span>
                       <span className="text-muted-foreground">H / C</span>
                     </div>
                     <div className="flex items-center justify-between px-3 py-2 text-sm">
-                      <span className="flex items-center gap-2"><CircleDot className="h-4 w-4" /> Horas / Ciclos</span>
-                      <span className="font-medium">{totals.hours.toLocaleString()} / {totals.cycles.toLocaleString()}</span>
+                      <span className="flex items-center gap-2"><Clock className="h-4 w-4" /> Horas / Ciclos</span>
+                      <span>{aircraft.flight_hours?.toLocaleString?.() ?? aircraft.flight_hours} / {aircraft.flight_cycles?.toLocaleString?.() ?? aircraft.flight_cycles}</span>
                     </div>
+                  </div>
+
+                  {/* Estadísticas del Mes */}
+                  <div className="rounded-md border">
+                    <div className="flex items-center justify-between border-b px-3 py-2 text-sm">
+                      <span className="text-muted-foreground">Estadísticas del mes</span>
+                      <span className="text-muted-foreground">Valor</span>
+                    </div>
+                    <MonthlyFlightStats acronym={aircraft.acronym} />
                   </div>
                 </div>
               </CardContent>

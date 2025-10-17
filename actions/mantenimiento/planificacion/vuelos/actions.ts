@@ -18,6 +18,7 @@ export const useCreateFlightControl = () => {
 
   const createMutation = useMutation({
       mutationFn: async ({data, company}: {data: CreateFlightControlData, company: string}) => {
+        console.log("📡 Enviando al backend:", data);
           await axiosInstance.post(`/${company}/flight-control`, data)
         },
       onSuccess: () => {

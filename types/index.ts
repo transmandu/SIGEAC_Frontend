@@ -1060,3 +1060,19 @@ export type CourseStats = {
   completed_courses: number;
   total_courses: number;
 };
+
+export type FlightHistory = {
+  id: number;
+  flight_number: string;
+  aircraft_part_id: string | number;
+  aircraft_part?: MaintenanceAircraftPart;
+  flight?: FlightControl;
+  time_since_new: number | string;
+  time_since_overhaul: number | string;
+  cycles_since_new: number | string;
+  cycles_since_overhaul: number | string;
+  flight_cycles: number | string;
+  flight_hours: number | string;
+  created_at: string;
+  updated_at: string;
+};
