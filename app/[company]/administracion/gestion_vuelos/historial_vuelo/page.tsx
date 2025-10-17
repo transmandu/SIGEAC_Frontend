@@ -20,19 +20,21 @@ import {
   X, 
   Download, 
   Filter, 
-  Calendar,
-  Plane,
-  FileSpreadsheet,
-  TrendingUp,
-  Clock
+  Plane
 } from 'lucide-react';
 import { useState } from 'react';
 import { columns } from './columns';
 import { DataTable } from './data-table';
 import { useGetFlightHistory } from '@/hooks/aerolinea/vuelos/useGetFlightHistory';
 import { useGetAircraftAcronyms } from '@/hooks/aerolinea/aeronaves/useGetAircraftAcronyms';
+import { useGetAverageCyclesAndHours } from '@/hooks/aerolinea/vuelos/useGetAverageCyclesAndHours';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { format, startOfMonth, endOfMonth, startOfYear, endOfYear } from "date-fns";
+import { es } from "date-fns/locale";
+import { Calendar as CalendarIcon, Clock, TrendingUp } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
 
 /**
  * Página mejorada de Historial de Vuelos con UI/UX profesional
@@ -41,6 +43,13 @@ const HistorialVueloPage = () => {
   const { selectedCompany } = useCompanyStore();
   const [selectedAcronym, setSelectedAcronym] = useState<string>('');
   const [selectedView, setSelectedView] = useState<'table' | 'compact'>('table');
+  
+  // Estados para el selector de períodos
+  const [periodType, setPeriodType] = useState<'current_month' | 'month' | 'year' | 'custom'>('current_month');
+  const [selectedMonth, setSelectedMonth] = useState<string>(format(new Date(), 'yyyy-MM'));
+  const [selectedYear, setSelectedYear] = useState<string>(format(new Date(), 'yyyy'));
+  const [customDateFrom, setCustomDateFrom] = useState<Date>();
+  const [customDateTo, setCustomDateTo] = useState<Date>();
 
   // ============================================
   // DATA FETCHING
@@ -52,6 +61,53 @@ const HistorialVueloPage = () => {
     selectedAcronym || undefined
   );
 
+  // Calcular el rango de fechas según el tipo de período seleccionado
+  const getDateRange = () => {
+    switch (periodType) {
+      case 'current_month': {
+        const now = new Date();
+        return {
+          first_date: format(startOfMonth(now), 'yyyy-MM-dd'),
+          second_date: format(endOfMonth(now), 'yyyy-MM-dd')
+        };
+      }
+      case 'month': {
+        const [year, month] = selectedMonth.split('-');
+        const date = new Date(parseInt(year), parseInt(month) - 1, 1);
+        return {
+          first_date: format(startOfMonth(date), 'yyyy-MM-dd'),
+          second_date: format(endOfMonth(date), 'yyyy-MM-dd')
+        };
+      }
+      case 'year': {
+        const date = new Date(parseInt(selectedYear), 0, 1);
+        return {
+          first_date: format(startOfYear(date), 'yyyy-MM-dd'),
+          second_date: format(endOfYear(date), 'yyyy-MM-dd')
+        };
+      }
+      case 'custom': {
+        if (customDateFrom && customDateTo) {
+          return {
+            first_date: format(customDateFrom, 'yyyy-MM-dd'),
+            second_date: format(customDateTo, 'yyyy-MM-dd')
+          };
+        }
+        return undefined;
+      }
+      default:
+        return undefined;
+    }
+  };
+
+  const dateRange = getDateRange();
+
+  const { data: averageData, isLoading: isLoadingAverage } = useGetAverageCyclesAndHours(
+    selectedCompany?.slug,
+    selectedAcronym || undefined,
+    selectedAcronym && dateRange ? dateRange : undefined
+  );
+
   // ============================================
   // HANDLERS
   // ============================================
@@ -60,24 +116,33 @@ const HistorialVueloPage = () => {
     console.log('Exportando datos...');
   };
 
+  // Obtener etiqueta del período seleccionado
+  const getPeriodLabel = () => {
+    switch (periodType) {
+      case 'current_month':
+        return 'Mes Actual';
+      case 'month': {
+        const [year, month] = selectedMonth.split('-');
+        const date = new Date(parseInt(year), parseInt(month) - 1, 1);
+        return format(date, 'MMMM yyyy', { locale: es });
+      }
+      case 'year':
+        return `Año ${selectedYear}`;
+      case 'custom':
+        if (customDateFrom && customDateTo) {
+          return 'Período Personalizado';
+        }
+        return 'Período';
+      default:
+        return 'Período';
+    }
+  };
+
   // ============================================
   // COMPUTED VALUES
   // ============================================
   const flightHistoryRecords = flightHistoryData?.data || [];
   const totalRecords = flightHistoryData?.total || 0;
-
-  // Calcular estadísticas (convertir strings a números)
-  const totalFlightHours = flightHistoryRecords.reduce((sum, record) => {
-    const hours = typeof record.flight_hours === 'string' ? parseFloat(record.flight_hours) : Number(record.flight_hours);
-    return sum + (isNaN(hours) ? 0 : hours);
-  }, 0);
-  
-  const totalFlightCycles = flightHistoryRecords.reduce((sum, record) => {
-    const cycles = typeof record.flight_cycles === 'string' ? parseFloat(record.flight_cycles) : Number(record.flight_cycles);
-    return sum + (isNaN(cycles) ? 0 : cycles);
-  }, 0);
-  
-  const uniqueFlights = new Set(flightHistoryRecords.map(r => r.flight_number)).size;
 
   // ============================================
   // RENDER
@@ -134,70 +199,6 @@ const HistorialVueloPage = () => {
             </div>
           </div>
 
-          {/* Tarjetas de estadísticas */}
-          {!isLoading && flightHistoryRecords.length > 0 && (
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardDescription className="flex items-center gap-2">
-                    <FileSpreadsheet className="h-4 w-4" />
-                    Total Registros
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{totalRecords}</div>
-                  <p className="text-xs text-muted-foreground">
-                    Registros en el sistema
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardDescription className="flex items-center gap-2">
-                    <Plane className="h-4 w-4" />
-                    Vuelos Únicos
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{uniqueFlights}</div>
-                  <p className="text-xs text-muted-foreground">
-                    Diferentes vuelos
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardDescription className="flex items-center gap-2">
-                    <Clock className="h-4 w-4" />
-                    Horas Totales
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{totalFlightHours.toFixed(2)}</div>
-                  <p className="text-xs text-muted-foreground">
-                    Horas de vuelo acumuladas
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardDescription className="flex items-center gap-2">
-                    <TrendingUp className="h-4 w-4" />
-                    Ciclos Totales
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{totalFlightCycles}</div>
-                  <p className="text-xs text-muted-foreground">
-                    Ciclos de vuelo acumulados
-                  </p>
-                </CardContent>
-              </Card>
-            </div>
-          )}
         </div>
 
         {/* Búsqueda y filtros */}
@@ -271,6 +272,191 @@ const HistorialVueloPage = () => {
             )}
           </CardContent>
         </Card>
+
+        {/* Selector de Período para Promedios */}
+        {selectedAcronym && (
+          <Card className="w-full border-blue-200 bg-blue-50/30 dark:bg-blue-950/10">
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <CalendarIcon className="h-5 w-5" />
+                Período de Consulta para Promedios
+              </CardTitle>
+              <CardDescription>
+                Selecciona el período para calcular los promedios de horas y ciclos
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {/* Selector de tipo de período */}
+              <div>
+                <label className="text-sm font-medium mb-2 block">Tipo de Período</label>
+                <Select value={periodType} onValueChange={(value: any) => setPeriodType(value)}>
+                  <SelectTrigger className="h-11">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="current_month">Mes Actual</SelectItem>
+                    <SelectItem value="month">Mes Específico</SelectItem>
+                    <SelectItem value="year">Año Completo</SelectItem>
+                    <SelectItem value="custom">Rango Personalizado</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Selector de mes específico */}
+              {periodType === 'month' && (
+                <div>
+                  <label className="text-sm font-medium mb-2 block">Selecciona el Mes</label>
+                  <Input
+                    type="month"
+                    value={selectedMonth}
+                    onChange={(e) => setSelectedMonth(e.target.value)}
+                    className="h-11"
+                  />
+                </div>
+              )}
+
+              {/* Selector de año */}
+              {periodType === 'year' && (
+                <div>
+                  <label className="text-sm font-medium mb-2 block">Selecciona el Año</label>
+                  <Select value={selectedYear} onValueChange={setSelectedYear}>
+                    <SelectTrigger className="h-11">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Array.from({ length: 10 }, (_, i) => {
+                        const year = new Date().getFullYear() - i;
+                        return (
+                          <SelectItem key={year} value={year.toString()}>
+                            {year}
+                          </SelectItem>
+                        );
+                      })}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+
+              {/* Selector de rango personalizado */}
+              {periodType === 'custom' && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Fecha Desde</label>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className="w-full justify-start text-left font-normal h-11"
+                        >
+                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          {customDateFrom ? format(customDateFrom, 'PPP', { locale: es }) : 'Selecciona fecha'}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={customDateFrom}
+                          onSelect={setCustomDateFrom}
+                          initialFocus
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Fecha Hasta</label>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className="w-full justify-start text-left font-normal h-11"
+                        >
+                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          {customDateTo ? format(customDateTo, 'PPP', { locale: es }) : 'Selecciona fecha'}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={customDateTo}
+                          onSelect={setCustomDateTo}
+                          initialFocus
+                          disabled={(date) => customDateFrom ? date < customDateFrom : false}
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                </div>
+              )}
+
+              {/* Mostrar rango seleccionado */}
+              {dateRange && (
+                <div className="p-3 bg-background rounded-lg border">
+                  <p className="text-sm font-medium mb-1">Rango Seleccionado:</p>
+                  <p className="text-sm text-muted-foreground">
+                    {format(new Date(dateRange.first_date), 'dd/MM/yyyy')} - {format(new Date(dateRange.second_date), 'dd/MM/yyyy')}
+                  </p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Tarjetas de Promedios */}
+        {!isLoading && flightHistoryRecords.length > 0 && selectedAcronym && averageData && (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Card className="border-blue-200 bg-blue-50/50 dark:bg-blue-950/20">
+              <CardHeader className="pb-2">
+                <CardDescription className="flex items-center gap-2 text-blue-700 dark:text-blue-300">
+                  <Clock className="h-4 w-4" />
+                  Promedio de Horas
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-blue-700 dark:text-blue-300">
+                  {averageData.average_flight_hours.toFixed(2)}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Promedio por vuelo - {getPeriodLabel()}
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="border-blue-200 bg-blue-50/50 dark:bg-blue-950/20">
+              <CardHeader className="pb-2">
+                <CardDescription className="flex items-center gap-2 text-blue-700 dark:text-blue-300">
+                  <TrendingUp className="h-4 w-4" />
+                  Promedio de Ciclos
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-blue-700 dark:text-blue-300">
+                  {averageData.average_flight_cycles.toFixed(0)}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Promedio por vuelo - {getPeriodLabel()}
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="border-blue-200 bg-blue-50/50 dark:bg-blue-950/20">
+              <CardHeader className="pb-2">
+                <CardDescription className="flex items-center gap-2 text-blue-700 dark:text-blue-300">
+                  <Plane className="h-4 w-4" />
+                  Total de Vuelos
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-blue-700 dark:text-blue-300">
+                  {averageData.total_flights}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Vuelos realizados - {getPeriodLabel()}
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+        )}
 
         {/* Tabla de Datos */}
         <Card className="w-full">
