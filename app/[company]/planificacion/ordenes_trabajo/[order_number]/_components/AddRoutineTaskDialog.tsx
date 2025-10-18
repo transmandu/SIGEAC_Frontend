@@ -31,7 +31,7 @@ import { z } from "zod";
 const formSchema = z.object({
   description_task: z.string().min(1, 'La descripción de la tarea es obligatoria'),
   ata: z.string().min(1, 'Código ATA requerido'),
-  task_number: z.string().min(1, 'Número de tarea requerido'),
+  task_number: z.string().min(5, 'Número de tarea requerido al menos 5 caracteres'),
   origin_manual: z.string().min(1, 'Origen manual requerido'),
   task_items: z.array(z.object({
     part_number: z.string().min(1, 'Número de parte requerido'),
