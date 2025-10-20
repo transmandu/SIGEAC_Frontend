@@ -373,28 +373,57 @@ export function PlanificationAircraftTab({ aircraft }: { aircraft: MaintenanceAi
       PROPELLER: [] as PartNode[]
     };
     
+    console.log('========== DEBUG: Agrupación de Partes ==========');
+    console.log('Total de nodos en el árbol:', tree.length);
+    
     tree.forEach(node => {
       const part = node.part as any;
-      if (part.part_type === "engine") {
+      
+      // Log detallado de cada parte
+      console.log('\n--- Parte ---');
+      console.log('Nombre:', part.part_name);
+      console.log('Part Number:', part.part_number);
+      console.log('Part Type (del backend):', part.part_type);
+      console.log('Objeto completo:', part);
+      
+      // Normalizar part_type a mayúsculas para la comparación
+      const partType = part.part_type?.toUpperCase();
+      
+      if (partType === "ENGINE") {
+        console.log('✅ Clasificado como: ENGINE (por part_type)');
         categories.ENGINE.push(node);
-      } else if (part.part_type === "apu") {
+      } else if (partType === "APU") {
+        console.log('✅ Clasificado como: APU (por part_type)');
         categories.APU.push(node);
-      } else if (part.part_type === "propeller") {
+      } else if (partType === "PROPELLER") {
+        console.log('✅ Clasificado como: PROPELLER (por part_type)');
         categories.PROPELLER.push(node);
       } else {
         // Fallback: detectar por nombre
         const partName = part.part_name?.toLowerCase() || "";
+        console.log('⚠️ part_type no reconocido, usando fallback por nombre:', partName);
+        
         if (partName.includes('engine') || partName.includes('motor')) {
+          console.log('✅ Clasificado como: ENGINE (por nombre)');
           categories.ENGINE.push(node);
         } else if (partName.includes('apu')) {
+          console.log('✅ Clasificado como: APU (por nombre)');
           categories.APU.push(node);
         } else if (partName.includes('propeller') || partName.includes('hélice') || partName.includes('helice')) {
+          console.log('✅ Clasificado como: PROPELLER (por nombre)');
           categories.PROPELLER.push(node);
         } else {
+          console.log('⚠️ No se pudo clasificar, usando DEFAULT: ENGINE');
           categories.ENGINE.push(node); // Default a ENGINE
         }
       }
     });
+    
+    console.log('\n========== Resumen de Clasificación ==========');
+    console.log('ENGINE (Plantas de Poder):', categories.ENGINE.length);
+    console.log('APU:', categories.APU.length);
+    console.log('PROPELLER (Hélices):', categories.PROPELLER.length);
+    console.log('==============================================\n');
     
     return categories;
   }, [tree])
@@ -423,11 +452,14 @@ export function PlanificationAircraftTab({ aircraft }: { aircraft: MaintenanceAi
     
     filteredFlat.forEach(assignment => {
       const part = assignment.aircraft_part as any;
-      if (part.part_type === "engine") {
+      // Normalizar part_type a mayúsculas para la comparación
+      const partType = part.part_type?.toUpperCase();
+      
+      if (partType === "ENGINE") {
         categories.ENGINE.push(assignment);
-      } else if (part.part_type === "apu") {
+      } else if (partType === "APU") {
         categories.APU.push(assignment);
-      } else if (part.part_type === "propeller") {
+      } else if (partType === "PROPELLER") {
         categories.PROPELLER.push(assignment);
       } else {
         // Fallback: detectar por nombre

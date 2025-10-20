@@ -58,6 +58,7 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import CreateNoRutineDialog from "./CreateNoRutineDialog";
+import { useParams } from "next/navigation";
 
 const assignmentFormSchema = z.object({
   technician_responsable: z.string().min(1, "Debe seleccionar un técnico"),
@@ -111,6 +112,8 @@ export const TaskDetailsDialog = ({
       acronym: "MANP",
     });
 
+  const params = useParams();
+
   const form = useForm<z.infer<typeof assignmentFormSchema>>({
     resolver: zodResolver(assignmentFormSchema),
     defaultValues: {
@@ -138,6 +141,7 @@ export const TaskDetailsDialog = ({
         await updateNoRoutineTask.mutateAsync({
           data: { id: selectedTask.id.toString(), status: "CERRADO" },
           company: selectedCompany!.slug,
+          order_number: params.order_number as string,
         });
       } else {
         await updateTaskStatus.mutateAsync({
@@ -185,6 +189,7 @@ export const TaskDetailsDialog = ({
             ...updateTaskData,
           },
           company: selectedCompany!.slug,
+          order_number: params.order_number as string,
         });
       } else {
         await updateWorkOrderTask.mutateAsync({

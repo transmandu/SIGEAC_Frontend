@@ -22,6 +22,7 @@ import { ScrollArea } from '../../../ui/scroll-area'
 import { Switch } from '../../../ui/switch'
 import { Textarea } from '../../../ui/textarea'
 import { useCompanyStore } from "@/stores/CompanyStore"
+import { useParams } from 'next/navigation'
 
 // Esquemas de validación
 const nonRoutineSchema = z.object({
@@ -52,6 +53,7 @@ const CreateNoRutineForm = ({ id, onClose }: { id: string, onClose: () => void }
   const [step, setStep] = useState(1)
   const { createNoRutine } = useCreateNoRutine()
   const { selectedCompany } = useCompanyStore()
+  const params = useParams()
 
   const form = useForm<FormValues>({
     resolver: zodResolver(z.object({
@@ -89,7 +91,11 @@ const CreateNoRutineForm = ({ id, onClose }: { id: string, onClose: () => void }
         work_order_task_id: id,
         tasks: data.nonRoutine.needs_task ? data.tasks : undefined
       }
-      await createNoRutine.mutateAsync({data: payload, company: selectedCompany!.slug})
+      await createNoRutine.mutateAsync({
+        data: payload,
+        company: selectedCompany!.slug,
+        order_number: params.order_number as string
+      })
     } catch (error) {
       console.error(error)
     } finally {
