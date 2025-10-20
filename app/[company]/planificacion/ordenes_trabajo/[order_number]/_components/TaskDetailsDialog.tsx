@@ -342,10 +342,7 @@ export const TaskDetailsDialog = ({
                                   </div>
                                 ) : (
                                   technicians?.map((tech) => (
-                                    <SelectItem
-                                      key={tech.dni}
-                                      value={`${tech.dni}`}
-                                    >
+                                    <SelectItem key={tech.dni} value={tech.dni}>
                                       {tech.first_name} {tech.last_name}
                                     </SelectItem>
                                   ))
