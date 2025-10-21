@@ -1,6 +1,7 @@
-import axios from '@/lib/axios';
-import { Article, Batch, DispatchRequest, WorkOrder } from '@/types';
-import { useMutation } from '@tanstack/react-query';
+import axios from "@/lib/axios";
+import { useCompanyStore } from "@/stores/CompanyStore";
+import { Article, Batch, DispatchRequest, WorkOrder } from "@/types";
+import { useMutation, useQuery } from "@tanstack/react-query";
 
 interface IDispatch {
   id: number;
@@ -9,7 +10,7 @@ interface IDispatch {
   justification: string;
   destination_place: string;
   submission_date: string;
-  status: 'PROCESO' | 'APROBADO' | 'RECHAZADO';
+  status: "PROCESO" | "APROBADO" | "RECHAZADO";
   work_order?: WorkOrder;
   articles: {
     id: number;
@@ -24,17 +25,22 @@ const fetchDispatchesRequests = async ({
   location_id,
   company,
 }: {
-  location_id: number;
+  location_id: string | null;
   company?: string;
 }): Promise<IDispatch[]> => {
-  const { data } = await axios.post(`/${company}/show-dispatch`, { location_id });
-  console.log(data);
+  const { data } = await axios.get(`/${company}/${location_id}/show-dispatch`);
   return data;
 };
 
 export const useGetDispatchesByLocation = () => {
-  return useMutation<IDispatch[], Error, { company?: string; location_id: number }>({
-    mutationKey: ['dispatches-requests', 'company'],
-    mutationFn: fetchDispatchesRequests,
+  const { selectedStation, selectedCompany } = useCompanyStore();
+  return useQuery<IDispatch[], Error>({
+    queryKey: ["dispatches-requests", selectedCompany?.slug, selectedStation],
+    queryFn: () =>
+      fetchDispatchesRequests({
+        company: selectedCompany?.slug,
+        location_id: selectedStation,
+      }),
+    enabled : !!selectedCompany && !! selectedStation
   });
 };
