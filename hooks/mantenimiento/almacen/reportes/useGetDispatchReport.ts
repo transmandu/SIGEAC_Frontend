@@ -28,7 +28,9 @@ const fetchDispatchReport = async (
   location_id: string,
   company?: string,
 ): Promise<DispatchReport[]> => {
-  const { data } = await axios.get(`/${company}/report-dispatch-orders/${location_id}`);
+  const { data } = await axios.get(
+    `/${company}/${location_id}/report-dispatch-orders`
+  );
   return data;
 };
 
