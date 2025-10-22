@@ -585,29 +585,29 @@ export function getMenuList(
             },
           ],
         },
-        {
-          href: "",
-          label: "Gestión de Encuestas",
-          active: pathname.includes(`/${currentCompany?.slug}/sms/gestion_encuestas`),
-          icon: ClipboardCheck,
-          roles: ["SUPERUSER", "JEFE_SMS", "ANALISTA_SMS"],
-          submenus: [
-            {
-              href: `/${currentCompany?.slug}/sms/gestion_encuestas/crear`,
-              label: "Crear",
-              roles: ["SUPERUSER", "JEFE_SMS", "ANALISTA_SMS"],
-              active:
-                pathname === `/${currentCompany?.slug}/sms/gestion_encuestas/crear`,
-            },
-            {
-              href: `/${currentCompany?.slug}/sms/gestion_encuestas/lista`,
-              label: "Lista",
-              roles: ["SUPERUSER", "JEFE_SMS", "ANALISTA_SMS"],
-              active:
-                pathname === `/${currentCompany?.slug}/sms/gestion_encuestas/lista`,
-            },
-          ],
-        },
+        // {
+        //   href: "",
+        //   label: "Gestión de Encuestas",
+        //   active: pathname.includes(`/${currentCompany?.slug}/sms/gestion_encuestas`),
+        //   icon: ClipboardCheck,
+        //   roles: ["SUPERUSER", "JEFE_SMS", "ANALISTA_SMS"],
+        //   submenus: [
+        //     {
+        //       href: `/${currentCompany?.slug}/sms/gestion_encuestas/crear`,
+        //       label: "Crear",
+        //       roles: ["SUPERUSER", "JEFE_SMS", "ANALISTA_SMS"],
+        //       active:
+        //         pathname === `/${currentCompany?.slug}/sms/gestion_encuestas/crear`,
+        //     },
+        //     {
+        //       href: `/${currentCompany?.slug}/sms/gestion_encuestas/lista`,
+        //       label: "Lista",
+        //       roles: ["SUPERUSER", "JEFE_SMS", "ANALISTA_SMS"],
+        //       active:
+        //         pathname === `/${currentCompany?.slug}/sms/gestion_encuestas/lista`,
+        //     },
+        //   ],
+        // },
       ],
     },
     {
