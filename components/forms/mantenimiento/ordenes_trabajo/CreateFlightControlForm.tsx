@@ -21,7 +21,7 @@ import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { Calendar } from "../../../ui/calendar";
-import { useCreateFlightControl } from "@/actions/mantenimiento/planificacion/vuelos/actions";
+import { useCreateFlightControl, useUpdateFlightControl } from "@/actions/mantenimiento/planificacion/vuelos/actions";
 import { useCompanyStore } from "@/stores/CompanyStore";
 
 
@@ -37,17 +37,43 @@ const formSchema = z.object({
 })
 
 
-interface FormProps {
-  onClose: () => void,
+interface FlightData {
+  id: string,
+  flight_number: string,
+  aircraft_operator: string,
+  origin: string,
+  destination: string,
+  flight_date: string | Date,
+  flight_hours: number,
+  flight_cycles: number,
+  aircraft_id: string,
 }
 
-export default function CreateFlightControlForm({ onClose }: FormProps) {
+interface FormProps {
+  onClose: () => void,
+  flightData?: FlightData,
+}
+
+export default function CreateFlightControlForm({ onClose, flightData }: FormProps) {
   const { createFlightControl } = useCreateFlightControl()
+  const { updateFlightControl } = useUpdateFlightControl()
   const { selectedCompany } = useCompanyStore()
   const { data: aircrafts, isLoading: isAircraftsLoading, isError: isAircraftsError } = useGetMaintenanceAircrafts(selectedCompany?.slug)
+  
+  const isEditMode = !!flightData
+  
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: {
+    defaultValues: flightData ? {
+      flight_cycles: flightData.flight_cycles,
+      flight_hours: flightData.flight_hours,
+      flight_number: flightData.flight_number,
+      origin: flightData.origin,
+      destination: flightData.destination,
+      aircraft_operator: flightData.aircraft_operator,
+      aircraft_id: flightData.aircraft_id.toString(),
+      flight_date: typeof flightData.flight_date === 'string' ? new Date(flightData.flight_date) : flightData.flight_date,
+    } : {
       flight_cycles: 0,
       flight_hours: 0,
       flight_number: "",
@@ -58,7 +84,18 @@ export default function CreateFlightControlForm({ onClose }: FormProps) {
   })
   const { control } = form;
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    await createFlightControl.mutateAsync({data: values, company: selectedCompany!.slug})
+    if (isEditMode) {
+      await updateFlightControl.mutateAsync({
+        id: flightData.id,
+        data: values,
+        company: selectedCompany!.slug
+      })
+    } else {
+      await createFlightControl.mutateAsync({
+        data: values,
+        company: selectedCompany!.slug
+      })
+    }
     onClose()
   }
   return (
@@ -278,8 +315,8 @@ export default function CreateFlightControlForm({ onClose }: FormProps) {
             )}
           />
         </div>
-        <Button className="bg-primary mt-2 text-white hover:bg-blue-900 disabled:bg-primary/70 " disabled={createFlightControl?.isPending} type="submit">
-          {createFlightControl?.isPending ? <Loader2 className="size-4 animate-spin" /> : <p>Crear Vuelo</p>}
+        <Button className="bg-primary mt-2 text-white hover:bg-blue-900 disabled:bg-primary/70 " disabled={createFlightControl?.isPending || updateFlightControl?.isPending} type="submit">
+          {(createFlightControl?.isPending || updateFlightControl?.isPending) ? <Loader2 className="size-4 animate-spin" /> : <p>{isEditMode ? 'Actualizar Vuelo' : 'Crear Vuelo'}</p>}
         </Button>
       </form>
     </Form>

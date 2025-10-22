@@ -336,6 +336,7 @@ export type WorkOrderTaskEvent = {
 };
 
 export type FlightControl = {
+  id: number;
   flight_number: string;
   aircraft_operator: string;
   origin: string;

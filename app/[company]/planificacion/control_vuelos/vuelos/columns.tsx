@@ -1,27 +1,13 @@
 "use client"
 
 import { ColumnDef } from "@tanstack/react-table"
-import { MoreHorizontal, SquarePen, Trash2 } from "lucide-react"
 
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader"
-import { Button } from "@/components/ui/button"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger
-} from "@/components/ui/dropdown-menu"
 
 import { Checkbox } from "@/components/ui/checkbox"
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip"
 import { FlightControl } from "@/types"
 import Link from "next/link"
+import FlightControlDropdownActions from "@/components/dropdowns/mantenimiento/FlightControlDropdownActions"
 
 export const columns: ColumnDef<FlightControl>[] = [
   {
@@ -103,42 +89,8 @@ export const columns: ColumnDef<FlightControl>[] = [
   {
     id: "actions",
     cell: ({ row }) => {
-      const item = row.original
-      return (
-        <TooltipProvider>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0">
-                <span className="sr-only">Abrir menu</span>
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="center" className="flex gap-2 justify-center">
-              <DropdownMenuSeparator />
-              <DropdownMenuItem>
-                <Tooltip>
-                  <TooltipTrigger>
-                    <Trash2 className='size-5 text-red-500' />
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Eliminar</p>
-                  </TooltipContent>
-                </Tooltip>
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <Tooltip>
-                  <TooltipTrigger>
-                    <SquarePen className="size-5" />
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    Editar
-                  </TooltipContent>
-                </Tooltip>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </TooltipProvider>
-      )
+      const flightControl = row.original
+      return <FlightControlDropdownActions flightControl={flightControl} />
     },
   },
 ]
