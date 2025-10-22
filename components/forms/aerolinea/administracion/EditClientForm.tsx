@@ -110,7 +110,6 @@ export function EditClientForm({ onClose, client }: EditClientFormProps) {
       phone: formData.phone,
       email: formData.email,
       address: formData.address,
-      pay_credit_days: formData.pay_credit_days,
     };
     await updateClient.mutateAsync({
       id: client.id.toString(),

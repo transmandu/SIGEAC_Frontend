@@ -37,13 +37,13 @@ const InventarioPage = () => {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="start">
                   <DropdownMenuItem>
-                    <BreadcrumbLink href={`/${selectedCompany?.slug}/almacen/inventario/entregado`}>Ingreso de Articulo</BreadcrumbLink>
+                    <BreadcrumbLink href={`/${selectedCompany?.slug}/almacen/ingreso/registrar_ingreso`}>Ingreso de Articulo</BreadcrumbLink>
                   </DropdownMenuItem>
                   <DropdownMenuItem>
-                    <BreadcrumbLink href={`/${selectedCompany?.slug}/almacen/inventario/gestion`}>Articulos de Transito</BreadcrumbLink>
+                    <BreadcrumbLink href={`/${selectedCompany?.slug}/almacen/ingreso/en_transito`}>Articulos de Transito</BreadcrumbLink>
                   </DropdownMenuItem>
                   <DropdownMenuItem>
-                    <BreadcrumbLink href={`/${selectedCompany?.slug}/almacen/inventario/entregado`}>Articulos en Recepcion</BreadcrumbLink>
+                    <BreadcrumbLink href={`/${selectedCompany?.slug}/almacen/ingreso/en_recepcion`}>Articulos en Recepcion</BreadcrumbLink>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>

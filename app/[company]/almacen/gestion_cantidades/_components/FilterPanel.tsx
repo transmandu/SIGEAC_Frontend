@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/select";
 import { ChevronDown, Filter, Search, X } from "lucide-react";
 import { SearchableZoneFilter } from "./SearchableZoneFilter";
-import { IWarehouseArticle } from "@/hooks/mantenimiento/almacen/articulos/useGetWarehouseConsumableArticles";
+import { IWarehouseArticle } from "@/hooks/mantenimiento/almacen/articulos/useGetWarehouseArticlesByCategory";
 
 interface FilterPanelProps {
   batches: IWarehouseArticle[] | undefined;

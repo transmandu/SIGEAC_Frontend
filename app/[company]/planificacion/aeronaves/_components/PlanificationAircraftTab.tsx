@@ -3,7 +3,7 @@
 import { useMemo, useRef, useState } from "react"
 import { format } from "date-fns"
 import { es } from "date-fns/locale"
-import { Plane, Hash, MapPin, Calendar as CalendarIcon, Layers, Search, PackageCheck, CircleDot, Clock, RotateCcw, ChevronRight, Component, Package } from "lucide-react"
+import { Plane, Hash, Calendar as CalendarIcon, Layers, Search, PackageCheck, CircleDot, Clock, RotateCcw, ChevronRight, Component, Package, Edit, Cog, Zap, Fan } from "lucide-react"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -12,6 +12,9 @@ import { Input } from "@/components/ui/input"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { MaintenanceAircraft, MaintenanceAircraftPart } from "@/types"
+import { Button } from "@/components/ui/button"
+import { useCompanyStore } from "@/stores/CompanyStore"
+import Link from "next/link"
 
 // Tipo local para assignments (estructura extendida para UI)
 type AircraftAssignment = {
@@ -35,6 +38,23 @@ const fmtDate = (d?: string | Date | null) => {
   const date = typeof d === "string" ? new Date(d) : d
   if (isNaN(date.getTime())) return "—"
   return format(date, "PPP", { locale: es })
+}
+
+// Formatear números con máximo 2 decimales, eliminando ceros innecesarios
+const fmtNumber = (n: unknown): string => {
+  if (n === null || n === undefined || n === "") return "—"
+  const num = typeof n === "number" ? n : Number(n)
+  if (isNaN(num)) return "—"
+  // Redondear a 2 decimales y convertir a string, eliminando ceros innecesarios
+  return Number(num.toFixed(2)).toString()
+}
+
+// Extraer solo el año de una fecha
+const fmtYear = (d?: string | Date | null) => {
+  if (!d) return "—"
+  const date = typeof d === "string" ? new Date(d) : d
+  if (isNaN(date.getTime())) return "—"
+  return date.getFullYear().toString()
 }
 
 const asNum = (n: unknown) => (typeof n === "number" ? n : Number(n))
@@ -137,17 +157,17 @@ function TreeNode({ node, depth = 0 }: { node: PartNode; depth?: number }) {
           <div className="flex items-center gap-2">
             <Badge variant="outline" className="capitalize">{p.condition_type || "—"}</Badge>
             <div className="hidden sm:flex items-center gap-2 text-xs text-muted-foreground">
-              <span>H: {p.time_since_new ?? p.part_hours ?? "—"}</span>
+              <span>H: {fmtNumber(p.time_since_new ?? p.part_hours)}</span>
               <Separator orientation="vertical" className="h-4" />
-              <span>C: {p.cycles_since_new ?? p.part_cycles ?? "—"}</span>
+              <span>C: {fmtNumber(p.cycles_since_new ?? p.part_cycles)}</span>
             </div>
           </div>
         </div>
       </summary>
       <div className="ml-8 mt-2 grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs text-muted-foreground">
         <div className="flex items-center gap-1"><CalendarIcon className="h-3.5 w-3.5" /> Instalado: <span className="ml-1 text-foreground">{fmtDate(node.assigned_date)}</span></div>
-        <div className="flex items-center gap-1"><Clock className="h-3.5 w-3.5" /> Horas al instalar: <span className="ml-1 text-foreground">{node.hours_at_installation || "—"}</span></div>
-        <div className="flex items-center gap-1"><RotateCcw className="h-3.5 w-3.5" /> Ciclos al instalar: <span className="ml-1 text-foreground">{node.cycles_at_installation || "—"}</span></div>
+        <div className="flex items-center gap-1"><Clock className="h-3.5 w-3.5" /> Horas al instalar: <span className="ml-1 text-foreground">{fmtNumber(node.hours_at_installation)}</span></div>
+        <div className="flex items-center gap-1"><RotateCcw className="h-3.5 w-3.5" /> Ciclos al instalar: <span className="ml-1 text-foreground">{fmtNumber(node.cycles_at_installation)}</span></div>
       </div>
       {hasChildren && (
         <div className="mt-1 space-y-1">
@@ -166,6 +186,7 @@ function TreeNode({ node, depth = 0 }: { node: PartNode; depth?: number }) {
 export function PlanificationAircraftTab({ aircraft }: { aircraft: MaintenanceAircraft }) {
   const [q, setQ] = useState("")
   const listRef = useRef<HTMLDivElement>(null)
+  const { selectedCompany } = useCompanyStore()
 
   // Convertir aircraft_parts al formato de assignments para el UI
   const currentAssignments = useMemo(() => {
@@ -222,8 +243,42 @@ export function PlanificationAircraftTab({ aircraft }: { aircraft: MaintenanceAi
     return { hours, cycles }
   }, [currentAssignments])
 
-  // Árbol
+  // Árbol agrupado por categorías
   const tree = useMemo(() => buildTreeFromAssignments(currentAssignments), [currentAssignments])
+  
+  // Agrupar partes por categorías basándose en part_type
+  const partsByCategory = useMemo(() => {
+    const categories = {
+      ENGINE: [] as PartNode[],
+      APU: [] as PartNode[],
+      PROPELLER: [] as PartNode[]
+    };
+    
+    tree.forEach(node => {
+      const part = node.part as any;
+      if (part.part_type === "engine") {
+        categories.ENGINE.push(node);
+      } else if (part.part_type === "apu") {
+        categories.APU.push(node);
+      } else if (part.part_type === "propeller") {
+        categories.PROPELLER.push(node);
+      } else {
+        // Fallback: detectar por nombre
+        const partName = part.part_name?.toLowerCase() || "";
+        if (partName.includes('engine') || partName.includes('motor')) {
+          categories.ENGINE.push(node);
+        } else if (partName.includes('apu')) {
+          categories.APU.push(node);
+        } else if (partName.includes('propeller') || partName.includes('hélice') || partName.includes('helice')) {
+          categories.PROPELLER.push(node);
+        } else {
+          categories.ENGINE.push(node); // Default a ENGINE
+        }
+      }
+    });
+    
+    return categories;
+  }, [tree])
 
   // Filtro de búsqueda por nombre/PN/condición (sobre el listado plano para la pestaña "Partes")
   const flat = useMemo(() => currentAssignments, [currentAssignments])
@@ -240,6 +295,40 @@ export function PlanificationAircraftTab({ aircraft }: { aircraft: MaintenanceAi
     })
   }, [flat, q])
 
+  // Agrupar partes filtradas por categorías para la tabla
+  const filteredPartsByCategory = useMemo(() => {
+    const categories = {
+      ENGINE: [] as AircraftAssignment[],
+      APU: [] as AircraftAssignment[],
+      PROPELLER: [] as AircraftAssignment[]
+    };
+    
+    filteredFlat.forEach(assignment => {
+      const part = assignment.aircraft_part as any;
+      if (part.part_type === "engine") {
+        categories.ENGINE.push(assignment);
+      } else if (part.part_type === "apu") {
+        categories.APU.push(assignment);
+      } else if (part.part_type === "propeller") {
+        categories.PROPELLER.push(assignment);
+      } else {
+        // Fallback: detectar por nombre
+        const partName = part.part_name?.toLowerCase() || "";
+        if (partName.includes('engine') || partName.includes('motor')) {
+          categories.ENGINE.push(assignment);
+        } else if (partName.includes('apu')) {
+          categories.APU.push(assignment);
+        } else if (partName.includes('propeller') || partName.includes('hélice') || partName.includes('helice')) {
+          categories.PROPELLER.push(assignment);
+        } else {
+          categories.ENGINE.push(assignment); // Default a ENGINE
+        }
+      }
+    });
+    
+    return categories;
+  }, [filteredFlat])
+
   const expandAll = (open: boolean) => {
     const el = listRef.current
     if (!el) return
@@ -251,9 +340,17 @@ export function PlanificationAircraftTab({ aircraft }: { aircraft: MaintenanceAi
       {/* Encabezado */}
       <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
         <div className="space-y-1">
-          <h1 className="flex items-center gap-2 text-2xl font-semibold tracking-tight sm:text-3xl">
-            <Plane className="h-6 w-6" /> {aircraft.acronym}
-          </h1>
+          <div className="flex items-center gap-3">
+            <h1 className="flex items-center gap-2 text-2xl font-semibold tracking-tight sm:text-3xl">
+              <Plane className="h-6 w-6" /> {aircraft.acronym}
+            </h1>
+            <Link href={`/${selectedCompany?.slug}/planificacion/aeronaves/editar/${aircraft.acronym}`}>
+              <Button variant="outline" size="sm">
+                <Edit className="h-4 w-4 mr-2" />
+                Editar
+              </Button>
+            </Link>
+          </div>
           <p className="text-sm text-muted-foreground">Serial <span className="font-medium text-foreground">{aircraft.serial}</span></p>
         </div>
         <div className="text-sm text-muted-foreground">Actualizado: {fmtDate(new Date())}</div>
@@ -287,10 +384,7 @@ export function PlanificationAircraftTab({ aircraft }: { aircraft: MaintenanceAi
                   <div className="font-medium">{aircraft.serial || "—"}</div>
 
                   <div className="flex items-center gap-2 text-muted-foreground"><CalendarIcon className="h-4 w-4" /> Fabricación</div>
-                  <div className="font-medium">{fmtDate(aircraft.fabricant_date)}</div>
-
-                  <div className="flex items-center gap-2 text-muted-foreground"><MapPin className="h-4 w-4" /> Ubicación</div>
-                  <div className="font-medium">{aircraft?.location?.address ?? aircraft?.location?.name ?? "—"}</div>
+                  <div className="font-medium">{fmtYear(aircraft.fabricant_date)}</div>
                 </div>
                 <Separator className="my-4" />
                 <div className="grid grid-cols-2 gap-3 text-sm">
@@ -337,20 +431,61 @@ export function PlanificationAircraftTab({ aircraft }: { aircraft: MaintenanceAi
             </Card>
           </div>
 
-          {/* Árbol rápido (opcional en resumen) */}
+          {/* Árbol de partes por categorías */}
           <Card className="border-muted/40">
             <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0">
-              <CardTitle className="text-base">Árbol de partes (actual)</CardTitle>
-              <div className="text-xs text-muted-foreground">{totalParts} asignaciones</div>
+              <CardTitle className="text-base">Partes por Categoría</CardTitle>
+              <div className="text-xs text-muted-foreground">{totalParts} partes instaladas</div>
             </CardHeader>
             <CardContent>
               {tree.length === 0 ? (
                 <div className="py-10 text-center text-sm text-muted-foreground">Sin partes instaladas.</div>
               ) : (
-                <div ref={listRef} className="space-y-1">
-                  {tree.map((n) => (
-                    <TreeNode key={n.key} node={n} />
-                  ))}
+                <div ref={listRef} className="space-y-4">
+                  {/* Plantas de Poder */}
+                  {partsByCategory.ENGINE.length > 0 && (
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2 text-sm font-medium text-blue-600 dark:text-blue-400">
+                        <Cog className="h-4 w-4" />
+                        Plantas de Poder ({partsByCategory.ENGINE.length})
+                      </div>
+                      <div className="ml-4 space-y-1">
+                        {partsByCategory.ENGINE.map((node) => (
+                          <TreeNode key={node.key} node={node} />
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* APU */}
+                  {partsByCategory.APU.length > 0 && (
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2 text-sm font-medium text-amber-600 dark:text-amber-400">
+                        <Zap className="h-4 w-4" />
+                        APU ({partsByCategory.APU.length})
+                      </div>
+                      <div className="ml-4 space-y-1">
+                        {partsByCategory.APU.map((node) => (
+                          <TreeNode key={node.key} node={node} />
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Hélices */}
+                  {partsByCategory.PROPELLER.length > 0 && (
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2 text-sm font-medium text-green-600 dark:text-green-400">
+                        <Fan className="h-4 w-4" />
+                        Hélices ({partsByCategory.PROPELLER.length})
+                      </div>
+                      <div className="ml-4 space-y-1">
+                        {partsByCategory.PROPELLER.map((node) => (
+                          <TreeNode key={node.key} node={node} />
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
               <div className="mt-4 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
@@ -383,31 +518,114 @@ export function PlanificationAircraftTab({ aircraft }: { aircraft: MaintenanceAi
               {filteredFlat.length === 0 ? (
                 <div className="py-10 text-center text-sm text-muted-foreground">Sin resultados</div>
               ) : (
-                <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Parte</TableHead>
-                        <TableHead className="hidden sm:table-cell">PN</TableHead>
-                        <TableHead className="hidden md:table-cell">Condición</TableHead>
-                        <TableHead className="hidden md:table-cell">H / C (parte)</TableHead>
-                        <TableHead className="hidden lg:table-cell">Instalada</TableHead>
-                        <TableHead className="text-right">Horas/Ciclos al instalar</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {filteredFlat.map((a: AircraftAssignment) => (
-                        <TableRow key={a.id}>
-                          <TableCell className="font-medium">{a.aircraft_part.part_name}</TableCell>
-                          <TableCell className="hidden sm:table-cell">{a.aircraft_part.part_number}</TableCell>
-                          <TableCell className="hidden md:table-cell"><Badge variant="secondary" className="capitalize">{a.aircraft_part.condition_type}</Badge></TableCell>
-                          <TableCell className="hidden md:table-cell">{a.aircraft_part.total_flight_hours} / {a.aircraft_part.total_flight_cycles}</TableCell>
-                          <TableCell className="hidden lg:table-cell">{fmtDate(a.assigned_date)}</TableCell>
-                          <TableCell className="text-right">{a.hours_at_installation} / {a.cycles_at_installation}</TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
+                <div className="space-y-6">
+                  {/* Plantas de Poder */}
+                  {filteredPartsByCategory.ENGINE.length > 0 && (
+                    <div>
+                      <div className="flex items-center gap-2 mb-3 text-sm font-medium text-blue-600 dark:text-blue-400">
+                        <Cog className="h-4 w-4" />
+                        Plantas de Poder ({filteredPartsByCategory.ENGINE.length})
+                      </div>
+                      <div className="overflow-x-auto">
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead>Parte</TableHead>
+                              <TableHead className="hidden sm:table-cell">PN</TableHead>
+                              <TableHead className="hidden md:table-cell">Condición</TableHead>
+                              <TableHead className="hidden md:table-cell">H / C (parte)</TableHead>
+                              <TableHead className="hidden lg:table-cell">Instalada</TableHead>
+                              <TableHead className="text-right">Horas/Ciclos al instalar</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {filteredPartsByCategory.ENGINE.map((a: AircraftAssignment) => (
+                              <TableRow key={a.id}>
+                                <TableCell className="font-medium">{a.aircraft_part.part_name}</TableCell>
+                                <TableCell className="hidden sm:table-cell">{a.aircraft_part.part_number}</TableCell>
+                                <TableCell className="hidden md:table-cell"><Badge variant="secondary" className="capitalize">{a.aircraft_part.condition_type}</Badge></TableCell>
+                                <TableCell className="hidden md:table-cell">{fmtNumber(a.aircraft_part.total_flight_hours)} / {fmtNumber(a.aircraft_part.total_flight_cycles)}</TableCell>
+                                <TableCell className="hidden lg:table-cell">{fmtDate(a.assigned_date)}</TableCell>
+                                <TableCell className="text-right">{fmtNumber(a.hours_at_installation)} / {fmtNumber(a.cycles_at_installation)}</TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* APU */}
+                  {filteredPartsByCategory.APU.length > 0 && (
+                    <div>
+                      <div className="flex items-center gap-2 mb-3 text-sm font-medium text-amber-600 dark:text-amber-400">
+                        <Zap className="h-4 w-4" />
+                        APU ({filteredPartsByCategory.APU.length})
+                      </div>
+                      <div className="overflow-x-auto">
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead>Parte</TableHead>
+                              <TableHead className="hidden sm:table-cell">PN</TableHead>
+                              <TableHead className="hidden md:table-cell">Condición</TableHead>
+                              <TableHead className="hidden md:table-cell">H / C (parte)</TableHead>
+                              <TableHead className="hidden lg:table-cell">Instalada</TableHead>
+                              <TableHead className="text-right">Horas/Ciclos al instalar</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {filteredPartsByCategory.APU.map((a: AircraftAssignment) => (
+                              <TableRow key={a.id}>
+                                <TableCell className="font-medium">{a.aircraft_part.part_name}</TableCell>
+                                <TableCell className="hidden sm:table-cell">{a.aircraft_part.part_number}</TableCell>
+                                <TableCell className="hidden md:table-cell"><Badge variant="secondary" className="capitalize">{a.aircraft_part.condition_type}</Badge></TableCell>
+                                <TableCell className="hidden md:table-cell">{fmtNumber(a.aircraft_part.total_flight_hours)} / {fmtNumber(a.aircraft_part.total_flight_cycles)}</TableCell>
+                                <TableCell className="hidden lg:table-cell">{fmtDate(a.assigned_date)}</TableCell>
+                                <TableCell className="text-right">{fmtNumber(a.hours_at_installation)} / {fmtNumber(a.cycles_at_installation)}</TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Hélices */}
+                  {filteredPartsByCategory.PROPELLER.length > 0 && (
+                    <div>
+                      <div className="flex items-center gap-2 mb-3 text-sm font-medium text-green-600 dark:text-green-400">
+                        <Fan className="h-4 w-4" />
+                        Hélices ({filteredPartsByCategory.PROPELLER.length})
+                      </div>
+                      <div className="overflow-x-auto">
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead>Parte</TableHead>
+                              <TableHead className="hidden sm:table-cell">PN</TableHead>
+                              <TableHead className="hidden md:table-cell">Condición</TableHead>
+                              <TableHead className="hidden md:table-cell">H / C (parte)</TableHead>
+                              <TableHead className="hidden lg:table-cell">Instalada</TableHead>
+                              <TableHead className="text-right">Horas/Ciclos al instalar</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {filteredPartsByCategory.PROPELLER.map((a: AircraftAssignment) => (
+                              <TableRow key={a.id}>
+                                <TableCell className="font-medium">{a.aircraft_part.part_name}</TableCell>
+                                <TableCell className="hidden sm:table-cell">{a.aircraft_part.part_number}</TableCell>
+                                <TableCell className="hidden md:table-cell"><Badge variant="secondary" className="capitalize">{a.aircraft_part.condition_type}</Badge></TableCell>
+                                <TableCell className="hidden md:table-cell">{fmtNumber(a.aircraft_part.total_flight_hours)} / {fmtNumber(a.aircraft_part.total_flight_cycles)}</TableCell>
+                                <TableCell className="hidden lg:table-cell">{fmtDate(a.assigned_date)}</TableCell>
+                                <TableCell className="text-right">{fmtNumber(a.hours_at_installation)} / {fmtNumber(a.cycles_at_installation)}</TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </CardContent>

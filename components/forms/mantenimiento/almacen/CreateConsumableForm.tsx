@@ -282,7 +282,7 @@ const CreateConsumableForm = ({
           company: selectedCompany!.slug
         });
         // Redirigir después de la edición exitosa
-        router.push(`/${selectedCompany?.slug}/almacen/inventario/gestion`);
+        router.push(`/${selectedCompany?.slug}/almacen/inventario_articulos`);
       } catch (error) {
         console.error('Error editing article:', error);
       }

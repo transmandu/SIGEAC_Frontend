@@ -74,6 +74,7 @@ export function AddToCourseForm({ onClose, initialData }: FormProps) {
   const [employeeSelections, setEmployeeSelections] = useState<
     EmployeeSelection[]
   >([]);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const value = {
     course_id: initialData.id.toString(),
@@ -165,6 +166,18 @@ export function AddToCourseForm({ onClose, initialData }: FormProps) {
     updateFormValues(newSelections);
   };
 
+  // Filtrar empleados basado en la búsqueda
+  const filteredEmployees = employeeSelections.filter((employee) => {
+    const searchLower = searchQuery.toLowerCase();
+    return (
+      employee.first_name.toLowerCase().includes(searchLower) ||
+      employee.last_name.toLowerCase().includes(searchLower) ||
+      employee.dni.includes(searchQuery) ||
+      employee.job_title.toLowerCase().includes(searchLower) ||
+      employee.department.toLowerCase().includes(searchLower)
+    );
+  });
+
   const onSubmit = async (data: FormSchemaType) => {
     const value = {
       company: selectedCompany!.slug,
@@ -225,7 +238,11 @@ export function AddToCourseForm({ onClose, initialData }: FormProps) {
                   </PopoverTrigger>
                   <PopoverContent className="w-[400px] p-0">
                     <Command>
-                      <CommandInput placeholder="Buscar empleados..." />
+                      <CommandInput
+                        placeholder="Buscar empleados..."
+                        value={searchQuery}
+                        onValueChange={setSearchQuery}
+                      />
                       <div className="p-2 border-b">
                         <Button
                           variant="ghost"
@@ -241,10 +258,10 @@ export function AddToCourseForm({ onClose, initialData }: FormProps) {
                       <CommandList>
                         <CommandEmpty>No se encontraron empleados</CommandEmpty>
                         <CommandGroup heading="Todos los empleados">
-                          {employeeSelections.map((employee) => (
+                          {filteredEmployees.map((employee) => (
                             <CommandItem
                               key={employee.dni}
-                              value={employee.dni}
+                              value={`${employee.first_name} ${employee.last_name} ${employee.dni} ${employee.job_title} ${employee.department}`}
                               onSelect={() =>
                                 toggleEmployeeSelection(employee.dni)
                               }

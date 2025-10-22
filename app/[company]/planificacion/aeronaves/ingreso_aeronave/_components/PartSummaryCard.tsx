@@ -17,7 +17,7 @@ export function PartSummaryCard({ part, index, level }: {
     index: number;
     level: number;
 }) {
-    const [expanded, setExpanded] = useState(level === 0); // Expandir solo partes principales por defecto
+    const [expanded, setExpanded] = useState(false); // Todas las partes comienzan colapsadas
 
     return (
         <Card className={`overflow-hidden ${level > 0 ? 'ml-6' : ''}`}>

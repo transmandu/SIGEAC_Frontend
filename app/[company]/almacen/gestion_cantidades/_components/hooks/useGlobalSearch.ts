@@ -1,8 +1,8 @@
 import { useCallback, useMemo, useState } from "react";
 import { useDebounce } from "@/lib/useDebounce";
 import { useSearchBatchesByPartNumber } from "@/hooks/mantenimiento/almacen/renglones/useGetBatchesByArticlePartNumber";
-import { useGetWarehouseConsumableArticles } from "@/hooks/mantenimiento/almacen/articulos/useGetWarehouseConsumableArticles";
-import { IWarehouseArticle } from "@/hooks/mantenimiento/almacen/articulos/useGetWarehouseConsumableArticles";
+import { useGetWarehouseArticlesByCategory } from "@/hooks/mantenimiento/almacen/articulos/useGetWarehouseArticlesByCategory";
+import { IWarehouseArticle } from "@/hooks/mantenimiento/almacen/articulos/useGetWarehouseArticlesByCategory";
 import { useCompanyStore } from "@/stores/CompanyStore";
 
 export interface GlobalSearchState {
@@ -52,12 +52,15 @@ export const useGlobalSearch = (paginatedBatches: IWarehouseArticle[] | undefine
   );
 
   // Obtener TODOS los batches sin paginación cuando hay búsqueda
+  // Solo hacer la consulta si hay un filtro de part_number activo
   const { 
     data: allBatchesResponse, 
     isLoading: isLoadingAllBatches 
-  } = useGetWarehouseConsumableArticles(
+  } = useGetWarehouseArticlesByCategory(
     1, 
-    1000 // Obtener muchos más registros para la búsqueda global
+    1000, // Obtener muchos más registros para la búsqueda global
+    "CONSUMIBLE", // Category parameter
+    !!debouncedPartNumberFilter // Solo activar cuando hay búsqueda por part_number
   );
 
   // Determinar qué batches usar: paginados o búsqueda global

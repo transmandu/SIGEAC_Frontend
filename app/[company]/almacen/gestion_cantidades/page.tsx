@@ -14,7 +14,7 @@ import { useCompanyStore } from "@/stores/CompanyStore";
 import { Loader2, Package, Save } from "lucide-react";
 import React, { useCallback, useMemo } from "react";
 import { toast } from "sonner";
-import { useGetWarehouseConsumableArticles } from "@/hooks/mantenimiento/almacen/articulos/useGetWarehouseConsumableArticles";
+import { useGetWarehouseArticlesByCategory } from "@/hooks/mantenimiento/almacen/articulos/useGetWarehouseArticlesByCategory";
 import { useGetAllWarehouseZones } from "@/hooks/mantenimiento/almacen/articulos/useGetAllWarehouseZones";
 import { useSearchBatchesByPartNumber } from "@/hooks/mantenimiento/almacen/renglones/useGetBatchesByArticlePartNumber";
 import { useUpdateArticleQuantityAndZone } from "@/actions/mantenimiento/almacen/articulos/useUpdateArticleQuantityAndZone";
@@ -44,7 +44,7 @@ const GestionCantidadesPage = () => {
     isLoading,
     isError,
     error,
-  } = useGetWarehouseConsumableArticles(currentPage, itemsPerPage);
+  } = useGetWarehouseArticlesByCategory(currentPage, itemsPerPage, "CONSUMIBLE");
 
   // Obtener todas las zonas del almacén para los selects
   const {
@@ -53,7 +53,9 @@ const GestionCantidadesPage = () => {
   } = useGetAllWarehouseZones();
 
   // Extraer batches y paginationInfo de la respuesta
-  const batches = response?.batches || [];
+  // Memoize para evitar crear nuevas referencias en cada render
+  const batches = useMemo(() => response?.batches || [], [response?.batches]);
+  const zones = useMemo(() => (allWarehouseZones as string[]) || [], [allWarehouseZones]);
   const paginationInfo = createPaginationInfo(response?.pagination);
   const paginationActions = createPaginationActions(paginationInfo.totalPages);
 
@@ -62,16 +64,16 @@ const GestionCantidadesPage = () => {
     state: filterState,
     actions: filterActions,
     stats: filterStats,
-  } = useGlobalSearch(batches, (allWarehouseZones as string[]) || []);
+  } = useGlobalSearch(batches, zones);
 
 
 
   // Hook para manejar cambios en artículos usando batches filtrados
   const {
-    state: { quantities, zones, hasChanges },
+    state: { quantities, zones: articleZones, hasChanges },
     actions: { handleQuantityChange, handleZoneChange },
     utils: { getModifiedArticles, modifiedCount },
-  } = useArticleChanges(filterStats.filteredBatches || []);
+  } = useArticleChanges(filterStats.filteredBatches);
 
   const { updateArticleQuantityAndZone } = useUpdateArticleQuantityAndZone();
 
@@ -203,7 +205,7 @@ const GestionCantidadesPage = () => {
             )}
             {/* Info de zonas */}
             <span className="ml-2 text-green-600">
-              • {isLoadingZones ? "Cargando zonas..." : `${(allWarehouseZones as string[])?.length || 0} zonas disponibles`}
+              • {isLoadingZones ? "Cargando zonas..." : `${zones.length} zonas disponibles`}
             </span>
           </p>
         </div>
@@ -214,8 +216,8 @@ const GestionCantidadesPage = () => {
             key={batch.batch_id}
             batch={batch}
             quantities={quantities}
-            zones={zones}
-            availableZones={(allWarehouseZones as string[]) || []} // Todas las zonas del inventario
+            zones={articleZones}
+            availableZones={zones} // Todas las zonas del inventario (memoized)
             onQuantityChange={handleQuantityChange}
             onZoneChange={handleZoneChange}
           />

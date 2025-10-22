@@ -21,7 +21,8 @@ export const useCreateClient = () => {
       mutationFn: async ({company, data}: {
         company: string | null, data: CreateClientSchema
       }) => {
-          await axiosInstance.post(`/${company}/clients`, data)
+          const response = await axiosInstance.post(`/${company}/clients`, data)
+          return response.data
         },
       onSuccess: () => {
           queryClient.invalidateQueries({queryKey: ['clients']})
@@ -76,7 +77,7 @@ export const useUpdateClient = () => {
 
   const updateMutation = useMutation({
     mutationFn: async ({ id, data, company }: { id: string; data: any, company: string }) => {
-      await axiosInstance.put(`/${company}/clients/${id}`, data);
+      await axiosInstance.patch(`/${company}/clients/${id}`, data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['clients'] });

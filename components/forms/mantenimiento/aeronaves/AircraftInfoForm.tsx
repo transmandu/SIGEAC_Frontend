@@ -3,9 +3,9 @@
 import { Button } from "@/components/ui/button"
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
-import { useGetClients } from "@/hooks/general/clientes/useGetClients"
 import { useGetManufacturers } from "@/hooks/general/condiciones/useGetConditions"
 import { useGetLocationsByCompanyId } from "@/hooks/sistema/useGetLocationsByCompanyId"
+import { useGetClients } from "@/hooks/general/clientes/useGetClients"
 import { cn } from "@/lib/utils"
 import { useCompanyStore } from "@/stores/CompanyStore"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -20,23 +20,55 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { Popover, PopoverContent, PopoverTrigger } from "../../../ui/popover"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../../ui/select"
 import { Textarea } from "../../../ui/textarea"
+import { ManufacturerCombobox } from "./ManufacturerCombobox"
+
+// Función para formatear números según el separador decimal detectado
+const fmtNumber = (n: unknown): string => {
+  if (n == null || n === "") return ""
+  
+  const str = String(n).trim()
+  if (!str) return ""
+  
+  const lastDot = str.lastIndexOf(".")
+  const lastComma = str.lastIndexOf(",")
+  
+  // Determinar locale y parsear según posición de separadores
+  const isEuropean = lastComma > lastDot || (lastComma !== -1 && lastDot === -1)
+  const num = isEuropean 
+    ? Number(str.replace(/\./g, "").replace(",", "."))
+    : Number(str.replace(/,/g, ""))
+  
+  if (isNaN(num)) return ""
+  
+  return num.toLocaleString(isEuropean ? "de-DE" : "en-US", { 
+    minimumFractionDigits: 2, 
+    maximumFractionDigits: 2 
+  })
+}
 
 // Esquema de validación para el Paso 1 (Información de la aeronave)
 const AircraftInfoSchema = z.object({
   manufacturer_id: z.string().min(1, "Debe seleccionar un fabricante"),
-  client_id: z.string().min(1, "Debe seleccionar un cliente"),
+  client_name: z.string().min(1, "El nombre del cliente es obligatorio"),
+  authorizing: z.enum(["PROPIETARIO", "EXPLOTADOR"], {
+    required_error: "Debe seleccionar el tipo de autorización",
+  }),
   serial: z.string().min(1, "El serial es obligatorio"),
   model: z.string().min(1, "El modelo es obligatorio"),
   acronym: z.string().min(1, "El acrónimo es obligatorio"),
   flight_hours: z.string()
+    .min(1, "Las horas de vuelo son obligatorias")
     .refine((val) => {
-      const num = parseInt(val);
+      if (!val || val.trim() === "") return false;
+      // Soportar ambos formatos: punto y coma como decimal
+      const normalized = val.replace(/\./g, "").replace(",", ".");
+      const num = parseFloat(normalized);
       return !isNaN(num) && num >= 0;
-    }, "Debe ser un número entero mayor o igual a 0"),
+    }, "Debe ser un número mayor o igual a 0"),
   flight_cycles: z.string()
     .refine((val) => {
       const num = parseInt(val);
-      return !isNaN(num) && num >= 0;
+      return !isNaN(num) && num >= 0 && Number.isInteger(Number(val));
     }, "Debe ser un número entero mayor o igual a 0"),
   fabricant_date: z.date(),
   comments: z.string().optional(),
@@ -53,12 +85,15 @@ interface AircraftInfoFormProps {
 
 export function AircraftInfoForm({ onNext, onBack, initialData }: AircraftInfoFormProps) {
   const {selectedCompany} = useCompanyStore()
-  const { data: clients, isLoading: isClientsLoading, isError: isClientsError } = useGetClients(selectedCompany?.slug);
   const { data: locations, isPending: isLocationsLoading, isError: isLocationsError, mutate } = useGetLocationsByCompanyId();
   const { data: manufacturers, isLoading: isManufacturersLoading, isError: isManufacturersError } = useGetManufacturers(selectedCompany?.slug);
-
-  // Estado para controlar el mes que se muestra en el calendario
-  const [displayMonth, setDisplayMonth] = useState<Date>(new Date());
+  const { data: clients } = useGetClients(selectedCompany?.slug);
+  
+  // Estados para el combobox de clientes
+  const [openClient, setOpenClient] = useState(false);
+  const [clientSearchValue, setClientSearchValue] = useState("");
+  const [showCreateClientForm, setShowCreateClientForm] = useState(false);
+  const [newClientAuthorizing, setNewClientAuthorizing] = useState<"PROPIETARIO" | "EXPLOTADOR">("PROPIETARIO");
 
   useEffect(() => {
     mutate(2)
@@ -69,6 +104,28 @@ export function AircraftInfoForm({ onNext, onBack, initialData }: AircraftInfoFo
     defaultValues: initialData || {},
   });
 
+  // Actualizar formulario cuando lleguen los initialData
+  useEffect(() => {
+    if (initialData) {
+      // Formatear flight_hours si existe
+      const formattedData = { ...initialData };
+      if (initialData.flight_hours && initialData.flight_hours !== "") {
+        const formatted = fmtNumber(initialData.flight_hours);
+        if (formatted) {
+          formattedData.flight_hours = formatted;
+        }
+      }
+      
+      // Resetear el formulario con los datos formateados
+      form.reset(formattedData);
+      
+      // Sincronizar el valor de búsqueda del cliente
+      if (initialData.client_name) {
+        setClientSearchValue(initialData.client_name);
+      }
+    }
+  }, [initialData, form]);
+
   // Establecer automáticamente la primera ubicación disponible
   useEffect(() => {
     if (locations && locations.length > 0 && !form.getValues("location_id")) {
@@ -78,24 +135,69 @@ export function AircraftInfoForm({ onNext, onBack, initialData }: AircraftInfoFo
   }, [locations, form]);
 
   const onSubmit = (data: AircraftInfoType) => {
+    // Convertir flight_hours de formato visual a número
+    const flightHoursValue = data.flight_hours;
+    if (flightHoursValue && typeof flightHoursValue === 'string' && flightHoursValue.trim() !== '') {
+      // Detectar formato y normalizar correctamente
+      const lastDot = flightHoursValue.lastIndexOf('.');
+      const lastComma = flightHoursValue.lastIndexOf(',');
+      
+      let normalized: string;
+      if (lastComma > lastDot) {
+        // Formato europeo: 1.234,50 → eliminar puntos, cambiar coma por punto
+        normalized = flightHoursValue.replace(/\./g, "").replace(",", ".");
+      } else {
+        // Formato US: 1,234.50 → eliminar comas, mantener punto
+        normalized = flightHoursValue.replace(/,/g, "");
+      }
+      
+      const num = parseFloat(normalized);
+      
+      if (!isNaN(num)) {
+        // Redondear a 2 decimales para evitar problemas de precisión
+        const rounded = Math.round(num * 100) / 100;
+        data.flight_hours = rounded.toFixed(2);
+      } else {
+        // Si no es un número válido, mostrar error
+        form.setError('flight_hours', {
+          type: 'manual',
+          message: 'El valor ingresado no es un número válido'
+        });
+        return;
+      }
+    } else {
+      // Si el campo está vacío, mostrar error
+      form.setError('flight_hours', {
+        type: 'manual',
+        message: 'Las horas de vuelo son obligatorias'
+      });
+      return;
+    }
+    
     onNext(data);
   };
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col space-y-3">
+        <div className="mt-6"></div> {/* Separación después de los tabs */}
         <div className='grid grid-cols-2 w-full gap-4'>
           <FormField
             control={form.control}
-            name="client_id"
+            name="client_name"
             render={({ field }) => (
-              <FormItem className="flex flex-col space-y-3 mt-1.5">
-                <FormLabel>Cliente</FormLabel>
-                <Popover>
+              <FormItem className="flex flex-col">
+                <FormLabel>Nombre del Cliente *</FormLabel>
+                <Popover open={openClient} onOpenChange={(open) => {
+                  setOpenClient(open);
+                  if (!open) {
+                    setShowCreateClientForm(false);
+                    setNewClientAuthorizing("PROPIETARIO");
+                  }
+                }}>
                   <PopoverTrigger asChild>
                     <FormControl>
                       <Button
-                        disabled={isClientsLoading || isClientsError}
                         variant="outline"
                         role="combobox"
                         className={cn(
@@ -103,44 +205,123 @@ export function AircraftInfoForm({ onNext, onBack, initialData }: AircraftInfoFo
                           !field.value && "text-muted-foreground"
                         )}
                       >
-                        {
-                          isClientsLoading && <Loader2 className="size-4 animate-spin mr-2" />
-                        }
-                        {field.value
-                          ? <p>{clients?.find(
-                            (client) => `${client.id.toString()}` === field.value
-                          )?.name}</p>
-                          : "Elige al cliente..."
-                        }
+                        {field.value || "Seleccionar o escribir cliente..."}
                         <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                       </Button>
                     </FormControl>
                   </PopoverTrigger>
-                  <PopoverContent className="p-0">
+                  <PopoverContent className="w-full p-0">
                     <Command>
-                      <CommandInput placeholder="Busque un cliente..." />
+                      <CommandInput 
+                        placeholder="Buscar o escribir cliente..." 
+                        value={clientSearchValue}
+                        onValueChange={(value) => {
+                          setClientSearchValue(value);
+                          // Actualizar el campo del formulario mientras escribe
+                          form.setValue("client_name", value);
+                        }}
+                      />
                       <CommandList>
-                        <CommandEmpty className="text-sm p-2 text-center">No se ha encontrado ningún cliente.</CommandEmpty>
+                        <CommandEmpty>
+                          <div className="p-3">
+                            {!showCreateClientForm ? (
+                              <div className="text-center">
+                            <p className="text-sm text-muted-foreground mb-3">
+                              No se encontró &quot;{clientSearchValue}&quot;
+                            </p>
+                                <Button
+                                  size="sm"
+                                  onClick={() => setShowCreateClientForm(true)}
+                                  disabled={!clientSearchValue.trim()}
+                                >
+                                  Crear cliente &quot;{clientSearchValue}&quot;
+                                </Button>
+                              </div>
+                            ) : (
+                              <div className="space-y-3">
+                                <div className="text-center">
+                                  <p className="text-sm font-medium mb-2">
+                                    Crear cliente: &quot;{clientSearchValue}&quot;
+                                  </p>
+                                </div>
+                                
+                                <div className="space-y-2">
+                                  <label className="text-xs font-medium text-muted-foreground">
+                                    Tipo de Autorización *
+                                  </label>
+                                  <Select 
+                                    value={newClientAuthorizing} 
+                                    onValueChange={(value: "PROPIETARIO" | "EXPLOTADOR") => setNewClientAuthorizing(value)}
+                                  >
+                                    <SelectTrigger className="h-8">
+                                      <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="PROPIETARIO">Propietario</SelectItem>
+                                      <SelectItem value="EXPLOTADOR">Explotador</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+
+                                <div className="flex gap-2">
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => {
+                                      setShowCreateClientForm(false);
+                                      setNewClientAuthorizing("PROPIETARIO");
+                                    }}
+                                    className="flex-1"
+                                  >
+                                    Cancelar
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    onClick={() => {
+                                      // Solo establecer valores en el formulario
+                                      form.setValue("client_name", clientSearchValue);
+                                      form.setValue("authorizing", newClientAuthorizing);
+                                      setOpenClient(false);
+                                      setShowCreateClientForm(false);
+                                    }}
+                                    className="flex-1"
+                                  >
+                                    Crear
+                                  </Button>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </CommandEmpty>
                         <CommandGroup>
-                          {clients?.map((client) => (
+                          {clients
+                            ?.filter((client: any) => client.authorizing) // Solo mostrar clientes con authorizing
+                            ?.map((client: any) => (
                             <CommandItem
-                              value={`${client.id}`}
+                              value={client.name}
                               key={client.id}
-                              onSelect={() => {
-                                form.setValue("client_id", client.id.toString())
+                              onSelect={(currentValue) => {
+                                const selectedClient = clients?.find(c => c.name === currentValue) as any;
+                                form.setValue("client_name", currentValue);
+                                if (selectedClient?.authorizing) {
+                                  form.setValue("authorizing", selectedClient.authorizing);
+                                } else {
+                                  form.setValue("authorizing", "PROPIETARIO");
+                                }
+                                setClientSearchValue(currentValue);
+                                setOpenClient(false);
                               }}
                             >
                               <Check
                                 className={cn(
                                   "mr-2 h-4 w-4",
-                                  `${client.id.toString()}` === field.value
-                                    ? "opacity-100"
-                                    : "opacity-0"
+                                  client.name === field.value ? "opacity-100" : "opacity-0"
                                 )}
                               />
-                              {
-                                <p>{client.name}</p>
-                              }
+                              {client.name}
+                              <span className="ml-auto text-xs text-muted-foreground">
+                                {client.authorizing === "PROPIETARIO" ? "Prop." : "Expl."}
+                              </span>
                             </CommandItem>
                           ))}
                         </CommandGroup>
@@ -149,80 +330,29 @@ export function AircraftInfoForm({ onNext, onBack, initialData }: AircraftInfoFo
                   </PopoverContent>
                 </Popover>
                 <FormDescription className="text-xs">
-                  Cliente propietario de la aeronave.
+                  Seleccione un cliente existente o escriba un nombre para crear uno nuevo.
                 </FormDescription>
                 <FormMessage />
               </FormItem>
             )}
           />
+          
           <FormField
             control={form.control}
             name="manufacturer_id"
             render={({ field }) => (
-              <FormItem className="flex flex-col space-y-3 mt-1.5">
-                <FormLabel>Fabricante</FormLabel>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <FormControl>
-                      <Button
-                        disabled={isManufacturersLoading || isManufacturersError}
-                        variant="outline"
-                        role="combobox"
-                        className={cn(
-                          "justify-between",
-                          !field.value && "text-muted-foreground"
-                        )}
-                      >
-                        {
-                          isClientsLoading && <Loader2 className="size-4 animate-spin mr-2" />
-                        }
-                        {field.value
-                          ? <p>{manufacturers?.find(
-                            (manufacturer) => `${manufacturer.id.toString()}` === field.value
-                          )?.name}</p>
-                          : "Elige al fabricante..."
-                        }
-                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                      </Button>
-                    </FormControl>
-                  </PopoverTrigger>
-                  <PopoverContent className="p-0">
-                    <Command>
-                      <CommandInput placeholder="Busque un fabricante..." />
-                      <CommandList>
-                        <CommandEmpty className="text-sm p-2 text-center">No se ha encontrado ningún fabricante.</CommandEmpty>
-                        <CommandGroup>
-                          {manufacturers?.filter((m) => m.type === 'AIRCRAFT').map((manufacturer) => (
-                            <CommandItem
-                              value={`${manufacturer.id}`}
-                              key={manufacturer.id}
-                              onSelect={() => {
-                                form.setValue("manufacturer_id", manufacturer.id.toString())
-                              }}
-                            >
-                              <Check
-                                className={cn(
-                                  "mr-2 h-4 w-4",
-                                  `${manufacturer.id.toString()}` === field.value
-                                    ? "opacity-100"
-                                    : "opacity-0"
-                                )}
-                              />
-                              {
-                                <p>{manufacturer.name}</p>
-                              }
-                            </CommandItem>
-                          ))}
-                        </CommandGroup>
-                      </CommandList>
-                    </Command>
-                  </PopoverContent>
-                </Popover>
-                <FormDescription className="text-xs">
-                  Fabricante de la aeronave.
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
+              <ManufacturerCombobox
+                value={field.value}
+                onChange={field.onChange}
+                manufacturers={manufacturers}
+                isLoading={isManufacturersLoading}
+                isError={isManufacturersError}
+                label="Fabricante"
+                description="Fabricante de la aeronave."
+                placeholder="Seleccionar o crear fabricante..."
+                filterType="AIRCRAFT"
+                showTypeSelector={false}
+              />
             )}
           />
           <div className="flex gap-2">
@@ -276,14 +406,14 @@ export function AircraftInfoForm({ onNext, onBack, initialData }: AircraftInfoFo
             )}
           />
         </div>
-        {/* Fecha de Fabricación - fila completa */}
+        {/* Año de Fabricación - fila completa */}
         <div className="w-full">
            <FormField
             control={form.control}
             name="fabricant_date"
             render={({ field }) => (
               <FormItem className="flex flex-col mt-2.5 w-full">
-                <FormLabel className="text-sm font-medium text-foreground">Fecha de Fabricación</FormLabel>
+                <FormLabel className="text-sm font-medium text-foreground">Año de Fabricación</FormLabel>
                 <Popover>
                   <PopoverTrigger asChild>
                     <FormControl>
@@ -297,150 +427,42 @@ export function AircraftInfoForm({ onNext, onBack, initialData }: AircraftInfoFo
                         <CalendarIcon className="mr-2 h-4 w-4 opacity-70" />
                         {field.value ? (
                           <span className="font-normal">
-                            {format(field.value, "dd 'de' MMMM 'de' yyyy", {
-                            locale: es,
-                            })}
+                            {format(field.value, "yyyy")}
                           </span>
                         ) : (
-                          <span className="text-muted-foreground">Seleccione una fecha</span>
+                          <span className="text-muted-foreground">Seleccione un año</span>
                         )}
                       </Button>
                     </FormControl>
                   </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0 shadow-lg border border-border" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={field.value}
-                      onSelect={field.onChange}
-                      disabled={(date) => date > new Date()}
-                      initialFocus
-                      month={displayMonth}
-                      onMonthChange={setDisplayMonth}
-                      className="p-3"
-                      classNames={{
-                        months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
-                        month: "space-y-4",
-                        caption: "flex flex-col justify-center pt-1 relative items-center space-y-2",
-                        caption_label: "text-sm font-medium order-2",
-                        caption_dropdowns: "flex justify-center gap-2 order-1",
-                        dropdown: "h-8 rounded-md border border-input bg-background px-3 py-1 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 cursor-pointer",
-                        nav: "space-x-1 flex items-center",
-                        nav_button: cn(
-                          "inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-7 w-7 p-0 opacity-70 hover:opacity-100"
-                        ),
-                        nav_button_previous: "absolute left-1",
-                        nav_button_next: "absolute right-1",
-                        table: "w-full border-collapse space-y-1",
-                        head_row: "flex",
-                        head_cell: "text-muted-foreground rounded-md w-9 font-normal text-xs",
-                        row: "flex w-full mt-2",
-                        cell: "h-9 w-9 text-center text-sm p-0 relative",
-                        day: cn(
-                          "inline-flex items-center justify-center rounded-md text-sm font-normal transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 h-9 w-9 p-0 hover:bg-accent hover:text-accent-foreground"
-                        ),
-                        day_selected: "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground",
-                        day_today: "bg-accent text-accent-foreground font-semibold",
-                        day_disabled: "text-muted-foreground opacity-50",
-                      }}
-                        components={{
-                          Caption: ({ displayMonth: calendarDisplayMonth, ...props }) => {
-                            const currentDate = new Date();
-                            const currentYear = currentDate.getFullYear();
-                            const currentMonth = currentDate.getMonth();
-
-                            const canGoNext = displayMonth.getFullYear() < currentYear ||
-                                            (displayMonth.getFullYear() === currentYear && displayMonth.getMonth() < currentMonth);
-
-                            const goToPreviousMonth = () => {
-                              const newDate = new Date(displayMonth);
-                              newDate.setMonth(newDate.getMonth() - 1);
-                              setDisplayMonth(newDate);
-                            };
-
-                            const goToNextMonth = () => {
-                              if (canGoNext) {
-                                const newDate = new Date(displayMonth);
-                                newDate.setMonth(newDate.getMonth() + 1);
-                                setDisplayMonth(newDate);
-                              }
-                            };
-                          
+                  <PopoverContent className="w-[300px] p-4 shadow-lg border border-border" align="start">
+                    <div className="space-y-3">
+                      <div className="text-sm font-medium text-center">Seleccione el año de fabricación</div>
+                      <div className="grid grid-cols-4 gap-2 max-h-[300px] overflow-y-auto">
+                        {Array.from({ length: new Date().getFullYear() - 1960 + 1 }, (_, i) => {
+                          const year = new Date().getFullYear() - i;
+                          const isSelected = field.value && new Date(field.value).getFullYear() === year;
                           return (
-                            <div className="flex flex-col justify-center pt-1 relative items-center space-y-2">
-                              <div className="flex justify-center gap-2">
-                                <select
-                                  value={displayMonth.getMonth()}
-                                  onChange={(e) => {
-                                    const newDate = new Date(displayMonth);
-                                    newDate.setMonth(parseInt(e.target.value));
-                                    setDisplayMonth(newDate);
-                                  }}
-                                  className="h-8 rounded-md border border-input bg-white dark:bg-gray-800 px-3 py-1 text-sm font-medium text-gray-900 dark:text-gray-100 transition-colors hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 cursor-pointer appearance-none bg-no-repeat bg-right bg-[length:16px_16px] pr-8"
-                                  style={{
-                                    backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`
-                                  }}
-                                >
-                                  {Array.from({ length: 12 }, (_, i) => (
-                                    <option key={i} value={i}>
-                                      {format(new Date(2000, i, 1), "MMMM", { locale: es })}
-                                    </option>
-                                  ))}
-                                </select>
-                                <select
-                                  value={displayMonth.getFullYear()}
-                                  onChange={(e) => {
-                                    const newDate = new Date(displayMonth);
-                                    newDate.setFullYear(parseInt(e.target.value));
-                                    setDisplayMonth(newDate);
-                                  }}
-                                  className="h-8 rounded-md border border-input bg-white dark:bg-gray-800 px-3 py-1 text-sm font-medium text-gray-900 dark:text-gray-100 transition-colors hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 cursor-pointer appearance-none bg-no-repeat bg-right bg-[length:16px_16px] pr-8"
-                                  style={{
-                                    backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`
-                                  }}
-                                >
-                                  {Array.from({ length: new Date().getFullYear() - 1980 + 1 }, (_, i) => {
-                                    const year = new Date().getFullYear() - i;
-                                    return (
-                                      <option key={year} value={year}>
-                                        {year}
-                                      </option>
-                                    );
-                                  })}
-                                </select>
-                              </div>
-                              <div className="flex items-center justify-center gap-3 relative">
-                                {/* Botón anterior */}
-                                <button
-                                  type="button"
-                                  onClick={goToPreviousMonth}
-                                  className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-7 w-7 p-0 opacity-70 hover:opacity-100"
-                                >
-                                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                    <path d="m15 18-6-6 6-6"/>
-                                  </svg>
-                                </button>
-                                
-                                <div className="text-sm font-medium min-w-[120px] text-center">
-                                  {format(displayMonth, "MMMM yyyy", { locale: es })}
-                                </div>
-                                
-                                {/* Botón siguiente */}
-                                <button
-                                  type="button"
-                                  onClick={goToNextMonth}
-                                  disabled={!canGoNext}
-                                  className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-7 w-7 p-0 opacity-70 hover:opacity-100 disabled:opacity-30"
-                                >
-                                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                    <path d="m9 18 6-6-6-6"/>
-                                  </svg>
-                                </button>
-                              </div>
-                            </div>
+                            <button
+                              key={year}
+                              type="button"
+                              onClick={() => {
+                                // Establecer el 1 de enero del año seleccionado
+                                field.onChange(new Date(year, 0, 1));
+                              }}
+                              className={cn(
+                                "px-3 py-2 text-sm rounded-md transition-colors",
+                                isSelected
+                                  ? "bg-primary text-primary-foreground hover:bg-primary/90"
+                                  : "hover:bg-accent hover:text-accent-foreground"
+                              )}
+                            >
+                              {year}
+                            </button>
                           );
-                        },
-                      }}
-                    />
+                        })}
+                      </div>
+                    </div>
                   </PopoverContent>
                 </Popover>
                 <FormMessage className="text-xs" />
@@ -459,21 +481,50 @@ export function AircraftInfoForm({ onNext, onBack, initialData }: AircraftInfoFo
                 <FormLabel>Horas de Vuelo</FormLabel>
                 <FormControl>
                   <Input
-                    type="number"
-                    min="0"
-                    step="1"
+                    type="text"
                     placeholder="Ej: 15000"
-                    {...field}
-                    onKeyDown={(e) => {
-                      // Prevenir números negativos y decimales
-                      if (e.key === '-' || e.key === '.' || e.key === ',') {
-                        e.preventDefault();
+                    value={field.value || ""}
+                    onChange={(e) => {
+                      // Permitir escribir libremente, solo filtrar caracteres no válidos
+                      const value = e.target.value.replace(/[^\d.,]/g, '');
+                      field.onChange(value);
+                    }}
+                    onBlur={(e) => {
+                      const value = e.target.value.trim();
+                      if (!value) {
+                        // Si está vacío, no hacer nada (la validación del form lo manejará)
+                        return;
+                      }
+                      
+                      // Detectar formato y normalizar correctamente
+                      const lastDot = value.lastIndexOf('.');
+                      const lastComma = value.lastIndexOf(',');
+                      
+                      let normalized: string;
+                      if (lastComma > lastDot) {
+                        // Formato europeo: 1.234,50 → eliminar puntos, cambiar coma por punto
+                        normalized = value.replace(/\./g, "").replace(",", ".");
+                      } else {
+                        // Formato US: 1,234.50 → eliminar comas, mantener punto
+                        normalized = value.replace(/,/g, "");
+                      }
+                      
+                      const num = parseFloat(normalized);
+                      
+                      if (!isNaN(num)) {
+                        // Redondear a 2 decimales
+                        const rounded = Math.round(num * 100) / 100;
+                        // Formatear para visualización
+                        const formatted = fmtNumber(String(rounded));
+                        if (formatted) {
+                          field.onChange(formatted);
+                        }
                       }
                     }}
                   />
                 </FormControl>
                 <FormDescription className="text-xs">
-                  Horas totales de vuelo de la aeronave.
+                  Horas totales de vuelo de la aeronave (máx. 2 decimales).
                 </FormDescription>
                 <FormMessage className="text-xs" />
               </FormItem>
@@ -501,7 +552,7 @@ export function AircraftInfoForm({ onNext, onBack, initialData }: AircraftInfoFo
                   />
                 </FormControl>
                 <FormDescription className="text-xs">
-                  Ciclos totales de la aeronave.
+                  Ciclos totales de la aeronave (número entero).
                 </FormDescription>
                 <FormMessage className="text-xs" />
               </FormItem>

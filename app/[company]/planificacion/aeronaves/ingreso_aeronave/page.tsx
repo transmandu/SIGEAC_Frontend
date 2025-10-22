@@ -1,38 +1,30 @@
 "use client";
 
-import { useCreateMaintenanceAircraft } from "@/actions/mantenimiento/planificacion/aeronaves/actions";
+import { useCreateMaintenanceAircraft, AircraftPartAPI } from "@/actions/mantenimiento/planificacion/aeronaves/actions";
+import { useCreateClient } from "@/actions/general/clientes/actions";
+import { useGetClients } from "@/hooks/general/clientes/useGetClients";
+import { useGetManufacturers } from "@/hooks/general/condiciones/useGetConditions";
 import { AircraftPartsInfoForm } from "@/components/forms/mantenimiento/aeronaves/AircraftPartsForm";
+import { AircraftInfoForm } from "@/components/forms/mantenimiento/aeronaves/AircraftInfoForm";
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import { Button } from "@/components/ui/button";
-import {
-    Card,
-    CardContent,
-    CardHeader,
-    CardTitle
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useCompanyStore } from "@/stores/CompanyStore";
-import { TabsContent } from "@radix-ui/react-tabs";
-import {
-    ArrowLeft,
-    CheckCircle,
-    Loader2,
-    Plane,
-    Settings
-} from "lucide-react";
+import { ArrowLeft, CheckCircle, Loader2, Plane, Settings, ChevronDown } from "lucide-react";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { InfoItem } from "./_components/InfoItem";
 import { PartSummaryCard } from "./_components/PartSummaryCard";
-import { useRouter } from "next/navigation";
-import { AircraftInfoForm } from "@/components/forms/mantenimiento/aeronaves/AircraftInfoForm";
 
 interface AircraftPart {
     category?: "ENGINE" | "APU" | "PROPELLER"; // Solo frontend
     part_name: string;
     part_number: string;
     serial: string;
-    brand: string;
+    manufacturer_id: string;
     time_since_new?: number;  // Time Since New
     time_since_overhaul?: number;  // Time Since Overhaul
     cycles_since_new?: number;  // Cycles Since New
@@ -42,24 +34,10 @@ interface AircraftPart {
     sub_parts?: AircraftPart[];
 }
 
-// Tipo que coincide con lo que espera el API (sin category y con valores por defecto)
-interface AircraftPartAPI {
-    part_name: string;
-    part_number: string;
-    serial: string;
-    brand: string;
-    time_since_new: number;
-    time_since_overhaul: number;
-    cycles_since_new: number;
-    cycles_since_overhaul: number;
-    condition_type: "NEW" | "OVERHAULED";
-    is_father: boolean;
-    sub_parts?: AircraftPartAPI[];
-}
-
 interface AircraftInfoType {
     manufacturer_id: string;
-    client_id: string;
+    client_name: string;
+    authorizing: "PROPIETARIO" | "EXPLOTADOR";
     serial: string;
     model?: string;
     acronym: string;
@@ -80,56 +58,87 @@ export default function NewAircraftPage() {
     const [partsData, setPartsData] = useState<PartsData>({ parts: [] });
     const { createMaintenanceAircraft } = useCreateMaintenanceAircraft();
     const { selectedCompany } = useCompanyStore();
-    const router = useRouter()
+    const { createClient } = useCreateClient();
+    const { data: clients } = useGetClients(selectedCompany?.slug);
+    const { data: manufacturers } = useGetManufacturers(selectedCompany?.slug);
+    const router = useRouter();
 
-    // Función para transformar las partes y eliminar el campo 'category' (solo frontend)
+    // Función para transformar las partes del frontend al formato API
     const transformPart = (part: AircraftPart): AircraftPartAPI => {
-        const { category, ...partWithoutCategory } = part;
+        const { category, ...rest } = part;
         
-        const transformed: AircraftPartAPI = {
-            part_name: partWithoutCategory.part_name,
-            part_number: partWithoutCategory.part_number,
-            serial: partWithoutCategory.serial,
-            brand: partWithoutCategory.brand,
-            time_since_new: partWithoutCategory.time_since_new ?? 0,
-            time_since_overhaul: partWithoutCategory.time_since_overhaul ?? 0,
-            cycles_since_new: partWithoutCategory.cycles_since_new ?? 0,
-            cycles_since_overhaul: partWithoutCategory.cycles_since_overhaul ?? 0,
-            condition_type: partWithoutCategory.condition_type,
-            is_father: partWithoutCategory.is_father,
+        // Mapear categoría a part_type
+        const part_type = category === "APU" ? "APU" : 
+                         category === "PROPELLER" ? "PROPELLER" : 
+                         "ENGINE"; // Default: engine
+        
+        return {
+            ...rest,
+            time_since_new: Math.round((rest.time_since_new ?? 0) * 100) / 100,
+            time_since_overhaul: Math.round((rest.time_since_overhaul ?? 0) * 100) / 100,
+            cycles_since_new: Math.round(rest.cycles_since_new ?? 0),
+            cycles_since_overhaul: Math.round(rest.cycles_since_overhaul ?? 0),
+            part_type,
+            sub_parts: part.sub_parts?.map(transformPart)
         };
-        
-        if (part.sub_parts && part.sub_parts.length > 0) {
-            transformed.sub_parts = part.sub_parts.map(transformPart);
-        }
-        
-        return transformed;
     };
 
     const handleSubmit = async () => {
-        if (aircraftData && partsData) {
-            try {
-                const transformedParts = partsData.parts.map(transformPart);
+        if (!aircraftData || !partsData) return;
 
-                await createMaintenanceAircraft.mutateAsync({
-                    data: {
-                        aircraft: {
-                            ...aircraftData,
-                            flight_hours: Number(aircraftData.flight_hours),
-                            flight_cycles: Number(aircraftData.flight_cycles),
-                        },
-                        parts: transformedParts,
-                    },
+        try {
+            // Buscar cliente existente por nombre
+            const existingClient = clients?.find(client => client.name === aircraftData.client_name);
+            let clientId = "";
+
+            if (existingClient) {
+                // Cliente existe - usar ID existente
+                clientId = existingClient.id.toString();
+            } else {
+                // Cliente no existe - crear nuevo
+                const clientResponse = await createClient.mutateAsync({
                     company: selectedCompany!.slug,
+                    data: {
+                        name: aircraftData.client_name,
+                        phone: "0000000000",
+                        email: "default@example.com",
+                        address: "N/A",
+                        dni: "00000000",
+                        dni_type: "V",
+                        authorizing: aircraftData.authorizing,
+                    }
                 });
-                
-                // redirección opcional
-                router.push(`/${selectedCompany?.slug}/planificacion/aeronaves`);
-            } catch (error) {
-                console.error(error);
+                clientId = (clientResponse.client?.id || clientResponse.id).toString();
             }
+
+            // 2. Transformar partes
+            const transformedParts = partsData.parts.map(transformPart);
+
+            // 3. Crear aeronave (transacción atómica)
+            await createMaintenanceAircraft.mutateAsync({
+                data: {
+                    aircraft: {
+                        manufacturer_id: aircraftData.manufacturer_id,
+                        client_id: clientId,
+                        serial: aircraftData.serial,
+                        model: aircraftData.model,
+                        acronym: aircraftData.acronym,
+                        flight_hours: Number(aircraftData.flight_hours),
+                        flight_cycles: Number(aircraftData.flight_cycles),
+                        fabricant_date: aircraftData.fabricant_date,
+                        comments: aircraftData.comments,
+                        location_id: aircraftData.location_id,
+                    },
+                    parts: transformedParts,
+                },
+                company: selectedCompany!.slug,
+            });
+            
+            router.push(`/${selectedCompany?.slug}/planificacion/aeronaves`);
+        } catch (error) {
+            console.error("Error creating aircraft:", error);
+            // TODO: Implementar rollback si es necesario
         }
-        
     };
 
     const handleNext = () => setCurrentStep((prev) => prev + 1);
@@ -153,21 +162,20 @@ export default function NewAircraftPage() {
                             3. Resumen
                         </TabsTrigger>
                     </TabsList>
-                    {currentStep === 1 && (
-                        <TabsContent value="1"
-                        >
-                            <AircraftInfoForm
-                                initialData={aircraftData}
-                                onNext={(data) => {
-                                    setAircraftData(data);
-                                    handleNext();
-                                }}
-                            />
-                        </TabsContent>
-                    )}
+                {currentStep === 1 && (
+                    <TabsContent value="1" className="mt-6">
+                        <AircraftInfoForm
+                            initialData={aircraftData}
+                            onNext={(data) => {
+                                setAircraftData(data);
+                                handleNext();
+                            }}
+                        />
+                    </TabsContent>
+                )}
 
                     {currentStep === 2 && (
-                        <TabsContent value="2">
+                        <TabsContent value="2" className="mt-6">
                             <AircraftPartsInfoForm
                                 initialData={partsData}
                                 onNext={(data) => {
@@ -180,8 +188,8 @@ export default function NewAircraftPage() {
                     )}
 
                     {currentStep === 3 && (
-                        <TabsContent value="3">
-                            <div className="space-y-6 mt-4">
+                        <TabsContent value="3" className="mt-6">
+                            <div className="space-y-6">
                                 <div className="text-center">
                                     <h3 className="text-2xl font-bold text-primary">Resumen de Información</h3>
                                     <p className="text-muted-foreground">Revise los datos antes de confirmar el registro</p>
@@ -198,15 +206,17 @@ export default function NewAircraftPage() {
                                         </CardHeader>
                                         <CardContent className="p-4 space-y-3">
                                             <div className="grid grid-cols-2 gap-3">
-                                                <InfoItem label="Fabricante" value={aircraftData?.manufacturer_id} />
+                                                <InfoItem 
+                                                    label="Fabricante" 
+                                                    value={manufacturers?.find(m => m.id.toString() === aircraftData?.manufacturer_id)?.name || aircraftData?.manufacturer_id} 
+                                                />
                                                 <InfoItem label="Serial" value={aircraftData?.serial} />
                                                 <InfoItem label="Acrónimo" value={aircraftData?.acronym} />
                                                 <InfoItem label="Horas de Vuelo" value={aircraftData?.flight_hours} />
                                                 <InfoItem
                                                     label="Fecha de Fabricación"
-                                                    value={aircraftData?.fabricant_date?.toLocaleDateString()}
+                                                    value={aircraftData?.fabricant_date?.getFullYear().toString()}
                                                 />
-                                                <InfoItem label="Ubicación" value={aircraftData?.location_id} />
                                             </div>
                                         </CardContent>
                                     </Card>
@@ -223,15 +233,69 @@ export default function NewAircraftPage() {
                                         </CardHeader>
                                         <CardContent className="p-4">
                                             <ScrollArea className="h-[300px]">
-                                                <div className="space-y-3">
-                                                    {partsData.parts.map((part, index) => (
-                                                        <PartSummaryCard
-                                                            key={index}
-                                                            part={part}
-                                                            index={index}
-                                                            level={0}
-                                                        />
-                                                    ))}
+                                                <div className="space-y-4">
+                                                    {/* Plantas de Poder */}
+                                                    {partsData.parts.filter(p => p.category === "ENGINE").length > 0 && (
+                                                        <div className="space-y-2">
+                                                            <h4 className="font-semibold text-sm text-blue-600 dark:text-blue-400">
+                                                                Plantas de Poder ({partsData.parts.filter(p => p.category === "ENGINE").length})
+                                                            </h4>
+                                                            <div className="space-y-2 pl-2">
+                                                                {partsData.parts
+                                                                    .filter(p => p.category === "ENGINE")
+                                                                    .map((part, index) => (
+                                                                        <PartSummaryCard
+                                                                            key={index}
+                                                                            part={part}
+                                                                            index={index}
+                                                                            level={0}
+                                                                        />
+                                                                    ))}
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                    
+                                                    {/* APU */}
+                                                    {partsData.parts.filter(p => p.category === "APU").length > 0 && (
+                                                        <div className="space-y-2">
+                                                            <h4 className="font-semibold text-sm text-green-600 dark:text-green-400">
+                                                                APU ({partsData.parts.filter(p => p.category === "APU").length})
+                                                            </h4>
+                                                            <div className="space-y-2 pl-2">
+                                                                {partsData.parts
+                                                                    .filter(p => p.category === "APU")
+                                                                    .map((part, index) => (
+                                                                        <PartSummaryCard
+                                                                            key={index}
+                                                                            part={part}
+                                                                            index={index}
+                                                                            level={0}
+                                                                        />
+                                                                    ))}
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                    
+                                                    {/* Hélices */}
+                                                    {partsData.parts.filter(p => p.category === "PROPELLER").length > 0 && (
+                                                        <div className="space-y-2">
+                                                            <h4 className="font-semibold text-sm text-orange-600 dark:text-orange-400">
+                                                                Hélices ({partsData.parts.filter(p => p.category === "PROPELLER").length})
+                                                            </h4>
+                                                            <div className="space-y-2 pl-2">
+                                                                {partsData.parts
+                                                                    .filter(p => p.category === "PROPELLER")
+                                                                    .map((part, index) => (
+                                                                        <PartSummaryCard
+                                                                            key={index}
+                                                                            part={part}
+                                                                            index={index}
+                                                                            level={0}
+                                                                        />
+                                                                    ))}
+                                                            </div>
+                                                        </div>
+                                                    )}
                                                 </div>
                                             </ScrollArea>
                                         </CardContent>
@@ -244,12 +308,12 @@ export default function NewAircraftPage() {
                                         Anterior
                                     </Button>
                                     <Button
-                                        disabled={createMaintenanceAircraft.isPending}
+                                        disabled={createMaintenanceAircraft.isPending || createClient.isPending}
                                         type="button"
                                         onClick={handleSubmit}
                                         className="min-w-[180px]"
                                     >
-                                        {createMaintenanceAircraft.isPending ? (
+                                        {(createMaintenanceAircraft.isPending || createClient.isPending) ? (
                                             <>
                                                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                                                 Procesando...

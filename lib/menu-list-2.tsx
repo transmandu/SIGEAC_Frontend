@@ -176,10 +176,10 @@ export function getMenuList(
           ],
         },
         {
-          href: `/${currentCompany?.slug}/general/inventario`,
+          href: `/${currentCompany?.slug}/general/inventario_articulos`,
           label: "Inventario",
           active: pathname.includes(
-            `/${currentCompany?.slug}/general/inventario`
+            `/${currentCompany?.slug}/general/inventario_articulos`
           ),
           icon: PackageSearch,
           roles: [
@@ -729,20 +729,16 @@ export function getMenuList(
           roles: ["ANALISTA_ALMACEN", "JEFE_ALMACEN", "SUPERUSER"],
           submenus: [
             {
-              href: `/${currentCompany?.slug}/almacen/inventario/gestion`,
+              href: `/${currentCompany?.slug}/almacen/inventario_articulos`,
               label: "Gestión",
               active:
-                pathname ===
-                  `/${currentCompany?.slug}/almacen/inventario/gestion` ||
-                pathname ===
-                  `/${currentCompany?.slug}/almacen/inventario/gestion/crear`,
+                pathname === `/${currentCompany?.slug}/almacen/inventario_articulos`,
             },
             {
               href: `/${currentCompany?.slug}/almacen/inventario/entregado`,
               label: "Entregado",
               active:
-                pathname ===
-                `/${currentCompany?.slug}/almacen/inventario/entregado`,
+                pathname === `/${currentCompany?.slug}/almacen/inventario/entregado`,
             },
           ],
         },
@@ -894,32 +890,37 @@ export function getMenuList(
           label: "Globales",
           active: pathname.includes("/ajustes/globales"),
           icon: Globe,
-          roles: ["ANALISTA_ALMACEN", "JEFE_ALMACEN", "SUPERUSER"],
+          roles: [],
           submenus: [
             {
               href: "/ajustes/globales/unidades",
               label: "Unidades",
               active: pathname === "/ajustes/globales/unidades",
+              roles: ["JEFE_ALMACEN", "ANALISTA_ALMACEN", "SUPERUSER"],
             },
             {
               href: "/ajustes/globales/fabricantes",
               label: "Fabricantes",
               active: pathname === "/ajustes/globales/fabricantes",
+              roles: ["JEFE_ALMACEN", "ANALISTA_ALMACEN", "JEFE_PLANIFICACION", "ANALISTA_PLANIFICACION", "SUPERUSER"],
             },
             {
               href: "/ajustes/globales/proveedores",
               label: "Proveedores",
               active: pathname === "/ajustes/globales/proveedores",
+              roles: ["JEFE_COMPRAS", "ANALISTA_COMPRAS", "SUPERUSER"],
             },
             {
               href: "/ajustes/globales/clientes",
               label: "Clientes",
               active: pathname === "/ajustes/globales/clientes",
+              roles: ["JEFE_ADMINISTRACION", "ANALISTA_ADMINISTRACION", "SUPERUSER"],
             },
             {
               href: "/ajustes/globales/condiciones",
               label: "Condiciones",
               active: pathname === "/ajustes/globales/condiciones",
+              roles: ["JEFE_ALMACEN", "ANALISTA_ALMACEN", "JEFE_PLANIFICACION", "ANALISTA_PLANIFICACION", "SUPERUSER"],
             },
             {
               href: "/ajustes/globales/fuentes_informacion",

@@ -5,7 +5,7 @@ import { toast } from "sonner"
 interface ManufacturerSchema {
     name: string,
     description: string,
-    type: "AIRCRAFT" | "PART",
+    type: "AIRCRAFT" | "ENGINE" | "APU" | "PROPELLER" | "GENERAL",
 }
 
 export const useCreateManufacturer = () => {
@@ -16,7 +16,8 @@ export const useCreateManufacturer = () => {
         mutationFn: async ({company, data}: {
           company: string | undefined, data: ManufacturerSchema
         }) => {
-            await axiosInstance.post(`/${company}/manufacturers`, data)
+            const response = await axiosInstance.post(`/${company}/manufacturers`, data)
+            return response.data
           },
         onSuccess: () => {
             queryClient.invalidateQueries({queryKey: ['manufacturers']})
@@ -37,6 +38,34 @@ export const useCreateManufacturer = () => {
     }
 }
 
+
+export const useUpdateManufacturer = () => {
+  const queryClient = useQueryClient()
+
+  const updateMutation = useMutation({
+    mutationFn: async ({company, id, data}: {
+      company: string | undefined, id: number | string, data: ManufacturerSchema
+    }) => {
+      const response = await axiosInstance.put(`/${company}/manufacturers/${id}`, data)
+      return response.data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({queryKey: ['manufacturers']})
+      toast.success("¡Actualizado!", {
+        description: `¡El fabricante se ha actualizado correctamente!`
+      })
+    },
+    onError: (error) => {
+      toast.error('Error', {
+        description: `No se actualizó correctamente: ${error}`
+      })
+    },
+  })
+
+  return {
+    updateManufacturer: updateMutation,
+  }
+}
 
 export const useDeleteManufacturer = () => {
 
