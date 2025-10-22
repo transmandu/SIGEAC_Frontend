@@ -24,9 +24,10 @@ import {
   TrendingUp,
   Clock
 } from 'lucide-react';
-import { useState } from 'react';
-import { columns } from './columns';
+import { useState, useMemo } from 'react';
+import { columns, GroupedFlight } from './columns';
 import { DataTable } from './data-table';
+import { FlightHistory } from '@/types';
 import { useGetFlightHistory } from '@/hooks/aerolinea/vuelos/useGetFlightHistory';
 import { useGetAircraftAcronyms } from '@/hooks/aerolinea/aeronaves/useGetAircraftAcronyms';
 import { useGetAverageCyclesAndHours } from '@/hooks/aerolinea/vuelos/useGetAverageCyclesAndHours';
@@ -143,8 +144,50 @@ const HistorialVueloPage = () => {
   // ============================================
   // COMPUTED VALUES
   // ============================================
-  const flightHistoryRecords = flightHistoryData?.data || [];
+  const flightHistoryRecords = useMemo(() => flightHistoryData?.data || [], [flightHistoryData]);
   const totalRecords = flightHistoryData?.total || 0;
+
+  // Agrupar registros por vuelo
+  const groupedFlightData = useMemo(() => {
+    if (flightHistoryRecords.length === 0) return [] as (FlightHistory | GroupedFlight)[];
+
+    // Agrupar por flight_number y fecha para asegurar unicidad
+    const grouped: { [key: string]: GroupedFlight } = {};
+    
+    flightHistoryRecords.forEach((record: any) => {
+      const flightDate = record.flight?.flight_date || record.created_at;
+      // Crear una clave única combinando flight_number y fecha
+      const key = `${record.flight_number}_${flightDate}`;
+      
+      if (!grouped[key]) {
+        grouped[key] = {
+          id: key,
+          flight_number: record.flight_number,
+          flight_date: flightDate,
+          flight_hours: typeof record.flight_hours === 'string' 
+            ? parseFloat(record.flight_hours) 
+            : record.flight_hours,
+          flight_cycles: typeof record.flight_cycles === 'string' 
+            ? parseFloat(record.flight_cycles) 
+            : record.flight_cycles,
+          subRows: [],
+          isGroup: true,
+        };
+      }
+      
+      // Agregar el registro como subRow
+      grouped[key].subRows.push(record);
+    });
+
+    // Convertir a array y ordenar por fecha descendente
+    const result = Object.values(grouped).sort((a, b) => {
+      const dateA = new Date(a.flight_date).getTime();
+      const dateB = new Date(b.flight_date).getTime();
+      return dateB - dateA; // Más reciente primero
+    });
+    
+    return result as (FlightHistory | GroupedFlight)[];
+  }, [flightHistoryRecords]);
 
   // ============================================
   // RENDER
@@ -323,7 +366,7 @@ const HistorialVueloPage = () => {
                 </Badge>
                 <span className="text-muted-foreground">•</span>
                 <span className="text-muted-foreground">
-                  {totalRecords} resultado(s)
+                  {groupedFlightData.length} vuelo(s) - {totalRecords} componente(s)
                 </span>
               </div>
             )}
@@ -496,10 +539,10 @@ const HistorialVueloPage = () => {
                 </div>
               </div>
             ) : selectedView === 'table' ? (
-              <DataTable 
+              <DataTable<FlightHistory | GroupedFlight, any>
                 columns={columns} 
-                data={flightHistoryRecords}
-                totalRecords={totalRecords}
+                data={groupedFlightData}
+                totalRecords={groupedFlightData.length}
                 currentPage={1}
                 onPageChange={() => {}}
               />

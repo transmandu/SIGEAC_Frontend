@@ -3,14 +3,28 @@
 import { ColumnDef } from "@tanstack/react-table"
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import { FlightHistory } from "@/types"
-import { AlertTriangle, CheckCircle2, Clock, Gauge } from "lucide-react"
+import { AlertTriangle, CheckCircle2, ChevronDown, ChevronRight, Clock, Gauge, Plane } from "lucide-react"
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
+
+/**
+ * Tipo para los vuelos agrupados
+ */
+export type GroupedFlight = {
+  id: string
+  flight_number: string
+  flight_date: string
+  flight_hours: number
+  flight_cycles: number
+  subRows: FlightHistory[]
+  isGroup: true
+}
 
 /**
  * Obtiene el indicador de estado basado en valores críticos
@@ -43,9 +57,37 @@ const getStatusIndicator = (current: number, limit: number) => {
 };
 
 /**
- * Columnas mejoradas con diseño UI/UX profesional
+ * Columnas mejoradas con agrupación de vuelos
  */
-export const columns: ColumnDef<FlightHistory>[] = [
+export const columns: ColumnDef<FlightHistory | GroupedFlight>[] = [
+  // ========== EXPANSIÓN ==========
+  {
+    id: "expander",
+    header: () => null,
+    cell: ({ row }) => {
+      const isGroup = (row.original as any).isGroup;
+      
+      if (!isGroup) {
+        return <div className="w-8" />;
+      }
+
+      return (
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => row.toggleExpanded()}
+          className="h-8 w-8 p-0"
+        >
+          {row.getIsExpanded() ? (
+            <ChevronDown className="h-4 w-4" />
+          ) : (
+            <ChevronRight className="h-4 w-4" />
+          )}
+        </Button>
+      );
+    },
+  },
+
   // ========== INFORMACIÓN DEL VUELO ==========
   {
     id: "fecha_hora",
@@ -54,39 +96,45 @@ export const columns: ColumnDef<FlightHistory>[] = [
       <DataTableColumnHeader column={column} title="FECHA" />
     ),
     cell: ({ row }) => {
-      // Intentar obtener la fecha del vuelo relacionado primero, luego created_at
-      const dateString = row.original.flight?.flight_date || row.original.created_at;
+      const isGroup = (row.original as any).isGroup;
       
-      if (!dateString) {
+      // Si es un grupo, mostrar la fecha del vuelo
+      if (isGroup) {
+        const dateString = (row.original as GroupedFlight).flight_date;
+        
+        if (!dateString) {
+          return (
+            <div className="text-xs text-muted-foreground">
+              Sin fecha
+            </div>
+          );
+        }
+
+        const date = new Date(dateString);
+        
+        if (isNaN(date.getTime())) {
+          return (
+            <div className="text-xs text-muted-foreground">
+              Fecha inválida
+            </div>
+          );
+        }
+
         return (
-          <div className="text-xs text-muted-foreground">
-            Sin fecha
+          <div className="min-w-[120px] text-center">
+            <div className="font-semibold text-sm">
+              {date.toLocaleDateString('es-ES', {
+                day: '2-digit',
+                month: 'short',
+                year: 'numeric'
+              })}
+            </div>
           </div>
         );
       }
 
-      const date = new Date(dateString);
-      
-      // Verificar si la fecha es válida
-      if (isNaN(date.getTime())) {
-        return (
-          <div className="text-xs text-muted-foreground">
-            Fecha inválida
-          </div>
-        );
-      }
-
-      return (
-        <div className="min-w-[120px] text-center">
-          <div className="font-semibold text-sm">
-            {date.toLocaleDateString('es-ES', {
-              day: '2-digit',
-              month: 'short',
-              year: 'numeric'
-            })}
-          </div>
-        </div>
-      );
+      // Si es un componente individual, no mostrar nada (ya está en el grupo)
+      return null;
     }
   },
   
@@ -95,25 +143,34 @@ export const columns: ColumnDef<FlightHistory>[] = [
     header: ({ column }) => (
       <DataTableColumnHeader filter column={column} title="VUELO" />
     ),
-    cell: ({ row }) => (
-      <div className="text-center">
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger>
-              <Badge variant="outline" className="font-mono text-sm px-3 py-1 cursor-help">
-                {row.original.flight_number}
-              </Badge>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Número de vuelo registrado</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-      </div>
-    )
+    cell: ({ row }) => {
+      const isGroup = (row.original as any).isGroup;
+      
+      if (isGroup) {
+        const grouped = row.original as GroupedFlight;
+        return (
+          <div className="text-center">
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger>
+                  <Badge variant="outline" className="font-mono text-sm px-3 py-1 cursor-help">
+                    {grouped.flight_number}
+                  </Badge>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{grouped.subRows.length} componente(s)</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
+        );
+      }
+
+      return null;
+    }
   },
 
-  // ========== PARTE/COMPONENTE (Destacado) ==========
+  // ========== COMPONENTE ==========
   {
     id: "componente",
     accessorKey: "aircraft_part_id",
@@ -126,11 +183,33 @@ export const columns: ColumnDef<FlightHistory>[] = [
       />
     ),
     cell: ({ row }) => {
-      const part = row.original.aircraft_part;
-      const partId = row.original.aircraft_part_id;
+      const isGroup = (row.original as any).isGroup;
+      
+      // Si es un grupo, mostrar resumen
+      if (isGroup) {
+        const grouped = row.original as GroupedFlight;
+        return (
+          <div className="flex justify-center">
+            <div className="space-y-1 min-w-[180px] p-2 rounded bg-blue-50/50 dark:bg-blue-950/20 text-center">
+              <div className="font-bold text-blue-700 dark:text-blue-300 flex items-center justify-center gap-2">
+                <Plane className="h-4 w-4" />
+                {grouped.subRows.length} Componente(s)
+              </div>
+              <div className="text-xs text-muted-foreground">
+                Click para expandir
+              </div>
+            </div>
+          </div>
+        );
+      }
+
+      // Si es un componente individual, mostrar detalles
+      const item = row.original as FlightHistory;
+      const part = item.aircraft_part;
+      const partId = item.aircraft_part_id;
       
       return (
-        <div className="flex justify-center">
+        <div className="flex justify-center pl-8">
           <div className="space-y-1 min-w-[180px] p-2 rounded bg-blue-50/50 dark:bg-blue-950/20 text-center">
             {part ? (
               <>
@@ -162,7 +241,7 @@ export const columns: ColumnDef<FlightHistory>[] = [
     }
   },
 
-  // ========== VUELO (Info del vuelo actual) ==========
+  // ========== HORAS DE VUELO ==========
   {
     id: "vuelo_horas",
     accessorKey: "flight_hours",
@@ -173,17 +252,20 @@ export const columns: ColumnDef<FlightHistory>[] = [
       />
     ),
     cell: ({ row }) => {
-      const value = typeof row.original.flight_hours === 'string' 
-        ? parseFloat(row.original.flight_hours) 
-        : row.original.flight_hours;
+      const isGroup = (row.original as any).isGroup;
       
-      return (
-        <div className="text-center">
-          <Badge variant="default" className="font-semibold text-base">
-            {value.toFixed(2)}
-          </Badge>
-        </div>
-      );
+      if (isGroup) {
+        const grouped = row.original as GroupedFlight;
+        return (
+          <div className="text-center">
+            <Badge variant="default" className="font-semibold text-base">
+              {grouped.flight_hours.toFixed(2)}
+            </Badge>
+          </div>
+        );
+      }
+
+      return null;
     }
   },
 
@@ -197,21 +279,24 @@ export const columns: ColumnDef<FlightHistory>[] = [
       />
     ),
     cell: ({ row }) => {
-      const value = typeof row.original.flight_cycles === 'string' 
-        ? parseFloat(row.original.flight_cycles) 
-        : row.original.flight_cycles;
+      const isGroup = (row.original as any).isGroup;
       
-      return (
-        <div className="text-center">
-          <Badge variant="default" className="font-semibold text-base">
-            {Math.round(value)}
-          </Badge>
-        </div>
-      );
+      if (isGroup) {
+        const grouped = row.original as GroupedFlight;
+        return (
+          <div className="text-center">
+            <Badge variant="default" className="font-semibold text-base">
+              {Math.round(grouped.flight_cycles)}
+            </Badge>
+          </div>
+        );
+      }
+
+      return null;
     }
   },
 
-  // ========== TIME SINCE NEW (TSN) ==========
+  // ========== TSN ==========
   {
     id: "tsn",
     accessorKey: "time_since_new",
@@ -222,9 +307,13 @@ export const columns: ColumnDef<FlightHistory>[] = [
       />
     ),
     cell: ({ row }) => {
-      const value = typeof row.original.time_since_new === 'string' 
-        ? parseFloat(row.original.time_since_new) 
-        : row.original.time_since_new;
+      const isGroup = (row.original as any).isGroup;
+      if (isGroup) return null;
+
+      const item = row.original as FlightHistory;
+      const value = typeof item.time_since_new === 'string' 
+        ? parseFloat(item.time_since_new) 
+        : item.time_since_new;
       
       return (
         <div className="text-center">
@@ -249,9 +338,13 @@ export const columns: ColumnDef<FlightHistory>[] = [
       />
     ),
     cell: ({ row }) => {
-      const value = typeof row.original.cycles_since_new === 'string' 
-        ? parseFloat(row.original.cycles_since_new) 
-        : row.original.cycles_since_new;
+      const isGroup = (row.original as any).isGroup;
+      if (isGroup) return null;
+
+      const item = row.original as FlightHistory;
+      const value = typeof item.cycles_since_new === 'string' 
+        ? parseFloat(item.cycles_since_new) 
+        : item.cycles_since_new;
       
       return (
         <div className="text-center">
@@ -263,7 +356,7 @@ export const columns: ColumnDef<FlightHistory>[] = [
     }
   },
 
-  // ========== TIME SINCE OVERHAUL (TSO) ==========
+  // ========== TSO ==========
   {
     id: "tso",
     accessorKey: "time_since_overhaul",
@@ -274,11 +367,14 @@ export const columns: ColumnDef<FlightHistory>[] = [
       />
     ),
     cell: ({ row }) => {
-      const value = typeof row.original.time_since_overhaul === 'string' 
-        ? parseFloat(row.original.time_since_overhaul) 
-        : row.original.time_since_overhaul;
+      const isGroup = (row.original as any).isGroup;
+      if (isGroup) return null;
+
+      const item = row.original as FlightHistory;
+      const value = typeof item.time_since_overhaul === 'string' 
+        ? parseFloat(item.time_since_overhaul) 
+        : item.time_since_overhaul;
       
-      // Ejemplo: límite de 2000 horas (esto debería venir de la configuración de la parte)
       const limit = 2000;
       const status = getStatusIndicator(value, limit);
       const Icon = status.icon;
@@ -318,11 +414,14 @@ export const columns: ColumnDef<FlightHistory>[] = [
       />
     ),
     cell: ({ row }) => {
-      const value = typeof row.original.cycles_since_overhaul === 'string' 
-        ? parseFloat(row.original.cycles_since_overhaul) 
-        : row.original.cycles_since_overhaul;
+      const isGroup = (row.original as any).isGroup;
+      if (isGroup) return null;
+
+      const item = row.original as FlightHistory;
+      const value = typeof item.cycles_since_overhaul === 'string' 
+        ? parseFloat(item.cycles_since_overhaul) 
+        : item.cycles_since_overhaul;
       
-      // Ejemplo: límite de 5000 ciclos
       const limit = 5000;
       const status = getStatusIndicator(value, limit);
       const Icon = status.icon;
@@ -352,3 +451,4 @@ export const columns: ColumnDef<FlightHistory>[] = [
     }
   },
 ];
+
