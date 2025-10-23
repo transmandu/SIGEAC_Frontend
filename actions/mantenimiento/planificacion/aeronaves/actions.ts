@@ -2,6 +2,7 @@ import axiosInstance from "@/lib/axios"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner";
 
+// Interfaz para las partes de la aeronave en el API (part_type en minúsculas)
 export interface AircraftPartAPI {
   part_name: string;
   part_number: string;
@@ -13,7 +14,7 @@ export interface AircraftPartAPI {
   cycles_since_overhaul: number;
   condition_type: "NEW" | "OVERHAULED";
   is_father: boolean;
-  part_type: "ENGINE" | "APU" | "PROPELLER";
+  part_type: "engine" | "apu" | "propeller";
   sub_parts?: AircraftPartAPI[];
 }
 

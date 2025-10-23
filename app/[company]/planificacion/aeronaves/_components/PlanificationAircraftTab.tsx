@@ -699,6 +699,8 @@ export function PlanificationAircraftTab({ aircraft }: { aircraft: MaintenanceAi
                           </TableBody>
                         </Table>
                       </div>
+                    </div>
+                  )}
                 </div>
               )}
             </CardContent>

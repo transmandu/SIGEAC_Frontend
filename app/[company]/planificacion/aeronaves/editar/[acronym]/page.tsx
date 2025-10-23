@@ -88,9 +88,10 @@ export default function EditAircraftPage({ params }: { params: { acronym: string
     // Función para transformar partes del API al formato del formulario
     const transformExistingPartsToFormFormat = useCallback((apiParts: any[]): AircraftPart[] => {
         return apiParts.map(part => {
-            // Mapear part_type a category
-            const category = part.part_type === "apu" ? "APU" as const :
-                           part.part_type === "propeller" ? "PROPELLER" as const :
+            // Mapear part_type a category (case-insensitive)
+            const partType = (part.part_type || '').toLowerCase();
+            const category = partType === "apu" ? "APU" as const :
+                           partType === "propeller" ? "PROPELLER" as const :
                            "ENGINE" as const; // Default: ENGINE
             
             return {

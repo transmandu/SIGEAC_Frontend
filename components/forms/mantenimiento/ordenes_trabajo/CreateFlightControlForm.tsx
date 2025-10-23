@@ -112,7 +112,7 @@ export default function CreateFlightControlForm({ onClose, flightData }: FormPro
                   <PopoverTrigger asChild>
                     <FormControl>
                       <Button
-                        disabled={isAircraftsLoading || isAircraftsError}
+                        disabled={isAircraftsLoading || isAircraftsError || isEditMode}
                         variant="outline"
                         role="combobox"
                         className={cn(

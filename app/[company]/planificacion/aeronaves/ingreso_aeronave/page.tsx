@@ -67,10 +67,10 @@ export default function NewAircraftPage() {
     const transformPart = (part: AircraftPart): AircraftPartAPI => {
         const { category, ...rest } = part;
         
-        // Mapear categoría a part_type
-        const part_type = category === "APU" ? "APU" : 
-                         category === "PROPELLER" ? "PROPELLER" : 
-                         "ENGINE"; // Default: engine
+        // Mapear categoría a part_type (en minúsculas para el backend)
+        const part_type = category === "APU" ? "apu" : 
+                         category === "PROPELLER" ? "propeller" : 
+                         "engine"; // Default: engine
         
         return {
             ...rest,

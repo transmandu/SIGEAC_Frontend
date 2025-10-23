@@ -64,10 +64,10 @@ export function CreateMaintenanceAircraftDialog() {
     // Omitimos 'category' al desestructurar
     const { category, ...rest } = part;
     
-    // Mapear categoría a part_type (en MAYÚSCULAS)
-    const part_type = category === "APU" ? "APU" : 
-                     category === "PROPELLER" ? "PROPELLER" : 
-                     "ENGINE"; // Default: ENGINE
+    // Mapear categoría a part_type (en minúsculas para el backend)
+    const part_type = category === "APU" ? "apu" : 
+                     category === "PROPELLER" ? "propeller" : 
+                     "engine"; // Default: engine
     
     const transformed: AircraftPartAPI = {
       part_name: rest.part_name,

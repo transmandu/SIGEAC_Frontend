@@ -9,7 +9,6 @@ export interface IWarehouseArticle {
   article_count: number;
   articles: {
     id: number;
-    alternative_part_number: string | null;
     part_number: string;
     alternative_part_number: string | null;
     serial: string | null;
