@@ -67,10 +67,10 @@ export default function NewAircraftPage() {
     const transformPart = (part: AircraftPart): AircraftPartAPI => {
         const { category, ...rest } = part;
         
-        // Mapear categoría a part_type
-        const part_type = category === "APU" ? "APU" : 
-                         category === "PROPELLER" ? "PROPELLER" : 
-                         "ENGINE"; // Default: engine
+        // Mapear categoría a part_type (en minúsculas para el backend)
+        const part_type = category === "APU" ? "apu" : 
+                         category === "PROPELLER" ? "propeller" : 
+                         "engine"; // Default: engine
         
         return {
             ...rest,
@@ -211,7 +211,7 @@ export default function NewAircraftPage() {
                                                     value={manufacturers?.find(m => m.id.toString() === aircraftData?.manufacturer_id)?.name || aircraftData?.manufacturer_id} 
                                                 />
                                                 <InfoItem label="Serial" value={aircraftData?.serial} />
-                                                <InfoItem label="Acrónimo" value={aircraftData?.acronym} />
+                                                <InfoItem label="Matrícula" value={aircraftData?.model} />
                                                 <InfoItem label="Horas de Vuelo" value={aircraftData?.flight_hours} />
                                                 <InfoItem
                                                     label="Fecha de Fabricación"

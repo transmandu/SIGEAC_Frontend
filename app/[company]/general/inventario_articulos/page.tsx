@@ -19,7 +19,6 @@ import { getColumnsForArticleType, flattenArticles, IArticleSimple } from './col
 import { DataTable } from './data-table';
 import { useGetWarehouseArticlesByCategory } from '@/hooks/mantenimiento/almacen/articulos/useGetWarehouseArticlesByCategory';
 
-
 type ArticleType = 'COMPONENTE' | 'CONSUMIBLE' | 'HERRAMIENTA';
 
 const ARTICLE_TABS = [

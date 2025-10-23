@@ -38,3 +38,30 @@ export const useCreateFlightControl = () => {
     createFlightControl: createMutation,
   }
 }
+
+export const useUpdateFlightControl = () => {
+
+  const queryClient = useQueryClient()
+
+  const updateMutation = useMutation({
+      mutationFn: async ({id, data, company}: {id: string, data: Partial<CreateFlightControlData>, company: string}) => {
+          await axiosInstance.put(`/${company}/flight-control/${id}`, data)
+        },
+      onSuccess: () => {
+          queryClient.invalidateQueries({queryKey: ['flight-control']})
+          toast.success("¡Actualizado!", {
+              description: `El vuelo ha sido actualizado correctamente.`
+          })
+        },
+      onError: (error) => {
+          toast.error('Oops!', {
+            description: 'No se pudo actualizar el vuelo...'
+          })
+          console.log(error)
+        },
+      }
+  )
+  return {
+    updateFlightControl: updateMutation,
+  }
+}

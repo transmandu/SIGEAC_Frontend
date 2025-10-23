@@ -17,6 +17,7 @@ import { useUpdateMaintenanceAircraft, AircraftPartAPI } from "@/actions/manteni
 import LoadingPage from "@/components/misc/LoadingPage";
 import { useGetClients } from "@/hooks/general/clientes/useGetClients";
 import { useGetManufacturers } from "@/hooks/general/condiciones/useGetConditions";
+import { parseISO } from "date-fns";
 
 interface AircraftPart {
     id?: number; // ID para actualizaciones
@@ -52,6 +53,18 @@ interface PartsData {
     parts: AircraftPart[];
 }
 
+// Función para parsear fecha ISO sin problemas de timezone
+const parseISODate = (dateString: string | Date | null | undefined): Date => {
+    if (!dateString) return new Date();
+    if (dateString instanceof Date) return dateString;
+    
+    try {
+        return parseISO(dateString);
+    } catch {
+        return new Date();
+    }
+};
+
 export default function EditAircraftPage({ params }: { params: { acronym: string, company: string } }) {
     const [currentStep, setCurrentStep] = useState(1);
     const [aircraftData, setAircraftData] = useState<AircraftInfoType>();
@@ -75,9 +88,10 @@ export default function EditAircraftPage({ params }: { params: { acronym: string
     // Función para transformar partes del API al formato del formulario
     const transformExistingPartsToFormFormat = useCallback((apiParts: any[]): AircraftPart[] => {
         return apiParts.map(part => {
-            // Mapear part_type a category
-            const category = part.part_type === "apu" ? "APU" as const :
-                           part.part_type === "propeller" ? "PROPELLER" as const :
+            // Mapear part_type a category (case-insensitive)
+            const partType = (part.part_type || '').toLowerCase();
+            const category = partType === "apu" ? "APU" as const :
+                           partType === "propeller" ? "PROPELLER" as const :
                            "ENGINE" as const; // Default: ENGINE
             
             return {
@@ -117,7 +131,7 @@ export default function EditAircraftPage({ params }: { params: { acronym: string
             acronym: aircraft.acronym || "",
             flight_hours: aircraft.flight_hours ? Number(aircraft.flight_hours).toFixed(2) : "0.00",
             flight_cycles: aircraft.flight_cycles ? Math.round(Number(aircraft.flight_cycles)).toString() : "0",
-            fabricant_date: aircraft.fabricant_date ? new Date(aircraft.fabricant_date) : new Date(),
+            fabricant_date: parseISODate(aircraft.fabricant_date),
             location_id: aircraft.location?.id?.toString() || "",
             comments: aircraft.comments || "",
         });
@@ -294,8 +308,8 @@ export default function EditAircraftPage({ params }: { params: { acronym: string
                                                 <div className="text-sm text-muted-foreground">Serial</div>
                                                 <div className="text-sm font-medium">{aircraftData?.serial}</div>
                                                 
-                                                <div className="text-sm text-muted-foreground">Acrónimo</div>
-                                                <div className="text-sm font-medium">{aircraftData?.acronym}</div>
+                                                <div className="text-sm text-muted-foreground">Matrícula</div>
+                                                <div className="text-sm font-medium">{aircraftData?.model}</div>
                                                 
                                                 <div className="text-sm text-muted-foreground">Fecha de Fabricación</div>
                                                 <div className="text-sm font-medium">{aircraftData?.fabricant_date?.getFullYear()}</div>
@@ -351,9 +365,6 @@ export default function EditAircraftPage({ params }: { params: { acronym: string
                                                                                         <div className="text-xs text-muted-foreground">
                                                                                             <span className="font-medium">Serial:</span> {part.serial}
                                                                                         </div>
-                                                            <div className="text-xs text-muted-foreground">
-                                                                                            <span className="font-medium">Condición:</span> {part.condition_type}
-                                                                                        </div>
                                                                                     </div>
                                                                                 </CollapsibleContent>
                                                                             </div>
@@ -391,9 +402,6 @@ export default function EditAircraftPage({ params }: { params: { acronym: string
                                                                                         </div>
                                                                                         <div className="text-xs text-muted-foreground">
                                                                                             <span className="font-medium">Serial:</span> {part.serial}
-                                                            </div>
-                                                            <div className="text-xs text-muted-foreground">
-                                                                                            <span className="font-medium">Condición:</span> {part.condition_type}
                                                                                         </div>
                                                                                     </div>
                                                                                 </CollapsibleContent>
@@ -432,9 +440,6 @@ export default function EditAircraftPage({ params }: { params: { acronym: string
                                                                                         </div>
                                                                                         <div className="text-xs text-muted-foreground">
                                                                                             <span className="font-medium">Serial:</span> {part.serial}
-                                                                                        </div>
-                                                                                        <div className="text-xs text-muted-foreground">
-                                                                                            <span className="font-medium">Condición:</span> {part.condition_type}
                                                                                         </div>
                                                                                     </div>
                                                                                 </CollapsibleContent>

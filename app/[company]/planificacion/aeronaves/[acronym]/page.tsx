@@ -18,6 +18,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import React from "react";
+import { format, parseISO } from "date-fns";
+import { es } from "date-fns/locale";
 
 import { useCompanyStore } from "@/stores/CompanyStore";
 import {
@@ -49,8 +51,12 @@ const labelFor = (obj: any): string => {
 
 const formatDate = (iso?: string | null) => {
   if (!iso) return "—";
-  const d = new Date(iso);
-  return Number.isNaN(d.getTime()) ? String(iso) : d.toLocaleDateString();
+  try {
+    const date = parseISO(iso);
+    return format(date, 'PPP', { locale: es });
+  } catch {
+    return String(iso);
+  }
 };
 
 // Formatear números con máximo 2 decimales, eliminando ceros innecesarios
@@ -93,18 +99,6 @@ const Stat = ({ icon: Icon, label, value }: { icon: any; label: string; value: R
   </Card>
 );
 
-const ConditionBadge = ({ condition }: { condition: string }) => {
-  const variant =
-    condition?.toLowerCase() === "serviceable" || condition?.toLowerCase() === "serviciable"
-      ? "default"
-      : condition?.toLowerCase().includes("overhauled")
-        ? "secondary"
-        : condition?.toLowerCase().includes("repair") || condition?.toLowerCase().includes("unserviceable")
-          ? "destructive"
-          : "outline";
-  return <Badge variant={variant as any}>{condition || "—"}</Badge>;
-};
-
 const PartRow = ({ p, depth = 0, index = 0 }: { p: MaintenanceAircraftPart; depth?: number; index?: number }) => {
   const hasChildren = p.sub_parts && p.sub_parts.length > 0;
   return (
@@ -119,7 +113,6 @@ const PartRow = ({ p, depth = 0, index = 0 }: { p: MaintenanceAircraftPart; dept
               <Puzzle className="h-4 w-4 text-muted-foreground" />
               <span className="font-medium truncate">{p.part_name}</span>
               <Badge variant="outline" className="font-mono text-[10px]">PN: {p.part_number}</Badge>
-              <ConditionBadge condition={p.condition_type} />
             </div>
             <div className="text-xs text-muted-foreground mt-1 flex gap-3 flex-wrap">
               <span className="flex items-center gap-1"><Gauge className="h-3 w-3" /> TSN: {fmtNumber(p.time_since_new ?? p.part_hours)}</span>

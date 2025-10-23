@@ -76,10 +76,6 @@ export function PartSummaryCard({ part, index, level }: {
                             label="CSO (Cycles Since Overhaul)" 
                             value={part.cycles_since_overhaul ? part.cycles_since_overhaul.toLocaleString() : "No especificado"} 
                         />
-                        <InfoItem
-                            label="Condición"
-                            value={part.condition_type === "NEW" ? "Nueva" : "Reacondicionada"}
-                        />
                     </div>
 
                     {/* Subpartes */}

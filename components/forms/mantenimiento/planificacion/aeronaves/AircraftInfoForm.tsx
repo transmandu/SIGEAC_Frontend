@@ -35,7 +35,7 @@ const AircraftInfoSchema = z.object({
   manufacturer_id: z.string().min(1, "Debe seleccionar un fabricante"),
   serial: z.string().min(1, "El serial es obligatorio"),
   model: z.string().min(1, "El modelo es obligatorio"),
-  acronym: z.string().min(1, "El acrónimo es obligatorio"),
+  acronym: z.string().min(1, "La matrícula es obligatoria"),
   flight_hours: z
     .string()
     .refine((val) => {
@@ -185,13 +185,13 @@ export default function AircraftInfoForm({ onNext, onBack, initialData }: Aircra
                   )}
                 />
 
-                {/* Acrónimo */}
+                {/* Matrícula */}
                 <FormField
                   control={form.control}
                   name="acronym"
                   render={({ field }) => (
                     <FormItem className="space-y-2">
-                      <FormLabel className="flex items-center gap-2"><Hash className="h-4 w-4" /> Acrónimo</FormLabel>
+                      <FormLabel className="flex items-center gap-2"><Hash className="h-4 w-4" /> Matrícula</FormLabel>
                       <FormControl>
                         <Input placeholder="Ej: YVXXXX" {...field} />
                       </FormControl>

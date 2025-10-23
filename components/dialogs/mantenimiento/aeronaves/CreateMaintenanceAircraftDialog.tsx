@@ -64,10 +64,10 @@ export function CreateMaintenanceAircraftDialog() {
     // Omitimos 'category' al desestructurar
     const { category, ...rest } = part;
     
-    // Mapear categoría a part_type (en MAYÚSCULAS)
-    const part_type = category === "APU" ? "APU" : 
-                     category === "PROPELLER" ? "PROPELLER" : 
-                     "ENGINE"; // Default: ENGINE
+    // Mapear categoría a part_type (en minúsculas para el backend)
+    const part_type = category === "APU" ? "apu" : 
+                     category === "PROPELLER" ? "propeller" : 
+                     "engine"; // Default: engine
     
     const transformed: AircraftPartAPI = {
       part_name: rest.part_name,
@@ -194,7 +194,7 @@ export function CreateMaintenanceAircraftDialog() {
               <div className="space-y-1 text-sm">
                 <p><span className="font-medium">Fabricante:</span> {aircraftData?.manufacturer_id}</p>
                 <p><span className="font-medium">Serial:</span> {aircraftData?.serial}</p>
-                <p><span className="font-medium">Acrónimo:</span> {aircraftData?.acronym}</p>
+                <p><span className="font-medium">Matrícula:</span> {aircraftData?.model}</p>
                 <p><span className="font-medium">Horas de Vuelo:</span> {aircraftData?.flight_hours}</p>
                 <p><span className="font-medium">Fecha de Fabricación:</span> {aircraftData?.fabricant_date?.toLocaleDateString()}</p>
                 <p><span className="font-medium">Ubicación:</span> {aircraftData?.location_id}</p>
@@ -243,7 +243,6 @@ export function CreateMaintenanceAircraftDialog() {
                             <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-slate-600 dark:text-slate-400">
                               <p><span className="font-medium">Serial:</span> {part.serial}</p>
                               <p><span className="font-medium">Fabricante:</span> {part.manufacturer_id}</p>
-                              <p><span className="font-medium">Condición:</span> {part.condition_type === 'NEW' ? 'Nueva' : 'Overhauled'}</p>
                               <p><span className="font-medium">TSN:</span> {part.time_since_new ?? 0}h</p>
                               <p><span className="font-medium">TSO:</span> {part.time_since_overhaul ?? 0}h</p>
                               <p><span className="font-medium">CSN:</span> {part.cycles_since_new ?? 0}</p>
