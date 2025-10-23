@@ -66,9 +66,9 @@ const ObligatoryReportIndicators = () => {
     isLoading: isLoadingBarChart,
     isError: isErrorBarChart,
   } = useGetTotalReportsStatsByYear(
-    selectedCompany?.slug!,
     params.from_first,
-    params.to_first
+    params.to_first,
+    selectedCompany?.slug!
   );
 
   const {
