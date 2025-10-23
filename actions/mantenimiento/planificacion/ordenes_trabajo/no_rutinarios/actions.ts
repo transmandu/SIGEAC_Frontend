@@ -28,11 +28,12 @@ export const useCreateNoRutine = () => {
   const queryClient = useQueryClient()
 
   const createMutation = useMutation({
-      mutationFn: async ({data, company}: {data: CreateNoRutineData, company: string}) => {
+      mutationFn: async ({data, company, order_number}: {data: CreateNoRutineData, company: string, order_number: string}) => {
           await axiosInstance.post(`/${company}/non-routine`, data)
         },
-      onSuccess: () => {
+      onSuccess: (_data, variables) => {
           queryClient.invalidateQueries({queryKey: ['work-orders'], exact: false})
+          queryClient.invalidateQueries({queryKey: ['work-order', variables.order_number, variables.company]})
           toast.success("¡Creado!", {
               description: `La orden no rutinara ha sido creada correctamente.`
           })
@@ -55,17 +56,17 @@ export const useUpdateNoRoutineTask = () => {
   const queryClient = useQueryClient()
 
   const updateMutation = useMutation({
-      mutationFn: async ({data, company}: {data: {
+      mutationFn: async ({data, company, order_number}: {data: {
         id: string,
         inspector_responsable?: string,
         technician_responsable?: string,
         status?: string,
-      }, company: string}) => {
+      }, company: string, order_number: string}) => {
           await axiosInstance.put(`/${company}/no-routine-task/${data.id}`, data)
         },
-      onSuccess: () => {
+      onSuccess: (_data, variables) => {
           queryClient.invalidateQueries({queryKey: ['work-orders'], exact: false})
-          queryClient.invalidateQueries({queryKey: ['work-order'], exact: false})
+          queryClient.invalidateQueries({queryKey: ['work-order', variables.order_number, variables.company]})
           toast.success("¡Creado!", {
               description: `La tarea ha sido actualizada correctamente.`
           })

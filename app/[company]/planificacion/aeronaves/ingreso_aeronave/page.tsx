@@ -211,7 +211,7 @@ export default function NewAircraftPage() {
                                                     value={manufacturers?.find(m => m.id.toString() === aircraftData?.manufacturer_id)?.name || aircraftData?.manufacturer_id} 
                                                 />
                                                 <InfoItem label="Serial" value={aircraftData?.serial} />
-                                                <InfoItem label="Acrónimo" value={aircraftData?.acronym} />
+                                                <InfoItem label="Matrícula" value={aircraftData?.model} />
                                                 <InfoItem label="Horas de Vuelo" value={aircraftData?.flight_hours} />
                                                 <InfoItem
                                                     label="Fecha de Fabricación"

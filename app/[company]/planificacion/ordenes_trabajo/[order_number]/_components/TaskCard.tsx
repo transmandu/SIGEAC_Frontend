@@ -51,18 +51,39 @@ const TaskCard = ({
           )}
         </div>
 
-        <div className="grid grid-cols-2 gap-3 text-sm">
+        <div className="space-y-2">
           <div>
-            <p className="text-muted-foreground">Técnico:</p>
-            <p className="truncate">
-              {task.technician_responsable || "No asignado"}
-            </p>
+            <p className="text-xs text-muted-foreground mb-1">Técnicos:</p>
+            {task.assigned_technicians && task.assigned_technicians.length > 0 ? (
+              <div className="flex flex-wrap gap-1">
+                {task.assigned_technicians.map((tech, idx) => (
+                  <Badge key={idx} variant="secondary" className="text-xs">
+                    {tech.name.split(' ').slice(0, 2).join(' ')}
+                  </Badge>
+                ))}
+              </div>
+            ) : task.technician_responsable ? (
+              <p className="text-sm truncate">{task.technician_responsable}</p>
+            ) : (
+              <p className="text-sm text-muted-foreground">No asignado</p>
+            )}
           </div>
-          <div>
-            <p className="text-muted-foreground">Inspector:</p>
-            <p className="truncate">
-              {task.inspector_responsable || "No asignado"}
-            </p>
+          
+          <div className="grid grid-cols-2 gap-2 text-sm">
+            <div>
+              <p className="text-xs text-muted-foreground">Horas H/H:</p>
+              <Badge variant="outline" className="font-mono text-xs">
+                {task.assigned_technicians?.reduce((sum, t) => sum + t.hours, 0).toFixed(1) || 
+                 task.total_man_hours?.toFixed(1) || 
+                 '8.0'} h
+              </Badge>
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">Inspector:</p>
+              <p className="text-xs truncate">
+                {task.inspector_responsable || "No asignado"}
+              </p>
+            </div>
           </div>
         </div>
       </CardContent>

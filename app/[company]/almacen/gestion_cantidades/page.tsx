@@ -15,6 +15,7 @@ import { Loader2, Package, Save } from "lucide-react";
 import React, { useCallback, useMemo } from "react";
 import { toast } from "sonner";
 import { useGetWarehouseArticlesByCategory } from "@/hooks/mantenimiento/almacen/articulos/useGetWarehouseArticlesByCategory";
+// import { useGetWarehouseArticlesByCategory } from "@/hooks/mantenimiento/almacen/articulos/useGetWarehouseArticlesByCategory";
 import { useGetAllWarehouseZones } from "@/hooks/mantenimiento/almacen/articulos/useGetAllWarehouseZones";
 import { useSearchBatchesByPartNumber } from "@/hooks/mantenimiento/almacen/renglones/useGetBatchesByArticlePartNumber";
 import { useUpdateArticleQuantityAndZone } from "@/actions/mantenimiento/almacen/articulos/useUpdateArticleQuantityAndZone";
@@ -45,6 +46,7 @@ const GestionCantidadesPage = () => {
     isError,
     error,
   } = useGetWarehouseArticlesByCategory(currentPage, itemsPerPage, "CONSUMIBLE");
+  // } = useGetWarehouseArticlesByCategory(currentPage, itemsPerPage, "CONSUMABLE");
 
   // Obtener todas las zonas del almacén para los selects
   const {

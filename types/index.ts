@@ -278,6 +278,7 @@ export type MaintenanceAircraft = {
   client: MaintenanceClient;
   manufacturer: Manufacturer;
   serial: string;
+  model: string;
   acronym: string;
   flight_hours: number | string;  // Puede venir como "4,324.00"
   flight_cycles: number | string;  // Puede venir como "324.00"
@@ -335,6 +336,7 @@ export type WorkOrderTaskEvent = {
 };
 
 export type FlightControl = {
+  id: number;
   flight_number: string;
   aircraft_operator: string;
   origin: string;
@@ -367,11 +369,18 @@ export type ServiceTask = {
   }[];
 };
 
+export type AssignedTechnician = {
+  name: string;
+  hours: number;
+};
+
 export type WorkOrderTask = {
   id: number;
   description_task: string;
   status: string;
   technician_responsable?: string;
+  assigned_technicians?: AssignedTechnician[];
+  total_man_hours?: number;
   inspector_responsable?: string;
   ata: string;
   task_number: string;
@@ -1074,4 +1083,20 @@ export type Form = {
   updated_by: string;
   location: Location;
   questions: Question[];
+};
+
+export type FlightHistory = {
+  id: number;
+  flight_number: string;
+  aircraft_part_id: string | number;
+  aircraft_part?: MaintenanceAircraftPart;
+  flight?: FlightControl;
+  time_since_new: number | string;
+  time_since_overhaul: number | string;
+  cycles_since_new: number | string;
+  cycles_since_overhaul: number | string;
+  flight_cycles: number | string;
+  flight_hours: number | string;
+  created_at: string;
+  updated_at: string;
 };

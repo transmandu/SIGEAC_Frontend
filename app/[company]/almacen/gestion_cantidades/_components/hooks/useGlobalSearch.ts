@@ -59,7 +59,7 @@ export const useGlobalSearch = (paginatedBatches: IWarehouseArticle[] | undefine
   } = useGetWarehouseArticlesByCategory(
     1, 
     1000, // Obtener muchos más registros para la búsqueda global
-    "CONSUMIBLE", // Category parameter
+    "CONSUMABLE", // Category parameter
     !!debouncedPartNumberFilter // Solo activar cuando hay búsqueda por part_number
   );
 

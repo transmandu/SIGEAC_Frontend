@@ -17,6 +17,7 @@ import {
   Drill,
   Globe,
   HandCoins,
+  History,
   Landmark,
   LayoutGrid,
   LucideIcon,
@@ -317,6 +318,18 @@ export function getMenuList(
                       "ANALISTA_ADMINISTRACION",
                       "JEFE_ADMINISTRACION",
                     ], // RRHH no puede ver Vuelos
+                  },
+                  {
+                    href: "/transmandu/administracion/gestion_vuelos/historial_vuelo",
+                    label: "Historial de Vuelo",
+                    active:
+                      pathname ===
+                      "/transmandu/administracion/gestion_vuelos/historial_vuelo",
+                    roles: [
+                      "SUPERUSER",
+                      "ANALISTA_ADMINISTRACION",
+                      "JEFE_ADMINISTRACION",
+                    ], // Solo roles de administración pueden ver el historial
                   },
                 ],
               },
@@ -936,6 +949,13 @@ export function getMenuList(
                     active:
                       pathname ===
                       "/hangar74/planificacion/control_vuelos/reportes",
+                  },
+                  {
+                    href: "/hangar74/planificacion/control_vuelos/historial_vuelo",
+                    label: "Historial de Vuelo",
+                    active:
+                      pathname ===
+                      "/hangar74/planificacion/control_vuelos/historial_vuelo",
                   },
                 ],
               },
