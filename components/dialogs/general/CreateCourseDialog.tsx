@@ -35,7 +35,7 @@ export default function CreateCourseDialog({
               onClick={() => setOpen(true)}
               variant="outline"
               size="sm"
-              className=" hidden h-8 lg:flex"
+              className="flex items-center justify-center gap-2 h-8 border-dashed"
             >
               {title}
             </Button>
