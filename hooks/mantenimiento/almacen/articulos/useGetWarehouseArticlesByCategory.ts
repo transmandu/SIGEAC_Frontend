@@ -6,6 +6,7 @@ export interface IWarehouseArticle {
   batch_id: number;
   name: string;
   medition_unit: string;
+  category: string;
   article_count: number;
   articles: {
     id: number;
