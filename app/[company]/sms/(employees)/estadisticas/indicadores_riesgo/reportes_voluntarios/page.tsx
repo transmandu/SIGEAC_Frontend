@@ -52,9 +52,9 @@ const VoluntaryReportIndicators = () => {
     isError: isErrorBarChart,
     refetch: refetchBarChart,
   } = useGetTotalReportsStatsByYear(
-    selectedCompany?.slug!,
     params.from || format(startOfMonth(new Date()), "yyyy-MM-dd"),
-    params.to || format(new Date(), "yyyy-MM-dd")
+    params.to || format(new Date(), "yyyy-MM-dd"),
+    selectedCompany?.slug!
   );
 
   const [resultArrayData, setResultArrayData] = useState<pieChartData[]>([]);

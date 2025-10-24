@@ -61,7 +61,7 @@ export function DataTable<TData, TValue>({
       </div>
 
       <div className="flex items-center py-4">
-        <CreateCourseDialog title="Crear Curso" />
+        <CreateCourseDialog title="Nuevo" />
         <DataTableViewOptions table={table} />
       </div>
 

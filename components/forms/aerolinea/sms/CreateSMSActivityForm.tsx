@@ -565,7 +565,7 @@ export default function CreateSMSActivityForm({
             name="planned_by"
             render={({ field }) => (
               <FormItem className="w-full">
-                <FormLabel>Planificado por..</FormLabel>
+                <FormLabel>Elaborado por..</FormLabel>
                 {isLoadingEmployees ? (
                   <div className="flex items-center gap-2 p-2 border rounded-md bg-muted">
                     <Loader2 className="h-4 w-4 animate-spin" />{" "}
@@ -579,7 +579,7 @@ export default function CreateSMSActivityForm({
                   >
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Planeado por.." />
+                        <SelectValue placeholder="Elaborado por.." />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -603,7 +603,7 @@ export default function CreateSMSActivityForm({
             name="executed_by"
             render={({ field }) => (
               <FormItem className="w-full">
-                <FormLabel>Ejecutado por</FormLabel>
+                <FormLabel>Realizado por..</FormLabel>
                 <FormControl>
                   <Input {...field} maxLength={100} />
                 </FormControl>

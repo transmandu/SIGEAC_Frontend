@@ -36,9 +36,9 @@ const Indicators = () => {
 
   const getLinkHref = (option: string | null) => {
     if (option === "voluntario") {
-      return `/${selectedCompany}/sms/estadisticas/indicadores_riesgo/reportes_voluntarios`;
+      return `/${selectedCompany?.slug}/sms/estadisticas/indicadores_riesgo/reportes_voluntarios`;
     } else if (option === "obligatorio") {
-      return `/${selectedCompany}/sms/estadisticas/indicadores_riesgo/reportes_obligatorios`;
+      return `/${selectedCompany?.slug}/sms/estadisticas/indicadores_riesgo/reportes_obligatorios`;
     }
     return "";
   };
@@ -46,7 +46,8 @@ const Indicators = () => {
   const handleDialogChange = (isOpen: boolean) => {
     setOpen(isOpen);
     if (!isOpen) {
-      router.push(`/${selectedCompany}/sms/estadisticas/general`); // Redirige cuando el diálogo se cierra
+      router.push(`/${selectedCompany?.slug}/sms/estadisticas/general`);
+      // Redirige cuando el diálogo se cierra
     }
   };
 

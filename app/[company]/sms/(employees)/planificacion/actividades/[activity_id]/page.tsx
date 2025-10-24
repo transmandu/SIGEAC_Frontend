@@ -173,7 +173,7 @@ const ShowSMSActivity = () => {
                     </div>
                     <div className="flex flex-col">
                       <p className="text-sm font-bold text-gray-700 dark:text-gray-400">
-                        Planificado por:
+                        Elaborado por:
                       </p>
                       <p className="text-base">
                         {activity.planned_by.first_name || "N/A"}{" "}
@@ -186,7 +186,7 @@ const ShowSMSActivity = () => {
                     </div>
                     <div className="flex flex-col">
                       <p className="text-sm font-bold text-gray-700 dark:text-gray-400">
-                        Ejecutado por:
+                        Realizado por:
                       </p>
                       <p className="text-base">
                         {activity.executed_by || "N/A"}
