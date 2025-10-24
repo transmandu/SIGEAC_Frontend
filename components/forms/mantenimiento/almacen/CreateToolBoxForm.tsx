@@ -60,7 +60,7 @@ export function CreateToolBoxForm({ onClose, initialData }: FormProps) {
 
   const { createToolBox } = useCreateToolBox()
 
-  const { data: employees, isLoading: employeesLoading, isError: employeesError } = useGetEmployeesForBox(selectedStation ?? null);
+  const { data: employees, isLoading: employeesLoading, isError: employeesError } = useGetEmployeesForBox(selectedStation ?? null, selectedCompany!.slug);
 
   const { mutate, data: batches, isPending: isBatchesLoading, isError } = useGetBatchesWithInWarehouseArticles();
 

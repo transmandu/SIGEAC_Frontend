@@ -6,7 +6,9 @@ const fetchWorkOrderEmployees = async (
   location_id: string | null,
   company?: string,
 ): Promise<Employee[]> => {
-  const { data } = await axiosInstance.get(`/${company}/employees-with-box/${location_id}`);
+  const { data } = await axiosInstance.get(
+    `/${company}/${location_id}/employees-with-box`
+  );
   return data;
 };
 
@@ -15,8 +17,8 @@ export const useGetEmployeesForBox = (
   company?: string,
 ) => {
   return useQuery<Employee[]>({
-    queryKey: ['work-orders-employee', company, location_id],
-    queryFn: () => fetchWorkOrderEmployees(company!, location_id!),
+    queryKey: ["work-orders-employee", company, location_id],
+    queryFn: () => fetchWorkOrderEmployees(location_id!, company!),
     enabled: !!location_id && !!company,
   });
 };
