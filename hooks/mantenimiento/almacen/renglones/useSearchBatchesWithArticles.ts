@@ -14,8 +14,8 @@ export interface BatchWithArticles {
     ata_code: string | null;
     brand: string | null;
     warehouse_name: string;
-    warehouse_id: number | string;
-    min_quantity: number | string;
+    warehouse_id: string;
+    min_quantity: string;
     medition_unit: string;
   };
   
@@ -23,19 +23,19 @@ export interface BatchWithArticles {
   articles: {
     id: number;
     part_number: string;
-    alternative_part_number: string[] | null;
+    alternative_part_number: string | null;
     description: string | null;
-    serial: string;
-    quantity: number | string;
+    serial: string | null;
+    quantity: number;
     zone: string;
     condition: string;
     manufacturer: string | null;
     unit_secondary: string | null;
     status: string;
     cost: number | null;
-    image?: string | null;
-    certificates?: string[] | null;
-    article_type: "CONSUMABLE" | "COMPONENT" | "TOOL" | null;
+    image: string | null;
+    certificates: string[] | null;
+    article_type: string | null;
     
     // Información específica del tipo de artículo
     tool?: {
@@ -43,7 +43,7 @@ export interface BatchWithArticles {
       serial: string;
       isSpecial: boolean;
       article_id: number;
-    };
+    } | null;
     component?: {
       serial: string;
       hard_time: {
@@ -55,26 +55,15 @@ export interface BatchWithArticles {
         caducate_date: string;
         fabrication_date: string;
       };
-    };
+    } | null;
     consumable?: {
-      article_id: number;
-      is_managed: boolean;
-      convertions: {
-        id: number;
-        secondary_unit: string;
-        convertion_rate: number;
-        quantity_unit: number;
-        unit: {
-          label: string;
-          value: string;
-        };
-      }[];
-      shell_time: {
-        caducate_date: Date;
-        fabrication_date: Date;
-        consumable_id: string;
-      };
-    };
+      id: number;
+      is_managed: string;
+      quantity: number;
+      article_id: string;
+      caducate_date: string | null;
+      fabrication_date: string | null;
+    } | null;
   }[];
 }
 

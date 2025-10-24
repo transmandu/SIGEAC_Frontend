@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useState } from "react";
 import { useDebounce } from "@/lib/useDebounce";
-import { useSearchBatchesByPartNumber } from "@/hooks/mantenimiento/almacen/renglones/useGetBatchesByArticlePartNumber";
+import { useSearchBatchesWithArticles, BatchWithArticles } from "@/hooks/mantenimiento/almacen/renglones/useSearchBatchesWithArticles";
 import { useGetWarehouseArticlesByCategory } from "@/hooks/mantenimiento/almacen/articulos/useGetWarehouseArticlesByCategory";
 import { IWarehouseArticle } from "@/hooks/mantenimiento/almacen/articulos/useGetWarehouseArticlesByCategory";
 import { useCompanyStore } from "@/stores/CompanyStore";
@@ -41,40 +41,50 @@ export const useGlobalSearch = (paginatedBatches: IWarehouseArticle[] | undefine
   // Debounce el filtro de número de parte para mejorar rendimiento
   const debouncedPartNumberFilter = useDebounce(partNumberFilter, 300);
 
-  // Búsqueda global por part_number usando el endpoint existente
+  // Búsqueda global por part_number usando el endpoint con artículos completos
   const { 
-    data: searchedBatches, 
+    data: searchedBatchesWithArticles, 
     isLoading: isSearching 
-  } = useSearchBatchesByPartNumber(
+  } = useSearchBatchesWithArticles(
     selectedCompany?.slug,
     selectedStation ?? undefined,
     debouncedPartNumberFilter || undefined
   );
 
-  // Obtener TODOS los batches sin paginación cuando hay búsqueda
-  // Solo hacer la consulta si hay un filtro de part_number activo
-  const { 
-    data: allBatchesResponse, 
-    isLoading: isLoadingAllBatches 
-  } = useGetWarehouseArticlesByCategory(
-    1, 
-    1000, // Obtener muchos más registros para la búsqueda global
-    "CONSUMABLE", // Category parameter
-    !!debouncedPartNumberFilter // Solo activar cuando hay búsqueda por part_number
-  );
+  // Transformar BatchWithArticles[] a IWarehouseArticle[]
+  const transformedSearchResults = useMemo(() => {
+    if (!searchedBatchesWithArticles) return null;
+    
+    return searchedBatchesWithArticles.map((item: BatchWithArticles): IWarehouseArticle => ({
+      batch_id: item.batch.id,
+      name: item.batch.name,
+      medition_unit: item.batch.medition_unit,
+      category: item.batch.category,
+      article_count: item.articles.length,
+      articles: item.articles.map(article => ({
+        id: article.id,
+        part_number: article.part_number,
+        alternative_part_number: article.alternative_part_number,
+        serial: article.serial,
+        description: article.description || "",
+        zone: article.zone,
+        quantity: article.quantity,
+        status: article.status,
+        article_type: article.article_type || "CONSUMABLE",
+      }))
+    }));
+  }, [searchedBatchesWithArticles]);
 
   // Determinar qué batches usar: paginados o búsqueda global
   const sourceBatches = useMemo(() => {
-    // Si hay filtro de part_number, usar búsqueda global
-    if (debouncedPartNumberFilter && searchedBatches && allBatchesResponse?.batches) {
-      // Filtrar los batches completos usando los IDs encontrados en la búsqueda
-      const searchedBatchIds = new Set(searchedBatches.map(b => b.id));
-      return allBatchesResponse.batches.filter(batch => searchedBatchIds.has(batch.batch_id));
+    // Si hay filtro de part_number, usar resultados de búsqueda transformados
+    if (debouncedPartNumberFilter && transformedSearchResults) {
+      return transformedSearchResults;
     }
     
     // Si no hay filtro de part_number, usar datos paginados
     return paginatedBatches || [];
-  }, [debouncedPartNumberFilter, searchedBatches, allBatchesResponse, paginatedBatches]);
+  }, [debouncedPartNumberFilter, transformedSearchResults, paginatedBatches]);
 
   // Obtener zonas únicas disponibles
   const availableZones = useMemo(() => {
@@ -160,7 +170,7 @@ export const useGlobalSearch = (paginatedBatches: IWarehouseArticle[] | undefine
       hasActiveFilters,
       filteredBatches,
       articleCounts,
-      isSearching: (isSearching || isLoadingAllBatches) && !!debouncedPartNumberFilter,
+      isSearching: isSearching && !!debouncedPartNumberFilter,
     },
   };
 };
