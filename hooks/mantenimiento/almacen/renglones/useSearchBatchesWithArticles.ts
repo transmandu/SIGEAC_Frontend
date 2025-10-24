@@ -23,7 +23,7 @@ export interface BatchWithArticles {
   articles: {
     id: number;
     part_number: string;
-    alternative_part_number: string | null;
+    alternative_part_number: string[] | null;
     description: string | null;
     serial: string | null;
     quantity: number;

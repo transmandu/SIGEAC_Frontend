@@ -13,7 +13,7 @@ import { WarehouseResponse } from "@/hooks/mantenimiento/almacen/articulos/useGe
 export interface IArticleSimple {
   id: number;
   part_number: string;
-  alternative_part_number: string | null;
+  alternative_part_number: string[] | null;
   description: string;
   quantity: number;
   zone: string;
@@ -32,7 +32,7 @@ export interface IWarehouseArticle {
   articles: Array<{
     id: number;
     part_number: string;
-    alternative_part_number: string | null;
+    alternative_part_number: string[] | null;
     serial: string | null;
     description: string;
     zone: string;
@@ -123,7 +123,9 @@ const baseColumns: ColumnDef<IArticleSimple>[] = [
     ),
     cell: ({ row }) => (
       <div className="text-center font-medium">
-        {row.original.alternative_part_number || <span className="text-muted-foreground italic">N/A</span>}
+        {row.original.alternative_part_number && row.original.alternative_part_number.length > 0 
+          ? row.original.alternative_part_number.join(", ") 
+          : <span className="text-muted-foreground italic">N/A</span>}
       </div>
     )
   },

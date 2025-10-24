@@ -11,7 +11,7 @@ export interface IWarehouseArticle {
   articles: {
     id: number;
     part_number: string;
-    alternative_part_number: string | null;
+    alternative_part_number: string[] | null;
     serial: string | null;
     description: string;
     zone: string;
