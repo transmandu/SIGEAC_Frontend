@@ -896,7 +896,7 @@ export function getMenuList(
               href: "/ajustes/globales/unidades",
               label: "Unidades",
               active: pathname === "/ajustes/globales/unidades",
-              roles: [ "SUPERUSER", "ENGINEERING"],
+              roles: ["JEFE_ALMACEN", "ANALISTA_ALMACEN", "SUPERUSER", "ENGINEERING"],
             },
             {
               href: "/ajustes/globales/fabricantes",
