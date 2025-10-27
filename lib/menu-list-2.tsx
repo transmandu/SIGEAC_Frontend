@@ -867,7 +867,7 @@ export function getMenuList(
             `/${currentCompany?.slug}/ingenieria/certificados`
           ),
           icon: Award,
-          roles: ["SUPERUSER"],
+          roles: ["SUPERUSER", "ENGINEERING"],
           submenus: [],
         },
         {
@@ -877,7 +877,7 @@ export function getMenuList(
             `/${currentCompany?.slug}/ingenieria/requisiciones/nueva_requisicion`
           ),
           icon: ScrollText,
-          roles: ["SUPERUSER"],
+          roles: ["SUPERUSER", "ENGINEERING"],
           submenus: [],
         },
       ],
