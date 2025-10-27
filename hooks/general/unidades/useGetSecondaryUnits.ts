@@ -9,7 +9,7 @@ const fetchSecondaryUnits = async (company?: string): Promise<Convertion[]> => {
 
 export const useGetSecondaryUnits = (company?: string) => {
   return useQuery<Convertion[]>({
-    queryKey: ["secondary-units"],
+    queryKey: ["secondary-units",company],
     queryFn: () => fetchSecondaryUnits(company),
     enabled: !!company,
   });

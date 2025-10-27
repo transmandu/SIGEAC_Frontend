@@ -9,7 +9,7 @@ const fetchUnits = async (company?: string): Promise<Unit[]> => {
 
 export const useGetUnits = (company?: string) => {
   return useQuery<Unit[]>({
-    queryKey: ["units"],
+    queryKey: ["units",company],
     queryFn: () => fetchUnits(company),
     enabled: !!company,
   });
