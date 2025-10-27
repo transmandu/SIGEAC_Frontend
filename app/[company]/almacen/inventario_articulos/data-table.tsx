@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import {
   ColumnDef,
@@ -11,8 +11,7 @@ import {
   getPaginationRowModel,
   getSortedRowModel,
   useReactTable,
-} from "@tanstack/react-table"
-
+} from "@tanstack/react-table";
 import {
   Table,
   TableBody,
@@ -20,23 +19,29 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table"
-import { Button } from "@/components/ui/button"
-import { useState } from "react"
+} from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import { useState } from "react";
 
 interface DataTableProps<TData, TValue> {
-  columns: ColumnDef<TData, TValue>[]
-  data: TData[]
+  columns: ColumnDef<TData, TValue>[];
+  data: TData[];
 }
 
 export function DataTable<TData, TValue>({
   columns,
   data,
 }: DataTableProps<TData, TValue>) {
-  const [sorting, setSorting] = useState<SortingState>([])
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
-  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
+  // ============================================
+  // STATE MANAGEMENT
+  // ============================================
+  const [sorting, setSorting] = useState<SortingState>([]);
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
 
+  // ============================================
+  // TABLE CONFIGURATION
+  // ============================================
   const table = useReactTable({
     data,
     columns,
@@ -52,8 +57,11 @@ export function DataTable<TData, TValue>({
       columnFilters,
       columnVisibility,
     },
-  })
+  });
 
+  // ============================================
+  // RENDER
+  // ============================================
   return (
     <div className="space-y-4">
       <div className="rounded-md border">
@@ -61,18 +69,16 @@ export function DataTable<TData, TValue>({
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => {
-                  return (
-                    <TableHead key={header.id}>
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
-                    </TableHead>
-                  )
-                })}
+                {headerGroup.headers.map((header) => (
+                  <TableHead key={header.id}>
+                    {header.isPlaceholder
+                      ? null
+                      : flexRender(
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
+                  </TableHead>
+                ))}
               </TableRow>
             ))}
           </TableHeader>
@@ -85,14 +91,20 @@ export function DataTable<TData, TValue>({
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext()
+                      )}
                     </TableCell>
                   ))}
                 </TableRow>
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={columns.length} className="h-24 text-center">
+                <TableCell
+                  colSpan={columns.length}
+                  className="h-24 text-center"
+                >
                   No hay resultados.
                 </TableCell>
               </TableRow>
@@ -101,6 +113,7 @@ export function DataTable<TData, TValue>({
         </Table>
       </div>
 
+      {/* Paginación */}
       <div className="flex items-center justify-between px-2">
         <div className="flex-1 text-sm text-muted-foreground">
           {table.getFilteredRowModel().rows.length} artículo(s) total(es)
@@ -110,9 +123,7 @@ export function DataTable<TData, TValue>({
             <p className="text-sm font-medium">Filas por página</p>
             <select
               value={table.getState().pagination.pageSize}
-              onChange={(e) => {
-                table.setPageSize(Number(e.target.value))
-              }}
+              onChange={(e) => table.setPageSize(Number(e.target.value))}
               className="h-8 w-[70px] rounded-md border border-input bg-transparent px-2 py-1 text-sm"
             >
               {[10, 20, 30, 40, 50].map((pageSize) => (
@@ -147,6 +158,5 @@ export function DataTable<TData, TValue>({
         </div>
       </div>
     </div>
-  )
+  );
 }
-
