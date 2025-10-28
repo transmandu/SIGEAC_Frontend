@@ -187,17 +187,17 @@ const commonColumns: ColumnDef<IArticleSimple>[] = [
       </div>
     )
   },
-  {
-    accessorKey: "zone",
-    header: ({ column }) => (
-      <DataTableColumnHeader filter column={column} title="Ubicación" />
-    ),
-    cell: ({ row }) => (
-      <div className="text-center font-medium">
-        {row.original.zone || <span className="text-muted-foreground">Sin asignar</span>}
-      </div>
-    )
-  },
+  // {
+  //   accessorKey: "zone",
+  //   header: ({ column }) => (
+  //     <DataTableColumnHeader filter column={column} title="Ubicación" />
+  //   ),
+  //   cell: ({ row }) => (
+  //     <div className="text-center font-medium">
+  //       {row.original.zone || <span className="text-muted-foreground">Sin asignar</span>}
+  //     </div>
+  //   )
+  // },
 ];
 
 /**
