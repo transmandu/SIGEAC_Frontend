@@ -721,13 +721,19 @@ export function getMenuList(
         },
         {
           href: `/${currentCompany?.slug}/almacen/inventario`,
-          label: "Inventario",
+          label: "Carga Inventario",
           active: pathname.includes(
             `/${currentCompany?.slug}/almacen/inventario`
           ),
           icon: PackageOpen,
           roles: ["ANALISTA_ALMACEN", "JEFE_ALMACEN", "SUPERUSER"],
           submenus: [
+           {
+              href: `/${currentCompany?.slug}/almacen/cargar_inventario`,
+              label: "Inventario",
+              active:
+                pathname === `/${currentCompany?.slug}/almacen/cargar_inventario`,
+            },
             {
               href: `/${currentCompany?.slug}/almacen/inventario_articulos`,
               label: "Gestión",
