@@ -1,6 +1,5 @@
 import axiosInstance from '@/lib/axios';
 import { useCompanyStore } from '@/stores/CompanyStore';
-import { Unit } from '@/types';
 import { useQuery } from '@tanstack/react-query';
 
 export interface IWarehouseArticle {
@@ -50,11 +49,12 @@ const fetchWarehouseArticlesByCategory = async (
   location_id: string | null,
   category: string,
   company?: string,
+  status?: string,
   page: number = 1,
   per_page: number = 25
 ): Promise<WarehouseResponse> => {
-  const { data } = await axiosInstance.get(`/${company}/${location_id}/articles-by-category?category=${category}&page=${page}&per_page=${per_page}`);
-  
+  const { data } = await axiosInstance.get(`/${company}/${location_id}/articles-by-category?category=${category}&status=${status}&page=${page}&per_page=${per_page}`);
+
   console.log(data);
   return {
     batches: data.data || [],
@@ -70,15 +70,16 @@ const fetchWarehouseArticlesByCategory = async (
 };
 
 export const useGetWarehouseArticlesByCategory = (
-  page: number = 1, 
-  per_page: number = 25, 
+  page: number = 1,
+  per_page: number = 25,
   category: string,
-  enabled: boolean = true
+  enabled: boolean = true,
+  status?: string,
 ) => {
   const { selectedCompany, selectedStation } = useCompanyStore();
   return useQuery<WarehouseResponse, Error>({
     queryKey: ["warehouse-articles", selectedCompany?.slug, selectedStation, page, per_page, category],
-    queryFn: () => fetchWarehouseArticlesByCategory(selectedStation, category, selectedCompany?.slug, page, per_page),
+    queryFn: () => fetchWarehouseArticlesByCategory(selectedStation, category, selectedCompany?.slug,status, page, per_page),
     enabled: enabled && !!selectedCompany && !!selectedStation,
   });
 };

@@ -4,10 +4,10 @@ import { Company } from "@/types";
 import { format } from "date-fns";
 import {
   AreaChartIcon,
-  Award,
   Blocks,
   BookCheck,
   BookUser,
+  Boxes,
   Building2,
   CalendarClock,
   CalendarFold,
@@ -23,7 +23,6 @@ import {
   LayoutGrid,
   LucideIcon,
   PackageOpen,
-  PackagePlus,
   PackageSearch,
   Plane,
   PlaneIcon,
@@ -34,7 +33,7 @@ import {
   SquarePen,
   User2,
   UserRoundCog,
-  Wrench,
+  Wrench
 } from "lucide-react";
 
 type Submenu = {
@@ -651,45 +650,45 @@ export function getMenuList(
         },
       ],
     },
-    {
-      groupLabel: "Carga Administrativa",
-      moduleValue: "warehouse",
-      menus: [
-        {
-          href: "",
-          label: "Control de Ingreso",
-          active: pathname.includes(
-            `/${currentCompany?.slug}/almacen/inventario/ingreso`
-          ),
-          icon: PackagePlus,
-          roles: [
-            "ANALISTA_ALMACEN",
-            "ANALISTA_COMPRAS",
-            "SUPERUSER",
-            "JEFE_ALMACEN",
-          ],
-          submenus: [
-            {
-              href: `/${currentCompany?.slug}/almacen/ingreso/registrar_ingreso`,
-              label: "Ingreso de Articulo",
-              active:
-                pathname ===
-                `/${currentCompany?.slug}/almacen/ingreso/registrar_ingreso`,
-            },
-            // {
-            //   href: `/${currentCompany?.slug}/almacen/ingreso/en_transito`,
-            //   label: "Articulos en Tránsito",
-            //   active: pathname === `/${currentCompany?.slug}/almacen/ingreso/en_transito`
-            // },
-            // {
-            //   href: `/${currentCompany?.slug}/almacen/ingreso/en_recepcion`,
-            //   label: "Articulos en Recepción",
-            //   active: pathname === `/${currentCompany?.slug}/almacen/ingreso/en_recepcion`
-            // },
-          ],
-        },
-      ],
-    },
+    // {
+    //   groupLabel: "Carga Administrativa",
+    //   moduleValue: "warehouse",
+    //   menus: [
+    //     {
+    //       href: "",
+    //       label: "Control de Ingreso",
+    //       active: pathname.includes(
+    //         `/${currentCompany?.slug}/almacen/inventario/ingreso`
+    //       ),
+    //       icon: PackagePlus,
+    //       roles: [
+    //         "ANALISTA_ALMACEN",
+    //         "ANALISTA_COMPRAS",
+    //         "SUPERUSER",
+    //         "JEFE_ALMACEN",
+    //       ],
+    //       submenus: [
+    //         {
+    //           href: `/${currentCompany?.slug}/almacen/ingreso/registrar_ingreso`,
+    //           label: "Ingreso de Articulo",
+    //           active:
+    //             pathname ===
+    //             `/${currentCompany?.slug}/almacen/ingreso/registrar_ingreso`,
+    //         },
+    //         // {
+    //         //   href: `/${currentCompany?.slug}/almacen/ingreso/en_transito`,
+    //         //   label: "Articulos en Tránsito",
+    //         //   active: pathname === `/${currentCompany?.slug}/almacen/ingreso/en_transito`
+    //         // },
+    //         // {
+    //         //   href: `/${currentCompany?.slug}/almacen/ingreso/en_recepcion`,
+    //         //   label: "Articulos en Recepción",
+    //         //   active: pathname === `/${currentCompany?.slug}/almacen/ingreso/en_recepcion`
+    //         // },
+    //       ],
+    //     },
+    //   ],
+    // },
     {
       groupLabel: "Almacen",
       moduleValue: "warehouse",
@@ -720,7 +719,18 @@ export function getMenuList(
           ],
         },
         {
-          href: `/${currentCompany?.slug}/almacen/inventario`,
+          href: `/${currentCompany?.slug}/almacen/ingresar_inventario`,
+          label: "Ingreso de Inventario",
+          active: pathname.includes(
+            `/${currentCompany?.slug}/almacen/ingresar_inventario`
+          ),
+          icon: Boxes,
+          roles: ["ANALISTA_ALMACEN", "JEFE_ALMACEN", "SUPERUSER"],
+          submenus: [
+          ],
+        },
+        {
+          href: `/${currentCompany?.slug}/almacen/inventario_articulos`,
           label: "Inventario",
           active: pathname.includes(
             `/${currentCompany?.slug}/almacen/inventario`
@@ -728,18 +738,6 @@ export function getMenuList(
           icon: PackageOpen,
           roles: ["ANALISTA_ALMACEN", "JEFE_ALMACEN", "SUPERUSER"],
           submenus: [
-            {
-              href: `/${currentCompany?.slug}/almacen/inventario_articulos`,
-              label: "Gestión",
-              active:
-                pathname === `/${currentCompany?.slug}/almacen/inventario_articulos`,
-            },
-            {
-              href: `/${currentCompany?.slug}/almacen/inventario/entregado`,
-              label: "Entregado",
-              active:
-                pathname === `/${currentCompany?.slug}/almacen/inventario/entregado`,
-            },
           ],
         },
         {
@@ -861,23 +859,33 @@ export function getMenuList(
       moduleValue: "engineering",
       menus: [
         {
-          href: `/${currentCompany?.slug}/ingenieria/certificados`,
-          label: "Certificados",
+          href: `/${currentCompany?.slug}/ingenieria/confirmar_inventario`,
+          label: "Confirmar Inventario",
           active: pathname.includes(
-            `/${currentCompany?.slug}/ingenieria/certificados`
+            `/${currentCompany?.slug}/ingenieria/confirmar_inventario`
           ),
-          icon: Award,
-          roles: ["SUPERUSER"],
+          icon: ClipboardCheck,
+          roles: ["SUPERUSER", "ENGINEERING"],
           submenus: [],
         },
+        // {
+        //   href: `/${currentCompany?.slug}/ingenieria/certificados`,
+        //   label: "Certificados",
+        //   active: pathname.includes(
+        //     `/${currentCompany?.slug}/ingenieria/certificados`
+        //   ),
+        //   icon: Award,
+        //   roles: ["SUPERUSER"],
+        //   submenus: [],
+        // },
         {
           href: `/${currentCompany?.slug}/ingenieria/requisiciones/nueva_requisicion`,
-          label: "Solicitudes de Compras",
+          label: "Solicitudes de Requisición",
           active: pathname.includes(
             `/${currentCompany?.slug}/ingenieria/requisiciones/nueva_requisicion`
           ),
           icon: ScrollText,
-          roles: ["SUPERUSER"],
+          roles: ["SUPERUSER", "ENGINEERING"],
           submenus: [],
         },
       ],

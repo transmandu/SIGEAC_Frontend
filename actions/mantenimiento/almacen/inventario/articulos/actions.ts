@@ -1,4 +1,5 @@
 import axiosInstance from "@/lib/axios";
+import { useCompanyStore } from "@/stores/CompanyStore";
 import { ComponentArticle, ConsumableArticle, ToolArticle } from "@/types";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -11,6 +12,7 @@ interface ArticleData {
   alternative_part_number?: string[];
   description?: string;
   zone?: string;
+  status?: string;
   last_calibration_date?: string;
   calibration_interval_days?: string;
   manufacturer_id?: number | string;
@@ -63,7 +65,7 @@ export const useCreateArticle = () => {
   };
 };
 
-export const useCreateDirectArticle = () => {
+export const useCreateToReviewArticle = () => {
   const queryClient = useQueryClient();
 
   const createMutation = useMutation({
@@ -82,10 +84,10 @@ export const useCreateDirectArticle = () => {
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["articles"] });
+      queryClient.invalidateQueries({ queryKey: ["in-review-articles"] });
       queryClient.invalidateQueries({ queryKey: ["warehouse-articles"] });
-      toast.success("¡Creado!", {
-        description: `El articulo ha sido creado correctamente.`,
+      toast.success("¡Registrado!", {
+        description: `El articulo ha sido registrado correctamente.`,
       });
     },
     onError: (error) => {
@@ -133,26 +135,25 @@ export const useDeleteArticle = () => {
 };
 
 export const useUpdateArticleStatus = () => {
+  const { selectedCompany } = useCompanyStore();
   const queryClient = useQueryClient();
-
   const updateArticleStatusMutation = useMutation({
     mutationKey: ["articles"],
     mutationFn: async ({
       id,
       status,
-      company,
     }: {
       id: number;
       status: string;
-      company: string;
     }) => {
-      await axiosInstance.put(`/${company}/update-article-status/${id}`, {
+      await axiosInstance.put(`/${selectedCompany?.slug}/update-article-status/${id}`, {
         status: status,
       });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["in-transit-articles"] });
       queryClient.invalidateQueries({ queryKey: ["in-reception-articles"] });
+      queryClient.invalidateQueries({ queryKey: ["checking-articles"] });
       queryClient.invalidateQueries({ queryKey: ["warehouse-articles"] });
       toast.success("¡Actualizado!", {
         description: `El articulo ha sido actualizado correctamente.`,
