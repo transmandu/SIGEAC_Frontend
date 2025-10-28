@@ -63,7 +63,7 @@ const RegisterArticleForm = ({
   return (
     <div className="space-y-3 mb-4">
       <h1 className="font-bold text-3xl">
-        {isEditing ? "Edicion de Articulo" : "Ingreso de Articulo"}
+        {isEditing ? "Edicion de Articulo" : "Carga de Articulo"}
       </h1>
       {!isEditing && (
         <p className="text-sm text-muted-foreground">
