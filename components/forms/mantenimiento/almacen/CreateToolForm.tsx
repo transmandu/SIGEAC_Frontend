@@ -10,7 +10,7 @@ import { es } from "date-fns/locale";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
-import { CalendarIcon, FileUpIcon, Loader2, Wrench } from "lucide-react";
+import { CalendarIcon, Check, FileUpIcon, Loader2, Plus, Wrench } from "lucide-react";
 
 import {
   useConfirmIncomingArticle,
@@ -57,6 +57,7 @@ import { Batch } from "@/types";
 
 import loadingGif from "@/public/loading2.gif";
 import { EditingArticle } from "./RegisterArticleForm";
+import { CreateManufacturerDialog } from "@/components/dialogs/general/CreateManufacturerDialog";
 
 /* ------------------------------- Schema ------------------------------- */
 
@@ -319,7 +320,30 @@ export default function CreateToolForm({
               name="manufacturer_id"
               render={({ field }) => (
                 <FormItem className="w-full">
-                  <FormLabel>Fabricante</FormLabel>
+                  <div className="flex items-center justify-between">
+                    <FormLabel>Fabricante</FormLabel>
+                    <CreateManufacturerDialog
+                      defaultType="PART"
+                      onSuccess={(manufacturer) => {
+                        if (manufacturer?.id) {
+                          form.setValue("manufacturer_id", manufacturer.id.toString(), {
+                            shouldValidate: true,
+                          });
+                        }
+                      }}
+                      triggerButton={
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 text-xs"
+                        >
+                          <Plus className="h-3 w-3 mr-1" />
+                          Crear nuevo
+                        </Button>
+                      }
+                    />
+                  </div>
                   <Select
                     onValueChange={field.onChange}
                     value={field.value}

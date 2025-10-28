@@ -17,6 +17,7 @@ import {
   ChevronsUpDown,
   FileUpIcon,
   Loader2,
+  Plus,
 } from "lucide-react";
 
 import {
@@ -74,6 +75,7 @@ import { Batch, Convertion } from "@/types";
 
 import loadingGif from "@/public/loading2.gif";
 import { EditingArticle } from "./RegisterArticleForm";
+import { CreateManufacturerDialog } from "@/components/dialogs/general/CreateManufacturerDialog";
 
 /* ------------------------------- Schema ------------------------------- */
 
@@ -347,6 +349,7 @@ const CreateConsumableForm = ({
               name="alternative_part_number"
               render={({ field }) => (
                 <FormItem className="w-full xl:col-span-1">
+                  <FormLabel>Nros. de parte alternos</FormLabel>
                   <FormControl>
                     <MultiInputField
                       values={field.value || []}
@@ -472,7 +475,7 @@ const CreateConsumableForm = ({
               name="caducate_date"
               render={({ field }) => (
                 <FormItem className="flex flex-col p-0 mt-2.5 w-full">
-                  <FormLabel>Fecha de Caducidad</FormLabel>
+                  <FormLabel>Fecha de Caducidad - Shell-Life</FormLabel>
                   <Popover>
                     <PopoverTrigger asChild>
                       <FormControl>
@@ -528,7 +531,30 @@ const CreateConsumableForm = ({
               name="manufacturer_id"
               render={({ field }) => (
                 <FormItem className="w-full">
-                  <FormLabel>Fabricante</FormLabel>
+                  <div className="flex items-center justify-between">
+                    <FormLabel>Fabricante</FormLabel>
+                    <CreateManufacturerDialog
+                      defaultType="PART"
+                      onSuccess={(manufacturer) => {
+                        if (manufacturer?.id) {
+                          form.setValue("manufacturer_id", manufacturer.id.toString(), {
+                            shouldValidate: true,
+                          });
+                        }
+                      }}
+                      triggerButton={
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 text-xs"
+                        >
+                          <Plus className="h-3 w-3 mr-1" />
+                          Crear nuevo
+                        </Button>
+                      }
+                    />
+                  </div>
                   <Select
                     disabled={isManufacturerLoading}
                     onValueChange={field.onChange}
@@ -583,7 +609,7 @@ const CreateConsumableForm = ({
               name="batch_id"
               render={({ field }) => (
                 <FormItem className="flex flex-col space-y-3 mt-1.5 w-full">
-                  <FormLabel>Descripción de Componente</FormLabel>
+                  <FormLabel>Descripción de Consumible</FormLabel>
                   <Popover>
                     <PopoverTrigger asChild>
                       <FormControl>
@@ -792,9 +818,8 @@ const CreateConsumableForm = ({
                     />
                   </FormControl>
                   <div className="space-y-1 leading-none">
-                    <FormLabel>¿Es manejable?</FormLabel>
+                    <FormLabel>¿Necesita despachar el articulo en pequeñas cantidades?</FormLabel>
                     <FormDescription>
-                      Marca si el artículo se maneja como consumible.
                     </FormDescription>
                   </div>
                 </FormItem>

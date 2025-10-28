@@ -17,6 +17,7 @@ import {
   ChevronsUpDown,
   FileUpIcon,
   Loader2,
+  Plus,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -72,6 +73,7 @@ import {
 import { MultiInputField } from "../../../misc/MultiInputField";
 import { Textarea } from "../../../ui/textarea";
 import { EditingArticle } from "./RegisterArticleForm";
+import { CreateManufacturerDialog } from "@/components/dialogs/general/CreateManufacturerDialog";
 
 /* ------------------------------- Schema ------------------------------- */
 
@@ -338,6 +340,7 @@ const CreateComponentForm = ({
               name="alternative_part_number"
               render={({ field }) => (
                 <FormItem className="w-full xl:col-span-2">
+                  <FormLabel>Nros. de parte alternos</FormLabel>
                   <FormControl>
                     <MultiInputField
                       values={field.value || []}
@@ -424,7 +427,30 @@ const CreateComponentForm = ({
               name="manufacturer_id"
               render={({ field }) => (
                 <FormItem className="w-full">
-                  <FormLabel>Fabricante</FormLabel>
+                  <div className="flex items-center justify-between">
+                    <FormLabel>Fabricante</FormLabel>
+                    <CreateManufacturerDialog
+                      defaultType="PART"
+                      onSuccess={(manufacturer) => {
+                        if (manufacturer?.id) {
+                          form.setValue("manufacturer_id", manufacturer.id.toString(), {
+                            shouldValidate: true,
+                          });
+                        }
+                      }}
+                      triggerButton={
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 text-xs"
+                        >
+                          <Plus className="h-3 w-3 mr-1" />
+                          Crear nuevo
+                        </Button>
+                      }
+                    />
+                  </div>
                   <Select
                     onValueChange={field.onChange}
                     value={field.value}
@@ -563,7 +589,7 @@ const CreateComponentForm = ({
           <CardHeader className="pb-3">
             <CardTitle className="text-xl">Ciclo de vida</CardTitle>
           </CardHeader>
-          <CardContent className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+          <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormField
               control={form.control}
               name="fabrication_date"
@@ -629,7 +655,7 @@ const CreateComponentForm = ({
               name="caducate_date"
               render={({ field }) => (
                 <FormItem className="flex flex-col p-0 mt-2.5 w-full">
-                  <FormLabel>Fecha de caducidad</FormLabel>
+                  <FormLabel>Fecha de Shell-Life</FormLabel>
                   <Popover>
                     <PopoverTrigger asChild>
                       <FormControl>
@@ -676,92 +702,6 @@ const CreateComponentForm = ({
                     </PopoverContent>
                   </Popover>
                   <FormDescription>Fecha límite del articulo.</FormDescription>{" "}
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="calendar_date"
-              render={({ field }) => (
-                <FormItem className="flex flex-col p-0 mt-2.5 w-full">
-                  <FormLabel>Fecha de Calendario</FormLabel>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <FormControl>
-                        <Button
-                          variant={"outline"}
-                          className={cn(
-                            "w-full pl-3 text-left font-normal",
-                            !calendarDate && "text-muted-foreground"
-                          )}
-                        >
-                          {calendarDate ? (
-                            format(calendarDate, "PPP", { locale: es })
-                          ) : (
-                            <span>Seleccione una fecha...</span>
-                          )}
-                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                        </Button>
-                      </FormControl>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Select
-                        onValueChange={(value) =>
-                          setCalendarDate(subYears(new Date(), parseInt(value)))
-                        }
-                      >
-                        <SelectTrigger className="p-3">
-                          <SelectValue placeholder="Seleccione una opcion..." />
-                        </SelectTrigger>
-                        <SelectContent position="popper">
-                          <SelectItem value="0">Actual</SelectItem>{" "}
-                          <SelectItem value="5">Ir 5 años atrás</SelectItem>
-                          <SelectItem value="10">Ir 10 años atrás</SelectItem>
-                          <SelectItem value="15">Ir 15 años atrás</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <Calendar
-                        locale={es}
-                        mode="single"
-                        selected={calendarDate}
-                        onSelect={setCalendarDate}
-                        initialFocus
-                        month={calendarDate}
-                      />
-                    </PopoverContent>
-                  </Popover>
-                  <FormDescription>
-                    Fecha límite del componente.
-                  </FormDescription>{" "}
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="hour_date"
-              render={({ field }) => (
-                <FormItem className="w-full">
-                  <FormLabel>Límite de horas</FormLabel>
-                  <FormControl>
-                    <Input type="number" placeholder="Ej: 25000" {...field} />
-                  </FormControl>
-                  <FormDescription>Horas máximas permitidas.</FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="cycle_date"
-              render={({ field }) => (
-                <FormItem className="w-full">
-                  <FormLabel>Límite de ciclos</FormLabel>
-                  <FormControl>
-                    <Input type="number" placeholder="Ej: 65000" {...field} />
-                  </FormControl>
-                  <FormDescription>Ciclos máximos permitidos.</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}

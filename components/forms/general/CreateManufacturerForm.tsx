@@ -32,7 +32,7 @@ const formSchema = z.object({
   description: z.string().min(3, {
     message: "La descripcion debe tener al menos 3 carácters.",
   }),
-  type: z.enum(["AIRCRAFT", "ENGINE", "APU", "PROPELLER", "GENERAL"], {
+  type: z.enum(["AIRCRAFT", "ENGINE", "APU", "PROPELLER", "GENERAL", "PART"], {
     required_error: "Debe seleccionar un tipo",
   }),
 })
@@ -40,9 +40,11 @@ const formSchema = z.object({
 
 interface FormProps {
   onClose: () => void,
+  defaultType?: "AIRCRAFT" | "ENGINE" | "APU" | "PROPELLER" | "GENERAL" | "PART",
+  onSuccess?: (manufacturer: any) => void,
 }
 
-export default function CreateManufacturerForm({ onClose }: FormProps) {
+export default function CreateManufacturerForm({ onClose, defaultType = "GENERAL", onSuccess }: FormProps) {
 
   const { selectedCompany } = useCompanyStore()
 
@@ -52,14 +54,17 @@ export default function CreateManufacturerForm({ onClose }: FormProps) {
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: "",
-      type: "GENERAL",
+      type: defaultType,
       description: "",
     },
   })
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
-      await createManufacturer.mutateAsync({company: selectedCompany?.slug, data: values})
+      const result = await createManufacturer.mutateAsync({company: selectedCompany?.slug, data: values})
+      if (onSuccess && result) {
+        onSuccess(result)
+      }
       onClose()
     } catch (error) {
       console.log(error)
@@ -103,6 +108,7 @@ export default function CreateManufacturerForm({ onClose }: FormProps) {
                   <SelectItem value="APU">APU</SelectItem>
                   <SelectItem value="PROPELLER">Hélice</SelectItem>
                   <SelectItem value="GENERAL">Piezas en General</SelectItem>
+                  <SelectItem value="PART">Partes/Componentes</SelectItem>
                 </SelectContent>
               </Select>
               <FormDescription>
