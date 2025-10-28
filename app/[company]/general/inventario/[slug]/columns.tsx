@@ -235,9 +235,9 @@ export const columns: ColumnDef<ColumnI>[] = [
     id: "actions",
     cell: ({ row }) => {
 
-      return (
-        <ArticleDropdownActions id={row.original.id} serial={row.original.serial} part_number={row.original.part_number} />
-      )
+      // return (
+      //   <ArticleDropdownActions id={row.original.id} serial={row.original.serial} part_number={row.original.part_number} />
+      // )
     },
   },
 ]

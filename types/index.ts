@@ -100,7 +100,7 @@ export type Batch = {
   ata_code: string;
   brand: string;
   is_hazarous: boolean;
-  medition_unit: string;
+  unit: Unit;
   min_quantity: number;
   zone: string;
   warehouse_id: number;
@@ -738,7 +738,6 @@ export type Unit = {
   label: string;
   updated_by: string;
   registered_by: string;
-
   created_at: Date;
   updated_at: Date;
 };

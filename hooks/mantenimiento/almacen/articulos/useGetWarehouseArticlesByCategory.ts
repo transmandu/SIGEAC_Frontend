@@ -1,5 +1,6 @@
 import axiosInstance from '@/lib/axios';
 import { useCompanyStore } from '@/stores/CompanyStore';
+import { Unit } from '@/types';
 import { useQuery } from '@tanstack/react-query';
 
 export interface IWarehouseArticle {

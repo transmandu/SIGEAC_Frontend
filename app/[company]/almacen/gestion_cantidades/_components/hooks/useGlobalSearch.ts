@@ -55,24 +55,28 @@ export const useGlobalSearch = (paginatedBatches: IWarehouseArticle[] | undefine
   const transformedSearchResults = useMemo(() => {
     if (!searchedBatchesWithArticles) return null;
     
-    return searchedBatchesWithArticles.map((item: BatchWithArticles): IWarehouseArticle => ({
-      batch_id: item.batch.id,
-      name: item.batch.name,
-      medition_unit: item.batch.medition_unit,
-      category: item.batch.category,
-      article_count: item.articles.length,
-      articles: item.articles.map(article => ({
-        id: article.id,
-        part_number: article.part_number,
-        alternative_part_number: article.alternative_part_number,
-        serial: article.serial,
-        description: article.description || "",
-        zone: article.zone,
-        quantity: article.quantity,
-        status: article.status,
-        article_type: article.article_type || "CONSUMABLE",
-      }))
-    }));
+    return searchedBatchesWithArticles.map(
+      (item: BatchWithArticles): IWarehouseArticle => ({
+        batch_id: item.batch.id,
+        name: item.batch.name,
+        medition_unit: item.batch.medition_unit,
+        // category: item.batch.category,
+        article_count: item.articles.length,
+        articles: item.articles.map((article) => ({
+          id: article.id,
+          part_number: article.part_number,
+          alternative_part_number: article.alternative_part_number ?? undefined,
+          serial: article.serial ?? undefined,
+          description: article.description || "",
+          zone: article.zone,
+          quantity: article.quantity,
+          status: article.status,
+          article_type: article.article_type || "CONSUMABLE",
+          condition: { name: article.condition },
+          cost: article.cost ?? 0, // <-- ¡Corregido!
+        })),
+      })
+    );
   }, [searchedBatchesWithArticles]);
 
   // Determinar qué batches usar: paginados o búsqueda global

@@ -10,7 +10,7 @@ import { DataTable } from "./data-table";
 
 const ClientsPage = () => {
 const {selectedCompany} = useCompanyStore();
-const { data, isLoading, isError } = useGetConditions(selectedCompany?.slug);
+const { data, isLoading, isError } = useGetConditions();
 
   if (isLoading) {
     return <LoadingPage />;

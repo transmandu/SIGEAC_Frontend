@@ -146,7 +146,7 @@ const EditArticleForm = ({ initialData, onSuccess }: EditArticleFormProps) => {
   const {
     data: conditions,
     isLoading: isConditionsLoading,
-  } = useGetConditions(selectedCompany?.slug)
+  } = useGetConditions()
 
   const {
     mutate,
