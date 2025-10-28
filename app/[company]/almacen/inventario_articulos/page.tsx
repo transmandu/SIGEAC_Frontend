@@ -106,25 +106,27 @@ const InventarioArticulosPage = () => {
   const handleClearSearch = () => setPartNumberSearch('');
 
   return (
-    <ContentLayout title="Inventario">
+    <ContentLayout title="Gestión de Inventario">
       <TooltipProvider>
         <div className="flex flex-col gap-y-4">
           {/* Breadcrumbs */}
           <Breadcrumb>
             <BreadcrumbList>
               <BreadcrumbItem>
-                <BreadcrumbLink href={`/${selectedCompany?.slug}/dashboard`}>Inicio</BreadcrumbLink>
+                <BreadcrumbLink href={`/${selectedCompany?.slug}/dashboard`}>
+                  Inicio
+                </BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
-                <BreadcrumbPage>Inventario General</BreadcrumbPage>
+                <BreadcrumbPage>Gestión de Inventario</BreadcrumbPage>
               </BreadcrumbItem>
             </BreadcrumbList>
           </Breadcrumb>
 
           {/* Header */}
           <div className="text-center space-y-2">
-            <h1 className="text-4xl font-bold">Inventario General</h1>
+            <h1 className="text-4xl font-bold">Gestión de Inventario</h1>
             <p className="text-sm text-muted-foreground italic">
               Visualiza todos los artículos del inventario organizados por tipo
             </p>
@@ -152,15 +154,24 @@ const InventarioArticulosPage = () => {
             </div>
             {partNumberSearch && (
               <p className="text-xs text-muted-foreground text-center">
-                Filtrando por: <span className="font-medium text-foreground">{partNumberSearch}</span> •{' '}
-                {currentData.length} resultado(s)
+                Filtrando por:{" "}
+                <span className="font-medium text-foreground">
+                  {partNumberSearch}
+                </span>{" "}
+                • {currentData.length} resultado(s)
               </p>
             )}
           </div>
 
           {/* Tabs principales */}
-          <Tabs value={activeCategory} onValueChange={(v) => setActiveCategory(v as Category)}>
-            <TabsList className="flex justify-center mb-4 space-x-3" aria-label="Categorías">
+          <Tabs
+            value={activeCategory}
+            onValueChange={(v) => setActiveCategory(v as Category)}
+          >
+            <TabsList
+              className="flex justify-center mb-4 space-x-3"
+              aria-label="Categorías"
+            >
               <TabsTrigger className="flex gap-2" value="COMPONENTE">
                 <Package2 className="size-5" /> Componente
               </TabsTrigger>
@@ -222,29 +233,43 @@ const InventarioArticulosPage = () => {
 
             {/* Sub-tabs por categoría */}
             <TabsContent value={activeCategory} className="mt-6">
-              {activeCategory === 'COMPONENTE' && (
+              {activeCategory === "COMPONENTE" && (
                 <Tabs
                   value={componentCondition}
-                  onValueChange={(v) => setComponentCondition(v as typeof componentCondition)}
+                  onValueChange={(v) =>
+                    setComponentCondition(v as typeof componentCondition)
+                  }
                   className="mb-4"
                 >
-                  <TabsList className="flex justify-center mb-4 space-x-3" aria-label="Condición de componente">
+                  <TabsList
+                    className="flex justify-center mb-4 space-x-3"
+                    aria-label="Condición de componente"
+                  >
                     <TabsTrigger value="all">Todos</TabsTrigger>
                     <TabsTrigger value="SERVICIABLE">Serviciables</TabsTrigger>
                     <TabsTrigger value="REPARADO">Reparados</TabsTrigger>
-                    <TabsTrigger value="REMOVIDO - NO SERVICIABLE">Removidos - No Serviciables</TabsTrigger>
-                    <TabsTrigger value="REMOVIDO - CUSTODIA">Removidos - En custodia</TabsTrigger>
+                    <TabsTrigger value="REMOVIDO - NO SERVICIABLE">
+                      Removidos - No Serviciables
+                    </TabsTrigger>
+                    <TabsTrigger value="REMOVIDO - CUSTODIA">
+                      Removidos - En custodia
+                    </TabsTrigger>
                   </TabsList>
                 </Tabs>
               )}
 
-              {activeCategory === 'CONSUMIBLE' && (
+              {activeCategory === "CONSUMIBLE" && (
                 <Tabs
                   value={consumableFilter}
-                  onValueChange={(v) => setConsumableFilter(v as typeof consumableFilter)}
+                  onValueChange={(v) =>
+                    setConsumableFilter(v as typeof consumableFilter)
+                  }
                   className="mb-4"
                 >
-                  <TabsList className="flex justify-center mb-4 space-x-3" aria-label="Filtro de consumibles">
+                  <TabsList
+                    className="flex justify-center mb-4 space-x-3"
+                    aria-label="Filtro de consumibles"
+                  >
                     <TabsTrigger value="all">Todos</TabsTrigger>
                     <TabsTrigger value="QUIMICOS">Químicos</TabsTrigger>
                   </TabsList>

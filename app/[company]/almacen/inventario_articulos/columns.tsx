@@ -36,8 +36,7 @@ export const getStatusBadge = (status: string | null | undefined) => {
   if (!status) {
     return (
       <Badge variant="outline" className="flex items-center gap-1 w-fit">
-        <XCircle className="h-3 w-3" />
-        Sin estado
+        <XCircle className="h-3 w-3" /> 
       </Badge>
     );
   }
@@ -51,6 +50,7 @@ export const getStatusBadge = (status: string | null | undefined) => {
     }
   > = {
     stored: { label: "En Stock", variant: "default", icon: CheckCircle2 },
+    checking: { label: "En Revision", variant: "warning", icon: Clock },
     dispatched: { label: "Despachado", variant: "secondary", icon: Clock },
     inuse: { label: "En uso", variant: "warning", icon: Clock },
     transit: { label: "En Tránsito", variant: "outline", icon: Clock },
@@ -229,9 +229,13 @@ const baseCols: ColumnDef<IArticleSimple>[] = [
   },
   {
     id: "actions",
+    header: "Acciones",
     cell: ({ row }) => {
-      const item = row.original;
-      return <ArticleDropdownActions id={item.id} />;
+      const item = row.original;  
+      if (item.status === "stored") {
+        return <ArticleDropdownActions id={item.id} />;
+      }
+      return null;
     },
   },
 ];
