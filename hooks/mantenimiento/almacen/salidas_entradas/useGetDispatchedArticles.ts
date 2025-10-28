@@ -37,7 +37,7 @@ export const useGetDispatchedArticles = ({
   location_id?: string;
 }) => {
   return useQuery({
-    queryKey: ['dispatched-articles', 'company'],
+    queryKey: ['dispatched-articles', company],
     queryFn: () =>
       fetchDispatchedArticles({company: company!, location_id: location_id!}),
     staleTime: 1000 * 60 * 5, // 5 minutos
