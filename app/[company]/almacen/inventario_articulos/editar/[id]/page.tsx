@@ -18,8 +18,8 @@ const ConfirmIncomingPage = () => {
     redirect(`/${selectedCompany?.slug}/dashboard`);
   }
   return (
-    <ContentLayout title="Confirmar Ingreso">
-      {data?.batches?.category}
+    <ContentLayout title="Editar Articulo">
+      {/* {data?.batches?.category} */}
       <RegisterArticleForm isEditing initialData={data} category={data?.batches?.category} />
     </ContentLayout>
   );
