@@ -141,14 +141,10 @@ export const useUpdateArticleStatus = () => {
     mutationKey: ["articles"],
     mutationFn: async ({
       id,
-      status,
     }: {
       id: number;
-      status: string;
     }) => {
-      await axiosInstance.put(`/${selectedCompany?.slug}/update-article-status/${id}`, {
-        status: status,
-      });
+      await axiosInstance.put(`/${selectedCompany?.slug}/confirm-article/${id}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["in-transit-articles"] });

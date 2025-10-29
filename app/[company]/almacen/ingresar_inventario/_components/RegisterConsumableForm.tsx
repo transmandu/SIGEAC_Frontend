@@ -248,7 +248,7 @@ export default function CreateConsumableForm({
   const { data: batches, isPending: isBatchesLoading, isError: isBatchesError } = useGetBatchesByCategory("consumible");
   const { data: manufacturers, isLoading: isManufacturerLoading, isError: isManufacturerError } = useGetManufacturers(selectedCompany?.slug);
   const { data: conditions, isLoading: isConditionsLoading, error: isConditionsError } = useGetConditions();
-  const { data: secondaryUnits, isLoading: secondaryLoading } = useGetSecondaryUnits();
+  const { data: secondaryUnits, isLoading: secondaryLoading } = useGetSecondaryUnits(selectedCompany?.slug);
 
   // Mutations
   const { createArticle } = useCreateArticle();

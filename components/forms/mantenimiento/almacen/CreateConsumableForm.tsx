@@ -160,7 +160,7 @@ const CreateConsumableForm = ({
   } = useGetConditions();
 
   const { data: secondaryUnits, isLoading: secondaryLoading } =
-    useGetSecondaryUnits();
+    useGetSecondaryUnits(selectedCompany?.slug);
 
   const { createArticle } = useCreateArticle();
   const { updateArticle } = useUpdateArticle();
