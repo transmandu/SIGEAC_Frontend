@@ -738,6 +738,20 @@ export function getMenuList(
           icon: PackageOpen,
           roles: ["ANALISTA_ALMACEN", "JEFE_ALMACEN", "SUPERUSER"],
           submenus: [
+            {
+              href: `/${currentCompany?.slug}/almacen/inventario_articulos`,
+              label: "Gestión",
+              active:
+                pathname ===
+                `/${currentCompany?.slug}/almacen/inventario_articulos`,
+            },
+            {
+              href: `/${currentCompany?.slug}/almacen/inventario_articulos/entregado`,
+              label: "Entregado",
+              active:
+                pathname ===
+                `/${currentCompany?.slug}/almacen/inventario_articulos/entregado`,
+            },
           ],
         },
         {
