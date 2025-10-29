@@ -90,6 +90,7 @@ const formSchema = z.object({
     .array(z.string().min(2, { message: "Cada número alterno debe contener al menos 2 caracteres." }))
     .optional(),
   description: z.string().optional(),
+  batch_name: z.string().optional(),
   zone: z.string().optional(),
   caducate_date: z.string().optional(),
   fabrication_date: z.string().optional(),
@@ -265,6 +266,7 @@ export default function CreateConsumableForm({
   const [fabricationDate, setFabricationDate] = useState<Date | undefined>(
     initialData?.consumable?.fabrication_date ? new Date(initialData?.consumable?.fabrication_date) : undefined
   );
+  const [enableBatchNameEdit, setEnableBatchNameEdit] = useState(false);
 
   // Form
   const form = useForm<FormValues>({
@@ -273,6 +275,7 @@ export default function CreateConsumableForm({
       part_number: initialData?.part_number || "",
       alternative_part_number: initialData?.alternative_part_number || [],
       batch_id: initialData?.batches?.id?.toString() || "",
+      batch_name: initialData?.batches?.name || "",
       manufacturer_id: initialData?.manufacturer?.id?.toString() || "",
       condition_id: initialData?.condition?.id?.toString() || "",
       description: initialData?.description || "",
@@ -293,6 +296,7 @@ export default function CreateConsumableForm({
       part_number: initialData.part_number ?? "",
       alternative_part_number: initialData.alternative_part_number ?? [],
       batch_id: initialData.batches?.id?.toString() ?? "",
+      batch_name: initialData.batches?.name ?? "",
       manufacturer_id: initialData.manufacturer?.id?.toString() ?? "",
       condition_id: initialData.condition?.id?.toString() ?? "",
       description: initialData.description ?? "",
@@ -340,6 +344,7 @@ export default function CreateConsumableForm({
       article_type: string;
       status: string;
       alternative_part_number?: string[];
+      batch_name?: string;
     } = {
       ...values,
       status: "CHECKING",
@@ -348,6 +353,7 @@ export default function CreateConsumableForm({
       alternative_part_number: values.alternative_part_number?.map((v) => normalizeUpper(v)) ?? [],
       caducate_date: caducateDate ? format(caducateDate, "yyyy-MM-dd") : undefined,
       fabrication_date: fabricationDate ? format(fabricationDate, "yyyy-MM-dd") : undefined,
+      batch_name: enableBatchNameEdit ? values.batch_name : undefined,
     };
 
     if (isEditing && initialData) {
@@ -409,55 +415,97 @@ export default function CreateConsumableForm({
               )}
             />
 
-                        <FormField
-              control={form.control}
-              name="batch_id"
-              render={({ field }) => (
-                <FormItem className="flex flex-col space-y-3 mt-1.5 w-full">
-                  <FormLabel>Descripción de Consumible</FormLabel>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <FormControl>
-                        <Button
-                          disabled={isBatchesLoading || isBatchesError || busy}
-                          variant="outline"
-                          role="combobox"
-                          className={cn("justify-between", !field.value && "text-muted-foreground")}
-                        >
-                          {isBatchesLoading && <Loader2 className="size-4 animate-spin mr-2" />}
-                          {field.value ? <p>{batchNameById.get(field.value) ?? ""}</p> : "Elegir descripción..."}
-                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                        </Button>
-                      </FormControl>
-                    </PopoverTrigger>
-                    <PopoverContent className="p-0">
-                      <Command>
-                        <CommandInput placeholder="Buscar descripción..." />
-                        <CommandList>
-                          <CommandEmpty className="text-xs p-2 text-center">Sin resultados</CommandEmpty>
-                          <CommandGroup>
-                            {batches?.map((batch) => (
-                              <CommandItem
-                                value={`${batch.name}`}
-                                key={batch.id}
-                                onSelect={() => {
-                                  form.setValue("batch_id", batch.id.toString(), { shouldValidate: true });
-                                }}
-                              >
-                                <Check className={cn("mr-2 h-4 w-4", `${batch.id}` === field.value ? "opacity-100" : "opacity-0")} />
-                                <p>{batch.name}</p>
-                              </CommandItem>
-                            ))}
-                          </CommandGroup>
-                        </CommandList>
-                      </Command>
-                    </PopoverContent>
-                  </Popover>
-                  <FormDescription>Descripción del consumible a registrar.</FormDescription>
-                  <FormMessage />
-                </FormItem>
+            <div className="space-y-3 w-full">
+              <FormField
+                control={form.control}
+                name="batch_id"
+                render={({ field }) => (
+                  <FormItem className="flex flex-col space-y-3 mt-1.5 w-full">
+                    <FormLabel>Descripción de Consumible</FormLabel>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <FormControl>
+                          <Button
+                            disabled={isBatchesLoading || isBatchesError || busy}
+                            variant="outline"
+                            role="combobox"
+                            className={cn("justify-between", !field.value && "text-muted-foreground")}
+                          >
+                            {isBatchesLoading && <Loader2 className="size-4 animate-spin mr-2" />}
+                            {field.value ? <p className="truncate flex-1 text-left">{batchNameById.get(field.value) ?? ""}</p> : <span className="truncate">Elegir descripción...</span>}
+                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent className="p-0">
+                        <Command>
+                          <CommandInput placeholder="Buscar descripción..." />
+                          <CommandList>
+                            <CommandEmpty className="text-xs p-2 text-center">Sin resultados</CommandEmpty>
+                            <CommandGroup>
+                              {batches?.map((batch) => (
+                                <CommandItem
+                                  value={`${batch.name}`}
+                                  key={batch.id}
+                                  onSelect={() => {
+                                    form.setValue("batch_id", batch.id.toString(), { shouldValidate: true });
+                                    if (isEditing && enableBatchNameEdit) {
+                                      form.setValue("batch_name", batch.name, { shouldValidate: true });
+                                    }
+                                  }}
+                                >
+                                  <Check className={cn("mr-2 h-4 w-4", `${batch.id}` === field.value ? "opacity-100" : "opacity-0")} />
+                                  <p>{batch.name}</p>
+                                </CommandItem>
+                              ))}
+                            </CommandGroup>
+                          </CommandList>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
+                    <FormDescription>Descripción del consumible a registrar.</FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              {isEditing && (
+                <>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="enable-batch-edit"
+                      checked={enableBatchNameEdit}
+                      onCheckedChange={(checked) => setEnableBatchNameEdit(checked as boolean)}
+                    />
+                    <label
+                      htmlFor="enable-batch-edit"
+                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                    >
+                      ¿Modificar la descripción del artículo?
+                    </label>
+                  </div>
+                  {enableBatchNameEdit && (
+                    <FormField
+                      control={form.control}
+                      name="batch_name"
+                      render={({ field }) => (
+                        <FormItem className="w-full">
+                          <FormLabel>Nuevo nombre sugerido</FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder="Escriba el nuevo nombre para la descripción"
+                              {...field}
+                              disabled={busy}
+                            />
+                          </FormControl>
+                          <FormDescription>Ingrese el nuevo nombre para esta descripción de artículo.</FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  )}
+                </>
               )}
-            />
+            </div>
           </div>
         </SectionCard>
 
@@ -582,11 +630,11 @@ export default function CreateConsumableForm({
               <Popover open={secondaryOpen} onOpenChange={setSecondaryOpen}>
                 <PopoverTrigger asChild>
                   <Button disabled={secondaryLoading || busy} variant="outline" role="combobox" aria-expanded={secondaryOpen} className="justify-between">
-                    {secondarySelected ? `${secondarySelected.secondary_unit}` : secondaryLoading ? "Cargando..." : "Seleccione..."}
+                    {secondarySelected ? `${secondarySelected.secondary_unit} (${secondarySelected.unit?.label || secondarySelected.unit?.value || ''})` : secondaryLoading ? "Cargando..." : "Seleccione..."}
                     <ChevronsUpDown className="opacity-50" />
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-[260px] p-0">
+                <PopoverContent className="w-[300px] p-0">
                   <Command>
                     <CommandInput placeholder="Buscar unidad..." />
                     <CommandList>
@@ -607,8 +655,8 @@ export default function CreateConsumableForm({
                               }
                             }}
                           >
-                            {s.secondary_unit}
-                            <Check className={cn("ml-auto", secondarySelected?.id.toString() === s.id.toString() ? "opacity-100" : "opacity-0")} />
+                            <span className="flex-1">{s.secondary_unit} <span className="text-muted-foreground">({s.unit?.label || s.unit?.value || ''})</span></span>
+                            <Check className={cn("ml-2", secondarySelected?.id.toString() === s.id.toString() ? "opacity-100" : "opacity-0")} />
                           </CommandItem>
                         ))}
                       </CommandGroup>

@@ -23,6 +23,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Form,
   FormControl,
@@ -99,6 +100,7 @@ const formSchema = z
       )
       .optional(),
     description: z.string().optional(),
+    batch_name: z.string().optional(),
     zone: z
       .string({ message: "Debe ingresar la ubicación del artículo." })
       .min(1, "Campo requerido"),
@@ -180,6 +182,7 @@ export default function CreateComponentForm({
       ? new Date(initialData.component.shell_time.caducate_date)
       : undefined
   );
+  const [enableBatchNameEdit, setEnableBatchNameEdit] = useState(false);
 
   // Data hooks
   const {
@@ -213,6 +216,7 @@ export default function CreateComponentForm({
       serial: initialData?.serial || "",
       alternative_part_number: initialData?.alternative_part_number || [],
       batch_id: initialData?.batches?.id?.toString() || "",
+      batch_name: initialData?.batches?.name || "",
       manufacturer_id: initialData?.manufacturer?.id?.toString() || "",
       condition_id: initialData?.condition?.id?.toString() || "",
       description: initialData?.description || "",
@@ -241,6 +245,7 @@ export default function CreateComponentForm({
       serial: initialData.serial ?? "",
       alternative_part_number: initialData.alternative_part_number ?? [],
       batch_id: initialData.batches?.id?.toString() ?? "",
+      batch_name: initialData.batches?.name ?? "",
       manufacturer_id: initialData.manufacturer?.id?.toString() ?? "",
       condition_id: initialData.condition?.id?.toString() ?? "",
       description: initialData.description ?? "",
@@ -288,6 +293,7 @@ export default function CreateComponentForm({
       status: string;
       article_type: string;
       alternative_part_number?: string[];
+      batch_name?: string;
     } = {
       ...values,
       status: "CHECKING",
@@ -298,6 +304,7 @@ export default function CreateComponentForm({
       caducate_date: caducateDate ? format(caducateDate, "yyyy-MM-dd") : undefined,
       fabrication_date: fabricationDate ? format(fabricationDate, "yyyy-MM-dd") : undefined,
       calendar_date: values.calendar_date && format(values.calendar_date, "yyyy-MM-dd"),
+      batch_name: enableBatchNameEdit ? values.batch_name : undefined,
     };
 
     if (isEditing && initialData) {
@@ -476,59 +483,101 @@ export default function CreateComponentForm({
               )}
             />
 
-            <FormField
-              control={form.control}
-              name="batch_id"
-              render={({ field }) => (
-                <FormItem className="flex flex-col space-y-3 mt-1.5 w-full">
-                  <FormLabel>Descripción de Componente</FormLabel>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <FormControl>
-                        <Button
-                          disabled={isBatchesLoading || isBatchesError || busy}
-                          variant="outline"
-                          role="combobox"
-                          className={cn("justify-between", !field.value && "text-muted-foreground")}
-                        >
-                          {isBatchesLoading && <Loader2 className="size-4 animate-spin mr-2" />}
-                          {field.value ? (
-                            <p>{batchNameById.get(field.value) ?? ""}</p>
-                          ) : (
-                            "Elegir descripción..."
-                          )}
-                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                        </Button>
-                      </FormControl>
-                    </PopoverTrigger>
-                    <PopoverContent className="p-0">
-                      <Command>
-                        <CommandInput placeholder="Buscar descripción..." />
-                        <CommandList>
-                          <CommandEmpty className="text-xs p-2 text-center">Sin resultados</CommandEmpty>
-                          <CommandGroup>
-                            {batches?.map((batch) => (
-                              <CommandItem
-                                value={`${batch.name}`}
-                                key={batch.id}
-                                onSelect={() => {
-                                  form.setValue("batch_id", batch.id.toString(), { shouldValidate: true });
-                                }}
-                              >
-                                <Check className={cn("mr-2 h-4 w-4", `${batch.id}` === field.value ? "opacity-100" : "opacity-0")} />
-                                <p>{batch.name}</p>
-                              </CommandItem>
-                            ))}
-                          </CommandGroup>
-                        </CommandList>
-                      </Command>
-                    </PopoverContent>
-                  </Popover>
-                  <FormDescription>Descripción del componente a registrar.</FormDescription>
-                  <FormMessage />
-                </FormItem>
+            <div className="space-y-3 w-full">
+              <FormField
+                control={form.control}
+                name="batch_id"
+                render={({ field }) => (
+                  <FormItem className="flex flex-col space-y-3 mt-1.5 w-full">
+                    <FormLabel>Descripción de Componente</FormLabel>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <FormControl>
+                          <Button
+                            disabled={isBatchesLoading || isBatchesError || busy}
+                            variant="outline"
+                            role="combobox"
+                            className={cn("justify-between", !field.value && "text-muted-foreground")}
+                          >
+                            {isBatchesLoading && <Loader2 className="size-4 animate-spin mr-2" />}
+                            {field.value ? (
+                              <p className="truncate flex-1 text-left">{batchNameById.get(field.value) ?? ""}</p>
+                            ) : (
+                              <span className="truncate">Elegir descripción...</span>
+                            )}
+                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent className="p-0">
+                        <Command>
+                          <CommandInput placeholder="Buscar descripción..." />
+                          <CommandList>
+                            <CommandEmpty className="text-xs p-2 text-center">Sin resultados</CommandEmpty>
+                            <CommandGroup>
+                              {batches?.map((batch) => (
+                                <CommandItem
+                                  value={`${batch.name}`}
+                                  key={batch.id}
+                                  onSelect={() => {
+                                    form.setValue("batch_id", batch.id.toString(), { shouldValidate: true });
+                                    if (isEditing && enableBatchNameEdit) {
+                                      form.setValue("batch_name", batch.name, { shouldValidate: true });
+                                    }
+                                  }}
+                                >
+                                  <Check className={cn("mr-2 h-4 w-4", `${batch.id}` === field.value ? "opacity-100" : "opacity-0")} />
+                                  <p>{batch.name}</p>
+                                </CommandItem>
+                              ))}
+                            </CommandGroup>
+                          </CommandList>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
+                    <FormDescription>Descripción del componente a registrar.</FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              {isEditing && (
+                <>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="enable-batch-edit"
+                      checked={enableBatchNameEdit}
+                      onCheckedChange={(checked) => setEnableBatchNameEdit(checked as boolean)}
+                    />
+                    <label
+                      htmlFor="enable-batch-edit"
+                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                    >
+                      ¿Modificar la descripción del artículo?
+                    </label>
+                  </div>
+                  {enableBatchNameEdit && (
+                    <FormField
+                      control={form.control}
+                      name="batch_name"
+                      render={({ field }) => (
+                        <FormItem className="w-full">
+                          <FormLabel>Nuevo nombre sugerido</FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder="Escriba el nuevo nombre para la descripción"
+                              {...field}
+                              disabled={busy}
+                            />
+                          </FormControl>
+                          <FormDescription>Ingrese el nuevo nombre para esta descripción de artículo.</FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  )}
+                </>
               )}
-            />
+            </div>
           </div>
         </SectionCard>
 

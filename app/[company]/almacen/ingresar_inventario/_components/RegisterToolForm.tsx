@@ -50,6 +50,7 @@ const formSchema = z
     serial: z.string().optional(),
     model: z.string().optional(),
     description: z.string().min(2, "Al menos 2 caracteres."),
+    batch_name: z.string().optional(),
     zone: z.string().min(1, "Campo requerido"),
     manufacturer_id: z.string().min(1, "Seleccione un fabricante"),
     condition_id: z.string().min(1, "Seleccione una condición"),
@@ -208,6 +209,8 @@ export default function CreateToolForm({ initialData, isEditing }: { initialData
   const { createArticle } = useCreateArticle();
   const { confirmIncoming } = useConfirmIncomingArticle();
 
+  const [enableBatchNameEdit, setEnableBatchNameEdit] = useState(false);
+
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -219,6 +222,7 @@ export default function CreateToolForm({ initialData, isEditing }: { initialData
       manufacturer_id: initialData?.manufacturer?.id?.toString() || "",
       condition_id: initialData?.condition?.id?.toString() || "",
       batch_id: initialData?.batches?.id?.toString() || "",
+      batch_name: initialData?.batches?.name || "",
       needs_calibration: initialData?.tool?.needs_calibration ?? false,
       last_calibration_date: initialData?.tool?.last_calibration_date ? new Date(initialData.tool.last_calibration_date) : undefined,
       next_calibration: undefined,
@@ -242,6 +246,7 @@ export default function CreateToolForm({ initialData, isEditing }: { initialData
       manufacturer_id: initialData.manufacturer?.id?.toString() || "",
       condition_id: initialData.condition?.id?.toString() || "",
       batch_id: initialData.batches?.id?.toString() || "",
+      batch_name: initialData.batches?.name || "",
       needs_calibration: initialData.tool?.needs_calibration ?? false,
       last_calibration_date: initialData.tool?.last_calibration_date ? new Date(initialData.tool.last_calibration_date) : undefined,
       next_calibration: undefined,
@@ -263,6 +268,7 @@ export default function CreateToolForm({ initialData, isEditing }: { initialData
       part_number: normalizeUpper(values.part_number),
       alternative_part_number: values.alternative_part_number?.map((v) => normalizeUpper(v)) ?? [],
       last_calibration_date: values.last_calibration_date ? format(values.last_calibration_date, "yyyy-MM-dd") : undefined,
+      batch_name: enableBatchNameEdit ? values.batch_name : undefined,
       // next_calibration se envía como número si existe
     };
 
@@ -338,35 +344,86 @@ export default function CreateToolForm({ initialData, isEditing }: { initialData
               )}
             />
 
-                        <FormField
-              control={form.control}
-              name="batch_id"
-              render={({ field }) => (
-                <FormItem className="w-full">
-                  <FormLabel>Categoría</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value} disabled={isBatchesLoading || busy}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder={isBatchesLoading ? "Cargando..." : "Seleccione categoría..."} />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {batchesOptions?.map((b) => (
-                        <SelectItem key={b.id} value={b.id.toString()}>
-                          {b.name}
-                        </SelectItem>
-                      ))}
-                      {(!batchesOptions || batchesOptions.length === 0) && !isBatchesLoading && !isBatchesError && (
-                        <div className="p-2 text-sm text-muted-foreground text-center">No se han encontrado categorías.</div>
+            <div className="space-y-3 w-full">
+              <FormField
+                control={form.control}
+                name="batch_id"
+                render={({ field }) => (
+                  <FormItem className="w-full">
+                    <FormLabel>Categoría</FormLabel>
+                    <Select 
+                      onValueChange={(value) => {
+                        field.onChange(value);
+                        if (isEditing && enableBatchNameEdit) {
+                          const selectedBatch = batchesOptions?.find(b => b.id.toString() === value);
+                          if (selectedBatch) {
+                            form.setValue("batch_name", selectedBatch.name, { shouldValidate: true });
+                          }
+                        }
+                      }} 
+                      value={field.value} 
+                      disabled={isBatchesLoading || busy}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder={isBatchesLoading ? "Cargando..." : "Seleccione categoría..."} />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {batchesOptions?.map((b) => (
+                          <SelectItem key={b.id} value={b.id.toString()}>
+                            {b.name}
+                          </SelectItem>
+                        ))}
+                        {(!batchesOptions || batchesOptions.length === 0) && !isBatchesLoading && !isBatchesError && (
+                          <div className="p-2 text-sm text-muted-foreground text-center">No se han encontrado categorías.</div>
+                        )}
+                        {isBatchesError && <div className="p-2 text-sm text-muted-foreground text-center">Error al cargar categorías.</div>}
+                      </SelectContent>
+                    </Select>
+                    <FormDescription>Clasificación interna.</FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              {isEditing && (
+                <>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="enable-batch-edit"
+                      checked={enableBatchNameEdit}
+                      onCheckedChange={(checked) => setEnableBatchNameEdit(checked as boolean)}
+                    />
+                    <label
+                      htmlFor="enable-batch-edit"
+                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                    >
+                      ¿Modificar la descripción del artículo?
+                    </label>
+                  </div>
+                  {enableBatchNameEdit && (
+                    <FormField
+                      control={form.control}
+                      name="batch_name"
+                      render={({ field }) => (
+                        <FormItem className="w-full">
+                          <FormLabel>Nuevo nombre sugerido</FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder="Escriba el nuevo nombre para la descripción"
+                              {...field}
+                              disabled={busy}
+                            />
+                          </FormControl>
+                          <FormDescription>Ingrese el nuevo nombre para esta descripción de artículo.</FormDescription>
+                          <FormMessage />
+                        </FormItem>
                       )}
-                      {isBatchesError && <div className="p-2 text-sm text-muted-foreground text-center">Error al cargar categorías.</div>}
-                    </SelectContent>
-                  </Select>
-                  <FormDescription>Clasificación interna.</FormDescription>
-                  <FormMessage />
-                </FormItem>
+                    />
+                  )}
+                </>
               )}
-            />
+            </div>
           </div>
         </SectionCard>
 

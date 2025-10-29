@@ -11,6 +11,7 @@ interface ArticleData {
   lot_number?: string;
   alternative_part_number?: string[];
   description?: string;
+  batch_name?: string;
   zone?: string;
   status?: string;
   last_calibration_date?: string;
