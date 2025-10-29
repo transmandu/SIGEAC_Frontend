@@ -97,6 +97,7 @@ const formSchema = z.object({
   manufacturer_id: z.string().optional(),
   condition_id: z.string().min(1, "Debe ingresar la condición del artículo."),
   quantity: z.coerce.number({ message: "Debe ingresar una cantidad." }).min(0, { message: "No puede ser negativo." }),
+  min_quantity: z.coerce.number().min(0, { message: "No puede ser negativo." }).optional(),
   batch_id: z.string({ message: "Debe ingresar un lote." }).min(1, "Seleccione un lote"),
   is_managed: z.boolean().optional(),
   certificate_8130: z.instanceof(File, { message: "Suba un archivo válido." }).refine((f) => f.size <= fileMaxBytes, "Tamaño máximo 10 MB.").optional(),
@@ -284,6 +285,7 @@ export default function CreateConsumableForm({
       caducate_date: initialData?.consumable?.caducate_date || undefined,
       fabrication_date: initialData?.consumable?.fabrication_date || undefined,
       quantity: (initialData as any)?.quantity ?? 0,
+      min_quantity: (initialData as any)?.min_quantity ?? undefined,
       is_managed: (initialData as any)?.is_managed ?? true,
     },
     mode: "onBlur",
@@ -305,6 +307,7 @@ export default function CreateConsumableForm({
       caducate_date: initialData?.consumable?.caducate_date || undefined,
       fabrication_date: initialData?.consumable?.fabrication_date || undefined,
       quantity: (initialData as any)?.quantity ?? 0,
+      min_quantity: (initialData as any)?.min_quantity ?? undefined,
       is_managed: (initialData as any)?.is_managed ?? true,
     });
   }, [initialData, form]);
@@ -696,6 +699,33 @@ export default function CreateConsumableForm({
                     <Input disabled type="number" placeholder="0" {...field} />
                   </FormControl>
                   <FormDescription>Unidades base que se registrarán.</FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Cantidad mínima */}
+            <FormField
+              control={form.control}
+              name="min_quantity"
+              render={({ field }) => (
+                <FormItem className="w-full">
+                  <FormLabel>Cantidad Mínima</FormLabel>
+                  <FormControl>
+                    <Input 
+                      type="number" 
+                      min="0"
+                      placeholder="Ej: 5" 
+                      {...field}
+                      disabled={busy}
+                      onChange={(e) => {
+                        const n = parseFloat(e.target.value);
+                        if (!Number.isNaN(n) && n < 0) return;
+                        field.onChange(e.target.value === "" ? undefined : n);
+                      }}
+                    />
+                  </FormControl>
+                  <FormDescription>Cantidad mínima de stock para alertas.</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}

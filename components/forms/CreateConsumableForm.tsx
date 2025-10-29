@@ -105,6 +105,7 @@ const formSchema = z.object({
   quantity: z.coerce
     .number({ message: "Debe ingresar una cantidad." })
     .min(0, { message: "No puede ser negativo." }),
+  min_quantity: z.coerce.number().min(0, { message: "No puede ser negativo." }).optional(),
   batch_id: z
     .string({ message: "Debe ingresar un lote." })
     .min(1, "Seleccione un lote"),
@@ -776,6 +777,33 @@ const CreateConsumableForm = ({
                   <FormDescription>
                     Unidades base que se registrarán.
                   </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Cantidad mínima */}
+            <FormField
+              control={form.control}
+              name="min_quantity"
+              render={({ field }) => (
+                <FormItem className="w-full">
+                  <FormLabel>Cantidad Mínima</FormLabel>
+                  <FormControl>
+                    <Input 
+                      type="number" 
+                      min="0"
+                      placeholder="Ej: 5" 
+                      {...field}
+                      disabled={busy}
+                      onChange={(e) => {
+                        const n = parseFloat(e.target.value);
+                        if (!Number.isNaN(n) && n < 0) return;
+                        field.onChange(e.target.value === "" ? undefined : n);
+                      }}
+                    />
+                  </FormControl>
+                  <FormDescription>Cantidad mínima de stock para alertas.</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
