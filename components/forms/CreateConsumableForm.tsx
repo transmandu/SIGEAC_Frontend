@@ -750,8 +750,10 @@ const CreateConsumableForm = ({
               <Input
                 type="number"
                 inputMode="decimal"
+                min="0"
                 onChange={(e) => {
                   const n = parseFloat(e.target.value);
+                  if (!Number.isNaN(n) && n < 0) return;
                   setSecondaryQuantity(Number.isNaN(n) ? undefined : n);
                 }}
                 placeholder="Ej: 2, 4, 6..."
