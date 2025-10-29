@@ -141,8 +141,10 @@ export const useUpdateArticleStatus = () => {
     mutationKey: ["articles"],
     mutationFn: async ({
       id,
+      status
     }: {
       id: number;
+      status?: string;
     }) => {
       await axiosInstance.put(`/${selectedCompany?.slug}/confirm-article/${id}`);
     },
