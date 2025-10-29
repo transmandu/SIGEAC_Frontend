@@ -29,8 +29,7 @@ const CheckingArticleDropdownActions = ({ id }: { id: string | number }) => {
 
   const handleConfirm = (id: number ) => {
     updateArticleStatus.mutate(
-      {id},
-      // { id, status: "stored" },
+      { id, status: "STORED" },
       {
         onSuccess: () => setOpen(false), // Cierra el modal solo si la eliminación fue exitosa
       }
