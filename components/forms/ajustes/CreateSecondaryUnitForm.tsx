@@ -61,6 +61,7 @@ export default function CreateSecondaryUnitForm({ onClose }: FormProps) {
     resolver: zodResolver(formSchema),
     defaultValues: {
       convertion_rate: 0,
+      quantity_unit: 1,
     },
   });
   const { control } = form;
@@ -75,55 +76,47 @@ export default function CreateSecondaryUnitForm({ onClose }: FormProps) {
     await createSecondaryUnit.mutate({
       ...values,
     });
+    // Resetear el formulario después de crear
+    form.reset();
+    setValue("");
+    setOpen(false);
     onClose();
   };
+  const selectedPrimaryUnit = primaryUnits?.find(
+    (unit) => unit.id.toString() === value
+  );
+
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        {/* Nombre de la Unidad Secundaria */}
         <FormField
           control={control}
           name="secondary_unit"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Nombre</FormLabel>
+              <FormLabel className="text-base font-semibold">Nombre de la Unidad Secundaria</FormLabel>
               <FormControl>
                 <Input
-                  placeholder="EJ: C. de 24u, Paquete de 6u, etc..."
+                  placeholder="EJ: Caja de 24u, Paquete de 6u, Bolsa de 10u"
                   {...field}
                 />
               </FormControl>
               <FormDescription>
-                Este será el nombre de su unidad.
+                El nombre descriptivo de su unidad secundaria (ej: "Caja de 24 unidades")
               </FormDescription>
               <FormMessage />
             </FormItem>
           )}
         />
-        <FormField
-          control={control}
-          name="convertion_rate"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Unidades</FormLabel>
-              <FormControl>
-                <Input
-                  placeholder="EJ: Kilogramo, Litro, Mililitro"
-                  {...field}
-                />
-              </FormControl>
-              <FormDescription>
-                ¿Cuantas unidades trae su unidad secundaria?
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+
+        {/* Unidad Primaria - Movido antes de cantidad */}
         <FormField
           control={control}
           name="unit_id"
           render={({ field }) => (
-            <FormItem className="flex flex-col mt-2">
-              <FormLabel>Unidad Primaria</FormLabel>
+            <FormItem className="flex flex-col">
+              <FormLabel className="text-base font-semibold">Unidad Primaria de Referencia</FormLabel>
               <FormControl>
                 <Popover open={open} onOpenChange={setOpen}>
                   <PopoverTrigger asChild>
@@ -132,24 +125,23 @@ export default function CreateSecondaryUnitForm({ onClose }: FormProps) {
                       variant="outline"
                       role="combobox"
                       aria-expanded={open}
-                      className="w-[200px] justify-between"
+                      className="w-full justify-between"
                     >
-                      {primaryUnits &&
-                        (value
-                          ? primaryUnits.find(
-                              (primaryUnits) =>
-                                primaryUnits.id.toString() === value
-                            )?.label
-                          : "Seleccione...")}
-                      <ChevronsUpDown className="opacity-50" />
+                      {primaryUnits && value
+                        ? primaryUnits.find(
+                            (primaryUnits) =>
+                              primaryUnits.id.toString() === value
+                          )?.label || "Seleccione..."
+                        : "Seleccione una unidad primaria..."}
+                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-[200px] p-0">
+                  <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0" align="start">
                     <Command>
                       <CommandInput placeholder="Buscar unidad primaria..." />
                       <CommandList>
                         <CommandEmpty>
-                          No existen unidades primarias.
+                          No se encontraron unidades primarias.
                         </CommandEmpty>
                         <CommandGroup>
                           {primaryUnits &&
@@ -167,7 +159,7 @@ export default function CreateSecondaryUnitForm({ onClose }: FormProps) {
                                 {primaryUnit.label}
                                 <Check
                                   className={cn(
-                                    "ml-auto",
+                                    "ml-auto h-4 w-4",
                                     value === primaryUnit.id.toString()
                                       ? "opacity-100"
                                       : "opacity-0"
@@ -182,37 +174,101 @@ export default function CreateSecondaryUnitForm({ onClose }: FormProps) {
                 </Popover>
               </FormControl>
               <FormDescription>
-                Este será el valor referencial a la unidad primaria.
+                Seleccione la unidad primaria a la cual se relacionará esta unidad secundaria (ej: Unidad, Kilogramo, Litro)
               </FormDescription>
               <FormMessage />
             </FormItem>
           )}
         />
+
+        {/* Cantidad de unidades que contiene */}
+        <FormField
+          control={control}
+          name="convertion_rate"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="text-base font-semibold">
+                Cantidad de Unidades que Contiene
+              </FormLabel>
+              <FormControl>
+                <Input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  placeholder="EJ: 24, 6, 10, 0.5"
+                  {...field}
+                />
+              </FormControl>
+              <FormDescription>
+                ¿Cuántas unidades de la unidad primaria contiene esta unidad secundaria? 
+                {selectedPrimaryUnit && (
+                  <span className="block mt-1 text-sm text-muted-foreground italic">
+                    Ejemplo: Si seleccionaste "{selectedPrimaryUnit.label}", y esta unidad secundaria contiene 24 unidades, ingresa 24
+                  </span>
+                )}
+              </FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        {/* Valor por unidad */}
         <FormField
           control={control}
           name="quantity_unit"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Valor por Unidad</FormLabel>
+              <FormLabel className="text-base font-semibold">Valor de Conversión por Unidad</FormLabel>
               <FormControl>
-                <Input placeholder="EJ: 1, 0.5, etc..." {...field} />
+                <Input 
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  placeholder="EJ: 1, 0.5, 2"
+                  {...field} 
+                />
               </FormControl>
               <FormDescription>
-                Este será el valor por cada unidad de su unidad secundaria.
+                El valor de conversión equivalente a una unidad primaria. 
+                {selectedPrimaryUnit && (
+                  <span className="block mt-1 text-sm text-muted-foreground italic">
+                    Si 1 unidad secundaria = 1 {selectedPrimaryUnit.label}, ingresa 1. Si 1 unidad secundaria = 0.5 {selectedPrimaryUnit.label}, ingresa 0.5
+                  </span>
+                )}
               </FormDescription>
               <FormMessage />
             </FormItem>
           )}
         />
+
+        {/* Ejemplo de ayuda visual */}
+        {selectedPrimaryUnit && form.watch("convertion_rate") && form.watch("quantity_unit") && (
+          <div className="rounded-lg border bg-muted/50 p-4 space-y-2">
+            <p className="text-sm font-semibold text-foreground">Ejemplo de relación:</p>
+            <p className="text-sm text-muted-foreground">
+              1 <strong>{form.watch("secondary_unit") || "unidad secundaria"}</strong> = {" "}
+              {form.watch("convertion_rate") || 0} {selectedPrimaryUnit.label}
+              {form.watch("quantity_unit") && form.watch("quantity_unit") !== form.watch("convertion_rate") && (
+                <span className="block mt-1">
+                  (Valor de conversión: {form.watch("quantity_unit")})
+                </span>
+              )}
+            </p>
+          </div>
+        )}
+
         <Button
-          className="bg-primary mt-2 text-white hover:bg-blue-900 disabled:bg-primary/70"
+          className="w-full bg-primary mt-4 text-white hover:bg-blue-900 disabled:bg-primary/70"
           disabled={createSecondaryUnit?.isPending}
           type="submit"
         >
           {createSecondaryUnit?.isPending ? (
-            <Loader2 className="size-4 animate-spin" />
+            <>
+              <Loader2 className="mr-2 size-4 animate-spin" />
+              Creando...
+            </>
           ) : (
-            <p>Crear</p>
+            "Crear Unidad Secundaria"
           )}
         </Button>
       </form>

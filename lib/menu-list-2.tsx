@@ -694,31 +694,6 @@ export function getMenuList(
       moduleValue: "warehouse",
       menus: [
         {
-          href: "",
-          label: "Solicitudes",
-          active: pathname.includes(
-            `/${currentCompany?.slug}/almacen/solicitudes`
-          ),
-          icon: ClipboardCopy,
-          roles: ["ANALISTA_ALMACEN", "JEFE_ALMACEN", "SUPERUSER"],
-          submenus: [
-            {
-              href: `/${currentCompany?.slug}/almacen/solicitudes/salida`,
-              label: "Salida",
-              active:
-                pathname ===
-                `/${currentCompany?.slug}/almacen/solicitudes/salida`,
-            },
-            {
-              href: `/${currentCompany?.slug}/almacen/solicitudes/pendiente`,
-              label: "Pendiente",
-              active:
-                pathname ===
-                `/${currentCompany?.slug}/almacen/solicitudes/pendiente`,
-            },
-          ],
-        },
-        {
           href: `/${currentCompany?.slug}/almacen/ingresar_inventario`,
           label: "Ingreso de Inventario",
           active: pathname.includes(
@@ -751,6 +726,31 @@ export function getMenuList(
               active:
                 pathname ===
                 `/${currentCompany?.slug}/almacen/inventario_articulos/entregado`,
+            },
+          ],
+        },
+        {
+          href: "",
+          label: "Solicitudes",
+          active: pathname.includes(
+            `/${currentCompany?.slug}/almacen/solicitudes`
+          ),
+          icon: ClipboardCopy,
+          roles: ["ANALISTA_ALMACEN", "JEFE_ALMACEN", "SUPERUSER"],
+          submenus: [
+            {
+              href: `/${currentCompany?.slug}/almacen/solicitudes/salida`,
+              label: "Salida",
+              active:
+                pathname ===
+                `/${currentCompany?.slug}/almacen/solicitudes/salida`,
+            },
+            {
+              href: `/${currentCompany?.slug}/almacen/solicitudes/pendiente`,
+              label: "Pendiente",
+              active:
+                pathname ===
+                `/${currentCompany?.slug}/almacen/solicitudes/pendiente`,
             },
           ],
         },
