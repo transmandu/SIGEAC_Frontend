@@ -71,7 +71,7 @@ export const columns: ColumnDef<BatchesWithCountProp>[] = [
       <DataTableColumnHeader column={column} title="Cantidad Mínima" />
     ),
     cell: ({ row }) => (
-      <p className="flex text-center font-bold justify-center">{row.original.min_quantity} {row.original.medition_unit}</p>
+      <p className="flex text-center font-bold justify-center">{row.original.min_quantity} {row.original.unit.label}</p>
     )
   },
   {

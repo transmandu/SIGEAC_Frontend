@@ -74,7 +74,19 @@ const FormSchema = z.object({
         path: ["articles"],
       }
     ),
-});
+}).refine(
+  (data) => {
+    // Si el tipo es AVIACION, aircraft_id es obligatorio
+    if (data.type === "AVIACION" && !data.aircraft_id) {
+      return false;
+    }
+    return true;
+  },
+  {
+    message: "Debe seleccionar una aeronave.",
+    path: ["aircraft_id"],
+  }
+);
 
 type FormSchemaType = z.infer<typeof FormSchema>;
 
@@ -122,7 +134,7 @@ export function CreateGeneralRequisitionForm({
 
   const [selectedBatches, setSelectedBatches] = useState<Batch[]>([])
 
-  const { data: aircrafts, isLoading: isAircraftsLoading, isError: isAircraftsError } = useGetMaintenanceAircrafts()
+  const { data: aircrafts, isLoading: isAircraftsLoading, isError: isAircraftsError } = useGetMaintenanceAircrafts(selectedCompany?.slug)
 
 
   const form = useForm<FormSchemaType>({
@@ -244,8 +256,14 @@ export function CreateGeneralRequisitionForm({
   const onSubmit = async (data: FormSchemaType) => {
     const formattedData = {
       ...data,
-      type: "GENERAL",
-    }
+      articles: data.articles.map(batch => ({
+        ...batch,
+        batch_articles: batch.batch_articles.map(article => ({
+          ...article,
+          aircraft_id: data.type === "AVIACION" ? data.aircraft_id : undefined
+        }))
+      }))
+    };
     
     if (isEditing) {
       await updateRequisition.mutateAsync({id: id!, data: formattedData, company: selectedCompany!.slug})

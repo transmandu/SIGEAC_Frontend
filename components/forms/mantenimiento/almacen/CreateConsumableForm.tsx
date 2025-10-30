@@ -1,12 +1,42 @@
 "use client";
 
+import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+import Image from "next/image";
+
+import { z } from "zod";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+
+import { addYears, format, subYears } from "date-fns";
+import { es } from "date-fns/locale";
+
+import {
+  CalendarIcon,
+  Check,
+  ChevronsUpDown,
+  FileUpIcon,
+  Loader2,
+  Plus,
+} from "lucide-react";
+
 import {
   useConfirmIncomingArticle,
   useCreateArticle,
-  useEditArticle,
+  useUpdateArticle,
 } from "@/actions/mantenimiento/almacen/inventario/articulos/actions";
+
+import { MultiInputField } from "@/components/misc/MultiInputField";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
 import {
   Form,
   FormControl,
@@ -29,123 +59,77 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+
 import { useGetConditions } from "@/hooks/administracion/useGetConditions";
 import { useGetManufacturers } from "@/hooks/general/fabricantes/useGetManufacturers";
 import { useGetSecondaryUnits } from "@/hooks/general/unidades/useGetSecondaryUnits";
-import { useGetBatchesByLocationId } from "@/hooks/mantenimiento/almacen/renglones/useGetBatchesByLocationId";
+import { useGetBatchesByCategory } from "@/hooks/mantenimiento/almacen/renglones/useGetBatchesByCategory";
+
 import { cn } from "@/lib/utils";
 import { useCompanyStore } from "@/stores/CompanyStore";
-import { Article, Batch, Convertion } from "@/types";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { addYears, format, subYears } from "date-fns";
-import { es } from "date-fns/locale";
-import {
-  CalendarIcon,
-  Check,
-  ChevronsUpDown,
-  FileUpIcon,
-  Loader2,
-} from "lucide-react";
-import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { Checkbox } from "../../../ui/checkbox";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "../../../ui/command";
-import { Label } from "../../../ui/label";
-import { Textarea } from "../../../ui/textarea";
-import { MultiInputField } from "../../../misc/MultiInputField";
+import { Batch, Convertion } from "@/types";
+
+import loadingGif from "@/public/loading2.gif";
+import { EditingArticle } from "./RegisterArticleForm";
+import { CreateManufacturerDialog } from "@/components/dialogs/general/CreateManufacturerDialog";
+
+/* ------------------------------- Schema ------------------------------- */
+
+const fileMaxBytes = 10_000_000; // 10 MB
 
 const formSchema = z.object({
-  article_type: z.string().optional(),
-  part_number: z.string().min(2, {
-    message: "El serial debe contener al menos 2 carácteres.",
-  }),
+  part_number: z
+    .string({ message: "Debe ingresar un número de parte." })
+    .min(2, {
+      message: "El número de parte debe contener al menos 2 caracteres.",
+    }),
+  lot_number: z.string().optional(),
   alternative_part_number: z
     .array(
       z.string().min(2, {
         message:
-          "Cada número de parte alterno debe contener al menos 2 carácteres.",
+          "Cada número de parte alterno debe contener al menos 2 caracteres.",
       })
     )
     .optional(),
-  description: z
-    .string({
-      message: "Debe ingresar la descripción del articulo.",
-    })
-    .min(2, {
-      message: "La descripción debe contener al menos 2 carácteres.",
-    }),
-  zone: z.string({
-    message: "Debe ingresar la ubicación del articulo.",
-  }),
-  caducate_date: z
-    .string({
-      required_error: "A date of birth is required.",
-    })
-    .optional(),
-  fabrication_date: z
-    .string({
-      required_error: "A date of birth is required.",
-    })
-    .optional(),
-  manufacturer_id: z.string({
-    message: "Debe ingresar una marca.",
-  }),
-  condition_id: z
-    .string({
-      message: "Debe ingresar la condición del articulo.",
-    })
-    .optional(),
+  description: z.string().optional(),
+  zone: z.string().optional(),
+  caducate_date: z.string().optional(),
+  fabrication_date: z.string().optional(),
+  manufacturer_id: z.string().optional(),
+  condition_id: z.string().min(1, "Debe ingresar la condición del artículo."),
   quantity: z.coerce
-    .number({
-      message: "Debe ingresar una cantidad de articulos.",
-    })
-    .nonnegative({
-      message: "No puede ingresar valores negativos.",
-    }),
-  batches_id: z.string({
-    message: "Debe ingresar un lote.",
-  }),
+    .number({ message: "Debe ingresar una cantidad." })
+    .min(0, { message: "No puede ser negativo." }),
+  min_quantity: z.coerce.number().min(0, { message: "No puede ser negativo." }).optional(),
+  batch_id: z
+    .string({ message: "Debe ingresar un lote." })
+    .min(1, "Seleccione un lote"),
   is_managed: z.boolean().optional(),
   certificate_8130: z
-    .instanceof(File, { message: "Please upload a file." })
-    .refine((f) => f.size < 10000_000, "Max 100Kb upload size.")
+    .instanceof(File, { message: "Suba un archivo válido." })
+    .refine((f) => f.size <= fileMaxBytes, "Tamaño máximo 10 MB.")
     .optional(),
-
   certificate_fabricant: z
-    .instanceof(File, { message: "Please upload a file." })
-    .refine((f) => f.size < 100_000, "Max 100Kb upload size.")
+    .instanceof(File, { message: "Suba un archivo válido." })
+    .refine((f) => f.size <= fileMaxBytes, "Tamaño máximo 10 MB.")
     .optional(),
-
   certificate_vendor: z
-    .instanceof(File, { message: "Please upload a file." })
-    .refine((f) => f.size < 10000_000, "Max 100Kb upload size.")
+    .instanceof(File, { message: "Suba un archivo válido." })
+    .refine((f) => f.size <= fileMaxBytes, "Tamaño máximo 10 MB.")
     .optional(),
   image: z.instanceof(File).optional(),
+  // auxiliares para conversión secundaria
+  convertion_id: z.number().optional(),
 });
 
-interface EditingArticle extends Article {
-  batches: Batch;
-  consumable?: {
-    article_id: number;
-    is_managed: boolean;
-    convertions: Convertion[];
-    quantity: number;
-    shell_time: {
-      caducate_date: Date;
-      fabrication_date: string;
-      consumable_id: string;
-    };
-  };
-}
+type FormValues = z.infer<typeof formSchema>;
+
+/* ----------------------------- Componente ----------------------------- */
 
 const CreateConsumableForm = ({
   initialData,
@@ -155,35 +139,14 @@ const CreateConsumableForm = ({
   isEditing?: boolean;
 }) => {
   const router = useRouter();
-
-  const [open, setOpen] = useState(false);
-
-  const [secondaryQuantity, setSecondaryQuantity] = useState<number>();
-
-  const [secondarySelected, setSecondarySelected] = useState<Convertion | null>(
-    null
-  );
-
-  const [filteredBatches, setFilteredBatches] = useState<Batch[]>();
-  const [batchOpen, setBatchOpen] = useState(false);
-
-  const [fabricationDate, setFabricationDate] = useState<Date>();
-
-  const [caducateDate, setCaducateDate] = useState<Date>();
-
-  const { createArticle } = useCreateArticle();
-
-  const { confirmIncoming } = useConfirmIncomingArticle();
-
-  const { editArticle } = useEditArticle();
-
-  const { selectedStation, selectedCompany } = useCompanyStore();
+  
+  const { selectedCompany } = useCompanyStore();
 
   const {
-    data: secondaryUnits,
-    isLoading: secondaryLoading,
-    isError: secondaryError,
-  } = useGetSecondaryUnits(selectedCompany?.slug);
+    data: batches,
+    isPending: isBatchesLoading,
+    isError: isBatchesError,
+  } = useGetBatchesByCategory("consumible");
 
   const {
     data: manufacturers,
@@ -195,408 +158,404 @@ const CreateConsumableForm = ({
     data: conditions,
     isLoading: isConditionsLoading,
     error: isConditionsError,
-  } = useGetConditions(selectedCompany?.slug);
+  } = useGetConditions();
 
-  const {
-    mutate,
-    data: batches,
-    isPending: isBatchesLoading,
-    isError,
-    error,
-  } = useGetBatchesByLocationId();
+  const { data: secondaryUnits, isLoading: secondaryLoading } =
+    useGetSecondaryUnits(selectedCompany?.slug);
 
+  const { createArticle } = useCreateArticle();
+  const { updateArticle } = useUpdateArticle();
+  const { confirmIncoming } = useConfirmIncomingArticle();
 
-  useEffect(() => {
-    if (selectedStation && selectedCompany) {
-      mutate({location_id: Number(selectedStation), company: selectedCompany.slug})
-    }
-  }, [selectedStation, selectedCompany, mutate]);
+  const [secondaryOpen, setSecondaryOpen] = useState(false);
+  const [secondarySelected, setSecondarySelected] = useState<Convertion | null>(
+    null
+  );
+  const [secondaryQuantity, setSecondaryQuantity] = useState<
+    number | undefined
+  >();
+  const [caducateDate, setCaducateDate] = useState<Date | undefined>(
+    initialData?.consumable?.caducate_date
+      ? new Date(initialData.consumable.caducate_date)
+      : undefined
+  );
+  const [fabricationDate, setFabricationDate] = useState<Date | undefined>(
+    initialData?.consumable?.fabrication_date
+      ? new Date(initialData?.consumable?.fabrication_date)
+      : undefined
+  );
 
-  useEffect(() => {
-    if (batches) {
-      // Filtrar los batches por categoría
-      const filtered = batches.filter(
-        (batch) => batch.category === "CONSUMIBLE"
-      );
-      setFilteredBatches(filtered);
-    }
-  }, [batches]);
-
-  useEffect(() => {
-    if (initialData && initialData.consumable) {
-      setSecondarySelected(initialData.consumable!.convertions[0]);
-    }
-  }, [initialData]);
-
-  const form = useForm<z.infer<typeof formSchema>>({
+  const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      part_number: initialData?.part_number || undefined,
+      part_number: initialData?.part_number || "",
       alternative_part_number: initialData?.alternative_part_number || [],
-      batches_id: initialData?.batches.id?.toString() || "",
-      manufacturer_id: initialData?.manufacturer?.id.toString() || undefined,
-      condition_id: initialData?.condition?.id.toString() || undefined,
+      batch_id: initialData?.batches?.id?.toString() || "",
+      manufacturer_id: initialData?.manufacturer?.id?.toString() || "",
+      condition_id: initialData?.condition?.id?.toString() || "",
       description: initialData?.description || "",
-      zone: initialData?.zone || undefined,
+      zone: initialData?.zone || "",
+      lot_number: initialData?.consumable?.lot_number || "",
+      caducate_date: initialData?.consumable?.caducate_date
+        ? initialData?.consumable?.caducate_date
+        : undefined,
+      fabrication_date: initialData?.consumable?.fabrication_date
+        ? initialData?.consumable?.fabrication_date
+        : undefined,
+      quantity: (initialData as any)?.quantity ?? 0,
+      is_managed: (initialData as any)?.is_managed ?? true,
     },
   });
-  form.setValue("article_type", "consumible");
 
+  // reset si cambia initialData
   useEffect(() => {
-    if (secondarySelected && secondaryQuantity) {
-      const quantity =
-        secondarySelected.convertion_rate *
-        secondarySelected.quantity_unit *
-        secondaryQuantity;
-      form.setValue("quantity", quantity);
-      console.log(quantity);
-    }
-  }, [form, secondarySelected, secondaryQuantity]);
+    if (!initialData) return;
+    form.reset({
+      part_number: initialData.part_number ?? "",
+      alternative_part_number: initialData.alternative_part_number ?? [],
+      batch_id: initialData.batches?.id?.toString() ?? "",
+      manufacturer_id: initialData.manufacturer?.id?.toString() ?? "",
+      condition_id: initialData.condition?.id?.toString() ?? "",
+      description: initialData.description ?? "",
+      zone: initialData.zone ?? "",
+      lot_number: initialData.consumable?.lot_number ?? "",
+      caducate_date: initialData?.consumable?.caducate_date
+        ? initialData?.consumable?.caducate_date
+        : undefined,
+      fabrication_date: initialData?.consumable?.fabrication_date
+        ? initialData?.consumable?.fabrication_date
+        : undefined,
+      quantity: (initialData as any)?.quantity ?? 0,
+      is_managed: (initialData as any)?.is_managed ?? true,
+    });
+  }, [initialData, form]);
 
-  const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    const baseFormattedValues = {
+  // conversión secundaria -> quantity
+  useEffect(() => {
+    if (
+      secondarySelected &&
+      typeof secondaryQuantity === "number" &&
+      !Number.isNaN(secondaryQuantity)
+    ) {
+      const qty =
+        (secondarySelected.convertion_rate ?? 1) *
+        (secondarySelected.quantity_unit ?? 1) *
+        secondaryQuantity;
+      form.setValue("quantity", qty, {
+        shouldDirty: true,
+        shouldValidate: true,
+      });
+    }
+  }, [secondarySelected, secondaryQuantity, form]);
+
+  const normalizeUpper = (s?: string) => s?.trim().toUpperCase() ?? "";
+
+  const busy =
+    isBatchesLoading ||
+    isManufacturerLoading ||
+    isConditionsLoading ||
+    createArticle.isPending ||
+    confirmIncoming.isPending;
+
+  const batchesOptions = useMemo<Batch[] | undefined>(() => batches, [batches]);
+
+  const onSubmit = async (values: FormValues) => {
+    if (!selectedCompany?.slug) return;
+
+    const formattedValues: FormValues & {
+      caducate_date?: string;
+      fabrication_date?: string;
+      part_number: string;
+      article_type: string;
+      alternative_part_number?: string[];
+    } = {
       ...values,
-      caducate_date: caducateDate && format(caducateDate, "yyyy-MM-dd"),
-      fabrication_date:
-        fabricationDate && format(fabricationDate, "yyyy-MM-dd"),
-      batches_id: values.batches_id,
+      part_number: normalizeUpper(values.part_number),
+      article_type: "consumible",
+      alternative_part_number:
+        values.alternative_part_number?.map((v) => normalizeUpper(v)) ?? [],
+      caducate_date: caducateDate
+        ? format(caducateDate, "yyyy-MM-dd")
+        : undefined,
+      fabrication_date: fabricationDate
+        ? format(fabricationDate, "yyyy-MM-dd")
+        : undefined,
       convertion_id: secondarySelected?.id,
     };
 
-    if (isEditing && initialData?.id) {
-      // Modo edición - usar el nuevo hook de edición
-      const editFormattedValues = {
-        ...baseFormattedValues,
-        id: initialData.id,
-        certificate_8130:
-          values.certificate_8130 || initialData?.certifcate_8130,
-        certificate_fabricant:
-          values.certificate_fabricant || initialData?.certifcate_fabricant,
-        certificate_vendor:
-          values.certificate_vendor || initialData?.certifcate_vendor,
-      };
-
-      try {
-        await editArticle.mutateAsync({
-          data: editFormattedValues,
-          company: selectedCompany!.slug
-        });
-        // Redirigir después de la edición exitosa
-        router.push(`/${selectedCompany?.slug}/almacen/inventario_articulos`);
-      } catch (error) {
-        console.error('Error editing article:', error);
-      }
-    } else if (isEditing) {
-      // Modo confirmación de ingreso (artículos en tránsito)
-      const confirmFormattedValues = {
-        ...baseFormattedValues,
+    if (isEditing && initialData) {
+      await updateArticle.mutateAsync({
+        data: {
+          ...formattedValues,
+        },
         id: initialData?.id,
-        certificate_8130:
-          values.certificate_8130 || initialData?.certifcate_8130,
-        certificate_fabricant:
-          values.certificate_fabricant || initialData?.certifcate_fabricant,
-        certificate_vendor:
-          values.certificate_vendor || initialData?.certifcate_vendor,
-        status: "Stored",
-      };
-
-      await confirmIncoming.mutateAsync({values: confirmFormattedValues, company: selectedCompany!.slug})
-      router.push(`/${selectedCompany?.slug}/almacen/ingreso/en_recepcion`)
-    } else {
-      // Modo creación
-      createArticle.mutate({
-        data: baseFormattedValues,
-        company: selectedCompany!.slug,
+        company: selectedCompany.slug,
       });
+      router.push(`/${selectedCompany.slug}/almacen/inventario_articulos`);
+    } else {
+      await createArticle.mutateAsync({
+        company: selectedCompany.slug,
+        data: formattedValues,
+      });
+      form.reset();
     }
   };
+
   return (
     <Form {...form}>
       <form
-        className="flex flex-col gap-4 max-w-6xl mx-auto"
+        className="flex flex-col gap-6 max-w-7xl mx-auto"
         onSubmit={form.handleSubmit(onSubmit)}
       >
-        <div className="max-w-7xl flex flex-col lg:flex-row gap-2 w-full">
-          <FormField
-            control={form.control}
-            name="part_number"
-            render={({ field }) => (
-              <FormItem className="w-full xl:w-1/3">
-                <FormLabel>Nro. de Parte</FormLabel>
-                <FormControl>
-                  <Input placeholder="EJ: 234ABAC" {...field} />
-                </FormControl>
-                <FormDescription>
-                  Identificador único del articulo.
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="alternative_part_number"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Nro. de Parte Alternos</FormLabel>
-                <FormControl>
-                  <MultiInputField
-                    values={field.value || []}
-                    onChange={field.onChange}
-                    placeholder="EJ: 234ABAC"
-                  />
-                </FormControl>
-                <FormDescription>
-                  Identificadores alternativos del artículo.
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-        <div className="max-w-7xl flex flex-col lg:flex-row gap-2 justify-center items-center w-full">
-          <FormField
-            control={form.control}
-            name="condition_id"
-            render={({ field }) => (
-              <FormItem className="w-full">
-                <FormLabel>Condición</FormLabel>
-                <Select
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                >
+        {/* Encabezado */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-xl">Registrar consumible</CardTitle>
+          </CardHeader>
+          <CardContent className="grid grid-cols-1 xl:grid-cols-3 gap-4">
+            <FormField
+              control={form.control}
+              name="part_number"
+              render={({ field }) => (
+                <FormItem className="w-full">
+                  <FormLabel>Nro. de parte</FormLabel>
                   <FormControl>
-                    <SelectTrigger disabled={isConditionsLoading}>
-                      <SelectValue placeholder="Seleccione..." />
-                    </SelectTrigger>
+                    <Input placeholder="Ej: 234ABAC" {...field} />
                   </FormControl>
-                  <SelectContent>
-                    {conditions &&
-                      conditions.map((condition) => (
-                        <SelectItem
-                          key={condition.id}
-                          value={condition.id.toString()}
-                        >
-                          {condition.name}
+                  <FormDescription>
+                    Identificador principal del artículo.
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="lot_number"
+              render={({ field }) => (
+                <FormItem className="w-full">
+                  <FormLabel>Nro. de lote</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Ej: LOTE123" {...field} />
+                  </FormControl>
+                  <FormDescription>Lote del consumible.</FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="alternative_part_number"
+              render={({ field }) => (
+                <FormItem className="w-full xl:col-span-1">
+                  <FormLabel>Nros. de parte alternos</FormLabel>
+                  <FormControl>
+                    <MultiInputField
+                      values={field.value || []}
+                      onChange={field.onChange}
+                      placeholder="Ej: 234ABAC"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </CardContent>
+        </Card>
+
+        {/* Propiedades */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-xl">Propiedades</CardTitle>
+          </CardHeader>
+          <CardContent className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+            <FormField
+              control={form.control}
+              name="condition_id"
+              render={({ field }) => (
+                <FormItem className="w-full">
+                  <FormLabel>Condición</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    value={field.value}
+                    disabled={isConditionsLoading}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue
+                          placeholder={
+                            isConditionsLoading
+                              ? "Cargando..."
+                              : "Seleccione..."
+                          }
+                        />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {conditions?.map((c) => (
+                        <SelectItem key={c.id} value={c.id.toString()}>
+                          {c.name}
                         </SelectItem>
                       ))}
-                  </SelectContent>
-                </Select>
-                <FormDescription>Estado físico del articulo.</FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="fabrication_date"
-            render={({ field }) => (
-              <FormItem className="flex flex-col p-0 mt-2.5 w-full">
-                <FormLabel>Fecha de Fabricacion</FormLabel>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <FormControl>
-                      <Button
-                        variant={"outline"}
-                        className={cn(
-                          "w-full pl-3 text-left font-normal",
-                          !fabricationDate && "text-muted-foreground"
-                        )}
+                      {isConditionsError && (
+                        <div className="p-2 text-sm text-muted-foreground">
+                          Error al cargar condiciones.
+                        </div>
+                      )}
+                    </SelectContent>
+                  </Select>
+                  <FormDescription>Estado del artículo.</FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="fabrication_date"
+              render={({ field }) => (
+                <FormItem className="flex flex-col p-0 mt-2.5 w-full">
+                  <FormLabel>Fecha de Fabricacion</FormLabel>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <FormControl>
+                        <Button
+                          variant={"outline"}
+                          className={cn(
+                            "w-full pl-3 text-left font-normal",
+                            !fabricationDate && "text-muted-foreground"
+                          )}
+                        >
+                          {fabricationDate ? (
+                            format(fabricationDate, "PPP", { locale: es })
+                          ) : (
+                            <span>Seleccione una fecha</span>
+                          )}
+                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                        </Button>
+                      </FormControl>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Select
+                        onValueChange={(value) =>
+                          setFabricationDate(
+                            subYears(new Date(), parseInt(value))
+                          )
+                        }
                       >
-                        {fabricationDate ? (
-                          format(fabricationDate, "PPP", {
-                            locale: es,
-                          })
-                        ) : (
-                          <span>Seleccione una fecha</span>
-                        )}
-                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                      </Button>
-                    </FormControl>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Select
-                      onValueChange={(value) =>
-                        setFabricationDate(
-                          subYears(new Date(), parseInt(value))
-                        )
-                      }
-                    >
-                      <SelectTrigger className="p-3">
-                        <SelectValue placeholder="Seleccione una opcion..." />
-                      </SelectTrigger>
-                      <SelectContent position="popper">
-                        <SelectItem value="0">Actual</SelectItem>
-                        <SelectItem value="5">Ir 5 años atrás</SelectItem>
-                        <SelectItem value="10">Ir 10 años atrás</SelectItem>
-                        <SelectItem value="15">Ir 15 años atrás</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <Calendar
-                      locale={es}
-                      mode="single"
-                      selected={fabricationDate}
-                      onSelect={setFabricationDate}
-                      initialFocus
-                      month={fabricationDate}
-                    />
-                  </PopoverContent>
-                </Popover>
-                <FormDescription>
-                  Fecha de creación del articulo.
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="caducate_date"
-            render={({ field }) => (
-              <FormItem className="flex flex-col p-0 mt-2.5 w-full">
-                <FormLabel>Fecha de Caducidad</FormLabel>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <FormControl>
-                      <Button
-                        variant={"outline"}
-                        className={cn(
-                          "w-full pl-3 text-left font-normal",
-                          !caducateDate && "text-muted-foreground"
-                        )}
+                        <SelectTrigger className="p-3">
+                          <SelectValue placeholder="Seleccione una opcion..." />
+                        </SelectTrigger>
+                        <SelectContent position="popper">
+                          <SelectItem value="0">Actual</SelectItem>{" "}
+                          <SelectItem value="5">Ir 5 años atrás</SelectItem>
+                          <SelectItem value="10">Ir 10 años atrás</SelectItem>
+                          <SelectItem value="15">Ir 15 años atrás</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <Calendar
+                        locale={es}
+                        mode="single"
+                        selected={fabricationDate}
+                        onSelect={setFabricationDate}
+                        initialFocus
+                        month={fabricationDate}
+                      />
+                    </PopoverContent>
+                  </Popover>
+                  <FormDescription>
+                    Fecha de creación del articulo.
+                  </FormDescription>{" "}
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="caducate_date"
+              render={({ field }) => (
+                <FormItem className="flex flex-col p-0 mt-2.5 w-full">
+                  <FormLabel>Fecha de Caducidad - Shell-Life</FormLabel>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <FormControl>
+                        <Button
+                          variant={"outline"}
+                          className={cn(
+                            "w-full pl-3 text-left font-normal",
+                            !caducateDate && "text-muted-foreground"
+                          )}
+                        >
+                          {caducateDate ? (
+                            format(caducateDate, "PPP", { locale: es })
+                          ) : (
+                            <span>Seleccione una fecha</span>
+                          )}
+                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                        </Button>
+                      </FormControl>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Select
+                        onValueChange={(value) =>
+                          setCaducateDate(addYears(new Date(), parseInt(value)))
+                        }
                       >
-                        {caducateDate ? (
-                          format(caducateDate, "PPP", {
-                            locale: es,
-                          })
-                        ) : (
-                          <span>Seleccione una fecha</span>
-                        )}
-                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                      </Button>
-                    </FormControl>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Select
-                      onValueChange={(value) =>
-                        setCaducateDate(addYears(new Date(), parseInt(value)))
-                      }
-                    >
-                      <SelectTrigger className="p-3">
-                        <SelectValue placeholder="Seleccione una opcion..." />
-                      </SelectTrigger>
-                      <SelectContent position="popper">
-                        <SelectItem value="0">Actual</SelectItem>
-                        <SelectItem value="5">5 años</SelectItem>
-                        <SelectItem value="10">10 años</SelectItem>
-                        <SelectItem value="15">15 años</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <Calendar
-                      locale={es}
-                      mode="single"
-                      selected={caducateDate}
-                      onSelect={setCaducateDate}
-                      initialFocus
-                      month={caducateDate}
-                    />
-                  </PopoverContent>
-                </Popover>
-                <FormDescription>Fecha límite del articulo.</FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-
-        <div className="flex flex-row gap-12 justify-center max-w-6xl">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="flex flex-col space-x-0 space-y-2 mt-2.5">
-              <Label>Metodo de Ingreso</Label>
-              <Popover open={open} onOpenChange={setOpen}>
-                <PopoverTrigger asChild>
-                  <Button
-                    disabled={secondaryLoading}
-                    variant="outline"
-                    role="combobox"
-                    aria-expanded={open}
-                    className="justify-between"
-                  >
-                    {secondaryUnits &&
-                      (secondarySelected
-                        ? secondaryUnits.find(
-                            (secondaryUnits) =>
-                              secondaryUnits.id.toString() ===
-                              secondarySelected.id.toString()
-                          )?.secondary_unit
-                        : "Seleccione...")}
-                    <ChevronsUpDown className="opacity-50" />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-[200px] p-0">
-                  <Command>
-                    <CommandInput placeholder="Search framework..." />
-                    <CommandList>
-                      <CommandEmpty>
-                        No existen unidades secundarias.
-                      </CommandEmpty>
-                      <CommandGroup>
-                        {secondaryUnits &&
-                          secondaryUnits.map((secondaryUnit) => (
-                            <CommandItem
-                              key={secondaryUnit.id}
-                              value={secondaryUnit.id.toString()}
-                              onSelect={(currentValue) => {
-                                setSecondarySelected(
-                                  secondaryUnits.find(
-                                    (secondaryUnit) =>
-                                      secondaryUnit.id.toString() ===
-                                      currentValue
-                                  ) || null
-                                );
-                                setOpen(false);
-                              }}
-                            >
-                              {secondaryUnit.secondary_unit}
-                              <Check
-                                className={cn(
-                                  "ml-auto",
-                                  secondarySelected?.id.toString() ===
-                                    secondaryUnit.id.toString()
-                                    ? "opacity-100"
-                                    : "opacity-0"
-                                )}
-                              />
-                            </CommandItem>
-                          ))}
-                      </CommandGroup>
-                    </CommandList>
-                  </Command>
-                </PopoverContent>
-              </Popover>
-              <p className="text-sm text-muted-foreground">
-                Indique como será ingresado el articulo.
-              </p>
-            </div>
-            <div className="space-y-2">
-              <Label>Cantidad</Label>
-              <Input
-                type="number"
-                onChange={(e) =>
-                  setSecondaryQuantity(parseFloat(e.target.value))
-                }
-                placeholder="EJ: 2, 4, 6..."
-              />
-              <p className="text-sm text-muted-foreground">
-                Indique la cantidad a ingresar.
-              </p>
-            </div>
+                        <SelectTrigger className="p-3">
+                          <SelectValue placeholder="Seleccione una opcion..." />
+                        </SelectTrigger>
+                        <SelectContent position="popper">
+                          <SelectItem value="0">Actual</SelectItem>{" "}
+                          <SelectItem value="5">5 años</SelectItem>
+                          <SelectItem value="10">10 años</SelectItem>{" "}
+                          <SelectItem value="15">15 años</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <Calendar
+                        locale={es}
+                        mode="single"
+                        selected={caducateDate}
+                        onSelect={setCaducateDate}
+                        initialFocus
+                        month={caducateDate}
+                      />
+                    </PopoverContent>
+                  </Popover>
+                  <FormDescription>Fecha límite del articulo.</FormDescription>{" "}
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             <FormField
               control={form.control}
               name="manufacturer_id"
               render={({ field }) => (
                 <FormItem className="w-full">
-                  <FormLabel>Fabricante</FormLabel>
+                  <div className="flex items-center justify-between">
+                    <FormLabel>Fabricante</FormLabel>
+                    <CreateManufacturerDialog
+                      defaultType="PART"
+                      onSuccess={(manufacturer) => {
+                        if (manufacturer?.id) {
+                          form.setValue("manufacturer_id", manufacturer.id.toString(), {
+                            shouldValidate: true,
+                          });
+                        }
+                      }}
+                      triggerButton={
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 text-xs"
+                        >
+                          <Plus className="h-3 w-3 mr-1" />
+                          Crear nuevo
+                        </Button>
+                      }
+                    />
+                  </div>
                   <Select
                     disabled={isManufacturerLoading}
                     onValueChange={field.onChange}
@@ -604,139 +563,112 @@ const CreateConsumableForm = ({
                   >
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Selecccione..." />
+                        <SelectValue placeholder="Seleccione..." />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {manufacturers &&
-                        manufacturers.map((manufacturer) => (
-                          <SelectItem
-                            key={manufacturer.id}
-                            value={manufacturer.id.toString()}
-                          >
-                            {manufacturer.name}
+                      {manufacturers
+                        ?.filter((m) => m.type === "PART")
+                        .map((m) => (
+                          <SelectItem key={m.id} value={m.id.toString()}>
+                            {m.name}
                           </SelectItem>
                         ))}
+                      {isManufacturerError && (
+                        <div className="p-2 text-sm text-muted-foreground">
+                          Error al cargar fabricantes.
+                        </div>
+                      )}
                     </SelectContent>
                   </Select>
                   <FormDescription>
-                    Marca específica del articulo.
+                    Marca específica del artículo.
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            {/* {
-              isEditing && (
-                <FormField
-                  control={form.control}
-                  name="zone"
-                  render={({ field }) => (
-                    <FormItem className="w-full">
-                      <FormLabel>Ubicación del Articulo</FormLabel>
-                      <FormControl>
-                        <Input placeholder="EJ: Pasillo 4, repisa 3..." {...field} />
-                      </FormControl>
-                      <FormDescription>
-                        Ubicación exacta del articulo.
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              )
-            } */}
             <FormField
               control={form.control}
               name="zone"
               render={({ field }) => (
                 <FormItem className="w-full">
-                  <FormLabel>Ubicación del Articulo</FormLabel>
+                  <FormLabel>Ubicación interna</FormLabel>
                   <FormControl>
                     <Input
-                      placeholder="EJ: Pasillo 4, repisa 3..."
+                      placeholder="Ej: Pasillo 4, repisa 3..."
                       {...field}
                     />
                   </FormControl>
-                  <FormDescription>
-                    Ubicación exacta del articulo.
-                  </FormDescription>
+                  <FormDescription>Zona física en almacén.</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
             />
             <FormField
               control={form.control}
-              name="batches_id"
+              name="batch_id"
               render={({ field }) => (
-                <FormItem className="w-full">
-                  <FormLabel>Lote del Articulo</FormLabel>
-                  <Popover open={batchOpen} onOpenChange={setBatchOpen}>
+                <FormItem className="flex flex-col space-y-3 mt-1.5 w-full">
+                  <FormLabel>Descripción de Consumible</FormLabel>
+                  <Popover>
                     <PopoverTrigger asChild>
                       <FormControl>
                         <Button
+                          disabled={isBatchesLoading || isBatchesError}
                           variant="outline"
                           role="combobox"
-                          aria-expanded={batchOpen}
                           className={cn(
-                            "w-full justify-between h-auto min-h-[2.5rem] py-2",
+                            "justify-between",
                             !field.value && "text-muted-foreground"
                           )}
-                          disabled={isBatchesLoading}
                         >
-                          {isBatchesLoading ? (
-                            <div className="flex items-center">
-                              <Loader2 className="size-4 animate-spin mr-2" />
-                              <span>Cargando lotes...</span>
-                            </div>
-                          ) : field.value ? (
-                            <div className="flex flex-col overflow-hidden">
-                              <span className="font-medium truncate">
-                                {filteredBatches?.find((batch) => batch.id.toString() === field.value)?.name}
-                              </span>
-                              <span className="text-xs text-muted-foreground truncate">
-                                {filteredBatches?.find((batch) => batch.id.toString() === field.value)?.warehouse_name}
-                              </span>
-                            </div>
+                          {isBatchesLoading && (
+                            <Loader2 className="size-4 animate-spin mr-2" />
+                          )}
+                          {field.value ? (
+                            <p>
+                              {
+                                batches?.find((b) => `${b.id}` === field.value)
+                                  ?.name
+                              }
+                            </p>
                           ) : (
-                            "Buscar lote..."
+                            "Elegir descripción..."
                           )}
                           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                         </Button>
                       </FormControl>
                     </PopoverTrigger>
-                    <PopoverContent className="w-[400px] p-0">
+                    <PopoverContent className="p-0">
                       <Command>
-                        <CommandInput placeholder="Buscar lote..." />
+                        <CommandInput placeholder="Busque una aeronave..." />
                         <CommandList>
-                          <CommandEmpty>
-                            {isError ? 
-                              "Ha ocurrido un error al cargar los lotes..." : 
-                              "No se han encontrado lotes..."
-                            }
+                          <CommandEmpty className="text-xs p-2 text-center">
+                            No se ha encontrado ninguna aeronave.
                           </CommandEmpty>
                           <CommandGroup>
-                            {filteredBatches?.map((batch) => (
+                            {batches?.map((batch) => (
                               <CommandItem
+                                value={`${batch.name}`}
                                 key={batch.id}
-                                value={`${batch.name} ${batch.warehouse_name}`}
                                 onSelect={() => {
-                                  form.setValue("batches_id", batch.id.toString());
-                                  setBatchOpen(false);
+                                  form.setValue(
+                                    "batch_id",
+                                    batch.id.toString(),
+                                    { shouldValidate: true }
+                                  );
                                 }}
                               >
                                 <Check
                                   className={cn(
                                     "mr-2 h-4 w-4",
-                                    field.value === batch.id.toString()
+                                    `${batch.id}` === field.value
                                       ? "opacity-100"
                                       : "opacity-0"
                                   )}
                                 />
-                                <div className="flex flex-col">
-                                  <span className="font-medium">{batch.name}</span>
-                                  <span className="text-sm text-muted-foreground">{batch.warehouse_name}</span>
-                                </div>
+                                <p>{batch.name}</p>
                               </CommandItem>
                             ))}
                           </CommandGroup>
@@ -744,21 +676,171 @@ const CreateConsumableForm = ({
                       </Command>
                     </PopoverContent>
                   </Popover>
-                  <FormDescription>Lote a asignar el articulo.</FormDescription>
+                  <FormDescription>
+                    Descripción del componente a registrar.
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
             />
+          </CardContent>
+        </Card>
+
+        {/* Ingreso y cantidad */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-xl">Ingreso y cantidad</CardTitle>
+          </CardHeader>
+          <CardContent className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+            {/* Método de ingreso (unidad secundaria) */}
+            <div className="flex flex-col space-y-2 mt-2.5">
+              <FormLabel>Método de ingreso</FormLabel>
+              <Popover open={secondaryOpen} onOpenChange={setSecondaryOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    disabled={secondaryLoading}
+                    variant="outline"
+                    role="combobox"
+                    aria-expanded={secondaryOpen}
+                    className="justify-between"
+                  >
+                    {secondarySelected
+                      ? `${secondarySelected.secondary_unit}`
+                      : secondaryLoading
+                        ? "Cargando..."
+                        : "Seleccione..."}
+                    <ChevronsUpDown className="opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-[260px] p-0">
+                  <Command>
+                    <CommandInput placeholder="Buscar unidad..." />
+                    <CommandList>
+                      <CommandEmpty>
+                        No existen unidades secundarias.
+                      </CommandEmpty>
+                      <CommandGroup>
+                        {secondaryUnits?.map((s) => (
+                          <CommandItem
+                            key={s.id}
+                            value={s.id.toString()}
+                            onSelect={(val) => {
+                              const found =
+                                secondaryUnits.find(
+                                  (u) => u.id.toString() === val
+                                ) || null;
+                              setSecondarySelected(found);
+                              setSecondaryOpen(false);
+                              if (
+                                found &&
+                                typeof secondaryQuantity === "number"
+                              ) {
+                                const calc =
+                                  (found.convertion_rate ?? 1) *
+                                  (found.quantity_unit ?? 1) *
+                                  (secondaryQuantity ?? 0);
+                                form.setValue("quantity", calc, {
+                                  shouldDirty: true,
+                                  shouldValidate: true,
+                                });
+                                form.setValue("convertion_id", found.id, {
+                                  shouldDirty: true,
+                                });
+                              }
+                            }}
+                          >
+                            {s.secondary_unit}
+                            <Check
+                              className={cn(
+                                "ml-auto",
+                                secondarySelected?.id.toString() ===
+                                  s.id.toString()
+                                  ? "opacity-100"
+                                  : "opacity-0"
+                              )}
+                            />
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
+              <p className="text-sm text-muted-foreground">
+                Indique cómo será ingresado el artículo.
+              </p>
+            </div>
+
+            {/* Cantidad secundaria */}
+            <div className="space-y-2">
+              <FormLabel>Cantidad</FormLabel>
+              <Input
+                type="number"
+                inputMode="decimal"
+                min="0"
+                onChange={(e) => {
+                  const n = parseFloat(e.target.value);
+                  if (!Number.isNaN(n) && n < 0) return;
+                  setSecondaryQuantity(Number.isNaN(n) ? undefined : n);
+                }}
+                placeholder="Ej: 2, 4, 6..."
+              />
+              <p className="text-sm text-muted-foreground">
+                Cantidad según método de ingreso seleccionado.
+              </p>
+            </div>
+
+            {/* Cantidad resultante (read-only visual, pero validada en RHF) */}
+            <FormField
+              control={form.control}
+              name="quantity"
+              render={({ field }) => (
+                <FormItem className="w-full">
+                  <FormLabel>Cantidad resultante</FormLabel>
+                  <FormControl>
+                    <Input disabled type="number" placeholder="0" {...field} />
+                  </FormControl>
+                  <FormDescription>
+                    Unidades base que se registrarán.
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Cantidad mínima */}
+            <FormField
+              control={form.control}
+              name="min_quantity"
+              render={({ field }) => (
+                <FormItem className="w-full">
+                  <FormLabel>Cantidad Mínima</FormLabel>
+                  <FormControl>
+                    <Input 
+                      type="number" 
+                      min="0"
+                      placeholder="Ej: 5" 
+                      {...field}
+                      disabled={busy}
+                      onChange={(e) => {
+                        const n = parseFloat(e.target.value);
+                        if (!Number.isNaN(n) && n < 0) return;
+                        field.onChange(e.target.value === "" ? undefined : n);
+                      }}
+                    />
+                  </FormControl>
+                  <FormDescription>Cantidad mínima de stock para alertas.</FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* ¿Es manejable? */}
             <FormField
               control={form.control}
               name="is_managed"
               render={({ field }) => (
-                <FormItem
-                  className={cn(
-                    "flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4",
-                    isEditing ? "" : "col-span-2"
-                  )}
-                >
+                <FormItem className="col-span-1 md:col-span-2 xl:col-span-3 flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
                   <FormControl>
                     <Checkbox
                       checked={field.value}
@@ -766,171 +848,222 @@ const CreateConsumableForm = ({
                     />
                   </FormControl>
                   <div className="space-y-1 leading-none">
-                    <FormLabel>¿Es manejable?</FormLabel>
+                    <FormLabel>¿Necesita despachar el articulo en pequeñas cantidades?</FormLabel>
                     <FormDescription>
-                      ¿El articulo es manejable (consumible)?
                     </FormDescription>
                   </div>
                 </FormItem>
               )}
             />
-          </div>
-          <div className="flex flex-col max-w-7xl w-1/2 space-y-3">
+          </CardContent>
+        </Card>
+
+        {/* Descripción y archivos */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-xl">Detalles y documentos</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
             <FormField
               control={form.control}
               name="description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Descripción del Articulo</FormLabel>
+                  <FormLabel>Detalles/Observaciones</FormLabel>
                   <FormControl>
                     <Textarea
                       rows={5}
-                      placeholder="EJ: Motor V8 de..."
+                      placeholder="Ej: Fluido hidráulico MIL-PRF-83282..."
                       {...field}
                     />
                   </FormControl>
                   <FormDescription>
-                    Breve descricion del articulo.
+                    Observaciones sobre el artículo.
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            <FormField
-              control={form.control}
-              name="image"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Imágen del Articulo</FormLabel>
-                  <FormControl>
-                    <div className="relative h-10 w-full ">
-                      <FileUpIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 z-10" />
-                      <Input
-                        type="file"
-                        onChange={(e) =>
-                          form.setValue("image", e.target.files![0])
-                        }
-                        className="pl-10 pr-3 py-2 text-md w-full border border-gray-300 rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-[#6E23DD] focus:border-transparent cursor-pointer" // Add additional styling as needed
-                      />
-                    </div>
-                  </FormControl>
-                  <FormDescription>
-                    Imágen descriptiva del articulo
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <div className="flex flex-col lg:flex-row gap-2 items-center">
+
+            <Separator />
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
-                name="certificate_8130"
-                render={({ field }) => (
+                name="image"
+                render={() => (
                   <FormItem>
-                    <FormLabel>
-                      Certificado #
-                      <span className="text-primary font-bold">8130</span>
-                    </FormLabel>
+                    <FormLabel>Imagen del artículo</FormLabel>
                     <FormControl>
-                      <div className="relative h-10 w-full ">
-                        <FileUpIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 z-10" />
+                      <div className="relative h-10 w-full">
+                        <FileUpIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 z-10" />
                         <Input
                           type="file"
-                          className="pl-8 pr-3 py-2 text-md w-full border border-gray-300 rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-[#6E23DD] focus:border-transparent cursor-pointer" // Add additional styling as needed
-                          placeholder="Subir archivo..."
-                          onChange={(e) =>
-                            form.setValue(
-                              "certificate_8130",
-                              e.target.files![0]
-                            )
-                          }
+                          accept="image/*"
+                          onChange={(e) => {
+                            const f = e.target.files?.[0];
+                            if (f)
+                              form.setValue("image", f, {
+                                shouldDirty: true,
+                                shouldValidate: true,
+                              });
+                          }}
+                          className="pl-10 pr-3 py-2 w-full border border-gray-300 rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-[#6E23DD] focus:border-transparent cursor-pointer"
                         />
                       </div>
                     </FormControl>
-                    <FormDescription>
-                      Documento legal del archivo.
-                    </FormDescription>
+                    <FormDescription>Imagen descriptiva.</FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-              <FormField
-                control={form.control}
-                name="certificate_fabricant"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>
-                      Certificado del{" "}
-                      <span className="text-primary">Fabricante</span>
-                    </FormLabel>
-                    <FormControl>
-                      <div className="relative h-10 w-full ">
-                        <FileUpIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 z-10" />
-                        <Input
-                          type="file"
-                          className="pl-8 pr-3 py-2 text-md w-full border border-gray-300 rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-[#6E23DD] focus:border-transparent cursor-pointer"
-                          onChange={(e) =>
-                            form.setValue(
-                              "certificate_fabricant",
-                              e.target.files![0]
-                            )
-                          }
-                        />
-                      </div>
-                    </FormControl>
-                    <FormDescription>
-                      Documentos legal del articulo.
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="certificate_vendor"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>
-                      Certificado del{" "}
-                      <span className="text-primary">Vendedor</span>
-                    </FormLabel>
-                    <FormControl>
-                      <div className="relative h-10 w-full ">
-                        <FileUpIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 z-10" />
-                        <Input
-                          type="file"
-                          className="pl-8 pr-3 py-2 text-md w-full border border-gray-300 rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-[#6E23DD] focus:border-transparent cursor-pointer" // Add additional styling as needed
-                          onChange={(e) =>
-                            form.setValue(
-                              "certificate_vendor",
-                              e.target.files![0]
-                            )
-                          }
-                        />
-                      </div>
-                    </FormControl>
-                    <FormDescription>
-                      Documentos legal del articulo.
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+
+              <div className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="certificate_8130"
+                  render={() => (
+                    <FormItem>
+                      <FormLabel>
+                        Certificado{" "}
+                        <span className="text-primary font-semibold">8130</span>
+                      </FormLabel>
+                      <FormControl>
+                        <div className="relative h-10 w-full">
+                          <FileUpIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 z-10" />
+                          <Input
+                            type="file"
+                            accept=".pdf,image/*"
+                            onChange={(e) => {
+                              const f = e.target.files?.[0];
+                              if (f)
+                                form.setValue("certificate_8130", f, {
+                                  shouldDirty: true,
+                                  shouldValidate: true,
+                                });
+                            }}
+                            className="pl-10 pr-3 py-2 w-full border border-gray-300 rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-[#6E23DD] focus:border-transparent cursor-pointer"
+                          />
+                        </div>
+                      </FormControl>
+                      <FormDescription>
+                        PDF o imagen. Máx. 10 MB.
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="certificate_fabricant"
+                  render={() => (
+                    <FormItem>
+                      <FormLabel>
+                        Certificado del{" "}
+                        <span className="text-primary">fabricante</span>
+                      </FormLabel>
+                      <FormControl>
+                        <div className="relative h-10 w-full">
+                          <FileUpIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 z-10" />
+                          <Input
+                            type="file"
+                            accept=".pdf,image/*"
+                            onChange={(e) => {
+                              const f = e.target.files?.[0];
+                              if (f)
+                                form.setValue("certificate_fabricant", f, {
+                                  shouldDirty: true,
+                                  shouldValidate: true,
+                                });
+                            }}
+                            className="pl-10 pr-3 py-2 w-full border border-gray-300 rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-[#6E23DD] focus:border-transparent cursor-pointer"
+                          />
+                        </div>
+                      </FormControl>
+                      <FormDescription>
+                        PDF o imagen. Máx. 10 MB.
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="certificate_vendor"
+                  render={() => (
+                    <FormItem>
+                      <FormLabel>
+                        Certificado del{" "}
+                        <span className="text-primary">vendedor</span>
+                      </FormLabel>
+                      <FormControl>
+                        <div className="relative h-10 w-full">
+                          <FileUpIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 z-10" />
+                          <Input
+                            type="file"
+                            accept=".pdf,image/*"
+                            onChange={(e) => {
+                              const f = e.target.files?.[0];
+                              if (f)
+                                form.setValue("certificate_vendor", f, {
+                                  shouldDirty: true,
+                                  shouldValidate: true,
+                                });
+                            }}
+                            className="pl-10 pr-3 py-2 w-full border border-gray-300 rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-[#6E23DD] focus:border-transparent cursor-pointer"
+                          />
+                        </div>
+                      </FormControl>
+                      <FormDescription>
+                        PDF o imagen. Máx. 10 MB.
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
             </div>
-          </div>
-        </div>
-        <div>
+          </CardContent>
+        </Card>
+
+        {/* Descripción corta extra si necesitas más aire visual */}
+        {/* <Card><CardContent>...</CardContent></Card> */}
+
+        {/* Acciones */}
+        <div className="flex items-center gap-3">
           <Button
-            className="bg-primary text-white hover:bg-blue-900 disabled:bg-slate-50 disabled:border-dashed disabled:border-black"
-            disabled={createArticle?.isPending || confirmIncoming.isPending || editArticle.isPending}
+            className="bg-primary text-white hover:bg-blue-900 disabled:bg-slate-100 disabled:text-slate-400"
+            disabled={
+              busy ||
+              !selectedCompany ||
+              !form.getValues("part_number") ||
+              !form.getValues("batch_id") ||
+              createArticle.isPending ||
+              updateArticle.isPending
+            }
             type="submit"
           >
-            {createArticle?.isPending || confirmIncoming.isPending || editArticle.isPending ? (
-              "Cargando..."
+            {busy ? (
+              <Image
+                className="text-black"
+                src={loadingGif}
+                width={170}
+                height={170}
+                alt="Cargando..."
+              />
             ) : (
-              <p>{isEditing && initialData?.id ? "Actualizar Artículo" : isEditing ? "Confirmar Ingreso" : "Crear Articulo"}</p>
+              <span>{isEditing ? "Confirmar ingreso" : "Crear artículo"}</span>
             )}
           </Button>
+
+          {busy && (
+            <div className="inline-flex items-center text-sm text-muted-foreground gap-2">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Procesando…
+            </div>
+          )}
         </div>
       </form>
     </Form>

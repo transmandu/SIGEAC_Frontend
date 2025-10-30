@@ -1,355 +1,383 @@
-'use client'
+"use client";
 
-import { useConfirmIncomingArticle, useCreateArticle } from "@/actions/mantenimiento/almacen/inventario/articulos/actions"
-import { Button } from "@/components/ui/button"
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
+import Image from "next/image";
+import { useRouter } from "next/navigation";
+import { useEffect, useMemo } from "react";
+
+import { zodResolver } from "@hookform/resolvers/zod";
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+
+import { CalendarIcon, Check, FileUpIcon, Loader2, Plus, Wrench } from "lucide-react";
+
+import {
+  useConfirmIncomingArticle,
+  useCreateArticle,
+  useUpdateArticle,
+} from "@/actions/mantenimiento/almacen/inventario/articulos/actions";
+
+import { MultiInputField } from "@/components/misc/MultiInputField";
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
-import { useGetConditions } from "@/hooks/administracion/useGetConditions"
-import { useGetManufacturers } from "@/hooks/general/fabricantes/useGetManufacturers"
-import { useGetBatchesByLocationId } from "@/hooks/mantenimiento/almacen/renglones/useGetBatchesByLocationId"
-import loadingGif from '@/public/loading2.gif'
-import { useCompanyStore } from "@/stores/CompanyStore"
-import { Article, Batch } from "@/types"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { FileUpIcon, Loader2, Check, ChevronsUpDown } from "lucide-react"
-import Image from "next/image"
-import { useRouter } from "next/navigation"
-import { useEffect, useState } from "react"
-import { useForm } from "react-hook-form"
-import { z } from "zod"
-import { MultiInputField } from "../../../misc/MultiInputField"
-import { Checkbox } from "../../../ui/checkbox"
-import { Textarea } from "../../../ui/textarea"
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover"
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@/components/ui/command"
+} from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
+import { Textarea } from "@/components/ui/textarea";
+
+import { useGetConditions } from "@/hooks/administracion/useGetConditions";
+import { useGetManufacturers } from "@/hooks/general/fabricantes/useGetManufacturers";
+import { useGetBatchesByCategory } from "@/hooks/mantenimiento/almacen/renglones/useGetBatchesByCategory";
+
 import { cn } from "@/lib/utils";
+import { useCompanyStore } from "@/stores/CompanyStore";
+import { Batch } from "@/types";
 
+import loadingGif from "@/public/loading2.gif";
+import { EditingArticle } from "./RegisterArticleForm";
+import { CreateManufacturerDialog } from "@/components/dialogs/general/CreateManufacturerDialog";
 
-const formSchema = z.object({
-  article_type: z.string(),
-  serial: z.string().min(2, {
-    message: "El serial debe contener al menos 2 carácteres.",
-  }),
-  part_number: z.string().min(2, {
-    message: "El serial debe contener al menos 2 carácteres.",
-  }),
-  alternative_part_number: z.array(
-    z.string().min(2, {
-      message: "Cada número de parte alterno debe contener al menos 2 carácteres.",
-    })
-  ).optional(),
-  description: z.string({
-    message: "Debe ingresar la descripción del articulo."
-  }).min(2, {
-    message: "La descripción debe contener al menos 2 carácteres.",
-  }),
-  zone: z.string({
-    message: "Debe ingresar la ubicación del articulo.",
-  }),
-  manufacturer_id: z.string({
-    message: "Debe ingresar un fabricante.",
-  }),
-  condition_id: z.string(),
-  cost: z.string(),
-  batches_id: z.string({
-    message: "Debe ingresar un lote.",
-  }),
-  is_special: z.boolean(),
-  certificate_8130: z
-    .instanceof(File, { message: 'Please upload a file.' })
-    .refine((f) => f.size < 1000000_000, 'Max 100Kb upload size.').optional(),
-  certificate_fabricant: z
-    .instanceof(File, { message: 'Please upload a file.' })
-    .refine((f) => f.size < 1000000_000, 'Max 100Kb upload size.').optional(),
+/* ------------------------------- Schema ------------------------------- */
 
-  certificate_vendor: z
-    .instanceof(File, { message: 'Please upload a file.' })
-    .refine((f) => f.size < 1000000_000, 'Max 100Kb upload size.').optional(),
-  image: z
-    .instanceof(File, { message: 'Please upload a file.' })
-    .refine((f) => f.size < 1000000_000, 'Max 100Kb upload size.').optional(),
-})
+const fileMaxBytes = 10_000_000; // 10 MB
 
+const formSchema = z
+  .object({
+    article_type: z.string().optional(),
+    part_number: z.string().min(2, "Al menos 2 caracteres."),
+    alternative_part_number: z.array(z.string().min(2)).optional(),
+    serial: z.string().optional(),
+    model: z.string().optional(),
+    description: z.string().min(2, "Al menos 2 caracteres."),
+    zone: z.string().min(1, "Campo requerido"),
+    manufacturer_id: z.string().min(1, "Seleccione un fabricante"),
+    condition_id: z.string().min(1, "Seleccione una condición"),
+    batch_id: z.string().min(1, "Seleccione una categoría"),
 
-interface EditingArticle extends Article {
-  batches: Batch,
-  tool?: {
-    id: number,
-    serial: string,
-    isSpecial: boolean,
-    article_id: number,
-  }
-}
+    // Calibración
+    needs_calibration: z.boolean().optional(),
+    calibration_date: z.date().optional(),
+    next_calibration: z
+      .union([z.coerce.number().int().positive(), z.nan()])
+      .optional(), // ingresado solo si needs_calibration
 
+    // Archivos
+    certificate_8130: z
+      .instanceof(File, { message: "Archivo inválido." })
+      .refine((f) => f.size <= fileMaxBytes, "Máx. 10 MB.")
+      .optional(),
+    certificate_fabricant: z
+      .instanceof(File, { message: "Archivo inválido." })
+      .refine((f) => f.size <= fileMaxBytes, "Máx. 10 MB.")
+      .optional(),
+    certificate_vendor: z
+      .instanceof(File, { message: "Archivo inválido." })
+      .refine((f) => f.size <= fileMaxBytes, "Máx. 10 MB.")
+      .optional(),
+    image: z.instanceof(File).optional(),
+  })
+  .superRefine((vals, ctx) => {
+    if (vals.needs_calibration) {
+      if (!vals.calibration_date) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Ingrese la última fecha de calibración.",
+          path: ["calibration_date"],
+        });
+      }
+      if (
+        vals.next_calibration === undefined ||
+        vals.next_calibration === null ||
+        Number.isNaN(vals.next_calibration) ||
+        (typeof vals.next_calibration === "number" &&
+          vals.next_calibration <= 0)
+      ) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Ingrese días para la próxima calibración (número > 0).",
+          path: ["next_calibration"],
+        });
+      }
+    }
+  });
 
-const CreateToolForm = ({ initialData, isEditing }: {
-  initialData?: EditingArticle,
-  isEditing?: boolean,
-}) => {
+type FormValues = z.infer<typeof formSchema>;
 
-  const [filteredBatches, setFilteredBatches] = useState<Batch[]>()
-  const [batchOpen, setBatchOpen] = useState(false)
+/* ----------------------------- Componente ----------------------------- */
+
+export default function CreateToolForm({
+  initialData,
+  isEditing,
+}: {
+  initialData?: EditingArticle;
+  isEditing?: boolean;
+}) {
+  const router = useRouter();
+  const { selectedCompany } = useCompanyStore();
+
+  const {
+    data: batches,
+    isPending: isBatchesLoading,
+    isError: isBatchesError,
+  } = useGetBatchesByCategory("herramienta");
+  
+  const {
+    data: manufacturers,
+    isLoading: isManufacturerLoading,
+    isError: isManufacturerError,
+  } = useGetManufacturers(selectedCompany?.slug);
+
+  const {
+    data: conditions,
+    isLoading: isConditionsLoading,
+    error: isConditionsError,
+  } = useGetConditions();
+
+  console.log('this is  conditions ' , conditions);
 
   const { createArticle } = useCreateArticle();
-
+  const { updateArticle } = useUpdateArticle();
   const { confirmIncoming } = useConfirmIncomingArticle();
 
-  const { selectedStation, selectedCompany } = useCompanyStore();
-
-  const router = useRouter()
-
-  const { mutate, data: batches, isPending: isBatchesLoading, isError } = useGetBatchesByLocationId();
-
-  const { data: conditions, isLoading: isConditionsLoading, error: isConditionsError } = useGetConditions();
-
-  const { data: manufacturers, isLoading: isManufacturerLoading, isError: isManufacturerError } = useGetManufacturers(selectedCompany?.slug)
-
-  useEffect(() => {
-    if (selectedStation && selectedCompany) {
-      mutate({location_id: Number(selectedStation), company: selectedCompany!.slug})
-    }
-  }, [selectedStation, mutate, selectedCompany])
-
-  useEffect(() => {
-    if (batches) {
-      // Filtrar los batches por categoría
-      const filtered = batches.filter((batch) => batch.category === "HERRAMIENTA");
-      setFilteredBatches(filtered);
-    }
-  }, [batches]);
-
-  const form = useForm<z.infer<typeof formSchema>>({
+  const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      serial: initialData?.serial || "",
       part_number: initialData?.part_number || "",
       alternative_part_number: initialData?.alternative_part_number || [],
-      batches_id: initialData?.batches.id?.toString() || "",
-      manufacturer_id: initialData?.manufacturer?.id.toString() || "",
-      condition_id: initialData?.condition?.id.toString() || "",
+      serial: initialData?.serial || "",
       description: initialData?.description || "",
-      is_special: initialData?.tool?.isSpecial || false,
       zone: initialData?.zone || "",
-      cost: initialData && initialData?.cost?.toString() || "",
-    }
-  })
-  form.setValue("article_type", "herramienta");
+      manufacturer_id: initialData?.manufacturer?.id?.toString() || "",
+      condition_id: initialData?.condition?.id?.toString() || "",
+      batch_id: initialData?.batches?.id?.toString() || "",
+      needs_calibration: initialData?.tool?.needs_calibration ?? false,
+      calibration_date: initialData?.tool?.calibration_date
+        ? new Date(initialData.tool.calibration_date)
+        : undefined,
+      next_calibration: undefined,
+    },
+  });
 
-  const onSubmit = (values: z.infer<typeof formSchema>) => {
-    const formattedValues = {
+  useEffect(() => {
+    form.setValue("article_type", "herramienta");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    if (!initialData) return;
+    form.reset({
+      part_number: initialData.part_number || "",
+      alternative_part_number: initialData.alternative_part_number || [],
+      serial: initialData.serial || "",
+      description: initialData.description || "",
+      zone: initialData.zone || "",
+      manufacturer_id: initialData.manufacturer?.id?.toString() || "",
+      condition_id: initialData.condition?.id?.toString() || "",
+      batch_id: initialData.batches?.id?.toString() || "",
+      needs_calibration: initialData.tool?.needs_calibration ?? false,
+      calibration_date: initialData.tool?.calibration_date
+        ? new Date(initialData.tool.calibration_date)
+        : undefined,
+      next_calibration: undefined,
+    });
+  }, [initialData, form]);
+
+  const busy =
+    isBatchesLoading ||
+    isManufacturerLoading ||
+    isConditionsLoading ||
+    createArticle.isPending ||
+    confirmIncoming.isPending || 
+    updateArticle.isPending;
+
+  const batchesOptions = useMemo<Batch[] | undefined>(() => batches, [batches]);
+
+  const normalizeUpper = (s?: string) => s?.trim().toUpperCase() ?? "";
+
+  const onSubmit = async (values: FormValues) => {
+    if (!selectedCompany?.slug) return;
+
+    const payload: any = {
       ...values,
-      batches_id: Number(values.batches_id),
-      cost: 0,
-      status: "Stored",
-    }
+      part_number: normalizeUpper(values.part_number),
+      alternative_part_number:
+        values.alternative_part_number?.map((v) => normalizeUpper(v)) ?? [],
+      calibration_date: values.calibration_date
+        ? format(values.calibration_date, "yyyy-MM-dd")
+        : undefined,
+      // `next_calibration` se envía tal cual como número
+    };
+
     if (isEditing) {
-      confirmIncoming.mutate({
-        values: {
-          ...values,
-          id: initialData?.id,
-          certificate_8130: values.certificate_8130 || initialData?.certifcate_8130,
-          certificate_fabricant: values.certificate_fabricant || initialData?.certifcate_fabricant,
-          certificate_vendor: values.certificate_vendor || initialData?.certifcate_vendor,
-          status: "Stored"
-        },
-        company: selectedCompany!.slug
-      })
-      router.push(`/${selectedCompany?.slug}/almacen/ingreso/en_recepcion`)
+      await updateArticle.mutateAsync({
+        data: { ...payload },
+        id: (initialData as any)?.id,
+        company: selectedCompany.slug,
+      });
+      router.push(`/${selectedCompany.slug}/almacen/inventario_articulos`);
     } else {
-      createArticle.mutate({company: selectedCompany!.slug, data: {
-        ...formattedValues
-      }});
+      await createArticle.mutateAsync({
+        company: selectedCompany.slug,
+        data: payload,
+      });
     }
-  }
+  };
+
+  const isCalibrated = form.watch("needs_calibration");
 
   return (
     <Form {...form}>
-      <form encType="multipart/form-data" className="flex flex-col gap-4 max-w-6xl mx-auto" onSubmit={form.handleSubmit(onSubmit)}>
-        <div className="max-w-7xl grid grid-cols-2 gap-4">
-          <div className="col-span-2 flex flex-col xl:flex-row gap-4">
+      <form
+        className="flex flex-col gap-6 max-w-7xl mx-auto"
+        onSubmit={form.handleSubmit(onSubmit)}
+      >
+        {/* Header */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-xl">
+              <Wrench className="h-5 w-5" />
+              Registrar herramienta
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="grid grid-cols-1 xl:grid-cols-3 gap-4">
             <FormField
               control={form.control}
               name="part_number"
               render={({ field }) => (
-                <FormItem className="w-full xl:w-1/3 min-w-0">
-                  <FormLabel>Numero de Parte</FormLabel>
+                <FormItem className="w-full">
+                  <FormLabel>Nro. de parte</FormLabel>
                   <FormControl>
-                    <Input placeholder="EJ: 234ABAC" {...field} />
+                    <Input placeholder="Ej: TW-500" {...field} />
                   </FormControl>
-                  <FormDescription>
-                    Identificador único del articulo.
-                  </FormDescription>
+                  <FormDescription>Identificador principal.</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
             />
+            <FormField
+              control={form.control}
+              name="serial"
+              render={({ field }) => (
+                <FormItem className="w-full">
+                  <FormLabel>Serial</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Ej: S-000123" {...field} />
+                  </FormControl>
+                  <FormDescription>Serial de la herramienta.</FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
             <FormField
               control={form.control}
               name="alternative_part_number"
               render={({ field }) => (
-                <FormItem className="w-full xl:w-2/3 min-w-0">
-                  <FormLabel>Nro. de Parte Alternos</FormLabel>
+                <FormItem>
+                  <FormLabel>Nros. de parte alternos</FormLabel>
                   <FormControl>
                     <MultiInputField
                       values={field.value || []}
                       onChange={field.onChange}
-                      placeholder="EJ: 234ABAC"
+                      placeholder={`Ej: P/N-ALT-01, PN-ALT-02`}
+                      label=""
                     />
                   </FormControl>
-                  <FormDescription>
-                    Identificadores alternativos del artículo.
-                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
             />
-          </div>
-          <FormField
-            control={form.control}
-            name="serial"
-            render={({ field }) => (
-              <FormItem className="w-full">
-                <FormLabel>Serial</FormLabel>
-                <FormControl>
-                  <Input placeholder="EJ: 234ABAC" {...field} />
-                </FormControl>
-                <FormDescription>
-                  Identificador único del articulo.
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="manufacturer_id"
-            render={({ field }) => (
-              <FormItem className="w-full">
-                <FormLabel>Fabricante</FormLabel>
-                <Select disabled={isManufacturerLoading} onValueChange={field.onChange} value={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecccione..." />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {
-                      manufacturers && manufacturers.map((manufacturer) => (
-                        <SelectItem key={manufacturer.id} value={manufacturer.id.toString()}>{manufacturer.name}</SelectItem>
-                      ))
-                    }
-                  </SelectContent>
-                </Select>
-                <FormDescription>
-                  Marca específica del articulo.
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-        <div className="flex flex-row gap-10 justify-between max-w-6xl">
-          <div className="flex flex-col w-full">
+          </CardContent>
+        </Card>
+
+        {/* Clasificación y estado */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-xl">Clasificación y estado</CardTitle>
+          </CardHeader>
+          <CardContent className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
             <FormField
               control={form.control}
-              name="batches_id"
+              name="manufacturer_id"
               render={({ field }) => (
                 <FormItem className="w-full">
-                  <FormLabel>Renglón del Articulo</FormLabel>
-                  <Popover open={batchOpen} onOpenChange={setBatchOpen}>
-                    <PopoverTrigger asChild>
-                      <FormControl>
+                  <div className="flex items-center justify-between">
+                    <FormLabel>Fabricante</FormLabel>
+                    <CreateManufacturerDialog
+                      defaultType="PART"
+                      onSuccess={(manufacturer) => {
+                        if (manufacturer?.id) {
+                          form.setValue("manufacturer_id", manufacturer.id.toString(), {
+                            shouldValidate: true,
+                          });
+                        }
+                      }}
+                      triggerButton={
                         <Button
-                          variant="outline"
-                          role="combobox"
-                          aria-expanded={batchOpen}
-                          className={cn(
-                            "w-full justify-between h-auto min-h-[2.5rem] py-2",
-                            !field.value && "text-muted-foreground"
-                          )}
-                          disabled={isBatchesLoading}
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 text-xs"
                         >
-                          {isBatchesLoading ? (
-                            <div className="flex items-center">
-                              <Loader2 className="size-4 animate-spin mr-2" />
-                              <span>Cargando lotes...</span>
-                            </div>
-                          ) : field.value ? (
-                            <div className="flex flex-col overflow-hidden">
-                              <span className="font-medium truncate">
-                                {filteredBatches?.find((batch) => batch.id.toString() === field.value)?.name}
-                              </span>
-                              <span className="text-xs text-muted-foreground truncate">
-                                {filteredBatches?.find((batch) => batch.id.toString() === field.value)?.warehouse_name}
-                              </span>
-                            </div>
-                          ) : (
-                            "Buscar lote..."
-                          )}
-                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                          <Plus className="h-3 w-3 mr-1" />
+                          Crear nuevo
                         </Button>
-                      </FormControl>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-[400px] p-0">
-                      <Command>
-                        <CommandInput placeholder="Buscar lote..." />
-                        <CommandList>
-                          <CommandEmpty>
-                            {isError ? 
-                              "Ha ocurrido un error al cargar los lotes..." : 
-                              "No se han encontrado lotes..."
-                            }
-                          </CommandEmpty>
-                          <CommandGroup>
-                            {filteredBatches?.map((batch) => (
-                              <CommandItem
-                                key={batch.id}
-                                value={`${batch.name} ${batch.warehouse_name}`}
-                                onSelect={() => {
-                                  form.setValue("batches_id", batch.id.toString());
-                                  setBatchOpen(false);
-                                }}
-                              >
-                                <Check
-                                  className={cn(
-                                    "mr-2 h-4 w-4",
-                                    field.value === batch.id.toString()
-                                      ? "opacity-100"
-                                      : "opacity-0"
-                                  )}
-                                />
-                                <div className="flex flex-col">
-                                  <span className="font-medium">{batch.name}</span>
-                                  <span className="text-sm text-muted-foreground">{batch.warehouse_name}</span>
-                                </div>
-                              </CommandItem>
-                            ))}
-                          </CommandGroup>
-                        </CommandList>
-                      </Command>
-                    </PopoverContent>
-                  </Popover>
-                  <FormDescription>
-                    Lote a asignar el articulo.
-                  </FormDescription>
+                      }
+                    />
+                  </div>
+                  <Select
+                    onValueChange={field.onChange}
+                    value={field.value}
+                    disabled={isManufacturerLoading}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue
+                          placeholder={
+                            isManufacturerLoading
+                              ? "Cargando..."
+                              : "Seleccione..."
+                          }
+                        />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {manufacturers?.map((m) => (
+                        <SelectItem key={m.id} value={m.id.toString()}>
+                          {m.name}
+                        </SelectItem>
+                      ))}
+                      {isManufacturerError && (
+                        <div className="p-2 text-sm text-muted-foreground">
+                          Error al cargar fabricantes.
+                        </div>
+                      )}
+                    </SelectContent>
+                  </Select>
+                  <FormDescription>Marca del fabricante.</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -360,87 +388,117 @@ const CreateToolForm = ({ initialData, isEditing }: {
               render={({ field }) => (
                 <FormItem className="w-full">
                   <FormLabel>Condición</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select
+                    onValueChange={field.onChange}
+                    value={field.value}
+                    disabled={isConditionsLoading}
+                  >
                     <FormControl>
-                      <SelectTrigger disabled={isConditionsLoading}>
-                        <SelectValue placeholder="Seleccione..." />
+                      <SelectTrigger>
+                        <SelectValue
+                          placeholder={
+                            isConditionsLoading
+                              ? "Cargando..."
+                              : "Seleccione..."
+                          }
+                        />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {
-                        conditions && conditions.map((condition) => (
-                          <SelectItem key={condition.id} value={condition.id.toString()}>{condition.name}</SelectItem>
-                        ))
-                      }
+                      {conditions?.map((c) => (
+                        <SelectItem key={c.id} value={c.id.toString()}>
+                          {c.name}
+                        </SelectItem>
+                      ))}
+                      {isConditionsError && (
+                        <div className="p-2 text-sm text-muted-foreground">
+                          Error al cargar condiciones.
+                        </div>
+                      )}
                     </SelectContent>
                   </Select>
-                  <FormDescription>
-                    Estado físico del articulo.
-                  </FormDescription>
+                  <FormDescription>Estado físico/operativo.</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            {/* {
-              !isEditing && (
-                <FormField
-                  control={form.control}
-                  name="cost"
-                  render={({ field }) => (
-                    <FormItem className="w-full">
-                      <FormLabel>Costo Total</FormLabel>
-                      <FormControl>
-                        <AmountInput placeholder="0.00" {...field} />
-                      </FormControl>
-                      <FormDescription>
-                        El costo final que tuvo el articulo.
-                      </FormDescription>
-                    </FormItem>
-                  )}
-                />
-              )
-            } */}
-            {/* {
-              isEditing && (
-                <FormField
-                  control={form.control}
-                  name="zone"
-                  render={({ field }) => (
-                    <FormItem className="w-full">
-                      <FormLabel>Zona de Ubicacion</FormLabel>
-                      <FormControl>
-                        <Input placeholder="EJ: Pasillo 4, etc..." {...field} />
-                      </FormControl>
-                      <FormDescription>
-                        Identificador único del articulo.
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              )
-            } */}
+            <FormField
+              control={form.control}
+              name="batch_id"
+              render={({ field }) => (
+                <FormItem className="w-full">
+                  <FormLabel>Categoría</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    value={field.value}
+                    disabled={isBatchesLoading}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue
+                          placeholder={
+                            isBatchesLoading
+                              ? "Cargando..."
+                              : "Seleccione categoría..."
+                          }
+                        />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {batchesOptions?.map((b) => (
+                        <SelectItem key={b.id} value={b.id.toString()}>
+                          {b.name}
+                        </SelectItem>
+                      ))}
+                      {(!batchesOptions || batchesOptions.length === 0) &&
+                        !isBatchesLoading &&
+                        !isBatchesError && (
+                          <div className="p-2 text-sm text-muted-foreground text-center">
+                            No se han encontrado categorías.
+                          </div>
+                        )}
+                      {isBatchesError && (
+                        <div className="p-2 text-sm text-muted-foreground text-center">
+                          Error al cargar categorías.
+                        </div>
+                      )}
+                    </SelectContent>
+                  </Select>
+                  <FormDescription>Clasificación interna.</FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             <FormField
               control={form.control}
               name="zone"
               render={({ field }) => (
                 <FormItem className="w-full">
-                  <FormLabel>Zona de Ubicacion</FormLabel>
+                  <FormLabel>Ubicación interna</FormLabel>
                   <FormControl>
-                    <Input placeholder="EJ: Pasillo 4, etc..." {...field} />
+                    <Input placeholder="Ej: Taller, Estantería B" {...field} />
                   </FormControl>
                   <FormDescription>
-                    Identificador único del articulo.
+                    Zona física en almacén/taller.
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
             />
+          </CardContent>
+        </Card>
+
+        {/* Calibración */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-xl">Calibración</CardTitle>
+          </CardHeader>
+          <CardContent className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
             <FormField
               control={form.control}
-              name="is_special"
+              name="needs_calibration"
               render={({ field }) => (
-                <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md p-4">
+                <FormItem className="col-span-1 md:col-span-2 xl:col-span-3 flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
                   <FormControl>
                     <Checkbox
                       checked={field.value}
@@ -448,129 +506,292 @@ const CreateToolForm = ({ initialData, isEditing }: {
                     />
                   </FormControl>
                   <div className="space-y-1 leading-none">
-                    <FormLabel>
-                      ¿Es especial?
-                    </FormLabel>
+                    <FormLabel>¿Requiere calibración?</FormLabel>
                     <FormDescription>
-                      El articulo tiene un uso especial o único.
+                      Activa los campos de calibración si aplica.
                     </FormDescription>
                   </div>
                 </FormItem>
               )}
             />
-          </div>
-          <div className="flex flex-col max-w-7xl space-y-3 w-full">
+
+            {isCalibrated && (
+              <>
+                <FormField
+                  control={form.control}
+                  name="calibration_date"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-col w-full mt-1.5 space-y-3">
+                      <FormLabel>Última calibración</FormLabel>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <FormControl>
+                            <Button
+                              variant="outline"
+                              className={cn(
+                                "w-full pl-3 text-left font-normal",
+                                !field.value && "text-muted-foreground"
+                              )}
+                            >
+                              {field.value ? (
+                                format(field.value, "PPP", { locale: es })
+                              ) : (
+                                <span>Seleccione una fecha</span>
+                              )}
+                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                            </Button>
+                          </FormControl>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            locale={es}
+                            mode="single"
+                            selected={field.value}
+                            onSelect={(d) =>
+                              form.setValue("calibration_date", d, {
+                                shouldDirty: true,
+                                shouldValidate: true,
+                              })
+                            }
+                            initialFocus
+                            month={field.value}
+                          />
+                        </PopoverContent>
+                      </Popover>
+                      <FormDescription>
+                        Fecha de la última calibración realizada.
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="next_calibration"
+                  render={({ field }) => (
+                    <FormItem className="w-full">
+                      <FormLabel>Días hasta la próxima calibración</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          inputMode="numeric"
+                          min={1}
+                          placeholder="Ej: 180"
+                          value={field.value as any}
+                          onChange={(e) => field.onChange(e.target.value)}
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        Número de días para programar la próxima calibración.
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Detalles y documentos */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-xl">Detalles y documentos</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
             <FormField
               control={form.control}
               name="description"
               render={({ field }) => (
-                <FormItem >
-                  <FormLabel>Descripción del Articulo</FormLabel>
-                  <FormControl>
-                    <Textarea rows={5} placeholder="EJ: Motor V8 de..." {...field} />
-                  </FormControl>
-                  <FormDescription>
-                    Breve descricion del articulo.
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="image"
-              render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Imágen del Articulo</FormLabel>
-                  {
-                    initialData && <Image src={`data:image/png;base64,${initialData.image!.toString()}`} width={100} height={100} alt="Imagen defecto" />
-                  }
+                  <FormLabel>Descripción</FormLabel>
                   <FormControl>
-                    <div className="relative h-10 w-full ">
-                      <FileUpIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 z-10" />
-                      <Input
-                        type="file"
-                        onChange={(e) => form.setValue("image", e.target.files![0])}
-                        className="pl-10 pr-3 py-2 text-md w-full border border-gray-300 rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-[#6E23DD] focus:border-transparent cursor-pointer" // Add additional styling as needed
-                      />
-                    </div>
+                    <Textarea
+                      rows={5}
+                      placeholder="Ej: Torquímetro 1/2'' rango 20–200 Nm..."
+                      {...field}
+                    />
                   </FormControl>
-                  <FormDescription>
-                    Imágen descriptiva del articulo
-                  </FormDescription>
+                  <FormDescription>Breve descripción técnica.</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            <div className="flex flex-col gap-2 items-center">
+
+            <Separator />
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
-                name="certificate_8130"
-                render={({ field }) => (
-                  <FormItem className="w-full flex flex-col">
-                    <FormLabel>Certificado #<span className="text-primary font-bold">8130</span></FormLabel>
-                    <FormControl>
-                      <input
-                        type="file"
-                        onChange={(e) => form.setValue("certificate_8130", e.target.files![0])}
-                      />
-                    </FormControl>
-                    <FormDescription>
-                      Documento legal del archivo.
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="certificate_fabricant"
-                render={({ field }) => (
+                name="image"
+                render={() => (
                   <FormItem>
-                    <FormLabel>Certificado del <span className="text-primary">Fabricante</span></FormLabel>
+                    <FormLabel>Imagen</FormLabel>
                     <FormControl>
-                      <input
-                        type="file"
-                        onChange={(e) => form.setValue("certificate_fabricant", e.target.files![0])}
-                      />
+                      <div className="relative h-10 w-full">
+                        <FileUpIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 z-10" />
+                        <Input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => {
+                            const f = e.target.files?.[0];
+                            if (f)
+                              form.setValue("image", f, {
+                                shouldDirty: true,
+                                shouldValidate: true,
+                              });
+                          }}
+                          className="pl-10 pr-3 py-2 w-full border border-gray-300 rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-[#6E23DD] focus:border-transparent cursor-pointer"
+                        />
+                      </div>
                     </FormControl>
                     <FormDescription>
-                      Documentos legal del articulo.
+                      Imagen descriptiva de la herramienta.
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-              <FormField
-                control={form.control}
-                name="certificate_vendor"
-                render={({ field }) => (
-                  <FormItem className="col-span-2">
-                    <FormLabel>Certificado del <span className="text-primary">Vendedor</span></FormLabel>
-                    <FormControl>
-                      <input
-                        type="file"
-                        onChange={(e) => form.setValue("certificate_vendor", e.target.files![0])}
-                      />
-                    </FormControl>
-                    <FormDescription>
-                      Documentos legal del articulo.
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+
+              <div className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="certificate_8130"
+                  render={() => (
+                    <FormItem>
+                      <FormLabel>Certificado 8130</FormLabel>
+                      <FormControl>
+                        <div className="relative h-10 w-full">
+                          <FileUpIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 z-10" />
+                          <Input
+                            type="file"
+                            accept=".pdf,image/*"
+                            onChange={(e) => {
+                              const f = e.target.files?.[0];
+                              if (f)
+                                form.setValue("certificate_8130", f, {
+                                  shouldDirty: true,
+                                  shouldValidate: true,
+                                });
+                            }}
+                            className="pl-10 pr-3 py-2 w-full border border-gray-300 rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-[#6E23DD] focus:border-transparent cursor-pointer"
+                          />
+                        </div>
+                      </FormControl>
+                      <FormDescription>
+                        PDF o imagen. Máx. 10 MB.
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="certificate_fabricant"
+                  render={() => (
+                    <FormItem>
+                      <FormLabel>Certificado del fabricante</FormLabel>
+                      <FormControl>
+                        <div className="relative h-10 w-full">
+                          <FileUpIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 z-10" />
+                          <Input
+                            type="file"
+                            accept=".pdf,image/*"
+                            onChange={(e) => {
+                              const f = e.target.files?.[0];
+                              if (f)
+                                form.setValue("certificate_fabricant", f, {
+                                  shouldDirty: true,
+                                  shouldValidate: true,
+                                });
+                            }}
+                            className="pl-10 pr-3 py-2 w-full border border-gray-300 rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-[#6E23DD] focus:border-transparent cursor-pointer"
+                          />
+                        </div>
+                      </FormControl>
+                      <FormDescription>
+                        PDF o imagen. Máx. 10 MB.
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="certificate_vendor"
+                  render={() => (
+                    <FormItem>
+                      <FormLabel>Certificado del vendedor</FormLabel>
+                      <FormControl>
+                        <div className="relative h-10 w-full">
+                          <FileUpIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 z-10" />
+                          <Input
+                            type="file"
+                            accept=".pdf,image/*"
+                            onChange={(e) => {
+                              const f = e.target.files?.[0];
+                              if (f)
+                                form.setValue("certificate_vendor", f, {
+                                  shouldDirty: true,
+                                  shouldValidate: true,
+                                });
+                            }}
+                            className="pl-10 pr-3 py-2 w-full border border-gray-300 rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-[#6E23DD] focus:border-transparent cursor-pointer"
+                          />
+                        </div>
+                      </FormControl>
+                      <FormDescription>
+                        PDF o imagen. Máx. 10 MB.
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
             </div>
-          </div>
-        </div>
-        <div className="flex justify-end w-full">
-          <Button className="bg-primary text-white hover:bg-blue-900 disabled:bg-slate-50 disabled:border-dashed disabled:border-black" disabled={createArticle?.isPending || confirmIncoming.isPending} type="submit">
-            {createArticle?.isPending || confirmIncoming.isPending ? <Image className="text-black" src={loadingGif} width={170} height={170} alt="Loading..." /> : <p>{isEditing ? "Confirmar Ingreso" : "Crear Articulo"}</p>}
+          </CardContent>
+        </Card>
+
+        {/* Acciones */}
+        <div className="flex items-center gap-3">
+          <Button
+            className="bg-primary text-white hover:bg-blue-900 disabled:bg-slate-100 disabled:text-slate-400"
+            disabled={
+              busy ||
+              !selectedCompany ||
+              !form.getValues("part_number") ||
+              !form.getValues("batch_id") ||
+              !form.getValues("manufacturer_id") ||
+              !form.getValues("condition_id")
+            }
+            type="submit"
+          >
+            {busy ? (
+              <Image
+                className="text-black"
+                src={loadingGif}
+                width={170}
+                height={170}
+                alt="Cargando..."
+              />
+            ) : (
+              <span>
+                {isEditing ? "Confirmar ingreso" : "Crear herramienta"}
+              </span>
+            )}
           </Button>
+
+          {busy && (
+            <div className="inline-flex items-center text-sm text-muted-foreground gap-2">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Procesando…
+            </div>
+          )}
         </div>
       </form>
     </Form>
-  )
+  );
 }
-
-export default CreateToolForm

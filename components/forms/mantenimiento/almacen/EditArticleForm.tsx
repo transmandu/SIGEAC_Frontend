@@ -75,6 +75,7 @@ interface EditingArticle extends Article {
     is_managed: boolean,
     convertions: Convertion[],
     quantity: number,
+    min_quantity?: number,
     shell_time: {
       caducate_date: Date,
       fabrication_date: string,
@@ -146,7 +147,7 @@ const EditArticleForm = ({ initialData, onSuccess }: EditArticleFormProps) => {
   const {
     data: conditions,
     isLoading: isConditionsLoading,
-  } = useGetConditions(selectedCompany?.slug)
+  } = useGetConditions()
 
   const {
     mutate,

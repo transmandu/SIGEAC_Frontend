@@ -5,7 +5,7 @@ import { toast } from "sonner"
 interface ManufacturerSchema {
     name: string,
     description: string,
-    type: "AIRCRAFT" | "ENGINE" | "APU" | "PROPELLER" | "GENERAL",
+    type: "AIRCRAFT" | "ENGINE" | "APU" | "PROPELLER" | "GENERAL" | "PART",
 }
 
 export const useCreateManufacturer = () => {

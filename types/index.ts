@@ -46,7 +46,7 @@ export type AdministrationArticle = {
 };
 
 export type Article = {
-  id?: number;
+  id: number;
   article_type?: string;
   part_number: string;
   alternative_part_number?: string[];
@@ -100,7 +100,7 @@ export type Batch = {
   ata_code: string;
   brand: string;
   is_hazarous: boolean;
-  medition_unit: string;
+  unit: Unit;
   min_quantity: number;
   zone: string;
   warehouse_id: number;
@@ -180,6 +180,7 @@ export type Condition = {
 export interface ConsumableArticle extends Article {
   is_managed?: boolean;
   quantity?: number;
+  min_quantity?: number;
   caducate_date?: string;
   fabrication_date?: string;
 }
@@ -280,8 +281,8 @@ export type MaintenanceAircraft = {
   serial: string;
   model: string;
   acronym: string;
-  flight_hours: number | string;  // Puede venir como "4,324.00"
-  flight_cycles: number | string;  // Puede venir como "324.00"
+  flight_hours: number | string; // Puede venir como "4,324.00"
+  flight_cycles: number | string; // Puede venir como "324.00"
   fabricant_date: string;
   aircraft_parts: MaintenanceAircraftPart[];
   location: Location;
@@ -298,11 +299,11 @@ export type MaintenanceAircraftPart = {
   time_since_overhaul?: number | string;
   cycles_since_new?: number | string;
   cycles_since_overhaul?: number | string;
-  part_hours?: number;  // Alias para time_since_new (compatibilidad)
-  part_cycles?: number;  // Alias para cycles_since_new (compatibilidad)
+  part_hours?: number; // Alias para time_since_new (compatibilidad)
+  part_cycles?: number; // Alias para cycles_since_new (compatibilidad)
   is_father?: boolean;
   aircraft_id?: string;
-  aircraft_part_id?: string | null;  // ID del padre (null si es raíz)
+  aircraft_part_id?: string | null; // ID del padre (null si es raíz)
   sub_parts?: MaintenanceAircraftPart[];
   aircraft?: MaintenanceAircraft;
 };
@@ -522,7 +523,7 @@ export type Location = {
 export type Manufacturer = {
   id: number;
   name: string;
-  type: "AIRCRAFT" | "ENGINE" | "APU" | "PROPELLER" | "GENERAL"; // AIRCRAFT para aeronaves, los demás para partes
+  type: "AIRCRAFT" | "ENGINE" | "APU" | "PROPELLER" | "GENERAL" | "PART"; // AIRCRAFT para aeronaves, los demás para partes
   description: string;
 };
 
@@ -738,7 +739,6 @@ export type Unit = {
   label: string;
   updated_by: string;
   registered_by: string;
-
   created_at: Date;
   updated_at: Date;
 };
@@ -1071,7 +1071,7 @@ export type Question = {
   id: string;
   question: string;
   type: string;
-  is_required: boolean
+  is_required: boolean;
   options?: Option[];
 };
 

@@ -5,11 +5,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-import { useDeleteArticle } from "@/actions/mantenimiento/almacen/inventario/articulos/actions";
-import { useCompanyStore } from "@/stores/CompanyStore";
-import { Loader2, MoreHorizontal, SquarePen, Trash2 } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useUpdateArticleStatus } from "@/actions/mantenimiento/almacen/inventario/articulos/actions";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -20,16 +16,20 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { useCompanyStore } from "@/stores/CompanyStore";
+import { BadgeCheck, Loader2, MoreHorizontal, SquarePen } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 
-const ArticleDropdownActions = ({ id }: { id: string | number }) => {
+const CheckingArticleDropdownActions = ({ id }: { id: string | number }) => {
   const [open, setOpen] = useState<boolean>(false);
   const router = useRouter();
   const { selectedCompany } = useCompanyStore();
-  const { deleteArticle } = useDeleteArticle();
+  const { updateArticleStatus } = useUpdateArticleStatus();
 
-  const handleDelete = (id: number | string) => {
-    deleteArticle.mutate(
-      { id, company: selectedCompany!.slug },
+  const handleConfirm = (id: number ) => {
+    updateArticleStatus.mutate(
+      { id, status: "STORED" },
       {
         onSuccess: () => setOpen(false), // Cierra el modal solo si la eliminación fue exitosa
       }
@@ -53,7 +53,7 @@ const ArticleDropdownActions = ({ id }: { id: string | number }) => {
             className="cursor-pointer"
             onClick={() => {
               router.push(
-                `/${selectedCompany?.slug}/almacen/inventario_articulos/editar/${id}`
+                `/${selectedCompany?.slug}/ingenieria/confirmar_inventario/editar_articulo/${id}`
               );
             }}
           >
@@ -61,7 +61,7 @@ const ArticleDropdownActions = ({ id }: { id: string | number }) => {
           </DropdownMenuItem>
           <DialogTrigger asChild>
             <DropdownMenuItem className="cursor-pointer">
-              <Trash2 className="size-5 text-red-500" />
+              <BadgeCheck className="size-5 text-green-600/80" />
             </DropdownMenuItem>
           </DialogTrigger>
         </DropdownMenuContent>
@@ -69,11 +69,11 @@ const ArticleDropdownActions = ({ id }: { id: string | number }) => {
       <DialogContent>
         <DialogHeader>
           <DialogTitle className="text-center">
-            ¿Seguro que desea eliminar el articulo?
+            Confirmar Registro de Artículo
           </DialogTitle>
           <DialogDescription className="text-center p-2 mb-0 pb-0">
-            Esta acción es irreversible y estaría eliminando por completo el
-            articulo seleccionado.
+            La información del artículo será verificada y registrada en el sistema. ¿Desea
+            continuar?
           </DialogDescription>
         </DialogHeader>
         <DialogFooter className="flex flex-col gap-2 md:gap-0">
@@ -85,11 +85,11 @@ const ArticleDropdownActions = ({ id }: { id: string | number }) => {
             Cancelar
           </Button>
           <Button
-            disabled={deleteArticle.isPending}
+            disabled={updateArticleStatus.isPending}
             className="hover:bg-white hover:text-black hover:border hover:border-black transition-all"
-            onClick={() => handleDelete(id)}
+            onClick={() => handleConfirm(Number(id))}
           >
-            {deleteArticle.isPending ? (
+            {updateArticleStatus.isPending ? (
               <Loader2 className="size-4 animate-spin" />
             ) : (
               <p>Confirmar</p>
@@ -101,4 +101,4 @@ const ArticleDropdownActions = ({ id }: { id: string | number }) => {
   );
 };
 
-export default ArticleDropdownActions;
+export default CheckingArticleDropdownActions;

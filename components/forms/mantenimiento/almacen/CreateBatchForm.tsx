@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/select"
 import { useGetWarehousesByLocation } from "@/hooks/administracion/useGetWarehousesByUser"
 import { useGetBatchesWithArticlesCount } from "@/hooks/mantenimiento/almacen/renglones/useGetBatchesWithArticleCount"
+import { useGetUnits } from "@/hooks/general/unidades/useGetPrimaryUnits"
 import { batches_categories } from "@/lib/batches_categories"
 import { generateSlug } from "@/lib/utils"
 import { useCompanyStore } from "@/stores/CompanyStore"
@@ -38,8 +39,16 @@ const FormSchema = z.object({
   ata_code: z.string().optional(),
   is_hazarous: z.boolean().optional(),
   medition_unit: z.string().optional(),
-  min_quantity: z.string().optional(),
   warehouse_id: z.string(),
+}).superRefine((data, ctx) => {
+  // Si la categoría es consumible, la unidad de medición es obligatoria
+  if (data.category === "consumible" && !data.medition_unit) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Debe seleccionar una unidad de medición para consumibles.",
+      path: ["medition_unit"],
+    });
+  }
 })
 
 type FormSchemaType = z.infer<typeof FormSchema>
@@ -54,6 +63,8 @@ export function CreateBatchForm({ onClose }: FormProps) {
   const {selectedCompany, selectedStation} = useCompanyStore()
 
   const { data: warehouses, error, isLoading } = useGetWarehousesByLocation({company: selectedCompany?.slug, location_id: selectedStation});
+
+  const { data: units, isLoading: isUnitsLoading } = useGetUnits(selectedCompany?.slug);
 
   const { createBatch } = useCreateBatch();
 
@@ -70,6 +81,7 @@ export function CreateBatchForm({ onClose }: FormProps) {
   const { control, setError, clearErrors } = form;
 
   const name = useWatch({ control, name: 'name' });
+  const category = useWatch({ control, name: 'category' });
 
   useEffect(() => {
     const existingBatch = batches?.some(batch => batch.name === name);
@@ -83,6 +95,13 @@ export function CreateBatchForm({ onClose }: FormProps) {
     }
   }, [name, batches, clearErrors, setError])
 
+  // Limpiar unidad de medición si no es consumible
+  useEffect(() => {
+    if (category && category !== "consumible") {
+      form.setValue("medition_unit", undefined);
+    }
+  }, [category, form])
+
   const onSubmit = async (data: FormSchemaType) => {
     const company = selectedCompany?.slug;
     if (!company) {
@@ -92,11 +111,13 @@ export function CreateBatchForm({ onClose }: FormProps) {
       });
       return;
     }
+    // Si la categoría no es consumible, establecer la unidad como "U" (Unidades)
+    const isConsumable = data.category === "consumible";
     const formattedData = {
       ...data,
       slug: generateSlug(data.name),
-      min_quantity: Number(data.min_quantity),
       warehouse_id: Number(data.warehouse_id),
+      medition_unit: isConsumable ? data.medition_unit : "U",
     }
     await createBatch.mutateAsync({data: formattedData, company});
     onClose();
@@ -158,86 +179,89 @@ export function CreateBatchForm({ onClose }: FormProps) {
           />
         </div>
         <div className="flex gap-2 w-full">
-          <div className="flex flex-col gap-2 w-full">
+          {category === "consumible" && (
             <FormField
               control={form.control}
               name="medition_unit"
               render={({ field }) => (
-                <FormItem>
+                <FormItem className="w-full">
                   <FormLabel>Unidad de medición</FormLabel>
-                  <FormControl>
-                    <Input placeholder="EJ: Unidades" {...field} />
-                  </FormControl>
+                  <Select
+                    disabled={isUnitsLoading}
+                    onValueChange={field.onChange}
+                    value={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder={isUnitsLoading ? <Loader2 className="size-4 animate-spin" /> : "Seleccione..."} />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {isUnitsLoading && <Loader2 className="size-4 animate-spin" />}
+                      {units && units.map((unit) => (
+                        <SelectItem key={unit.id} value={unit.value}>
+                          {unit.label}
+                        </SelectItem>
+                      ))}
+                      {units && units.length < 1 && (
+                        <p className="text-xs p-2 text-muted-foreground">No se han encontrado unidades...</p>
+                      )}
+                    </SelectContent>
+                  </Select>
                   <FormDescription>Unidad para medir el lote.</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            <FormField
-              control={form.control}
-              name="min_quantity"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Cantidad Mínima</FormLabel>
+          )}
+          <FormField
+            control={form.control}
+            name="warehouse_id"
+            render={({ field }) => (
+              <FormItem className="w-full">
+                <FormLabel>Almacén</FormLabel>
+                <Select
+                  disabled={isLoading}
+                  onValueChange={field.onChange}
+                  value={field.value}
+                >
                   <FormControl>
-                    <Input type="number" placeholder="EJ: 5" {...field} />
+                    <SelectTrigger>
+                      <SelectValue placeholder={isLoading ? <Loader2 className="size-4 animate-spin" /> : "Seleccione..."} />
+                    </SelectTrigger>
                   </FormControl>
-                  <FormDescription>Cantidad mínima del lote.</FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-          <div className="flex flex-col-reverse gap-2 w-full">
-            <FormField
-              control={form.control}
-              name="description"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Descripción</FormLabel>
-                  <FormControl>
-                    <Textarea rows={4} placeholder="EJ: #### - ### - ###" {...field} />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="warehouse_id"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Almacén</FormLabel>
-                  <Select
-                    disabled={isLoading}
-                    onValueChange={field.onChange}
-                    value={field.value} // Usa value en lugar de defaultValue
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder={isLoading ? <Loader2 className="size-4 animate-spin" /> : "Seleccione..."} />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {isLoading && <Loader2 className="size-4 animate-spin" />}
-                      {warehouses && warehouses.map((warehouse) => (
-                        <SelectItem key={warehouse.id} value={warehouse.id.toString()}>
-                          {warehouse.name} - {warehouse.location.address}
-                        </SelectItem>
-                      ))}
-                      {warehouses && warehouses.length < 1 && (
-                        <p className="text-xs p-2 text-muted-foreground">No se han encontrado almacenes...</p>
-                      )}
-                      {error && (
-                        <p className="text-xs p-2 text-muted-foreground">Ha ocurrido un error al cargar los almacenes...</p>
-                      )}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
+                  <SelectContent>
+                    {isLoading && <Loader2 className="size-4 animate-spin" />}
+                    {warehouses && warehouses.map((warehouse) => (
+                      <SelectItem key={warehouse.id} value={warehouse.id.toString()}>
+                        {warehouse.name} - {warehouse.location.address}
+                      </SelectItem>
+                    ))}
+                    {warehouses && warehouses.length < 1 && (
+                      <p className="text-xs p-2 text-muted-foreground">No se han encontrado almacenes...</p>
+                    )}
+                    {error && (
+                      <p className="text-xs p-2 text-muted-foreground">Ha ocurrido un error al cargar los almacenes...</p>
+                    )}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
         </div>
+        <FormField
+          control={form.control}
+          name="description"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Descripción</FormLabel>
+              <FormControl>
+                <Textarea rows={4} placeholder="EJ: #### - ### - ###" {...field} />
+              </FormControl>
+            </FormItem>
+          )}
+        />
         <FormField
           control={form.control}
           name="is_hazarous"

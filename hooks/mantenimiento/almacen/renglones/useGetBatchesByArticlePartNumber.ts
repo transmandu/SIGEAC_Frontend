@@ -9,10 +9,11 @@ interface BatchesWithCountProp extends Batch {
 const searchBatchesByPartNumber = async (
   company: string,
   location_id: string,
-  part_number: string
+  part_number: string,
+  category: string
 ): Promise<BatchesWithCountProp[]> => {
-  const { data } = await axiosInstance.get(`/${company}/search-by-part`, {
-    params: { location_id, part_number }
+  const { data } = await axiosInstance.get(`/${company}/batches-by-part`, {
+    params: { location_id, part_number, category }
   });
   return data;
 };
@@ -20,12 +21,13 @@ const searchBatchesByPartNumber = async (
 export const useSearchBatchesByPartNumber = (
   company?: string,
   location_id?: string,
-  part_number?: string
+  part_number?: string,
+  category?: string
 ) => {
   return useQuery<BatchesWithCountProp[], Error>({
     queryKey: ["search-batches", company, location_id, part_number],
-    queryFn: () => searchBatchesByPartNumber(company!, location_id!, part_number!),
-    enabled: !!company && !!location_id && !!part_number,
+    queryFn: () => searchBatchesByPartNumber(company!, location_id!, part_number!, category!),
+    enabled: !!company && !!location_id && !!part_number && !!category,
     staleTime: 5 * 60 * 1000, // 5 minutos de cache
   });
 };

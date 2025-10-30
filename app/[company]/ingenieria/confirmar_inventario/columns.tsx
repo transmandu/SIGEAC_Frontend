@@ -1,20 +1,18 @@
 "use client";
 
-import { ColumnDef } from "@tanstack/react-table";
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle2, XCircle, Clock, Wrench } from "lucide-react";
-import { addDays, format } from "date-fns";
-import { cn } from "@/lib/utils";
-import ArticleDropdownActions from "@/components/dropdowns/mantenimiento/almacen/ArticleDropdownActions";
 import { WarehouseResponse } from "@/hooks/mantenimiento/almacen/articulos/useGetWarehouseArticlesByCategory";
+import { ColumnDef } from "@tanstack/react-table";
+import { addDays, format } from "date-fns";
+import CheckingArticleDropdownActions from "./_components/CheckingArticleDropdownActionts";
 
 export interface IArticleSimple {
   id: number;
   part_number: string;
   alternative_part_number?: string[];
   description?: string;
-  quantity: number
+  quantity: number;
   zone: string;
   article_type: string;
   serial?: string;
@@ -33,45 +31,6 @@ export interface IArticleSimple {
   };
 }
 
-export const getStatusBadge = (status: string | null | undefined) => {
-  if (!status) {
-    return (
-      <Badge variant="outline" className="flex items-center gap-1 w-fit">
-        <XCircle className="h-3 w-3" /> 
-      </Badge>
-    );
-  }
-
-  const statusConfig: Record<
-    string,
-    {
-      label: string;
-      variant: "default" | "secondary" | "destructive" | "outline" | "warning";
-      icon: any;
-    }
-  > = {
-    stored: { label: "En Stock", variant: "default", icon: CheckCircle2 },
-    checking: { label: "En Revision", variant: "warning", icon: Clock },
-    dispatched: { label: "Despachado", variant: "secondary", icon: Clock },
-    inuse: { label: "En uso", variant: "warning", icon: Clock },
-    transit: { label: "En Tránsito", variant: "outline", icon: Clock },
-    maintenance: { label: "Mantenimiento", variant: "outline", icon: Clock },
-  };
-
-  const config = statusConfig[status.toLowerCase()] || {
-    label: status,
-    variant: "outline" as const,
-    icon: XCircle,
-  };
-  const Icon = config.icon;
-
-  return (
-    <Badge variant={config.variant} className="flex items-center gap-1 w-fit">
-      <Icon className="h-3 w-3" />
-      {config.label}
-    </Badge>
-  );
-};
 
 export const flattenArticles = (
   data: WarehouseResponse | undefined
@@ -92,7 +51,7 @@ export const flattenArticles = (
         article.quantity === null ||
         article.quantity === undefined
           ? 1
-          : article.quantity,  
+          : article.quantity,
       status: article.status,
       condition: article.condition ? article.condition.name : "N/A",
       article_type: article.article_type ?? "N/A",
@@ -116,7 +75,7 @@ const baseCols: ColumnDef<IArticleSimple>[] = [
   {
     accessorKey: "part_number",
     header: ({ column }) => (
-      <DataTableColumnHeader filter column={column} title="Part Number" />
+      <DataTableColumnHeader column={column} title="Part Number" />
     ),
     cell: ({ row }) => (
       <div className="font-bold text-center text-base">
@@ -126,7 +85,7 @@ const baseCols: ColumnDef<IArticleSimple>[] = [
   },
   // {
   //   accessorKey: 'alternative_part_number',
-  //   header: ({ column }) => <DataTableColumnHeader filter column={column} title="Alt. Part Number" />,
+  //   header: ({ column }) => <DataTableColumnHeader column={column} title="Alt. Part Number" />,
   //   cell: ({ row }) => (
   //     <div className="font-bold text-center text-base">
   //       {row.original.alternative_part_number && row.original.alternative_part_number.length > 0
@@ -138,7 +97,7 @@ const baseCols: ColumnDef<IArticleSimple>[] = [
   {
     accessorKey: "serial",
     header: ({ column }) => (
-      <DataTableColumnHeader filter column={column} title="Serial / Lote" />
+      <DataTableColumnHeader column={column} title="Serial / Lote" />
     ),
     cell: ({ row }) => (
       <div className="text-center text-sm font-medium">
@@ -155,7 +114,7 @@ const baseCols: ColumnDef<IArticleSimple>[] = [
   {
     accessorKey: "batch_name",
     header: ({ column }) => (
-      <DataTableColumnHeader filter column={column} title="Descripción" />
+      <DataTableColumnHeader column={column} title="Descripción" />
     ),
     cell: ({ row }) => (
       <div className="text-muted-foreground font-bold text-center max-w-xs line-clamp-2">
@@ -188,30 +147,12 @@ const baseCols: ColumnDef<IArticleSimple>[] = [
       <DataTableColumnHeader column={column} title="Estado" />
     ),
     cell: ({ row }) => {
-      const calibrated = row.original.tool?.status === "CALIBRADO";
-      const calibrating = row.original.tool?.status === "EN CALIBRACION";
-      const descalibrated = row.original.tool?.status === "VENCIDO";
       return (
         <div className="flex flex-col justify-center items-center space-y-2">
-          {!calibrating && getStatusBadge(row.original.status?.toUpperCase())}
-          {row.original.tool && (
-            <Badge
-              className={cn(
-                "text-xs text-center",
-                calibrated
-                  ? "bg-green-500"
-                  : calibrating
-                    ? "bg-yellow-500"
-                    : descalibrated
-                      ? "bg-red-500"
-                      : ""
-              )}
-            >
-              {row.original.tool.status
-                ? row.original.tool.status
-                : "Sin estado"}
-            </Badge>
-          )}
+          <Badge className="bg-yellow-500">
+            {row.original.status?.toUpperCase()}
+          </Badge>
+
         </div>
       );
     },
@@ -231,13 +172,9 @@ const baseCols: ColumnDef<IArticleSimple>[] = [
   },
   {
     id: "actions",
-    header: "Acciones",
     cell: ({ row }) => {
-      const item = row.original;  
-      if (item.status === "stored") {
-        return <ArticleDropdownActions id={item.id} />;
-      }
-      return null;
+      const item = row.original;
+      return <CheckingArticleDropdownActions id={item.id} />;
     },
   },
 ];
