@@ -918,7 +918,7 @@ export function getMenuList(
               href: "/ajustes/globales/unidades",
               label: "Unidades",
               active: pathname === "/ajustes/globales/unidades",
-              roles: ["JEFE_ALMACEN", "ANALISTA_ALMACEN", "SUPERUSER"],
+              roles: ["JEFE_ALMACEN", "ANALISTA_ALMACEN", "SUPERUSER", "ENGINEERING"],
             },
             {
               href: "/ajustes/globales/fabricantes",
@@ -942,7 +942,7 @@ export function getMenuList(
               href: "/ajustes/globales/condiciones",
               label: "Condiciones",
               active: pathname === "/ajustes/globales/condiciones",
-              roles: ["JEFE_ALMACEN", "ANALISTA_ALMACEN", "JEFE_PLANIFICACION", "ANALISTA_PLANIFICACION", "SUPERUSER"],
+              roles: ["JEFE_ALMACEN", "ANALISTA_ALMACEN", "JEFE_PLANIFICACION", "ANALISTA_PLANIFICACION", "SUPERUSER", "ENGINEERING"],
             },
             {
               href: "/ajustes/globales/fuentes_informacion",
