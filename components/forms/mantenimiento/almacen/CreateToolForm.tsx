@@ -15,6 +15,7 @@ import { CalendarIcon, Check, FileUpIcon, Loader2, Plus, Wrench } from "lucide-r
 import {
   useConfirmIncomingArticle,
   useCreateArticle,
+  useUpdateArticle,
 } from "@/actions/mantenimiento/almacen/inventario/articulos/actions";
 
 import { MultiInputField } from "@/components/misc/MultiInputField";
@@ -78,7 +79,7 @@ const formSchema = z
 
     // Calibración
     needs_calibration: z.boolean().optional(),
-    last_calibration_date: z.date().optional(),
+    calibration_date: z.date().optional(),
     next_calibration: z
       .union([z.coerce.number().int().positive(), z.nan()])
       .optional(), // ingresado solo si needs_calibration
@@ -100,11 +101,11 @@ const formSchema = z
   })
   .superRefine((vals, ctx) => {
     if (vals.needs_calibration) {
-      if (!vals.last_calibration_date) {
+      if (!vals.calibration_date) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           message: "Ingrese la última fecha de calibración.",
-          path: ["last_calibration_date"],
+          path: ["calibration_date"],
         });
       }
       if (
@@ -158,6 +159,7 @@ export default function CreateToolForm({
   console.log('this is  conditions ' , conditions);
 
   const { createArticle } = useCreateArticle();
+  const { updateArticle } = useUpdateArticle();
   const { confirmIncoming } = useConfirmIncomingArticle();
 
   const form = useForm<FormValues>({
@@ -172,8 +174,8 @@ export default function CreateToolForm({
       condition_id: initialData?.condition?.id?.toString() || "",
       batch_id: initialData?.batches?.id?.toString() || "",
       needs_calibration: initialData?.tool?.needs_calibration ?? false,
-      last_calibration_date: initialData?.tool?.last_calibration_date
-        ? new Date(initialData.tool.last_calibration_date)
+      calibration_date: initialData?.tool?.calibration_date
+        ? new Date(initialData.tool.calibration_date)
         : undefined,
       next_calibration: undefined,
     },
@@ -196,8 +198,8 @@ export default function CreateToolForm({
       condition_id: initialData.condition?.id?.toString() || "",
       batch_id: initialData.batches?.id?.toString() || "",
       needs_calibration: initialData.tool?.needs_calibration ?? false,
-      last_calibration_date: initialData.tool?.last_calibration_date
-        ? new Date(initialData.tool.last_calibration_date)
+      calibration_date: initialData.tool?.calibration_date
+        ? new Date(initialData.tool.calibration_date)
         : undefined,
       next_calibration: undefined,
     });
@@ -208,7 +210,8 @@ export default function CreateToolForm({
     isManufacturerLoading ||
     isConditionsLoading ||
     createArticle.isPending ||
-    confirmIncoming.isPending;
+    confirmIncoming.isPending || 
+    updateArticle.isPending;
 
   const batchesOptions = useMemo<Batch[] | undefined>(() => batches, [batches]);
 
@@ -222,18 +225,19 @@ export default function CreateToolForm({
       part_number: normalizeUpper(values.part_number),
       alternative_part_number:
         values.alternative_part_number?.map((v) => normalizeUpper(v)) ?? [],
-      last_calibration_date: values.last_calibration_date
-        ? format(values.last_calibration_date, "yyyy-MM-dd")
+      calibration_date: values.calibration_date
+        ? format(values.calibration_date, "yyyy-MM-dd")
         : undefined,
       // `next_calibration` se envía tal cual como número
     };
 
     if (isEditing) {
-      await confirmIncoming.mutateAsync({
-        values: { ...payload, id: (initialData as any)?.id, status: "Stored" },
+      await updateArticle.mutateAsync({
+        data: { ...payload },
+        id: (initialData as any)?.id,
         company: selectedCompany.slug,
       });
-      router.push(`/${selectedCompany.slug}/almacen/ingreso/en_recepcion`);
+      router.push(`/${selectedCompany.slug}/almacen/inventario_articulos`);
     } else {
       await createArticle.mutateAsync({
         company: selectedCompany.slug,
@@ -515,7 +519,7 @@ export default function CreateToolForm({
               <>
                 <FormField
                   control={form.control}
-                  name="last_calibration_date"
+                  name="calibration_date"
                   render={({ field }) => (
                     <FormItem className="flex flex-col w-full mt-1.5 space-y-3">
                       <FormLabel>Última calibración</FormLabel>
@@ -544,7 +548,7 @@ export default function CreateToolForm({
                             mode="single"
                             selected={field.value}
                             onSelect={(d) =>
-                              form.setValue("last_calibration_date", d, {
+                              form.setValue("calibration_date", d, {
                                 shouldDirty: true,
                                 shouldValidate: true,
                               })

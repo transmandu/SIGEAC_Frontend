@@ -14,7 +14,7 @@ interface ArticleData {
   batch_name?: string;
   zone?: string;
   status?: string;
-  last_calibration_date?: string;
+  calibration_date?: string;
   calibration_interval_days?: string;
   manufacturer_id?: number | string;
   condition_id?: number | string;

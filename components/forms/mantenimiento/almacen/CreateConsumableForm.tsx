@@ -291,7 +291,7 @@ const CreateConsumableForm = ({
         id: initialData?.id,
         company: selectedCompany.slug,
       });
-      router.push(`/${selectedCompany.slug}/almacen/inventario`);
+      router.push(`/${selectedCompany.slug}/almacen/inventario_articulos`);
     } else {
       await createArticle.mutateAsync({
         company: selectedCompany.slug,

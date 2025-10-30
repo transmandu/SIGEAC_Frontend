@@ -57,6 +57,7 @@ import {
 import { useGetConditions } from "@/hooks/administracion/useGetConditions";
 import { useGetManufacturers } from "@/hooks/general/fabricantes/useGetManufacturers";
 import { useGetBatchesByCategory } from "@/hooks/mantenimiento/almacen/renglones/useGetBatchesByCategory";
+import { useSearchBatchesByPartNumber } from "@/hooks/mantenimiento/almacen/renglones/useGetBatchesByArticlePartNumber";
 
 import { useCompanyStore } from "@/stores/CompanyStore";
 
@@ -169,7 +170,10 @@ export default function CreateComponentForm({
   isEditing?: boolean;
 }) {
   const router = useRouter();
-  const { selectedCompany } = useCompanyStore();
+  const { selectedCompany, selectedStation } = useCompanyStore();
+
+  // Local state for part number search
+  const [partNumberToSearch, setPartNumberToSearch] = useState<string | undefined>(undefined);
 
   // Local UI state for calendars
   const [fabricationDate, setFabricationDate] = useState<Date | undefined>(
@@ -202,6 +206,14 @@ export default function CreateComponentForm({
     isLoading: isConditionsLoading,
     error: isConditionsError,
   } = useGetConditions();
+
+  // Search batches by part number
+  const { data: searchResults, isFetching: isSearching } = useSearchBatchesByPartNumber(
+    selectedCompany?.slug,
+    selectedStation || undefined,
+    partNumberToSearch,
+    "COMPONENTE"
+  );
 
   // Mutations
   const { createArticle } = useCreateArticle();
@@ -265,6 +277,23 @@ export default function CreateComponentForm({
     });
   }, [initialData, form]);
 
+  // Autocompletar descripción cuando encuentra resultados de búsqueda
+  useEffect(() => {
+    if (searchResults && searchResults.length > 0 && !isEditing) {
+      const firstResult = searchResults[0];
+      form.setValue("batch_id", firstResult.id.toString(), { shouldValidate: true });
+      
+      // Notificar al usuario
+      if (searchResults.length === 1) {
+        console.log("✓ Descripción autocompletada");
+      } else {
+        console.log(`✓ Se encontraron ${searchResults.length} descripciones. Se seleccionó la primera.`);
+      }
+    } else if (searchResults && searchResults.length === 0 && partNumberToSearch) {
+      console.log("No se encontraron descripciones para este part number");
+    }
+  }, [searchResults, form, isEditing, partNumberToSearch]);
+
   const busy =
     isBatchesLoading ||
     isManufacturerLoading ||
@@ -281,6 +310,18 @@ export default function CreateComponentForm({
     batches?.forEach((b) => map.set(String(b.id), b.name));
     return map;
   }, [batches]);
+
+  // Ordenar batches: primero los resultados de búsqueda, luego el resto
+  const sortedBatches = useMemo(() => {
+    if (!batches) return [];
+    if (!searchResults || searchResults.length === 0) return batches;
+    
+    const searchIds = new Set(searchResults.map(r => r.id));
+    const foundBatches = batches.filter(b => searchIds.has(b.id));
+    const otherBatches = batches.filter(b => !searchIds.has(b.id));
+    
+    return [...foundBatches, ...otherBatches];
+  }, [batches, searchResults]);
 
   async function onSubmit(values: FormValues) {
     if (!selectedCompany?.slug) return;
@@ -456,11 +497,21 @@ export default function CreateComponentForm({
                     <Input
                       placeholder="Ej: 234ABAC"
                       {...field}
-                      disabled={busy}
-                      onBlur={(e) => field.onChange(normalizeUpper(e.target.value))}
+                      disabled={busy || isSearching}
+                      onBlur={(e) => {
+                        const normalized = normalizeUpper(e.target.value);
+                        field.onChange(normalized);
+                        // Iniciar búsqueda si hay un valor y no está editando
+                        if (normalized && normalized.length >= 2 && !isEditing) {
+                          setPartNumberToSearch(normalized);
+                        }
+                      }}
                     />
                   </FormControl>
-                  <FormDescription>Identificador principal del artículo.</FormDescription>
+                  <FormDescription>
+                    Identificador principal del artículo.
+                    {isSearching && <span className="text-primary ml-2">Buscando...</span>}
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -514,22 +565,43 @@ export default function CreateComponentForm({
                           <CommandInput placeholder="Buscar descripción..." />
                           <CommandList>
                             <CommandEmpty className="text-xs p-2 text-center">Sin resultados</CommandEmpty>
-                            <CommandGroup>
-                              {batches?.map((batch) => (
-                                <CommandItem
-                                  value={`${batch.name}`}
-                                  key={batch.id}
-                                  onSelect={() => {
-                                    form.setValue("batch_id", batch.id.toString(), { shouldValidate: true });
-                                    if (isEditing && enableBatchNameEdit) {
-                                      form.setValue("batch_name", batch.name, { shouldValidate: true });
-                                    }
-                                  }}
-                                >
-                                  <Check className={cn("mr-2 h-4 w-4", `${batch.id}` === field.value ? "opacity-100" : "opacity-0")} />
-                                  <p>{batch.name}</p>
-                                </CommandItem>
-                              ))}
+                            {searchResults && searchResults.length > 0 && (
+                              <CommandGroup heading="Coincidencias encontradas">
+                                {searchResults.map((batch) => (
+                                  <CommandItem
+                                    value={`${batch.name}`}
+                                    key={batch.id}
+                                    onSelect={() => {
+                                      form.setValue("batch_id", batch.id.toString(), { shouldValidate: true });
+                                      if (isEditing && enableBatchNameEdit) {
+                                        form.setValue("batch_name", batch.name, { shouldValidate: true });
+                                      }
+                                    }}
+                                  >
+                                    <Check className={cn("mr-2 h-4 w-4", `${batch.id}` === field.value ? "opacity-100" : "opacity-0")} />
+                                    <p className="font-semibold text-primary">{batch.name}</p>
+                                  </CommandItem>
+                                ))}
+                              </CommandGroup>
+                            )}
+                            <CommandGroup heading={searchResults && searchResults.length > 0 ? "Otras descripciones" : "Todas las descripciones"}>
+                              {sortedBatches
+                                ?.filter(batch => !searchResults?.some(sr => sr.id === batch.id))
+                                .map((batch) => (
+                                  <CommandItem
+                                    value={`${batch.name}`}
+                                    key={batch.id}
+                                    onSelect={() => {
+                                      form.setValue("batch_id", batch.id.toString(), { shouldValidate: true });
+                                      if (isEditing && enableBatchNameEdit) {
+                                        form.setValue("batch_name", batch.name, { shouldValidate: true });
+                                      }
+                                    }}
+                                  >
+                                    <Check className={cn("mr-2 h-4 w-4", `${batch.id}` === field.value ? "opacity-100" : "opacity-0")} />
+                                    <p>{batch.name}</p>
+                                  </CommandItem>
+                                ))}
                             </CommandGroup>
                           </CommandList>
                         </Command>

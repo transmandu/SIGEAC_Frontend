@@ -180,6 +180,7 @@ export type Condition = {
 export interface ConsumableArticle extends Article {
   is_managed?: boolean;
   quantity?: number;
+  min_quantity?: number;
   caducate_date?: string;
   fabrication_date?: string;
 }

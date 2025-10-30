@@ -17,6 +17,7 @@ export interface IWarehouseArticle {
     description?: string;
     zone: string;
     quantity: number;
+    min_quantity?: number | string; // Directamente en el artículo
     tool?: {
       needs_calibration?: boolean;
       calibration_date?: string; // ISO string o "dd/MM/yyyy"

@@ -68,6 +68,7 @@ import { useGetConditions } from "@/hooks/administracion/useGetConditions";
 import { useGetManufacturers } from "@/hooks/general/fabricantes/useGetManufacturers";
 import { useGetSecondaryUnits } from "@/hooks/general/unidades/useGetSecondaryUnits";
 import { useGetBatchesByCategory } from "@/hooks/mantenimiento/almacen/renglones/useGetBatchesByCategory";
+import { useSearchBatchesByPartNumber } from "@/hooks/mantenimiento/almacen/renglones/useGetBatchesByArticlePartNumber";
 
 import { cn } from "@/lib/utils";
 import { useCompanyStore } from "@/stores/CompanyStore";
@@ -244,13 +245,24 @@ export default function CreateConsumableForm({
   isEditing?: boolean;
 }) {
   const router = useRouter();
-  const { selectedCompany } = useCompanyStore();
+  const { selectedCompany, selectedStation } = useCompanyStore();
 
+  // Local state for part number search
+  const [partNumberToSearch, setPartNumberToSearch] = useState<string | undefined>(undefined);
+  
   // Data hooks
   const { data: batches, isPending: isBatchesLoading, isError: isBatchesError } = useGetBatchesByCategory("consumible");
   const { data: manufacturers, isLoading: isManufacturerLoading, isError: isManufacturerError } = useGetManufacturers(selectedCompany?.slug);
   const { data: conditions, isLoading: isConditionsLoading, error: isConditionsError } = useGetConditions();
   const { data: secondaryUnits, isLoading: secondaryLoading } = useGetSecondaryUnits(selectedCompany?.slug);
+  
+  // Search batches by part number
+  const { data: searchResults, isFetching: isSearching } = useSearchBatchesByPartNumber(
+    selectedCompany?.slug,
+    selectedStation || undefined,
+    partNumberToSearch,
+    "CONSUMIBLE"
+  );
 
   // Mutations
   const { createArticle } = useCreateArticle();
@@ -284,9 +296,13 @@ export default function CreateConsumableForm({
       lot_number: initialData?.consumable?.lot_number || "",
       caducate_date: initialData?.consumable?.caducate_date || undefined,
       fabrication_date: initialData?.consumable?.fabrication_date || undefined,
-      quantity: (initialData as any)?.quantity ?? 0,
-      min_quantity: (initialData as any)?.min_quantity ?? undefined,
-      is_managed: (initialData as any)?.is_managed ?? true,
+      quantity: initialData?.consumable?.quantity ?? 0,
+      min_quantity: initialData?.consumable?.min_quantity 
+        ? Number(initialData.consumable.min_quantity) 
+        : undefined,
+      is_managed: initialData?.consumable?.is_managed 
+        ? initialData.consumable.is_managed === "1" || initialData.consumable.is_managed === true
+        : true,
     },
     mode: "onBlur",
   });
@@ -306,9 +322,13 @@ export default function CreateConsumableForm({
       lot_number: initialData.consumable?.lot_number ?? "",
       caducate_date: initialData?.consumable?.caducate_date || undefined,
       fabrication_date: initialData?.consumable?.fabrication_date || undefined,
-      quantity: (initialData as any)?.quantity ?? 0,
-      min_quantity: (initialData as any)?.min_quantity ?? undefined,
-      is_managed: (initialData as any)?.is_managed ?? true,
+      quantity: initialData.consumable?.quantity ?? 0,
+      min_quantity: initialData.consumable?.min_quantity 
+        ? Number(initialData.consumable.min_quantity) 
+        : undefined,
+      is_managed: initialData.consumable?.is_managed 
+        ? initialData.consumable.is_managed === "1" || initialData.consumable.is_managed === true
+        : true,
     });
   }, [initialData, form]);
 
@@ -320,6 +340,23 @@ export default function CreateConsumableForm({
       form.setValue("convertion_id", secondarySelected.id, { shouldDirty: true, shouldValidate: false });
     }
   }, [secondarySelected, secondaryQuantity, form]);
+
+  // Autocompletar descripción cuando encuentra resultados de búsqueda
+  useEffect(() => {
+    if (searchResults && searchResults.length > 0 && !isEditing) {
+      const firstResult = searchResults[0];
+      form.setValue("batch_id", firstResult.id.toString(), { shouldValidate: true });
+      
+      // Notificar al usuario
+      if (searchResults.length === 1) {
+        console.log("✓ Descripción autocompletada");
+      } else {
+        console.log(`✓ Se encontraron ${searchResults.length} descripciones. Se seleccionó la primera.`);
+      }
+    } else if (searchResults && searchResults.length === 0 && partNumberToSearch) {
+      console.log("No se encontraron descripciones para este part number");
+    }
+  }, [searchResults, form, isEditing, partNumberToSearch]);
 
   const normalizeUpper = (s?: string) => s?.trim().toUpperCase() ?? "";
 
@@ -336,6 +373,18 @@ export default function CreateConsumableForm({
     batches?.forEach((b) => map.set(String(b.id), b.name));
     return map;
   }, [batches]);
+
+  // Ordenar batches: primero los resultados de búsqueda, luego el resto
+  const sortedBatches = useMemo(() => {
+    if (!batches) return [];
+    if (!searchResults || searchResults.length === 0) return batches;
+    
+    const searchIds = new Set(searchResults.map(r => r.id));
+    const foundBatches = batches.filter(b => searchIds.has(b.id));
+    const otherBatches = batches.filter(b => !searchIds.has(b.id));
+    
+    return [...foundBatches, ...otherBatches];
+  }, [batches, searchResults]);
 
   async function onSubmit(values: FormValues) {
     if (!selectedCompany?.slug) return;
@@ -365,7 +414,7 @@ export default function CreateConsumableForm({
         id: initialData?.id,
         company: selectedCompany.slug,
       });
-      router.push(`/${selectedCompany.slug}/almacen/inventario`);
+      router.push(`/${selectedCompany.slug}/almacen/inventario_articulos`);
     } else {
       await createArticle.mutateAsync({ company: selectedCompany.slug, data: formattedValues });
       form.reset();
@@ -393,11 +442,21 @@ export default function CreateConsumableForm({
                     <Input
                       placeholder="Ej: 234ABAC"
                       {...field}
-                      disabled={busy}
-                      onBlur={(e) => field.onChange(normalizeUpper(e.target.value))}
+                      disabled={busy || isSearching}
+                      onBlur={(e) => {
+                        const normalized = normalizeUpper(e.target.value);
+                        field.onChange(normalized);
+                        // Iniciar búsqueda si hay un valor y no está editando
+                        if (normalized && normalized.length >= 2 && !isEditing) {
+                          setPartNumberToSearch(normalized);
+                        }
+                      }}
                     />
                   </FormControl>
-                  <FormDescription>Identificador principal del artículo.</FormDescription>
+                  <FormDescription>
+                    Identificador principal del artículo.
+                    {isSearching && <span className="text-primary ml-2">Buscando...</span>}
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -445,22 +504,43 @@ export default function CreateConsumableForm({
                           <CommandInput placeholder="Buscar descripción..." />
                           <CommandList>
                             <CommandEmpty className="text-xs p-2 text-center">Sin resultados</CommandEmpty>
-                            <CommandGroup>
-                              {batches?.map((batch) => (
-                                <CommandItem
-                                  value={`${batch.name}`}
-                                  key={batch.id}
-                                  onSelect={() => {
-                                    form.setValue("batch_id", batch.id.toString(), { shouldValidate: true });
-                                    if (isEditing && enableBatchNameEdit) {
-                                      form.setValue("batch_name", batch.name, { shouldValidate: true });
-                                    }
-                                  }}
-                                >
-                                  <Check className={cn("mr-2 h-4 w-4", `${batch.id}` === field.value ? "opacity-100" : "opacity-0")} />
-                                  <p>{batch.name}</p>
-                                </CommandItem>
-                              ))}
+                            {searchResults && searchResults.length > 0 && (
+                              <CommandGroup heading="Coincidencias encontradas">
+                                {searchResults.map((batch) => (
+                                  <CommandItem
+                                    value={`${batch.name}`}
+                                    key={batch.id}
+                                    onSelect={() => {
+                                      form.setValue("batch_id", batch.id.toString(), { shouldValidate: true });
+                                      if (isEditing && enableBatchNameEdit) {
+                                        form.setValue("batch_name", batch.name, { shouldValidate: true });
+                                      }
+                                    }}
+                                  >
+                                    <Check className={cn("mr-2 h-4 w-4", `${batch.id}` === field.value ? "opacity-100" : "opacity-0")} />
+                                    <p className="font-semibold text-primary">{batch.name}</p>
+                                  </CommandItem>
+                                ))}
+                              </CommandGroup>
+                            )}
+                            <CommandGroup heading={searchResults && searchResults.length > 0 ? "Otras descripciones" : "Todas las descripciones"}>
+                              {sortedBatches
+                                ?.filter(batch => !searchResults?.some(sr => sr.id === batch.id))
+                                .map((batch) => (
+                                  <CommandItem
+                                    value={`${batch.name}`}
+                                    key={batch.id}
+                                    onSelect={() => {
+                                      form.setValue("batch_id", batch.id.toString(), { shouldValidate: true });
+                                      if (isEditing && enableBatchNameEdit) {
+                                        form.setValue("batch_name", batch.name, { shouldValidate: true });
+                                      }
+                                    }}
+                                  >
+                                    <Check className={cn("mr-2 h-4 w-4", `${batch.id}` === field.value ? "opacity-100" : "opacity-0")} />
+                                    <p>{batch.name}</p>
+                                  </CommandItem>
+                                ))}
                             </CommandGroup>
                           </CommandList>
                         </Command>

@@ -21,7 +21,7 @@ export interface EditingArticle extends Article {
     serial: string;
     isSpecial: boolean;
     needs_calibration: boolean;
-    last_calibration_date?: string;
+    calibration_date?: string;
     next_calibration?: string | number;
     article_id: number;
   };
@@ -42,6 +42,9 @@ export interface EditingArticle extends Article {
     lot_number?: string;
     caducate_date: string;
     fabrication_date: string;
+    min_quantity?: number | string;
+    quantity?: number;
+    is_managed?: boolean | string | number;
   };
 }
 

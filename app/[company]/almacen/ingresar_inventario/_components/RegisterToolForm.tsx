@@ -29,6 +29,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useGetConditions } from "@/hooks/administracion/useGetConditions";
 import { useGetManufacturers } from "@/hooks/general/fabricantes/useGetManufacturers";
 import { useGetBatchesByCategory } from "@/hooks/mantenimiento/almacen/renglones/useGetBatchesByCategory";
+import { useSearchBatchesByPartNumber } from "@/hooks/mantenimiento/almacen/renglones/useGetBatchesByArticlePartNumber";
 
 import { cn } from "@/lib/utils";
 import { useCompanyStore } from "@/stores/CompanyStore";
@@ -37,6 +38,7 @@ import { Batch } from "@/types";
 import loadingGif from "@/public/loading2.gif";
 import { EditingArticle } from "./RegisterArticleForm";
 import { CreateManufacturerDialog } from "@/components/dialogs/general/CreateManufacturerDialog";
+import { useUpdateArticle } from "@/actions/mantenimiento/almacen/inventario/articulos/actions";
 
 /* ------------------------------- Schema ------------------------------- */
 
@@ -58,7 +60,7 @@ const formSchema = z
 
     // Calibración
     needs_calibration: z.boolean().optional(),
-    last_calibration_date: z.date().optional(),
+    calibration_date: z.date().optional(),
     next_calibration: z.coerce.number().int().positive().optional(),
 
     // Archivos
@@ -78,11 +80,11 @@ const formSchema = z
   })
   .superRefine((vals, ctx) => {
     if (vals.needs_calibration) {
-      if (!vals.last_calibration_date) {
+      if (!vals.calibration_date) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           message: "Ingrese la última fecha de calibración.",
-          path: ["last_calibration_date"],
+          path: ["calibration_date"],
         });
       }
       if (!vals.next_calibration || vals.next_calibration <= 0) {
@@ -200,13 +202,25 @@ function DatePickerField({
 
 export default function CreateToolForm({ initialData, isEditing }: { initialData?: EditingArticle; isEditing?: boolean }) {
   const router = useRouter();
-  const { selectedCompany } = useCompanyStore();
+  const { selectedCompany, selectedStation } = useCompanyStore();
+
+  // Local state for part number search
+  const [partNumberToSearch, setPartNumberToSearch] = useState<string | undefined>(undefined);
 
   const { data: batches, isPending: isBatchesLoading, isError: isBatchesError } = useGetBatchesByCategory("herramienta");
   const { data: manufacturers, isLoading: isManufacturerLoading, isError: isManufacturerError } = useGetManufacturers(selectedCompany?.slug);
   const { data: conditions, isLoading: isConditionsLoading, error: isConditionsError } = useGetConditions();
 
+  // Search batches by part number
+  const { data: searchResults, isFetching: isSearching } = useSearchBatchesByPartNumber(
+    selectedCompany?.slug,
+    selectedStation || undefined,
+    partNumberToSearch,
+    "HERRAMIENTA"
+  );
+
   const { createArticle } = useCreateArticle();
+  const { updateArticle } = useUpdateArticle();
   const { confirmIncoming } = useConfirmIncomingArticle();
 
   const [enableBatchNameEdit, setEnableBatchNameEdit] = useState(false);
@@ -224,7 +238,7 @@ export default function CreateToolForm({ initialData, isEditing }: { initialData
       batch_id: initialData?.batches?.id?.toString() || "",
       batch_name: initialData?.batches?.name || "",
       needs_calibration: initialData?.tool?.needs_calibration ?? false,
-      last_calibration_date: initialData?.tool?.last_calibration_date ? new Date(initialData.tool.last_calibration_date) : undefined,
+      calibration_date: initialData?.tool?.calibration_date ? new Date(initialData.tool.calibration_date) : undefined,
       next_calibration: undefined,
     },
     mode: "onBlur",
@@ -248,14 +262,49 @@ export default function CreateToolForm({ initialData, isEditing }: { initialData
       batch_id: initialData.batches?.id?.toString() || "",
       batch_name: initialData.batches?.name || "",
       needs_calibration: initialData.tool?.needs_calibration ?? false,
-      last_calibration_date: initialData.tool?.last_calibration_date ? new Date(initialData.tool.last_calibration_date) : undefined,
+      calibration_date: initialData.tool?.calibration_date ? new Date(initialData.tool.calibration_date) : undefined,
       next_calibration: undefined,
     });
   }, [initialData, form]);
 
-  const busy = isBatchesLoading || isManufacturerLoading || isConditionsLoading || createArticle.isPending || confirmIncoming.isPending;
+  // Autocompletar descripción cuando encuentra resultados de búsqueda
+  useEffect(() => {
+    if (searchResults && searchResults.length > 0 && !isEditing) {
+      const firstResult = searchResults[0];
+      form.setValue("batch_id", firstResult.id.toString(), { shouldValidate: true });
+      
+      // Notificar al usuario
+      if (searchResults.length === 1) {
+        console.log("✓ Descripción autocompletada");
+      } else {
+        console.log(`✓ Se encontraron ${searchResults.length} descripciones. Se seleccionó la primera.`);
+      }
+    } else if (searchResults && searchResults.length === 0 && partNumberToSearch) {
+      console.log("No se encontraron descripciones para este part number");
+    }
+  }, [searchResults, form, isEditing, partNumberToSearch]);
+
+  const busy = 
+    isBatchesLoading || 
+    isManufacturerLoading || 
+    isConditionsLoading || 
+    createArticle.isPending || 
+    confirmIncoming.isPending || 
+    updateArticle.isPending;
 
   const batchesOptions = useMemo<Batch[] | undefined>(() => batches, [batches]);
+
+  // Ordenar batches: primero los resultados de búsqueda, luego el resto
+  const sortedBatches = useMemo(() => {
+    if (!batches) return [];
+    if (!searchResults || searchResults.length === 0) return batches;
+    
+    const searchIds = new Set(searchResults.map(r => r.id));
+    const foundBatches = batches.filter(b => searchIds.has(b.id));
+    const otherBatches = batches.filter(b => !searchIds.has(b.id));
+    
+    return [...foundBatches, ...otherBatches];
+  }, [batches, searchResults]);
 
   const normalizeUpper = (s?: string) => s?.trim().toUpperCase() ?? "";
 
@@ -267,14 +316,14 @@ export default function CreateToolForm({ initialData, isEditing }: { initialData
       status: "CHECKING",
       part_number: normalizeUpper(values.part_number),
       alternative_part_number: values.alternative_part_number?.map((v) => normalizeUpper(v)) ?? [],
-      last_calibration_date: values.last_calibration_date ? format(values.last_calibration_date, "yyyy-MM-dd") : undefined,
+      calibration_date: values.calibration_date ? format(values.calibration_date, "yyyy-MM-dd") : undefined,
       batch_name: enableBatchNameEdit ? values.batch_name : undefined,
       // next_calibration se envía como número si existe
     };
 
     if (isEditing) {
-      await confirmIncoming.mutateAsync({ values: { ...payload, id: (initialData as any)?.id, status: "Stored" }, company: selectedCompany.slug });
-      router.push(`/${selectedCompany.slug}/almacen/ingreso/en_recepcion`);
+      await updateArticle.mutateAsync({ data: { ...payload }, id: (initialData as any)?.id, company: selectedCompany.slug });
+      router.push(`/${selectedCompany.slug}/almacen/inventario_articulos`);
     } else {
       await createArticle.mutateAsync({ company: selectedCompany.slug, data: payload });
       form.reset();
@@ -300,11 +349,21 @@ export default function CreateToolForm({ initialData, isEditing }: { initialData
                     <Input
                       placeholder="Ej: TW-500"
                       {...field}
-                      disabled={busy}
-                      onBlur={(e) => field.onChange(normalizeUpper(e.target.value))}
+                      disabled={busy || isSearching}
+                      onBlur={(e) => {
+                        const normalized = normalizeUpper(e.target.value);
+                        field.onChange(normalized);
+                        // Iniciar búsqueda si hay un valor y no está editando
+                        if (normalized && normalized.length >= 2 && !isEditing) {
+                          setPartNumberToSearch(normalized);
+                        }
+                      }}
                     />
                   </FormControl>
-                  <FormDescription>Identificador principal.</FormDescription>
+                  <FormDescription>
+                    Identificador principal.
+                    {isSearching && <span className="text-primary ml-2">Buscando...</span>}
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -370,11 +429,24 @@ export default function CreateToolForm({ initialData, isEditing }: { initialData
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {batchesOptions?.map((b) => (
-                          <SelectItem key={b.id} value={b.id.toString()}>
-                            {b.name}
-                          </SelectItem>
-                        ))}
+                        {searchResults && searchResults.length > 0 && (
+                          <>
+                            <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">Coincidencias encontradas</div>
+                            {searchResults.map((b) => (
+                              <SelectItem key={`search-${b.id}`} value={b.id.toString()} className="font-semibold text-primary">
+                                {b.name}
+                              </SelectItem>
+                            ))}
+                            <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">Otras categorías</div>
+                          </>
+                        )}
+                        {sortedBatches
+                          ?.filter(b => !searchResults?.some(sr => sr.id === b.id))
+                          .map((b) => (
+                            <SelectItem key={b.id} value={b.id.toString()}>
+                              {b.name}
+                            </SelectItem>
+                          ))}
                         {(!batchesOptions || batchesOptions.length === 0) && !isBatchesLoading && !isBatchesError && (
                           <div className="p-2 text-sm text-muted-foreground text-center">No se han encontrado categorías.</div>
                         )}
@@ -540,12 +612,12 @@ export default function CreateToolForm({ initialData, isEditing }: { initialData
               <>
                 <FormField
                   control={form.control}
-                  name="last_calibration_date"
+                  name="calibration_date"
                   render={({ field }) => (
                     <DatePickerField
                       label="Última calibración"
                       value={field.value}
-                      onSelect={(d) => form.setValue("last_calibration_date", d, { shouldDirty: true, shouldValidate: true })}
+                      onSelect={(d) => form.setValue("calibration_date", d, { shouldDirty: true, shouldValidate: true })}
                       description="Fecha de la última calibración realizada."
                       busy={busy}
                     />
@@ -587,11 +659,11 @@ export default function CreateToolForm({ initialData, isEditing }: { initialData
               name="description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Descripción</FormLabel>
+                  <FormLabel>Observaciones</FormLabel>
                   <FormControl>
-                    <Textarea rows={5} placeholder="Ej: Torquímetro 1/2'' rango 20–200 Nm..." {...field} disabled={busy} />
+                    <Textarea rows={5} placeholder="Ej: Herramienta de calibración..." {...field} disabled={busy} />
                   </FormControl>
-                  <FormDescription>Breve descripción técnica.</FormDescription>
+                  <FormDescription>Observaciones sobre la herramienta.</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}

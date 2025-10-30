@@ -22,6 +22,7 @@ export interface IArticleSimple {
   is_hazardous?: boolean;
   batch_name: string;
   batch_id: number;
+  min_quantity?: number | string; // Directamente en el artículo
   tool?: {
     status?: string | null;
     calibration_date?: string | null; // ISO string o "dd/MM/yyyy"
@@ -57,6 +58,7 @@ export const flattenArticles = (
       batch_name: batch.name,
       is_hazardous: batch.is_hazardous ?? undefined,
       batch_id: batch.batch_id,
+      min_quantity: article.min_quantity, // Directamente desde el artículo
       tool: article.tool
         ? {
             status: article.tool.status,
@@ -177,6 +179,24 @@ const baseCols: ColumnDef<IArticleSimple>[] = [
   },
 ];
 
+// Columnas extra para CONSUMIBLE
+export const consumibleCols: ColumnDef<IArticleSimple>[] = [
+  ...baseCols,
+  {
+    accessorKey: "min_quantity",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Cant. Mínima" />
+    ),
+    cell: ({ row }) => (
+      <div className="text-center font-medium text-sm">
+        {row.original.min_quantity || (
+          <span className="text-muted-foreground">0</span>
+        )}
+      </div>
+    ),
+  },
+];
+
 // Columnas extra para HERRAMIENTA
 export const herramientaCols: ColumnDef<IArticleSimple>[] = [
   ...baseCols,
@@ -222,5 +242,6 @@ export const getColumnsByCategory = (
   cat: "COMPONENTE" | "CONSUMIBLE" | "HERRAMIENTA"
 ): ColumnDef<IArticleSimple>[] => {
   if (cat === "HERRAMIENTA") return herramientaCols;
-  return baseCols; // puedes crear sets separados para componente/consumible si lo necesitas
+  if (cat === "CONSUMIBLE") return consumibleCols;
+  return baseCols; // componente u otros
 };
