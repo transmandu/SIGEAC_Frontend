@@ -125,17 +125,17 @@ const baseCols: ColumnDef<IArticleSimple>[] = [
       </div>
     ),
   },
-  // {
-  //   accessorKey: 'alternative_part_number',
-  //   header: ({ column }) => <DataTableColumnHeader filter column={column} title="Alt. Part Number" />,
-  //   cell: ({ row }) => (
-  //     <div className="font-bold text-center text-base">
-  //       {row.original.alternative_part_number && row.original.alternative_part_number.length > 0
-  //         ? row.original.alternative_part_number.join('/ ')
-  //         : 'N/A'}
-  //     </div>
-  //   ),
-  // },
+  {
+    accessorKey: 'alternative_part_number',
+    header: ({ column }) => <DataTableColumnHeader filter column={column} title="Alt. Part Number" />,
+    cell: ({ row }) => (
+      <div className="font-bold text-center text-base">
+        {row.original.alternative_part_number && row.original.alternative_part_number.length > 0
+          ? row.original.alternative_part_number.join('/ ')
+          : 'N/A'}
+      </div>
+    ),
+  },
   {
     accessorKey: "serial",
     header: ({ column }) => (

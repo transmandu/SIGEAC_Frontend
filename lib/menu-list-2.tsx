@@ -900,7 +900,6 @@ export function getMenuList(
           ),
           icon: ScrollText,
           roles: ["SUPERUSER", "ENGINEERING"],
-          roles: ["SUPERUSER", "ENGINEERING"],
           submenus: [],
         },
       ],
