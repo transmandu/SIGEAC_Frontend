@@ -49,6 +49,7 @@ export const useCreateSecondaryUnit = () => {
 
   const createMutation = useMutation({
     mutationFn: async (data: createSecondaryUnitSchema) => {
+      console.log("Datos enviados al backend:", data),
       await axiosInstance.post(`/${selectedCompany?.slug}/convertion`, data);
     },
     onSuccess: () => {

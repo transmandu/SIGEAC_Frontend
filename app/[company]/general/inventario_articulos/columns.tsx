@@ -230,6 +230,22 @@ const baseCols: ColumnDef<IArticleSimple>[] = [
   // },
 ];
 
+// Columnas para COMPONENTE
+export const componenteCols: ColumnDef<IArticleSimple>[] = [
+  ...baseCols,
+  {
+    id: "actions",
+    header: "Acciones",
+    cell: ({ row }) => {
+      const item = row.original;  
+      if (item.status === "stored") {
+        return <ArticleDropdownActions id={item.id} />;
+      }
+      return null;
+    },
+  },
+];
+
 // Columnas extra para CONSUMIBLE
 export const consumibleCols: ColumnDef<IArticleSimple>[] = [
   ...baseCols,
@@ -245,6 +261,17 @@ export const consumibleCols: ColumnDef<IArticleSimple>[] = [
         )}
       </div>
     ),
+  },
+  {
+    id: "actions",
+    header: "Acciones",
+    cell: ({ row }) => {
+      const item = row.original;  
+      if (item.status === "stored") {
+        return <ArticleDropdownActions id={item.id} />;
+      }
+      return null;
+    },
   },
 ];
 
@@ -286,6 +313,17 @@ export const herramientaCols: ColumnDef<IArticleSimple>[] = [
       );
     },
   },
+  {
+    id: "actions",
+    header: "Acciones",
+    cell: ({ row }) => {
+      const item = row.original;  
+      if (item.status === "stored") {
+        return <ArticleDropdownActions id={item.id} />;
+      }
+      return null;
+    },
+  },
 ];
 
 // Columnas por categoría
@@ -294,5 +332,6 @@ export const getColumnsByCategory = (
 ): ColumnDef<IArticleSimple>[] => {
   if (cat === "HERRAMIENTA") return herramientaCols;
   if (cat === "CONSUMIBLE") return consumibleCols;
-  return baseCols; // componente u otros
+  if (cat === "COMPONENTE") return componenteCols;
+  return baseCols; // fallback
 };

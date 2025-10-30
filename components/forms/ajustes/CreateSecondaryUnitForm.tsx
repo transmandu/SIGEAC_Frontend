@@ -60,8 +60,8 @@ export default function CreateSecondaryUnitForm({ onClose }: FormProps) {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      convertion_rate: 0,
-      quantity_unit: 1,
+      convertion_rate: 1,
+      quantity_unit: 0,
     },
   });
   const { control } = form;
@@ -72,19 +72,28 @@ export default function CreateSecondaryUnitForm({ onClose }: FormProps) {
     }
   }, [form, value]);
 
+  const selectedPrimaryUnit = primaryUnits?.find(
+    (unit) => unit.id.toString() === value
+  );
+
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    await createSecondaryUnit.mutate({
-      ...values,
-    });
+    // Intercambiar los valores antes de enviar al backend
+    // El usuario ingresa: quantity_unit = cantidad (ej: 50), convertion_rate = 1
+    // Pero el backend espera: convertion_rate = cantidad (ej: 50), quantity_unit = 1
+    const payload = {
+      secondary_unit: values.secondary_unit,
+      convertion_rate: values.quantity_unit, // El quantity_unit del formulario (50) va a convertion_rate
+      quantity_unit: values.convertion_rate, // El convertion_rate del formulario (1) va a quantity_unit
+      unit_id: values.unit_id,
+    };
+    console.log("Datos enviados al backend:", payload);
+    await createSecondaryUnit.mutate(payload);
     // Resetear el formulario después de crear
     form.reset();
     setValue("");
     setOpen(false);
     onClose();
   };
-  const selectedPrimaryUnit = primaryUnits?.find(
-    (unit) => unit.id.toString() === value
-  );
 
   return (
     <Form {...form}>
@@ -103,7 +112,7 @@ export default function CreateSecondaryUnitForm({ onClose }: FormProps) {
                 />
               </FormControl>
               <FormDescription>
-                El nombre descriptivo de su unidad secundaria (ej: "Caja de 24 unidades")
+                El nombre descriptivo de su unidad secundaria (ej: &quot;Caja de 24 unidades&quot;)
               </FormDescription>
               <FormMessage />
             </FormItem>
@@ -184,7 +193,7 @@ export default function CreateSecondaryUnitForm({ onClose }: FormProps) {
         {/* Cantidad de unidades que contiene */}
         <FormField
           control={control}
-          name="convertion_rate"
+          name="quantity_unit"
           render={({ field }) => (
             <FormItem>
               <FormLabel className="text-base font-semibold">
@@ -195,7 +204,7 @@ export default function CreateSecondaryUnitForm({ onClose }: FormProps) {
                   type="number"
                   min="0"
                   step="0.01"
-                  placeholder="EJ: 24, 6, 10, 0.5"
+                  placeholder="EJ: 24, 6, 10, 36"
                   {...field}
                 />
               </FormControl>
@@ -203,7 +212,7 @@ export default function CreateSecondaryUnitForm({ onClose }: FormProps) {
                 ¿Cuántas unidades de la unidad primaria contiene esta unidad secundaria? 
                 {selectedPrimaryUnit && (
                   <span className="block mt-1 text-sm text-muted-foreground italic">
-                    Ejemplo: Si seleccionaste "{selectedPrimaryUnit.label}", y esta unidad secundaria contiene 24 unidades, ingresa 24
+                    Ejemplo: Si seleccionaste &quot;{selectedPrimaryUnit.label}&quot;, y esta unidad secundaria contiene 36 unidades, ingresa 36
                   </span>
                 )}
               </FormDescription>
@@ -215,7 +224,7 @@ export default function CreateSecondaryUnitForm({ onClose }: FormProps) {
         {/* Valor por unidad */}
         <FormField
           control={control}
-          name="quantity_unit"
+          name="convertion_rate"
           render={({ field }) => (
             <FormItem>
               <FormLabel className="text-base font-semibold">Valor de Conversión por Unidad</FormLabel>
@@ -242,15 +251,15 @@ export default function CreateSecondaryUnitForm({ onClose }: FormProps) {
         />
 
         {/* Ejemplo de ayuda visual */}
-        {selectedPrimaryUnit && form.watch("convertion_rate") && form.watch("quantity_unit") && (
+        {selectedPrimaryUnit && form.watch("quantity_unit") && form.watch("convertion_rate") && (
           <div className="rounded-lg border bg-muted/50 p-4 space-y-2">
             <p className="text-sm font-semibold text-foreground">Ejemplo de relación:</p>
             <p className="text-sm text-muted-foreground">
               1 <strong>{form.watch("secondary_unit") || "unidad secundaria"}</strong> = {" "}
-              {form.watch("convertion_rate") || 0} {selectedPrimaryUnit.label}
-              {form.watch("quantity_unit") && form.watch("quantity_unit") !== form.watch("convertion_rate") && (
+              {form.watch("quantity_unit") || 0} {selectedPrimaryUnit.label}
+              {form.watch("convertion_rate") && form.watch("convertion_rate") !== 1 && (
                 <span className="block mt-1">
-                  (Valor de conversión: {form.watch("quantity_unit")})
+                  (Valor de conversión por unidad: {form.watch("convertion_rate")})
                 </span>
               )}
             </p>
