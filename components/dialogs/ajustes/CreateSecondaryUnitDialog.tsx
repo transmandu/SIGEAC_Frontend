@@ -23,8 +23,6 @@ export function CreateSecondaryUnitDialog() {
         <DialogHeader>
           <DialogTitle>Crear Unidad Secundaria</DialogTitle>
           <DialogDescription>
-            Configure una unidad secundaria que estará relacionada con una unidad primaria existente. 
-            La unidad secundaria representa agrupaciones o empaques (ej: cajas, paquetes, bolsas).
           </DialogDescription>
         </DialogHeader>
         <CreateSecondaryUnitForm onClose={() => setOpen(false)} />

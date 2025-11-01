@@ -11,7 +11,7 @@ interface createUnitSchema {
 interface createSecondaryUnitSchema {
   secondary_unit: string;
   convertion_rate: number;
-  unit_id: number;
+  primary_unit: number;
   quantity_unit: number;
 }
 
@@ -50,7 +50,7 @@ export const useCreateSecondaryUnit = () => {
   const createMutation = useMutation({
     mutationFn: async (data: createSecondaryUnitSchema) => {
       console.log("Datos enviados al backend:", data),
-      await axiosInstance.post(`/${selectedCompany?.slug}/convertion`, data);
+        await axiosInstance.post(`/${selectedCompany?.slug}/convertion`, data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({
