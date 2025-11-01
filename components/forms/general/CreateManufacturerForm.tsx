@@ -1,4 +1,5 @@
-'use client';
+"use client";
+
 import {
   Form,
   FormControl,
@@ -14,7 +15,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
+} from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
@@ -23,7 +24,6 @@ import { z } from "zod";
 import { Button } from "../../ui/button";
 import { useCreateManufacturer } from "@/actions/general/fabricantes/actions";
 import { useCompanyStore } from "@/stores/CompanyStore";
-
 
 const formSchema = z.object({
   name: z.string().min(3, {
@@ -35,20 +35,28 @@ const formSchema = z.object({
   type: z.enum(["AIRCRAFT", "ENGINE", "APU", "PROPELLER", "GENERAL", "PART"], {
     required_error: "Debe seleccionar un tipo",
   }),
-})
-
+});
 
 interface FormProps {
-  onClose: () => void,
-  defaultType?: "AIRCRAFT" | "ENGINE" | "APU" | "PROPELLER" | "GENERAL" | "PART",
-  onSuccess?: (manufacturer: any) => void,
+  onClose: () => void;
+  defaultType?:
+    | "AIRCRAFT"
+    | "ENGINE"
+    | "APU"
+    | "PROPELLER"
+    | "GENERAL"
+    | "PART";
+  onSuccess?: (manufacturer: any) => void;
 }
 
-export default function CreateManufacturerForm({ onClose, defaultType = "GENERAL", onSuccess }: FormProps) {
+export default function CreateManufacturerForm({
+  onClose,
+  defaultType = "GENERAL",
+  onSuccess,
+}: FormProps) {
+  const { selectedCompany } = useCompanyStore();
 
-  const { selectedCompany } = useCompanyStore()
-
-  const { createManufacturer } = useCreateManufacturer()
+  const { createManufacturer } = useCreateManufacturer();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -57,23 +65,31 @@ export default function CreateManufacturerForm({ onClose, defaultType = "GENERAL
       type: defaultType,
       description: "",
     },
-  })
+  });
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
-      const result = await createManufacturer.mutateAsync({company: selectedCompany?.slug, data: values})
+      const result = await createManufacturer.mutateAsync({
+        company: selectedCompany?.slug,
+        data: values,
+      });
       if (onSuccess && result) {
-        onSuccess(result)
+        onSuccess(result);
       }
-      onClose()
+      onClose();
     } catch (error) {
-      console.log(error)
+      console.log(error);
     }
-  }
+  };
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)}>
+      <form
+        onSubmit={(e) => {
+          e.stopPropagation(); //evita que el submit se propague al formulario padre
+          form.handleSubmit(onSubmit)(e); //  ejecuta el submit localmente
+        }}
+      >
         <FormField
           control={form.control}
           name="name"
@@ -90,6 +106,7 @@ export default function CreateManufacturerForm({ onClose, defaultType = "GENERAL
             </FormItem>
           )}
         />
+
         <FormField
           control={form.control}
           name="type"
@@ -111,14 +128,12 @@ export default function CreateManufacturerForm({ onClose, defaultType = "GENERAL
                   <SelectItem value="PART">Partes/Componentes</SelectItem>
                 </SelectContent>
               </Select>
-              <FormDescription>
-                Indique el tipo de fabricante.
-              </FormDescription>
+              <FormDescription>Indique el tipo de fabricante.</FormDescription>
               <FormMessage />
             </FormItem>
           )}
         />
-        
+
         <FormField
           control={form.control}
           name="description"
@@ -135,10 +150,19 @@ export default function CreateManufacturerForm({ onClose, defaultType = "GENERAL
             </FormItem>
           )}
         />
-        <Button className="bg-primary mt-2 text-white hover:bg-blue-900 disabled:bg-primary/70" disabled={createManufacturer?.isPending} type="submit">
-          {createManufacturer?.isPending ? <Loader2 className="size-4 animate-spin" /> : <p>Crear</p>}
+
+        <Button
+          className="bg-primary mt-2 text-white hover:bg-blue-900 disabled:bg-primary/70"
+          disabled={createManufacturer?.isPending}
+          type="submit"
+        >
+          {createManufacturer?.isPending ? (
+            <Loader2 className="size-4 animate-spin" />
+          ) : (
+            <p>Crear</p>
+          )}
         </Button>
       </form>
     </Form>
-  )
+  );
 }
