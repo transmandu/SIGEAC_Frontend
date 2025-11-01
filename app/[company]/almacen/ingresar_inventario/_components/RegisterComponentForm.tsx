@@ -731,7 +731,7 @@ export default function CreateComponentForm({
                     <SelectContent>
                       {manufacturers?.filter((m) => m.type).map((m) => (
                         <SelectItem key={m.id} value={m.id.toString()}>
-                          {m.name}
+                          {m.name} ({m.type})
                         </SelectItem>
                       ))}
                       {isManufacturerError && (

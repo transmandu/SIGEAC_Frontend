@@ -334,7 +334,10 @@ export default function CreateToolForm({ initialData, isEditing }: { initialData
 
   return (
     <Form {...form}>
-      <form className="flex flex-col gap-6 max-w-7xl mx-auto" onSubmit={form.handleSubmit(onSubmit)}>
+      <form
+        className="flex flex-col gap-6 max-w-7xl mx-auto"
+        onSubmit={form.handleSubmit(onSubmit)}
+      >
         {/* Header */}
         <SectionCard title="Registrar herramienta">
           <CardTitle className="sr-only">Registrar herramienta</CardTitle>
@@ -354,7 +357,11 @@ export default function CreateToolForm({ initialData, isEditing }: { initialData
                         const normalized = normalizeUpper(e.target.value);
                         field.onChange(normalized);
                         // Iniciar búsqueda si hay un valor y no está editando
-                        if (normalized && normalized.length >= 2 && !isEditing) {
+                        if (
+                          normalized &&
+                          normalized.length >= 2 &&
+                          !isEditing
+                        ) {
                           setPartNumberToSearch(normalized);
                         }
                       }}
@@ -362,7 +369,9 @@ export default function CreateToolForm({ initialData, isEditing }: { initialData
                   </FormControl>
                   <FormDescription>
                     Identificador principal.
-                    {isSearching && <span className="text-primary ml-2">Buscando...</span>}
+                    {isSearching && (
+                      <span className="text-primary ml-2">Buscando...</span>
+                    )}
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -376,7 +385,11 @@ export default function CreateToolForm({ initialData, isEditing }: { initialData
                 <FormItem className="w-full">
                   <FormLabel>Serial</FormLabel>
                   <FormControl>
-                    <Input placeholder="Ej: S-000123" {...field} disabled={busy} />
+                    <Input
+                      placeholder="Ej: S-000123"
+                      {...field}
+                      disabled={busy}
+                    />
                   </FormControl>
                   <FormDescription>Serial de la herramienta.</FormDescription>
                   <FormMessage />
@@ -393,7 +406,11 @@ export default function CreateToolForm({ initialData, isEditing }: { initialData
                   <FormControl>
                     <MultiInputField
                       values={field.value || []}
-                      onChange={(vals) => field.onChange(vals.map((v: string) => normalizeUpper(v)))}
+                      onChange={(vals) =>
+                        field.onChange(
+                          vals.map((v: string) => normalizeUpper(v))
+                        )
+                      }
                       placeholder={`Ej: P/N-ALT-01, PN-ALT-02`}
                       label=""
                     />
@@ -410,47 +427,75 @@ export default function CreateToolForm({ initialData, isEditing }: { initialData
                 render={({ field }) => (
                   <FormItem className="w-full">
                     <FormLabel>Categoría</FormLabel>
-                    <Select 
+                    <Select
                       onValueChange={(value) => {
                         field.onChange(value);
                         if (isEditing && enableBatchNameEdit) {
-                          const selectedBatch = batchesOptions?.find(b => b.id.toString() === value);
+                          const selectedBatch = batchesOptions?.find(
+                            (b) => b.id.toString() === value
+                          );
                           if (selectedBatch) {
-                            form.setValue("batch_name", selectedBatch.name, { shouldValidate: true });
+                            form.setValue("batch_name", selectedBatch.name, {
+                              shouldValidate: true,
+                            });
                           }
                         }
-                      }} 
-                      value={field.value} 
+                      }}
+                      value={field.value}
                       disabled={isBatchesLoading || busy}
                     >
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder={isBatchesLoading ? "Cargando..." : "Seleccione categoría..."} />
+                          <SelectValue
+                            placeholder={
+                              isBatchesLoading
+                                ? "Cargando..."
+                                : "Seleccione categoría..."
+                            }
+                          />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
                         {searchResults && searchResults.length > 0 && (
                           <>
-                            <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">Coincidencias encontradas</div>
+                            <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">
+                              Coincidencias encontradas
+                            </div>
                             {searchResults.map((b) => (
-                              <SelectItem key={`search-${b.id}`} value={b.id.toString()} className="font-semibold text-primary">
+                              <SelectItem
+                                key={`search-${b.id}`}
+                                value={b.id.toString()}
+                                className="font-semibold text-primary"
+                              >
                                 {b.name}
                               </SelectItem>
                             ))}
-                            <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">Otras categorías</div>
+                            <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">
+                              Otras categorías
+                            </div>
                           </>
                         )}
                         {sortedBatches
-                          ?.filter(b => !searchResults?.some(sr => sr.id === b.id))
+                          ?.filter(
+                            (b) => !searchResults?.some((sr) => sr.id === b.id)
+                          )
                           .map((b) => (
                             <SelectItem key={b.id} value={b.id.toString()}>
                               {b.name}
                             </SelectItem>
                           ))}
-                        {(!batchesOptions || batchesOptions.length === 0) && !isBatchesLoading && !isBatchesError && (
-                          <div className="p-2 text-sm text-muted-foreground text-center">No se han encontrado categorías.</div>
+                        {(!batchesOptions || batchesOptions.length === 0) &&
+                          !isBatchesLoading &&
+                          !isBatchesError && (
+                            <div className="p-2 text-sm text-muted-foreground text-center">
+                              No se han encontrado categorías.
+                            </div>
+                          )}
+                        {isBatchesError && (
+                          <div className="p-2 text-sm text-muted-foreground text-center">
+                            Error al cargar categorías.
+                          </div>
                         )}
-                        {isBatchesError && <div className="p-2 text-sm text-muted-foreground text-center">Error al cargar categorías.</div>}
                       </SelectContent>
                     </Select>
                     <FormDescription>Clasificación interna.</FormDescription>
@@ -464,7 +509,9 @@ export default function CreateToolForm({ initialData, isEditing }: { initialData
                     <Checkbox
                       id="enable-batch-edit"
                       checked={enableBatchNameEdit}
-                      onCheckedChange={(checked) => setEnableBatchNameEdit(checked as boolean)}
+                      onCheckedChange={(checked) =>
+                        setEnableBatchNameEdit(checked as boolean)
+                      }
                     />
                     <label
                       htmlFor="enable-batch-edit"
@@ -487,7 +534,10 @@ export default function CreateToolForm({ initialData, isEditing }: { initialData
                               disabled={busy}
                             />
                           </FormControl>
-                          <FormDescription>Ingrese el nuevo nombre para esta descripción de artículo.</FormDescription>
+                          <FormDescription>
+                            Ingrese el nuevo nombre para esta descripción de
+                            artículo.
+                          </FormDescription>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -513,30 +563,53 @@ export default function CreateToolForm({ initialData, isEditing }: { initialData
                       defaultType="PART"
                       onSuccess={(manufacturer) => {
                         if (manufacturer?.id) {
-                          form.setValue("manufacturer_id", manufacturer.id.toString(), { shouldValidate: true });
+                          form.setValue(
+                            "manufacturer_id",
+                            manufacturer.id.toString(),
+                            { shouldValidate: true }
+                          );
                         }
                       }}
                       triggerButton={
-                        <Button type="button" variant="ghost" size="sm" className="h-7 text-xs">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 text-xs"
+                        >
                           <Plus className="h-3 w-3 mr-1" />
                           Crear nuevo
                         </Button>
                       }
                     />
                   </div>
-                  <Select onValueChange={field.onChange} value={field.value} disabled={isManufacturerLoading || busy}>
+                  <Select
+                    onValueChange={field.onChange}
+                    value={field.value}
+                    disabled={isManufacturerLoading || busy}
+                  >
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder={isManufacturerLoading ? "Cargando..." : "Seleccione..."} />
+                        <SelectValue
+                          placeholder={
+                            isManufacturerLoading
+                              ? "Cargando..."
+                              : "Seleccione..."
+                          }
+                        />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
                       {manufacturers?.map((m) => (
                         <SelectItem key={m.id} value={m.id.toString()}>
-                          {m.name}
+                          {m.name} ({m.type})
                         </SelectItem>
                       ))}
-                      {isManufacturerError && <div className="p-2 text-sm text-muted-foreground">Error al cargar fabricantes.</div>}
+                      {isManufacturerError && (
+                        <div className="p-2 text-sm text-muted-foreground">
+                          Error al cargar fabricantes.
+                        </div>
+                      )}
                     </SelectContent>
                   </Select>
                   <FormDescription>Marca del fabricante.</FormDescription>
@@ -551,10 +624,20 @@ export default function CreateToolForm({ initialData, isEditing }: { initialData
               render={({ field }) => (
                 <FormItem className="w-full">
                   <FormLabel>Condición</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value} disabled={isConditionsLoading || busy}>
+                  <Select
+                    onValueChange={field.onChange}
+                    value={field.value}
+                    disabled={isConditionsLoading || busy}
+                  >
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder={isConditionsLoading ? "Cargando..." : "Seleccione..."} />
+                        <SelectValue
+                          placeholder={
+                            isConditionsLoading
+                              ? "Cargando..."
+                              : "Seleccione..."
+                          }
+                        />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -563,7 +646,11 @@ export default function CreateToolForm({ initialData, isEditing }: { initialData
                           {c.name}
                         </SelectItem>
                       ))}
-                      {isConditionsError && <div className="p-2 text-sm text-muted-foreground">Error al cargar condiciones.</div>}
+                      {isConditionsError && (
+                        <div className="p-2 text-sm text-muted-foreground">
+                          Error al cargar condiciones.
+                        </div>
+                      )}
                     </SelectContent>
                   </Select>
                   <FormDescription>Estado físico/operativo.</FormDescription>
@@ -579,9 +666,15 @@ export default function CreateToolForm({ initialData, isEditing }: { initialData
                 <FormItem className="w-full">
                   <FormLabel>Ubicación interna</FormLabel>
                   <FormControl>
-                    <Input placeholder="Ej: Taller, Estantería B" {...field} disabled={busy} />
+                    <Input
+                      placeholder="Ej: Taller, Estantería B"
+                      {...field}
+                      disabled={busy}
+                    />
                   </FormControl>
-                  <FormDescription>Zona física en almacén/taller.</FormDescription>
+                  <FormDescription>
+                    Zona física en almacén/taller.
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -598,11 +691,16 @@ export default function CreateToolForm({ initialData, isEditing }: { initialData
               render={({ field }) => (
                 <FormItem className="col-span-1 md:col-span-2 xl:col-span-3 flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
                   <FormControl>
-                    <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                    <Checkbox
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
                   </FormControl>
                   <div className="space-y-1 leading-none">
                     <FormLabel>¿Requiere calibración?</FormLabel>
-                    <FormDescription>Activa los campos de calibración si aplica.</FormDescription>
+                    <FormDescription>
+                      Activa los campos de calibración si aplica.
+                    </FormDescription>
                   </div>
                 </FormItem>
               )}
@@ -617,7 +715,12 @@ export default function CreateToolForm({ initialData, isEditing }: { initialData
                     <DatePickerField
                       label="Última calibración"
                       value={field.value}
-                      onSelect={(d) => form.setValue("calibration_date", d, { shouldDirty: true, shouldValidate: true })}
+                      onSelect={(d) =>
+                        form.setValue("calibration_date", d, {
+                          shouldDirty: true,
+                          shouldValidate: true,
+                        })
+                      }
                       description="Fecha de la última calibración realizada."
                       busy={busy}
                     />
@@ -637,11 +740,19 @@ export default function CreateToolForm({ initialData, isEditing }: { initialData
                           min={1}
                           placeholder="Ej: 180"
                           value={field.value ?? ""}
-                          onChange={(e) => field.onChange(e.target.value === "" ? undefined : Number(e.target.value))}
+                          onChange={(e) =>
+                            field.onChange(
+                              e.target.value === ""
+                                ? undefined
+                                : Number(e.target.value)
+                            )
+                          }
                           disabled={busy}
                         />
                       </FormControl>
-                      <FormDescription>Número de días para programar la próxima calibración.</FormDescription>
+                      <FormDescription>
+                        Número de días para programar la próxima calibración.
+                      </FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -661,9 +772,16 @@ export default function CreateToolForm({ initialData, isEditing }: { initialData
                 <FormItem>
                   <FormLabel>Observaciones</FormLabel>
                   <FormControl>
-                    <Textarea rows={5} placeholder="Ej: Herramienta de calibración..." {...field} disabled={busy} />
+                    <Textarea
+                      rows={5}
+                      placeholder="Ej: Herramienta de calibración..."
+                      {...field}
+                      disabled={busy}
+                    />
                   </FormControl>
-                  <FormDescription>Observaciones sobre la herramienta.</FormDescription>
+                  <FormDescription>
+                    Observaciones sobre la herramienta.
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -672,12 +790,52 @@ export default function CreateToolForm({ initialData, isEditing }: { initialData
             <Separator />
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FileField form={form} name="image" label="Imagen" accept="image/*" description="Imagen descriptiva de la herramienta." busy={busy} />
+              <FileField
+                form={form}
+                name="image"
+                label="Imagen"
+                accept="image/*"
+                description="Imagen descriptiva de la herramienta."
+                busy={busy}
+              />
 
               <div className="space-y-4">
-                <FileField form={form} name="certificate_8130" label={<span>Certificado <span className="text-primary font-semibold">8130</span></span>} description="PDF o imagen. Máx. 10 MB." busy={busy} />
-                <FileField form={form} name="certificate_fabricant" label={<span>Certificado del <span className="text-primary">fabricante</span></span>} description="PDF o imagen. Máx. 10 MB." busy={busy} />
-                <FileField form={form} name="certificate_vendor" label={<span>Certificado del <span className="text-primary">vendedor</span></span>} description="PDF o imagen. Máx. 10 MB." busy={busy} />
+                <FileField
+                  form={form}
+                  name="certificate_8130"
+                  label={
+                    <span>
+                      Certificado{" "}
+                      <span className="text-primary font-semibold">8130</span>
+                    </span>
+                  }
+                  description="PDF o imagen. Máx. 10 MB."
+                  busy={busy}
+                />
+                <FileField
+                  form={form}
+                  name="certificate_fabricant"
+                  label={
+                    <span>
+                      Certificado del{" "}
+                      <span className="text-primary">fabricante</span>
+                    </span>
+                  }
+                  description="PDF o imagen. Máx. 10 MB."
+                  busy={busy}
+                />
+                <FileField
+                  form={form}
+                  name="certificate_vendor"
+                  label={
+                    <span>
+                      Certificado del{" "}
+                      <span className="text-primary">vendedor</span>
+                    </span>
+                  }
+                  description="PDF o imagen. Máx. 10 MB."
+                  busy={busy}
+                />
               </div>
             </div>
           </div>
@@ -687,10 +845,29 @@ export default function CreateToolForm({ initialData, isEditing }: { initialData
         <div className="flex items-center gap-3">
           <Button
             className="bg-primary text-white hover:bg-blue-900 disabled:bg-slate-100 disabled:text-slate-400"
-            disabled={busy || !selectedCompany || !form.getValues("part_number") || !form.getValues("batch_id") || !form.getValues("manufacturer_id") || !form.getValues("condition_id")}
+            disabled={
+              busy ||
+              !selectedCompany ||
+              !form.getValues("part_number") ||
+              !form.getValues("batch_id") ||
+              !form.getValues("manufacturer_id") ||
+              !form.getValues("condition_id")
+            }
             type="submit"
           >
-            {busy ? <Image className="text-black" src={loadingGif} width={170} height={170} alt="Cargando..." /> : <span>{isEditing ? "Confirmar ingreso" : "Crear herramienta"}</span>}
+            {busy ? (
+              <Image
+                className="text-black"
+                src={loadingGif}
+                width={170}
+                height={170}
+                alt="Cargando..."
+              />
+            ) : (
+              <span>
+                {isEditing ? "Confirmar ingreso" : "Crear herramienta"}
+              </span>
+            )}
           </Button>
 
           {busy && (
