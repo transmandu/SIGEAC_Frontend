@@ -239,7 +239,7 @@ export const componenteCols: ColumnDef<IArticleSimple>[] = [
     header: "Acciones",
     cell: ({ row }) => {
       const item = row.original;  
-      if (item.status === "stored") {
+      if (item.status === "stored" || item.status === "checking") {
         return <ArticleDropdownActions id={item.id} />;
       }
       return null;
@@ -268,7 +268,7 @@ export const consumibleCols: ColumnDef<IArticleSimple>[] = [
     header: "Acciones",
     cell: ({ row }) => {
       const item = row.original;  
-      if (item.status === "stored") {
+      if (item.status === "stored" || item.status === "checking") {
         return <ArticleDropdownActions id={item.id} />;
       }
       return null;
@@ -319,7 +319,7 @@ export const herramientaCols: ColumnDef<IArticleSimple>[] = [
     header: "Acciones",
     cell: ({ row }) => {
       const item = row.original;  
-      if (item.status === "stored") {
+      if (item.status === "stored" || item.status === "checking") {
         return <ArticleDropdownActions id={item.id} />;
       }
       return null;
