@@ -375,7 +375,7 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
               name="articles"
               render={({ field }) => (
                 <FormItem className="flex flex-col">
-                  <FormLabel>Componente a Retirar</FormLabel>
+                  <FormLabel>Consumible a Retirar</FormLabel>
                   <Popover open={open} onOpenChange={setOpen}>
                     <PopoverTrigger asChild>
                       <Button

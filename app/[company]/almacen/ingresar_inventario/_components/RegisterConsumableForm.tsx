@@ -671,7 +671,7 @@ export default function CreateConsumableForm({
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {manufacturers?.filter((m) => m.type === "PART").map((m) => (
+                      {manufacturers?.filter((m) => m.type).map((m) => (
                         <SelectItem key={m.id} value={m.id.toString()}>
                           {m.name}
                         </SelectItem>
