@@ -85,18 +85,10 @@ const fileMaxBytes = 10_000_000; // 10 MB
 const formSchema = z.object({
   part_number: z
     .string({ message: "Debe ingresar un número de parte." })
-    .min(2, {
-      message: "El número de parte debe contener al menos 2 caracteres.",
-    }),
+    .min(2, { message: "El número de parte debe contener al menos 2 caracteres." }),
   lot_number: z.string().optional(),
   alternative_part_number: z
-    .array(
-      z
-        .string()
-        .min(2, {
-          message: "Cada número alterno debe contener al menos 2 caracteres.",
-        })
-    )
+    .array(z.string().min(2, { message: "Cada número alterno debe contener al menos 2 caracteres." }))
     .optional(),
   description: z.string().optional(),
   batch_name: z.string().optional(),
@@ -105,31 +97,15 @@ const formSchema = z.object({
   fabrication_date: z.string().optional(),
   manufacturer_id: z.string().optional(),
   condition_id: z.string().min(1, "Debe ingresar la condición del artículo."),
-  quantity: z.coerce
-    .number({ message: "Debe ingresar una cantidad." })
-    .min(0, { message: "No puede ser negativo." }),
+  quantity: z.coerce.number({ message: "Debe ingresar una cantidad." }).min(0, { message: "No puede ser negativo." }),
+  
+  min_quantity: z.coerce.number().min(0, { message: "No puede ser negativo." }).optional(),
 
-  min_quantity: z.coerce
-  .number({
-    invalid_type_error: "Debe ser un número válido.", // Este mensaje se muestra para NaN
-  })
-  .min(1, { message: "Debe ser mayor o igual a 1." }),
-  batch_id: z
-    .string({ message: "Debe ingresar un lote." })
-    .min(1, "Seleccione un lote"),
+  batch_id: z.string({ message: "Debe ingresar un lote." }).min(1, "Seleccione un lote"),
   is_managed: z.boolean().optional(),
-  certificate_8130: z
-    .instanceof(File, { message: "Suba un archivo válido." })
-    .refine((f) => f.size <= fileMaxBytes, "Tamaño máximo 10 MB.")
-    .optional(),
-  certificate_fabricant: z
-    .instanceof(File, { message: "Suba un archivo válido." })
-    .refine((f) => f.size <= fileMaxBytes, "Tamaño máximo 10 MB.")
-    .optional(),
-  certificate_vendor: z
-    .instanceof(File, { message: "Suba un archivo válido." })
-    .refine((f) => f.size <= fileMaxBytes, "Tamaño máximo 10 MB.")
-    .optional(),
+  certificate_8130: z.instanceof(File, { message: "Suba un archivo válido." }).refine((f) => f.size <= fileMaxBytes, "Tamaño máximo 10 MB.").optional(),
+  certificate_fabricant: z.instanceof(File, { message: "Suba un archivo válido." }).refine((f) => f.size <= fileMaxBytes, "Tamaño máximo 10 MB.").optional(),
+  certificate_vendor: z.instanceof(File, { message: "Suba un archivo válido." }).refine((f) => f.size <= fileMaxBytes, "Tamaño máximo 10 MB.").optional(),
   image: z.instanceof(File).optional(),
   convertion_id: z.number().optional(),
 });
