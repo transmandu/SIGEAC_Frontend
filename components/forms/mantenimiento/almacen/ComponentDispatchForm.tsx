@@ -84,9 +84,9 @@ export function ComponentDispatchForm({ onClose }: FormProps) {
 
   const [open, setOpen] = useState(false);
 
-  const [filteredBatches, setFilteredBatches] = useState<
-    BatchesWithCountProp[]
-  >([]);
+  // const [filteredBatches, setFilteredBatches] = useState<
+  //   BatchesWithCountProp[]
+  // >([]);
 
   const [articleSelected, setArticleSelected] = useState<Article>();
 
@@ -95,11 +95,14 @@ export function ComponentDispatchForm({ onClose }: FormProps) {
   const { selectedStation, selectedCompany } = useCompanyStore();
 
   const {
-    mutate,
     data: batches,
     isPending: isBatchesLoading,
     isError,
-  } = useGetBatchesWithInWarehouseArticles();
+  } = useGetBatchesWithInWarehouseArticles({
+    location_id: Number(selectedStation!),
+    company: selectedCompany!.slug,
+    category: "componente",
+  });
 
   const {
     data: employees,
@@ -118,24 +121,24 @@ export function ComponentDispatchForm({ onClose }: FormProps) {
 
   const { data: departments, isLoading: isDepartmentsLoading } = useGetDepartments(selectedCompany?.slug);
 
-  useEffect(() => {
-    if (selectedStation) {
-      mutate({
-        location_id: Number(selectedStation),
-        company: selectedCompany!.slug,
-      });
-    }
-  }, [selectedStation, selectedCompany, mutate]);
+  // useEffect(() => {
+  //   if (selectedStation) {
+  //     mutate({
+  //       location_id: Number(selectedStation),
+  //       company: selectedCompany!.slug,
+  //     });
+  //   }
+  // }, [selectedStation, selectedCompany, mutate]);
 
-  useEffect(() => {
-    if (batches) {
-      // Filtrar los batches por categoría
-      const filtered = batches.filter(
-        (batch) => batch.category === "componente"
-      );
-      setFilteredBatches(filtered);
-    }
-  }, [batches]);
+  // useEffect(() => {
+  //   if (batches) {
+  //     // Filtrar los batches por categoría
+  //     const filtered = batches.filter(
+  //       (batch) => batch.category === "componente"
+  //     );
+  //     setFilteredBatches(filtered);
+  //   }
+  // }, [batches]);
 
   const form = useForm<FormSchemaType>({
     resolver: zodResolver(FormSchema),
@@ -239,39 +242,47 @@ export function ComponentDispatchForm({ onClose }: FormProps) {
                     <Command>
                       <CommandInput placeholder="Selec. el componente..." />
                       <CommandList>
-                        <CommandEmpty>
-                          No se han encontrado componentes...
-                        </CommandEmpty>
-                        {filteredBatches?.map((batch) => (
-                          <CommandGroup
-                            key={batch.batch_id}
-                            heading={batch.name}
-                          >
-                            {batch.articles.map((article) => (
-                              <CommandItem
-                                key={article.id}
-                                onSelect={() => {
-                                  handleArticleSelect(
-                                    article.id!,
-                                    article?.serial ?? null,
-                                    batch.batch_id
-                                  );
-                                  setArticleSelected(article);
-                                }}
+                        {isBatchesLoading ? (
+                          <div className="flex items-center justify-center py-6">
+                            <Loader2 className="size-4 animate-spin" />
+                          </div>
+                        ) : (
+                          <>
+                            <CommandEmpty>
+                              No se han encontrado componentes...
+                            </CommandEmpty>
+                            {batches?.map((batch) => (
+                              <CommandGroup
+                                key={batch.batch_id}
+                                heading={batch.name}
                               >
-                                <Check
-                                  className={cn(
-                                    "mr-2 h-4 w-4",
-                                    articleSelected?.id === article.id
-                                      ? "opacity-100"
-                                      : "opacity-0"
-                                  )}
-                                />
-                                {article.serial}
-                              </CommandItem>
+                                {batch.articles.map((article) => (
+                                  <CommandItem
+                                    key={article.id}
+                                    onSelect={() => {
+                                      handleArticleSelect(
+                                        article.id!,
+                                        article?.serial ?? null,
+                                        batch.batch_id
+                                      );
+                                      setArticleSelected(article);
+                                    }}
+                                  >
+                                    <Check
+                                      className={cn(
+                                        "mr-2 h-4 w-4",
+                                        articleSelected?.id === article.id
+                                          ? "opacity-100"
+                                          : "opacity-0"
+                                      )}
+                                    />
+                                    {article.serial}
+                                  </CommandItem>
+                                ))}
+                              </CommandGroup>
                             ))}
-                          </CommandGroup>
-                        ))}
+                          </>
+                        )}
                       </CommandList>
                     </Command>
                   </PopoverContent>

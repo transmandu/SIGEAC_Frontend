@@ -62,7 +62,7 @@ export function CreateToolBoxForm({ onClose, initialData }: FormProps) {
 
   const { data: employees, isLoading: employeesLoading, isError: employeesError } = useGetEmployeesForBox(selectedStation ?? null, selectedCompany!.slug);
 
-  const { mutate, data: batches, isPending: isBatchesLoading, isError } = useGetBatchesWithInWarehouseArticles();
+  const { data: batches, isPending: isBatchesLoading, isError } = useGetBatchesWithInWarehouseArticles({location_id: Number(selectedStation!), company: selectedCompany!.slug, category: "herramienta"});
 
   const form = useForm<FormSchemaType>({
     resolver: zodResolver(FormSchema),
@@ -84,19 +84,19 @@ export function CreateToolBoxForm({ onClose, initialData }: FormProps) {
 
   const isToolSelected = (value: string) => selectedTools.includes(value);
 
-  useEffect(() => {
-    if (selectedStation && selectedCompany) {
-      mutate({location_id: Number(selectedStation), company: selectedCompany!.slug})
-    }
-  }, [selectedStation, mutate, selectedCompany])
+  // useEffect(() => {
+  //   if (selectedStation && selectedCompany) {
+  //     mutate({location_id: Number(selectedStation), company: selectedCompany!.slug})
+  //   }
+  // }, [selectedStation, mutate, selectedCompany])
 
-  useEffect(() => {
-    if (batches) {
-      // Filtrar los batches por categoría
-      const filtered = batches.filter((batch) => batch.category === "herramienta");
-      setFilteredBatches(filtered);
-    }
-  }, [batches]);
+  // useEffect(() => {
+  //   if (batches) {
+  //     // Filtrar los batches por categoría
+  //     const filtered = batches.filter((batch) => batch.category === "herramienta");
+  //     setFilteredBatches(filtered);
+  //   }
+  // }, [batches]);
 
   useEffect(() => {
     form.setValue('tool_id', selectedTools);

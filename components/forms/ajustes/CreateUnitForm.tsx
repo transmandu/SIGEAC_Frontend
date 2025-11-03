@@ -28,10 +28,11 @@ const formSchema = z.object({
 
 
 interface FormProps {
-  onClose: () => void,
+  onClose: () => void;
+  onSuccess?: (unitData: { value: string; label: string }) => void;
 }
 
-export default function CreateUnitForm({ onClose }: FormProps) {
+export default function CreateUnitForm({ onClose, onSuccess }: FormProps) {
   const { createUnit } = useCreateUnit();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -42,7 +43,10 @@ export default function CreateUnitForm({ onClose }: FormProps) {
   })
   const { control } = form;
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    await createUnit.mutate(values);
+    await createUnit.mutateAsync(values);
+    if (onSuccess) {
+      onSuccess(values);
+    }
     onClose()
   }
   return (

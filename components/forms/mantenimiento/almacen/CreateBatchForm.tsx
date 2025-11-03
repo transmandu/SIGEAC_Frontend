@@ -11,6 +11,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import { useGetWarehousesByLocation } from "@/hooks/administracion/useGetWarehousesByUser"
 import { useGetBatchesWithArticlesCount } from "@/hooks/mantenimiento/almacen/renglones/useGetBatchesWithArticleCount"
 import { useGetUnits } from "@/hooks/general/unidades/useGetPrimaryUnits"
@@ -18,12 +25,13 @@ import { batches_categories } from "@/lib/batches_categories"
 import { generateSlug } from "@/lib/utils"
 import { useCompanyStore } from "@/stores/CompanyStore"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { Loader2 } from "lucide-react"
-import { useEffect } from "react"
+import { Loader2, Plus } from "lucide-react"
+import { useEffect, useState } from "react"
 import { useForm, useWatch } from "react-hook-form"
 import { z } from "zod"
 import { Checkbox } from "../../../ui/checkbox"
 import { Textarea } from "../../../ui/textarea"
+import CreateUnitForm from "@/components/forms/ajustes/CreateUnitForm"
 
 const FormSchema = z.object({
   name: z.string().min(3, {
@@ -38,17 +46,10 @@ const FormSchema = z.object({
   alternative_part_number: z.string().optional(),
   ata_code: z.string().optional(),
   is_hazarous: z.boolean().optional(),
-  medition_unit: z.string().optional(),
+  medition_unit: z.string().min(1, {
+    message: "Debe seleccionar una unidad."
+  }),
   warehouse_id: z.string(),
-}).superRefine((data, ctx) => {
-  // Si la categoría es consumible, la unidad de medición es obligatoria
-  if (data.category === "consumible" && !data.medition_unit) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      message: "Debe seleccionar una unidad de medición para consumibles.",
-      path: ["medition_unit"],
-    });
-  }
 })
 
 type FormSchemaType = z.infer<typeof FormSchema>
@@ -64,12 +65,13 @@ export function CreateBatchForm({ onClose }: FormProps) {
 
   const { data: warehouses, error, isLoading } = useGetWarehousesByLocation({company: selectedCompany?.slug, location_id: selectedStation});
 
-  const { data: units, isLoading: isUnitsLoading } = useGetUnits(selectedCompany?.slug);
+  const { data: units, isLoading: isUnitsLoading, refetch: refetchUnits } = useGetUnits(selectedCompany?.slug);
 
   const { createBatch } = useCreateBatch();
 
   const { data: batches } = useGetBatchesWithArticlesCount({company: selectedCompany?.slug, location_id: selectedStation!});
 
+  const [isUnitDialogOpen, setIsUnitDialogOpen] = useState(false);
 
   const form = useForm<FormSchemaType>({
     resolver: zodResolver(FormSchema),
@@ -78,7 +80,7 @@ export function CreateBatchForm({ onClose }: FormProps) {
     },
   });
 
-  const { control, setError, clearErrors } = form;
+  const { control, setError, clearErrors, setValue } = form;
 
   const name = useWatch({ control, name: 'name' });
   const category = useWatch({ control, name: 'category' });
@@ -95,12 +97,6 @@ export function CreateBatchForm({ onClose }: FormProps) {
     }
   }, [name, batches, clearErrors, setError])
 
-  // Limpiar unidad de medición si no es consumible
-  useEffect(() => {
-    if (category && category !== "consumible") {
-      form.setValue("medition_unit", undefined);
-    }
-  }, [category, form])
 
   const onSubmit = async (data: FormSchemaType) => {
     const company = selectedCompany?.slug;
@@ -111,13 +107,10 @@ export function CreateBatchForm({ onClose }: FormProps) {
       });
       return;
     }
-    // Si la categoría no es consumible, establecer la unidad como "U" (Unidades)
-    const isConsumable = data.category === "consumible";
     const formattedData = {
       ...data,
       slug: generateSlug(data.name),
       warehouse_id: Number(data.warehouse_id),
-      medition_unit: isConsumable ? data.medition_unit : "U",
     }
     await createBatch.mutateAsync({data: formattedData, company});
     onClose();
@@ -179,20 +172,20 @@ export function CreateBatchForm({ onClose }: FormProps) {
           />
         </div>
         <div className="flex gap-2 w-full">
-          {category === "consumible" && (
-            <FormField
-              control={form.control}
-              name="medition_unit"
-              render={({ field }) => (
-                <FormItem className="w-full">
-                  <FormLabel>Unidad de medición</FormLabel>
+          <FormField
+            control={form.control}
+            name="medition_unit"
+            render={({ field }) => (
+              <FormItem className="w-full">
+                <FormLabel>Unidades</FormLabel>
+                <div className="flex gap-2">
                   <Select
                     disabled={isUnitsLoading}
                     onValueChange={field.onChange}
                     value={field.value}
                   >
                     <FormControl>
-                      <SelectTrigger>
+                      <SelectTrigger className="flex-1">
                         <SelectValue placeholder={isUnitsLoading ? <Loader2 className="size-4 animate-spin" /> : "Seleccione..."} />
                       </SelectTrigger>
                     </FormControl>
@@ -208,12 +201,21 @@ export function CreateBatchForm({ onClose }: FormProps) {
                       )}
                     </SelectContent>
                   </Select>
-                  <FormDescription>Unidad para medir el lote.</FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          )}
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    onClick={() => setIsUnitDialogOpen(true)}
+                    className="shrink-0"
+                  >
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </div>
+                <FormDescription>Unidad primaria para medir el renglón.</FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
           <FormField
             control={form.control}
             name="warehouse_id"
@@ -285,6 +287,27 @@ export function CreateBatchForm({ onClose }: FormProps) {
           {createBatch?.isPending ? <Loader2 className="size-4 animate-spin" /> : <p>Crear</p>}
         </Button>
       </form>
+      <Dialog open={isUnitDialogOpen} onOpenChange={setIsUnitDialogOpen}>
+        <DialogContent className="sm:max-w-[420px]">
+          <DialogHeader>
+            <DialogTitle>Crear Unidad Primaria</DialogTitle>
+            <DialogDescription>
+              Cree una nueva unidad primaria rellenando la información necesaria.
+            </DialogDescription>
+          </DialogHeader>
+          <CreateUnitForm 
+            onClose={() => setIsUnitDialogOpen(false)}
+            onSuccess={(unitData) => {
+              // Refetch units to update the list
+              refetchUnits().then(() => {
+                // Select the newly created unit by its value
+                setValue("medition_unit", unitData.value);
+                setIsUnitDialogOpen(false);
+              });
+            }}
+          />
+        </DialogContent>
+      </Dialog>
     </Form>
   )
 }

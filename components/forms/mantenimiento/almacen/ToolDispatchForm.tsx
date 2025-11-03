@@ -83,11 +83,11 @@ export function ToolDispatchForm({ onClose }: FormProps) {
 
   const [open, setOpen] = useState(false);
 
-  const [openBatches, setOpenBatches] = useState(false);
+  // const [openBatches, setOpenBatches] = useState(false);
 
-  const [filteredBatches, setFilteredBatches] = useState<
-    BatchesWithCountProp[]
-  >([]);
+  // const [filteredBatches, setFilteredBatches] = useState<
+  //   BatchesWithCountProp[]
+  // >([]);
 
   const [articleSelected, setArticleSelected] = useState<Article>();
 
@@ -96,11 +96,14 @@ export function ToolDispatchForm({ onClose }: FormProps) {
   const { selectedStation, selectedCompany } = useCompanyStore();
 
   const {
-    mutate,
     data: batches,
     isPending: isBatchesLoading,
     isError: batchesError,
-  } = useGetBatchesWithInWarehouseArticles();
+  } = useGetBatchesWithInWarehouseArticles({
+    location_id: Number(selectedStation!),
+    company: selectedCompany!.slug,
+    category: "herramienta",
+  });
 
   const {
     data: employees,
@@ -116,24 +119,24 @@ export function ToolDispatchForm({ onClose }: FormProps) {
   const { data: departments, isLoading: isDepartmentsLoading } =
     useGetDepartments(selectedCompany?.slug);
 
-  useEffect(() => {
-    if (selectedStation) {
-      mutate({
-        location_id: Number(selectedStation),
-        company: selectedCompany!.slug,
-      });
-    }
-  }, [selectedStation, mutate, selectedCompany]);
+  // useEffect(() => {
+  //   if (selectedStation) {
+  //     mutate({
+  //       location_id: Number(selectedStation),
+  //       company: selectedCompany!.slug,
+  //     });
+  //   }
+  // }, [selectedStation, mutate, selectedCompany]);
 
-  useEffect(() => {
-    if (batches) {
-      // Filtrar los batches por categoría
-      const filtered = batches.filter(
-        (batch) => batch.category === "herramienta"
-      );
-      setFilteredBatches(filtered);
-    }
-  }, [batches]);
+  // useEffect(() => {
+  //   if (batches) {
+  //     // Filtrar los batches por categoría
+  //     const filtered = batches.filter(
+  //       (batch) => batch.category === "herramienta"
+  //     );
+  //     setFilteredBatches(filtered);
+  //   }
+  // }, [batches]);
 
   const form = useForm<FormSchemaType>({
     resolver: zodResolver(FormSchema),
@@ -250,7 +253,7 @@ export function ToolDispatchForm({ onClose }: FormProps) {
                             </p>
                           )}
                         </CommandEmpty>
-                        {filteredBatches?.map((batch) => (
+                        {batches?.map((batch) => (
                           <CommandGroup
                             key={batch.batch_id}
                             heading={batch.name}

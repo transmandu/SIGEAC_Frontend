@@ -40,8 +40,8 @@ const formSchema = z.object({
   secondary_unit: z.string().min(3, {
     message: "El nombre debe tener al menos 3 carácters.",
   }),
-  convertion_rate: z.coerce.number(),
-  quantity_unit: z.coerce.number(),
+  convertion_rate: z.coerce.number().min(0),
+  quantity_unit: z.coerce.number().min(0),
   unit_id: z.number(),
 });
 
@@ -203,7 +203,7 @@ export default function CreateSecondaryUnitForm({ onClose }: FormProps) {
                 <Input
                   type="number"
                   min="0"
-                  step="0.01"
+                  step="any"
                   placeholder="EJ: 24, 6, 10, 36"
                   {...field}
                 />
@@ -232,7 +232,7 @@ export default function CreateSecondaryUnitForm({ onClose }: FormProps) {
                 <Input 
                   type="number"
                   min="0"
-                  step="0.01"
+                  step="any"
                   placeholder="EJ: 1, 0.5, 2"
                   {...field} 
                 />
