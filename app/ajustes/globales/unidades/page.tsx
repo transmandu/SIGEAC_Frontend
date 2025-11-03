@@ -17,11 +17,14 @@ const UnitsPage = () => {
     isLoading: primaryLoading,
     isError: primaryError,
   } = useGetUnits(selectedCompany?.slug);
+  
   const {
     data: secondaryUnits,
     isLoading: secondaryLoading,
     isError: secondaryError,
   } = useGetSecondaryUnits(selectedCompany?.slug);
+
+  console.log("data from console log", secondaryUnits);
   if (primaryLoading || secondaryLoading) {
     return <LoadingPage />;
   }

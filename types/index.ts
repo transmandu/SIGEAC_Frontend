@@ -187,14 +187,13 @@ export interface ConsumableArticle extends Article {
 
 export type Convertion = {
   id: number;
-  secondary_unit: string;
-  convertion_rate: number;
-  unit: Unit;
-  quantity_unit: number;
-  updated_by: string;
   registered_by: string;
-  created_at: Date;
-  updated_at: Date;
+  updated_by: string | null; 
+  created_at: string; 
+  updated_at: string; 
+  secondary_unit: Unit; 
+  primary_unit: Unit; 
+  equivalence: number; 
 };
 
 export type Company = {

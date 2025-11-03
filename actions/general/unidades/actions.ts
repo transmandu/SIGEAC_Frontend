@@ -9,10 +9,9 @@ interface createUnitSchema {
 }
 
 interface createSecondaryUnitSchema {
-  secondary_unit: string;
-  convertion_rate: number;
-  primary_unit: number;
-  quantity_unit: number;
+  primary_unit: number ;
+  secondary_unit: number ;
+  equivalence: number;
 }
 
 export const useCreateUnit = () => {
