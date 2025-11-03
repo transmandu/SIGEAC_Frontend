@@ -1,8 +1,8 @@
-"use client"
-import { ColumnDef } from "@tanstack/react-table"
-import { DataTableColumnHeader } from "@/components/tables/DataTableHeader"
-import SecondaryUnitDropdownActions from "@/components/dropdowns/ajustes/SecondaryUnitDropdownActions"
-import { Convertion } from "@/types"
+"use client";
+import { ColumnDef } from "@tanstack/react-table";
+import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
+import SecondaryUnitDropdownActions from "@/components/dropdowns/ajustes/SecondaryUnitDropdownActions";
+import { Convertion } from "@/types";
 
 export const secondary_columns: ColumnDef<Convertion>[] = [
   // {
@@ -30,51 +30,77 @@ export const secondary_columns: ColumnDef<Convertion>[] = [
   {
     accessorKey: "label",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Nombre" />
+      <DataTableColumnHeader column={column} title="Unidad Primaria" />
     ),
-    cell: ({ row }) =>
+    cell: ({ row }) => (
       <div className="flex justify-center">
-        <span className='font-bold text-center'>{row.original.secondary_unit}</span>
+        <span className="font-bold text-center">
+          {row.original.primary_unit.label}
+        </span>
       </div>
+    ),
   },
   {
     accessorKey: "value",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Unidades" />
+      <DataTableColumnHeader column={column} title="Simbolo" />
     ),
-    cell: ({ row }) =>
+    cell: ({ row }) => (
       <div className="flex justify-center">
-        <span className='font-bold text-center'>{row.original.convertion_rate}</span>
+        <span className="font-bold text-center">
+          {row.original.primary_unit.value}
+        </span>
       </div>
+    ),
   },
   {
-    accessorKey: "value",
+    accessorKey: "label",
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Valor por U." />
     ),
-    cell: ({ row }) =>
+    cell: ({ row }) => (
       <div className="flex justify-center">
-        <span className='font-bold text-center'>{row.original.quantity_unit}</span>
+        <span className="font-bold text-center">
+          {row.original.equivalence}
+        </span>
       </div>
+    ),
+  },
+  {
+    accessorKey: "label",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Unidad Secundaria" />
+    ),
+    cell: ({ row }) => (
+      <div className="flex justify-center">
+        <span className="font-bold text-center">
+          {row.original.secondary_unit.label}
+        </span>
+      </div>
+    ),
   },
   {
     accessorKey: "value",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Unidad Primaria" />
+      <DataTableColumnHeader column={column} title="Simbolo" />
     ),
-    cell: ({ row }) =>
+    cell: ({ row }) => (
       <div className="flex justify-center">
-        <span className='font-bold text-center'>{row.original.unit.label}</span>
+        <span className="font-bold text-center">
+          {row.original.secondary_unit.value}
+        </span>
       </div>
+    ),
   },
   {
-    accessorKey: "value",
+    accessorKey: "actions",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Valor" />
+      <DataTableColumnHeader column={column} title="Acciones" />
     ),
-    cell: ({ row }) =>
+    cell: ({ row }) => (
       <div className="flex justify-center">
         <SecondaryUnitDropdownActions id={row.original.id} />
       </div>
+    ),
   },
-]
+];

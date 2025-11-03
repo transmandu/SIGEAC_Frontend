@@ -36,19 +36,32 @@ export const columns: ColumnDef<Unit>[] = [
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Unidad" />
     ),
-    cell: ({ row }) =>
+    cell: ({ row }) => (
       <div className="flex justify-center">
-        <span className='font-bold text-center'>{row.original.label}</span>
+        <span className="font-bold text-center">{row.original.label}</span>
       </div>
+    ),
   },
   {
     accessorKey: "value",
     header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Simbolo" />
+    ),
+    cell: ({ row }) => (
+      <div className="flex justify-center">
+        <span className="font-bold text-center">{row.original.value}</span>
+      </div>
+    ),
+  },
+  {
+    accessorKey: "actions",
+    header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Valor" />
     ),
-    cell: ({ row }) =>
+    cell: ({ row }) => (
       <div className="flex justify-center">
         <UnitDropdownActions id={row.original.id} />
       </div>
+    ),
   },
-]
+];
