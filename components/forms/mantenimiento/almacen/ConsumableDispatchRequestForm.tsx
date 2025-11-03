@@ -92,9 +92,10 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
 
   const [quantity, setQuantity] = useState("");
 
-  const [filteredBatches, setFilteredBatches] = useState<
-    BatchesWithCountProp[]
-  >([]);
+  // ❌ ELIMINAR estas líneas (95-97):
+  // const [filteredBatches, setFilteredBatches] = useState<
+  //   BatchesWithCountProp[]
+  // >([]);
 
   const [articleSelected, setArticleSelected] = useState<Article>();
 
@@ -105,10 +106,13 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
   );
 
   const {
-    mutate,
     data: batches,
     isPending: isBatchesLoading,
-  } = useGetBatchesWithInWarehouseArticles();
+  } = useGetBatchesWithInWarehouseArticles({
+    location_id: Number(selectedStation!),
+    company: selectedCompany!.slug,
+    category: "consumible",
+  });
 
   const { data: employees, isLoading: employeesLoading } =
     useGetWorkOrderEmployees({
@@ -134,25 +138,25 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
     },
   });
 
-  useEffect(() => {
-    if (selectedStation) {
-      mutate({
-        location_id: Number(selectedStation),
-        company: selectedCompany!.slug,
-      });
-      employeeMutate({ location_id: Number(selectedStation) });
-    }
-  }, [selectedStation, selectedCompany, mutate, employeeMutate]);
+  // useEffect(() => {
+  //   if (selectedStation) {
+  //     mutate({
+  //       location_id: Number(selectedStation),
+  //       company: selectedCompany!.slug,
+  //     });
+  //     employeeMutate({ location_id: Number(selectedStation) });
+  //   }
+  // }, [selectedStation, selectedCompany, mutate, employeeMutate]);
 
-  useEffect(() => {
-    if (batches) {
-      // Filtrar los batches por categoría
-      const filtered = batches.filter(
-        (batch) => batch.category === "consumible"
-      );
-      setFilteredBatches(filtered);
-    }
-  }, [batches]);
+  // useEffect(() => {
+  //   if (batches) {
+  //     // Filtrar los batches por categoría
+  //     const filtered = batches.filter(
+  //       (batch) => batch.category === "consumible"
+  //     );
+  //     setFilteredBatches(filtered);
+  //   }
+  // }, [batches]);
 
   useEffect(() => {
     const unit = form.watch("unit");
@@ -201,8 +205,8 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
     serial: string | null,
     batch_id: number
   ) => {
-    const selectedArticle = filteredBatches
-      .flatMap((batch) => batch.articles)
+    const selectedArticle = batches
+      ?.flatMap((batch) => batch.articles)
       .find((article) => article.id === id);
 
     if (selectedArticle) {
@@ -394,41 +398,49 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
                       <Command>
                         <CommandInput placeholder="Buscar un consu..." />
                         <CommandList>
-                          <CommandEmpty>
-                            No se han encontrado consumibles...
-                          </CommandEmpty>
-                          {filteredBatches?.map((batch) => (
-                            <CommandGroup
-                              key={batch.batch_id}
-                              heading={batch.name}
-                            >
-                              {batch.articles.map((article) => (
-                                <CommandItem
-                                  key={article.id}
-                                  onSelect={() => {
-                                    handleArticleSelect(
-                                      article.id!,
-                                      article.serial ? article.serial : null,
-                                      batch.batch_id
-                                    );
-                                    setArticleSelected(article);
-                                  }}
+                          {isBatchesLoading ? (
+                            <div className="flex items-center justify-center py-6">
+                              <Loader2 className="size-4 animate-spin" />
+                            </div>
+                          ) : (
+                            <>
+                              <CommandEmpty>
+                                No se han encontrado consumibles...
+                              </CommandEmpty>
+                              {batches?.map((batch) => (
+                                <CommandGroup
+                                  key={batch.batch_id}
+                                  heading={batch.name}
                                 >
-                                  <Check
-                                    className={cn(
-                                      "mr-2 h-4 w-4",
-                                      articleSelected?.id === article.id
-                                        ? "opacity-100"
-                                        : "opacity-0"
-                                    )}
-                                  />
-                                  {article.part_number} - {article.quantity}
-                                  {article.unit}{" "}
-                                  <p className="hidden">{article.id}</p>
-                                </CommandItem>
+                                  {batch.articles.map((article) => (
+                                    <CommandItem
+                                      key={article.id}
+                                      onSelect={() => {
+                                        handleArticleSelect(
+                                          article.id!,
+                                          article.serial ? article.serial : null,
+                                          batch.batch_id
+                                        );
+                                        setArticleSelected(article);
+                                      }}
+                                    >
+                                      <Check
+                                        className={cn(
+                                          "mr-2 h-4 w-4",
+                                          articleSelected?.id === article.id
+                                            ? "opacity-100"
+                                            : "opacity-0"
+                                        )}
+                                      />
+                                      {article.part_number} - {article.quantity}
+                                      {article.unit}{" "}
+                                      <p className="hidden">{article.id}</p>
+                                    </CommandItem>
+                                  ))}
+                                </CommandGroup>
                               ))}
-                            </CommandGroup>
-                          ))}
+                            </>
+                          )}
                         </CommandList>
                       </Command>
                     </PopoverContent>
