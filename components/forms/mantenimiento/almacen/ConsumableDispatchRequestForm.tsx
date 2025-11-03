@@ -92,11 +92,6 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
 
   const [quantity, setQuantity] = useState("");
 
-  // ❌ ELIMINAR estas líneas (95-97):
-  // const [filteredBatches, setFilteredBatches] = useState<
-  //   BatchesWithCountProp[]
-  // >([]);
-
   const [articleSelected, setArticleSelected] = useState<Article>();
 
   const { createDispatchRequest } = useCreateDispatchRequest();
@@ -122,11 +117,10 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
     });
 
   const {
-    mutate: employeeMutate,
     data: warehouseEmployees,
     isPending: warehouseEmployeesLoading,
     isError: employeesError,
-  } = useGetWarehousesEmployees(selectedCompany?.slug);
+  } = useGetWarehousesEmployees(selectedStation!, selectedCompany?.slug);
 
   const form = useForm<FormSchemaType>({
     resolver: zodResolver(FormSchema),

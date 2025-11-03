@@ -39,7 +39,7 @@ import { CalendarIcon, ClipboardPaste, Loader2, MoreHorizontal } from "lucide-re
 import { useEffect, useState } from "react"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
-import { Calendar } from "../../../ui/calendar"
+import { Calendar } from "@/components/ui/calendar"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "../../../ui/dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../../ui/select"
 
@@ -73,13 +73,8 @@ const PendingDispatchRequestDropdownActions
 
     const { user } = useAuth();
 
-    const { mutate: employeeMutate, data: employees, isPending: employeesLoading, isError: employeesError } = useGetWarehousesEmployees(selectedCompany?.slug);
+    const {data: employees, isPending: employeesLoading, isError: employeesError } = useGetWarehousesEmployees(selectedStation!,selectedCompany?.slug);
 
-    useEffect(() => {
-      if (selectedStation) {
-        employeeMutate({location_id: Number(selectedStation)})
-      }
-    }, [selectedStation, employeeMutate])
 
     const handleAprove = async (data: z.infer<typeof formSchema>) => {
       const newQty = request.batch.article_count - Number(request.batch.articles[0].quantity);
