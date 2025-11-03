@@ -98,7 +98,9 @@ const formSchema = z.object({
   manufacturer_id: z.string().optional(),
   condition_id: z.string().min(1, "Debe ingresar la condición del artículo."),
   quantity: z.coerce.number({ message: "Debe ingresar una cantidad." }).min(0, { message: "No puede ser negativo." }),
+  
   min_quantity: z.coerce.number().min(0, { message: "No puede ser negativo." }).optional(),
+
   batch_id: z.string({ message: "Debe ingresar un lote." }).min(1, "Seleccione un lote"),
   is_managed: z.boolean().optional(),
   certificate_8130: z.instanceof(File, { message: "Suba un archivo válido." }).refine((f) => f.size <= fileMaxBytes, "Tamaño máximo 10 MB.").optional(),
@@ -428,7 +430,10 @@ export default function CreateConsumableForm({
   /* -------------------------------- UI -------------------------------- */
   return (
     <Form {...form}>
-      <form className="flex flex-col gap-6 max-w-7xl mx-auto" onSubmit={form.handleSubmit(onSubmit)}>
+      <form
+        className="flex flex-col gap-6 max-w-7xl mx-auto"
+        onSubmit={form.handleSubmit(onSubmit)}
+      >
         {/* Encabezado */}
         <SectionCard title="Registrar consumible">
           <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
@@ -447,7 +452,11 @@ export default function CreateConsumableForm({
                         const normalized = normalizeUpper(e.target.value);
                         field.onChange(normalized);
                         // Iniciar búsqueda si hay un valor y no está editando
-                        if (normalized && normalized.length >= 2 && !isEditing) {
+                        if (
+                          normalized &&
+                          normalized.length >= 2 &&
+                          !isEditing
+                        ) {
                           setPartNumberToSearch(normalized);
                         }
                       }}
@@ -455,7 +464,9 @@ export default function CreateConsumableForm({
                   </FormControl>
                   <FormDescription>
                     Identificador principal del artículo.
-                    {isSearching && <span className="text-primary ml-2">Buscando...</span>}
+                    {isSearching && (
+                      <span className="text-primary ml-2">Buscando...</span>
+                    )}
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -469,7 +480,11 @@ export default function CreateConsumableForm({
                 <FormItem className="w-full">
                   <FormLabel>Nro. de lote</FormLabel>
                   <FormControl>
-                    <Input placeholder="Ej: LOTE123" {...field} disabled={busy} />
+                    <Input
+                      placeholder="Ej: LOTE123"
+                      {...field}
+                      disabled={busy}
+                    />
                   </FormControl>
                   <FormDescription>Lote del consumible.</FormDescription>
                   <FormMessage />
@@ -488,13 +503,28 @@ export default function CreateConsumableForm({
                       <PopoverTrigger asChild>
                         <FormControl>
                           <Button
-                            disabled={isBatchesLoading || isBatchesError || busy}
+                            disabled={
+                              isBatchesLoading || isBatchesError || busy
+                            }
                             variant="outline"
                             role="combobox"
-                            className={cn("justify-between", !field.value && "text-muted-foreground")}
+                            className={cn(
+                              "justify-between",
+                              !field.value && "text-muted-foreground"
+                            )}
                           >
-                            {isBatchesLoading && <Loader2 className="size-4 animate-spin mr-2" />}
-                            {field.value ? <p className="truncate flex-1 text-left">{batchNameById.get(field.value) ?? ""}</p> : <span className="truncate">Elegir descripción...</span>}
+                            {isBatchesLoading && (
+                              <Loader2 className="size-4 animate-spin mr-2" />
+                            )}
+                            {field.value ? (
+                              <p className="truncate flex-1 text-left">
+                                {batchNameById.get(field.value) ?? ""}
+                              </p>
+                            ) : (
+                              <span className="truncate">
+                                Elegir descripción...
+                              </span>
+                            )}
                             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                           </Button>
                         </FormControl>
@@ -503,7 +533,9 @@ export default function CreateConsumableForm({
                         <Command>
                           <CommandInput placeholder="Buscar descripción..." />
                           <CommandList>
-                            <CommandEmpty className="text-xs p-2 text-center">Sin resultados</CommandEmpty>
+                            <CommandEmpty className="text-xs p-2 text-center">
+                              Sin resultados
+                            </CommandEmpty>
                             {searchResults && searchResults.length > 0 && (
                               <CommandGroup heading="Coincidencias encontradas">
                                 {searchResults.map((batch) => (
@@ -511,33 +543,76 @@ export default function CreateConsumableForm({
                                     value={`${batch.name}`}
                                     key={batch.id}
                                     onSelect={() => {
-                                      form.setValue("batch_id", batch.id.toString(), { shouldValidate: true });
+                                      form.setValue(
+                                        "batch_id",
+                                        batch.id.toString(),
+                                        { shouldValidate: true }
+                                      );
                                       if (isEditing && enableBatchNameEdit) {
-                                        form.setValue("batch_name", batch.name, { shouldValidate: true });
+                                        form.setValue(
+                                          "batch_name",
+                                          batch.name,
+                                          { shouldValidate: true }
+                                        );
                                       }
                                     }}
                                   >
-                                    <Check className={cn("mr-2 h-4 w-4", `${batch.id}` === field.value ? "opacity-100" : "opacity-0")} />
-                                    <p className="font-semibold text-primary">{batch.name}</p>
+                                    <Check
+                                      className={cn(
+                                        "mr-2 h-4 w-4",
+                                        `${batch.id}` === field.value
+                                          ? "opacity-100"
+                                          : "opacity-0"
+                                      )}
+                                    />
+                                    <p className="font-semibold text-primary">
+                                      {batch.name}
+                                    </p>
                                   </CommandItem>
                                 ))}
                               </CommandGroup>
                             )}
-                            <CommandGroup heading={searchResults && searchResults.length > 0 ? "Otras descripciones" : "Todas las descripciones"}>
+                            <CommandGroup
+                              heading={
+                                searchResults && searchResults.length > 0
+                                  ? "Otras descripciones"
+                                  : "Todas las descripciones"
+                              }
+                            >
                               {sortedBatches
-                                ?.filter(batch => !searchResults?.some(sr => sr.id === batch.id))
+                                ?.filter(
+                                  (batch) =>
+                                    !searchResults?.some(
+                                      (sr) => sr.id === batch.id
+                                    )
+                                )
                                 .map((batch) => (
                                   <CommandItem
                                     value={`${batch.name}`}
                                     key={batch.id}
                                     onSelect={() => {
-                                      form.setValue("batch_id", batch.id.toString(), { shouldValidate: true });
+                                      form.setValue(
+                                        "batch_id",
+                                        batch.id.toString(),
+                                        { shouldValidate: true }
+                                      );
                                       if (isEditing && enableBatchNameEdit) {
-                                        form.setValue("batch_name", batch.name, { shouldValidate: true });
+                                        form.setValue(
+                                          "batch_name",
+                                          batch.name,
+                                          { shouldValidate: true }
+                                        );
                                       }
                                     }}
                                   >
-                                    <Check className={cn("mr-2 h-4 w-4", `${batch.id}` === field.value ? "opacity-100" : "opacity-0")} />
+                                    <Check
+                                      className={cn(
+                                        "mr-2 h-4 w-4",
+                                        `${batch.id}` === field.value
+                                          ? "opacity-100"
+                                          : "opacity-0"
+                                      )}
+                                    />
                                     <p>{batch.name}</p>
                                   </CommandItem>
                                 ))}
@@ -546,7 +621,9 @@ export default function CreateConsumableForm({
                         </Command>
                       </PopoverContent>
                     </Popover>
-                    <FormDescription>Descripción del consumible a registrar.</FormDescription>
+                    <FormDescription>
+                      Descripción del consumible a registrar.
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -557,7 +634,9 @@ export default function CreateConsumableForm({
                     <Checkbox
                       id="enable-batch-edit"
                       checked={enableBatchNameEdit}
-                      onCheckedChange={(checked) => setEnableBatchNameEdit(checked as boolean)}
+                      onCheckedChange={(checked) =>
+                        setEnableBatchNameEdit(checked as boolean)
+                      }
                     />
                     <label
                       htmlFor="enable-batch-edit"
@@ -580,7 +659,10 @@ export default function CreateConsumableForm({
                               disabled={busy}
                             />
                           </FormControl>
-                          <FormDescription>Ingrese el nuevo nombre para esta descripción de artículo.</FormDescription>
+                          <FormDescription>
+                            Ingrese el nuevo nombre para esta descripción de
+                            artículo.
+                          </FormDescription>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -601,10 +683,20 @@ export default function CreateConsumableForm({
               render={({ field }) => (
                 <FormItem className="w-full">
                   <FormLabel>Condición</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value} disabled={isConditionsLoading || busy}>
+                  <Select
+                    onValueChange={field.onChange}
+                    value={field.value}
+                    disabled={isConditionsLoading || busy}
+                  >
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder={isConditionsLoading ? "Cargando..." : "Seleccione..."} />
+                        <SelectValue
+                          placeholder={
+                            isConditionsLoading
+                              ? "Cargando..."
+                              : "Seleccione..."
+                          }
+                        />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -614,7 +706,9 @@ export default function CreateConsumableForm({
                         </SelectItem>
                       ))}
                       {isConditionsError && (
-                        <div className="p-2 text-sm text-muted-foreground">Error al cargar condiciones.</div>
+                        <div className="p-2 text-sm text-muted-foreground">
+                          Error al cargar condiciones.
+                        </div>
                       )}
                     </SelectContent>
                   </Select>
@@ -653,35 +747,60 @@ export default function CreateConsumableForm({
                       defaultType="PART"
                       onSuccess={(manufacturer) => {
                         if (manufacturer?.id) {
-                          form.setValue("manufacturer_id", manufacturer.id.toString(), { shouldValidate: true });
+                          form.setValue(
+                            "manufacturer_id",
+                            manufacturer.id.toString(),
+                            { shouldValidate: true }
+                          );
                         }
                       }}
                       triggerButton={
-                        <Button type="button" variant="ghost" size="sm" className="h-7 text-xs">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 text-xs"
+                        >
                           <Plus className="h-3 w-3 mr-1" />
                           Crear nuevo
                         </Button>
                       }
                     />
                   </div>
-                  <Select disabled={isManufacturerLoading || busy} onValueChange={field.onChange} value={field.value}>
+                  <Select
+                    disabled={isManufacturerLoading || busy}
+                    onValueChange={field.onChange}
+                    value={field.value}
+                  >
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder={isManufacturerLoading ? "Cargando..." : "Seleccione..."} />
+                        <SelectValue
+                          placeholder={
+                            isManufacturerLoading
+                              ? "Cargando..."
+                              : "Seleccione..."
+                          }
+                        />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {manufacturers?.filter((m) => m.type === "PART").map((m) => (
-                        <SelectItem key={m.id} value={m.id.toString()}>
-                          {m.name}
-                        </SelectItem>
-                      ))}
+                      {manufacturers
+                        ?.filter((m) => m.type)
+                        .map((m) => (
+                          <SelectItem key={m.id} value={m.id.toString()}>
+                            {m.name} ({m.type})
+                          </SelectItem>
+                        ))}
                       {isManufacturerError && (
-                        <div className="p-2 text-sm text-muted-foreground">Error al cargar fabricantes.</div>
+                        <div className="p-2 text-sm text-muted-foreground">
+                          Error al cargar fabricantes.
+                        </div>
                       )}
                     </SelectContent>
                   </Select>
-                  <FormDescription>Marca específica del artículo.</FormDescription>
+                  <FormDescription>
+                    Marca específica del artículo.
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -694,7 +813,11 @@ export default function CreateConsumableForm({
                 <FormItem className="w-full">
                   <FormLabel>Ubicación interna</FormLabel>
                   <FormControl>
-                    <Input placeholder="Ej: Pasillo 4, repisa 3..." {...field} disabled={busy} />
+                    <Input
+                      placeholder="Ej: Pasillo 4, repisa 3..."
+                      {...field}
+                      disabled={busy}
+                    />
                   </FormControl>
                   <FormDescription>Zona física en almacén.</FormDescription>
                   <FormMessage />
@@ -712,8 +835,18 @@ export default function CreateConsumableForm({
               <FormLabel>Método de ingreso</FormLabel>
               <Popover open={secondaryOpen} onOpenChange={setSecondaryOpen}>
                 <PopoverTrigger asChild>
-                  <Button disabled={secondaryLoading || busy} variant="outline" role="combobox" aria-expanded={secondaryOpen} className="justify-between">
-                    {secondarySelected ? `${secondarySelected.secondary_unit} (${secondarySelected.unit?.label || secondarySelected.unit?.value || ''})` : secondaryLoading ? "Cargando..." : "Seleccione..."}
+                  <Button
+                    disabled={secondaryLoading || busy}
+                    variant="outline"
+                    role="combobox"
+                    aria-expanded={secondaryOpen}
+                    className="justify-between"
+                  >
+                    {secondarySelected
+                      ? `${secondarySelected.secondary_unit} (${secondarySelected.unit?.label || secondarySelected.unit?.value || ""})`
+                      : secondaryLoading
+                        ? "Cargando..."
+                        : "Seleccione..."}
                     <ChevronsUpDown className="opacity-50" />
                   </Button>
                 </PopoverTrigger>
@@ -721,25 +854,54 @@ export default function CreateConsumableForm({
                   <Command>
                     <CommandInput placeholder="Buscar unidad..." />
                     <CommandList>
-                      <CommandEmpty>No existen unidades secundarias.</CommandEmpty>
+                      <CommandEmpty>
+                        No existen unidades secundarias.
+                      </CommandEmpty>
                       <CommandGroup>
                         {secondaryUnits?.map((s) => (
                           <CommandItem
                             key={s.id}
                             value={s.id.toString()}
                             onSelect={(val) => {
-                              const found = secondaryUnits.find((u) => u.id.toString() === val) || null;
+                              const found =
+                                secondaryUnits.find(
+                                  (u) => u.id.toString() === val
+                                ) || null;
                               setSecondarySelected(found);
                               setSecondaryOpen(false);
-                              if (found && typeof secondaryQuantity === "number") {
-                                const calc = (found.convertion_rate ?? 1) * (found.quantity_unit ?? 1) * (secondaryQuantity ?? 0);
-                                form.setValue("quantity", calc, { shouldDirty: true, shouldValidate: true });
-                                form.setValue("convertion_id", found.id, { shouldDirty: true });
+                              if (
+                                found &&
+                                typeof secondaryQuantity === "number"
+                              ) {
+                                const calc =
+                                  (found.convertion_rate ?? 1) *
+                                  (found.quantity_unit ?? 1) *
+                                  (secondaryQuantity ?? 0);
+                                form.setValue("quantity", calc, {
+                                  shouldDirty: true,
+                                  shouldValidate: true,
+                                });
+                                form.setValue("convertion_id", found.id, {
+                                  shouldDirty: true,
+                                });
                               }
                             }}
                           >
-                            <span className="flex-1">{s.secondary_unit} <span className="text-muted-foreground">({s.unit?.label || s.unit?.value || ''})</span></span>
-                            <Check className={cn("ml-2", secondarySelected?.id.toString() === s.id.toString() ? "opacity-100" : "opacity-0")} />
+                            <span className="flex-1">
+                              {s.secondary_unit}{" "}
+                              <span className="text-muted-foreground">
+                                ({s.unit?.label || s.unit?.value || ""})
+                              </span>
+                            </span>
+                            <Check
+                              className={cn(
+                                "ml-2",
+                                secondarySelected?.id.toString() ===
+                                  s.id.toString()
+                                  ? "opacity-100"
+                                  : "opacity-0"
+                              )}
+                            />
                           </CommandItem>
                         ))}
                       </CommandGroup>
@@ -747,7 +909,9 @@ export default function CreateConsumableForm({
                   </Command>
                 </PopoverContent>
               </Popover>
-              <p className="text-sm text-muted-foreground">Indique cómo será ingresado el artículo.</p>
+              <p className="text-sm text-muted-foreground">
+                Indique cómo será ingresado el artículo.
+              </p>
             </div>
 
             {/* Cantidad secundaria */}
@@ -765,7 +929,9 @@ export default function CreateConsumableForm({
                 }}
                 placeholder="Ej: 2, 4, 6..."
               />
-              <p className="text-sm text-muted-foreground">Cantidad según método de ingreso seleccionado.</p>
+              <p className="text-sm text-muted-foreground">
+                Cantidad según método de ingreso seleccionado.
+              </p>
             </div>
 
             {/* Cantidad resultante */}
@@ -778,7 +944,9 @@ export default function CreateConsumableForm({
                   <FormControl>
                     <Input disabled type="number" placeholder="0" {...field} />
                   </FormControl>
-                  <FormDescription>Unidades base que se registrarán.</FormDescription>
+                  <FormDescription>
+                    Unidades base que se registrarán.
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -792,10 +960,10 @@ export default function CreateConsumableForm({
                 <FormItem className="w-full">
                   <FormLabel>Cantidad Mínima</FormLabel>
                   <FormControl>
-                    <Input 
-                      type="number" 
+                    <Input
+                      type="number"
                       min="0"
-                      placeholder="Ej: 5" 
+                      placeholder="Ej: 5"
                       {...field}
                       disabled={busy}
                       onChange={(e) => {
@@ -805,7 +973,9 @@ export default function CreateConsumableForm({
                       }}
                     />
                   </FormControl>
-                  <FormDescription>Cantidad mínima de stock para alertas.</FormDescription>
+                  <FormDescription>
+                    Cantidad mínima de stock para alertas.
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -818,10 +988,15 @@ export default function CreateConsumableForm({
               render={({ field }) => (
                 <FormItem className="col-span-1 md:col-span-2 xl:col-span-3 flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
                   <FormControl>
-                    <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                    <Checkbox
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
                   </FormControl>
                   <div className="space-y-1 leading-none">
-                    <FormLabel>¿Necesita despachar el artículo en pequeñas cantidades?</FormLabel>
+                    <FormLabel>
+                      ¿Necesita despachar el artículo en pequeñas cantidades?
+                    </FormLabel>
                     <FormDescription />
                   </div>
                 </FormItem>
@@ -840,9 +1015,16 @@ export default function CreateConsumableForm({
                 <FormItem>
                   <FormLabel>Detalles/Observaciones</FormLabel>
                   <FormControl>
-                    <Textarea rows={5} placeholder="Ej: Fluido hidráulico MIL-PRF-83282..." {...field} disabled={busy} />
+                    <Textarea
+                      rows={5}
+                      placeholder="Ej: Fluido hidráulico MIL-PRF-83282..."
+                      {...field}
+                      disabled={busy}
+                    />
                   </FormControl>
-                  <FormDescription>Observaciones sobre el artículo.</FormDescription>
+                  <FormDescription>
+                    Observaciones sobre el artículo.
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -851,12 +1033,52 @@ export default function CreateConsumableForm({
             <Separator />
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FileField form={form} name="image" label="Imagen del artículo" accept="image/*" description="Imagen descriptiva." busy={busy} />
+              <FileField
+                form={form}
+                name="image"
+                label="Imagen del artículo"
+                accept="image/*"
+                description="Imagen descriptiva."
+                busy={busy}
+              />
 
               <div className="space-y-4">
-                <FileField form={form} name="certificate_8130" label={<span>Certificado <span className="text-primary font-semibold">8130</span></span>} description="PDF o imagen. Máx. 10 MB." busy={busy} />
-                <FileField form={form} name="certificate_fabricant" label={<span>Certificado del <span className="text-primary">fabricante</span></span>} description="PDF o imagen. Máx. 10 MB." busy={busy} />
-                <FileField form={form} name="certificate_vendor" label={<span>Certificado del <span className="text-primary">vendedor</span></span>} description="PDF o imagen. Máx. 10 MB." busy={busy} />
+                <FileField
+                  form={form}
+                  name="certificate_8130"
+                  label={
+                    <span>
+                      Certificado{" "}
+                      <span className="text-primary font-semibold">8130</span>
+                    </span>
+                  }
+                  description="PDF o imagen. Máx. 10 MB."
+                  busy={busy}
+                />
+                <FileField
+                  form={form}
+                  name="certificate_fabricant"
+                  label={
+                    <span>
+                      Certificado del{" "}
+                      <span className="text-primary">fabricante</span>
+                    </span>
+                  }
+                  description="PDF o imagen. Máx. 10 MB."
+                  busy={busy}
+                />
+                <FileField
+                  form={form}
+                  name="certificate_vendor"
+                  label={
+                    <span>
+                      Certificado del{" "}
+                      <span className="text-primary">vendedor</span>
+                    </span>
+                  }
+                  description="PDF o imagen. Máx. 10 MB."
+                  busy={busy}
+                />
               </div>
             </div>
           </div>
@@ -866,11 +1088,22 @@ export default function CreateConsumableForm({
         <div className="flex items-center gap-3">
           <Button
             className="bg-primary text-white hover:bg-blue-900 disabled:bg-slate-100 disabled:text-slate-400"
-            disabled={busy || !selectedCompany || !form.getValues("part_number") || !form.getValues("batch_id")}
+            disabled={
+              busy ||
+              !selectedCompany ||
+              !form.getValues("part_number") ||
+              !form.getValues("batch_id")
+            }
             type="submit"
           >
             {busy ? (
-              <Image className="text-black" src={loadingGif} width={170} height={170} alt="Cargando..." />
+              <Image
+                className="text-black"
+                src={loadingGif}
+                width={170}
+                height={170}
+                alt="Cargando..."
+              />
             ) : (
               <span>{isEditing ? "Confirmar ingreso" : "Crear artículo"}</span>
             )}

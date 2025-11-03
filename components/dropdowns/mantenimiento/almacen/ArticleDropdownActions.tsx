@@ -59,11 +59,11 @@ const ArticleDropdownActions = ({ id }: { id: string | number }) => {
           >
             <SquarePen className="size-5" />
           </DropdownMenuItem>
-          <DialogTrigger asChild>
+          {/* <DialogTrigger asChild>
             <DropdownMenuItem className="cursor-pointer">
               <Trash2 className="size-5 text-red-500" />
             </DropdownMenuItem>
-          </DialogTrigger>
+          </DialogTrigger> */}
         </DropdownMenuContent>
       </DropdownMenu>
       <DialogContent>
