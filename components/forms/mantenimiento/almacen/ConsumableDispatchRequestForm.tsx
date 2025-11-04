@@ -96,18 +96,15 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
 
   const { createDispatchRequest } = useCreateDispatchRequest();
 
-  const { data: departments, isLoading: isDepartmentsLo } = useGetDepartments(
-    selectedCompany?.slug
-  );
+  const { data: departments, isLoading: isDepartmentsLoading } =
+    useGetDepartments(selectedCompany?.slug);
 
-  const {
-    data: batches,
-    isPending: isBatchesLoading,
-  } = useGetBatchesWithInWarehouseArticles({
-    location_id: Number(selectedStation!),
-    company: selectedCompany!.slug,
-    category: "consumible",
-  });
+  const { data: batches, isPending: isBatchesLoading } =
+    useGetBatchesWithInWarehouseArticles({
+      location_id: Number(selectedStation!),
+      company: selectedCompany!.slug,
+      category: "consumible",
+    });
 
   const { data: employees, isLoading: employeesLoading } =
     useGetWorkOrderEmployees({
@@ -350,7 +347,12 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {departments &&
+                    {isDepartmentsLoading ? (
+                      <div className="flex justify-center items-center p-4">
+                        <Loader2 className="size-6 animate-spin" />
+                      </div>
+                    ) : (
+                      departments &&
                       departments.map((department) => (
                         <SelectItem
                           key={department.id}
@@ -358,7 +360,8 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
                         >
                           {department.name}
                         </SelectItem>
-                      ))}
+                      ))
+                    )}
                   </SelectContent>
                 </Select>
                 <FormMessage />
@@ -383,7 +386,7 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
                         className="w-[200px] justify-between"
                       >
                         {articleSelected
-                          ? `${articleSelected.part_number}`
+                          ? `${articleSelected.part_number} (${articleSelected.quantity})`
                           : "Selec. el consumible"}
                         <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                       </Button>
@@ -412,7 +415,9 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
                                       onSelect={() => {
                                         handleArticleSelect(
                                           article.id!,
-                                          article.serial ? article.serial : null,
+                                          article.serial
+                                            ? article.serial
+                                            : null,
                                           batch.batch_id
                                         );
                                         setArticleSelected(article);
@@ -426,7 +431,7 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
                                             : "opacity-0"
                                         )}
                                       />
-                                      {article.part_number} - {article.quantity}
+                                      {article.part_number} - ({article.quantity})
                                       {article.unit}{" "}
                                       <p className="hidden">{article.id}</p>
                                     </CommandItem>
