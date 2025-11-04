@@ -10,7 +10,7 @@ interface createUnitSchema {
 
 interface createSecondaryUnitSchema {
   primary_unit: number ;
-  secondary_unit: number ;
+  secondary_unit?: number ;
   equivalence: number;
 }
 
