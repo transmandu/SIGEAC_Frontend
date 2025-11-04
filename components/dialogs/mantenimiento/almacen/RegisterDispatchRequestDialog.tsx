@@ -29,7 +29,7 @@ export function RegisterDispatchRequestDialog() {
       <DialogTrigger asChild>
         <Button onClick={() => setOpen(true)} variant={'outline'} className="flex items-center justify-center gap-2 h-8 border-dashed">Registrar Salida</Button>
       </DialogTrigger>
-      <DialogContent className="max-w-xl">
+      <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle>Registro de Salida</DialogTitle>
           <DialogDescription>

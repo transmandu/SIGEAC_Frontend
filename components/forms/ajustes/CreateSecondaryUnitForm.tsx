@@ -42,7 +42,7 @@ const formSchema = z.object({
     .number({ invalid_type_error: "Debe ser un número válido." })
     .min(0.001, "El valor de equivalencia debe ser al menos 0.001."),
   primary_unit: z.number().min(1, "Debe seleccionar la unidad primaria."),
-  secondary_unit: z.number().min(1, "Debe seleccionar la unidad secundaria."),
+  secondary_unit: z.number().min(1, "Debe seleccionar la unidad secundaria.").optional(),
 });
 
 interface FormProps {
@@ -377,7 +377,7 @@ export default function CreateSecondaryUnitForm({ onClose }: FormProps) {
         <Button
           className="w-full bg-primary mt-4 text-white hover:bg-blue-900 disabled:bg-primary/70"
           disabled={
-            createSecondaryUnit?.isPending || !primaryValue || !secondaryValue
+            createSecondaryUnit?.isPending || !primaryValue
           }
           type="submit"
         >

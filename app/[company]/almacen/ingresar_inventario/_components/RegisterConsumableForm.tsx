@@ -399,8 +399,9 @@ function UnitsModal({
                       key={conversion.id}
                       value={conversion.id.toString()}
                     >
-                      {conversion.primary_unit.label} (
-                      {conversion.secondary_unit.label})
+                      {conversion.primary_unit.label}
+                      {conversion.secondary_unit?.label &&
+                        ` (${conversion.secondary_unit.label})`}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -450,8 +451,9 @@ function UnitsModal({
                     >
                       <div className="flex items-center space-x-3">
                         <span className="font-medium">
-                          {conversionInfo?.primary_unit.label} (
-                          {conversionInfo?.secondary_unit.label})
+                          {conversionInfo?.primary_unit.label}
+                          {conversionInfo?.secondary_unit?.label &&
+                            ` (${conversionInfo.secondary_unit.label})`}
                         </span>
                         {unit.is_main_unit && (
                           <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-primary text-primary-foreground">
@@ -513,6 +515,9 @@ export default function CreateConsumableForm({
   // Modal state
   const [unitsModalOpen, setUnitsModalOpen] = useState(false);
   const [selectedUnits, setSelectedUnits] = useState<UnitSelection[]>([]);
+
+  // Nuevo estado para controlar la visibilidad
+  const [showResultQuantity, setShowResultQuantity] = useState(true);
 
   // Data hooks
   const {
@@ -624,23 +629,77 @@ export default function CreateConsumableForm({
     });
   }, [initialData, form]);
 
-  // Conversión para unidades secundarias (cantidad * equivalence)
+  // Efecto para determinar si mostrar u ocultar el campo de cantidad resultante
   useEffect(() => {
-    if (secondarySelected && typeof secondaryQuantity === "number") {
-      // Para conversiones secundarias, la cantidad es: cantidad * equivalence
-      const calculatedQuantity =
-        secondaryQuantity * (secondarySelected.equivalence || 1);
-      form.setValue("quantity", calculatedQuantity, {
+    if (secondarySelected) {
+      // Ocultar si no hay unidad secundaria o si la equivalencia es 1 (conversión 1:1)
+      const shouldHide =
+        !secondarySelected.secondary_unit ||
+        secondarySelected.equivalence === 1;
+      setShowResultQuantity(!shouldHide);
+
+      // Si está oculto, sincronizar directamente la cantidad
+      if (shouldHide && secondaryQuantity !== undefined) {
+        form.setValue("quantity", secondaryQuantity || 0, {
+          shouldDirty: true,
+          shouldValidate: true,
+        });
+      }
+    } else {
+      // Si no hay conversión seleccionada, mostrar el campo
+      setShowResultQuantity(true);
+    }
+  }, [secondarySelected, secondaryQuantity, form]);
+
+  // Función para calcular y actualizar la cantidad resultante
+  const calculateAndUpdateQuantity = (
+    quantity: number | undefined,
+    conversion: any
+  ) => {
+    if (quantity === undefined) {
+      // Cuando se borra el input, establecer a 0
+      form.setValue("quantity", 0, {
         shouldDirty: true,
         shouldValidate: true,
       });
-      // También establecer el convertion_id
-      form.setValue("convertion_id", secondarySelected.id, {
+      return;
+    }
+
+    if (conversion) {
+      // Solo calcular si la conversión tiene unidad secundaria y no es 1:1
+      if (conversion.secondary_unit && conversion.equivalence !== 1) {
+        const calculatedQuantity = quantity * (conversion.equivalence || 1);
+        form.setValue("quantity", calculatedQuantity, {
+          shouldDirty: true,
+          shouldValidate: true,
+        });
+      } else {
+        // Para conversiones 1:1 o sin unidad secundaria, usar la cantidad directamente
+        form.setValue("quantity", quantity, {
+          shouldDirty: true,
+          shouldValidate: true,
+        });
+      }
+      // Establecer el convertion_id en todos los casos
+      form.setValue("convertion_id", conversion.id, {
         shouldDirty: true,
         shouldValidate: false,
       });
+    } else {
+      // Si no hay conversión seleccionada, usar la cantidad directamente
+      form.setValue("quantity", quantity, {
+        shouldDirty: true,
+        shouldValidate: true,
+      });
     }
-  }, [secondarySelected, secondaryQuantity, form]);
+  };
+
+  // Modificar el efecto existente para calcular la cantidad resultante
+  useEffect(() => {
+    if (secondarySelected && secondaryQuantity !== undefined) {
+      calculateAndUpdateQuantity(secondaryQuantity, secondarySelected);
+    }
+  }, [secondarySelected, secondaryQuantity]);
 
   // Autocompletar descripción cuando encuentra resultados de búsqueda
   useEffect(() => {
@@ -1174,7 +1233,11 @@ export default function CreateConsumableForm({
                       className="justify-between"
                     >
                       {secondarySelected
-                        ? `${secondarySelected.secondary_unit.label} - (${secondarySelected.primary_unit.label})`
+                        ? `${secondarySelected.secondary_unit?.label ?? ""} ${
+                            secondarySelected.secondary_unit
+                              ? `(${secondarySelected.primary_unit.label})`
+                              : secondarySelected.primary_unit.label
+                          }`
                         : secondaryUnitsLoading
                           ? "Cargando..."
                           : "Seleccione..."}
@@ -1200,35 +1263,29 @@ export default function CreateConsumableForm({
                                   ) || null;
                                 setSecondarySelected(found);
                                 setSecondaryOpen(false);
-                                if (
-                                  found &&
-                                  typeof secondaryQuantity === "number"
-                                ) {
-                                  // Calcular la cantidad basada en la conversión
-                                  const calculatedQuantity =
-                                    secondaryQuantity *
-                                    (found.equivalence || 1);
-                                  form.setValue(
-                                    "quantity",
-                                    calculatedQuantity,
-                                    {
-                                      shouldDirty: true,
-                                      shouldValidate: true,
-                                    }
+
+                                // Calcular cantidad inmediatamente al seleccionar
+                                if (found && secondaryQuantity !== undefined) {
+                                  calculateAndUpdateQuantity(
+                                    secondaryQuantity,
+                                    found
                                   );
-                                  // También establecer el convertion_id
-                                  form.setValue("convertion_id", found.id, {
-                                    shouldDirty: true,
-                                    shouldValidate: false,
-                                  });
                                 }
                               }}
                             >
                               <span className="flex-1">
-                                {conversion.secondary_unit.label}
-                                <span className="text-muted-foreground">
-                                  ({conversion.primary_unit.label})
-                                </span>
+                                {conversion.secondary_unit?.label ||
+                                  conversion.primary_unit.label}
+                                {conversion.secondary_unit && (
+                                  <span className="text-muted-foreground">
+                                    {" "}
+                                    ({conversion.primary_unit.label})
+                                  </span>
+                                )}
+                                {!conversion.secondary_unit && (
+                                  <span className="text-muted-foreground text-xs ml-2">
+                                  </span>
+                                )}
                               </span>
                               <Check
                                 className={cn(
@@ -1259,10 +1316,25 @@ export default function CreateConsumableForm({
                   inputMode="decimal"
                   disabled={busy}
                   min="0"
+                  value={secondaryQuantity ?? ""}
                   onChange={(e) => {
-                    const n = parseFloat(e.target.value);
+                    const value = e.target.value;
+
+                    // Manejar cuando el input está vacío
+                    if (value === "") {
+                      setSecondaryQuantity(undefined);
+                      calculateAndUpdateQuantity(undefined, secondarySelected);
+                      return;
+                    }
+
+                    const n = parseFloat(value);
                     if (!Number.isNaN(n) && n < 0) return;
-                    setSecondaryQuantity(Number.isNaN(n) ? undefined : n);
+
+                    const newQuantity = Number.isNaN(n) ? undefined : n;
+                    setSecondaryQuantity(newQuantity);
+
+                    // Calcular en tiempo real
+                    calculateAndUpdateQuantity(newQuantity, secondarySelected);
                   }}
                   placeholder="Ej: 2, 4, 6..."
                 />
@@ -1271,30 +1343,35 @@ export default function CreateConsumableForm({
                 </p>
               </div>
 
-              {/* Cantidad resultante */}
-              <FormField
-                control={form.control}
-                name="quantity"
-                render={({ field }) => (
-                  <FormItem className="w-full">
-                    <FormLabel>Cantidad resultante</FormLabel>
-                    <FormControl>
-                      <Input
-                        disabled
-                        type="number"
-                        placeholder="0"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormDescription>
-                      {secondarySelected
-                        ? `Equivalente en ${secondarySelected.primary_unit.label} ${secondarySelected.primary_unit.value}`
-                        : "Unidades base que se registrarán."}
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              {/* Cantidad resultante - CONDICIONAL */}
+              {showResultQuantity ? (
+                <FormField
+                  control={form.control}
+                  name="quantity"
+                  render={({ field }) => (
+                    <FormItem className="w-full">
+                      <FormLabel>Cantidad resultante</FormLabel>
+                      <FormControl>
+                        <Input
+                          disabled
+                          type="number"
+                          placeholder="0"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        {secondarySelected
+                          ? `Equivalente en ${secondarySelected.primary_unit.label}`
+                          : "Unidades base que se registrarán."}
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              ) : (
+                // Espacio vacío para mantener el layout cuando está oculto
+                <div className="w-full"></div>
+              )}
 
               {/* Cantidad mínima */}
               <FormField
@@ -1391,7 +1468,7 @@ export default function CreateConsumableForm({
                   </FormLabel>
                   <FormDescription>
                     {secondarySelected
-                      ? `La conversión "${secondarySelected.secondary_unit.label} (${secondarySelected.primary_unit.label})" ${selectedUnits.some((unit) => unit.convertion_id === secondarySelected.id && unit.is_main_unit) ? "está establecida" : "se establecerá"} como primaria para despacho.`
+                      ? `La conversión "${secondarySelected.secondary_unit?.label || secondarySelected.primary_unit.label}" ${selectedUnits.some((unit) => unit.convertion_id === secondarySelected.id && unit.is_main_unit) ? "está establecida" : "se establecerá"} como primaria para despacho.`
                       : "Seleccione primero una conversión de ingreso para establecerla como primaria."}
                   </FormDescription>
                 </div>

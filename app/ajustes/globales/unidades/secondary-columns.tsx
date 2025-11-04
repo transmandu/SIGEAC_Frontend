@@ -74,7 +74,7 @@ export const secondary_columns: ColumnDef<Convertion>[] = [
     cell: ({ row }) => (
       <div className="flex justify-center">
         <span className="font-bold text-center">
-          {row.original.secondary_unit.label}
+          {row.original.secondary_unit?.label ?? 'N/A'}
         </span>
       </div>
     ),
@@ -87,7 +87,7 @@ export const secondary_columns: ColumnDef<Convertion>[] = [
     cell: ({ row }) => (
       <div className="flex justify-center">
         <span className="font-bold text-center">
-          {row.original.secondary_unit.value}
+          {row.original.secondary_unit?.value ?? 'N/A'}
         </span>
       </div>
     ),
