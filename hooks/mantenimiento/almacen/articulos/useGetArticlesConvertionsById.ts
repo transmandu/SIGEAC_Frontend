@@ -36,7 +36,7 @@ const fetchConsumableConvertionById = async (
   return data;
 };
 
-export const useGetBatchById = (
+export const useGetArticleConvertionById = (
   article_id: string | null,
   company?: string
 ) => {
