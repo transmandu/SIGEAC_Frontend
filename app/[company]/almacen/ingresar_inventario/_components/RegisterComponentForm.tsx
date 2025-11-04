@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -63,6 +64,7 @@ import { useCompanyStore } from "@/stores/CompanyStore";
 
 import { cn } from "@/lib/utils";
 import loadingGif from "@/public/loading2.gif";
+import { toast } from "sonner";
 
 import {
   Command,
@@ -76,6 +78,8 @@ import { MultiInputField } from "@/components/misc/MultiInputField";
 import { Textarea } from "@/components/ui/textarea";
 import { EditingArticle } from "./RegisterArticleForm";
 import { CreateManufacturerDialog } from "@/components/dialogs/general/CreateManufacturerDialog";
+import { CreateConditionDialog } from "@/components/dialogs/ajustes/CreateConditionDialog";
+import { CreateBatchDialog } from "@/components/dialogs/mantenimiento/almacen/CreateBatchDialog";
 
 /* ------------------------------- Schema ------------------------------- */
 
@@ -105,7 +109,7 @@ const formSchema = z
     zone: z
       .string({ message: "Debe ingresar la ubicación del artículo." })
       .min(1, "Campo requerido"),
-    caducate_date: z.string().optional(),
+    caducate_date: z.string({ message: "Debe ingresar una fecha de caducidad." }),
     fabrication_date: z.string().optional(),
     calendar_date: z.string().optional(),
     cost: z.string().optional(),
@@ -170,6 +174,7 @@ export default function CreateComponentForm({
   isEditing?: boolean;
 }) {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const { selectedCompany, selectedStation } = useCompanyStore();
 
   // Local state for part number search
@@ -181,18 +186,27 @@ export default function CreateComponentForm({
       ? new Date(initialData.component.shell_time.fabrication_date)
       : undefined
   );
-  const [caducateDate, setCaducateDate] = useState<Date | undefined>(
+  const [caducateDate, setCaducateDate] = useState<Date | null | undefined>(
     initialData?.component?.shell_time?.caducate_date
       ? new Date(initialData.component.shell_time.caducate_date)
       : undefined
   );
   const [enableBatchNameEdit, setEnableBatchNameEdit] = useState(false);
 
+  // Wrapper functions for DatePickerField compatibility
+  const handleFabricationDateChange = (d?: Date | null) => {
+    setFabricationDate(d ?? undefined);
+  };
+  const handleCaducateDateChange = (d?: Date | null) => {
+    setCaducateDate(d ?? undefined);
+  };
+
   // Data hooks
   const {
     data: batches,
     isPending: isBatchesLoading,
     isError: isBatchesError,
+    refetch: refetchBatches,
   } = useGetBatchesByCategory("componente");
 
   const {
@@ -326,7 +340,14 @@ export default function CreateComponentForm({
   async function onSubmit(values: FormValues) {
     if (!selectedCompany?.slug) return;
 
-    const formattedValues: FormValues & {
+    // Validar que el campo de fecha de caducidad esté completado (debe tener fecha o estar marcado como N/A)
+    if (caducateDate === undefined) {
+      return; // El botón debería estar deshabilitado, pero por seguridad validamos aquí también
+    }
+
+    const { caducate_date: _, ...valuesWithoutCaducateDate } = values;
+    const caducateDateStr: string | undefined = caducateDate && caducateDate !== null ? format(caducateDate, "yyyy-MM-dd") : undefined;
+    const formattedValues: Omit<FormValues, 'caducate_date'> & {
       caducate_date?: string;
       fabrication_date?: string;
       calendar_date?: string;
@@ -335,30 +356,63 @@ export default function CreateComponentForm({
       article_type: string;
       alternative_part_number?: string[];
       batch_name?: string;
+      batch_id: string; // Asegurar que batch_id esté en el tipo
     } = {
-      ...values,
+      ...valuesWithoutCaducateDate,
       status: "CHECKING",
       article_type: "componente",
       part_number: normalizeUpper(values.part_number),
       alternative_part_number:
         values.alternative_part_number?.map((v) => normalizeUpper(v)) ?? [],
-      caducate_date: caducateDate ? format(caducateDate, "yyyy-MM-dd") : undefined,
+      caducate_date: caducateDateStr,
       fabrication_date: fabricationDate ? format(fabricationDate, "yyyy-MM-dd") : undefined,
       calendar_date: values.calendar_date && format(values.calendar_date, "yyyy-MM-dd"),
       batch_name: enableBatchNameEdit ? values.batch_name : undefined,
+      batch_id: values.batch_id, // Incluir explícitamente el batch_id del formulario
     };
 
     if (isEditing && initialData) {
+      // Lógica según el checkbox:
+      // - Si enableBatchNameEdit está marcado: enviar batch_name (modifica el batch para todos los artículos)
+      // - Si NO está marcado: solo enviar batch_id (reasigna solo este artículo a otro batch)
+      const updateData: any = {
+        ...formattedValues,
+        article_type: "componente",
+      };
+      
+      if (enableBatchNameEdit) {
+        // Modificar el nombre del batch (afecta a todos los artículos del batch)
+        if (!values.batch_name) {
+          toast.error("Error", {
+            description: "Debe ingresar un nuevo nombre para la descripción.",
+          });
+          return;
+        }
+        updateData.batch_name = values.batch_name;
+        // Mantener el batch_id original para que el backend sepa qué batch modificar
+        updateData.batch_id = initialData.batches?.id?.toString() || values.batch_id;
+      } else {
+        // Solo reasignar este artículo a otro batch (NO afecta a otros artículos)
+        if (!values.batch_id) {
+          toast.error("Error", {
+            description: "Debe seleccionar una descripción de componente.",
+          });
+          return;
+        }
+        updateData.batch_id = values.batch_id;
+        // NO enviar batch_name cuando solo se está reasignando
+        delete updateData.batch_name;
+      }
+          
       await updateArticle.mutateAsync({
-        data: {
-          ...formattedValues,
-          batch_id: formattedValues.batch_id,
-          article_type: "componente",
-        },
+        data: updateData,
         company: selectedCompany.slug,
         id: initialData.id,
       });
+      // Esperar un momento para que las queries se invaliden antes de redirigir
+      await new Promise(resolve => setTimeout(resolve, 100));
       router.push(`/${selectedCompany.slug}/almacen/inventario_articulos`);
+      router.refresh(); // Forzar refresco de la página
     } else {
       await createArticle.mutateAsync({
         company: selectedCompany.slug,
@@ -423,58 +477,123 @@ export default function CreateComponentForm({
     goBackYears = [5, 10, 15],
     goForwardYears = [],
     description,
+    maxYear,
+    showNotApplicable = false,
+    required = false,
+    error,
   }: {
     label: string;
-    value?: Date;
-    setValue: (d?: Date) => void;
+    value?: Date | null;
+    setValue: (d?: Date | null) => void;
     goBackYears?: number[];
     goForwardYears?: number[];
     description?: string;
+    /** Año máximo permitido. Si no se especifica, será el año actual + 20 */
+    maxYear?: number;
+    /** Mostrar botón "No aplica" */
+    showNotApplicable?: boolean;
+    /** Campo obligatorio */
+    required?: boolean;
+    /** Mensaje de error */
+    error?: string;
   }) {
+    const isInvalid = required && value === undefined;
+    const displayError = error || (isInvalid ? "Este campo es obligatorio. Debe seleccionar una fecha o marcar 'No aplica'." : undefined);
+
     return (
       <FormItem className="flex flex-col p-0 mt-2.5 w-full">
-        <FormLabel>{label}</FormLabel>
-        <Popover>
-          <PopoverTrigger asChild>
-            <FormControl>
-              <Button
-                variant="outline"
-                disabled={busy}
-                className={cn("w-full pl-3 text-left font-normal", !value && "text-muted-foreground")}
-              >
-                {value ? format(value, "PPP", { locale: es }) : <span>Seleccione una fecha</span>}
-                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-              </Button>
-            </FormControl>
-          </PopoverTrigger>
-          <PopoverContent className="w-auto p-0" align="start">
-            {(goBackYears.length > 0 || goForwardYears.length > 0) && (
-              <Select
-                onValueChange={(v) => {
-                  const n = parseInt(v);
-                  if (n === 0) { setValue(new Date()); return; }
-                  if (n < 0) setValue(subYears(new Date(), Math.abs(n)));
-                  else setValue(addYears(new Date(), n));
+        <FormLabel>
+          {label}
+          {required && <span className="text-destructive ml-1">*</span>}
+        </FormLabel>
+        <div className="flex gap-2">
+          <Popover>
+            <PopoverTrigger asChild>
+              <FormControl>
+                <Button
+                  variant="outline"
+                  disabled={busy || (showNotApplicable && value === null)}
+                  className={cn(
+                    "flex-1 pl-3 text-left font-normal",
+                    (!value || value === null) && "text-muted-foreground",
+                    isInvalid && "border-destructive"
+                  )}
+                >
+                  {value === null ? (
+                    <span>N/A</span>
+                  ) : value ? (
+                    format(value, "PPP", { locale: es })
+                  ) : (
+                    <span>Seleccione una fecha</span>
+                  )}
+                  <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                </Button>
+              </FormControl>
+            </PopoverTrigger>
+            <PopoverContent 
+              className="w-auto p-0 z-[100]" 
+              align="start"
+              side="bottom"
+              sideOffset={8}
+              avoidCollisions={true}
+            >
+              <Calendar 
+                locale={es} 
+                mode="single" 
+                selected={value || undefined} 
+                onSelect={setValue} 
+                initialFocus 
+                defaultMonth={value || new Date()}
+                captionLayout="dropdown-buttons"
+                fromYear={1900}
+                toYear={maxYear ?? new Date().getFullYear() + 20}
+                classNames={{
+                  caption_label: "hidden",
+                  caption: "flex justify-center pt-1 relative items-center mb-2",
+                  caption_dropdowns: "flex justify-center gap-2 items-center",
+                  nav: "hidden",
+                  nav_button: "hidden",
+                  nav_button_previous: "hidden",
+                  nav_button_next: "hidden",
                 }}
+                components={{
+                  Dropdown: (props) => (
+                    <select
+                      {...props}
+                      className="h-9 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-md px-3 py-1 text-sm font-medium text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 transition-colors cursor-pointer"
+                    >
+                      {props.children}
+                    </select>
+                  ),
+                }}
+              />
+            </PopoverContent>
+          </Popover>
+          {showNotApplicable && (
+            <div className="flex items-center space-x-2 flex-shrink-0">
+              <FormControl>
+                <Checkbox
+                  id={`not-applicable-${label.replace(/\s+/g, '-').toLowerCase()}`}
+                  checked={value === null}
+                  onCheckedChange={(checked) => {
+                    setValue(checked ? null : undefined);
+                  }}
+                  disabled={busy}
+                />
+              </FormControl>
+              <label
+                htmlFor={`not-applicable-${label.replace(/\s+/g, '-').toLowerCase()}`}
+                className="text-sm font-medium leading-none cursor-pointer whitespace-nowrap select-none"
               >
-                <SelectTrigger className="p-3">
-                  <SelectValue placeholder="Atajos de fecha" />
-                </SelectTrigger>
-                <SelectContent position="popper">
-                  <SelectItem value="0">Actual</SelectItem>
-                  {goBackYears.map((y) => (
-                    <SelectItem key={y} value={`${-y}`}>Ir {y} años atrás</SelectItem>
-                  ))}
-                  {goForwardYears.map((y) => (
-                    <SelectItem key={y} value={`${y}`}>{y} años</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
-            <Calendar locale={es} mode="single" selected={value} onSelect={setValue} initialFocus month={value} />
-          </PopoverContent>
-        </Popover>
+                No aplica
+              </label>
+            </div>
+          )}
+        </div>
         {description ? <FormDescription>{description}</FormDescription> : null}
+        {displayError && (
+          <p className="text-sm font-medium text-destructive mt-1">{displayError}</p>
+        )}
         <FormMessage />
       </FormItem>
     );
@@ -540,7 +659,33 @@ export default function CreateComponentForm({
                 name="batch_id"
                 render={({ field }) => (
                   <FormItem className="flex flex-col space-y-3 mt-1.5 w-full">
-                    <FormLabel>Descripción de Componente</FormLabel>
+                    <div className="flex items-center justify-between">
+                      <FormLabel>Descripción de Componente</FormLabel>
+                      <CreateBatchDialog
+                        onSuccess={async (batchName) => {
+                          // Invalidar la query y refetch para obtener el batch recién creado
+                          await queryClient.invalidateQueries({ 
+                            queryKey: ["search-batches", selectedCompany?.slug, selectedStation, "componente"] 
+                          });
+                          const { data: updatedBatches } = await refetchBatches();
+                          const newBatch = updatedBatches?.find((b: any) => b.name === batchName);
+                          if (newBatch) {
+                            form.setValue("batch_id", newBatch.id.toString(), { shouldValidate: true });
+                          }
+                        }}
+                        triggerButton={
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="h-7 text-xs"
+                          >
+                            <Plus className="h-3 w-3 mr-1" />
+                            Crear nuevo
+                          </Button>
+                        }
+                      />
+                    </div>
                     <Popover>
                       <PopoverTrigger asChild>
                         <FormControl>
@@ -676,7 +821,22 @@ export default function CreateComponentForm({
               name="condition_id"
               render={({ field }) => (
                 <FormItem className="w-full">
-                  <FormLabel>Condición</FormLabel>
+                  <div className="flex items-center justify-between">
+                    <FormLabel>Condición</FormLabel>
+                    <CreateConditionDialog
+                      onSuccess={(condition) => {
+                        if (condition?.id) {
+                          form.setValue("condition_id", condition.id.toString(), { shouldValidate: true });
+                        }
+                      }}
+                      triggerButton={
+                        <Button type="button" variant="ghost" size="sm" className="h-7 text-xs">
+                          <Plus className="h-3 w-3 mr-1" />
+                          Crear nuevo
+                        </Button>
+                      }
+                    />
+                  </div>
                   <Select onValueChange={field.onChange} value={field.value} disabled={isConditionsLoading || busy}>
                     <FormControl>
                       <SelectTrigger>
@@ -768,17 +928,20 @@ export default function CreateComponentForm({
             <DatePickerField
               label="Fecha de Fabricación"
               value={fabricationDate}
-              setValue={(d) => setFabricationDate(d)}
+              setValue={handleFabricationDateChange}
               goBackYears={[5, 10, 15]}
               description="Fecha de creación del artículo."
+              maxYear={new Date().getFullYear()}
             />
 
             <DatePickerField
               label="Fecha de Shelf-Life"
               value={caducateDate}
-              setValue={(d) => setCaducateDate(d)}
+              setValue={handleCaducateDateChange}
               goForwardYears={[5, 10, 15]}
               description="Fecha límite del artículo."
+              showNotApplicable={true}
+              required={true}
             />
           </div>
         </SectionCard>
@@ -823,7 +986,8 @@ export default function CreateComponentForm({
               busy ||
               !selectedCompany ||
               !form.getValues("part_number") ||
-              !form.getValues("batch_id")
+              !form.getValues("batch_id") ||
+              caducateDate === undefined
             }
             type="submit"
           >

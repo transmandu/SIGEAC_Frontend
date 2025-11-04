@@ -56,9 +56,10 @@ type FormSchemaType = z.infer<typeof FormSchema>
 
 interface FormProps {
   onClose: () => void
+  onSuccess?: (batchName: string) => void
 }
 
-export function CreateBatchForm({ onClose }: FormProps) {
+export function CreateBatchForm({ onClose, onSuccess }: FormProps) {
 
 
   const {selectedCompany, selectedStation} = useCompanyStore()
@@ -113,6 +114,9 @@ export function CreateBatchForm({ onClose }: FormProps) {
       warehouse_id: Number(data.warehouse_id),
     }
     await createBatch.mutateAsync({data: formattedData, company});
+    if (onSuccess) {
+      onSuccess(data.name);
+    }
     onClose();
   }
 

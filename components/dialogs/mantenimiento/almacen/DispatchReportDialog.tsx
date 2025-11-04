@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { CalendarDays, NotepadText, Plane } from "lucide-react";
@@ -38,9 +38,15 @@ import DispatchReportPdf from "@/components/pdf/almacen/DispatchReport";
 export function DispatchReportDialog() {
   const { selectedStation, selectedCompany } = useCompanyStore();
   const [open, setOpen] = useState(false);
+  
+  // Filtros para reporte general con rango de fechas opcional
+  const [generalStartDate, setGeneralStartDate] = useState<Date | undefined>();
+  const [generalEndDate, setGeneralEndDate] = useState<Date | undefined>();
+  
+  // Filtros para reporte por aeronave con rango de fechas opcional
   const [aircraft, setAircraft] = useState<string | null>(null);
-  const [startDate, setStartDate] = useState<Date | undefined>();
-  const [endDate, setEndDate] = useState<Date | undefined>();
+  const [aircraftStartDate, setAircraftStartDate] = useState<Date | undefined>();
+  const [aircraftEndDate, setAircraftEndDate] = useState<Date | undefined>();
 
   const { data: dispatchReport, isLoading: isLoadingDispatchReport } =
     useGetDispatchReport(selectedStation ?? null, selectedCompany?.slug);
@@ -48,7 +54,19 @@ export function DispatchReportDialog() {
     selectedCompany?.slug
   );
 
-  const isDateRangeInvalid = startDate && endDate && endDate < startDate;
+  const isGeneralDateRangeInvalid = generalStartDate && generalEndDate && generalEndDate < generalStartDate;
+  const isAircraftDateRangeInvalid = aircraftStartDate && aircraftEndDate && aircraftEndDate < aircraftStartDate;
+
+  // Resetear filtros cuando se cierra el diálogo
+  useEffect(() => {
+    if (!open) {
+      setGeneralStartDate(undefined);
+      setGeneralEndDate(undefined);
+      setAircraft(null);
+      setAircraftStartDate(undefined);
+      setAircraftEndDate(undefined);
+    }
+  }, [open]);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -72,115 +90,40 @@ export function DispatchReportDialog() {
 
         <div className="space-y-6 flex flex-col justify-center text-center">
           {/* Reporte General */}
-          <div className="space-y-2">
-            <h1 className="text-xl font-bold flex gap-2 items-center justify-center">
-              General <NotepadText />
-            </h1>
-            <p className="text-muted-foreground text-sm italic">
-              Genere un reporte con todas las salidas registradas.
-            </p>
-            {dispatchReport && (
-              <PDFDownloadLink
-                fileName={`salidas_${format(new Date(), "dd-MM-yyyy", { locale: es })}.pdf`}
-                document={
-                  <DispatchReportPdf
-                    reports={dispatchReport}
-                    aircraftFilter={null}
-                    startDate={undefined}
-                    endDate={undefined}
-                  />
-                }
-              >
-                <Button disabled={isLoadingDispatchReport} className="mt-2">
-                  Descargar Reporte General
-                </Button>
-              </PDFDownloadLink>
-            )}
-          </div>
-
-          {/* Filtro por Avión */}
-          <div className="space-y-2">
-            <h1 className="text-xl font-bold flex gap-2 items-center justify-center">
-              Filtrar <Plane />
-            </h1>
-            <p className="text-muted-foreground text-sm italic">
-              Seleccione un avión para filtrar.
-            </p>
-            <div className="flex gap-2 items-center justify-center">
-              <Select
-                onValueChange={(value) =>
-                  setAircraft(value === "all" ? null : value)
-                }
-              >
-                <SelectTrigger
-                  disabled={isLoadingAircrafts}
-                  className="w-[200px]"
-                >
-                  <SelectValue placeholder="Todos los aviones" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos los aviones</SelectItem>
-                  {aircrafts?.map((aircraft) => (
-                    <SelectItem
-                      key={aircraft.id}
-                      value={aircraft.id.toString()}
-                    >
-                      {aircraft.acronym ?? `Aeronave #${aircraft.id}`}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <h1 className="text-xl font-bold flex gap-2 items-center justify-center">
+                General <NotepadText />
+              </h1>
+              <p className="text-muted-foreground text-sm italic">
+                Genere un reporte con todas las salidas registradas. Opcionalmente puede filtrar por rango de fechas.
+              </p>
             </div>
-            {aircraft && dispatchReport && (
-              <PDFDownloadLink
-                fileName={`salidas_avion_${aircraft}_${format(new Date(), "dd-MM-yyyy", { locale: es })}.pdf`}
-                document={
-                  <DispatchReportPdf
-                    reports={dispatchReport}
-                    aircraftFilter={parseInt(aircraft)}
-                    startDate={undefined}
-                    endDate={undefined}
-                  />
-                }
-              >
-                <Button disabled={isLoadingDispatchReport} className="mt-2">
-                  Descargar Reporte por Avión
-                </Button>
-              </PDFDownloadLink>
-            )}
-          </div>
 
-          {/* Rango de Fechas */}
-          <div className="space-y-2">
-            <h1 className="text-xl font-bold flex gap-2 items-center justify-center">
-              Rango de Fecha <CalendarDays />
-            </h1>
-            <p className="text-muted-foreground text-sm italic">
-              Seleccione un rango de fechas para filtrar.
-            </p>
+            {/* Rango de fechas opcional para reporte general */}
             <div className="flex flex-col md:flex-row justify-center gap-4 items-center">
               {/* Desde */}
               <div className="flex flex-col items-start">
-                <label className="text-xs font-medium">Desde</label>
+                <label className="text-xs font-medium">Desde (Opcional)</label>
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button
                       variant="outline"
                       className={cn(
                         "w-[200px] justify-start text-left",
-                        !startDate && "text-muted-foreground"
+                        !generalStartDate && "text-muted-foreground"
                       )}
                     >
-                      {startDate
-                        ? format(startDate, "PPP", { locale: es })
+                      {generalStartDate
+                        ? format(generalStartDate, "PPP", { locale: es })
                         : "Seleccionar fecha"}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0" align="start">
                     <Calendar
                       mode="single"
-                      selected={startDate}
-                      onSelect={setStartDate}
+                      selected={generalStartDate}
+                      onSelect={setGeneralStartDate}
                       initialFocus
                     />
                   </PopoverContent>
@@ -189,29 +132,29 @@ export function DispatchReportDialog() {
 
               {/* Hasta */}
               <div className="flex flex-col items-start">
-                <label className="text-xs font-medium">Hasta</label>
+                <label className="text-xs font-medium">Hasta (Opcional)</label>
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button
                       variant="outline"
                       className={cn(
                         "w-[200px] justify-start text-left",
-                        !endDate && "text-muted-foreground"
+                        !generalEndDate && "text-muted-foreground"
                       )}
                     >
-                      {endDate
-                        ? format(endDate, "PPP", { locale: es })
+                      {generalEndDate
+                        ? format(generalEndDate, "PPP", { locale: es })
                         : "Seleccionar fecha"}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0" align="start">
                     <Calendar
                       mode="single"
-                      selected={endDate}
-                      onSelect={setEndDate}
+                      selected={generalEndDate}
+                      onSelect={setGeneralEndDate}
                       initialFocus
                       disabled={(date) =>
-                        startDate ? date < startDate : false
+                        generalStartDate ? date < generalStartDate : false
                       }
                     />
                   </PopoverContent>
@@ -219,22 +162,194 @@ export function DispatchReportDialog() {
               </div>
             </div>
 
-            {startDate && endDate && !isDateRangeInvalid && dispatchReport && (
-              <PDFDownloadLink
-                fileName={`salidas_rango_${format(startDate, "dd-MM-yyyy", { locale: es })}_a_${format(endDate, "dd-MM-yyyy", { locale: es })}.pdf`}
-                document={
-                  <DispatchReportPdf
-                    reports={dispatchReport}
-                    aircraftFilter={null}
-                    startDate={startDate}
-                    endDate={endDate}
-                  />
+            {/* Botones de descarga para reporte general */}
+            {dispatchReport && (
+              <>
+                {/* Botón sin filtros de fecha */}
+                {(!generalStartDate || !generalEndDate || isGeneralDateRangeInvalid) && (
+                  <PDFDownloadLink
+                    fileName={`salidas_${format(new Date(), "dd-MM-yyyy", { locale: es })}.pdf`}
+                    document={
+                      <DispatchReportPdf
+                        reports={dispatchReport}
+                        aircraftFilter={null}
+                        startDate={undefined}
+                        endDate={undefined}
+                      />
+                    }
+                  >
+                    <Button disabled={isLoadingDispatchReport} className="mt-2">
+                      Descargar Reporte General
+                    </Button>
+                  </PDFDownloadLink>
+                )}
+
+                {/* Botón con filtros de fecha */}
+                {generalStartDate && generalEndDate && !isGeneralDateRangeInvalid && (
+                  <PDFDownloadLink
+                    fileName={`salidas_rango_${format(generalStartDate, "dd-MM-yyyy", { locale: es })}_a_${format(generalEndDate, "dd-MM-yyyy", { locale: es })}.pdf`}
+                    document={
+                      <DispatchReportPdf
+                        reports={dispatchReport}
+                        aircraftFilter={null}
+                        startDate={generalStartDate}
+                        endDate={generalEndDate}
+                      />
+                    }
+                  >
+                    <Button disabled={isLoadingDispatchReport} className="mt-2">
+                      Descargar Reporte General por Rango de Fechas
+                    </Button>
+                  </PDFDownloadLink>
+                )}
+              </>
+            )}
+          </div>
+
+          {/* Reporte por Aeronave */}
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <h1 className="text-xl font-bold flex gap-2 items-center justify-center">
+                Filtrar por Aeronave <Plane />
+              </h1>
+              <p className="text-muted-foreground text-sm italic">
+                Seleccione un avión para filtrar las salidas. Opcionalmente puede agregar un rango de fechas.
+              </p>
+            </div>
+
+            {/* Selector de Aeronave */}
+            <div className="flex gap-2 items-center justify-center">
+              <Select
+                onValueChange={(value) =>
+                  setAircraft(value === "all" ? null : value)
                 }
+                value={aircraft || "all"}
               >
-                <Button disabled={isLoadingDispatchReport} className="mt-4">
-                  Descargar Reporte por Rango de Fechas
-                </Button>
-              </PDFDownloadLink>
+                <SelectTrigger
+                  disabled={isLoadingAircrafts}
+                  className="w-[200px]"
+                >
+                  <SelectValue placeholder="Seleccione una aeronave" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todas las aeronaves</SelectItem>
+                  {aircrafts?.map((aircraftItem) => (
+                    <SelectItem
+                      key={aircraftItem.id}
+                      value={aircraftItem.id.toString()}
+                    >
+                      {aircraftItem.acronym ?? `Aeronave #${aircraftItem.id}`}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Rango de fechas opcional para reporte por aeronave */}
+            {aircraft && aircraft !== "all" && (
+              <div className="flex flex-col md:flex-row justify-center gap-4 items-center">
+                {/* Desde */}
+                <div className="flex flex-col items-start">
+                  <label className="text-xs font-medium">Desde (Opcional)</label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className={cn(
+                          "w-[200px] justify-start text-left",
+                          !aircraftStartDate && "text-muted-foreground"
+                        )}
+                      >
+                        {aircraftStartDate
+                          ? format(aircraftStartDate, "PPP", { locale: es })
+                          : "Seleccionar fecha"}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={aircraftStartDate}
+                        onSelect={setAircraftStartDate}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+
+                {/* Hasta */}
+                <div className="flex flex-col items-start">
+                  <label className="text-xs font-medium">Hasta (Opcional)</label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className={cn(
+                          "w-[200px] justify-start text-left",
+                          !aircraftEndDate && "text-muted-foreground"
+                        )}
+                      >
+                        {aircraftEndDate
+                          ? format(aircraftEndDate, "PPP", { locale: es })
+                          : "Seleccionar fecha"}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={aircraftEndDate}
+                        onSelect={setAircraftEndDate}
+                        initialFocus
+                        disabled={(date) =>
+                          aircraftStartDate ? date < aircraftStartDate : false
+                        }
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+              </div>
+            )}
+
+            {/* Botones de descarga para reporte por aeronave */}
+            {aircraft && aircraft !== "all" && dispatchReport && (
+              <>
+                {/* Botón sin filtros de fecha */}
+                {(!aircraftStartDate || !aircraftEndDate || isAircraftDateRangeInvalid) && (
+                  <PDFDownloadLink
+                    fileName={`salidas_avion_${aircraft}_${format(new Date(), "dd-MM-yyyy", { locale: es })}.pdf`}
+                    document={
+                      <DispatchReportPdf
+                        reports={dispatchReport}
+                        aircraftFilter={parseInt(aircraft)}
+                        startDate={undefined}
+                        endDate={undefined}
+                      />
+                    }
+                  >
+                    <Button disabled={isLoadingDispatchReport} className="mt-2">
+                      Descargar Reporte por Avión
+                    </Button>
+                  </PDFDownloadLink>
+                )}
+
+                {/* Botón con filtros de fecha */}
+                {aircraftStartDate && aircraftEndDate && !isAircraftDateRangeInvalid && (
+                  <PDFDownloadLink
+                    fileName={`salidas_avion_${aircraft}_${format(aircraftStartDate, "dd-MM-yyyy", { locale: es })}_a_${format(aircraftEndDate, "dd-MM-yyyy", { locale: es })}.pdf`}
+                    document={
+                      <DispatchReportPdf
+                        reports={dispatchReport}
+                        aircraftFilter={parseInt(aircraft)}
+                        startDate={aircraftStartDate}
+                        endDate={aircraftEndDate}
+                      />
+                    }
+                  >
+                    <Button disabled={isLoadingDispatchReport} className="mt-2">
+                      Descargar Reporte por Avión y Rango de Fechas
+                    </Button>
+                  </PDFDownloadLink>
+                )}
+              </>
             )}
           </div>
         </div>

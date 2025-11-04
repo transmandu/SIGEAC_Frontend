@@ -8,7 +8,7 @@ import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
-import { addYears, format, subYears } from "date-fns";
+import { format } from "date-fns";
 import { es } from "date-fns/locale";
 
 import {
@@ -77,6 +77,7 @@ import { Batch, Convertion } from "@/types";
 import loadingGif from "@/public/loading2.gif";
 import { EditingArticle } from "./RegisterArticleForm";
 import { CreateManufacturerDialog } from "@/components/dialogs/general/CreateManufacturerDialog";
+import { CreateConditionDialog } from "@/components/dialogs/ajustes/CreateConditionDialog";
 
 /* ------------------------------- Schema ------------------------------- */
 
@@ -179,59 +180,138 @@ function DatePickerField({
   description,
   busy,
   shortcuts = "both",
+  maxYear,
+  showNotApplicable = false,
+  required = false,
+  error,
 }: {
   label: string;
-  value?: Date;
-  setValue: (d?: Date) => void;
+  value?: Date | null;
+  setValue: (d?: Date | null) => void;
   description?: string;
   busy?: boolean;
   /** "both" | "back" | "forward" | "none" */
   shortcuts?: "both" | "back" | "forward" | "none";
+  /** Año máximo permitido. Si no se especifica, será el año actual + 20 */
+  maxYear?: number;
+  /** Mostrar botón "No aplica" */
+  showNotApplicable?: boolean;
+  /** Campo obligatorio */
+  required?: boolean;
+  /** Mensaje de error */
+  error?: string;
 }) {
-  const showBack = shortcuts === "both" || shortcuts === "back";
-  const showForward = shortcuts === "both" || shortcuts === "forward";
+  const [touched, setTouched] = useState(false);
+  
+  // Solo mostrar error si el campo fue tocado/interactuado o si hay un error explícito
+  // No mostrar error inmediatamente al cargar la página
+  const isInvalid = required && value === undefined && touched;
+  const displayError = error || (isInvalid ? "Este campo es obligatorio. Debe seleccionar una fecha o marcar 'No aplica'." : undefined);
+
   return (
     <FormItem className="flex flex-col p-0 mt-2.5 w-full">
-      <FormLabel>{label}</FormLabel>
-      <Popover>
-        <PopoverTrigger asChild>
-          <FormControl>
-            <Button
-              variant="outline"
-              disabled={busy}
-              className={cn("w-full pl-3 text-left font-normal", !value && "text-muted-foreground")}
-            >
-              {value ? format(value, "PPP", { locale: es }) : <span>Seleccione una fecha</span>}
-              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-            </Button>
-          </FormControl>
-        </PopoverTrigger>
-        <PopoverContent className="w-auto p-0" align="start">
-          {(showBack || showForward) && (
-            <Select
-              onValueChange={(v) => {
-                const n = parseInt(v);
-                if (n === 0) { setValue(new Date()); return; }
-                if (n < 0) setValue(subYears(new Date(), Math.abs(n)));
-                else setValue(addYears(new Date(), n));
+      <FormLabel>
+        {label}
+        {required && <span className="text-destructive ml-1">*</span>}
+      </FormLabel>
+      <div className="flex gap-2">
+        <Popover>
+          <PopoverTrigger asChild>
+            <FormControl>
+              <Button
+                variant="outline"
+                disabled={busy || (showNotApplicable && value === null)}
+                onClick={() => setTouched(true)}
+                className={cn(
+                  "flex-1 pl-3 text-left font-normal",
+                  (!value || value === null) && "text-muted-foreground",
+                  isInvalid && "border-destructive"
+                )}
+              >
+                {value === null ? (
+                  <span>N/A</span>
+                ) : value ? (
+                  format(value, "PPP", { locale: es })
+                ) : (
+                  <span>Seleccione una fecha</span>
+                )}
+                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+              </Button>
+            </FormControl>
+          </PopoverTrigger>
+          <PopoverContent 
+            className="w-auto p-0 z-[100]" 
+            align="start"
+            side="bottom"
+            sideOffset={8}
+            avoidCollisions={true}
+          >
+            <Calendar 
+              locale={es} 
+              mode="single" 
+              selected={value || undefined} 
+              onSelect={(date) => {
+                setTouched(true);
+                setValue(date);
+              }} 
+              initialFocus 
+              defaultMonth={value || new Date()}
+              captionLayout="dropdown-buttons"
+              fromYear={1900}
+              toYear={maxYear ?? new Date().getFullYear() + 20}
+              classNames={{
+                caption_label: "hidden",
+                caption: "flex justify-center pt-1 relative items-center mb-2",
+                caption_dropdowns: "flex justify-center gap-2 items-center",
+                nav: "hidden",
+                nav_button: "hidden",
+                nav_button_previous: "hidden",
+                nav_button_next: "hidden",
               }}
+              components={{
+                Dropdown: (props) => (
+                  <select
+                    {...props}
+                    className="h-9 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-md px-3 py-1 text-sm font-medium text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 transition-colors cursor-pointer"
+                  >
+                    {props.children}
+                  </select>
+                ),
+              }}
+            />
+          </PopoverContent>
+        </Popover>
+        {showNotApplicable && (
+          <div className="flex items-center space-x-2 flex-shrink-0">
+            <FormControl>
+              <Checkbox
+                id={`not-applicable-${label.replace(/\s+/g, '-').toLowerCase()}`}
+                checked={value === null}
+                onCheckedChange={(checked) => {
+                  setTouched(true);
+                  console.log("Checkbox clicked. checked:", checked, "current value:", value);
+                  if (checked) {
+                    setValue(null);
+                  } else {
+                    setValue(undefined);
+                  }
+                }}
+                disabled={busy}
+              />
+            </FormControl>
+            <label
+              htmlFor={`not-applicable-${label.replace(/\s+/g, '-').toLowerCase()}`}
+              className="text-sm font-medium leading-none cursor-pointer whitespace-nowrap select-none"
             >
-              <SelectTrigger className="p-3"><SelectValue placeholder="Atajos de fecha" /></SelectTrigger>
-              <SelectContent position="popper">
-                <SelectItem value="0">Actual</SelectItem>
-                {showBack && [5, 10, 15].map((y) => (
-                  <SelectItem key={`b-${y}`} value={`${-y}`}>Ir {y} años atrás</SelectItem>
-                ))}
-                {showForward && [5, 10, 15].map((y) => (
-                  <SelectItem key={`f-${y}`} value={`${y}`}>{y} años</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          )}
-          <Calendar locale={es} mode="single" selected={value} onSelect={setValue} initialFocus month={value} />
-        </PopoverContent>
-      </Popover>
+              No aplica
+            </label>
+          </div>
+        )}
+      </div>
       {description ? <FormDescription>{description}</FormDescription> : null}
+      {displayError && (
+        <p className="text-sm font-medium text-destructive mt-1">{displayError}</p>
+      )}
       <FormMessage />
     </FormItem>
   );
@@ -275,13 +355,21 @@ export default function CreateConsumableForm({
   const [secondaryOpen, setSecondaryOpen] = useState(false);
   const [secondarySelected, setSecondarySelected] = useState<Convertion | null>(null);
   const [secondaryQuantity, setSecondaryQuantity] = useState<number | undefined>();
-  const [caducateDate, setCaducateDate] = useState<Date | undefined>(
+  const [caducateDate, setCaducateDate] = useState<Date | null | undefined>(
     initialData?.consumable?.caducate_date ? new Date(initialData.consumable.caducate_date) : undefined
   );
-  const [fabricationDate, setFabricationDate] = useState<Date | undefined>(
+  const [fabricationDate, setFabricationDate] = useState<Date | null | undefined>(
     initialData?.consumable?.fabrication_date ? new Date(initialData?.consumable?.fabrication_date) : undefined
   );
   const [enableBatchNameEdit, setEnableBatchNameEdit] = useState(false);
+
+  // Wrapper functions for DatePickerField compatibility
+  const handleFabricationDateChange = (d?: Date | null) => {
+    setFabricationDate(d ?? undefined);
+  };
+  const handleCaducateDateChange = (d?: Date | null) => {
+    setCaducateDate(d ?? undefined);
+  };
 
   // Form
   const form = useForm<FormValues>({
@@ -391,7 +479,9 @@ export default function CreateConsumableForm({
   async function onSubmit(values: FormValues) {
     if (!selectedCompany?.slug) return;
 
-    const formattedValues: FormValues & {
+    const { caducate_date: _, ...valuesWithoutCaducateDate } = values;
+    const caducateDateStr: string | undefined = caducateDate && caducateDate !== null ? format(caducateDate, "yyyy-MM-dd") : undefined;
+    const formattedValues: Omit<FormValues, 'caducate_date'> & {
       caducate_date?: string;
       fabrication_date?: string;
       part_number: string;
@@ -400,13 +490,13 @@ export default function CreateConsumableForm({
       alternative_part_number?: string[];
       batch_name?: string;
     } = {
-      ...values,
+      ...valuesWithoutCaducateDate,
       status: "CHECKING",
       part_number: normalizeUpper(values.part_number),
       article_type: "consumible",
       alternative_part_number: values.alternative_part_number?.map((v) => normalizeUpper(v)) ?? [],
-      caducate_date: caducateDate ? format(caducateDate, "yyyy-MM-dd") : undefined,
-      fabrication_date: fabricationDate ? format(fabricationDate, "yyyy-MM-dd") : undefined,
+      caducate_date: caducateDateStr,
+      fabrication_date: fabricationDate && fabricationDate !== null ? format(fabricationDate, "yyyy-MM-dd") : undefined,
       batch_name: enableBatchNameEdit ? values.batch_name : undefined,
     };
 
@@ -682,7 +772,31 @@ export default function CreateConsumableForm({
               name="condition_id"
               render={({ field }) => (
                 <FormItem className="w-full">
+                  <div className="flex items-center justify-between">
                   <FormLabel>Condición</FormLabel>
+                    <CreateConditionDialog
+                      onSuccess={(condition) => {
+                        if (condition?.id) {
+                          form.setValue(
+                            "condition_id",
+                            condition.id.toString(),
+                            { shouldValidate: true }
+                          );
+                        }
+                      }}
+                      triggerButton={
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 text-xs"
+                        >
+                          <Plus className="h-3 w-3 mr-1" />
+                          Crear nuevo
+                        </Button>
+                      }
+                    />
+                  </div>
                   <Select
                     onValueChange={field.onChange}
                     value={field.value}
@@ -721,19 +835,22 @@ export default function CreateConsumableForm({
             <DatePickerField
               label="Fecha de Fabricación"
               value={fabricationDate}
-              setValue={setFabricationDate}
+              setValue={handleFabricationDateChange}
               description="Fecha de creación del artículo."
               busy={busy}
               shortcuts="back"
+              maxYear={new Date().getFullYear()}
             />
 
             <DatePickerField
               label="Fecha de Caducidad - Shelf-Life"
               value={caducateDate}
-              setValue={setCaducateDate}
+              setValue={handleCaducateDateChange}
               description="Fecha límite del artículo."
               busy={busy}
               shortcuts="forward"
+              showNotApplicable={true}
+              required={true}
             />
 
             <FormField
@@ -843,7 +960,7 @@ export default function CreateConsumableForm({
                     className="justify-between"
                   >
                     {secondarySelected
-                      ? `${secondarySelected.secondary_unit} (${secondarySelected.unit?.label || secondarySelected.unit?.value || ""})`
+                      ? `${secondarySelected.secondary_unit}${secondarySelected.unit?.label || secondarySelected.unit?.value ? ` (${secondarySelected.unit?.label || secondarySelected.unit?.value})` : ""}`
                       : secondaryLoading
                         ? "Cargando..."
                         : "Seleccione..."}
@@ -888,10 +1005,12 @@ export default function CreateConsumableForm({
                             }}
                           >
                             <span className="flex-1">
-                              {s.secondary_unit}{" "}
-                              <span className="text-muted-foreground">
-                                ({s.unit?.label || s.unit?.value || ""})
-                              </span>
+                              {s.secondary_unit}
+                              {(s.unit?.label || s.unit?.value) ? (
+                                <span className="text-muted-foreground">
+                                  {" "}({s.unit?.label || s.unit?.value || ""})
+                                </span>
+                              ) : null}
                             </span>
                             <Check
                               className={cn(
@@ -1092,7 +1211,8 @@ export default function CreateConsumableForm({
               busy ||
               !selectedCompany ||
               !form.getValues("part_number") ||
-              !form.getValues("batch_id")
+              !form.getValues("batch_id") ||
+              caducateDate === undefined
             }
             type="submit"
           >

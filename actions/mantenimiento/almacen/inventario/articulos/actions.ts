@@ -319,7 +319,11 @@ export const useUpdateArticle = () => {
       await axiosInstance.put(`/${company}/article/${id}`, data);
     },
     onSuccess: () => {
+      // Invalidar todas las queries relacionadas con artículos y batches
       queryClient.invalidateQueries({ queryKey: ["warehouse-articles"] });
+      queryClient.invalidateQueries({ queryKey: ["articles"] });
+      queryClient.invalidateQueries({ queryKey: ["batches"] });
+      queryClient.invalidateQueries({ queryKey: ["search-batches"] });
       toast.success("¡Actualizado!", {
         description: `El articulo ha sido actualizado correctamente.`,
       });
