@@ -56,17 +56,17 @@ const FormSchema = z.object({
     message: "Debe ingresar la fecha.",
   }),
   articles: z.object({
-    article_id: z.coerce.number(),
+    article_id: z.coerce.number().min(1, "Debe seleccionar un artículo"),
     serial: z.string().nullable(),
-    quantity: z.number(),
-    batch_id: z.number(),
+    quantity: z.number().min(0.01, "La cantidad debe ser mayor a 0"),
+    batch_id: z.number().min(1, "Debe seleccionar un lote"),
   }),
   justification: z.string({
     message: "Debe ingresar una justificación de la salida.",
   }),
   destination_place: z.string(),
   status: z.string(),
-  unit: z.string().optional(), // ESTO YA NO ES STATICO CON ML Y L 
+  unit: z.string().optional(),
 });
 
 type FormSchemaType = z.infer<typeof FormSchema>;
@@ -89,7 +89,13 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
 
   const [quantity, setQuantity] = useState("");
 
+  const [resultQuantity, setResultQuantity] = useState("");
+
   const [articleSelected, setArticleSelected] = useState<Article | null>(null);
+
+  const [articleError, setArticleError] = useState<string>("");
+
+  const [maxInputQuantity, setMaxInputQuantity] = useState<number>(0);
 
   const { createDispatchRequest } = useCreateDispatchRequest();
 
@@ -115,7 +121,7 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
     isPending: warehouseEmployeesLoading,
     isError: employeesError,
   } = useGetWarehousesEmployees(selectedStation!, selectedCompany?.slug);
-  // Agrega esto después de tus otros hooks:
+
   const { data: articleConversion, isLoading: isConversionLoading } =
     useGetArticleConvertionById(
       articleSelected?.id?.toString() || null,
@@ -129,63 +135,178 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
       requested_by: `${user?.employee[0].dni}`,
       destination_place: "",
       status: "proceso",
+      articles: {
+        article_id: 0,
+        serial: null,
+        quantity: 0,
+        batch_id: 0,
+      },
     },
   });
 
-  // useEffect(() => {
-  //   if (selectedStation) {
-  //     mutate({
-  //       location_id: Number(selectedStation),
-  //       company: selectedCompany!.slug,
-  //     });
-  //     employeeMutate({ location_id: Number(selectedStation) });
-  //   }
-  // }, [selectedStation, selectedCompany, mutate, employeeMutate]);
+  // Función para calcular la cantidad máxima permitida en el input - CORREGIDA
+  const calculateMaxInputQuantity = (
+    selectedUnit: string | undefined, // Cambiado a string | undefined
+    availableStock: number
+  ): number => {
+    if (!articleConversion || !selectedUnit) return availableStock;
 
-  // useEffect(() => {
-  //   if (batches) {
-  //     // Filtrar los batches por categoría
-  //     const filtered = batches.filter(
-  //       (batch) => batch.category === "consumible"
-  //     );
-  //     setFilteredBatches(filtered);
-  //   }
-  // }, [batches]);
+    // Buscar si el usuario seleccionó una unidad secundaria
+    const selectedSecondaryUnit = articleConversion.find(
+      (conv) => conv.secondary_unit?.label === selectedUnit
+    );
 
-  useEffect(() => {
-    // const unit = form.watch("unit");
-    // const currentQuantity = parseFloat(quantity) || 0;
-    // const article = form.getValues("articles");
-    // if (articleSelected?.unit !== "unidades") {
-    //   const newQuantity =
-    //     unit === "mililitros" ? currentQuantity / 1000 : currentQuantity;
-    //   form.setValue("articles", {
-    //     ...article,
-    //     quantity: newQuantity,
-    //   });
-    // } else {
-    //   // Si es "unidades", no se realiza conversión
-    //   form.setValue("articles", {
-    //     ...article,
-    //     quantity: currentQuantity,
-    //   });
-    // }
-  }, [quantity, articleSelected, form]);
-
-  // En el renderizado o en lógica de conversión
-  useEffect(() => {
-    if (articleConversion && articleSelected) {
-      // Aquí puedes usar los datos de conversión
-      console.log("Datos de conversión:", articleConversion);
-
-      // Ejemplo: actualizar algún campo del formulario con los datos de conversión
-      // form.setValue('campo', articleConversion.algunValor);
+    if (selectedSecondaryUnit) {
+      // Para unidades secundarias, calcular cuántas unidades secundarias equivalen al stock disponible
+      const conversionFactor =
+        parseFloat(selectedSecondaryUnit.equivalence.toString()) || 1;
+      return availableStock / conversionFactor;
     }
-  }, [articleConversion, articleSelected]);
+
+    // Para unidades primarias, el máximo es el stock disponible
+    return availableStock;
+  };
+
+  // Efecto para calcular cantidad resultante, validar y establecer máximo permitido
+  useEffect(() => {
+    if (!articleSelected || !articleConversion) {
+      setResultQuantity("");
+      setMaxInputQuantity(0);
+      return;
+    }
+
+    const selectedUnit = form.watch("unit");
+    const currentQuantity = parseFloat(quantity) || 0;
+    const availableStock = articleSelected.quantity || 0;
+
+    // Calcular la cantidad máxima permitida en el input
+    const calculatedMaxInput = calculateMaxInputQuantity(
+      selectedUnit,
+      availableStock
+    );
+    setMaxInputQuantity(calculatedMaxInput);
+
+    let calculatedQuantity = currentQuantity;
+
+    // Determinar qué tipo de unidad seleccionó
+    if (selectedUnit) {
+      const selectedSecondaryUnit = articleConversion.find(
+        (conv) => conv.secondary_unit?.label === selectedUnit
+      );
+
+      const selectedPrimaryUnit = articleConversion.find(
+        (conv) => conv.primary_unit.label === selectedUnit
+      );
+
+      if (selectedSecondaryUnit) {
+        // El usuario seleccionó una unidad secundaria - APLICAR CONVERSIÓN
+        const conversionFactor =
+          parseFloat(selectedSecondaryUnit.equivalence.toString()) || 1;
+        calculatedQuantity = currentQuantity * conversionFactor;
+      } else if (selectedPrimaryUnit) {
+        // El usuario seleccionó una unidad primaria - 1:1
+        calculatedQuantity = currentQuantity;
+      }
+    }
+
+    setResultQuantity(calculatedQuantity.toString());
+    form.setValue("articles.quantity", calculatedQuantity);
+
+    // VALIDACIÓN: La cantidad resultante NO puede ser mayor al stock disponible
+    if (calculatedQuantity > availableStock) {
+      form.setError("articles.quantity", {
+        type: "manual",
+        message: `No puede retirar más de ${availableStock} ${articleSelected.unit} disponibles. Cantidad resultante: ${calculatedQuantity.toFixed(2)}`,
+      });
+    } else {
+      form.clearErrors("articles.quantity");
+    }
+
+    // Si la cantidad actual excede el máximo permitido, ajustarla automáticamente
+    if (currentQuantity > calculatedMaxInput) {
+      setQuantity(calculatedMaxInput.toString());
+    }
+  }, [quantity, form.watch("unit"), articleSelected, articleConversion, form]);
+
+  // Modificar el handler del input de cantidad para validar y limitar
+  const handleQuantityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    const numericValue = parseFloat(value) || 0;
+
+    // Si no hay artículo seleccionado, no permitir entrada
+    if (!articleSelected) {
+      setQuantity("");
+      return;
+    }
+
+    // Si no hay unidad seleccionada, limitar al stock disponible
+    if (!form.watch("unit")) {
+      const availableStock = articleSelected.quantity || 0;
+      if (numericValue > availableStock) {
+        setQuantity(availableStock.toString());
+        return;
+      }
+    }
+
+    // Aplicar límite basado en el máximo calculado
+    if (maxInputQuantity > 0 && numericValue > maxInputQuantity) {
+      setQuantity(maxInputQuantity.toString());
+      return;
+    }
+
+    // Validación básica - no puede ser menor a 0
+    if (numericValue < 0) {
+      setQuantity("0");
+      form.setError("articles.quantity", {
+        type: "manual",
+        message: `La cantidad no puede ser menor a 0`,
+      });
+      return;
+    }
+
+    setQuantity(value);
+    form.clearErrors("articles.quantity");
+  };
+
+  // Handler para cuando se selecciona una unidad
+  const handleUnitChange = (value: string) => {
+    form.setValue("unit", value);
+
+    // Cuando se cambia la unidad, recalcular y ajustar la cantidad si es necesario
+    if (quantity && articleSelected) {
+      const currentQuantity = parseFloat(quantity) || 0;
+      const availableStock = articleSelected.quantity || 0;
+      const calculatedMaxInput = calculateMaxInputQuantity(
+        value,
+        availableStock
+      );
+
+      if (currentQuantity > calculatedMaxInput) {
+        setQuantity(calculatedMaxInput.toString());
+      }
+    }
+  };
 
   const { setValue } = form;
 
   const onSubmit = async (data: FormSchemaType) => {
+    // Validación final antes de enviar
+    if (!articleSelected) {
+      setArticleError("Debe seleccionar un artículo");
+      return;
+    }
+
+    if (
+      articleSelected &&
+      data.articles.quantity > (articleSelected.quantity || 0)
+    ) {
+      form.setError("articles.quantity", {
+        type: "manual",
+        message: `No puede retirar más de ${articleSelected.quantity} ${articleSelected.unit} disponibles.`,
+      });
+      return;
+    }
+
     const formattedData = {
       ...data,
       articles: [{ ...data.articles }],
@@ -197,6 +318,7 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
       delivered_by: data.delivered_by,
       user_id: Number(user!.id),
     };
+
     await createDispatchRequest.mutateAsync({
       data: formattedData,
       company: selectedCompany!.slug,
@@ -214,12 +336,12 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
       .find((article) => article.id === id);
 
     if (selectedArticle) {
-      // Actualizar el valor del campo "unit" en el formulario
-      if (selectedArticle.unit === "u") {
-        form.setValue("unit", undefined); // Ocultar el RadioGroup si es "unidades"
-      } else {
-        form.setValue("unit", "litros"); // Establecer un valor predeterminado si es "litros"
-      }
+      // Resetear estados
+      setQuantity("");
+      setResultQuantity("");
+      setArticleError("");
+      setMaxInputQuantity(0);
+      form.setValue("unit", "");
 
       // Actualizar el estado del artículo seleccionado
       setValue("articles", {
@@ -230,11 +352,12 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
       });
 
       setArticleSelected(selectedArticle);
-
-      // El hook useGetArticleConvertionById se ejecutará automáticamente aquí
-      // porque articleSelected.id cambió y está habilitado por el enabled condition
+      form.clearErrors("articles.article_id");
     } else {
       setArticleSelected(null);
+      setQuantity("");
+      setResultQuantity("");
+      setMaxInputQuantity(0);
     }
   };
 
@@ -389,107 +512,114 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
         </div>
         <div className="space-y-3">
           <div className="flex gap-2">
-            <FormField
-              control={form.control}
-              name="articles"
-              render={({ field }) => (
-                <FormItem className="flex flex-col w-full">
-                  <FormLabel>Consumible a Retirar</FormLabel>
-                  <Popover open={open} onOpenChange={setOpen}>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        role="combobox"
-                        aria-expanded={open}
-                        className="w-full justify-between"
-                      >
-                        {articleSelected
-                          ? `${articleSelected.part_number} (${articleSelected.quantity})`
-                          : "Seleccionar el consumible"}
-                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-[400px] p-0">
-                      <Command>
-                        <CommandInput placeholder="Buscar un consu..." />
-                        <CommandList>
-                          {isBatchesLoading ? (
-                            <div className="flex items-center justify-center py-6">
-                              <Loader2 className="size-4 animate-spin" />
-                            </div>
-                          ) : (
-                            <>
-                              <CommandEmpty>
-                                No se han encontrado consumibles...
-                              </CommandEmpty>
-                              {batches?.map((batch) => (
-                                <CommandGroup
-                                  key={batch.batch_id}
-                                  heading={batch.name}
+            <FormItem className="flex flex-col w-full">
+              <FormLabel>Consumible a Retirar</FormLabel>
+              <Popover open={open} onOpenChange={setOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    role="combobox"
+                    aria-expanded={open}
+                    className="w-full justify-between"
+                  >
+                    {articleSelected
+                      ? `${articleSelected.part_number} (${articleSelected.quantity} ${articleSelected.unit} disponibles)`
+                      : "Seleccionar el consumible"}
+                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-[400px] p-0">
+                  <Command>
+                    <CommandInput placeholder="Buscar un consu..." />
+                    <CommandList>
+                      {isBatchesLoading ? (
+                        <div className="flex items-center justify-center py-6">
+                          <Loader2 className="size-4 animate-spin" />
+                        </div>
+                      ) : (
+                        <>
+                          <CommandEmpty>
+                            No se han encontrado consumibles...
+                          </CommandEmpty>
+                          {batches?.map((batch) => (
+                            <CommandGroup
+                              key={batch.batch_id}
+                              heading={batch.name}
+                            >
+                              {batch.articles.map((article) => (
+                                <CommandItem
+                                  key={article.id}
+                                  onSelect={() => {
+                                    handleArticleSelect(
+                                      article.id!,
+                                      article.serial ? article.serial : null,
+                                      batch.batch_id
+                                    );
+                                    setArticleSelected(article);
+                                  }}
                                 >
-                                  {batch.articles.map((article) => (
-                                    <CommandItem
-                                      key={article.id}
-                                      onSelect={() => {
-                                        handleArticleSelect(
-                                          article.id!,
-                                          article.serial
-                                            ? article.serial
-                                            : null,
-                                          batch.batch_id
-                                        );
-                                        setArticleSelected(article);
-                                      }}
-                                    >
-                                      <Check
-                                        className={cn(
-                                          "mr-2 h-4 w-4",
-                                          articleSelected?.id === article.id
-                                            ? "opacity-100"
-                                            : "opacity-0"
-                                        )}
-                                      />
-                                      {article.part_number} - (
-                                      {article.quantity}){article.unit}{" "}
-                                      <p className="hidden">{article.id}</p>
-                                    </CommandItem>
-                                  ))}
-                                </CommandGroup>
+                                  <Check
+                                    className={cn(
+                                      "mr-2 h-4 w-4",
+                                      articleSelected?.id === article.id
+                                        ? "opacity-100"
+                                        : "opacity-0"
+                                    )}
+                                  />
+                                  {article.part_number} - ({article.quantity}){" "}
+                                  {article.unit}
+                                  <p className="hidden">{article.id}</p>
+                                </CommandItem>
                               ))}
-                            </>
-                          )}
-                        </CommandList>
-                      </Command>
-                    </PopoverContent>
-                  </Popover>
-                  <FormMessage />
-                </FormItem>
+                            </CommandGroup>
+                          ))}
+                        </>
+                      )}
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
+
+              {/* Mensaje de error personalizado */}
+              {(articleError || form.formState.errors.articles?.article_id) && (
+                <p className="text-sm font-medium text-destructive">
+                  {articleError ||
+                    form.formState.errors.articles?.article_id?.message}
+                </p>
               )}
-            />
+            </FormItem>
           </div>
-          <div className="flex items-center justify-center gap-2">
+
+          {/* SECCIÓN DE CANTIDAD Y CONVERSIÓN - MEJORADA PARA ALINEACIÓN VERTICAL */}
+          <div className="grid grid-cols-3 gap-3 items-end">
+            {/* CANTIDAD A RETIRAR */}
             <div className="flex flex-col space-y-2">
-              <Label>Cantidad</Label>
+              <Label>
+                Cantidad a Retirar
+                {maxInputQuantity > 0 && (
+                  <span className="text-xs text-muted-foreground ml-1">
+                    (Máx: {maxInputQuantity.toFixed(2)})
+                  </span>
+                )}
+              </Label>
               <Input
                 disabled={!articleSelected}
                 value={quantity}
-                onChange={(e) => {
-                  const value = parseFloat(e.target.value) || 0;
-                  if (articleSelected && value <= 0) {
-                    setQuantity(articleSelected.quantity!.toString());
-                    form.setError("articles.quantity", {
-                      type: "manual",
-                      message: `La cantidad no puede ser menor a 0`,
-                    });
-                  } else {
-                    setQuantity(e.target.value);
-                    form.clearErrors("articles.quantity");
-                  }
-                }}
+                onChange={handleQuantityChange}
                 placeholder="Ej: 1, 4, 6, etc..."
+                type="number"
+                min="0"
+                max={maxInputQuantity}
+                step="0.01"
               />
+              {form.formState.errors.articles?.quantity && (
+                <p className="text-sm text-red-500">
+                  {form.formState.errors.articles.quantity.message}
+                </p>
+              )}
             </div>
-            {/* SELECT DINÁMICO DE UNIDADES SECUNDARIAS */}
+
+            {/* SELECT DE UNIDADES */}
             {articleSelected &&
               articleConversion &&
               articleConversion.length > 0 && (
@@ -497,15 +627,18 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
                   control={form.control}
                   name="unit"
                   render={({ field }) => (
-                    <FormItem>
+                    <FormItem className="flex flex-col">
                       <FormLabel>Unidad</FormLabel>
                       <Select
-                        onValueChange={field.onChange}
+                        onValueChange={(value) => {
+                          field.onChange(value);
+                          handleUnitChange(value);
+                        }}
                         value={field.value}
                         disabled={isConversionLoading}
                       >
                         <FormControl>
-                          <SelectTrigger className="w-40">
+                          <SelectTrigger>
                             <SelectValue placeholder="Seleccione unidad" />
                           </SelectTrigger>
                         </FormControl>
@@ -527,7 +660,9 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
                                 conversion.primary_unit.label}
                               {conversion.secondary_unit && (
                                 <span className="text-muted-foreground text-xs ml-1">
-                                  ({conversion.primary_unit.label})
+                                  (1 {conversion.secondary_unit.label} ={" "}
+                                  {conversion.equivalence}{" "}
+                                  {conversion.primary_unit.label})
                                 </span>
                               )}
                             </SelectItem>
@@ -539,7 +674,56 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
                   )}
                 />
               )}
+
+            {/* CANTIDAD RESULTANTE */}
+            {articleSelected &&
+              articleConversion &&
+              form.watch("unit") &&
+              (() => {
+                const selectedUnit = form.watch("unit");
+                const isSecondaryUnit = articleConversion.some(
+                  (conv) => conv.secondary_unit?.label === selectedUnit
+                );
+                return isSecondaryUnit;
+              })() && (
+                <div className="flex flex-col space-y-2">
+                  <Label>Cantidad Resultante</Label>
+                  <Input
+                    disabled
+                    value={resultQuantity}
+                    placeholder="0"
+                    className="bg-gray-50"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Equivalente en {articleSelected.unit}
+                  </p>
+                </div>
+              )}
           </div>
+
+          {/* INFORMACIÓN DE STOCK DISPONIBLE */}
+          {articleSelected && (
+            <div className="p-3 bg-blue-50 rounded-md border border-blue-200">
+              <p className="text-sm text-blue-800">
+                <strong>Stock disponible:</strong> {articleSelected.quantity}{" "}
+                {articleSelected.unit}
+                {resultQuantity && (
+                  <span className="ml-2">
+                    | <strong>Cantidad a retirar:</strong>{" "}
+                    {parseFloat(resultQuantity).toFixed(2)}{" "}
+                    {articleSelected.unit}
+                  </span>
+                )}
+                {maxInputQuantity > 0 && form.watch("unit") && (
+                  <span className="ml-2">
+                    | <strong>Máximo permitido:</strong>{" "}
+                    {maxInputQuantity.toFixed(2)} {form.watch("unit")}
+                  </span>
+                )}
+              </p>
+            </div>
+          )}
+
           <FormField
             control={form.control}
             name="justification"
@@ -554,6 +738,7 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
                     {...field}
                   />
                 </FormControl>
+                <FormMessage />
               </FormItem>
             )}
           />
@@ -561,7 +746,11 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
 
         <Button
           className="bg-primary mt-2 text-white hover:bg-blue-900 disabled:bg-primary/70"
-          disabled={createDispatchRequest?.isPending}
+          disabled={
+            createDispatchRequest?.isPending ||
+            !!form.formState.errors.articles?.quantity ||
+            !articleSelected
+          }
           type="submit"
         >
           {createDispatchRequest?.isPending ? (
