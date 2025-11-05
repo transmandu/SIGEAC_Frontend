@@ -78,7 +78,6 @@ import { MultiInputField } from "@/components/misc/MultiInputField";
 import { Textarea } from "@/components/ui/textarea";
 import { EditingArticle } from "./RegisterArticleForm";
 import { CreateManufacturerDialog } from "@/components/dialogs/general/CreateManufacturerDialog";
-import { CreateConditionDialog } from "@/components/dialogs/ajustes/CreateConditionDialog";
 import { CreateBatchDialog } from "@/components/dialogs/mantenimiento/almacen/CreateBatchDialog";
 
 /* ------------------------------- Schema ------------------------------- */
@@ -189,7 +188,7 @@ export default function CreateComponentForm({
   const [caducateDate, setCaducateDate] = useState<Date | null | undefined>(
     initialData?.component?.shell_time?.caducate_date
       ? new Date(initialData.component.shell_time.caducate_date)
-      : undefined
+      : null // Por defecto "No aplica" (componentes nuevos o sin fecha)
   );
   const [enableBatchNameEdit, setEnableBatchNameEdit] = useState(false);
 
@@ -427,7 +426,7 @@ export default function CreateComponentForm({
       });
       form.reset();
       setFabricationDate(undefined);
-      setCaducateDate(undefined);
+      setCaducateDate(null); // Restablecer a "No aplica" por defecto
     }
   }
 
@@ -830,22 +829,7 @@ export default function CreateComponentForm({
               name="condition_id"
               render={({ field }) => (
                 <FormItem className="w-full">
-                  <div className="flex items-center justify-between">
-                    <FormLabel>Condición</FormLabel>
-                    <CreateConditionDialog
-                      onSuccess={(condition) => {
-                        if (condition?.id) {
-                          form.setValue("condition_id", condition.id.toString(), { shouldValidate: true });
-                        }
-                      }}
-                      triggerButton={
-                        <Button type="button" variant="ghost" size="sm" className="h-7 text-xs">
-                          <Plus className="h-3 w-3 mr-1" />
-                          Crear nuevo
-                        </Button>
-                      }
-                    />
-                  </div>
+                  <FormLabel>Condición</FormLabel>
                   <Select onValueChange={field.onChange} value={field.value} disabled={isConditionsLoading || busy}>
                     <FormControl>
                       <SelectTrigger>
@@ -939,7 +923,7 @@ export default function CreateComponentForm({
               value={fabricationDate}
               setValue={handleFabricationDateChange}
               goBackYears={[5, 10, 15]}
-              description="Fecha de creación del artículo."
+              description="Fecha de fabricación del Componente."
               maxYear={new Date().getFullYear()}
             />
 
@@ -948,7 +932,7 @@ export default function CreateComponentForm({
               value={caducateDate}
               setValue={handleCaducateDateChange}
               goForwardYears={[5, 10, 15]}
-              description="Fecha límite del artículo."
+              description="Fecha límite que debe cumplir el Componente almacenado."
               showNotApplicable={true}
               required={true}
             />

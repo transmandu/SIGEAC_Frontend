@@ -77,7 +77,6 @@ import { Batch, Convertion } from "@/types";
 import loadingGif from "@/public/loading2.gif";
 import { EditingArticle } from "./RegisterArticleForm";
 import { CreateManufacturerDialog } from "@/components/dialogs/general/CreateManufacturerDialog";
-import { CreateConditionDialog } from "@/components/dialogs/ajustes/CreateConditionDialog";
 
 /* ------------------------------- Schema ------------------------------- */
 
@@ -793,31 +792,7 @@ export default function CreateConsumableForm({
               name="condition_id"
               render={({ field }) => (
                 <FormItem className="w-full">
-                  <div className="flex items-center justify-between">
                   <FormLabel>Condición</FormLabel>
-                    <CreateConditionDialog
-                      onSuccess={(condition) => {
-                        if (condition?.id) {
-                          form.setValue(
-                            "condition_id",
-                            condition.id.toString(),
-                            { shouldValidate: true }
-                          );
-                        }
-                      }}
-                      triggerButton={
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          className="h-7 text-xs"
-                        >
-                          <Plus className="h-3 w-3 mr-1" />
-                          Crear nuevo
-                        </Button>
-                      }
-                    />
-                  </div>
                   <Select
                     onValueChange={field.onChange}
                     value={field.value}
@@ -857,7 +832,7 @@ export default function CreateConsumableForm({
               label="Fecha de Fabricación"
               value={fabricationDate}
               setValue={handleFabricationDateChange}
-              description="Fecha de creación del artículo."
+              description="Fecha de fabricación del Consumible."
               busy={busy}
               shortcuts="back"
               maxYear={new Date().getFullYear()}
@@ -867,7 +842,7 @@ export default function CreateConsumableForm({
               label="Fecha de Caducidad - Shelf-Life"
               value={caducateDate}
               setValue={handleCaducateDateChange}
-              description="Fecha límite del artículo."
+              description="Fecha límite del Consumible en Almacen."
               busy={busy}
               shortcuts="forward"
               showNotApplicable={true}
