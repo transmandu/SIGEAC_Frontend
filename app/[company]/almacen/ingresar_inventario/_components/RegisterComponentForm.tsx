@@ -109,7 +109,7 @@ const formSchema = z
     zone: z
       .string({ message: "Debe ingresar la ubicación del artículo." })
       .min(1, "Campo requerido"),
-    caducate_date: z.string({ message: "Debe ingresar una fecha de caducidad." }),
+    caducate_date: z.string().optional(),
     fabrication_date: z.string().optional(),
     calendar_date: z.string().optional(),
     cost: z.string().optional(),
@@ -198,7 +198,14 @@ export default function CreateComponentForm({
     setFabricationDate(d ?? undefined);
   };
   const handleCaducateDateChange = (d?: Date | null) => {
-    setCaducateDate(d ?? undefined);
+    // Preserve null value to indicate "Not applicable"
+    if (d === null) {
+      setCaducateDate(null);
+    } else if (d === undefined) {
+      setCaducateDate(undefined);
+    } else {
+      setCaducateDate(d);
+    }
   };
 
   // Data hooks
@@ -571,16 +578,18 @@ export default function CreateComponentForm({
           </Popover>
           {showNotApplicable && (
             <div className="flex items-center space-x-2 flex-shrink-0">
-              <FormControl>
-                <Checkbox
-                  id={`not-applicable-${label.replace(/\s+/g, '-').toLowerCase()}`}
-                  checked={value === null}
-                  onCheckedChange={(checked) => {
-                    setValue(checked ? null : undefined);
-                  }}
-                  disabled={busy}
-                />
-              </FormControl>
+              <Checkbox
+                id={`not-applicable-${label.replace(/\s+/g, '-').toLowerCase()}`}
+                checked={value === null}
+                onCheckedChange={(checked) => {
+                  if (checked === true) {
+                    setValue(null);
+                  } else {
+                    setValue(undefined);
+                  }
+                }}
+                disabled={busy}
+              />
               <label
                 htmlFor={`not-applicable-${label.replace(/\s+/g, '-').toLowerCase()}`}
                 className="text-sm font-medium leading-none cursor-pointer whitespace-nowrap select-none"

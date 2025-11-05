@@ -283,22 +283,19 @@ function DatePickerField({
         </Popover>
         {showNotApplicable && (
           <div className="flex items-center space-x-2 flex-shrink-0">
-            <FormControl>
-              <Checkbox
-                id={`not-applicable-${label.replace(/\s+/g, '-').toLowerCase()}`}
-                checked={value === null}
-                onCheckedChange={(checked) => {
-                  setTouched(true);
-                  console.log("Checkbox clicked. checked:", checked, "current value:", value);
-                  if (checked) {
-                    setValue(null);
-                  } else {
-                    setValue(undefined);
-                  }
-                }}
-                disabled={busy}
-              />
-            </FormControl>
+            <Checkbox
+              id={`not-applicable-${label.replace(/\s+/g, '-').toLowerCase()}`}
+              checked={value === null}
+              onCheckedChange={(checked) => {
+                setTouched(true);
+                if (checked === true) {
+                  setValue(null);
+                } else {
+                  setValue(undefined);
+                }
+              }}
+              disabled={busy}
+            />
             <label
               htmlFor={`not-applicable-${label.replace(/\s+/g, '-').toLowerCase()}`}
               className="text-sm font-medium leading-none cursor-pointer whitespace-nowrap select-none"
@@ -368,7 +365,14 @@ export default function CreateConsumableForm({
     setFabricationDate(d ?? undefined);
   };
   const handleCaducateDateChange = (d?: Date | null) => {
-    setCaducateDate(d ?? undefined);
+    // Preserve null value to indicate "Not applicable"
+    if (d === null) {
+      setCaducateDate(null);
+    } else if (d === undefined) {
+      setCaducateDate(undefined);
+    } else {
+      setCaducateDate(d);
+    }
   };
 
   // Form
@@ -565,6 +569,23 @@ export default function CreateConsumableForm({
 
             <FormField
               control={form.control}
+              name="alternative_part_number"
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <MultiInputField
+                      values={field.value || []}
+                      onChange={(vals) => field.onChange(vals.map((v: string) => normalizeUpper(v)))}
+                      placeholder="Ej: 234ABAC"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
               name="lot_number"
               render={({ field }) => (
                 <FormItem className="w-full">
@@ -582,7 +603,7 @@ export default function CreateConsumableForm({
               )}
             />
 
-            <div className="space-y-3 w-full">
+            <div className="space-y-3 w-full xl:col-span-3">
               <FormField
                 control={form.control}
                 name="batch_id"
