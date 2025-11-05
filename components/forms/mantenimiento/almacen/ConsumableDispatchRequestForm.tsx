@@ -1,541 +1,576 @@
-  "use client";
+"use client";
 
-  import { useCreateDispatchRequest } from "@/actions/mantenimiento/almacen/solicitudes/salida/action";
-  import { Button } from "@/components/ui/button";
-  import {
-    Form,
-    FormControl,
-    FormField,
-    FormItem,
-    FormLabel,
-    FormMessage,
-  } from "@/components/ui/form";
-  import { Input } from "@/components/ui/input";
-  import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-  import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-  } from "@/components/ui/select";
-  import { useAuth } from "@/contexts/AuthContext";
-  import { useGetBatchesWithInWarehouseArticles } from "@/hooks/mantenimiento/almacen/renglones/useGetBatchesWithInWarehouseArticles";
-  import { useGetWorkOrderEmployees } from "@/hooks/mantenimiento/planificacion/useGetWorkOrderEmployees";
-  import { useGetWorkOrders } from "@/hooks/mantenimiento/planificacion/useGetWorkOrders";
-  import { cn } from "@/lib/utils";
-  import { useCompanyStore } from "@/stores/CompanyStore";
-  import { Article, Batch } from "@/types";
-  import { zodResolver } from "@hookform/resolvers/zod";
-  import { format } from "date-fns";
-  import { es } from "date-fns/locale";
-  import { CalendarIcon, Check, ChevronsUpDown, Loader2 } from "lucide-react";
-  import { useEffect, useState } from "react";
-  import { useForm } from "react-hook-form";
-  import { z } from "zod";
-  import { Calendar } from "../../../ui/calendar";
-  import {
-    Command,
-    CommandEmpty,
-    CommandGroup,
-    CommandInput,
-    CommandItem,
-    CommandList,
-  } from "../../../ui/command";
-  import { Label } from "../../../ui/label";
-  import { Popover, PopoverContent, PopoverTrigger } from "../../../ui/popover";
-  import { Textarea } from "../../../ui/textarea";
-  import { useGetDepartments } from "@/hooks/sistema/departamento/useGetDepartment";
-  import { useGetWarehousesEmployees } from "@/hooks/mantenimiento/almacen/empleados/useGetWarehousesEmployees";
+import { useCreateDispatchRequest } from "@/actions/mantenimiento/almacen/solicitudes/salida/action";
+import { Button } from "@/components/ui/button";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useAuth } from "@/contexts/AuthContext";
+import { useGetBatchesWithInWarehouseArticles } from "@/hooks/mantenimiento/almacen/renglones/useGetBatchesWithInWarehouseArticles";
+import { useGetWorkOrderEmployees } from "@/hooks/mantenimiento/planificacion/useGetWorkOrderEmployees";
+import { useGetWorkOrders } from "@/hooks/mantenimiento/planificacion/useGetWorkOrders";
+import { cn } from "@/lib/utils";
+import { useCompanyStore } from "@/stores/CompanyStore";
+import { Article, Batch } from "@/types";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
+import { CalendarIcon, Check, ChevronsUpDown, Loader2 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { Calendar } from "../../../ui/calendar";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "../../../ui/command";
+import { Label } from "../../../ui/label";
+import { Popover, PopoverContent, PopoverTrigger } from "../../../ui/popover";
+import { Textarea } from "../../../ui/textarea";
+import { useGetDepartments } from "@/hooks/sistema/departamento/useGetDepartment";
+import { useGetWarehousesEmployees } from "@/hooks/mantenimiento/almacen/empleados/useGetWarehousesEmployees";
+import { useGetArticleConvertionById } from "@/hooks/mantenimiento/almacen/articulos/useGetArticlesConvertionsById";
 
-  const FormSchema = z.object({
-    requested_by: z.string(),
-    delivered_by: z.string(),
-    submission_date: z.date({
-      message: "Debe ingresar la fecha.",
-    }),
-    articles: z.object({
-      article_id: z.coerce.number(),
-      serial: z.string().nullable(),
-      quantity: z.number(),
-      batch_id: z.number(),
-    }),
-    justification: z.string({
-      message: "Debe ingresar una justificación de la salida.",
-    }),
-    destination_place: z.string(),
-    status: z.string(),
-    unit: z
-      .enum(["litros", "mililitros"], {
-        message: "Debe seleccionar una unidad.",
-      })
-      .optional(), // Nuevo campo
-  });
+const FormSchema = z.object({
+  requested_by: z.string(),
+  delivered_by: z.string(),
+  submission_date: z.date({
+    message: "Debe ingresar la fecha.",
+  }),
+  articles: z.object({
+    article_id: z.coerce.number(),
+    serial: z.string().nullable(),
+    quantity: z.number(),
+    batch_id: z.number(),
+  }),
+  justification: z.string({
+    message: "Debe ingresar una justificación de la salida.",
+  }),
+  destination_place: z.string(),
+  status: z.string(),
+  unit: z.string().optional(), // ESTO YA NO ES STATICO CON ML Y L 
+});
 
-  type FormSchemaType = z.infer<typeof FormSchema>;
+type FormSchemaType = z.infer<typeof FormSchema>;
 
-  interface FormProps {
-    onClose: () => void;
-  }
+interface FormProps {
+  onClose: () => void;
+}
 
-  interface BatchesWithCountProp extends Batch {
-    articles: Article[];
-    batch_id: number;
-  }
+interface BatchesWithCountProp extends Batch {
+  articles: Article[];
+  batch_id: number;
+}
 
-  export function ConsumableDispatchForm({ onClose }: FormProps) {
-    const { user } = useAuth();
+export function ConsumableDispatchForm({ onClose }: FormProps) {
+  const { user } = useAuth();
 
-    const { selectedStation, selectedCompany } = useCompanyStore();
+  const { selectedStation, selectedCompany } = useCompanyStore();
 
-    const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(false);
 
-    const [quantity, setQuantity] = useState("");
+  const [quantity, setQuantity] = useState("");
 
-    const [articleSelected, setArticleSelected] = useState<Article>();
+  const [articleSelected, setArticleSelected] = useState<Article | null>(null);
 
-    const { createDispatchRequest } = useCreateDispatchRequest();
+  const { createDispatchRequest } = useCreateDispatchRequest();
 
-    const { data: departments, isLoading: isDepartmentsLoading } =
-      useGetDepartments(selectedCompany?.slug);
+  const { data: departments, isLoading: isDepartmentsLoading } =
+    useGetDepartments(selectedCompany?.slug);
 
-    const { data: batches, isPending: isBatchesLoading } =
-      useGetBatchesWithInWarehouseArticles({
-        location_id: Number(selectedStation!),
-        company: selectedCompany!.slug,
-        category: "consumible",
-      });
-
-    const { data: employees, isLoading: employeesLoading } =
-      useGetWorkOrderEmployees({
-        company: selectedCompany?.slug,
-        location_id: selectedStation?.toString(),
-        acronym: "MANP",
-      });
-
-    const {
-      data: warehouseEmployees,
-      isPending: warehouseEmployeesLoading,
-      isError: employeesError,
-    } = useGetWarehousesEmployees(selectedStation!, selectedCompany?.slug);
-
-    
-
-    const form = useForm<FormSchemaType>({
-      resolver: zodResolver(FormSchema),
-      defaultValues: {
-        justification: "",
-        requested_by: `${user?.employee[0].dni}`,
-        destination_place: "",
-        status: "proceso",
-      },
+  const { data: batches, isPending: isBatchesLoading } =
+    useGetBatchesWithInWarehouseArticles({
+      location_id: Number(selectedStation!),
+      company: selectedCompany!.slug,
+      category: "consumible",
     });
 
-    // useEffect(() => {
-    //   if (selectedStation) {
-    //     mutate({
-    //       location_id: Number(selectedStation),
-    //       company: selectedCompany!.slug,
-    //     });
-    //     employeeMutate({ location_id: Number(selectedStation) });
-    //   }
-    // }, [selectedStation, selectedCompany, mutate, employeeMutate]);
+  const { data: employees, isLoading: employeesLoading } =
+    useGetWorkOrderEmployees({
+      company: selectedCompany?.slug,
+      location_id: selectedStation?.toString(),
+      acronym: "MANP",
+    });
 
-    // useEffect(() => {
-    //   if (batches) {
-    //     // Filtrar los batches por categoría
-    //     const filtered = batches.filter(
-    //       (batch) => batch.category === "consumible"
-    //     );
-    //     setFilteredBatches(filtered);
-    //   }
-    // }, [batches]);
+  const {
+    data: warehouseEmployees,
+    isPending: warehouseEmployeesLoading,
+    isError: employeesError,
+  } = useGetWarehousesEmployees(selectedStation!, selectedCompany?.slug);
+  // Agrega esto después de tus otros hooks:
+  const { data: articleConversion, isLoading: isConversionLoading } =
+    useGetArticleConvertionById(
+      articleSelected?.id?.toString() || null,
+      selectedCompany?.slug
+    );
 
-    useEffect(() => {
-      // const unit = form.watch("unit");
-      // const currentQuantity = parseFloat(quantity) || 0;
-      // const article = form.getValues("articles");
-      // if (articleSelected?.unit !== "unidades") {
-      //   const newQuantity =
-      //     unit === "mililitros" ? currentQuantity / 1000 : currentQuantity;
+  const form = useForm<FormSchemaType>({
+    resolver: zodResolver(FormSchema),
+    defaultValues: {
+      justification: "",
+      requested_by: `${user?.employee[0].dni}`,
+      destination_place: "",
+      status: "proceso",
+    },
+  });
 
-      //   form.setValue("articles", {
-      //     ...article,
-      //     quantity: newQuantity,
-      //   });
-      // } else {
-      //   // Si es "unidades", no se realiza conversión
-      //   form.setValue("articles", {
-      //     ...article,
-      //     quantity: currentQuantity,
-      //   });
-      // }
-    }, [quantity, articleSelected, form]);
+  // useEffect(() => {
+  //   if (selectedStation) {
+  //     mutate({
+  //       location_id: Number(selectedStation),
+  //       company: selectedCompany!.slug,
+  //     });
+  //     employeeMutate({ location_id: Number(selectedStation) });
+  //   }
+  // }, [selectedStation, selectedCompany, mutate, employeeMutate]);
 
-    const { setValue } = form;
+  // useEffect(() => {
+  //   if (batches) {
+  //     // Filtrar los batches por categoría
+  //     const filtered = batches.filter(
+  //       (batch) => batch.category === "consumible"
+  //     );
+  //     setFilteredBatches(filtered);
+  //   }
+  // }, [batches]);
 
-    const onSubmit = async (data: FormSchemaType) => {
-      const formattedData = {
-        ...data,
-        articles: [{ ...data.articles }],
-        created_by: user!.username,
-        submission_date: format(data.submission_date, "yyyy-MM-dd"),
-        category: "consumible",
-        status: "APROBADO",
-        approved_by: user?.employee[0].dni,
-        delivered_by: data.delivered_by,
-        user_id: Number(user!.id),
-      };
-      await createDispatchRequest.mutateAsync({
-        data: formattedData,
-        company: selectedCompany!.slug,
-      });
-      onClose();
+  useEffect(() => {
+    // const unit = form.watch("unit");
+    // const currentQuantity = parseFloat(quantity) || 0;
+    // const article = form.getValues("articles");
+    // if (articleSelected?.unit !== "unidades") {
+    //   const newQuantity =
+    //     unit === "mililitros" ? currentQuantity / 1000 : currentQuantity;
+    //   form.setValue("articles", {
+    //     ...article,
+    //     quantity: newQuantity,
+    //   });
+    // } else {
+    //   // Si es "unidades", no se realiza conversión
+    //   form.setValue("articles", {
+    //     ...article,
+    //     quantity: currentQuantity,
+    //   });
+    // }
+  }, [quantity, articleSelected, form]);
+
+  // En el renderizado o en lógica de conversión
+  useEffect(() => {
+    if (articleConversion && articleSelected) {
+      // Aquí puedes usar los datos de conversión
+      console.log("Datos de conversión:", articleConversion);
+
+      // Ejemplo: actualizar algún campo del formulario con los datos de conversión
+      // form.setValue('campo', articleConversion.algunValor);
+    }
+  }, [articleConversion, articleSelected]);
+
+  const { setValue } = form;
+
+  const onSubmit = async (data: FormSchemaType) => {
+    const formattedData = {
+      ...data,
+      articles: [{ ...data.articles }],
+      created_by: user!.username,
+      submission_date: format(data.submission_date, "yyyy-MM-dd"),
+      category: "consumible",
+      status: "APROBADO",
+      approved_by: user?.employee[0].dni,
+      delivered_by: data.delivered_by,
+      user_id: Number(user!.id),
     };
+    await createDispatchRequest.mutateAsync({
+      data: formattedData,
+      company: selectedCompany!.slug,
+    });
+    onClose();
+  };
 
-    const handleArticleSelect = (
-      id: number,
-      serial: string | null,
-      batch_id: number
-    ) => {
-      const selectedArticle = batches
-        ?.flatMap((batch) => batch.articles)
-        .find((article) => article.id === id);
+  const handleArticleSelect = (
+    id: number,
+    serial: string | null,
+    batch_id: number
+  ) => {
+    const selectedArticle = batches
+      ?.flatMap((batch) => batch.articles)
+      .find((article) => article.id === id);
 
-      if (selectedArticle) {
-        // Actualizar el valor del campo "unit" en el formulario
-        if (selectedArticle.unit === "u") {
-          form.setValue("unit", undefined); // Ocultar el RadioGroup si es "unidades"
-        } else {
-          form.setValue("unit", "litros"); // Establecer un valor predeterminado si es "litros"
-        }
-
-        // Actualizar el estado del artículo seleccionado
-        setValue("articles", {
-          article_id: Number(id),
-          serial: serial ? serial : null,
-          quantity: 0,
-          batch_id: Number(batch_id),
-        });
-
-        setArticleSelected(selectedArticle);
+    if (selectedArticle) {
+      // Actualizar el valor del campo "unit" en el formulario
+      if (selectedArticle.unit === "u") {
+        form.setValue("unit", undefined); // Ocultar el RadioGroup si es "unidades"
+      } else {
+        form.setValue("unit", "litros"); // Establecer un valor predeterminado si es "litros"
       }
-    };
 
-    return (
-      <Form {...form}>
-        <form
-          onSubmit={form.handleSubmit(onSubmit)}
-          className="flex flex-col space-y-3 w-full"
-        >
-          <div className="grid grid-cols-2 gap-2">
-            <FormField
-              control={form.control}
-              name="delivered_by"
-              render={({ field }) => (
-                <FormItem className="w-full">
-                  <FormLabel>Entregado por:</FormLabel>
-                  <Select onValueChange={field.onChange}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Seleccione el responsable..." />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {warehouseEmployeesLoading && (
-                        <Loader2 className="size-4 animate-spin" />
-                      )}
-                      {warehouseEmployees &&
-                        warehouseEmployees.map((employee) => (
-                          <SelectItem
-                            key={employee.dni}
-                            value={`${employee.dni}`}
-                          >
-                            {employee.first_name} {employee.last_name}
-                          </SelectItem>
-                        ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="requested_by"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Recibe / MTTO</FormLabel>
-                  <Select onValueChange={field.onChange}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Seleccione el responsable..." />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {employeesLoading && (
-                        <Loader2 className="size-4 animate-spin" />
-                      )}
-                      {employees &&
-                        employees.map((employee) => (
-                          <SelectItem key={employee.id} value={`${employee.dni}`}>
-                            {employee.first_name} {employee.last_name} -{" "}
-                            {employee.job_title.name}
-                          </SelectItem>
-                        ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="submission_date"
-              render={({ field }) => (
-                <FormItem className="flex flex-col mt-2.5 w-full">
-                  <FormLabel>Fecha de Solicitud</FormLabel>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <FormControl>
-                        <Button
-                          variant={"outline"}
-                          className={cn(
-                            "w-full pl-3 text-left font-normal",
-                            !field.value && "text-muted-foreground"
-                          )}
+      // Actualizar el estado del artículo seleccionado
+      setValue("articles", {
+        article_id: Number(id),
+        serial: serial ? serial : null,
+        quantity: 0,
+        batch_id: Number(batch_id),
+      });
+
+      setArticleSelected(selectedArticle);
+
+      // El hook useGetArticleConvertionById se ejecutará automáticamente aquí
+      // porque articleSelected.id cambió y está habilitado por el enabled condition
+    } else {
+      setArticleSelected(null);
+    }
+  };
+
+  return (
+    <Form {...form}>
+      <form
+        onSubmit={form.handleSubmit(onSubmit)}
+        className="flex flex-col space-y-3 w-full"
+      >
+        <div className="grid grid-cols-2 gap-2">
+          <FormField
+            control={form.control}
+            name="delivered_by"
+            render={({ field }) => (
+              <FormItem className="w-full">
+                <FormLabel>Entregado por:</FormLabel>
+                <Select onValueChange={field.onChange}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Seleccione el responsable..." />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {warehouseEmployeesLoading && (
+                      <Loader2 className="size-4 animate-spin" />
+                    )}
+                    {warehouseEmployees &&
+                      warehouseEmployees.map((employee) => (
+                        <SelectItem
+                          key={employee.dni}
+                          value={`${employee.dni}`}
                         >
-                          {field.value ? (
-                            format(field.value, "PPP", {
-                              locale: es,
-                            })
-                          ) : (
-                            <span>Seleccione una fecha...</span>
-                          )}
-                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                        </Button>
-                      </FormControl>
+                          {employee.first_name} {employee.last_name}
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="requested_by"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Recibe / MTTO</FormLabel>
+                <Select onValueChange={field.onChange}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Seleccione el responsable..." />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {employeesLoading && (
+                      <Loader2 className="size-4 animate-spin" />
+                    )}
+                    {employees &&
+                      employees.map((employee) => (
+                        <SelectItem key={employee.id} value={`${employee.dni}`}>
+                          {employee.first_name} {employee.last_name} -{" "}
+                          {employee.job_title.name}
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="submission_date"
+            render={({ field }) => (
+              <FormItem className="flex flex-col mt-2.5 w-full">
+                <FormLabel>Fecha de Solicitud</FormLabel>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <FormControl>
+                      <Button
+                        variant={"outline"}
+                        className={cn(
+                          "w-full pl-3 text-left font-normal",
+                          !field.value && "text-muted-foreground"
+                        )}
+                      >
+                        {field.value ? (
+                          format(field.value, "PPP", {
+                            locale: es,
+                          })
+                        ) : (
+                          <span>Seleccione una fecha...</span>
+                        )}
+                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                      </Button>
+                    </FormControl>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={field.value}
+                      onSelect={field.onChange}
+                      disabled={(date) =>
+                        date > new Date() || date < new Date("1900-01-01")
+                      }
+                      initialFocus
+                      locale={es}
+                    />
+                  </PopoverContent>
+                </Popover>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="destination_place"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Destino</FormLabel>
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Seleccione..." />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {isDepartmentsLoading ? (
+                      <div className="flex justify-center items-center p-4">
+                        <Loader2 className="size-6 animate-spin" />
+                      </div>
+                    ) : (
+                      departments &&
+                      departments.map((department) => (
+                        <SelectItem
+                          key={department.id}
+                          value={department.id.toString()}
+                        >
+                          {department.name}
+                        </SelectItem>
+                      ))
+                    )}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+        <div className="space-y-3">
+          <div className="flex gap-2">
+            <FormField
+              control={form.control}
+              name="articles"
+              render={({ field }) => (
+                <FormItem className="flex flex-col w-full">
+                  <FormLabel>Consumible a Retirar</FormLabel>
+                  <Popover open={open} onOpenChange={setOpen}>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        role="combobox"
+                        aria-expanded={open}
+                        className="w-full justify-between"
+                      >
+                        {articleSelected
+                          ? `${articleSelected.part_number} (${articleSelected.quantity})`
+                          : "Seleccionar el consumible"}
+                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                      </Button>
                     </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={field.value}
-                        onSelect={field.onChange}
-                        disabled={(date) =>
-                          date > new Date() || date < new Date("1900-01-01")
-                        }
-                        initialFocus
-                        locale={es}
-                      />
+                    <PopoverContent className="w-[400px] p-0">
+                      <Command>
+                        <CommandInput placeholder="Buscar un consu..." />
+                        <CommandList>
+                          {isBatchesLoading ? (
+                            <div className="flex items-center justify-center py-6">
+                              <Loader2 className="size-4 animate-spin" />
+                            </div>
+                          ) : (
+                            <>
+                              <CommandEmpty>
+                                No se han encontrado consumibles...
+                              </CommandEmpty>
+                              {batches?.map((batch) => (
+                                <CommandGroup
+                                  key={batch.batch_id}
+                                  heading={batch.name}
+                                >
+                                  {batch.articles.map((article) => (
+                                    <CommandItem
+                                      key={article.id}
+                                      onSelect={() => {
+                                        handleArticleSelect(
+                                          article.id!,
+                                          article.serial
+                                            ? article.serial
+                                            : null,
+                                          batch.batch_id
+                                        );
+                                        setArticleSelected(article);
+                                      }}
+                                    >
+                                      <Check
+                                        className={cn(
+                                          "mr-2 h-4 w-4",
+                                          articleSelected?.id === article.id
+                                            ? "opacity-100"
+                                            : "opacity-0"
+                                        )}
+                                      />
+                                      {article.part_number} - (
+                                      {article.quantity}){article.unit}{" "}
+                                      <p className="hidden">{article.id}</p>
+                                    </CommandItem>
+                                  ))}
+                                </CommandGroup>
+                              ))}
+                            </>
+                          )}
+                        </CommandList>
+                      </Command>
                     </PopoverContent>
                   </Popover>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            <FormField
-              control={form.control}
-              name="destination_place"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Destino</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Seleccione..." />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {isDepartmentsLoading ? (
-                        <div className="flex justify-center items-center p-4">
-                          <Loader2 className="size-6 animate-spin" />
-                        </div>
-                      ) : (
-                        departments &&
-                        departments.map((department) => (
-                          <SelectItem
-                            key={department.id}
-                            value={department.id.toString()}
-                          >
-                            {department.name}
-                          </SelectItem>
-                        ))
-                      )}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
           </div>
-          <div className="space-y-3">
-            <div className="flex gap-2">
-              <FormField
-                control={form.control}
-                name="articles"
-                render={({ field }) => (
-                  <FormItem className="flex flex-col w-full">
-                    <FormLabel>Consumible a Retirar</FormLabel>
-                    <Popover open={open} onOpenChange={setOpen}>
-                      <PopoverTrigger asChild>
-                        <Button
-                          variant="outline"
-                          role="combobox"
-                          aria-expanded={open}
-                          className="w-full justify-between"
-                        >
-                          {articleSelected
-                            ? `${articleSelected.part_number} (${articleSelected.quantity})`
-                            : "Seleccionar el consumible"}
-                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-[400px] p-0">
-                        <Command>
-                          <CommandInput placeholder="Buscar un consu..." />
-                          <CommandList>
-                            {isBatchesLoading ? (
-                              <div className="flex items-center justify-center py-6">
-                                <Loader2 className="size-4 animate-spin" />
-                              </div>
-                            ) : (
-                              <>
-                                <CommandEmpty>
-                                  No se han encontrado consumibles...
-                                </CommandEmpty>
-                                {batches?.map((batch) => (
-                                  <CommandGroup
-                                    key={batch.batch_id}
-                                    heading={batch.name}
-                                  >
-                                    {batch.articles.map((article) => (
-                                      <CommandItem
-                                        key={article.id}
-                                        onSelect={() => {
-                                          handleArticleSelect(
-                                            article.id!,
-                                            article.serial
-                                              ? article.serial
-                                              : null,
-                                            batch.batch_id
-                                          );
-                                          setArticleSelected(article);
-                                        }}
-                                      >
-                                        <Check
-                                          className={cn(
-                                            "mr-2 h-4 w-4",
-                                            articleSelected?.id === article.id
-                                              ? "opacity-100"
-                                              : "opacity-0"
-                                          )}
-                                        />
-                                        {article.part_number} - ({article.quantity})
-                                        {article.unit}{" "}
-                                        <p className="hidden">{article.id}</p>
-                                      </CommandItem>
-                                    ))}
-                                  </CommandGroup>
-                                ))}
-                              </>
-                            )}
-                          </CommandList>
-                        </Command>
-                      </PopoverContent>
-                    </Popover>
-                    <FormMessage />
-                  </FormItem>
-                )}
+          <div className="flex items-center justify-center gap-2">
+            <div className="flex flex-col space-y-2">
+              <Label>Cantidad</Label>
+              <Input
+                disabled={!articleSelected}
+                value={quantity}
+                onChange={(e) => {
+                  const value = parseFloat(e.target.value) || 0;
+                  if (articleSelected && value <= 0) {
+                    setQuantity(articleSelected.quantity!.toString());
+                    form.setError("articles.quantity", {
+                      type: "manual",
+                      message: `La cantidad no puede ser menor a 0`,
+                    });
+                  } else {
+                    setQuantity(e.target.value);
+                    form.clearErrors("articles.quantity");
+                  }
+                }}
+                placeholder="Ej: 1, 4, 6, etc..."
               />
-              <div className="flex items-center justify-center gap-2">
-                <div className="flex flex-col space-y-2">
-                  <Label>Cantidad</Label>
-                  <Input
-                    disabled={!articleSelected}
-                    value={quantity}
-                    onChange={(e) => {
-                      const value = parseFloat(e.target.value) || 0;
-                      if (articleSelected && value <= 0) {
-                        setQuantity(articleSelected.quantity!.toString());
-                        form.setError("articles.quantity", {
-                          type: "manual",
-                          message: `La cantidad no puede ser menor a 0`,
-                        });
-                      } else {
-                        setQuantity(e.target.value);
-                        form.clearErrors("articles.quantity");
-                      }
-                    }}
-                    placeholder="Ej: 1, 4, 6, etc..."
-                  />
-                </div>
-                {articleSelected && articleSelected.unit === "L" && (
-                  <FormField
-                    control={form.control}
-                    name="unit"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Unidad</FormLabel>
-                        <FormControl>
-                          <RadioGroup
-                            onValueChange={field.onChange}
-                            defaultValue={field.value}
-                            className="flex gap-4"
-                          >
-                            <div className="flex items-center space-x-2">
-                              <RadioGroupItem value="litros" id="litros" />
-                              <Label htmlFor="litros">Litros</Label>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                              <RadioGroupItem
-                                value="mililitros"
-                                id="mililitros"
-                              />
-                              <Label htmlFor="mililitros">Mililitros</Label>
-                            </div>
-                          </RadioGroup>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                )}
-              </div>
             </div>
-            <FormField
-              control={form.control}
-              name="justification"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Justificacion</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      rows={5}
-                      className="w-full"
-                      placeholder="EJ: Se necesita para la limpieza de..."
-                      {...field}
-                    />
-                  </FormControl>
-                </FormItem>
+            {/* SELECT DINÁMICO DE UNIDADES SECUNDARIAS */}
+            {articleSelected &&
+              articleConversion &&
+              articleConversion.length > 0 && (
+                <FormField
+                  control={form.control}
+                  name="unit"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Unidad</FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value}
+                        disabled={isConversionLoading}
+                      >
+                        <FormControl>
+                          <SelectTrigger className="w-40">
+                            <SelectValue placeholder="Seleccione unidad" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {isConversionLoading && (
+                            <div className="flex items-center justify-center p-2">
+                              <Loader2 className="size-4 animate-spin" />
+                            </div>
+                          )}
+                          {articleConversion.map((conversion) => (
+                            <SelectItem
+                              key={conversion.id}
+                              value={
+                                conversion.secondary_unit?.label ||
+                                conversion.primary_unit.label
+                              }
+                            >
+                              {conversion.secondary_unit?.label ||
+                                conversion.primary_unit.label}
+                              {conversion.secondary_unit && (
+                                <span className="text-muted-foreground text-xs ml-1">
+                                  ({conversion.primary_unit.label})
+                                </span>
+                              )}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               )}
-            />
           </div>
-
-          <Button
-            className="bg-primary mt-2 text-white hover:bg-blue-900 disabled:bg-primary/70"
-            disabled={createDispatchRequest?.isPending}
-            type="submit"
-          >
-            {createDispatchRequest?.isPending ? (
-              <Loader2 className="size-4 animate-spin" />
-            ) : (
-              <p>Crear</p>
+          <FormField
+            control={form.control}
+            name="justification"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Justificacion</FormLabel>
+                <FormControl>
+                  <Textarea
+                    rows={5}
+                    className="w-full"
+                    placeholder="EJ: Se necesita para la limpieza de..."
+                    {...field}
+                  />
+                </FormControl>
+              </FormItem>
             )}
-          </Button>
-        </form>
-      </Form>
-    );
-  }
+          />
+        </div>
+
+        <Button
+          className="bg-primary mt-2 text-white hover:bg-blue-900 disabled:bg-primary/70"
+          disabled={createDispatchRequest?.isPending}
+          type="submit"
+        >
+          {createDispatchRequest?.isPending ? (
+            <Loader2 className="size-4 animate-spin" />
+          ) : (
+            <p>Crear</p>
+          )}
+        </Button>
+      </form>
+    </Form>
+  );
+}
