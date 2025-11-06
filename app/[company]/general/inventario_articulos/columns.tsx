@@ -233,17 +233,17 @@ const baseCols: ColumnDef<IArticleSimple>[] = [
 // Columnas para COMPONENTE
 export const componenteCols: ColumnDef<IArticleSimple>[] = [
   ...baseCols,
-  {
-    id: "actions",
-    header: "Acciones",
-    cell: ({ row }) => {
-      const item = row.original;  
-      if (item.status === "stored") {
-        return <ArticleDropdownActions id={item.id} />;
-      }
-      return null;
-    },
-  },
+  // {
+  //   id: "actions",
+  //   header: "Acciones",
+  //   cell: ({ row }) => {
+  //     const item = row.original;  
+  //     if (item.status === "stored") {
+  //       return <ArticleDropdownActions id={item.id} />;
+  //     }
+  //     return null;
+  //   },
+  // },
 ];
 
 // Columnas extra para CONSUMIBLE
@@ -262,17 +262,17 @@ export const consumibleCols: ColumnDef<IArticleSimple>[] = [
   //     </div>
   //   ),
   // },
-  {
-    id: "actions",
-    header: "Acciones",
-    cell: ({ row }) => {
-      const item = row.original;  
-      if (item.status === "stored") {
-        return <ArticleDropdownActions id={item.id} />;
-      }
-      return null;
-    },
-  },
+  // {
+  //   id: "actions",
+  //   header: "Acciones",
+  //   cell: ({ row }) => {
+  //     const item = row.original;  
+  //     if (item.status === "stored") {
+  //       return <ArticleDropdownActions id={item.id} />;
+  //     }
+  //     return null;
+  //   },
+  // },
 ];
 
 // Columnas extra para HERRAMIENTA
@@ -313,17 +313,17 @@ export const herramientaCols: ColumnDef<IArticleSimple>[] = [
       );
     },
   },
-  {
-    id: "actions",
-    header: "Acciones",
-    cell: ({ row }) => {
-      const item = row.original;  
-      if (item.status === "stored") {
-        return <ArticleDropdownActions id={item.id} />;
-      }
-      return null;
-    },
-  },
+  // {
+  //   id: "actions",
+  //   header: "Acciones",
+  //   cell: ({ row }) => {
+  //     const item = row.original;  
+  //     if (item.status === "stored") {
+  //       return <ArticleDropdownActions id={item.id} />;
+  //     }
+  //     return null;
+  //   },
+  // },
 ];
 
 // Columnas por categoría

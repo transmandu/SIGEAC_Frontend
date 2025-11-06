@@ -75,6 +75,7 @@ const formSchema = z
       .refine((f) => f.size <= fileMaxBytes, "Máx. 10 MB.")
       .optional(),
     image: z.instanceof(File).optional(),
+    has_documentation: z.boolean().optional(),
   })
   .superRefine((vals, ctx) => {
     if (vals.needs_calibration) {
@@ -274,6 +275,7 @@ export default function CreateToolForm({ initialData, isEditing }: { initialData
       needs_calibration: initialData?.tool?.needs_calibration ?? false,
       calibration_date: initialData?.tool?.calibration_date ? new Date(initialData.tool.calibration_date) : undefined,
       next_calibration: undefined,
+      has_documentation: initialData?.has_documentation ?? false,
     },
     mode: "onBlur",
   });
@@ -297,6 +299,7 @@ export default function CreateToolForm({ initialData, isEditing }: { initialData
       needs_calibration: initialData.tool?.needs_calibration ?? false,
       calibration_date: initialData.tool?.calibration_date ? new Date(initialData.tool.calibration_date) : undefined,
       next_calibration: undefined,
+      has_documentation: initialData.has_documentation ?? false,
     });
   }, [initialData, form]);
 
@@ -774,6 +777,30 @@ export default function CreateToolForm({ initialData, isEditing }: { initialData
                     Observaciones sobre la herramienta.
                   </FormDescription>
                   <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <Separator />
+
+            <FormField
+              control={form.control}
+              name="has_documentation"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                  <FormControl>
+                    <Checkbox
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                      disabled={busy}
+                    />
+                  </FormControl>
+                  <div className="space-y-1 leading-none">
+                    <FormLabel>¿El artículo tiene documentación?</FormLabel>
+                    <FormDescription>
+                      Marque esta casilla si el artículo cuenta con documentación (certificados, imágenes, etc.).
+                    </FormDescription>
+                  </div>
                 </FormItem>
               )}
             />

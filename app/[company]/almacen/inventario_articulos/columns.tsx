@@ -25,6 +25,7 @@ export interface IArticleSimple {
   batch_name: string;
   batch_id: number;
   min_quantity?: number | string; // Directamente en el artículo
+  has_documentation?: boolean;
   tool?: {
     status?: string | null;
     calibration_date?: string | null; // ISO string o "dd/MM/yyyy"
@@ -112,6 +113,7 @@ export const flattenArticles = (
       is_hazardous: batch.is_hazardous ?? undefined,
       batch_id: batch.batch_id,
       min_quantity: article.min_quantity, // Directamente desde el artículo
+      has_documentation: article.has_documentation ?? false,
       tool: article.tool
         ? {
             status: article.tool.status,
@@ -247,6 +249,35 @@ const baseCols: ColumnDef<IArticleSimple>[] = [
         )}
       </div>
     ),
+  },
+  {
+    accessorKey: "has_documentation",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Documentación" />
+    ),
+    cell: ({ row }) => {
+      const hasDoc = row.original.has_documentation;
+      return (
+        <div className="flex justify-center">
+          <Badge
+            variant={hasDoc ? "default" : "outline"}
+            className="flex items-center gap-1 w-fit"
+          >
+            {hasDoc ? (
+              <>
+                <CheckCircle2 className="h-3 w-3" />
+                Sí
+              </>
+            ) : (
+              <>
+                <XCircle className="h-3 w-3" />
+                No
+              </>
+            )}
+          </Badge>
+        </div>
+      );
+    },
   },
 ];
 

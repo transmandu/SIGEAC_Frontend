@@ -138,6 +138,7 @@ const formSchema = z
       .refine((f) => f.size <= fileMaxBytes, "Tamaño máximo 10 MB.")
       .optional(),
     image: z.instanceof(File).optional(),
+    has_documentation: z.boolean().optional(),
   })
   .superRefine((vals, ctx) => {
     if (vals.fabrication_date && vals.caducate_date) {
@@ -272,6 +273,7 @@ export default function CreateComponentForm({
       fabrication_date: initialData?.component?.shell_time?.fabrication_date
         ? initialData?.component?.shell_time?.fabrication_date
         : undefined,
+      has_documentation: initialData?.has_documentation ?? false,
     },
     mode: "onBlur",
   });
@@ -301,6 +303,7 @@ export default function CreateComponentForm({
       fabrication_date: initialData.component?.shell_time?.fabrication_date
         ? initialData.component?.shell_time?.fabrication_date
         : undefined,
+      has_documentation: initialData.has_documentation ?? false,
     });
   }, [initialData, form]);
 
@@ -961,6 +964,30 @@ export default function CreateComponentForm({
                   </FormControl>
                   <FormDescription>Breve descripción del artículo.</FormDescription>
                   <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <Separator />
+
+            <FormField
+              control={form.control}
+              name="has_documentation"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                  <FormControl>
+                    <Checkbox
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                      disabled={busy}
+                    />
+                  </FormControl>
+                  <div className="space-y-1 leading-none">
+                    <FormLabel>¿El artículo tiene documentación?</FormLabel>
+                    <FormDescription>
+                      Marque esta casilla si el artículo cuenta con documentación (certificados, imágenes, etc.).
+                    </FormDescription>
+                  </div>
                 </FormItem>
               )}
             />

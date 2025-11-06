@@ -108,6 +108,7 @@ const formSchema = z.object({
   certificate_vendor: z.instanceof(File, { message: "Suba un archivo válido." }).refine((f) => f.size <= fileMaxBytes, "Tamaño máximo 10 MB.").optional(),
   image: z.instanceof(File).optional(),
   convertion_id: z.number().optional(),
+  has_documentation: z.boolean().optional(),
 });
 
 export type FormValues = z.infer<typeof formSchema>;
@@ -396,6 +397,7 @@ export default function CreateConsumableForm({
       is_managed: initialData?.consumable?.is_managed 
         ? initialData.consumable.is_managed === "1" || initialData.consumable.is_managed === true
         : true,
+      has_documentation: initialData?.has_documentation ?? false,
     },
     mode: "onBlur",
   });
@@ -422,6 +424,7 @@ export default function CreateConsumableForm({
       is_managed: initialData.consumable?.is_managed 
         ? initialData.consumable.is_managed === "1" || initialData.consumable.is_managed === true
         : true,
+      has_documentation: initialData.has_documentation ?? false,
     });
   }, [initialData, form]);
 
@@ -1146,6 +1149,30 @@ export default function CreateConsumableForm({
                     Observaciones sobre el artículo.
                   </FormDescription>
                   <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <Separator />
+
+            <FormField
+              control={form.control}
+              name="has_documentation"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                  <FormControl>
+                    <Checkbox
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                      disabled={busy}
+                    />
+                  </FormControl>
+                  <div className="space-y-1 leading-none">
+                    <FormLabel>¿El artículo tiene documentación?</FormLabel>
+                    <FormDescription>
+                      Marque esta casilla si el artículo cuenta con documentación (certificados, imágenes, etc.).
+                    </FormDescription>
+                  </div>
                 </FormItem>
               )}
             />
