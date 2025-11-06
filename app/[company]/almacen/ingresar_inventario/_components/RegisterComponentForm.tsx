@@ -180,10 +180,10 @@ export default function CreateComponentForm({
   const [partNumberToSearch, setPartNumberToSearch] = useState<string | undefined>(undefined);
 
   // Local UI state for calendars
-  const [fabricationDate, setFabricationDate] = useState<Date | undefined>(
+  const [fabricationDate, setFabricationDate] = useState<Date | null | undefined>(
     initialData?.component?.shell_time?.fabrication_date
       ? new Date(initialData.component.shell_time.fabrication_date)
-      : undefined
+      : null // Por defecto "No aplica" (muy pocos componentes tienen esta fecha)
   );
   const [caducateDate, setCaducateDate] = useState<Date | null | undefined>(
     initialData?.component?.shell_time?.caducate_date
@@ -194,7 +194,14 @@ export default function CreateComponentForm({
 
   // Wrapper functions for DatePickerField compatibility
   const handleFabricationDateChange = (d?: Date | null) => {
-    setFabricationDate(d ?? undefined);
+    // Preserve null value to indicate "Not applicable"
+    if (d === null) {
+      setFabricationDate(null);
+    } else if (d === undefined) {
+      setFabricationDate(undefined);
+    } else {
+      setFabricationDate(d);
+    }
   };
   const handleCaducateDateChange = (d?: Date | null) => {
     // Preserve null value to indicate "Not applicable"
@@ -371,7 +378,7 @@ export default function CreateComponentForm({
       alternative_part_number:
         values.alternative_part_number?.map((v) => normalizeUpper(v)) ?? [],
       caducate_date: caducateDateStr,
-      fabrication_date: fabricationDate ? format(fabricationDate, "yyyy-MM-dd") : undefined,
+      fabrication_date: fabricationDate && fabricationDate !== null ? format(fabricationDate, "yyyy-MM-dd") : undefined,
       calendar_date: values.calendar_date && format(values.calendar_date, "yyyy-MM-dd"),
       batch_name: enableBatchNameEdit ? values.batch_name : undefined,
       batch_id: values.batch_id, // Incluir explícitamente el batch_id del formulario
@@ -425,7 +432,7 @@ export default function CreateComponentForm({
         data: formattedValues,
       });
       form.reset();
-      setFabricationDate(undefined);
+      setFabricationDate(null); // Restablecer a "No aplica" por defecto
       setCaducateDate(null); // Restablecer a "No aplica" por defecto
     }
   }
@@ -916,7 +923,7 @@ export default function CreateComponentForm({
         </SectionCard>
 
         {/* Fechas y límites */}
-        <SectionCard title="Ciclo de vida">
+        <SectionCard title="Fechas del Componente">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <DatePickerField
               label="Fecha de Fabricación"
@@ -925,6 +932,7 @@ export default function CreateComponentForm({
               goBackYears={[5, 10, 15]}
               description="Fecha de fabricación del Componente."
               maxYear={new Date().getFullYear()}
+              showNotApplicable={true}
             />
 
             <DatePickerField

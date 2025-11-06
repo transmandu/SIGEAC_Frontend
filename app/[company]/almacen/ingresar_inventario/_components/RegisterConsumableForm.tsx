@@ -828,27 +828,6 @@ export default function CreateConsumableForm({
               )}
             />
 
-            <DatePickerField
-              label="Fecha de Fabricación"
-              value={fabricationDate}
-              setValue={handleFabricationDateChange}
-              description="Fecha de fabricación del Consumible."
-              busy={busy}
-              shortcuts="back"
-              maxYear={new Date().getFullYear()}
-            />
-
-            <DatePickerField
-              label="Fecha de Caducidad - Shelf-Life"
-              value={caducateDate}
-              setValue={handleCaducateDateChange}
-              description="Fecha límite del Consumible en Almacen."
-              busy={busy}
-              shortcuts="forward"
-              showNotApplicable={true}
-              required={true}
-            />
-
             <FormField
               control={form.control}
               name="manufacturer_id"
@@ -936,6 +915,32 @@ export default function CreateConsumableForm({
                   <FormMessage />
                 </FormItem>
               )}
+            />
+          </div>
+        </SectionCard>
+
+        {/* Fechas y límites */}
+        <SectionCard title="Fechas del Consumible">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <DatePickerField
+              label="Fecha de Fabricación"
+              value={fabricationDate}
+              setValue={handleFabricationDateChange}
+              description="Fecha de fabricación del Consumible."
+              busy={busy}
+              shortcuts="back"
+              maxYear={new Date().getFullYear()}
+            />
+
+            <DatePickerField
+              label="Fecha de Caducidad - Shelf-Life"
+              value={caducateDate}
+              setValue={handleCaducateDateChange}
+              description="Fecha límite del Consumible en Almacen."
+              busy={busy}
+              shortcuts="forward"
+              showNotApplicable={true}
+              required={true}
             />
           </div>
         </SectionCard>
