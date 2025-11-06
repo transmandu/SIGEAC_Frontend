@@ -249,19 +249,19 @@ export const componenteCols: ColumnDef<IArticleSimple>[] = [
 // Columnas extra para CONSUMIBLE
 export const consumibleCols: ColumnDef<IArticleSimple>[] = [
   ...baseCols,
-  {
-    accessorKey: "min_quantity",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Cant. Mínima" />
-    ),
-    cell: ({ row }) => (
-      <div className="text-center font-medium text-sm">
-        {row.original.min_quantity || (
-          <span className="text-muted-foreground">0</span>
-        )}
-      </div>
-    ),
-  },
+  // {
+  //   accessorKey: "min_quantity",
+  //   header: ({ column }) => (
+  //     <DataTableColumnHeader column={column} title="Cant. Mínima" />
+  //   ),
+  //   cell: ({ row }) => (
+  //     <div className="text-center font-medium text-sm">
+  //       {row.original.min_quantity || (
+  //         <span className="text-muted-foreground">0</span>
+  //       )}
+  //     </div>
+  //   ),
+  // },
   {
     id: "actions",
     header: "Acciones",
