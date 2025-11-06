@@ -316,7 +316,13 @@ export const useUpdateArticle = () => {
       company: string;
       data: ArticleData;
     }) => {
-      await axiosInstance.put(`/${company}/article/${id}`, data);
+      await axiosInstance.put(`/${company}/article/${id}`, data,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
     },
     onSuccess: () => {
       // Invalidar todas las queries relacionadas con artículos y batches
