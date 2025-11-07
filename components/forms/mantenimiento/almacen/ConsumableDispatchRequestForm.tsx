@@ -47,6 +47,10 @@ import { Popover, PopoverContent, PopoverTrigger } from "../../../ui/popover";
 import { Textarea } from "../../../ui/textarea";
 import { useGetDepartments } from "@/hooks/sistema/departamento/useGetDepartment";
 import { useGetWarehousesEmployees } from "@/hooks/mantenimiento/almacen/empleados/useGetWarehousesEmployees";
+import { Checkbox } from "@/components/ui/checkbox";
+import { useGetMaintenanceAircrafts } from "@/hooks/mantenimiento/planificacion/useGetMaintenanceAircrafts";
+import { Separator } from "@/components/ui/separator";
+import { Building2, Plane } from "lucide-react";
 
 const FormSchema = z.object({
   requested_by: z.string(),
@@ -98,10 +102,15 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
   // >([]);
 
   const [articleSelected, setArticleSelected] = useState<Article>();
+  const [isDepartment, setIsDepartment] = useState(false);
 
   const { createDispatchRequest } = useCreateDispatchRequest();
 
   const { data: departments, isLoading: isDepartmentsLo } = useGetDepartments(
+    selectedCompany?.slug
+  );
+
+  const { data: aircrafts, isLoading: isAircraftsLoading } = useGetMaintenanceAircrafts(
     selectedCompany?.slug
   );
 
@@ -122,11 +131,10 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
     });
 
   const {
-    mutate: employeeMutate,
     data: warehouseEmployees,
     isPending: warehouseEmployeesLoading,
     isError: employeesError,
-  } = useGetWarehousesEmployees(selectedCompany?.slug);
+  } = useGetWarehousesEmployees(selectedCompany?.slug, selectedStation);
 
   const form = useForm<FormSchemaType>({
     resolver: zodResolver(FormSchema),
@@ -137,16 +145,6 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
       status: "proceso",
     },
   });
-
-  // useEffect(() => {
-  //   if (selectedStation) {
-  //     mutate({
-  //       location_id: Number(selectedStation),
-  //       company: selectedCompany!.slug,
-  //     });
-  //     employeeMutate({ location_id: Number(selectedStation) });
-  //   }
-  // }, [selectedStation, selectedCompany, mutate, employeeMutate]);
 
   // useEffect(() => {
   //   if (batches) {
@@ -178,6 +176,11 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
       });
     }
   }, [quantity, articleSelected, form]);
+
+  // Limpiar destination_place cuando cambia el tipo de destino
+  useEffect(() => {
+    form.setValue("destination_place", "");
+  }, [isDepartment, form]);
 
   const { setValue } = form;
 
@@ -233,24 +236,54 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit(onSubmit)}
-        className="flex flex-col space-y-3 w-full"
+        className="flex flex-col space-y-4 w-full"
       >
-        <div className="grid grid-cols-2 gap-2">
+        {/* Sección: Personal Responsable */}
+        <div className="space-y-3">
+          <div className="flex items-center gap-2 mb-2">
+            <div className="h-px flex-1 bg-border"></div>
+            <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Personal Responsable</span>
+            <div className="h-px flex-1 bg-border"></div>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
           <FormField
             control={form.control}
             name="delivered_by"
             render={({ field }) => (
               <FormItem className="w-full">
                 <FormLabel>Entregado por:</FormLabel>
-                <Select onValueChange={field.onChange}>
+                <Select 
+                  onValueChange={field.onChange}
+                  disabled={warehouseEmployeesLoading || !selectedStation}
+                >
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder="Seleccione el responsable..." />
+                      <SelectValue 
+                        placeholder={
+                          warehouseEmployeesLoading 
+                            ? "Cargando..." 
+                            : !selectedStation 
+                            ? "Seleccione una estación primero"
+                            : "Seleccione el responsable..."
+                        } 
+                      />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
                     {warehouseEmployeesLoading && (
-                      <Loader2 className="size-4 animate-spin" />
+                      <div className="flex items-center justify-center py-4">
+                        <Loader2 className="size-4 animate-spin text-muted-foreground" />
+                      </div>
+                    )}
+                    {!warehouseEmployeesLoading && employeesError && (
+                      <div className="py-4 text-center text-sm text-muted-foreground">
+                        Error al cargar empleados
+                      </div>
+                    )}
+                    {!warehouseEmployeesLoading && !employeesError && warehouseEmployees && warehouseEmployees.length === 0 && (
+                      <div className="py-4 text-center text-sm text-muted-foreground">
+                        No hay empleados de almacén disponibles
+                      </div>
                     )}
                     {warehouseEmployees &&
                       warehouseEmployees.map((employee) => (
@@ -296,11 +329,22 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
               </FormItem>
             )}
           />
+          </div>
+        </div>
+
+        {/* Sección: Información de la Solicitud */}
+        <div className="space-y-3">
+          <div className="flex items-center gap-2 mb-2">
+            <div className="h-px flex-1 bg-border"></div>
+            <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Información de la Solicitud</span>
+            <div className="h-px flex-1 bg-border"></div>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
           <FormField
             control={form.control}
             name="submission_date"
             render={({ field }) => (
-              <FormItem className="flex flex-col mt-2.5 w-full">
+              <FormItem className="flex flex-col w-full">
                 <FormLabel>Fecha de Solicitud</FormLabel>
                 <Popover>
                   <PopoverTrigger asChild>
@@ -308,7 +352,7 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
                       <Button
                         variant={"outline"}
                         className={cn(
-                          "w-[240px] pl-3 text-left font-normal",
+                          "w-full pl-3 text-left font-normal",
                           !field.value && "text-muted-foreground"
                         )}
                       >
@@ -340,39 +384,114 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
               </FormItem>
             )}
           />
-          <FormField
-            control={form.control}
-            name="destination_place"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Destino</FormLabel>
-                <Select
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Seleccione..." />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {departments &&
-                      departments.map((department) => (
-                        <SelectItem
-                          key={department.id}
-                          value={department.id.toString()}
-                        >
-                          {department.name}
-                        </SelectItem>
-                      ))}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          <div className="flex flex-col gap-3">
+            <FormField
+              control={form.control}
+              name="destination_place"
+              render={({ field }) => (
+                <FormItem>
+                  <div className="flex items-center justify-between mb-2">
+                    <FormLabel className="flex items-center gap-2">
+                      {isDepartment ? (
+                        <Building2 className="h-4 w-4 text-muted-foreground" />
+                      ) : (
+                        <Plane className="h-4 w-4 text-muted-foreground" />
+                      )}
+                      Destino
+                    </FormLabel>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="is-department"
+                        checked={isDepartment}
+                        onCheckedChange={(checked) => setIsDepartment(checked as boolean)}
+                      />
+                      <label
+                        htmlFor="is-department"
+                        className="text-xs font-medium leading-none cursor-pointer text-muted-foreground"
+                      >
+                        ¿Es para un departamento?
+                      </label>
+                    </div>
+                  </div>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                    disabled={isDepartment ? isDepartmentsLo : isAircraftsLoading}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue 
+                          placeholder={
+                            isDepartment 
+                              ? "Seleccione un departamento..." 
+                              : "Seleccione una aeronave..."
+                          } 
+                        />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {isDepartment ? (
+                        <>
+                          {isDepartmentsLo && (
+                            <div className="flex items-center justify-center py-4">
+                              <Loader2 className="size-4 animate-spin text-muted-foreground" />
+                            </div>
+                          )}
+                          {!isDepartmentsLo && departments && departments.length === 0 && (
+                            <div className="py-4 text-center text-sm text-muted-foreground">
+                              No hay departamentos disponibles
+                            </div>
+                          )}
+                          {departments &&
+                            departments.map((department) => (
+                              <SelectItem
+                                key={department.id}
+                                value={department.id.toString()}
+                              >
+                                {department.name}
+                              </SelectItem>
+                            ))}
+                        </>
+                      ) : (
+                        <>
+                          {isAircraftsLoading && (
+                            <div className="flex items-center justify-center py-4">
+                              <Loader2 className="size-4 animate-spin text-muted-foreground" />
+                            </div>
+                          )}
+                          {!isAircraftsLoading && aircrafts && aircrafts.length === 0 && (
+                            <div className="py-4 text-center text-sm text-muted-foreground">
+                              No hay aeronaves disponibles
+                            </div>
+                          )}
+                          {aircrafts &&
+                            aircrafts.map((aircraft) => (
+                              <SelectItem
+                                key={aircraft.id}
+                                value={aircraft.id.toString()}
+                              >
+                                {aircraft.acronym} - {aircraft.manufacturer.name}
+                              </SelectItem>
+                            ))}
+                        </>
+                      )}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+          </div>
         </div>
+
+        {/* Sección: Artículo a Retirar */}
         <div className="space-y-3">
+          <div className="flex items-center gap-2 mb-2">
+            <div className="h-px flex-1 bg-border"></div>
+            <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Artículo a Retirar</span>
+            <div className="h-px flex-1 bg-border"></div>
+          </div>
           <div className="flex gap-2">
             <FormField
               control={form.control}
@@ -386,17 +505,25 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
                         variant="outline"
                         role="combobox"
                         aria-expanded={open}
-                        className="w-[200px] justify-between"
+                        className="w-full justify-between"
+                        disabled={isBatchesLoading}
                       >
-                        {articleSelected
-                          ? `${articleSelected.part_number}`
-                          : "Selec. el consumible"}
+                        {isBatchesLoading ? (
+                          <>
+                            <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                            <span className="text-muted-foreground">Cargando...</span>
+                          </>
+                        ) : articleSelected ? (
+                          <span className="truncate">{articleSelected.part_number}</span>
+                        ) : (
+                          <span className="text-muted-foreground">Seleccione el consumible...</span>
+                        )}
                         <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                       </Button>
                     </PopoverTrigger>
-                    <PopoverContent className="w-[200px] p-0">
+                    <PopoverContent className="w-[400px] p-0" align="start">
                       <Command>
-                        <CommandInput placeholder="Buscar un consu..." />
+                        <CommandInput placeholder="Buscar por número de parte o descripción..." />
                         <CommandList>
                           {isBatchesLoading ? (
                             <div className="flex items-center justify-center py-6">
@@ -426,14 +553,18 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
                                     >
                                       <Check
                                         className={cn(
-                                          "mr-2 h-4 w-4",
+                                          "mr-2 h-4 w-4 shrink-0",
                                           articleSelected?.id === article.id
                                             ? "opacity-100"
                                             : "opacity-0"
                                         )}
                                       />
-                                      {article.part_number} - {article.quantity}
-                                      {article.unit}{" "}
+                                      <div className="flex flex-col flex-1 min-w-0">
+                                        <span className="font-medium truncate">{article.part_number}</span>
+                                        <span className="text-xs text-muted-foreground">
+                                          Disponible: {article.quantity} {article.unit}
+                                        </span>
+                                      </div>
                                       <p className="hidden">{article.id}</p>
                                     </CommandItem>
                                   ))}
@@ -449,10 +580,13 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
                 </FormItem>
               )}
             />
-            <div className="flex items-center justify-center gap-2">
-              <div className="flex flex-col space-y-2">
+            <div className="flex items-end gap-4">
+              <div className="flex flex-col space-y-2 flex-1">
                 <Label>Cantidad</Label>
                 <Input
+                  type="number"
+                  min="0"
+                  step="0.01"
                   disabled={!articleSelected}
                   value={quantity}
                   onChange={(e) => {
@@ -468,15 +602,25 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
                       form.clearErrors("articles.quantity");
                     }
                   }}
-                  placeholder="Ej: 1, 4, 6, etc..."
+                  placeholder={
+                    articleSelected 
+                      ? `Máx: ${articleSelected.quantity} ${articleSelected.unit}` 
+                      : "Ingrese la cantidad..."
+                  }
+                  className="w-full"
                 />
+                {articleSelected && (
+                  <p className="text-xs text-muted-foreground">
+                    Disponible: {articleSelected.quantity} {articleSelected.unit}
+                  </p>
+                )}
               </div>
               {articleSelected && articleSelected.unit === "L" && (
                 <FormField
                   control={form.control}
                   name="unit"
                   render={({ field }) => (
-                    <FormItem>
+                    <FormItem className="flex-1">
                       <FormLabel>Unidad</FormLabel>
                       <FormControl>
                         <RadioGroup
@@ -486,14 +630,14 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
                         >
                           <div className="flex items-center space-x-2">
                             <RadioGroupItem value="litros" id="litros" />
-                            <Label htmlFor="litros">Litros</Label>
+                            <Label htmlFor="litros" className="cursor-pointer">Litros</Label>
                           </div>
                           <div className="flex items-center space-x-2">
                             <RadioGroupItem
                               value="mililitros"
                               id="mililitros"
                             />
-                            <Label htmlFor="mililitros">Mililitros</Label>
+                            <Label htmlFor="mililitros" className="cursor-pointer">Mililitros</Label>
                           </div>
                         </RadioGroup>
                       </FormControl>
@@ -504,36 +648,61 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
               )}
             </div>
           </div>
-          <FormField
-            control={form.control}
-            name="justification"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Justificacion</FormLabel>
-                <FormControl>
-                  <Textarea
-                    rows={5}
-                    className="w-full"
-                    placeholder="EJ: Se necesita para la limpieza de..."
-                    {...field}
-                  />
-                </FormControl>
-              </FormItem>
-            )}
-          />
+
+          {/* Sección: Justificación */}
+          <div className="space-y-3">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="h-px flex-1 bg-border"></div>
+              <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Justificación</span>
+              <div className="h-px flex-1 bg-border"></div>
+            </div>
+            <FormField
+              control={form.control}
+              name="justification"
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <Textarea
+                      rows={4}
+                      className="w-full resize-none"
+                      placeholder="Ej: Se necesita para la limpieza de equipos de mantenimiento..."
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
         </div>
 
-        <Button
-          className="bg-primary mt-2 text-white hover:bg-blue-900 disabled:bg-primary/70"
-          disabled={createDispatchRequest?.isPending}
-          type="submit"
-        >
-          {createDispatchRequest?.isPending ? (
-            <Loader2 className="size-4 animate-spin" />
-          ) : (
-            <p>Crear</p>
-          )}
-        </Button>
+        <Separator className="my-2" />
+
+        {/* Botón de acción */}
+        <div className="flex justify-end gap-3 pt-2">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onClose}
+            disabled={createDispatchRequest?.isPending}
+          >
+            Cancelar
+          </Button>
+          <Button
+            className="bg-primary text-white hover:bg-primary/90 disabled:bg-primary/70 min-w-[120px]"
+            disabled={createDispatchRequest?.isPending}
+            type="submit"
+          >
+            {createDispatchRequest?.isPending ? (
+              <>
+                <Loader2 className="size-4 animate-spin mr-2" />
+                Creando...
+              </>
+            ) : (
+              "Crear Salida"
+            )}
+          </Button>
+        </div>
       </form>
     </Form>
   );

@@ -36,7 +36,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { format } from "date-fns"
 import { es } from "date-fns/locale"
 import { CalendarIcon, ClipboardPaste, Loader2, MoreHorizontal } from "lucide-react"
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 import { Calendar } from "../../../ui/calendar"
@@ -73,13 +73,7 @@ const PendingDispatchRequestDropdownActions
 
     const { user } = useAuth();
 
-    const { mutate: employeeMutate, data: employees, isPending: employeesLoading, isError: employeesError } = useGetWarehousesEmployees(selectedCompany?.slug);
-
-    useEffect(() => {
-      if (selectedStation) {
-        employeeMutate({location_id: Number(selectedStation)})
-      }
-    }, [selectedStation, employeeMutate])
+    const { data: employees, isPending: employeesLoading, isError: employeesError } = useGetWarehousesEmployees(selectedCompany?.slug, selectedStation);
 
     const handleAprove = async (data: z.infer<typeof formSchema>) => {
       const newQty = request.batch.article_count - Number(request.batch.articles[0].quantity);

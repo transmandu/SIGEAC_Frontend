@@ -398,7 +398,7 @@ export default function CreateConsumableForm({
         : undefined,
       is_managed: initialData?.consumable?.is_managed 
         ? initialData.consumable.is_managed === "1" || initialData.consumable.is_managed === true
-        : true,
+        : false,
     },
     mode: "onBlur",
   });
@@ -424,7 +424,7 @@ export default function CreateConsumableForm({
         : undefined,
       is_managed: initialData.consumable?.is_managed 
         ? initialData.consumable.is_managed === "1" || initialData.consumable.is_managed === true
-        : true,
+        : false,
     });
   }, [initialData, form]);
 
@@ -977,129 +977,149 @@ export default function CreateConsumableForm({
         {/* Ingreso y cantidad */}
         <SectionCard title="Ingreso y cantidad">
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-            {/* Método de ingreso (unidad secundaria) */}
-            <div className="flex flex-col space-y-2 mt-2.5">
-              <FormLabel>Método de ingreso</FormLabel>
-              <Popover open={secondaryOpen} onOpenChange={setSecondaryOpen}>
-                <PopoverTrigger asChild>
-                  <Button
-                    disabled={secondaryLoading || busy}
-                    variant="outline"
-                    role="combobox"
-                    aria-expanded={secondaryOpen}
-                    className="justify-between"
-                  >
-                    {secondarySelected
-                      ? `${secondarySelected.secondary_unit}${secondarySelected.unit?.label || secondarySelected.unit?.value ? ` (${secondarySelected.unit?.label || secondarySelected.unit?.value})` : ""}`
-                      : secondaryLoading
-                        ? "Cargando..."
-                        : "Seleccione..."}
-                    <ChevronsUpDown className="opacity-50" />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-[300px] p-0">
-                  <Command>
-                    <CommandInput placeholder="Buscar unidad..." />
-                    <CommandList>
-                      <CommandEmpty>
-                        No existen unidades secundarias.
-                      </CommandEmpty>
-                      <CommandGroup>
-                        {secondaryUnits?.map((s) => (
-                          <CommandItem
-                            key={s.id}
-                            value={s.id.toString()}
-                            onSelect={(val) => {
-                              const found =
-                                secondaryUnits.find(
-                                  (u) => u.id.toString() === val
-                                ) || null;
-                              setSecondarySelected(found);
-                              setSecondaryOpen(false);
-                              if (
-                                found &&
-                                typeof secondaryQuantity === "number"
-                              ) {
-                                const calc =
-                                  (found.convertion_rate ?? 1) *
-                                  (found.quantity_unit ?? 1) *
-                                  (secondaryQuantity ?? 0);
-                                form.setValue("quantity", calc, {
-                                  shouldDirty: true,
-                                  shouldValidate: true,
-                                });
-                                form.setValue("convertion_id", found.id, {
-                                  shouldDirty: true,
-                                });
-                              }
-                            }}
-                          >
-                            <span className="flex-1">
-                              {s.secondary_unit}
-                              {(s.unit?.label || s.unit?.value) ? (
-                                <span className="text-muted-foreground">
-                                  {" "}({s.unit?.label || s.unit?.value || ""})
+            {!isEditing ? (
+              <>
+                {/* Método de ingreso (unidad secundaria) */}
+                <div className="flex flex-col space-y-2 mt-2.5">
+                  <FormLabel>Método de ingreso</FormLabel>
+                  <Popover open={secondaryOpen} onOpenChange={setSecondaryOpen}>
+                    <PopoverTrigger asChild>
+                      <Button
+                        disabled={secondaryLoading || busy}
+                        variant="outline"
+                        role="combobox"
+                        aria-expanded={secondaryOpen}
+                        className="justify-between"
+                      >
+                        {secondarySelected
+                          ? `${secondarySelected.secondary_unit}${secondarySelected.unit?.label || secondarySelected.unit?.value ? ` (${secondarySelected.unit?.label || secondarySelected.unit?.value})` : ""}`
+                          : secondaryLoading
+                            ? "Cargando..."
+                            : "Seleccione..."}
+                        <ChevronsUpDown className="opacity-50" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-[300px] p-0">
+                      <Command>
+                        <CommandInput placeholder="Buscar unidad..." />
+                        <CommandList>
+                          <CommandEmpty>
+                            No existen unidades secundarias.
+                          </CommandEmpty>
+                          <CommandGroup>
+                            {secondaryUnits?.map((s) => (
+                              <CommandItem
+                                key={s.id}
+                                value={s.id.toString()}
+                                onSelect={(val) => {
+                                  const found =
+                                    secondaryUnits.find(
+                                      (u) => u.id.toString() === val
+                                    ) || null;
+                                  setSecondarySelected(found);
+                                  setSecondaryOpen(false);
+                                  if (
+                                    found &&
+                                    typeof secondaryQuantity === "number"
+                                  ) {
+                                    const calc =
+                                      (found.convertion_rate ?? 1) *
+                                      (found.quantity_unit ?? 1) *
+                                      (secondaryQuantity ?? 0);
+                                    form.setValue("quantity", calc, {
+                                      shouldDirty: true,
+                                      shouldValidate: true,
+                                    });
+                                    form.setValue("convertion_id", found.id, {
+                                      shouldDirty: true,
+                                    });
+                                  }
+                                }}
+                              >
+                                <span className="flex-1">
+                                  {s.secondary_unit}
+                                  {(s.unit?.label || s.unit?.value) ? (
+                                    <span className="text-muted-foreground">
+                                      {" "}({s.unit?.label || s.unit?.value || ""})
+                                    </span>
+                                  ) : null}
                                 </span>
-                              ) : null}
-                            </span>
-                            <Check
-                              className={cn(
-                                "ml-2",
-                                secondarySelected?.id.toString() ===
-                                  s.id.toString()
-                                  ? "opacity-100"
-                                  : "opacity-0"
-                              )}
-                            />
-                          </CommandItem>
-                        ))}
-                      </CommandGroup>
-                    </CommandList>
-                  </Command>
-                </PopoverContent>
-              </Popover>
-              <p className="text-sm text-muted-foreground">
-                Indique cómo será ingresado el artículo.
-              </p>
-            </div>
+                                <Check
+                                  className={cn(
+                                    "ml-2",
+                                    secondarySelected?.id.toString() ===
+                                      s.id.toString()
+                                      ? "opacity-100"
+                                      : "opacity-0"
+                                  )}
+                                />
+                              </CommandItem>
+                            ))}
+                          </CommandGroup>
+                        </CommandList>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
+                  <p className="text-sm text-muted-foreground">
+                    Indique cómo será ingresado el artículo.
+                  </p>
+                </div>
 
-            {/* Cantidad secundaria */}
-            <div className="space-y-2">
-              <FormLabel>Cantidad</FormLabel>
-              <Input
-                type="number"
-                inputMode="decimal"
-                disabled={busy}
-                min="0"
-                onChange={(e) => {
-                  const n = parseFloat(e.target.value);
-                  if (!Number.isNaN(n) && n < 0) return;
-                  setSecondaryQuantity(Number.isNaN(n) ? undefined : n);
-                }}
-                placeholder="Ej: 2, 4, 6..."
-              />
-              <p className="text-sm text-muted-foreground">
-                Cantidad según método de ingreso seleccionado.
-              </p>
-            </div>
+                {/* Cantidad secundaria */}
+                <div className="space-y-2">
+                  <FormLabel>Cantidad</FormLabel>
+                  <Input
+                    type="number"
+                    inputMode="decimal"
+                    disabled={busy}
+                    min="0"
+                    onChange={(e) => {
+                      const n = parseFloat(e.target.value);
+                      if (!Number.isNaN(n) && n < 0) return;
+                      setSecondaryQuantity(Number.isNaN(n) ? undefined : n);
+                    }}
+                    placeholder="Ej: 2, 4, 6..."
+                  />
+                  <p className="text-sm text-muted-foreground">
+                    Cantidad según método de ingreso seleccionado.
+                  </p>
+                </div>
 
-            {/* Cantidad resultante */}
-            <FormField
-              control={form.control}
-              name="quantity"
-              render={({ field }) => (
-                <FormItem className="w-full">
-                  <FormLabel>Cantidad resultante</FormLabel>
-                  <FormControl>
-                    <Input disabled type="number" placeholder="0" {...field} />
-                  </FormControl>
-                  <FormDescription>
-                    Unidades base que se registrarán.
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                {/* Cantidad resultante */}
+                <FormField
+                  control={form.control}
+                  name="quantity"
+                  render={({ field }) => (
+                    <FormItem className="w-full">
+                      <FormLabel>Cantidad resultante</FormLabel>
+                      <FormControl>
+                        <Input disabled type="number" placeholder="0" {...field} />
+                      </FormControl>
+                      <FormDescription>
+                        Unidades base que se registrarán.
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </>
+            ) : (
+              /* Cantidad existente (solo al editar) */
+              <div className="w-full">
+                <FormLabel className="text-base font-medium">Cantidad existente</FormLabel>
+                <div className="mt-2">
+                  <Input 
+                    disabled 
+                    type="number" 
+                    value={initialData?.consumable?.quantity ?? 0}
+                    className="bg-muted font-semibold text-lg h-11"
+                  />
+                </div>
+                <p className="text-sm text-muted-foreground mt-1.5">
+                  Cantidad actual registrada del artículo.
+                </p>
+              </div>
+            )}
 
             {/* Cantidad mínima */}
             <FormField
@@ -1140,6 +1160,7 @@ export default function CreateConsumableForm({
                     <Checkbox
                       checked={field.value}
                       onCheckedChange={field.onChange}
+                      disabled={true}
                     />
                   </FormControl>
                   <div className="space-y-1 leading-none">
