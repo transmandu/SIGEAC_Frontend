@@ -19,6 +19,7 @@ import {
   Loader2,
   Plus,
   X,
+  Calculator,
 } from "lucide-react";
 
 import {
@@ -138,6 +139,7 @@ const formSchema = z.object({
     .optional(),
   image: z.instanceof(File).optional(),
   convertion_id: z.number().optional(),
+  primary_unit_id: z.number().optional(),
 });
 
 export type FormValues = z.infer<typeof formSchema>;
@@ -146,7 +148,6 @@ export type FormValues = z.infer<typeof formSchema>;
 
 interface UnitSelection {
   convertion_id: number;
-  is_main_unit: boolean;
 }
 
 /* ----------------------------- Helpers UI ----------------------------- */
@@ -309,21 +310,31 @@ function DatePickerField({
 
 /* ----------------------------- Modal Unidades ----------------------------- */
 
+/* ----------------------------- Modal Unidades ----------------------------- */
+
 function UnitsModal({
   open,
   onOpenChange,
   secondaryUnits,
   selectedUnits,
   onSelectedUnitsChange,
+  primaryUnit,
+  allUnits, // AGREGAR ESTE PROP
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   secondaryUnits: Convertion[];
   selectedUnits: UnitSelection[];
   onSelectedUnitsChange: (units: UnitSelection[]) => void;
+  primaryUnit?: any;
+  allUnits?: any[]; // AGREGAR ESTE PROP
 }) {
   const [currentUnitId, setCurrentUnitId] = useState<number | "">("");
-  const [isPrimary, setIsPrimary] = useState(false);
+  const [showConversionForm, setShowConversionForm] = useState(false);
+  const [conversionFromUnit, setConversionFromUnit] = useState<string>("");
+  const [conversionToUnit, setConversionToUnit] = useState<string>("");
+  const [conversionQuantity, setConversionQuantity] = useState<string>("");
+  const [conversionResult, setConversionResult] = useState<string>("");
 
   const availableUnits = secondaryUnits.filter(
     (unit) =>
@@ -335,20 +346,13 @@ function UnitsModal({
 
     const newUnit: UnitSelection = {
       convertion_id: currentUnitId as number,
-      is_main_unit: isPrimary,
     };
 
-    // Si se marca como primaria, quitar primaria de las demás
-    const updatedUnits = isPrimary
-      ? selectedUnits.map((unit) => ({ ...unit, is_main_unit: false }))
-      : [...selectedUnits];
-
-    updatedUnits.push(newUnit);
+    const updatedUnits = [...selectedUnits, newUnit];
     onSelectedUnitsChange(updatedUnits);
 
     // Reset form
     setCurrentUnitId("");
-    setIsPrimary(false);
   };
 
   const removeUnit = (unitId: number) => {
@@ -358,31 +362,123 @@ function UnitsModal({
     onSelectedUnitsChange(updatedUnits);
   };
 
-  const setAsPrimary = (unitId: number) => {
-    const updatedUnits = selectedUnits.map((unit) => ({
-      ...unit,
-      is_main_unit: unit.convertion_id === unitId,
-    }));
-    onSelectedUnitsChange(updatedUnits);
+  const calculateConversion = () => {
+    // Aquí llamarías a tu endpoint de conversión
+    // Por ahora simulamos una conversión simple
+    if (conversionFromUnit && conversionToUnit && conversionQuantity) {
+      const quantity = parseFloat(conversionQuantity);
+      if (!isNaN(quantity)) {
+        // Simulación de conversión - reemplazar con llamada a API
+        const result = quantity * 1; // Cambiar por la lógica real de conversión
+        setConversionResult(result.toString());
+      }
+    }
+  };
+
+  const createConversion = () => {
+    // Aquí llamarías a tu endpoint para crear la conversión
+    // Por ahora solo mostramos el resultado
+    calculateConversion();
+    // Después de crear la conversión, podrías recargar las unidades secundarias
+    // o agregar la nueva conversión a la lista disponible
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-6xl">
         <DialogHeader>
           <DialogTitle>Configurar Conversiones de Unidades</DialogTitle>
           <DialogDescription>
-            Seleccione las conversiones de unidades adicionales para este
-            artículo y establezca cuál será la unidad primaria.
+            Seleccione las conversiones de unidades adicionales para este artículo o cree nuevas conversiones.
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4">
-          {/* Formulario para agregar nueva conversión */}
+        <div className="space-y-6">
+          {/* Botón para crear nueva conversión */}
+          <div className="flex justify-between items-center">
+            <h3 className="text-lg font-medium">Conversiones Existentes</h3>
+            <Button
+              onClick={() => setShowConversionForm(!showConversionForm)}
+              variant="outline"
+            >
+              <Calculator className="h-4 w-4 mr-2" />
+              {showConversionForm ? "Cancelar" : "Crear Conversión"}
+            </Button>
+          </div>
+
+          {/* Formulario para crear nueva conversión */}
+          {showConversionForm && (
+            <div className="p-4 border rounded-lg bg-muted/50">
+              <div className="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Desde Unidad</label>
+                  <Select value={conversionFromUnit} onValueChange={setConversionFromUnit}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Seleccione unidad" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {allUnits?.map((unit) => (
+                        <SelectItem key={unit.id} value={unit.id.toString()}>
+                          {unit.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="flex items-center justify-center">
+                  <span className="text-lg font-semibold">→</span>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Hacia Unidad</label>
+                  <Select value={conversionToUnit} onValueChange={setConversionToUnit}>
+                    <SelectTrigger>
+                      <SelectValue placeholder={primaryUnit?.label || "Unidad primaria"} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value={primaryUnit?.id || "primary"}>
+                        {primaryUnit?.label || "Unidad Primaria"}
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Cantidad</label>
+                  <Input
+                    type="number"
+                    placeholder="Ej: 100"
+                    value={conversionQuantity}
+                    onChange={(e) => setConversionQuantity(e.target.value)}
+                  />
+                </div>
+
+                <div className="flex space-x-2">
+                  <Button onClick={calculateConversion} variant="outline">
+                    Calcular
+                  </Button>
+                  <Button onClick={createConversion}>
+                    Crear
+                  </Button>
+                </div>
+              </div>
+
+              {conversionResult && (
+                <div className="mt-3 p-3 bg-primary/10 rounded-lg">
+                  <p className="text-sm">
+                    <span className="font-semibold">Resultado:</span> {conversionQuantity} {allUnits?.find(u => u.id.toString() === conversionFromUnit)?.label || conversionFromUnit} = {conversionResult} {primaryUnit?.label || "unidad primaria"}
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Formulario para agregar conversión existente */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 border rounded-lg">
             <div className="space-y-2">
               <label className="text-sm font-medium">
-                Conversión de Unidad
+                Elegir Conversiones Para Despacho
               </label>
               <Select
                 value={currentUnitId.toString()}
@@ -401,7 +497,7 @@ function UnitsModal({
                     >
                       {conversion.primary_unit.label}
                       {conversion.secondary_unit?.label &&
-                        ` (${conversion.secondary_unit.label})`}
+                        ` - ${conversion.secondary_unit.label} ${conversion.equivalence}(${conversion.primary_unit.value})`}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -409,21 +505,6 @@ function UnitsModal({
             </div>
 
             <div className="flex items-end space-x-2">
-              <div className="flex items-center space-x-2">
-                <Checkbox
-                  id="is-primary"
-                  checked={isPrimary}
-                  onCheckedChange={(checked) =>
-                    setIsPrimary(checked as boolean)
-                  }
-                />
-                <label
-                  htmlFor="is-primary"
-                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                >
-                  Establecer como primaria
-                </label>
-              </div>
               <Button onClick={addUnit} disabled={!currentUnitId}>
                 <Plus className="h-4 w-4 mr-1" />
                 Agregar
@@ -455,22 +536,8 @@ function UnitsModal({
                           {conversionInfo?.secondary_unit?.label &&
                             ` (${conversionInfo.secondary_unit.label})`}
                         </span>
-                        {unit.is_main_unit && (
-                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-primary text-primary-foreground">
-                            Primaria
-                          </span>
-                        )}
                       </div>
                       <div className="flex items-center space-x-2">
-                        {!unit.is_main_unit && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setAsPrimary(unit.convertion_id)}
-                          >
-                            Hacer primaria
-                          </Button>
-                        )}
                         <Button
                           variant="ghost"
                           size="sm"
@@ -516,9 +583,6 @@ export default function CreateConsumableForm({
   const [unitsModalOpen, setUnitsModalOpen] = useState(false);
   const [selectedUnits, setSelectedUnits] = useState<UnitSelection[]>([]);
 
-  // Nuevo estado para controlar la visibilidad
-  const [showResultQuantity, setShowResultQuantity] = useState(true);
-
   // Data hooks
   const {
     data: batches,
@@ -537,10 +601,12 @@ export default function CreateConsumableForm({
     error: isConditionsError,
   } = useGetConditions();
 
+  // USAR useGetUnits para el método de ingreso
   const { data: units, isLoading: unitsLoading } = useGetUnits(
     selectedCompany?.slug
   );
 
+  // Mantener useGetSecondaryUnits solo para el modal de conversiones adicionales
   const { data: secondaryUnits, isLoading: secondaryUnitsLoading } =
     useGetSecondaryUnits(selectedCompany?.slug);
 
@@ -595,6 +661,7 @@ export default function CreateConsumableForm({
       min_quantity: initialData?.consumable?.min_quantity
         ? Number(initialData.consumable.min_quantity)
         : undefined,
+      primary_unit_id: initialData?.primary_unit_id || undefined,
       is_managed: initialData?.consumable?.is_managed
         ? initialData.consumable.is_managed === "1" ||
           initialData.consumable.is_managed === true
@@ -622,6 +689,7 @@ export default function CreateConsumableForm({
       min_quantity: initialData.consumable?.min_quantity
         ? Number(initialData.consumable.min_quantity)
         : undefined,
+      primary_unit_id: initialData?.primary_unit_id || undefined,
       is_managed: initialData.consumable?.is_managed
         ? initialData.consumable.is_managed === "1" ||
           initialData.consumable.is_managed === true
@@ -629,35 +697,12 @@ export default function CreateConsumableForm({
     });
   }, [initialData, form]);
 
-  // Efecto para determinar si mostrar u ocultar el campo de cantidad resultante
-  useEffect(() => {
-    if (secondarySelected) {
-      // Ocultar si no hay unidad secundaria o si la equivalencia es 1 (conversión 1:1)
-      const shouldHide =
-        !secondarySelected.secondary_unit ||
-        secondarySelected.equivalence === 1;
-      setShowResultQuantity(!shouldHide);
-
-      // Si está oculto, sincronizar directamente la cantidad
-      if (shouldHide && secondaryQuantity !== undefined) {
-        form.setValue("quantity", secondaryQuantity || 0, {
-          shouldDirty: true,
-          shouldValidate: true,
-        });
-      }
-    } else {
-      // Si no hay conversión seleccionada, mostrar el campo
-      setShowResultQuantity(true);
-    }
-  }, [secondarySelected, secondaryQuantity, form]);
-
-  // Función para calcular y actualizar la cantidad resultante
+  // Función para calcular y actualizar la cantidad
   const calculateAndUpdateQuantity = (
     quantity: number | undefined,
-    conversion: any
+    selectedUnit: any
   ) => {
     if (quantity === undefined) {
-      // Cuando se borra el input, establecer a 0
       form.setValue("quantity", 0, {
         shouldDirty: true,
         shouldValidate: true,
@@ -665,28 +710,12 @@ export default function CreateConsumableForm({
       return;
     }
 
-    if (conversion) {
-      // Solo calcular si la conversión tiene unidad secundaria y no es 1:1
-      if (conversion.secondary_unit && conversion.equivalence !== 1) {
-        const calculatedQuantity = quantity * (conversion.equivalence || 1);
-        form.setValue("quantity", calculatedQuantity, {
-          shouldDirty: true,
-          shouldValidate: true,
-        });
-      } else {
-        // Para conversiones 1:1 o sin unidad secundaria, usar la cantidad directamente
-        form.setValue("quantity", quantity, {
-          shouldDirty: true,
-          shouldValidate: true,
-        });
-      }
-      // Establecer el convertion_id en todos los casos
-      form.setValue("convertion_id", conversion.id, {
+    if (selectedUnit) {
+      form.setValue("quantity", quantity, {
         shouldDirty: true,
-        shouldValidate: false,
+        shouldValidate: true,
       });
     } else {
-      // Si no hay conversión seleccionada, usar la cantidad directamente
       form.setValue("quantity", quantity, {
         shouldDirty: true,
         shouldValidate: true,
@@ -694,7 +723,7 @@ export default function CreateConsumableForm({
     }
   };
 
-  // Modificar el efecto existente para calcular la cantidad resultante
+  // Modificar el efecto existente para calcular la cantidad
   useEffect(() => {
     if (secondarySelected && secondaryQuantity !== undefined) {
       calculateAndUpdateQuantity(secondaryQuantity, secondarySelected);
@@ -709,7 +738,6 @@ export default function CreateConsumableForm({
         shouldValidate: true,
       });
 
-      // Notificar al usuario
       if (searchResults.length === 1) {
         console.log("✓ Descripción autocompletada");
       } else {
@@ -725,17 +753,6 @@ export default function CreateConsumableForm({
       console.log("No se encontraron descripciones para este part number");
     }
   }, [searchResults, form, isEditing, partNumberToSearch]);
-
-  // Sincronizar checkbox con unidad seleccionada
-  useEffect(() => {
-    if (secondarySelected) {
-      const isCurrentlyPrimary = selectedUnits.some(
-        (unit) =>
-          unit.convertion_id === secondarySelected.id && unit.is_main_unit
-      );
-      // El checkbox se maneja automáticamente por el estado
-    }
-  }, [secondarySelected, selectedUnits]);
 
   const normalizeUpper = (s?: string) => s?.trim().toUpperCase() ?? "";
 
@@ -777,6 +794,7 @@ export default function CreateConsumableForm({
       alternative_part_number?: string[];
       batch_name?: string;
       convertions?: UnitSelection[];
+      primary_unit_id?: number;
     } = {
       ...values,
       status: "CHECKING",
@@ -791,8 +809,8 @@ export default function CreateConsumableForm({
         ? format(fabricationDate, "yyyy-MM-dd")
         : undefined,
       batch_name: enableBatchNameEdit ? values.batch_name : undefined,
-      // Incluir las unidades seleccionadas en el envío
       convertions: selectedUnits.length > 0 ? selectedUnits : undefined,
+      primary_unit_id: secondarySelected?.id,
     };
 
     if (isEditing && initialData) {
@@ -812,7 +830,7 @@ export default function CreateConsumableForm({
       setCaducateDate(undefined);
       setSecondarySelected(null);
       setSecondaryQuantity(undefined);
-      setSelectedUnits([]); // Limpiar unidades al crear
+      setSelectedUnits([]);
     }
   }
 
@@ -841,7 +859,6 @@ export default function CreateConsumableForm({
                         onBlur={(e) => {
                           const normalized = normalizeUpper(e.target.value);
                           field.onChange(normalized);
-                          // Iniciar búsqueda si hay un valor y no está editando
                           if (
                             normalized &&
                             normalized.length >= 2 &&
@@ -1220,78 +1237,59 @@ export default function CreateConsumableForm({
           {/* Ingreso y cantidad */}
           <SectionCard title="Ingreso y cantidad">
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-              {/* Método de ingreso (conversiones secundarias) */}
+              {/* Método de ingreso (unidades primarias) */}
               <div className="flex flex-col space-y-2 mt-2.5">
                 <FormLabel>Método de ingreso</FormLabel>
                 <Popover open={secondaryOpen} onOpenChange={setSecondaryOpen}>
                   <PopoverTrigger asChild>
                     <Button
-                      disabled={secondaryUnitsLoading || busy}
+                      disabled={unitsLoading || busy}
                       variant="outline"
                       role="combobox"
                       aria-expanded={secondaryOpen}
                       className="justify-between"
                     >
                       {secondarySelected
-                        ? `${secondarySelected.secondary_unit?.label ?? ""} ${
-                            secondarySelected.secondary_unit
-                              ? `(${secondarySelected.primary_unit.label})`
-                              : secondarySelected.primary_unit.label
-                          }`
-                        : secondaryUnitsLoading
+                        ? `${secondarySelected.label}`
+                        : unitsLoading
                           ? "Cargando..."
-                          : "Seleccione..."}
+                          : "Seleccione una unidad"}
                       <ChevronsUpDown className="opacity-50" />
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-[300px] p-0">
                     <Command>
-                      <CommandInput placeholder="Buscar conversión..." />
+                      <CommandInput placeholder="Buscar unidad..." />
                       <CommandList>
                         <CommandEmpty>
-                          No existen conversiones disponibles.
+                          No existen unidades disponibles.
                         </CommandEmpty>
                         <CommandGroup>
-                          {secondaryUnits?.map((conversion) => (
+                          {units?.map((unit) => (
                             <CommandItem
-                              key={conversion.id}
-                              value={conversion.id.toString()}
+                              key={unit.id}
+                              value={unit.id.toString()}
                               onSelect={(val) => {
                                 const found =
-                                  secondaryUnits.find(
-                                    (conv) => conv.id.toString() === val
-                                  ) || null;
+                                  units.find((u) => u.id.toString() === val) ||
+                                  null;
                                 setSecondarySelected(found);
                                 setSecondaryOpen(false);
 
-                                // Calcular cantidad inmediatamente al seleccionar
                                 if (found && secondaryQuantity !== undefined) {
-                                  calculateAndUpdateQuantity(
-                                    secondaryQuantity,
-                                    found
-                                  );
+                                  form.setValue("quantity", secondaryQuantity, {
+                                    shouldDirty: true,
+                                    shouldValidate: true,
+                                  });
                                 }
                               }}
                             >
-                              <span className="flex-1">
-                                {conversion.secondary_unit?.label ||
-                                  conversion.primary_unit.label}
-                                {conversion.secondary_unit && (
-                                  <span className="text-muted-foreground">
-                                    {" "}
-                                    ({conversion.primary_unit.label})
-                                  </span>
-                                )}
-                                {!conversion.secondary_unit && (
-                                  <span className="text-muted-foreground text-xs ml-2">
-                                  </span>
-                                )}
-                              </span>
+                              <span className="flex-1">{unit.label}</span>
                               <Check
                                 className={cn(
                                   "ml-2",
                                   secondarySelected?.id.toString() ===
-                                    conversion.id.toString()
+                                    unit.id.toString()
                                     ? "opacity-100"
                                     : "opacity-0"
                                 )}
@@ -1304,74 +1302,59 @@ export default function CreateConsumableForm({
                   </PopoverContent>
                 </Popover>
                 <p className="text-sm text-muted-foreground">
-                  Seleccione una conversión para el ingreso del artículo.
+                  Seleccione la unidad para el ingreso del artículo.
                 </p>
               </div>
 
               {/* Cantidad */}
-              <div className="space-y-2">
-                <FormLabel>Cantidad</FormLabel>
-                <Input
-                  type="number"
-                  inputMode="decimal"
-                  disabled={busy}
-                  min="0"
-                  value={secondaryQuantity ?? ""}
-                  onChange={(e) => {
-                    const value = e.target.value;
+              <FormField
+                control={form.control}
+                name="quantity"
+                render={({ field }) => (
+                  <FormItem className="w-full">
+                    <FormLabel>Cantidad</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        inputMode="decimal"
+                        disabled={busy}
+                        min="0"
+                        value={secondaryQuantity ?? ""}
+                        onChange={(e) => {
+                          const value = e.target.value;
 
-                    // Manejar cuando el input está vacío
-                    if (value === "") {
-                      setSecondaryQuantity(undefined);
-                      calculateAndUpdateQuantity(undefined, secondarySelected);
-                      return;
-                    }
+                          if (value === "") {
+                            setSecondaryQuantity(undefined);
+                            calculateAndUpdateQuantity(
+                              undefined,
+                              secondarySelected
+                            );
+                            field.onChange(0);
+                            return;
+                          }
 
-                    const n = parseFloat(value);
-                    if (!Number.isNaN(n) && n < 0) return;
+                          const n = parseFloat(value);
+                          if (!Number.isNaN(n) && n < 0) return;
 
-                    const newQuantity = Number.isNaN(n) ? undefined : n;
-                    setSecondaryQuantity(newQuantity);
+                          const newQuantity = Number.isNaN(n) ? undefined : n;
+                          setSecondaryQuantity(newQuantity);
 
-                    // Calcular en tiempo real
-                    calculateAndUpdateQuantity(newQuantity, secondarySelected);
-                  }}
-                  placeholder="Ej: 2, 4, 6..."
-                />
-                <p className="text-sm text-muted-foreground">
-                  Cantidad según método de ingreso seleccionado.
-                </p>
-              </div>
-
-              {/* Cantidad resultante - CONDICIONAL */}
-              {showResultQuantity ? (
-                <FormField
-                  control={form.control}
-                  name="quantity"
-                  render={({ field }) => (
-                    <FormItem className="w-full">
-                      <FormLabel>Cantidad resultante</FormLabel>
-                      <FormControl>
-                        <Input
-                          disabled
-                          type="number"
-                          placeholder="0"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormDescription>
-                        {secondarySelected
-                          ? `Equivalente en ${secondarySelected.primary_unit.label}`
-                          : "Unidades base que se registrarán."}
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              ) : (
-                // Espacio vacío para mantener el layout cuando está oculto
-                <div className="w-full"></div>
-              )}
+                          calculateAndUpdateQuantity(
+                            newQuantity,
+                            secondarySelected
+                          );
+                          field.onChange(newQuantity || 0);
+                        }}
+                        placeholder="Ej: 2, 4, 6..."
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      Cantidad según método de ingreso seleccionado.
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
               {/* Cantidad mínima */}
               <FormField
@@ -1415,64 +1398,10 @@ export default function CreateConsumableForm({
                 </Button>
                 <p className="text-sm text-muted-foreground mt-2">
                   {selectedUnits.length > 0
-                    ? `${selectedUnits.length} conversión(es) configurada(s) - ${selectedUnits.filter((u) => u.is_main_unit).length} primaria(s)`
+                    ? `${selectedUnits.length} conversión(es) configurada(s)`
                     : "Configure conversiones de unidades adicionales para este artículo"}
                 </p>
               </div>
-
-              {/* Establecer conversión actual como primaria */}
-              <FormItem className="col-span-1 md:col-span-2 xl:col-span-3 flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-                <FormControl>
-                  <Checkbox
-                    checked={
-                      secondarySelected
-                        ? selectedUnits.some(
-                            (unit) =>
-                              unit.convertion_id === secondarySelected.id &&
-                              unit.is_main_unit
-                          )
-                        : false
-                    }
-                    onCheckedChange={(checked) => {
-                      if (checked && secondarySelected) {
-                        // Agregar la conversión actual como primaria
-                        const newUnit: UnitSelection = {
-                          convertion_id: secondarySelected.id,
-                          is_main_unit: true,
-                        };
-
-                        // Quitar primaria de las demás y agregar esta
-                        const updatedUnits = selectedUnits
-                          .filter(
-                            (unit) =>
-                              unit.convertion_id !== secondarySelected.id
-                          )
-                          .map((unit) => ({ ...unit, is_main_unit: false }));
-
-                        updatedUnits.push(newUnit);
-                        setSelectedUnits(updatedUnits);
-                      } else if (!checked && secondarySelected) {
-                        // Remover la conversión actual si está desmarcada
-                        const updatedUnits = selectedUnits.filter(
-                          (unit) => unit.convertion_id !== secondarySelected.id
-                        );
-                        setSelectedUnits(updatedUnits);
-                      }
-                    }}
-                    disabled={!secondarySelected}
-                  />
-                </FormControl>
-                <div className="space-y-1 leading-none">
-                  <FormLabel>
-                    Establecer la conversión actual como primaria
-                  </FormLabel>
-                  <FormDescription>
-                    {secondarySelected
-                      ? `La conversión "${secondarySelected.secondary_unit?.label || secondarySelected.primary_unit.label}" ${selectedUnits.some((unit) => unit.convertion_id === secondarySelected.id && unit.is_main_unit) ? "está establecida" : "se establecerá"} como primaria para despacho.`
-                      : "Seleccione primero una conversión de ingreso para establecerla como primaria."}
-                  </FormDescription>
-                </div>
-              </FormItem>
             </div>
           </SectionCard>
 
@@ -1599,6 +1528,8 @@ export default function CreateConsumableForm({
         secondaryUnits={secondaryUnits || []}
         selectedUnits={selectedUnits}
         onSelectedUnitsChange={setSelectedUnits}
+        primaryUnit={secondarySelected}
+        allUnits={units}
       />
     </>
   );
