@@ -30,6 +30,19 @@ export const secondary_columns: ColumnDef<Convertion>[] = [
   {
     accessorKey: "label",
     header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Valor por U." />
+    ),
+    cell: ({ row }) => (
+      <div className="flex justify-center">
+        <span className="font-bold text-center">
+          {row.original.equivalence}
+        </span>
+      </div>
+    ),
+  },
+  {
+    accessorKey: "label",
+    header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Unidad Primaria" />
     ),
     cell: ({ row }) => (
@@ -56,25 +69,12 @@ export const secondary_columns: ColumnDef<Convertion>[] = [
   {
     accessorKey: "label",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Valor por U." />
-    ),
-    cell: ({ row }) => (
-      <div className="flex justify-center">
-        <span className="font-bold text-center">
-          {row.original.equivalence}
-        </span>
-      </div>
-    ),
-  },
-  {
-    accessorKey: "label",
-    header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Unidad Secundaria" />
     ),
     cell: ({ row }) => (
       <div className="flex justify-center">
         <span className="font-bold text-center">
-          {row.original.secondary_unit?.label ?? 'N/A'}
+          {row.original.secondary_unit?.label ?? "N/A"}
         </span>
       </div>
     ),
@@ -87,7 +87,7 @@ export const secondary_columns: ColumnDef<Convertion>[] = [
     cell: ({ row }) => (
       <div className="flex justify-center">
         <span className="font-bold text-center">
-          {row.original.secondary_unit?.value ?? 'N/A'}
+          {row.original.secondary_unit?.value ?? "N/A"}
         </span>
       </div>
     ),

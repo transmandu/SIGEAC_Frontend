@@ -68,6 +68,7 @@ export type Article = {
   certifcate_vendor?: File | string;
   certifcate_fabricant?: File | string;
   image?: File | string;
+  primary_unit_id?: number;
 };
 
 export type Bank = {

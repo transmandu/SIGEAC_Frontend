@@ -5,7 +5,6 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 interface UnitSelection {
   convertion_id: number;
-  is_main_unit: boolean;
 }
 interface ArticleData {
   serial?: string;
@@ -32,6 +31,7 @@ interface ArticleData {
   certificate_vendor?: File | string;
   image?: File | string;
   convertions?: UnitSelection[];
+  primary_unit_id?: number;
 }
 
 export const useCreateArticle = () => {

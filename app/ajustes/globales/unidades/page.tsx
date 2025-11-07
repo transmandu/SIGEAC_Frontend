@@ -17,7 +17,7 @@ const UnitsPage = () => {
     isLoading: primaryLoading,
     isError: primaryError,
   } = useGetUnits(selectedCompany?.slug);
-  
+
   const {
     data: secondaryUnits,
     isLoading: secondaryLoading,
@@ -37,10 +37,12 @@ const UnitsPage = () => {
         Aquí puede llevar el control de las unidades primarias para las
         diferentes conversiones necesarias.
       </p>
-      <div className="flex flex-col lg:flex-row gap-2">
+      <div className="flex justify-center items-center">
         {primaryUnits && (
           <PrimaryDataTable columns={columns} data={primaryUnits} />
         )}
+      </div>
+      <div>
         {secondaryUnits && (
           <SecondaryDataTable
             columns={secondary_columns}
