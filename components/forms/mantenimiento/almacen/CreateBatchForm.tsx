@@ -39,7 +39,7 @@ const FormSchema = z.object({
   }),
   description: z.string({
     message: "Debe introducir una descripcion válida."
-  }),
+  }).optional(),
   category: z.string({
     message: "Debe ingresar una categoria para el lote."
   }),
@@ -153,7 +153,7 @@ export function CreateBatchForm({ onClose, onSuccess }: FormProps) {
             name="name"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Nombre</FormLabel>
+                <FormLabel>Descripción</FormLabel>
                 <FormControl>
                   <Input placeholder="EJ: Martillos " {...field} />
                 </FormControl>
@@ -261,7 +261,7 @@ export function CreateBatchForm({ onClose, onSuccess }: FormProps) {
           name="description"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Descripción</FormLabel>
+              <FormLabel>Observación</FormLabel>
               <FormControl>
                 <Textarea rows={4} placeholder="EJ: #### - ### - ###" {...field} />
               </FormControl>

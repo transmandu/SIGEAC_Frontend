@@ -37,7 +37,9 @@ import { Batch } from "@/types";
 import loadingGif from "@/public/loading2.gif";
 import { EditingArticle } from "./RegisterArticleForm";
 import { CreateManufacturerDialog } from "@/components/dialogs/general/CreateManufacturerDialog";
+import { CreateBatchDialog } from "@/components/dialogs/mantenimiento/almacen/CreateBatchDialog";
 import { useUpdateArticle } from "@/actions/mantenimiento/almacen/inventario/articulos/actions";
+import { useQueryClient } from "@tanstack/react-query";
 
 /* ------------------------------- Schema ------------------------------- */
 
@@ -238,12 +240,13 @@ function DatePickerField({
 
 export default function CreateToolForm({ initialData, isEditing }: { initialData?: EditingArticle; isEditing?: boolean }) {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const { selectedCompany, selectedStation } = useCompanyStore();
 
   // Local state for part number search
   const [partNumberToSearch, setPartNumberToSearch] = useState<string | undefined>(undefined);
 
-  const { data: batches, isPending: isBatchesLoading, isError: isBatchesError } = useGetBatchesByCategory("herramienta");
+  const { data: batches, isPending: isBatchesLoading, isError: isBatchesError, refetch: refetchBatches } = useGetBatchesByCategory("herramienta");
   const { data: manufacturers, isLoading: isManufacturerLoading, isError: isManufacturerError } = useGetManufacturers(selectedCompany?.slug);
 
   // Search batches by part number
@@ -458,7 +461,33 @@ export default function CreateToolForm({ initialData, isEditing }: { initialData
                 name="batch_id"
                 render={({ field }) => (
                   <FormItem className="w-full">
-                    <FormLabel>Descripción</FormLabel>
+                    <div className="flex items-center justify-between">
+                      <FormLabel>Descripción</FormLabel>
+                      <CreateBatchDialog
+                        onSuccess={async (batchName) => {
+                          // Invalidar la query y refetch para obtener el batch recién creado
+                          await queryClient.invalidateQueries({ 
+                            queryKey: ["search-batches", selectedCompany?.slug, selectedStation, "herramienta"] 
+                          });
+                          const { data: updatedBatches } = await refetchBatches();
+                          const newBatch = updatedBatches?.find((b: any) => b.name === batchName);
+                          if (newBatch) {
+                            form.setValue("batch_id", newBatch.id.toString(), { shouldValidate: true });
+                          }
+                        }}
+                        triggerButton={
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="h-7 text-xs"
+                          >
+                            <Plus className="h-3 w-3 mr-1" />
+                            Crear nuevo
+                          </Button>
+                        }
+                      />
+                    </div>
                     <Select
                       onValueChange={(value) => {
                         field.onChange(value);

@@ -77,6 +77,8 @@ import { Batch, Convertion } from "@/types";
 import loadingGif from "@/public/loading2.gif";
 import { EditingArticle } from "./RegisterArticleForm";
 import { CreateManufacturerDialog } from "@/components/dialogs/general/CreateManufacturerDialog";
+import { CreateBatchDialog } from "@/components/dialogs/mantenimiento/almacen/CreateBatchDialog";
+import { useQueryClient } from "@tanstack/react-query";
 
 /* ------------------------------- Schema ------------------------------- */
 
@@ -323,13 +325,14 @@ export default function CreateConsumableForm({
   isEditing?: boolean;
 }) {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const { selectedCompany, selectedStation } = useCompanyStore();
 
   // Local state for part number search
   const [partNumberToSearch, setPartNumberToSearch] = useState<string | undefined>(undefined);
   
   // Data hooks
-  const { data: batches, isPending: isBatchesLoading, isError: isBatchesError } = useGetBatchesByCategory("consumible");
+  const { data: batches, isPending: isBatchesLoading, isError: isBatchesError, refetch: refetchBatches } = useGetBatchesByCategory("consumible");
   const { data: manufacturers, isLoading: isManufacturerLoading, isError: isManufacturerError } = useGetManufacturers(selectedCompany?.slug);
   const { data: conditions, isLoading: isConditionsLoading, error: isConditionsError } = useGetConditions();
   const { data: secondaryUnits, isLoading: secondaryLoading } = useGetSecondaryUnits(selectedCompany?.slug);
@@ -608,7 +611,33 @@ export default function CreateConsumableForm({
                 name="batch_id"
                 render={({ field }) => (
                   <FormItem className="flex flex-col space-y-3 mt-1.5 w-full">
-                    <FormLabel>Descripción de Consumible</FormLabel>
+                    <div className="flex items-center justify-between">
+                      <FormLabel>Descripción de Consumible</FormLabel>
+                      <CreateBatchDialog
+                        onSuccess={async (batchName) => {
+                          // Invalidar la query y refetch para obtener el batch recién creado
+                          await queryClient.invalidateQueries({ 
+                            queryKey: ["search-batches", selectedCompany?.slug, selectedStation, "consumible"] 
+                          });
+                          const { data: updatedBatches } = await refetchBatches();
+                          const newBatch = updatedBatches?.find((b: any) => b.name === batchName);
+                          if (newBatch) {
+                            form.setValue("batch_id", newBatch.id.toString(), { shouldValidate: true });
+                          }
+                        }}
+                        triggerButton={
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="h-7 text-xs"
+                          >
+                            <Plus className="h-3 w-3 mr-1" />
+                            Crear nuevo
+                          </Button>
+                        }
+                      />
+                    </div>
                     <Popover>
                       <PopoverTrigger asChild>
                         <FormControl>
