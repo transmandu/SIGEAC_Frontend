@@ -1,36 +1,36 @@
 import axiosInstance from "@/lib/axios"
+import { useCompanyStore } from "@/stores/CompanyStore";
 import { useMutation, useQueryClient } from "@tanstack/react-query"
-import { toast } from "sonner"
 
 interface unitConversionData {
+  destination_unit_id: number;
+  consumable_unit_id: number;
   quantity: number;
-  from_unit: number;
-  to_unit: number;
 }
 
-export const usemakeConvertion = () => {
+export const getConvertionArticle = () => {
 
   const queryClient = useQueryClient()
-
+  const { selectedCompany } = useCompanyStore();
   const createMutation = useMutation({
     mutationFn: async (data: unitConversionData) => {
-      const response = await axiosInstance.post(`/convertion-unit`, data, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
+      const response = await axiosInstance.post(
+        `${selectedCompany?.slug}/get-convertion-articles`,
+        data,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+      console.log("THIS IS DATA FROM POST", data,'se[eracion', response.data);
           return response.data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["unit-convertion-post"] });
-    //   toast.success("¡Creado!", {
-    //     description: `La requisicion ha sido creada correctamente.`,
-    //   });
+      queryClient.invalidateQueries({ queryKey: ["get-article-conversion"] });
+
     },
     onError: (error) => {
-    //   toast.error("Oops!", {
-    //     description: "No se pudo crear la requisicion...",
-    //   });
       console.log(error);
     },
   });
