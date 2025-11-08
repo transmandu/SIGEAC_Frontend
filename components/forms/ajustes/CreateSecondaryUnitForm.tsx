@@ -33,10 +33,6 @@ import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import { useCompanyStore } from "@/stores/CompanyStore";
 
-// ------------------------------------
-// ✅ CORRECCIÓN 1: Validaciones de Zod
-// Se mantiene z.coerce.number() para convertir el string del input a número.
-// ------------------------------------
 const formSchema = z.object({
   equivalence: z.coerce
     .number({ invalid_type_error: "Debe ser un número válido." })
@@ -194,9 +190,7 @@ export default function CreateSecondaryUnitForm({ onClose }: FormProps) {
                     </PopoverContent>
                   </Popover>
                 </FormControl>
-                <FormDescription>
-                  Seleccione la unidad primaria base para la conversión
-                </FormDescription>
+                <FormDescription></FormDescription>
                 <FormMessage />
               </FormItem>
             )}
@@ -213,7 +207,7 @@ export default function CreateSecondaryUnitForm({ onClose }: FormProps) {
                 <FormControl>
                   {/* ✅ CORRECCIÓN 3: CAMBIAMOS 'type="number"' a 'type="text"' */}
                   <Input
-                    type="text"
+                    type="number"
                     inputMode="decimal" // Sugerencia para teclados móviles
                     min="0.001" // Propiedades para la descripción
                     step="0.001" // Propiedades para la descripción
@@ -234,8 +228,6 @@ export default function CreateSecondaryUnitForm({ onClose }: FormProps) {
                   />
                 </FormControl>
                 <FormDescription>
-                  ¿Cuántas unidades de la unidad primaria contiene esta unidad
-                  secundaria?
                   {selectedPrimaryUnit && selectedSecondaryUnit && (
                     <span className="block mt-1 text-sm text-muted-foreground italic">
                       Ejemplo: 1 {selectedSecondaryUnit.label} ={" "}
@@ -326,10 +318,7 @@ export default function CreateSecondaryUnitForm({ onClose }: FormProps) {
                     </PopoverContent>
                   </Popover>
                 </FormControl>
-                <FormDescription>
-                  Seleccione la unidad primaria que actuará como unidad
-                  secundaria en esta conversión
-                </FormDescription>
+                <FormDescription></FormDescription>
                 <FormMessage />
               </FormItem>
             )}
