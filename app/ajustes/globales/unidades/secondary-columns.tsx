@@ -3,34 +3,16 @@ import { ColumnDef } from "@tanstack/react-table";
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
 import SecondaryUnitDropdownActions from "@/components/dropdowns/ajustes/SecondaryUnitDropdownActions";
 import { Convertion } from "@/types";
+import { Calculator } from "lucide-react";
 
 export const secondary_columns: ColumnDef<Convertion>[] = [
-  // {
-  //   id: "select",
-  //   header: ({ table }) => (
-  //     <Checkbox
-  //       checked={
-  //         table.getIsAllPageRowsSelected() ||
-  //         (table.getIsSomePageRowsSelected() && "indeterminate")
-  //       }
-  //       onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-  //       aria-label="Seleccionar todos"
-  //     />
-  //   ),
-  //   cell: ({ row }) => (
-  //     <Checkbox
-  //       checked={row.getIsSelected()}
-  //       onCheckedChange={(value) => row.toggleSelected(!!value)}
-  //       aria-label="Seleccionar fila"
-  //     />
-  //   ),
-  //   enableSorting: false,
-  //   enableHiding: false,
-  // },
   {
     accessorKey: "label",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Valor por U." />
+      <div className="flex items-center gap-2 justify-center">
+        <Calculator className="h-4 w-4" />
+        <DataTableColumnHeader column={column} title="Valor por U." />
+      </div>
     ),
     cell: ({ row }) => (
       <div className="flex justify-center">
@@ -50,18 +32,8 @@ export const secondary_columns: ColumnDef<Convertion>[] = [
         <span className="font-bold text-center">
           {row.original.primary_unit.label}
         </span>
-      </div>
-    ),
-  },
-  {
-    accessorKey: "value",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Simbolo" />
-    ),
-    cell: ({ row }) => (
-      <div className="flex justify-center">
-        <span className="font-bold text-center">
-          {row.original.primary_unit.value}
+        <span className="font-light text-center items-center text-xs ml-1 ">
+          ({row.original.primary_unit.value})
         </span>
       </div>
     ),
@@ -76,18 +48,8 @@ export const secondary_columns: ColumnDef<Convertion>[] = [
         <span className="font-bold text-center">
           {row.original.secondary_unit?.label ?? "N/A"}
         </span>
-      </div>
-    ),
-  },
-  {
-    accessorKey: "value",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Simbolo" />
-    ),
-    cell: ({ row }) => (
-      <div className="flex justify-center">
-        <span className="font-bold text-center">
-          {row.original.secondary_unit?.value ?? "N/A"}
+        <span className="font-light text-center text-xs ml-1">
+          ({row.original.secondary_unit?.value ?? ""})
         </span>
       </div>
     ),
