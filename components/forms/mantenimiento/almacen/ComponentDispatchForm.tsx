@@ -15,7 +15,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useGetBatchesWithInWarehouseArticles } from "@/hooks/mantenimiento/almacen/renglones/useGetBatchesWithInWarehouseArticles";
 import { useGetWorkOrderEmployees } from "@/hooks/mantenimiento/planificacion/useGetWorkOrderEmployees";
 import { useGetWorkOrders } from "@/hooks/mantenimiento/planificacion/useGetWorkOrders";
-import { useGetDepartments } from "@/hooks/sistema/departamento/useGetDepartment"
+import { useGetMaintenanceAircrafts } from "@/hooks/mantenimiento/planificacion/useGetMaintenanceAircrafts";
 import { cn } from "@/lib/utils";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { Article, Batch } from "@/types";
@@ -119,7 +119,9 @@ export function ComponentDispatchForm({ onClose }: FormProps) {
     selectedCompany?.slug
   );
 
-  const { data: departments, isLoading: isDepartmentsLoading } = useGetDepartments(selectedCompany?.slug);
+  const { data: aircrafts, isLoading: isAircraftsLoading } = useGetMaintenanceAircrafts(
+    selectedCompany?.slug
+  );
 
   // useEffect(() => {
   //   if (selectedStation) {
@@ -343,21 +345,36 @@ export function ComponentDispatchForm({ onClose }: FormProps) {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Destino</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Select 
+                  onValueChange={field.onChange} 
+                  defaultValue={field.value}
+                  disabled={isAircraftsLoading}
+                >
                   <FormControl>
                     <SelectTrigger className="w-[230px]">
-                      <SelectValue placeholder="Seleccione..." />
+                      <SelectValue placeholder="Seleccione una aeronave..." />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {
-                      isDepartmentsLoading && <Loader2 className="size-4 animate-spin" />
-                    }
-                    {
-                      departments && departments.map((department) => (
-                        <SelectItem key={department.id} value={department.id.toString()}>{department.name}</SelectItem>
-                      ))
-                    }
+                    {isAircraftsLoading && (
+                      <div className="flex items-center justify-center py-4">
+                        <Loader2 className="size-4 animate-spin text-muted-foreground" />
+                      </div>
+                    )}
+                    {!isAircraftsLoading && aircrafts && aircrafts.length === 0 && (
+                      <div className="py-4 text-center text-sm text-muted-foreground">
+                        No hay aeronaves disponibles
+                      </div>
+                    )}
+                    {aircrafts &&
+                      aircrafts.map((aircraft) => (
+                        <SelectItem
+                          key={aircraft.id}
+                          value={aircraft.id.toString()}
+                        >
+                          {aircraft.acronym} - {aircraft.manufacturer.name}
+                        </SelectItem>
+                      ))}
                   </SelectContent>
                 </Select>
                 <FormMessage />

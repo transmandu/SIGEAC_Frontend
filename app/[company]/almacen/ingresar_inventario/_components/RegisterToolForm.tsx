@@ -26,7 +26,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 
-import { useGetConditions } from "@/hooks/administracion/useGetConditions";
 import { useGetManufacturers } from "@/hooks/general/fabricantes/useGetManufacturers";
 import { useGetBatchesByCategory } from "@/hooks/mantenimiento/almacen/renglones/useGetBatchesByCategory";
 import { useSearchBatchesByPartNumber } from "@/hooks/mantenimiento/almacen/renglones/useGetBatchesByArticlePartNumber";
@@ -38,7 +37,9 @@ import { Batch } from "@/types";
 import loadingGif from "@/public/loading2.gif";
 import { EditingArticle } from "./RegisterArticleForm";
 import { CreateManufacturerDialog } from "@/components/dialogs/general/CreateManufacturerDialog";
+import { CreateBatchDialog } from "@/components/dialogs/mantenimiento/almacen/CreateBatchDialog";
 import { useUpdateArticle } from "@/actions/mantenimiento/almacen/inventario/articulos/actions";
+import { useQueryClient } from "@tanstack/react-query";
 
 /* ------------------------------- Schema ------------------------------- */
 
@@ -55,8 +56,7 @@ const formSchema = z
     batch_name: z.string().optional(),
     zone: z.string().min(1, "Campo requerido"),
     manufacturer_id: z.string().min(1, "Seleccione un fabricante"),
-    condition_id: z.string().min(1, "Seleccione una condición"),
-    batch_id: z.string().min(1, "Seleccione una categoría"),
+    batch_id: z.string().min(1, "Seleccione una descripción"),
 
     // Calibración
     needs_calibration: z.boolean().optional(),
@@ -165,12 +165,15 @@ function DatePickerField({
   onSelect,
   description,
   busy,
+  maxYear,
 }: {
   label: string;
   value?: Date;
   onSelect: (d?: Date) => void;
   description?: string;
   busy?: boolean;
+  /** Año máximo permitido. Si no se especifica, será el año actual + 20 */
+  maxYear?: number;
 }) {
   return (
     <FormItem className="flex flex-col w-full mt-1.5 space-y-3">
@@ -188,8 +191,43 @@ function DatePickerField({
             </Button>
           </FormControl>
         </PopoverTrigger>
-        <PopoverContent className="w-auto p-0" align="start">
-          <Calendar locale={es} mode="single" selected={value} onSelect={onSelect} initialFocus month={value} />
+        <PopoverContent 
+          className="w-auto p-0 z-[100]" 
+          align="start"
+          side="bottom"
+          sideOffset={8}
+          avoidCollisions={true}
+        >
+          <Calendar 
+            locale={es} 
+            mode="single" 
+            selected={value} 
+            onSelect={onSelect} 
+            initialFocus 
+            defaultMonth={value ?? new Date()}
+            captionLayout="dropdown-buttons"
+            fromYear={1900}
+            toYear={maxYear ?? new Date().getFullYear() + 20}
+            classNames={{
+              caption_label: "hidden",
+              caption: "flex justify-center pt-1 relative items-center mb-2",
+              caption_dropdowns: "flex justify-center gap-2 items-center",
+              nav: "hidden",
+              nav_button: "hidden",
+              nav_button_previous: "hidden",
+              nav_button_next: "hidden",
+            }}
+            components={{
+              Dropdown: (props) => (
+                <select
+                  {...props}
+                  className="h-9 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-md px-3 py-1 text-sm font-medium text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 transition-colors cursor-pointer"
+                >
+                  {props.children}
+                </select>
+              ),
+            }}
+          />
         </PopoverContent>
       </Popover>
       {description ? <FormDescription>{description}</FormDescription> : null}
@@ -202,14 +240,14 @@ function DatePickerField({
 
 export default function CreateToolForm({ initialData, isEditing }: { initialData?: EditingArticle; isEditing?: boolean }) {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const { selectedCompany, selectedStation } = useCompanyStore();
 
   // Local state for part number search
   const [partNumberToSearch, setPartNumberToSearch] = useState<string | undefined>(undefined);
 
-  const { data: batches, isPending: isBatchesLoading, isError: isBatchesError } = useGetBatchesByCategory("herramienta");
+  const { data: batches, isPending: isBatchesLoading, isError: isBatchesError, refetch: refetchBatches } = useGetBatchesByCategory("herramienta");
   const { data: manufacturers, isLoading: isManufacturerLoading, isError: isManufacturerError } = useGetManufacturers(selectedCompany?.slug);
-  const { data: conditions, isLoading: isConditionsLoading, error: isConditionsError } = useGetConditions();
 
   // Search batches by part number
   const { data: searchResults, isFetching: isSearching } = useSearchBatchesByPartNumber(
@@ -234,7 +272,6 @@ export default function CreateToolForm({ initialData, isEditing }: { initialData
       description: initialData?.description || "",
       zone: initialData?.zone || "",
       manufacturer_id: initialData?.manufacturer?.id?.toString() || "",
-      condition_id: initialData?.condition?.id?.toString() || "",
       batch_id: initialData?.batches?.id?.toString() || "",
       batch_name: initialData?.batches?.name || "",
       needs_calibration: initialData?.tool?.needs_calibration ?? false,
@@ -258,7 +295,6 @@ export default function CreateToolForm({ initialData, isEditing }: { initialData
       description: initialData.description || "",
       zone: initialData.zone || "",
       manufacturer_id: initialData.manufacturer?.id?.toString() || "",
-      condition_id: initialData.condition?.id?.toString() || "",
       batch_id: initialData.batches?.id?.toString() || "",
       batch_name: initialData.batches?.name || "",
       needs_calibration: initialData.tool?.needs_calibration ?? false,
@@ -287,7 +323,6 @@ export default function CreateToolForm({ initialData, isEditing }: { initialData
   const busy = 
     isBatchesLoading || 
     isManufacturerLoading || 
-    isConditionsLoading || 
     createArticle.isPending || 
     confirmIncoming.isPending || 
     updateArticle.isPending;
@@ -426,7 +461,33 @@ export default function CreateToolForm({ initialData, isEditing }: { initialData
                 name="batch_id"
                 render={({ field }) => (
                   <FormItem className="w-full">
-                    <FormLabel>Categoría</FormLabel>
+                    <div className="flex items-center justify-between">
+                      <FormLabel>Descripción</FormLabel>
+                      <CreateBatchDialog
+                        onSuccess={async (batchName) => {
+                          // Invalidar la query y refetch para obtener el batch recién creado
+                          await queryClient.invalidateQueries({ 
+                            queryKey: ["search-batches", selectedCompany?.slug, selectedStation, "herramienta"] 
+                          });
+                          const { data: updatedBatches } = await refetchBatches();
+                          const newBatch = updatedBatches?.find((b: any) => b.name === batchName);
+                          if (newBatch) {
+                            form.setValue("batch_id", newBatch.id.toString(), { shouldValidate: true });
+                          }
+                        }}
+                        triggerButton={
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="h-7 text-xs"
+                          >
+                            <Plus className="h-3 w-3 mr-1" />
+                            Crear nuevo
+                          </Button>
+                        }
+                      />
+                    </div>
                     <Select
                       onValueChange={(value) => {
                         field.onChange(value);
@@ -450,7 +511,7 @@ export default function CreateToolForm({ initialData, isEditing }: { initialData
                             placeholder={
                               isBatchesLoading
                                 ? "Cargando..."
-                                : "Seleccione categoría..."
+                                : "Seleccione descripción..."
                             }
                           />
                         </SelectTrigger>
@@ -471,7 +532,7 @@ export default function CreateToolForm({ initialData, isEditing }: { initialData
                               </SelectItem>
                             ))}
                             <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">
-                              Otras categorías
+                              Otras descripciones
                             </div>
                           </>
                         )}
@@ -488,12 +549,12 @@ export default function CreateToolForm({ initialData, isEditing }: { initialData
                           !isBatchesLoading &&
                           !isBatchesError && (
                             <div className="p-2 text-sm text-muted-foreground text-center">
-                              No se han encontrado categorías.
+                              No se han encontrado descripciones.
                             </div>
                           )}
                         {isBatchesError && (
                           <div className="p-2 text-sm text-muted-foreground text-center">
-                            Error al cargar categorías.
+                            Error al cargar descripciones.
                           </div>
                         )}
                       </SelectContent>
@@ -613,47 +674,6 @@ export default function CreateToolForm({ initialData, isEditing }: { initialData
                     </SelectContent>
                   </Select>
                   <FormDescription>Marca del fabricante.</FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="condition_id"
-              render={({ field }) => (
-                <FormItem className="w-full">
-                  <FormLabel>Condición</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    value={field.value}
-                    disabled={isConditionsLoading || busy}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue
-                          placeholder={
-                            isConditionsLoading
-                              ? "Cargando..."
-                              : "Seleccione..."
-                          }
-                        />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {conditions?.map((c) => (
-                        <SelectItem key={c.id} value={c.id.toString()}>
-                          {c.name}
-                        </SelectItem>
-                      ))}
-                      {isConditionsError && (
-                        <div className="p-2 text-sm text-muted-foreground">
-                          Error al cargar condiciones.
-                        </div>
-                      )}
-                    </SelectContent>
-                  </Select>
-                  <FormDescription>Estado físico/operativo.</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -850,8 +870,7 @@ export default function CreateToolForm({ initialData, isEditing }: { initialData
               !selectedCompany ||
               !form.getValues("part_number") ||
               !form.getValues("batch_id") ||
-              !form.getValues("manufacturer_id") ||
-              !form.getValues("condition_id")
+              !form.getValues("manufacturer_id")
             }
             type="submit"
           >

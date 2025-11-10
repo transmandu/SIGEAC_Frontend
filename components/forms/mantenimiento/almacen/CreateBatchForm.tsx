@@ -39,7 +39,7 @@ const FormSchema = z.object({
   }),
   description: z.string({
     message: "Debe introducir una descripcion válida."
-  }),
+  }).optional(),
   category: z.string({
     message: "Debe ingresar una categoria para el lote."
   }),
@@ -56,9 +56,10 @@ type FormSchemaType = z.infer<typeof FormSchema>
 
 interface FormProps {
   onClose: () => void
+  onSuccess?: (batchName: string) => void
 }
 
-export function CreateBatchForm({ onClose }: FormProps) {
+export function CreateBatchForm({ onClose, onSuccess }: FormProps) {
 
 
   const {selectedCompany, selectedStation} = useCompanyStore()
@@ -113,6 +114,9 @@ export function CreateBatchForm({ onClose }: FormProps) {
       warehouse_id: Number(data.warehouse_id),
     }
     await createBatch.mutateAsync({data: formattedData, company});
+    if (onSuccess) {
+      onSuccess(data.name);
+    }
     onClose();
   }
 
@@ -149,7 +153,7 @@ export function CreateBatchForm({ onClose }: FormProps) {
             name="name"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Nombre</FormLabel>
+                <FormLabel>Descripción</FormLabel>
                 <FormControl>
                   <Input placeholder="EJ: Martillos " {...field} />
                 </FormControl>
@@ -257,7 +261,7 @@ export function CreateBatchForm({ onClose }: FormProps) {
           name="description"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Descripción</FormLabel>
+              <FormLabel>Observación</FormLabel>
               <FormControl>
                 <Textarea rows={4} placeholder="EJ: #### - ### - ###" {...field} />
               </FormControl>

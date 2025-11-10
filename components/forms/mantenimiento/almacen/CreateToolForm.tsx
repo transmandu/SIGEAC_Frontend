@@ -48,7 +48,6 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 
-import { useGetConditions } from "@/hooks/administracion/useGetConditions";
 import { useGetManufacturers } from "@/hooks/general/fabricantes/useGetManufacturers";
 import { useGetBatchesByCategory } from "@/hooks/mantenimiento/almacen/renglones/useGetBatchesByCategory";
 
@@ -74,8 +73,7 @@ const formSchema = z
     description: z.string().min(2, "Al menos 2 caracteres."),
     zone: z.string().min(1, "Campo requerido"),
     manufacturer_id: z.string().min(1, "Seleccione un fabricante"),
-    condition_id: z.string().min(1, "Seleccione una condición"),
-    batch_id: z.string().min(1, "Seleccione una categoría"),
+    batch_id: z.string().min(1, "Seleccione una descripción"),
 
     // Calibración
     needs_calibration: z.boolean().optional(),
@@ -150,13 +148,6 @@ export default function CreateToolForm({
     isError: isManufacturerError,
   } = useGetManufacturers(selectedCompany?.slug);
 
-  const {
-    data: conditions,
-    isLoading: isConditionsLoading,
-    error: isConditionsError,
-  } = useGetConditions();
-
-  console.log('this is  conditions ' , conditions);
 
   const { createArticle } = useCreateArticle();
   const { updateArticle } = useUpdateArticle();
@@ -171,7 +162,6 @@ export default function CreateToolForm({
       description: initialData?.description || "",
       zone: initialData?.zone || "",
       manufacturer_id: initialData?.manufacturer?.id?.toString() || "",
-      condition_id: initialData?.condition?.id?.toString() || "",
       batch_id: initialData?.batches?.id?.toString() || "",
       needs_calibration: initialData?.tool?.needs_calibration ?? false,
       calibration_date: initialData?.tool?.calibration_date
@@ -195,7 +185,6 @@ export default function CreateToolForm({
       description: initialData.description || "",
       zone: initialData.zone || "",
       manufacturer_id: initialData.manufacturer?.id?.toString() || "",
-      condition_id: initialData.condition?.id?.toString() || "",
       batch_id: initialData.batches?.id?.toString() || "",
       needs_calibration: initialData.tool?.needs_calibration ?? false,
       calibration_date: initialData.tool?.calibration_date
@@ -208,7 +197,6 @@ export default function CreateToolForm({
   const busy =
     isBatchesLoading ||
     isManufacturerLoading ||
-    isConditionsLoading ||
     createArticle.isPending ||
     confirmIncoming.isPending || 
     updateArticle.isPending;
@@ -384,50 +372,10 @@ export default function CreateToolForm({
             />
             <FormField
               control={form.control}
-              name="condition_id"
-              render={({ field }) => (
-                <FormItem className="w-full">
-                  <FormLabel>Condición</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    value={field.value}
-                    disabled={isConditionsLoading}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue
-                          placeholder={
-                            isConditionsLoading
-                              ? "Cargando..."
-                              : "Seleccione..."
-                          }
-                        />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {conditions?.map((c) => (
-                        <SelectItem key={c.id} value={c.id.toString()}>
-                          {c.name}
-                        </SelectItem>
-                      ))}
-                      {isConditionsError && (
-                        <div className="p-2 text-sm text-muted-foreground">
-                          Error al cargar condiciones.
-                        </div>
-                      )}
-                    </SelectContent>
-                  </Select>
-                  <FormDescription>Estado físico/operativo.</FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
               name="batch_id"
               render={({ field }) => (
                 <FormItem className="w-full">
-                  <FormLabel>Categoría</FormLabel>
+                  <FormLabel>Descripción</FormLabel>
                   <Select
                     onValueChange={field.onChange}
                     value={field.value}
@@ -439,7 +387,7 @@ export default function CreateToolForm({
                           placeholder={
                             isBatchesLoading
                               ? "Cargando..."
-                              : "Seleccione categoría..."
+                              : "Seleccione descripción..."
                           }
                         />
                       </SelectTrigger>
@@ -454,12 +402,12 @@ export default function CreateToolForm({
                         !isBatchesLoading &&
                         !isBatchesError && (
                           <div className="p-2 text-sm text-muted-foreground text-center">
-                            No se han encontrado categorías.
+                            No se han encontrado descripciones.
                           </div>
                         )}
                       {isBatchesError && (
                         <div className="p-2 text-sm text-muted-foreground text-center">
-                          Error al cargar categorías.
+                          Error al cargar descripciones.
                         </div>
                       )}
                     </SelectContent>
@@ -764,8 +712,7 @@ export default function CreateToolForm({
               !selectedCompany ||
               !form.getValues("part_number") ||
               !form.getValues("batch_id") ||
-              !form.getValues("manufacturer_id") ||
-              !form.getValues("condition_id")
+              !form.getValues("manufacturer_id")
             }
             type="submit"
           >

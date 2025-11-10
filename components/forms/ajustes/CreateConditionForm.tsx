@@ -11,26 +11,45 @@ import { z } from "zod";
 import { Separator } from "../../ui/separator";
 import { Textarea } from "../../ui/textarea";
 import { useAuth } from "@/contexts/AuthContext";
+import { useGetConditions } from "@/hooks/administracion/useGetConditions";
+import { useMemo, useEffect } from "react";
 
-const FormSchema = z.object({
-  name: z.string().min(3, {
-    message: "El usuario debe tener al menos 3 caracteres.",
-  }),
-  description: z.string().min(2, {
-    message: "La contraseña debe tener al menos 5 caracteres.",
-  }),
-})
-
-type FormSchemaType = z.infer<typeof FormSchema>
 interface FormProps {
   onClose: () => void,
+  onSuccess?: (condition: any) => void,
 }
 
-export function CreateConditionForm({ onClose }: FormProps) {
+export function CreateConditionForm({ onClose, onSuccess }: FormProps) {
 
   const { user } = useAuth()
+  const { data: conditions, isLoading: isConditionsLoading } = useGetConditions()
 
   const { createCondition } = useCreateCondition()
+
+  // Crear el schema dinámicamente con las condiciones existentes
+  const FormSchema = useMemo(() => {
+    return z.object({
+      name: z.string().min(3, {
+        message: "El nombre debe tener al menos 3 caracteres.",
+      }).refine(
+        (name) => {
+          if (!conditions || isConditionsLoading) return true; // Permitir mientras carga
+          const normalizedName = name.trim().toUpperCase();
+          return !conditions.some(
+            (condition) => condition.name.trim().toUpperCase() === normalizedName
+          );
+        },
+        {
+          message: "Esta condición ya existe. Por favor, use un nombre diferente.",
+        }
+      ),
+      description: z.string().min(2, {
+        message: "La descripción debe tener al menos 2 caracteres.",
+      }),
+    });
+  }, [conditions, isConditionsLoading]);
+
+  type FormSchemaType = z.infer<typeof FormSchema>;
 
   const form = useForm<FormSchemaType>({
     resolver: zodResolver(FormSchema),
@@ -40,12 +59,41 @@ export function CreateConditionForm({ onClose }: FormProps) {
     },
   })
 
-  const onSubmit = async (data: FormSchemaType) => {
-    await createCondition.mutateAsync({
-      ...data,
-      registered_by: `${user?.first_name} ${user?.last_name}`
-    })
-    onClose()
+  // Re-validar cuando cambien las condiciones
+  useEffect(() => {
+    if (!isConditionsLoading && conditions) {
+      form.trigger("name");
+    }
+  }, [conditions, isConditionsLoading, form]);
+
+  const onSubmit = async (data: z.infer<typeof FormSchema>) => {
+    try {
+      // Validación adicional antes de enviar (por si acaso)
+      if (conditions && !isConditionsLoading) {
+        const normalizedName = data.name.trim().toUpperCase();
+        const exists = conditions.some(
+          (condition) => condition.name.trim().toUpperCase() === normalizedName
+        );
+        if (exists) {
+          form.setError("name", {
+            type: "manual",
+            message: "Esta condición ya existe. Por favor, use un nombre diferente.",
+          });
+          return;
+        }
+      }
+
+      const result = await createCondition.mutateAsync({
+        ...data,
+        registered_by: `${user?.first_name} ${user?.last_name}`
+      })
+      if (onSuccess && result) {
+        onSuccess(result)
+      }
+      onClose()
+    } catch (error) {
+      console.log(error)
+    }
   }
 
   return (

@@ -25,6 +25,18 @@ export interface IWarehouseArticle {
       next_calibration?: number | string; // o días
       status?: string;
     };
+    component?: {
+      shell_time?: {
+        caducate_date?: string | null;
+        fabrication_date?: string | null;
+      };
+    };
+    consumable?: {
+      shell_time?: {
+        caducate_date?: string | Date | null;
+        fabrication_date?: string | Date | null;
+      };
+    };
     condition: {
       name: string;
     };

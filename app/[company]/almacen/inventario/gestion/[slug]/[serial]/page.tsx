@@ -98,9 +98,15 @@ const ArticlePage = () => {
                   )}
                 >
                   <CalendarIcon className="mr-2 h-4 w-4" />
-                  {data?.shell_time.caducate_date ? format(data?.shell_time.caducate_date, "PPP", {
-                    locale: es,
-                  }) : <span>Pick a date</span>}
+                  {data?.shell_time.caducate_date === null ? (
+                    <span>N/A</span>
+                  ) : data?.shell_time.caducate_date ? (
+                    format(data?.shell_time.caducate_date, "PPP", {
+                      locale: es,
+                    })
+                  ) : (
+                    <span>Pick a date</span>
+                  )}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0">

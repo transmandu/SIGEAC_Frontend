@@ -299,7 +299,7 @@ export const useEditArticle = () => {
       toast.error("Oops!", {
         description: "No se pudo actualizar el articulo...",
       });
-      // console.log(error)
+      console.log(error)
     },
   });
   return {
@@ -321,10 +321,20 @@ export const useUpdateArticle = () => {
       company: string;
       data: ArticleData;
     }) => {
-      await axiosInstance.put(`/${company}/article/${id}`, data);
+      await axiosInstance.post(`/${company}/update-article/${id}`, data,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
     },
     onSuccess: () => {
+      // Invalidar todas las queries relacionadas con artículos y batches
       queryClient.invalidateQueries({ queryKey: ["warehouse-articles"] });
+      queryClient.invalidateQueries({ queryKey: ["articles"] });
+      queryClient.invalidateQueries({ queryKey: ["batches"] });
+      queryClient.invalidateQueries({ queryKey: ["search-batches"] });
       toast.success("¡Actualizado!", {
         description: `El articulo ha sido actualizado correctamente.`,
       });

@@ -11,13 +11,26 @@ import {
 } from "@/components/ui/dialog"
 import { useState } from "react"
 import { CreateBatchForm } from "@/components/forms/mantenimiento/almacen/CreateBatchForm"
+import { Plus } from "lucide-react"
 
-export function CreateBatchDialog() {
+interface CreateBatchDialogProps {
+  onSuccess?: (batchName: string) => void
+  triggerButton?: React.ReactNode
+  defaultCategory?: string
+}
+
+export function CreateBatchDialog({ 
+  onSuccess, 
+  triggerButton,
+  defaultCategory 
+}: CreateBatchDialogProps) {
   const [open, setOpen] = useState<boolean>(false);
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button onClick={() => setOpen(true)} variant={'ghost'}>Crear Renglón</Button>
+        {triggerButton || (
+          <Button onClick={() => setOpen(true)} variant={'ghost'}>Crear Renglón</Button>
+        )}
       </DialogTrigger>
       <DialogContent className="max-w-xl">
         <DialogHeader>
@@ -26,7 +39,15 @@ export function CreateBatchDialog() {
             Cree un renglón de articulos.
           </DialogDescription>
         </DialogHeader>
-        <CreateBatchForm onClose={() => setOpen(false)} />
+        <CreateBatchForm 
+          onClose={() => setOpen(false)} 
+          onSuccess={(batchName) => {
+            if (onSuccess) {
+              onSuccess(batchName);
+            }
+            setOpen(false);
+          }}
+        />
       </DialogContent>
     </Dialog>
   )

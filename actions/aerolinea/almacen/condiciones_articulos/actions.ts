@@ -14,7 +14,8 @@ export const useCreateCondition = () => {
 
     const createMutation = useMutation({
         mutationFn: async (data: CreateConditionSchema) => {
-            await axiosInstance.post('/hangar74/condition-article', data)
+            const response = await axiosInstance.post('/hangar74/condition-article', data)
+            return response.data
           },
         onSuccess: () => {
             queryClient.invalidateQueries({queryKey: ['conditions']})

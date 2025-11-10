@@ -31,6 +31,18 @@ export interface IArticleSimple {
     next_calibration_date?: string | null; // si guardas fecha
     next_calibration?: number | string | null; // o días
   };
+  component?: {
+    shell_time?: {
+      caducate_date?: string | null;
+      fabrication_date?: string | null;
+    };
+  };
+  consumable?: {
+    shell_time?: {
+      caducate_date?: string | Date | null;
+      fabrication_date?: string | Date | null;
+    };
+  };
 }
 
 export const getStatusBadge = (status: string | null | undefined) => {
@@ -108,6 +120,8 @@ export const flattenArticles = (
             next_calibration: article.tool.next_calibration,
           }
         : undefined,
+      component: article.component,
+      consumable: article.consumable,
     }))
   );
 };
@@ -169,7 +183,12 @@ const baseCols: ColumnDef<IArticleSimple>[] = [
       <DataTableColumnHeader column={column} title="Cantidad" />
     ),
     cell: ({ row }) => {
-      const q = row.original.quantity ?? 0;
+      let q = row.original.quantity ?? 0;
+      // Para componentes, si la cantidad es 0, se muestra como 1
+      const articleType = row.original.article_type?.toLowerCase();
+      if (articleType === "componente" && q === 0) {
+        q = 1;
+      }
       return (
         <div className="flex justify-center">
           <Badge
@@ -235,6 +254,41 @@ const baseCols: ColumnDef<IArticleSimple>[] = [
 export const componenteCols: ColumnDef<IArticleSimple>[] = [
   ...baseCols,
   {
+    id: "shelf_life",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Shelf Life" />
+    ),
+    cell: ({ row }) => {
+      const caducateDate = row.original.component?.shell_time?.caducate_date;
+      if (!caducateDate) {
+        return (
+          <div className="text-center">
+            <span className="text-muted-foreground italic">N/A</span>
+          </div>
+        );
+      }
+      const date = new Date(caducateDate);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const daysUntilExpiry = Math.ceil((date.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+      
+      let variant: "default" | "secondary" | "destructive" | "outline" = "default";
+      if (daysUntilExpiry < 0) {
+        variant = "destructive"; // Vencido
+      } else if (daysUntilExpiry <= 30) {
+        variant = "secondary"; // Próximo a vencer (30 días o menos)
+      }
+
+      return (
+        <div className="text-center">
+          <Badge variant={variant} className="text-sm font-medium">
+            {format(date, "dd/MM/yyyy")}
+          </Badge>
+        </div>
+      );
+    },
+  },
+  {
     id: "actions",
     header: "Acciones",
     cell: ({ row }) => {
@@ -262,6 +316,41 @@ export const consumibleCols: ColumnDef<IArticleSimple>[] = [
         )}
       </div>
     ),
+  },
+  {
+    id: "shelf_life",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Shelf Life" />
+    ),
+    cell: ({ row }) => {
+      const caducateDate = row.original.consumable?.shell_time?.caducate_date;
+      if (!caducateDate) {
+        return (
+          <div className="text-center">
+            <span className="text-muted-foreground italic">N/A</span>
+          </div>
+        );
+      }
+      const date = caducateDate instanceof Date ? caducateDate : new Date(caducateDate);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const daysUntilExpiry = Math.ceil((date.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+      
+      let variant: "default" | "secondary" | "destructive" | "outline" = "default";
+      if (daysUntilExpiry < 0) {
+        variant = "destructive"; // Vencido
+      } else if (daysUntilExpiry <= 30) {
+        variant = "secondary"; // Próximo a vencer (30 días o menos)
+      }
+
+      return (
+        <div className="text-center">
+          <Badge variant={variant} className="text-sm font-medium">
+            {format(date, "dd/MM/yyyy")}
+          </Badge>
+        </div>
+      );
+    },
   },
   {
     id: "actions",

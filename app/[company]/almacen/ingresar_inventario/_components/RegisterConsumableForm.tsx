@@ -8,7 +8,7 @@ import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
-import { addYears, format, subYears } from "date-fns";
+import { format } from "date-fns";
 import { es } from "date-fns/locale";
 
 import {
@@ -89,6 +89,8 @@ import { EditingArticle } from "./RegisterArticleForm";
 import { CreateManufacturerDialog } from "@/components/dialogs/general/CreateManufacturerDialog";
 import { useGetConversionByUnitConsmable } from "@/hooks/mantenimiento/almacen/articulos/useGetConvertionsByConsumableUnit";
 import { getConvertionArticle } from "@/actions/mantenimiento/almacen/articulos/unitConversion";
+import { CreateBatchDialog } from "@/components/dialogs/mantenimiento/almacen/CreateBatchDialog";
+import { useQueryClient } from "@tanstack/react-query";
 
 /* ------------------------------- Schema ------------------------------- */
 
@@ -233,84 +235,135 @@ function DatePickerField({
   description,
   busy,
   shortcuts = "both",
+  maxYear,
+  showNotApplicable = false,
+  required = false,
+  error,
 }: {
   label: string;
-  value?: Date;
-  setValue: (d?: Date) => void;
+  value?: Date | null;
+  setValue: (d?: Date | null) => void;
   description?: string;
   busy?: boolean;
   /** "both" | "back" | "forward" | "none" */
   shortcuts?: "both" | "back" | "forward" | "none";
+  /** Año máximo permitido. Si no se especifica, será el año actual + 20 */
+  maxYear?: number;
+  /** Mostrar botón "No aplica" */
+  showNotApplicable?: boolean;
+  /** Campo obligatorio */
+  required?: boolean;
+  /** Mensaje de error */
+  error?: string;
 }) {
-  const showBack = shortcuts === "both" || shortcuts === "back";
-  const showForward = shortcuts === "both" || shortcuts === "forward";
+  const [touched, setTouched] = useState(false);
+  
+  // Solo mostrar error si el campo fue tocado/interactuado o si hay un error explícito
+  // No mostrar error inmediatamente al cargar la página
+  const isInvalid = required && value === undefined && touched;
+  const displayError = error || (isInvalid ? "Este campo es obligatorio. Debe seleccionar una fecha o marcar 'No aplica'." : undefined);
+
   return (
     <FormItem className="flex flex-col p-0 mt-2.5 w-full">
-      <FormLabel>{label}</FormLabel>
-      <Popover>
-        <PopoverTrigger asChild>
-          <FormControl>
-            <Button
-              variant="outline"
-              disabled={busy}
-              className={cn(
-                "w-full pl-3 text-left font-normal",
-                !value && "text-muted-foreground"
-              )}
-            >
-              {value ? (
-                format(value, "PPP", { locale: es })
-              ) : (
-                <span>Seleccione una fecha</span>
-              )}
-              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-            </Button>
-          </FormControl>
-        </PopoverTrigger>
-        <PopoverContent className="w-auto p-0" align="start">
-          {(showBack || showForward) && (
-            <Select
-              onValueChange={(v) => {
-                const n = parseInt(v);
-                if (n === 0) {
-                  setValue(new Date());
-                  return;
-                }
-                if (n < 0) setValue(subYears(new Date(), Math.abs(n)));
-                else setValue(addYears(new Date(), n));
+      <FormLabel>
+        {label}
+        {required && <span className="text-destructive ml-1">*</span>}
+      </FormLabel>
+      <div className="flex gap-2">
+        <Popover>
+          <PopoverTrigger asChild>
+            <FormControl>
+              <Button
+                variant="outline"
+                disabled={busy || (showNotApplicable && value === null)}
+                onClick={() => setTouched(true)}
+                className={cn(
+                  "flex-1 pl-3 text-left font-normal",
+                  (!value || value === null) && "text-muted-foreground",
+                  isInvalid && "border-destructive"
+                )}
+              >
+                {value === null ? (
+                  <span>N/A</span>
+                ) : value ? (
+                  format(value, "PPP", { locale: es })
+                ) : (
+                  <span>Seleccione una fecha</span>
+                )}
+                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+              </Button>
+            </FormControl>
+          </PopoverTrigger>
+          <PopoverContent 
+            className="w-auto p-0 z-[100]" 
+            align="start"
+            side="bottom"
+            sideOffset={8}
+            avoidCollisions={true}
+          >
+            <Calendar 
+              locale={es} 
+              mode="single" 
+              selected={value || undefined} 
+              onSelect={(date) => {
+                setTouched(true);
+                setValue(date);
+              }} 
+              initialFocus 
+              defaultMonth={value || new Date()}
+              captionLayout="dropdown-buttons"
+              fromYear={1900}
+              toYear={maxYear ?? new Date().getFullYear() + 20}
+              classNames={{
+                caption_label: "hidden",
+                caption: "flex justify-center pt-1 relative items-center mb-2",
+                caption_dropdowns: "flex justify-center gap-2 items-center",
+                nav: "hidden",
+                nav_button: "hidden",
+                nav_button_previous: "hidden",
+                nav_button_next: "hidden",
               }}
+              components={{
+                Dropdown: (props) => (
+                  <select
+                    {...props}
+                    className="h-9 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-md px-3 py-1 text-sm font-medium text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 transition-colors cursor-pointer"
+                  >
+                    {props.children}
+                  </select>
+                ),
+              }}
+            />
+          </PopoverContent>
+        </Popover>
+        {showNotApplicable && (
+          <div className="flex items-center space-x-2 flex-shrink-0">
+            <Checkbox
+              id={`not-applicable-${label.replace(/\s+/g, '-').toLowerCase()}`}
+              checked={value === null}
+              onCheckedChange={(checked) => {
+                setTouched(true);
+                if (checked === true) {
+                  setValue(null);
+                } else {
+                  setValue(undefined);
+                }
+              }}
+              disabled={busy}
+            />
+            <label
+              htmlFor={`not-applicable-${label.replace(/\s+/g, '-').toLowerCase()}`}
+              className="text-sm font-medium leading-none cursor-pointer whitespace-nowrap select-none"
             >
-              <SelectTrigger className="p-3">
-                <SelectValue placeholder="Atajos de fecha" />
-              </SelectTrigger>
-              <SelectContent position="popper">
-                <SelectItem value="0">Actual</SelectItem>
-                {showBack &&
-                  [5, 10, 15].map((y) => (
-                    <SelectItem key={`b-${y}`} value={`${-y}`}>
-                      Ir {y} años atrás
-                    </SelectItem>
-                  ))}
-                {showForward &&
-                  [5, 10, 15].map((y) => (
-                    <SelectItem key={`f-${y}`} value={`${y}`}>
-                      {y} años
-                    </SelectItem>
-                  ))}
-              </SelectContent>
-            </Select>
-          )}
-          <Calendar
-            locale={es}
-            mode="single"
-            selected={value}
-            onSelect={setValue}
-            initialFocus
-            month={value}
-          />
-        </PopoverContent>
-      </Popover>
+              No aplica
+            </label>
+          </div>
+        )}
+      </div>
       {description ? <FormDescription>{description}</FormDescription> : null}
+      {displayError && (
+        <p className="text-sm font-medium text-destructive mt-1">{displayError}</p>
+      )}
       <FormMessage />
     </FormItem>
   );
@@ -713,6 +766,7 @@ export default function CreateConsumableForm({
   isEditing?: boolean;
 }) {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const { selectedCompany, selectedStation } = useCompanyStore();
 
   // Local state for part number search
@@ -729,7 +783,7 @@ export default function CreateConsumableForm({
     data: batches,
     isPending: isBatchesLoading,
     isError: isBatchesError,
-  } = useGetBatchesByCategory("consumible");
+ , refetch: refetchBatches } = useGetBatchesByCategory("consumible");
   const {
     data: manufacturers,
     isLoading: isManufacturerLoading,
@@ -812,12 +866,25 @@ export default function CreateConsumableForm({
       ? new Date(initialData.consumable.caducate_date)
       : undefined
   );
-  const [fabricationDate, setFabricationDate] = useState<Date | undefined>(
-    initialData?.consumable?.fabrication_date
-      ? new Date(initialData?.consumable?.fabrication_date)
-      : undefined
+  const [fabricationDate, setFabricationDate] = useState<Date | null | undefined>(
+    initialData?.consumable?.fabrication_date ? new Date(initialData?.consumable?.fabrication_date) : undefined
   );
   const [enableBatchNameEdit, setEnableBatchNameEdit] = useState(false);
+
+  // Wrapper functions for DatePickerField compatibility
+  const handleFabricationDateChange = (d?: Date | null) => {
+    setFabricationDate(d ?? undefined);
+  };
+  const handleCaducateDateChange = (d?: Date | null) => {
+    // Preserve null value to indicate "Not applicable"
+    if (d === null) {
+      setCaducateDate(null);
+    } else if (d === undefined) {
+      setCaducateDate(undefined);
+    } else {
+      setCaducateDate(d);
+    }
+  };
 
   // Form
   const form = useForm<FormValues>({
@@ -842,7 +909,7 @@ export default function CreateConsumableForm({
       is_managed: initialData?.consumable?.is_managed
         ? initialData.consumable.is_managed === "1" ||
           initialData.consumable.is_managed === true
-        : true,
+        : false,
     },
     mode: "onBlur",
   });
@@ -988,7 +1055,9 @@ export default function CreateConsumableForm({
   async function onSubmit(values: FormValues) {
     if (!selectedCompany?.slug) return;
 
-    const formattedValues: FormValues & {
+    const { caducate_date: _, ...valuesWithoutCaducateDate } = values;
+    const caducateDateStr: string | undefined = caducateDate && caducateDate !== null ? format(caducateDate, "yyyy-MM-dd") : undefined;
+    const formattedValues: Omit<FormValues, 'caducate_date'> & {
       caducate_date?: string;
       fabrication_date?: string;
       part_number: string;
@@ -999,18 +1068,13 @@ export default function CreateConsumableForm({
       convertions?: UnitSelection[];
       primary_unit_id?: number;
     } = {
-      ...values,
+      ...valuesWithoutCaducateDate,
       status: "CHECKING",
       part_number: normalizeUpper(values.part_number),
       article_type: "consumible",
-      alternative_part_number:
-        values.alternative_part_number?.map((v) => normalizeUpper(v)) ?? [],
-      caducate_date: caducateDate
-        ? format(caducateDate, "yyyy-MM-dd")
-        : undefined,
-      fabrication_date: fabricationDate
-        ? format(fabricationDate, "yyyy-MM-dd")
-        : undefined,
+      alternative_part_number: values.alternative_part_number?.map((v) => normalizeUpper(v)) ?? [],
+      caducate_date: caducateDateStr,
+      fabrication_date: fabricationDate && fabricationDate !== null ? format(fabricationDate, "yyyy-MM-dd") : undefined,
       batch_name: enableBatchNameEdit ? values.batch_name : undefined,
       convertions: selectedUnits.length > 0 ? selectedUnits : undefined,
       primary_unit_id: secondarySelected?.id,
@@ -1084,6 +1148,23 @@ export default function CreateConsumableForm({
                 )}
               />
 
+            <FormField
+              control={form.control}
+              name="alternative_part_number"
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <MultiInputField
+                      values={field.value || []}
+                      onChange={(vals) => field.onChange(vals.map((v: string) => normalizeUpper(v)))}
+                      placeholder="Ej: 234ABAC"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
               <FormField
                 control={form.control}
                 name="lot_number"
@@ -1103,13 +1184,39 @@ export default function CreateConsumableForm({
                 )}
               />
 
-              <div className="space-y-3 w-full">
+              <div className="space-y-3 w-full xl:col-span-3">
                 <FormField
                   control={form.control}
                   name="batch_id"
                   render={({ field }) => (
                     <FormItem className="flex flex-col space-y-3 mt-1.5 w-full">
-                      <FormLabel>Descripción de Consumible</FormLabel>
+                    <div className="flex items-center justify-between">
+                        <FormLabel>Descripción de Consumible</FormLabel>
+                      <CreateBatchDialog
+                        onSuccess={async (batchName) => {
+                          // Invalidar la query y refetch para obtener el batch recién creado
+                          await queryClient.invalidateQueries({ 
+                            queryKey: ["search-batches", selectedCompany?.slug, selectedStation, "consumible"] 
+                          });
+                          const { data: updatedBatches } = await refetchBatches();
+                          const newBatch = updatedBatches?.find((b: any) => b.name === batchName);
+                          if (newBatch) {
+                            form.setValue("batch_id", newBatch.id.toString(), { shouldValidate: true });
+                          }
+                        }}
+                        triggerButton={
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="h-7 text-xs"
+                          >
+                            <Plus className="h-3 w-3 mr-1" />
+                            Crear nuevo
+                          </Button>
+                        }
+                      />
+                    </div>
                       <Popover>
                         <PopoverTrigger asChild>
                           <FormControl>
@@ -1285,6 +1392,49 @@ export default function CreateConsumableForm({
             </div>
           </SectionCard>
 
+        {/* Propiedades */}
+        <SectionCard title="Propiedades">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+            <FormField
+              control={form.control}
+              name="condition_id"
+              render={({ field }) => (
+                <FormItem className="w-full">
+                  <FormLabel>Condición</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    value={field.value}
+                    disabled={isConditionsLoading || busy}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue
+                          placeholder={
+                            isConditionsLoading
+                              ? "Cargando..."
+                              : "Seleccione..."
+                          }
+                        />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {conditions?.map((c) => (
+                        <SelectItem key={c.id} value={c.id.toString()}>
+                          {c.name}
+                        </SelectItem>
+                      ))}
+                      {isConditionsError && (
+                        <div className="p-2 text-sm text-muted-foreground">
+                          Error al cargar condiciones.
+                        </div>
+                      )}
+                    </SelectContent>
+                  </Select>
+                  <FormDescription>Estado del artículo.</FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
           {/* Propiedades */}
           <SectionCard title="Propiedades">
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
@@ -1438,6 +1588,32 @@ export default function CreateConsumableForm({
             </div>
           </SectionCard>
 
+        {/* Fechas y límites */}
+        <SectionCard title="Fechas del Consumible">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <DatePickerField
+              label="Fecha de Fabricación"
+              value={fabricationDate}
+              setValue={handleFabricationDateChange}
+              description="Fecha de fabricación del Consumible."
+              busy={busy}
+              shortcuts="back"
+              maxYear={new Date().getFullYear()}
+            />
+
+            <DatePickerField
+              label="Fecha de Caducidad - Shelf-Life"
+              value={caducateDate}
+              setValue={handleCaducateDateChange}
+              description="Fecha límite del Consumible en Almacen."
+              busy={busy}
+              shortcuts="forward"
+              showNotApplicable={true}
+              required={true}
+            />
+          </div>
+        </SectionCard>
+
           {/* Ingreso y cantidad */}
           <SectionCard title="Ingreso y cantidad">
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
@@ -1590,6 +1766,30 @@ export default function CreateConsumableForm({
                 )}
               />
 
+            {/* ¿Es manejable? */}
+            <FormField
+              control={form.control}
+              name="is_managed"
+              render={({ field }) => (
+                <FormItem className="col-span-1 md:col-span-2 xl:col-span-3 flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                  <FormControl>
+                    <Checkbox
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                      disabled={true}
+                    />
+                  </FormControl>
+                  <div className="space-y-1 leading-none">
+                    <FormLabel>
+                      ¿Necesita despachar el artículo en pequeñas cantidades?
+                    </FormLabel>
+                    <FormDescription />
+                  </div>
+                </FormItem>
+              )}
+            />
+          </div>
+        </SectionCard>
               {/* Botón para configurar conversiones adicionales */}
               <div className="col-span-1 md:col-span-2 xl:col-span-3">
                 <Button
@@ -1702,7 +1902,8 @@ export default function CreateConsumableForm({
                 !selectedCompany ||
                 !form.getValues("part_number") ||
                 !form.getValues("batch_id") ||
-                !selectedPrimaryUnit
+                !selectedPrimaryUnit ||
+              caducateDate === undefined
               }
               type="submit"
             >

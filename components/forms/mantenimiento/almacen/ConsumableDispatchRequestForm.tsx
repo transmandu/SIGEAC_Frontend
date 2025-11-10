@@ -47,7 +47,10 @@ import { Popover, PopoverContent, PopoverTrigger } from "../../../ui/popover";
 import { Textarea } from "../../../ui/textarea";
 import { useGetDepartments } from "@/hooks/sistema/departamento/useGetDepartment";
 import { useGetWarehousesEmployees } from "@/hooks/mantenimiento/almacen/empleados/useGetWarehousesEmployees";
-import { useGetArticleConvertionById } from "@/hooks/mantenimiento/almacen/articulos/useGetArticlesConvertionsById";
+import { Checkbox } from "@/components/ui/checkbox";
+import { useGetMaintenanceAircrafts } from "@/hooks/mantenimiento/planificacion/useGetMaintenanceAircrafts";
+import { Separator } from "@/components/ui/separator";
+import { Building2, Plane } from "lucide-react";
 
 const FormSchema = z.object({
   requested_by: z.string(),
@@ -91,23 +94,26 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
 
   const [resultQuantity, setResultQuantity] = useState("");
 
-  const [articleSelected, setArticleSelected] = useState<Article | null>(null);
-
-  const [articleError, setArticleError] = useState<string>("");
-
-  const [maxInputQuantity, setMaxInputQuantity] = useState<number>(0);
+  const [articleSelected, setArticleSelected] = useState<Article>();
+  const [isDepartment, setIsDepartment] = useState(false);
 
   const { createDispatchRequest } = useCreateDispatchRequest();
 
   const { data: departments, isLoading: isDepartmentsLoading } =
     useGetDepartments(selectedCompany?.slug);
 
-  const { data: batches, isPending: isBatchesLoading } =
-    useGetBatchesWithInWarehouseArticles({
-      location_id: Number(selectedStation!),
-      company: selectedCompany!.slug,
-      category: "consumible",
-    });
+  const { data: aircrafts, isLoading: isAircraftsLoading } = useGetMaintenanceAircrafts(
+    selectedCompany?.slug
+  );
+
+  const {
+    data: batches,
+    isPending: isBatchesLoading,
+  } = useGetBatchesWithInWarehouseArticles({
+    location_id: Number(selectedStation!),
+    company: selectedCompany!.slug,
+    category: "consumible",
+  });
 
   const { data: employees, isLoading: employeesLoading } =
     useGetWorkOrderEmployees({
@@ -120,13 +126,7 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
     data: warehouseEmployees,
     isPending: warehouseEmployeesLoading,
     isError: employeesError,
-  } = useGetWarehousesEmployees(selectedStation!, selectedCompany?.slug);
-
-  const { data: articleConversion, isLoading: isConversionLoading } =
-    useGetArticleConvertionById(
-      articleSelected?.id?.toString() || null,
-      selectedCompany?.slug
-    );
+  } = useGetWarehousesEmployees(selectedCompany?.slug, selectedStation);
 
   const form = useForm<FormSchemaType>({
     resolver: zodResolver(FormSchema),
@@ -144,17 +144,15 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
     },
   });
 
-  // Función para calcular la cantidad máxima permitida en el input - CORREGIDA
-  const calculateMaxInputQuantity = (
-    selectedUnit: string | undefined, // Cambiado a string | undefined
-    availableStock: number
-  ): number => {
-    if (!articleConversion || !selectedUnit) return availableStock;
-
-    // Buscar si el usuario seleccionó una unidad secundaria
-    const selectedSecondaryUnit = articleConversion.find(
-      (conv) => conv.secondary_unit?.label === selectedUnit
-    );
+  // useEffect(() => {
+  //   if (batches) {
+  //     // Filtrar los batches por categoría
+  //     const filtered = batches.filter(
+  //       (batch) => batch.category === "consumible"
+  //     );
+  //     setFilteredBatches(filtered);
+  //   }
+  // }, [batches]);
 
     if (selectedSecondaryUnit) {
       // Para unidades secundarias, calcular cuántas unidades secundarias equivalen al stock disponible
@@ -287,6 +285,11 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
     }
   };
 
+  // Limpiar destination_place cuando cambia el tipo de destino
+  useEffect(() => {
+    form.setValue("destination_place", "");
+  }, [isDepartment, form]);
+
   const { setValue } = form;
 
   const onSubmit = async (data: FormSchemaType) => {
@@ -365,24 +368,54 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit(onSubmit)}
-        className="flex flex-col space-y-3 w-full"
+        className="flex flex-col space-y-4 w-full"
       >
-        <div className="grid grid-cols-2 gap-2">
+        {/* Sección: Personal Responsable */}
+        <div className="space-y-3">
+          <div className="flex items-center gap-2 mb-2">
+            <div className="h-px flex-1 bg-border"></div>
+            <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Personal Responsable</span>
+            <div className="h-px flex-1 bg-border"></div>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
           <FormField
             control={form.control}
             name="delivered_by"
             render={({ field }) => (
               <FormItem className="w-full">
                 <FormLabel>Entregado por:</FormLabel>
-                <Select onValueChange={field.onChange}>
+                <Select 
+                  onValueChange={field.onChange}
+                  disabled={warehouseEmployeesLoading || !selectedStation}
+                >
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder="Seleccione el responsable..." />
+                      <SelectValue 
+                        placeholder={
+                          warehouseEmployeesLoading 
+                            ? "Cargando..." 
+                            : !selectedStation 
+                            ? "Seleccione una estación primero"
+                            : "Seleccione el responsable..."
+                        } 
+                      />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
                     {warehouseEmployeesLoading && (
-                      <Loader2 className="size-4 animate-spin" />
+                      <div className="flex items-center justify-center py-4">
+                        <Loader2 className="size-4 animate-spin text-muted-foreground" />
+                      </div>
+                    )}
+                    {!warehouseEmployeesLoading && employeesError && (
+                      <div className="py-4 text-center text-sm text-muted-foreground">
+                        Error al cargar empleados
+                      </div>
+                    )}
+                    {!warehouseEmployeesLoading && !employeesError && warehouseEmployees && warehouseEmployees.length === 0 && (
+                      <div className="py-4 text-center text-sm text-muted-foreground">
+                        No hay empleados de almacén disponibles
+                      </div>
                     )}
                     {warehouseEmployees &&
                       warehouseEmployees.map((employee) => (
@@ -428,11 +461,22 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
               </FormItem>
             )}
           />
+          </div>
+        </div>
+
+        {/* Sección: Información de la Solicitud */}
+        <div className="space-y-3">
+          <div className="flex items-center gap-2 mb-2">
+            <div className="h-px flex-1 bg-border"></div>
+            <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Información de la Solicitud</span>
+            <div className="h-px flex-1 bg-border"></div>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
           <FormField
             control={form.control}
             name="submission_date"
             render={({ field }) => (
-              <FormItem className="flex flex-col mt-2.5 w-full">
+              <FormItem className="flex flex-col w-full">
                 <FormLabel>Fecha de Solicitud</FormLabel>
                 <Popover>
                   <PopoverTrigger asChild>
@@ -472,104 +516,191 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
               </FormItem>
             )}
           />
-          <FormField
-            control={form.control}
-            name="destination_place"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Destino</FormLabel>
-                <Select
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Seleccione..." />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {isDepartmentsLoading ? (
-                      <div className="flex justify-center items-center p-4">
-                        <Loader2 className="size-6 animate-spin" />
-                      </div>
-                    ) : (
-                      departments &&
-                      departments.map((department) => (
-                        <SelectItem
-                          key={department.id}
-                          value={department.id.toString()}
-                        >
-                          {department.name}
-                        </SelectItem>
-                      ))
-                    )}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-        <div className="space-y-3">
-          <div className="flex gap-2">
-            <FormItem className="flex flex-col w-full">
-              <FormLabel>Consumible a Retirar</FormLabel>
-              <Popover open={open} onOpenChange={setOpen}>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    role="combobox"
-                    aria-expanded={open}
-                    className="w-full justify-between"
+          <div className="flex flex-col gap-3">
+            <FormField
+              control={form.control}
+              name="destination_place"
+              render={({ field }) => (
+                <FormItem>
+                  <div className="flex items-center justify-between mb-2">
+                    <FormLabel className="flex items-center gap-2">
+                      {isDepartment ? (
+                        <Building2 className="h-4 w-4 text-muted-foreground" />
+                      ) : (
+                        <Plane className="h-4 w-4 text-muted-foreground" />
+                      )}
+                      Destino
+                    </FormLabel>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="is-department"
+                        checked={isDepartment}
+                        onCheckedChange={(checked) => setIsDepartment(checked as boolean)}
+                      />
+                      <label
+                        htmlFor="is-department"
+                        className="text-xs font-medium leading-none cursor-pointer text-muted-foreground"
+                      >
+                        ¿Es para un departamento?
+                      </label>
+                    </div>
+                  </div>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                    disabled={isDepartment ? isDepartmentsLo : isAircraftsLoading}
                   >
-                    {articleSelected
-                      ? `${articleSelected.part_number} (${articleSelected.quantity} ${articleSelected.unit} disponibles)`
-                      : "Seleccionar el consumible"}
-                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-[400px] p-0">
-                  <Command>
-                    <CommandInput placeholder="Buscar un consu..." />
-                    <CommandList>
-                      {isBatchesLoading ? (
-                        <div className="flex items-center justify-center py-6">
-                          <Loader2 className="size-4 animate-spin" />
-                        </div>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue 
+                          placeholder={
+                            isDepartment 
+                              ? "Seleccione un departamento..." 
+                              : "Seleccione una aeronave..."
+                          } 
+                        />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {isDepartment ? (
+                        <>
+                          {isDepartmentsLo && (
+                            <div className="flex items-center justify-center py-4">
+                              <Loader2 className="size-4 animate-spin text-muted-foreground" />
+                            </div>
+                          )}
+                          {!isDepartmentsLo && departments && departments.length === 0 && (
+                            <div className="py-4 text-center text-sm text-muted-foreground">
+                              No hay departamentos disponibles
+                            </div>
+                          )}
+                          {departments &&
+                            departments.map((department) => (
+                              <SelectItem
+                                key={department.id}
+                                value={department.id.toString()}
+                              >
+                                {department.name}
+                              </SelectItem>
+                            ))}
+                        </>
                       ) : (
                         <>
-                          <CommandEmpty>
-                            No se han encontrado consumibles...
-                          </CommandEmpty>
-                          {batches?.map((batch) => (
-                            <CommandGroup
-                              key={batch.batch_id}
-                              heading={batch.name}
-                            >
-                              {batch.articles.map((article) => (
-                                <CommandItem
-                                  key={article.id}
-                                  onSelect={() => {
-                                    handleArticleSelect(
-                                      article.id!,
-                                      article.serial ? article.serial : null,
-                                      batch.batch_id
-                                    );
-                                    setArticleSelected(article);
-                                  }}
+                          {isAircraftsLoading && (
+                            <div className="flex items-center justify-center py-4">
+                              <Loader2 className="size-4 animate-spin text-muted-foreground" />
+                            </div>
+                          )}
+                          {!isAircraftsLoading && aircrafts && aircrafts.length === 0 && (
+                            <div className="py-4 text-center text-sm text-muted-foreground">
+                              No hay aeronaves disponibles
+                            </div>
+                          )}
+                          {aircrafts &&
+                            aircrafts.map((aircraft) => (
+                              <SelectItem
+                                key={aircraft.id}
+                                value={aircraft.id.toString()}
+                              >
+                                {aircraft.acronym} - {aircraft.manufacturer.name}
+                              </SelectItem>
+                            ))}
+                        </>
+                      )}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+          </div>
+        </div>
+
+        {/* Sección: Artículo a Retirar */}
+        <div className="space-y-3">
+          <div className="flex items-center gap-2 mb-2">
+            <div className="h-px flex-1 bg-border"></div>
+            <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Artículo a Retirar</span>
+            <div className="h-px flex-1 bg-border"></div>
+          </div>
+          <div className="flex gap-2">
+            <FormField
+              control={form.control}
+              name="articles"
+              render={({ field }) => (
+                <FormItem className="flex flex-col">
+                  <FormLabel>Consumible a Retirar</FormLabel>
+                  <Popover open={open} onOpenChange={setOpen}>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        role="combobox"
+                        aria-expanded={open}
+                        className="w-full justify-between"
+                        disabled={isBatchesLoading}
+                      >
+                        {isBatchesLoading ? (
+                          <>
+                            <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                            <span className="text-muted-foreground">Cargando...</span>
+                          </>
+                        ) : articleSelected ? (
+                          <span className="truncate">{articleSelected.part_number}</span>
+                        ) : (
+                          <span className="text-muted-foreground">Seleccione el consumible...</span>
+                        )}
+                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-[400px] p-0" align="start">
+                      <Command>
+                        <CommandInput placeholder="Buscar por número de parte o descripción..." />
+                        <CommandList>
+                          {isBatchesLoading ? (
+                            <div className="flex items-center justify-center py-6">
+                              <Loader2 className="size-4 animate-spin" />
+                            </div>
+                          ) : (
+                            <>
+                              <CommandEmpty>
+                                No se han encontrado consumibles...
+                              </CommandEmpty>
+                              {batches?.map((batch) => (
+                                <CommandGroup
+                                  key={batch.batch_id}
+                                  heading={batch.name}
                                 >
-                                  <Check
-                                    className={cn(
-                                      "mr-2 h-4 w-4",
-                                      articleSelected?.id === article.id
-                                        ? "opacity-100"
-                                        : "opacity-0"
-                                    )}
-                                  />
-                                  {article.part_number} - ({article.quantity}){" "}
-                                  {article.unit}
-                                  <p className="hidden">{article.id}</p>
-                                </CommandItem>
+                                  {batch.articles.map((article) => (
+                                    <CommandItem
+                                      key={article.id}
+                                      onSelect={() => {
+                                        handleArticleSelect(
+                                          article.id!,
+                                          article.serial ? article.serial : null,
+                                          batch.batch_id
+                                        );
+                                        setArticleSelected(article);
+                                      }}
+                                    >
+                                      <Check
+                                        className={cn(
+                                          "mr-2 h-4 w-4 shrink-0",
+                                          articleSelected?.id === article.id
+                                            ? "opacity-100"
+                                            : "opacity-0"
+                                        )}
+                                      />
+                                      <div className="flex flex-col flex-1 min-w-0">
+                                        <span className="font-medium truncate">{article.part_number}</span>
+                                        <span className="text-xs text-muted-foreground">
+                                          Disponible: {article.quantity} {article.unit}
+                                        </span>
+                                      </div>
+                                      <p className="hidden">{article.id}</p>
+                                    </CommandItem>
+                                  ))}
+                                </CommandGroup>
                               ))}
                             </CommandGroup>
                           ))}
@@ -587,88 +718,68 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
                     form.formState.errors.articles?.article_id?.message}
                 </p>
               )}
-            </FormItem>
-          </div>
-
-          {/* SECCIÓN DE CANTIDAD Y CONVERSIÓN - MEJORADA PARA ALINEACIÓN VERTICAL */}
-          <div className="grid grid-cols-3 gap-3 items-end">
-            {/* CANTIDAD A RETIRAR */}
-            <div className="flex flex-col space-y-2">
-              <Label>
-                Cantidad a Retirar
-                {maxInputQuantity > 0 && (
-                  <span className="text-xs text-muted-foreground ml-1">
-                    (Máx: {maxInputQuantity.toFixed(2)})
-                  </span>
+            />
+            <div className="flex items-end gap-4">
+              <div className="flex flex-col space-y-2 flex-1">
+                <Label>Cantidad</Label>
+                <Input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  disabled={!articleSelected}
+                  value={quantity}
+                  onChange={(e) => {
+                    const value = parseFloat(e.target.value) || 0;
+                    if (articleSelected && value <= 0) {
+                      setQuantity(articleSelected.quantity!.toString());
+                      form.setError("articles.quantity", {
+                        type: "manual",
+                        message: `La cantidad no puede ser menor a 0`,
+                      });
+                    } else {
+                      setQuantity(e.target.value);
+                      form.clearErrors("articles.quantity");
+                    }
+                  }}
+                  placeholder={
+                    articleSelected 
+                      ? `Máx: ${articleSelected.quantity} ${articleSelected.unit}` 
+                      : "Ingrese la cantidad..."
+                  }
+                  className="w-full"
+                />
+                {articleSelected && (
+                  <p className="text-xs text-muted-foreground">
+                    Disponible: {articleSelected.quantity} {articleSelected.unit}
+                  </p>
                 )}
-              </Label>
-              <Input
-                disabled={!articleSelected}
-                value={quantity}
-                onChange={handleQuantityChange}
-                placeholder="Ej: 1, 4, 6, etc..."
-                type="number"
-                min="0"
-                max={maxInputQuantity}
-                step="0.01"
-              />
-              {form.formState.errors.articles?.quantity && (
-                <p className="text-sm text-red-500">
-                  {form.formState.errors.articles.quantity.message}
-                </p>
-              )}
-            </div>
-
-            {/* SELECT DE UNIDADES */}
-            {articleSelected &&
-              articleConversion &&
-              articleConversion.length > 0 && (
+              </div>
+              {articleSelected && articleSelected.unit === "L" && (
                 <FormField
                   control={form.control}
                   name="unit"
                   render={({ field }) => (
-                    <FormItem className="flex flex-col">
+                    <FormItem className="flex-1">
                       <FormLabel>Unidad</FormLabel>
-                      <Select
-                        onValueChange={(value) => {
-                          field.onChange(value);
-                          handleUnitChange(value);
-                        }}
-                        value={field.value}
-                        disabled={isConversionLoading}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Seleccione unidad" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {isConversionLoading && (
-                            <div className="flex items-center justify-center p-2">
-                              <Loader2 className="size-4 animate-spin" />
-                            </div>
-                          )}
-                          {articleConversion.map((conversion) => (
-                            <SelectItem
-                              key={conversion.id}
-                              value={
-                                conversion.secondary_unit?.label ||
-                                conversion.primary_unit.label
-                              }
-                            >
-                              {conversion.secondary_unit?.label ||
-                                conversion.primary_unit.label}
-                              {conversion.secondary_unit && (
-                                <span className="text-muted-foreground text-xs ml-1">
-                                  (1 {conversion.secondary_unit.label} ={" "}
-                                  {conversion.equivalence}{" "}
-                                  {conversion.primary_unit.label})
-                                </span>
-                              )}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <FormControl>
+                        <RadioGroup
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                          className="flex gap-4"
+                        >
+                          <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="litros" id="litros" />
+                            <Label htmlFor="litros" className="cursor-pointer">Litros</Label>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <RadioGroupItem
+                              value="mililitros"
+                              id="mililitros"
+                            />
+                            <Label htmlFor="mililitros" className="cursor-pointer">Mililitros</Label>
+                          </div>
+                        </RadioGroup>
+                      </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -701,64 +812,60 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
               )}
           </div>
 
-          {/* INFORMACIÓN DE STOCK DISPONIBLE */}
-          {articleSelected && (
-            <div className="p-3 bg-blue-50 rounded-md border border-blue-200">
-              <p className="text-sm text-blue-800">
-                <strong>Stock disponible:</strong> {articleSelected.quantity}{" "}
-                {articleSelected.unit}
-                {resultQuantity && (
-                  <span className="ml-2">
-                    | <strong>Cantidad a retirar:</strong>{" "}
-                    {parseFloat(resultQuantity).toFixed(2)}{" "}
-                    {articleSelected.unit}
-                  </span>
-                )}
-                {maxInputQuantity > 0 && form.watch("unit") && (
-                  <span className="ml-2">
-                    | <strong>Máximo permitido:</strong>{" "}
-                    {maxInputQuantity.toFixed(2)} {form.watch("unit")}
-                  </span>
-                )}
-              </p>
+          {/* Sección: Justificación */}
+          <div className="space-y-3">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="h-px flex-1 bg-border"></div>
+              <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Justificación</span>
+              <div className="h-px flex-1 bg-border"></div>
             </div>
-          )}
-
-          <FormField
-            control={form.control}
-            name="justification"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Justificacion</FormLabel>
-                <FormControl>
-                  <Textarea
-                    rows={5}
-                    className="w-full"
-                    placeholder="EJ: Se necesita para la limpieza de..."
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+            <FormField
+              control={form.control}
+              name="justification"
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <Textarea
+                      rows={4}
+                      className="w-full resize-none"
+                      placeholder="Ej: Se necesita para la limpieza de equipos de mantenimiento..."
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
         </div>
 
-        <Button
-          className="bg-primary mt-2 text-white hover:bg-blue-900 disabled:bg-primary/70"
-          disabled={
-            createDispatchRequest?.isPending ||
-            !!form.formState.errors.articles?.quantity ||
-            !articleSelected
-          }
-          type="submit"
-        >
-          {createDispatchRequest?.isPending ? (
-            <Loader2 className="size-4 animate-spin" />
-          ) : (
-            <p>Crear</p>
-          )}
-        </Button>
+        <Separator className="my-2" />
+
+        {/* Botón de acción */}
+        <div className="flex justify-end gap-3 pt-2">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onClose}
+            disabled={createDispatchRequest?.isPending}
+          >
+            Cancelar
+          </Button>
+          <Button
+            className="bg-primary text-white hover:bg-primary/90 disabled:bg-primary/70 min-w-[120px]"
+            disabled={createDispatchRequest?.isPending}
+            type="submit"
+          >
+            {createDispatchRequest?.isPending ? (
+              <>
+                <Loader2 className="size-4 animate-spin mr-2" />
+                Creando...
+              </>
+            ) : (
+              "Crear Salida"
+            )}
+          </Button>
+        </div>
       </form>
     </Form>
   );

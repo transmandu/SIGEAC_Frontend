@@ -1,24 +1,25 @@
-import axios from "@/lib/axios";
-import { Employee } from "@/types";
-import { useQuery } from "@tanstack/react-query";
+import axios from '@/lib/axios';
+import { Employee } from '@/types';
+import { useQuery } from '@tanstack/react-query';
 
 const fetchWarehousesEmployees = async (
-  location_id?: string,
+  location_id?: number,
   company?: string
 ): Promise<Employee[]> => {
-  const { data } = await axios.get(
-    `/${company}/employee-warehouse?location_id=${location_id}`
-  );
+  const { data } = await axios.get(`/${company}/employee-warehouse`, {
+    params: { location_id }
+  });
   return data;
 };
 
 export const useGetWarehousesEmployees = (
-  location_id?: string,
-  company?: string
+  company?: string,
+  location_id?: number | null
 ) => {
   return useQuery<Employee[], Error>({
-    queryKey: ["warehouses-employees", company, location_id],
-    queryFn: () => fetchWarehousesEmployees(location_id, company!),
-    enabled: !!company && !!location_id, // Solo se ejecuta si hay company y location_id
+    queryKey: ['warehouses-employees', company, location_id],
+    queryFn: () => fetchWarehousesEmployees(Number(location_id!), company!),
+    enabled: !!company && !!location_id,
+    staleTime: 1000 * 60 * 5, // 5 minutos
   });
 };
