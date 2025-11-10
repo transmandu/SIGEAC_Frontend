@@ -28,7 +28,6 @@ import {
   useUpdateArticle,
 } from "@/actions/mantenimiento/almacen/inventario/articulos/actions";
 
-import { MultiInputField } from "@/components/misc/MultiInputField";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -88,6 +87,8 @@ import { Batch, Convertion } from "@/types";
 import loadingGif from "@/public/loading2.gif";
 import { EditingArticle } from "./RegisterArticleForm";
 import { CreateManufacturerDialog } from "@/components/dialogs/general/CreateManufacturerDialog";
+import { useGetConversionByUnitConsmable } from "@/hooks/mantenimiento/almacen/articulos/useGetConvertionsByConsumableUnit";
+import { getConvertionArticle } from "@/actions/mantenimiento/almacen/articulos/unitConversion";
 
 /* ------------------------------- Schema ------------------------------- */
 
@@ -148,6 +149,13 @@ export type FormValues = z.infer<typeof formSchema>;
 
 interface UnitSelection {
   convertion_id: number;
+}
+
+interface ConversionResponse {
+  unit_primary: string;
+  equivalence: number;
+  unit_secondary: string;
+  quantity: number;
 }
 
 /* ----------------------------- Helpers UI ----------------------------- */
@@ -310,8 +318,6 @@ function DatePickerField({
 
 /* ----------------------------- Modal Unidades ----------------------------- */
 
-/* ----------------------------- Modal Unidades ----------------------------- */
-
 function UnitsModal({
   open,
   onOpenChange,
@@ -319,7 +325,10 @@ function UnitsModal({
   selectedUnits,
   onSelectedUnitsChange,
   primaryUnit,
-  allUnits, // AGREGAR ESTE PROP
+  allUnits,
+  availableConversionUnits,
+  availableConversion, // Agregar esta prop
+  onConversionResult,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -327,7 +336,16 @@ function UnitsModal({
   selectedUnits: UnitSelection[];
   onSelectedUnitsChange: (units: UnitSelection[]) => void;
   primaryUnit?: any;
-  allUnits?: any[]; // AGREGAR ESTE PROP
+  allUnits?: any[];
+  availableConversionUnits?: {
+    id: number;
+    value: string;
+    label: string;
+    registered_by: string;
+    updated_by: string | null;
+  }[];
+  availableConversion?: any[]; // Agregar el tipo para availableConversion
+  onConversionResult?: (result: string) => void;
 }) {
   const [currentUnitId, setCurrentUnitId] = useState<number | "">("");
   const [showConversionForm, setShowConversionForm] = useState(false);
@@ -335,11 +353,63 @@ function UnitsModal({
   const [conversionToUnit, setConversionToUnit] = useState<string>("");
   const [conversionQuantity, setConversionQuantity] = useState<string>("");
   const [conversionResult, setConversionResult] = useState<string>("");
+  const [isCalculating, setIsCalculating] = useState(false);
 
   const availableUnits = secondaryUnits.filter(
     (unit) =>
       !selectedUnits.some((selected) => selected.convertion_id === unit.id)
   );
+
+  // Función para calcular la conversión localmente usando las equivalencias
+  const calculateConversionLocally = () => {
+    if (!conversionFromUnit || !conversionToUnit || !conversionQuantity) {
+      setConversionResult("");
+      onConversionResult?.("");
+      return;
+    }
+
+    const quantity = parseFloat(conversionQuantity);
+    if (isNaN(quantity) || quantity <= 0) {
+      setConversionResult("");
+      onConversionResult?.("");
+      return;
+    }
+
+    setIsCalculating(true);
+
+    // Buscar la conversión que coincida con las unidades seleccionadas
+    const conversion = availableConversion?.find(
+      (conv: any) =>
+        conv.unit_primary.id.toString() === conversionFromUnit &&
+        conv.unit_secondary.id.toString() === conversionToUnit
+    );
+
+    if (conversion && conversion.equivalence) {
+      // Calcular: cantidad / equivalencia
+      const result = quantity / conversion.equivalence;
+      const resultValue = result.toFixed(6).replace(/\.?0+$/, ""); // Limitar decimales y quitar ceros innecesarios
+
+      setConversionResult(resultValue);
+      onConversionResult?.(resultValue);
+    } else {
+      setConversionResult("No se encontró conversión");
+      onConversionResult?.("No se encontró conversión");
+    }
+
+    setIsCalculating(false);
+  };
+
+  // Calcular automáticamente cuando cambian los valores
+  useEffect(() => {
+    calculateConversionLocally();
+  }, [conversionFromUnit, conversionToUnit, conversionQuantity]);
+
+  // Efecto para actualizar automáticamente la unidad destino cuando cambia la unidad primaria
+  useEffect(() => {
+    if (primaryUnit?.id) {
+      setConversionToUnit(primaryUnit.id.toString());
+    }
+  }, [primaryUnit]);
 
   const addUnit = () => {
     if (!currentUnitId) return;
@@ -350,8 +420,6 @@ function UnitsModal({
 
     const updatedUnits = [...selectedUnits, newUnit];
     onSelectedUnitsChange(updatedUnits);
-
-    // Reset form
     setCurrentUnitId("");
   };
 
@@ -362,34 +430,14 @@ function UnitsModal({
     onSelectedUnitsChange(updatedUnits);
   };
 
-  const calculateConversion = () => {
-    // Aquí llamarías a tu endpoint de conversión
-    // Por ahora simulamos una conversión simple
-    if (conversionFromUnit && conversionToUnit && conversionQuantity) {
-      const quantity = parseFloat(conversionQuantity);
-      if (!isNaN(quantity)) {
-        // Simulación de conversión - reemplazar con llamada a API
-        const result = quantity * 1; // Cambiar por la lógica real de conversión
-        setConversionResult(result.toString());
-      }
-    }
-  };
-
-  const createConversion = () => {
-    // Aquí llamarías a tu endpoint para crear la conversión
-    // Por ahora solo mostramos el resultado
-    calculateConversion();
-    // Después de crear la conversión, podrías recargar las unidades secundarias
-    // o agregar la nueva conversión a la lista disponible
-  };
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-6xl">
         <DialogHeader>
           <DialogTitle>Configurar Conversiones de Unidades</DialogTitle>
           <DialogDescription>
-            Seleccione las conversiones de unidades adicionales para este artículo o cree nuevas conversiones.
+            Seleccione las conversiones de unidades adicionales para este
+            artículo o cree nuevas conversiones.
           </DialogDescription>
         </DialogHeader>
 
@@ -402,7 +450,7 @@ function UnitsModal({
               variant="outline"
             >
               <Calculator className="h-4 w-4 mr-2" />
-              {showConversionForm ? "Cancelar" : "Crear Conversión"}
+              {showConversionForm ? "Cancelar" : "Conversión"}
             </Button>
           </div>
 
@@ -412,14 +460,17 @@ function UnitsModal({
               <div className="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Desde Unidad</label>
-                  <Select value={conversionFromUnit} onValueChange={setConversionFromUnit}>
+                  <Select
+                    value={conversionFromUnit}
+                    onValueChange={setConversionFromUnit}
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder="Seleccione unidad" />
                     </SelectTrigger>
                     <SelectContent>
-                      {allUnits?.map((unit) => (
+                      {availableConversionUnits?.map((unit) => (
                         <SelectItem key={unit.id} value={unit.id.toString()}>
-                          {unit.label}
+                          {unit.label} ({unit.value})
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -432,14 +483,24 @@ function UnitsModal({
 
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Hacia Unidad</label>
-                  <Select value={conversionToUnit} onValueChange={setConversionToUnit}>
+                  <Select
+                    value={conversionToUnit}
+                    onValueChange={setConversionToUnit}
+                    disabled={true}
+                  >
                     <SelectTrigger>
-                      <SelectValue placeholder={primaryUnit?.label || "Unidad primaria"} />
+                      <SelectValue>
+                        {primaryUnit
+                          ? `${primaryUnit.label} (${primaryUnit.value})`
+                          : "Seleccione unidad primaria"}
+                      </SelectValue>
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value={primaryUnit?.id || "primary"}>
-                        {primaryUnit?.label || "Unidad Primaria"}
-                      </SelectItem>
+                      {primaryUnit && (
+                        <SelectItem value={primaryUnit.id.toString()}>
+                          {primaryUnit.label} ({primaryUnit.value})
+                        </SelectItem>
+                      )}
                     </SelectContent>
                   </Select>
                 </div>
@@ -451,30 +512,103 @@ function UnitsModal({
                     placeholder="Ej: 100"
                     value={conversionQuantity}
                     onChange={(e) => setConversionQuantity(e.target.value)}
+                    min="0"
+                    step="0.01"
                   />
                 </div>
 
-                <div className="flex space-x-2">
-                  <Button onClick={calculateConversion} variant="outline">
-                    Calcular
-                  </Button>
-                  <Button onClick={createConversion}>
-                    Crear
-                  </Button>
+                <div className="flex items-end">
+                  {isCalculating && (
+                    <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      <span>Calculando...</span>
+                    </div>
+                  )}
                 </div>
               </div>
 
-              {conversionResult && (
-                <div className="mt-3 p-3 bg-primary/10 rounded-lg">
-                  <p className="text-sm">
-                    <span className="font-semibold">Resultado:</span> {conversionQuantity} {allUnits?.find(u => u.id.toString() === conversionFromUnit)?.label || conversionFromUnit} = {conversionResult} {primaryUnit?.label || "unidad primaria"}
+              {/* Mostrar información de la conversión */}
+              {conversionFromUnit &&
+                conversionToUnit &&
+                availableConversion && (
+                  <div className="mt-3 p-3 bg-blue-50 rounded-lg">
+                    <p className="text-sm text-blue-700">
+                      Conversión: {conversionQuantity || "0"}{" "}
+                      {
+                        availableConversionUnits?.find(
+                          (u) => u.id.toString() === conversionFromUnit
+                        )?.label
+                      }{" "}
+                      → {conversionResult} {primaryUnit?.label}
+                      {availableConversion.find(
+                        (conv: any) =>
+                          conv.unit_primary.id.toString() ===
+                            conversionFromUnit &&
+                          conv.unit_secondary.id.toString() === conversionToUnit
+                      )?.equivalence && (
+                        <span className="block text-xs mt-1">
+                          Equivalencia: 1{" "}
+                          {
+                            availableConversionUnits?.find(
+                              (u) => u.id.toString() === conversionFromUnit
+                            )?.label
+                          }{" "}
+                          ={" "}
+                          {1 /
+                            availableConversion.find(
+                              (conv: any) =>
+                                conv.unit_primary.id.toString() ===
+                                  conversionFromUnit &&
+                                conv.unit_secondary.id.toString() ===
+                                  conversionToUnit
+                            )!.equivalence}{" "}
+                          {primaryUnit?.label}
+                        </span>
+                      )}
+                    </p>
+                  </div>
+                )}
+
+              {/* Input para mostrar el resultado de la conversión */}
+              {conversionResult &&
+                !isCalculating &&
+                conversionResult !== "No se encontró conversión" && (
+                  <div className="mt-4 p-3 bg-primary/10 rounded-lg">
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">
+                        Resultado de la Conversión
+                      </label>
+                      <Input
+                        type="text"
+                        value={conversionResult}
+                        readOnly
+                        className="bg-white font-semibold"
+                        placeholder="El resultado aparecerá aquí..."
+                      />
+                      <p className="text-sm text-muted-foreground">
+                        {conversionQuantity}{" "}
+                        {availableConversionUnits?.find(
+                          (u) => u.id.toString() === conversionFromUnit
+                        )?.label || conversionFromUnit}{" "}
+                        = {conversionResult}{" "}
+                        {primaryUnit?.label || "unidad primaria"}
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+              {/* Mensaje de error */}
+              {conversionResult === "No se encontró conversión" && (
+                <div className="mt-3 p-3 bg-destructive/10 rounded-lg">
+                  <p className="text-sm text-destructive">
+                    No se encontró una conversión definida para estas unidades.
                   </p>
                 </div>
               )}
             </div>
           )}
 
-          {/* Formulario para agregar conversión existente */}
+          {/* Resto del componente igual... */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 border rounded-lg">
             <div className="space-y-2">
               <label className="text-sm font-medium">
@@ -496,8 +630,11 @@ function UnitsModal({
                       value={conversion.id.toString()}
                     >
                       {conversion.primary_unit.label}
+                      <span className="text-light ml-1">
+                        ({conversion.primary_unit.value})
+                      </span>
                       {conversion.secondary_unit?.label &&
-                        ` - ${conversion.secondary_unit.label} ${conversion.equivalence}(${conversion.primary_unit.value})`}
+                        ` - ${conversion.secondary_unit.label} (${conversion.secondary_unit.value})`}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -512,7 +649,6 @@ function UnitsModal({
             </div>
           </div>
 
-          {/* Lista de conversiones seleccionadas */}
           <div className="space-y-2">
             <h4 className="text-sm font-medium">Conversiones seleccionadas:</h4>
             {selectedUnits.length === 0 ? (
@@ -536,6 +672,11 @@ function UnitsModal({
                           {conversionInfo?.secondary_unit?.label &&
                             ` (${conversionInfo.secondary_unit.label})`}
                         </span>
+                        {conversionInfo?.equivalence && (
+                          <span className="text-sm text-muted-foreground">
+                            Equivalencia: {conversionInfo.equivalence}
+                          </span>
+                        )}
                       </div>
                       <div className="flex items-center space-x-2">
                         <Button
@@ -610,6 +751,40 @@ export default function CreateConsumableForm({
   const { data: secondaryUnits, isLoading: secondaryUnitsLoading } =
     useGetSecondaryUnits(selectedCompany?.slug);
 
+  // Estado para la unidad primaria seleccionada
+  const [selectedPrimaryUnit, setSelectedPrimaryUnit] = useState<any | null>(
+    initialData?.primary_unit_id ? { id: initialData.primary_unit_id } : null
+  );
+
+  // Conversiones posibles según la unidad primaria seleccionada
+  const { data: availableConversion, isLoading: isConversionLoading } =
+    useGetConversionByUnitConsmable(
+      selectedPrimaryUnit?.id || 0, // Usar 0 o un valor por defecto cuando no hay selección
+      selectedCompany?.slug
+    );
+
+  // Extraer unidades primarias únicas de las conversiones disponibles
+  const primaryUnitsFromConversions = useMemo(() => {
+    if (!availableConversion) return [];
+
+    const unitMap = new Map();
+    availableConversion.forEach((conversion) => {
+      const unit = conversion.unit_primary;
+      if (!unitMap.has(unit.id)) {
+        unitMap.set(unit.id, unit);
+      }
+    });
+
+    return Array.from(unitMap.values());
+  }, [availableConversion]);
+
+  console.log("THIS IS POSIBLE CONVERSION", availableConversion);
+  console.log(
+    "UNIDADES PRIMARIAS DE CONVERSIONES:",
+    primaryUnitsFromConversions
+  );
+  console.log("UNIDAD PRIMARIA SELECCIONADA:", selectedPrimaryUnit);
+
   // Search batches by part number
   const { data: searchResults, isFetching: isSearching } =
     useSearchBatchesByPartNumber(
@@ -626,7 +801,9 @@ export default function CreateConsumableForm({
 
   // Local UI state
   const [secondaryOpen, setSecondaryOpen] = useState(false);
-  const [secondarySelected, setSecondarySelected] = useState<any | null>(null);
+  const [secondarySelected, setSecondarySelected] = useState<any | null>(
+    initialData?.primary_unit_id ? { id: initialData.primary_unit_id } : null
+  );
   const [secondaryQuantity, setSecondaryQuantity] = useState<
     number | undefined
   >();
@@ -695,6 +872,12 @@ export default function CreateConsumableForm({
           initialData.consumable.is_managed === true
         : true,
     });
+
+    // Establecer la unidad primaria seleccionada si existe en initialData
+    if (initialData.primary_unit_id) {
+      setSelectedPrimaryUnit({ id: initialData.primary_unit_id });
+      setSecondarySelected({ id: initialData.primary_unit_id });
+    }
   }, [initialData, form]);
 
   // Función para calcular y actualizar la cantidad
@@ -729,6 +912,26 @@ export default function CreateConsumableForm({
       calculateAndUpdateQuantity(secondaryQuantity, secondarySelected);
     }
   }, [secondarySelected, secondaryQuantity]);
+
+  // Función para manejar el resultado de la conversión desde el modal
+  const handleConversionResult = (result: string) => {
+    const resultNumber = parseFloat(result);
+    if (!isNaN(resultNumber)) {
+      setSecondaryQuantity(resultNumber);
+      calculateAndUpdateQuantity(resultNumber, secondarySelected);
+    }
+  };
+
+  // Efecto para actualizar selectedPrimaryUnit cuando cambia secondarySelected
+  useEffect(() => {
+    if (secondarySelected) {
+      setSelectedPrimaryUnit(secondarySelected);
+      form.setValue("primary_unit_id", secondarySelected.id, {
+        shouldDirty: true,
+        shouldValidate: true,
+      });
+    }
+  }, [secondarySelected, form]);
 
   // Autocompletar descripción cuando encuentra resultados de búsqueda
   useEffect(() => {
@@ -831,6 +1034,7 @@ export default function CreateConsumableForm({
       setSecondarySelected(null);
       setSecondaryQuantity(undefined);
       setSelectedUnits([]);
+      setSelectedPrimaryUnit(null);
     }
   }
 
@@ -1274,6 +1478,7 @@ export default function CreateConsumableForm({
                                   units.find((u) => u.id.toString() === val) ||
                                   null;
                                 setSecondarySelected(found);
+                                setSelectedPrimaryUnit(found);
                                 setSecondaryOpen(false);
 
                                 if (found && secondaryQuantity !== undefined) {
@@ -1391,7 +1596,9 @@ export default function CreateConsumableForm({
                   type="button"
                   variant="outline"
                   onClick={() => setUnitsModalOpen(true)}
-                  disabled={busy || !secondaryUnits?.length}
+                  disabled={
+                    busy || !secondaryUnits?.length || !selectedPrimaryUnit
+                  }
                 >
                   <Plus className="h-4 w-4 mr-2" />
                   Configurar Conversiones Adicionales
@@ -1399,7 +1606,9 @@ export default function CreateConsumableForm({
                 <p className="text-sm text-muted-foreground mt-2">
                   {selectedUnits.length > 0
                     ? `${selectedUnits.length} conversión(es) configurada(s)`
-                    : "Configure conversiones de unidades adicionales para este artículo"}
+                    : !selectedPrimaryUnit
+                      ? "Seleccione primero una unidad primaria"
+                      : "Configure conversiones de unidades adicionales para este artículo"}
                 </p>
               </div>
             </div>
@@ -1492,7 +1701,8 @@ export default function CreateConsumableForm({
                 busy ||
                 !selectedCompany ||
                 !form.getValues("part_number") ||
-                !form.getValues("batch_id")
+                !form.getValues("batch_id") ||
+                !selectedPrimaryUnit
               }
               type="submit"
             >
@@ -1528,8 +1738,11 @@ export default function CreateConsumableForm({
         secondaryUnits={secondaryUnits || []}
         selectedUnits={selectedUnits}
         onSelectedUnitsChange={setSelectedUnits}
-        primaryUnit={secondarySelected}
+        primaryUnit={selectedPrimaryUnit}
         allUnits={units}
+        availableConversionUnits={primaryUnitsFromConversions}
+        availableConversion={availableConversion} // ← Agregar esta línea
+        onConversionResult={handleConversionResult}
       />
     </>
   );
