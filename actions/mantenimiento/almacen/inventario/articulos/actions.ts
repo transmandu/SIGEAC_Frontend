@@ -4,7 +4,7 @@ import { ComponentArticle, ConsumableArticle, ToolArticle } from "@/types";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 interface UnitSelection {
-  convertion_id: number;
+  conversion_id: number;
 }
 interface ArticleData {
   serial?: string;
@@ -30,7 +30,7 @@ interface ArticleData {
   certificate_fabricant?: File | string;
   certificate_vendor?: File | string;
   image?: File | string;
-  convertions?: UnitSelection[];
+  conversions?: UnitSelection[];
   primary_unit_id?: number;
 }
 
@@ -259,7 +259,6 @@ export const useEditArticle = () => {
         condition_id?: number | string;
         batches_id: string | number;
         is_special?: boolean;
-        is_managed?: boolean;
         caducate_date?: string;
         fabrication_date?: string;
         quantity?: number;

@@ -82,15 +82,15 @@ import { useGetSecondaryUnits } from "@/hooks/general/unidades/useGetSecondaryUn
 
 import { cn } from "@/lib/utils";
 import { useCompanyStore } from "@/stores/CompanyStore";
-import { Batch, Convertion } from "@/types";
-
+import { Convertion } from "@/types";
 import loadingGif from "@/public/loading2.gif";
 import { EditingArticle } from "./RegisterArticleForm";
 import { CreateManufacturerDialog } from "@/components/dialogs/general/CreateManufacturerDialog";
 import { useGetConversionByUnitConsmable } from "@/hooks/mantenimiento/almacen/articulos/useGetConvertionsByConsumableUnit";
 import { getConvertionArticle } from "@/actions/mantenimiento/almacen/articulos/unitConversion";
-import { CreateBatchDialog } from "@/components/dialogs/mantenimiento/almacen/CreateBatchDialog";
 import { useQueryClient } from "@tanstack/react-query";
+import { MultiInputField } from "@/components/misc/MultiInputField";
+import { CreateBatchDialog } from "@/components/dialogs/mantenimiento/almacen/CreateBatchDialog";
 
 /* ------------------------------- Schema ------------------------------- */
 
@@ -119,7 +119,10 @@ const formSchema = z.object({
   condition_id: z.string().min(1, "Debe ingresar la condición del artículo."),
   quantity: z.coerce
     .number({ message: "Debe ingresar una cantidad." })
-    .min(0, { message: "No puede ser negativo." }),
+    .min(0, { message: "No puede ser negativo." })
+    .refine((val) => !isNaN(val), {
+      message: "Debe ser un número válido",
+    }),
   min_quantity: z.coerce
     .number()
     .min(0, { message: "No puede ser negativo." })
@@ -127,7 +130,6 @@ const formSchema = z.object({
   batch_id: z
     .string({ message: "Debe ingresar un lote." })
     .min(1, "Seleccione un lote"),
-  is_managed: z.boolean().optional(),
   certificate_8130: z
     .instanceof(File, { message: "Suba un archivo válido." })
     .refine((f) => f.size <= fileMaxBytes, "Tamaño máximo 10 MB.")
@@ -141,7 +143,7 @@ const formSchema = z.object({
     .refine((f) => f.size <= fileMaxBytes, "Tamaño máximo 10 MB.")
     .optional(),
   image: z.instanceof(File).optional(),
-  convertion_id: z.number().optional(),
+  conversion_id: z.number().optional(),
   primary_unit_id: z.number().optional(),
 });
 
@@ -150,14 +152,7 @@ export type FormValues = z.infer<typeof formSchema>;
 /* ----------------------------- Interfaces ----------------------------- */
 
 interface UnitSelection {
-  convertion_id: number;
-}
-
-interface ConversionResponse {
-  unit_primary: string;
-  equivalence: number;
-  unit_secondary: string;
-  quantity: number;
+  conversion_id: number;
 }
 
 /* ----------------------------- Helpers UI ----------------------------- */
@@ -257,11 +252,15 @@ function DatePickerField({
   error?: string;
 }) {
   const [touched, setTouched] = useState(false);
-  
+
   // Solo mostrar error si el campo fue tocado/interactuado o si hay un error explícito
   // No mostrar error inmediatamente al cargar la página
   const isInvalid = required && value === undefined && touched;
-  const displayError = error || (isInvalid ? "Este campo es obligatorio. Debe seleccionar una fecha o marcar 'No aplica'." : undefined);
+  const displayError =
+    error ||
+    (isInvalid
+      ? "Este campo es obligatorio. Debe seleccionar una fecha o marcar 'No aplica'."
+      : undefined);
 
   return (
     <FormItem className="flex flex-col p-0 mt-2.5 w-full">
@@ -294,22 +293,22 @@ function DatePickerField({
               </Button>
             </FormControl>
           </PopoverTrigger>
-          <PopoverContent 
-            className="w-auto p-0 z-[100]" 
+          <PopoverContent
+            className="w-auto p-0 z-[100]"
             align="start"
             side="bottom"
             sideOffset={8}
             avoidCollisions={true}
           >
-            <Calendar 
-              locale={es} 
-              mode="single" 
-              selected={value || undefined} 
+            <Calendar
+              locale={es}
+              mode="single"
+              selected={value || undefined}
               onSelect={(date) => {
                 setTouched(true);
                 setValue(date);
-              }} 
-              initialFocus 
+              }}
+              initialFocus
               defaultMonth={value || new Date()}
               captionLayout="dropdown-buttons"
               fromYear={1900}
@@ -339,7 +338,7 @@ function DatePickerField({
         {showNotApplicable && (
           <div className="flex items-center space-x-2 flex-shrink-0">
             <Checkbox
-              id={`not-applicable-${label.replace(/\s+/g, '-').toLowerCase()}`}
+              id={`not-applicable-${label.replace(/\s+/g, "-").toLowerCase()}`}
               checked={value === null}
               onCheckedChange={(checked) => {
                 setTouched(true);
@@ -352,7 +351,7 @@ function DatePickerField({
               disabled={busy}
             />
             <label
-              htmlFor={`not-applicable-${label.replace(/\s+/g, '-').toLowerCase()}`}
+              htmlFor={`not-applicable-${label.replace(/\s+/g, "-").toLowerCase()}`}
               className="text-sm font-medium leading-none cursor-pointer whitespace-nowrap select-none"
             >
               No aplica
@@ -362,7 +361,9 @@ function DatePickerField({
       </div>
       {description ? <FormDescription>{description}</FormDescription> : null}
       {displayError && (
-        <p className="text-sm font-medium text-destructive mt-1">{displayError}</p>
+        <p className="text-sm font-medium text-destructive mt-1">
+          {displayError}
+        </p>
       )}
       <FormMessage />
     </FormItem>
@@ -410,7 +411,7 @@ function UnitsModal({
 
   const availableUnits = secondaryUnits.filter(
     (unit) =>
-      !selectedUnits.some((selected) => selected.convertion_id === unit.id)
+      !selectedUnits.some((selected) => selected.conversion_id === unit.id)
   );
 
   // Función para calcular la conversión localmente usando las equivalencias
@@ -468,7 +469,7 @@ function UnitsModal({
     if (!currentUnitId) return;
 
     const newUnit: UnitSelection = {
-      convertion_id: currentUnitId as number,
+      conversion_id: currentUnitId as number,
     };
 
     const updatedUnits = [...selectedUnits, newUnit];
@@ -478,7 +479,7 @@ function UnitsModal({
 
   const removeUnit = (unitId: number) => {
     const updatedUnits = selectedUnits.filter(
-      (unit) => unit.convertion_id !== unitId
+      (unit) => unit.conversion_id !== unitId
     );
     onSelectedUnitsChange(updatedUnits);
   };
@@ -562,11 +563,12 @@ function UnitsModal({
                   <label className="text-sm font-medium">Cantidad</label>
                   <Input
                     type="number"
+                    inputMode="decimal"
                     placeholder="Ej: 100"
                     value={conversionQuantity}
                     onChange={(e) => setConversionQuantity(e.target.value)}
                     min="0"
-                    step="0.01"
+                    step="0.001"
                   />
                 </div>
 
@@ -712,11 +714,11 @@ function UnitsModal({
               <div className="space-y-2">
                 {selectedUnits.map((unit) => {
                   const conversionInfo = secondaryUnits.find(
-                    (u) => u.id === unit.convertion_id
+                    (u) => u.id === unit.conversion_id
                   );
                   return (
                     <div
-                      key={unit.convertion_id}
+                      key={unit.conversion_id}
                       className="flex items-center justify-between p-3 border rounded-lg"
                     >
                       <div className="flex items-center space-x-3">
@@ -735,7 +737,7 @@ function UnitsModal({
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => removeUnit(unit.convertion_id)}
+                          onClick={() => removeUnit(unit.conversion_id)}
                         >
                           <X className="h-4 w-4" />
                         </Button>
@@ -783,7 +785,8 @@ export default function CreateConsumableForm({
     data: batches,
     isPending: isBatchesLoading,
     isError: isBatchesError,
- , refetch: refetchBatches } = useGetBatchesByCategory("consumible");
+    refetch: refetchBatches,
+  } = useGetBatchesByCategory("consumible");
   const {
     data: manufacturers,
     isLoading: isManufacturerLoading,
@@ -832,13 +835,6 @@ export default function CreateConsumableForm({
     return Array.from(unitMap.values());
   }, [availableConversion]);
 
-  console.log("THIS IS POSIBLE CONVERSION", availableConversion);
-  console.log(
-    "UNIDADES PRIMARIAS DE CONVERSIONES:",
-    primaryUnitsFromConversions
-  );
-  console.log("UNIDAD PRIMARIA SELECCIONADA:", selectedPrimaryUnit);
-
   // Search batches by part number
   const { data: searchResults, isFetching: isSearching } =
     useSearchBatchesByPartNumber(
@@ -861,13 +857,17 @@ export default function CreateConsumableForm({
   const [secondaryQuantity, setSecondaryQuantity] = useState<
     number | undefined
   >();
-  const [caducateDate, setCaducateDate] = useState<Date | undefined>(
+  const [caducateDate, setCaducateDate] = useState<Date | null | undefined>(
     initialData?.consumable?.caducate_date
       ? new Date(initialData.consumable.caducate_date)
       : undefined
   );
-  const [fabricationDate, setFabricationDate] = useState<Date | null | undefined>(
-    initialData?.consumable?.fabrication_date ? new Date(initialData?.consumable?.fabrication_date) : undefined
+  const [fabricationDate, setFabricationDate] = useState<
+    Date | null | undefined
+  >(
+    initialData?.consumable?.fabrication_date
+      ? new Date(initialData?.consumable?.fabrication_date)
+      : undefined
   );
   const [enableBatchNameEdit, setEnableBatchNameEdit] = useState(false);
 
@@ -875,17 +875,17 @@ export default function CreateConsumableForm({
   const handleFabricationDateChange = (d?: Date | null) => {
     setFabricationDate(d ?? undefined);
   };
+
   const handleCaducateDateChange = (d?: Date | null) => {
     // Preserve null value to indicate "Not applicable"
     if (d === null) {
-      setCaducateDate(null);
+      setCaducateDate(null); // ← CAMBIAR undefined por null
     } else if (d === undefined) {
       setCaducateDate(undefined);
     } else {
       setCaducateDate(d);
     }
   };
-
   // Form
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -906,10 +906,6 @@ export default function CreateConsumableForm({
         ? Number(initialData.consumable.min_quantity)
         : undefined,
       primary_unit_id: initialData?.primary_unit_id || undefined,
-      is_managed: initialData?.consumable?.is_managed
-        ? initialData.consumable.is_managed === "1" ||
-          initialData.consumable.is_managed === true
-        : false,
     },
     mode: "onBlur",
   });
@@ -934,10 +930,6 @@ export default function CreateConsumableForm({
         ? Number(initialData.consumable.min_quantity)
         : undefined,
       primary_unit_id: initialData?.primary_unit_id || undefined,
-      is_managed: initialData.consumable?.is_managed
-        ? initialData.consumable.is_managed === "1" ||
-          initialData.consumable.is_managed === true
-        : true,
     });
 
     // Establecer la unidad primaria seleccionada si existe en initialData
@@ -1056,27 +1048,37 @@ export default function CreateConsumableForm({
     if (!selectedCompany?.slug) return;
 
     const { caducate_date: _, ...valuesWithoutCaducateDate } = values;
-    const caducateDateStr: string | undefined = caducateDate && caducateDate !== null ? format(caducateDate, "yyyy-MM-dd") : undefined;
-    const formattedValues: Omit<FormValues, 'caducate_date'> & {
-      caducate_date?: string;
+
+    // USAR ESTA LÍNEA QUE SÍ FUNCIONA:
+    const caducateDateStr: string | undefined =
+      caducateDate && caducateDate !== null
+        ? format(caducateDate, "yyyy-MM-dd")
+        : undefined;
+
+    const formattedValues: Omit<FormValues, "caducate_date"> & {
+      caducate_date?: string; // ← MANTENER solo string | undefined
       fabrication_date?: string;
       part_number: string;
       article_type: string;
       status: string;
       alternative_part_number?: string[];
       batch_name?: string;
-      convertions?: UnitSelection[];
+      conversions?: UnitSelection[];
       primary_unit_id?: number;
     } = {
       ...valuesWithoutCaducateDate,
       status: "CHECKING",
       part_number: normalizeUpper(values.part_number),
       article_type: "consumible",
-      alternative_part_number: values.alternative_part_number?.map((v) => normalizeUpper(v)) ?? [],
-      caducate_date: caducateDateStr,
-      fabrication_date: fabricationDate && fabricationDate !== null ? format(fabricationDate, "yyyy-MM-dd") : undefined,
+      alternative_part_number:
+        values.alternative_part_number?.map((v) => normalizeUpper(v)) ?? [],
+      caducate_date: caducateDateStr, // Solo string o undefined
+      fabrication_date:
+        fabricationDate && fabricationDate !== null
+          ? format(fabricationDate, "yyyy-MM-dd")
+          : undefined,
       batch_name: enableBatchNameEdit ? values.batch_name : undefined,
-      convertions: selectedUnits.length > 0 ? selectedUnits : undefined,
+      conversions: selectedUnits.length > 0 ? selectedUnits : undefined,
       primary_unit_id: secondarySelected?.id,
     };
 
@@ -1148,22 +1150,26 @@ export default function CreateConsumableForm({
                 )}
               />
 
-            <FormField
-              control={form.control}
-              name="alternative_part_number"
-              render={({ field }) => (
-                <FormItem>
-                  <FormControl>
-                    <MultiInputField
-                      values={field.value || []}
-                      onChange={(vals) => field.onChange(vals.map((v: string) => normalizeUpper(v)))}
-                      placeholder="Ej: 234ABAC"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+              <FormField
+                control={form.control}
+                name="alternative_part_number"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      <MultiInputField
+                        values={field.value || []}
+                        onChange={(vals) =>
+                          field.onChange(
+                            vals.map((v: string) => normalizeUpper(v))
+                          )
+                        }
+                        placeholder="Ej: 234ABAC"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
               <FormField
                 control={form.control}
@@ -1190,33 +1196,45 @@ export default function CreateConsumableForm({
                   name="batch_id"
                   render={({ field }) => (
                     <FormItem className="flex flex-col space-y-3 mt-1.5 w-full">
-                    <div className="flex items-center justify-between">
+                      <div className="flex items-center justify-between">
                         <FormLabel>Descripción de Consumible</FormLabel>
-                      <CreateBatchDialog
-                        onSuccess={async (batchName) => {
-                          // Invalidar la query y refetch para obtener el batch recién creado
-                          await queryClient.invalidateQueries({ 
-                            queryKey: ["search-batches", selectedCompany?.slug, selectedStation, "consumible"] 
-                          });
-                          const { data: updatedBatches } = await refetchBatches();
-                          const newBatch = updatedBatches?.find((b: any) => b.name === batchName);
-                          if (newBatch) {
-                            form.setValue("batch_id", newBatch.id.toString(), { shouldValidate: true });
+                        <CreateBatchDialog
+                          onSuccess={async (batchName) => {
+                            // Invalidar la query y refetch para obtener el batch recién creado
+                            await queryClient.invalidateQueries({
+                              queryKey: [
+                                "search-batches",
+                                selectedCompany?.slug,
+                                selectedStation,
+                                "consumible",
+                              ],
+                            });
+                            const { data: updatedBatches } =
+                              await refetchBatches();
+                            const newBatch = updatedBatches?.find(
+                              (b: any) => b.name === batchName
+                            );
+                            if (newBatch) {
+                              form.setValue(
+                                "batch_id",
+                                newBatch.id.toString(),
+                                { shouldValidate: true }
+                              );
+                            }
+                          }}
+                          triggerButton={
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              className="h-7 text-xs"
+                            >
+                              <Plus className="h-3 w-3 mr-1" />
+                              Crear nuevo
+                            </Button>
                           }
-                        }}
-                        triggerButton={
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            className="h-7 text-xs"
-                          >
-                            <Plus className="h-3 w-3 mr-1" />
-                            Crear nuevo
-                          </Button>
-                        }
-                      />
-                    </div>
+                        />
+                      </div>
                       <Popover>
                         <PopoverTrigger asChild>
                           <FormControl>
@@ -1392,49 +1410,6 @@ export default function CreateConsumableForm({
             </div>
           </SectionCard>
 
-        {/* Propiedades */}
-        <SectionCard title="Propiedades">
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-            <FormField
-              control={form.control}
-              name="condition_id"
-              render={({ field }) => (
-                <FormItem className="w-full">
-                  <FormLabel>Condición</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    value={field.value}
-                    disabled={isConditionsLoading || busy}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue
-                          placeholder={
-                            isConditionsLoading
-                              ? "Cargando..."
-                              : "Seleccione..."
-                          }
-                        />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {conditions?.map((c) => (
-                        <SelectItem key={c.id} value={c.id.toString()}>
-                          {c.name}
-                        </SelectItem>
-                      ))}
-                      {isConditionsError && (
-                        <div className="p-2 text-sm text-muted-foreground">
-                          Error al cargar condiciones.
-                        </div>
-                      )}
-                    </SelectContent>
-                  </Select>
-                  <FormDescription>Estado del artículo.</FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
           {/* Propiedades */}
           <SectionCard title="Propiedades">
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
@@ -1478,25 +1453,6 @@ export default function CreateConsumableForm({
                   </FormItem>
                 )}
               />
-
-              <DatePickerField
-                label="Fecha de Fabricación"
-                value={fabricationDate}
-                setValue={setFabricationDate}
-                description="Fecha de creación del artículo."
-                busy={busy}
-                shortcuts="back"
-              />
-
-              <DatePickerField
-                label="Fecha de Caducidad - Shelf-Life"
-                value={caducateDate}
-                setValue={setCaducateDate}
-                description="Fecha límite del artículo."
-                busy={busy}
-                shortcuts="forward"
-              />
-
               <FormField
                 control={form.control}
                 name="manufacturer_id"
@@ -1588,31 +1544,31 @@ export default function CreateConsumableForm({
             </div>
           </SectionCard>
 
-        {/* Fechas y límites */}
-        <SectionCard title="Fechas del Consumible">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <DatePickerField
-              label="Fecha de Fabricación"
-              value={fabricationDate}
-              setValue={handleFabricationDateChange}
-              description="Fecha de fabricación del Consumible."
-              busy={busy}
-              shortcuts="back"
-              maxYear={new Date().getFullYear()}
-            />
+          {/* Fechas y límites */}
+          <SectionCard title="Fechas del Consumible">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <DatePickerField
+                label="Fecha de Fabricación"
+                value={fabricationDate}
+                setValue={handleFabricationDateChange}
+                description="Fecha de fabricación del Consumible."
+                busy={busy}
+                shortcuts="back"
+                maxYear={new Date().getFullYear()}
+              />
 
-            <DatePickerField
-              label="Fecha de Caducidad - Shelf-Life"
-              value={caducateDate}
-              setValue={handleCaducateDateChange}
-              description="Fecha límite del Consumible en Almacen."
-              busy={busy}
-              shortcuts="forward"
-              showNotApplicable={true}
-              required={true}
-            />
-          </div>
-        </SectionCard>
+              <DatePickerField
+                label="Fecha de Caducidad - Shelf-Life"
+                value={caducateDate}
+                setValue={handleCaducateDateChange}
+                description="Fecha límite del Consumible en Almacen."
+                busy={busy}
+                shortcuts="forward"
+                showNotApplicable={true}
+                required={true}
+              />
+            </div>
+          </SectionCard>
 
           {/* Ingreso y cantidad */}
           <SectionCard title="Ingreso y cantidad">
@@ -1700,6 +1656,7 @@ export default function CreateConsumableForm({
                         inputMode="decimal"
                         disabled={busy}
                         min="0"
+                        step="any" // ← CAMBIAR A "any"
                         value={secondaryQuantity ?? ""}
                         onChange={(e) => {
                           const value = e.target.value;
@@ -1726,7 +1683,7 @@ export default function CreateConsumableForm({
                           );
                           field.onChange(newQuantity || 0);
                         }}
-                        placeholder="Ej: 2, 4, 6..."
+                        placeholder="Ej: 15.7, 20.5, 3.14..."
                       />
                     </FormControl>
                     <FormDescription>
@@ -1766,30 +1723,6 @@ export default function CreateConsumableForm({
                 )}
               />
 
-            {/* ¿Es manejable? */}
-            <FormField
-              control={form.control}
-              name="is_managed"
-              render={({ field }) => (
-                <FormItem className="col-span-1 md:col-span-2 xl:col-span-3 flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-                  <FormControl>
-                    <Checkbox
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                      disabled={true}
-                    />
-                  </FormControl>
-                  <div className="space-y-1 leading-none">
-                    <FormLabel>
-                      ¿Necesita despachar el artículo en pequeñas cantidades?
-                    </FormLabel>
-                    <FormDescription />
-                  </div>
-                </FormItem>
-              )}
-            />
-          </div>
-        </SectionCard>
               {/* Botón para configurar conversiones adicionales */}
               <div className="col-span-1 md:col-span-2 xl:col-span-3">
                 <Button
@@ -1903,7 +1836,7 @@ export default function CreateConsumableForm({
                 !form.getValues("part_number") ||
                 !form.getValues("batch_id") ||
                 !selectedPrimaryUnit ||
-              caducateDate === undefined
+                caducateDate === undefined
               }
               type="submit"
             >
