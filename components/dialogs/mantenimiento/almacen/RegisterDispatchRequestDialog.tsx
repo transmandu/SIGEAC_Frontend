@@ -38,9 +38,6 @@ export function RegisterDispatchRequestDialog() {
             <div>
               <DialogTitle className="text-2xl">Registro de Salida</DialogTitle>
               <DialogDescription className="mt-2">
-                {
-                  category ? `Rellene el formulario para ${category}.` : "Seleccione una categoría para continuar."
-                }
               </DialogDescription>
             </div>
             <DropdownMenu>
