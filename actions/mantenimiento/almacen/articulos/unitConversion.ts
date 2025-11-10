@@ -15,7 +15,7 @@ export const getConvertionArticle = () => {
   const createMutation = useMutation({
     mutationFn: async (data: unitConversionData) => {
       const response = await axiosInstance.post(
-        `${selectedCompany?.slug}/get-convertion-articles`,
+        `${selectedCompany?.slug}/get-conversion-articles`,
         data,
         {
           headers: {

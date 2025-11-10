@@ -15,7 +15,7 @@ const fetchConversionByConsumableUnit = async (
   company?: string
 ): Promise<converionData[]> => {
   const { data } = await axios.get(
-    `/${company}/get-convertion-by-consumable-unit`,
+    `/${company}/get-conversion-by-consumable-unit`,
     {
       params: { consumable_unit_id }, // ✅ Correcto para GET
     }
