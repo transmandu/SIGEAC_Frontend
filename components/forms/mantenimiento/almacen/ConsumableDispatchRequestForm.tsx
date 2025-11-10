@@ -59,17 +59,21 @@ const FormSchema = z.object({
     message: "Debe ingresar la fecha.",
   }),
   articles: z.object({
-    article_id: z.coerce.number().min(1, "Debe seleccionar un artículo"),
+    article_id: z.coerce.number(),
     serial: z.string().nullable(),
-    quantity: z.number().min(0.01, "La cantidad debe ser mayor a 0"),
-    batch_id: z.number().min(1, "Debe seleccionar un lote"),
+    quantity: z.number(),
+    batch_id: z.number(),
   }),
   justification: z.string({
     message: "Debe ingresar una justificación de la salida.",
   }),
   destination_place: z.string(),
   status: z.string(),
-  unit: z.string().optional(),
+  unit: z
+    .enum(["litros", "mililitros"], {
+      message: "Debe seleccionar una unidad.",
+    })
+    .optional(), // Nuevo campo
 });
 
 type FormSchemaType = z.infer<typeof FormSchema>;
@@ -92,15 +96,19 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
 
   const [quantity, setQuantity] = useState("");
 
-  const [resultQuantity, setResultQuantity] = useState("");
+  // ❌ ELIMINAR estas líneas (95-97):
+  // const [filteredBatches, setFilteredBatches] = useState<
+  //   BatchesWithCountProp[]
+  // >([]);
 
   const [articleSelected, setArticleSelected] = useState<Article>();
   const [isDepartment, setIsDepartment] = useState(false);
 
   const { createDispatchRequest } = useCreateDispatchRequest();
 
-  const { data: departments, isLoading: isDepartmentsLoading } =
-    useGetDepartments(selectedCompany?.slug);
+  const { data: departments, isLoading: isDepartmentsLo } = useGetDepartments(
+    selectedCompany?.slug
+  );
 
   const { data: aircrafts, isLoading: isAircraftsLoading } = useGetMaintenanceAircrafts(
     selectedCompany?.slug
@@ -135,12 +143,6 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
       requested_by: `${user?.employee[0].dni}`,
       destination_place: "",
       status: "proceso",
-      articles: {
-        article_id: 0,
-        serial: null,
-        quantity: 0,
-        batch_id: 0,
-      },
     },
   });
 
@@ -154,136 +156,26 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
   //   }
   // }, [batches]);
 
-    if (selectedSecondaryUnit) {
-      // Para unidades secundarias, calcular cuántas unidades secundarias equivalen al stock disponible
-      const conversionFactor =
-        parseFloat(selectedSecondaryUnit.equivalence.toString()) || 1;
-      return availableStock / conversionFactor;
-    }
-
-    // Para unidades primarias, el máximo es el stock disponible
-    return availableStock;
-  };
-
-  // Efecto para calcular cantidad resultante, validar y establecer máximo permitido
   useEffect(() => {
-    if (!articleSelected || !articleConversion) {
-      setResultQuantity("");
-      setMaxInputQuantity(0);
-      return;
-    }
-
-    const selectedUnit = form.watch("unit");
+    const unit = form.watch("unit");
     const currentQuantity = parseFloat(quantity) || 0;
-    const availableStock = articleSelected.quantity || 0;
+    const article = form.getValues("articles");
+    if (articleSelected?.unit !== "unidades") {
+      const newQuantity =
+        unit === "mililitros" ? currentQuantity / 1000 : currentQuantity;
 
-    // Calcular la cantidad máxima permitida en el input
-    const calculatedMaxInput = calculateMaxInputQuantity(
-      selectedUnit,
-      availableStock
-    );
-    setMaxInputQuantity(calculatedMaxInput);
-
-    let calculatedQuantity = currentQuantity;
-
-    // Determinar qué tipo de unidad seleccionó
-    if (selectedUnit) {
-      const selectedSecondaryUnit = articleConversion.find(
-        (conv) => conv.secondary_unit?.label === selectedUnit
-      );
-
-      const selectedPrimaryUnit = articleConversion.find(
-        (conv) => conv.primary_unit.label === selectedUnit
-      );
-
-      if (selectedSecondaryUnit) {
-        // El usuario seleccionó una unidad secundaria - APLICAR CONVERSIÓN
-        const conversionFactor =
-          parseFloat(selectedSecondaryUnit.equivalence.toString()) || 1;
-        calculatedQuantity = currentQuantity * conversionFactor;
-      } else if (selectedPrimaryUnit) {
-        // El usuario seleccionó una unidad primaria - 1:1
-        calculatedQuantity = currentQuantity;
-      }
-    }
-
-    setResultQuantity(calculatedQuantity.toString());
-    form.setValue("articles.quantity", calculatedQuantity);
-
-    // VALIDACIÓN: La cantidad resultante NO puede ser mayor al stock disponible
-    if (calculatedQuantity > availableStock) {
-      form.setError("articles.quantity", {
-        type: "manual",
-        message: `No puede retirar más de ${availableStock} ${articleSelected.unit} disponibles. Cantidad resultante: ${calculatedQuantity.toFixed(2)}`,
+      form.setValue("articles", {
+        ...article,
+        quantity: newQuantity,
       });
     } else {
-      form.clearErrors("articles.quantity");
-    }
-
-    // Si la cantidad actual excede el máximo permitido, ajustarla automáticamente
-    if (currentQuantity > calculatedMaxInput) {
-      setQuantity(calculatedMaxInput.toString());
-    }
-  }, [quantity, form.watch("unit"), articleSelected, articleConversion, form]);
-
-  // Modificar el handler del input de cantidad para validar y limitar
-  const handleQuantityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    const numericValue = parseFloat(value) || 0;
-
-    // Si no hay artículo seleccionado, no permitir entrada
-    if (!articleSelected) {
-      setQuantity("");
-      return;
-    }
-
-    // Si no hay unidad seleccionada, limitar al stock disponible
-    if (!form.watch("unit")) {
-      const availableStock = articleSelected.quantity || 0;
-      if (numericValue > availableStock) {
-        setQuantity(availableStock.toString());
-        return;
-      }
-    }
-
-    // Aplicar límite basado en el máximo calculado
-    if (maxInputQuantity > 0 && numericValue > maxInputQuantity) {
-      setQuantity(maxInputQuantity.toString());
-      return;
-    }
-
-    // Validación básica - no puede ser menor a 0
-    if (numericValue < 0) {
-      setQuantity("0");
-      form.setError("articles.quantity", {
-        type: "manual",
-        message: `La cantidad no puede ser menor a 0`,
+      // Si es "unidades", no se realiza conversión
+      form.setValue("articles", {
+        ...article,
+        quantity: currentQuantity,
       });
-      return;
     }
-
-    setQuantity(value);
-    form.clearErrors("articles.quantity");
-  };
-
-  // Handler para cuando se selecciona una unidad
-  const handleUnitChange = (value: string) => {
-    form.setValue("unit", value);
-
-    // Cuando se cambia la unidad, recalcular y ajustar la cantidad si es necesario
-    if (quantity && articleSelected) {
-      const currentQuantity = parseFloat(quantity) || 0;
-      const availableStock = articleSelected.quantity || 0;
-      const calculatedMaxInput = calculateMaxInputQuantity(
-        value,
-        availableStock
-      );
-
-      if (currentQuantity > calculatedMaxInput) {
-        setQuantity(calculatedMaxInput.toString());
-      }
-    }
-  };
+  }, [quantity, articleSelected, form]);
 
   // Limpiar destination_place cuando cambia el tipo de destino
   useEffect(() => {
@@ -293,23 +185,6 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
   const { setValue } = form;
 
   const onSubmit = async (data: FormSchemaType) => {
-    // Validación final antes de enviar
-    if (!articleSelected) {
-      setArticleError("Debe seleccionar un artículo");
-      return;
-    }
-
-    if (
-      articleSelected &&
-      data.articles.quantity > (articleSelected.quantity || 0)
-    ) {
-      form.setError("articles.quantity", {
-        type: "manual",
-        message: `No puede retirar más de ${articleSelected.quantity} ${articleSelected.unit} disponibles.`,
-      });
-      return;
-    }
-
     const formattedData = {
       ...data,
       articles: [{ ...data.articles }],
@@ -321,7 +196,6 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
       delivered_by: data.delivered_by,
       user_id: Number(user!.id),
     };
-
     await createDispatchRequest.mutateAsync({
       data: formattedData,
       company: selectedCompany!.slug,
@@ -339,12 +213,12 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
       .find((article) => article.id === id);
 
     if (selectedArticle) {
-      // Resetear estados
-      setQuantity("");
-      setResultQuantity("");
-      setArticleError("");
-      setMaxInputQuantity(0);
-      form.setValue("unit", "");
+      // Actualizar el valor del campo "unit" en el formulario
+      if (selectedArticle.unit === "u") {
+        form.setValue("unit", undefined); // Ocultar el RadioGroup si es "unidades"
+      } else {
+        form.setValue("unit", "litros"); // Establecer un valor predeterminado si es "litros"
+      }
 
       // Actualizar el estado del artículo seleccionado
       setValue("articles", {
@@ -355,12 +229,6 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
       });
 
       setArticleSelected(selectedArticle);
-      form.clearErrors("articles.article_id");
-    } else {
-      setArticleSelected(null);
-      setQuantity("");
-      setResultQuantity("");
-      setMaxInputQuantity(0);
     }
   };
 
@@ -702,21 +570,14 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
                                   ))}
                                 </CommandGroup>
                               ))}
-                            </CommandGroup>
-                          ))}
-                        </>
-                      )}
-                    </CommandList>
-                  </Command>
-                </PopoverContent>
-              </Popover>
-
-              {/* Mensaje de error personalizado */}
-              {(articleError || form.formState.errors.articles?.article_id) && (
-                <p className="text-sm font-medium text-destructive">
-                  {articleError ||
-                    form.formState.errors.articles?.article_id?.message}
-                </p>
+                            </>
+                          )}
+                        </CommandList>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
+                  <FormMessage />
+                </FormItem>
               )}
             />
             <div className="flex items-end gap-4">
@@ -785,31 +646,7 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
                   )}
                 />
               )}
-
-            {/* CANTIDAD RESULTANTE */}
-            {articleSelected &&
-              articleConversion &&
-              form.watch("unit") &&
-              (() => {
-                const selectedUnit = form.watch("unit");
-                const isSecondaryUnit = articleConversion.some(
-                  (conv) => conv.secondary_unit?.label === selectedUnit
-                );
-                return isSecondaryUnit;
-              })() && (
-                <div className="flex flex-col space-y-2">
-                  <Label>Cantidad Resultante</Label>
-                  <Input
-                    disabled
-                    value={resultQuantity}
-                    placeholder="0"
-                    className="bg-gray-50"
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Equivalente en {articleSelected.unit}
-                  </p>
-                </div>
-              )}
+            </div>
           </div>
 
           {/* Sección: Justificación */}
