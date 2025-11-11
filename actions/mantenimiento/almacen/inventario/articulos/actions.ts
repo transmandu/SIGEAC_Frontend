@@ -7,7 +7,7 @@ interface UnitSelection {
   conversion_id: number;
 }
 interface ArticleData {
-  serial?: string;
+  serial?: string | string[];
   part_number: string;
   article_type: string;
   lot_number?: string;

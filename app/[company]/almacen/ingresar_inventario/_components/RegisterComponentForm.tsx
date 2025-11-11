@@ -79,6 +79,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { EditingArticle } from "./RegisterArticleForm";
 import { CreateManufacturerDialog } from "@/components/dialogs/general/CreateManufacturerDialog";
 import { CreateBatchDialog } from "@/components/dialogs/mantenimiento/almacen/CreateBatchDialog";
+import { MultiSerialInput } from "./MultiSerialInput";
 
 /* ------------------------------- Schema ------------------------------- */
 
@@ -87,8 +88,11 @@ const fileMaxBytes = 10_000_000; // 10 MB
 const formSchema = z
   .object({
     serial: z
-      .string()
-      .min(2, { message: "El serial debe contener al menos 2 caracteres." })
+      .array(
+        z.string().min(2, {
+          message: "Cada serial debe contener al menos 2 caracteres.",
+        })
+      )
       .optional(),
     part_number: z
       .string({ message: "Debe seleccionar un número de parte." })
@@ -253,7 +257,7 @@ export default function CreateComponentForm({
     resolver: zodResolver(formSchema),
     defaultValues: {
       part_number: initialData?.part_number || "",
-      serial: initialData?.serial || "",
+      serial: initialData?.serial ? (Array.isArray(initialData.serial) ? initialData.serial : [initialData.serial]) : [],
       alternative_part_number: initialData?.alternative_part_number || [],
       batch_id: initialData?.batches?.id?.toString() || "",
       batch_name: initialData?.batches?.name || "",
@@ -283,7 +287,7 @@ export default function CreateComponentForm({
     if (!initialData) return;
     form.reset({
       part_number: initialData.part_number ?? "",
-      serial: initialData.serial ?? "",
+      serial: initialData.serial ? (Array.isArray(initialData.serial) ? initialData.serial : [initialData.serial]) : [],
       alternative_part_number: initialData.alternative_part_number ?? [],
       batch_id: initialData.batches?.id?.toString() ?? "",
       batch_name: initialData.batches?.name ?? "",
@@ -363,7 +367,13 @@ export default function CreateComponentForm({
 
     const { caducate_date: _, ...valuesWithoutCaducateDate } = values;
     const caducateDateStr: string | undefined = caducateDate && caducateDate !== null ? format(caducateDate, "yyyy-MM-dd") : undefined;
-    const formattedValues: Omit<FormValues, 'caducate_date'> & {
+    
+    // Transformar serial: si hay 1 serial -> string, si hay 2+ -> array
+    const serialValue = values.serial && values.serial.length > 0 
+      ? (values.serial.length === 1 ? values.serial[0] : values.serial)
+      : undefined;
+    
+    const formattedValues: Omit<FormValues, 'caducate_date' | 'serial'> & {
       caducate_date?: string;
       fabrication_date?: string;
       calendar_date?: string;
@@ -373,6 +383,7 @@ export default function CreateComponentForm({
       alternative_part_number?: string[];
       batch_name?: string;
       batch_id: string; // Asegurar que batch_id esté en el tipo
+      serial?: string | string[];
     } = {
       ...valuesWithoutCaducateDate,
       status: "CHECKING",
@@ -380,6 +391,7 @@ export default function CreateComponentForm({
       part_number: normalizeUpper(values.part_number),
       alternative_part_number:
         values.alternative_part_number?.map((v) => normalizeUpper(v)) ?? [],
+      serial: serialValue,
       caducate_date: caducateDateStr,
       fabrication_date: fabricationDate && fabricationDate !== null ? format(fabricationDate, "yyyy-MM-dd") : undefined,
       calendar_date: values.calendar_date && format(values.calendar_date, "yyyy-MM-dd"),
@@ -826,7 +838,12 @@ export default function CreateComponentForm({
                 <FormItem className="w-full">
                   <FormLabel>Serial</FormLabel>
                   <FormControl>
-                    <Input placeholder="Ej: 05458E1" {...field} disabled={busy} />
+                    <MultiSerialInput
+                      values={field.value || []}
+                      onChange={field.onChange}
+                      disabled={busy}
+                      placeholder="Ej: 05458E1"
+                    />
                   </FormControl>
                   <FormDescription>Serial del componente si aplica.</FormDescription>
                   <FormMessage />
