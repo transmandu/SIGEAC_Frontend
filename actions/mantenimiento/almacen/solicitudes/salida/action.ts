@@ -17,6 +17,8 @@ interface IDispatchRequestAction {
     serial?: string | null;
   }[];
   user_id: number;
+  isDepartment: boolean;
+  aircraft_id: string | null;
 }
 
 export const useCreateDispatchRequest = () => {
