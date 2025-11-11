@@ -1,3 +1,4 @@
+import { Aircraft } from "@/types";
 import { Document, Page, StyleSheet, Text, View, Image as PDFImage } from "@react-pdf/renderer";
 import { format, isAfter, isBefore, isEqual, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
@@ -14,7 +15,7 @@ export interface DispatchReport {
   destination_place: string;
   submission_date: string;
   work_order?: string;
-  aircraft?: number;
+  aircraft?: Aircraft;
   articles: {
     id: number;
     part_number: string;
@@ -197,7 +198,7 @@ const DispatchReportPdf = ({
   const filtered = reports.filter((r) => {
     const submission = parseISO(r.submission_date);
 
-    const matchesAircraft = aircraftFilter ? r.aircraft === aircraftFilter : true;
+    const matchesAircraft = aircraftFilter ? r.aircraft?.id === aircraftFilter : true;
     const matchesStart = startDate ? (isAfter(submission, startDate) || isEqual(submission, startDate)) : true;
     const matchesEnd = endDate ? (isBefore(submission, endDate) || isEqual(submission, endDate)) : true;
 
@@ -266,7 +267,7 @@ const DispatchReportPdf = ({
                     </View>
                     <View style={styles.tableCell}>
                       <Text style={styles.tableCellLabel}>Destino:</Text>
-                      <Text style={styles.tableCellValue}>{dispatch.destination_place}</Text>
+                      <Text style={styles.tableCellValue}>{dispatch.destination_place?? "N/A"}</Text>
                     </View>
                     <View style={styles.tableCell}>
                       <Text style={styles.tableCellLabel}>Orden de Trabajo:</Text>
@@ -274,7 +275,7 @@ const DispatchReportPdf = ({
                     </View>
                     <View style={styles.tableCell2}>
                       <Text style={styles.tableCellLabel}>Aeronave:</Text>
-                      <Text style={styles.tableCellValue}>{dispatch.aircraft ?? "N/A"}</Text>
+                      <Text style={styles.tableCellValue}>{dispatch.aircraft?.acronym ?? "N/A"}</Text>
                     </View>
                   </View>
 
