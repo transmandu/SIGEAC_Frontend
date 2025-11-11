@@ -28,7 +28,7 @@ export const useGetConversionByUnitConsmable = (
   company?: string
 ) => {
   return useQuery<converionData[], Error>({
-    queryKey: ["convertions-by-consumable", company, consumable_unit_id],
+    queryKey: ["conversions-by-consumable-unit", company, consumable_unit_id],
     queryFn: () =>
       fetchConversionByConsumableUnit(consumable_unit_id, company!),
     enabled: !!consumable_unit_id && !!company,
