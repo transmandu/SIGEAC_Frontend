@@ -22,6 +22,8 @@ export interface DispatchReport {
     serial?: string;
     description: string;
     quantity: number;
+    quantity_used: number;
+    unit_label: string;
   }[];
 }
 
