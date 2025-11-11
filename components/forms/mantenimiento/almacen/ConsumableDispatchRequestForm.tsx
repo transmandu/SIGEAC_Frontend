@@ -2,6 +2,7 @@
 
 import { useCreateDispatchRequest } from "@/actions/mantenimiento/almacen/solicitudes/salida/action";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Form,
   FormControl,
@@ -11,7 +12,6 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import {
   Select,
   SelectContent,
@@ -19,10 +19,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/contexts/AuthContext";
+import { useGetConversionByConsmable } from "@/hooks/mantenimiento/almacen/articulos/useGetConvertionsByConsumableId";
+import { useGetWarehousesEmployees } from "@/hooks/mantenimiento/almacen/empleados/useGetWarehousesEmployees";
 import { useGetBatchesWithInWarehouseArticles } from "@/hooks/mantenimiento/almacen/renglones/useGetBatchesWithInWarehouseArticles";
+import { useGetMaintenanceAircrafts } from "@/hooks/mantenimiento/planificacion/useGetMaintenanceAircrafts";
 import { useGetWorkOrderEmployees } from "@/hooks/mantenimiento/planificacion/useGetWorkOrderEmployees";
-import { useGetWorkOrders } from "@/hooks/mantenimiento/planificacion/useGetWorkOrders";
+import { useGetDepartments } from "@/hooks/sistema/departamento/useGetDepartment";
 import { cn } from "@/lib/utils";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { Article, Batch } from "@/types";
@@ -30,17 +34,19 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import {
+  AlertCircle,
+  Building2,
+  Calculator,
   CalendarIcon,
   Check,
   ChevronsUpDown,
   Loader2,
-  Calculator,
-  AlertCircle,
+  Plane,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { Calendar } from "../../../ui/calendar";
+import { Calendar } from "@/components/ui/calendar";
 import {
   Command,
   CommandEmpty,
@@ -48,17 +54,10 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-} from "../../../ui/command";
-import { Label } from "../../../ui/label";
-import { Popover, PopoverContent, PopoverTrigger } from "../../../ui/popover";
-import { Textarea } from "../../../ui/textarea";
-import { useGetDepartments } from "@/hooks/sistema/departamento/useGetDepartment";
-import { useGetWarehousesEmployees } from "@/hooks/mantenimiento/almacen/empleados/useGetWarehousesEmployees";
-import { Checkbox } from "@/components/ui/checkbox";
-import { useGetMaintenanceAircrafts } from "@/hooks/mantenimiento/planificacion/useGetMaintenanceAircrafts";
-import { Separator } from "@/components/ui/separator";
-import { Building2, Plane } from "lucide-react";
-import { useGetConversionByConsmable } from "@/hooks/mantenimiento/almacen/articulos/useGetConvertionsByConsumableId";
+} from "@/components/ui/command";
+import { Label } from "@/components/ui/label";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Textarea } from "@/components/ui/textarea";
 
 const FormSchema = z.object({
   requested_by: z.string(),
@@ -114,7 +113,7 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
 
   const { createDispatchRequest } = useCreateDispatchRequest();
 
-  const { data: departments, isLoading: isDepartmentsLo } = useGetDepartments(
+  const { data: departments, isLoading: isDepartmentsLoading } = useGetDepartments(
     selectedCompany?.slug
   );
 
@@ -296,6 +295,8 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
       approved_by: user?.employee[0].dni,
       delivered_by: data.delivered_by,
       user_id: Number(user!.id),
+      isDepartment: isDepartment,
+      aircraft_id: isDepartment ? null : data.destination_place,
     };
     await createDispatchRequest.mutateAsync({
       data: formattedData,
@@ -553,7 +554,7 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
                       onValueChange={field.onChange}
                       defaultValue={field.value}
                       disabled={
-                        isDepartment ? isDepartmentsLo : isAircraftsLoading
+                        isDepartment ? isDepartmentsLoading : isAircraftsLoading
                       }
                     >
                       <FormControl>
@@ -570,12 +571,12 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
                       <SelectContent>
                         {isDepartment ? (
                           <>
-                            {isDepartmentsLo && (
+                            {isDepartmentsLoading && (
                               <div className="flex items-center justify-center py-4">
                                 <Loader2 className="size-4 animate-spin text-muted-foreground" />
                               </div>
                             )}
-                            {!isDepartmentsLo &&
+                            {!isDepartmentsLoading &&
                               departments &&
                               departments.length === 0 && (
                                 <div className="py-4 text-center text-sm text-muted-foreground">
