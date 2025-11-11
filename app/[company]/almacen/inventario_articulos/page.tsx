@@ -271,7 +271,7 @@ const InventarioArticulosPage = () => {
                     aria-label="Filtro de consumibles"
                   >
                     <TabsTrigger value="all">Todos</TabsTrigger>
-                    <TabsTrigger value="QUIMICOS">Químicos</TabsTrigger>
+                    <TabsTrigger value="QUIMICOS">Mercancia Peligrosa</TabsTrigger>
                   </TabsList>
                 </Tabs>
               )}

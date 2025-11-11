@@ -166,7 +166,7 @@ const InventarioArticulosPage = () => {
                 >
                   <TabsList className="flex justify-center mb-4 space-x-3" aria-label="Filtro de consumibles">
                     <TabsTrigger value="all">Todos</TabsTrigger>
-                    <TabsTrigger value="QUIMICOS">Químicos</TabsTrigger>
+                    <TabsTrigger value="QUIMICOS">Mercancia Peligrosa</TabsTrigger>
                   </TabsList>
                 </Tabs>
               )}

@@ -25,6 +25,7 @@ export interface IArticleSimple {
   batch_name: string;
   batch_id: number;
   min_quantity?: number | string; // Directamente en el artículo
+  has_documentation?: boolean;
   tool?: {
     status?: string | null;
     calibration_date?: string | null; // ISO string o "dd/MM/yyyy"
@@ -112,6 +113,7 @@ export const flattenArticles = (
       is_hazardous: batch.is_hazardous ?? undefined,
       batch_id: batch.batch_id,
       min_quantity: article.min_quantity, // Directamente desde el artículo
+      has_documentation: article.has_documentation ?? false,
       tool: article.tool
         ? {
             status: article.tool.status,
@@ -248,6 +250,35 @@ const baseCols: ColumnDef<IArticleSimple>[] = [
       </div>
     ),
   },
+  {
+    accessorKey: "has_documentation",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Documentación" />
+    ),
+    cell: ({ row }) => {
+      const hasDoc = row.original.has_documentation;
+      return (
+        <div className="flex justify-center">
+          <Badge
+            variant={hasDoc ? "default" : "outline"}
+            className="flex items-center gap-1 w-fit"
+          >
+            {hasDoc ? (
+              <>
+                <CheckCircle2 className="h-3 w-3" />
+                Sí
+              </>
+            ) : (
+              <>
+                <XCircle className="h-3 w-3" />
+                No
+              </>
+            )}
+          </Badge>
+        </div>
+      );
+    },
+  },
 ];
 
 // Columnas para COMPONENTE
@@ -259,6 +290,7 @@ export const componenteCols: ColumnDef<IArticleSimple>[] = [
       <DataTableColumnHeader column={column} title="Shelf Life" />
     ),
     cell: ({ row }) => {
+      // Para componentes, usar component.shell_time.caducate_date
       const caducateDate = row.original.component?.shell_time?.caducate_date;
       if (!caducateDate) {
         return (
@@ -267,9 +299,22 @@ export const componenteCols: ColumnDef<IArticleSimple>[] = [
           </div>
         );
       }
+      
+      // Para componentes, caducate_date es siempre string | null
       const date = new Date(caducateDate);
+      
+      // Validar que la fecha sea válida
+      if (isNaN(date.getTime())) {
+        return (
+          <div className="text-center">
+            <span className="text-muted-foreground italic">N/A</span>
+          </div>
+        );
+      }
+      
       const today = new Date();
       today.setHours(0, 0, 0, 0);
+      date.setHours(0, 0, 0, 0);
       const daysUntilExpiry = Math.ceil((date.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
       
       let variant: "default" | "secondary" | "destructive" | "outline" = "default";
@@ -323,6 +368,7 @@ export const consumibleCols: ColumnDef<IArticleSimple>[] = [
       <DataTableColumnHeader column={column} title="Shelf Life" />
     ),
     cell: ({ row }) => {
+      // Para consumibles, usar consumable.shell_time.caducate_date
       const caducateDate = row.original.consumable?.shell_time?.caducate_date;
       if (!caducateDate) {
         return (
@@ -331,9 +377,26 @@ export const consumibleCols: ColumnDef<IArticleSimple>[] = [
           </div>
         );
       }
-      const date = caducateDate instanceof Date ? caducateDate : new Date(caducateDate);
+      
+      // Para consumibles, caducate_date puede ser string | Date | null
+      const date = caducateDate instanceof Date 
+        ? caducateDate 
+        : typeof caducateDate === 'string' 
+          ? new Date(caducateDate)
+          : null;
+      
+      // Validar que la fecha sea válida
+      if (!date || isNaN(date.getTime())) {
+        return (
+          <div className="text-center">
+            <span className="text-muted-foreground italic">N/A</span>
+          </div>
+        );
+      }
+      
       const today = new Date();
       today.setHours(0, 0, 0, 0);
+      date.setHours(0, 0, 0, 0);
       const daysUntilExpiry = Math.ceil((date.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
       
       let variant: "default" | "secondary" | "destructive" | "outline" = "default";

@@ -145,6 +145,7 @@ const formSchema = z.object({
   image: z.instanceof(File).optional(),
   conversion_id: z.number().optional(),
   primary_unit_id: z.number().optional(),
+  has_documentation: z.boolean().optional(),
 });
 
 export type FormValues = z.infer<typeof formSchema>;
@@ -930,6 +931,7 @@ export default function CreateConsumableForm({
         ? Number(initialData.consumable.min_quantity)
         : undefined,
       primary_unit_id: initialData?.primary_unit_id || undefined,
+      has_documentation: initialData.has_documentation ?? false,
     });
 
     // Establecer la unidad primaria seleccionada si existe en initialData
@@ -1775,15 +1777,41 @@ export default function CreateConsumableForm({
               <Separator />
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <FileField
-                  form={form}
-                  name="image"
-                  label="Imagen del artículo"
-                  accept="image/*"
-                  description="Imagen descriptiva."
-                  busy={busy}
-                />
+                <div>
+                  <FileField
+                    form={form}
+                    name="image"
+                    label="Imagen del artículo"
+                    accept="image/*"
+                    description="Imagen descriptiva."
+                    busy={busy}
+                  />
 
+                  <FormField
+                    control={form.control}
+                    name="has_documentation"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                            disabled={busy}
+                          />
+                        </FormControl>
+                        <div className="space-y-1 leading-none">
+                          <FormLabel>
+                            ¿El artículo tiene documentación?
+                          </FormLabel>
+                          <FormDescription>
+                            Marque esta casilla si el artículo cuenta con
+                            documentación (certificados, imágenes, etc.).
+                          </FormDescription>
+                        </div>
+                      </FormItem>
+                    )}
+                  />
+                </div>
                 <div className="space-y-4">
                   <FileField
                     form={form}
