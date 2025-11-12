@@ -252,7 +252,6 @@ function DatePickerField({
   error?: string;
 }) {
   const [touched, setTouched] = useState(false);
-
   // Solo mostrar error si el campo fue tocado/interactuado o si hay un error explícito
   // No mostrar error inmediatamente al cargar la página
   const isInvalid = required && value === undefined && touched;
@@ -870,6 +869,7 @@ export default function CreateConsumableForm({
       : undefined
   );
   const [enableBatchNameEdit, setEnableBatchNameEdit] = useState(false);
+ 
 
   // Wrapper functions for DatePickerField compatibility
   const handleFabricationDateChange = (d?: Date | null) => {
@@ -906,9 +906,12 @@ export default function CreateConsumableForm({
         ? Number(initialData.consumable.min_quantity)
         : undefined,
       primary_unit_id: initialData?.primary_unit_id || undefined,
+      has_documentation: initialData?.has_documentation || false,
     },
     mode: "onBlur",
   });
+
+  const hasDocumentation = form.watch("has_documentation"); // 2. **useEffect para la documentación**
 
   // Reset si cambia initialData
   useEffect(() => {
@@ -1803,52 +1806,54 @@ export default function CreateConsumableForm({
                             ¿El artículo tiene documentación?
                           </FormLabel>
                           <FormDescription>
-                            Marque esta casilla si el artículo cuenta con
-                            documentación (certificados, imágenes, etc.).
                           </FormDescription>
                         </div>
                       </FormItem>
                     )}
                   />
                 </div>
-                <div className="space-y-4">
-                  <FileField
-                    form={form}
-                    name="certificate_8130"
-                    label={
-                      <span>
-                        Certificado{" "}
-                        <span className="text-primary font-semibold">8130</span>
-                      </span>
-                    }
-                    description="PDF o imagen. Máx. 10 MB."
-                    busy={busy}
-                  />
-                  <FileField
-                    form={form}
-                    name="certificate_fabricant"
-                    label={
-                      <span>
-                        Certificado del{" "}
-                        <span className="text-primary">fabricante</span>
-                      </span>
-                    }
-                    description="PDF o imagen. Máx. 10 MB."
-                    busy={busy}
-                  />
-                  <FileField
-                    form={form}
-                    name="certificate_vendor"
-                    label={
-                      <span>
-                        Certificado del{" "}
-                        <span className="text-primary">vendedor</span>
-                      </span>
-                    }
-                    description="PDF o imagen. Máx. 10 MB."
-                    busy={busy}
-                  />
-                </div>
+                {hasDocumentation && (
+                  <div className="space-y-4">
+                    <FileField
+                      form={form}
+                      name="certificate_8130"
+                      label={
+                        <span>
+                          Certificado{" "}
+                          <span className="text-primary font-semibold">
+                            8130
+                          </span>
+                        </span>
+                      }
+                      description="PDF o imagen. Máx. 10 MB."
+                      busy={busy}
+                    />
+                    <FileField
+                      form={form}
+                      name="certificate_fabricant"
+                      label={
+                        <span>
+                          Certificado del{" "}
+                          <span className="text-primary">fabricante</span>
+                        </span>
+                      }
+                      description="PDF o imagen. Máx. 10 MB."
+                      busy={busy}
+                    />
+                    <FileField
+                      form={form}
+                      name="certificate_vendor"
+                      label={
+                        <span>
+                          Certificado del{" "}
+                          <span className="text-primary">vendedor</span>
+                        </span>
+                      }
+                      description="PDF o imagen. Máx. 10 MB."
+                      busy={busy}
+                    />
+                  </div>
+                )}
               </div>
             </div>
           </SectionCard>
