@@ -33,16 +33,12 @@ export interface IArticleSimple {
     next_calibration?: number | string | null; // o días
   };
   component?: {
-    shell_time?: {
-      caducate_date?: string | null;
-      fabrication_date?: string | null;
-    };
+    caducate_date?: string | null;
+    fabrication_date?: string | null;
   };
   consumable?: {
-    shell_time?: {
-      caducate_date?: string | Date | null;
-      fabrication_date?: string | Date | null;
-    };
+    caducate_date?: string | Date | null;
+    fabrication_date?: string | Date | null;
   };
 }
 
@@ -91,7 +87,9 @@ export const flattenArticles = (
 ): IArticleSimple[] => {
   if (!data?.batches) return [];
   return data.batches.flatMap((batch) =>
-    batch.articles.map((article) => ({
+    batch.articles.map((article) => {
+      const articleWithDoc = article as typeof article & { has_documentation?: boolean };
+      return {
       id: article.id,
       part_number: article.part_number,
       alternative_part_number: article.alternative_part_number,
@@ -113,7 +111,7 @@ export const flattenArticles = (
       is_hazardous: batch.is_hazardous ?? undefined,
       batch_id: batch.batch_id,
       min_quantity: article.min_quantity, // Directamente desde el artículo
-      has_documentation: article.has_documentation ?? false,
+      has_documentation: articleWithDoc.has_documentation ?? false,
       tool: article.tool
         ? {
             status: article.tool.status,
@@ -122,9 +120,20 @@ export const flattenArticles = (
             next_calibration: article.tool.next_calibration,
           }
         : undefined,
-      component: article.component,
-      consumable: article.consumable,
-    }))
+      component: batch.category === "COMPONENTE" && ((article as any).caducate_date != null || article.component?.shell_time)
+        ? {
+            caducate_date: (article as any).caducate_date ?? article.component?.shell_time?.caducate_date ?? null,
+            fabrication_date: article.component?.shell_time?.fabrication_date ?? null,
+          }
+        : undefined,
+      consumable: batch.category === "CONSUMIBLE" && ((article as any).caducate_date != null || article.consumable?.shell_time)
+        ? {
+            caducate_date: (article as any).caducate_date ?? article.consumable?.shell_time?.caducate_date ?? null,
+            fabrication_date: article.consumable?.shell_time?.fabrication_date ?? null,
+          }
+        : undefined,
+      };
+    })
   );
 };
 
@@ -290,8 +299,8 @@ export const componenteCols: ColumnDef<IArticleSimple>[] = [
       <DataTableColumnHeader column={column} title="Shelf Life" />
     ),
     cell: ({ row }) => {
-      // Para componentes, usar component.shell_time.caducate_date
-      const caducateDate = row.original.component?.shell_time?.caducate_date;
+      // Para componentes, caducate_date viene directamente en el artículo y se mapea a component.caducate_date
+      const caducateDate = row.original.component?.caducate_date;
       if (!caducateDate) {
         return (
           <div className="text-center">
@@ -368,8 +377,8 @@ export const consumibleCols: ColumnDef<IArticleSimple>[] = [
       <DataTableColumnHeader column={column} title="Shelf Life" />
     ),
     cell: ({ row }) => {
-      // Para consumibles, usar consumable.shell_time.caducate_date
-      const caducateDate = row.original.consumable?.shell_time?.caducate_date;
+      // Para consumibles, caducate_date viene directamente en el artículo y se mapea a consumable.caducate_date
+      const caducateDate = row.original.consumable?.caducate_date;
       if (!caducateDate) {
         return (
           <div className="text-center">
