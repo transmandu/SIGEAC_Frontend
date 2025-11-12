@@ -160,7 +160,7 @@ const GeneralSalesReportPdf = ({ reports }: { reports: GeneralSalesReport }) => 
                         <Text style={styles.column}>{article.article_part_number}</Text>
                         <Text style={styles.column}>{article.quantity}</Text>
                         <Text style={styles.column}>
-                          {article.unit ? article.unit.secondary_unit : "N/A"}
+                          {article.unit ? article.unit.primary_unit.label : "N/A"}
                         </Text>
                       </View>
                     ))}

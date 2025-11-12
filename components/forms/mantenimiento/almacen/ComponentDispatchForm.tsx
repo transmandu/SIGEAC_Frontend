@@ -83,7 +83,7 @@ export function ComponentDispatchForm({ onClose }: FormProps) {
   const { user } = useAuth();
 
   const [open, setOpen] = useState(false);
-
+  const [isDepartment, setIsDepartment] = useState(false);
   // const [filteredBatches, setFilteredBatches] = useState<
   //   BatchesWithCountProp[]
   // >([]);
@@ -161,6 +161,8 @@ export function ComponentDispatchForm({ onClose }: FormProps) {
       created_by: `${user?.employee[0].dni}`,
       submission_date: format(data.submission_date, "yyyy-MM-dd"),
       category: "componente",
+      isDepartment: isDepartment,
+      aircraft_id: isDepartment ? null : data.destination_place,
     };
     await createDispatchRequest.mutateAsync({
       data: {

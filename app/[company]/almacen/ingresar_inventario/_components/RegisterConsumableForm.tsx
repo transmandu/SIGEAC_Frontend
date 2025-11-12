@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -414,7 +414,7 @@ function UnitsModal({
   );
 
   // Función para calcular la conversión localmente usando las equivalencias
-  const calculateConversionLocally = () => {
+  const calculateConversionLocally = useCallback(() => {
     if (!conversionFromUnit || !conversionToUnit || !conversionQuantity) {
       setConversionResult("");
       onConversionResult?.("");
@@ -450,12 +450,12 @@ function UnitsModal({
     }
 
     setIsCalculating(false);
-  };
+  }, [conversionFromUnit, conversionToUnit, conversionQuantity, availableConversion, onConversionResult]);
 
   // Calcular automáticamente cuando cambian los valores
   useEffect(() => {
     calculateConversionLocally();
-  }, [conversionFromUnit, conversionToUnit, conversionQuantity]);
+  }, [calculateConversionLocally]);
 
   // Efecto para actualizar automáticamente la unidad destino cuando cambia la unidad primaria
   useEffect(() => {
@@ -944,7 +944,7 @@ export default function CreateConsumableForm({
   }, [initialData, form]);
 
   // Función para calcular y actualizar la cantidad
-  const calculateAndUpdateQuantity = (
+  const calculateAndUpdateQuantity = useCallback((
     quantity: number | undefined,
     selectedUnit: any
   ) => {
@@ -967,14 +967,14 @@ export default function CreateConsumableForm({
         shouldValidate: true,
       });
     }
-  };
+  }, [form]);
 
   // Modificar el efecto existente para calcular la cantidad
   useEffect(() => {
     if (secondarySelected && secondaryQuantity !== undefined) {
       calculateAndUpdateQuantity(secondaryQuantity, secondarySelected);
     }
-  }, [secondarySelected, secondaryQuantity]);
+  }, [secondarySelected, secondaryQuantity, calculateAndUpdateQuantity]);
 
   // Función para manejar el resultado de la conversión desde el modal
   const handleConversionResult = (result: string) => {

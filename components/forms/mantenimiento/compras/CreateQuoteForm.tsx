@@ -56,6 +56,7 @@ import {
   SelectValue,
 } from "../../../ui/select";
 import CreateVendorForm from "../../general/CreateVendorForm";
+import { useGetUnits } from "@/hooks/general/unidades/useGetPrimaryUnits";
 
 const FormSchema = z.object({
   justification: z.string({ message: "Debe ingresar una justificacion." }),
@@ -93,7 +94,7 @@ export function CreateQuoteForm({
 
   const { updateStatusRequisition } = useUpdateRequisitionStatus();
 
-  const { data: secondaryUnits } = useGetSecondaryUnits(selectedCompany?.slug);
+  const { data: units } = useGetUnits(selectedCompany?.slug);
 
   const { createQuote } = useCreateQuote();
 
@@ -455,12 +456,12 @@ export function CreateQuoteForm({
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          {secondaryUnits?.map((unit) => (
+                          {units?.map((unit) => (
                             <SelectItem
                               key={unit.id}
                               value={unit.id.toString()}
                             >
-                              {unit.secondary_unit}
+                              {unit.label}
                             </SelectItem>
                           ))}
                         </SelectContent>

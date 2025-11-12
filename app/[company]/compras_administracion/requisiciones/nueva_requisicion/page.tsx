@@ -263,7 +263,7 @@ const CreateRequisitionPage = () => {
         
         // Encontrar la unidad "UNIDAD" para componentes y herramientas
         const unidadUnit = secondaryUnits?.find(
-          (u) => u.secondary_unit?.toUpperCase() === "UNIDAD"
+          (u) => u.secondary_unit?.label?.toUpperCase() === "UNIDAD" || u.secondary_unit?.value?.toUpperCase() === "UNIDAD"
         );
         const defaultUnit = 
           (batch.category === "componente" || batch.category === "herramienta") && unidadUnit
@@ -697,7 +697,7 @@ const CreateRequisitionPage = () => {
                                               key={secU.id}
                                               value={secU.id.toString()}
                                             >
-                                              {secU.secondary_unit?.label || secU.secondary_unit?.value || secU.secondary_unit}
+                                              {secU.secondary_unit?.label || secU.secondary_unit?.value || "N/A"}
                                             </SelectItem>
                                           ))}
                                         </SelectContent>
