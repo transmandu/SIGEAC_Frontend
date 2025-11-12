@@ -64,7 +64,7 @@ export const columns: ColumnDef<Requisition>[] = [
     ),
     meta: { title: "Justificación" },
     cell: ({ row }) => (
-      <p className="text-center flex justify-center text-muted-foreground italic">{row.original.justification}</p>
+      <p className="text-center flex justify-center text-muted-foreground italic">{row.original.justification?? 'N/A'}</p>
     )
   },
   {

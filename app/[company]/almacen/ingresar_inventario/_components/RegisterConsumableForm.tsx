@@ -1,17 +1,18 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
 
-import { z } from "zod";
-import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
 
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 
 import {
+  Calculator,
   CalendarIcon,
   Check,
   ChevronsUpDown,
@@ -19,7 +20,6 @@ import {
   Loader2,
   Plus,
   X,
-  Calculator,
 } from "lucide-react";
 
 import {
@@ -30,6 +30,8 @@ import {
 
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Command,
   CommandEmpty,
@@ -38,6 +40,14 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   Form,
   FormControl,
@@ -60,37 +70,26 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
 
 import { useGetConditions } from "@/hooks/administracion/useGetConditions";
 import { useGetManufacturers } from "@/hooks/general/fabricantes/useGetManufacturers";
-import { useGetBatchesByCategory } from "@/hooks/mantenimiento/almacen/renglones/useGetBatchesByCategory";
-import { useSearchBatchesByPartNumber } from "@/hooks/mantenimiento/almacen/renglones/useGetBatchesByArticlePartNumber";
 import { useGetUnits } from "@/hooks/general/unidades/useGetPrimaryUnits";
 import { useGetSecondaryUnits } from "@/hooks/general/unidades/useGetSecondaryUnits";
+import { useSearchBatchesByPartNumber } from "@/hooks/mantenimiento/almacen/renglones/useGetBatchesByArticlePartNumber";
+import { useGetBatchesByCategory } from "@/hooks/mantenimiento/almacen/renglones/useGetBatchesByCategory";
 
+import { CreateManufacturerDialog } from "@/components/dialogs/general/CreateManufacturerDialog";
+import { CreateBatchDialog } from "@/components/dialogs/mantenimiento/almacen/CreateBatchDialog";
+import { MultiInputField } from "@/components/misc/MultiInputField";
+import { useGetConversionByUnitConsmable } from "@/hooks/mantenimiento/almacen/articulos/useGetConvertionsByConsumableUnit";
 import { cn } from "@/lib/utils";
+import loadingGif from "@/public/loading2.gif";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { Convertion } from "@/types";
-import loadingGif from "@/public/loading2.gif";
-import { EditingArticle } from "./RegisterArticleForm";
-import { CreateManufacturerDialog } from "@/components/dialogs/general/CreateManufacturerDialog";
-import { useGetConversionByUnitConsmable } from "@/hooks/mantenimiento/almacen/articulos/useGetConvertionsByConsumableUnit";
-import { getConvertionArticle } from "@/actions/mantenimiento/almacen/articulos/unitConversion";
 import { useQueryClient } from "@tanstack/react-query";
-import { MultiInputField } from "@/components/misc/MultiInputField";
-import { CreateBatchDialog } from "@/components/dialogs/mantenimiento/almacen/CreateBatchDialog";
+import { EditingArticle } from "./RegisterArticleForm";
 
 /* ------------------------------- Schema ------------------------------- */
 
@@ -410,7 +409,7 @@ function UnitsModal({
   const [conversionResult, setConversionResult] = useState<string>("");
   const [isCalculating, setIsCalculating] = useState(false);
 
-  const availableUnits = secondaryUnits.filter(
+  const availableUnits = availableConversion?.filter(
     (unit) =>
       !selectedUnits.some((selected) => selected.conversion_id === unit.id)
   );
@@ -435,8 +434,8 @@ function UnitsModal({
     // Buscar la conversión que coincida con las unidades seleccionadas
     const conversion = availableConversion?.find(
       (conv: any) =>
-        conv.unit_primary.id.toString() === conversionFromUnit &&
-        conv.unit_secondary.id.toString() === conversionToUnit
+        conv.primary_unit.id.toString() === conversionFromUnit &&
+        conv.secondary_unit.id.toString() === conversionToUnit
     );
 
     if (conversion && conversion.equivalence) {
@@ -598,9 +597,9 @@ function UnitsModal({
                       → {conversionResult} {primaryUnit?.label}
                       {availableConversion.find(
                         (conv: any) =>
-                          conv.unit_primary.id.toString() ===
+                          conv.primary_unit.id.toString() ===
                             conversionFromUnit &&
-                          conv.unit_secondary.id.toString() === conversionToUnit
+                          conv.secondary_unit.id.toString() === conversionToUnit
                       )?.equivalence && (
                         <span className="block text-xs mt-1">
                           Equivalencia: 1{" "}
@@ -613,9 +612,9 @@ function UnitsModal({
                           {1 /
                             availableConversion.find(
                               (conv: any) =>
-                                conv.unit_primary.id.toString() ===
+                                conv.primary_unit.id.toString() ===
                                   conversionFromUnit &&
-                                conv.unit_secondary.id.toString() ===
+                                conv.secondary_unit.id.toString() ===
                                   conversionToUnit
                             )!.equivalence}{" "}
                           {primaryUnit?.label}
@@ -680,14 +679,14 @@ function UnitsModal({
                   <SelectValue placeholder="Seleccione una conversión" />
                 </SelectTrigger>
                 <SelectContent>
-                  {availableUnits.map((conversion) => (
+                  {availableUnits?.map((conversion) => (
                     <SelectItem
                       key={conversion.id}
                       value={conversion.id.toString()}
                     >
-                      {conversion.primary_unit.label}
+                      {conversion.primary_unit?.label}
                       <span className="text-light ml-1">
-                        ({conversion.primary_unit.value})
+                        ({conversion.primary_unit?.value})
                       </span>
                       {conversion.secondary_unit?.label &&
                         ` - ${conversion.secondary_unit.label} (${conversion.secondary_unit.value})`}
@@ -827,7 +826,7 @@ export default function CreateConsumableForm({
 
     const unitMap = new Map();
     availableConversion.forEach((conversion) => {
-      const unit = conversion.unit_primary;
+      const unit = conversion.primary_unit;
       if (!unitMap.has(unit.id)) {
         unitMap.set(unit.id, unit);
       }

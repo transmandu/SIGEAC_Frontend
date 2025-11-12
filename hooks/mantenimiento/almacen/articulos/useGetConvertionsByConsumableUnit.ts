@@ -5,9 +5,9 @@ import { useQuery } from "@tanstack/react-query";
 
 interface converionData {
   id: number;
-  unit_primary: Unit;
+  primary_unit: Unit;
   equivalence: number;
-  unit_secondary: Unit;
+  secondary_unit: Unit;
 }
 
 const fetchConversionByConsumableUnit = async (
