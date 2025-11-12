@@ -68,6 +68,7 @@ interface BackendAircraft {
   aircraft_id: string;
   articles: {
     batch_id: string;
+    batch_category?: string;
     batch_articles: Article[];
   }[];
 }
@@ -185,6 +186,7 @@ const handleAircraftSelect = (aircraftId: string) => {
                     ...a.articles,
                     {
                       batch_id: batch.id.toString(),
+                      batch_category: batch.category,
                       batch_articles: [
                         {
                           part_number: "",
@@ -192,7 +194,10 @@ const handleAircraftSelect = (aircraftId: string) => {
                           justification: "",
                           manual: "",
                           reference_cod: "",
-                          quantity: 0
+                          quantity: 0,
+                          unit: (batch.category === "componente" || batch.category === "herramienta") 
+                            ? secondaryUnits?.find(u => u.secondary_unit?.label?.toUpperCase() === "UNIDAD" || u.secondary_unit?.value?.toUpperCase() === "UNIDAD")?.id.toString()
+                            : undefined
                         }
                       ],
                     },
@@ -238,25 +243,32 @@ const handleAircraftSelect = (aircraftId: string) => {
         a.aircraft_id === aircraftId
           ? {
               ...a,
-              articles: a.articles.map(batch =>
-                batch.batch_id === batchId
-                  ? {
-                      ...batch,
-                      batch_articles: [
-                        ...batch.batch_articles,
-                        {
-                          part_number: "",
-                          alt_part_number: "",
-                          justification: "",
-                          manual: "",
-                          reference_cod: "",
-                          observation: "",
-                          quantity: 0
-                        }
-                      ],
+              articles: a.articles.map(batch => {
+                if (batch.batch_id !== batchId) return batch;
+                
+                const batchCategory = batch.batch_category || batches?.find(b => b.id.toString() === batchId)?.category;
+                const unidadUnit = secondaryUnits?.find(u => u.secondary_unit?.label?.toUpperCase() === "UNIDAD" || u.secondary_unit?.value?.toUpperCase() === "UNIDAD");
+                const defaultUnit = (batchCategory === "componente" || batchCategory === "herramienta") && unidadUnit
+                  ? unidadUnit.id.toString()
+                  : undefined;
+
+                return {
+                  ...batch,
+                  batch_articles: [
+                    ...batch.batch_articles,
+                    {
+                      part_number: "",
+                      alt_part_number: "",
+                      justification: "",
+                      manual: "",
+                      reference_cod: "",
+                      observation: "",
+                      quantity: 0,
+                      unit: defaultUnit
                     }
-                  : batch
-              ),
+                  ],
+                };
+              }),
             }
           : a
       )
@@ -583,16 +595,18 @@ const handleAircraftSelect = (aircraftId: string) => {
                               <div className="flex flex-col gap-2">
                                 <Label>Unidad</Label>
                                 <Select
+                                  disabled={batch.batch_category === "componente" || batch.batch_category === "herramienta" || 
+                                    batchInfo?.category === "componente" || batchInfo?.category === "herramienta"}
                                   value={article.unit}
                                   onValueChange={v =>
                                     handleArticleChange(a.aircraft_id, batch.batch_id, index, "unit", v)
                                   }
                                 >
-                                  <SelectTrigger><SelectValue placeholder="Unidad Secundaria" /></SelectTrigger>
+                                  <SelectTrigger><SelectValue placeholder="Unidad" /></SelectTrigger>
                                   <SelectContent>
                                     {secondaryUnits?.map(u => (
                                       <SelectItem key={u.id} value={u.id.toString()}>
-                                        {u.secondary_unit}
+                                        {u.secondary_unit?.label || u.secondary_unit?.value || u.secondary_unit}
                                       </SelectItem>
                                     ))}
                                   </SelectContent>

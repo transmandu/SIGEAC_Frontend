@@ -181,6 +181,15 @@ export function CreateGeneralRequisitionForm({
         return prev.filter((b) => b.batch !== batchId);
       }
 
+      // Encontrar la unidad "UNIDAD" para componentes y herramientas
+      const unidadUnit = secondaryUnits?.find(
+        (u) => u.secondary_unit?.label?.toUpperCase() === "UNIDAD" || u.secondary_unit?.value?.toUpperCase() === "UNIDAD"
+      );
+      const defaultUnit = 
+        (batch_category === "componente" || batch_category === "herramienta") && unidadUnit
+          ? unidadUnit.id.toString()
+          : undefined;
+
       // Si no existe, lo agregamos
       return [
         ...prev,
@@ -188,7 +197,7 @@ export function CreateGeneralRequisitionForm({
           batch: batchId,
           batch_name: batchName,
           category: batch_category,
-          batch_articles: [{ part_number: "", quantity: 0 }],
+          batch_articles: [{ part_number: "", quantity: 0, unit: defaultUnit }],
         },
       ];
     });
@@ -218,17 +227,26 @@ export function CreateGeneralRequisitionForm({
   // Agrega un nuevo artículo a un lote.
   const addArticle = (batchName: string) => {
     setSelectedBatches((prev) =>
-      prev.map((batch) =>
-        batch.batch === batchName
-          ? {
-              ...batch,
-              batch_articles: [
-                ...batch.batch_articles,
-                { part_number: "", quantity: 0 },
-              ],
-            }
-          : batch
-      )
+      prev.map((batch) => {
+        if (batch.batch !== batchName) return batch;
+        
+        // Encontrar la unidad "UNIDAD" para componentes y herramientas
+        const unidadUnit = secondaryUnits?.find(
+          (u) => u.secondary_unit?.label?.toUpperCase() === "UNIDAD" || u.secondary_unit?.value?.toUpperCase() === "UNIDAD"
+        );
+        const defaultUnit = 
+          (batch.category === "componente" || batch.category === "herramienta") && unidadUnit
+            ? unidadUnit.id.toString()
+            : undefined;
+
+        return {
+          ...batch,
+          batch_articles: [
+            ...batch.batch_articles,
+            { part_number: "", quantity: 0, unit: defaultUnit },
+          ],
+        };
+      })
     );
   };
 
@@ -581,7 +599,8 @@ export function CreateGeneralRequisitionForm({
                               }
                             />
                             <Select
-                              disabled={secondaryUnitLoading}
+                              disabled={secondaryUnitLoading || batch.category === "componente" || batch.category === "herramienta"}
+                              value={article.unit}
                               onValueChange={(value) =>
                                 handleArticleChange(
                                   batch.batch,
@@ -592,7 +611,7 @@ export function CreateGeneralRequisitionForm({
                               }
                             >
                               <SelectTrigger>
-                                <SelectValue placeholder="Unidad Sec." />
+                                <SelectValue placeholder="Unidad" />
                               </SelectTrigger>
                               <SelectContent>
                                 {secondaryUnits &&
@@ -601,7 +620,7 @@ export function CreateGeneralRequisitionForm({
                                       key={secU.id}
                                       value={secU.id.toString()}
                                     >
-                                      {secU.secondary_unit}
+                                      {secU.secondary_unit?.label || secU.secondary_unit?.value || secU.secondary_unit}
                                     </SelectItem>
                                   ))}
                               </SelectContent>
