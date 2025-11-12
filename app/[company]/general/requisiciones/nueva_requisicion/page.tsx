@@ -204,6 +204,16 @@ const CreateRequisitionPage = () => {
       if (exists) {
         return prev.filter((b) => b.batch !== batchId);
       }
+      
+      // Encontrar la unidad "UNIDAD" para componentes y herramientas
+      const unidadUnit = secondaryUnits?.find(
+        (u) => u.secondary_unit?.label?.toUpperCase() === "UNIDAD" || u.secondary_unit?.value?.toUpperCase() === "UNIDAD"
+      );
+      const defaultUnit = 
+        (batch_category === "componente" || batch_category === "herramienta") && unidadUnit
+          ? unidadUnit.id.toString()
+          : undefined;
+
       return [
         ...prev,
         {
@@ -218,6 +228,7 @@ const CreateRequisitionPage = () => {
               manual: "",
               reference_cod: "",
               quantity: 0,
+              unit: defaultUnit,
             },
           ],
         },
@@ -247,24 +258,34 @@ const CreateRequisitionPage = () => {
 
   const addArticle = (batchName: string) => {
     setSelectedBatches((prev) =>
-      prev.map((batch) =>
-        batch.batch === batchName
-          ? {
-              ...batch,
-              batch_articles: [
-                ...batch.batch_articles,
-                {
-                  part_number: "",
-                  alt_part_number: "",
-                  justification: "",
-                  manual: "",
-                  reference_cod: "",
-                  quantity: 0,
-                },
-              ],
-            }
-          : batch
-      )
+      prev.map((batch) => {
+        if (batch.batch !== batchName) return batch;
+        
+        // Encontrar la unidad "UNIDAD" para componentes y herramientas
+        const unidadUnit = secondaryUnits?.find(
+          (u) => u.secondary_unit?.toUpperCase() === "UNIDAD"
+        );
+        const defaultUnit = 
+          (batch.category === "componente" || batch.category === "herramienta") && unidadUnit
+            ? unidadUnit.id.toString()
+            : undefined;
+
+        return {
+          ...batch,
+          batch_articles: [
+            ...batch.batch_articles,
+            {
+              part_number: "",
+              alt_part_number: "",
+              justification: "",
+              manual: "",
+              reference_cod: "",
+              quantity: 0,
+              unit: defaultUnit,
+            },
+          ],
+        };
+      })
     );
   };
 
@@ -655,9 +676,9 @@ const CreateRequisitionPage = () => {
                                       />
                                     </div>
                                     <div>
-                                      <Label>Unidad Secundaria</Label>
+                                      <Label>Unidad</Label>
                                       <Select
-                                        disabled={secondaryUnitLoading}
+                                        disabled={secondaryUnitLoading || batch.category === "componente" || batch.category === "herramienta"}
                                         value={article.unit}
                                         onValueChange={(value) =>
                                           handleArticleChange(
@@ -677,7 +698,7 @@ const CreateRequisitionPage = () => {
                                               key={secU.id}
                                               value={secU.id.toString()}
                                             >
-                                              {secU.secondary_unit}
+                                              {secU.secondary_unit?.label || secU.secondary_unit?.value || secU.secondary_unit}
                                             </SelectItem>
                                           ))}
                                         </SelectContent>
