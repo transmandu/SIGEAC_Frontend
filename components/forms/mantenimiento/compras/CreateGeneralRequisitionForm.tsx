@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { useAuth } from "@/contexts/AuthContext"
-import { useGetSecondaryUnits } from "@/hooks/general/unidades/useGetSecondaryUnits"
 import { useGetBatchesByLocationId } from "@/hooks/mantenimiento/almacen/renglones/useGetBatchesByLocationId"
 import { useGetMaintenanceAircrafts } from '@/hooks/mantenimiento/planificacion/useGetMaintenanceAircrafts'
 import { useGetUserDepartamentEmployees } from "@/hooks/sistema/empleados/useGetUserDepartamentEmployees"
@@ -23,6 +22,7 @@ import { ScrollArea } from "../../../ui/scroll-area"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../../ui/select"
 import { Separator } from "../../../ui/separator"
 import { Textarea } from "../../../ui/textarea"
+import { useGetUnits } from "@/hooks/general/unidades/useGetPrimaryUnits"
 
 const FormSchema = z.object({
   justification: z
@@ -125,7 +125,7 @@ export function CreateGeneralRequisitionForm({
 
   const { data: employees, isPending: employeesLoading } = useGetUserDepartamentEmployees(selectedCompany?.slug);
 
-  const { data: secondaryUnits, isLoading: secondaryUnitLoading } = useGetSecondaryUnits(selectedCompany?.slug);
+  const { data: units, isLoading: isUnitsLoading } = useGetUnits(selectedCompany?.slug);
 
   const { createRequisition } = useCreateRequisition();
 
@@ -182,8 +182,8 @@ export function CreateGeneralRequisitionForm({
       }
 
       // Encontrar la unidad "UNIDAD" para componentes y herramientas
-      const unidadUnit = secondaryUnits?.find(
-        (u) => u.secondary_unit?.label?.toUpperCase() === "UNIDAD" || u.secondary_unit?.value?.toUpperCase() === "UNIDAD"
+      const unidadUnit = units?.find(
+        (u) => u.label.toUpperCase() === "UNIDAD" || u.value.toUpperCase() === "UNIDAD"
       );
       const defaultUnit = 
         (batch_category === "componente" || batch_category === "herramienta") && unidadUnit
@@ -231,8 +231,8 @@ export function CreateGeneralRequisitionForm({
         if (batch.batch !== batchName) return batch;
         
         // Encontrar la unidad "UNIDAD" para componentes y herramientas
-        const unidadUnit = secondaryUnits?.find(
-          (u) => u.secondary_unit?.label?.toUpperCase() === "UNIDAD" || u.secondary_unit?.value?.toUpperCase() === "UNIDAD"
+        const unidadUnit = units?.find(
+          (u) => u.label.toUpperCase() === "UNIDAD" || u.value.toUpperCase() === "UNIDAD"
         );
         const defaultUnit = 
           (batch.category === "componente" || batch.category === "herramienta") && unidadUnit
@@ -599,7 +599,7 @@ export function CreateGeneralRequisitionForm({
                               }
                             />
                             <Select
-                              disabled={secondaryUnitLoading || batch.category === "componente" || batch.category === "herramienta"}
+                              disabled={isUnitsLoading || batch.category === "componente" || batch.category === "herramienta"}
                               value={article.unit}
                               onValueChange={(value) =>
                                 handleArticleChange(
@@ -614,13 +614,13 @@ export function CreateGeneralRequisitionForm({
                                 <SelectValue placeholder="Unidad" />
                               </SelectTrigger>
                               <SelectContent>
-                                {secondaryUnits &&
-                                  secondaryUnits.map((secU) => (
+                                {units &&
+                                  units.map((secU) => (
                                     <SelectItem
                                       key={secU.id}
                                       value={secU.id.toString()}
                                     >
-                                      {secU.secondary_unit?.label || secU.secondary_unit?.value || secU.secondary_unit}
+                                      {secU.label}
                                     </SelectItem>
                                   ))}
                               </SelectContent>

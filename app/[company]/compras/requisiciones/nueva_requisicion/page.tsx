@@ -15,7 +15,6 @@ import { Separator } from "@/components/ui/separator"
 import { Textarea } from "@/components/ui/textarea"
 import { useAuth } from "@/contexts/AuthContext"
 import { useGetUserDepartamentEmployees } from "@/hooks/sistema/empleados/useGetUserDepartamentEmployees"
-import { useGetSecondaryUnits } from "@/hooks/general/unidades/useGetSecondaryUnits"
 import { useGetMaintenanceAircrafts } from '@/hooks/mantenimiento/planificacion/useGetMaintenanceAircrafts'
 import { cn } from "@/lib/utils"
 import { useCompanyStore } from "@/stores/CompanyStore"
@@ -28,6 +27,7 @@ import CertificatesCombobox from './_components/TagCombobox'
 import { useGetBatchesByLocationId } from "@/hooks/mantenimiento/almacen/renglones/useGetBatchesByLocationId"
 import Image from "next/image"
 import { useRouter } from "next/navigation"
+import { useGetUnits } from "@/hooks/general/unidades/useGetPrimaryUnits"
 
 interface Article {
   part_number: string;
@@ -100,13 +100,21 @@ type FormSchemaType = z.infer<typeof FormSchema>
 
 const CreateRequisitionPage = () => {
   const { user } = useAuth()
+
   const { mutate, data } = useGetBatchesByLocationId();
+
   const { selectedCompany, selectedStation } = useCompanyStore()
+
   const { data: employees, isPending: employeesLoading } = useGetUserDepartamentEmployees(selectedCompany?.slug);
-  const { data: secondaryUnits, isLoading: secondaryUnitLoading } = useGetSecondaryUnits(selectedCompany?.slug);
+
+  const { data: units, isLoading: isUnitsLoading } = useGetUnits(selectedCompany?.slug);
+
   const { data: aircrafts, isLoading: isAircraftsLoading, isError: isAircraftsError } = useGetMaintenanceAircrafts()
+
   const { createRequisition } = useCreateRequisition()
+
   const [selectedBatches, setSelectedBatches] = useState<Batch[]>([])
+  
   const router = useRouter()
 
   const form = useForm<FormSchemaType>({
@@ -146,8 +154,8 @@ const CreateRequisitionPage = () => {
       }
       
       // Encontrar la unidad "UNIDAD" para componentes y herramientas
-      const unidadUnit = secondaryUnits?.find(
-        (u) => u.secondary_unit?.label?.toUpperCase() === "UNIDAD" || u.secondary_unit?.value?.toUpperCase() === "UNIDAD"
+      const unidadUnit = units?.find(
+        (u) => u.label.toUpperCase() === "UNIDAD"
       );
       const defaultUnit = 
         (batch_category === "componente" || batch_category === "herramienta") && unidadUnit
@@ -200,8 +208,8 @@ const CreateRequisitionPage = () => {
         if (batch.batch !== batchName) return batch;
         
         // Encontrar la unidad "UNIDAD" para componentes y herramientas
-        const unidadUnit = secondaryUnits?.find(
-          (u) => u.secondary_unit?.toUpperCase() === "UNIDAD"
+        const unidadUnit = units?.find(
+          (u) => u.label.toUpperCase() === "UNIDAD"
         );
         const defaultUnit = 
           (batch.category === "componente" || batch.category === "herramienta") && unidadUnit
@@ -520,7 +528,7 @@ const CreateRequisitionPage = () => {
                                     <div>
                                       <Label>Unidad</Label>
                                       <Select
-                                        disabled={secondaryUnitLoading || batch.category === "componente" || batch.category === "herramienta"}
+                                        disabled={isUnitsLoading || batch.category === "componente" || batch.category === "herramienta"}
                                         value={article.unit}
                                         onValueChange={(value) => handleArticleChange(batch.batch, index, "unit", value)}
                                       >
@@ -528,9 +536,9 @@ const CreateRequisitionPage = () => {
                                           <SelectValue placeholder="Seleccionar unidad" />
                                         </SelectTrigger>
                                         <SelectContent>
-                                          {secondaryUnits?.map((secU) => (
+                                          {units?.map((secU) => (
                                             <SelectItem key={secU.id} value={secU.id.toString()}>
-                                              {secU.secondary_unit?.label || secU.secondary_unit?.value || secU.secondary_unit}
+                                              {secU.label}
                                             </SelectItem>
                                           ))}
                                         </SelectContent>
