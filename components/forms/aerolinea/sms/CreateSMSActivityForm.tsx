@@ -437,7 +437,7 @@ export default function CreateSMSActivityForm({
             name="place"
             render={({ field }) => (
               <FormItem className="w-full">
-                <FormLabel>Luagar de Actividad</FormLabel>
+                <FormLabel>Lugar de Actividad</FormLabel>
                 <FormControl>
                   <Input {...field} maxLength={20} />
                 </FormControl>

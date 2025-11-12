@@ -49,7 +49,7 @@ export const columns: ColumnDef<SMSActivity>[] = [
     ),
   },
   {
-    accessorKey: "Fecha de Inicio",
+    accessorKey: "start_date",
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Fecha de Inicio" />
     ),
