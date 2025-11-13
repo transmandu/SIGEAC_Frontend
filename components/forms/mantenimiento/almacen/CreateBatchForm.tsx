@@ -159,8 +159,11 @@ export function CreateBatchForm({ onClose, onSuccess }: FormProps) {
   return (
     <Form {...form}>
       <form
-        onSubmit={form.handleSubmit(onSubmit)}
         className="flex flex-col space-y-3 w-full"
+        onSubmit={(e) => {
+          e.stopPropagation(); //evita que el submit se propague al formulario padre
+          form.handleSubmit(onSubmit)(e); //  ejecuta el submit localmente
+        }}
       >
         <div className="flex gap-2">
           <FormField
