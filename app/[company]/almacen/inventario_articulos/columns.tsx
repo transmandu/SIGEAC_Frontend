@@ -437,6 +437,7 @@ export const consumibleCols: ColumnDef<IArticleSimple>[] = [
   },
 ];
 
+
 // Columnas extra para HERRAMIENTA
 export const herramientaCols: ColumnDef<IArticleSimple>[] = [
   ...baseCols,
