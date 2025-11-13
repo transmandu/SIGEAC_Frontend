@@ -3,9 +3,11 @@ import { useCompanyStore } from "@/stores/CompanyStore";
 import { ComponentArticle, ConsumableArticle, ToolArticle } from "@/types";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-
+interface UnitSelection {
+  conversion_id: number;
+}
 interface ArticleData {
-  serial?: string;
+  serial?: string | string[];
   part_number: string;
   article_type: string;
   lot_number?: string;
@@ -28,6 +30,8 @@ interface ArticleData {
   certificate_fabricant?: File | string;
   certificate_vendor?: File | string;
   image?: File | string;
+  conversions?: UnitSelection[];
+  primary_unit_id?: number;
 }
 
 export const useCreateArticle = () => {
@@ -41,7 +45,8 @@ export const useCreateArticle = () => {
     }: {
       company: string;
       data: ArticleData;
-    }) => {
+      }) => {
+      console.log('data from await to create an article ', data);
       await axiosInstance.post(`/${company}/article`, data, {
         headers: {
           "Content-Type": "multipart/form-data",
@@ -254,7 +259,6 @@ export const useEditArticle = () => {
         condition_id?: number | string;
         batches_id: string | number;
         is_special?: boolean;
-        is_managed?: boolean;
         caducate_date?: string;
         fabrication_date?: string;
         quantity?: number;

@@ -22,7 +22,7 @@ const formSchema = z.object({
     message: "El nombre debe tener al menos 3 carácters.",
   }),
   value: z.string().min(1, {
-    message: "El valor debe tener al menos 1 carácters.",
+    message: "El Simbolo de la unidad debe tener al menos 1 carácters.",
   }),
 })
 
@@ -62,7 +62,6 @@ export default function CreateUnitForm({ onClose, onSuccess }: FormProps) {
                 <Input placeholder="EJ: Kilogramo, Litro, Mililitro" {...field} />
               </FormControl>
               <FormDescription>
-                Este será el nombre de su unidad.
               </FormDescription>
               <FormMessage />
             </FormItem>
@@ -73,12 +72,11 @@ export default function CreateUnitForm({ onClose, onSuccess }: FormProps) {
           name="value"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Valor</FormLabel>
+              <FormLabel>Simbolo de la Unidad</FormLabel>
               <FormControl>
                 <Input placeholder="EJ: Kg, L, mL" {...field} />
               </FormControl>
               <FormDescription>
-                Este será el valor de su unidad.
               </FormDescription>
               <FormMessage />
             </FormItem>

@@ -4,51 +4,31 @@ import { ColumnDef } from "@tanstack/react-table"
 
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader"
 
-import { Checkbox } from "@/components/ui/checkbox"
 import { Unit } from "@/types"
 import UnitDropdownActions from "@/components/dropdowns/ajustes/UnitDropdownActions"
 
 export const columns: ColumnDef<Unit>[] = [
-  // {
-  //   id: "select",
-  //   header: ({ table }) => (
-  //     <Checkbox
-  //       checked={
-  //         table.getIsAllPageRowsSelected() ||
-  //         (table.getIsSomePageRowsSelected() && "indeterminate")
-  //       }
-  //       onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-  //       aria-label="Seleccionar todos"
-  //     />
-  //   ),
-  //   cell: ({ row }) => (
-  //     <Checkbox
-  //       checked={row.getIsSelected()}
-  //       onCheckedChange={(value) => row.toggleSelected(!!value)}
-  //       aria-label="Seleccionar fila"
-  //     />
-  //   ),
-  //   enableSorting: false,
-  //   enableHiding: false,
-  // },
   {
     accessorKey: "label",
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Unidad" />
     ),
-    cell: ({ row }) =>
+    cell: ({ row }) => (
       <div className="flex justify-center">
-        <span className='font-bold text-center'>{row.original.label}</span>
+        <span className="font-bold text-center">{row.original.label}</span>
+        <span className="font-light text-center ml-1">({row.original.value})</span>
       </div>
+    ),
   },
   {
-    accessorKey: "value",
+    accessorKey: "actions",
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Valor" />
     ),
-    cell: ({ row }) =>
+    cell: ({ row }) => (
       <div className="flex justify-center">
         <UnitDropdownActions id={row.original.id} />
       </div>
+    ),
   },
-]
+];

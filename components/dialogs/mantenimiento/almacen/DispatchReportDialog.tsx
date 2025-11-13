@@ -50,6 +50,7 @@ export function DispatchReportDialog() {
 
   const { data: dispatchReport, isLoading: isLoadingDispatchReport } =
     useGetDispatchReport(selectedStation ?? null, selectedCompany?.slug);
+  
   const { data: aircrafts, isLoading: isLoadingAircrafts } = useGetAircrafts(
     selectedCompany?.slug
   );

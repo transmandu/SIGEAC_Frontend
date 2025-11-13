@@ -39,7 +39,7 @@ import { CalendarIcon, ClipboardPaste, Loader2, MoreHorizontal } from "lucide-re
 import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
-import { Calendar } from "../../../ui/calendar"
+import { Calendar } from "@/components/ui/calendar"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "../../../ui/dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../../ui/select"
 

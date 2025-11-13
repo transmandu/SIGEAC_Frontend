@@ -1,4 +1,5 @@
 import axios from '@/lib/axios';
+import { Aircraft } from '@/types';
 import { useQuery } from '@tanstack/react-query';
 
 export interface DispatchReport {
@@ -13,7 +14,7 @@ export interface DispatchReport {
   destination_place: string;
   submission_date: string;
   work_order?: string;
-  aircraft?: number;
+  aircraft?: Aircraft;
   articles: {
     id: number;
     part_number: string;
@@ -21,6 +22,8 @@ export interface DispatchReport {
     serial?: string;
     description: string;
     quantity: number;
+    quantity_used: number;
+    unit_label: string;
   }[];
 }
 

@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { useAuth } from "@/contexts/AuthContext"
-import { useGetSecondaryUnits } from "@/hooks/general/unidades/useGetSecondaryUnits"
 import { useGetBatchesByLocationId } from "@/hooks/mantenimiento/almacen/renglones/useGetBatchesByLocationId"
 import { useGetMaintenanceAircrafts } from '@/hooks/mantenimiento/planificacion/useGetMaintenanceAircrafts'
 import { useGetUserDepartamentEmployees } from "@/hooks/sistema/empleados/useGetUserDepartamentEmployees"
@@ -23,6 +22,7 @@ import { ScrollArea } from "../../../ui/scroll-area"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../../ui/select"
 import { Separator } from "../../../ui/separator"
 import { Textarea } from "../../../ui/textarea"
+import { useGetUnits } from "@/hooks/general/unidades/useGetPrimaryUnits"
 
 const FormSchema = z.object({
   justification: z
@@ -125,7 +125,7 @@ export function CreateGeneralRequisitionForm({
 
   const { data: employees, isPending: employeesLoading } = useGetUserDepartamentEmployees(selectedCompany?.slug);
 
-  const { data: secondaryUnits, isLoading: secondaryUnitLoading } = useGetSecondaryUnits(selectedCompany?.slug);
+  const { data: units, isLoading: isUnitsLoading } = useGetUnits(selectedCompany?.slug);
 
   const { createRequisition } = useCreateRequisition();
 
@@ -181,6 +181,15 @@ export function CreateGeneralRequisitionForm({
         return prev.filter((b) => b.batch !== batchId);
       }
 
+      // Encontrar la unidad "UNIDAD" para componentes y herramientas
+      const unidadUnit = units?.find(
+        (u) => u.label.toUpperCase() === "UNIDAD" || u.value.toUpperCase() === "UNIDAD"
+      );
+      const defaultUnit = 
+        (batch_category === "componente" || batch_category === "herramienta") && unidadUnit
+          ? unidadUnit.id.toString()
+          : undefined;
+
       // Si no existe, lo agregamos
       return [
         ...prev,
@@ -188,7 +197,7 @@ export function CreateGeneralRequisitionForm({
           batch: batchId,
           batch_name: batchName,
           category: batch_category,
-          batch_articles: [{ part_number: "", quantity: 0 }],
+          batch_articles: [{ part_number: "", quantity: 0, unit: defaultUnit }],
         },
       ];
     });
@@ -218,17 +227,26 @@ export function CreateGeneralRequisitionForm({
   // Agrega un nuevo artículo a un lote.
   const addArticle = (batchName: string) => {
     setSelectedBatches((prev) =>
-      prev.map((batch) =>
-        batch.batch === batchName
-          ? {
-              ...batch,
-              batch_articles: [
-                ...batch.batch_articles,
-                { part_number: "", quantity: 0 },
-              ],
-            }
-          : batch
-      )
+      prev.map((batch) => {
+        if (batch.batch !== batchName) return batch;
+        
+        // Encontrar la unidad "UNIDAD" para componentes y herramientas
+        const unidadUnit = units?.find(
+          (u) => u.label.toUpperCase() === "UNIDAD" || u.value.toUpperCase() === "UNIDAD"
+        );
+        const defaultUnit = 
+          (batch.category === "componente" || batch.category === "herramienta") && unidadUnit
+            ? unidadUnit.id.toString()
+            : undefined;
+
+        return {
+          ...batch,
+          batch_articles: [
+            ...batch.batch_articles,
+            { part_number: "", quantity: 0, unit: defaultUnit },
+          ],
+        };
+      })
     );
   };
 
@@ -581,7 +599,8 @@ export function CreateGeneralRequisitionForm({
                               }
                             />
                             <Select
-                              disabled={secondaryUnitLoading}
+                              disabled={isUnitsLoading || batch.category === "componente" || batch.category === "herramienta"}
+                              value={article.unit}
                               onValueChange={(value) =>
                                 handleArticleChange(
                                   batch.batch,
@@ -592,16 +611,16 @@ export function CreateGeneralRequisitionForm({
                               }
                             >
                               <SelectTrigger>
-                                <SelectValue placeholder="Unidad Sec." />
+                                <SelectValue placeholder="Unidad" />
                               </SelectTrigger>
                               <SelectContent>
-                                {secondaryUnits &&
-                                  secondaryUnits.map((secU) => (
+                                {units &&
+                                  units.map((secU) => (
                                     <SelectItem
                                       key={secU.id}
                                       value={secU.id.toString()}
                                     >
-                                      {secU.secondary_unit}
+                                      {secU.label}
                                     </SelectItem>
                                   ))}
                               </SelectContent>

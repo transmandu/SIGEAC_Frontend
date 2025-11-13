@@ -68,10 +68,12 @@ import { useGetConditions } from "@/hooks/administracion/useGetConditions";
 import { useGetManufacturers } from "@/hooks/general/fabricantes/useGetManufacturers";
 import { useGetSecondaryUnits } from "@/hooks/general/unidades/useGetSecondaryUnits";
 import { useGetBatchesByCategory } from "@/hooks/mantenimiento/almacen/renglones/useGetBatchesByCategory";
+import { useGetConversionByUnitConsmable } from "@/hooks/mantenimiento/almacen/articulos/useGetConvertionsByConsumableUnit";
+import { Unit } from "@/types";
 
 import { cn } from "@/lib/utils";
 import { useCompanyStore } from "@/stores/CompanyStore";
-import { Batch, Convertion } from "@/types";
+import { Batch } from "@/types";
 
 import loadingGif from "@/public/loading2.gif";
 import { EditingArticle } from "./RegisterArticleForm";
@@ -167,10 +169,31 @@ const CreateConsumableForm = ({
   const { updateArticle } = useUpdateArticle();
   const { confirmIncoming } = useConfirmIncomingArticle();
 
-  const [secondaryOpen, setSecondaryOpen] = useState(false);
-  const [secondarySelected, setSecondarySelected] = useState<Convertion | null>(
-    null
+  const [selectedBatchId, setSelectedBatchId] = useState<number | undefined>(
+    initialData?.batches?.id
   );
+  
+  // Obtener el batch seleccionado para acceder a su unit.id
+  const selectedBatch = useMemo(() => {
+    return batches?.find((b) => b.id === selectedBatchId);
+  }, [batches, selectedBatchId]);
+
+  // Obtener conversiones específicas del consumible seleccionado
+  const { data: consumableConversions, isLoading: consumableConversionsLoading } =
+    useGetConversionByUnitConsmable(
+      selectedBatch?.unit?.id ?? 0,
+      selectedCompany?.slug
+    );
+
+  type ConversionData = {
+    id: number;
+    primary_unit: Unit;
+    equivalence: number;
+    secondary_unit: Unit;
+  };
+
+  const [secondaryOpen, setSecondaryOpen] = useState(false);
+  const [secondarySelected, setSecondarySelected] = useState<ConversionData | null>(null);
   const [secondaryQuantity, setSecondaryQuantity] = useState<
     number | undefined
   >();
@@ -248,8 +271,7 @@ const CreateConsumableForm = ({
       !Number.isNaN(secondaryQuantity)
     ) {
       const qty =
-        (secondarySelected.convertion_rate ?? 1) *
-        (secondarySelected.quantity_unit ?? 1) *
+        (secondarySelected.equivalence ?? 1) *
         secondaryQuantity;
       form.setValue("quantity", qty, {
         shouldDirty: true,
@@ -265,7 +287,8 @@ const CreateConsumableForm = ({
     isManufacturerLoading ||
     isConditionsLoading ||
     createArticle.isPending ||
-    confirmIncoming.isPending;
+    confirmIncoming.isPending ||
+    consumableConversionsLoading;
 
   const batchesOptions = useMemo<Batch[] | undefined>(() => batches, [batches]);
 
@@ -566,31 +589,75 @@ const CreateConsumableForm = ({
                       }
                     />
                   </div>
-                  <Select
-                    disabled={isManufacturerLoading}
-                    onValueChange={field.onChange}
-                    value={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Seleccione..." />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {manufacturers
-                        ?.filter((m) => m.type === "PART")
-                        .map((m) => (
-                          <SelectItem key={m.id} value={m.id.toString()}>
-                            {m.name}
-                          </SelectItem>
-                        ))}
-                      {isManufacturerError && (
-                        <div className="p-2 text-sm text-muted-foreground">
-                          Error al cargar fabricantes.
-                        </div>
-                      )}
-                    </SelectContent>
-                  </Select>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <FormControl>
+                        <Button
+                          disabled={isManufacturerLoading || isManufacturerError}
+                          variant="outline"
+                          role="combobox"
+                          className={cn(
+                            "w-full justify-between",
+                            !field.value && "text-muted-foreground"
+                          )}
+                        >
+                          {isManufacturerLoading && (
+                            <Loader2 className="size-4 animate-spin mr-2" />
+                          )}
+                          {field.value ? (
+                            <p>
+                              {
+                                manufacturers
+                                  ?.filter((m) => m.type === "PART")
+                                  .find((m) => `${m.id}` === field.value)
+                                  ?.name
+                              }
+                            </p>
+                          ) : (
+                            "Seleccione fabricante..."
+                          )}
+                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        </Button>
+                      </FormControl>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-[300px] p-0">
+                      <Command>
+                        <CommandInput placeholder="Buscar fabricante..." />
+                        <CommandList>
+                          <CommandEmpty className="text-xs p-2 text-center">
+                            No se encontró el fabricante.
+                          </CommandEmpty>
+                          <CommandGroup>
+                            {manufacturers
+                              ?.filter((m) => m.type === "PART")
+                              .map((manufacturer) => (
+                                <CommandItem
+                                  value={`${manufacturer.name}`}
+                                  key={manufacturer.id}
+                                  onSelect={() => {
+                                    form.setValue(
+                                      "manufacturer_id",
+                                      manufacturer.id.toString(),
+                                      { shouldValidate: true }
+                                    );
+                                  }}
+                                >
+                                  <Check
+                                    className={cn(
+                                      "mr-2 h-4 w-4",
+                                      `${manufacturer.id}` === field.value
+                                        ? "opacity-100"
+                                        : "opacity-0"
+                                    )}
+                                  />
+                                  <p>{manufacturer.name}</p>
+                                </CommandItem>
+                              ))}
+                          </CommandGroup>
+                        </CommandList>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
                   <FormDescription>
                     Marca específica del artículo.
                   </FormDescription>
@@ -668,6 +735,10 @@ const CreateConsumableForm = ({
                                     batch.id.toString(),
                                     { shouldValidate: true }
                                   );
+                                  setSelectedBatchId(batch.id);
+                                  // Resetear la selección de conversión cuando cambie el batch
+                                  setSecondarySelected(null);
+                                  setSecondaryQuantity(undefined);
                                 }}
                               >
                                 <Check
@@ -710,17 +781,25 @@ const CreateConsumableForm = ({
                   <Popover open={secondaryOpen} onOpenChange={setSecondaryOpen}>
                     <PopoverTrigger asChild>
                       <Button
-                        disabled={secondaryLoading}
+                        disabled={
+                          consumableConversionsLoading || 
+                          !selectedBatchId ||
+                          !consumableConversions?.length
+                        }
                         variant="outline"
                         role="combobox"
                         aria-expanded={secondaryOpen}
                         className="justify-between"
                       >
                         {secondarySelected
-                          ? `${secondarySelected.secondary_unit}`
-                          : secondaryLoading
+                          ? `${secondarySelected.secondary_unit?.label || secondarySelected.secondary_unit?.value || "N/A"}`
+                          : consumableConversionsLoading
                             ? "Cargando..."
-                            : "Seleccione..."}
+                            : !selectedBatchId
+                              ? "Seleccione un lote primero..."
+                              : !consumableConversions?.length
+                                ? "Sin conversiones disponibles"
+                                : "Seleccione..."}
                         <ChevronsUpDown className="opacity-50" />
                       </Button>
                     </PopoverTrigger>
@@ -729,16 +808,16 @@ const CreateConsumableForm = ({
                         <CommandInput placeholder="Buscar unidad..." />
                         <CommandList>
                           <CommandEmpty>
-                            No existen unidades secundarias.
+                            No existen conversiones para este consumible.
                           </CommandEmpty>
                           <CommandGroup>
-                            {secondaryUnits?.map((s) => (
+                            {consumableConversions?.map((conversion) => (
                               <CommandItem
-                                key={s.id}
-                                value={s.id.toString()}
+                                key={conversion.id}
+                                value={conversion.id.toString()}
                                 onSelect={(val) => {
                                   const found =
-                                    secondaryUnits.find(
+                                    consumableConversions.find(
                                       (u) => u.id.toString() === val
                                     ) || null;
                                   setSecondarySelected(found);
@@ -748,8 +827,7 @@ const CreateConsumableForm = ({
                                     typeof secondaryQuantity === "number"
                                   ) {
                                     const calc =
-                                      (found.convertion_rate ?? 1) *
-                                      (found.quantity_unit ?? 1) *
+                                      (found.equivalence ?? 1) *
                                       (secondaryQuantity ?? 0);
                                     form.setValue("quantity", calc, {
                                       shouldDirty: true,
@@ -761,12 +839,12 @@ const CreateConsumableForm = ({
                                   }
                                 }}
                               >
-                                {s.secondary_unit}
+                                {conversion.secondary_unit?.label || conversion.secondary_unit?.value || "N/A"}
                                 <Check
                                   className={cn(
                                     "ml-auto",
                                     secondarySelected?.id.toString() ===
-                                      s.id.toString()
+                                      conversion.id.toString()
                                       ? "opacity-100"
                                       : "opacity-0"
                                   )}
@@ -779,7 +857,9 @@ const CreateConsumableForm = ({
                     </PopoverContent>
                   </Popover>
                   <p className="text-sm text-muted-foreground">
-                    Indique cómo será ingresado el artículo.
+                    {!selectedBatchId 
+                      ? "Primero seleccione un lote de consumible." 
+                      : "Indique cómo será ingresado el artículo."}
                   </p>
                 </div>
 

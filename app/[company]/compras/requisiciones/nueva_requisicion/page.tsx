@@ -15,7 +15,6 @@ import { Separator } from "@/components/ui/separator"
 import { Textarea } from "@/components/ui/textarea"
 import { useAuth } from "@/contexts/AuthContext"
 import { useGetUserDepartamentEmployees } from "@/hooks/sistema/empleados/useGetUserDepartamentEmployees"
-import { useGetSecondaryUnits } from "@/hooks/general/unidades/useGetSecondaryUnits"
 import { useGetMaintenanceAircrafts } from '@/hooks/mantenimiento/planificacion/useGetMaintenanceAircrafts'
 import { cn } from "@/lib/utils"
 import { useCompanyStore } from "@/stores/CompanyStore"
@@ -28,6 +27,7 @@ import CertificatesCombobox from './_components/TagCombobox'
 import { useGetBatchesByLocationId } from "@/hooks/mantenimiento/almacen/renglones/useGetBatchesByLocationId"
 import Image from "next/image"
 import { useRouter } from "next/navigation"
+import { useGetUnits } from "@/hooks/general/unidades/useGetPrimaryUnits"
 
 interface Article {
   part_number: string;
@@ -100,13 +100,21 @@ type FormSchemaType = z.infer<typeof FormSchema>
 
 const CreateRequisitionPage = () => {
   const { user } = useAuth()
+
   const { mutate, data } = useGetBatchesByLocationId();
+
   const { selectedCompany, selectedStation } = useCompanyStore()
+
   const { data: employees, isPending: employeesLoading } = useGetUserDepartamentEmployees(selectedCompany?.slug);
-  const { data: secondaryUnits, isLoading: secondaryUnitLoading } = useGetSecondaryUnits(selectedCompany?.slug);
+
+  const { data: units, isLoading: isUnitsLoading } = useGetUnits(selectedCompany?.slug);
+
   const { data: aircrafts, isLoading: isAircraftsLoading, isError: isAircraftsError } = useGetMaintenanceAircrafts()
+
   const { createRequisition } = useCreateRequisition()
+
   const [selectedBatches, setSelectedBatches] = useState<Batch[]>([])
+  
   const router = useRouter()
 
   const form = useForm<FormSchemaType>({
@@ -144,6 +152,16 @@ const CreateRequisitionPage = () => {
       if (exists) {
         return prev.filter((b) => b.batch !== batchId);
       }
+      
+      // Encontrar la unidad "UNIDAD" para componentes y herramientas
+      const unidadUnit = units?.find(
+        (u) => u.label.toUpperCase() === "UNIDAD"
+      );
+      const defaultUnit = 
+        (batch_category === "componente" || batch_category === "herramienta") && unidadUnit
+          ? unidadUnit.id.toString()
+          : undefined;
+
       return [
         ...prev,
         {
@@ -156,7 +174,8 @@ const CreateRequisitionPage = () => {
             justification: "",
             manual: "",
             reference_cod: "",
-            quantity: 0
+            quantity: 0,
+            unit: defaultUnit
           }]
         },
       ];
@@ -185,21 +204,31 @@ const CreateRequisitionPage = () => {
 
   const addArticle = (batchName: string) => {
     setSelectedBatches((prev) =>
-      prev.map((batch) =>
-        batch.batch === batchName
-          ? {
-            ...batch,
-            batch_articles: [...batch.batch_articles, {
-              part_number: "",
-              alt_part_number: "",
-              justification: "",
-              manual: "",
-              reference_cod: "",
-              quantity: 0
-            }]
-          }
-          : batch
-      )
+      prev.map((batch) => {
+        if (batch.batch !== batchName) return batch;
+        
+        // Encontrar la unidad "UNIDAD" para componentes y herramientas
+        const unidadUnit = units?.find(
+          (u) => u.label.toUpperCase() === "UNIDAD"
+        );
+        const defaultUnit = 
+          (batch.category === "componente" || batch.category === "herramienta") && unidadUnit
+            ? unidadUnit.id.toString()
+            : undefined;
+
+        return {
+          ...batch,
+          batch_articles: [...batch.batch_articles, {
+            part_number: "",
+            alt_part_number: "",
+            justification: "",
+            manual: "",
+            reference_cod: "",
+            quantity: 0,
+            unit: defaultUnit
+          }]
+        };
+      })
     );
   };
 
@@ -497,9 +526,9 @@ const CreateRequisitionPage = () => {
                                       />
                                     </div>
                                     <div>
-                                      <Label>Unidad Secundaria</Label>
+                                      <Label>Unidad</Label>
                                       <Select
-                                        disabled={secondaryUnitLoading}
+                                        disabled={isUnitsLoading || batch.category === "componente" || batch.category === "herramienta"}
                                         value={article.unit}
                                         onValueChange={(value) => handleArticleChange(batch.batch, index, "unit", value)}
                                       >
@@ -507,9 +536,9 @@ const CreateRequisitionPage = () => {
                                           <SelectValue placeholder="Seleccionar unidad" />
                                         </SelectTrigger>
                                         <SelectContent>
-                                          {secondaryUnits?.map((secU) => (
+                                          {units?.map((secU) => (
                                             <SelectItem key={secU.id} value={secU.id.toString()}>
-                                              {secU.secondary_unit}
+                                              {secU.label}
                                             </SelectItem>
                                           ))}
                                         </SelectContent>

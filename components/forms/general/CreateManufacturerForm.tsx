@@ -29,9 +29,7 @@ const formSchema = z.object({
   name: z.string().min(3, {
     message: "El nombre debe tener al menos 3 carácters.",
   }),
-  description: z.string().min(3, {
-    message: "La descripcion debe tener al menos 3 carácters.",
-  }),
+  description: z.string().optional(),
   type: z.enum(["AIRCRAFT", "ENGINE", "APU", "PROPELLER", "GENERAL", "PART"], {
     required_error: "Debe seleccionar un tipo",
   }),
@@ -71,7 +69,10 @@ export default function CreateManufacturerForm({
     try {
       const result = await createManufacturer.mutateAsync({
         company: selectedCompany?.slug,
-        data: values,
+        data: {
+          ...values,
+          description: values.description || "", // Asegurar que description siempre sea string
+        },
       });
       if (onSuccess && result) {
         onSuccess(result);
@@ -129,23 +130,6 @@ export default function CreateManufacturerForm({
                 </SelectContent>
               </Select>
               <FormDescription>Indique el tipo de fabricante.</FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="description"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Descripción</FormLabel>
-              <FormControl>
-                <Input placeholder="..." {...field} />
-              </FormControl>
-              <FormDescription>
-                Agregue una <strong>descripcion</strong> al fabricante.
-              </FormDescription>
               <FormMessage />
             </FormItem>
           )}

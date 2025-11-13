@@ -79,6 +79,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { EditingArticle } from "./RegisterArticleForm";
 import { CreateManufacturerDialog } from "@/components/dialogs/general/CreateManufacturerDialog";
 import { CreateBatchDialog } from "@/components/dialogs/mantenimiento/almacen/CreateBatchDialog";
+import { MultiSerialInput } from "./MultiSerialInput";
 
 /* ------------------------------- Schema ------------------------------- */
 
@@ -87,8 +88,11 @@ const fileMaxBytes = 10_000_000; // 10 MB
 const formSchema = z
   .object({
     serial: z
-      .string()
-      .min(2, { message: "El serial debe contener al menos 2 caracteres." })
+      .array(
+        z.string().min(2, {
+          message: "Cada serial debe contener al menos 2 caracteres.",
+        })
+      )
       .optional(),
     part_number: z
       .string({ message: "Debe seleccionar un número de parte." })
@@ -138,6 +142,7 @@ const formSchema = z
       .refine((f) => f.size <= fileMaxBytes, "Tamaño máximo 10 MB.")
       .optional(),
     image: z.instanceof(File).optional(),
+    has_documentation: z.boolean().optional(),
   })
   .superRefine((vals, ctx) => {
     if (vals.fabrication_date && vals.caducate_date) {
@@ -252,7 +257,7 @@ export default function CreateComponentForm({
     resolver: zodResolver(formSchema),
     defaultValues: {
       part_number: initialData?.part_number || "",
-      serial: initialData?.serial || "",
+      serial: initialData?.serial ? (Array.isArray(initialData.serial) ? initialData.serial : [initialData.serial]) : [],
       alternative_part_number: initialData?.alternative_part_number || [],
       batch_id: initialData?.batches?.id?.toString() || "",
       batch_name: initialData?.batches?.name || "",
@@ -272,16 +277,20 @@ export default function CreateComponentForm({
       fabrication_date: initialData?.component?.shell_time?.fabrication_date
         ? initialData?.component?.shell_time?.fabrication_date
         : undefined,
+      has_documentation: initialData?.has_documentation ?? false,
     },
     mode: "onBlur",
   });
+
+  // Watch para el campo de documentación
+  const hasDocumentation = form.watch("has_documentation");
 
   // Reset on prop change
   useEffect(() => {
     if (!initialData) return;
     form.reset({
       part_number: initialData.part_number ?? "",
-      serial: initialData.serial ?? "",
+      serial: initialData.serial ? (Array.isArray(initialData.serial) ? initialData.serial : [initialData.serial]) : [],
       alternative_part_number: initialData.alternative_part_number ?? [],
       batch_id: initialData.batches?.id?.toString() ?? "",
       batch_name: initialData.batches?.name ?? "",
@@ -301,6 +310,7 @@ export default function CreateComponentForm({
       fabrication_date: initialData.component?.shell_time?.fabrication_date
         ? initialData.component?.shell_time?.fabrication_date
         : undefined,
+      has_documentation: initialData.has_documentation ?? false,
     });
   }, [initialData, form]);
 
@@ -360,7 +370,13 @@ export default function CreateComponentForm({
 
     const { caducate_date: _, ...valuesWithoutCaducateDate } = values;
     const caducateDateStr: string | undefined = caducateDate && caducateDate !== null ? format(caducateDate, "yyyy-MM-dd") : undefined;
-    const formattedValues: Omit<FormValues, 'caducate_date'> & {
+    
+    // Transformar serial: si hay 1 serial -> string, si hay 2+ -> array
+    const serialValue = values.serial && values.serial.length > 0 
+      ? (values.serial.length === 1 ? values.serial[0] : values.serial)
+      : undefined;
+    
+    const formattedValues: Omit<FormValues, 'caducate_date' | 'serial'> & {
       caducate_date?: string;
       fabrication_date?: string;
       calendar_date?: string;
@@ -370,6 +386,7 @@ export default function CreateComponentForm({
       alternative_part_number?: string[];
       batch_name?: string;
       batch_id: string; // Asegurar que batch_id esté en el tipo
+      serial?: string | string[];
     } = {
       ...valuesWithoutCaducateDate,
       status: "CHECKING",
@@ -377,6 +394,7 @@ export default function CreateComponentForm({
       part_number: normalizeUpper(values.part_number),
       alternative_part_number:
         values.alternative_part_number?.map((v) => normalizeUpper(v)) ?? [],
+      serial: serialValue,
       caducate_date: caducateDateStr,
       fabrication_date: fabricationDate && fabricationDate !== null ? format(fabricationDate, "yyyy-MM-dd") : undefined,
       calendar_date: values.calendar_date && format(values.calendar_date, "yyyy-MM-dd"),
@@ -424,7 +442,7 @@ export default function CreateComponentForm({
       });
       // Esperar un momento para que las queries se invaliden antes de redirigir
       await new Promise(resolve => setTimeout(resolve, 100));
-      router.push(`/${selectedCompany.slug}/almacen/inventario_articulos`);
+      router.push(`/${selectedCompany.slug}/ingenieria/confirmar_inventario`);
       router.refresh(); // Forzar refresco de la página
     } else {
       await createArticle.mutateAsync({
@@ -823,7 +841,12 @@ export default function CreateComponentForm({
                 <FormItem className="w-full">
                   <FormLabel>Serial</FormLabel>
                   <FormControl>
-                    <Input placeholder="Ej: 05458E1" {...field} disabled={busy} />
+                    <MultiSerialInput
+                      values={field.value || []}
+                      onChange={field.onChange}
+                      disabled={busy}
+                      placeholder="Ej: 05458E1"
+                    />
                   </FormControl>
                   <FormDescription>Serial del componente si aplica.</FormDescription>
                   <FormMessage />
@@ -882,23 +905,75 @@ export default function CreateComponentForm({
                       }
                     />
                   </div>
-                  <Select onValueChange={field.onChange} value={field.value} disabled={isManufacturerLoading || busy}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder={isManufacturerLoading ? "Cargando..." : "Seleccione..."} />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {manufacturers?.filter((m) => m.type).map((m) => (
-                        <SelectItem key={m.id} value={m.id.toString()}>
-                          {m.name} ({m.type})
-                        </SelectItem>
-                      ))}
-                      {isManufacturerError && (
-                        <div className="p-2 text-sm text-muted-foreground">Error al cargar fabricantes.</div>
-                      )}
-                    </SelectContent>
-                  </Select>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <FormControl>
+                        <Button
+                          disabled={isManufacturerLoading || isManufacturerError || busy}
+                          variant="outline"
+                          role="combobox"
+                          className={cn(
+                            "w-full justify-between",
+                            !field.value && "text-muted-foreground"
+                          )}
+                        >
+                          {isManufacturerLoading && (
+                            <Loader2 className="size-4 animate-spin mr-2" />
+                          )}
+                          {field.value ? (
+                            <p>
+                              {
+                                manufacturers
+                                  ?.filter((m) => m.type)
+                                  .find((m) => `${m.id}` === field.value)
+                                  ?.name
+                              }
+                            </p>
+                          ) : (
+                            "Seleccione fabricante..."
+                          )}
+                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        </Button>
+                      </FormControl>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-[300px] p-0">
+                      <Command>
+                        <CommandInput placeholder="Buscar fabricante..." />
+                        <CommandList>
+                          <CommandEmpty className="text-xs p-2 text-center">
+                            No se encontró el fabricante.
+                          </CommandEmpty>
+                          <CommandGroup>
+                            {manufacturers
+                              ?.filter((m) => m.type)
+                              .map((manufacturer) => (
+                                <CommandItem
+                                  value={`${manufacturer.name}`}
+                                  key={manufacturer.id}
+                                  onSelect={() => {
+                                    form.setValue(
+                                      "manufacturer_id",
+                                      manufacturer.id.toString(),
+                                      { shouldValidate: true }
+                                    );
+                                  }}
+                                >
+                                  <Check
+                                    className={cn(
+                                      "mr-2 h-4 w-4",
+                                      `${manufacturer.id}` === field.value
+                                        ? "opacity-100"
+                                        : "opacity-0"
+                                    )}
+                                  />
+                                  <p>{manufacturer.name} ({manufacturer.type})</p>
+                                </CommandItem>
+                              ))}
+                          </CommandGroup>
+                        </CommandList>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
                   <FormDescription>Marca del artículo.</FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -967,15 +1042,43 @@ export default function CreateComponentForm({
 
             <Separator />
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FileField name="image" label="Imagen del artículo" accept="image/*" description="Imagen descriptiva." />
+            <FormField
+              control={form.control}
+              name="has_documentation"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                  <FormControl>
+                    <Checkbox
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                      disabled={busy}
+                    />
+                  </FormControl>
+                  <div className="space-y-1 leading-none">
+                    <FormLabel>¿El artículo tiene documentación?</FormLabel>
+                    <FormDescription>
+                      Marque esta casilla si el artículo cuenta con documentación (certificados, imágenes, etc.).
+                    </FormDescription>
+                  </div>
+                </FormItem>
+              )}
+            />
 
-              <div className="space-y-4">
-                <FileField name="certificate_8130" label={<span>Certificado <span className="text-primary font-semibold">8130</span></span> as any} description="PDF o imagen. Máx. 10 MB." />
-                <FileField name="certificate_fabricant" label={<span>Certificado del <span className="text-primary">fabricante</span></span> as any} description="PDF o imagen. Máx. 10 MB." />
-                <FileField name="certificate_vendor" label={<span>Certificado del <span className="text-primary">vendedor</span></span> as any} description="PDF o imagen. Máx. 10 MB." />
-              </div>
-            </div>
+            {hasDocumentation && (
+              <>
+                <Separator />
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FileField name="image" label="Imagen del artículo" accept="image/*" description="Imagen descriptiva." />
+
+                  <div className="space-y-4">
+                    <FileField name="certificate_8130" label={<span>Certificado <span className="text-primary font-semibold">8130</span></span> as any} description="PDF o imagen. Máx. 10 MB." />
+                    <FileField name="certificate_fabricant" label={<span>Certificado del <span className="text-primary">fabricante</span></span> as any} description="PDF o imagen. Máx. 10 MB." />
+                    <FileField name="certificate_vendor" label={<span>Certificado del <span className="text-primary">vendedor</span></span> as any} description="PDF o imagen. Máx. 10 MB." />
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         </SectionCard>
 

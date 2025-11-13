@@ -19,12 +19,10 @@ export function CreateSecondaryUnitDialog() {
       <DialogTrigger asChild>
         <Button onClick={() => setOpen(true)} variant={'outline'} className="flex items-center justify-center gap-2 h-8 border-dashed">Nuevo</Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-[400px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Crear Unidad Secundaria</DialogTitle>
           <DialogDescription>
-            Configure una unidad secundaria que estará relacionada con una unidad primaria existente. 
-            La unidad secundaria representa agrupaciones o empaques (ej: cajas, paquetes, bolsas).
           </DialogDescription>
         </DialogHeader>
         <CreateSecondaryUnitForm onClose={() => setOpen(false)} />

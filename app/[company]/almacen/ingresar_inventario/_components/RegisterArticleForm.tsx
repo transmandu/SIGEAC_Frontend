@@ -46,6 +46,7 @@ export interface EditingArticle extends Article {
     quantity?: number;
     is_managed?: boolean | string | number;
   };
+  has_documentation?: boolean;
 }
 
 interface IRegisterArticleProps {

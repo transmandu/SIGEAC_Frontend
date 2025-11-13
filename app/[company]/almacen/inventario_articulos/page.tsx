@@ -80,6 +80,20 @@ const InventarioArticulosPage = () => {
 
   // Datos + filtros memo
   const currentData = useMemo<IArticleSimple[]>(() => {
+    // Función para obtener la fecha de vencimiento de un artículo
+    const getExpiryDate = (article: IArticleSimple): Date | null => {
+      const caducateDate = article.component?.caducate_date || article.consumable?.caducate_date;
+      if (!caducateDate) return null;
+      
+      const date = caducateDate instanceof Date 
+        ? caducateDate 
+        : typeof caducateDate === 'string' 
+          ? new Date(caducateDate)
+          : null;
+      
+      return date && !isNaN(date.getTime()) ? date : null;
+    };
+
     const list = flattenArticles(articles) ?? [];
 
     const q = partNumberSearch.trim().toLowerCase();
@@ -92,15 +106,33 @@ const InventarioArticulosPage = () => {
         )
       : list;
 
+    let filtered = bySearch;
+
     if (activeCategory === 'COMPONENTE' && componentCondition !== 'all') {
-      return bySearch.filter((a) => a.condition === componentCondition);
+      filtered = filtered.filter((a) => a.condition === componentCondition);
     }
 
     if (activeCategory === 'CONSUMIBLE' && consumableFilter === 'QUIMICOS') {
-      return bySearch.filter((a: any) => a.is_hazardous === true);
+      filtered = filtered.filter((a: any) => a.is_hazardous === true);
     }
 
-    return bySearch;
+    // Ordenar por fecha de vencimiento más próxima (solo para componentes y consumibles)
+    if (activeCategory === 'COMPONENTE' || activeCategory === 'CONSUMIBLE') {
+      return filtered.sort((a, b) => {
+        const dateA = getExpiryDate(a);
+        const dateB = getExpiryDate(b);
+        
+        // Los que no tienen fecha van al final
+        if (!dateA && !dateB) return 0;
+        if (!dateA) return 1;
+        if (!dateB) return -1;
+        
+        // Ordenar por fecha más próxima primero
+        return dateA.getTime() - dateB.getTime();
+      });
+    }
+
+    return filtered;
   }, [articles, partNumberSearch, activeCategory, componentCondition, consumableFilter]);
 
   const handleClearSearch = () => setPartNumberSearch('');
@@ -271,7 +303,7 @@ const InventarioArticulosPage = () => {
                     aria-label="Filtro de consumibles"
                   >
                     <TabsTrigger value="all">Todos</TabsTrigger>
-                    <TabsTrigger value="QUIMICOS">Químicos</TabsTrigger>
+                    <TabsTrigger value="QUIMICOS">Mercancia Peligrosa</TabsTrigger>
                   </TabsList>
                 </Tabs>
               )}

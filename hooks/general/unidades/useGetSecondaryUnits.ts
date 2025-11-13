@@ -3,7 +3,7 @@ import { Convertion } from "@/types";
 import { useQuery } from "@tanstack/react-query";
 
 const fetchSecondaryUnits = async (company?: string): Promise<Convertion[]> => {
-  const { data } = await axios.get(`/${company}/convertion`);
+  const { data } = await axios.get(`/${company}/conversion`);
   return data;
 };
 

@@ -121,9 +121,11 @@ export const columns: ColumnDef<IDispatch>[] = [
     cell: ({ row }) => {
       // Transform articles to match the expected interface
       const transformedArticles = row.original.articles.map(article => ({
-        ...article,
+        serial: article.serial,
+        quantity: article.quantity,
+        part_number: article.part_number,
         article_id: article.id.toString(),
-        unit: article.unit && article.unit.length > 0 ? article.unit[0].secondary_unit : undefined
+        unit: article.unit && article.unit.length > 0 ? article.unit[0].secondary_unit.value : undefined
       }));
       
       return (

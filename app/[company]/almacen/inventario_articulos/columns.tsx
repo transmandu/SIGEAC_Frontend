@@ -25,6 +25,7 @@ export interface IArticleSimple {
   batch_name: string;
   batch_id: number;
   min_quantity?: number | string; // Directamente en el artículo
+  has_documentation?: boolean;
   tool?: {
     status?: string | null;
     calibration_date?: string | null; // ISO string o "dd/MM/yyyy"
@@ -32,16 +33,12 @@ export interface IArticleSimple {
     next_calibration?: number | string | null; // o días
   };
   component?: {
-    shell_time?: {
-      caducate_date?: string | null;
-      fabrication_date?: string | null;
-    };
+    caducate_date?: string | null;
+    fabrication_date?: string | null;
   };
   consumable?: {
-    shell_time?: {
-      caducate_date?: string | Date | null;
-      fabrication_date?: string | Date | null;
-    };
+    caducate_date?: string | Date | null;
+    fabrication_date?: string | Date | null;
   };
 }
 
@@ -90,7 +87,9 @@ export const flattenArticles = (
 ): IArticleSimple[] => {
   if (!data?.batches) return [];
   return data.batches.flatMap((batch) =>
-    batch.articles.map((article) => ({
+    batch.articles.map((article) => {
+      const articleWithDoc = article as typeof article & { has_documentation?: boolean };
+      return {
       id: article.id,
       part_number: article.part_number,
       alternative_part_number: article.alternative_part_number,
@@ -112,6 +111,7 @@ export const flattenArticles = (
       is_hazardous: batch.is_hazardous ?? undefined,
       batch_id: batch.batch_id,
       min_quantity: article.min_quantity, // Directamente desde el artículo
+      has_documentation: articleWithDoc.has_documentation ?? false,
       tool: article.tool
         ? {
             status: article.tool.status,
@@ -120,9 +120,20 @@ export const flattenArticles = (
             next_calibration: article.tool.next_calibration,
           }
         : undefined,
-      component: article.component,
-      consumable: article.consumable,
-    }))
+      component: batch.category === "COMPONENTE" && ((article as any).caducate_date != null || article.component?.shell_time)
+        ? {
+            caducate_date: (article as any).caducate_date ?? article.component?.shell_time?.caducate_date ?? null,
+            fabrication_date: article.component?.shell_time?.fabrication_date ?? null,
+          }
+        : undefined,
+      consumable: batch.category === "CONSUMIBLE" && ((article as any).caducate_date != null || article.consumable?.shell_time)
+        ? {
+            caducate_date: (article as any).caducate_date ?? article.consumable?.shell_time?.caducate_date ?? null,
+            fabrication_date: article.consumable?.shell_time?.fabrication_date ?? null,
+          }
+        : undefined,
+      };
+    })
   );
 };
 
@@ -248,6 +259,35 @@ const baseCols: ColumnDef<IArticleSimple>[] = [
       </div>
     ),
   },
+  {
+    accessorKey: "has_documentation",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Documentación" />
+    ),
+    cell: ({ row }) => {
+      const hasDoc = row.original.has_documentation;
+      return (
+        <div className="flex justify-center">
+          <Badge
+            variant={hasDoc ? "default" : "outline"}
+            className="flex items-center gap-1 w-fit"
+          >
+            {hasDoc ? (
+              <>
+                <CheckCircle2 className="h-3 w-3" />
+                Sí
+              </>
+            ) : (
+              <>
+                <XCircle className="h-3 w-3" />
+                No
+              </>
+            )}
+          </Badge>
+        </div>
+      );
+    },
+  },
 ];
 
 // Columnas para COMPONENTE
@@ -259,7 +299,8 @@ export const componenteCols: ColumnDef<IArticleSimple>[] = [
       <DataTableColumnHeader column={column} title="Shelf Life" />
     ),
     cell: ({ row }) => {
-      const caducateDate = row.original.component?.shell_time?.caducate_date;
+      // Para componentes, caducate_date viene directamente en el artículo y se mapea a component.caducate_date
+      const caducateDate = row.original.component?.caducate_date;
       if (!caducateDate) {
         return (
           <div className="text-center">
@@ -267,9 +308,22 @@ export const componenteCols: ColumnDef<IArticleSimple>[] = [
           </div>
         );
       }
+      
+      // Para componentes, caducate_date es siempre string | null
       const date = new Date(caducateDate);
+      
+      // Validar que la fecha sea válida
+      if (isNaN(date.getTime())) {
+        return (
+          <div className="text-center">
+            <span className="text-muted-foreground italic">N/A</span>
+          </div>
+        );
+      }
+      
       const today = new Date();
       today.setHours(0, 0, 0, 0);
+      date.setHours(0, 0, 0, 0);
       const daysUntilExpiry = Math.ceil((date.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
       
       let variant: "default" | "secondary" | "destructive" | "outline" = "default";
@@ -323,7 +377,8 @@ export const consumibleCols: ColumnDef<IArticleSimple>[] = [
       <DataTableColumnHeader column={column} title="Shelf Life" />
     ),
     cell: ({ row }) => {
-      const caducateDate = row.original.consumable?.shell_time?.caducate_date;
+      // Para consumibles, caducate_date viene directamente en el artículo y se mapea a consumable.caducate_date
+      const caducateDate = row.original.consumable?.caducate_date;
       if (!caducateDate) {
         return (
           <div className="text-center">
@@ -331,9 +386,26 @@ export const consumibleCols: ColumnDef<IArticleSimple>[] = [
           </div>
         );
       }
-      const date = caducateDate instanceof Date ? caducateDate : new Date(caducateDate);
+      
+      // Para consumibles, caducate_date puede ser string | Date | null
+      const date = caducateDate instanceof Date 
+        ? caducateDate 
+        : typeof caducateDate === 'string' 
+          ? new Date(caducateDate)
+          : null;
+      
+      // Validar que la fecha sea válida
+      if (!date || isNaN(date.getTime())) {
+        return (
+          <div className="text-center">
+            <span className="text-muted-foreground italic">N/A</span>
+          </div>
+        );
+      }
+      
       const today = new Date();
       today.setHours(0, 0, 0, 0);
+      date.setHours(0, 0, 0, 0);
       const daysUntilExpiry = Math.ceil((date.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
       
       let variant: "default" | "secondary" | "destructive" | "outline" = "default";
@@ -364,6 +436,7 @@ export const consumibleCols: ColumnDef<IArticleSimple>[] = [
     },
   },
 ];
+
 
 // Columnas extra para HERRAMIENTA
 export const herramientaCols: ColumnDef<IArticleSimple>[] = [

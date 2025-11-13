@@ -10,7 +10,7 @@ import { es } from "date-fns/locale";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
-import { CalendarIcon, Check, FileUpIcon, Loader2, Plus, Wrench } from "lucide-react";
+import { CalendarIcon, Check, ChevronsUpDown, FileUpIcon, Loader2, Plus, Wrench } from "lucide-react";
 
 import { useConfirmIncomingArticle, useCreateArticle } from "@/actions/mantenimiento/almacen/inventario/articulos/actions";
 
@@ -40,6 +40,14 @@ import { CreateManufacturerDialog } from "@/components/dialogs/general/CreateMan
 import { CreateBatchDialog } from "@/components/dialogs/mantenimiento/almacen/CreateBatchDialog";
 import { useUpdateArticle } from "@/actions/mantenimiento/almacen/inventario/articulos/actions";
 import { useQueryClient } from "@tanstack/react-query";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
 
 /* ------------------------------- Schema ------------------------------- */
 
@@ -77,6 +85,7 @@ const formSchema = z
       .refine((f) => f.size <= fileMaxBytes, "Máx. 10 MB.")
       .optional(),
     image: z.instanceof(File).optional(),
+    has_documentation: z.boolean().optional(),
   })
   .superRefine((vals, ctx) => {
     if (vals.needs_calibration) {
@@ -277,6 +286,7 @@ export default function CreateToolForm({ initialData, isEditing }: { initialData
       needs_calibration: initialData?.tool?.needs_calibration ?? false,
       calibration_date: initialData?.tool?.calibration_date ? new Date(initialData.tool.calibration_date) : undefined,
       next_calibration: undefined,
+      has_documentation: initialData?.has_documentation ?? false,
     },
     mode: "onBlur",
   });
@@ -300,6 +310,7 @@ export default function CreateToolForm({ initialData, isEditing }: { initialData
       needs_calibration: initialData.tool?.needs_calibration ?? false,
       calibration_date: initialData.tool?.calibration_date ? new Date(initialData.tool.calibration_date) : undefined,
       next_calibration: undefined,
+      has_documentation: initialData.has_documentation ?? false,
     });
   }, [initialData, form]);
 
@@ -358,7 +369,7 @@ export default function CreateToolForm({ initialData, isEditing }: { initialData
 
     if (isEditing) {
       await updateArticle.mutateAsync({ data: { ...payload }, id: (initialData as any)?.id, company: selectedCompany.slug });
-      router.push(`/${selectedCompany.slug}/almacen/inventario_articulos`);
+      router.push(`/${selectedCompany.slug}/ingenieria/confirmar_inventario`);
     } else {
       await createArticle.mutateAsync({ company: selectedCompany.slug, data: payload });
       form.reset();
@@ -644,35 +655,71 @@ export default function CreateToolForm({ initialData, isEditing }: { initialData
                       }
                     />
                   </div>
-                  <Select
-                    onValueChange={field.onChange}
-                    value={field.value}
-                    disabled={isManufacturerLoading || busy}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue
-                          placeholder={
-                            isManufacturerLoading
-                              ? "Cargando..."
-                              : "Seleccione..."
-                          }
-                        />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {manufacturers?.map((m) => (
-                        <SelectItem key={m.id} value={m.id.toString()}>
-                          {m.name} ({m.type})
-                        </SelectItem>
-                      ))}
-                      {isManufacturerError && (
-                        <div className="p-2 text-sm text-muted-foreground">
-                          Error al cargar fabricantes.
-                        </div>
-                      )}
-                    </SelectContent>
-                  </Select>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <FormControl>
+                        <Button
+                          disabled={isManufacturerLoading || isManufacturerError || busy}
+                          variant="outline"
+                          role="combobox"
+                          className={cn(
+                            "w-full justify-between",
+                            !field.value && "text-muted-foreground"
+                          )}
+                        >
+                          {isManufacturerLoading && (
+                            <Loader2 className="size-4 animate-spin mr-2" />
+                          )}
+                          {field.value ? (
+                            <p>
+                              {
+                                manufacturers?.find((m) => `${m.id}` === field.value)
+                                  ?.name
+                              }
+                            </p>
+                          ) : (
+                            "Seleccione fabricante..."
+                          )}
+                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        </Button>
+                      </FormControl>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-[300px] p-0">
+                      <Command>
+                        <CommandInput placeholder="Buscar fabricante..." />
+                        <CommandList>
+                          <CommandEmpty className="text-xs p-2 text-center">
+                            No se encontró el fabricante.
+                          </CommandEmpty>
+                          <CommandGroup>
+                            {manufacturers?.map((manufacturer) => (
+                              <CommandItem
+                                value={`${manufacturer.name}`}
+                                key={manufacturer.id}
+                                onSelect={() => {
+                                  form.setValue(
+                                    "manufacturer_id",
+                                    manufacturer.id.toString(),
+                                    { shouldValidate: true }
+                                  );
+                                }}
+                              >
+                                <Check
+                                  className={cn(
+                                    "mr-2 h-4 w-4",
+                                    `${manufacturer.id}` === field.value
+                                      ? "opacity-100"
+                                      : "opacity-0"
+                                  )}
+                                />
+                                <p>{manufacturer.name} ({manufacturer.type})</p>
+                              </CommandItem>
+                            ))}
+                          </CommandGroup>
+                        </CommandList>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
                   <FormDescription>Marca del fabricante.</FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -803,6 +850,30 @@ export default function CreateToolForm({ initialData, isEditing }: { initialData
                     Observaciones sobre la herramienta.
                   </FormDescription>
                   <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <Separator />
+
+            <FormField
+              control={form.control}
+              name="has_documentation"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                  <FormControl>
+                    <Checkbox
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                      disabled={busy}
+                    />
+                  </FormControl>
+                  <div className="space-y-1 leading-none">
+                    <FormLabel>¿El artículo tiene documentación?</FormLabel>
+                    <FormDescription>
+                      Marque esta casilla si el artículo cuenta con documentación (certificados, imágenes, etc.).
+                    </FormDescription>
+                  </div>
                 </FormItem>
               )}
             />

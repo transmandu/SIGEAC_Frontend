@@ -91,6 +91,8 @@ export function ToolDispatchForm({ onClose }: FormProps) {
 
   const [articleSelected, setArticleSelected] = useState<Article>();
 
+  const [isDepartment, setIsDepartment] = useState(false);
+
   const { createDispatchRequest } = useCreateDispatchRequest();
 
   const { selectedStation, selectedCompany } = useCompanyStore();
@@ -158,6 +160,8 @@ export function ToolDispatchForm({ onClose }: FormProps) {
       submission_date: format(data.submission_date, "yyyy-MM-dd"),
       category: "herramienta",
       user_id: Number(user!.id),
+      isDepartment: isDepartment,
+      aircraft_id: isDepartment ? null : data.destination_place,
     };
     await createDispatchRequest.mutateAsync({
       data: formattedData,

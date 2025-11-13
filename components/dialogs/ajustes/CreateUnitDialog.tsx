@@ -23,7 +23,6 @@ export function CreateUnitDialog() {
         <DialogHeader>
           <DialogTitle>Creación de Unidad</DialogTitle>
           <DialogDescription>
-            Cree una unidad rellenando la información necesaria.
           </DialogDescription>
         </DialogHeader>
         <CreateUnitForm onClose={() => setOpen(false)} />

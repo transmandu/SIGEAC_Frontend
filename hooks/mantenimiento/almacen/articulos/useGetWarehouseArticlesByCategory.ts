@@ -8,6 +8,7 @@ export interface IWarehouseArticle {
   medition_unit?: string;
   article_count: number;
   is_hazardous?: boolean;
+  category?: string; // "COMPONENTE" | "CONSUMIBLE" | "HERRAMIENTA"
   articles: {
     id: number;
     part_number: string;
@@ -37,6 +38,7 @@ export interface IWarehouseArticle {
         fabrication_date?: string | Date | null;
       };
     };
+    caducate_date?: string | null; // Para componentes y consumibles: viene directamente en el artículo
     condition: {
       name: string;
     };
