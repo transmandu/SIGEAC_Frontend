@@ -55,10 +55,10 @@ const FormSchema = z
       .refine((val) => !isNaN(val.getTime()), { message: "Fecha inválida" }),
     start_time: z.string(),
     end_time: z.string(),
-    place: z.string(),
+    place: z.string().max(500, "Máximo 500 caracteres"),
     topics: z.string(),
     objetive: z.string(),
-    description: z.string(),
+    description: z.string().max(2000, "Máximo 2000 caracteres"),
     authorized_by: z.string(),
     planned_by: z.string(),
     executed_by: z.string().optional(),
@@ -439,7 +439,7 @@ export default function CreateSMSActivityForm({
               <FormItem className="w-full">
                 <FormLabel>Lugar de Actividad</FormLabel>
                 <FormControl>
-                  <Input {...field} maxLength={20} />
+                  <Input {...field} maxLength={500} />
                 </FormControl>
                 <FormMessage className="text-xs" />
               </FormItem>
@@ -514,7 +514,7 @@ export default function CreateSMSActivityForm({
             <FormItem className="w-full">
               <FormLabel>Observaciones</FormLabel>
               <FormControl>
-                <Textarea {...field} maxLength={200} />
+                <Textarea {...field} maxLength={2000} />
               </FormControl>
               <FormMessage className="text-xs" />
             </FormItem>

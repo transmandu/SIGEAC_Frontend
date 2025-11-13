@@ -43,61 +43,36 @@ import { CalendarIcon, Loader2, Plus, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
-// El esquema de Zod se mantiene exactamente igual.
 const FormSchema = z.object({
   danger: z
     .string()
-    .min(3, {
-      message: "El peligro debe tener al menos 3 caracteres",
-    })
-    .max(245, {
-      message: "El peligro no debe exceder los 245 caracteres",
-    }),
+    .min(3, { message: "El peligro debe tener al menos 3 caracteres" })
+    .max(245, { message: "El peligro no debe exceder los 245 caracteres" }),
   danger_area: z.string(),
   risk_management_start_date: z
     .date()
     .refine((val) => !isNaN(val.getTime()), { message: "Invalid Date" }),
   current_defenses: z
     .string()
-    .min(3, {
-      message: "Las defensas actuales deben tener al menos 3 caracteres",
-    })
-    .max(245, {
-      message: "Las defensas actuales no deben exceder los 245 caracteres",
-    }),
+    .min(3, { message: "Las defensas actuales deben tener al menos 3 caracteres" })
+    .max(245, { message: "Las defensas actuales no deben exceder los 245 caracteres" }),
   description: z
     .string()
-    .min(3, {
-      message: "La descripcion debe tener al menos 3 caracteres",
-    })
-    .max(245, {
-      message: "La descripcion deben exceder los 245 caracteres",
-    }),
+    .min(3, { message: "La descripcion debe tener al menos 3 caracteres" })
+    .max(245, { message: "La descripcion no debe exceder los 245 caracteres" }),
   possible_consequences: z
     .string()
-    .min(3, {
-      message: "Las posibles consecuencias deben tener almenos 3 caracteres",
-    })
-    .max(245, {
-      message: "Las posibles consecuencias no deben exceder los 245 caracteres",
-    }),
+    .min(3, { message: "Las posibles consecuencias deben tener al menos 3 caracteres" })
+    .max(245, { message: "Las posibles consecuencias no deben exceder los 245 caracteres" }),
   consequence_to_evaluate: z
     .string()
-    .min(3, {
-      message: "La consecuencia a evaluar debe tener al menos 3 caracteres",
-    })
-    .max(245, {
-      message: "La consecuencia a evaluar no debe exceder los 245 caracteres",
-    }),
+    .min(3, { message: "La consecuencia a evaluar debe tener al menos 3 caracteres" })
+    .max(245, { message: "La consecuencia a evaluar no debe exceder los 245 caracteres" }),
   danger_type: z.string(),
   root_cause_analysis: z
     .string()
-    .min(3, {
-      message: "El analisis causa raiz al menos 3 caracteres",
-    })
-    .max(245, {
-      message: "El analisis causa raiz no debe exceder los 245 caracteres",
-    }),
+    .min(3, { message: "El analisis causa raiz debe tener al menos 3 caracteres" })
+    .max(245, { message: "El analisis causa raiz no debe exceder los 245 caracteres" }),
   information_source_id: z.string(),
 });
 
@@ -105,14 +80,12 @@ type FormSchemaType = z.infer<typeof FormSchema>;
 
 interface FormProps {
   id: number | string;
-  onClose: () => void;
   initialData?: DangerIdentification;
   isEditing?: boolean;
   reportType: string;
 }
 
 export default function CreateDangerIdentificationForm({
-  onClose,
   id,
   isEditing,
   initialData,
@@ -149,7 +122,7 @@ export default function CreateDangerIdentificationForm({
     resolver: zodResolver(FormSchema),
     defaultValues: {
       danger: initialData?.danger || "",
-      information_source_id: initialData?.information_source.id.toString(),
+      information_source_id: initialData?.information_source?.id.toString() || "",
       current_defenses: initialData?.current_defenses || "",
       risk_management_start_date: initialData?.risk_management_start_date
         ? addDays(new Date(initialData.risk_management_start_date), 1)
@@ -179,7 +152,7 @@ export default function CreateDangerIdentificationForm({
     }
   }, [initialData]);
 
-  // --- MANEJADORES PARA DEFENSAS ACTUALES ---
+  // --- DEFENSAS ---
   const addDefense = () => {
     if (newDefense.trim()) {
       const updated = [...defenses, newDefense.trim()];
@@ -200,7 +173,7 @@ export default function CreateDangerIdentificationForm({
     }
   };
 
-  // --- MANEJADORES PARA CONSECUENCIAS ---
+  // --- CONSECUENCIAS ---
   const addConsequence = () => {
     if (newConsequence.trim()) {
       const updated = [...consequences, newConsequence.trim()];
@@ -221,7 +194,7 @@ export default function CreateDangerIdentificationForm({
     }
   };
 
-  // --- MANEJADORES PARA ANÁLISIS ---
+  // --- ANÁLISIS ---
   const addAnalysis = () => {
     if (newAnalysis.trim()) {
       const updated = [...analyses, newAnalysis.trim()];
@@ -242,42 +215,50 @@ export default function CreateDangerIdentificationForm({
     }
   };
 
-  const onSubmit = async (data: FormSchemaType) => {
+  // --- ENVÍO ---
+const onSubmit = async (data: FormSchemaType) => {
+  try {
     if (initialData && isEditing) {
-      const values = {
+      // Actualización
+      await updateDangerIdentification.mutateAsync({
         company: selectedCompany!.slug,
         id: initialData.id.toString(),
-        data: {
-          ...data,
-        },
-      };
-      await updateDangerIdentification.mutateAsync(values);
+        data,
+      });
     } else {
-      console.log(data);
+      // Creación
       const response = await createDangerIdentification.mutateAsync({
         company: selectedCompany!.slug,
-        id,
+        id, // id del reporte padre
         reportType,
         data,
       });
+
+      const newId = response.danger_identification_id;
+
+      if (!newId) {
+        throw new Error("No se recibió el id de la identificación creada");
+      }
+
+      // Redirige a la página de detalles de la identificación recién creada
       router.push(
         `/${selectedCompany?.slug}/sms/gestion_reportes/peligros_identificados/${response.danger_identification_id}`
       );
     }
-    onClose();
-  };
+  } catch (error) {
+    console.error("Error al enviar el formulario:", error);
+  }
+};
+
 
   return (
     <Form {...form}>
-      <form
-        onSubmit={form.handleSubmit(onSubmit)}
-        className="flex flex-col space-y-4"
-      >
+      <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col space-y-4">
         <FormLabel className="text-lg text-center m-2">
           Identificación de Peligro
         </FormLabel>
 
-        {/* --- CAMPOS ORIGINALES --- */}
+        {/* --- CAMPOS PRINCIPALES --- */}
         <div className="flex gap-2 justify-center items-center">
           <FormField
             control={form.control}
@@ -297,7 +278,7 @@ export default function CreateDangerIdentificationForm({
             name="risk_management_start_date"
             render={({ field }) => (
               <FormItem className="flex flex-col mt-2.5 w-full">
-                <FormLabel>Fecha de Inicio de Gestion</FormLabel>
+                <FormLabel>Fecha de Inicio de Gestión</FormLabel>
                 <Popover>
                   <PopoverTrigger asChild>
                     <FormControl>
@@ -308,11 +289,9 @@ export default function CreateDangerIdentificationForm({
                           !field.value && "text-muted-foreground"
                         )}
                       >
-                        {field.value ? (
-                          format(field.value, "PPP", { locale: es })
-                        ) : (
-                          <span>Seleccione una fecha</span>
-                        )}
+                        {field.value
+                          ? format(field.value, "PPP", { locale: es })
+                          : "Seleccione una fecha"}
                         <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                       </Button>
                     </FormControl>
@@ -335,30 +314,32 @@ export default function CreateDangerIdentificationForm({
           />
         </div>
 
+        {/* --- DESCRIPCION --- */}
         <FormField
           control={form.control}
           name="description"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Descripcion de identificacion de peligro</FormLabel>
+              <FormLabel>Descripcion de Identificación de Peligro</FormLabel>
               <FormControl>
-                <Textarea placeholder="Breve descripcion " {...field} />
+                <Textarea placeholder="Breve descripción" {...field} />
               </FormControl>
               <FormMessage className="text-xs" />
             </FormItem>
           )}
         />
 
+        {/* --- ÁREA --- */}
         <FormField
           control={form.control}
           name="danger_area"
           render={({ field }) => (
             <FormItem className="w-full">
-              <FormLabel>Area de identificación</FormLabel>
+              <FormLabel>Área de identificación</FormLabel>
               <Select onValueChange={field.onChange} defaultValue={field.value}>
                 <FormControl>
                   <SelectTrigger>
-                    <SelectValue placeholder="Seleccionar Area" />
+                    <SelectValue placeholder="Seleccionar Área" />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
@@ -374,7 +355,7 @@ export default function CreateDangerIdentificationForm({
           )}
         />
 
-        {/* --- CAMPO "DEFENSAS ACTUALES" ADAPTADO --- */}
+        {/* --- DEFENSAS --- */}
         <FormItem>
           <FormLabel>Defensas Actuales</FormLabel>
           <div className="space-y-2">
@@ -389,7 +370,6 @@ export default function CreateDangerIdentificationForm({
                 <Plus className="h-4 w-4" />
               </Button>
             </div>
-            {/* ////// CAMBIO AQUÍ ////// */}
             <div className="flex flex-wrap gap-2 pt-2">
               {defenses.map((item, index) => (
                 <div
@@ -423,7 +403,7 @@ export default function CreateDangerIdentificationForm({
           )}
         />
 
-        {/* --- CAMPO "CONSECUENCIAS" ADAPTADO --- */}
+        {/* --- CONSECUENCIAS --- */}
         <FormItem>
           <FormLabel>Consecuencias</FormLabel>
           <div className="space-y-2">
@@ -438,7 +418,6 @@ export default function CreateDangerIdentificationForm({
                 <Plus className="h-4 w-4" />
               </Button>
             </div>
-            {/* ////// CAMBIO AQUÍ ////// */}
             <div className="flex flex-wrap gap-2 pt-2">
               {consequences.map((item, index) => (
                 <div
@@ -460,7 +439,6 @@ export default function CreateDangerIdentificationForm({
             </div>
           </div>
         </FormItem>
-        
         <FormField
           control={form.control}
           name="possible_consequences"
@@ -473,7 +451,7 @@ export default function CreateDangerIdentificationForm({
           )}
         />
 
-        {/* --- CAMPO ORIGINAL "CONSECUENCIA A EVALUAR" --- */}
+        {/* --- CONSECUENCIA A EVALUAR --- */}
         <FormField
           control={form.control}
           name="consequence_to_evaluate"
@@ -487,13 +465,11 @@ export default function CreateDangerIdentificationForm({
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  {consequences
-                    .filter((c) => c)
-                    .map((consequence, index) => (
-                      <SelectItem key={index} value={consequence}>
-                        {consequence}
-                      </SelectItem>
-                    ))}
+                  {consequences.filter(Boolean).map((c, idx) => (
+                    <SelectItem key={idx} value={c}>
+                      {c}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
               <FormMessage />
@@ -501,7 +477,7 @@ export default function CreateDangerIdentificationForm({
           )}
         />
 
-        {/* --- OTROS CAMPOS ORIGINALES --- */}
+        {/* --- FUENTE E IDENTIFICACIÓN --- */}
         <div className="flex gap-2 justify-center items-center">
           <FormField
             control={form.control}
@@ -527,10 +503,7 @@ export default function CreateDangerIdentificationForm({
                     </FormControl>
                     <SelectContent>
                       {informationSources?.map((source) => (
-                        <SelectItem
-                          key={source.id}
-                          value={source.id.toString()}
-                        >
+                        <SelectItem key={source.id} value={source.id.toString()}>
                           {source.name}
                         </SelectItem>
                       ))}
@@ -541,16 +514,14 @@ export default function CreateDangerIdentificationForm({
               </FormItem>
             )}
           />
+
           <FormField
             control={form.control}
             name="danger_type"
             render={({ field }) => (
               <FormItem className="w-full">
                 <FormLabel>Tipo de peligro</FormLabel>
-                <Select
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                >
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Seleccionar tipo de peligro" />
@@ -570,9 +541,9 @@ export default function CreateDangerIdentificationForm({
           />
         </div>
 
-        {/* --- CAMPO "ANÁLISIS CAUSA RAÍZ" ADAPTADO --- */}
+        {/* --- ANALISIS CAUSA RAÍZ --- */}
         <FormItem>
-          <FormLabel>Analisis Causa Raiz</FormLabel>
+          <FormLabel>Análisis Causa Raíz</FormLabel>
           <div className="space-y-2">
             <div className="flex gap-2">
               <Input
@@ -585,7 +556,6 @@ export default function CreateDangerIdentificationForm({
                 <Plus className="h-4 w-4" />
               </Button>
             </div>
-            {/* ////// CAMBIO AQUÍ ////// */}
             <div className="flex flex-wrap gap-2 pt-2">
               {analyses.map((item, index) => (
                 <div
@@ -619,13 +589,15 @@ export default function CreateDangerIdentificationForm({
           )}
         />
 
-        {/* --- FOOTER DEL FORMULARIO --- */}
+        {/* --- FOOTER --- */}
         <div className="flex justify-between items-center gap-x-4 pt-4">
           <Separator className="flex-1" />
           <p className="text-muted-foreground text-sm">SIGEAC</p>
           <Separator className="flex-1" />
         </div>
-        <Button>Enviar</Button>
+
+        {/* --- BOTÓN ENVIAR --- */}
+        <Button type="submit">Enviar</Button>
       </form>
     </Form>
   );
