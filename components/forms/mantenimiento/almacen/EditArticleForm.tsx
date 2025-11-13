@@ -142,6 +142,7 @@ const EditArticleForm = ({ initialData, onSuccess }: EditArticleFormProps) => {
   const {
     data: manufacturers,
     isLoading: isManufacturerLoading,
+    isError: isManufacturerError,
   } = useGetManufacturers(selectedCompany?.slug)
 
   const {
@@ -327,28 +328,71 @@ const EditArticleForm = ({ initialData, onSuccess }: EditArticleFormProps) => {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Fabricante</FormLabel>
-                  <Select
-                    disabled={isManufacturerLoading}
-                    onValueChange={field.onChange}
-                    value={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Seleccione..." />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {manufacturers &&
-                        manufacturers.map((manufacturer) => (
-                          <SelectItem
-                            key={manufacturer.id}
-                            value={manufacturer.id.toString()}
-                          >
-                            {manufacturer.name}
-                          </SelectItem>
-                        ))}
-                    </SelectContent>
-                  </Select>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <FormControl>
+                        <Button
+                          disabled={isManufacturerLoading || isManufacturerError}
+                          variant="outline"
+                          role="combobox"
+                          className={cn(
+                            "w-full justify-between",
+                            !field.value && "text-muted-foreground"
+                          )}
+                        >
+                          {isManufacturerLoading && (
+                            <Loader2 className="size-4 animate-spin mr-2" />
+                          )}
+                          {field.value ? (
+                            <p>
+                              {
+                                manufacturers?.find((m) => `${m.id}` === field.value)
+                                  ?.name
+                              }
+                            </p>
+                          ) : (
+                            "Seleccione fabricante..."
+                          )}
+                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        </Button>
+                      </FormControl>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-[300px] p-0">
+                      <Command>
+                        <CommandInput placeholder="Buscar fabricante..." />
+                        <CommandList>
+                          <CommandEmpty className="text-xs p-2 text-center">
+                            No se encontró el fabricante.
+                          </CommandEmpty>
+                          <CommandGroup>
+                            {manufacturers?.map((manufacturer) => (
+                              <CommandItem
+                                value={`${manufacturer.name}`}
+                                key={manufacturer.id}
+                                onSelect={() => {
+                                  form.setValue(
+                                    "manufacturer_id",
+                                    manufacturer.id.toString(),
+                                    { shouldValidate: true }
+                                  );
+                                }}
+                              >
+                                <Check
+                                  className={cn(
+                                    "mr-2 h-4 w-4",
+                                    `${manufacturer.id}` === field.value
+                                      ? "opacity-100"
+                                      : "opacity-0"
+                                  )}
+                                />
+                                <p>{manufacturer.name}</p>
+                              </CommandItem>
+                            ))}
+                          </CommandGroup>
+                        </CommandList>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
                   <FormMessage />
                 </FormItem>
               )}

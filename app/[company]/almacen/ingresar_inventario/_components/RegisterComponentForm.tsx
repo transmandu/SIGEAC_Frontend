@@ -282,6 +282,9 @@ export default function CreateComponentForm({
     mode: "onBlur",
   });
 
+  // Watch para el campo de documentación
+  const hasDocumentation = form.watch("has_documentation");
+
   // Reset on prop change
   useEffect(() => {
     if (!initialData) return;
@@ -439,7 +442,7 @@ export default function CreateComponentForm({
       });
       // Esperar un momento para que las queries se invaliden antes de redirigir
       await new Promise(resolve => setTimeout(resolve, 100));
-      router.push(`/${selectedCompany.slug}/almacen/inventario_articulos`);
+      router.push(`/${selectedCompany.slug}/ingenieria/confirmar_inventario`);
       router.refresh(); // Forzar refresco de la página
     } else {
       await createArticle.mutateAsync({
@@ -902,23 +905,75 @@ export default function CreateComponentForm({
                       }
                     />
                   </div>
-                  <Select onValueChange={field.onChange} value={field.value} disabled={isManufacturerLoading || busy}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder={isManufacturerLoading ? "Cargando..." : "Seleccione..."} />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {manufacturers?.filter((m) => m.type).map((m) => (
-                        <SelectItem key={m.id} value={m.id.toString()}>
-                          {m.name} ({m.type})
-                        </SelectItem>
-                      ))}
-                      {isManufacturerError && (
-                        <div className="p-2 text-sm text-muted-foreground">Error al cargar fabricantes.</div>
-                      )}
-                    </SelectContent>
-                  </Select>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <FormControl>
+                        <Button
+                          disabled={isManufacturerLoading || isManufacturerError || busy}
+                          variant="outline"
+                          role="combobox"
+                          className={cn(
+                            "w-full justify-between",
+                            !field.value && "text-muted-foreground"
+                          )}
+                        >
+                          {isManufacturerLoading && (
+                            <Loader2 className="size-4 animate-spin mr-2" />
+                          )}
+                          {field.value ? (
+                            <p>
+                              {
+                                manufacturers
+                                  ?.filter((m) => m.type)
+                                  .find((m) => `${m.id}` === field.value)
+                                  ?.name
+                              }
+                            </p>
+                          ) : (
+                            "Seleccione fabricante..."
+                          )}
+                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        </Button>
+                      </FormControl>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-[300px] p-0">
+                      <Command>
+                        <CommandInput placeholder="Buscar fabricante..." />
+                        <CommandList>
+                          <CommandEmpty className="text-xs p-2 text-center">
+                            No se encontró el fabricante.
+                          </CommandEmpty>
+                          <CommandGroup>
+                            {manufacturers
+                              ?.filter((m) => m.type)
+                              .map((manufacturer) => (
+                                <CommandItem
+                                  value={`${manufacturer.name}`}
+                                  key={manufacturer.id}
+                                  onSelect={() => {
+                                    form.setValue(
+                                      "manufacturer_id",
+                                      manufacturer.id.toString(),
+                                      { shouldValidate: true }
+                                    );
+                                  }}
+                                >
+                                  <Check
+                                    className={cn(
+                                      "mr-2 h-4 w-4",
+                                      `${manufacturer.id}` === field.value
+                                        ? "opacity-100"
+                                        : "opacity-0"
+                                    )}
+                                  />
+                                  <p>{manufacturer.name} ({manufacturer.type})</p>
+                                </CommandItem>
+                              ))}
+                          </CommandGroup>
+                        </CommandList>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
                   <FormDescription>Marca del artículo.</FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -1009,17 +1064,21 @@ export default function CreateComponentForm({
               )}
             />
 
-            <Separator />
+            {hasDocumentation && (
+              <>
+                <Separator />
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FileField name="image" label="Imagen del artículo" accept="image/*" description="Imagen descriptiva." />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FileField name="image" label="Imagen del artículo" accept="image/*" description="Imagen descriptiva." />
 
-              <div className="space-y-4">
-                <FileField name="certificate_8130" label={<span>Certificado <span className="text-primary font-semibold">8130</span></span> as any} description="PDF o imagen. Máx. 10 MB." />
-                <FileField name="certificate_fabricant" label={<span>Certificado del <span className="text-primary">fabricante</span></span> as any} description="PDF o imagen. Máx. 10 MB." />
-                <FileField name="certificate_vendor" label={<span>Certificado del <span className="text-primary">vendedor</span></span> as any} description="PDF o imagen. Máx. 10 MB." />
-              </div>
-            </div>
+                  <div className="space-y-4">
+                    <FileField name="certificate_8130" label={<span>Certificado <span className="text-primary font-semibold">8130</span></span> as any} description="PDF o imagen. Máx. 10 MB." />
+                    <FileField name="certificate_fabricant" label={<span>Certificado del <span className="text-primary">fabricante</span></span> as any} description="PDF o imagen. Máx. 10 MB." />
+                    <FileField name="certificate_vendor" label={<span>Certificado del <span className="text-primary">vendedor</span></span> as any} description="PDF o imagen. Máx. 10 MB." />
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         </SectionCard>
 
