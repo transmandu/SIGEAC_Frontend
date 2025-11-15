@@ -416,50 +416,16 @@ export default function CreateToolForm({ initialData, isEditing }: { initialData
 
   const normalizeUpper = (s?: string) => s?.trim().toUpperCase() ?? "";
 
-  // Helper function to rename certificate files with part number
-  const renameCertificateFile = (file: File | undefined, certificateType: string, partNumber: string): File | undefined => {
-    if (!file) return undefined;
-    
-    const fileExtension = file.name.split('.').pop();
-    const newFileName = `certificate_${certificateType}_${partNumber}.${fileExtension}`;
-    
-    // Create a new File object with the new name
-    return new File([file], newFileName, { type: file.type });
-  };
-
   async function onSubmit(values: FormValues) {
     if (!selectedCompany?.slug) return;
-
-    // Get normalized part number for file naming
-    const normalizedPartNumber = normalizeUpper(values.part_number);
-
-    // Rename certificate files with part number to avoid conflicts
-    const renamedCertificate8130 = renameCertificateFile(
-      values.certificate_8130,
-      '8130',
-      normalizedPartNumber
-    );
-    const renamedCertificateVendor = renameCertificateFile(
-      values.certificate_vendor,
-      'vendor',
-      normalizedPartNumber
-    );
-    const renamedCertificateFabricant = renameCertificateFile(
-      values.certificate_fabricant,
-      'fabricant',
-      normalizedPartNumber
-    );
 
     const payload: any = {
       ...values,
       status: "CHECKING",
-      part_number: normalizedPartNumber,
+      part_number: normalizeUpper(values.part_number),
       alternative_part_number: values.alternative_part_number?.map((v) => normalizeUpper(v)) ?? [],
       calibration_date: values.calibration_date ? format(values.calibration_date, "yyyy-MM-dd") : undefined,
       batch_name: enableBatchNameEdit ? values.batch_name : undefined,
-      certificate_8130: renamedCertificate8130,
-      certificate_vendor: renamedCertificateVendor,
-      certificate_fabricant: renamedCertificateFabricant,
       // next_calibration se envía como número si existe
     };
 

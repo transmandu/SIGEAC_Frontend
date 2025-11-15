@@ -708,17 +708,6 @@ export default function CreateComponentForm({
     return [...foundBatches, ...otherBatches];
   }, [batches, searchResults]);
 
-  // Helper function to rename certificate files with part number
-  const renameCertificateFile = (file: File | undefined, certificateType: string, partNumber: string): File | undefined => {
-    if (!file) return undefined;
-    
-    const fileExtension = file.name.split('.').pop();
-    const newFileName = `certificate_${certificateType}_${partNumber}.${fileExtension}`;
-    
-    // Create a new File object with the new name
-    return new File([file], newFileName, { type: file.type });
-  };
-
   async function onSubmit(values: FormValues) {
     if (!selectedCompany?.slug) return;
 
@@ -741,26 +730,6 @@ export default function CreateComponentForm({
           : values.serial
         : undefined;
 
-    // Get normalized part number for file naming
-    const normalizedPartNumber = normalizeUpper(values.part_number);
-
-    // Rename certificate files with part number to avoid conflicts
-    const renamedCertificate8130 = renameCertificateFile(
-      values.certificate_8130,
-      '8130',
-      normalizedPartNumber
-    );
-    const renamedCertificateVendor = renameCertificateFile(
-      values.certificate_vendor,
-      'vendor',
-      normalizedPartNumber
-    );
-    const renamedCertificateFabricant = renameCertificateFile(
-      values.certificate_fabricant,
-      'fabricant',
-      normalizedPartNumber
-    );
-
     const formattedValues: Omit<FormValues, "caducate_date" | "serial"> & {
       caducate_date?: string;
       fabrication_date?: string;
@@ -776,7 +745,7 @@ export default function CreateComponentForm({
       ...valuesWithoutCaducateDate,
       status: "CHECKING",
       article_type: "componente",
-      part_number: normalizedPartNumber,
+      part_number: normalizeUpper(values.part_number),
       alternative_part_number:
         values.alternative_part_number?.map((v) => normalizeUpper(v)) ?? [],
       serial: serialValue,
@@ -789,9 +758,6 @@ export default function CreateComponentForm({
         values.calendar_date && format(values.calendar_date, "yyyy-MM-dd"),
       batch_name: enableBatchNameEdit ? values.batch_name : undefined,
       batch_id: values.batch_id, // Incluir explícitamente el batch_id del formulario
-      certificate_8130: renamedCertificate8130,
-      certificate_vendor: renamedCertificateVendor,
-      certificate_fabricant: renamedCertificateFabricant,
     };
 
     if (isEditing && initialData) {
