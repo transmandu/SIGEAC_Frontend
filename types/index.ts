@@ -1062,22 +1062,34 @@ export type CourseStats = {
   total_courses: number;
 };
 
+export type Answer = {
+  id: string;
+  question: Question;
+  option: Option;
+  survey: Survey;
+  text: string;
+}
+
 export type Option = {
   id: string;
-  option: string;
+  text: string;
+  is_correct: boolean | null; //NULL MEANS IS NOT SURVEY OPTION OF TYPE QUIZ
 };
 
 export type Question = {
   id: string;
-  question: string;
-  type: string;
+  text: string;
+  type: 'SINGLE' | 'MULTIPLE' | 'OPEN';
   is_required: boolean;
   options?: Option[];
 };
 
-export type Form = {
+export type Survey = {
   id: string;
-  name: string;
+  title: string;
+  survey_number: string;
+  type: "QUIZ" | "SURVEY";
+  is_active: boolean;
   description: string;
   registered_by: string;
   updated_by: string;
