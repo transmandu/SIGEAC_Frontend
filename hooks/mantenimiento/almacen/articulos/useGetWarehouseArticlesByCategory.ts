@@ -45,6 +45,8 @@ export interface IWarehouseArticle {
     status: string; // "stored" | "dispatch" | etc.
     article_type?: string; // "componente" | "consumible" | "herramienta"
     cost: number | string;
+    has_documentation?: boolean;
+    certificates?: string[];
   }[];
 }
 
