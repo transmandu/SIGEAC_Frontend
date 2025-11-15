@@ -240,20 +240,17 @@ function DatePickerField({
   setValue: (d?: Date | null) => void;
   description?: string;
   busy?: boolean;
-  /** "both" | "back" | "forward" | "none" */
   shortcuts?: "both" | "back" | "forward" | "none";
-  /** Año máximo permitido. Si no se especifica, será el año actual + 20 */
   maxYear?: number;
-  /** Mostrar botón "No aplica" */
   showNotApplicable?: boolean;
-  /** Campo obligatorio */
   required?: boolean;
-  /** Mensaje de error */
   error?: string;
 }) {
   const [touched, setTouched] = useState(false);
+  const [inputValue, setInputValue] = useState("");
+  const [isInputMode, setIsInputMode] = useState(false);
+
   // Solo mostrar error si el campo fue tocado/interactuado o si hay un error explícito
-  // No mostrar error inmediatamente al cargar la página
   const isInvalid = required && value === undefined && touched;
   const displayError =
     error ||
@@ -261,92 +258,268 @@ function DatePickerField({
       ? "Este campo es obligatorio. Debe seleccionar una fecha o marcar 'No aplica'."
       : undefined);
 
+  // Efecto para sincronizar el input cuando cambia el valor desde fuera
+  useEffect(() => {
+    if (value && value instanceof Date) {
+      setInputValue(format(value, "dd/MM/yyyy"));
+    } else if (value === null) {
+      setInputValue("");
+    } else if (value === undefined) {
+      setInputValue("");
+    }
+  }, [value]);
+
+  // Función para parsear la fecha desde el input solo cuando el usuario termina de escribir
+  const parseDateFromInput = (dateString: string): Date | null => {
+    if (!dateString.trim()) return null;
+
+    // Intentar diferentes formatos de fecha
+    const formats = [
+      /^\d{2}\/\d{2}\/\d{4}$/, // dd/MM/yyyy
+      /^\d{2}-\d{2}-\d{4}$/, // dd-MM-yyyy
+      /^\d{4}-\d{2}-\d{2}$/, // yyyy-MM-dd
+      /^\d{2}\/\d{2}\/\d{2}$/, // dd/MM/yy
+    ];
+
+    let parsedDate: Date | null = null;
+
+    for (const format of formats) {
+      if (format.test(dateString)) {
+        // Para formato dd/MM/yyyy o dd-MM-yyyy
+        if (/^\d{2}[\/-]\d{2}[\/-]\d{4}$/.test(dateString)) {
+          const [day, month, year] = dateString.split(/[\/-]/);
+          parsedDate = new Date(
+            parseInt(year),
+            parseInt(month) - 1,
+            parseInt(day)
+          );
+        }
+        // Para formato yyyy-MM-dd
+        else if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
+          const [year, month, day] = dateString.split("-");
+          parsedDate = new Date(
+            parseInt(year),
+            parseInt(month) - 1,
+            parseInt(day)
+          );
+        }
+        // Para formato dd/MM/yy (año corto)
+        else if (/^\d{2}\/\d{2}\/\d{2}$/.test(dateString)) {
+          const [day, month, year] = dateString.split("/");
+          const fullYear = 2000 + parseInt(year); // Asumir siglo 21
+          parsedDate = new Date(fullYear, parseInt(month) - 1, parseInt(day));
+        }
+
+        if (parsedDate && !isNaN(parsedDate.getTime())) {
+          break;
+        }
+      }
+    }
+
+    // Si no coincide con ningún formato conocido, intentar parsear directamente
+    if (!parsedDate || isNaN(parsedDate.getTime())) {
+      parsedDate = new Date(dateString);
+      if (isNaN(parsedDate.getTime())) {
+        return null;
+      }
+    }
+
+    return parsedDate;
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue = e.target.value;
+    setInputValue(newValue);
+    // NO establecer el valor aquí, solo cuando el usuario termine de escribir
+  };
+
+  const handleInputBlur = () => {
+    setTouched(true);
+
+    if (!inputValue.trim()) {
+      setValue(undefined);
+      return;
+    }
+
+    const parsedDate = parseDateFromInput(inputValue);
+    if (parsedDate) {
+      setValue(parsedDate);
+      // Formatear la fecha correctamente después de validar
+      setInputValue(format(parsedDate, "dd/MM/yyyy"));
+    } else {
+      // Si no es una fecha válida, mantener el input pero mostrar error
+      // El usuario puede seguir editando
+      console.log("Fecha inválida, manteniendo input para edición");
+    }
+  };
+
+  const handleInputKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    // Permitir que el usuario presione Enter para confirmar
+    if (e.key === "Enter") {
+      handleInputBlur();
+    }
+  };
+
+  const handleCalendarSelect = (date: Date | undefined) => {
+    setTouched(true);
+    setValue(date);
+    if (date) {
+      setInputValue(format(date, "dd/MM/yyyy"));
+    }
+    setIsInputMode(false);
+  };
+
+  const handleNotApplicableChange = (checked: boolean) => {
+    setTouched(true);
+    if (checked === true) {
+      setValue(null);
+      setInputValue("");
+    } else {
+      setValue(undefined);
+      setInputValue("");
+    }
+  };
+
+  const clearInput = () => {
+    setInputValue("");
+    setValue(undefined);
+    setTouched(true);
+  };
+
   return (
     <FormItem className="flex flex-col p-0 mt-2.5 w-full">
       <FormLabel>
         {label}
         {required && <span className="text-destructive ml-1">*</span>}
       </FormLabel>
-      <div className="flex gap-2">
-        <Popover>
-          <PopoverTrigger asChild>
-            <FormControl>
-              <Button
-                variant="outline"
-                disabled={busy || (showNotApplicable && value === null)}
-                onClick={() => setTouched(true)}
-                className={cn(
-                  "flex-1 pl-3 text-left font-normal",
-                  (!value || value === null) && "text-muted-foreground",
-                  isInvalid && "border-destructive"
-                )}
-              >
-                {value === null ? (
-                  <span>N/A</span>
-                ) : value ? (
-                  format(value, "PPP", { locale: es })
-                ) : (
-                  <span>Seleccione una fecha</span>
-                )}
-                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-              </Button>
-            </FormControl>
-          </PopoverTrigger>
-          <PopoverContent
-            className="w-auto p-0 z-[100]"
-            align="start"
-            side="bottom"
-            sideOffset={8}
-            avoidCollisions={true}
+
+      <div className="flex flex-col gap-2">
+        {/* Selector de modo: Input o Calendar */}
+        <div className="flex gap-2 mb-2">
+          <Button
+            type="button"
+            variant={isInputMode ? "default" : "outline"}
+            size="sm"
+            onClick={() => setIsInputMode(true)}
+            disabled={busy || (showNotApplicable && value === null)}
+            className="flex-1"
           >
-            <Calendar
-              locale={es}
-              mode="single"
-              selected={value || undefined}
-              onSelect={(date) => {
-                setTouched(true);
-                setValue(date);
-              }}
-              initialFocus
-              defaultMonth={value || new Date()}
-              captionLayout="dropdown-buttons"
-              fromYear={1900}
-              toYear={maxYear ?? new Date().getFullYear() + 20}
-              classNames={{
-                caption_label: "hidden",
-                caption: "flex justify-center pt-1 relative items-center mb-2",
-                caption_dropdowns: "flex justify-center gap-2 items-center",
-                nav: "hidden",
-                nav_button: "hidden",
-                nav_button_previous: "hidden",
-                nav_button_next: "hidden",
-              }}
-              components={{
-                Dropdown: (props) => (
-                  <select
-                    {...props}
-                    className="h-9 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-md px-3 py-1 text-sm font-medium text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 transition-colors cursor-pointer"
-                  >
-                    {props.children}
-                  </select>
-                ),
-              }}
+            Ingresar fecha
+          </Button>
+          <Button
+            type="button"
+            variant={!isInputMode ? "default" : "outline"}
+            size="sm"
+            onClick={() => setIsInputMode(false)}
+            disabled={busy || (showNotApplicable && value === null)}
+            className="flex-1"
+          >
+            Seleccionar fecha
+          </Button>
+        </div>
+
+        {/* Modo Input */}
+        {isInputMode ? (
+          <div className="flex gap-2">
+            <Input
+              type="text"
+              placeholder="Formato: dd/MM/yyyy"
+              value={inputValue}
+              onChange={handleInputChange}
+              onBlur={handleInputBlur}
+              onKeyPress={handleInputKeyPress}
+              disabled={busy || (showNotApplicable && value === null)}
+              className={cn("flex-1", isInvalid && "border-destructive")}
             />
-          </PopoverContent>
-        </Popover>
+            {inputValue && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={clearInput}
+                disabled={busy}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            )}
+          </div>
+        ) : (
+          /* Modo Calendar */
+          <div className="flex gap-2">
+            <Popover>
+              <PopoverTrigger asChild>
+                <FormControl>
+                  <Button
+                    variant="outline"
+                    disabled={busy || (showNotApplicable && value === null)}
+                    onClick={() => setTouched(true)}
+                    className={cn(
+                      "flex-1 pl-3 text-left font-normal",
+                      (!value || value === null) && "text-muted-foreground",
+                      isInvalid && "border-destructive"
+                    )}
+                  >
+                    {value === null ? (
+                      <span>N/A</span>
+                    ) : value ? (
+                      format(value, "PPP", { locale: es })
+                    ) : (
+                      <span>Seleccione una fecha</span>
+                    )}
+                    <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                  </Button>
+                </FormControl>
+              </PopoverTrigger>
+              <PopoverContent
+                className="w-auto p-0 z-[100]"
+                align="start"
+                side="bottom"
+                sideOffset={8}
+                avoidCollisions={true}
+              >
+                <Calendar
+                  locale={es}
+                  mode="single"
+                  selected={value || undefined}
+                  onSelect={handleCalendarSelect}
+                  initialFocus
+                  defaultMonth={value || new Date()}
+                  captionLayout="dropdown-buttons"
+                  fromYear={1900}
+                  toYear={maxYear ?? new Date().getFullYear() + 20}
+                  classNames={{
+                    caption_label: "hidden",
+                    caption:
+                      "flex justify-center pt-1 relative items-center mb-2",
+                    caption_dropdowns: "flex justify-center gap-2 items-center",
+                    nav: "hidden",
+                    nav_button: "hidden",
+                    nav_button_previous: "hidden",
+                    nav_button_next: "hidden",
+                  }}
+                  components={{
+                    Dropdown: (props) => (
+                      <select
+                        {...props}
+                        className="h-9 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-md px-3 py-1 text-sm font-medium text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 transition-colors cursor-pointer"
+                      >
+                        {props.children}
+                      </select>
+                    ),
+                  }}
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
+        )}
+
+        {/* Checkbox "No aplica" */}
         {showNotApplicable && (
           <div className="flex items-center space-x-2 flex-shrink-0">
             <Checkbox
               id={`not-applicable-${label.replace(/\s+/g, "-").toLowerCase()}`}
               checked={value === null}
-              onCheckedChange={(checked) => {
-                setTouched(true);
-                if (checked === true) {
-                  setValue(null);
-                } else {
-                  setValue(undefined);
-                }
-              }}
+              onCheckedChange={handleNotApplicableChange}
               disabled={busy}
             />
             <label
@@ -358,6 +531,7 @@ function DatePickerField({
           </div>
         )}
       </div>
+
       {description ? <FormDescription>{description}</FormDescription> : null}
       {displayError && (
         <p className="text-sm font-medium text-destructive mt-1">
@@ -450,7 +624,13 @@ function UnitsModal({
     }
 
     setIsCalculating(false);
-  }, [conversionFromUnit, conversionToUnit, conversionQuantity, availableConversion, onConversionResult]);
+  }, [
+    conversionFromUnit,
+    conversionToUnit,
+    conversionQuantity,
+    availableConversion,
+    onConversionResult,
+  ]);
 
   // Calcular automáticamente cuando cambian los valores
   useEffect(() => {
@@ -869,7 +1049,6 @@ export default function CreateConsumableForm({
       : undefined
   );
   const [enableBatchNameEdit, setEnableBatchNameEdit] = useState(false);
- 
 
   // Wrapper functions for DatePickerField compatibility
   const handleFabricationDateChange = (d?: Date | null) => {
@@ -944,30 +1123,30 @@ export default function CreateConsumableForm({
   }, [initialData, form]);
 
   // Función para calcular y actualizar la cantidad
-  const calculateAndUpdateQuantity = useCallback((
-    quantity: number | undefined,
-    selectedUnit: any
-  ) => {
-    if (quantity === undefined) {
-      form.setValue("quantity", 0, {
-        shouldDirty: true,
-        shouldValidate: true,
-      });
-      return;
-    }
+  const calculateAndUpdateQuantity = useCallback(
+    (quantity: number | undefined, selectedUnit: any) => {
+      if (quantity === undefined) {
+        form.setValue("quantity", 0, {
+          shouldDirty: true,
+          shouldValidate: true,
+        });
+        return;
+      }
 
-    if (selectedUnit) {
-      form.setValue("quantity", quantity, {
-        shouldDirty: true,
-        shouldValidate: true,
-      });
-    } else {
-      form.setValue("quantity", quantity, {
-        shouldDirty: true,
-        shouldValidate: true,
-      });
-    }
-  }, [form]);
+      if (selectedUnit) {
+        form.setValue("quantity", quantity, {
+          shouldDirty: true,
+          shouldValidate: true,
+        });
+      } else {
+        form.setValue("quantity", quantity, {
+          shouldDirty: true,
+          shouldValidate: true,
+        });
+      }
+    },
+    [form]
+  );
 
   // Modificar el efecto existente para calcular la cantidad
   useEffect(() => {
@@ -1492,7 +1671,11 @@ export default function CreateConsumableForm({
                       <PopoverTrigger asChild>
                         <FormControl>
                           <Button
-                            disabled={isManufacturerLoading || isManufacturerError || busy}
+                            disabled={
+                              isManufacturerLoading ||
+                              isManufacturerError ||
+                              busy
+                            }
                             variant="outline"
                             role="combobox"
                             className={cn(
@@ -1549,7 +1732,9 @@ export default function CreateConsumableForm({
                                           : "opacity-0"
                                       )}
                                     />
-                                    <p>{manufacturer.name} ({manufacturer.type})</p>
+                                    <p>
+                                      {manufacturer.name} ({manufacturer.type})
+                                    </p>
                                   </CommandItem>
                                 ))}
                             </CommandGroup>
@@ -1843,8 +2028,7 @@ export default function CreateConsumableForm({
                           <FormLabel>
                             ¿El artículo tiene documentación?
                           </FormLabel>
-                          <FormDescription>
-                          </FormDescription>
+                          <FormDescription></FormDescription>
                         </div>
                       </FormItem>
                     )}

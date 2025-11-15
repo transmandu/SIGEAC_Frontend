@@ -204,6 +204,9 @@ const InventarioArticulosPage = () => {
               className="flex justify-center mb-4 space-x-3"
               aria-label="Categorías"
             >
+              <TabsTrigger className="flex gap-2" value="all">
+                <Package2 className="size-5" /> Todos
+              </TabsTrigger>
               <TabsTrigger className="flex gap-2" value="COMPONENTE">
                 <Package2 className="size-5" /> Componente
               </TabsTrigger>
@@ -303,7 +306,9 @@ const InventarioArticulosPage = () => {
                     aria-label="Filtro de consumibles"
                   >
                     <TabsTrigger value="all">Todos</TabsTrigger>
-                    <TabsTrigger value="QUIMICOS">Mercancia Peligrosa</TabsTrigger>
+                    <TabsTrigger value="QUIMICOS">
+                      Mercancia Peligrosa
+                    </TabsTrigger>
                   </TabsList>
                 </Tabs>
               )}
