@@ -1093,7 +1093,7 @@ export type Survey = {
   description: string;
   registered_by: string;
   updated_by: string;
-  location: Location;
+  location: string;
   questions: Question[];
 };
 
