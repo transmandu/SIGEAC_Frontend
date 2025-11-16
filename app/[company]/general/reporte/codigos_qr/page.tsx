@@ -2,12 +2,10 @@
 
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import { QRCodeSVG } from "qrcode.react";
-import { useParams } from "next/navigation";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import Link from "next/link";
 import { useTheme } from "next-themes";
 import { useRef } from "react";
-import { Download } from "lucide-react";
 
 const QrCodePage = () => {
   const { selectedCompany } = useCompanyStore();

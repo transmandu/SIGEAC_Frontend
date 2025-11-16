@@ -10,6 +10,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { ObligatoryReport, Survey } from "@/types";
 import { format, parse } from "date-fns";
 import { dateFormat, timeFormat } from "@/lib/utils";
+import SurveyDropdownActions from "@/components/dropdowns/aerolinea/sms/survey/surveyDropDownActions";
 
 export const columns: ColumnDef<Survey>[] = [
   // {
@@ -75,6 +76,19 @@ export const columns: ColumnDef<Survey>[] = [
     },
   },
   {
+    accessorKey: "description",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Descripción" />
+    ),
+    cell: ({ row }) => {
+      return (
+        <p className="font-medium text-center">
+          {row.original.description ?? "N/A"}
+        </p>
+      );
+    },
+  },
+  {
     accessorKey: "is_active",
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Estado" />
@@ -82,19 +96,20 @@ export const columns: ColumnDef<Survey>[] = [
     cell: ({ row }) => (
       <div className="flex justify-center">
         <Badge
-          className={`justify-center items-center text-center font-bold font-sans
+          className={`justify-center items-center text-center font-bold font-sans pointer-events-none hover:bg-inherit
       ${
         row.original.is_active === true
-          ? "bg-green-400"
+          ? "bg-green-400 hover:bg-green-400"
           : row.original.is_active === false
-            ? "bg-red-400" // Color gris oscuro (puedes ajustar el tono)
-            : "bg-gray-500"
+            ? "bg-red-400 hover:bg-red-400"
+            : "bg-gray-500 hover:bg-gray-500"
       }`}
+          variant="secondary"
         >
           {row.original.is_active ? (
             <span>ACTIVO</span>
           ) : (
-            <span >INACTIVO</span> // ← Esto se muestra cuando es false
+            <span>INACTIVO</span> // ← Esto se muestra cuando es false
           )}
         </Badge>
       </div>
@@ -104,12 +119,10 @@ export const columns: ColumnDef<Survey>[] = [
   {
     id: "actions",
     cell: ({ row }) => {
-      // const obligatoryReport = row.original;
-      // return (
-      //   <ObligatoryReportDropdownActions
-      //     obligatoryReport={obligatoryReport}
-      //   ></ObligatoryReportDropdownActions>
-      // );
+      const surveyData = row.original;
+      return (
+        <SurveyDropdownActions surveyData={surveyData}></SurveyDropdownActions>
+      );
     },
   },
 ];

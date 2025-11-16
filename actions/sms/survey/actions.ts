@@ -53,7 +53,10 @@ export const useCreateSurvey = () => {
       );
       return response.data;
     },
-    onSuccess: (_, data) => {
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["surveys", selectedCompany?.slug, selectedStation],
+      });
       toast.success("Creado!", {
         description: `Encuesta creada exitosamente`,
       });
@@ -95,5 +98,40 @@ export const useCreateSurveyAnswers = () => {
   });
   return {
     createSurveyAnswers: createMutation,
+  };
+};
+
+export const useDeleteSurvey = () => {
+  const queryClient = useQueryClient();
+
+  const deleteMutation = useMutation({
+    mutationFn: async ({
+      company,
+      location_id,
+      survey_number,
+    }: {
+      company: string | null;
+      location_id: string | null;
+      survey_number: string;
+    }) => {
+      await axiosInstance.delete(
+        `/${company}/${location_id}/sms/survey/${survey_number}`
+      );
+    },
+    onSuccess: (_,data) => {
+      queryClient.invalidateQueries({ queryKey: ["surveys",data.company,data.location_id] });
+      toast.success("¡Eliminado!", {
+        description: `¡La encuesta ha sido eliminada correctamente!`,
+      });
+    },
+    onError: (e) => {
+      toast.error("Oops!", {
+        description: "¡Hubo un error al eliminar la encuesta!",
+      });
+    },
+  });
+
+  return {
+    deleteSurvey: deleteMutation,
   };
 };
