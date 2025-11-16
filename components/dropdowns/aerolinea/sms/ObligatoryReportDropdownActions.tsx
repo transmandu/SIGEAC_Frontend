@@ -214,7 +214,6 @@ const ObligatoryReportDropdownActions = ({
 
             {obligatoryReport.id && (
               <CreateDangerIdentificationForm
-                onClose={() => setOpenCreateDangerIdentification(false)}
                 id={obligatoryReport.id}
                 reportType="ROS"
               />

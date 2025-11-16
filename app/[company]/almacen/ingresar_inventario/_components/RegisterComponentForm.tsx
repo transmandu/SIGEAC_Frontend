@@ -19,6 +19,7 @@ import {
   FileUpIcon,
   Loader2,
   Plus,
+  X,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -161,7 +162,13 @@ export type FormValues = z.infer<typeof formSchema>;
 
 /* ----------------------------- Componente ----------------------------- */
 
-const SectionCard = ({ title, children }: { title: string; children: React.ReactNode }) => (
+const SectionCard = ({
+  title,
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
+}) => (
   <Card>
     <CardHeader className="pb-3">
       <CardTitle className="text-xl">{title}</CardTitle>
@@ -169,6 +176,326 @@ const SectionCard = ({ title, children }: { title: string; children: React.React
     <CardContent>{children}</CardContent>
   </Card>
 );
+
+function DatePickerField({
+  label,
+  value,
+  setValue,
+  description,
+  busy,
+  shortcuts = "both",
+  maxYear,
+  showNotApplicable = false,
+  required = false,
+  error,
+}: {
+  label: string;
+  value?: Date | null;
+  setValue: (d?: Date | null) => void;
+  description?: string;
+  busy?: boolean;
+  shortcuts?: "both" | "back" | "forward" | "none";
+  maxYear?: number;
+  showNotApplicable?: boolean;
+  required?: boolean;
+  error?: string;
+}) {
+  const [touched, setTouched] = useState(false);
+  const [inputValue, setInputValue] = useState("");
+  const [isInputMode, setIsInputMode] = useState(false);
+
+  // Solo mostrar error si el campo fue tocado/interactuado o si hay un error explícito
+  const isInvalid = required && value === undefined && touched;
+  const displayError =
+    error ||
+    (isInvalid
+      ? "Este campo es obligatorio. Debe seleccionar una fecha o marcar 'No aplica'."
+      : undefined);
+
+  // Efecto para sincronizar el input cuando cambia el valor desde fuera
+  useEffect(() => {
+    if (value && value instanceof Date) {
+      setInputValue(format(value, "dd/MM/yyyy"));
+    } else if (value === null) {
+      setInputValue("");
+    } else if (value === undefined) {
+      setInputValue("");
+    }
+  }, [value]);
+
+  // Función para parsear la fecha desde el input solo cuando el usuario termina de escribir
+  const parseDateFromInput = (dateString: string): Date | null => {
+    if (!dateString.trim()) return null;
+
+    // Intentar diferentes formatos de fecha
+    const formats = [
+      /^\d{2}\/\d{2}\/\d{4}$/, // dd/MM/yyyy
+      /^\d{2}-\d{2}-\d{4}$/, // dd-MM-yyyy
+      /^\d{4}-\d{2}-\d{2}$/, // yyyy-MM-dd
+      /^\d{2}\/\d{2}\/\d{2}$/, // dd/MM/yy
+    ];
+
+    let parsedDate: Date | null = null;
+
+    for (const format of formats) {
+      if (format.test(dateString)) {
+        // Para formato dd/MM/yyyy o dd-MM-yyyy
+        if (/^\d{2}[\/-]\d{2}[\/-]\d{4}$/.test(dateString)) {
+          const [day, month, year] = dateString.split(/[\/-]/);
+          parsedDate = new Date(
+            parseInt(year),
+            parseInt(month) - 1,
+            parseInt(day)
+          );
+        }
+        // Para formato yyyy-MM-dd
+        else if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
+          const [year, month, day] = dateString.split("-");
+          parsedDate = new Date(
+            parseInt(year),
+            parseInt(month) - 1,
+            parseInt(day)
+          );
+        }
+        // Para formato dd/MM/yy (año corto)
+        else if (/^\d{2}\/\d{2}\/\d{2}$/.test(dateString)) {
+          const [day, month, year] = dateString.split("/");
+          const fullYear = 2000 + parseInt(year); // Asumir siglo 21
+          parsedDate = new Date(fullYear, parseInt(month) - 1, parseInt(day));
+        }
+
+        if (parsedDate && !isNaN(parsedDate.getTime())) {
+          break;
+        }
+      }
+    }
+
+    // Si no coincide con ningún formato conocido, intentar parsear directamente
+    if (!parsedDate || isNaN(parsedDate.getTime())) {
+      parsedDate = new Date(dateString);
+      if (isNaN(parsedDate.getTime())) {
+        return null;
+      }
+    }
+
+    return parsedDate;
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue = e.target.value;
+    setInputValue(newValue);
+    // NO establecer el valor aquí, solo cuando el usuario termine de escribir
+  };
+
+  const handleInputBlur = () => {
+    setTouched(true);
+
+    if (!inputValue.trim()) {
+      setValue(undefined);
+      return;
+    }
+
+    const parsedDate = parseDateFromInput(inputValue);
+    if (parsedDate) {
+      setValue(parsedDate);
+      // Formatear la fecha correctamente después de validar
+      setInputValue(format(parsedDate, "dd/MM/yyyy"));
+    } else {
+      // Si no es una fecha válida, mantener el input pero mostrar error
+      // El usuario puede seguir editando
+      console.log("Fecha inválida, manteniendo input para edición");
+    }
+  };
+
+  const handleInputKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    // Permitir que el usuario presione Enter para confirmar
+    if (e.key === "Enter") {
+      handleInputBlur();
+    }
+  };
+
+  const handleCalendarSelect = (date: Date | undefined) => {
+    setTouched(true);
+    setValue(date);
+    if (date) {
+      setInputValue(format(date, "dd/MM/yyyy"));
+    }
+    setIsInputMode(false);
+  };
+
+  const handleNotApplicableChange = (checked: boolean) => {
+    setTouched(true);
+    if (checked === true) {
+      setValue(null);
+      setInputValue("");
+    } else {
+      setValue(undefined);
+      setInputValue("");
+    }
+  };
+
+  const clearInput = () => {
+    setInputValue("");
+    setValue(undefined);
+    setTouched(true);
+  };
+
+  return (
+    <FormItem className="flex flex-col p-0 mt-2.5 w-full">
+      <FormLabel>
+        {label}
+        {required && <span className="text-destructive ml-1">*</span>}
+      </FormLabel>
+
+      <div className="flex flex-col gap-2">
+        {/* Selector de modo: Input o Calendar */}
+        <div className="flex gap-2 mb-2">
+          <Button
+            type="button"
+            variant={isInputMode ? "default" : "outline"}
+            size="sm"
+            onClick={() => setIsInputMode(true)}
+            disabled={busy || (showNotApplicable && value === null)}
+            className="flex-1"
+          >
+            Ingresar fecha
+          </Button>
+          <Button
+            type="button"
+            variant={!isInputMode ? "default" : "outline"}
+            size="sm"
+            onClick={() => setIsInputMode(false)}
+            disabled={busy || (showNotApplicable && value === null)}
+            className="flex-1"
+          >
+            Seleccionar fecha
+          </Button>
+        </div>
+
+        {/* Modo Input */}
+        {isInputMode ? (
+          <div className="flex gap-2">
+            <Input
+              type="text"
+              placeholder="Formato: dd/MM/yyyy"
+              value={inputValue}
+              onChange={handleInputChange}
+              onBlur={handleInputBlur}
+              onKeyPress={handleInputKeyPress}
+              disabled={busy || (showNotApplicable && value === null)}
+              className={cn("flex-1", isInvalid && "border-destructive")}
+            />
+            {inputValue && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={clearInput}
+                disabled={busy}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            )}
+          </div>
+        ) : (
+          /* Modo Calendar */
+          <div className="flex gap-2">
+            <Popover>
+              <PopoverTrigger asChild>
+                <FormControl>
+                  <Button
+                    variant="outline"
+                    disabled={busy || (showNotApplicable && value === null)}
+                    onClick={() => setTouched(true)}
+                    className={cn(
+                      "flex-1 pl-3 text-left font-normal",
+                      (!value || value === null) && "text-muted-foreground",
+                      isInvalid && "border-destructive"
+                    )}
+                  >
+                    {value === null ? (
+                      <span>N/A</span>
+                    ) : value ? (
+                      format(value, "PPP", { locale: es })
+                    ) : (
+                      <span>Seleccione una fecha</span>
+                    )}
+                    <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                  </Button>
+                </FormControl>
+              </PopoverTrigger>
+              <PopoverContent
+                className="w-auto p-0 z-[100]"
+                align="start"
+                side="bottom"
+                sideOffset={8}
+                avoidCollisions={true}
+              >
+                <Calendar
+                  locale={es}
+                  mode="single"
+                  selected={value || undefined}
+                  onSelect={handleCalendarSelect}
+                  initialFocus
+                  defaultMonth={value || new Date()}
+                  captionLayout="dropdown-buttons"
+                  fromYear={1900}
+                  toYear={maxYear ?? new Date().getFullYear() + 20}
+                  classNames={{
+                    caption_label: "hidden",
+                    caption:
+                      "flex justify-center pt-1 relative items-center mb-2",
+                    caption_dropdowns: "flex justify-center gap-2 items-center",
+                    nav: "hidden",
+                    nav_button: "hidden",
+                    nav_button_previous: "hidden",
+                    nav_button_next: "hidden",
+                  }}
+                  components={{
+                    Dropdown: (props) => (
+                      <select
+                        {...props}
+                        className="h-9 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-md px-3 py-1 text-sm font-medium text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 transition-colors cursor-pointer"
+                      >
+                        {props.children}
+                      </select>
+                    ),
+                  }}
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
+        )}
+
+        {/* Checkbox "No aplica" */}
+        {showNotApplicable && (
+          <div className="flex items-center space-x-2 flex-shrink-0">
+            <Checkbox
+              id={`not-applicable-${label.replace(/\s+/g, "-").toLowerCase()}`}
+              checked={value === null}
+              onCheckedChange={handleNotApplicableChange}
+              disabled={busy}
+            />
+            <label
+              htmlFor={`not-applicable-${label.replace(/\s+/g, "-").toLowerCase()}`}
+              className="text-sm font-medium leading-none cursor-pointer whitespace-nowrap select-none"
+            >
+              No aplica
+            </label>
+          </div>
+        )}
+      </div>
+
+      {description ? <FormDescription>{description}</FormDescription> : null}
+      {displayError && (
+        <p className="text-sm font-medium text-destructive mt-1">
+          {displayError}
+        </p>
+      )}
+      <FormMessage />
+    </FormItem>
+  );
+}
 
 export default function CreateComponentForm({
   initialData,
@@ -182,10 +509,14 @@ export default function CreateComponentForm({
   const { selectedCompany, selectedStation } = useCompanyStore();
 
   // Local state for part number search
-  const [partNumberToSearch, setPartNumberToSearch] = useState<string | undefined>(undefined);
+  const [partNumberToSearch, setPartNumberToSearch] = useState<
+    string | undefined
+  >(undefined);
 
   // Local UI state for calendars
-  const [fabricationDate, setFabricationDate] = useState<Date | null | undefined>(
+  const [fabricationDate, setFabricationDate] = useState<
+    Date | null | undefined
+  >(
     initialData?.component?.shell_time?.fabrication_date
       ? new Date(initialData.component.shell_time.fabrication_date)
       : null // Por defecto "No aplica" (muy pocos componentes tienen esta fecha)
@@ -240,12 +571,13 @@ export default function CreateComponentForm({
   } = useGetConditions();
 
   // Search batches by part number
-  const { data: searchResults, isFetching: isSearching } = useSearchBatchesByPartNumber(
-    selectedCompany?.slug,
-    selectedStation || undefined,
-    partNumberToSearch,
-    "COMPONENTE"
-  );
+  const { data: searchResults, isFetching: isSearching } =
+    useSearchBatchesByPartNumber(
+      selectedCompany?.slug,
+      selectedStation || undefined,
+      partNumberToSearch,
+      "COMPONENTE"
+    );
 
   // Mutations
   const { createArticle } = useCreateArticle();
@@ -257,7 +589,11 @@ export default function CreateComponentForm({
     resolver: zodResolver(formSchema),
     defaultValues: {
       part_number: initialData?.part_number || "",
-      serial: initialData?.serial ? (Array.isArray(initialData.serial) ? initialData.serial : [initialData.serial]) : [],
+      serial: initialData?.serial
+        ? Array.isArray(initialData.serial)
+          ? initialData.serial
+          : [initialData.serial]
+        : [],
       alternative_part_number: initialData?.alternative_part_number || [],
       batch_id: initialData?.batches?.id?.toString() || "",
       batch_name: initialData?.batches?.name || "",
@@ -290,7 +626,11 @@ export default function CreateComponentForm({
     if (!initialData) return;
     form.reset({
       part_number: initialData.part_number ?? "",
-      serial: initialData.serial ? (Array.isArray(initialData.serial) ? initialData.serial : [initialData.serial]) : [],
+      serial: initialData.serial
+        ? Array.isArray(initialData.serial)
+          ? initialData.serial
+          : [initialData.serial]
+        : [],
       alternative_part_number: initialData.alternative_part_number ?? [],
       batch_id: initialData.batches?.id?.toString() ?? "",
       batch_name: initialData.batches?.name ?? "",
@@ -318,15 +658,23 @@ export default function CreateComponentForm({
   useEffect(() => {
     if (searchResults && searchResults.length > 0 && !isEditing) {
       const firstResult = searchResults[0];
-      form.setValue("batch_id", firstResult.id.toString(), { shouldValidate: true });
-      
+      form.setValue("batch_id", firstResult.id.toString(), {
+        shouldValidate: true,
+      });
+
       // Notificar al usuario
       if (searchResults.length === 1) {
         console.log("✓ Descripción autocompletada");
       } else {
-        console.log(`✓ Se encontraron ${searchResults.length} descripciones. Se seleccionó la primera.`);
+        console.log(
+          `✓ Se encontraron ${searchResults.length} descripciones. Se seleccionó la primera.`
+        );
       }
-    } else if (searchResults && searchResults.length === 0 && partNumberToSearch) {
+    } else if (
+      searchResults &&
+      searchResults.length === 0 &&
+      partNumberToSearch
+    ) {
       console.log("No se encontraron descripciones para este part number");
     }
   }, [searchResults, form, isEditing, partNumberToSearch]);
@@ -352,11 +700,11 @@ export default function CreateComponentForm({
   const sortedBatches = useMemo(() => {
     if (!batches) return [];
     if (!searchResults || searchResults.length === 0) return batches;
-    
-    const searchIds = new Set(searchResults.map(r => r.id));
-    const foundBatches = batches.filter(b => searchIds.has(b.id));
-    const otherBatches = batches.filter(b => !searchIds.has(b.id));
-    
+
+    const searchIds = new Set(searchResults.map((r) => r.id));
+    const foundBatches = batches.filter((b) => searchIds.has(b.id));
+    const otherBatches = batches.filter((b) => !searchIds.has(b.id));
+
     return [...foundBatches, ...otherBatches];
   }, [batches, searchResults]);
 
@@ -369,14 +717,20 @@ export default function CreateComponentForm({
     }
 
     const { caducate_date: _, ...valuesWithoutCaducateDate } = values;
-    const caducateDateStr: string | undefined = caducateDate && caducateDate !== null ? format(caducateDate, "yyyy-MM-dd") : undefined;
-    
+    const caducateDateStr: string | undefined =
+      caducateDate && caducateDate !== null
+        ? format(caducateDate, "yyyy-MM-dd")
+        : undefined;
+
     // Transformar serial: si hay 1 serial -> string, si hay 2+ -> array
-    const serialValue = values.serial && values.serial.length > 0 
-      ? (values.serial.length === 1 ? values.serial[0] : values.serial)
-      : undefined;
-    
-    const formattedValues: Omit<FormValues, 'caducate_date' | 'serial'> & {
+    const serialValue =
+      values.serial && values.serial.length > 0
+        ? values.serial.length === 1
+          ? values.serial[0]
+          : values.serial
+        : undefined;
+
+    const formattedValues: Omit<FormValues, "caducate_date" | "serial"> & {
       caducate_date?: string;
       fabrication_date?: string;
       calendar_date?: string;
@@ -396,8 +750,12 @@ export default function CreateComponentForm({
         values.alternative_part_number?.map((v) => normalizeUpper(v)) ?? [],
       serial: serialValue,
       caducate_date: caducateDateStr,
-      fabrication_date: fabricationDate && fabricationDate !== null ? format(fabricationDate, "yyyy-MM-dd") : undefined,
-      calendar_date: values.calendar_date && format(values.calendar_date, "yyyy-MM-dd"),
+      fabrication_date:
+        fabricationDate && fabricationDate !== null
+          ? format(fabricationDate, "yyyy-MM-dd")
+          : undefined,
+      calendar_date:
+        values.calendar_date && format(values.calendar_date, "yyyy-MM-dd"),
       batch_name: enableBatchNameEdit ? values.batch_name : undefined,
       batch_id: values.batch_id, // Incluir explícitamente el batch_id del formulario
     };
@@ -410,7 +768,7 @@ export default function CreateComponentForm({
         ...formattedValues,
         article_type: "componente",
       };
-      
+
       if (enableBatchNameEdit) {
         // Modificar el nombre del batch (afecta a todos los artículos del batch)
         if (!values.batch_name) {
@@ -421,7 +779,8 @@ export default function CreateComponentForm({
         }
         updateData.batch_name = values.batch_name;
         // Mantener el batch_id original para que el backend sepa qué batch modificar
-        updateData.batch_id = initialData.batches?.id?.toString() || values.batch_id;
+        updateData.batch_id =
+          initialData.batches?.id?.toString() || values.batch_id;
       } else {
         // Solo reasignar este artículo a otro batch (NO afecta a otros artículos)
         if (!values.batch_id) {
@@ -434,14 +793,14 @@ export default function CreateComponentForm({
         // NO enviar batch_name cuando solo se está reasignando
         delete updateData.batch_name;
       }
-          
+
       await updateArticle.mutateAsync({
         data: updateData,
         company: selectedCompany.slug,
         id: initialData.id,
       });
       // Esperar un momento para que las queries se invaliden antes de redirigir
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await new Promise((resolve) => setTimeout(resolve, 100));
       router.push(`/${selectedCompany.slug}/ingenieria/confirmar_inventario`);
       router.refresh(); // Forzar refresco de la página
     } else {
@@ -467,175 +826,111 @@ export default function CreateComponentForm({
     accept?: string;
     description?: string;
   }) {
+    const fileValue = form.watch(name as any);
+    const fileName = fileValue instanceof File ? fileValue.name : "";
+
+    const handleClearFile = (inputRef: HTMLInputElement | null) => {
+      // Limpiar el input de archivo
+      if (inputRef) {
+        inputRef.value = "";
+      }
+      // Limpiar el valor en el formulario
+      form.setValue(name as any, undefined as any, {
+        shouldDirty: true,
+        shouldValidate: true,
+      });
+    };
+
     return (
       <FormField
         control={form.control}
         name={name as any}
-        render={() => (
-          <FormItem>
-            <FormLabel>{label}</FormLabel>
-            <FormControl>
-              <div className="relative h-10 w-full">
-                <FileUpIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 z-10" />
-                <Input
-                  type="file"
-                  accept={accept}
-                  disabled={busy}
-                  onChange={(e) => {
-                    const f = e.target.files?.[0];
-                    if (f)
-                      form.setValue(name as any, f as any, {
-                        shouldDirty: true,
-                        shouldValidate: true,
-                      });
-                  }}
-                  className="pl-10 pr-3 py-2 w-full border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent cursor-pointer"
-                />
-              </div>
-            </FormControl>
-            {description ? <FormDescription>{description}</FormDescription> : null}
-            <FormMessage />
-          </FormItem>
-        )}
-      />
-    );
-  }
-
-  function DatePickerField({
-    label,
-    value,
-    setValue,
-    goBackYears = [5, 10, 15],
-    goForwardYears = [],
-    description,
-    maxYear,
-    showNotApplicable = false,
-    required = false,
-    error,
-  }: {
-    label: string;
-    value?: Date | null;
-    setValue: (d?: Date | null) => void;
-    goBackYears?: number[];
-    goForwardYears?: number[];
-    description?: string;
-    /** Año máximo permitido. Si no se especifica, será el año actual + 20 */
-    maxYear?: number;
-    /** Mostrar botón "No aplica" */
-    showNotApplicable?: boolean;
-    /** Campo obligatorio */
-    required?: boolean;
-    /** Mensaje de error */
-    error?: string;
-  }) {
-    const isInvalid = required && value === undefined;
-    const displayError = error || (isInvalid ? "Este campo es obligatorio. Debe seleccionar una fecha o marcar 'No aplica'." : undefined);
-
-    return (
-      <FormItem className="flex flex-col p-0 mt-2.5 w-full">
-        <FormLabel>
-          {label}
-          {required && <span className="text-destructive ml-1">*</span>}
-        </FormLabel>
-        <div className="flex gap-2">
-          <Popover>
-            <PopoverTrigger asChild>
+        render={() => {
+          let inputRef: HTMLInputElement | null = null;
+          
+          return (
+            <FormItem>
+              <FormLabel>{label}</FormLabel>
               <FormControl>
-                <Button
-                  variant="outline"
-                  disabled={busy || (showNotApplicable && value === null)}
-                  className={cn(
-                    "flex-1 pl-3 text-left font-normal",
-                    (!value || value === null) && "text-muted-foreground",
-                    isInvalid && "border-destructive"
-                  )}
-                >
-                  {value === null ? (
-                    <span>N/A</span>
-                  ) : value ? (
-                    format(value, "PPP", { locale: es })
-                  ) : (
-                    <span>Seleccione una fecha</span>
-                  )}
-                  <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                </Button>
+                <div className="relative">
+                  <FileUpIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 z-10 pointer-events-none" />
+                  <Input
+                    ref={(el) => { inputRef = el; }}
+                    type="file"
+                    accept={accept}
+                    disabled={busy}
+                    onChange={(e) => {
+                      const f = e.target.files?.[0];
+                      if (f) {
+                        form.setValue(name as any, f as any, {
+                          shouldDirty: true,
+                          shouldValidate: true,
+                        });
+                      }
+                    }}
+                    className="hidden"
+                    id={`file-input-${name}`}
+                  />
+                  <div
+                    onClick={() => !busy && !fileName && inputRef?.click()}
+                    className={`flex items-center justify-between pl-10 pr-3 py-2 w-full border border-gray-300 rounded ${
+                      !busy && !fileName ? "cursor-pointer hover:border-gray-400" : ""
+                    } ${busy ? "opacity-50" : ""}`}
+                  >
+                    <span className={`text-sm truncate flex-1 ${fileName ? "text-gray-900" : "text-gray-500"}`}>
+                      {fileName || "Ningún archivo seleccionado"}
+                    </span>
+                    {fileName && !busy && (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleClearFile(inputRef);
+                        }}
+                        className="ml-2 p-1 hover:bg-red-50 rounded transition-colors flex-shrink-0"
+                        title="Eliminar archivo"
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="18"
+                          height="18"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          className="text-red-600"
+                        >
+                          <path d="M3 6h18" />
+                          <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+                          <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+                          <line x1="10" y1="11" x2="10" y2="17" />
+                          <line x1="14" y1="11" x2="14" y2="17" />
+                        </svg>
+                      </button>
+                    )}
+                  </div>
+                </div>
               </FormControl>
-            </PopoverTrigger>
-            <PopoverContent 
-              className="w-auto p-0 z-[100]" 
-              align="start"
-              side="bottom"
-              sideOffset={8}
-              avoidCollisions={true}
-            >
-              <Calendar 
-                locale={es} 
-                mode="single" 
-                selected={value || undefined} 
-                onSelect={setValue} 
-                initialFocus 
-                defaultMonth={value || new Date()}
-                captionLayout="dropdown-buttons"
-                fromYear={1900}
-                toYear={maxYear ?? new Date().getFullYear() + 20}
-                classNames={{
-                  caption_label: "hidden",
-                  caption: "flex justify-center pt-1 relative items-center mb-2",
-                  caption_dropdowns: "flex justify-center gap-2 items-center",
-                  nav: "hidden",
-                  nav_button: "hidden",
-                  nav_button_previous: "hidden",
-                  nav_button_next: "hidden",
-                }}
-                components={{
-                  Dropdown: (props) => (
-                    <select
-                      {...props}
-                      className="h-9 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-md px-3 py-1 text-sm font-medium text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 transition-colors cursor-pointer"
-                    >
-                      {props.children}
-                    </select>
-                  ),
-                }}
-              />
-            </PopoverContent>
-          </Popover>
-          {showNotApplicable && (
-            <div className="flex items-center space-x-2 flex-shrink-0">
-              <Checkbox
-                id={`not-applicable-${label.replace(/\s+/g, '-').toLowerCase()}`}
-                checked={value === null}
-                onCheckedChange={(checked) => {
-                  if (checked === true) {
-                    setValue(null);
-                  } else {
-                    setValue(undefined);
-                  }
-                }}
-                disabled={busy}
-              />
-              <label
-                htmlFor={`not-applicable-${label.replace(/\s+/g, '-').toLowerCase()}`}
-                className="text-sm font-medium leading-none cursor-pointer whitespace-nowrap select-none"
-              >
-                No aplica
-              </label>
-            </div>
-          )}
-        </div>
-        {description ? <FormDescription>{description}</FormDescription> : null}
-        {displayError && (
-          <p className="text-sm font-medium text-destructive mt-1">{displayError}</p>
-        )}
-        <FormMessage />
-      </FormItem>
+              {description ? (
+                <FormDescription>{description}</FormDescription>
+              ) : null}
+              <FormMessage />
+            </FormItem>
+          );
+        }}
+      />
     );
   }
 
   /* -------------------------------- UI -------------------------------- */
   return (
     <Form {...form}>
-      <form className="flex flex-col gap-6 max-w-7xl mx-auto" onSubmit={form.handleSubmit(onSubmit)}>
+      <form
+        className="flex flex-col gap-6 max-w-7xl mx-auto"
+        onSubmit={form.handleSubmit(onSubmit)}
+      >
         {/* Encabezado */}
         <SectionCard title="Registrar componente">
           <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
@@ -654,7 +949,11 @@ export default function CreateComponentForm({
                         const normalized = normalizeUpper(e.target.value);
                         field.onChange(normalized);
                         // Iniciar búsqueda si hay un valor y no está editando
-                        if (normalized && normalized.length >= 2 && !isEditing) {
+                        if (
+                          normalized &&
+                          normalized.length >= 2 &&
+                          !isEditing
+                        ) {
                           setPartNumberToSearch(normalized);
                         }
                       }}
@@ -662,7 +961,9 @@ export default function CreateComponentForm({
                   </FormControl>
                   <FormDescription>
                     Identificador principal del artículo.
-                    {isSearching && <span className="text-primary ml-2">Buscando...</span>}
+                    {isSearching && (
+                      <span className="text-primary ml-2">Buscando...</span>
+                    )}
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -673,11 +974,15 @@ export default function CreateComponentForm({
               control={form.control}
               name="alternative_part_number"
               render={({ field }) => (
-                <FormItem >
+                <FormItem>
                   <FormControl>
                     <MultiInputField
                       values={field.value || []}
-                      onChange={(vals) => field.onChange(vals.map((v: string) => normalizeUpper(v)))}
+                      onChange={(vals) =>
+                        field.onChange(
+                          vals.map((v: string) => normalizeUpper(v))
+                        )
+                      }
                       placeholder="Ej: 234ABAC"
                     />
                   </FormControl>
@@ -697,13 +1002,23 @@ export default function CreateComponentForm({
                       <CreateBatchDialog
                         onSuccess={async (batchName) => {
                           // Invalidar la query y refetch para obtener el batch recién creado
-                          await queryClient.invalidateQueries({ 
-                            queryKey: ["search-batches", selectedCompany?.slug, selectedStation, "componente"] 
+                          await queryClient.invalidateQueries({
+                            queryKey: [
+                              "search-batches",
+                              selectedCompany?.slug,
+                              selectedStation,
+                              "componente",
+                            ],
                           });
-                          const { data: updatedBatches } = await refetchBatches();
-                          const newBatch = updatedBatches?.find((b: any) => b.name === batchName);
+                          const { data: updatedBatches } =
+                            await refetchBatches();
+                          const newBatch = updatedBatches?.find(
+                            (b: any) => b.name === batchName
+                          );
                           if (newBatch) {
-                            form.setValue("batch_id", newBatch.id.toString(), { shouldValidate: true });
+                            form.setValue("batch_id", newBatch.id.toString(), {
+                              shouldValidate: true,
+                            });
                           }
                         }}
                         triggerButton={
@@ -723,16 +1038,27 @@ export default function CreateComponentForm({
                       <PopoverTrigger asChild>
                         <FormControl>
                           <Button
-                            disabled={isBatchesLoading || isBatchesError || busy}
+                            disabled={
+                              isBatchesLoading || isBatchesError || busy
+                            }
                             variant="outline"
                             role="combobox"
-                            className={cn("justify-between", !field.value && "text-muted-foreground")}
+                            className={cn(
+                              "justify-between",
+                              !field.value && "text-muted-foreground"
+                            )}
                           >
-                            {isBatchesLoading && <Loader2 className="size-4 animate-spin mr-2" />}
+                            {isBatchesLoading && (
+                              <Loader2 className="size-4 animate-spin mr-2" />
+                            )}
                             {field.value ? (
-                              <p className="truncate flex-1 text-left">{batchNameById.get(field.value) ?? ""}</p>
+                              <p className="truncate flex-1 text-left">
+                                {batchNameById.get(field.value) ?? ""}
+                              </p>
                             ) : (
-                              <span className="truncate">Elegir descripción...</span>
+                              <span className="truncate">
+                                Elegir descripción...
+                              </span>
                             )}
                             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                           </Button>
@@ -740,9 +1066,27 @@ export default function CreateComponentForm({
                       </PopoverTrigger>
                       <PopoverContent className="p-0">
                         <Command>
-                          <CommandInput placeholder="Buscar descripción..." />
+                          <CommandInput 
+                            placeholder="Buscar descripción..." 
+                            onKeyDown={(e) => {
+                              if (e.key === "Tab") {
+                                e.preventDefault();
+                                const selected = e.currentTarget.closest('[cmdk-root]')?.querySelector('[cmdk-item][aria-selected="true"]') as HTMLElement;
+                                if (selected) {
+                                  selected.click();
+                                } else {
+                                  const firstItem = e.currentTarget.closest('[cmdk-root]')?.querySelector('[cmdk-item]:not([data-disabled="true"])') as HTMLElement;
+                                  if (firstItem) {
+                                    firstItem.click();
+                                  }
+                                }
+                              }
+                            }}
+                          />
                           <CommandList>
-                            <CommandEmpty className="text-xs p-2 text-center">Sin resultados</CommandEmpty>
+                            <CommandEmpty className="text-xs p-2 text-center">
+                              Sin resultados
+                            </CommandEmpty>
                             {searchResults && searchResults.length > 0 && (
                               <CommandGroup heading="Coincidencias encontradas">
                                 {searchResults.map((batch) => (
@@ -750,33 +1094,76 @@ export default function CreateComponentForm({
                                     value={`${batch.name}`}
                                     key={batch.id}
                                     onSelect={() => {
-                                      form.setValue("batch_id", batch.id.toString(), { shouldValidate: true });
+                                      form.setValue(
+                                        "batch_id",
+                                        batch.id.toString(),
+                                        { shouldValidate: true }
+                                      );
                                       if (isEditing && enableBatchNameEdit) {
-                                        form.setValue("batch_name", batch.name, { shouldValidate: true });
+                                        form.setValue(
+                                          "batch_name",
+                                          batch.name,
+                                          { shouldValidate: true }
+                                        );
                                       }
                                     }}
                                   >
-                                    <Check className={cn("mr-2 h-4 w-4", `${batch.id}` === field.value ? "opacity-100" : "opacity-0")} />
-                                    <p className="font-semibold text-primary">{batch.name}</p>
+                                    <Check
+                                      className={cn(
+                                        "mr-2 h-4 w-4",
+                                        `${batch.id}` === field.value
+                                          ? "opacity-100"
+                                          : "opacity-0"
+                                      )}
+                                    />
+                                    <p className="font-semibold text-primary">
+                                      {batch.name}
+                                    </p>
                                   </CommandItem>
                                 ))}
                               </CommandGroup>
                             )}
-                            <CommandGroup heading={searchResults && searchResults.length > 0 ? "Otras descripciones" : "Todas las descripciones"}>
+                            <CommandGroup
+                              heading={
+                                searchResults && searchResults.length > 0
+                                  ? "Otras descripciones"
+                                  : "Todas las descripciones"
+                              }
+                            >
                               {sortedBatches
-                                ?.filter(batch => !searchResults?.some(sr => sr.id === batch.id))
+                                ?.filter(
+                                  (batch) =>
+                                    !searchResults?.some(
+                                      (sr) => sr.id === batch.id
+                                    )
+                                )
                                 .map((batch) => (
                                   <CommandItem
                                     value={`${batch.name}`}
                                     key={batch.id}
                                     onSelect={() => {
-                                      form.setValue("batch_id", batch.id.toString(), { shouldValidate: true });
+                                      form.setValue(
+                                        "batch_id",
+                                        batch.id.toString(),
+                                        { shouldValidate: true }
+                                      );
                                       if (isEditing && enableBatchNameEdit) {
-                                        form.setValue("batch_name", batch.name, { shouldValidate: true });
+                                        form.setValue(
+                                          "batch_name",
+                                          batch.name,
+                                          { shouldValidate: true }
+                                        );
                                       }
                                     }}
                                   >
-                                    <Check className={cn("mr-2 h-4 w-4", `${batch.id}` === field.value ? "opacity-100" : "opacity-0")} />
+                                    <Check
+                                      className={cn(
+                                        "mr-2 h-4 w-4",
+                                        `${batch.id}` === field.value
+                                          ? "opacity-100"
+                                          : "opacity-0"
+                                      )}
+                                    />
                                     <p>{batch.name}</p>
                                   </CommandItem>
                                 ))}
@@ -785,7 +1172,9 @@ export default function CreateComponentForm({
                         </Command>
                       </PopoverContent>
                     </Popover>
-                    <FormDescription>Descripción del componente a registrar.</FormDescription>
+                    <FormDescription>
+                      Descripción del componente a registrar.
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -796,7 +1185,9 @@ export default function CreateComponentForm({
                     <Checkbox
                       id="enable-batch-edit"
                       checked={enableBatchNameEdit}
-                      onCheckedChange={(checked) => setEnableBatchNameEdit(checked as boolean)}
+                      onCheckedChange={(checked) =>
+                        setEnableBatchNameEdit(checked as boolean)
+                      }
                     />
                     <label
                       htmlFor="enable-batch-edit"
@@ -819,7 +1210,10 @@ export default function CreateComponentForm({
                               disabled={busy}
                             />
                           </FormControl>
-                          <FormDescription>Ingrese el nuevo nombre para esta descripción de artículo.</FormDescription>
+                          <FormDescription>
+                            Ingrese el nuevo nombre para esta descripción de
+                            artículo.
+                          </FormDescription>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -848,7 +1242,9 @@ export default function CreateComponentForm({
                       placeholder="Ej: 05458E1"
                     />
                   </FormControl>
-                  <FormDescription>Serial del componente si aplica.</FormDescription>
+                  <FormDescription>
+                    Serial del componente si aplica.
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -860,24 +1256,70 @@ export default function CreateComponentForm({
               render={({ field }) => (
                 <FormItem className="w-full">
                   <FormLabel>Condición</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value} disabled={isConditionsLoading || busy}>
+                  <Select
+                    onValueChange={field.onChange}
+                    value={field.value}
+                    disabled={isConditionsLoading || busy}
+                  >
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder={isConditionsLoading ? "Cargando..." : "Seleccione..."} />
+                        <SelectValue
+                          placeholder={
+                            isConditionsLoading
+                              ? "Cargando..."
+                              : "Seleccione..."
+                          }
+                        />
                       </SelectTrigger>
                     </FormControl>
-                    <SelectContent>
+                    <SelectContent
+                      onKeyDown={(e) => {
+                        if (e.key === "Tab") {
+                          e.preventDefault();
+                          const focused = document.activeElement as HTMLElement;
+                          if (focused?.getAttribute('role') === 'option') {
+                            // Simular Enter en el elemento seleccionado
+                            const enterEvent = new KeyboardEvent('keydown', {
+                              key: 'Enter',
+                              code: 'Enter',
+                              keyCode: 13,
+                              bubbles: true,
+                              cancelable: true
+                            });
+                            focused.dispatchEvent(enterEvent);
+                          } else {
+                            // Si no hay elemento enfocado, enfocar y seleccionar el primero
+                            const firstItem = e.currentTarget.querySelector('[role="option"]:not([data-disabled="true"])') as HTMLElement;
+                            if (firstItem) {
+                              firstItem.focus();
+                              const enterEvent = new KeyboardEvent('keydown', {
+                                key: 'Enter',
+                                code: 'Enter',
+                                keyCode: 13,
+                                bubbles: true,
+                                cancelable: true
+                              });
+                              firstItem.dispatchEvent(enterEvent);
+                            }
+                          }
+                        }
+                      }}
+                    >
                       {conditions?.map((c) => (
                         <SelectItem key={c.id} value={c.id.toString()}>
                           {c.name}
                         </SelectItem>
                       ))}
                       {isConditionsError && (
-                        <div className="p-2 text-sm text-muted-foreground">Error al cargar condiciones.</div>
+                        <div className="p-2 text-sm text-muted-foreground">
+                          Error al cargar condiciones.
+                        </div>
                       )}
                     </SelectContent>
                   </Select>
-                  <FormDescription>Estado físico/operativo del artículo.</FormDescription>
+                  <FormDescription>
+                    Estado físico/operativo del artículo.
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -894,11 +1336,20 @@ export default function CreateComponentForm({
                       defaultType="PART"
                       onSuccess={(manufacturer) => {
                         if (manufacturer?.id) {
-                          form.setValue("manufacturer_id", manufacturer.id.toString(), { shouldValidate: true });
+                          form.setValue(
+                            "manufacturer_id",
+                            manufacturer.id.toString(),
+                            { shouldValidate: true }
+                          );
                         }
                       }}
                       triggerButton={
-                        <Button type="button" variant="ghost" size="sm" className="h-7 text-xs">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 text-xs"
+                        >
                           <Plus className="h-3 w-3 mr-1" />
                           Crear nuevo
                         </Button>
@@ -909,7 +1360,9 @@ export default function CreateComponentForm({
                     <PopoverTrigger asChild>
                       <FormControl>
                         <Button
-                          disabled={isManufacturerLoading || isManufacturerError || busy}
+                          disabled={
+                            isManufacturerLoading || isManufacturerError || busy
+                          }
                           variant="outline"
                           role="combobox"
                           className={cn(
@@ -925,8 +1378,7 @@ export default function CreateComponentForm({
                               {
                                 manufacturers
                                   ?.filter((m) => m.type)
-                                  .find((m) => `${m.id}` === field.value)
-                                  ?.name
+                                  .find((m) => `${m.id}` === field.value)?.name
                               }
                             </p>
                           ) : (
@@ -938,7 +1390,23 @@ export default function CreateComponentForm({
                     </PopoverTrigger>
                     <PopoverContent className="w-[300px] p-0">
                       <Command>
-                        <CommandInput placeholder="Buscar fabricante..." />
+                        <CommandInput 
+                          placeholder="Buscar fabricante..." 
+                          onKeyDown={(e) => {
+                            if (e.key === "Tab") {
+                              e.preventDefault();
+                              const selected = e.currentTarget.closest('[cmdk-root]')?.querySelector('[cmdk-item][aria-selected="true"]') as HTMLElement;
+                              if (selected) {
+                                selected.click();
+                              } else {
+                                const firstItem = e.currentTarget.closest('[cmdk-root]')?.querySelector('[cmdk-item]:not([data-disabled="true"])') as HTMLElement;
+                                if (firstItem) {
+                                  firstItem.click();
+                                }
+                              }
+                            }
+                          }}
+                        />
                         <CommandList>
                           <CommandEmpty className="text-xs p-2 text-center">
                             No se encontró el fabricante.
@@ -966,7 +1434,9 @@ export default function CreateComponentForm({
                                         : "opacity-0"
                                     )}
                                   />
-                                  <p>{manufacturer.name} ({manufacturer.type})</p>
+                                  <p>
+                                    {manufacturer.name} ({manufacturer.type})
+                                  </p>
                                 </CommandItem>
                               ))}
                           </CommandGroup>
@@ -987,7 +1457,11 @@ export default function CreateComponentForm({
                 <FormItem className="w-full">
                   <FormLabel>Ubicación interna</FormLabel>
                   <FormControl>
-                    <Input placeholder="Ej: Pasillo 4, Estante B" {...field} disabled={busy} />
+                    <Input
+                      placeholder="Ej: Pasillo 4, Estante B"
+                      {...field}
+                      disabled={busy}
+                    />
                   </FormControl>
                   <FormDescription>Zona física en almacén.</FormDescription>
                   <FormMessage />
@@ -1004,8 +1478,9 @@ export default function CreateComponentForm({
               label="Fecha de Fabricación"
               value={fabricationDate}
               setValue={handleFabricationDateChange}
-              goBackYears={[5, 10, 15]}
               description="Fecha de fabricación del Componente."
+              busy={busy}
+              shortcuts="back"
               maxYear={new Date().getFullYear()}
               showNotApplicable={true}
             />
@@ -1014,8 +1489,9 @@ export default function CreateComponentForm({
               label="Fecha de Shelf-Life"
               value={caducateDate}
               setValue={handleCaducateDateChange}
-              goForwardYears={[5, 10, 15]}
               description="Fecha límite que debe cumplir el Componente almacenado."
+              busy={busy}
+              shortcuts="forward"
               showNotApplicable={true}
               required={true}
             />
@@ -1032,9 +1508,16 @@ export default function CreateComponentForm({
                 <FormItem>
                   <FormLabel>Observaciones</FormLabel>
                   <FormControl>
-                    <Textarea rows={5} placeholder="Ej: Motor V8 de..." {...field} disabled={busy} />
+                    <Textarea
+                      rows={5}
+                      placeholder="Ej: Motor V8 de..."
+                      {...field}
+                      disabled={busy}
+                    />
                   </FormControl>
-                  <FormDescription>Breve descripción del artículo.</FormDescription>
+                  <FormDescription>
+                    Breve descripción del artículo.
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -1057,7 +1540,8 @@ export default function CreateComponentForm({
                   <div className="space-y-1 leading-none">
                     <FormLabel>¿El artículo tiene documentación?</FormLabel>
                     <FormDescription>
-                      Marque esta casilla si el artículo cuenta con documentación (certificados, imágenes, etc.).
+                      Marque esta casilla si el artículo cuenta con
+                      documentación (certificados, imágenes, etc.).
                     </FormDescription>
                   </div>
                 </FormItem>
@@ -1069,12 +1553,52 @@ export default function CreateComponentForm({
                 <Separator />
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <FileField name="image" label="Imagen del artículo" accept="image/*" description="Imagen descriptiva." />
+                  <FileField
+                    name="image"
+                    label="Imagen del artículo"
+                    accept="image/*"
+                    description="Imagen descriptiva."
+                  />
 
                   <div className="space-y-4">
-                    <FileField name="certificate_8130" label={<span>Certificado <span className="text-primary font-semibold">8130</span></span> as any} description="PDF o imagen. Máx. 10 MB." />
-                    <FileField name="certificate_fabricant" label={<span>Certificado del <span className="text-primary">fabricante</span></span> as any} description="PDF o imagen. Máx. 10 MB." />
-                    <FileField name="certificate_vendor" label={<span>Certificado del <span className="text-primary">vendedor</span></span> as any} description="PDF o imagen. Máx. 10 MB." />
+                    <FileField
+                      name="certificate_8130"
+                      label={
+                        (
+                          <span>
+                            Certificado{" "}
+                            <span className="text-primary font-semibold">
+                              8130
+                            </span>
+                          </span>
+                        ) as any
+                      }
+                      description="PDF o imagen. Máx. 10 MB."
+                    />
+                    <FileField
+                      name="certificate_fabricant"
+                      label={
+                        (
+                          <span>
+                            Certificado del{" "}
+                            <span className="text-primary">fabricante</span>
+                          </span>
+                        ) as any
+                      }
+                      description="PDF o imagen. Máx. 10 MB."
+                    />
+                    <FileField
+                      name="certificate_vendor"
+                      label={
+                        (
+                          <span>
+                            Certificado del{" "}
+                            <span className="text-primary">vendedor</span>
+                          </span>
+                        ) as any
+                      }
+                      description="PDF o imagen. Máx. 10 MB."
+                    />
                   </div>
                 </div>
               </>
@@ -1096,7 +1620,13 @@ export default function CreateComponentForm({
             type="submit"
           >
             {busy ? (
-              <Image className="text-black" src={loadingGif} width={170} height={170} alt="Cargando..." />
+              <Image
+                className="text-black"
+                src={loadingGif}
+                width={170}
+                height={170}
+                alt="Cargando..."
+              />
             ) : (
               <span>{isEditing ? "Confirmar ingreso" : "Crear artículo"}</span>
             )}

@@ -1,4 +1,5 @@
 "use client";
+import { useState } from "react";
 import CreateAnalysesDialog from "@/components/dialogs/aerolinea/sms/CreateAnalysesDialog";
 import CreateDangerIdentificationDialog from "@/components/dialogs/aerolinea/sms/CreateDangerIdentificationDialog";
 import DeleteDangerIdentificationDialog from "@/components/dialogs/aerolinea/sms/DeleteDangerIdentificationDialog";
@@ -6,6 +7,13 @@ import { ContentLayout } from "@/components/layout/ContentLayout";
 import LoadingPage from "@/components/misc/LoadingPage";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { useGetDangerIdentificationById } from "@/hooks/sms/useGetDangerIdentificationById";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import {
@@ -24,6 +32,7 @@ import { useParams } from "next/navigation";
 const ShowDangerIdentification = () => {
   const { identification_id } = useParams<{ identification_id: string }>();
   const { selectedCompany } = useCompanyStore();
+
   const {
     data: dangerIdentification,
     isLoading,
@@ -46,8 +55,8 @@ const ShowDangerIdentification = () => {
   const reportType = dangerIdentification?.voluntary_report
     ? "RVP"
     : dangerIdentification?.obligatory_report
-      ? "ROS"
-      : "N/A";
+    ? "ROS"
+    : "N/A";
 
   if (isLoading) {
     return <LoadingPage />;
@@ -59,15 +68,28 @@ const ShowDangerIdentification = () => {
       <div className="flex justify-evenly flex-wrap gap-4 mb-6">
         {dangerIdentification && status === "ABIERTO" && (
           <>
-            <div className="flex items-center">
-              <CreateDangerIdentificationDialog
-                title="Editar Identificación"
-                id={id}
-                isEditing={true}
-                initialData={dangerIdentification}
-                reportType={reportType}
-              />
-            </div>
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button
+                  variant="outline" size="sm"
+                  className="hidden h-8 lg:flex"
+                >
+                  Editar Identificación
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-h-[90vh] overflow-y-auto">
+                <DialogHeader>
+                </DialogHeader>
+                <CreateDangerIdentificationDialog
+                  title="Editar Identificación"
+                  id={id}
+                  isEditing={true}
+                  initialData={dangerIdentification}
+                  reportType={reportType}
+                />
+              </DialogContent>
+            </Dialog>
+
             <div className="flex items-center">
               <DeleteDangerIdentificationDialog
                 id={dangerIdentification.id}
@@ -113,7 +135,7 @@ const ShowDangerIdentification = () => {
 
         {dangerIdentification && (
           <div className="w-full space-y-6">
-            {/* Información básica del peligro - Ahora con 3 columnas */}
+            {/* Información básica del peligro */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="border border-gray-300 dark:border-gray-600 p-6 rounded-lg space-y-3">
                 <div className="flex items-center justify-center gap-3">
@@ -194,7 +216,7 @@ const ShowDangerIdentification = () => {
               </div>
             </div>
 
-            <div className=" flex gap-2">
+            <div className="flex gap-2">
               {/* Consecuencias */}
               {dangerIdentification.possible_consequences && (
                 <div className="border border-gray-300 dark:border-gray-600 p-6 rounded-lg w-full">

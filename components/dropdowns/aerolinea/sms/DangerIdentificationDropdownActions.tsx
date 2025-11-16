@@ -215,7 +215,6 @@ const DangerIdentificationDropdownActions = ({
                   id={id}
                   initialData={dangerIdentification}
                   isEditing={true}
-                  onClose={() => setOpenEdit(false)}
                   reportType={reportType}
                 />
               ) : null}

@@ -23,7 +23,6 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import CreateDangerIdentificationForm from "@/components/forms/aerolinea/sms/CreateIdentificationForm";
 import { CreateVoluntaryReportForm } from "@/components/forms/aerolinea/sms/CreateVoluntaryReportForm";
 import VoluntaryReportPdf from "@/components/pdf/sms/VoluntaryReportPdf";
 import { Button } from "@/components/ui/button";
@@ -46,15 +45,10 @@ const VoluntaryReportDropdownActions = ({
 
   const [open, setOpen] = useState<boolean>(false);
   const [openPDF, setOpenPDF] = useState<boolean>(false);
-
   const [openEdit, setOpenEdit] = useState<boolean>(false);
   const [openAccept, setOpenAccept] = useState<boolean>(false);
-  const { deleteVoluntaryReport } = useDeleteVoluntaryReport();
-
-  const [openCreateDangerIdentification, setOpenCreateDangerIdentification] =
-    useState<boolean>(false);
-
   const [openDelete, setOpenDelete] = useState<boolean>(false);
+  const { deleteVoluntaryReport } = useDeleteVoluntaryReport();
   const router = useRouter();
 
   const { data: dangerIdentification } = useGetDangerIdentificationWithAllById({
@@ -69,6 +63,13 @@ const VoluntaryReportDropdownActions = ({
     };
     await deleteVoluntaryReport.mutateAsync(value);
     setOpenDelete(false);
+  };
+
+  // ✅ Nueva función para redirigir enviando el ID del reporte
+  const handleCreateIdentification = () => {
+    router.push(
+      `/transmandu/sms/gestion_reportes/peligros_identificados/crear_identificacion?reporteId=${voluntaryReport.id}`
+    );
   };
 
   return (
@@ -122,13 +123,12 @@ const VoluntaryReportDropdownActions = ({
               <p className="pl-2">Ver</p>
             </DropdownMenuItem>
 
+            {/* ✅ Modificación: redirige enviando el ID como query param */}
             {!voluntaryReport.danger_identification_id &&
               voluntaryReport.status === "ABIERTO" && (
-                <DropdownMenuItem
-                  onClick={() => setOpenCreateDangerIdentification(true)}
-                >
+                <DropdownMenuItem onClick={handleCreateIdentification}>
                   <ClipboardPenLine className="size-5" />
-                  <p className="pl-2">Crear Identificacion</p>
+                  <p className="pl-2">Crear Identificación</p>
                 </DropdownMenuItem>
               )}
 
@@ -141,6 +141,7 @@ const VoluntaryReportDropdownActions = ({
           </DropdownMenuContent>
         </DropdownMenu>
 
+        {/* PDF Viewer */}
         <Dialog open={openPDF} onOpenChange={setOpenPDF}>
           <DialogContent className="sm:max-w-[65%] max-h-[80vh]">
             <DialogHeader>
@@ -153,26 +154,22 @@ const VoluntaryReportDropdownActions = ({
               {voluntaryReport &&
               voluntaryReport.status === "CERRADO" &&
               dangerIdentification ? (
-                <>
-                  <PDFViewer style={{ width: "100%", height: "60%" }}>
-                    <VoluntaryReportPdf
-                      report={voluntaryReport}
-                      identification={dangerIdentification}
-                    />
-                  </PDFViewer>
-                </>
+                <PDFViewer style={{ width: "100%", height: "60%" }}>
+                  <VoluntaryReportPdf
+                    report={voluntaryReport}
+                    identification={dangerIdentification}
+                  />
+                </PDFViewer>
               ) : (
-                <>
-                  <PDFViewer style={{ width: "100%", height: "60%" }}>
-                    <VoluntaryReportPdf report={voluntaryReport} />
-                  </PDFViewer>
-                </>
+                <PDFViewer style={{ width: "100%", height: "60%" }}>
+                  <VoluntaryReportPdf report={voluntaryReport} />
+                </PDFViewer>
               )}
             </div>
 
             <div className="flex justify-end mt-4">
               <PDFDownloadLink
-                fileName={`repore_sms${format(new Date(), "dd-MM-yyyy")}.pdf`}
+                fileName={`reporte_sms_${format(new Date(), "dd-MM-yyyy")}.pdf`}
                 document={<VoluntaryReportPdf report={voluntaryReport} />}
               >
                 <Button>Descargar Reporte</Button>
@@ -180,18 +177,18 @@ const VoluntaryReportDropdownActions = ({
             </div>
           </DialogContent>
         </Dialog>
+
+        {/* Delete dialog */}
         <Dialog open={openDelete} onOpenChange={setOpenDelete}>
           <DialogContent>
             <DialogHeader>
               <DialogTitle className="text-center">
-                ¿Seguro que desea eliminar el reporte??
+                ¿Seguro que desea eliminar el reporte?
               </DialogTitle>
               <DialogDescription className="text-center p-2 mb-0 pb-0">
-                Esta acción es irreversible y estaría eliminando por completo el
-                reporte seleccionado.
+                Esta acción es irreversible y eliminará por completo el reporte.
               </DialogDescription>
             </DialogHeader>
-
             <DialogFooter className="flex flex-col-reverse gap-2 md:gap-0">
               <Button
                 className="bg-rose-400 hover:bg-white hover:text-black hover:border hover:border-black"
@@ -200,7 +197,6 @@ const VoluntaryReportDropdownActions = ({
               >
                 Cancelar
               </Button>
-
               <Button
                 disabled={deleteVoluntaryReport.isPending}
                 className="hover:bg-white hover:text-black hover:border hover:border-black transition-all"
@@ -216,30 +212,10 @@ const VoluntaryReportDropdownActions = ({
           </DialogContent>
         </Dialog>
 
-        <Dialog
-          open={openCreateDangerIdentification}
-          onOpenChange={setOpenCreateDangerIdentification}
-        >
-          <DialogContent className="flex flex-col max-w-2xl m-2">
-            <DialogHeader>
-              <DialogTitle></DialogTitle>
-              <DialogDescription></DialogDescription>
-            </DialogHeader>
-
-            <CreateDangerIdentificationForm
-              onClose={() => setOpenCreateDangerIdentification(false)}
-              id={voluntaryReport.id}
-              reportType="RVP"
-            />
-          </DialogContent>
-        </Dialog>
-
+        {/* Edit dialog */}
         <Dialog open={openEdit} onOpenChange={setOpenEdit}>
           <DialogContent className="flex flex-col max-w-2xl m-2">
-            <DialogHeader>
-              <DialogTitle className="text-center"></DialogTitle>
-              <DialogDescription></DialogDescription>
-            </DialogHeader>
+            <DialogHeader />
             <CreateVoluntaryReportForm
               onClose={() => setOpenEdit(false)}
               initialData={voluntaryReport}
@@ -247,12 +223,11 @@ const VoluntaryReportDropdownActions = ({
             />
           </DialogContent>
         </Dialog>
+
+        {/* Accept dialog */}
         <Dialog open={openAccept} onOpenChange={setOpenAccept}>
           <DialogContent className="flex flex-col w-2xs m-2">
-            <DialogHeader>
-              <DialogTitle className="text-center"></DialogTitle>
-              <DialogDescription></DialogDescription>
-            </DialogHeader>
+            <DialogHeader />
             <AcceptVoluntaryReport
               onClose={() => setOpenAccept(false)}
               initialData={voluntaryReport}
