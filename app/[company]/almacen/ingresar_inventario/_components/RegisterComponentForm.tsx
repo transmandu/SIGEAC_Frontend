@@ -1243,7 +1243,6 @@ export default function CreateComponentForm({
                     />
                   </FormControl>
                   <FormDescription>
-                    Serial del componente si aplica.
                   </FormDescription>
                   <FormMessage />
                 </FormItem>

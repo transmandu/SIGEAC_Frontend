@@ -19,6 +19,7 @@ interface MultiSerialInputProps {
   onChange: (values: string[]) => void;
   disabled?: boolean;
   placeholder?: string;
+  maxSerials?: number;
 }
 
 export function MultiSerialInput({
@@ -26,6 +27,7 @@ export function MultiSerialInput({
   onChange,
   disabled = false,
   placeholder = "Ej: 05458E1",
+  maxSerials = 50, // Límite por defecto de 50 seriales
 }: MultiSerialInputProps) {
   const [currentValue, setCurrentValue] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -33,8 +35,13 @@ export function MultiSerialInput({
   const [editIndex, setEditIndex] = useState<number | null>(null);
   const [editValue, setEditValue] = useState("");
 
+  // Verificar si se alcanzó el límite
+  const isLimitReached = values.length >= maxSerials;
+
   // Función para agregar un serial
   const handleAddSerial = () => {
+    if (isLimitReached) return;
+
     const trimmedValue = currentValue.trim().toUpperCase();
     if (trimmedValue && !values.includes(trimmedValue)) {
       onChange([...values, trimmedValue]);
@@ -46,7 +53,9 @@ export function MultiSerialInput({
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
       e.preventDefault();
-      handleAddSerial();
+      if (!isLimitReached) {
+        handleAddSerial();
+      }
     }
   };
 
@@ -87,7 +96,9 @@ export function MultiSerialInput({
 
   // Guardar cambios del modal
   const handleSaveChanges = () => {
-    onChange(editingSerials);
+    // Asegurarse de no exceder el límite al guardar
+    const serialsToSave = editingSerials.slice(0, maxSerials);
+    onChange(serialsToSave);
     setIsModalOpen(false);
   };
 
@@ -98,23 +109,36 @@ export function MultiSerialInput({
           value={currentValue}
           onChange={(e) => setCurrentValue(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder={placeholder}
-          disabled={disabled}
+          placeholder={
+            isLimitReached
+              ? `Límite alcanzado (${maxSerials})`
+              : `${placeholder} (${values.length}/${maxSerials})`
+          }
+          disabled={disabled || isLimitReached}
           className="pr-10"
         />
+        {isLimitReached && (
+          <div className="absolute -bottom-6 left-0 text-xs text-amber-600 font-medium">
+            Máximo {maxSerials} seriales permitidos
+          </div>
+        )}
       </div>
-      
+
       {/* Botón contador (izquierda) */}
       <Button
         type="button"
         variant="outline"
         disabled={disabled}
         className={cn(
-          "min-w-[50px] font-semibold",
-          values.length > 0 && "bg-primary/10 border-primary text-primary"
+          "min-w-[60px] font-semibold relative",
+          values.length > 0 && "bg-primary/10 border-primary text-primary",
+          isLimitReached && "bg-amber-100 border-amber-300 text-amber-700"
         )}
       >
         {values.length}
+        <span className="absolute -top-1 -right-1 text-[10px] bg-muted rounded-full w-4 h-4 flex items-center justify-center">
+          {maxSerials}
+        </span>
       </Button>
 
       {/* Botón ver/editar (derecha) */}
@@ -131,12 +155,20 @@ export function MultiSerialInput({
         </DialogTrigger>
         <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Seriales registrados</DialogTitle>
+            <DialogTitle>
+              Seriales registrados ({editingSerials.length}/{maxSerials})
+            </DialogTitle>
             <DialogDescription>
-              Revisa y edita los seriales registrados. Puedes eliminar o modificar cualquier entrada.
+              {isLimitReached ? (
+                <span className="text-amber-600 font-medium">
+                  Límite máximo de {maxSerials} seriales alcanzado
+                </span>
+              ) : (
+                "Revisa y edita los seriales registrados. Puedes eliminar o modificar cualquier entrada."
+              )}
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="space-y-2 mt-4">
             {editingSerials.length === 0 ? (
               <div className="text-center text-muted-foreground py-8">
@@ -151,7 +183,7 @@ export function MultiSerialInput({
                   <span className="text-sm font-medium text-muted-foreground min-w-[30px]">
                     {index + 1}.
                   </span>
-                  
+
                   {editIndex === index ? (
                     <>
                       <Input
@@ -217,24 +249,25 @@ export function MultiSerialInput({
             )}
           </div>
 
-          <div className="flex justify-end gap-2 mt-6 pt-4 border-t">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setIsModalOpen(false)}
-            >
-              Cancelar
-            </Button>
-            <Button
-              type="button"
-              onClick={handleSaveChanges}
-            >
-              Guardar cambios
-            </Button>
+          <div className="flex justify-between items-center mt-6 pt-4 border-t">
+            <div className="text-sm text-muted-foreground">
+              {editingSerials.length} de {maxSerials} seriales utilizados
+            </div>
+            <div className="flex gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setIsModalOpen(false)}
+              >
+                Cancelar
+              </Button>
+              <Button type="button" onClick={handleSaveChanges}>
+                Guardar cambios
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
     </div>
   );
 }
-

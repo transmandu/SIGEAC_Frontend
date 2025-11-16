@@ -372,7 +372,6 @@ const CreateComponentForm = ({
                     <Input placeholder="Ej: 05458E1" {...field} />
                   </FormControl>
                   <FormDescription>
-                    Serial del componente si aplica.
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
