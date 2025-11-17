@@ -203,6 +203,7 @@ function DatePickerField({
   const [touched, setTouched] = useState(false);
   const [inputValue, setInputValue] = useState("");
   const [isInputMode, setIsInputMode] = useState(false);
+  const [validationError, setValidationError] = useState<string>("");
 
   // Solo mostrar error si el campo fue tocado/interactuado o si hay un error explícito
   const isInvalid = required && value === undefined && touched;
@@ -223,68 +224,131 @@ function DatePickerField({
     }
   }, [value]);
 
+  // Función para validar si una fecha es válida
+  const isValidDate = (day: number, month: number, year: number): boolean => {
+    // Validar rangos básicos
+    if (year < 1900 || year > 2100) return false;
+    if (month < 1 || month > 12) return false;
+    if (day < 1 || day > 31) return false;
+
+    // Crear fecha y verificar que sea válida
+    const date = new Date(year, month - 1, day);
+    
+    // Verificar que la fecha creada coincida con los valores ingresados
+    // (esto detecta fechas inválidas como 31/02/2024)
+    return (
+      date.getFullYear() === year &&
+      date.getMonth() === month - 1 &&
+      date.getDate() === day
+    );
+  };
+
   // Función para parsear la fecha desde el input solo cuando el usuario termina de escribir
   const parseDateFromInput = (dateString: string): Date | null => {
     if (!dateString.trim()) return null;
 
-    // Intentar diferentes formatos de fecha
-    const formats = [
-      /^\d{2}\/\d{2}\/\d{4}$/, // dd/MM/yyyy
-      /^\d{2}-\d{2}-\d{4}$/, // dd-MM-yyyy
-      /^\d{4}-\d{2}-\d{2}$/, // yyyy-MM-dd
-      /^\d{2}\/\d{2}\/\d{2}$/, // dd/MM/yy
-    ];
-
-    let parsedDate: Date | null = null;
-
-    for (const format of formats) {
-      if (format.test(dateString)) {
-        // Para formato dd/MM/yyyy o dd-MM-yyyy
-        if (/^\d{2}[\/-]\d{2}[\/-]\d{4}$/.test(dateString)) {
-          const [day, month, year] = dateString.split(/[\/-]/);
-          parsedDate = new Date(
-            parseInt(year),
-            parseInt(month) - 1,
-            parseInt(day)
-          );
-        }
-        // Para formato yyyy-MM-dd
-        else if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
-          const [year, month, day] = dateString.split("-");
-          parsedDate = new Date(
-            parseInt(year),
-            parseInt(month) - 1,
-            parseInt(day)
-          );
-        }
-        // Para formato dd/MM/yy (año corto)
-        else if (/^\d{2}\/\d{2}\/\d{2}$/.test(dateString)) {
-          const [day, month, year] = dateString.split("/");
-          const fullYear = 2000 + parseInt(year); // Asumir siglo 21
-          parsedDate = new Date(fullYear, parseInt(month) - 1, parseInt(day));
-        }
-
-        if (parsedDate && !isNaN(parsedDate.getTime())) {
-          break;
-        }
-      }
+    // Validar formato dd/MM/yyyy
+    if (!/^\d{2}\/\d{2}\/\d{4}$/.test(dateString)) {
+      return null;
     }
 
-    // Si no coincide con ningún formato conocido, intentar parsear directamente
-    if (!parsedDate || isNaN(parsedDate.getTime())) {
-      parsedDate = new Date(dateString);
-      if (isNaN(parsedDate.getTime())) {
-        return null;
-      }
+    const parts = dateString.split('/');
+    
+    // Formato día/mes/año
+    const day = parseInt(parts[0]);
+    const month = parseInt(parts[1]);
+    const year = parseInt(parts[2]);
+
+    // Validar que la fecha sea válida
+    if (!isValidDate(day, month, year)) {
+      return null;
     }
 
-    return parsedDate;
+    return new Date(year, month - 1, day);
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newValue = e.target.value;
-    setInputValue(newValue);
-    // NO establecer el valor aquí, solo cuando el usuario termine de escribir
+    let newValue = e.target.value;
+    const cursorPosition = e.target.selectionStart || 0;
+    
+    // Limpiar error de validación al escribir
+    if (validationError) {
+      setValidationError("");
+    }
+    
+    // Permitir borrar todo
+    if (newValue === "") {
+      setInputValue("");
+      setValue(undefined);
+      return;
+    }
+    
+    // Si el valor ya tiene formato con barras, permitir edición directa
+    // Esto permite borrar partes individuales sin reformatear
+    if (newValue.includes('/')) {
+      // Solo permitir números y barras
+      const cleaned = newValue.replace(/[^\d\/]/g, '');
+      if (cleaned !== newValue) {
+        return; // Rechazar caracteres inválidos
+      }
+      
+      // Si tiene formato parcial válido (ej: "30//2024", "30/12/", "//2024")
+      // o formato completo, mantenerlo tal cual
+      if (/^(\d{0,2}\/?\d{0,2}\/?\d{0,4})$/.test(cleaned) && cleaned.length <= 10) {
+        setInputValue(cleaned);
+        
+        // Solo validar si está completo y bien formateado
+        if (cleaned.length === 10 && /^\d{2}\/\d{2}\/\d{4}$/.test(cleaned)) {
+          const parsedDate = parseDateFromInput(cleaned);
+          if (parsedDate && !isNaN(parsedDate.getTime())) {
+            setValue(parsedDate);
+            setValidationError("");
+          }
+        }
+        return;
+      }
+    }
+    
+    // Si está escribiendo números sin barras, autoformatear
+    const numbersOnly = newValue.replace(/\D/g, '');
+    
+    if (numbersOnly.length === 0) {
+      return;
+    }
+    
+    // Limitar a 8 dígitos máximo (ddMMaaaa)
+    const limitedNumbers = numbersOnly.substring(0, 8);
+    
+    // Formatear automáticamente con barras
+    let formatted = '';
+    
+    // Día (primeros 2 dígitos)
+    if (limitedNumbers.length >= 1) {
+      formatted = limitedNumbers.substring(0, Math.min(2, limitedNumbers.length));
+    }
+    
+    // Agregar barra después del día
+    if (limitedNumbers.length > 2) {
+      formatted = limitedNumbers.substring(0, 2) + '/' + limitedNumbers.substring(2, Math.min(4, limitedNumbers.length));
+    }
+    
+    // Agregar segunda barra después del mes
+    if (limitedNumbers.length > 4) {
+      formatted = limitedNumbers.substring(0, 2) + '/' + 
+                  limitedNumbers.substring(2, 4) + '/' + 
+                  limitedNumbers.substring(4, 8);
+    }
+    
+    setInputValue(formatted);
+    
+    // Validar si está completo (dd/MM/yyyy)
+    if (formatted.length === 10 && /^\d{2}\/\d{2}\/\d{4}$/.test(formatted)) {
+      const parsedDate = parseDateFromInput(formatted);
+      if (parsedDate && !isNaN(parsedDate.getTime())) {
+        setValue(parsedDate);
+        setValidationError("");
+      }
+    }
   };
 
   const handleInputBlur = () => {
@@ -292,18 +356,32 @@ function DatePickerField({
 
     if (!inputValue.trim()) {
       setValue(undefined);
+      setValidationError("");
+      return;
+    }
+
+    // Validar longitud
+    if (inputValue.length !== 10) {
+      setValidationError("La fecha debe tener formato completo (dd/mm/aaaa)");
       return;
     }
 
     const parsedDate = parseDateFromInput(inputValue);
-    if (parsedDate) {
+    if (parsedDate && !isNaN(parsedDate.getTime())) {
       setValue(parsedDate);
+      setValidationError("");
       // Formatear la fecha correctamente después de validar
       setInputValue(format(parsedDate, "dd/MM/yyyy"));
     } else {
-      // Si no es una fecha válida, mantener el input pero mostrar error
-      // El usuario puede seguir editando
-      console.log("Fecha inválida, manteniendo input para edición");
+      // Si no es una fecha válida, mostrar error específico
+      const parts = inputValue.split('/');
+      const year = parseInt(parts[2]);
+      
+      if (year < 1900 || year > 2100) {
+        setValidationError("El año debe estar entre 1900 y 2100");
+      } else {
+        setValidationError("Fecha inválida. Verifique día, mes y año.");
+      }
     }
   };
 
@@ -337,6 +415,7 @@ function DatePickerField({
   const clearInput = () => {
     setInputValue("");
     setValue(undefined);
+    setValidationError("");
     setTouched(true);
   };
 
@@ -377,13 +456,14 @@ function DatePickerField({
           <div className="flex gap-2">
             <Input
               type="text"
-              placeholder="Formato: dd/MM/yyyy"
+              placeholder="dd/mm/aaaa"
               value={inputValue}
               onChange={handleInputChange}
               onBlur={handleInputBlur}
               onKeyPress={handleInputKeyPress}
               disabled={busy || (showNotApplicable && value === null)}
               className={cn("flex-1", isInvalid && "border-destructive")}
+              maxLength={10}
             />
             {inputValue && (
               <Button
@@ -487,7 +567,12 @@ function DatePickerField({
       </div>
 
       {description ? <FormDescription>{description}</FormDescription> : null}
-      {displayError && (
+      {validationError && (
+        <p className="text-sm font-medium text-destructive mt-1">
+          {validationError}
+        </p>
+      )}
+      {displayError && !validationError && (
         <p className="text-sm font-medium text-destructive mt-1">
           {displayError}
         </p>
@@ -1643,3 +1728,4 @@ export default function CreateComponentForm({
     </Form>
   );
 }
+
