@@ -77,7 +77,6 @@ export const useCreateSurveyAnswers = () => {
   const queryClient = useQueryClient();
   const createMutation = useMutation({
     mutationFn: async ({ answers, company }: surveyAnswerData) => {
-      console.log("FROM ACTION", answers);
       const response = await axiosInstance.post(
         `/${company}/sms/survey-answer`,
         answers
@@ -133,5 +132,44 @@ export const useDeleteSurvey = () => {
 
   return {
     deleteSurvey: deleteMutation,
+  };
+};
+
+interface SettingData {
+  id: string;
+  company?: string;
+  setting: string;
+}
+
+export const useUpdateSurveySetting = () => {
+  const queryClient = useQueryClient();
+
+  const updateSettingSurveyMutation = useMutation({
+    mutationFn: async ({ company, id, setting }: SettingData) => {
+      const response = await axiosInstance.patch(
+        `/${company}/sms/survey/${id}/${setting}`,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["surveys"] });
+      toast.success("¡Actualizada!", {
+        description: `La encuesta fue configurada`,
+      });
+    },
+    onError: (error) => {
+      toast.error("Oops!", {
+        description: "No se pudo configurar la encuesta...",
+      });
+      console.log(error);
+    },
+  });
+  return {
+    updateSurveySetting: updateSettingSurveyMutation,
   };
 };

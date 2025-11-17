@@ -1,39 +1,35 @@
 "use client";
-import { GuestContentLayout } from "@/components/layout/GuestContentLayout";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CustomCard } from "@/components/cards/CustomCard";
-import { MissionVision } from "@/components/misc/MissionVision";
-import Image from "next/image";
-import { StrategyCard } from "@/components/cards/StrategyCard";
-import {
-  Medal,
-  ReceiptText,
-  NotebookPen,
-  Settings,
-  Building2,
-  Handshake,
-  GitFork,
-  Gavel,
-  NotepadText,
-  Users,
-} from "lucide-react";
-import { useParams, useRouter } from "next/navigation";
-import { ImageGalleryDialog } from "@/components/dialogs/general/ImageGalleryDialog";
-import { Button } from "@/components/ui/button";
-import Link from "next/link";
-import { useState } from "react";
-import { SMSConceptsDialog } from "@/components/dialogs/aerolinea/sms/SMSConceptsDialog";
 import { PolicyCard } from "@/components/cards/PolicyCard";
-import FeaturesDialog from "@/components/dialogs/aerolinea/sms/FeaturedDialog";
+import { StrategyCard } from "@/components/cards/StrategyCard";
 import ActionPlanDialog from "@/components/dialogs/aerolinea/sms/ActionPlanDialog";
+import FeaturesDialog from "@/components/dialogs/aerolinea/sms/FeaturedDialog";
+import { SMSConceptsDialog } from "@/components/dialogs/aerolinea/sms/SMSConceptsDialog";
+import { ImageGalleryDialog } from "@/components/dialogs/general/ImageGalleryDialog";
+import { GuestContentLayout } from "@/components/layout/GuestContentLayout";
+import { MissionVision } from "@/components/misc/MissionVision";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useGetSurveySettingNumbers } from "@/hooks/sms/survey/useGetSurveySettingNumbers";
+import {
+  Building2,
+  Gavel,
+  GitFork,
+  Handshake,
+  NotepadText,
+  Users
+} from "lucide-react";
+import Image from "next/image";
+import { useParams, useRouter } from "next/navigation";
+import { useState } from "react";
 
 const SMSPage = () => {
   const params = useParams();
   const company = params.company as string;
   const router = useRouter();
   const [isConceptOpen, setIsConceptOpen] = useState(false);
-
+  const { data: surveyNumbers } = useGetSurveySettingNumbers(company);
   // TODAS LAS VARIABLES DEBERIAN SER DINAMICAS PARA QUE EL USUARIO DE MANTENIMIENTO O MODIFIQUE LO QUE QUIERA QUE SEA VEA EN EL SMS PUBLIC PAGE
   const emergencyActionSteps = [
     {
@@ -268,7 +264,7 @@ const SMSPage = () => {
                     className="border-l-4 border-l-blue-500 pl-4 cursor-pointer flex flex-col"
                     onClick={() =>
                       router.push(
-                        `/acceso_publico/${company}/sms/encuesta/TRI-2025-003`
+                        `/acceso_publico/${company}/sms/encuesta/${surveyNumbers?.OMA_QUIZ}`
                       )
                     }
                   >
@@ -313,7 +309,7 @@ const SMSPage = () => {
                     className="border-l-4 border-l-blue-500 pl-4 cursor-pointer flex flex-col"
                     onClick={() =>
                       router.push(
-                        `/acceso_publico/${company}/sms/encuesta/ENC-2025-001`
+                        `/acceso_publico/${company}/sms/encuesta/${surveyNumbers?.SMS_SURVEY}`
                       )
                     }
                   >
@@ -328,7 +324,7 @@ const SMSPage = () => {
                     className="border-l-4 border-l-blue-500 pl-4 cursor-pointer flex flex-col"
                     onClick={() =>
                       router.push(
-                        `/acceso_publico/${company}/sms/encuesta/TRI-2025-003`
+                        `/acceso_publico/${company}/sms/encuesta/${surveyNumbers?.SMS_QUIZ}`
                       )
                     }
                   >

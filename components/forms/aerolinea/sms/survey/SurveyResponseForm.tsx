@@ -1,6 +1,7 @@
 "use client";
 
 import { useCreateSurveyAnswers } from "@/actions/sms/survey/actions";
+import { QuizResults, QuizResultsDialog } from "@/components/dialogs/aerolinea/sms/QuizResultDialog";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -15,8 +16,8 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Textarea } from "@/components/ui/textarea";
 import { useGetSurveyByNumber } from "@/hooks/sms/survey/useGetSurveyByNumber";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2 } from "lucide-react";
-import { useParams } from "next/navigation";
+import { Loader2, CheckCircle2 } from "lucide-react";
+import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -100,6 +101,8 @@ function QuestionItem({
   const { type, text, is_required, options, id } = question;
 
   // Verificar si esta pregunta tiene error de validación
+  const router = useRouter();
+
   const formErrors = form.formState.errors.responses;
   const hasError =
     formErrors &&
@@ -214,7 +217,12 @@ export default function SurveyResponseForm() {
   const company = params.company as string;
   const surveyNumber = params.survey_number as string;
   const { createSurveyAnswers } = useCreateSurveyAnswers();
+  const router = useRouter();
 
+  const handleNewAttempt = () => {
+    router.refresh();
+  };  
+    
   const {
     data: survey,
     isLoading,
@@ -226,6 +234,9 @@ export default function SurveyResponseForm() {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [quizResults, setQuizResults] = useState<QuizResults | null>(null);
+  const [showResults, setShowResults] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
 
   // Crear esquema de validación basado en el survey
   const surveyResponseSchema = survey
@@ -246,7 +257,7 @@ export default function SurveyResponseForm() {
 
   // Inicializar formulario cuando survey esté listo
   useEffect(() => {
-    if (survey?.questions) {
+    if (survey?.questions && !isSubmitted) {
       const responses = survey.questions.map((question: any) => ({
         question_id: question.id,
         answer: question.type === "OPEN" ? { text: "" } : { option_ids: [] },
@@ -257,7 +268,7 @@ export default function SurveyResponseForm() {
         responses,
       });
     }
-  }, [survey, surveyNumber, form]);
+  }, [survey, surveyNumber, form, isSubmitted]);
 
   const onSubmit = async (data: SurveyResponseType) => {
     setIsSubmitting(true);
@@ -266,7 +277,6 @@ export default function SurveyResponseForm() {
     try {
       console.log("Respuestas:", data);
 
-      // FORMATO CORRECTO - survey_number y responses DENTRO de answers
       const formattedData = {
         company: company,
         answers: {
@@ -274,9 +284,19 @@ export default function SurveyResponseForm() {
           responses: data.responses,
         },
       };
-      await createSurveyAnswers.mutateAsync(formattedData);
 
-      console.log("Respuestas enviadas exitosamente");
+      const response = await createSurveyAnswers.mutateAsync(formattedData);
+      console.log("Respuestas enviadas exitosamente:", response);
+
+      // Verificar si es un QUIZ y mostrar resultados
+      if (response.survey_type === "QUIZ" && response.quiz_results) {
+        setQuizResults(response.quiz_results);
+        setShowResults(true);
+        setIsSubmitted(true);
+      } else {
+        // Para encuestas normales, también marcar como enviado
+        setIsSubmitted(true);
+      }
     } catch (error: any) {
       console.error("Error al enviar respuestas:", error);
       setSubmitError(
@@ -313,6 +333,68 @@ export default function SurveyResponseForm() {
     );
   }
 
+  // Mostrar mensaje de éxito si ya fue enviado (para encuestas normales)
+  if (isSubmitted && survey?.type !== "QUIZ") {
+    return (
+      <div className="max-w-2xl mx-auto p-6 text-center">
+        <div className="bg-green-50 border border-green-200 rounded-lg p-6">
+          <CheckCircle2 className="h-12 w-12 text-green-600 mx-auto mb-4" />
+          <h2 className="text-xl font-bold text-green-800 mb-2">
+            ¡Encuesta Completada!
+          </h2>
+          <p className="text-green-700">
+            Gracias por participar en nuestra encuesta.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // Mostrar solo resultados si es QUIZ y ya fue enviado
+  if (isSubmitted && survey?.type === "QUIZ") {
+    
+    return (
+      <div className="max-w-2xl mx-auto p-4 space-y-6">
+        {/* Diálogo de resultados del QUIZ */}
+        {quizResults && (
+          <QuizResultsDialog
+            results={quizResults}
+            open={showResults}
+            onOpenChange={setShowResults}
+          />
+        )}
+
+        {/* Mensaje de éxito mientras se muestran los resultados */}
+        <div className="text-center p-6 bg-green-50 border border-green-200 rounded-lg">
+          <CheckCircle2 className="h-12 w-12 text-green-600 mx-auto mb-4" />
+          <h2 className="text-xl font-bold text-green-800 mb-2">
+            ¡Quiz Completado!
+          </h2>
+          <p className="text-green-700 mb-4">
+            Revisa tus resultados en el diálogo de arriba.
+          </p>
+          <div className="flex flex-row sm:flex-col items-center justify-center gap-2">
+            <Button
+              onClick={() => setShowResults(true)}
+              variant="outline"
+              className="border-green-600 text-green-700 hover:bg-green-100"
+            >
+              Ver Resultados
+            </Button>
+            <Button
+              onClick={handleNewAttempt}
+              variant="outline"
+              className="border-green-600 text-green-700 hover:bg-green-100"
+            >
+              Nuevo Intento
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Renderizar el formulario normal si no ha sido enviado
   const requiredQuestions = survey.questions.filter((q: any) => q.is_required);
   const requiredCount = requiredQuestions.length;
 
