@@ -17,7 +17,9 @@ export function GuestNavbar({ title }: GuestNavbarProps) {
       <div className="mx-4 sm:mx-8 flex h-14 items-center justify-center">
         <div className="flex flex-1 items-center space-x-4 lg:space-x-0">
           <GuestSheetMenu />
-          <h1 className="font-bold">{title}</h1>
+          <h1 className="font-bold text-xs sm:text-sm md:text-base lg:text-lg xl:text-xl">
+            {title}
+          </h1>
         </div>
         {/* <CompanySelect /> */}
         <div className="flex flex-1 items-center space-x-2 justify-end">
