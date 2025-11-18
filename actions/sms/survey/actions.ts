@@ -36,6 +36,7 @@ interface SurveyResponse {
 interface surveyAnswerData {
   company: string;
   answers: {
+    email?: string;
     survey_number: string;
     responses: SurveyResponse[];
   };

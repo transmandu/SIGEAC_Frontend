@@ -34,6 +34,8 @@ import {
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
+type SettingType = "OMA_QUIZ" | "SMS_QUIZ" | "SMS_SURVEY";
+
 const SurveySettingDropdownActions = ({
   surveyData,
 }: {
@@ -43,21 +45,57 @@ const SurveySettingDropdownActions = ({
   const [open, setOpen] = useState(false);
   const [openQR, setOpenQR] = useState(false);
   const { updateSurveySetting } = useUpdateSurveySetting();
-  const [QuizOMA, setQuizOMA] = useState(false);
+  const [configDialog, setConfigDialog] = useState(false);
+  const [currentSetting, setCurrentSetting] = useState<SettingType | null>(
+    null
+  );
 
-  const [SMSQuiz, setSMSQuiz] = useState(false);
-  const [surveySMS, setSurveySMS] = useState(false);
   const router = useRouter();
 
-  const handleSMSQuiz = async () => {
+  const handleUpdate = async () => {
+    if (!currentSetting) return;
+
     const value = {
       company: selectedCompany?.slug,
       id: surveyData.id,
-      setting: "SMS_QUIZ",
+      setting: currentSetting,
     };
+
     await updateSurveySetting.mutateAsync(value);
-    setSMSQuiz(false);
+    setConfigDialog(false);
+    setCurrentSetting(null);
   };
+
+  const openConfigDialog = (setting: SettingType) => {
+    setCurrentSetting(setting);
+    setConfigDialog(true);
+  };
+
+  const getDialogConfig = (setting: SettingType | null) => {
+    if (!setting) return { title: "", description: "" };
+
+    const configs = {
+      OMA_QUIZ: {
+        title: "¿Configurar como Trivia OMA?",
+        description:
+          "Esta acción configurará esta trivia para ser respondida en la plataforma OMA y removerá la configuración de cualquier otra trivia que esté usando OMA.",
+      },
+      SMS_QUIZ: {
+        title: "¿Configurar como Trivia SMS?",
+        description:
+          "Esta acción configurará esta trivia para ser respondida via SMS y removerá la configuración de cualquier otra trivia que esté usando SMS.",
+      },
+      SMS_SURVEY: {
+        title: "¿Configurar como Encuesta SMS?",
+        description:
+          "Esta acción configurará esta encuesta para ser respondida via SMS y removerá la configuración de cualquier otra encuesta que esté usando SMS.",
+      },
+    };
+
+    return configs[setting];
+  };
+
+  const dialogConfig = getDialogConfig(currentSetting);
 
   return (
     <>
@@ -86,24 +124,25 @@ const SurveySettingDropdownActions = ({
               <p className="pl-2">Ver</p>
             </DropdownMenuItem>
 
+            {/* Trivia OMA - Solo para QUIZ sin setting */}
             {surveyData.type === "QUIZ" && surveyData.setting === null && (
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={() => openConfigDialog("OMA_QUIZ")}>
                 <Hammer className="size-5" />
                 <p className="pl-2">Trivia OMA</p>
               </DropdownMenuItem>
             )}
 
+            {/* Trivia SMS - Solo para QUIZ sin setting */}
             {surveyData.type === "QUIZ" && surveyData.setting === null && (
-              <DropdownMenuItem
-                onClick={() => setSMSQuiz(true)} // Solo abre el dialog de confirmación
-              >
+              <DropdownMenuItem onClick={() => openConfigDialog("SMS_QUIZ")}>
                 <NotebookPen className="size-5" />
                 <p className="pl-2">Trivia SMS</p>
               </DropdownMenuItem>
             )}
 
+            {/* Encuesta SMS - Solo para SURVEY sin setting */}
             {surveyData.type === "SURVEY" && surveyData.setting === null && (
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={() => openConfigDialog("SMS_SURVEY")}>
                 <NotebookPen className="size-5" />
                 <p className="pl-2">Encuesta SMS</p>
               </DropdownMenuItem>
@@ -141,30 +180,31 @@ const SurveySettingDropdownActions = ({
           </DialogContent>
         </Dialog>
 
-        {/* Dialog de confirmación para SMS Quiz */}
-        <Dialog open={SMSQuiz} onOpenChange={setSMSQuiz}>
+        {/* Dialog de confirmación único y reutilizable */}
+        <Dialog open={configDialog} onOpenChange={setConfigDialog}>
           <DialogContent>
             <DialogHeader>
               <DialogTitle className="text-center">
-                ¿Seguro que desea configurar como Trivia SMS?
+                {dialogConfig.title}
               </DialogTitle>
               <DialogDescription className="text-center p-2 mb-0 pb-0">
-                Esta acción configurará esta trivia para ser respondida via SMS
-                y removerá la configuración de cualquier otra trivia que esté
-                usando SMS.
+                {dialogConfig.description}
               </DialogDescription>
             </DialogHeader>
             <DialogFooter className="flex flex-col-reverse gap-2 md:gap-0">
               <Button
                 className="bg-rose-400 hover:bg-white hover:text-black hover:border hover:border-black"
-                onClick={() => setSMSQuiz(false)}
+                onClick={() => {
+                  setConfigDialog(false);
+                  setCurrentSetting(null);
+                }}
               >
                 Cancelar
               </Button>
               <Button
                 disabled={updateSurveySetting.isPending}
                 className="hover:bg-white hover:text-black hover:border hover:border-black transition-all"
-                onClick={handleSMSQuiz}
+                onClick={handleUpdate}
               >
                 {updateSurveySetting.isPending ? (
                   <Loader2 className="size-4 animate-spin" />
