@@ -64,16 +64,16 @@ const SurveyDropdownActions = ({ surveyData }: { surveyData: Survey }) => {
               </DropdownMenuItem>
             </DialogTrigger>
 
-            {/* Opción Ver */}
+            {/* Resultados de encuesta  */}
             <DropdownMenuItem
               onClick={() => {
                 router.push(
-                  `/${selectedCompany?.slug}/sms/gestion_encuestas/${surveyData.survey_number}`
+                  `/${selectedCompany?.slug}/sms/gestion_encuestas/${surveyData.survey_number}/resultados`
                 );
               }}
             >
               <EyeIcon className="size-5" />
-              <p className="pl-2">Ver</p>
+              <p className="pl-2">Resultados</p>
             </DropdownMenuItem>
 
             {/* Opción QR */}

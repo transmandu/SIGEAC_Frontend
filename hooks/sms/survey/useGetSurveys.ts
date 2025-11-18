@@ -1,6 +1,6 @@
 import axiosInstance from "@/lib/axios";
 import { useCompanyStore } from "@/stores/CompanyStore";
-import { Survey, VoluntaryReport } from "@/types";
+import { Survey } from "@/types";
 import { useQuery } from "@tanstack/react-query";
 
 const fetchSurveys = async (

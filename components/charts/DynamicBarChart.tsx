@@ -87,7 +87,6 @@ const DynamicBarChart = ({
   const handleBarClick = (entry: pieChartData) => {
     const name = entry.name;
     setClickedBarName(name);
-    console.log(name); // Imprimir en consola
   };
 
   return (

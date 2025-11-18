@@ -56,6 +56,6 @@ export const useGetSurveyByNumber = ({
     queryKey: ["survey-by-number", company, survey_number],
     queryFn: () => fetchSurveyByNumber({ survey_number, company }),
     staleTime: 1000 * 60 * 5, // 5 minutos
-    enabled: !!company || !!survey_number,
+    enabled: !!company && !!survey_number,
   });
 };

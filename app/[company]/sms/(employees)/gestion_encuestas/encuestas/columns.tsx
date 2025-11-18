@@ -11,6 +11,8 @@ import { ObligatoryReport, Survey } from "@/types";
 import { format, parse } from "date-fns";
 import { dateFormat, timeFormat } from "@/lib/utils";
 import SurveyDropdownActions from "@/components/dropdowns/aerolinea/sms/survey/surveyDropDownActions";
+import { useCompanyStore } from "@/stores/CompanyStore";
+import { useParams } from "next/navigation";
 
 export const columns: ColumnDef<Survey>[] = [
   // {
@@ -46,8 +48,16 @@ export const columns: ColumnDef<Survey>[] = [
     ),
     meta: { title: "Numero de Encuesta" },
     cell: ({ row }) => {
+      const { selectedCompany } = useCompanyStore();
       return (
-        <div className="flex justify-center">{row.original.survey_number}</div>
+        <div className="flex justify-center">
+          <a
+            href={`/${selectedCompany?.slug}/sms/gestion_encuestas/${row.original.survey_number}`}
+            className="font-bold text-black hover:scale-105 hover:no-underline transition-colors duration-200"
+          >
+            {row.original.survey_number}
+          </a>
+        </div>
       );
     },
   },

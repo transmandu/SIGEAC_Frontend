@@ -9,6 +9,7 @@ import { useQuery } from "@tanstack/react-query";
 
 // Tipo para la respuesta del hook useGetSurvey
 export type SurveyResponse = SurveyNumbers;
+
 const fetchSurveySettingNumbers = async (
   company: string) => {
   const { data } = await axiosInstance.get(
