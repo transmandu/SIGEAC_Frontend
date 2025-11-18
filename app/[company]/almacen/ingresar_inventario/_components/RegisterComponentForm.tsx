@@ -267,126 +267,120 @@ function DatePickerField({
     return new Date(year, month - 1, day);
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    let newValue = e.target.value;
-    const cursorPosition = e.target.selectionStart || 0;
-    
-    // Limpiar error de validación al escribir
-    if (validationError) {
-      setValidationError("");
-    }
-    
-    // Permitir borrar todo
-    if (newValue === "") {
-      setInputValue("");
-      setValue(undefined);
-      return;
-    }
-    
-    // Si el valor ya tiene formato con barras, permitir edición directa
-    // Esto permite borrar partes individuales sin reformatear
-    if (newValue.includes('/')) {
-      // Solo permitir números y barras
-      const cleaned = newValue.replace(/[^\d\/]/g, '');
-      if (cleaned !== newValue) {
-        return; // Rechazar caracteres inválidos
-      }
-      
-      // Si tiene formato parcial válido (ej: "30//2024", "30/12/", "//2024")
-      // o formato completo, mantenerlo tal cual
-      if (/^(\d{0,2}\/?\d{0,2}\/?\d{0,4})$/.test(cleaned) && cleaned.length <= 10) {
-        setInputValue(cleaned);
-        
-        // Solo validar si está completo y bien formateado
-        if (cleaned.length === 10 && /^\d{2}\/\d{2}\/\d{4}$/.test(cleaned)) {
-          const parsedDate = parseDateFromInput(cleaned);
-          if (parsedDate && !isNaN(parsedDate.getTime())) {
-            setValue(parsedDate);
-            setValidationError("");
-          }
-        }
-        return;
-      }
-    }
-    
-    // Si está escribiendo números sin barras, autoformatear
-    const numbersOnly = newValue.replace(/\D/g, '');
-    
-    if (numbersOnly.length === 0) {
-      return;
-    }
-    
-    // Limitar a 8 dígitos máximo (ddMMaaaa)
-    const limitedNumbers = numbersOnly.substring(0, 8);
-    
-    // Formatear automáticamente con barras
-    let formatted = '';
-    
-    // Día (primeros 2 dígitos)
-    if (limitedNumbers.length >= 1) {
-      formatted = limitedNumbers.substring(0, Math.min(2, limitedNumbers.length));
-    }
-    
-    // Agregar barra después del día
-    if (limitedNumbers.length > 2) {
-      formatted = limitedNumbers.substring(0, 2) + '/' + limitedNumbers.substring(2, Math.min(4, limitedNumbers.length));
-    }
-    
-    // Agregar segunda barra después del mes
-    if (limitedNumbers.length > 4) {
-      formatted = limitedNumbers.substring(0, 2) + '/' + 
-                  limitedNumbers.substring(2, 4) + '/' + 
-                  limitedNumbers.substring(4, 8);
-    }
-    
-    setInputValue(formatted);
-    
-    // Validar si está completo (dd/MM/yyyy)
-    if (formatted.length === 10 && /^\d{2}\/\d{2}\/\d{4}$/.test(formatted)) {
-      const parsedDate = parseDateFromInput(formatted);
-      if (parsedDate && !isNaN(parsedDate.getTime())) {
-        setValue(parsedDate);
-        setValidationError("");
-      }
-    }
-  };
+const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  let newValue = e.target.value;
 
-  const handleInputBlur = () => {
-    setTouched(true);
+  // Limpiar error al escribir
+  if (validationError) {
+    setValidationError("");
+  }
 
-    if (!inputValue.trim()) {
-      setValue(undefined);
-      setValidationError("");
-      return;
-    }
+  // Permitir borrar todo
+  if (newValue === "") {
+    setInputValue("");
+    setValue(undefined);
+    return;
+  }
 
-    // Validar longitud
-    if (inputValue.length !== 10) {
-      setValidationError("La fecha debe tener formato completo (dd/mm/aaaa)");
-      return;
-    }
+  // --- NORMALIZAR: siempre trabajar a partir sólo de los dígitos que hay en el input ---
+  // Esto hace que el formato sea determinista aunque el usuario escriba "/" manualmente o pegue texto.
+  const digits = newValue.replace(/\D/g, "").slice(0, 8); // máximo ddMMyyyy
 
-    const parsedDate = parseDateFromInput(inputValue);
+  // Construir el formato de forma consistente:
+  // - 1..2 dígitos -> "d" o "dd"
+  // - 3 dígitos -> "dd/m"
+  // - 4 dígitos -> "dd/mm"
+  // - 5+ dígitos -> "dd/mm/yyyy..." (hasta 8 dígitos)
+  let formatted = "";
+  if (digits.length <= 2) {
+    formatted = digits;
+  } else if (digits.length <= 4) {
+    // dd + "/" + remaining (1 o 2 dígitos del mes)
+    formatted = digits.slice(0, 2) + "/" + digits.slice(2);
+  } else {
+    // dd + "/" + mm + "/" + yyyy-partial
+    formatted =
+      digits.slice(0, 2) +
+      "/" +
+      digits.slice(2, 4) +
+      "/" +
+      digits.slice(4); // slice(4) puede ser 1..4 dígitos del año
+  }
+
+  setInputValue(formatted);
+
+  // Validar si está completo (dd/MM/yyyy)
+  if (formatted.length === 10 && /^\d{2}\/\d{2}\/\d{4}$/.test(formatted)) {
+    const parsedDate = parseDateFromInput(formatted);
     if (parsedDate && !isNaN(parsedDate.getTime())) {
       setValue(parsedDate);
       setValidationError("");
-      // Formatear la fecha correctamente después de validar
+    } else {
+      setValue(undefined); // completo pero inválido (ej: 30/02/2024)
+    }
+  } else {
+    setValue(undefined); // parcial
+  }
+};
+
+
+
+  const handleInputBlur = () => {
+    setTouched(true);
+    setValidationError(""); // Limpiar error antes de procesar
+
+    if (!inputValue.trim()) {
+      setValue(undefined);
+      return;
+    }
+
+    let inputToValidate = inputValue;
+
+    // Normalizar si el formato es parcial pero incluye barras (ej: 1/1/2024)
+    const parts = inputValue.split('/');
+    if (parts.length === 3) {
+      const day = parts[0].padStart(2, '0');
+      const month = parts[1].padStart(2, '0');
+      const year = parts[2].padStart(4, '0');
+      // Solo normalizar si el año tiene 4 dígitos (para evitar 1/1/24)
+      if (year.length === 4) {
+          inputToValidate = `${day}/${month}/${year}`;
+      }
+    }
+    
+    // Validar longitud y formato (debe ser dd/mm/aaaa)
+    if (inputToValidate.length !== 10 || !/^\d{2}\/\d{2}\/\d{4}$/.test(inputToValidate)) {
+      // Si el formato es incorrecto o incompleto, aplicamos la fecha por defecto
+      const defaultDate = new Date(2001, 0, 1); // 01/01/2001
+      setValue(defaultDate);
+      setInputValue(format(defaultDate, "dd/MM/yyyy"));
+      return;
+    }
+
+    const parsedDate = parseDateFromInput(inputToValidate);
+    
+    if (parsedDate && !isNaN(parsedDate.getTime())) {
+      // Caso 1: Fecha válida (ej. 10/10/2024)
+      setValue(parsedDate);
+      // Formatear el input a la versión estándar (ej: 01/01/2024)
       setInputValue(format(parsedDate, "dd/MM/yyyy"));
     } else {
-      // Si no es una fecha válida, mostrar error específico
-      const parts = inputValue.split('/');
-      const year = parseInt(parts[2]);
+      // Caso 2: Fecha con valores inválidos o fuera de rango (ej. 10/00/2210)
       
-      if (year < 1900 || year > 2100) {
-        setValidationError("El año debe estar entre 1900 y 2100");
-      } else {
-        setValidationError("Fecha inválida. Verifique día, mes y año.");
-      }
+      // Aplicar la fecha por defecto: 01/01/2001
+      const defaultDate = new Date(2001, 0, 1); // 01/01/2001
+      
+      setValue(defaultDate);
+      setInputValue(format(defaultDate, "dd/MM/yyyy"));
+      
+      // Si quieres mostrar un mensaje informativo ANTES de sobrescribir, 
+      // podrías hacerlo con un toast o una lógica de error diferente.
+      // Aquí estamos CUMPLIENDO con la instrucción de reemplazar el valor, no dar un error.
     }
   };
 
   const handleInputKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    // Permitir que el usuario presione Enter para confirmar
+    // Permitir que el usuario presione Enter para confirmar (trigger handleInputBlur)
     if (e.key === "Enter") {
       handleInputBlur();
     }
