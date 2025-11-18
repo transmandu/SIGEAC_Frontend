@@ -3,6 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
+import Image from "next/image";
 
 interface CustomCardProps {
   imageUrl?: string;
@@ -47,11 +48,13 @@ export function CustomCard({
         {/* Imagen */}
         {imageUrl && (
           <div className="mb-4 flex justify-center">
-            <img
+            <Image
               src={imageUrl}
               alt={imageAlt}
+              width={300} // Necesitas especificar width
+              height={200} // Necesitas especificar height
               className={cn(
-                "w-full h-auto max-h-48 object-cover rounded-lg",
+                "w-full h-auto max-h-48 object-contain rounded-lg",
                 imageClassName
               )}
             />

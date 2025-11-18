@@ -24,7 +24,8 @@ export const emergencyPlans: EmergencyPlan[] = [
   {
     //PRIMERA CARTA
     cardData: {
-      imageUrl: "/plane1.jpg",
+      imageUrl:
+        "https://ccvnd3lo965z.share.zrok.io/storage/sms/images/fire-extinguisher.png",
       imageAlt: "Conato de incendio en hangar con aeronave en servicio",
       title: "EMERGENCIA",
       description:
@@ -118,7 +119,8 @@ export const emergencyPlans: EmergencyPlan[] = [
   // SEGUNDA CARTA
   {
     cardData: {
-      imageUrl: "/plane1.jpg",
+      imageUrl:
+        "https://ccvnd3lo965z.share.zrok.io/storage/sms/images/airplane_fire.png",
       imageAlt: "Incendio no controlado en hangar con aeronave en servicio",
       title: "EMERGENCIA",
       description:
@@ -221,7 +223,8 @@ export const emergencyPlans: EmergencyPlan[] = [
   //TERCERA CARTA
   {
     cardData: {
-      imageUrl: "/plane1.jpg",
+      imageUrl:
+        "https://ccvnd3lo965z.share.zrok.io/storage/sms/images/fire_controled.png",
       imageAlt: "Conato de incendio en las edificaciones",
       title: "EMERGENCIA",
       description:
@@ -306,7 +309,8 @@ export const emergencyPlans: EmergencyPlan[] = [
 
   {
     cardData: {
-      imageUrl: "/plane1.jpg",
+      imageUrl:
+        "https://ccvnd3lo965z.share.zrok.io/storage/sms/images/burning-building.png",
       imageAlt: "Incendio no controlado en las edificaciones",
       title: "EMERGENCIA",
       description:
@@ -407,7 +411,8 @@ export const emergencyPlans: EmergencyPlan[] = [
   //QUINTA CARTA
   {
     cardData: {
-      imageUrl: "/plane1.jpg",
+      imageUrl:
+        "https://ccvnd3lo965z.share.zrok.io/storage/sms/images/fire_tools.png",
       imageAlt:
         "Conato de incendio en servicios de mantenimiento OMA adicionales",
       title: "EMERGENCIA",
@@ -501,7 +506,7 @@ export const emergencyPlans: EmergencyPlan[] = [
   //SEXTA CARTA
   {
     cardData: {
-      imageUrl: "/plane1.jpg",
+      imageUrl: "/collapse_by_fire.png",
       imageAlt:
         "Incendio no controlado en servicios de mantenimiento OMA adicionales",
       title: "EMERGENCIA",
@@ -628,7 +633,7 @@ export const policyImages = [
 
 export const SMSresponsibilities = [
   {
-    image: "/LOGO.png",
+    image: "https://ccvnd3lo965z.share.zrok.io/storage/sms/images/LOGO.png",
     title: "Responsabilidades SMS Dueños de Proceso",
     items: [
       "Mitigar los Riesgos",
@@ -638,7 +643,7 @@ export const SMSresponsibilities = [
     ],
   },
   {
-    image: "/LOGO.png",
+    image: "https://ccvnd3lo965z.share.zrok.io/storage/sms/images/LOGO.png",
     title: "Responsabilidades SMS Resto del Personal",
     items: [
       "Identificar Peligros",
@@ -647,7 +652,7 @@ export const SMSresponsibilities = [
       "Contar con los Conocimientos de las Politicas",
     ],
   },
-] 
+]; 
 
 export const smsConcepts = [
   {

@@ -124,13 +124,13 @@ const SurveySettingDropdownActions = ({
               <p className="pl-2">Ver</p>
             </DropdownMenuItem>
 
-            {/* Trivia OMA - Solo para QUIZ sin setting */}
-            {surveyData.type === "QUIZ" && surveyData.setting === null && (
+            {/* Trivia OMA - Solo para QUIZ sin setting  ESTO ES  SOLO PARA LA OMAC*/}
+            {/* {surveyData.type === "QUIZ" && surveyData.setting === null && (
               <DropdownMenuItem onClick={() => openConfigDialog("OMA_QUIZ")}>
                 <Hammer className="size-5" />
                 <p className="pl-2">Trivia OMA</p>
               </DropdownMenuItem>
-            )}
+            )} */}
 
             {/* Trivia SMS - Solo para QUIZ sin setting */}
             {surveyData.type === "QUIZ" && surveyData.setting === null && (

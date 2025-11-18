@@ -583,14 +583,14 @@ export function getMenuList(
                 pathname ===
                 `/${currentCompany?.slug}/sms/planificacion/capacitacion_personal`,
             },
-            {
-              href: `/${currentCompany?.slug}/sms/planificacion/boletines`,
-              label: "Boletines",
-              roles: ["SUPERUSER", "JEFE_SMS", "ANALISTA_SMS"],
-              active:
-                pathname ===
-                `/${currentCompany?.slug}/sms/planificacion/boletines`,
-            },
+            // {
+            //   href: `/${currentCompany?.slug}/sms/planificacion/boletines`,
+            //   label: "Boletines",
+            //   roles: ["SUPERUSER", "JEFE_SMS", "ANALISTA_SMS"],
+            //   active:
+            //     pathname ===
+            //     `/${currentCompany?.slug}/sms/planificacion/boletines`,
+            // },
           ],
         },
         {

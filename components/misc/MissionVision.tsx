@@ -27,11 +27,11 @@ export function MissionVision({
             className="text-sm text-justify
  text-muted-foreground leading-relaxed"
           >
-            Brindar servicios técnicos de mantenimiento aeronáutico de manera
-            eficaz y eficiente, con la garantía de un personal altamente
-            capacitado y calificado, apegado a las regulaciones aeronáuticas
-            nacionales, normas técnicas internacionales y un sistema de gestión
-            de la calidad que satisfaga a nuestros clientes.
+            Proveer servicios de transporte aéreo de alta calidad, garantizando
+            la seguridad, puntualidad y excelencia operativa; ofreciendo
+            experiencias de transporte responsable en el Estado Bolívar, con
+            proyección nacional e internacional, contribuyendo al desarrollo
+            económico y sostenible de la nación.
           </p>
         </CardContent>
       </Card>
@@ -48,9 +48,11 @@ export function MissionVision({
             className="text-sm text-justify
  text-muted-foreground leading-relaxed"
           >
-            Convertirnos en una Organización de Mantenimiento Aeronáutico
-            multidisciplinaria que sea reconocida por la calidad de sus
-            servicios prestados.
+            Constituirse como la empresa líder en la prestación de servicios de
+            transporte aéreo del estado Bolívar, con presencia nacional e
+            internacional, siendo reconocidos como un referente de calidad y
+            contribución al crecimiento y desarrollo económico del país,
+            garantizando servicios de excelencia e innovación operativa.
           </p>
         </CardContent>
       </Card>

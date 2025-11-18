@@ -1,3 +1,4 @@
+import Image from "next/image";
 import React from "react";
 
 interface FeatureCardProps {
@@ -11,7 +12,7 @@ const FeatureCard: React.FC<FeatureCardProps> = ({ image, title, items }) => {
     <div className="bg-white rounded-lg shadow-md p-6 flex flex-col h-full">
       {/* Imagen */}
       <div className="mb-4 flex justify-center">
-        <img
+        <Image
           src={image}
           alt={title}
           className="w-20 h-20 object-cover rounded-lg"

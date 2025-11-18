@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/dialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+import Image from "next/image";
 
 interface FeatureCard {
   image: string;
@@ -83,9 +84,11 @@ export default function FeaturesDialog({
               >
                 <CardHeader className="pb-3">
                   <div className="flex justify-center mb-2">
-                    <img
+                    <Image
                       src={feature.image}
                       alt={feature.title}
+                      width={600}
+                      height={400}
                       className="w-16 h-16 object-cover rounded-lg"
                     />
                   </div>

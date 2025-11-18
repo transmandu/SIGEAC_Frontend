@@ -95,11 +95,11 @@ export const columns: ColumnDef<ResponsesBySurvey>[] = [
       <DataTableColumnHeader filter column={column} title="Usuario" />
     ),
     cell: ({ row }) => {
-      const { selectedCompany } = useCompanyStore();
+      //const { selectedCompany } = useCompanyStore();
       return (
         <div className="flex justify-center">
           <a
-            href={`/${selectedCompany?.slug}/sms/gestion_encuestas/${row.original.survey_number}/resultados/${row.original.email}`}
+            href={`/transmandu/sms/gestion_encuestas/${row.original.survey_number}/resultados/${row.original.email}`}
             className="font-bold text-black hover:scale-105 hover:no-underline transition-colors duration-200 cursor-pointer"
           >
             {row.original.email}

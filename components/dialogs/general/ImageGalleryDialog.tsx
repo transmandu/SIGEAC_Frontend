@@ -5,6 +5,7 @@ import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import { cn } from "@/lib/utils";
+import Image from "next/image";
 
 interface ImageGalleryDialogProps {
   images: {
@@ -100,7 +101,7 @@ export function ImageGalleryDialog({
         {/* Current image - Contenedor principal */}
         <div className="w-full h-full flex items-center justify-center p-2 sm:p-3 md:p-4">
           <div className="relative w-full h-full max-w-full max-h-full flex items-center justify-center">
-            <img
+            <Image
               src={images[currentIndex].src}
               alt={images[currentIndex].alt}
               className="max-w-[calc(100%-2rem)] max-h-[calc(100%-2rem)] object-contain"

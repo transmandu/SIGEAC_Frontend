@@ -48,11 +48,11 @@ export const columns: ColumnDef<Survey>[] = [
     ),
     meta: { title: "Numero de Encuesta" },
     cell: ({ row }) => {
-      const { selectedCompany } = useCompanyStore();
+      //const { selectedCompany } = useCompanyStore();
       return (
         <div className="flex justify-center">
           <a
-            href={`/${selectedCompany?.slug}/sms/gestion_encuestas/${row.original.survey_number}`}
+            href={`/transmandu/sms/gestion_encuestas/${row.original.survey_number}`}
             className="font-bold text-black hover:scale-105 hover:no-underline transition-colors duration-200"
           >
             {row.original.survey_number}

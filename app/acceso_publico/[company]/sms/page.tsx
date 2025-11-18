@@ -12,14 +12,20 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useGetSurveySettingNumbers } from "@/hooks/sms/survey/useGetSurveySettingNumbers";
-import { emergencyPlans, policyImages, smsConcepts } from "@/lib/contants/sms-data";
+import {
+  emergencyPlans,
+  policyImages,
+  smsConcepts,
+} from "@/lib/contants/sms-data";
 import {
   Building2,
   Gavel,
   GitFork,
   Handshake,
   NotepadText,
-  Users
+  Users,
+  FileText,
+  Shield,
 } from "lucide-react";
 import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
@@ -31,51 +37,15 @@ const SMSPage = () => {
   const router = useRouter();
   const [isConceptOpen, setIsConceptOpen] = useState(false);
   const { data: surveyNumbers } = useGetSurveySettingNumbers(company);
-  // TODAS LAS VARIABLES DEBERIAN SER DINAMICAS PARA QUE EL USUARIO DE MANTENIMIENTO O MODIFIQUE LO QUE QUIERA QUE SEA VEA EN EL SMS PUBLIC PAGE
 
-  
-  const emergencyActionSteps = [
-    {
-      title: "Activación del Protocolo de Emergencia",
-      items: [
-        "Activar la alarma de incendio inmediatamente",
-        "Notificar al jefe de bomberos del aeropuerto",
-        "Comunicar la situación al control de tráfico aéreo",
-        "Iniciar evacuación del área afectada",
-      ],
-    },
-    {
-      title: "Control y Extinción del Incendio",
-      items: [
-        "Utilizar extintores tipo ABC para incendios eléctricos",
-        "Aplicar espuma antiincendios para combustibles",
-        "Establecer perímetro de seguridad de 50 metros",
-        "Coordinar con brigada de bomberos externa",
-      ],
-    },
-    {
-      title: "Protección de la Aeronave",
-      items: [
-        "Desconectar sistemas eléctricos de la aeronave",
-        "Remover combustible cercano si es posible",
-        "Cubrir motores y áreas críticas con mantas ignífugas",
-        "Preparar equipo de remolque para evacuación",
-      ],
-    },
-    {
-      title: "Evaluación Post-Emergencia",
-      items: [
-        "Realizar inspección completa de daños",
-        "Documentar todo el incidente para reportes",
-        "Coordinar con mantenimiento para evaluaciones",
-        "Actualizar protocolos basado en lecciones aprendidas",
-      ],
-    },
-  ];
+  // Elimina estas variables locales ya que ahora las importas desde constants
+  // const emergencyActionSteps = [ ... ];
+  // const SMSresponsibilities = [ ... ];
 
   const SMSresponsibilities = [
     {
-      image: "/LOGO.png",
+      image:
+        "https://ccvnd3lo965z.share.zrok.io/storage/sms/images/risk_icon.png",
       title: "Responsabilidades SMS Dueños de Proceso",
       items: [
         "Mitigar los Riesgos",
@@ -85,7 +55,8 @@ const SMSPage = () => {
       ],
     },
     {
-      image: "/LOGO.png",
+      image:
+        "https://ccvnd3lo965z.share.zrok.io/storage/sms/images/caution.png",
       title: "Responsabilidades SMS Resto del Personal",
       items: [
         "Identificar Peligros",
@@ -99,6 +70,95 @@ const SMSPage = () => {
   return (
     <GuestContentLayout title="Seguridad Operacional SMS">
       <div className="flex flex-col justify-center items-center w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* CARTA DE PRESENTACIÓN CON IMAGEN Y BOTONES */}
+        <div className="w-full mb-8">
+          <Card className="overflow-hidden border-0 shadow-lg">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Imagen */}
+              <div className="relative h-64 lg:h-full min-h-[300px]">
+                <Image
+                  src="https://ccvnd3lo965z.share.zrok.io/storage/sms/images/LOGO_TMD.png" // o la imagen que prefieras
+                  alt="Sistema de Gestión de Seguridad - ESTELAR TECHNIK"
+                  fill
+                  className="object-cover"
+                  priority
+                />
+                <div className="absolute inset-0 bg-gradient-to-r from-blue-900/70 to-transparent lg:bg-gradient-to-r lg:from-blue-900/70 lg:to-transparent" />
+                <div className="absolute bottom-4 left-4 lg:bottom-8 lg:left-8 text-white">
+                  <h1 className="text-2xl lg:text-3xl font-bold mb-2">
+                    Sistema de Gestión de Seguridad
+                  </h1>
+                  <p className="text-sm lg:text-base opacity-90 max-w-md">
+                    Comprometidos con la excelencia operacional y la seguridad
+                    de nuestros procesos
+                  </p>
+                </div>
+              </div>
+
+              {/* Contenido y botones */}
+              <div className="p-6 lg:p-8 flex flex-col justify-center">
+                <div className="space-y-4 mb-6">
+                  <h2 className="text-xl lg:text-2xl font-semibold text-gray-800">
+                    Bienvenido al Portal SMS
+                  </h2>
+                  <p className="text-gray-600 text-sm lg:text-base">
+                    Este sistema está diseñado para mantener los más altos
+                    estándares de seguridad operacional en todas nuestras
+                    actividades. Explora nuestras políticas, procedimientos y
+                    recursos disponibles.
+                  </p>
+                </div>
+
+                <div className="flex flex-col sm:flex-row gap-4">
+                  <Button
+                    onClick={() =>
+                      router.push(
+                        `https://sigeac-one.vercel.app/acceso_publico/${company}/sms/crear_reporte/voluntario`
+                      )
+                    }
+                    className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white transition-all duration-300"
+                  >
+                    <FileText className="w-4 h-4" />
+                    Reporte Voluntario
+                  </Button>
+
+                  <Button
+                    onClick={() =>
+                      router.push(
+                        `https://sigeac-one.vercel.app/acceso_publico/${company}/sms/crear_reporte/obligatorio`
+                      )
+                    }
+                    variant="outline"
+                    className="flex items-center gap-2 border-blue-600 text-blue-600 hover:bg-blue-50 transition-all duration-300"
+                  >
+                    <Shield className="w-4 h-4" />
+                    Reporte Obligatorio
+                  </Button>
+                </div>
+
+                {/* Información adicional */}
+                <div className="mt-6 pt-6 border-t border-gray-200">
+                  <div className="grid grid-cols-2 gap-4 text-center">
+                    <div>
+                      <div className="text-2xl font-bold text-blue-600">6</div>
+                      <div className="text-xs text-gray-500">
+                        Planes de Emergencia
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-2xl font-bold text-blue-600">4</div>
+                      <div className="text-xs text-gray-500">
+                        Áreas de Estrategia
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </Card>
+        </div>
+
+        {/* TABS (el contenido existente) */}
         <Tabs defaultValue="politicas" className="w-full">
           <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 gap-1 sm:gap-2">
             <TabsTrigger
@@ -217,7 +277,7 @@ const SMSPage = () => {
                 <div className="pt-4 border-t transition-all duration-1000 ease-out opacity-0 animate-fade-in delay-300">
                   <div className="flex justify-center">
                     <Image
-                      src="/estelar_sms.png"
+                      src="https://ccvnd3lo965z.share.zrok.io/storage/sms/images/sms_airplane_page.jpg"
                       alt="Nuestra empresa - instalaciones y equipo"
                       width={600}
                       height={400}
@@ -238,23 +298,7 @@ const SMSPage = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3 sm:space-y-4 text-sm sm:text-base">
-                {/* Agrega items-stretch aquí */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-stretch transition-all duration-900 ease-out opacity-0 animate-fade-in delay-200">
-                  <div
-                    className="border-l-4 border-l-blue-500 pl-4 cursor-pointer flex flex-col"
-                    onClick={() =>
-                      router.push(
-                        `/acceso_publico/${company}/sms/encuesta/${surveyNumbers?.OMA_QUIZ}`
-                      )
-                    }
-                  >
-                    <StrategyCard
-                      title="Trivia OMA"
-                      description="Pon a prueba tus conocimientos en materia de Mantenimiento Aeronáutico."
-                      className="hover:scale-105 h-full"
-                    />
-                  </div>
-
                   <div
                     className="border-l-4 border-l-blue-500 pl-4 flex flex-col cursor-pointer"
                     onClick={() => setIsConceptOpen(true)}
@@ -266,7 +310,6 @@ const SMSPage = () => {
                     />
                   </div>
 
-                  {/* Diálogo Fuera del div clickeable */}
                   <SMSConceptsDialog
                     concepts={smsConcepts}
                     title="Glosario de Términos SMS"
@@ -346,31 +389,26 @@ const SMSPage = () => {
               </CardHeader>
               <CardContent className="space-y-3 sm:space-y-4 text-sm sm:text-base">
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 items-stretch">
-                  {emergencyPlans.map(
-                    (
-                      plan,
-                      index // Quita el tipado : EmergencyPlan ya que TypeScript lo infiere
-                    ) => (
-                      <div
-                        key={index}
-                        className={`transition-all duration-500 ease-out opacity-0 animate-fade-in delay-${250 + index * 50}`}
+                  {emergencyPlans.map((plan, index) => (
+                    <div
+                      key={index}
+                      className={`transition-all duration-500 ease-out opacity-0 animate-fade-in delay-${250 + index * 50}`}
+                    >
+                      <ActionPlanDialog
+                        title={`Plan de Acción - ${plan.cardData.description.split(" ").slice(0, 3).join(" ")}`}
+                        actionSteps={plan.actionSteps}
                       >
-                        <ActionPlanDialog
-                          title={`Plan de Acción - ${plan.cardData.description.split(" ").slice(0, 3).join(" ")}`}
-                          actionSteps={plan.actionSteps}
-                        >
-                          <CustomCard
-                            imageUrl={plan.cardData.imageUrl}
-                            imageAlt={plan.cardData.imageAlt}
-                            title={plan.cardData.title}
-                            description={plan.cardData.description}
-                            actionLink={plan.cardData.actionLink}
-                            className="h-full w-full"
-                          />
-                        </ActionPlanDialog>
-                      </div>
-                    )
-                  )}
+                        <CustomCard
+                          imageUrl={plan.cardData.imageUrl}
+                          imageAlt={plan.cardData.imageAlt}
+                          title={plan.cardData.title}
+                          description={plan.cardData.description}
+                          actionLink={plan.cardData.actionLink}
+                          className="h-full w-full"
+                        />
+                      </ActionPlanDialog>
+                    </div>
+                  ))}
                 </div>
               </CardContent>
             </Card>

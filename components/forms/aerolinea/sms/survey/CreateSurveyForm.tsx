@@ -624,7 +624,7 @@ export function CreateSurveyForm({ onClose }: FormProps) {
       console.log("Form errors:", form.formState.errors);
     });
     return () => subscription.unsubscribe();
-  }, [form.watch, form.formState.errors]);
+  }, [form.watch, form.formState.errors, form]);
 
   return (
     <Form {...form}>
