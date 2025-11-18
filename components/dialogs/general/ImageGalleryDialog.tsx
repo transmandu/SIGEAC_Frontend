@@ -104,6 +104,8 @@ export function ImageGalleryDialog({
             <Image
               src={images[currentIndex].src}
               alt={images[currentIndex].alt}
+              width={800} // Agregar width
+              height={600} // Agregar height
               className="max-w-[calc(100%-2rem)] max-h-[calc(100%-2rem)] object-contain"
             />
           </div>

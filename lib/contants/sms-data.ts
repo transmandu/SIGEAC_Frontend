@@ -1,3 +1,5 @@
+import { BookCheck, Building2, Gavel, GitFork, Handshake, NotepadText, RefreshCcw, SearchCheck, ShieldCheck, Siren, Trophy, Users } from "lucide-react";
+
 export interface ActionStep {
   title: string;
   role: string;
@@ -625,11 +627,73 @@ export const emergencyPlans: EmergencyPlan[] = [
 ];
 
 
+export const policyCardsData = [
+  {
+    icon: Building2,
+    description:
+      "Ejecutar la implementación del Sistema De Gestión De Seguridad Operacional (SMS) de manera no punitiva.",
+  },
+  {
+    icon: Handshake,
+    description:
+      "Mejorar continuamente los niveles de Gestión De Seguridad Operacional.",
+  },
+  {
+    icon: SearchCheck,
+    description:
+      " Identificar continuamente los peligros y gestionar los riesgos.",
+  },
+  {
+    icon: ShieldCheck,
+    description:
+      "Corregir las fallas encontradas, en función de mantener la Seguridad Operacional en el nivel acordado.",
+  },
+  {
+    icon: Trophy,
+    description:
+      "Incentivar a su personal para que reporten los problemas de la Seguridad Operacional.",
+  },
+  {
+    icon: BookCheck,
+    description:
+      "Comprender los principios en que se base el SMS, apoyando con recursos humanos, materiales y financieros que faciliten el desarrollo del proceso y la puesta en práctica de las políticas de Seguridad Operacional.",
+  },
+
+  {
+    icon: Siren,
+    description:
+      "Mantener una cultura de Seguridad Operacional positiva y justa",
+  },
+
+  {
+    icon: Gavel,
+    description:
+      "No ejercer acciones punitivas a quien reporte eventos de Seguridad Operacional, o peligros existentes, que den cuenta de condiciones latentes que atenten a la empresa y retroalimentar a quien reporta.",
+  },
+
+  {
+    icon: RefreshCcw,
+    description:
+      "Asegurarse que las políticas de Seguridad Operacional sean revisadas constantemente, actualizadas y apoyen el cumplimiento del plan de implementación de SMS",
+  },
+
+  {
+    icon: Users,
+    description:
+      " Incentivar la cultura de reportar al personal de la empresa sobre los problemas de Seguridad Operacional brindándoles los mecanismos necesarios para ello y garantizar que no se tomen medidas disciplinarias a aquellos que lo realicen.",
+  },
+];
+
 export const policyImages = [
-  { src: "/politica_1.jpg", alt: "Política 1" },
-  { src: "/politica_2.jpg", alt: "Política 2" },
-  { src: "/politica_3.jpg", alt: "Política 3" },
-]
+  {
+    src: "https://ccvnd3lo965z.share.zrok.io/storage/sms/images/politica_1.png",
+    alt: "Política 1",
+  },
+  {
+    src: "https://ccvnd3lo965z.share.zrok.io/storage/sms/images/politica_2.png",
+    alt: "Política 2",
+  },
+];
 
 export const SMSresponsibilities = [
   {
@@ -691,4 +755,5 @@ export default {
   policyImages,
   SMSresponsibilities,
   smsConcepts,
+  policyCardsData,
 };

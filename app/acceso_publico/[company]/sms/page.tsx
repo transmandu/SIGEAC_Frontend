@@ -14,18 +14,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useGetSurveySettingNumbers } from "@/hooks/sms/survey/useGetSurveySettingNumbers";
 import {
   emergencyPlans,
+  policyCardsData,
   policyImages,
   smsConcepts,
 } from "@/lib/contants/sms-data";
 import {
-  Building2,
-  Gavel,
-  GitFork,
-  Handshake,
-  NotepadText,
-  Users,
   FileText,
-  Shield,
+  Shield
 } from "lucide-react";
 import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
@@ -207,55 +202,21 @@ const SMSPage = () => {
               </CardHeader>
               <CardContent className="space-y-3 sm:space-y-4 text-sm sm:text-base">
                 <div className="flex justify-center items-center"></div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-stretch">
-                  <div className="transition-all duration-500 ease-out opacity-0 animate-fade-in delay-100 h-full">
-                    <PolicyCard
-                      icon={Building2}
-                      title=""
-                      description="La Organización se compromete a no aplicar acciones punitivas"
-                      className="h-full"
-                    />
-                  </div>
-                  <div className="transition-all duration-500 ease-out opacity-0 animate-fade-in delay-150 h-full">
-                    <PolicyCard
-                      icon={Handshake}
-                      title=""
-                      description="Apoyar la Gestión del SMS a traves de la asignación de recursos"
-                      className="h-full"
-                    />
-                  </div>
-                  <div className="transition-all duration-500 ease-out opacity-0 animate-fade-in delay-200 h-full">
-                    <PolicyCard
-                      icon={GitFork}
-                      title=""
-                      description="Diseñar Procesos & Sistemas para la Identificación de Peligros & Gestión de Riesgos"
-                      className="h-full"
-                    />
-                  </div>
-                  <div className="transition-all duration-500 ease-out opacity-0 animate-fade-in delay-250 h-full">
-                    <PolicyCard
-                      icon={Gavel}
-                      title=""
-                      description="Cumplir con las Normas Nacionales e Internacionales aplicables a nuestros servicios"
-                      className="h-full"
-                    />
-                  </div>
-                  <div className="transition-all duration-500 ease-out opacity-0 animate-fade-in delay-300 h-full">
-                    <PolicyCard
-                      icon={NotepadText}
-                      title=""
-                      description="Definir las líneas de responsabilidades para el personal en materia SMS"
-                      className="h-full"
-                    />
-                  </div>
-                  <div className="transition-all duration-500 ease-out opacity-0 animate-fade-in delay-350 h-full">
-                    <PolicyCard
-                      icon={Users}
-                      title=""
-                      description="Capacitar a todos los empleados en materia de Seguridad Operacional"
-                      className="h-full"
-                    />
-                  </div>
+                {/* Aplicar la animación al contenedor grid */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-stretch transition-all duration-500 ease-out opacity-0 animate-fade-in">
+                  {policyCardsData.map((policy, index) => (
+                    <div
+                      key={index}
+                      className="h-full" // Solo mantener h-full aquí
+                    >
+                      <PolicyCard
+                        icon={policy.icon}
+                        title=""
+                        description={policy.description}
+                        className="h-full"
+                      />
+                    </div>
+                  ))}
                 </div>
               </CardContent>
             </Card>
