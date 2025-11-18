@@ -1100,3 +1100,49 @@ export type FlightHistory = {
   created_at: string;
   updated_at: string;
 };
+export interface WarehouseDashboard {
+  storedCount: number
+  dispatchCount: number
+  dispatchAircraftCount: number
+  dispatchWorkshopCount: number
+  tool_need_calibration_count: number
+  returnToolsCount: number
+  restockCount: number
+  tools_need_calibration: {
+    tool_id: number
+    batch_name: string
+    article_id: number
+    part_number: string
+    next_calibration: string
+    status: string
+  }[]
+  toolsToReturn: any[]
+  articlesOutOfStock: {
+    id: number
+    description: string
+    part_number: string
+    serial: string | null
+    category: string
+    condition: string
+    zone: string
+  }[]
+  expired_tools_count: number
+  expired_tools: {
+    tool_id: number
+    article_id: number
+    batch_name: string
+    part_number: string
+    next_calibration: string
+    status: string
+  }[]
+  userStats: {
+    id: number
+    username: string
+    name: string
+    job_title: string
+    dispatch_count: number
+    incoming_count: number
+    last_used_at: string
+  }[]
+}
+

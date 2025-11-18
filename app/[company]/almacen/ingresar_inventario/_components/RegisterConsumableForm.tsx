@@ -90,6 +90,7 @@ import { useCompanyStore } from "@/stores/CompanyStore";
 import { Convertion } from "@/types";
 import { useQueryClient } from "@tanstack/react-query";
 import { EditingArticle } from "./RegisterArticleForm";
+import PreviewCreateConsumableDialog from "@/components/dialogs/mantenimiento/almacen/PreviewCreateConsumableDialog";
 
 /* ------------------------------- Schema ------------------------------- */
 
@@ -149,7 +150,6 @@ const formSchema = z.object({
 
 export type FormValues = z.infer<typeof formSchema>;
 
-/* ----------------------------- Interfaces ----------------------------- */
 
 interface UnitSelection {
   conversion_id: number;
@@ -1289,7 +1289,18 @@ export default function CreateConsumableForm({
     return [...foundBatches, ...otherBatches];
   }, [batches, searchResults]);
 
+  const [openPreview, setOpenPreview] = useState(false);
+  const [previewData, setPreviewData] = useState<FormValues | null>(null);
+
   async function onSubmit(values: FormValues) {
+    const rawValues = form.getValues();
+
+    setPreviewData(rawValues);
+    setOpenPreview(true);
+  }
+
+
+  async function submitToBackend(values: FormValues) {
     if (!selectedCompany?.slug) return;
 
     const { caducate_date: _, ...valuesWithoutCaducateDate } = values;
@@ -2245,9 +2256,7 @@ export default function CreateConsumableForm({
                   alt="Cargando..."
                 />
               ) : (
-                <span>
-                  {isEditing ? "Confirmar ingreso" : "Crear artículo"}
-                </span>
+                <span>{isEditing ? "Confirmar ingreso" : "Crear artículo"}</span>
               )}
             </Button>
 
@@ -2260,6 +2269,17 @@ export default function CreateConsumableForm({
           </div>
         </form>
       </Form>
+
+      <PreviewCreateConsumableDialog
+        open={openPreview}
+        onClose={() => setOpenPreview(false)}
+        values={previewData} // puede ser null antes de abrir
+        onConfirm={(vals) => {
+          setOpenPreview(false);
+          submitToBackend(vals as unknown as FormValues); // aquí va tu función que maneja el submit real
+        }}
+      />
+
 
       {/* Modal de Configuración de Conversiones */}
       <UnitsModal

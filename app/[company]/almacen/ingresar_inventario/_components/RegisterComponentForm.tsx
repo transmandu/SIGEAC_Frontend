@@ -81,6 +81,7 @@ import { EditingArticle } from "./RegisterArticleForm";
 import { CreateManufacturerDialog } from "@/components/dialogs/general/CreateManufacturerDialog";
 import { CreateBatchDialog } from "@/components/dialogs/mantenimiento/almacen/CreateBatchDialog";
 import { MultiSerialInput } from "./MultiSerialInput";
+import PreviewCreateComponentDialog from "@/components/dialogs/mantenimiento/almacen/PreviewCreateComponentDialog";
 
 /* ------------------------------- Schema ------------------------------- */
 
@@ -159,6 +160,13 @@ const formSchema = z
   });
 
 export type FormValues = z.infer<typeof formSchema>;
+
+interface PreviewValues extends FormValues {
+  batch_name?: string;
+  condition_name?: string;
+  manufacturer_name?: string;
+  serial: string[]; // aseguramos que siempre sea array para el preview
+}
 
 /* ----------------------------- Componente ----------------------------- */
 
@@ -707,8 +715,39 @@ export default function CreateComponentForm({
 
     return [...foundBatches, ...otherBatches];
   }, [batches, searchResults]);
+  
+  const [openPreview, setOpenPreview] = useState(false);
+  const [previewData, setPreviewData] = useState<PreviewValues | null>(null);
 
   async function onSubmit(values: FormValues) {
+    const rawValues = form.getValues();
+
+    const previewVals: PreviewValues = {
+      ...rawValues,
+      fabrication_date: fabricationDate
+        ? format(fabricationDate, "yyyy-MM-dd")
+        : "No aplica", // o "" si quieres
+      caducate_date: caducateDate
+        ? format(caducateDate, "yyyy-MM-dd")
+        : "No aplica",
+      batch_name: batchNameById.get(rawValues.batch_id) || rawValues.batch_name || "—",
+      condition_name:
+        conditions?.find(c => c.id.toString() === rawValues.condition_id)?.name || "—",
+      manufacturer_name:
+        manufacturers?.find(m => m.id.toString() === rawValues.manufacturer_id)?.name ||
+        "—",
+      serial: Array.isArray(rawValues.serial)
+        ? rawValues.serial
+        : rawValues.serial
+        ? [rawValues.serial]
+        : [],
+    };
+
+    setPreviewData(previewVals);
+    setOpenPreview(true);
+  }
+
+  async function submitToBackend(values: FormValues) {
     if (!selectedCompany?.slug) return;
 
     // Validar que el campo de fecha de caducidad esté completado (debe tener fecha o estar marcado como N/A)
@@ -1640,6 +1679,16 @@ export default function CreateComponentForm({
           )}
         </div>
       </form>
+      <PreviewCreateComponentDialog
+        open={openPreview}
+        onClose={() => setOpenPreview(false)}
+        values={previewData} // puede ser null antes de abrir
+        onConfirm={(vals) => {
+          setOpenPreview(false);
+          submitToBackend(vals as unknown as FormValues);
+        }}
+      />
+
     </Form>
   );
 }
