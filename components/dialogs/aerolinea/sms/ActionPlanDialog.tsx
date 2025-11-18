@@ -11,6 +11,7 @@ import { Card, CardContent } from "@/components/ui/card";
 
 interface ActionStep {
   title: string;
+  role: string;
   items: string[];
 }
 
@@ -58,7 +59,9 @@ export default function ActionPlanDialog({
                       <h3 className="text-lg font-semibold text-gray-900 mb-3">
                         {step.title}
                       </h3>
-
+                      <span className="inline-block bg-blue-100 text-blue-800 text-xs px-3 py-1 rounded-full whitespace-nowrap ml-2">
+                        {step.role}
+                      </span>
                       <ol className="space-y-2">
                         {step.items.map((item, itemIndex) => (
                           <li

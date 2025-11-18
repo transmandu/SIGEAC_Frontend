@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useGetSurveySettingNumbers } from "@/hooks/sms/survey/useGetSurveySettingNumbers";
+import { emergencyPlans, policyImages, smsConcepts } from "@/lib/contants/sms-data";
 import {
   Building2,
   Gavel,
@@ -31,6 +32,8 @@ const SMSPage = () => {
   const [isConceptOpen, setIsConceptOpen] = useState(false);
   const { data: surveyNumbers } = useGetSurveySettingNumbers(company);
   // TODAS LAS VARIABLES DEBERIAN SER DINAMICAS PARA QUE EL USUARIO DE MANTENIMIENTO O MODIFIQUE LO QUE QUIERA QUE SEA VEA EN EL SMS PUBLIC PAGE
+
+  
   const emergencyActionSteps = [
     {
       title: "Activación del Protocolo de Emergencia",
@@ -70,12 +73,6 @@ const SMSPage = () => {
     },
   ];
 
-  const policyImages = [
-    { src: "/politica_1.jpg", alt: "Política 1" },
-    { src: "/politica_2.jpg", alt: "Política 2" },
-    { src: "/politica_3.jpg", alt: "Política 3" },
-  ];
-
   const SMSresponsibilities = [
     {
       image: "/LOGO.png",
@@ -99,23 +96,6 @@ const SMSPage = () => {
     },
   ];
 
-  const smsConcepts = [
-    {
-      title: "Gestión de Riesgos",
-      concept:
-        "Proceso de identificación, análisis y evaluación de riesgos, seguido de la aplicación coordinada y económica de recursos para minimizar, monitorear y controlar la probabilidad o impacto de eventos desafortunados.",
-    },
-    {
-      title: "Cultura de Seguridad",
-      concept:
-        "Conjunto de valores, actitudes y comportamientos relacionados con la seguridad que son compartidos por todos los miembros de una organización.",
-    },
-    {
-      title: "Reporte de Seguridad",
-      concept:
-        "Documento que describe un evento, condición o situación que afecta o podría afectar la seguridad de las operaciones.",
-    },
-  ];
   return (
     <GuestContentLayout title="Seguridad Operacional SMS">
       <div className="flex flex-col justify-center items-center w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -365,53 +345,32 @@ const SMSPage = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3 sm:space-y-4 text-sm sm:text-base">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 lg:grid-cols-3">
-                  <div className="transition-all duration-500 ease-out opacity-0 animate-fade-in delay-250">
-                    <ActionPlanDialog
-                      title="Plan de Acción - Emergencia por Incendio"
-                      actionSteps={emergencyActionSteps}
-                    >
-                      <CustomCard
-                        imageUrl="/plane1.jpg"
-                        imageAlt="Descripción de la imagen"
-                        title="EMERGENCIA"
-                        description="Incendio controlado con aeronave en servicio, en las instalaciones de la OMA principal de ESTELAR TECHNIK."
-                        actionLink={{
-                          href: "#",
-                          label: "Ver acción",
-                        }}
-                        className="h-full"
-                      />
-                    </ActionPlanDialog>
-                  </div>
-                  <div className="transition-all duration-500 ease-out opacity-0 animate-fade-in delay-300">
-                    <CustomCard
-                      imageUrl="/plane1.jpg"
-                      imageAlt="Descripción de la imagen"
-                      title="EMERGENCIA"
-                      description="Incendio no controlado con aeronave en servicio, en las instalaciones de la OMA principal de ESTELAR TECHNIK
-
-"
-                      actionLink={{
-                        href: "/detalles",
-                        label: "Ver acción",
-                      }}
-                      className="h-full"
-                    />
-                  </div>
-                  <div className="transition-all duration-500 ease-out opacity-0 animate-fade-in delay-350">
-                    <CustomCard
-                      imageUrl="/plane1.jpg"
-                      imageAlt="Descripción de la imagen"
-                      title="EMERGENCIA"
-                      description="Capacitar a todos los empleados en materia de Seguridad Operacional"
-                      actionLink={{
-                        href: "/detalles",
-                        label: "Ver acción",
-                      }}
-                      className="h-full"
-                    />
-                  </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 items-stretch">
+                  {emergencyPlans.map(
+                    (
+                      plan,
+                      index // Quita el tipado : EmergencyPlan ya que TypeScript lo infiere
+                    ) => (
+                      <div
+                        key={index}
+                        className={`transition-all duration-500 ease-out opacity-0 animate-fade-in delay-${250 + index * 50}`}
+                      >
+                        <ActionPlanDialog
+                          title={`Plan de Acción - ${plan.cardData.description.split(" ").slice(0, 3).join(" ")}`}
+                          actionSteps={plan.actionSteps}
+                        >
+                          <CustomCard
+                            imageUrl={plan.cardData.imageUrl}
+                            imageAlt={plan.cardData.imageAlt}
+                            title={plan.cardData.title}
+                            description={plan.cardData.description}
+                            actionLink={plan.cardData.actionLink}
+                            className="h-full w-full"
+                          />
+                        </ActionPlanDialog>
+                      </div>
+                    )
+                  )}
                 </div>
               </CardContent>
             </Card>
