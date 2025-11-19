@@ -9,7 +9,7 @@ import { useMutation, UseMutationResult, useQuery, useQueryClient } from '@tanst
 import { useRouter } from 'next/navigation';
 import { createContext, ReactNode, useContext, useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
-
+import { AxiosError } from "axios";
 interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
@@ -22,6 +22,11 @@ interface AuthContextType {
     unknown
   >;
   logout: () => Promise<void>;
+}
+
+interface ApiErrorResponse {
+  message: string;
+  error?: string;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -101,8 +106,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         position: "bottom-center"
       });
     },
-    onError: (err) => {
-      const errorMessage = err.message || 'Credenciales incorrectas';
+    onError: (err: Error) => {
+      const axiosError = err as AxiosError<ApiErrorResponse>;
+      const errorMessage = axiosError.response?.data?.message || 'Error al iniciar sesión';
+      
       setError(errorMessage);
       toast.error('Error al iniciar sesión', {
         description: errorMessage,
