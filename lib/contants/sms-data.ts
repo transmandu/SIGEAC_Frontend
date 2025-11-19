@@ -508,7 +508,8 @@ export const emergencyPlans: EmergencyPlan[] = [
   //SEXTA CARTA
   {
     cardData: {
-      imageUrl: "/collapse_by_fire.png",
+      imageUrl:
+        "https://ccvnd3lo965z.share.zrok.io/storage/sms/images/collapse_by_fire.png",
       imageAlt:
         "Incendio no controlado en servicios de mantenimiento OMA adicionales",
       title: "EMERGENCIA",
