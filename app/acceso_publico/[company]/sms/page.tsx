@@ -356,7 +356,7 @@ const SMSPage = () => {
                       className={`transition-all duration-500 ease-out opacity-0 animate-fade-in delay-${250 + index * 50}`}
                     >
                       <ActionPlanDialog
-                        title={`Plan de Acción - ${plan.cardData.description.split(" ").slice(0, 3).join(" ")}`}
+                        title={`Plan de Acción - ${plan.cardData.description}`}
                         actionSteps={plan.actionSteps}
                       >
                         <CustomCard
