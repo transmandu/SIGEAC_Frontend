@@ -36,6 +36,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Card, CardContent } from "@/components/ui/card";
 
 interface FormProps {
   onClose: () => void;
@@ -317,205 +318,231 @@ function QuestionItem({
   ).length;
 
   return (
-    <div className="p-4 border rounded-lg space-y-4 bg-white">
-      <div className="flex justify-between items-center">
-        <div className="flex items-center space-x-2 flex-1">
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={() => setIsMinimized(!isMinimized)}
-            className="p-1 h-auto"
-          >
-            {isMinimized ? (
-              <ChevronDown className="h-4 w-4" />
-            ) : (
-              <ChevronUp className="h-4 w-4" />
-            )}
-          </Button>
-          <h4 className="font-medium truncate flex-1">
-            {displayText} {questionType === "OPEN" && "(Abierta)"}
-          </h4>
-        </div>
-        {fieldsLength > 1 && (
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={() => remove(questionIndex)}
-          >
-            <Trash2 className="h-4 w-4 text-red-500" />
-          </Button>
-        )}
-      </div>
-
-      {!isMinimized && (
-        <div className="space-y-4 pl-6">
-          <FormField
-            control={form.control}
-            name={`questions.${questionIndex}.text`}
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Pregunta</FormLabel>
-                <Input
-                  placeholder="Ej: ¿Qué tan satisfecho está con el servicio?"
-                  {...field}
-                />
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name={`questions.${questionIndex}.type`}
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Tipo de Pregunta</FormLabel>
-                <FormControl>
-                  <RadioGroup
-                    value={field.value}
-                    onValueChange={handleTypeChange}
-                    className="flex space-x-4"
-                  >
-                    <FormItem className="flex items-center space-x-2">
-                      <FormControl>
-                        <RadioGroupItem value="SINGLE" />
-                      </FormControl>
-                      <FormLabel className="font-normal">
-                        Selección Simple
-                      </FormLabel>
-                    </FormItem>
-                    <FormItem className="flex items-center space-x-2">
-                      <FormControl>
-                        <RadioGroupItem value="MULTIPLE" />
-                      </FormControl>
-                      <FormLabel className="font-normal">
-                        Selección Múltiple
-                      </FormLabel>
-                    </FormItem>
-                    <FormItem className="flex items-center space-x-2">
-                      <FormControl>
-                        <RadioGroupItem value="OPEN" />
-                      </FormControl>
-                      <FormLabel className="font-normal">
-                        Pregunta Abierta
-                      </FormLabel>
-                    </FormItem>
-                  </RadioGroup>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name={`questions.${questionIndex}.is_required`}
-            render={({ field }) => (
-              <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                <FormControl>
-                  <Checkbox
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                  />
-                </FormControl>
-                <div className="space-y-1 leading-none">
-                  <FormLabel>¿Esta pregunta es obligatoria?</FormLabel>
-                </div>
-              </FormItem>
-            )}
-          />
-
-          {questionType !== "OPEN" && (
-            <div className="space-y-3">
-              <div className="flex justify-between items-center">
-                <FormLabel>Opciones de Respuesta</FormLabel>
-                <span className="text-sm text-gray-500">
-                  {options.filter((opt: any) => opt.text.trim() !== "").length}{" "}
-                  de {options.length} completa
-                  {surveyType === "QUIZ" &&
-                    ` • ${correctOptionsCount} correcta(s)`}
-                </span>
-              </div>
-
-              {options.map((option: any, optionIndex: number) => (
-                <OptionInput
-                  key={optionIndex}
-                  questionIndex={questionIndex}
-                  optionIndex={optionIndex}
-                  form={form}
-                  onRemove={() => removeOption(questionIndex, optionIndex)}
-                  onAddOption={() => addOption(questionIndex)}
-                  isLastOption={optionIndex === options.length - 1}
-                  surveyType={surveyType}
-                  questionType={questionType}
-                  onCorrectOptionChange={(checked) => {
-                    if (questionType === "SINGLE") {
-                      handleSingleCorrectOption(questionIndex, optionIndex);
-                    } else {
-                      handleMultipleCorrectOption(
-                        questionIndex,
-                        optionIndex,
-                        checked
-                      );
-                    }
-                  }}
-                  isCorrect={option.is_correct}
-                />
-              ))}
-
-              {surveyType === "QUIZ" && questionType !== "OPEN" && (
-                <div className="flex items-center gap-2 text-xs p-2 rounded border">
-                  {questionType === "SINGLE" ? (
-                    <>
-                      <Circle className="h-3 w-3 text-blue-600" />
-                      <span className="text-blue-600">
-                        Debe tener exactamente 1 respuesta correcta
-                      </span>
-                      {correctOptionsCount !== 1 && (
-                        <span className="text-red-500 ml-auto">
-                          {correctOptionsCount === 0
-                            ? "Selecciona la respuesta correcta"
-                            : correctOptionsCount > 1
-                              ? "Solo puede haber una respuesta correcta"
-                              : ""}
-                        </span>
-                      )}
-                    </>
-                  ) : (
-                    <>
-                      <CheckSquare className="h-3 w-3 text-blue-600" />
-                      <span className="text-blue-600">
-                        Marca todas las opciones correctas
-                      </span>
-                      {(correctOptionsCount === 0 ||
-                        correctOptionsCount === options.length) && (
-                        <span className="text-red-500 ml-auto">
-                          {correctOptionsCount === 0
-                            ? "Debe haber al menos una correcta"
-                            : "Debe haber al menos una incorrecta"}
-                        </span>
-                      )}
-                    </>
-                  )}
-                </div>
-              )}
-
+    <Card className="overflow-hidden">
+      <CardContent className="p-0">
+        <div className="p-4 space-y-4">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center space-x-2 flex-1 min-w-0">
               <Button
                 type="button"
-                variant="outline"
+                variant="ghost"
                 size="sm"
-                onClick={() => addOption(questionIndex)}
+                onClick={() => setIsMinimized(!isMinimized)}
+                className="p-1 h-auto flex-shrink-0"
               >
-                <Plus className="h-4 w-4 mr-2" />
-                Agregar Opción
+                {isMinimized ? (
+                  <ChevronDown className="h-4 w-4" />
+                ) : (
+                  <ChevronUp className="h-4 w-4" />
+                )}
               </Button>
+              <h4 className="font-medium truncate flex-1 min-w-0">
+                {displayText} {questionType === "OPEN" && "(Abierta)"}
+              </h4>
+            </div>
+            {fieldsLength > 1 && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => remove(questionIndex)}
+                className="flex-shrink-0"
+              >
+                <Trash2 className="h-4 w-4 text-red-500" />
+              </Button>
+            )}
+          </div>
+
+          {!isMinimized && (
+            <div className="space-y-4 pl-6 overflow-hidden">
+              <FormField
+                control={form.control}
+                name={`questions.${questionIndex}.text`}
+                render={({ field }) => (
+                  <FormItem className="overflow-hidden">
+                    <FormLabel>Pregunta</FormLabel>
+                    <div className="overflow-hidden">
+                      <Input
+                        placeholder="Ej: ¿Qué tan satisfecho está con el servicio?"
+                        {...field}
+                        className="w-full"
+                      />
+                    </div>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name={`questions.${questionIndex}.type`}
+                render={({ field }) => (
+                  <FormItem className="overflow-hidden">
+                    <FormLabel>Tipo de Pregunta</FormLabel>
+                    <FormControl>
+                      <div className="flex flex-col items-start justify-center">
+                        <RadioGroup
+                          value={field.value}
+                          onValueChange={handleTypeChange}
+                          className="flex flex-col space-y-4 min-w-max"
+                        >
+                          <FormItem className="flex items-center space-x-2 flex-shrink-0">
+                            <FormControl>
+                              <RadioGroupItem value="SINGLE" />
+                            </FormControl>
+                            <FormLabel className="font-normal whitespace-nowrap">
+                              Selección Simple
+                            </FormLabel>
+                          </FormItem>
+                          <FormItem className="flex items-center space-x-2 flex-shrink-0">
+                            <FormControl>
+                              <RadioGroupItem value="MULTIPLE" />
+                            </FormControl>
+                            <FormLabel className="font-normal whitespace-nowrap">
+                              Selección Múltiple
+                            </FormLabel>
+                          </FormItem>
+                          <FormItem className="flex items-center space-x-2 flex-shrink-0">
+                            <FormControl>
+                              <RadioGroupItem value="OPEN" />
+                            </FormControl>
+                            <FormLabel className="font-normal whitespace-nowrap">
+                              Pregunta Abierta
+                            </FormLabel>
+                          </FormItem>
+                        </RadioGroup>
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name={`questions.${questionIndex}.is_required`}
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-start space-x-3 space-y-0 overflow-hidden">
+                    <FormControl>
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                    <div className="space-y-1 leading-none overflow-hidden">
+                      <FormLabel className="whitespace-nowrap">
+                        ¿Esta pregunta es obligatoria?
+                      </FormLabel>
+                    </div>
+                  </FormItem>
+                )}
+              />
+
+              {questionType !== "OPEN" && (
+                <div className="space-y-3 overflow-hidden">
+                  <div className="flex justify-between items-center overflow-hidden">
+                    <FormLabel className="whitespace-nowrap flex-shrink-0">
+                      Opciones de Respuesta
+                    </FormLabel>
+                    <span className="text-sm text-gray-500 whitespace-nowrap flex-shrink-0 ml-2">
+                      {
+                        options.filter((opt: any) => opt.text.trim() !== "")
+                          .length
+                      }{" "}
+                      de {options.length} completa
+                      {surveyType === "QUIZ" &&
+                        ` • ${correctOptionsCount} correcta(s)`}
+                    </span>
+                  </div>
+
+                  <div className="space-y-3 overflow-hidden">
+                    {options.map((option: any, optionIndex: number) => (
+                      <div key={optionIndex} className="overflow-hidden">
+                        <OptionInput
+                          questionIndex={questionIndex}
+                          optionIndex={optionIndex}
+                          form={form}
+                          onRemove={() =>
+                            removeOption(questionIndex, optionIndex)
+                          }
+                          onAddOption={() => addOption(questionIndex)}
+                          isLastOption={optionIndex === options.length - 1}
+                          surveyType={surveyType}
+                          questionType={questionType}
+                          onCorrectOptionChange={(checked) => {
+                            if (questionType === "SINGLE") {
+                              handleSingleCorrectOption(
+                                questionIndex,
+                                optionIndex
+                              );
+                            } else {
+                              handleMultipleCorrectOption(
+                                questionIndex,
+                                optionIndex,
+                                checked
+                              );
+                            }
+                          }}
+                          isCorrect={option.is_correct}
+                        />
+                      </div>
+                    ))}
+                  </div>
+
+                  {surveyType === "QUIZ" && questionType !== "OPEN" && (
+                    <div className="flex items-center gap-2 text-xs p-2 rounded border overflow-hidden">
+                      {questionType === "SINGLE" ? (
+                        <>
+                          <Circle className="h-3 w-3 text-blue-600 flex-shrink-0" />
+                          <span className="text-blue-600 whitespace-nowrap flex-shrink-0">
+                            Debe tener exactamente 1 respuesta correcta
+                          </span>
+                          {correctOptionsCount !== 1 && (
+                            <span className="text-red-500 ml-auto whitespace-nowrap flex-shrink-0">
+                              {correctOptionsCount === 0
+                                ? "Selecciona la respuesta correcta"
+                                : correctOptionsCount > 1
+                                  ? "Solo puede haber una respuesta correcta"
+                                  : ""}
+                            </span>
+                          )}
+                        </>
+                      ) : (
+                        <>
+                          <CheckSquare className="h-3 w-3 text-blue-600 flex-shrink-0" />
+                          <span className="text-blue-600 whitespace-nowrap flex-shrink-0">
+                            Marca todas las opciones correctas
+                          </span>
+                          {(correctOptionsCount === 0 ||
+                            correctOptionsCount === options.length) && (
+                            <span className="text-red-500 ml-auto whitespace-nowrap flex-shrink-0">
+                              {correctOptionsCount === 0
+                                ? "Debe haber al menos una correcta"
+                                : "Debe haber al menos una incorrecta"}
+                            </span>
+                          )}
+                        </>
+                      )}
+                    </div>
+                  )}
+
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => addOption(questionIndex)}
+                    className="w-full sm:w-auto"
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Agregar Opción
+                  </Button>
+                </div>
+              )}
             </div>
           )}
         </div>
-      )}
-    </div>
+      </CardContent>
+    </Card>
   );
 }
 
@@ -559,8 +586,6 @@ export function CreateSurveyForm({ onClose }: FormProps) {
   };
 
   const onSubmit = async (data: FormSchemaType) => {
-    console.log("Datos del formulario a enviar:", data);
-
     // Preparar los datos para enviar
     const formPayload = {
       title: data.title,
@@ -587,8 +612,7 @@ export function CreateSurveyForm({ onClose }: FormProps) {
       }),
     };
 
-    console.log("Payload final:", formPayload);
-
+  
     try {
       await createSurvey.mutateAsync(formPayload);
       form.reset();
@@ -620,8 +644,8 @@ export function CreateSurveyForm({ onClose }: FormProps) {
   // Agregar console.log para debug
   useEffect(() => {
     const subscription = form.watch((value, { name, type }) => {
-      console.log("Form values:", value);
-      console.log("Form errors:", form.formState.errors);
+      //console.log("Form values:", value);
+      //console.log("Form errors:", form.formState.errors);
     });
     return () => subscription.unsubscribe();
   }, [form.watch, form.formState.errors, form]);
@@ -707,15 +731,6 @@ export function CreateSurveyForm({ onClose }: FormProps) {
                   {surveyType === "QUIZ" ? "Trivia" : "Encuesta"}
                 </p>
               </div>
-              <Button
-                type="button"
-                onClick={addQuestion}
-                variant="outline"
-                size="sm"
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                Agregar Pregunta
-              </Button>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -731,6 +746,15 @@ export function CreateSurveyForm({ onClose }: FormProps) {
                 />
               ))}
             </div>
+            <Button
+              type="button"
+              onClick={addQuestion}
+              variant="outline"
+              size="sm"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Agregar Pregunta
+            </Button>
           </div>
         </div>
 
@@ -751,17 +775,6 @@ export function CreateSurveyForm({ onClose }: FormProps) {
             `Crear ${surveyType === "QUIZ" ? "Trivia" : "Encuesta"}`
           )}
         </Button>
-
-        {/* Debug info */}
-        <div className="text-xs text-gray-500 space-y-1">
-          <div>Estado: {form.formState.isValid ? "VÁLIDO" : "INVÁLIDO"}</div>
-          <div>
-            Errores:{" "}
-            {Object.keys(form.formState.errors).length > 0
-              ? JSON.stringify(form.formState.errors, null, 2)
-              : "Ninguno"}
-          </div>
-        </div>
       </form>
     </Form>
   );
