@@ -72,7 +72,7 @@ const FormSchema = z.object({
   root_cause_analysis: z
     .string()
     .min(3, { message: "El analisis causa raiz debe tener al menos 3 caracteres" })
-    .max(245, { message: "El analisis causa raiz no debe exceder los 245 caracteres" }),
+    .max(500, { message: "El analisis causa raiz no debe exceder los 500 caracteres" }),
   information_source_id: z.string(),
 });
 
