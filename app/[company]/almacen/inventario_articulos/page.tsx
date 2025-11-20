@@ -21,7 +21,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { FaFilePdf } from 'react-icons/fa';
 import { RiFileExcel2Fill } from 'react-icons/ri';
 import { toast } from 'sonner';
-import { flattenArticles, getColumnsByCategory, IArticleSimple } from './columns';
+import { flattenArticles, getColumnsByCategory, IArticleSimple, allCategoriesCols } from './columns';
 import { DataTable } from './data-table';
 import { useGetWarehouseArticlesByCategory } from '@/hooks/mantenimiento/almacen/articulos/useGetWarehouseArticlesByCategory';
 import { useInventoryExport } from '@/hooks/mantenimiento/almacen/reportes/useGetWarehouseReports';
@@ -29,11 +29,11 @@ import { useInventoryExport } from '@/hooks/mantenimiento/almacen/reportes/useGe
 const EXPORT_PDF_ENDPOINT = '/api/inventory/export/pdf';
 const EXPORT_XLSX_ENDPOINT = '/api/inventory/export/excel';
 
-type Category = 'COMPONENTE' | 'CONSUMIBLE' | 'HERRAMIENTA';
+type Category = 'all' | 'COMPONENTE' | 'CONSUMIBLE' | 'HERRAMIENTA';
 
 const InventarioArticulosPage = () => {
   const { selectedCompany } = useCompanyStore();
-  const [activeCategory, setActiveCategory] = useState<Category>('COMPONENTE');
+  const [activeCategory, setActiveCategory] = useState<Category>('all');
   const { exporting, exportPdf, exportExcel } = useInventoryExport();
   const [componentCondition, setComponentCondition] = useState<
     | 'all'
@@ -49,16 +49,60 @@ const InventarioArticulosPage = () => {
   const [consumableFilter, setConsumableFilter] = useState<'all' | 'QUIMICOS'>('all');
   const [partNumberSearch, setPartNumberSearch] = useState('');
 
-  // Fetch
-  const { data: articles, isLoading: isLoadingArticles } = useGetWarehouseArticlesByCategory(
+  // Fetch - Obtener datos de todas las categorías
+  const { data: componentArticles, isLoading: isLoadingComponents } = useGetWarehouseArticlesByCategory(
     1,
     1000,
-    activeCategory,
-    true,
+    'COMPONENTE',
+    activeCategory === 'all' || activeCategory === 'COMPONENTE',
   );
 
-  const common = {
-    category: activeCategory,
+  const { data: consumableArticles, isLoading: isLoadingConsumables } = useGetWarehouseArticlesByCategory(
+    1,
+    1000,
+    'CONSUMIBLE',
+    activeCategory === 'all' || activeCategory === 'CONSUMIBLE',
+  );
+
+  const { data: toolArticles, isLoading: isLoadingTools } = useGetWarehouseArticlesByCategory(
+    1,
+    1000,
+    'HERRAMIENTA',
+    activeCategory === 'all' || activeCategory === 'HERRAMIENTA',
+  );
+
+  const isLoadingArticles = isLoadingComponents || isLoadingConsumables || isLoadingTools;
+
+  // Combinar los datos según la categoría activa
+  const articles = activeCategory === 'all' 
+    ? {
+        batches: [
+          ...(componentArticles?.batches || []),
+          ...(consumableArticles?.batches || []),
+          ...(toolArticles?.batches || []),
+        ],
+        pagination: {
+          current_page: 1,
+          total: (componentArticles?.batches.length || 0) + 
+                 (consumableArticles?.batches.length || 0) + 
+                 (toolArticles?.batches.length || 0),
+          per_page: 1000,
+          last_page: 1,
+          from: 1,
+          to: (componentArticles?.batches.length || 0) + 
+               (consumableArticles?.batches.length || 0) + 
+               (toolArticles?.batches.length || 0),
+        }
+      }
+    : activeCategory === 'COMPONENTE' 
+      ? componentArticles
+      : activeCategory === 'CONSUMIBLE'
+        ? consumableArticles
+        : toolArticles;
+
+  // Preparar parámetros de exportación (solo válido cuando no es 'all')
+  const common = activeCategory !== 'all' ? {
+    category: activeCategory as 'COMPONENTE' | 'CONSUMIBLE' | 'HERRAMIENTA',
     search: partNumberSearch,
     filters:
       activeCategory === 'COMPONENTE'
@@ -67,7 +111,7 @@ const InventarioArticulosPage = () => {
           ? { group: consumableFilter }
           : {},
     filenamePrefix: 'inventario',
-  };
+  } : null;
 
   // Reset subfiltros al cambiar categoría
   useEffect(() => {
@@ -76,7 +120,13 @@ const InventarioArticulosPage = () => {
   }, [activeCategory]);
 
   // Columns memo
-  const cols = useMemo(() => getColumnsByCategory(activeCategory), [activeCategory]);
+  const cols = useMemo(() => {
+    // Para "Todos", usar columnas que incluyen campos de calibración
+    if (activeCategory === 'all') {
+      return allCategoriesCols; // Columnas base + fecha de calibración + próxima calibración
+    }
+    return getColumnsByCategory(activeCategory);
+  }, [activeCategory]);
 
   // Datos + filtros memo
   const currentData = useMemo<IArticleSimple[]>(() => {
@@ -108,16 +158,19 @@ const InventarioArticulosPage = () => {
 
     let filtered = bySearch;
 
-    if (activeCategory === 'COMPONENTE' && componentCondition !== 'all') {
-      filtered = filtered.filter((a) => a.condition === componentCondition);
-    }
+    // Solo aplicar filtros específicos cuando no estamos en "Todos"
+    if (activeCategory !== 'all') {
+      if (activeCategory === 'COMPONENTE' && componentCondition !== 'all') {
+        filtered = filtered.filter((a) => a.condition === componentCondition);
+      }
 
-    if (activeCategory === 'CONSUMIBLE' && consumableFilter === 'QUIMICOS') {
-      filtered = filtered.filter((a: any) => a.is_hazardous === true);
+      if (activeCategory === 'CONSUMIBLE' && consumableFilter === 'QUIMICOS') {
+        filtered = filtered.filter((a: any) => a.is_hazardous === true);
+      }
     }
 
     // Ordenar por fecha de vencimiento más próxima (solo para componentes y consumibles)
-    if (activeCategory === 'COMPONENTE' || activeCategory === 'CONSUMIBLE') {
+    if (activeCategory === 'COMPONENTE' || activeCategory === 'CONSUMIBLE' || activeCategory === 'all') {
       return filtered.sort((a, b) => {
         const dateA = getExpiryDate(a);
         const dateB = getExpiryDate(b);
@@ -225,8 +278,10 @@ const InventarioArticulosPage = () => {
                   <TooltipTrigger asChild>
                     <button
                       type="button"
-                      onClick={() => exportPdf(common)}
-                      disabled={exporting.pdf}
+                      onClick={() => {
+                        if (common) exportPdf(common);
+                      }}
+                      disabled={exporting.pdf || !common}
                       className="disabled:opacity-50"
                       aria-label="Descargar PDF"
                     >
@@ -238,7 +293,7 @@ const InventarioArticulosPage = () => {
                     </button>
                   </TooltipTrigger>
                   <TooltipContent>
-                    Descargar PDF <TooltipArrow />
+                    {!common ? 'Selecciona una categoría específica' : 'Descargar PDF'} <TooltipArrow />
                   </TooltipContent>
                 </Tooltip>
 
@@ -247,8 +302,10 @@ const InventarioArticulosPage = () => {
                   <TooltipTrigger asChild>
                     <button
                       type="button"
-                      onClick={() => exportExcel(common)}
-                      disabled={exporting.xlsx}
+                      onClick={() => {
+                        if (common) exportExcel(common);
+                      }}
+                      disabled={exporting.xlsx || !common}
                       className="disabled:opacity-50"
                       aria-label="Descargar Excel"
                     >
@@ -260,59 +317,85 @@ const InventarioArticulosPage = () => {
                     </button>
                   </TooltipTrigger>
                   <TooltipContent>
-                    Descargar Excel <TooltipArrow />
+                    {!common ? 'Selecciona una categoría específica' : 'Descargar Excel'} <TooltipArrow />
                   </TooltipContent>
                 </Tooltip>
               </div>
             </TabsList>
 
             {/* Sub-tabs por categoría */}
-            <TabsContent value={activeCategory} className="mt-6">
-              {activeCategory === "COMPONENTE" && (
-                <Tabs
-                  value={componentCondition}
-                  onValueChange={(v) =>
-                    setComponentCondition(v as typeof componentCondition)
-                  }
-                  className="mb-4"
-                >
-                  <TabsList
-                    className="flex justify-center mb-4 space-x-3"
-                    aria-label="Condición de componente"
-                  >
-                    <TabsTrigger value="all">Todos</TabsTrigger>
-                    <TabsTrigger value="SERVICIABLE">Serviciables</TabsTrigger>
-                    <TabsTrigger value="REPARADO">Reparados</TabsTrigger>
-                    <TabsTrigger value="REMOVIDO - NO SERVICIABLE">
-                      Removidos - No Serviciables
-                    </TabsTrigger>
-                    <TabsTrigger value="REMOVIDO - CUSTODIA">
-                      Removidos - En custodia
-                    </TabsTrigger>
-                  </TabsList>
-                </Tabs>
+            <TabsContent value="all" className="mt-6">
+              {isLoadingArticles ? (
+                <div className="flex w-full h-full justify-center items-center min-h-[300px]">
+                  <Loader2 className="size-24 animate-spin" />
+                </div>
+              ) : (
+                <DataTable columns={cols} data={currentData} />
               )}
+            </TabsContent>
 
-              {activeCategory === "CONSUMIBLE" && (
-                <Tabs
-                  value={consumableFilter}
-                  onValueChange={(v) =>
-                    setConsumableFilter(v as typeof consumableFilter)
-                  }
-                  className="mb-4"
+            <TabsContent value="COMPONENTE" className="mt-6">
+              <Tabs
+                value={componentCondition}
+                onValueChange={(v) =>
+                  setComponentCondition(v as typeof componentCondition)
+                }
+                className="mb-4"
+              >
+                <TabsList
+                  className="flex justify-center mb-4 space-x-3"
+                  aria-label="Condición de componente"
                 >
-                  <TabsList
-                    className="flex justify-center mb-4 space-x-3"
-                    aria-label="Filtro de consumibles"
-                  >
-                    <TabsTrigger value="all">Todos</TabsTrigger>
-                    <TabsTrigger value="QUIMICOS">
-                      Mercancia Peligrosa
-                    </TabsTrigger>
-                  </TabsList>
-                </Tabs>
-              )}
+                  <TabsTrigger value="all">Todos</TabsTrigger>
+                  <TabsTrigger value="SERVICIABLE">Serviciables</TabsTrigger>
+                  <TabsTrigger value="REPARADO">Reparados</TabsTrigger>
+                  <TabsTrigger value="REMOVIDO - NO SERVICIABLE">
+                    Removidos - No Serviciables
+                  </TabsTrigger>
+                  <TabsTrigger value="REMOVIDO - CUSTODIA">
+                    Removidos - En custodia
+                  </TabsTrigger>
+                </TabsList>
+              </Tabs>
 
+              {isLoadingArticles ? (
+                <div className="flex w-full h-full justify-center items-center min-h-[300px]">
+                  <Loader2 className="size-24 animate-spin" />
+                </div>
+              ) : (
+                <DataTable columns={cols} data={currentData} />
+              )}
+            </TabsContent>
+
+            <TabsContent value="CONSUMIBLE" className="mt-6">
+              <Tabs
+                value={consumableFilter}
+                onValueChange={(v) =>
+                  setConsumableFilter(v as typeof consumableFilter)
+                }
+                className="mb-4"
+              >
+                <TabsList
+                  className="flex justify-center mb-4 space-x-3"
+                  aria-label="Filtro de consumibles"
+                >
+                  <TabsTrigger value="all">Todos</TabsTrigger>
+                  <TabsTrigger value="QUIMICOS">
+                    Mercancia Peligrosa
+                  </TabsTrigger>
+                </TabsList>
+              </Tabs>
+
+              {isLoadingArticles ? (
+                <div className="flex w-full h-full justify-center items-center min-h-[300px]">
+                  <Loader2 className="size-24 animate-spin" />
+                </div>
+              ) : (
+                <DataTable columns={cols} data={currentData} />
+              )}
+            </TabsContent>
+
+            <TabsContent value="HERRAMIENTA" className="mt-6">
               {isLoadingArticles ? (
                 <div className="flex w-full h-full justify-center items-center min-h-[300px]">
                   <Loader2 className="size-24 animate-spin" />

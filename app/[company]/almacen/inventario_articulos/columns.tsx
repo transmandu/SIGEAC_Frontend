@@ -3,12 +3,13 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle2, XCircle, Clock, Wrench } from "lucide-react";
+import { CheckCircle2, XCircle, Clock} from "lucide-react";
 import { addDays, format } from "date-fns";
 import { cn } from "@/lib/utils";
 import ArticleDropdownActions from "@/components/dropdowns/mantenimiento/almacen/ArticleDropdownActions";
 import { WarehouseResponse } from "@/hooks/mantenimiento/almacen/articulos/useGetWarehouseArticlesByCategory";
 import CertificatesPopover from "@/components/popovers/CertificatesPopover";
+import { StatusColumnHeader } from "@/components/tables/StatusColumnHeader";
 
 export interface IArticleSimple {
   id: number;
@@ -217,9 +218,7 @@ const baseCols: ColumnDef<IArticleSimple>[] = [
   },
   {
     accessorKey: "status",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Estado" />
-    ),
+    header: ({ column }) => <StatusColumnHeader column={column} />,
     cell: ({ row }) => {
       const calibrated = row.original.tool?.status === "CALIBRADO";
       const calibrating = row.original.tool?.status === "EN CALIBRACION";
@@ -247,6 +246,32 @@ const baseCols: ColumnDef<IArticleSimple>[] = [
           )}
         </div>
       );
+    },
+    sortingFn: (rowA, rowB) => {
+      // Orden personalizado de estados
+      const statusOrder: Record<string, number> = {
+        'INCOMING': 1,
+        'DISPATCHED': 2,
+        'TRANSIT': 3,
+        'QUARANTINE': 4,
+        'QUARENTINE': 4, // por si viene con typo
+        'STORED': 5,
+        'INUSE': 6,
+        'SHELTERED': 7,
+        'RECEPTION': 8,
+        'INTOOLBOX': 9,
+        'RESERVED': 10,
+        'CHECKING': 11,
+        'MAINTENANCE': 12,
+      };
+
+      const statusA = (rowA.original.status || '').toUpperCase();
+      const statusB = (rowB.original.status || '').toUpperCase();
+      
+      const orderA = statusOrder[statusA] ?? 999;
+      const orderB = statusOrder[statusB] ?? 999;
+      
+      return orderA - orderB;
     },
   },
   {
@@ -465,6 +490,122 @@ export const herramientaCols: ColumnDef<IArticleSimple>[] = [
         </div>
       );
     },
+  },
+  {
+    id: "actions",
+    header: "Acciones",
+    cell: ({ row }) => {
+      const item = row.original;  
+      if (item.status === "stored" || item.status === "checking") {
+        return <ArticleDropdownActions id={item.id} />;
+      }
+      return null;
+    },
+  },
+];
+
+// Columnas para TODOS (incluye todas las columnas de todas las categorías)
+export const allCategoriesCols: ColumnDef<IArticleSimple>[] = [
+  ...baseCols,
+  {
+    id: "shelf_life",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Shelf Life" />
+    ),
+    cell: ({ row }) => {
+      // Intentar obtener fecha de caducidad de componentes o consumibles
+      const caducateDate = row.original.component?.caducate_date || row.original.consumable?.caducate_date;
+      if (!caducateDate) {
+        return (
+          <div className="text-center">
+            <span className="text-muted-foreground italic">N/A</span>
+          </div>
+        );
+      }
+      
+      const date = caducateDate instanceof Date 
+        ? caducateDate 
+        : typeof caducateDate === 'string' 
+          ? new Date(caducateDate)
+          : null;
+      
+      // Validar que la fecha sea válida
+      if (!date || isNaN(date.getTime())) {
+        return (
+          <div className="text-center">
+            <span className="text-muted-foreground italic">N/A</span>
+          </div>
+        );
+      }
+      
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      date.setHours(0, 0, 0, 0);
+      const daysUntilExpiry = Math.ceil((date.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+      
+      let variant: "default" | "secondary" | "destructive" | "outline" = "default";
+      if (daysUntilExpiry < 0) {
+        variant = "destructive"; // Vencido
+      } else if (daysUntilExpiry <= 30) {
+        variant = "secondary"; // Próximo a vencer (30 días o menos)
+      }
+
+      return (
+        <div className="text-center">
+          <Badge variant={variant} className="text-sm font-medium">
+            {format(date, "dd/MM/yyyy")}
+          </Badge>
+        </div>
+      );
+    },
+  },
+  {
+    accessorKey: "calibration_date",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Fech. Calibración" />
+    ),
+    cell: ({ row }) => (
+      <div className="text-center text-sm font-bold text-muted-foreground">
+        {row.original.tool?.calibration_date
+          ? format(row.original.tool.calibration_date, "dd/MM/yyyy")
+          : "N/A"}
+      </div>
+    ),
+  },
+  {
+    id: "next_calibration",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Prox. Cal." />
+    ),
+    cell: ({ row }) => {
+      return (
+        <div className="text-center text-sm font-bold text-muted-foreground">
+          {row.original.tool?.next_calibration &&
+          row.original.tool.calibration_date
+            ? format(
+                addDays(
+                  row.original.tool.calibration_date,
+                  Number(row.original.tool.next_calibration)
+                ),
+                "dd/MM/yyyy"
+              )
+            : "N/A"}
+        </div>
+      );
+    },
+  },
+  {
+    accessorKey: "min_quantity",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Cant. Mínima" />
+    ),
+    cell: ({ row }) => (
+      <div className="text-center font-medium text-sm">
+        {row.original.min_quantity || (
+          <span className="text-muted-foreground">N/A</span>
+        )}
+      </div>
+    ),
   },
   {
     id: "actions",
