@@ -32,16 +32,19 @@ export default function ActionPlanDialog({
   return (
     <>
       {/* Componente que activa el dialog */}
-      <div onClick={() => setIsOpen(true)} className="cursor-pointer w-full">
+      <div
+        onClick={() => setIsOpen(true)}
+        className="flex cursor-pointer w-full items-stretch"
+      >
         {children}
       </div>
 
       {/* Dialog con pasos de acción */}
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
         {/* Ajuste de Contenido del Diálogo: Ancho completo en móvil y scroll vertical */}
-        <DialogContent className="w-[98vw] max-h-[85vh] overflow-y-auto m-2 p-2 md:max-w-2xl lg:max-w-4xl md:p-6">
+        <DialogContent className="w-[98vw] max-h-[85vh] overflow-y-auto p-2 md:max-w-2xl lg:max-w-4xl md:p-6 rounded-lg">
           <DialogHeader>
-            <DialogTitle className="text-md md:text-2xl text-center text-gray-900 p-5">
+            <DialogTitle className="text-md md:text-2xl text-center  p-5">
               {title}
             </DialogTitle>
           </DialogHeader>
@@ -59,10 +62,8 @@ export default function ActionPlanDialog({
                       {index + 1}
                     </div>
 
-
                     <div className="flex-1 min-w-0">
-
-                      <h3 className="text-sx sm:text-base md:text-xl font-bold text-gray-900 mb-1 md:mb-3 leading-tight">
+                      <h3 className="text-sx sm:text-base md:text-xl font-bold mb-1 md:mb-3 leading-tight">
                         {step.title}
                       </h3>
 
@@ -74,8 +75,7 @@ export default function ActionPlanDialog({
                         {step.items.map((item, itemIndex) => (
                           <li
                             key={itemIndex}
-
-                            className="flex items-start text-gray-700 text-xs md:text-base"
+                            className="flex items-start text-xs md:text-base"
                           >
                             {/* Número de ítem (fijo) */}
                             <span className="text-blue-500 mr-2 mt-0.5 font-bold flex-shrink-0">

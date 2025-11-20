@@ -73,7 +73,7 @@ const SMSPage = () => {
               <div className="relative h-64 lg:h-full min-h-[300px]">
                 <Image
                   src="https://ccvnd3lo965z.share.zrok.io/storage/sms/images/LOGO_TMD.png" // o la imagen que prefieras
-                  alt="Sistema de Gestión de Seguridad - ESTELAR TECHNIK"
+                  alt="Logo Transmandu"
                   fill
                   className="object-cover"
                   priority
@@ -81,7 +81,7 @@ const SMSPage = () => {
                 <div className="absolute inset-0 bg-gradient-to-r from-blue-900/70 to-transparent lg:bg-gradient-to-r lg:from-blue-900/70 lg:to-transparent" />
                 <div className="absolute bottom-4 left-4 lg:bottom-8 lg:left-8 text-white">
                   <h1 className="text-2xl lg:text-3xl font-bold mb-2">
-                    Sistema de Gestión de Seguridad
+                    Sistema de Gestión de Seguridad Operacional
                   </h1>
                   <p className="text-sm lg:text-base opacity-90 max-w-md">
                     Comprometidos con la excelencia operacional y la seguridad
@@ -93,10 +93,10 @@ const SMSPage = () => {
               {/* Contenido y botones */}
               <div className="p-6 lg:p-8 flex flex-col justify-center">
                 <div className="space-y-4 mb-6">
-                  <h2 className="text-xl lg:text-2xl font-semibold text-gray-800">
+                  <h2 className="text-xl lg:text-2xl font-semibold">
                     Bienvenido al Portal SMS
                   </h2>
-                  <p className="text-gray-600 text-sm lg:text-base">
+                  <p className="text-sm lg:text-base">
                     Este sistema está diseñado para mantener los más altos
                     estándares de seguridad operacional en todas nuestras
                     actividades. Explora nuestras políticas, procedimientos y
@@ -136,15 +136,11 @@ const SMSPage = () => {
                   <div className="grid grid-cols-2 gap-4 text-center">
                     <div>
                       <div className="text-2xl font-bold text-blue-600">6</div>
-                      <div className="text-xs text-gray-500">
-                        Planes de Emergencia
-                      </div>
+                      <div className="text-xs ">Planes de Emergencia</div>
                     </div>
                     <div>
                       <div className="text-2xl font-bold text-blue-600">4</div>
-                      <div className="text-xs text-gray-500">
-                        Áreas de Estrategia
-                      </div>
+                      <div className="text-xs ">Áreas de Estrategia</div>
                     </div>
                   </div>
                 </div>
@@ -351,10 +347,7 @@ const SMSPage = () => {
               <CardContent className="space-y-3 sm:space-y-4 text-sm sm:text-base">
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 items-stretch">
                   {emergencyPlans.map((plan, index) => (
-                    <div
-                      key={index}
-                      className={`transition-all duration-500 ease-out opacity-0 animate-fade-in delay-${250 + index * 50}`}
-                    >
+                    <div key={index} className="flex items-stretch">
                       <ActionPlanDialog
                         title={`Plan de Acción - ${plan.cardData.description}`}
                         actionSteps={plan.actionSteps}
@@ -365,7 +358,6 @@ const SMSPage = () => {
                           title={plan.cardData.title}
                           description={plan.cardData.description}
                           actionLink={plan.cardData.actionLink}
-                          className="h-full w-full"
                         />
                       </ActionPlanDialog>
                     </div>
