@@ -37,7 +37,7 @@ const SurveyStatisticsPage = ({ survey_number }: { survey_number: string }) => {
     <div className="space-y-8">
       <div className="text-center">
         <h1 className="text-2xl font-bold">{dataStats.survey}</h1>
-        <p className="text-gray-600">Estadísticas de respuestas</p>
+        <p>Estadísticas de respuestas</p>
       </div>
 
       {/* Gráficos para cada pregunta */}
@@ -45,7 +45,7 @@ const SurveyStatisticsPage = ({ survey_number }: { survey_number: string }) => {
         const chartData = transformQuestionToChartData(questionStat);
 
         return (
-          <div key={index} className="bg-white p-6 rounded-lg shadow-md">
+          <div key={index} className="p-6 rounded-lg shadow-md">
             <DynamicBarChart
               data={chartData}
               title={questionStat.question}

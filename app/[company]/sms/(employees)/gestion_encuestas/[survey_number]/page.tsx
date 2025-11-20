@@ -14,6 +14,7 @@ import {
   Target,
   Square,
   Type,
+  CopyCheck,
 } from "lucide-react";
 import { useParams } from "next/navigation";
 
@@ -52,7 +53,7 @@ const ShowSurvey = () => {
       },
       MULTIPLE: {
         label: "Múltiple",
-        icon: Square,
+        icon: CopyCheck,
       },
       OPEN: {
         label: "Abierta",
@@ -89,17 +90,17 @@ const ShowSurvey = () => {
         {/* Header minimalista */}
         <div className="space-y-3">
           <div className="flex items-center gap-3">
-            <FileText className="w-5 h-5 text-gray-600" />
-            <h1 className="text-xl font-semibold text-gray-900">
+            <FileText className="w-5 h-5 " />
+            <h1 className="text-xl font-semibold ">
               {surveyData.title}
             </h1>
           </div>
 
           {surveyData.description && (
-            <p className="text-gray-600 text-sm">{surveyData.description}</p>
+            <p className="text-sm">{surveyData.description}</p>
           )}
 
-          <div className="flex flex-wrap items-center gap-2 text-sm text-gray-500">
+          <div className="flex flex-wrap items-center gap-2 text-sm ">
             <span>#{surveyData.survey_number}</span>
             <span>•</span>
             <span>{surveyData.questions.length} preguntas</span>
@@ -121,7 +122,7 @@ const ShowSurvey = () => {
         {/* Lista de preguntas */}
         <Card>
           <CardHeader className="pb-3">
-            <h2 className="text-lg font-medium text-gray-900">Preguntas</h2>
+            <h2 className="text-lg font-medium">Preguntas</h2>
           </CardHeader>
           <CardContent className="p-0">
             <div className="divide-y divide-gray-100">
@@ -135,13 +136,13 @@ const ShowSurvey = () => {
                     className="p-4 hover:bg-gray-50 transition-colors"
                   >
                     <div className="flex items-start gap-3">
-                      <div className="flex-shrink-0 w-6 h-6 bg-gray-500 text-white rounded text-xs flex items-center justify-center font-medium mt-0.5">
+                      <div className="flex-shrink-0 w-6 h-6rounded text-xs flex items-center justify-center font-medium mt-0.5">
                         {index + 1}
                       </div>
 
                       <div className="flex-1 min-w-0">
                         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 mb-3">
-                          <h3 className="font-medium text-gray-900 text-sm leading-relaxed">
+                          <h3 className="font-medium text-sm leading-relaxed">
                             {question.text}
                           </h3>
                           <div className="flex items-center gap-2 flex-shrink-0">

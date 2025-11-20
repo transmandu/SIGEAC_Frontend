@@ -53,7 +53,7 @@ export const columns: ColumnDef<Survey>[] = [
         <div className="flex justify-center">
           <a
             href={`/transmandu/sms/gestion_encuestas/${row.original.survey_number}`}
-            className="font-bold text-black hover:scale-105 hover:no-underline transition-colors duration-200"
+            className="font-bold hover:scale-105 hover:no-underline transition-colors duration-200"
           >
             {row.original.survey_number}
           </a>
@@ -109,12 +109,11 @@ export const columns: ColumnDef<Survey>[] = [
           className={`justify-center items-center text-center font-bold font-sans pointer-events-none hover:bg-inherit
       ${
         row.original.is_active === true
-          ? "bg-green-400 hover:bg-green-400"
+          ? "bg-green-500 hover:bg-green-400"
           : row.original.is_active === false
             ? "bg-red-400 hover:bg-red-400"
             : "bg-gray-500 hover:bg-gray-500"
       }`}
-          variant="secondary"
         >
           {row.original.is_active ? (
             <span>ACTIVO</span>

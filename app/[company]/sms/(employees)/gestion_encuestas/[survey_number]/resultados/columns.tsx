@@ -101,7 +101,7 @@ export const columns: ColumnDef<ResponsesBySurvey>[] = [
         <div className="flex justify-center">
           <a
             href={`/transmandu/sms/gestion_encuestas/${row.original.survey_number}/resultados/${row.original.email}`}
-            className="font-bold text-black hover:scale-105 hover:no-underline transition-colors duration-200 cursor-pointer"
+            className="font-bold hover:scale-105 hover:no-underline transition-colors duration-200 cursor-pointer"
           >
             {row.original.email}
           </a>
