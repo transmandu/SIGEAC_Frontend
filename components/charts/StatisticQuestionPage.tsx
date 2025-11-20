@@ -45,18 +45,19 @@ const SurveyStatisticsPage = ({ survey_number }: { survey_number: string }) => {
         const chartData = transformQuestionToChartData(questionStat);
 
         return (
-          <div key={index} className="p-6 rounded-lg shadow-md">
+          <div key={index} className="p-6 rounded-lg shadow-md overflow-x-auto">
+             <div className="min-w-[600px]"> {/* ¡Añade este contenedor! */}
             <DynamicBarChart
               data={chartData}
               title={questionStat.question}
-              height="300px"
+              height="100%"
               width="100%"
               aspect={2}
               activeDecimal={false}
               fontSize={12}
               isCustomizedAxis={true}
             />
-
+</div>
             {/* Información adicional debajo del gráfico */}
             <div className="mt-4 grid grid-cols-2 gap-4 text-sm">
               <div>

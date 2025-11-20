@@ -46,21 +46,26 @@ const CustomizedAxisTick = ({
     return null;
   }
 
+  const words = payload.value.toString().split(" ");
   const verticalSpacing = 7; // Espacio entre líneas de la misma etiqueta
   const spaceToChart = 5; // Espacio adicional hacia el gráfico
 
   return (
     <g transform={`translate(${x},${y + spaceToChart})`}>
-      <text
-        x={0}
-        y={20}
-        dy={verticalSpacing / 2}
-        textAnchor="middle"
-        fill={theme === "light" ? "black" : "white"}
-        fontSize={16}
-      >
-        {payload.value}
-      </text>
+      {words.map((word: string, i: number) => (
+        <text
+          x={0}
+          y={i * verticalSpacing}
+          dy={verticalSpacing / 2}
+          textAnchor="middle"
+          fill={theme === "light" ? "black" : "white"}
+          key={i}
+          fontSize={fontSize}
+          className="text-wrap"
+        >
+          {word}
+        </text>
+      ))}
     </g>
   );
 };
@@ -86,11 +91,10 @@ const DynamicBarChart = ({
 
   return (
     <>
-      <h1 className="text-sm font-semibold"></h1>
+      <h1 className="text-sm font-semibold">{title}</h1>
 
-      <ResponsiveContainer aspect={1.5}>
+      <ResponsiveContainer aspect={aspect || 1}>
         <BarChart
-          margin={{ top: 20, right: 30, left: 20, bottom: 120 }}
           width={730}
           height={250}
           data={data}
@@ -105,7 +109,7 @@ const DynamicBarChart = ({
           <XAxis
             dataKey="name"
             stroke={theme === "light" ? "black" : "white"}
-            height={60}
+            height={20}
             tick={
               isCustomizedAxis
                 ? (props) => (
@@ -128,7 +132,7 @@ const DynamicBarChart = ({
           />
           <Tooltip />
           <Legend iconSize={0} />
-          <Bar dataKey="value" fill="#8884d8" barSize={90} name={" "}>
+          <Bar dataKey="value" fill="#8884d8" barSize={200} name={title}>
             {data.map((entry, index) => (
               <Cell
                 key={`cell-${index}`}

@@ -1,5 +1,5 @@
 "use client";
-import SurveyStatisticsPage from "@/components/charts/StatisticPage";
+import SurveyStatisticsPage from "@/components/charts/StatisticQuestionPage";
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -29,21 +29,6 @@ const ShowSurvey = () => {
     survey_number: survey_number,
     company: selectedCompany?.slug,
   });
-
-  const {
-    data: dataStats,
-    isLoading: isLoadingStats,
-    isError: isErrorStats,
-  } = useGetSurveyStats(survey_number);
-
-  const getQuestionTypeIcon = (type: string) => {
-    const icons = {
-      SINGLE: Target,
-      MULTIPLE: Square,
-      OPEN: Type,
-    };
-    return icons[type as keyof typeof icons] || FileText;
-  };
 
   const getQuestionTypeBadge = (type: string) => {
     const types = {
