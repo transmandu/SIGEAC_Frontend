@@ -80,7 +80,7 @@ export function PolicyCard({
         {/* Descripción */}
         <p
           className={cn(
-            "text-sm sm:text-base text-muted-foreground text-center flex-grow",
+            "text-sm sm:text-base text-center flex-grow",
             descriptionClassName
           )}
         >

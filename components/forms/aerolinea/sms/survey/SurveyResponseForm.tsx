@@ -27,6 +27,8 @@ import { useForm } from "react-hook-form";
 import { QuestionItem } from "./QuestionItem";
 import { createSurveyValidator } from "@/components/forms/validators/sms/createSurveyValidator";
 import { useEmailValidation } from "@/hooks/sms/survey/useEmailValidation";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 
 type SurveyResponseType = {
   survey_number: string;
@@ -231,10 +233,10 @@ export default function SurveyResponseForm() {
 // Componentes auxiliares pequeños
 function LoadingState() {
   return (
-    <div className="flex justify-center items-center min-h-[300px]">
-      <div className="text-center">
-        <Loader2 className="h-6 w-6 animate-spin mx-auto mb-2" />
-        <p className="text-gray-600">Cargando encuesta...</p>
+    <div className="flex justify-center items-center min-h-[400px]">
+      <div className="flex flex-col items-center text-center space-y-4">
+        <h2 className="font-light sm:font-light text-xl">Cargando encuesta...</h2>
+        <Loader2 className="h-12 w-12 sm:h-20 sm:w-20 animate-spin" />
       </div>
     </div>
   );
@@ -312,10 +314,19 @@ function SurveyHeader({ survey, requiredCount, showEmailField }: any) {
   return (
     <div className="text-center space-y-3">
       <h1 className="text-2xl font-bold">{survey.title}</h1>
-      <div className="text-sm text-gray-500">
+      <div className="text-sm sm:text-base">
         <span>{survey.survey_number}</span>
         <span className="mx-2">•</span>
-        <span>{survey.type === "QUIZ" ? "Trivia" : "Encuesta"}</span>
+        <Badge
+          variant={survey.type === "QUIZ" ? "default" : "secondary"}
+          className={
+            survey.type === "QUIZ"
+              ? "bg-red-500 text-white"
+              : "bg-green-500 text-white"
+          }
+        >
+          {survey.type === "QUIZ" ? "TRIVIA" : "ENCUESTA"}
+        </Badge>
       </div>
     </div>
   );
@@ -339,59 +350,59 @@ function EmailField({
   const { hasCompleted, isLoading } = emailValidation;
 
   return (
-    <div className="p-4 border rounded-lg bg-white">
-      <FormField
-        control={form.control}
-        name="email"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel className="font-medium">
-              Correo Electrónico <span className="text-red-500">*</span>
-            </FormLabel>
-            <FormControl>
-              <div className="relative">
-                <Input
-                  type="email"
-                  placeholder="example@email.com"
-                  {...field}
-                  className={`mt-1 pr-10 ${
-                    hasCompleted ? "border-red-300 bg-red-50" : ""
-                  } ${isLoading ? "border-blue-300 bg-blue-50" : ""}`}
-                />
-                <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                  {isLoading && (
-                    <Loader2 className="h-4 w-4 animate-spin text-blue-500" />
-                  )}
-                  {!isLoading && hasCompleted && (
-                    <AlertCircle className="h-4 w-4 text-red-500" />
-                  )}
-                  {!isLoading &&
-                    !hasCompleted &&
-                    field.value &&
-                    field.value.includes("@") && (
-                      <Check className="h-4 w-4 text-green-500" />
+    <Card>
+      <CardContent className="pt-4">
+        <FormField
+          control={form.control}
+          name="email"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="font-medium">
+                Correo Electrónico <span className="text-red-500">*</span>
+              </FormLabel>
+              <FormControl>
+                <div className="relative">
+                  <Input
+                    type="email"
+                    placeholder="example@email.com"
+                    {...field}
+                    className="mt-1 pr-10"
+                  />
+                  <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                    {isLoading && (
+                      <Loader2 className="h-4 w-4 animate-spin text-blue-500" />
                     )}
+                    {!isLoading && hasCompleted && (
+                      <AlertCircle className="h-4 w-4 text-red-500" />
+                    )}
+                    {!isLoading &&
+                      !hasCompleted &&
+                      field.value &&
+                      field.value.includes("@") && (
+                        <Check className="h-4 w-4 text-green-500" />
+                      )}
+                  </div>
                 </div>
-              </div>
-            </FormControl>
-            <FormMessage />
-            {!isLoading && hasCompleted && (
-              <p className="text-red-600 text-sm mt-1">
-                Este email ya ha respondido esta encuesta
-              </p>
-            )}
-            {!isLoading &&
-              !hasCompleted &&
-              field.value &&
-              field.value.includes("@") && (
-                <p className="text-green-600 text-sm mt-1">
-                  Email válido y disponible
+              </FormControl>
+              <FormMessage />
+              {!isLoading && hasCompleted && (
+                <p className="text-red-600 text-sm mt-1">
+                  Este email ya ha respondido esta encuesta
                 </p>
               )}
-          </FormItem>
-        )}
-      />
-    </div>
+              {!isLoading &&
+                !hasCompleted &&
+                field.value &&
+                field.value.includes("@") && (
+                  <p className="text-green-600 text-sm mt-1">
+                    Email válido y disponible
+                  </p>
+                )}
+            </FormItem>
+          )}
+        />
+      </CardContent>
+    </Card>
   );
 }
 

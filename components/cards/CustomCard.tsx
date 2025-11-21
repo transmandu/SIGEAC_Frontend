@@ -43,8 +43,8 @@ export function CustomCard({
   buttonClassName,
 }: CustomCardProps) {
   return (
-    <Card className={cn("w-full flex flex-col", className)}>
-      <CardContent className="p-6 flex flex-col flex-grow">
+    <Card className={cn("w-full flex flex-col ", className)}>
+      <CardContent className="p-6 flex flex-col flex-grow ">
         {/* Imagen */}
         {imageUrl && (
           <div className="mb-4 flex justify-center">

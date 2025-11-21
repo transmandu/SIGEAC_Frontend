@@ -25,7 +25,7 @@ export function MissionVision({
         <CardContent className="pt-0">
           <p
             className="text-sm text-justify
- text-muted-foreground leading-relaxed"
+  leading-relaxed"
           >
             Proveer servicios de transporte aéreo de alta calidad, garantizando
             la seguridad, puntualidad y excelencia operativa; ofreciendo
@@ -46,7 +46,7 @@ export function MissionVision({
         <CardContent className="pt-0">
           <p
             className="text-sm text-justify
- text-muted-foreground leading-relaxed"
+  leading-relaxed"
           >
             Constituirse como la empresa líder en la prestación de servicios de
             transporte aéreo del estado Bolívar, con presencia nacional e

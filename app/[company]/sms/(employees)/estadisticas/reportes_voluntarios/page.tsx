@@ -215,7 +215,7 @@ const Statistics = () => {
     selectedGraphics.includes("Todos") || selectedGraphics.includes(id);
 
   return (
-    <ContentLayout title="Gráficos Estadísticos de los Reportes (Voluntarios)">
+    <ContentLayout title="Gráficos Estadísticos de los Reportes Voluntarios">
       <div className="flex flex-col space-y-4 mb-6">
         <div className="flex justify-center items-center">
           <div className="flex flex-col w-full max-w-md">
@@ -316,7 +316,7 @@ const Statistics = () => {
         )}
       </div>
 
-      <div className="grid sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-2 2xl:grid-cols-3 gap-4">
+      <div className="grid sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-2 2xl:grid-cols-2 gap-4">
         {shouldShow("bar-chart") && (
           <div className="p-4 rounded-lg shadow border">
             {isLoadingBarChart ? (

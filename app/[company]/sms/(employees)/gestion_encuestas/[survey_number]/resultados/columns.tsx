@@ -6,6 +6,7 @@ import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
 
 import { ResponsesBySurvey } from "@/hooks/sms/survey/useGetResponsesBySurvey";
 import { useCompanyStore } from "@/stores/CompanyStore";
+import { Badge } from "@/components/ui/badge";
 
 export const columns: ColumnDef<ResponsesBySurvey>[] = [
   // {
@@ -84,7 +85,7 @@ export const columns: ColumnDef<ResponsesBySurvey>[] = [
     cell: ({ row }) => {
       return (
         <div className="flex justify-center">
-          {row.original.questions_answered}
+          <Badge className="bg-blue-500">{row.original.questions_answered}</Badge>
         </div>
       );
     },
@@ -100,7 +101,7 @@ export const columns: ColumnDef<ResponsesBySurvey>[] = [
         <div className="flex justify-center">
           <a
             href={`/transmandu/sms/gestion_encuestas/${row.original.survey_number}/resultados/${row.original.email}`}
-            className="font-bold text-black hover:scale-105 hover:no-underline transition-colors duration-200 cursor-pointer"
+            className="font-bold hover:scale-105 hover:no-underline transition-colors duration-200 cursor-pointer"
           >
             {row.original.email}
           </a>
