@@ -215,10 +215,10 @@ export const policyImages = [
     src: "https://ccvnd3lo965z.share.zrok.io/storage/sms/images/politica_1.png",
     alt: "Política 1",
   },
-  {
-    src: "https://ccvnd3lo965z.share.zrok.io/storage/sms/images/politica_2.png",
-    alt: "Política 2",
-  },
+  // {
+  //   src: "https://ccvnd3lo965z.share.zrok.io/storage/sms/images/politica_2.png",
+  //   alt: "Política 2",
+  // },
 ];
 
 export const SMSresponsibilities = [
