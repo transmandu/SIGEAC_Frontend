@@ -349,7 +349,7 @@ const SMSPage = () => {
                   {emergencyPlans.map((plan, index) => (
                     <div key={index} className="flex items-stretch">
                       <ActionPlanDialog
-                        title={`Plan de Acción - ${plan.cardData.description}`}
+                        title={`${plan.cardData?.stepsTitle}`}
                         actionSteps={plan.actionSteps}
                       >
                         <CustomCard

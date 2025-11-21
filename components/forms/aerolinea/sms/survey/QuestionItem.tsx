@@ -99,7 +99,7 @@ export function QuestionItem({ question, index, form }: QuestionItemProps) {
                     {options.map((option: any) => (
                       <div
                         key={option.id}
-                        className="flex items-center space-x-2 p-1 rounded-lg hover:bg-gray-50 transition-colors"
+                        className="flex items-center space-x-2 p-1 rounded-lg transition-colors"
                       >
                         <RadioGroupItem
                           value={option.id.toString()}
@@ -119,7 +119,7 @@ export function QuestionItem({ question, index, form }: QuestionItemProps) {
                     {options.map((option: any) => (
                       <div
                         key={option.id}
-                        className="flex items-center space-x-2 p-1 rounded-lg hover:bg-gray-50 transition-colors"
+                        className="flex items-center space-x-2 p-1 rounded-lg transition-colors"
                       >
                         <Checkbox
                           id={`option-${option.id}`}
