@@ -30,16 +30,16 @@ const guestMenuItems = [
     icon: LogIn,
     href: "/login",
   },
-  {
-    label: "Acerca de",
-    icon: Info,
-    href: "/about",
-  },
-  {
-    label: "Contacto",
-    icon: Mail,
-    href: "/contact",
-  },
+  // {
+  //   label: "Acerca de",
+  //   icon: Info,
+  //   href: "/about",
+  // },
+  // {
+  //   label: "Contacto",
+  //   icon: Mail,
+  //   href: "/contact",
+  // },
 ];
 
 export function GuestMenu({ isOpen }: GuestMenuProps) {
