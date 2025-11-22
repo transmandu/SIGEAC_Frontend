@@ -212,7 +212,7 @@ export default function CreateSMSActivityForm({
           company: selectedCompany!.slug,
           data,
         });
-        router.push(`/${selectedCompany?.slug}/sms/planificacion/actividades`);
+        router.push(`/${selectedCompany?.slug}/sms/promocion/actividades`);
       } catch (error) {
         console.error("Error al crear la actividad", error);
       }

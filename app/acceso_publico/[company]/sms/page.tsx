@@ -20,7 +20,14 @@ import {
 } from "@/lib/contants/sms-data";
 import {
   FileText,
-  Shield
+  Shield,
+  Building,
+  Target,
+  AlertTriangle,
+  BookOpen,
+  Users,
+  BarChart3,
+  MessageSquare,
 } from "lucide-react";
 import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
@@ -32,10 +39,6 @@ const SMSPage = () => {
   const router = useRouter();
   const [isConceptOpen, setIsConceptOpen] = useState(false);
   const { data: surveyNumbers } = useGetSurveySettingNumbers(company);
-
-  // Elimina estas variables locales ya que ahora las importas desde constants
-  // const emergencyActionSteps = [ ... ];
-  // const SMSresponsibilities = [ ... ];
 
   const SMSresponsibilities = [
     {
@@ -72,7 +75,7 @@ const SMSPage = () => {
               {/* Imagen */}
               <div className="relative h-64 lg:h-full min-h-[300px]">
                 <Image
-                  src="https://ccvnd3lo965z.share.zrok.io/storage/sms/images/LOGO_TMD.png" // o la imagen que prefieras
+                  src="https://ccvnd3lo965z.share.zrok.io/storage/sms/images/LOGO_TMD.png"
                   alt="Logo Transmandu"
                   fill
                   className="object-cover"
@@ -149,32 +152,38 @@ const SMSPage = () => {
           </Card>
         </div>
 
-        {/* TABS (el contenido existente) */}
+        {/* TABS RESPONSIVE */}
         <Tabs defaultValue="politicas" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 gap-1 sm:gap-2">
+          <TabsList className="mb-6 grid w-full grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
             <TabsTrigger
               value="politicas"
-              className="text-xs sm:text-sm py-2 sm:py-3 px-2 sm:px-4 truncate"
+              className="flex items-center gap-2 px-2 sm:px-4"
             >
-              Políticas
+              <BookOpen className="h-4 w-4 flex-shrink-0" />
+              <span className="truncate text-xs sm:text-sm">Políticas</span>
             </TabsTrigger>
             <TabsTrigger
               value="empresa"
-              className="text-xs sm:text-sm py-2 sm:py-3 px-2 sm:px-4 truncate"
+              className="flex items-center gap-2 px-2 sm:px-4"
             >
-              Nuestra Empresa
+              <Building className="h-4 w-4 flex-shrink-0" />
+              <span className="truncate text-xs sm:text-sm">Empresa</span>
             </TabsTrigger>
             <TabsTrigger
               value="estrategias"
-              className="text-xs sm:text-sm py-2 sm:py-3 px-2 sm:px-4 truncate"
+              className="flex items-center gap-2 px-2 sm:px-4"
             >
-              Estrategias
+              <Target className="h-4 w-4 flex-shrink-0" />
+              <span className="truncate text-xs sm:text-sm">Estrategias</span>
             </TabsTrigger>
             <TabsTrigger
               value="plan-respuesta"
-              className="text-xs sm:text-sm py-2 sm:py-3 px-2 sm:px-4 truncate"
+              className="flex items-center gap-2 px-2 sm:px-4"
             >
-              Plan de Respuesta
+              <AlertTriangle className="h-4 w-4 flex-shrink-0" />
+              <span className="truncate text-xs sm:text-sm">
+                Plan Respuesta
+              </span>
             </TabsTrigger>
           </TabsList>
 
@@ -182,7 +191,12 @@ const SMSPage = () => {
           <TabsContent value="politicas" className="space-y-4 mt-4 sm:mt-6">
             <Card className="min-h-[300px] sm:min-h-[400px]">
               <CardHeader>
-                <CardTitle className="text-lg sm:text-xl">
+                <CardTitle className="text-lg sm:text-xl flex items-center gap-2">
+                  Políticas del Sistema de Gestión de Seguridad
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3 sm:space-y-4 text-sm sm:text-base">
+                <div className="flex justify-center items-center">
                   <ImageGalleryDialog
                     images={policyImages}
                     trigger={
@@ -190,21 +204,14 @@ const SMSPage = () => {
                         variant="link"
                         className="text-xs sm:text-base p-1 h-auto hover:no-underline text-blue-600 hover:text-blue-800 transition-colors"
                       >
-                        Ver Políticas
+                        Ver Políticas Completas
                       </Button>
                     }
                   />
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3 sm:space-y-4 text-sm sm:text-base">
-                <div className="flex justify-center items-center"></div>
-                {/* Aplicar la animación al contenedor grid */}
+                </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-stretch transition-all duration-500 ease-out opacity-0 animate-fade-in">
                   {policyCardsData.map((policy, index) => (
-                    <div
-                      key={index}
-                      className="h-full" // Solo mantener h-full aquí
-                    >
+                    <div key={index} className="h-full">
                       <PolicyCard
                         index={index}
                         icon={policy.icon}
@@ -223,7 +230,7 @@ const SMSPage = () => {
           <TabsContent value="empresa" className="space-y-4 mt-4 sm:mt-6">
             <Card className="min-h-[300px] sm:min-h-[400px] transition-all duration-700 ease-out opacity-0 animate-fade-in">
               <CardHeader>
-                <CardTitle className="text-lg sm:text-xl transition-all duration-800 ease-out opacity-0 animate-fade-in delay-100">
+                <CardTitle className="text-lg sm:text-xl flex items-center gap-2 transition-all duration-800 ease-out opacity-0 animate-fade-in delay-100">
                   Nuestra Empresa
                 </CardTitle>
               </CardHeader>
@@ -231,7 +238,6 @@ const SMSPage = () => {
                 <div className="transition-all duration-900 ease-out opacity-0 animate-fade-in delay-200">
                   <MissionVision />
                 </div>
-                {/* Imagen con next/image */}
                 <div className="pt-4 border-t transition-all duration-1000 ease-out opacity-0 animate-fade-in delay-300">
                   <div className="flex justify-center">
                     <Image
@@ -251,19 +257,20 @@ const SMSPage = () => {
           <TabsContent value="estrategias" className="space-y-4 mt-4 sm:mt-6">
             <Card className="min-h-[300px] sm:min-h-[400px]">
               <CardHeader>
-                <CardTitle className="text-lg sm:text-xl">
-                  Estrategias
+                <CardTitle className="text-lg sm:text-xl flex items-center gap-2">
+                  Estrategias de Seguridad Operacional
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3 sm:space-y-4 text-sm sm:text-base">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-stretch transition-all duration-900 ease-out opacity-0 animate-fade-in delay-200">
+                  {/* Términos SMS */}
                   <div
                     className="border-l-4 border-l-blue-500 pl-4 flex flex-col cursor-pointer"
                     onClick={() => setIsConceptOpen(true)}
                   >
                     <StrategyCard
-                      title="Terminos SMS"
-                      description="Encontraras una Listas de Conceptos Relacionados al SMS."
+                      title="Términos SMS"
+                      description="Lista de Conceptos Relacionados al SMS."
                       className="h-full hover:scale-105 cursor-pointer"
                     />
                   </div>
@@ -276,6 +283,7 @@ const SMSPage = () => {
                     onOpenChange={setIsConceptOpen}
                   />
 
+                  {/* Responsabilidades SMS */}
                   <FeaturesDialog features={SMSresponsibilities}>
                     <div className="border-l-4 border-l-blue-500 pl-4 flex flex-col">
                       <StrategyCard
@@ -286,6 +294,7 @@ const SMSPage = () => {
                     </div>
                   </FeaturesDialog>
 
+                  {/* Encuestas SMS */}
                   <div
                     className="border-l-4 border-l-blue-500 pl-4 cursor-pointer flex flex-col"
                     onClick={() =>
@@ -296,11 +305,12 @@ const SMSPage = () => {
                   >
                     <StrategyCard
                       title="Encuestas SMS"
-                      description="Tiene por objeto evaluar tus conocimientos en SMS"
+                      description="Evalúa tus conocimientos en SMS"
                       className="hover:scale-105 h-full"
                     />
                   </div>
 
+                  {/* Trivia SMS */}
                   <div
                     className="border-l-4 border-l-blue-500 pl-4 cursor-pointer flex flex-col"
                     onClick={() =>
@@ -311,11 +321,12 @@ const SMSPage = () => {
                   >
                     <StrategyCard
                       title="Trivia SMS"
-                      description="Pon aprueba tus conocimientos en materia de SMS"
+                      description="Pon a prueba tus conocimientos en materia de SMS"
                       className="hover:scale-105 h-full"
                     />
                   </div>
 
+                  {/* Comunicados SMS */}
                   <div
                     className="border-l-4 border-l-blue-500 pl-4 flex flex-col"
                     onClick={() =>
@@ -324,7 +335,7 @@ const SMSPage = () => {
                   >
                     <StrategyCard
                       title="Comunicados SMS"
-                      description="Encontraras información referente a los boletines de SMS."
+                      description="Información referente a los boletines de SMS"
                       className="h-full hover:scale-105 cursor-pointer"
                     />
                   </div>
@@ -340,7 +351,7 @@ const SMSPage = () => {
           >
             <Card className="min-h-[300px] sm:min-h-[400px]">
               <CardHeader>
-                <CardTitle className="text-sm sm:text-xl">
+                <CardTitle className="text-sm sm:text-xl flex items-center gap-2">
                   Plan de Respuesta Ante la Emergencia de{" "}
                   {company.toUpperCase()}
                 </CardTitle>

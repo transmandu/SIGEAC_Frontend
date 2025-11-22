@@ -11,6 +11,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { useCompanyStore } from "@/stores/CompanyStore";
 import {
   ColumnDef,
   ColumnFiltersState,
@@ -52,6 +53,7 @@ export function DataTable<TData, TValue>({
   });
 
   const router = useRouter();
+  const { selectedCompany } = useCompanyStore();
 
   return (
     <>
@@ -67,7 +69,7 @@ export function DataTable<TData, TValue>({
       <div className="flex items-center py-4">
         <Button
              onClick={() => {
-              router.push(`/transmandu/sms/planificacion/actividades/nueva_actividad`);
+              router.push(`/${selectedCompany?.slug}/sms/promocion/actividades/nueva_actividad`);
           }}
                 variant="outline"
                 size="sm"
