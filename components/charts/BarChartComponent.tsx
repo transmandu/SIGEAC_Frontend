@@ -40,8 +40,8 @@ const BarChartComponent = ({
   // Colores para las barras
   const barColors = useMemo(
     () => ({
-      open: isDark ? "#80d5c0" : "#64bda5ff",
-      closed: isDark ? "#8f8dfe" : "#8ea7f0",
+      open: isDark ? "#64bda5ff" : "#64bda5ff",
+      closed: isDark ? "#0369a1" : "#0369a1",
     }),
     [isDark]
   );
@@ -120,7 +120,6 @@ const BarChartComponent = ({
               name={bar_first_name}
               stackId="a"
               fill={barColors.open}
-              radius={[6, 6, 0, 0]}
             />
 
             <Bar
@@ -128,7 +127,6 @@ const BarChartComponent = ({
               name={bar_second_name}
               stackId="a"
               fill={barColors.closed}
-              radius={[6, 6, 0, 0]}
             />
           </BarChart>
         </ResponsiveContainer>
