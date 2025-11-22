@@ -206,6 +206,7 @@ const SMSPage = () => {
                       className="h-full" // Solo mantener h-full aquí
                     >
                       <PolicyCard
+                        index={index}
                         icon={policy.icon}
                         title=""
                         description={policy.description}

@@ -6,6 +6,7 @@ import Link from "next/link";
 import { LucideIcon } from "lucide-react";
 
 interface CustomCardProps {
+  index?: number;
   icon?: LucideIcon;
   iconColor?: string;
   iconSize?: number;
@@ -32,6 +33,7 @@ interface CustomCardProps {
 }
 
 export function PolicyCard({
+  index, // EN CASO DE QUE SE LLAME ESTE COMPONENTE EN UN BUCLE
   icon: Icon,
   iconColor = "currentColor",
   iconSize = 48,
@@ -44,12 +46,24 @@ export function PolicyCard({
   descriptionClassName,
   buttonClassName,
 }: CustomCardProps) {
+  const getFlexDirection = () => {
+    // En mobile: índice par -> flex-row, índice impar -> flex-row-reverse
+    // En desktop: siempre flex-col
+    if (index === undefined) return "flex-col sm:flex-col";
+    
+    const isEven = index % 2 === 0;
+    return isEven 
+      ? "flex-row sm:flex-col" 
+      : "flex-row-reverse sm:flex-col";
+  };
   return (
     <Card className={cn("w-full flex flex-col", className)}>
       <CardContent className="p-6 flex flex-col flex-grow">
         {/* Icono */}
 
-        <div className="flex sm:flex-col items-center gap-2 ">
+        <div
+          className={cn("flex items-center gap-4 sm:gap-2", getFlexDirection())}
+        >
           <div>
             {Icon && (
               <div className="mb-4 flex justify-center">
