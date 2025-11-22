@@ -51,7 +51,12 @@ const MultipleBarChartComponent: React.FC<BarChartProps> = ({
             margin={{ top: 16, right: 24, left: 8, bottom: 16 }}
             barSize={barSize}
           >
-            <CartesianGrid strokeDasharray="4" stroke={gridColor} opacity={0.4} />
+            <CartesianGrid
+              strokeDasharray="4"
+              stroke={gridColor}
+              opacity={0.6}
+              strokeWidth={2}
+            />
 
             <XAxis
               dataKey="name"

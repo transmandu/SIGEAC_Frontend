@@ -20,7 +20,7 @@ type Props = {
 };
 
 const DEFAULT_COLORS = [
-  "#0f766e",
+  "#64bda5ff",
   "#0369a1",
   "#7c3aed",
   "#ea580c",

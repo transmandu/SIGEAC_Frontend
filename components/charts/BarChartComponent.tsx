@@ -2,6 +2,7 @@
 
 import { GeneralStats } from "@/types";
 import { useTheme } from "next-themes";
+import { useMemo } from "react";
 import {
   Bar,
   BarChart,
@@ -16,8 +17,8 @@ import {
 interface BarChartProps {
   data: GeneralStats;
   title: string;
-  width: string;
-  height: string;
+  height?: number;
+  barSize?: number;
   bar_first_name: string;
   bar_second_name: string;
 }
@@ -25,84 +26,113 @@ interface BarChartProps {
 const BarChartComponent = ({
   data,
   title,
-  width,
-  height,
+  height = 260,
+  barSize = 48,
   bar_first_name,
   bar_second_name,
 }: BarChartProps) => {
   const { theme } = useTheme();
+  const isDark = theme === "dark";
+
+  const axisColor = useMemo(() => (isDark ? "#e5e7eb" : "#111827"), [isDark]);
+  const gridColor = useMemo(() => (isDark ? "#4b5563" : "#d1d5db"), [isDark]);
+
+  // Colores para las barras
+  const barColors = useMemo(
+    () => ({
+      open: isDark ? "#80d5c0" : "#64bda5ff",
+      closed: isDark ? "#8f8dfe" : "#8ea7f0",
+    }),
+    [isDark]
+  );
 
   if (!data.closed && !data.open) {
     return (
-      <p className="text-lg text-muted-foreground">
+      <p className="text-sm text-muted-foreground">
         No hay datos para mostrar.
       </p>
     );
   }
 
-  const values: GeneralStats[] = data
-    ? [
-        {
-          total: data.total,
-          open: data.open,
-          closed: data.closed,
-        },
-      ]
-    : [];
+  const chartData = [
+    {
+      name: "Estadísticas",
+      total: data.total,
+      open: data.open,
+      closed: data.closed,
+    },
+  ];
 
   return (
     <>
-      <h1 className="text-sm font-semibold">{title}</h1>
-      <ResponsiveContainer >
-        {values ? (
+      <div style={{ width: "100%", height }}>
+        <ResponsiveContainer width="100%" height="100%">
           <BarChart
-            width={200}
-            height={400}
-            data={values}
-            margin={{
-              top: 20,
-              right: 30,
-              left: 20,
-              bottom: 5,
-            }}
-            barSize={160}
+            data={chartData}
+            margin={{ top: 16, right: 24, left: 8, bottom: 16 }}
+            barSize={barSize}
           >
             <CartesianGrid
               strokeDasharray="4"
-              stroke={theme === "light" ? "#000" : "#fff"}
-              opacity={0.5}
+              stroke={gridColor}
+              opacity={1}
+               strokeWidth={2}
             />
+
             <XAxis
               dataKey="name"
-              stroke={theme === "light" ? "black" : "white"}
-              tick={{ fontSize: 12 }}
+              stroke={axisColor}
+              tick={{ fontSize: 11 }}
+              tickLine={false}
+              axisLine={{ stroke: axisColor, strokeWidth: 1 }}
             />
+
             <YAxis
               allowDecimals={false}
               type="number"
               domain={[0, "dataMax"]}
-              stroke={theme === "light" ? "black" : "white"}
+              stroke={axisColor}
+              tick={{ fontSize: 11 }}
+              tickLine={false}
+              axisLine={{ stroke: axisColor, strokeWidth: 1 }}
             />
-            <Tooltip />
-            <Legend />
+
+            <Tooltip
+              formatter={(value: number) => value.toLocaleString("es-ES")}
+              labelFormatter={() => "Resumen"}
+              contentStyle={{
+                backgroundColor: isDark ? "#1f2937" : "#ffffff",
+                border: `1px solid ${gridColor}`,
+                borderRadius: "6px",
+                fontSize: "12px",
+              }}
+            />
+
+            <Legend
+              wrapperStyle={{
+                fontSize: "14px",
+                paddingTop: "8px",
+              }}
+            />
+
             <Bar
               dataKey="open"
-              name={`${bar_first_name}`}
+              name={bar_first_name}
               stackId="a"
-              fill={theme === "light" ? "#80d5c0" : "#89f4c7"}
+              fill={barColors.open}
+              radius={[6, 6, 0, 0]}
             />
 
             <Bar
               dataKey="closed"
-              name={`${bar_second_name}`}
+              name={bar_second_name}
               stackId="a"
-              fill={theme === "light" ? "#8ea7f0" : "#8f8dfe"}
+              fill={barColors.closed}
+              radius={[6, 6, 0, 0]}
             />
           </BarChart>
-        ) : (
-          <p>No hay datos disponibles para mostrar el gráfico.</p>
-        )}
-      </ResponsiveContainer>
+        </ResponsiveContainer>
+      </div>
     </>
   );
 };
