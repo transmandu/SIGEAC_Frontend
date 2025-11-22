@@ -340,7 +340,7 @@ const SMSPage = () => {
           >
             <Card className="min-h-[300px] sm:min-h-[400px]">
               <CardHeader>
-                <CardTitle className="text-lg sm:text-xl">
+                <CardTitle className="text-sm sm:text-xl">
                   Plan de Respuesta Ante la Emergencia de{" "}
                   {company.toUpperCase()}
                 </CardTitle>

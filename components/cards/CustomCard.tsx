@@ -44,19 +44,15 @@ export function CustomCard({
 }: CustomCardProps) {
   return (
     <Card className={cn("w-full flex flex-col ", className)}>
-      <CardContent className="p-6 flex flex-col flex-grow ">
+      <CardContent className="p-6 flex flex-col flex-grow items-center">
         {/* Imagen */}
         {imageUrl && (
-          <div className="mb-4 flex justify-center">
+          <div className="mb-4 flex justify-center relative h-16 w-16 sm:h-32 sm:w-32">
             <Image
               src={imageUrl}
               alt={imageAlt}
-              width={300} // Necesitas especificar width
-              height={200} // Necesitas especificar height
-              className={cn(
-                "w-full h-auto max-h-48 object-contain rounded-lg",
-                imageClassName
-              )}
+              fill
+              className={cn("object-cover", imageClassName)}
             />
           </div>
         )}
@@ -65,7 +61,7 @@ export function CustomCard({
         {title && (
           <h3
             className={cn(
-              "text-lg font-semibold mb-2 text-center",
+              "text-sm sm:text-lg font-semibold mb-2 text-center",
               titleClassName
             )}
           >
@@ -76,7 +72,7 @@ export function CustomCard({
         {/* Descripción */}
         <p
           className={cn(
-            "text-sm text-muted-foreground text-center flex-grow",
+            "text-xs sm:text-sm text-muted-foreground text-center flex-grow",
             descriptionClassName
           )}
         >
@@ -90,11 +86,12 @@ export function CustomCard({
               asChild
               variant={actionLink.variant || "outline"}
               size={actionLink.size || "sm"}
-              className={cn("w-full max-w-40", buttonClassName)}
+              className={cn("w-full max-w-20 sm:max-w-40", buttonClassName)}
             >
               <Link
                 href={actionLink.href}
                 target={actionLink.target || "_self"}
+                className="text-xs sm:text-sm"
               >
                 {actionLink.label}
               </Link>
