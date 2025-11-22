@@ -1,6 +1,5 @@
 "use client";
-import BarChartCourseComponent from "@/components/charts/BarChartCourseComponent";
-import PieChartComponent from "@/components/charts/PieChartComponent";
+import { PieChartComponent } from "@/components/charts/PieChartComponent";
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import DataFilter from "@/components/misc/DataFilter";
 import { Label } from "@/components/ui/label";
@@ -114,9 +113,6 @@ const CourseStatsPage = () => {
             </div>
           ) : pieChartData && pieChartData.length > 0 ? (
             <PieChartComponent
-              radius={120}
-              height="50%"
-              width="50%"
               data={pieChartData}
               title="Porcentaje cursos planificados y ejecutados"
             />

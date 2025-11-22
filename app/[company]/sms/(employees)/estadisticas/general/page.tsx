@@ -307,8 +307,6 @@ const GeneralReportStats = () => {
               params.from &&
               params.to && (
                 <BarChartComponent
-                  height="50%"
-                  width="50%"
                   data={barChartData}
                     title="Peligros Identificados vs Gestionados"
                     bar_first_name="Identificados"

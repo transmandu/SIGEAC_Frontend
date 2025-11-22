@@ -1,6 +1,6 @@
 "use client";
 import BarChartComponent from "@/components/charts/BarChartComponent";
-import PieChartComponent from "@/components/charts/PieChartComponent";
+import { PieChartComponent } from "@/components/charts/PieChartComponent";
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import DateFilter from "@/components/misc/DataFilter";
 import { Label } from "@/components/ui/label";
@@ -116,8 +116,6 @@ const VoluntaryReportIndicators = () => {
               params.from &&
               params.to && (
                 <BarChartComponent
-                  height="100%"
-                  width="100%"
                   data={barChartData}
                   title="Peligros Identificados vs Gestionados"
                   bar_first_name="Identificados"
@@ -143,9 +141,6 @@ const VoluntaryReportIndicators = () => {
             ) : resultArrayData && resultArrayData?.length > 0 ? (
               <>
                 <PieChartComponent
-                  radius={120}
-                  height="100%"
-                  width="100%"
                   data={resultArrayData}
                   title="Porcentaje de Peligros Identificados vs Gestionados"
                 />

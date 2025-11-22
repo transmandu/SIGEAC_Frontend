@@ -1,6 +1,5 @@
 "use client";
 import BarChartComponent from "@/components/charts/BarChartComponent";
-import PieChartComponent from "@/components/charts/PieChartComponent";
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import DataFilter from "@/components/misc/DataFilter";
 import { Label } from "@/components/ui/label";
@@ -35,6 +34,7 @@ import { cn } from "@/lib/utils";
 import DynamicBarChart from "@/components/charts/DynamicBarChart";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import MultipleBarChartComponent from "@/components/charts/MultipleBarChartComponent";
+import { PieChartComponent } from "@/components/charts/PieChartComponent";
 
 interface Params {
   from?: string;
@@ -370,8 +370,6 @@ const Statistics = () => {
               </div>
             ) : barChartData ? (
               <BarChartComponent
-                height="100%"
-                width="100%"
                 data={barChartData}
                 title="Peligros Identificados vs Gestionados"
                 bar_first_name="Identificados"
@@ -431,9 +429,6 @@ const Statistics = () => {
               </div>
             ) : riskData?.length ? (
               <PieChartComponent
-                radius={120}
-                height="50%"
-                width="50%"
                 data={riskData}
                 title="Porcentaje de Índice de Riesgo Pre-Mitigación"
               />
@@ -472,9 +467,6 @@ const Statistics = () => {
               </div>
             ) : postRiskData?.length ? (
               <PieChartComponent
-                radius={120}
-                height="50%"
-                width="50%"
                 data={postRiskData}
                 title="Índice de Riesgo Post-Mitigación"
               />
