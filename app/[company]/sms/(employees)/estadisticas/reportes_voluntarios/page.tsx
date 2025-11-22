@@ -1,6 +1,5 @@
 "use client";
 import BarChartComponent from "@/components/charts/BarChartComponent";
-import PieChartComponent from "@/components/charts/PieChartComponent";
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import DataFilter from "@/components/misc/DataFilter";
 import { Label } from "@/components/ui/label";
@@ -34,6 +33,8 @@ import {
 import { cn } from "@/lib/utils";
 import DynamicBarChart from "@/components/charts/DynamicBarChart";
 import { useCompanyStore } from "@/stores/CompanyStore";
+import { PieChartComponent } from "@/components/charts/PieChartComponent";
+import MultipleBarChartComponent from "@/components/charts/MultipleBarChartComponent";
 
 interface Params {
   from?: string;
@@ -347,9 +348,7 @@ const Statistics = () => {
                 <Loader2 className="size-24 animate-spin" />
               </div>
             ) : dynamicData?.length ? (
-              <DynamicBarChart
-                height="100%"
-                width="100%"
+              <MultipleBarChartComponent
                 data={dynamicData}
                 title="Numero de Reportes vs Tipo de Peligros"
               />
@@ -368,9 +367,7 @@ const Statistics = () => {
                 <Loader2 className="size-24 animate-spin" />
               </div>
             ) : pieCharData?.length ? (
-              <DynamicBarChart
-                height="100%"
-                width="100%"
+              <MultipleBarChartComponent
                 data={pieCharData}
                 title="Numero de Reportes vs Areas"
               />
@@ -389,9 +386,7 @@ const Statistics = () => {
                 <Loader2 className="size-24 animate-spin" />
               </div>
             ) : reportsByLocationData?.length ? (
-              <DynamicBarChart
-                height="100%"
-                width="100%"
+              <MultipleBarChartComponent
                 data={reportsByLocationData}
                 title="Numero de Reportes vs Localizacion"
               />
@@ -411,9 +406,6 @@ const Statistics = () => {
               </div>
             ) : riskData?.length ? (
               <PieChartComponent
-                radius={120}
-                height="50%"
-                width="50%"
                 data={riskData}
                 title="Porcentaje de Indice de Riesgo Pre-Mitigacion"
               />
@@ -432,9 +424,7 @@ const Statistics = () => {
                 <Loader2 className="size-24 animate-spin" />
               </div>
             ) : riskData?.length ? (
-              <DynamicBarChart
-                height="100%"
-                width="100%"
+              <MultipleBarChartComponent
                 data={riskData}
                 title="Numero de Reportes por Cada Indice de Riesgo"
               />
@@ -454,9 +444,6 @@ const Statistics = () => {
               </div>
             ) : postRiskData?.length ? (
               <PieChartComponent
-                radius={120}
-                height="50%"
-                width="50%"
                 data={postRiskData}
                 title="Indice de Riesgo Post-Mitigación"
               />
@@ -475,9 +462,7 @@ const Statistics = () => {
                 <Loader2 className="size-24 animate-spin" />
               </div>
             ) : postRiskData?.length ? (
-              <DynamicBarChart
-                height="100%"
-                width="100%"
+              <MultipleBarChartComponent
                 data={postRiskData}
                 title="Numero de Reportes por Indice de Riesgo"
               />
@@ -496,9 +481,7 @@ const Statistics = () => {
                 <Loader2 className="size-24 animate-spin" />
               </div>
             ) : reportsBySourceType?.length ? (
-              <DynamicBarChart
-                height="100%"
-                width="100%"
+              <MultipleBarChartComponent
                 data={reportsBySourceType}
                 title="Reportes vs Tipo Fuente"
               />
@@ -517,9 +500,7 @@ const Statistics = () => {
                 <Loader2 className="size-24 animate-spin" />
               </div>
             ) : reportsBySourceName?.length ? (
-              <DynamicBarChart
-                height="100%"
-                width="100%"
+              <MultipleBarChartComponent
                 data={reportsBySourceName}
                 title="Reportes vs Nombre de la Fuente"
               />

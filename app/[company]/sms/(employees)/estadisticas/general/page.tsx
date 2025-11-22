@@ -1,6 +1,5 @@
 "use client";
 import BarChartComponent from "@/components/charts/BarChartComponent";
-import PieChartComponent from "@/components/charts/PieChartComponent";
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import DataFilter from "@/components/misc/DataFilter";
 import { Label } from "@/components/ui/label";
@@ -33,6 +32,8 @@ import {
 import { cn } from "@/lib/utils";
 import DynamicBarChart from "@/components/charts/DynamicBarChart";
 import { useCompanyStore } from "@/stores/CompanyStore";
+import MultipleBarChartComponent from "@/components/charts/MultipleBarChartComponent";
+import { PieChartComponent } from "@/components/charts/PieChartComponent";
 
 const GeneralReportStats = () => {
   const { selectedCompany } = useCompanyStore();
@@ -292,7 +293,10 @@ const GeneralReportStats = () => {
         )}
       </div>
 
-      <div className="grid sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-2 2xl:grid-cols-3 gap-4">
+      <div className="grid sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-2 2xl:grid-cols-3 gap-2">
+
+        {/* Peligros Identificados vs Gestionados */}
+
         {shouldShow("bar-chart") && (
           <div className="flex flex-col justify-center items-center p-4 rounded-lg shadow border">
             {isLoadingBarChart ? (
@@ -303,8 +307,8 @@ const GeneralReportStats = () => {
               params.from &&
               params.to && (
                 <BarChartComponent
-                  height="100%"
-                  width="100%"
+                  height="50%"
+                  width="50%"
                   data={barChartData}
                     title="Peligros Identificados vs Gestionados"
                     bar_first_name="Identificados"
@@ -320,6 +324,8 @@ const GeneralReportStats = () => {
           </div>
         )}
 
+        {/* Numero de Reportes vs Tipo de Peligro (General) */}
+
         {shouldShow("type-chart") && (
           <div className="p-4 rounded-lg shadow border">
             {isLoadingIdentificationData ? (
@@ -328,12 +334,12 @@ const GeneralReportStats = () => {
               </div>
             ) : totalIdentificationData &&
               totalIdentificationData.length > 0 ? (
-              <DynamicBarChart
-                height="70%"
-                width="70%"
+                <>
+              <MultipleBarChartComponent
                 data={totalIdentificationData}
                 title="Numero de Reportes vs Tipo de Peligro (General)"
               />
+              </>
             ) : (
               <p className="text-lg text-muted-foreground">
                 No hay datos para mostrar.
@@ -349,9 +355,8 @@ const GeneralReportStats = () => {
                 <Loader2 className="size-24 animate-spin" />
               </div>
             ) : reportsByAreaData && reportsByAreaData.length > 0 ? (
-              <DynamicBarChart
-                height="70%"
-                width="70%"
+              <MultipleBarChartComponent
+
                 data={reportsByAreaData}
                 title="Numero de Reportes vs Area de Identificación (General)"
               />
@@ -376,11 +381,8 @@ const GeneralReportStats = () => {
               </div>
             ) : totalRiskData && totalRiskData.length > 0 ? (
               <PieChartComponent
-                radius={120}
-                height="50%"
-                width="50%"
+                title="Por Índice de Riesgo Pre-Mitigación"
                 data={totalRiskData}
-                title="Porcentaje de Indice de Riesgo Pre-Mitigacion"
               />
             ) : (
               <p className="text-lg text-muted-foreground">
@@ -403,9 +405,8 @@ const GeneralReportStats = () => {
                 <Loader2 className="size-24 animate-spin" />
               </div>
             ) : totalRiskData && totalRiskData.length > 0 ? (
-              <DynamicBarChart
-                height="70%"
-                width="70%"
+              <MultipleBarChartComponent
+
                 data={totalRiskData}
                 title="Numero de Reportes por Cada Indice de Riesgo (General)"
               />
@@ -430,9 +431,6 @@ const GeneralReportStats = () => {
               </div>
             ) : totalPostRiskData && totalPostRiskData.length > 0 ? (
               <PieChartComponent
-                radius={120}
-                height="50%"
-                width="50%"
                 data={totalPostRiskData}
                 title="Porcentaje de Indice de Riesgo Post-Mitigacion"
               />
@@ -457,9 +455,8 @@ const GeneralReportStats = () => {
                 <Loader2 className="size-24 animate-spin" />
               </div>
             ) : totalRiskData && totalRiskData.length > 0 ? (
-              <DynamicBarChart
-                height="70%"
-                width="70%"
+              <MultipleBarChartComponent
+
                 data={totalRiskData}
                 title="Numero de Reportes por Cada Indice de Riesgo  (Post-Mitigacion)"
               />
@@ -483,9 +480,7 @@ const GeneralReportStats = () => {
                 <Loader2 className="size-24 animate-spin" />
               </div>
             ) : totalPostRiskData && totalPostRiskData.length > 0 ? (
-              <DynamicBarChart
-                height="100%"
-                width="100%"
+              <MultipleBarChartComponent
                 data={totalPostRiskData}
                 title="Numero de Reportes por Tipo de Fuente"
               />
@@ -504,9 +499,7 @@ const GeneralReportStats = () => {
                 <Loader2 className="size-24 animate-spin" />
               </div>
             ) : reportSourceNameData && reportSourceNameData.length > 0 ? (
-              <DynamicBarChart
-                height="100%"
-                width="100%"
+              <MultipleBarChartComponent
                 data={reportSourceNameData}
                 title="Numero de Reportes Voluntarios vs Nombre de la Fuente"
               />

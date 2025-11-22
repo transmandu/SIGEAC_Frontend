@@ -53,11 +53,11 @@ const BarChartComponent = ({
   return (
     <>
       <h1 className="text-sm font-semibold">{title}</h1>
-      <ResponsiveContainer width={width} height={height} aspect={2}>
+      <ResponsiveContainer >
         {values ? (
           <BarChart
-            width={300}
-            height={600}
+            width={200}
+            height={400}
             data={values}
             margin={{
               top: 20,
