@@ -34,6 +34,7 @@ import {
 import { cn } from "@/lib/utils";
 import DynamicBarChart from "@/components/charts/DynamicBarChart";
 import { useCompanyStore } from "@/stores/CompanyStore";
+import MultipleBarChartComponent from "@/components/charts/MultipleBarChartComponent";
 
 interface Params {
   from?: string;
@@ -391,9 +392,7 @@ const Statistics = () => {
                 <Loader2 className="size-24 animate-spin" />
               </div>
             ) : dynamicData?.length ? (
-              <DynamicBarChart
-                height="100%"
-                width="100%"
+              <MultipleBarChartComponent
                 data={dynamicData}
                 title="Número de Reportes vs Tipo de Peligros"
               />
@@ -412,9 +411,7 @@ const Statistics = () => {
                 <Loader2 className="size-24 animate-spin" />
               </div>
             ) : pieCharData?.length ? (
-              <DynamicBarChart
-                height="100%"
-                width="100%"
+              <MultipleBarChartComponent
                 data={pieCharData}
                 title="Número de Reportes vs Áreas"
               />
@@ -455,9 +452,7 @@ const Statistics = () => {
                 <Loader2 className="size-24 animate-spin" />
               </div>
             ) : riskData?.length ? (
-              <DynamicBarChart
-                height="100%"
-                width="100%"
+              <MultipleBarChartComponent
                 data={riskData}
                 title="Número de Reportes por Cada Índice de Riesgo"
               />
@@ -498,9 +493,7 @@ const Statistics = () => {
                 <Loader2 className="size-24 animate-spin" />
               </div>
             ) : postRiskData?.length ? (
-              <DynamicBarChart
-                height="100%"
-                width="100%"
+              <MultipleBarChartComponent
                 data={postRiskData}
                 title="Número de Reportes por Cada Índice de Riesgo"
               />
@@ -519,9 +512,7 @@ const Statistics = () => {
                 <Loader2 className="size-24 animate-spin" />
               </div>
             ) : reportsBySourceName?.length ? (
-              <DynamicBarChart
-                height="100%"
-                width="100%"
+              <MultipleBarChartComponent
                 data={reportsBySourceName}
                 title="Reportes vs Fuente de Identificación"
               />
@@ -540,9 +531,7 @@ const Statistics = () => {
                 <Loader2 className="size-24 animate-spin" />
               </div>
             ) : reportsBySourceType?.length ? (
-              <DynamicBarChart
-                height="100%"
-                width="100%"
+              <MultipleBarChartComponent
                 data={reportsBySourceType}
                 title="Reportes vs Método de Identificación"
               />

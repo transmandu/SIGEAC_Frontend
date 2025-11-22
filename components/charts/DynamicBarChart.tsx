@@ -85,10 +85,7 @@ const DynamicBarChart = ({
   };
 
   return (
-    <>
-      <h1 className="text-sm font-semibold"></h1>
-
-      <ResponsiveContainer aspect={1.5}>
+      <ResponsiveContainer aspect={0.7}>
         <BarChart
           margin={{ top: 20, right: 30, left: 20, bottom: 120 }}
           width={730}
@@ -101,7 +98,6 @@ const DynamicBarChart = ({
           }}
         >
           <CartesianGrid strokeDasharray="4" />
-
           <XAxis
             dataKey="name"
             stroke={theme === "light" ? "black" : "white"}
@@ -138,7 +134,7 @@ const DynamicBarChart = ({
           </Bar>
         </BarChart>
       </ResponsiveContainer>
-    </>
+
   );
 };
 

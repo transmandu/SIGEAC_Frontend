@@ -71,7 +71,7 @@ const ShowSurvey = () => {
 
   return (
     <ContentLayout title={surveyData.title}>
-      <div className="max-w-4xl mx-auto space-y-6">
+      <div className="max-w-7xl mx-auto space-y-6">
         {/* Header minimalista */}
         <div className="space-y-3">
           <div className="flex items-center gap-3">

@@ -1,6 +1,7 @@
 import { useGetSurveyStats } from "@/hooks/sms/survey/useGetSurveyStatistics";
 import { pieChartData } from "@/types";
 import DynamicBarChart from "./DynamicBarChart";
+import MultipleBarChartComponent from "./MultipleBarChartComponent";
 
 // Componente principal
 const SurveyStatisticsPage = ({ survey_number }: { survey_number: string }) => {
@@ -41,25 +42,19 @@ const SurveyStatisticsPage = ({ survey_number }: { survey_number: string }) => {
       </div>
 
       {/* Gráficos para cada pregunta */}
-      {dataStats.statistics.map((questionStat, index) => {
+      <div className="grid grid-cols-1 gap-2 line-clamp-2 overflow-x-auto text-center">
+        {dataStats.statistics.map((questionStat, index) => {
         const chartData = transformQuestionToChartData(questionStat);
-
         return (
-          <div key={index} className="p-6 rounded-lg shadow-md overflow-x-auto">
+          <div key={index} className="p-6 rounded-lg">
              <div className="min-w-[600px]"> {/* ¡Añade este contenedor! */}
-            <DynamicBarChart
+            <MultipleBarChartComponent
               data={chartData}
-              title={questionStat.question}
-              height="100%"
-              width="100%"
-              aspect={2}
-              activeDecimal={false}
-              fontSize={12}
-              isCustomizedAxis={true}
+              title={questionStat.question.toLocaleUpperCase()}
             />
-</div>
+             </div>
             {/* Información adicional debajo del gráfico */}
-            <div className="mt-4 grid grid-cols-2 gap-4 text-sm">
+            <div className="mt-4 flex justify-center gap-8 text-sm text-gray-600">
               <div>
                 <span className="font-semibold">Total respuestas: </span>
                 {chartData.reduce(
@@ -75,6 +70,7 @@ const SurveyStatisticsPage = ({ survey_number }: { survey_number: string }) => {
           </div>
         );
       })}
+      </div>
     </div>
   );
 };
