@@ -276,7 +276,7 @@ export const smsConcepts = [
 ];
 
 // Exportación por defecto para importar todo junto si es necesario
-export default {
+export const smsConstants = {
   emergencyPlans,
   policyImages,
   SMSresponsibilities,
@@ -284,8 +284,24 @@ export default {
   policyCardsData,
 };
 
+export default smsConstants;
 
 
+// export const emergencyPlans: EmergencyPlan[] = [
+//   {
+//     //PRIMERA CARTA
+//     cardData: {
+//       imageUrl:
+//         "https://ccvnd3lo965z.share.zrok.io/storage/sms/images/fire-extinguisher.png",
+//   {
+//     title: "Estructura del SMS",
+//     concept: "Posee 4 Componetes y 12 Elementos!"
+//   },
+//   {
+//     title: "Tipos de Reportes SMS",
+//     concept: "Posee el Reporte Voluntario de Peligro y El Reporte Obligatorio de Incidentes!"
+//   }
+// ];
 
 // export const emergencyPlans: EmergencyPlan[] = [
 //   {

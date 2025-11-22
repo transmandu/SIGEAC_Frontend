@@ -154,36 +154,52 @@ const SMSPage = () => {
 
         {/* TABS RESPONSIVE */}
         <Tabs defaultValue="politicas" className="w-full">
-          <TabsList className="mb-6 grid w-full grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
+          <TabsList className="pb-40 sm:pb-2 grid w-full grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4 items-center justify-center">
             <TabsTrigger
               value="politicas"
-              className="flex items-center gap-2 px-2 sm:px-4"
+              className="flex-col sm:flex-row items-center justify-center gap-2 px-2 sm:px-4 mt-5 sm:mt-0"
             >
-              <BookOpen className="h-4 w-4 flex-shrink-0" />
-              <span className="truncate text-xs sm:text-sm">Políticas</span>
+              <div>
+                <BookOpen className="h-4 w-4 flex-shrink-0" />
+              </div>
+              <div>
+                <span className="truncate text-xs sm:text-sm">Políticas</span>
+              </div>
             </TabsTrigger>
             <TabsTrigger
               value="empresa"
-              className="flex items-center gap-2 px-2 sm:px-4"
+              className="flex-col sm:flex-row items-center justify-center gap-2 px-2 sm:px-4 mt-5 sm:mt-0"
             >
-              <Building className="h-4 w-4 flex-shrink-0" />
-              <span className="truncate text-xs sm:text-sm">Empresa</span>
+              <div>
+                <Building className="h-4 w-4 flex-shrink-0" />
+              </div>
+              <div>
+                <span className="truncate text-xs sm:text-sm">Empresa</span>
+              </div>
             </TabsTrigger>
             <TabsTrigger
               value="estrategias"
-              className="flex items-center gap-2 px-2 sm:px-4"
+              className="flex-col sm:flex-row items-center justify-center gap-2 px-2 sm:px-4 mb-4 sm:mb-0"
             >
-              <Target className="h-4 w-4 flex-shrink-0" />
-              <span className="truncate text-xs sm:text-sm">Estrategias</span>
+              <div>
+                <Target className="h-4 w-4 flex-shrink-0" />
+              </div>
+              <div>
+                <span className="truncate text-xs sm:text-sm">Estrategias</span>
+              </div>
             </TabsTrigger>
             <TabsTrigger
               value="plan-respuesta"
-              className="flex items-center gap-2 px-2 sm:px-4"
+              className="flex-col sm:flex-row items-center justify-center gap-2 px-2 sm:px-4 mb-4 sm:mb-0"  
             >
-              <AlertTriangle className="h-4 w-4 flex-shrink-0" />
-              <span className="truncate text-xs sm:text-sm">
-                Plan Respuesta
-              </span>
+              <div>
+                <AlertTriangle className="h-4 w-4 flex-shrink-0" />
+              </div>
+              <div>
+                <span className="truncate text-xs sm:text-sm">
+                  Plan Respuesta
+                </span>
+              </div>
             </TabsTrigger>
           </TabsList>
 
