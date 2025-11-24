@@ -82,7 +82,7 @@ export const columns: ColumnDef<Survey>[] = [
   {
     accessorKey: "setting",
     header: ({ column }) => (
-      <DataTableColumnHeader filter column={column} title="Configuracion" />
+      <DataTableColumnHeader filter column={column} title="Configuración" />
     ),
     cell: ({ row }) => {
       const setting = row.original.setting;

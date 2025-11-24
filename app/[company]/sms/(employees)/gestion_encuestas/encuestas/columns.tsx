@@ -4,15 +4,29 @@ import { ColumnDef } from "@tanstack/react-table";
 
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
 
-import ObligatoryReportDropdownActions from "@/components/dropdowns/aerolinea/sms/ObligatoryReportDropdownActions";
-import { Badge } from "@/components/ui/badge";
-import { Checkbox } from "@/components/ui/checkbox";
-import { ObligatoryReport, Survey } from "@/types";
-import { format, parse } from "date-fns";
-import { dateFormat, timeFormat } from "@/lib/utils";
 import SurveyDropdownActions from "@/components/dropdowns/aerolinea/sms/survey/surveyDropDownActions";
+import { Badge } from "@/components/ui/badge";
+import { Survey } from "@/types";
+import Link from "next/link";
 import { useCompanyStore } from "@/stores/CompanyStore";
-import { useParams } from "next/navigation";
+
+const SurveyNumberCell = ({ surveyNumber }: { surveyNumber: string }) => {
+  const { selectedCompany } = useCompanyStore();
+
+  return (
+    <div className="flex justify-center items-center gap-2">
+      {selectedCompany && (
+        <Link
+          href={`/${selectedCompany.slug}/sms/gestion_encuestas/${surveyNumber}`}
+          className="ml-2 font-bold hover:scale-105 transition-all cursor-pointer"
+        >
+           {surveyNumber}
+        </Link>
+      )}
+    </div>
+  );
+};
+
 
 export const columns: ColumnDef<Survey>[] = [
   // {
@@ -48,16 +62,8 @@ export const columns: ColumnDef<Survey>[] = [
     ),
     meta: { title: "Numero de Encuesta" },
     cell: ({ row }) => {
-      //const { selectedCompany } = useCompanyStore();
       return (
-        <div className="flex justify-center">
-          <a
-            href={`/transmandu/sms/gestion_encuestas/${row.original.survey_number}`}
-            className="font-bold hover:scale-105 hover:no-underline transition-colors duration-200"
-          >
-            {row.original.survey_number}
-          </a>
-        </div>
+        <SurveyNumberCell surveyNumber={row.original.survey_number} />
       );
     },
   },
