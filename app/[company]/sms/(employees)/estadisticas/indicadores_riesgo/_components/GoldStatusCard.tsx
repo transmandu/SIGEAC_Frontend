@@ -36,7 +36,6 @@ export const GoalStatusCard: React.FC<GoalStatusCardProps> = ({
       borderColor: "border-green-300",
       bgGradient: "",
       title: "¡Meta Alcanzada!",
-      status: "Completado",
       statusColor: "bg-green-100 border-green-200",
       textColor: "",
       progressColor: "bg-green-200",
@@ -49,7 +48,6 @@ export const GoalStatusCard: React.FC<GoalStatusCardProps> = ({
       borderColor: "border-red-500",
       bgGradient: "",
       title: "Meta No Alcanzada",
-      status: "Pendiente",
       statusColor: "text-red-700 border-red-500",
       textColor: "",
       progressColor: "bg-red-200",
@@ -80,11 +78,6 @@ export const GoalStatusCard: React.FC<GoalStatusCardProps> = ({
               className={`font-bold text-lg flex items-center gap-2 ${currentConfig.textColor}`}
             >
               {currentConfig.title}
-              <span
-                className={`px-2 py-1 text-xs font-medium rounded-full border text-black${currentConfig.statusColor}`}
-              >
-                {currentConfig.status}
-              </span>
             </h3>
           </div>
         </div>
