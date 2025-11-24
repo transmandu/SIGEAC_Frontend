@@ -23,11 +23,11 @@ const QrCodePage = () => {
             <h1 className="text-center font-bold text-base">Generar Reportes de SMS</h1>
             <QRGenerator
               value={qrValueReport}
-              fileName={`reporte-${selectedCompany?.slug}`}
+              fileName={`crear-reporte-sms-${selectedCompany?.slug}`}
               bgColor="#3088FF"
               showLink={true}
               showDownloadButton={true}
-              size={200}
+              size={300}
             />
           </div>
 
@@ -36,11 +36,11 @@ const QrCodePage = () => {
             <h1 className="text-center font-bold text-base">Página de SMS</h1>
             <QRGenerator
               value={qrSMSPage}
-              fileName={`qr-sms-page-${selectedCompany?.slug}`}
+              fileName={`pagina-sms-${selectedCompany?.slug}`}
               bgColor="#00000"
               showLink={true}
               showDownloadButton={true}
-              size={200}
+              size={300}
             />
           </div>
         </div>

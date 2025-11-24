@@ -523,7 +523,6 @@ export function getMenuList(
                 pathname ===
                 `/${currentCompany?.slug}/sms/estadisticas/general`,
             },
-
             {
               href: `/${currentCompany?.slug}/sms/estadisticas/reportes_voluntarios`,
               label: "Reportes Voluntarios",
@@ -552,7 +551,7 @@ export function getMenuList(
         },
         {
           href: "",
-          label: "Planificación",
+          label: "Promoción",
           active: pathname.includes(
             `/${currentCompany?.slug}/sms/promocion`
           ),

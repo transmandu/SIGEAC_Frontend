@@ -73,7 +73,7 @@ const QRGenerator = ({
           href={value}
           target="_blank"
           rel="noopener noreferrer"
-          className="underline text-sm break-all max-w-xs text-center text-blue-600 hover:text-blue-800"
+          className="underline text-sm break-all max-w-xs text-center hover:scale-105 transition-all"
         >
           {value}
         </a>
