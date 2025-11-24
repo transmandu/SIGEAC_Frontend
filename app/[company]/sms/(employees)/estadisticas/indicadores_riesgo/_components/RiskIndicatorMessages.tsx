@@ -1,6 +1,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { TrendingUp, TrendingDown, Minus } from "lucide-react";
 import { dateFormat } from "@/lib/utils"; // Asegúrate de tener esta utilidad
+import { useTheme } from "next-themes";
 
 export type IncidentAlertType = "increase" | "decrease" | "stable";
 
@@ -27,13 +28,15 @@ export const IncidentAlertCard: React.FC<IncidentAlertCardProps> = ({
   data,
   className = "",
 }) => {
+  const theme = useTheme();
+
   const config = {
     increase: {
       title: "¡Aumento de los Incidentes!",
       icon: TrendingUp,
       borderColor: "border-red-400",
       bgColor: "",
-      textColor: "text-red-700",
+      textColor: theme.theme === "dark" ? "text-red-200" : "text-red-700",
       iconColor: "text-red-600",
       message:
         data.newest_range.percentage_change !== 0
@@ -45,7 +48,7 @@ export const IncidentAlertCard: React.FC<IncidentAlertCardProps> = ({
       icon: TrendingDown,
       borderColor: "border-green-400",
       bgColor: "",
-      textColor: "text-green-700",
+      textColor: theme.theme === "dark" ? "text-green-200" : "text-green-700",
       iconColor: "text-green-600",
       message: `¡Reducción de un ${Math.abs(data.newest_range.percentage_change || 0).toFixed(2)}% de incidentes!`,
     },
@@ -54,7 +57,7 @@ export const IncidentAlertCard: React.FC<IncidentAlertCardProps> = ({
       icon: Minus,
       borderColor: "border-blue-400",
       bgColor: "",
-      textColor: "text-blue-700",
+      textColor: theme.theme === "dark" ? "text-blue-200" : "text-blue-700",
       iconColor: "text-blue-600",
       message: "¡Se ha mantenido el número de incidentes promedio!",
     },
@@ -69,6 +72,8 @@ export const IncidentAlertCard: React.FC<IncidentAlertCardProps> = ({
     iconColor,
     message,
   } = config[type];
+
+  
 
   return (
     <Card className={`border-2 ${borderColor} ${bgColor} ${className}`}>
@@ -88,7 +93,7 @@ export const IncidentAlertCard: React.FC<IncidentAlertCardProps> = ({
           {/* Mensaje principal */}
           <div className="text-center">
             <p
-              className={`font-bold text-base ${type === "increase" ? "text-red-800" : type === "decrease" ? "text-green-800" : "text-blue-800"}`}
+              className={`font-bold text-base ${type === "increase" ? "text-red-800" : type === "decrease" ? "text-green-700" : "text-blue-700"}`}
             >
               {message}
             </p>
@@ -97,17 +102,17 @@ export const IncidentAlertCard: React.FC<IncidentAlertCardProps> = ({
           {/* Detalles de fechas */}
           <div className="space-y-3">
             {type === "increase" && (
-              <p className="text-sm text-gray-700 text-center">
+              <p className="text-sm text-center">
                 El número de incidentes fue mayor durante las fechas:
               </p>
             )}
             {type === "decrease" && (
-              <p className="text-sm text-gray-700 text-center">
+              <p className="text-sm text-center">
                 El número de incidentes fue menor durante las fechas:
               </p>
             )}
             {type === "stable" && (
-              <p className="text-sm text-gray-700 text-center">
+              <p className="text-sm text-center">
                 El número de incidentes no tuvo variaciones significativas
                 durante las fechas:
               </p>
@@ -115,14 +120,14 @@ export const IncidentAlertCard: React.FC<IncidentAlertCardProps> = ({
 
             {/* Rango mas antiguo */}
             <div className="text-center">
-              <p className="font-semibold text-sm text-gray-900">
+              <p className="font-semibold text-sm ">
                 {dateFormat(data.oldest_range.from, "PPP")} al{" "}
                 {dateFormat(data.oldest_range.to, "PPP")}
               </p>
             </div>
 
             {/* Texto comparativo */}
-            <p className="text-sm text-gray-700 text-center">
+            <p className="text-sm text-center">
               {type === "stable"
                 ? "en comparación a las fechas del:"
                 : "en comparación a las fechas desde:"}
@@ -130,7 +135,7 @@ export const IncidentAlertCard: React.FC<IncidentAlertCardProps> = ({
 
             {/* Rango Siguiente */}
             <div className="text-center">
-              <p className="font-semibold text-sm text-gray-900">
+              <p className="font-semibold text-sm">
                 {dateFormat(data.newest_range.from, "PPP")} al{" "}
                 {dateFormat(data.newest_range.to, "PPP")}
               </p>
