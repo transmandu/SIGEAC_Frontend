@@ -1,6 +1,6 @@
 "use client";
 
-import { CreateSurveyForm } from "@/components/forms/aerolinea/sms/CreateSurveyForm";
+import { CreateSurveyForm } from "@/components/forms/aerolinea/sms/survey/CreateSurveyForm";
 import { ContentLayout } from "@/components/layout/ContentLayout";
 
 const CreateSurvey = () => {

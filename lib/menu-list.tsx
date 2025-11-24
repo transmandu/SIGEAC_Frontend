@@ -430,25 +430,25 @@ export function getMenuList(
               },
               {
                 href: "/transmandu/sms",
-                label: "Planificacion",
-                active: pathname.includes("/transmandu/sms/planificacion"),
+                label: "Promocion",
+                active: pathname.includes("/transmandu/sms/promocion"),
                 icon: Activity,
                 roles: ["SUPERUSER"],
                 submenus: [
                   {
-                    href: "/transmandu/sms/planificacion/actividades",
+                    href: "/transmandu/sms/promocion/actividades",
                     label: "Actividades",
                     roles: ["SUPERUSER"],
                     active:
-                      pathname === "/transmandu/planificacion/actividades",
+                      pathname === "/transmandu/promocion/actividades",
                   },
                   {
-                    href: "/transmandu/sms/planificacion/capacitacion_personal",
+                    href: "/transmandu/sms/promocion/capacitacion_personal",
                     label: "Capacitacion SMS",
                     roles: ["SUPERUSER"],
                     active:
                       pathname ===
-                      "/transmandu/planificacion/capacitacion_personal",
+                      "/transmandu/promocion/capacitacion_personal",
                   },
                 ],
               },

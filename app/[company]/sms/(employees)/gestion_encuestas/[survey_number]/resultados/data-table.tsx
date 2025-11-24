@@ -11,6 +11,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { useCompanyStore } from "@/stores/CompanyStore";
 import {
   ColumnDef,
   ColumnFiltersState,
@@ -36,6 +37,7 @@ export function DataTable<TData, TValue>({
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+  const { selectedCompany } = useCompanyStore();
   const table = useReactTable({
     data,
     columns,
@@ -53,30 +55,22 @@ export function DataTable<TData, TValue>({
 
   const router = useRouter();
 
+
   return (
     <>
       <div className="flex flex-col gap-2 mb-4">
         <h1 className="text-5xl font-bold text-center">
-          Actividades de SMS
+          Encuestas
         </h1>
         <p className="text-sm italic text-muted-foreground text-center">
-          Aquí se pueden visualizar las actividades de SMS planificadas y ejecutadas hasta el momento
+          Aquí se pueden visualizar las encuestas realizados hasta
+          el momento.
         </p>
       </div>
 
       <div className="flex items-center py-4">
-        <Button
-             onClick={() => {
-              router.push(`/transmandu/sms/planificacion/actividades/nueva_actividad`);
-          }}
-                variant="outline"
-                size="sm"
-                className=" hidden h-8 lg:flex"
-              >
-                Nueva Actividad
-              </Button>
-              <DataTableViewOptions table={table} />
-            </div>
+        <DataTableViewOptions table={table} />
+      </div>
 
       <div className="rounded-md border mb-4">
         <Table>

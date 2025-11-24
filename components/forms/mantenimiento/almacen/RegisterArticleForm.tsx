@@ -15,6 +15,9 @@ import CreateToolForm from "./CreateToolForm";
 
 export interface EditingArticle extends Article {
   batches: Batch;
+  certificate_8130?: string;
+  certificate_vendor?: string;
+  certificate_fabricant?: string;
   tool?: {
     id: number;
     serial: string;

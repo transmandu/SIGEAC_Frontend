@@ -1,6 +1,6 @@
 "use client";
 import BarChartCourseComponent from "@/components/charts/BarChartCourseComponent";
-import PieChartComponent from "@/components/charts/PieChartComponent";
+import { PieChartComponent } from "@/components/charts/PieChartComponent";
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import { Badge } from "@/components/ui/badge";
 import { useGetCourseAttendanceList } from "@/hooks/curso/useGetCourseAttendanceList";
@@ -323,10 +323,7 @@ const ShowCourse = () => {
               />
               <PieChartComponent
                 data={PieChartData}
-                radius={160}
-                height="50%"
-                width="50%"
-                title=""
+                title="Porcentaje de Asistencia"
               />
             </div>
           ) : (

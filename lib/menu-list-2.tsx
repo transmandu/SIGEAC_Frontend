@@ -29,6 +29,7 @@ import {
   Presentation,
   Receipt,
   ScrollText,
+  Settings,
   ShieldAlert,
   SquarePen,
   User2,
@@ -553,60 +554,88 @@ export function getMenuList(
           href: "",
           label: "Planificación",
           active: pathname.includes(
-            `/${currentCompany?.slug}/sms/planificacion`
+            `/${currentCompany?.slug}/sms/promocion`
           ),
           icon: CalendarClock,
           roles: ["SUPERUSER", "JEFE_SMS", "ANALISTA_SMS"],
           submenus: [
             {
-              href: `/${currentCompany?.slug}/sms/planificacion/actividades/calendario`,
+              href: `/${currentCompany?.slug}/sms/promocion/actividades/calendario`,
               label: "Calendario Actividades",
               roles: ["SUPERUSER", "JEFE_SMS", "ANALISTA_SMS"],
               active:
                 pathname ===
-                `/${currentCompany?.slug}/sms/planificacion/actividades/calendario`,
+                `/${currentCompany?.slug}/sms/promocion/actividades/calendario`,
             },
             {
-              href: `/${currentCompany?.slug}/sms/planificacion/actividades`,
+              href: `/${currentCompany?.slug}/sms/promocion/actividades`,
               label: "Actividades",
               roles: ["SUPERUSER", "JEFE_SMS", "ANALISTA_SMS"],
               active:
                 pathname ===
-                `/${currentCompany?.slug}/sms/planificacion/actividades`,
+                `/${currentCompany?.slug}/sms/promocion/actividades`,
             },
             {
-              href: `/${currentCompany?.slug}/sms/planificacion/capacitacion_personal`,
+              href: `/${currentCompany?.slug}/sms/promocion/capacitacion_personal`,
               label: "Capacitación",
               roles: ["SUPERUSER", "JEFE_SMS", "ANALISTA_SMS"],
               active:
                 pathname ===
-                `/${currentCompany?.slug}/sms/planificacion/capacitacion_personal`,
+                `/${currentCompany?.slug}/sms/promocion/capacitacion_personal`,
+            },
+            // {
+            //   href: `/${currentCompany?.slug}/sms/promocion/boletines`,
+            //   label: "Boletines",
+            //   roles: ["SUPERUSER", "JEFE_SMS", "ANALISTA_SMS"],
+            //   active:
+            //     pathname ===
+            //     `/${currentCompany?.slug}/sms/promocion/boletines`,
+            // },
+          ],
+        },
+        {
+          href: "",
+          label: "Gestión de Encuestas",
+          active: pathname.includes(
+            `/${currentCompany?.slug}/sms/gestion_encuestas`
+          ),
+          icon: ClipboardCheck,
+          roles: ["SUPERUSER", "JEFE_SMS", "ANALISTA_SMS"],
+          submenus: [
+            {
+              href: `/${currentCompany?.slug}/sms/gestion_encuestas/crear`,
+              label: "Crear",
+              roles: ["SUPERUSER", "JEFE_SMS", "ANALISTA_SMS"],
+              active:
+                pathname ===
+                `/${currentCompany?.slug}/sms/gestion_encuestas/crear`,
+            },
+            {
+              href: `/${currentCompany?.slug}/sms/gestion_encuestas/encuestas`,
+              label: "Lista",
+              roles: ["SUPERUSER", "JEFE_SMS", "ANALISTA_SMS"],
+              active:
+                pathname ===
+                `/${currentCompany?.slug}/sms/gestion_encuestas/encuestas`,
             },
           ],
         },
-        // {
-        //   href: "",
-        //   label: "Gestión de Encuestas",
-        //   active: pathname.includes(`/${currentCompany?.slug}/sms/gestion_encuestas`),
-        //   icon: ClipboardCheck,
-        //   roles: ["SUPERUSER", "JEFE_SMS", "ANALISTA_SMS"],
-        //   submenus: [
-        //     {
-        //       href: `/${currentCompany?.slug}/sms/gestion_encuestas/crear`,
-        //       label: "Crear",
-        //       roles: ["SUPERUSER", "JEFE_SMS", "ANALISTA_SMS"],
-        //       active:
-        //         pathname === `/${currentCompany?.slug}/sms/gestion_encuestas/crear`,
-        //     },
-        //     {
-        //       href: `/${currentCompany?.slug}/sms/gestion_encuestas/lista`,
-        //       label: "Lista",
-        //       roles: ["SUPERUSER", "JEFE_SMS", "ANALISTA_SMS"],
-        //       active:
-        //         pathname === `/${currentCompany?.slug}/sms/gestion_encuestas/lista`,
-        //     },
-        //   ],
-        // },
+        {
+          href: "",
+          label: "Ajustes SMS",
+          active: pathname.includes(`/${currentCompany?.slug}/sms/ajustes`),
+          icon: Settings,
+          roles: ["SUPERUSER", "JEFE_SMS", "ANALISTA_SMS"],
+          submenus: [
+            {
+              href: `/${currentCompany?.slug}/sms/ajustes/encuesta`,
+              label: "Encuesta",
+              roles: ["SUPERUSER", "JEFE_SMS", "ANALISTA_SMS"],
+              active:
+                pathname === `/${currentCompany?.slug}/sms/ajustes/encuesta`,
+            },
+          ],
+        },
       ],
     },
     {
@@ -701,8 +730,7 @@ export function getMenuList(
           ),
           icon: Boxes,
           roles: ["ANALISTA_ALMACEN", "JEFE_ALMACEN", "SUPERUSER"],
-          submenus: [
-          ],
+          submenus: [],
         },
         {
           href: `/${currentCompany?.slug}/almacen/inventario_articulos`,
@@ -918,13 +946,24 @@ export function getMenuList(
               href: "/ajustes/globales/unidades",
               label: "Unidades",
               active: pathname === "/ajustes/globales/unidades",
-              roles: ["JEFE_ALMACEN", "ANALISTA_ALMACEN", "SUPERUSER", "ENGINEERING"],
+              roles: [
+                "JEFE_ALMACEN",
+                "ANALISTA_ALMACEN",
+                "SUPERUSER",
+                "ENGINEERING",
+              ],
             },
             {
               href: "/ajustes/globales/fabricantes",
               label: "Fabricantes",
               active: pathname === "/ajustes/globales/fabricantes",
-              roles: ["JEFE_ALMACEN", "ANALISTA_ALMACEN", "JEFE_PLANIFICACION", "ANALISTA_PLANIFICACION", "SUPERUSER"],
+              roles: [
+                "JEFE_ALMACEN",
+                "ANALISTA_ALMACEN",
+                "JEFE_PLANIFICACION",
+                "ANALISTA_PLANIFICACION",
+                "SUPERUSER",
+              ],
             },
             {
               href: "/ajustes/globales/proveedores",
@@ -936,13 +975,22 @@ export function getMenuList(
               href: "/ajustes/globales/clientes",
               label: "Clientes",
               active: pathname === "/ajustes/globales/clientes",
-              roles: ["JEFE_ADMINISTRACION", "ANALISTA_ADMINISTRACION", "SUPERUSER"],
+              roles: [
+                "JEFE_ADMINISTRACION",
+                "ANALISTA_ADMINISTRACION",
+                "SUPERUSER",
+              ],
             },
             {
               href: "/ajustes/globales/condiciones",
               label: "Condiciones",
               active: pathname === "/ajustes/globales/condiciones",
-              roles: ["JEFE_PLANIFICACION", "ANALISTA_PLANIFICACION", "SUPERUSER", "ENGINEERING"],
+              roles: [
+                "JEFE_PLANIFICACION",
+                "ANALISTA_PLANIFICACION",
+                "SUPERUSER",
+                "ENGINEERING",
+              ],
             },
             {
               href: "/ajustes/globales/fuentes_informacion",

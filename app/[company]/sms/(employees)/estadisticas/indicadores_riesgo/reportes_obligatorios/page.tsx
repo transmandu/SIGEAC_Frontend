@@ -1,5 +1,6 @@
 "use client";
 import DynamicBarChart from "@/components/charts/DynamicBarChart";
+import MultipleBarChartComponent from "@/components/charts/MultipleBarChartComponent";
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import DoubleDateFilter from "@/components/misc/DoubleDateFilter";
 import { Label } from "@/components/ui/label";
@@ -149,14 +150,9 @@ const ObligatoryReportIndicators = () => {
               <Loader2 className="size-24 animate-spin" />
             </div>
           ) : obligatoryAverageData ? (
-            <DynamicBarChart
-              height="100%"
-              width="100%"
+            <MultipleBarChartComponent
               data={resultArrayData}
-              aspect={3}
               title="Promedio de Reportes Obligatorios"
-              activeDecimal={true}
-              isCustomizedAxis={false}
             />
           ) : (
             <p className="text-sm text-muted-foreground">

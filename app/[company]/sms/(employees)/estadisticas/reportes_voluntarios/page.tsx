@@ -1,23 +1,11 @@
 "use client";
 import BarChartComponent from "@/components/charts/BarChartComponent";
-import PieChartComponent from "@/components/charts/PieChartComponent";
+import MultipleBarChartComponent from "@/components/charts/MultipleBarChartComponent";
+import { PieChartComponent } from "@/components/charts/PieChartComponent";
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import DataFilter from "@/components/misc/DataFilter";
-import { Label } from "@/components/ui/label";
-import { useGetDangerIdentificationsCountedByType } from "@/hooks/sms/useGetDangerIdentificationsCountedByType";
-import { useGetPostRiskCountByDateRange } from "@/hooks/sms/useGetPostRiskByDateRange";
-import { useGetRiskCountByDateRange } from "@/hooks/sms/useGetRiskByDateRange";
-import { useGetVoluntaryReportingStatsByYear } from "@/hooks/sms/useGetVoluntaryReportingStatisticsByYear";
-import { useGetVoluntaryReportsCountedByAirportLocation } from "@/hooks/sms/useGetVoluntaryReportsCountedByAirportLocation";
-import { Loader2, Check, ChevronsUpDown, X } from "lucide-react";
-import { usePathname, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
-import { format, startOfMonth } from "date-fns";
-import { useGetIdentificationStatsBySourceName } from "@/hooks/sms/useGetIdentificationStatsBySourceName";
-import { useGetIdentificationStatsBySourceType } from "@/hooks/sms/useGetIdentificationStatsBySourceType";
-import { useGetReportsCountedByArea } from "@/hooks/sms/useGetReportsCountedByArea";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Command,
   CommandEmpty,
@@ -26,14 +14,26 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
+import { Label } from "@/components/ui/label";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { useGetDangerIdentificationsCountedByType } from "@/hooks/sms/useGetDangerIdentificationsCountedByType";
+import { useGetIdentificationStatsBySourceName } from "@/hooks/sms/useGetIdentificationStatsBySourceName";
+import { useGetIdentificationStatsBySourceType } from "@/hooks/sms/useGetIdentificationStatsBySourceType";
+import { useGetPostRiskCountByDateRange } from "@/hooks/sms/useGetPostRiskByDateRange";
+import { useGetReportsCountedByArea } from "@/hooks/sms/useGetReportsCountedByArea";
+import { useGetRiskCountByDateRange } from "@/hooks/sms/useGetRiskByDateRange";
+import { useGetVoluntaryReportingStatsByYear } from "@/hooks/sms/useGetVoluntaryReportingStatisticsByYear";
+import { useGetVoluntaryReportsCountedByAirportLocation } from "@/hooks/sms/useGetVoluntaryReportsCountedByAirportLocation";
 import { cn } from "@/lib/utils";
-import DynamicBarChart from "@/components/charts/DynamicBarChart";
 import { useCompanyStore } from "@/stores/CompanyStore";
+import { format, startOfMonth } from "date-fns";
+import { Check, ChevronsUpDown, Loader2, X } from "lucide-react";
+import { usePathname, useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 
 interface Params {
   from?: string;
@@ -215,7 +215,7 @@ const Statistics = () => {
     selectedGraphics.includes("Todos") || selectedGraphics.includes(id);
 
   return (
-    <ContentLayout title="Gráficos Estadísticos de los Reportes (Voluntarios)">
+    <ContentLayout title="Gráficos Estadísticos de los Reportes Voluntarios">
       <div className="flex flex-col space-y-4 mb-6">
         <div className="flex justify-center items-center">
           <div className="flex flex-col w-full max-w-md">
@@ -316,7 +316,7 @@ const Statistics = () => {
         )}
       </div>
 
-      <div className="grid sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-2 2xl:grid-cols-3 gap-4">
+      <div className="grid sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-2 2xl:grid-cols-2 gap-4">
         {shouldShow("bar-chart") && (
           <div className="p-4 rounded-lg shadow border">
             {isLoadingBarChart ? (
@@ -324,14 +324,18 @@ const Statistics = () => {
                 <Loader2 className="size-24 animate-spin" />
               </div>
             ) : barChartData ? (
-              <BarChartComponent
-                height="100%"
-                width="100%"
-                data={barChartData}
-                title="Peligros Identificados"
-                bar_first_name="Identificados"
-                bar_second_name="Gestionados"
-              />
+              <>
+                <h2 className="text-sm font-bold">
+                  Identificados vs Gestionados
+                </h2>
+                <BarChartComponent
+                  data={barChartData}
+                  barSize={120}
+                  title="Peligros Identificados"
+                  bar_first_name="Identificados"
+                  bar_second_name="Gestionados"
+                />
+              </>
             ) : (
               <p className="text-sm text-muted-foreground">
                 Ha ocurrido un error al cargar los datos.
@@ -347,9 +351,7 @@ const Statistics = () => {
                 <Loader2 className="size-24 animate-spin" />
               </div>
             ) : dynamicData?.length ? (
-              <DynamicBarChart
-                height="100%"
-                width="100%"
+              <MultipleBarChartComponent
                 data={dynamicData}
                 title="Numero de Reportes vs Tipo de Peligros"
               />
@@ -368,9 +370,7 @@ const Statistics = () => {
                 <Loader2 className="size-24 animate-spin" />
               </div>
             ) : pieCharData?.length ? (
-              <DynamicBarChart
-                height="100%"
-                width="100%"
+              <MultipleBarChartComponent
                 data={pieCharData}
                 title="Numero de Reportes vs Areas"
               />
@@ -389,9 +389,7 @@ const Statistics = () => {
                 <Loader2 className="size-24 animate-spin" />
               </div>
             ) : reportsByLocationData?.length ? (
-              <DynamicBarChart
-                height="100%"
-                width="100%"
+              <MultipleBarChartComponent
                 data={reportsByLocationData}
                 title="Numero de Reportes vs Localizacion"
               />
@@ -411,9 +409,6 @@ const Statistics = () => {
               </div>
             ) : riskData?.length ? (
               <PieChartComponent
-                radius={120}
-                height="50%"
-                width="50%"
                 data={riskData}
                 title="Porcentaje de Indice de Riesgo Pre-Mitigacion"
               />
@@ -432,9 +427,7 @@ const Statistics = () => {
                 <Loader2 className="size-24 animate-spin" />
               </div>
             ) : riskData?.length ? (
-              <DynamicBarChart
-                height="100%"
-                width="100%"
+              <MultipleBarChartComponent
                 data={riskData}
                 title="Numero de Reportes por Cada Indice de Riesgo"
               />
@@ -454,9 +447,6 @@ const Statistics = () => {
               </div>
             ) : postRiskData?.length ? (
               <PieChartComponent
-                radius={120}
-                height="50%"
-                width="50%"
                 data={postRiskData}
                 title="Indice de Riesgo Post-Mitigación"
               />
@@ -475,9 +465,7 @@ const Statistics = () => {
                 <Loader2 className="size-24 animate-spin" />
               </div>
             ) : postRiskData?.length ? (
-              <DynamicBarChart
-                height="100%"
-                width="100%"
+              <MultipleBarChartComponent
                 data={postRiskData}
                 title="Numero de Reportes por Indice de Riesgo"
               />
@@ -496,9 +484,7 @@ const Statistics = () => {
                 <Loader2 className="size-24 animate-spin" />
               </div>
             ) : reportsBySourceType?.length ? (
-              <DynamicBarChart
-                height="100%"
-                width="100%"
+              <MultipleBarChartComponent
                 data={reportsBySourceType}
                 title="Reportes vs Tipo Fuente"
               />
@@ -517,9 +503,7 @@ const Statistics = () => {
                 <Loader2 className="size-24 animate-spin" />
               </div>
             ) : reportsBySourceName?.length ? (
-              <DynamicBarChart
-                height="100%"
-                width="100%"
+              <MultipleBarChartComponent
                 data={reportsBySourceName}
                 title="Reportes vs Nombre de la Fuente"
               />

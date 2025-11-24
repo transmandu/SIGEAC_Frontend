@@ -46,26 +46,21 @@ const CustomizedAxisTick = ({
     return null;
   }
 
-  const words = payload.value.toString().split(" ");
   const verticalSpacing = 7; // Espacio entre líneas de la misma etiqueta
   const spaceToChart = 5; // Espacio adicional hacia el gráfico
 
   return (
     <g transform={`translate(${x},${y + spaceToChart})`}>
-      {words.map((word: string, i: number) => (
-        <text
-          x={0}
-          y={i * verticalSpacing}
-          dy={verticalSpacing / 2}
-          textAnchor="middle"
-          fill={theme === "light" ? "black" : "white"}
-          key={i}
-          fontSize={fontSize}
-          className="text-wrap"
-        >
-          {word}
-        </text>
-      ))}
+      <text
+        x={0}
+        y={20}
+        dy={verticalSpacing / 2}
+        textAnchor="middle"
+        fill={theme === "light" ? "black" : "white"}
+        fontSize={16}
+      >
+        {payload.value}
+      </text>
     </g>
   );
 };
@@ -87,15 +82,12 @@ const DynamicBarChart = ({
   const handleBarClick = (entry: pieChartData) => {
     const name = entry.name;
     setClickedBarName(name);
-    console.log(name); // Imprimir en consola
   };
 
   return (
-    <>
-      <h1 className="text-sm font-semibold">{title}</h1>
-
-      <ResponsiveContainer aspect={aspect || 1}>
+      <ResponsiveContainer aspect={0.7}>
         <BarChart
+          margin={{ top: 20, right: 30, left: 20, bottom: 120 }}
           width={730}
           height={250}
           data={data}
@@ -106,11 +98,10 @@ const DynamicBarChart = ({
           }}
         >
           <CartesianGrid strokeDasharray="4" />
-
           <XAxis
             dataKey="name"
             stroke={theme === "light" ? "black" : "white"}
-            height={20}
+            height={60}
             tick={
               isCustomizedAxis
                 ? (props) => (
@@ -133,7 +124,7 @@ const DynamicBarChart = ({
           />
           <Tooltip />
           <Legend iconSize={0} />
-          <Bar dataKey="value" fill="#8884d8" barSize={200} name={title}>
+          <Bar dataKey="value" fill="#8884d8" barSize={90} name={" "}>
             {data.map((entry, index) => (
               <Cell
                 key={`cell-${index}`}
@@ -143,7 +134,7 @@ const DynamicBarChart = ({
           </Bar>
         </BarChart>
       </ResponsiveContainer>
-    </>
+
   );
 };
 
