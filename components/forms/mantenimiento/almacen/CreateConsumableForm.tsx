@@ -76,6 +76,8 @@ import { useCompanyStore } from "@/stores/CompanyStore";
 import { Batch } from "@/types";
 
 import loadingGif from "@/public/loading2.gif";
+import axiosInstance from "@/lib/axios";
+import { toast } from "sonner";
 import { EditingArticle } from "./RegisterArticleForm";
 import { CreateManufacturerDialog } from "@/components/dialogs/general/CreateManufacturerDialog";
 
@@ -143,6 +145,30 @@ const CreateConsumableForm = ({
   const router = useRouter();
   
   const { selectedCompany } = useCompanyStore();
+
+  const handleDownload = async (url: string) => {
+    if (!url) return;
+    
+    try {
+      const response = await axiosInstance.get(`/warehouse/download-certificate/${url}`, {
+        responseType: 'blob',
+      });
+      
+      const downloadUrl = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = downloadUrl;
+      link.setAttribute('download', url.split('/').pop() || 'certificate');
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(downloadUrl);
+      
+      toast.success("Certificado descargado correctamente");
+    } catch (error) {
+      console.error('Error descargando el archivo:', error);
+      toast.error("Error al descargar el certificado");
+    }
+  };
 
   const {
     data: batches,
@@ -1038,6 +1064,18 @@ const CreateConsumableForm = ({
                         Certificado{" "}
                         <span className="text-primary font-semibold">8130</span>
                       </FormLabel>
+                      {isEditing && initialData?.certificate_8130 && (
+                        <div className="text-xs text-muted-foreground bg-muted p-2 rounded mb-2">
+                          <span className="font-medium">Archivo actual:</span>{" "}
+                          <button
+                            type="button"
+                            onClick={() => handleDownload(initialData.certificate_8130!)}
+                            className="text-primary hover:underline cursor-pointer underline"
+                          >
+                            {initialData.certificate_8130.split('/').pop()}
+                          </button>
+                        </div>
+                      )}
                       <FormControl>
                         <div className="relative h-10 w-full">
                           <FileUpIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 z-10" />
@@ -1057,7 +1095,9 @@ const CreateConsumableForm = ({
                         </div>
                       </FormControl>
                       <FormDescription>
-                        PDF o imagen. Máx. 10 MB.
+                        {isEditing && initialData?.certificate_8130
+                          ? "Subir nuevo archivo para reemplazar el actual"
+                          : "PDF o imagen. Máx. 10 MB."}
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
@@ -1073,6 +1113,18 @@ const CreateConsumableForm = ({
                         Certificado del{" "}
                         <span className="text-primary">fabricante</span>
                       </FormLabel>
+                      {isEditing && initialData?.certificate_fabricant && (
+                        <div className="text-xs text-muted-foreground bg-muted p-2 rounded mb-2">
+                          <span className="font-medium">Archivo actual:</span>{" "}
+                          <button
+                            type="button"
+                            onClick={() => handleDownload(initialData.certificate_fabricant!)}
+                            className="text-primary hover:underline cursor-pointer underline"
+                          >
+                            {initialData.certificate_fabricant.split('/').pop()}
+                          </button>
+                        </div>
+                      )}
                       <FormControl>
                         <div className="relative h-10 w-full">
                           <FileUpIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 z-10" />
@@ -1092,7 +1144,9 @@ const CreateConsumableForm = ({
                         </div>
                       </FormControl>
                       <FormDescription>
-                        PDF o imagen. Máx. 10 MB.
+                        {isEditing && initialData?.certificate_fabricant
+                          ? "Subir nuevo archivo para reemplazar el actual"
+                          : "PDF o imagen. Máx. 10 MB."}
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
@@ -1108,6 +1162,18 @@ const CreateConsumableForm = ({
                         Certificado del{" "}
                         <span className="text-primary">vendedor</span>
                       </FormLabel>
+                      {isEditing && initialData?.certificate_vendor && (
+                        <div className="text-xs text-muted-foreground bg-muted p-2 rounded mb-2">
+                          <span className="font-medium">Archivo actual:</span>{" "}
+                          <button
+                            type="button"
+                            onClick={() => handleDownload(initialData.certificate_vendor!)}
+                            className="text-primary hover:underline cursor-pointer underline"
+                          >
+                            {initialData.certificate_vendor.split('/').pop()}
+                          </button>
+                        </div>
+                      )}
                       <FormControl>
                         <div className="relative h-10 w-full">
                           <FileUpIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 z-10" />
@@ -1127,7 +1193,9 @@ const CreateConsumableForm = ({
                         </div>
                       </FormControl>
                       <FormDescription>
-                        PDF o imagen. Máx. 10 MB.
+                        {isEditing && initialData?.certificate_vendor
+                          ? "Subir nuevo archivo para reemplazar el actual"
+                          : "PDF o imagen. Máx. 10 MB."}
                       </FormDescription>
                       <FormMessage />
                     </FormItem>

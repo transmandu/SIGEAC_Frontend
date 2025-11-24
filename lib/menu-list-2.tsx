@@ -554,42 +554,42 @@ export function getMenuList(
           href: "",
           label: "Planificación",
           active: pathname.includes(
-            `/${currentCompany?.slug}/sms/planificacion`
+            `/${currentCompany?.slug}/sms/promocion`
           ),
           icon: CalendarClock,
           roles: ["SUPERUSER", "JEFE_SMS", "ANALISTA_SMS"],
           submenus: [
             {
-              href: `/${currentCompany?.slug}/sms/planificacion/actividades/calendario`,
+              href: `/${currentCompany?.slug}/sms/promocion/actividades/calendario`,
               label: "Calendario Actividades",
               roles: ["SUPERUSER", "JEFE_SMS", "ANALISTA_SMS"],
               active:
                 pathname ===
-                `/${currentCompany?.slug}/sms/planificacion/actividades/calendario`,
+                `/${currentCompany?.slug}/sms/promocion/actividades/calendario`,
             },
             {
-              href: `/${currentCompany?.slug}/sms/planificacion/actividades`,
+              href: `/${currentCompany?.slug}/sms/promocion/actividades`,
               label: "Actividades",
               roles: ["SUPERUSER", "JEFE_SMS", "ANALISTA_SMS"],
               active:
                 pathname ===
-                `/${currentCompany?.slug}/sms/planificacion/actividades`,
+                `/${currentCompany?.slug}/sms/promocion/actividades`,
             },
             {
-              href: `/${currentCompany?.slug}/sms/planificacion/capacitacion_personal`,
+              href: `/${currentCompany?.slug}/sms/promocion/capacitacion_personal`,
               label: "Capacitación",
               roles: ["SUPERUSER", "JEFE_SMS", "ANALISTA_SMS"],
               active:
                 pathname ===
-                `/${currentCompany?.slug}/sms/planificacion/capacitacion_personal`,
+                `/${currentCompany?.slug}/sms/promocion/capacitacion_personal`,
             },
             // {
-            //   href: `/${currentCompany?.slug}/sms/planificacion/boletines`,
+            //   href: `/${currentCompany?.slug}/sms/promocion/boletines`,
             //   label: "Boletines",
             //   roles: ["SUPERUSER", "JEFE_SMS", "ANALISTA_SMS"],
             //   active:
             //     pathname ===
-            //     `/${currentCompany?.slug}/sms/planificacion/boletines`,
+            //     `/${currentCompany?.slug}/sms/promocion/boletines`,
             // },
           ],
         },

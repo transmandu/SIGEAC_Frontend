@@ -54,7 +54,7 @@ export function ImageGalleryDialog({
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>{trigger}</DialogTrigger>
       <DialogContent
-        className="w-[95vw] h-[95vh] sm:w-[50vw] sm:h-[50vh] md:w-[40vw] md:h-[100vh] max-w-none p-0 bg-black/90 border-0 overflow-hidden"
+        className="w-[95vw] h-[70vh] sm:w-[50vw] sm:h-[50vh] md:w-[40vw] md:h-[100vh] max-w-none p-0 bg-black/90 border-0 overflow-auto"
         onKeyDown={handleKeyDown}
       >
         {/* Close button */}

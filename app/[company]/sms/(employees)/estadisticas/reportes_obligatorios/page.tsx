@@ -1,6 +1,5 @@
 "use client";
 import BarChartComponent from "@/components/charts/BarChartComponent";
-import PieChartComponent from "@/components/charts/PieChartComponent";
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import DataFilter from "@/components/misc/DataFilter";
 import { Label } from "@/components/ui/label";
@@ -34,6 +33,8 @@ import {
 import { cn } from "@/lib/utils";
 import DynamicBarChart from "@/components/charts/DynamicBarChart";
 import { useCompanyStore } from "@/stores/CompanyStore";
+import MultipleBarChartComponent from "@/components/charts/MultipleBarChartComponent";
+import { PieChartComponent } from "@/components/charts/PieChartComponent";
 
 interface Params {
   from?: string;
@@ -369,8 +370,6 @@ const Statistics = () => {
               </div>
             ) : barChartData ? (
               <BarChartComponent
-                height="100%"
-                width="100%"
                 data={barChartData}
                 title="Peligros Identificados vs Gestionados"
                 bar_first_name="Identificados"
@@ -391,9 +390,7 @@ const Statistics = () => {
                 <Loader2 className="size-24 animate-spin" />
               </div>
             ) : dynamicData?.length ? (
-              <DynamicBarChart
-                height="100%"
-                width="100%"
+              <MultipleBarChartComponent
                 data={dynamicData}
                 title="Número de Reportes vs Tipo de Peligros"
               />
@@ -412,9 +409,7 @@ const Statistics = () => {
                 <Loader2 className="size-24 animate-spin" />
               </div>
             ) : pieCharData?.length ? (
-              <DynamicBarChart
-                height="100%"
-                width="100%"
+              <MultipleBarChartComponent
                 data={pieCharData}
                 title="Número de Reportes vs Áreas"
               />
@@ -434,9 +429,6 @@ const Statistics = () => {
               </div>
             ) : riskData?.length ? (
               <PieChartComponent
-                radius={120}
-                height="50%"
-                width="50%"
                 data={riskData}
                 title="Porcentaje de Índice de Riesgo Pre-Mitigación"
               />
@@ -455,9 +447,7 @@ const Statistics = () => {
                 <Loader2 className="size-24 animate-spin" />
               </div>
             ) : riskData?.length ? (
-              <DynamicBarChart
-                height="100%"
-                width="100%"
+              <MultipleBarChartComponent
                 data={riskData}
                 title="Número de Reportes por Cada Índice de Riesgo"
               />
@@ -477,9 +467,6 @@ const Statistics = () => {
               </div>
             ) : postRiskData?.length ? (
               <PieChartComponent
-                radius={120}
-                height="50%"
-                width="50%"
                 data={postRiskData}
                 title="Índice de Riesgo Post-Mitigación"
               />
@@ -498,9 +485,7 @@ const Statistics = () => {
                 <Loader2 className="size-24 animate-spin" />
               </div>
             ) : postRiskData?.length ? (
-              <DynamicBarChart
-                height="100%"
-                width="100%"
+              <MultipleBarChartComponent
                 data={postRiskData}
                 title="Número de Reportes por Cada Índice de Riesgo"
               />
@@ -519,9 +504,7 @@ const Statistics = () => {
                 <Loader2 className="size-24 animate-spin" />
               </div>
             ) : reportsBySourceName?.length ? (
-              <DynamicBarChart
-                height="100%"
-                width="100%"
+              <MultipleBarChartComponent
                 data={reportsBySourceName}
                 title="Reportes vs Fuente de Identificación"
               />
@@ -540,9 +523,7 @@ const Statistics = () => {
                 <Loader2 className="size-24 animate-spin" />
               </div>
             ) : reportsBySourceType?.length ? (
-              <DynamicBarChart
-                height="100%"
-                width="100%"
+              <MultipleBarChartComponent
                 data={reportsBySourceType}
                 title="Reportes vs Método de Identificación"
               />

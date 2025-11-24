@@ -1,6 +1,7 @@
 "use client";
+import BarChartComponent from "@/components/charts/BarChartComponent";
 import BarChartCourseComponent from "@/components/charts/BarChartCourseComponent";
-import PieChartComponent from "@/components/charts/PieChartComponent";
+import { PieChartComponent } from "@/components/charts/PieChartComponent";
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import DataFilter from "@/components/misc/DataFilter";
 import { Label } from "@/components/ui/label";
@@ -44,7 +45,7 @@ const CourseStatsPage = () => {
   }, [searchParams, pathname]);
 
   // Hook calls for data fetching
-  
+
   const {
     data: barChartData,
     isLoading: isLoadingBarChart,
@@ -57,16 +58,19 @@ const CourseStatsPage = () => {
     selectedCompany?.slug
   );
 
-  const pieChartData = [
-    {
-      name: "Pendientes",
-      value: barChartData?.open ?? 0,
-    },
-    {
-      name: "Ejecutados",
-      value: barChartData?.closed ?? 0,
-    },
-  ];
+  const pieChartData =
+    !barChartData?.open && !barChartData?.closed
+      ? []
+      : [
+          {
+            name: "Pendientes",
+            value: barChartData?.open ?? 0,
+          },
+          {
+            name: "Ejecutados",
+            value: barChartData?.closed ?? 0,
+          },
+        ];
 
   useEffect(() => {
     refetchBarChart();
@@ -87,24 +91,27 @@ const CourseStatsPage = () => {
 
       <div className="grid sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-2 2xl:grid-cols-2 gap-4">
         <div className="flex flex-col justify-center items-center p-4 rounded-lg shadow border">
-          {/* {isLoadingBarChart ? (
+          {isLoadingBarChart ? (
             <div className="flex justify-center items-center h-48">
               <Loader2 className="size-24 animate-spin" />
             </div>
           ) : barChartData ? (
-            <BarChartCourseComponent
-              height="100%"
-              width="100%"
-              data={barChartData}
-              title="Planificados vs Ejecutados"
-              bar_first_name="Planificados"
-              bar_second_name="Ejecutados"
-            />
+            <>
+              <h2 className="text-sm font-semibold mb-2">
+                Planificados vs Ejecutados
+              </h2>
+              <BarChartComponent
+                data={barChartData}
+                title="Planificados vs Ejecutados"
+                bar_first_name="Planificados"
+                bar_second_name="Ejecutados"
+              />
+            </>
           ) : (
             <p className="text-sm text-muted-foreground">
               Ha ocurrido un error al cargar los datos de los cursos...
             </p>
-          )} */}
+          )}
         </div>
 
         <div className="flex flex-col justify-center items-center p-4 rounded-lg shadow border">
@@ -114,9 +121,6 @@ const CourseStatsPage = () => {
             </div>
           ) : pieChartData && pieChartData.length > 0 ? (
             <PieChartComponent
-              radius={120}
-              height="50%"
-              width="50%"
               data={pieChartData}
               title="Porcentaje cursos planificados y ejecutados"
             />

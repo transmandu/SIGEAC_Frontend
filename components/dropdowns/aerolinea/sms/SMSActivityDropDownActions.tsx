@@ -108,7 +108,7 @@ const SMSActivityDropDownActions = ({
           <DropdownMenuItem
             onClick={() => {
               router.push(
-                `/transmandu/sms/planificacion/actividades/${smsActivity.id}`
+                `/${selectedCompany?.slug}/sms/promocion/actividades/${smsActivity.id}`
               );
             }}
           >

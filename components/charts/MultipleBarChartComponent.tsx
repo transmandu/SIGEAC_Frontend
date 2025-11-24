@@ -1,13 +1,12 @@
 "use client";
 
-import { GeneralStats } from "@/types";
+import { pieChartData } from "@/types";
 import { useTheme } from "next-themes";
 import { useMemo } from "react";
 import {
   Bar,
   BarChart,
   CartesianGrid,
-  Legend,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -15,38 +14,26 @@ import {
 } from "recharts";
 
 interface BarChartProps {
-  data: GeneralStats;
+  data: pieChartData[];
   title: string;
   height?: number;
   barSize?: number;
-  bar_first_name: string;
-  bar_second_name: string;
 }
 
-const BarChartComponent = ({
+const MultipleBarChartComponent: React.FC<BarChartProps> = ({
   data,
   title,
   height = 260,
   barSize = 48,
-  bar_first_name,
-  bar_second_name,
-}: BarChartProps) => {
+}) => {
   const { theme } = useTheme();
   const isDark = theme === "dark";
 
   const axisColor = useMemo(() => (isDark ? "#e5e7eb" : "#111827"), [isDark]);
   const gridColor = useMemo(() => (isDark ? "#4b5563" : "#d1d5db"), [isDark]);
+  const barColor = useMemo(() => (isDark ? "#6366f1" : "#4f46e5"), [isDark]);
 
-  // Colores para las barras
-  const barColors = useMemo(
-    () => ({
-      open: isDark ? "#64bda5ff" : "#64bda5ff",
-      closed: isDark ? "#0369a1" : "#0369a1",
-    }),
-    [isDark]
-  );
-
-  if (!data.closed && !data.open) {
+  if (!data || data.length === 0) {
     return (
       <p className="text-sm text-muted-foreground">
         No hay datos para mostrar.
@@ -54,29 +41,21 @@ const BarChartComponent = ({
     );
   }
 
-  const chartData = [
-    {
-      name: "Estadísticas",
-      total: data.total,
-      open: data.open,
-      closed: data.closed,
-    },
-  ];
-
   return (
     <>
+      <h2 className="mb-2 text-sm font-semibold text-wrap">{title}</h2>
       <div style={{ width: "100%", height }}>
         <ResponsiveContainer width="100%" height="100%">
           <BarChart
-            data={chartData}
+            data={data}
             margin={{ top: 16, right: 24, left: 8, bottom: 16 }}
             barSize={barSize}
           >
             <CartesianGrid
               strokeDasharray="4"
               stroke={gridColor}
-              opacity={1}
-               strokeWidth={2}
+              opacity={0.6}
+              strokeWidth={2}
             />
 
             <XAxis
@@ -99,34 +78,14 @@ const BarChartComponent = ({
 
             <Tooltip
               formatter={(value: number) => value.toLocaleString("es-ES")}
-              labelFormatter={() => "Resumen"}
-              contentStyle={{
-                backgroundColor: isDark ? "#1f2937" : "#ffffff",
-                border: `1px solid ${gridColor}`,
-                borderRadius: "6px",
-                fontSize: "12px",
-              }}
-            />
-
-            <Legend
-              wrapperStyle={{
-                fontSize: "14px",
-                paddingTop: "8px",
-              }}
+              labelFormatter={(label) => `Categoría: ${label}`}
             />
 
             <Bar
-              dataKey="open"
-              name={bar_first_name}
-              stackId="a"
-              fill={barColors.open}
-            />
-
-            <Bar
-              dataKey="closed"
-              name={bar_second_name}
-              stackId="a"
-              fill={barColors.closed}
+              dataKey="value"
+              name="Valor"
+              fill={barColor}
+              radius={[6, 6, 0, 0]}
             />
           </BarChart>
         </ResponsiveContainer>
@@ -135,4 +94,4 @@ const BarChartComponent = ({
   );
 };
 
-export default BarChartComponent;
+export default MultipleBarChartComponent;
