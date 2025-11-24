@@ -3,6 +3,7 @@ import BarChartComponent from "@/components/charts/BarChartComponent";
 import { PieChartComponent } from "@/components/charts/PieChartComponent";
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import DateFilter from "@/components/misc/DataFilter";
+import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { useGetTotalReportsStatsByYear } from "@/hooks/sms/useGetTotalReportsStatsByYear";
 import { dateFormat } from "@/lib/utils";
@@ -10,9 +11,10 @@ import { useCompanyStore } from "@/stores/CompanyStore";
 import { pieChartData } from "@/types";
 import { format, startOfMonth } from "date-fns";
 import { es } from "date-fns/locale";
-import { Loader2 } from "lucide-react";
+import { ArrowRight, Calendar, CheckCircle2, Loader2, Target } from "lucide-react";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
+import { GoalStatusCard } from "../_components/GoldStatusCard";
 
 const VoluntaryReportIndicators = () => {
   const { selectedCompany } = useCompanyStore();
@@ -85,9 +87,7 @@ const VoluntaryReportIndicators = () => {
           value: barChartData.closed,
         },
       ]);
-      setResult(
-        (barChartData.closed * 100) / barChartData.total
-      );
+      setResult((barChartData.closed * 100) / barChartData.total);
     } else {
       setResultArrayData([]);
     }
@@ -105,7 +105,7 @@ const VoluntaryReportIndicators = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-2 gap-4">
           {/* Gráfico de Barras (Peligros Identificados) */}
           <div className=" flex flex-col justify-center items-center p-4 rounded-lg shadow border">
             {isLoadingBarChart ? (
@@ -115,12 +115,17 @@ const VoluntaryReportIndicators = () => {
             ) : barChartData ? (
               params.from &&
               params.to && (
-                <BarChartComponent
-                  data={barChartData}
-                  title="Peligros Identificados vs Gestionados"
-                  bar_first_name="Identificados"
-                  bar_second_name="Gestionados"
-                />
+                <>
+                  <h2 className="text-sm sm:text-base font-bold">
+                    Peligros Identificados vs Gestionados
+                  </h2>
+                  <BarChartComponent
+                    data={barChartData}
+                    title="Peligros Identificados vs Gestionados"
+                    bar_first_name="Identificados"
+                    bar_second_name="Gestionados"
+                  />
+                </>
               )
             ) : (
               <p className="text-sm text-muted-foreground">
@@ -161,41 +166,25 @@ const VoluntaryReportIndicators = () => {
         {resultArrayData && resultArrayData?.length > 0 && (
           <div className="flex justify-center items-center p-4 rounded-lg shadow-md">
             {result && result >= 90 ? (
-              <div
-                className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative"
-                role="alert"
-              >
-                <strong className="font-bold">¡Meta Alcanzada! </strong>
-                <span className="block sm:inline">
-                  Se ha alcanzado la meta el 90% de reportes han sido
-                  gestionados.
-                </span>
-                <span className="block sm:inblock">
-                  El ({result}%) de los reportes han sido gestionados entre las
-                  fechas siguientes:
-                  <div className="mt-2 p-2 bg-purple-50 rounded-md border border-gray-200 shadow-sm text-center text-black">
-                    {formatDate(params.from || "")} -{" "}
-                    {formatDate(params.to || "")}
-                  </div>
-                </span>
-              </div>
+              <GoalStatusCard
+                achieved={true}
+                result={result}
+                params={{
+                  from: params.from,
+                  to: params.to,
+                }}
+                className="w-2/3 mb-4"
+              />
             ) : (
-              <div
-                className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative"
-                role="alert"
-              >
-                <strong className="font-bold">Segun el gráfico: </strong>
-                <span className="block sm:inline">
-                  Aun no se ha alcanzado la gestión del 90% de reportes
-                  identificados.
-                  <div className="mt-2 p-2 bg-purple-50 rounded-md border border-gray-200 shadow-sm text-center text-black">
-                    En rango de fechas del{" "}
-                    {dateFormat(params.from || "", "PPP")}
-                    {""} al {""}
-                    {dateFormat(params.to || "", "PPP")}
-                  </div>
-                </span>
-              </div>
+              <GoalStatusCard
+                achieved={false}
+                result={result}
+                params={{
+                  from: params.from,
+                  to: params.to,
+                }}
+                className="w-2/3 mb-4"
+              />
             )}
           </div>
         )}
