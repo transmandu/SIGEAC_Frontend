@@ -14,6 +14,7 @@ import { es } from "date-fns/locale";
 import { Loader2 } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
+import { IncidentAlertCard } from "../_components/RiskIndicatorMessages";
 
 const ObligatoryReportIndicators = () => {
   const { selectedCompany } = useCompanyStore();
@@ -96,12 +97,12 @@ const ObligatoryReportIndicators = () => {
     if (obligatoryAverageData) {
       const newData = [
         {
-          name: `${formatDate(params.from_first)} - ${formatDate(params.to_first)}`,
-          value: obligatoryAverageData.newest_range.average_per_month,
-        },
-        {
           name: `${formatDate(params.from_second)} - ${formatDate(params.to_second)}`,
           value: obligatoryAverageData.oldest_range.average_per_month,
+        },
+        {
+          name: `${formatDate(params.from_first)} - ${formatDate(params.to_first)}`,
+          value: obligatoryAverageData.newest_range.average_per_month,
         },
       ];
       setResultArrayData(newData);
@@ -167,97 +168,12 @@ const ObligatoryReportIndicators = () => {
         {obligatoryAverageData &&
           (obligatoryAverageData.newest_range?.average_per_month >
           obligatoryAverageData.oldest_range?.average_per_month ? (
-            <div
-              className="bg-red-100 border border-red-400 text-red-700 p-4 rounded-lg justify-center items-center flex w-1/2"
-              role="alert"
-            >
-              <span className="block text-center">
-                <strong className="font-bold text-lg">
-                  ¡Aumento de los Incidentes!
-                </strong>
-              </span>
-              <div className="mt-4 p-4 bg-red-50 rounded-md border border-gray-200 shadow-sm text-black text-left justify-center items-center w-full">
-                <p className="font-bold text-lg text-center">
-                  ¡Aumento de un{" "}
-                  {obligatoryAverageData.newest_range.percentage_change || 100}%
-                  de incidentes!
-                </p>
-                <p className="mb-2">
-                  En numero de incidentes fue mayor durante las fechas:
-                </p>
-                <p className="font-semibold">
-                  {dateFormat(obligatoryAverageData.newest_range.from, "PPP")}{" "}
-                  al {dateFormat(obligatoryAverageData.newest_range.to, "PPP")}
-                </p>
-                <p className="mt-2">en comparacion a las fechas desde:</p>
-                <p className="font-semibold">
-                  {dateFormat(obligatoryAverageData.oldest_range.from, "PPP")}{" "}
-                  al {dateFormat(obligatoryAverageData.oldest_range.to, "PPP")}
-                </p>
-              </div>
-            </div>
+            <IncidentAlertCard type="increase" data={obligatoryAverageData} />
           ) : obligatoryAverageData.newest_range?.average_per_month <
             obligatoryAverageData.oldest_range?.average_per_month ? (
-            <div
-              className="bg-green-100 border border-green-400 text-green-700 p-4 rounded-lg justify-center items-center flex w-1/2"
-              role="alert"
-            >
-              <span className="block text-center">
-                <strong className="font-bold text-lg">
-                  ¡Reducción de los Incidentes!
-                </strong>
-              </span>
-              <div className="mt-4 p-4 bg-green-50 rounded-md border border-gray-200 shadow-sm text-black text-left justify-center items-center w-full">
-                <p className="font-bold text-lg text-center">
-                  ¡Reducción de un{" "}
-                  {Math.abs(
-                    obligatoryAverageData.newest_range.percentage_change
-                  ).toFixed(2)}
-                  % de incidentes!
-                </p>
-                <p className="mb-2">
-                  En numero de incidentes fue menor durante las fechas:
-                </p>
-                <p className="font-semibold">
-                  {dateFormat(obligatoryAverageData.newest_range.from, "PPP")}{" "}
-                  al {dateFormat(obligatoryAverageData.newest_range.to, "PPP")}
-                </p>
-                <p className="mt-2">en comparacion a las fechas desde:</p>
-                <p className="font-semibold">
-                  {dateFormat(obligatoryAverageData.oldest_range.from, "PPP")}{" "}
-                  al {dateFormat(obligatoryAverageData.oldest_range.to, "PPP")}
-                </p>
-              </div>
-            </div>
+            <IncidentAlertCard type="decrease" data={obligatoryAverageData} />
           ) : (
-            <div
-              className="bg-blue-100 border border-blue-400 text-blue-700 p-4 rounded-lg justify-center items-center flex w-1/2"
-              role="alert"
-            >
-              <span className="block text-center">
-                <strong className="font-bold text-lg">¡Sin Fluctuación!</strong>
-              </span>
-              <div className="mt-4 p-4 bg-blue-50 rounded-md border border-gray-200 shadow-sm text-black text-left justify-center items-center w-full">
-                <p className="font-bold text-lg text-center">
-                  ¡Se ha mentenido el numero de incidentes promedio!
-                </p>
-                <p className="mb-2">
-                  En numero de incidentes no tuvo variaciones significativas
-                  durante las fechas:
-                </p>
-                <p className="font-semibold">
-                  ({dateFormat(obligatoryAverageData.newest_range.from, "PPP")})
-                  al ({dateFormat(obligatoryAverageData.newest_range.to, "PPP")}
-                  )
-                </p>
-                <p className="mt-2">en comparacion a las fechas del :</p>
-                <p className="font-semibold">
-                  ({dateFormat(obligatoryAverageData.oldest_range.from, "PPP")})
-                  al ({dateFormat(obligatoryAverageData.oldest_range.to, "PPP")}
-                  )
-                </p>
-              </div>
-            </div>
+            <IncidentAlertCard type="stable" data={obligatoryAverageData} />
           ))}
       </div>
     </ContentLayout>
