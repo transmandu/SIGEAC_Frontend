@@ -37,6 +37,7 @@ export const BatchCard = React.memo(({
             <ArticleRow
               key={article.id}
               article={article}
+              category={batch.category}
               quantity={quantities[article.id] || 0}
               zone={zones[article.id] || article.zone}
               meditionUnit={batch.medition_unit ?? 'N/A'}
