@@ -4,7 +4,7 @@ import { ColumnDef } from "@tanstack/react-table";
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
 import { Badge } from "@/components/ui/badge";
 import { CheckCircle2, XCircle, Clock} from "lucide-react";
-import { addDays, format } from "date-fns";
+import { addDays, format, parseISO } from "date-fns";
 import { cn } from "@/lib/utils";
 import ArticleDropdownActions from "@/components/dropdowns/mantenimiento/almacen/ArticleDropdownActions";
 import { WarehouseResponse } from "@/hooks/mantenimiento/almacen/articulos/useGetWarehouseArticlesByCategory";
@@ -452,6 +452,16 @@ export const consumibleCols: ColumnDef<IArticleSimple>[] = [
   },
 ];
 
+// Función helper para parsear fechas ISO como fechas locales
+const parseDateLocal = (dateString: string): Date => {
+  // Si la fecha viene como "YYYY-MM-DD" sin hora, parsearla como fecha local
+  if (dateString.match(/^\d{4}-\d{2}-\d{2}$/)) {
+    const [year, month, day] = dateString.split('-').map(Number);
+    return new Date(year, month - 1, day);
+  }
+  // Si tiene hora, usar parseISO
+  return parseISO(dateString);
+};
 
 // Columnas extra para HERRAMIENTA
 export const herramientaCols: ColumnDef<IArticleSimple>[] = [
@@ -464,7 +474,7 @@ export const herramientaCols: ColumnDef<IArticleSimple>[] = [
     cell: ({ row }) => (
       <div className="text-center text-sm font-bold text-muted-foreground">
         {row.original.tool?.calibration_date
-          ? format(row.original.tool.calibration_date, "dd/MM/yyyy")
+          ? format(parseDateLocal(row.original.tool.calibration_date), "dd/MM/yyyy")
           : "N/A"}
       </div>
     ),
@@ -481,7 +491,7 @@ export const herramientaCols: ColumnDef<IArticleSimple>[] = [
           row.original.tool.calibration_date
             ? format(
                 addDays(
-                  row.original.tool.calibration_date,
+                  parseDateLocal(row.original.tool.calibration_date),
                   Number(row.original.tool.next_calibration)
                 ),
                 "dd/MM/yyyy"
@@ -567,7 +577,7 @@ export const allCategoriesCols: ColumnDef<IArticleSimple>[] = [
     cell: ({ row }) => (
       <div className="text-center text-sm font-bold text-muted-foreground">
         {row.original.tool?.calibration_date
-          ? format(row.original.tool.calibration_date, "dd/MM/yyyy")
+          ? format(parseDateLocal(row.original.tool.calibration_date), "dd/MM/yyyy")
           : "N/A"}
       </div>
     ),
@@ -584,7 +594,7 @@ export const allCategoriesCols: ColumnDef<IArticleSimple>[] = [
           row.original.tool.calibration_date
             ? format(
                 addDays(
-                  row.original.tool.calibration_date,
+                  parseDateLocal(row.original.tool.calibration_date),
                   Number(row.original.tool.next_calibration)
                 ),
                 "dd/MM/yyyy"
