@@ -2,23 +2,15 @@
 
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ObligatoryReportsPage } from "./reportes_obligatorios/(employees)/page";
-import { VoluntaryReportsPage } from "./reportes_voluntarios/(employeees)/page";
+import { VoluntaryReportsPage } from "./voluntary-page";
+import { ObligatoryReportsPage } from "./obligatory-page";
 
-interface ReportsTabsProps {
-  title?: string;
-  companySlug?: string;
-  defaultTab?: "obligatorios" | "voluntarios";
-}
+export default function ReportsPage() {
+  const title = "Gestión de Reportes";
 
-export const ReportsTabs = ({
-  title = "Gestión de Reportes",
-  companySlug,
-  defaultTab = "voluntarios",
-}: ReportsTabsProps) => {
   return (
     <ContentLayout title={title}>
-      <Tabs defaultValue={defaultTab} className="w-full">
+      <Tabs defaultValue="voluntarios" className="w-full">
         <TabsList className="grid w-full grid-cols-2 mb-6">
           <TabsTrigger value="voluntarios" className="flex items-center gap-2">
             Reportes Voluntarios
@@ -29,15 +21,13 @@ export const ReportsTabs = ({
         </TabsList>
 
         <TabsContent value="voluntarios" className="space-y-4">
-          <VoluntaryReportsPage showHeader={false} companySlug={companySlug} />
+          <VoluntaryReportsPage showHeader={false} />
         </TabsContent>
 
         <TabsContent value="obligatorios" className="space-y-4">
-          <ObligatoryReportsPage showHeader={false} companySlug={companySlug} />
+          <ObligatoryReportsPage showHeader={false} />
         </TabsContent>
       </Tabs>
     </ContentLayout>
   );
-};
-
-export default ReportsTabs;
+}

@@ -1,13 +1,12 @@
 "use client";
 
-import { ContentLayout } from "@/components/layout/ContentLayout";
 import LoadingPage from "@/components/misc/LoadingPage";
-import { useGetObligatoryReports } from "@/hooks/sms/useGetObligatoryReports";
-import { columns } from "./columns";
-import { DataTable } from "./data-table";
+import { useGetVoluntaryReports } from "@/hooks/sms/useGetVoluntaryReports";
 import { useCompanyStore } from "@/stores/CompanyStore";
+import { columns } from "./voluntary-columns";
+import { DataTable } from "./voluntary-data-table";
 
-interface ObligatoryReportsPageProps {
+interface VoluntaryReportsPageProps {
   title?: string;
   companySlug?: string;
   showHeader?: boolean;
@@ -15,16 +14,16 @@ interface ObligatoryReportsPageProps {
   customColumns?: any[];
 }
 
-export const ObligatoryReportsPage = ({
-  title = "Reportes Obligatorios",
+export const VoluntaryReportsPage = ({
+  title = "Reportes Voluntarios",
   companySlug,
   showHeader = true,
   className = "",
   customColumns,
-}: ObligatoryReportsPageProps) => {
+}: VoluntaryReportsPageProps) => {
   const { selectedCompany } = useCompanyStore();
 
-  const { data, isLoading, isError } = useGetObligatoryReports(
+  const { data, isLoading, isError } = useGetVoluntaryReports(
     companySlug || selectedCompany?.slug
   );
 
