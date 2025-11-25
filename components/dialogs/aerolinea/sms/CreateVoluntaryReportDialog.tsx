@@ -41,7 +41,7 @@ export default function CreateVoluntaryReportDialog({
             </Button>
           </DialogTrigger>
 
-          <DialogContent className="flex flex-col max-w-2xl m-2">
+          <DialogContent className="flex flex-col max-w-3xl max-h-[calc(100vh-10rem)] m-2 overflow-auto">
             <DialogHeader>
               <DialogTitle></DialogTitle>
               <DialogDescription></DialogDescription>
