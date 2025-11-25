@@ -10,7 +10,6 @@ import { dateFormat } from "@/lib/utils";
 import { VoluntaryReport } from "@/types";
 
 export const columns: ColumnDef<VoluntaryReport>[] = [
-
   {
     accessorKey: "report_number",
     header: ({ column }) => (
@@ -79,7 +78,9 @@ export const columns: ColumnDef<VoluntaryReport>[] = [
       <DataTableColumnHeader column={column} title="Descripcion del peligro" />
     ),
     cell: ({ row }) => (
-      <div className="flex justify-center">{row.original.description}</div>
+      <div className="w-64 line-clamp-4">
+        {row.original.description}
+      </div>
     ),
   },
   {
@@ -90,13 +91,13 @@ export const columns: ColumnDef<VoluntaryReport>[] = [
     cell: ({ row }) => (
       <div className="flex justify-center">
         <Badge
-          className={`justify-center items-center text-center font-bold font-sans
+          className={`justify-center items-center text-center font-bold font-sans pointer-events-none
       ${
         row.original.status === "CERRADO"
           ? "bg-green-400"
           : row.original.status === "PROCESO"
-          ? "bg-gray-500" // Color gris oscuro (puedes ajustar el tono)
-          : "bg-red-400"
+            ? "bg-gray-500" // Color gris oscuro (puedes ajustar el tono)
+            : "bg-red-400"
       }`}
         >
           {row.original.status}
