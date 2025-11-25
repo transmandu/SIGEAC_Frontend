@@ -185,7 +185,9 @@ export default function CreateAnalysisForm({
                 <SelectContent>
                   {PROBABILITY.map((probability, index) => (
                     <SelectItem key={index} value={probability.value}>
-                      {probability.name} ({probability.value})
+                      <span className="text-black">
+                        {probability.name} ({probability.value})
+                      </span>
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -220,7 +222,9 @@ export default function CreateAnalysisForm({
                 <SelectContent>
                   {SEVERITY.map((severity, index) => (
                     <SelectItem key={index} value={severity.value}>
-                      {severity.name} ({severity.value})
+                      <span className="text-black">
+                        {severity.name} ({severity.value})
+                      </span>
                     </SelectItem>
                   ))}
                 </SelectContent>
