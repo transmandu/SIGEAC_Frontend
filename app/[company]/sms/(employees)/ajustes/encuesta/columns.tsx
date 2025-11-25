@@ -4,34 +4,30 @@ import { ColumnDef } from "@tanstack/react-table";
 
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
 
-import SurveyDropdownActions from "@/components/dropdowns/aerolinea/sms/survey/surveyDropDownActions";
+import SurveySettingDropdownActions from "@/components/dropdowns/aerolinea/sms/survey/surveySettingDropDownActions";
 import { Badge } from "@/components/ui/badge";
 import { Survey } from "@/types";
-import SurveySettingDropdownActions from "@/components/dropdowns/aerolinea/sms/survey/surveySettingDropDownActions";
+import { useCompanyStore } from "@/stores/CompanyStore";
+import Link from "next/link";
+
+const SurveyNumberCell = ({ surveyNumber }: { surveyNumber: string }) => {
+  const { selectedCompany } = useCompanyStore();
+
+  return (
+    <div className="flex justify-center items-center gap-2">
+      {selectedCompany && (
+        <Link
+          href={`/${selectedCompany.slug}/sms/gestion_encuestas/${surveyNumber}`}
+          className="ml-2 font-bold hover:scale-105 transition-all cursor-pointer"
+        >
+           {surveyNumber}
+        </Link>
+      )}
+    </div>
+  );
+};
 
 export const columns: ColumnDef<Survey>[] = [
-  // {
-  //   id: "select",
-  //   header: ({ table }) => (
-  //     <Checkbox
-  //       checked={
-  //         table.getIsAllPageRowsSelected() ||
-  //         (table.getIsSomePageRowsSelected() && "indeterminate")
-  //       }
-  //       onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-  //       aria-label="Seleccionar todos"
-  //     />
-  //   ),
-  //   cell: ({ row }) => (
-  //     <Checkbox
-  //       checked={row.getIsSelected()}
-  //       onCheckedChange={(value) => row.toggleSelected(!!value)}
-  //       aria-label="Seleccionar fila"
-  //     />
-  //   ),
-  //   enableSorting: false,
-  //   enableHiding: false,
-  // },
   {
     accessorKey: "survey_number",
     header: ({ column }) => (
@@ -43,9 +39,7 @@ export const columns: ColumnDef<Survey>[] = [
     ),
     meta: { title: "Numero de Encuesta" },
     cell: ({ row }) => {
-      return (
-        <div className="flex justify-center">{row.original.survey_number}</div>
-      );
+      return <SurveyNumberCell surveyNumber={row.original.survey_number} />;
     },
   },
   // {
@@ -86,6 +80,30 @@ export const columns: ColumnDef<Survey>[] = [
     },
   },
   {
+    accessorKey: "setting",
+    header: ({ column }) => (
+      <DataTableColumnHeader filter column={column} title="Configuración" />
+    ),
+    cell: ({ row }) => {
+      const setting = row.original.setting;
+
+      return (
+        <div className="flex justify-center">
+          {setting ? (
+            <Badge
+              variant="secondary"
+              className="bg-blue-100 text-blue-800 pointer-events-none"
+            >
+              {setting}
+            </Badge>
+          ) : (
+            <span className="text-muted-foreground">N/A</span>
+          )}
+        </div>
+      );
+    },
+  },
+  {
     accessorKey: "is_active",
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Estado" />
@@ -96,7 +114,7 @@ export const columns: ColumnDef<Survey>[] = [
           className={`justify-center items-center text-center font-bold font-sans pointer-events-none hover:bg-inherit
       ${
         row.original.is_active === true
-          ? "bg-green-400 hover:bg-green-400"
+          ? "bg-green-500 hover:bg-green-400"
           : row.original.is_active === false
             ? "bg-red-400 hover:bg-red-400"
             : "bg-gray-500 hover:bg-gray-500"
@@ -104,9 +122,9 @@ export const columns: ColumnDef<Survey>[] = [
           variant="secondary"
         >
           {row.original.is_active ? (
-            <span>ACTIVO</span>
+            <span className="text-white">ACTIVO</span>
           ) : (
-            <span>INACTIVO</span> // ← Esto se muestra cuando es false
+            <span className="text-white">INACTIVO</span> // ← Esto se muestra cuando es false
           )}
         </Badge>
       </div>

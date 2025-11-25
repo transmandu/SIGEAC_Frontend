@@ -174,13 +174,12 @@ const DoubleDateFilter = ({
 
   return (
     <div className="flex flex-col justify-center gap-4">
-      <div className="flex justify-center gap-4">
+      <div className="flex flex-col xl:flex-row items-center justify-center gap-4">
         {/* Primer selector */}
         <Popover>
           <PopoverTrigger asChild>
-            <Button className="w-1/3">
+            <Button className="w-full sm:w-1/3">
               <span>
-                
                 {firstRange.from
                   ? `${format(firstRange.from, "MMMM yyyy", { locale: es })} ${
                       firstRange.to
@@ -208,7 +207,7 @@ const DoubleDateFilter = ({
         {/* Segundo selector */}
         <Popover>
           <PopoverTrigger asChild>
-            <Button className="w-1/3">
+            <Button className="w-full sm:w-1/3">
               <span>
                 {secondRange.from
                   ? `${format(secondRange.from, "MMMM yyyy", { locale: es })} ${

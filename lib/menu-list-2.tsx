@@ -34,7 +34,7 @@ import {
   SquarePen,
   User2,
   UserRoundCog,
-  Wrench
+  Wrench,
 } from "lucide-react";
 
 type Submenu = {
@@ -455,29 +455,12 @@ export function getMenuList(
       moduleValue: "sms",
       menus: [
         {
-          href: `/${currentCompany?.slug}/sms`,
+          href: `/${currentCompany?.slug}/sms/reportes`,
           label: "Reportes",
           active: pathname.includes(`/${currentCompany?.slug}/sms/reportes`),
           icon: ClipboardPen,
           roles: ["ANALISTA_SMS", "JEFE_SMS", "SUPERUSER"],
-          submenus: [
-            {
-              href: `/${currentCompany?.slug}/sms/reportes/reportes_voluntarios`,
-              label: "Reportes Voluntarios",
-              roles: ["ANALISTA_SMS", "JEFE_SMS", "SUPERUSER"],
-              active:
-                pathname ===
-                `/${currentCompany?.slug}/sms/reportes/reportes_voluntarios`,
-            },
-            {
-              href: `/${currentCompany?.slug}/sms/reportes/reportes_obligatorios`,
-              label: "Reportes Obligatorios",
-              roles: ["ANALISTA_SMS", "JEFE_SMS", "SUPERUSER"],
-              active:
-                pathname ===
-                `/${currentCompany?.slug}/sms/reportes/reportes_obligatorios`,
-            },
-          ],
+          submenus: [],
         },
         {
           href: `/${currentCompany?.slug}/sms`,
@@ -523,7 +506,6 @@ export function getMenuList(
                 pathname ===
                 `/${currentCompany?.slug}/sms/estadisticas/general`,
             },
-
             {
               href: `/${currentCompany?.slug}/sms/estadisticas/reportes_voluntarios`,
               label: "Reportes Voluntarios",
@@ -552,10 +534,8 @@ export function getMenuList(
         },
         {
           href: "",
-          label: "Planificación",
-          active: pathname.includes(
-            `/${currentCompany?.slug}/sms/promocion`
-          ),
+          label: "Promoción",
+          active: pathname.includes(`/${currentCompany?.slug}/sms/promocion`),
           icon: CalendarClock,
           roles: ["SUPERUSER", "JEFE_SMS", "ANALISTA_SMS"],
           submenus: [
@@ -1066,11 +1046,11 @@ export function getMenuList(
               label: "Administrar Roles",
               active: pathname === "/sistema/usuarios_permisos/roles",
             },
-            {
-              href: "/sistema/usuarios_permisos/permisos",
-              label: "Administrar Permisos",
-              active: pathname === "/sistema/usuarios_permisos/permisos",
-            },
+            // {
+            //   href: "/sistema/usuarios_permisos/permisos",
+            //   label: "Administrar Permisos",
+            //   active: pathname === "/sistema/usuarios_permisos/permisos",
+            // },
           ],
         },
         {

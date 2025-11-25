@@ -7,26 +7,52 @@ import { columns } from "./columns";
 import { DataTable } from "./data-table";
 import { useCompanyStore } from "@/stores/CompanyStore";
 
-const ObligatoryReportsPage = () => {
+interface ObligatoryReportsPageProps {
+  title?: string;
+  companySlug?: string;
+  showHeader?: boolean;
+  className?: string;
+  customColumns?: any[];
+}
+
+export const ObligatoryReportsPage = ({
+  title = "Reportes Obligatorios",
+  companySlug,
+  showHeader = true,
+  className = "",
+  customColumns,
+}: ObligatoryReportsPageProps) => {
   const { selectedCompany } = useCompanyStore();
+
   const { data, isLoading, isError } = useGetObligatoryReports(
-    selectedCompany?.slug
+    companySlug || selectedCompany?.slug
   );
+
   if (isLoading) {
     return <LoadingPage />;
   }
-  return (
-    <ContentLayout title="Reportes Obligatorios">
-      <div className="flex flex-col gap-y-2">
-        {data && <DataTable columns={columns} data={data} />}
-        {isError && (
-          <p className="text-sm text-muted-foreground">
-            Ha ocurrido un error al cargar los reportes...
-          </p>
-        )}
-      </div>
-    </ContentLayout>
-  );
-};
 
-export default ObligatoryReportsPage;
+  const tableColumns = customColumns || columns;
+
+  const content = (
+    <div className={`flex flex-col gap-y-2 ${className}`}>
+      {data && <DataTable columns={tableColumns} data={data} />}
+      {isError && (
+        <p className="text-sm text-muted-foreground">
+          Ha ocurrido un error al cargar los reportes...
+        </p>
+      )}
+      {!isError && !data && (
+        <p className="text-sm text-muted-foreground">
+          No hay reportes para mostrar.
+        </p>
+      )}
+    </div>
+  );
+
+  if (!showHeader) {
+    return content;
+  }
+
+  return <>{content}</>;
+};
