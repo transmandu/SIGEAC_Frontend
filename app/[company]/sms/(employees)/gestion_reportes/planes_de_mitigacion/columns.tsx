@@ -171,6 +171,24 @@ const RiskAnalysisCell = ({ analysis }: { analysis: any }) => {
 // Columnas de la tabla (responsive)
 export const columns: ColumnDef<MitigationTable>[] = [
   {
+    accessorKey: "report_number",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Reporte" filter />
+    ),
+    cell: ({ row }) => (
+      <div className="flex justify-center">
+        <span className="font-bold">
+          {row.original.obligatory_report &&
+            "ROS - " + row.original.obligatory_report.report_number}
+        </span>
+        <span className="font-bold">
+          {row.original.voluntary_report &&
+            "RVP - " + row.original.voluntary_report.report_number}
+        </span>
+      </div>
+    ),
+  },
+  {
     accessorKey: "analysis",
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Riesgo" filter />
