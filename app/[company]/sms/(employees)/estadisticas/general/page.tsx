@@ -136,7 +136,7 @@ const GeneralReportStats = () => {
     params.to || format(new Date(), "yyyy-MM-dd"),
     selectedCompany?.slug
   );
-
+  console.log('AHHAHAHAHAHAHA',reportSourceTypeData);
   const {
     data: reportSourceNameData,
     isLoading: isLoadingReportSourceNameData,
@@ -294,7 +294,6 @@ const GeneralReportStats = () => {
       </div>
 
       <div className="grid sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-2 2xl:grid-cols-3 gap-2">
-
         {/* Peligros Identificados vs Gestionados */}
 
         {shouldShow("bar-chart") && (
@@ -308,9 +307,9 @@ const GeneralReportStats = () => {
               params.to && (
                 <BarChartComponent
                   data={barChartData}
-                    title="Peligros Identificados vs Gestionados"
-                    bar_first_name="Identificados"
-                    bar_second_name="Gestionados"
+                  title="Peligros Identificados vs Gestionados"
+                  bar_first_name="Identificados"
+                  bar_second_name="Gestionados"
                 />
               )
             ) : (
@@ -332,11 +331,11 @@ const GeneralReportStats = () => {
               </div>
             ) : totalIdentificationData &&
               totalIdentificationData.length > 0 ? (
-                <>
-              <MultipleBarChartComponent
-                data={totalIdentificationData}
-                title="Numero de Reportes vs Tipo de Peligro (General)"
-              />
+              <>
+                <MultipleBarChartComponent
+                  data={totalIdentificationData}
+                  title="Numero de Reportes vs Tipo de Peligro (General)"
+                />
               </>
             ) : (
               <p className="text-lg text-muted-foreground">
@@ -354,7 +353,6 @@ const GeneralReportStats = () => {
               </div>
             ) : reportsByAreaData && reportsByAreaData.length > 0 ? (
               <MultipleBarChartComponent
-
                 data={reportsByAreaData}
                 title="Numero de Reportes vs Area de Identificación (General)"
               />
@@ -404,7 +402,6 @@ const GeneralReportStats = () => {
               </div>
             ) : totalRiskData && totalRiskData.length > 0 ? (
               <MultipleBarChartComponent
-
                 data={totalRiskData}
                 title="Numero de Reportes por Cada Indice de Riesgo (General)"
               />
@@ -454,7 +451,6 @@ const GeneralReportStats = () => {
               </div>
             ) : totalRiskData && totalRiskData.length > 0 ? (
               <MultipleBarChartComponent
-
                 data={totalRiskData}
                 title="Numero de Reportes por Cada Indice de Riesgo  (Post-Mitigacion)"
               />
@@ -473,13 +469,13 @@ const GeneralReportStats = () => {
 
         {shouldShow("source-type") && (
           <div className="flex flex-col justify-center items-center p-4 rounded-lg shadow border">
-            {isLoadingTotalPostRiskData ? (
+            {isLoadingReportSourceTypeData ? (
               <div className="flex justify-center items-center h-48">
                 <Loader2 className="size-24 animate-spin" />
               </div>
-            ) : totalPostRiskData && totalPostRiskData.length > 0 ? (
+            ) : reportSourceTypeData && reportSourceTypeData.length > 0 ? (
               <MultipleBarChartComponent
-                data={totalPostRiskData}
+                data={reportSourceTypeData}
                 title="Numero de Reportes por Tipo de Fuente"
               />
             ) : (
