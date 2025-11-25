@@ -1046,11 +1046,11 @@ export function getMenuList(
               label: "Administrar Roles",
               active: pathname === "/sistema/usuarios_permisos/roles",
             },
-            {
-              href: "/sistema/usuarios_permisos/permisos",
-              label: "Administrar Permisos",
-              active: pathname === "/sistema/usuarios_permisos/permisos",
-            },
+            // {
+            //   href: "/sistema/usuarios_permisos/permisos",
+            //   label: "Administrar Permisos",
+            //   active: pathname === "/sistema/usuarios_permisos/permisos",
+            // },
           ],
         },
         {
