@@ -72,7 +72,7 @@ const fetchWarehouseArticlesByCategory = async (
 ): Promise<WarehouseResponse> => {
   const { data } = await axiosInstance.get(`/${company}/${location_id}/articles-by-category?category=${category}&status=${status??"all"}&page=${page}&per_page=${per_page}`);
 
-  console.log(data);
+  // console.log(data);
   return {
     batches: data.data || [],
     pagination: {
