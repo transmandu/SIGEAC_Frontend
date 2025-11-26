@@ -1,5 +1,5 @@
 import axios from '@/lib/axios';
-import { AdministrationRequisition, Convertion, User } from '@/types';
+import { AdministrationRequisition, Convertion, Unit, User } from '@/types';
 import { useQuery } from '@tanstack/react-query';
 
 interface Requisition {
@@ -23,7 +23,7 @@ interface Requisition {
       reference_cod?: string,
       justification: string,
       quantity: number,
-      unit?: Convertion,
+      unit?: Unit,
       image?: string,
       certificates?: string[]
     }[]

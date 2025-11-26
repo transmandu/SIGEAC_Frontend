@@ -569,6 +569,7 @@ export type PurchaseOrder = {
     id: number;
     article_part_number: string;
     quantity: number;
+    unit?: Unit;
     unit_price: string;
     article_tax: number;
     usa_tracking: string;
@@ -606,7 +607,7 @@ export type Quote = {
     article_part_number: string;
     quantity: number;
     unit_price: string;
-    unit?: Convertion;
+    unit?: Unit;
     image: string;
   }[];
   sub_total: number;
