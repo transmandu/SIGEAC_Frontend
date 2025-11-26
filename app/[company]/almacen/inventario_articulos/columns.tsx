@@ -10,12 +10,14 @@ import ArticleDropdownActions from "@/components/dropdowns/mantenimiento/almacen
 import { WarehouseResponse } from "@/hooks/mantenimiento/almacen/articulos/useGetWarehouseArticlesByCategory";
 import CertificatesPopover from "@/components/popovers/CertificatesPopover";
 import { StatusColumnHeader } from "@/components/tables/StatusColumnHeader";
+import { Unit } from "@/types";
 
 export interface IArticleSimple {
   id: number;
   part_number: string;
   alternative_part_number?: string[];
   description?: string;
+  unit?: Unit;
   quantity: number
   zone: string;
   article_type: string;
@@ -42,6 +44,7 @@ export interface IArticleSimple {
   consumable?: {
     caducate_date?: string | Date | null;
     fabrication_date?: string | Date | null;
+    unit?: Unit;
   };
 }
 
@@ -205,13 +208,16 @@ const baseCols: ColumnDef<IArticleSimple>[] = [
         q = 1;
       }
       return (
-        <div className="flex justify-center">
+        <div className="flex justify-center items-center">
           <Badge
             variant={q > 5 ? "default" : q > 0 ? "secondary" : "destructive"}
             className="text-base font-bold px-3 py-1"
           >
-            {q}
+            {q} {row.original.unit ? row.original.unit.value : "u"}
           </Badge>
+          {/* <span className="text-xs font-bold">
+            {row.original.unit ? row.original.unit.value : "u"}
+          </span> */}
         </div>
       );
     },
