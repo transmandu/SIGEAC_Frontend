@@ -1,5 +1,4 @@
 import axiosInstance from "@/lib/axios";
-import { Employee } from "@/types";
 import { useQuery } from "@tanstack/react-query";
 
 interface EmployeeData {

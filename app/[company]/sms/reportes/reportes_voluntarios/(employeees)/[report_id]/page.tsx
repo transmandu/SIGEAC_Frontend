@@ -6,7 +6,7 @@ import PreviewVoluntaryReportPdfDialog from "@/components/dialogs/aerolinea/sms/
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -24,7 +24,6 @@ import {
   ChevronRight,
   File,
   FileText,
-  List,
   Loader2,
   Mail,
   MapPin,
@@ -34,10 +33,12 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 import { useParams } from "next/navigation";
+import { useEffect } from "react";
 
 const ShowVoluntaryReport = () => {
   const { report_id } = useParams<{ report_id: string }>();
   const { selectedCompany } = useCompanyStore();
+
   const {
     data: voluntaryReport,
     isLoading,
@@ -47,365 +48,353 @@ const ShowVoluntaryReport = () => {
     company: selectedCompany?.slug,
   });
 
-  return (
-    <ContentLayout title="Reportes Voluntarios">
-      {/* Botones de acción */}
-      <div className="flex justify-evenly flex-wrap gap-4 mb-6">
-        {voluntaryReport?.status === "ABIERTO" &&
-          !voluntaryReport.danger_identification_id && (
-            <div className="flex items-center">
+
+  // ==========================================================
+  // ACCIONES
+  // ==========================================================
+  const renderActionButtons = () => {
+    if (!voluntaryReport) return null;
+
+    return (
+      <div className="flex flex-wrap gap-3 justify-center mb-0">
+        {voluntaryReport.status === "ABIERTO" && (
+          <>
+            {!voluntaryReport.danger_identification_id ? (
               <CreateDangerIdentificationDialog
                 title="Crear Identificación de Peligro"
                 id={voluntaryReport.id}
                 reportType="RVP"
               />
-            </div>
-          )}
-
-        {voluntaryReport?.status === "ABIERTO" &&
-          voluntaryReport.danger_identification_id && (
-            <div className="flex items-center">
-              <Button variant="outline" size="sm" className="h-10 px-4">
+            ) : (
+              <Button variant="outline" size="sm" asChild>
                 <Link
                   href={`/${selectedCompany?.slug}/sms/gestion_reportes/peligros_identificados/${voluntaryReport.danger_identification_id}`}
                 >
                   Ver Identificación de Peligro
                 </Link>
               </Button>
-            </div>
-          )}
+            )}
 
-        {voluntaryReport?.status === "ABIERTO" && (
-          <>
-            <div className="flex items-center">
-              <CreateVoluntaryReportDialog
-                initialData={voluntaryReport}
-                isEditing={true}
-                title="Editar"
-              />
-            </div>
-            <div className="flex items-center">
-              <DeleteVoluntaryReportDialog
-                company={selectedCompany!.slug}
-                id={voluntaryReport.id.toString()}
-              />
-            </div>
+            <CreateVoluntaryReportDialog
+              initialData={voluntaryReport}
+              isEditing={true}
+              title="Editar Reporte"
+            />
+
+            <DeleteVoluntaryReportDialog
+              company={selectedCompany!.slug}
+              id={voluntaryReport.id.toString()}
+            />
           </>
         )}
 
-        {voluntaryReport && (
-          <div className="flex items-center">
-            <PreviewVoluntaryReportPdfDialog
-              title="Descargar PDF"
-              voluntaryReport={voluntaryReport}
-            />
-          </div>
-        )}
+        <PreviewVoluntaryReportPdfDialog
+          title="Descargar PDF"
+          voluntaryReport={voluntaryReport}
+        />
       </div>
+    );
+  };
 
-      {/* Contenido principal */}
-      <div className="flex flex-col justify-center items-center border border-gray-300 rounded-lg p-8 gap-6 shadow-md dark:border-gray-700">
+  // ==========================================================
+  // TARJETAS
+  // ==========================================================
+
+  const renderBasicInfo = () => (
+    <Card>
+      <CardHeader className="pb-3">
+        <h3 className="text-lg font-semibold flex items-center gap-2">
+          <FileText className="w-5 h-5" />
+          Información General
+        </h3>
+      </CardHeader>
+      <CardContent className="space-y-4">
         <div className="flex items-center gap-3">
-          <FileText className="w-10 h-10 text-blue-600" />
-          <h1 className="text-3xl font-bold text-center text-gray-800 dark:text-white">
-            Detalles del Reporte Voluntario
-          </h1>
-        </div>
-
-        {isLoading && (
-          <div className="flex w-full h-64 justify-center items-center">
-            <Loader2 className="size-24 animate-spin text-blue-500" />
-          </div>
-        )}
-
-        {voluntaryReport && (
-          <div className="w-full space-y-6">
-            {/* Encabezado con información básica */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="border border-gray-300 dark:border-gray-600 p-6 rounded-lg space-y-3">
-                <div className="flex items-center gap-3">
-                  <FileText className="w-6 h-6 text-gray-600 dark:text-gray-300" />
-                  <p className="text-xl font-semibold text-gray-700 dark:text-gray-300">
-                    {voluntaryReport.report_number ? (
-                      <>RVP-{voluntaryReport.report_number}</>
-                    ) : (
-                      <>N/A</>
-                    )}
-                  </p>
-                </div>
-                <div className="flex items-center gap-3">
-                  <Calendar className="w-5 h-5 text-gray-600 dark:text-gray-300" />
-                  <p className="text-gray-700 dark:text-gray-300">
-                    {dateFormat(voluntaryReport.report_date, "PPP")}
-                  </p>
-                </div>
-              </div>
-
-              <div className="border border-gray-300 dark:border-gray-600 p-6 rounded-lg flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <AlertCircle className="w-5 h-5 text-gray-600 dark:text-gray-300" />
-                  <span className="text-gray-700 dark:text-gray-300 font-medium">
-                    Estado:
-                  </span>
-                </div>
-                <Badge
-                  className={`font-bold text-sm px-3 py-1 ${
-                    voluntaryReport.status === "CERRADO"
-                      ? "bg-green-100 text-green-800 border-green-200 dark:bg-green-900/30 dark:text-green-300 dark:border-green-700"
-                      : voluntaryReport.status === "ABIERTO"
-                        ? "bg-red-100 text-red-800 border-red-200 dark:bg-red-500 dark:text-white dark:border-red-700"
-                        : "bg-gray-100 text-gray-800 border-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700"
-                  }`}
-                >
-                  {voluntaryReport.status}
-                </Badge>
-              </div>
-            </div>
-
-            {/* Información de localización */}
-            <div className="border border-gray-300 dark:border-gray-600 p-6 rounded-lg space-y-4">
-              <h3 className="text-xl font-semibold flex items-center gap-3">
-                <MapPin className="w-6 h-6" />
-                Ubicación del Peligro
-              </h3>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <p className="font-medium text-gray-700 dark:text-gray-300">
-                    Área:
-                  </p>
-                  <p className="text-gray-600 dark:text-gray-400">
-                    {voluntaryReport.danger_area || "N/A"}
-                  </p>
-                </div>
-                <div className="space-y-1">
-                  <p className="font-medium text-gray-700 dark:text-gray-300">
-                    Base:
-                  </p>
-                  <p className="text-gray-600 dark:text-gray-400">
-                    {voluntaryReport.danger_location || "N/A"}
-                  </p>
-                </div>
-                <div>
-                  
-                </div>
-                <div className="md:col-span-2 space-y-1">
-                  <p className="font-medium text-gray-700 dark:text-gray-300">
-                    Localización exacta:
-                  </p>
-                  <p className="text-gray-600 dark:text-gray-400">
-                    {voluntaryReport.airport_location || "N/A"}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Fecha de identificación */}
-            <div className="border border-gray-300 dark:border-gray-600 p-6 rounded-lg">
-              <div className="flex items-center gap-3">
-                <Calendar className="w-5 h-5 text-gray-600 dark:text-gray-300" />
-                <p className="text-gray-700 dark:text-gray-300">
-                  <span className="font-semibold">
-                    Fecha de Identificación:
-                  </span>{" "}
-                  {dateFormat(voluntaryReport.identification_date, "PPP")}
-                </p>
-              </div>
-            </div>
-
-            {/* Descripción y consecuencias */}
-            <div className="space-y-6">
-              <div className="border border-gray-300 dark:border-gray-600 p-6 rounded-lg">
-                <h3 className="text-xl font-semibold mb-4 flex items-center gap-3">
-                  <FileText className="w-6 h-6" />
-                  Descripción
-                </h3>
-                <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
-                  {voluntaryReport.description || "N/A"}
-                </p>
-              </div>
-
-              <div className="border border-gray-300 dark:border-gray-600 p-6 rounded-lg">
-                <h3 className="text-xl font-semibold mb-4 flex items-center gap-3">
-                  <AlertTriangle className="w-6 h-6" />
-                  Posibles Consecuencias
-                </h3>
-                {voluntaryReport.possible_consequences && (
-                  <div className="border border-gray-300 dark:border-gray-600 p-6 rounded-lg w-full">
-                    <ul className="space-y-3">
-                      {voluntaryReport.possible_consequences.split(",").map(
-                        (consequence, index) =>
-                          // Se añade una comprobación para no renderizar elementos vacíos
-                          consequence.trim() && (
-                            <li key={index} className="flex items-start gap-3">
-                              <ChevronRight className="w-5 h-5 mt-1 flex-shrink-0 text-gray-500" />
-                              <span className="text-gray-600 dark:text-gray-400">
-                                {consequence.trim()}
-                              </span>
-                            </li>
-                          )
-                      )}
-                    </ul>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Información del reportero */}
-            {!voluntaryReport.reporter_phone &&
-            !voluntaryReport.reporter_email &&
-            !voluntaryReport.reporter_name &&
-            !voluntaryReport.reporter_last_name ? (
-              <div className="border border-gray-300 dark:border-gray-600 p-6 rounded-lg text-center">
-                <p className="text-gray-600 dark:text-gray-400">
-                  Reportado por: <span className="font-semibold">Anónimo</span>
-                </p>
-              </div>
-            ) : (
-              <div className="border border-gray-300 dark:border-gray-600 p-6 rounded-lg">
-                <h3 className="text-xl font-semibold mb-4 text-center flex items-center justify-center gap-3">
-                  <User className="w-6 h-6" />
-                  Información del Reportero
-                </h3>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-1">
-                    <p className="font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2">
-                      <User className="w-4 h-4" /> Nombre:
-                    </p>
-                    <p className="text-gray-600 dark:text-gray-400">
-                      {voluntaryReport.reporter_name || "N/A"}{" "}
-                      {voluntaryReport.reporter_last_name}
-                    </p>
-                  </div>
-                  <div className="space-y-1">
-                    <p className="font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2">
-                      <Mail className="w-4 h-4" /> Email:
-                    </p>
-                    <p className="text-gray-600 dark:text-gray-400">
-                      {voluntaryReport.reporter_email || "N/A"}
-                    </p>
-                  </div>
-                  <div className="space-y-1">
-                    <p className="font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2">
-                      <Phone className="w-4 h-4" /> Teléfono:
-                    </p>
-                    <p className="text-gray-600 dark:text-gray-400">
-                      {voluntaryReport.reporter_phone || "N/A"}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Archivos adjuntos */}
-        {voluntaryReport && (
-          <div className="w-full space-y-6">
-            {voluntaryReport.image && (
-              <div className="border border-gray-300 dark:border-gray-600 p-6 rounded-lg">
-                <h3 className="text-xl font-semibold mb-4 text-center">
-                  Imagen Adjunta
-                </h3>
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <div className="cursor-pointer">
-                      <CardContent className="flex flex-col items-center p-0">
-                        <div className="relative group w-72 h-72">
-                          <Image
-                            src={
-                              voluntaryReport.image.startsWith("data:image")
-                                ? voluntaryReport.image
-                                : `data:image/jpeg;base64,${voluntaryReport.image}`
-                            }
-                            alt="Vista previa de imagen"
-                            fill
-                            className="object-contain rounded-md border-2 border-gray-300 shadow-sm group-hover:border-blue-400 transition-all"
-                            onError={(e) => {
-                              const target = e.target as HTMLImageElement;
-                              target.style.display = "none";
-                            }}
-                          />
-                          <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/30 rounded-md">
-                            <span className="bg-black/70 text-white px-3 py-2 rounded-md flex items-center gap-2">
-                              Ver imagen
-                            </span>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </div>
-                  </DialogTrigger>
-
-                  <DialogContent className="max-w-4xl max-h-[90vh]">
-                    <DialogHeader>
-                      <DialogTitle className="text-xl">
-                        Imagen del Reporte
-                      </DialogTitle>
-                    </DialogHeader>
-
-                    <div className="relative flex justify-center items-center h-[70vh]">
-                      <Image
-                        src={
-                          voluntaryReport.image.startsWith("data:image")
-                            ? voluntaryReport.image
-                            : `data:image/jpeg;base64,${voluntaryReport.image}`
-                        }
-                        alt="Imagen completa"
-                        fill
-                        className="object-contain border-4 border-gray-100 shadow-lg rounded-lg"
-                      />
-                    </div>
-
-                    <div className="flex justify-end mt-4">
-                      <a
-                        href={
-                          voluntaryReport.image.startsWith("data:image")
-                            ? voluntaryReport.image
-                            : `data:image/jpeg;base64,${voluntaryReport.image}`
-                        }
-                        download="reporte-voluntario.jpg"
-                        className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700"
-                      >
-                        Descargar Imagen
-                      </a>
-                    </div>
-                  </DialogContent>
-                </Dialog>
-              </div>
-            )}
-
-            {voluntaryReport.document && (
-              <div className="border border-gray-300 dark:border-gray-600 p-6 rounded-lg text-center">
-                <h3 className="text-xl font-semibold mb-4">
-                  Documento Adjunto
-                </h3>
-                <a
-                  href={
-                    voluntaryReport.document.startsWith("data:application/pdf")
-                      ? voluntaryReport.document
-                      : `data:application/pdf;base64,${voluntaryReport.document}`
-                  }
-                  download="reporte-voluntario.pdf"
-                  className="inline-flex items-center px-5 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700"
-                >
-                  <File className="w-5 h-5 mr-2" />
-                  Descargar Documento Adjunto
-                </a>
-              </div>
-            )}
-          </div>
-        )}
-
-        {isError && (
-          <div className="border border-red-300 dark:border-red-700 rounded-lg p-6 flex items-center gap-4 w-full">
-            <AlertCircle className="w-6 h-6 text-red-500" />
-            <p className="text-red-700 dark:text-red-300">
-              Ha ocurrido un error al cargar el reporte voluntario...
+          <FileText className="w-5 h-5 flex-shrink-0" />
+          <div>
+            <p className="text-sm font-medium">Número de Reporte</p>
+            <p className="font-semibold">
+              {voluntaryReport?.report_number
+                ? `RVP-${voluntaryReport.report_number}`
+                : "N/A"}
             </p>
           </div>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <Calendar className="w-5 h-5 flex-shrink-0" />
+          <div>
+            <p className="text-sm font-medium">Fecha del Reporte</p>
+            <p className="font-medium">
+              {dateFormat(voluntaryReport?.report_date || "", "PPP")}
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <AlertCircle className="w-5 h-5 flex-shrink-0" />
+            <span className="text-sm font-medium">Estado</span>
+          </div>
+          <Badge
+            variant={
+              voluntaryReport?.status === "CERRADO" ? "default" : "secondary"
+            }
+            className={
+              voluntaryReport?.status === "CERRADO"
+                ? "bg-green-100 text-green-800"
+                : "bg-red-100 text-red-800"
+            }
+          >
+            {voluntaryReport?.status}
+          </Badge>
+        </div>
+      </CardContent>
+    </Card>
+  );
+
+  const renderLocationInfo = () => (
+    <Card>
+      <CardHeader className="pb-3">
+        <h3 className="text-lg font-semibold flex items-center gap-2">
+          <MapPin className="w-5 h-5" />
+          Ubicación del Peligro
+        </h3>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        <div>
+          <p className="text-sm font-medium mb-1">Área</p>
+          <p className="font-medium">{voluntaryReport?.danger_area || "N/A"}</p>
+        </div>
+        <div>
+          <p className="text-sm font-medium mb-1">Base</p>
+          <p className="font-medium">
+            {voluntaryReport?.danger_location || "N/A"}
+          </p>
+        </div>
+        <div>
+          <p className="text-sm font-medium mb-1">Localización exacta</p>
+          <p className="font-medium">
+            {voluntaryReport?.airport_location || "N/A"}
+          </p>
+        </div>
+      </CardContent>
+    </Card>
+  );
+
+  const renderIdentificationDate = () => (
+    <Card>
+      <CardHeader className="pb-3">
+        <h3 className="text-lg font-semibold flex items-center gap-2">
+          <Calendar className="w-5 h-5" />
+          Fecha de Identificación
+        </h3>
+      </CardHeader>
+      <CardContent>
+        <p className="font-medium">
+          {dateFormat(voluntaryReport?.identification_date || "", "PPP")}
+        </p>
+      </CardContent>
+    </Card>
+  );
+
+  const renderDescription = () => (
+    <Card>
+      <CardHeader className="pb-3">
+        <h3 className="text-lg font-semibold flex items-center gap-2">
+          <FileText className="w-5 h-5" />
+          Descripción
+        </h3>
+      </CardHeader>
+      <CardContent>
+        <p className="leading-relaxed text-gray-700">
+          {voluntaryReport?.description || "N/A"}
+        </p>
+      </CardContent>
+    </Card>
+  );
+
+  const renderConsequences = () => (
+    <Card>
+      <CardHeader className="pb-3">
+        <h3 className="text-lg font-semibold flex items-center gap-2">
+          <AlertTriangle className="w-5 h-5" />
+          Posibles Consecuencias
+        </h3>
+      </CardHeader>
+      <CardContent>
+        {voluntaryReport?.possible_consequences ? (
+          <ul className="space-y-2">
+            {voluntaryReport.possible_consequences.split(",").map(
+              (consequence, index) =>
+                consequence.trim() && (
+                  <li key={index} className="flex items-start gap-2">
+                    <ChevronRight className="w-4 h-4 mt-1 text-gray-500 flex-shrink-0" />
+                    <span className="text-gray-700">{consequence.trim()}</span>
+                  </li>
+                )
+            )}
+          </ul>
+        ) : (
+          <p className="text-gray-700">N/A</p>
         )}
-      </div>
+      </CardContent>
+    </Card>
+  );
+
+  const renderReporterInfo = () => {
+    const isAnonymous =
+      !voluntaryReport?.reporter_phone &&
+      !voluntaryReport?.reporter_email &&
+      !voluntaryReport?.reporter_name &&
+      !voluntaryReport?.reporter_last_name;
+
+    return (
+      <Card>
+        <CardHeader className="pb-3">
+          <h3 className="text-lg font-semibold flex items-center gap-2">
+            <User className="w-5 h-5" />
+            Información del Reportero
+          </h3>
+        </CardHeader>
+        <CardContent>
+          {isAnonymous ? (
+            <p className="text-gray-700">
+              Reportado por: <span className="font-medium">Anónimo</span>
+            </p>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <p className="text-sm font-medium flex items-center gap-2 mb-1">
+                  <User className="w-4 h-4" /> Nombre
+                </p>
+                <p className="font-medium">
+                  {voluntaryReport.reporter_name || "N/A"}{" "}
+                  {voluntaryReport.reporter_last_name}
+                </p>
+              </div>
+              <div>
+                <p className="text-sm font-medium flex items-center gap-2 mb-1">
+                  <Mail className="w-4 h-4" /> Email
+                </p>
+                <p className="font-medium">
+                  {voluntaryReport.reporter_email || "N/A"}
+                </p>
+              </div>
+              <div>
+                <p className="text-sm font-medium flex items-center gap-2 mb-1">
+                  <Phone className="w-4 h-4" /> Teléfono
+                </p>
+                <p className="font-medium">
+                  {voluntaryReport.reporter_phone || "N/A"}
+                </p>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    );
+  };
+
+  const renderAttachments = () => (
+    <div className="space-y-4">
+      {voluntaryReport?.imageUrl && (
+        <Card>
+          <CardHeader className="pb-3">
+            <h3 className="text-lg font-semibold">Imagen Adjunta</h3>
+          </CardHeader>
+          <CardContent>
+            <Dialog>
+              <DialogTrigger asChild>
+                <div className="relative group w-full max-w-sm h-64 mx-auto cursor-pointer">
+                  {/* ✅ USAR img NORMAL */}
+                  <img
+                    src={voluntaryReport.imageUrl}
+                    alt="Imagen del reporte"
+                    crossOrigin="use-credentials"
+                    className="w-full h-full object-contain rounded-md border group-hover:border-gray-400 transition-all"
+                    onError={(e) => {
+                      console.error("Error cargando imagen:", e);
+                    }}
+                  />
+                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 bg-black/20 transition-opacity rounded-md">
+                    <span className="text-white bg-black/70 px-3 py-2 rounded-md text-sm">
+                      Ver imagen
+                    </span>
+                  </div>
+                </div>
+              </DialogTrigger>
+
+              <DialogContent className="max-w-4xl max-h-[90vh] w-[95vw]">
+                <DialogHeader>
+                  <DialogTitle>Imagen del Reporte</DialogTitle>
+                </DialogHeader>
+                <div className="relative h-[60vh] flex justify-center">
+                  {/* ✅ USAR img NORMAL en el dialog también */}
+                  <img
+                    src={voluntaryReport.imageUrl}
+                    alt="Imagen completa del reporte"
+                    className="max-w-full max-h-full object-contain rounded-lg border"
+                  />
+                </div>
+              </DialogContent>
+            </Dialog>
+          </CardContent>
+        </Card>
+      )}
+    </div>
+  );
+
+  // ==========================================================
+  // RETURN PRINCIPAL
+  // ==========================================================
+
+  return (
+    <ContentLayout title="Detalles del Reporte Voluntario">
+      {renderActionButtons()}
+
+      {/* LOADING */}
+      {isLoading && (
+        <div className="flex justify-center items-center h-64">
+          <Loader2 className="w-8 h-8 animate-spin" />
+        </div>
+      )}
+
+      {/* CONTENIDO */}
+      {voluntaryReport && (
+        <div className="space-y-6">
+          {/* PRIMER BLOQUE: Info General + Ubicación + Fecha */}
+          <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+            {renderBasicInfo()}
+            {renderLocationInfo()}
+            {renderIdentificationDate()}
+          </div>
+
+          {/* SEGUNDO BLOQUE: Descripción + Consecuencias */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {renderDescription()}
+            {renderConsequences()}
+          </div>
+
+          {/* TERCER BLOQUE: Reportero */}
+          {renderReporterInfo()}
+
+          {/* CUARTO BLOQUE: Adjuntos */}
+          {renderAttachments()}
+        </div>
+      )}
+
+      {/* ERROR */}
+      {isError && (
+        <Card className="border-red-200 mt-4">
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-3 text-red-700">
+              <AlertCircle className="w-5 h-5" />
+              <p>Ha ocurrido un error al cargar el reporte voluntario...</p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </ContentLayout>
   );
 };
