@@ -11,7 +11,7 @@ import { es } from "date-fns/locale";
 import { Loader2 } from "lucide-react";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { GoalStatusCard } from "../_components/GoldStatusCard";
+import { GoalStatusCard } from "./GoldStatusCard";
 
 interface ManagementReportsProps {
   // Puedes agregar props aquí si necesitas

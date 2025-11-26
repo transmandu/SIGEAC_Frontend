@@ -19,12 +19,12 @@ export const columns: ColumnDef<DangerIdentification>[] = [
         <div className="flex justify-center">
           {row.original.voluntary_report &&
           row.original.voluntary_report.report_number ? (
-            <p>RVP-{row.original.voluntary_report.report_number}</p>
+            <p className="font-bold">RVP-{row.original.voluntary_report.report_number}</p>
           ) : row.original.obligatory_report &&
             row.original.obligatory_report.report_number ? (
-            <p>ROS-{row.original.obligatory_report.report_number}</p>
+            <p className="font-bold">ROS-{row.original.obligatory_report.report_number}</p>
           ) : (
-            <p>-</p> // Or any other placeholder if both are missing
+            <p>N/A</p>
           )}
         </div>
       );

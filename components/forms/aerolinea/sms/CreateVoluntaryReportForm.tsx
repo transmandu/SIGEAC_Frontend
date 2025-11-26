@@ -103,8 +103,8 @@ export function CreateVoluntaryReportForm({
       .min(3, {
         message: "La descripción debe tener al menos 3 caracteres",
       })
-      .max(255, {
-        message: "La descripción no debe exceder los 255 caracteres",
+      .max(900, {
+        message: "La descripción no debe exceder los 900 caracteres",
       }),
     possible_consequences: z
       .string()

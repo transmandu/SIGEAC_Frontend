@@ -3,8 +3,8 @@
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ContentLayout } from "@/components/layout/ContentLayout";
-import { AverageReportIndicator } from "./reportes_obligatorios/page";
-import { ManagementReports } from "./reportes_voluntarios/page";
+import { ManagementReports } from "./_components/ManagementReports";
+import { AverageReportIndicator } from "./_components/AverageReportIndicator";
 
 export default function RiskIndicatorsPage() {
   const [activeTab, setActiveTab] = useState("ManagementReports");

@@ -1,7 +1,6 @@
 "use client";
 
-import { useTheme } from "next-themes";
-import React, { FC, useEffect, useState } from "react";
+import { FC, useEffect, useState } from "react";
 
 interface RiskMatrixProps {
   onCellClick: (probability: string, severity: string) => void;
@@ -24,7 +23,6 @@ const RiskMatrix: FC<RiskMatrixProps> = ({
   selectedProbability,
   selectedSeverity,
 }) => {
-  const { theme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
   // Evitar hidratación incorrecta del tema

@@ -1,18 +1,16 @@
 "use client";
 import MultipleBarChartComponent from "@/components/charts/MultipleBarChartComponent";
-import { ContentLayout } from "@/components/layout/ContentLayout";
 import DoubleDateFilter from "@/components/misc/DoubleDateFilter";
 import { Label } from "@/components/ui/label";
 import { useGetObligatoryReportAverage } from "@/hooks/sms/useGetObligatoryReportAverage";
 import { useGetTotalReportsStatsByYear } from "@/hooks/sms/useGetTotalReportsStatsByYear";
 import { useCompanyStore } from "@/stores/CompanyStore";
-import { pieChartData } from "@/types";
 import { addDays, endOfMonth, format, startOfMonth, subMonths } from "date-fns";
 import { es } from "date-fns/locale";
 import { Loader2 } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState, useMemo } from "react";
-import { IncidentAlertCard } from "../_components/RiskIndicatorMessages";
+import { useEffect, useMemo, useState } from "react";
+import { IncidentAlertCard } from "./RiskIndicatorMessages";
 
 interface AverageReportIndicatorProps {
   companySlug?: string;
@@ -218,5 +216,3 @@ export const AverageReportIndicator: React.FC<AverageReportIndicatorProps> = ({
     </>
   );
 };
-
-export default AverageReportIndicator;
