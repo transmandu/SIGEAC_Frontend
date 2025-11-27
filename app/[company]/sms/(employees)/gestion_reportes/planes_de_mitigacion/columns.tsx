@@ -168,6 +168,39 @@ const RiskAnalysisCell = ({ analysis }: { analysis: any }) => {
   );
 };
 
+const reportNumberCell = ({
+  reportNumber,
+  type,
+  report_id,
+}: {
+  reportNumber?: string;
+  type: string;
+  report_id?: number;
+}) => {
+  const { selectedCompany } = useCompanyStore();
+
+  return (
+    <div className="flex justify-center items-center gap-2">
+      {type === "obligatory" && reportNumber && selectedCompany && (
+        <Link
+          href={`/${selectedCompany.slug}/sms/reportes/reportes_obligatorios/${report_id}`}
+          className="ml-2 font-bold hover:scale-105 transition-all cursor-pointer"
+        >
+          ROS-{reportNumber}
+        </Link>
+      )}
+      {type === "voluntary" && reportNumber && selectedCompany && (
+        <Link
+          href={`/${selectedCompany.slug}/sms/reportes/reportes_voluntarios/${report_id}`}
+          className="ml-2 font-bold hover:scale-105 transition-all cursor-pointer"
+        >
+          ROS-{reportNumber}
+        </Link>
+      )}
+    </div>
+  );
+};
+
 // Columnas de la tabla (responsive)
 export const columns: ColumnDef<MitigationTable>[] = [
   {
@@ -178,12 +211,19 @@ export const columns: ColumnDef<MitigationTable>[] = [
     cell: ({ row }) => (
       <div className="flex justify-center">
         <span className="font-bold">
-          {row.original.obligatory_report &&
-            "ROS - " + row.original.obligatory_report.report_number}
-        </span>
-        <span className="font-bold">
-          {row.original.voluntary_report &&
-            "RVP - " + row.original.voluntary_report.report_number}
+          {row.original.obligatory_report
+            ? reportNumberCell({
+                reportNumber: row.original.obligatory_report.report_number,
+                type: "obligatory",
+                report_id: row.original.obligatory_report.id,
+              })
+            : row.original.voluntary_report
+              ? reportNumberCell({
+                  reportNumber: row.original.voluntary_report.report_number,
+                  type: "voluntary",
+                  report_id: row.original.voluntary_report.id,
+                })
+              : null}
         </span>
       </div>
     ),
