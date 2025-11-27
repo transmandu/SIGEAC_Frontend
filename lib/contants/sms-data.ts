@@ -246,33 +246,49 @@ export const SMSresponsibilities = [
 
 export const smsConcepts = [
   {
+    title: "Reporte Voluntario",
+    concept:
+      "Mecanismos que permiten a los empleados y a otros miembros de una organización informar de manera anónima o confidencial sobre condiciones, comportamientos o situaciones que podrían representar un peligro en las operaciones de la organización.",
+  },
+  {
+    title: "Reporte Obligatorio",
+    concept:
+      "Para el desarrollo de las actividades de gestión a través del sistema de reportes obligatorios, se abordan los procesos resultantes de la captación de información proveniente de los eventos operacionales, fallas o deficiencias técnicas, entre otros.",
+  },
+  {
     title: "Peligro",
-    concept: "Cualquier condición existente o potencial que pueda ocasionar lesiones, enfermedad o muerte a las personas, daño o pérdida de un sistema, equipo o propiedad, así como daño al medio ambiente."
+    concept:
+      "Cualquier condición existente o potencial que pueda ocasionar lesiones, enfermedad o muerte a las personas, daño o pérdida de un sistema, equipo o propiedad, así como daño al medio ambiente.",
   },
   {
     title: "Seguridad Operacional",
-    concept: "Estado en el que los riesgos asociados a las actividades de aviación relativas a la operación de aeronaves, o que apoyan directamente dicha operación, se reducen y controlan a un nivel aceptable! (Doc.9859/4ta.edic)"
+    concept:
+      "Estado en el que los riesgos asociados a las actividades de aviación relativas a la operación de aeronaves, o que apoyan directamente dicha operación, se reducen y controlan a un nivel aceptable! (Doc.9859/4ta.edic)",
   },
   {
     title: "SMS",
-    concept: "Es un enfoque sistemático para la gestión de la seguridad operacional, que incluye las estructuras organizacionales necesarias, líneas de rendición de cuentas, políticas y procedimientos!"
+    concept:
+      "Es un enfoque sistemático para la gestión de la seguridad operacional, que incluye las estructuras organizacionales necesarias, líneas de rendición de cuentas, políticas y procedimientos!",
   },
   {
     title: "Riesgo",
-    concept: "La probabilidad y severidad previstas para las consecuencias o resultados de un peligro!"
+    concept:
+      "La probabilidad y severidad previstas para las consecuencias o resultados de un peligro!",
   },
   {
     title: "Condición Latente",
-    concept: "Condiciones existentes en el sistema que se pueden desencadenar por un acontecimiento o un conjunto de acontecimientos cuyas consecuencias negativas pueden permanecer en estado latente!"
+    concept:
+      "Condiciones existentes en el sistema que se pueden desencadenar por un acontecimiento o un conjunto de acontecimientos cuyas consecuencias negativas pueden permanecer en estado latente!",
   },
   {
     title: "Estructura del SMS",
-    concept: "Posee 4 Componetes y 12 Elementos!"
+    concept: "Posee 4 Componetes y 12 Elementos!",
   },
   {
     title: "Tipos de Reportes SMS",
-    concept: "Posee el Reporte Voluntario de Peligro y El Reporte Obligatorio de Incidentes!"
-  }
+    concept:
+      "Posee el Reporte Voluntario de Peligro y El Reporte Obligatorio de Incidentes!",
+  },
 ];
 
 // Exportación por defecto para importar todo junto si es necesario
