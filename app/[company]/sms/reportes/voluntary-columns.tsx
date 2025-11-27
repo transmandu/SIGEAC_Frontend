@@ -78,7 +78,7 @@ export const columns: ColumnDef<VoluntaryReport>[] = [
       <DataTableColumnHeader column={column} title="Descripcion del peligro" />
     ),
     cell: ({ row }) => (
-      <div className="w-64 line-clamp-4">
+      <div className="w-64 text-center line-clamp-4">
         {row.original.description}
       </div>
     ),
