@@ -17,7 +17,7 @@ const fetchDangerIdentifications = async (
 
 export const useGetDangerIdentifications = (company?: string) => {
   return useQuery<DangerIdentification[]>({
-    queryKey: ["danger-identifications"],
+    queryKey: ["danger-identifications", company],
     queryFn: () => fetchDangerIdentifications(company),
     staleTime: 1000 * 60 * 5, // 5 minutos
     enabled: !!company,

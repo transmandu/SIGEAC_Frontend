@@ -11,7 +11,7 @@ const fetchMitigationTable = async (
 
 export const useGetMitigationTable = (company?: string) => {
   return useQuery<MitigationTable[]>({
-    queryKey: ["analysis"],
+    queryKey: ["analysis", company],
     queryFn: () => fetchMitigationTable(company),
     staleTime: 1000 * 60 * 5, // 5 minutos
     enabled: !!company,
