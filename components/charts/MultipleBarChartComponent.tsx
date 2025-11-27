@@ -79,6 +79,9 @@ const MultipleBarChartComponent: React.FC<BarChartProps> = ({
             <Tooltip
               formatter={(value: number) => value.toLocaleString("es-ES")}
               labelFormatter={(label) => `Categoría: ${label}`}
+              contentStyle={{
+                color: "#000",
+              }}
             />
 
             <Bar

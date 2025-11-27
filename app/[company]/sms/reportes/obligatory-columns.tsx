@@ -6,34 +6,10 @@ import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
 
 import ObligatoryReportDropdownActions from "@/components/dropdowns/aerolinea/sms/ObligatoryReportDropdownActions";
 import { Badge } from "@/components/ui/badge";
-import { Checkbox } from "@/components/ui/checkbox";
+import { dateFormat } from "@/lib/utils";
 import { ObligatoryReport } from "@/types";
-import { format, parse } from "date-fns";
-import { dateFormat, timeFormat } from "@/lib/utils";
 
 export const columns: ColumnDef<ObligatoryReport>[] = [
-  {
-    id: "select",
-    header: ({ table }) => (
-      <Checkbox
-        checked={
-          table.getIsAllPageRowsSelected() ||
-          (table.getIsSomePageRowsSelected() && "indeterminate")
-        }
-        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-        aria-label="Seleccionar todos"
-      />
-    ),
-    cell: ({ row }) => (
-      <Checkbox
-        checked={row.getIsSelected()}
-        onCheckedChange={(value) => row.toggleSelected(!!value)}
-        aria-label="Seleccionar fila"
-      />
-    ),
-    enableSorting: false,
-    enableHiding: false,
-  },
   {
     accessorKey: "report_code",
     header: ({ column }) => (

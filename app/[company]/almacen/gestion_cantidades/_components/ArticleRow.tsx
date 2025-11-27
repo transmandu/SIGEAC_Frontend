@@ -15,6 +15,7 @@ export type Article = IWarehouseArticle["articles"][0];
 
 interface ArticleRowProps {
   article: Article;
+  category?: string;
   quantity: number;
   zone: string;
   meditionUnit: string;
@@ -24,8 +25,8 @@ interface ArticleRowProps {
 }
 // Componente memozado para artículos individuales
 export const ArticleRow = React.memo(
-  ({ article, quantity, zone, meditionUnit, availableZones, onQuantityChange, onZoneChange }: ArticleRowProps) => {
-    const isComponent = article.article_type === 'componente';
+  ({ article, category, quantity, zone, meditionUnit, availableZones, onQuantityChange, onZoneChange }: ArticleRowProps) => {
+    const isComponent = category === 'COMPONENTE';
     
     // Usar todas las zonas disponibles del inventario - con validación estricta
     const allAvailableZones = React.useMemo(() => {
@@ -72,8 +73,15 @@ export const ArticleRow = React.memo(
           <div className="text-xs text-muted-foreground">
             {article.part_number}
           </div>
-          <div className="text-xs text-muted-foreground mt-0.5">
-            Serial: {article.serial || "N/A"}
+          <div className="text-xs text-muted-foreground mt-0.5 flex items-center gap-1.5">
+            <span>Serial: {article.serial || "N/A"}</span>
+            <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${
+              isComponent 
+                ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300' 
+                : 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300'
+            }`}>
+              {isComponent ? 'Componente' : 'Consumible'}
+            </span>
           </div>
         </div>
       </div>
@@ -138,14 +146,12 @@ export const ArticleRow = React.memo(
         {isComponent ? (
           <div className="h-9 flex items-center justify-center border rounded-md bg-muted">
             <span className="text-sm font-medium">
-              {quantity === 1 ? "Presente" : "Ausente"}
+              {quantity === 1 ? "Almacenado" : "Sin Stock"}
             </span>
           </div>
         ) : (
           <Input
-            type="number"
-            min="0"
-            step="0.01"
+            type="text"
             value={quantity || ""}
             onChange={(e) => onQuantityChange(article.id, e.target.value)}
             className={`text-center text-base font-medium h-9 ${

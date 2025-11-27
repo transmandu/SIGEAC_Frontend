@@ -634,6 +634,9 @@ export function CreateGeneralRequisitionForm({
                             <Input
                               type="number"
                               placeholder="Cantidad"
+                              min="0"
+                              step="0.1"
+                              inputMode="decimal"
                               onChange={(e) =>
                                 handleArticleChange(
                                   batch.batch,

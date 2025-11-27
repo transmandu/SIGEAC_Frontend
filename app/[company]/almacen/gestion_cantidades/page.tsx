@@ -38,14 +38,21 @@ const GestionCantidadesPage = () => {
     scrollTargetRef,
   } = useBackendPagination({ initialPage: 1, initialPerPage: 25 });
 
-  // Obtener todos los batches con artículos enviando page y per_page al backend
+  // Obtener batches de CONSUMIBLES y COMPONENTES por separado
   const {
-    data: response,
-    isLoading,
-    isError,
-    error,
+    data: consumableResponse,
+    isLoading: isLoadingConsumables,
+    isError: isErrorConsumables,
   } = useGetWarehouseArticlesByCategory(currentPage, itemsPerPage, "CONSUMIBLE");
-  // } = useGetWarehouseArticlesByCategory(currentPage, itemsPerPage, "CONSUMABLE");
+
+  const {
+    data: componentResponse,
+    isLoading: isLoadingComponents,
+    isError: isErrorComponents,
+  } = useGetWarehouseArticlesByCategory(currentPage, itemsPerPage, "COMPONENTE");
+
+  const isLoading = isLoadingConsumables || isLoadingComponents;
+  const isError = isErrorConsumables || isErrorComponents;
 
   // Obtener todas las zonas del almacén para los selects
   const {
@@ -53,9 +60,33 @@ const GestionCantidadesPage = () => {
     isLoading: isLoadingZones,
   } = useGetAllWarehouseZones();
 
-  // Extraer batches y paginationInfo de la respuesta
+  // Combinar batches de consumibles y componentes
   // Memoize para evitar crear nuevas referencias en cada render
-  const batches = useMemo(() => response?.batches || [], [response?.batches]);
+  const batches = useMemo(() => {
+    const consumableBatches = consumableResponse?.batches || [];
+    const componentBatches = componentResponse?.batches || [];
+    return [...consumableBatches, ...componentBatches];
+  }, [consumableResponse?.batches, componentResponse?.batches]);
+
+  // Combinar información de paginación - usar la del más grande
+  const response = useMemo(() => {
+    if (!consumableResponse && !componentResponse) return null;
+    
+    const combinedTotal = (consumableResponse?.pagination?.total || 0) + 
+                          (componentResponse?.pagination?.total || 0);
+    
+    return {
+      batches,
+      pagination: {
+        current_page: consumableResponse?.pagination?.current_page || componentResponse?.pagination?.current_page || 1,
+        total: combinedTotal,
+        per_page: itemsPerPage,
+        last_page: Math.ceil(combinedTotal / itemsPerPage),
+        from: consumableResponse?.pagination?.from || componentResponse?.pagination?.from || 0,
+        to: (consumableResponse?.pagination?.to || 0) + (componentResponse?.pagination?.to || 0),
+      }
+    };
+  }, [consumableResponse, componentResponse, batches, itemsPerPage]);
   const zones = useMemo(() => (allWarehouseZones as string[]) || [], [allWarehouseZones]);
   const paginationInfo = createPaginationInfo(response?.pagination);
   const paginationActions = createPaginationActions(paginationInfo.totalPages);
@@ -152,7 +183,7 @@ const GestionCantidadesPage = () => {
               Gestión de Cantidades y Ubicaciones
             </h1>
             <p className="text-sm text-muted-foreground mt-2">
-              Actualiza las cantidades de consumibles y las ubicaciones de componentes en el almacén
+              Actualiza las ubicaciones de componentes. Modifica cantidades y ubicaciones de consumibles
             </p>
           </div>
           <Button

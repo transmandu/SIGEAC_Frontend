@@ -6,33 +6,10 @@ import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
 
 import VoluntaryReportDropdownActions from "@/components/dropdowns/aerolinea/sms/VoluntaryReportDropDownMenu";
 import { Badge } from "@/components/ui/badge";
-import { Checkbox } from "@/components/ui/checkbox";
 import { dateFormat } from "@/lib/utils";
 import { VoluntaryReport } from "@/types";
 
 export const columns: ColumnDef<VoluntaryReport>[] = [
-  {
-    id: "select",
-    header: ({ table }) => (
-      <Checkbox
-        checked={
-          table.getIsAllPageRowsSelected() ||
-          (table.getIsSomePageRowsSelected() && "indeterminate")
-        }
-        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-        aria-label="Seleccionar todos"
-      />
-    ),
-    cell: ({ row }) => (
-      <Checkbox
-        checked={row.getIsSelected()}
-        onCheckedChange={(value) => row.toggleSelected(!!value)}
-        aria-label="Seleccionar fila"
-      />
-    ),
-    enableSorting: false,
-    enableHiding: false,
-  },
   {
     accessorKey: "report_number",
     header: ({ column }) => (
@@ -101,7 +78,9 @@ export const columns: ColumnDef<VoluntaryReport>[] = [
       <DataTableColumnHeader column={column} title="Descripcion del peligro" />
     ),
     cell: ({ row }) => (
-      <div className="flex justify-center">{row.original.description}</div>
+      <div className="w-64 line-clamp-4">
+        {row.original.description}
+      </div>
     ),
   },
   {
@@ -112,13 +91,13 @@ export const columns: ColumnDef<VoluntaryReport>[] = [
     cell: ({ row }) => (
       <div className="flex justify-center">
         <Badge
-          className={`justify-center items-center text-center font-bold font-sans
+          className={`justify-center items-center text-center font-bold font-sans pointer-events-none
       ${
         row.original.status === "CERRADO"
           ? "bg-green-400"
           : row.original.status === "PROCESO"
-          ? "bg-gray-500" // Color gris oscuro (puedes ajustar el tono)
-          : "bg-red-400"
+            ? "bg-gray-500" // Color gris oscuro (puedes ajustar el tono)
+            : "bg-red-400"
       }`}
         >
           {row.original.status}

@@ -88,7 +88,7 @@ const CotizacionPage = () => {
                 <Card className='w-[280px] text-center' key={article.article_part_number}>
                   <CardTitle className='p-6'>{article.batch?.name} - {article.article_part_number}</CardTitle>
                   <CardContent>
-                    <p className='font-medium'>Cantidad: <span className='font-bold italic'>{article.quantity}</span></p>
+                    <p className='font-medium'>Cantidad: <span className='font-bold italic'>{article.quantity} { article.unit? article.unit.label : 'UNIDADES'}</span></p>
                     <p className='font-medium'>Tracking - USA: <span className='font-bold italic'>{article.usa_tracking}</span></p>
                     <p className='font-medium'>Tracking - OCK21: <span className='font-bold italic'>{article.ock_tracking}</span></p>
                     <p className='font-medium'>Ubicación: <span className='font-bold italic'>{article.article_location}</span></p>

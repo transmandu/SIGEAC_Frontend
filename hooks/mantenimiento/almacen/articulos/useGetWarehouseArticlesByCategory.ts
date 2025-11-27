@@ -1,6 +1,7 @@
 import axiosInstance from '@/lib/axios';
 import { useCompanyStore } from '@/stores/CompanyStore';
 import { useQuery } from '@tanstack/react-query';
+import { Unit } from "@/types";
 
 export interface IWarehouseArticle {
   batch_id: number;
@@ -19,6 +20,7 @@ export interface IWarehouseArticle {
     zone: string;
     quantity: number;
     min_quantity?: number | string; // Directamente en el artículo
+    unit?: Unit;
     tool?: {
       needs_calibration?: boolean;
       calibration_date?: string; // ISO string o "dd/MM/yyyy"
@@ -72,7 +74,7 @@ const fetchWarehouseArticlesByCategory = async (
 ): Promise<WarehouseResponse> => {
   const { data } = await axiosInstance.get(`/${company}/${location_id}/articles-by-category?category=${category}&status=${status??"all"}&page=${page}&per_page=${per_page}`);
 
-  console.log(data);
+  // console.log(data);
   return {
     batches: data.data || [],
     pagination: {

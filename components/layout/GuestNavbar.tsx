@@ -1,11 +1,8 @@
 "use client";
 
-import { UserNav } from "@/components/layout/UserNav";
-import { SheetMenu } from "@/components/sidebar/SheetMenu";
-import CompanySelect from "../selects/CompanySelect";
-import { ThemeToggler } from "./ThemeToggler";
-import { GuestUserNav } from "./GuestUserNav";
 import { GuestSheetMenu } from "@/components/sidebar/GuestSheetMenu";
+import { GuestUserNav } from "./GuestUserNav";
+import { ThemeToggler } from "./ThemeToggler";
 
 interface GuestNavbarProps {
   title: string;

@@ -2,12 +2,9 @@
 
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import LoadingPage from "@/components/misc/LoadingPage";
-import { useGetObligatoryReports } from "@/hooks/sms/useGetObligatoryReports";
+import { useGetSurveys } from "@/hooks/sms/survey/useGetSurveys";
 import { columns } from "./columns";
 import { DataTable } from "./data-table";
-import { useCompanyStore } from "@/stores/CompanyStore";
-import { useGetSurveys } from "@/hooks/sms/survey/useGetSurveys";
-// need to change the hook to get surveys
 
 const SurveyListPage = () => {
   const { data, isLoading, isError } = useGetSurveys();

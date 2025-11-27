@@ -42,15 +42,20 @@ export const columns: ColumnDef<Manufacturer>[] = [
       </div>
   },
   {
-    accessorKey: "description",
-    header: ({ column }) => (
-      <DataTableColumnHeader filter column={column} title="Nombre" />
-    ),
-    cell: ({ row }) =>
-      <div className="flex justify-center">
-        <span className='text-muted-foreground italic'>{row.original.description.toUpperCase()}</span>
-      </div>
-  },
+      accessorKey: "description",
+      header: ({ column }) => (
+        <DataTableColumnHeader filter column={column} title="Nombre" />
+      ),
+      cell: ({ row }) =>
+        <div className="flex justify-center">
+          <span className='text-muted-foreground italic'>
+            {row.original.description 
+              ? row.original.description.toUpperCase() 
+              : "N/A"
+            }
+          </span>
+        </div>
+    },
   {
     id: "actions",
     cell: ({ row }) => {
