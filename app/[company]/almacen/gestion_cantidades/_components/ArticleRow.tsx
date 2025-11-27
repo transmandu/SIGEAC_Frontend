@@ -151,9 +151,7 @@ export const ArticleRow = React.memo(
           </div>
         ) : (
           <Input
-            type="number"
-            min="0"
-            step="0.01"
+            type="text"
             value={quantity || ""}
             onChange={(e) => onQuantityChange(article.id, e.target.value)}
             className={`text-center text-base font-medium h-9 ${
