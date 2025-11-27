@@ -1,6 +1,7 @@
 import axiosInstance from '@/lib/axios';
 import { useCompanyStore } from '@/stores/CompanyStore';
 import { useQuery } from '@tanstack/react-query';
+import { Unit } from "@/types";
 
 export interface IWarehouseArticle {
   batch_id: number;
@@ -19,6 +20,7 @@ export interface IWarehouseArticle {
     zone: string;
     quantity: number;
     min_quantity?: number | string; // Directamente en el artículo
+    unit?: Unit;
     tool?: {
       needs_calibration?: boolean;
       calibration_date?: string; // ISO string o "dd/MM/yyyy"

@@ -119,6 +119,7 @@ export const flattenArticles = (
       min_quantity: article.min_quantity, // Directamente desde el artículo
       has_documentation: articleWithDoc.has_documentation ?? false,
       certificates: articleWithDoc.certificates ?? [],
+      unit: article.unit ?? undefined,
       tool: article.tool
         ? {
             status: article.tool.status,
