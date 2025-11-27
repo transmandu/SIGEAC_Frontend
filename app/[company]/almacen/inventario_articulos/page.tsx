@@ -20,7 +20,6 @@ import { Loader2, Package2, PaintBucket, Wrench, X } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { FaFilePdf } from 'react-icons/fa';
 import { RiFileExcel2Fill } from 'react-icons/ri';
-import { toast } from 'sonner';
 import { flattenArticles, getColumnsByCategory, IArticleSimple, allCategoriesCols } from './columns';
 import { DataTable } from './data-table';
 import { useGetWarehouseArticlesByCategory } from '@/hooks/mantenimiento/almacen/articulos/useGetWarehouseArticlesByCategory';
@@ -49,56 +48,12 @@ const InventarioArticulosPage = () => {
   const [consumableFilter, setConsumableFilter] = useState<'all' | 'QUIMICOS'>('all');
   const [partNumberSearch, setPartNumberSearch] = useState('');
 
-  // Fetch - Obtener datos de todas las categorías
-  const { data: componentArticles, isLoading: isLoadingComponents } = useGetWarehouseArticlesByCategory(
+  // Fetch - Obtener datos según la categoría activa
+  const { data: articles, isLoading: isLoadingArticles } = useGetWarehouseArticlesByCategory(
     1,
     1000,
-    'COMPONENTE',
-    activeCategory === 'all' || activeCategory === 'COMPONENTE',
+    activeCategory === 'all' ? 'all' : activeCategory,
   );
-
-  const { data: consumableArticles, isLoading: isLoadingConsumables } = useGetWarehouseArticlesByCategory(
-    1,
-    1000,
-    'CONSUMIBLE',
-    activeCategory === 'all' || activeCategory === 'CONSUMIBLE',
-  );
-
-  const { data: toolArticles, isLoading: isLoadingTools } = useGetWarehouseArticlesByCategory(
-    1,
-    1000,
-    'HERRAMIENTA',
-    activeCategory === 'all' || activeCategory === 'HERRAMIENTA',
-  );
-
-  const isLoadingArticles = isLoadingComponents || isLoadingConsumables || isLoadingTools;
-
-  // Combinar los datos según la categoría activa
-  const articles = activeCategory === 'all' 
-    ? {
-        batches: [
-          ...(componentArticles?.batches || []),
-          ...(consumableArticles?.batches || []),
-          ...(toolArticles?.batches || []),
-        ],
-        pagination: {
-          current_page: 1,
-          total: (componentArticles?.batches.length || 0) + 
-                 (consumableArticles?.batches.length || 0) + 
-                 (toolArticles?.batches.length || 0),
-          per_page: 1000,
-          last_page: 1,
-          from: 1,
-          to: (componentArticles?.batches.length || 0) + 
-               (consumableArticles?.batches.length || 0) + 
-               (toolArticles?.batches.length || 0),
-        }
-      }
-    : activeCategory === 'COMPONENTE' 
-      ? componentArticles
-      : activeCategory === 'CONSUMIBLE'
-        ? consumableArticles
-        : toolArticles;
 
   // Preparar parámetros de exportación (solo válido cuando no es 'all')
   const common = activeCategory !== 'all' ? {
