@@ -517,7 +517,7 @@ export function CreateObligatoryReportForm({
             name="pilot_id"
             render={({ field }) => (
               <FormItem className="w-full">
-                <FormLabel>Piloto</FormLabel>
+                <FormLabel>Piloto (Capitan)</FormLabel>
                 {isLoadingPilots ? (
                   <div className="flex items-center gap-2 p-2 border rounded-md bg-muted">
                     <Loader2 className="h-4 w-4 animate-spin " />
@@ -553,7 +553,7 @@ export function CreateObligatoryReportForm({
             name="copilot_id"
             render={({ field }) => (
               <FormItem className="w-full">
-                <FormLabel>Piloto</FormLabel>
+                <FormLabel>Piloto (Primer Oficial)</FormLabel>
                 {isLoadingPilots ? (
                   <div className="flex items-center gap-2 p-2 border rounded-md bg-muted">
                     <Loader2 className="h-4 w-4 animate-spin" />{" "}
