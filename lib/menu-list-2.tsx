@@ -31,6 +31,7 @@ import {
   ScrollText,
   Settings,
   ShieldAlert,
+  ShieldCheck,
   SquarePen,
   User2,
   UserRoundCog,
@@ -144,14 +145,14 @@ export function getMenuList(
         },
         {
           href: `/${currentCompany?.slug}/general/reporte`,
-          label: "SMS Reportes",
+          label: "SMS",
           active: pathname.includes(`/${currentCompany?.slug}/reporte`),
-          icon: ClipboardPen,
+          icon: ShieldCheck,
           roles: [],
           submenus: [
             {
               href: `/${currentCompany?.slug}/general/reporte/voluntario`,
-              label: "Voluntario",
+              label: "Reporte Voluntario",
               roles: [],
               active:
                 pathname ===
@@ -159,11 +160,19 @@ export function getMenuList(
             },
             {
               href: `/${currentCompany?.slug}/general/reporte/obligatorio`,
-              label: "Obligatorio",
+              label: "Reporte Obligatorio",
               roles: [],
               active:
                 pathname ===
                 `/${currentCompany?.slug}/general/reporte/obligatorio`,
+            },
+            {
+              href: `/acceso_publico/${currentCompany?.slug}/sms/`,
+              label: "Pagina de SMS",
+              roles: [],
+              active:
+                pathname ===
+                `/acceso_publico/${currentCompany?.slug}/sms/`,
             },
             {
               href: `/${currentCompany?.slug}/general/reporte/codigos_qr`,
