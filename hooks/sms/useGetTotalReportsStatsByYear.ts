@@ -19,9 +19,9 @@ export const useGetTotalReportsStatsByYear = (
   company?: string
 ) => {
   return useQuery<GeneralStats>({
-    queryKey: ["total-reports-stats-by-year", from, to], // Incluye el ID en la clave de la query
+    queryKey: ["total-reports-stats-by-year", company,from, to], // Incluye el ID en la clave de la query
     queryFn: () => fetcVoluntaryReportStatsByYear(from, to, company), // Pasa el ID a la función fetchUser
     staleTime: 1000 * 60 * 5, // 5 minutos
-    enabled: !!company,
+    enabled: !!company && !!from && !!to,
   });
 };

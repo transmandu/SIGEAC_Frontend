@@ -1,7 +1,4 @@
 "use client";
-import { usePathname, useSearchParams } from "next/navigation";
-import { useRouter } from "next/navigation";
-import qs from "query-string";
 import {
   Popover,
   PopoverContent,
@@ -9,7 +6,7 @@ import {
 } from "@/components/ui/popover";
 import { Button } from "../ui/button";
 import { format, parseISO, startOfMonth, endOfDay } from "date-fns";
-import { es } from "date-fns/locale"; // Importa la localización en español
+import { es } from "date-fns/locale";
 import { formatDateRange } from "@/lib/utils";
 import { useState } from "react";
 import { DateRange } from "react-day-picker";
@@ -22,51 +19,52 @@ interface Period {
   to: Date;
 }
 
-const DateFilter = () => {
-  const router = useRouter();
-  const params = useSearchParams();
-  const pathname = usePathname();
+interface DateFilterProps {
+  onDateChange: (dateRange: { from: Date; to: Date } | undefined) => void;
+  onReset?: () => void;
+  initialDate?: {
+    from: string;
+    to: string;
+  };
+}
 
-  const from =
-    params.get("from") || format(startOfMonth(new Date()), "yyyy-MM-dd");
-  const to = params.get("to") || format(new Date(), "yyyy-MM-dd");
-
+const DateFilter = ({
+  onDateChange,
+  onReset,
+  initialDate,
+}: DateFilterProps) => {
   const defaultFrom = startOfMonth(new Date());
   const defaultTo = endOfDay(new Date());
 
-  const initialDate = {
-    from: from ? parseISO(from) : defaultFrom,
-    to: to ? parseISO(to) : defaultTo,
+  // Convertir fechas iniciales de string a Date
+  const initialDateRange = initialDate
+    ? {
+        from: parseISO(initialDate.from),
+        to: parseISO(initialDate.to),
+      }
+    : {
+        from: defaultFrom,
+        to: defaultTo,
+      };
+
+  const [date, setDate] = useState<DateRange | undefined>(initialDateRange);
+  const [tempDate, setTempDate] = useState<DateRange | undefined>(
+    initialDateRange
+  );
+
+  const handleApply = () => {
+    setDate(tempDate);
+    if (tempDate?.from && tempDate?.to) {
+      onDateChange({ from: tempDate.from, to: tempDate.to });
+    }
   };
 
-  const [date, setDate] = useState<DateRange | undefined>(initialDate);
-  const [tempDate, setTempDate] = useState<DateRange | undefined>(initialDate);
-
-  const pushToUrl = (dateRange: DateRange | undefined) => {
-    const query = {
-      from: format(dateRange?.from || defaultFrom, "yyyy-MM-dd"),
-      to: format(dateRange?.to || defaultTo, "yyyy-MM-dd"),
-    };
-
-    const url = qs.stringifyUrl(
-      {
-        url: pathname,
-        query,
-      },
-      { skipEmptyString: true, skipNull: true }
-    );
-
-    router.push(url);
-  };
-
-  const onReset = () => {
+  const handleReset = () => {
     setTempDate(undefined);
     setDate(undefined);
-  };
-
-  const onApply = () => {
-    setDate(tempDate);
-    pushToUrl(tempDate);
+    if (onReset) {
+      onReset();
+    }
   };
 
   const convertDateRangeToPeriod = (
@@ -80,7 +78,6 @@ const DateFilter = () => {
 
   const handleDateChange = (newDate: DateRange | undefined) => {
     setTempDate(newDate);
-    setDate(newDate);
   };
 
   return (
@@ -93,8 +90,10 @@ const DateFilter = () => {
           className="lg:w-auto w-full h-9 rounded-md px-3 font-normal bg-primary hover:bg-primary/90 hover:text-white border-none focus:ring-offset-0 focus:ring-transparent outline-none text-white focus:bg-blue-700/50 transition"
         >
           <span>
-            {convertDateRangeToPeriod(date || initialDate)
-              ? formatDateRange(convertDateRangeToPeriod(date || initialDate)!)
+            {convertDateRangeToPeriod(date || initialDateRange)
+              ? formatDateRange(
+                  convertDateRangeToPeriod(date || initialDateRange)!
+                )
               : "Seleccionar rango"}
           </span>
           <ChevronDown className="size-4 mr-2 opacity-50" />
@@ -109,12 +108,12 @@ const DateFilter = () => {
           selected={tempDate}
           onSelect={handleDateChange}
           numberOfMonths={2}
-          locale={es} // Pasa la localización en español
+          locale={es}
         />
         <div className="p-4 w-full flex items-center gap-x-2">
           <PopoverClose asChild>
             <Button
-              onClick={onReset}
+              onClick={handleReset}
               disabled={!tempDate?.from || !tempDate?.to}
               className="w-full"
               variant={"outline"}
@@ -124,7 +123,7 @@ const DateFilter = () => {
           </PopoverClose>
           <PopoverClose asChild>
             <Button
-              onClick={onApply}
+              onClick={handleApply}
               disabled={!tempDate?.from || !tempDate?.to}
               className="w-full"
             >
