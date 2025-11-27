@@ -167,14 +167,6 @@ export function getMenuList(
                 `/${currentCompany?.slug}/general/reporte/obligatorio`,
             },
             {
-              href: `/acceso_publico/${currentCompany?.slug}/sms/`,
-              label: "Pagina de SMS",
-              roles: [],
-              active:
-                pathname ===
-                `/acceso_publico/${currentCompany?.slug}/sms/`,
-            },
-            {
               href: `/${currentCompany?.slug}/general/reporte/codigos_qr`,
               label: "Codigos QR",
               roles: [],
