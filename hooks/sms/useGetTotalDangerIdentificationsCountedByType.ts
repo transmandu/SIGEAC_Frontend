@@ -19,7 +19,7 @@ export const useGetTotalDangerIdentificationsCountedByType = (
   company?: string
 ) => {
   return useQuery<pieChartData[]>({
-    queryKey: ["total-danger-identifications-counted-by-type"], // Incluye el ID en la clave de la query
+    queryKey: ["total-danger-identifications-counted-by-type",company, from, to], // Incluye el ID en la clave de la query
     queryFn: () =>
       fetchTotalDangerIdentificationsCountedByType(from, to, company), // Pasa el ID a la función fetchUser
     staleTime: 1000 * 60 * 5, // 5 minutos

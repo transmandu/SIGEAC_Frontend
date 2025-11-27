@@ -20,7 +20,13 @@ export const useGetIdentificationStatsBySourceType = (
   reportType: string
 ) => {
   return useQuery<pieChartData[]>({
-    queryKey: ["danger-identifications-information-source-count-by-type"],
+    queryKey: [
+      "danger-identifications-information-source-count-by-type",
+      company,
+      from,
+      to,
+      reportType,
+    ],
     queryFn: () =>
       fetchIdentificationStatsBySourceType(company, from, to, reportType),
     staleTime: 1000 * 60 * 5, // 5 minutos

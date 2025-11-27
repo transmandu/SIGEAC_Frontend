@@ -1,46 +1,34 @@
 "use client";
 import BarChartComponent from "@/components/charts/BarChartComponent";
-import { ContentLayout } from "@/components/layout/ContentLayout";
-import DataFilter from "@/components/misc/DataFilter";
-import { Label } from "@/components/ui/label";
-import { useGetTotalReportsCountedByArea } from "@/hooks/sms/useGetTotalReportsCountedByArea";
-import { useGetTotalDangerIdentificationsCountedByType } from "@/hooks/sms/useGetTotalDangerIdentificationsCountedByType";
-import { useGetTotalIdentificationStatsBySourceType } from "@/hooks/sms/useGetTotalIdentificationStatsBySoruceType";
-import { useGetTotalReportsStatsByYear } from "@/hooks/sms/useGetTotalReportsStatsByYear";
-import { useGetTotalRiskCountByDateRange } from "@/hooks/sms/useGetTotalRiskByDateRange";
-import { format, startOfMonth } from "date-fns";
-import { Loader2, Check, ChevronsUpDown, X } from "lucide-react";
-import { usePathname, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
-import { useGetTotalIdentificationStatsBySourceName } from "@/hooks/sms/useGetTotalIdentificationStatsBySoruceName";
-import { useGetTotalPostRiskCountByDateRange } from "@/hooks/sms/useGetTotalPostRiskByDateRange";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@/components/ui/command";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { cn } from "@/lib/utils";
-import DynamicBarChart from "@/components/charts/DynamicBarChart";
-import { useCompanyStore } from "@/stores/CompanyStore";
 import MultipleBarChartComponent from "@/components/charts/MultipleBarChartComponent";
 import { PieChartComponent } from "@/components/charts/PieChartComponent";
+import { ContentLayout } from "@/components/layout/ContentLayout";
+import DataFilter from "@/components/misc/DataFilter";
+import { GraphicsSelector } from "@/components/misc/GraphicsSelector";
+import { Message } from "@/components/misc/Message";
+import { Label } from "@/components/ui/label";
+import { useGetTotalDangerIdentificationsCountedByType } from "@/hooks/sms/useGetTotalDangerIdentificationsCountedByType";
+import { useGetTotalIdentificationStatsBySourceName } from "@/hooks/sms/useGetTotalIdentificationStatsBySoruceName";
+import { useGetTotalIdentificationStatsBySourceType } from "@/hooks/sms/useGetTotalIdentificationStatsBySoruceType";
+import { useGetTotalPostRiskCountByDateRange } from "@/hooks/sms/useGetTotalPostRiskByDateRange";
+import { useGetTotalReportsCountedByArea } from "@/hooks/sms/useGetTotalReportsCountedByArea";
+import { useGetTotalReportsStatsByYear } from "@/hooks/sms/useGetTotalReportsStatsByYear";
+import { useGetTotalRiskCountByDateRange } from "@/hooks/sms/useGetTotalRiskByDateRange";
+import { useCompanyStore } from "@/stores/CompanyStore";
+import { format, startOfMonth } from "date-fns";
+import { Loader2 } from "lucide-react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useMemo, useState } from "react";
 
 const GeneralReportStats = () => {
   const { selectedCompany } = useCompanyStore();
-  const [selectedGraphics, setSelectedGraphics] = useState<string[]>([]);
-  const [isOpen, setIsOpen] = useState(false);
+  const [selectedGraphics, setSelectedGraphics] = useState<string[]>(["Todos"]);
+  const urlSearchParams = useSearchParams();
+  const pathname = usePathname();
+  const router = useRouter();
 
   const graphicsOptions = [
+    { id: "Todos", label: "Todos los gráficos" },
     { id: "bar-chart", label: "Identificados vs Gestionados" },
     { id: "type-chart", label: "Según su Tipo" },
     { id: "area-chart", label: "Identificados por Área" },
@@ -52,44 +40,26 @@ const GeneralReportStats = () => {
     { id: "source-name", label: "Por Nombre de Fuente" },
   ];
 
-  interface Params {
-    from?: string;
-    to?: string;
-    [key: string]: string | undefined;
-  }
-  const searchParams = useSearchParams();
-  const pathname = usePathname();
-
-  const [params, setParams] = useState<Params>({
-    from: format(startOfMonth(new Date()), "yyyy-MM-dd"),
-    to: format(new Date(), "yyyy-MM-dd"),
-  });
-
-  useEffect(() => {
+  // Obtener parámetros ACTUALES de la URL - SIN estado local
+  const currentParams = useMemo(() => {
     const defaultFrom = format(startOfMonth(new Date()), "yyyy-MM-dd");
     const defaultTo = format(new Date(), "yyyy-MM-dd");
 
-    const newParams: Params = {};
-    searchParams.forEach((value, key) => {
-      newParams[key] = value;
-    });
-
-    const finalParams: Params = {
-      from: newParams.from || defaultFrom,
-      to: newParams.to || defaultTo,
+    const urlParams = new URLSearchParams(urlSearchParams.toString());
+    return {
+      from: urlParams.get("from") || defaultFrom,
+      to: urlParams.get("to") || defaultTo,
     };
-    setParams(finalParams);
-  }, [searchParams, pathname]);
+  }, [urlSearchParams]);
 
-  // Hook calls for data fetching
+  // OBTENER DATOS - Usa directamente los parámetros actuales de la URL
   const {
     data: barChartData,
     isLoading: isLoadingBarChart,
     isError: isErrorBarChart,
-    refetch: refetchBarChart,
   } = useGetTotalReportsStatsByYear(
-    params.from || format(startOfMonth(new Date()), "yyyy-MM-dd"),
-    params.to || format(new Date(), "yyyy-MM-dd"),
+    currentParams.from,
+    currentParams.to,
     selectedCompany?.slug
   );
 
@@ -97,10 +67,9 @@ const GeneralReportStats = () => {
     data: totalIdentificationData,
     isLoading: isLoadingIdentificationData,
     isError: isErrorIdentificationData,
-    refetch: refetchIdentificationData,
   } = useGetTotalDangerIdentificationsCountedByType(
-    params.from || format(startOfMonth(new Date()), "yyyy-MM-dd"),
-    params.to || format(new Date(), "yyyy-MM-dd"),
+    currentParams.from,
+    currentParams.to,
     selectedCompany?.slug
   );
 
@@ -108,10 +77,9 @@ const GeneralReportStats = () => {
     data: reportsByAreaData,
     isLoading: isLoadingReportsByAreaData,
     isError: isErrorReportsByAreaData,
-    refetch: refetchReportsByAreaData,
   } = useGetTotalReportsCountedByArea(
-    params.from || format(startOfMonth(new Date()), "yyyy-MM-dd"),
-    params.to || format(new Date(), "yyyy-MM-dd"),
+    currentParams.from,
+    currentParams.to,
     selectedCompany?.slug
   );
 
@@ -119,10 +87,9 @@ const GeneralReportStats = () => {
     data: totalRiskData,
     isLoading: isLoadingTotalRiskData,
     isError: isErrorTotalRiskData,
-    refetch: refetchTotalRiskData,
   } = useGetTotalRiskCountByDateRange(
-    params.from || format(startOfMonth(new Date()), "yyyy-MM-dd"),
-    params.to || format(new Date(), "yyyy-MM-dd"),
+    currentParams.from,
+    currentParams.to,
     selectedCompany?.slug
   );
 
@@ -130,21 +97,19 @@ const GeneralReportStats = () => {
     data: reportSourceTypeData,
     isLoading: isLoadingReportSourceTypeData,
     isError: isErrorReportSourceTypeData,
-    refetch: refetchReportSourceTypeChart,
   } = useGetTotalIdentificationStatsBySourceType(
-    params.from || format(startOfMonth(new Date()), "yyyy-MM-dd"),
-    params.to || format(new Date(), "yyyy-MM-dd"),
+    currentParams.from,
+    currentParams.to,
     selectedCompany?.slug
   );
-  console.log('AHHAHAHAHAHAHA',reportSourceTypeData);
+
   const {
     data: reportSourceNameData,
     isLoading: isLoadingReportSourceNameData,
     isError: isErrorReportSourceNameData,
-    refetch: refetchReportSourceNameChart,
   } = useGetTotalIdentificationStatsBySourceName(
-    params.from || format(startOfMonth(new Date()), "yyyy-MM-dd"),
-    params.to || format(new Date(), "yyyy-MM-dd"),
+    currentParams.from,
+    currentParams.to,
     selectedCompany?.slug
   );
 
@@ -152,150 +117,72 @@ const GeneralReportStats = () => {
     data: totalPostRiskData,
     isLoading: isLoadingTotalPostRiskData,
     isError: isErrorTotalPostRiskData,
-    refetch: refetchTotalPostRiskData,
   } = useGetTotalPostRiskCountByDateRange(
-    params.from || format(startOfMonth(new Date()), "yyyy-MM-dd"),
-    params.to || format(new Date(), "yyyy-MM-dd"),
+    currentParams.from,
+    currentParams.to,
     selectedCompany?.slug
   );
 
-  useEffect(() => {
-    refetchBarChart();
-    refetchIdentificationData();
-    refetchReportsByAreaData();
-    refetchTotalRiskData();
-    refetchReportSourceTypeChart();
-    refetchReportSourceNameChart();
-    refetchTotalPostRiskData();
-  }, [
-    params.from,
-    params.to,
-    refetchBarChart,
-    refetchIdentificationData,
-    refetchReportsByAreaData,
-    refetchTotalRiskData,
-    refetchReportSourceTypeChart,
-    refetchReportSourceNameChart,
-    refetchTotalPostRiskData,
-  ]);
+  // Manejar cambio de fechas desde DateFilter
+  const handleDateChange = (
+    dateRange: { from: Date; to: Date } | undefined
+  ) => {
+    if (!dateRange?.from || !dateRange?.to) return;
 
-  const handleSelectChange = (id: string) => {
-    setSelectedGraphics((prev) => {
-      if (prev.includes(id)) {
-        return prev.filter((item) => item !== id);
-      } else {
-        return [...prev, id];
-      }
-    });
+    const newParams = new URLSearchParams();
+    newParams.set("from", format(dateRange.from, "yyyy-MM-dd"));
+    newParams.set("to", format(dateRange.to, "yyyy-MM-dd"));
+
+    router.push(`${pathname}?${newParams.toString()}`, { scroll: false });
   };
 
-  const removeGraphic = (id: string) => {
-    setSelectedGraphics((prev) => prev.filter((item) => item !== id));
+  // Manejar reset
+  const handleReset = () => {
+    const defaultFrom = format(startOfMonth(new Date()), "yyyy-MM-dd");
+    const defaultTo = format(new Date(), "yyyy-MM-dd");
+
+    const newParams = new URLSearchParams();
+    newParams.set("from", defaultFrom);
+    newParams.set("to", defaultTo);
+
+    router.push(`${pathname}?${newParams.toString()}`, { scroll: false });
   };
 
   const shouldShow = (id: string) =>
-    selectedGraphics.length === 0 || selectedGraphics.includes(id);
+    selectedGraphics.includes("Todos") || selectedGraphics.includes(id);
 
   return (
-    <ContentLayout title="Gráficos Estadísticos de Reportes (General)">
+    <ContentLayout title="Gráficos Estadísticos de Reportes">
       <div className="flex flex-col space-y-4 mb-6">
         <div className="flex justify-center items-center">
           <div className="flex flex-col w-full max-w-md">
             <Label className="text-lg font-semibold mb-2">
               Seleccionar Rango de Fechas:
             </Label>
-            <DataFilter />
+            {/* ✅ CORREGIDO: Pasar todas las props necesarias al DataFilter */}
+            <DataFilter
+              onDateChange={handleDateChange}
+              onReset={handleReset}
+              initialDate={{
+                from: currentParams.from,
+                to: currentParams.to,
+              }}
+            />
           </div>
         </div>
 
-        <div className="flex flex-col space-y-2">
-          <Label className="text-lg font-semibold">
-            Seleccionar Gráficos a Mostrar:
-          </Label>
-          <div className="flex flex-col md:flex-row gap-2">
-            <Popover open={isOpen} onOpenChange={setIsOpen}>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  role="combobox"
-                  aria-expanded={isOpen}
-                  className="w-full justify-between"
-                >
-                  {selectedGraphics.length === 0 ? (
-                    "Seleccionar gráficos..."
-                  ) : (
-                    <span>
-                      {selectedGraphics.length} gráficos seleccionados
-                    </span>
-                  )}
-                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-[300px] p-0">
-                <Command>
-                  <CommandInput placeholder="Buscar gráficos..." />
-                  <CommandList>
-                    <CommandEmpty>No se encontraron gráficos</CommandEmpty>
-                    <CommandGroup>
-                      {graphicsOptions.map((option) => (
-                        <CommandItem
-                          key={option.id}
-                          value={option.id}
-                          onSelect={() => handleSelectChange(option.id)}
-                        >
-                          <Check
-                            className={cn(
-                              "mr-2 h-4 w-4",
-                              selectedGraphics.includes(option.id)
-                                ? "opacity-100"
-                                : "opacity-0"
-                            )}
-                          />
-                          {option.label}
-                        </CommandItem>
-                      ))}
-                    </CommandGroup>
-                  </CommandList>
-                </Command>
-              </PopoverContent>
-            </Popover>
-            <Button
-              variant="outline"
-              onClick={() => setSelectedGraphics([])}
-              disabled={selectedGraphics.length === 0}
-            >
-              Limpiar selección
-            </Button>
-          </div>
-        </div>
-
-        {selectedGraphics.length > 0 && (
-          <div className="flex flex-wrap gap-2">
-            {selectedGraphics.map((graphicId) => {
-              const graphic = graphicsOptions.find((g) => g.id === graphicId);
-              return (
-                <Badge
-                  key={graphicId}
-                  variant="outline"
-                  className="px-3 py-1 text-sm flex items-center gap-2"
-                >
-                  {graphic?.label}
-                  <button
-                    onClick={() => removeGraphic(graphicId)}
-                    className="rounded-full p-1 hover:bg-gray-100"
-                  >
-                    <X className="h-3 w-3" />
-                  </button>
-                </Badge>
-              );
-            })}
-          </div>
-        )}
+        {/* ✅ PARA SELECCIONAR QUE GRAFICOS MOSTRAR */}
+        <GraphicsSelector
+          options={graphicsOptions}
+          selectedGraphics={selectedGraphics}
+          onSelectionChange={setSelectedGraphics}
+          label="Seleccionar Gráficos a Mostrar:"
+          placeholder="Seleccionar gráficos..."
+        />
       </div>
 
-      <div className="grid sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-2 2xl:grid-cols-3 gap-2">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
         {/* Peligros Identificados vs Gestionados */}
-
         {shouldShow("bar-chart") && (
           <div className="flex flex-col justify-center items-center p-4 rounded-lg shadow border">
             {isLoadingBarChart ? (
@@ -303,26 +190,30 @@ const GeneralReportStats = () => {
                 <Loader2 className="size-24 animate-spin" />
               </div>
             ) : barChartData ? (
-              params.from &&
-              params.to && (
-                <BarChartComponent
-                  data={barChartData}
-                  title="Peligros Identificados vs Gestionados"
-                  bar_first_name="Identificados"
-                  bar_second_name="Gestionados"
-                />
-              )
+              <BarChartComponent
+                data={barChartData}
+                title="Peligros Identificados vs Gestionados"
+                bar_first_name="Identificados"
+                bar_second_name="Gestionados"
+              />
             ) : (
               <p className="text-sm text-muted-foreground">
                 Ha ocurrido un error al cargar los datos de Peligros
                 Identificados vs Gestionados...
               </p>
             )}
+            {isErrorBarChart && (
+              <>
+                <Message
+                  title="Peligros Identificados vs Gestionados"
+                  description="Ha ocurrido un error al cargar los datos de Peligros Identificados vs Gestionados..."
+                />
+              </>
+            )}
           </div>
         )}
 
         {/* Numero de Reportes vs Tipo de Peligro (General) */}
-
         {shouldShow("type-chart") && (
           <div className="p-4 rounded-lg shadow border">
             {isLoadingIdentificationData ? (
@@ -332,113 +223,29 @@ const GeneralReportStats = () => {
             ) : totalIdentificationData &&
               totalIdentificationData.length > 0 ? (
               <>
+                <h2 className="text-sm sm:text-base font-bold">
+                  Numero de Reportes vs Tipo de Peligro
+                </h2>
                 <MultipleBarChartComponent
                   data={totalIdentificationData}
-                  title="Numero de Reportes vs Tipo de Peligro (General)"
+                  title=""
                 />
               </>
             ) : (
-              <p className="text-lg text-muted-foreground">
-                No hay datos para mostrar.
-              </p>
+              <>
+                <Message
+                  title="Numero de Reportes vs Tipo de Peligro"
+                  description="No hay datos para mostrar"
+                />
+              </>
             )}
-          </div>
-        )}
-
-        {shouldShow("area-chart") && (
-          <div className="p-4 rounded-lg shadow border">
-            {isLoadingReportsByAreaData ? (
-              <div className="flex justify-center items-center h-48">
-                <Loader2 className="size-24 animate-spin" />
-              </div>
-            ) : reportsByAreaData && reportsByAreaData.length > 0 ? (
-              <MultipleBarChartComponent
-                data={reportsByAreaData}
-                title="Numero de Reportes vs Area de Identificación (General)"
-              />
-            ) : (
-              <p className="text-lg text-muted-foreground">
-                No hay datos para mostrar.
-              </p>
-            )}
-            {isErrorReportsByAreaData && (
-              <p className="text-sm text-muted-foreground">
-                Ha ocurrido un error al cargar los peligros identificados...
-              </p>
-            )}
-          </div>
-        )}
-
-        {shouldShow("pre-risk-pie") && (
-          <div className="flex flex-col justify-center items-center p-4 rounded-lg shadow border">
-            {isLoadingTotalRiskData ? (
-              <div className="flex justify-center items-center h-48">
-                <Loader2 className="size-24 animate-spin" />
-              </div>
-            ) : totalRiskData && totalRiskData.length > 0 ? (
-              <PieChartComponent
-                title="Por Índice de Riesgo Pre-Mitigación"
-                data={totalRiskData}
-              />
-            ) : (
-              <p className="text-lg text-muted-foreground">
-                No hay datos para mostrar.
-              </p>
-            )}
-            {isErrorTotalRiskData && (
-              <p className="text-sm text-muted-foreground">
-                Ha ocurrido un error al cargar el numero de reportes por indice
-                de riesgo...
-              </p>
-            )}
-          </div>
-        )}
-
-        {shouldShow("pre-risk-bar") && (
-          <div className="p-4 rounded-lg shadow border">
-            {isLoadingTotalRiskData ? (
-              <div className="flex justify-center items-center h-48">
-                <Loader2 className="size-24 animate-spin" />
-              </div>
-            ) : totalRiskData && totalRiskData.length > 0 ? (
-              <MultipleBarChartComponent
-                data={totalRiskData}
-                title="Numero de Reportes por Cada Indice de Riesgo (General)"
-              />
-            ) : (
-              <p className=" text-center text-lg text-muted-foreground">
-                No hay datos para mostrar.
-              </p>
-            )}
-            {isErrorTotalRiskData && (
-              <p className="text-sm text-muted-foreground">
-                Ha ocurrido un error al cargar los peligros identificados...
-              </p>
-            )}
-          </div>
-        )}
-
-        {shouldShow("post-risk-pie") && (
-          <div className="flex flex-col justify-center items-center p-4 rounded-lg shadow border">
-            {isLoadingTotalPostRiskData ? (
-              <div className="flex justify-center items-center h-48">
-                <Loader2 className="size-24 animate-spin" />
-              </div>
-            ) : totalPostRiskData && totalPostRiskData.length > 0 ? (
-              <PieChartComponent
-                data={totalPostRiskData}
-                title="Porcentaje de Indice de Riesgo Post-Mitigacion"
-              />
-            ) : (
-              <p className="text-lg text-muted-foreground">
-                No hay datos para mostrar.
-              </p>
-            )}
-            {isErrorTotalRiskData && (
-              <p className="text-sm text-muted-foreground">
-                Ha ocurrido un error al cargar el numero de reportes por indice
-                de riesgo...
-              </p>
+            {isErrorIdentificationData && (
+              <>
+                <Message
+                  title="Numero de Reportes vs Tipo de Peligro"
+                  description="Ha ocurrido un error al cargar los datos de Numero de Reportes vs Tipo de Peligro..."
+                />
+              </>
             )}
           </div>
         )}
@@ -455,14 +262,110 @@ const GeneralReportStats = () => {
                 title="Numero de Reportes por Cada Indice de Riesgo  (Post-Mitigacion)"
               />
             ) : (
-              <p className="text-lg text-muted-foreground">
-                No hay datos para mostrar.
-              </p>
+              <>
+                <Message
+                  title="Numero de Reportes por Cada Indice de Riesgo  (Post-Mitigacion)"
+                  description="No hay datos para mostrar"
+                />
+              </>
             )}
             {isErrorTotalRiskData && (
-              <p className="text-sm text-muted-foreground">
-                Ha ocurrido un error al cargar los peligros identificados...
-              </p>
+              <>
+                <Message
+                  title="Numero de Reportes por Cada Indice de Riesgo  (Post-Mitigacion)"
+                  description="Ha ocurrido un error al cargar el numero de reportes por indice de riesgo post-mitigacion..."
+                />
+              </>
+            )}
+          </div>
+        )}
+
+        {shouldShow("pre-risk-pie") && (
+          <div className="flex flex-col justify-center items-center p-4 rounded-lg shadow border">
+            {isLoadingTotalRiskData ? (
+              <div className="flex justify-center items-center h-48">
+                <Loader2 className="size-24 animate-spin" />
+              </div>
+            ) : totalRiskData && totalRiskData.length > 0 ? (
+              <PieChartComponent
+                title="Por Índice de Riesgo Pre-Mitigación"
+                data={totalRiskData}
+              />
+            ) : (
+              <>
+                <Message
+                  title="Por Índice de Riesgo Pre-Mitigación"
+                  description="No hay datos para mostrar"
+                />
+              </>
+            )}
+            {isErrorTotalRiskData && (
+              <>
+                <Message
+                  title="Por Índice de Riesgo Pre-Mitigación"
+                  description="Ha ocurrido un error al cargar el numero de reportes por indice de riesgo..."
+                />
+              </>
+            )}
+          </div>
+        )}
+
+        {shouldShow("pre-risk-bar") && (
+          <div className="p-4 rounded-lg shadow border">
+            {isLoadingTotalPostRiskData ? (
+              <div className="flex justify-center items-center h-48">
+                <Loader2 className="size-24 animate-spin" />
+              </div>
+            ) : totalPostRiskData && totalPostRiskData.length > 0 ? (
+              <MultipleBarChartComponent
+                data={totalPostRiskData}
+                title="Numero de Reportes por Cada Indice de Riesgo "
+              />
+            ) : (
+              <>
+                <Message
+                  title="Numero de Reportes por Cada Indice de Riesgo "
+                  description="No hay datos para mostrar"
+                />
+              </>
+            )}
+            {isErrorTotalRiskData && (
+              <>
+                <Message
+                  title="Numero de Reportes por Cada Indice de Riesgo "
+                  description="Ha ocurrido un error al cargar el numero de reportes por indice de riesgo..."
+                />
+              </>
+            )}
+          </div>
+        )}
+
+        {shouldShow("post-risk-pie") && (
+          <div className="flex flex-col justify-center items-center p-4 rounded-lg shadow border">
+            {isLoadingTotalPostRiskData ? (
+              <div className="flex justify-center items-center h-48">
+                <Loader2 className="size-24 animate-spin" />
+              </div>
+            ) : totalPostRiskData && totalPostRiskData.length > 0 ? (
+              <PieChartComponent
+                data={totalPostRiskData}
+                title="Porcentaje de Indice de Riesgo Post-Mitigacion"
+              />
+            ) : (
+              <>
+                <Message
+                  title="Porcentaje de Indice de Riesgo Post-Mitigacion"
+                  description="No hay datos para mostrar"
+                />
+              </>
+            )}
+            {isErrorTotalPostRiskData && (
+              <>
+                <Message
+                  title="Porcentaje de Indice de Riesgo Post-Mitigacion"
+                  description="Ha ocurrido un error al cargar el porcentaje de indice de riesgo post-mitigacion..."
+                />
+              </>
             )}
           </div>
         )}
@@ -479,9 +382,20 @@ const GeneralReportStats = () => {
                 title="Numero de Reportes por Tipo de Fuente"
               />
             ) : (
-              <p className="text-lg text-muted-foreground">
-                No hay datos para mostrar
-              </p>
+              <>
+                <Message
+                  title="Numero de Reportes por Tipo de Fuente"
+                  description="No hay datos para mostrar"
+                />
+              </>
+            )}
+            {isErrorReportSourceTypeData && (
+              <>
+                <Message
+                  title="Numero de Reportes por Tipo de Fuente"
+                  description="Ha ocurrido un error al cargar el numero de reportes por tipo de fuente..."
+                />
+              </>
             )}
           </div>
         )}
@@ -498,9 +412,50 @@ const GeneralReportStats = () => {
                 title="Numero de Reportes Voluntarios vs Nombre de la Fuente"
               />
             ) : (
-              <p className="text-lg text-muted-foreground">
-                No hay datos para mostrar.
-              </p>
+              <>
+                <Message
+                  title="Numero de Reportes Voluntarios vs Nombre de la Fuente"
+                  description="No hay datos para mostrar"
+                />
+              </>
+            )}
+            {isErrorReportSourceNameData && (
+              <>
+                <Message
+                  title="Numero de Reportes Voluntarios vs Nombre de la Fuente"
+                  description="Ha ocurrido un error al cargar el numero de reportes voluntarios vs nombre de la fuente..."
+                />
+              </>
+            )}
+          </div>
+        )}
+
+        {shouldShow("area-chart") && (
+          <div className="p-4 rounded-lg shadow border">
+            {isLoadingReportsByAreaData ? (
+              <div className="flex justify-center items-center h-48">
+                <Loader2 className="size-24 animate-spin" />
+              </div>
+            ) : reportsByAreaData && reportsByAreaData.length > 0 ? (
+              <MultipleBarChartComponent
+                data={reportsByAreaData}
+                title="Numero de Reportes vs Area de Identificación"
+              />
+            ) : (
+              <>
+                <Message
+                  title="Numero de Reportes vs Area de Identificación"
+                  description="No hay datos para mostrar"
+                />
+              </>
+            )}
+            {isErrorReportsByAreaData && (
+              <>
+                <Message
+                  title="Numero de Reportes vs Area de Identificación"
+                  description="Ha ocurrido un error al cargar Numero de Reportes vs Area de Identificación..."
+                />
+              </>
             )}
           </div>
         )}

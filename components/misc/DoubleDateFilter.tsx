@@ -153,6 +153,8 @@ const DoubleDateFilter = ({
               selected={firstRange.to || firstRange.from}
               onSelect={handleFirstRangeChange}
               locale={es}
+              className="rounded-md border shadow-sm"
+              captionLayout="dropdown"
               initialFocus
             />
           </PopoverContent>

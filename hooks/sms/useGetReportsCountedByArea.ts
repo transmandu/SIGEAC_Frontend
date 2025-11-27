@@ -21,7 +21,7 @@ export const useGetReportsCountedByArea = (
   reportType: string
 ) => {
   return useQuery<pieChartData[]>({
-    queryKey: ["reports-counted-by-area"], // Incluye el ID en la clave de la query
+    queryKey: ["reports-counted-by-area", company, from, to, reportType], // Incluye el ID en la clave de la query
     queryFn: () => fetcReportsCountedByArea(company, from, to, reportType), // Pasa el ID a la función fetchUser
     staleTime: 1000 * 60 * 5, // 5 minutos
   });
