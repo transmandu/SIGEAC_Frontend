@@ -149,7 +149,7 @@ export const GoalStatusCard: React.FC<GoalStatusCardProps> = ({
             >
               <span>0%</span>
               <span className="font-bold">
-                {displayPercentage}% {achieved ? "alcanzado" : "completado"}
+                {displayPercentage.toFixed(2)}% {achieved ? "alcanzado" : "completado"}
               </span>
               <span>100%</span>
             </div>
