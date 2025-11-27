@@ -219,10 +219,8 @@ export const columns: ColumnDef<MitigationTable>[] = [
       <DataTableColumnHeader column={column} title="Descripción" />
     ),
     cell: ({ row }) => (
-      <p className="line-clamp-2 text-center text-xs sm:text-sm break-words">
-        {row.original.mitigation_plan?.description || (
-          <span className="text-muted-foreground">N/A</span>
-        )}
+      <p className="max-w-[200px] line-clamp-3 text-center text-xs sm:text-sm break-all overflow-hidden">
+        {row.original.mitigation_plan?.description || "N/A"}
       </p>
     ),
     size: 200,

@@ -35,9 +35,10 @@ import {
 } from "@/actions/sms/medida_de_mitigacion/actions";
 import { MitigationMeasure } from "@/types";
 import { useCompanyStore } from "@/stores/CompanyStore";
+import { Textarea } from "@/components/ui/textarea";
 
 const FormSchema = z.object({
-  description: z.string().min(5),
+  description: z.string().min(3),
 
   implementation_supervisor: z
     .string()
@@ -135,7 +136,7 @@ export default function CreateMitigationMeasureForm({
             <FormItem>
               <FormLabel>Descripcion de la medida</FormLabel>
               <FormControl>
-                <Input placeholder="Descripcion de la medida" {...field} />
+                <Textarea placeholder="Descripcion de la medida" {...field} />
               </FormControl>
               <FormMessage className="text-xs" />
             </FormItem>
@@ -291,7 +292,14 @@ export default function CreateMitigationMeasureForm({
           <p className="text-muted-foreground">SIGEAC</p>
           <Separator className="flex-1" />
         </div>
-        <Button>Enviar</Button>
+        <Button
+          type="submit"
+          disabled={
+            createMitigationMeasure.isPending || updateMitigationMeasure.isPending
+          }
+        >
+          {isEditing ? "Actualizar" : "Crear"}
+        </Button>
       </form>
     </Form>
   );

@@ -246,7 +246,9 @@ export default function CreateAnalysisForm({
           <p className="text-muted-foreground">SIGEAC</p>
           <Separator className="flex-1" />
         </div>
-        <Button type="submit">Enviar</Button>
+        <Button type="submit" disabled={updateAnalyses.isPending || createAnalysis.isPending}>
+          {isEditing ? "Actualizar" : "Enviar"}
+        </Button>
       </form>
     </Form>
   );

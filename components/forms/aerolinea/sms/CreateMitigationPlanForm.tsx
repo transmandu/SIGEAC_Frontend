@@ -232,7 +232,14 @@ export default function CreateMitigationPlanForm({
           <p className="text-muted-foreground">SIGEAC</p>
           <Separator className="flex-1" />
         </div>
-        <Button>Enviar</Button>
+        <Button
+          type="submit"
+          disabled={
+            createMitigationPlan.isPending || updateMitigationPlan.isPending
+          }
+        >
+          {isEditing ? "Actualizar" : "Crear"}
+        </Button>
       </form>
     </Form>
   );
