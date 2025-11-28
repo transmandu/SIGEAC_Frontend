@@ -2,6 +2,7 @@ import { useGetSurveyStats } from "@/hooks/sms/survey/useGetSurveyStatistics";
 import { pieChartData } from "@/types";
 import DynamicBarChart from "./DynamicBarChart";
 import MultipleBarChartComponent from "./MultipleBarChartComponent";
+import { PieChartComponent } from "./PieChartComponent";
 
 // Componente principal
 const SurveyStatisticsPage = ({ survey_number }: { survey_number: string }) => {
@@ -51,7 +52,11 @@ const SurveyStatisticsPage = ({ survey_number }: { survey_number: string }) => {
             <MultipleBarChartComponent
               data={chartData}
               title={questionStat.question.toLocaleUpperCase()}
-            />
+              />
+              <PieChartComponent
+                data={chartData}
+                title={questionStat.question.toLocaleUpperCase()}
+              />
              </div>
             {/* Información adicional debajo del gráfico */}
             <div className="mt-4 flex justify-center gap-8 text-sm text-gray-600">

@@ -11,7 +11,6 @@ import {
   Tooltip,
 } from "recharts";
 
-
 type Props = {
   data: pieChartData[];
   title: string;
@@ -41,8 +40,7 @@ export const PieChartComponent: React.FC<Props> = ({
   );
 
   const total = useMemo(
-    () =>
-      data.reduce((acc, item) => acc + (Number(item.value) || 0), 0),
+    () => data.reduce((acc, item) => acc + (Number(item.value) || 0), 0),
     [data]
   );
 
@@ -70,12 +68,16 @@ export const PieChartComponent: React.FC<Props> = ({
               innerRadius="40%"
               outerRadius="80%"
               paddingAngle={2}
-              label={({ name, value }) => {
+              // CAMBIO: Mostrar solo el porcentaje dentro del gráfico
+              label={({ value }) => {
                 const v = Number(value);
-                if (!total) return name;
+                if (!total) return "";
                 const pct = ((v / total) * 100).toFixed(0);
-                return `${name} (${pct}%)`;
+                return `${pct}%`;
               }}
+              fontSize={11}
+              // Opcional: personalizar el estilo del label
+              labelLine={false}
             >
               {data.map((entry, index) => (
                 <Cell
