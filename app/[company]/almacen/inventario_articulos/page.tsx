@@ -74,8 +74,9 @@ const InventarioArticulosPage = () => {
   const isLoadingArticles = isLoadingComponents || isLoadingConsumables || isLoadingTools;
 
   // Combinar los datos según la categoría activa
-  const articles = activeCategory === 'all' 
-    ? {
+  const articles = useMemo(() => {
+    if (activeCategory === 'all') {
+      return {
         batches: [
           ...(componentArticles?.batches || []),
           ...(consumableArticles?.batches || []),
@@ -83,35 +84,41 @@ const InventarioArticulosPage = () => {
         ],
         pagination: {
           current_page: 1,
-          total: (componentArticles?.batches.length || 0) + 
-                 (consumableArticles?.batches.length || 0) + 
-                 (toolArticles?.batches.length || 0),
+          total: (componentArticles?.batches.length || 0) +
+                (consumableArticles?.batches.length || 0) +
+                (toolArticles?.batches.length || 0),
           per_page: 1000,
           last_page: 1,
           from: 1,
-          to: (componentArticles?.batches.length || 0) + 
-               (consumableArticles?.batches.length || 0) + 
-               (toolArticles?.batches.length || 0),
-        }
-      }
-    : activeCategory === 'COMPONENTE' 
-      ? componentArticles
-      : activeCategory === 'CONSUMIBLE'
-        ? consumableArticles
-        : toolArticles;
+          to: (componentArticles?.batches.length || 0) +
+              (consumableArticles?.batches.length || 0) +
+              (toolArticles?.batches.length || 0),
+        },
+      };
+    } else if (activeCategory === 'COMPONENTE') {
+      return componentArticles;
+    } else if (activeCategory === 'CONSUMIBLE') {
+      return consumableArticles;
+    } else {
+      return toolArticles;
+    }
+  }, [activeCategory, componentArticles, consumableArticles, toolArticles]);
 
   // Preparar parámetros de exportación (solo válido cuando no es 'all')
-  const common = activeCategory !== 'all' ? {
-    category: activeCategory as 'COMPONENTE' | 'CONSUMIBLE' | 'HERRAMIENTA',
-    search: partNumberSearch,
-    filters:
-      activeCategory === 'COMPONENTE'
-        ? { condition: componentCondition }
-        : activeCategory === 'CONSUMIBLE'
-          ? { group: consumableFilter }
-          : {},
-    filenamePrefix: 'inventario',
-  } : null;
+  const common = useMemo(() => {
+    if (activeCategory === 'all') return null;
+    return {
+      category: activeCategory as 'COMPONENTE' | 'CONSUMIBLE' | 'HERRAMIENTA',
+      search: partNumberSearch,
+      filters:
+        activeCategory === 'COMPONENTE'
+          ? { condition: componentCondition }
+          : activeCategory === 'CONSUMIBLE'
+            ? { group: consumableFilter }
+            : {},
+      filenamePrefix: 'inventario',
+    };
+  }, [activeCategory, partNumberSearch, componentCondition, consumableFilter]);
 
   // Reset subfiltros al cambiar categoría
   useEffect(() => {
@@ -121,26 +128,20 @@ const InventarioArticulosPage = () => {
 
   // Columns memo
   const cols = useMemo(() => {
-    // Para "Todos", usar columnas que incluyen campos de calibración
-    if (activeCategory === 'all') {
-      return allCategoriesCols; // Columnas base + fecha de calibración + próxima calibración
-    }
+    if (activeCategory === 'all') return allCategoriesCols;
     return getColumnsByCategory(activeCategory);
   }, [activeCategory]);
 
   // Datos + filtros memo
   const currentData = useMemo<IArticleSimple[]>(() => {
-    // Función para obtener la fecha de vencimiento de un artículo
     const getExpiryDate = (article: IArticleSimple): Date | null => {
       const caducateDate = article.component?.caducate_date || article.consumable?.caducate_date;
       if (!caducateDate) return null;
-      
       const date = caducateDate instanceof Date 
         ? caducateDate 
         : typeof caducateDate === 'string' 
           ? new Date(caducateDate)
           : null;
-      
       return date && !isNaN(date.getTime()) ? date : null;
     };
 
@@ -158,29 +159,22 @@ const InventarioArticulosPage = () => {
 
     let filtered = bySearch;
 
-    // Solo aplicar filtros específicos cuando no estamos en "Todos"
     if (activeCategory !== 'all') {
       if (activeCategory === 'COMPONENTE' && componentCondition !== 'all') {
         filtered = filtered.filter((a) => a.condition === componentCondition);
       }
-
       if (activeCategory === 'CONSUMIBLE' && consumableFilter === 'QUIMICOS') {
         filtered = filtered.filter((a: any) => a.is_hazardous === true);
       }
     }
 
-    // Ordenar por fecha de vencimiento más próxima (solo para componentes y consumibles)
     if (activeCategory === 'COMPONENTE' || activeCategory === 'CONSUMIBLE' || activeCategory === 'all') {
       return filtered.sort((a, b) => {
         const dateA = getExpiryDate(a);
         const dateB = getExpiryDate(b);
-        
-        // Los que no tienen fecha van al final
         if (!dateA && !dateB) return 0;
         if (!dateA) return 1;
         if (!dateB) return -1;
-        
-        // Ordenar por fecha más próxima primero
         return dateA.getTime() - dateB.getTime();
       });
     }
@@ -253,10 +247,7 @@ const InventarioArticulosPage = () => {
             value={activeCategory}
             onValueChange={(v) => setActiveCategory(v as Category)}
           >
-            <TabsList
-              className="flex justify-center mb-4 space-x-3"
-              aria-label="Categorías"
-            >
+            <TabsList className="flex justify-center mb-4 space-x-3" aria-label="Categorías">
               <TabsTrigger className="flex gap-2" value="all">
                 <Package2 className="size-5" /> Todos
               </TabsTrigger>
@@ -272,15 +263,14 @@ const InventarioArticulosPage = () => {
 
               <CreateBatchDialog />
 
+              {/* Botones exportación */}
               <div className="flex gap-4 items-center">
                 {/* PDF */}
                 <Tooltip delayDuration={100}>
                   <TooltipTrigger asChild>
                     <button
                       type="button"
-                      onClick={() => {
-                        if (common) exportPdf(common);
-                      }}
+                      onClick={() => common && exportPdf(common)}
                       disabled={exporting.pdf || !common}
                       className="disabled:opacity-50"
                       aria-label="Descargar PDF"
@@ -302,9 +292,7 @@ const InventarioArticulosPage = () => {
                   <TooltipTrigger asChild>
                     <button
                       type="button"
-                      onClick={() => {
-                        if (common) exportExcel(common);
-                      }}
+                      onClick={() => common && exportExcel(common)}
                       disabled={exporting.xlsx || !common}
                       className="disabled:opacity-50"
                       aria-label="Descargar Excel"
@@ -337,24 +325,15 @@ const InventarioArticulosPage = () => {
             <TabsContent value="COMPONENTE" className="mt-6">
               <Tabs
                 value={componentCondition}
-                onValueChange={(v) =>
-                  setComponentCondition(v as typeof componentCondition)
-                }
+                onValueChange={(v) => setComponentCondition(v as typeof componentCondition)}
                 className="mb-4"
               >
-                <TabsList
-                  className="flex justify-center mb-4 space-x-3"
-                  aria-label="Condición de componente"
-                >
+                <TabsList className="flex justify-center mb-4 space-x-3" aria-label="Condición de componente">
                   <TabsTrigger value="all">Todos</TabsTrigger>
                   <TabsTrigger value="SERVICIABLE">Serviciables</TabsTrigger>
                   <TabsTrigger value="REPARADO">Reparados</TabsTrigger>
-                  <TabsTrigger value="REMOVIDO - NO SERVICIABLE">
-                    Removidos - No Serviciables
-                  </TabsTrigger>
-                  <TabsTrigger value="REMOVIDO - CUSTODIA">
-                    Removidos - En custodia
-                  </TabsTrigger>
+                  <TabsTrigger value="REMOVIDO - NO SERVICIABLE">Removidos - No Serviciables</TabsTrigger>
+                  <TabsTrigger value="REMOVIDO - CUSTODIA">Removidos - En custodia</TabsTrigger>
                 </TabsList>
               </Tabs>
 
@@ -370,19 +349,12 @@ const InventarioArticulosPage = () => {
             <TabsContent value="CONSUMIBLE" className="mt-6">
               <Tabs
                 value={consumableFilter}
-                onValueChange={(v) =>
-                  setConsumableFilter(v as typeof consumableFilter)
-                }
+                onValueChange={(v) => setConsumableFilter(v as typeof consumableFilter)}
                 className="mb-4"
               >
-                <TabsList
-                  className="flex justify-center mb-4 space-x-3"
-                  aria-label="Filtro de consumibles"
-                >
+                <TabsList className="flex justify-center mb-4 space-x-3" aria-label="Filtro de consumibles">
                   <TabsTrigger value="all">Todos</TabsTrigger>
-                  <TabsTrigger value="QUIMICOS">
-                    Mercancia Peligrosa
-                  </TabsTrigger>
+                  <TabsTrigger value="QUIMICOS">Mercancia Peligrosa</TabsTrigger>
                 </TabsList>
               </Tabs>
 
