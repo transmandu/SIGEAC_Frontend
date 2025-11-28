@@ -99,7 +99,7 @@ interface FormProps {
   initialData?: DangerIdentification;
   isEditing?: boolean;
   reportType: string;
-  onClose: () => void;
+  onClose?: () => void;
 }
 
 export default function CreateDangerIdentificationForm({
@@ -244,7 +244,7 @@ export default function CreateDangerIdentificationForm({
           id: initialData.id.toString(),
           data,
         });
-        onClose();
+        onClose?.();
       } else {
         // Creación
         const response = await createDangerIdentification.mutateAsync({
