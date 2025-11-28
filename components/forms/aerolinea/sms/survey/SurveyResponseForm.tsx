@@ -29,6 +29,7 @@ import { createSurveyValidator } from "@/components/forms/validators/sms/createS
 import { useEmailValidation } from "@/hooks/sms/survey/useEmailValidation";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import Link from "next/link";
 
 type SurveyResponseType = {
   survey_number: string;
@@ -293,17 +294,28 @@ function SuccessState({
         <h2 className="text-xl font-bold text-green-800 mb-2">
           ¡Quiz Completado!
         </h2>
-        <p className="text-green-700 mb-4">
-          Revisa tus resultados en el diálogo de arriba.
-        </p>
+        <p className="text-green-700 mb-4">Revisa tus resultados.</p>
         <div className="flex gap-4 sm:flex-col items-center justify-center">
           <Button
-            onClick={onNewAttempt}
-            variant="outline"
-            className="border-green-600 text-green-700 hover:bg-green-100"
+            // Cuando se hace clic, debe abrir el diálogo de resultados
+            onClick={() => onShowResultsChange(true)}
+            variant="default"
+            className="bg-green-600 text-white hover:bg-green-700"
           >
-            Nuevo Intento
+            Ver Resultados
           </Button>
+
+          <Link
+            href="https://sigeac-one.vercel.app/"
+            className="w-full sm:w-auto"
+          >
+            <Button
+              variant="outline"
+              className="w-full border-gray-400 text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+            >
+              Iniciar Sesión
+            </Button>
+          </Link>
         </div>
       </div>
     </div>
