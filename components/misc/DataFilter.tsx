@@ -109,6 +109,16 @@ const DateFilter = ({
           onSelect={handleDateChange}
           numberOfMonths={2}
           locale={es}
+          fromYear={2000}
+          toYear={new Date().getFullYear()}
+          captionLayout="dropdown-buttons"
+          components={{
+            Dropdown: (props) => (
+              <select {...props} className="bg-popover text-popover-foreground">
+                {props.children}
+              </select>
+            ),
+          }}
         />
         <div className="p-4 w-full flex items-center gap-x-2">
           <PopoverClose asChild>
