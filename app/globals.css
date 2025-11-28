@@ -129,3 +129,11 @@
 .animate-fade-in {
   animation: fade-in 0.6s ease-out forwards;
 }
+.table-sticky-right {
+  position: sticky;
+  right: 0;
+  background: #ffffff;
+  z-index: 40;
+  backdrop-filter: none;
+  min-width: 100px;
+}
