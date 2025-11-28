@@ -10,6 +10,7 @@ import { CheckCircle2, XCircle, PartyPopper, Lightbulb } from "lucide-react";
 import Confetti from "react-confetti";
 import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
+import { Button } from "@/components/ui/button";
 
 export type QuizDetail = {
   question_id: number;
@@ -196,19 +197,20 @@ export function QuizResultsDialog({
 
             {/* Botón de cierre */}
             <div className="flex justify-center pt-4">
-              <button
+              <Button
+                variant="default"
                 onClick={() => onOpenChange(false)}
                 className={`
                   px-6 py-2 rounded-lg transition-colors border font-medium
                   ${
                     isPerfectScore
                       ? "hover:border-yellow-500"
-                      : "bg-blue-600 text-white hover:bg-blue-700 border-transparent"
+                      : "text-white hover:bg-blue-700 border-transparent"
                   }
                 `}
               >
-                {isPerfectScore ? "Cerrar" : "Entendido"}
-              </button>
+                {isPerfectScore ? "Cerrar" : "Cerrar"}
+              </Button>
             </div>
           </div>
         </DialogContent>
