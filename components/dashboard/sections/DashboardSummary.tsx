@@ -43,7 +43,7 @@ export default function DashboardSummary({ companySlug }: DashboardSummaryProps)
           <CardContent>
             <Button
               className="w-full bg-blue-600 hover:bg-blue-700"
-              onClick={() => router.push(`/${companySlug}/almacen/inventario`)}
+              onClick={() => router.push(`/${companySlug}/almacen/inventario_articulos`)}
             >
               Ver Inventario Completo
             </Button>
