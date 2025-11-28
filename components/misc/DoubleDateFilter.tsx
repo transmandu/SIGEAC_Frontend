@@ -154,7 +154,16 @@ const DoubleDateFilter = ({
               onSelect={handleFirstRangeChange}
               locale={es}
               className="rounded-md border shadow-sm"
-              captionLayout="dropdown"
+              captionLayout="dropdown-buttons"
+              fromYear={2000}
+              toYear={new Date().getFullYear()}
+              components={{
+                Dropdown: (props) => (
+                  <select {...props} className="bg-popover text-popover-foreground">
+                    {props.children}
+                  </select>
+                ),
+              }}
               initialFocus
             />
           </PopoverContent>
