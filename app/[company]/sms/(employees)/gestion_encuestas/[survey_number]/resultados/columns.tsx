@@ -4,9 +4,8 @@ import { ColumnDef } from "@tanstack/react-table";
 
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
 
-import { ResponsesBySurvey } from "@/hooks/sms/survey/useGetResponsesBySurvey";
-import { useCompanyStore } from "@/stores/CompanyStore";
 import { Badge } from "@/components/ui/badge";
+import { ResponsesBySurvey } from "@/hooks/sms/survey/useGetResponsesBySurvey";
 
 export const columns: ColumnDef<ResponsesBySurvey>[] = [
   {
