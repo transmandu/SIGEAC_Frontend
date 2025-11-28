@@ -13,7 +13,7 @@ export default function DashboardSummary({ companySlug }: DashboardSummaryProps)
   const router = useRouter()
 
   return (
-    <div>
+    <div className='mt-12'>
       {/* Mensaje de bienvenida */}
       <div className="text-center mb-12">
         <h1 className="text-4xl md:text-5xl font-bold mb-6">

@@ -2,7 +2,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts'
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts'
 import { WarehouseDashboard } from '@/types'
 
 interface Props { data?: WarehouseDashboard; isLoading: boolean; isError: boolean }
@@ -27,7 +27,7 @@ export default function ToolsSummary({ data, isLoading, isError }: Props) {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="overflow-y-auto max-h-[300px]">
+            <div className="overflow-y-auto max-h-[220px]">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -62,7 +62,7 @@ export default function ToolsSummary({ data, isLoading, isError }: Props) {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="overflow-y-auto max-h-[300px]">
+            <div className="overflow-y-auto max-h-[220px]">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -93,19 +93,18 @@ export default function ToolsSummary({ data, isLoading, isError }: Props) {
       <Card className="rounded-xl border shadow-sm">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-semibold text-blue-600">Gráfico de Calibraciones</CardTitle>
-          <CardDescription className="text-gray-500 text-sm">
-            Resumen visual de herramientas por estado
-          </CardDescription>
+          <CardDescription className="text-gray-500 text-sm">Resumen visual de herramientas por estado</CardDescription>
         </CardHeader>
-        <CardContent className="h-48 flex justify-center items-center">
+
+        <CardContent className="h-48">
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={lineChartData} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
+            <BarChart data={lineChartData} layout="vertical" margin={{ top: 5, right: 20, left: 20, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-              <XAxis dataKey="type" tick={{ fontSize: 12 }} padding={{ left: 20, right: 20 }} />
-              <YAxis tick={{ fontSize: 12 }} />
+              <XAxis type="number" tick={{ fontSize: 12 }} />
+              <YAxis type="category" dataKey="type" tick={{ fontSize: 12 }} width={120} />
               <Tooltip />
-              <Line type="monotone" dataKey="count" stroke="#2563eb" strokeWidth={2} />
-            </LineChart>
+              <Bar dataKey="count" name="Cantidad" fill="#2563eb" radius={[0, 6, 6, 0]} barSize={24} />
+            </BarChart>
           </ResponsiveContainer>
         </CardContent>
       </Card>

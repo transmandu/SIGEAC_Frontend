@@ -366,14 +366,25 @@ export const componenteCols: ColumnDef<IArticleSimple>[] = [
   },
   {
     id: "actions",
-    header: "Acciones",
+    header: () => (
+      <div className="sticky right-0 bg-background z-50 text-center">
+        Acciones
+      </div>
+    ),
     cell: ({ row }) => {
-      const item = row.original;  
+      const item = row.original;
       if (item.status === "stored" || item.status === "checking") {
-        return <ArticleDropdownActions id={item.id} />;
+        return (
+          <div className="sticky right-0 bg-background z-50 flex justify-center">
+            <ArticleDropdownActions id={item.id} />
+          </div>
+        );
       }
       return null;
     },
+    meta: {
+      sticky: "right", // 👈 importante
+  },
   },
 ];
 
@@ -448,13 +459,24 @@ export const consumibleCols: ColumnDef<IArticleSimple>[] = [
   },
   {
     id: "actions",
-    header: "Acciones",
+    header: () => (
+      <div className="sticky right-0 bg-background z-50 text-center">
+        Acciones
+      </div>
+    ),
     cell: ({ row }) => {
-      const item = row.original;  
+      const item = row.original;
       if (item.status === "stored" || item.status === "checking") {
-        return <ArticleDropdownActions id={item.id} />;
+        return (
+          <div className="sticky right-0 bg-background z-50 flex justify-center">
+            <ArticleDropdownActions id={item.id} />
+          </div>
+        );
       }
       return null;
+    },
+    meta: {
+      sticky: "right", // 👈 importante
     },
   },
 ];
@@ -510,13 +532,24 @@ export const herramientaCols: ColumnDef<IArticleSimple>[] = [
   },
   {
     id: "actions",
-    header: "Acciones",
+    header: () => (
+      <div className="sticky right-0 bg-background z-50 text-center">
+        Acciones
+      </div>
+    ),
     cell: ({ row }) => {
-      const item = row.original;  
+      const item = row.original;
       if (item.status === "stored" || item.status === "checking") {
-        return <ArticleDropdownActions id={item.id} />;
+        return (
+          <div className="sticky right-0 bg-background z-50 flex justify-center">
+            <ArticleDropdownActions id={item.id} />
+          </div>
+        );
       }
       return null;
+    },
+    meta: {
+      sticky: "right", // 👈 importante
     },
   },
 ];
@@ -626,13 +659,24 @@ export const allCategoriesCols: ColumnDef<IArticleSimple>[] = [
   },
   {
     id: "actions",
-    header: "Acciones",
+    header: () => (
+      <div className="sticky right-0 bg-background z-50 text-center">
+        Acciones
+      </div>
+    ),
     cell: ({ row }) => {
-      const item = row.original;  
+      const item = row.original;
       if (item.status === "stored" || item.status === "checking") {
-        return <ArticleDropdownActions id={item.id} />;
+        return (
+          <div className="sticky right-0 bg-background z-50 flex justify-center">
+            <ArticleDropdownActions id={item.id} />
+          </div>
+        );
       }
       return null;
+    },
+    meta: {
+      sticky: "right", // 👈 importante
     },
   },
 ];

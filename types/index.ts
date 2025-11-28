@@ -1118,7 +1118,7 @@ export interface WarehouseDashboard {
   storedCount: number
   dispatchCount: number
   dispatchAircraftCount: number
-  dispatchWorkshopCount: number
+  dispatchWorkOrderCount: number
   tool_need_calibration_count: number
   returnToolsCount: number
   restockCount: number

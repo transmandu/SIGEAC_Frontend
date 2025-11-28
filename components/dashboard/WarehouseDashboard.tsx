@@ -51,18 +51,18 @@ export default function WarehouseDashboard({ companySlug, location_id, user, rol
       <main className="max-w-7xl mt-6 mx-auto px-4">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="flex justify-center mb-0 space-x-3 border-b rounded-t-xl bg-muted/40">
-            <TabsTrigger value="DASHBOARD" className="flex gap-2">
+            <TabsTrigger value="DASHBOARD" className="flex gap-2 data-[state=active]:border-b-2 data-[state=active]:border-blue-600 data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-t-lg px-3 py-2">
               <LayoutDashboard className="size-4" /> Dashboard
             </TabsTrigger>
-            <TabsTrigger value="ARTICULOS" className="flex gap-2">
+            <TabsTrigger value="ARTICULOS" className="flex gap-2 data-[state=active]:border-b-2 data-[state=active]:border-blue-600 data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-t-lg px-3 py-2">
               <Package2 className="size-4" /> Artículos
             </TabsTrigger>
-            <TabsTrigger value="HERRAMIENTAS" className="flex gap-2">
+            <TabsTrigger value="HERRAMIENTAS" className="flex gap-2 data-[state=active]:border-b-2 data-[state=active]:border-blue-600 data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-t-lg px-3 py-2">
               <Wrench className="size-4" /> Herramientas
             </TabsTrigger>
 
             {canViewUsersTab && (
-              <TabsTrigger value="USUARIOS" className="flex gap-2">
+              <TabsTrigger value="USUARIOS" className="flex gap-2 data-[state=active]:border-b-2 data-[state=active]:border-blue-600 data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-t-lg px-3 py-2">
                 <Users className="size-4" /> Usuarios
               </TabsTrigger>
             )}
@@ -70,7 +70,7 @@ export default function WarehouseDashboard({ companySlug, location_id, user, rol
 
           <div className="mt-10">
             <TabsContent value="DASHBOARD">
-              <DashboardSummary companySlug={companySlug} />
+              <div className="mt-6"> <DashboardSummary companySlug={companySlug} /> </div>
             </TabsContent>
 
             <TabsContent value="ARTICULOS">

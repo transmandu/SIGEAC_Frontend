@@ -15,8 +15,7 @@ export default function  ArticlesSummary({ data, isLoading, isError }: Props) {
   const chartData = [
     { name: 'Salidas\n Totales', value: data.dispatchCount, color: '#2563eb' },
     { name: 'Salidas a\n Aeronaves', value: data.dispatchAircraftCount, color: '#e90e3dff' },
-    { name: 'Salidas a\n Taller', value: data.dispatchWorkshopCount, color: '#f59e0b' },
-    // { name: 'Artículos por\n Reabastecer', value: data.restockCount, color: '#22c55e' },
+    { name: 'Salidas a\n Taller', value: data.dispatchWorkOrderCount, color: '#f59e0b' },
   ]
 
   return (
@@ -27,14 +26,14 @@ export default function  ArticlesSummary({ data, isLoading, isError }: Props) {
         <Card className="rounded-xl border shadow-sm">
           <CardHeader className="pb-2 text-center">
             <CardTitle className="text-2xl font-semibold">Resumen de Artículos</CardTitle>
-            <CardDescription className="text-gray-500">Datos generales de inventario activo (últimos 7 días)</CardDescription>
+            <CardDescription className="text-gray-500">Datos generales de inventario activo (Esta semana)</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6 text-center">
               <div><div className="text-3xl font-bold text-blue-600">{data.storedCount ?? 0}%</div><p className="text-sm text-gray-600">Artículos Activos</p></div>
               <div><div className="text-3xl font-bold text-emerald-600">{data.dispatchCount ?? 0}</div><p className="text-sm text-gray-600">Salidas Totales</p></div>
               <div><div className="text-3xl font-bold text-cyan-600">{data.dispatchAircraftCount ?? 0}</div><p className="text-sm text-gray-600">Salidas a Aeronaves</p></div>
-              <div><div className="text-3xl font-bold text-amber-600">{data.dispatchWorkshopCount ?? 0}</div><p className="text-sm text-gray-600">Salidas a Taller</p></div>
+              <div><div className="text-3xl font-bold text-amber-600">{data.dispatchWorkOrderCount ?? 0}</div><p className="text-sm text-gray-600">Salidas a Taller</p></div>
             </div>
           </CardContent>
         </Card>
@@ -49,21 +48,21 @@ export default function  ArticlesSummary({ data, isLoading, isError }: Props) {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="overflow-y-auto max-h-[300px]">
+            <div className="overflow-y-auto max-h-[220px]">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Descripción</TableHead>
-                    <TableHead>Part Number</TableHead>
-                    <TableHead>Categoría</TableHead>
+                    <TableHead className="text-center">Descripción</TableHead>
+                    <TableHead className="text-center">Part Number</TableHead>
+                    <TableHead className="text-center">Categoría</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {data.articlesOutOfStock?.length ? data.articlesOutOfStock.map(item => (
                     <TableRow key={item.id}>
-                      <TableCell className="max-w-[180px] truncate">{item.description}</TableCell>
-                      <TableCell>{item.part_number}</TableCell>
-                      <TableCell>{item.category}</TableCell>
+                      <TableCell className="max-w-[180px] truncate text-center">{item.description}</TableCell>
+                      <TableCell className="text-center">{item.part_number}</TableCell>
+                      <TableCell className="text-center">{item.category}</TableCell>
                     </TableRow>
                   )) : (
                     <TableRow>
@@ -82,7 +81,7 @@ export default function  ArticlesSummary({ data, isLoading, isError }: Props) {
         <Card className="rounded-xl border shadow-sm h-full flex flex-col justify-center">
           <CardHeader className="text-center">
             <CardTitle className="text-2xl font-semibold">Gráfico de Salidas</CardTitle>
-            <CardDescription className="text-gray-500">Comparativa de tipos de despacho (últimos 7 días)</CardDescription>
+            <CardDescription className="text-gray-500">Comparativa de tipos de despacho (Esta semana)</CardDescription>
           </CardHeader>
           <CardContent className="flex justify-center items-center h-80">
             <ResponsiveContainer width="100%" height="100%">
@@ -98,7 +97,7 @@ export default function  ArticlesSummary({ data, isLoading, isError }: Props) {
             />
             <YAxis />
                 <Tooltip />
-                <Bar dataKey="value" radius={[6, 6, 0, 0]}>
+                <Bar dataKey="value" name="Cantidad" radius={[6, 6, 0, 0]}>
                   {chartData.map((entry, idx) => <Cell key={`cell-${idx}`} fill={entry.color} />)}
                 </Bar>
               </BarChart>
