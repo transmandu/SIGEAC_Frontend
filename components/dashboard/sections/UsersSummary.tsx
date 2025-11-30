@@ -26,7 +26,7 @@ export default function UsersSummary({ data, isLoading, isError, currentUserRole
 
   const filteredUsers = data.userStats.filter(u =>
     currentUserRole === 'SUPERUSER' ||
-    (currentUserRole === 'JEFE_ALMACEN' && u.job_title === 'Analista')
+    (currentUserRole === 'JEFE_ALMACEN' && ['Analista', 'Ayudante'].includes(u.job_title))
   )
 
   const chartData = filteredUsers.map(u => ({
