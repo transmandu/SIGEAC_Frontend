@@ -223,12 +223,9 @@ const GeneralReportStats = () => {
             ) : totalIdentificationData &&
               totalIdentificationData.length > 0 ? (
               <>
-                <h2 className="text-sm sm:text-base font-bold">
-                  Numero de Reportes vs Tipo de Peligro
-                </h2>
                 <MultipleBarChartComponent
                   data={totalIdentificationData}
-                  title=""
+                  title="Numero de Reportes vs Tipo de Peligro"
                 />
               </>
             ) : (
@@ -259,12 +256,12 @@ const GeneralReportStats = () => {
             ) : totalRiskData && totalRiskData.length > 0 ? (
               <MultipleBarChartComponent
                 data={totalRiskData}
-                title="Numero de Reportes por Cada Indice de Riesgo  (Post-Mitigacion)"
+                title="Indice de riesgo por reporte (Pre-mitigación)"
               />
             ) : (
               <>
                 <Message
-                  title="Numero de Reportes por Cada Indice de Riesgo  (Post-Mitigacion)"
+                  title="Indice de riesgo por cada reporte (Pre-mitigación)"
                   description="No hay datos para mostrar"
                 />
               </>
@@ -272,8 +269,8 @@ const GeneralReportStats = () => {
             {isErrorTotalRiskData && (
               <>
                 <Message
-                  title="Numero de Reportes por Cada Indice de Riesgo  (Post-Mitigacion)"
-                  description="Ha ocurrido un error al cargar el numero de reportes por indice de riesgo post-mitigacion..."
+                  title="Numero de Reportes por Cada Indice de Riesgo  (Post-Mitigación)"
+                  description="Ha ocurrido un error al cargar el numero de reportes por indice de riesgo post-mitigación..."
                 />
               </>
             )}
@@ -288,13 +285,13 @@ const GeneralReportStats = () => {
               </div>
             ) : totalRiskData && totalRiskData.length > 0 ? (
               <PieChartComponent
-                title="Por Índice de Riesgo Pre-Mitigación"
+                title="Índice de Riesgo Pre-Mitigación"
                 data={totalRiskData}
               />
             ) : (
               <>
                 <Message
-                  title="Por Índice de Riesgo Pre-Mitigación"
+                  title="Índice de Riesgo Pre-Mitigación"
                   description="No hay datos para mostrar"
                 />
               </>
@@ -319,12 +316,12 @@ const GeneralReportStats = () => {
             ) : totalPostRiskData && totalPostRiskData.length > 0 ? (
               <MultipleBarChartComponent
                 data={totalPostRiskData}
-                title="Numero de Reportes por Cada Indice de Riesgo "
+                title="Indice de Riesgo por Reporte (Post-Mitigación)"
               />
             ) : (
               <>
                 <Message
-                  title="Numero de Reportes por Cada Indice de Riesgo "
+                  title="Indice de Riesgo por Reporte (Post-Mitigación)"
                   description="No hay datos para mostrar"
                 />
               </>
@@ -349,12 +346,12 @@ const GeneralReportStats = () => {
             ) : totalPostRiskData && totalPostRiskData.length > 0 ? (
               <PieChartComponent
                 data={totalPostRiskData}
-                title="Porcentaje de Indice de Riesgo Post-Mitigacion"
+                title="Indice de Riesgo Post-Mitigacion"
               />
             ) : (
               <>
                 <Message
-                  title="Porcentaje de Indice de Riesgo Post-Mitigacion"
+                  title="Indice de Riesgo Post-Mitigacion"
                   description="No hay datos para mostrar"
                 />
               </>
@@ -379,12 +376,12 @@ const GeneralReportStats = () => {
             ) : reportSourceTypeData && reportSourceTypeData.length > 0 ? (
               <MultipleBarChartComponent
                 data={reportSourceTypeData}
-                title="Numero de Reportes por Tipo de Fuente"
+                title=" Reportes vs Tipo de fuente"
               />
             ) : (
               <>
                 <Message
-                  title="Numero de Reportes por Tipo de Fuente"
+                  title="Reportes vs Tipo de fuente"
                   description="No hay datos para mostrar"
                 />
               </>
@@ -409,12 +406,12 @@ const GeneralReportStats = () => {
             ) : reportSourceNameData && reportSourceNameData.length > 0 ? (
               <MultipleBarChartComponent
                 data={reportSourceNameData}
-                title="Numero de Reportes Voluntarios vs Nombre de la Fuente"
+                title="Reportes vs Fuente"
               />
             ) : (
               <>
                 <Message
-                  title="Numero de Reportes Voluntarios vs Nombre de la Fuente"
+                  title="Reportes vs Fuente"
                   description="No hay datos para mostrar"
                 />
               </>
@@ -439,12 +436,12 @@ const GeneralReportStats = () => {
             ) : reportsByAreaData && reportsByAreaData.length > 0 ? (
               <MultipleBarChartComponent
                 data={reportsByAreaData}
-                title="Numero de Reportes vs Area de Identificación"
+                title="Reportes vs Area de Identificación"
               />
             ) : (
               <>
                 <Message
-                  title="Numero de Reportes vs Area de Identificación"
+                  title="Reportes vs Area de Identificación"
                   description="No hay datos para mostrar"
                 />
               </>

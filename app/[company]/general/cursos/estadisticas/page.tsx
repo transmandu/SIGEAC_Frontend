@@ -1,6 +1,5 @@
 "use client";
 import BarChartComponent from "@/components/charts/BarChartComponent";
-import BarChartCourseComponent from "@/components/charts/BarChartCourseComponent";
 import { PieChartComponent } from "@/components/charts/PieChartComponent";
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import DataFilter from "@/components/misc/DataFilter";
@@ -75,7 +74,6 @@ const CourseStatsPage = () => {
     data: barChartData,
     isLoading: isLoadingBarChart,
     isError: isErrorBarChart,
-    refetch: refetchBarChart,
   } = useGetCourseStats(
     params.from || format(startOfMonth(new Date()), "yyyy-MM-dd"),
     params.to || format(new Date(), "yyyy-MM-dd"),
@@ -96,10 +94,6 @@ const CourseStatsPage = () => {
             value: barChartData?.closed ?? 0,
           },
         ];
-
-  useEffect(() => {
-    refetchBarChart();
-  }, [params.from, params.to, refetchBarChart]);
 
   return (
     <ContentLayout title="Gráficos Estadísticos de Cursos">

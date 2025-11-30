@@ -71,7 +71,7 @@ export default function DashboardSummary({
       <div className="flex flex-col text-center mb-12">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {isLoadingBarChart ? (
-            <div className="flex justify-center">
+            <div className="flex justify-center items-center">
               <Loader2 className="animate-spin" />
             </div>
           ) : isErrorBarChart ? (
@@ -239,7 +239,7 @@ export default function DashboardSummary({
                 {newReports?.voluntary?.map((report) => (
                   <div
                     key={report.id}
-                    className="p-4 border rounded flex flex-col sm:flex-col lg:flex-row gap-2 w-full items-center justify-between"
+                    className="p-4 border rounded flex flex-col sm:flex-col lg:flex-row gap-2 w-full items-center justify-between mb-2"
                   >
                     <p>Fecha: {dateFormat(report.report_date, "yyyy-MM-dd")}</p>
                     <p>Lugar: {report.danger_location}</p>

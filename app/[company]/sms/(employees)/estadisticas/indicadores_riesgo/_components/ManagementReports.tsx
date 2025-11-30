@@ -124,9 +124,6 @@ export const ManagementReports: React.FC<ManagementReportsProps> = ({
 
     return (
       <>
-        <h2 className="text-sm sm:text-base font-bold">
-          Peligros Identificados vs Gestionados
-        </h2>
         <BarChartComponent
           data={barChartData}
           title="Peligros Identificados vs Gestionados"

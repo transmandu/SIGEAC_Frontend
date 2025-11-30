@@ -1,4 +1,3 @@
-// components/dashboard/WarehouseDashboard.tsx
 "use client";
 
 import { ContentLayout } from "@/components/layout/ContentLayout";
@@ -14,9 +13,9 @@ import {
 import { useState } from "react";
 
 // Subcomponents
-import ArticlesSummary from "@/components/dashboard/sections/ArticlesSummary";
 import SMSDashboardSummary from "./sections/SMS/SMSDashboardSummary";
 import SMSStatistics from "./sections/SMS/SMSStatistics";
+import SMSReportIndicator from "./sections/SMS/SMSReportIndicator";
 
 interface SMSDashboardProps {
   companySlug: string;
@@ -61,19 +60,19 @@ export default function SMSDashboard({
           <TabsList className="flex justify-center mb-0 space-x-3 border-b rounded-t-xl bg-muted/40">
             <TabsTrigger
               value="DASHBOARD"
-              className="flex gap-2 data-[state=active]:border-b-2 data-[state=active]:border-blue-600 data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-t-lg px-3 py-2"
+              className="flex gap-2 data-[state=active]:border-b-2 data-[state=active]:border-blue-600 data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-t-lg px-3 py-2 dark:data-[state=active]:text-black"
             >
               <LayoutDashboard className="size-4" /> Dashboard
             </TabsTrigger>
             <TabsTrigger
               value="REPORTS"
-              className="flex gap-2 data-[state=active]:border-b-2 data-[state=active]:border-blue-600 data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-t-lg px-3 py-2"
+              className="flex gap-2 data-[state=active]:border-b-2 data-[state=active]:border-blue-600 data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-t-lg px-3 py-2 dark:data-[state=active]:text-black"
             >
               <NotebookText className="size-4" /> Reportes
             </TabsTrigger>
             <TabsTrigger
               value="STATISTICS"
-              className="flex gap-2 data-[state=active]:border-b-2 data-[state=active]:border-blue-600 data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-t-lg px-3 py-2"
+              className="flex gap-2 data-[state=active]:border-b-2 data-[state=active]:border-blue-600 data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-t-lg px-3 py-2 dark:data-[state=active]:text-black"
             >
               <AreaChartIcon className="size-4" /> Estadisticas
             </TabsTrigger>
@@ -87,15 +86,11 @@ export default function SMSDashboard({
             </TabsContent>
 
             <TabsContent value="REPORTS">
-              {/* <ArticlesSummary
-                data={data}
-                isLoading={isLoading}
-                isError={isError}
-              /> */}
+              <SMSReportIndicator companySlug={companySlug} />
             </TabsContent>
 
             <TabsContent value="STATISTICS">
-              <SMSStatistics companySlug={companySlug} />
+              <SMSStatistics companySlug={companySlug} location={location_id} />
             </TabsContent>
           </div>
         </Tabs>

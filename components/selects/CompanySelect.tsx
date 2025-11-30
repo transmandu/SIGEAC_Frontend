@@ -85,7 +85,7 @@ const CompanySelect = () => {
 
   // Render
   return (
-    <div className="flex flex-col sm:flex-row items-center space-x-2 justify-center md:flex md:flex-1 gap-2">
+    <div className="hidden items-center space-x-2 justify-center md:flex md:flex-1">
       <Select
         value={getCompanySelectValue()}
         onValueChange={handleCompanySelect}

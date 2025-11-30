@@ -54,7 +54,11 @@ export const PieChartComponent: React.FC<Props> = ({
 
   return (
     <div className="w-full">
-      <h2 className="mb-2 text-sm font-semibold">{title}</h2>
+      {title && (
+        <h2 className="text-base md:text-lg font-semibold mb-4 pt-6 text-center">
+          {title}
+        </h2>
+      )}
 
       <div style={{ width: "100%", height }}>
         <ResponsiveContainer width="100%" height="100%">
