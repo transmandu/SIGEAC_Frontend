@@ -1,28 +1,27 @@
 "use client";
 
-import { BarChart3, Loader2 } from "lucide-react";
+import SimpleLineChart from "@/components/charts/SimpleLineChart";
+import { Message } from "@/components/misc/Message";
+import SimpleNotificationBell from "@/components/misc/SimpleNotificationBell";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Card,
-  CardHeader,
   CardContent,
   CardDescription,
+  CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { useRouter } from "next/navigation";
-import MultipleBarChartComponent from "@/components/charts/MultipleBarChartComponent";
-import { useGetTotalReportsStatsByYear } from "@/hooks/sms/useGetTotalReportsStatsByYear";
-import { format, startOfYear } from "date-fns";
-import BarChartComponent from "@/components/charts/BarChartComponent";
-import { Message } from "@/components/misc/Message";
-import MonthlyReportsChart from "@/components/charts/SimpleLineChart";
-import SimpleLineChart from "@/components/charts/SimpleLineChart";
 import { useGetNewReports } from "@/hooks/sms/useGetNewReports";
-import { dateFormat } from "@/lib/utils";
-import Link from "next/link";
-import { Badge } from "@/components/ui/badge";
 import { useGetReportsNumberByMonth } from "@/hooks/sms/useGetReportsByMonth";
 import { useGetSMSTraining } from "@/hooks/sms/useGetSMSTraining";
+import { useGetTotalReportsStatsByYear } from "@/hooks/sms/useGetTotalReportsStatsByYear";
+import { dateFormat } from "@/lib/utils";
+import { format, startOfYear } from "date-fns";
+import { BarChart3, Loader2 } from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 interface DashboardSummaryProps {
   companySlug: string;
@@ -236,6 +235,14 @@ export default function DashboardSummary({
               />
             ) : (
               <>
+                <div className="flex justify-end items-end gap-2 pb-2">
+                  <SimpleNotificationBell
+                    count={
+                      (newReports?.voluntary?.length ?? 0) +
+                      (newReports?.obligatory?.length ?? 0)
+                    }
+                  />
+                </div>
                 {newReports?.voluntary?.map((report) => (
                   <div
                     key={report.id}
