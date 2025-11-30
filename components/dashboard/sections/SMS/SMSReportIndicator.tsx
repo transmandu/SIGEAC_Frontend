@@ -114,7 +114,7 @@ export default function SMSReportIndicator({
       <div className="flex justify-center items-center p-4 rounded-lg shadow-md border">
         <div className="text-center w-full">
           <h3 className="text-lg font-semibold mb-2">
-            {isGoalAchieved ? "✅ Meta Alcanzada" : "Progreso Actual"}
+            {isGoalAchieved ? "Meta Alcanzada" : "Progreso Actual"}
           </h3>
           <p className="text-sm mb-2">
             Porcentaje de reportes gestionados:
