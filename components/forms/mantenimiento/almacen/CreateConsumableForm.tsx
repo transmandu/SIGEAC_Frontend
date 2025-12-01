@@ -409,7 +409,6 @@ const CreateConsumableForm = ({
               name="alternative_part_number"
               render={({ field }) => (
                 <FormItem className="w-full xl:col-span-1">
-                  <FormLabel>Nros. de parte alternos</FormLabel>
                   <FormControl>
                     <MultiInputField
                       values={field.value || []}
@@ -928,20 +927,22 @@ const CreateConsumableForm = ({
               </>
             ) : (
               /* Cantidad existente (solo al editar) */
-              <div className="w-full">
-                <FormLabel className="text-base font-medium">Cantidad existente</FormLabel>
-                <div className="mt-2">
-                  <Input 
-                    disabled 
-                    type="number" 
-                    value={initialData?.consumable?.quantity ?? 0}
-                    className="bg-muted font-semibold text-lg h-11"
-                  />
-                </div>
-                <p className="text-sm text-muted-foreground mt-1.5">
-                  Cantidad actual registrada del artículo.
-                </p>
-              </div>
+              <FormField
+                control={form.control}
+                name="quantity"
+                render={({ field }) => (
+                  <FormItem className="w-full">
+                    <FormLabel>Cantidad existente</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Ej: 10" {...field} />
+                    </FormControl>
+                    <FormDescription>
+                      Cantidad actual registrada del artículo.
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             )}
 
             {/* Cantidad mínima */}
@@ -953,8 +954,6 @@ const CreateConsumableForm = ({
                   <FormLabel>Cantidad Mínima</FormLabel>
                   <FormControl>
                     <Input 
-                      type="number" 
-                      min="0"
                       placeholder="Ej: 5" 
                       {...field}
                       disabled={busy}
