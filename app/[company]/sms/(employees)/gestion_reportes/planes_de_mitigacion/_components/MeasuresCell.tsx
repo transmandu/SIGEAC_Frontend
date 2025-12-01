@@ -1,19 +1,17 @@
   "use client";
 
   import { Button } from "@/components/ui/button";
-  import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogHeader,
-    DialogTitle,
-    DialogTrigger,
-  } from "@/components/ui/dialog";
-  import { Card } from "@/components/ui/card";
-  import { MitigationMeasure } from "@/types";
-  import Link from "next/link";
-  import { useCompanyStore } from "@/stores/CompanyStore";
-  import { formatDate } from "date-fns";
+import { Card } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { useCompanyStore } from "@/stores/CompanyStore";
+import { MitigationMeasure } from "@/types";
 
   interface MeasuresCellProps {
     measures: MitigationMeasure[];
@@ -31,6 +29,7 @@
               variant="outline"
               size="sm"
               className="min-w-[100px] md:min-w-[120px]"
+              disabled={measures?.length === 0}
             >
               {measures?.length > 0 ? (
                 <span className="flex items-center gap-1 md:gap-2">

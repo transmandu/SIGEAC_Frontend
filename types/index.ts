@@ -884,6 +884,8 @@ export type VoluntaryReport = {
   reporter_email?: string;
   image?: File | string;
   document?: File | string;
+  imageUrl?: string;
+  documentUrl?: string;
 };
 
 export type DangerIdentification = {

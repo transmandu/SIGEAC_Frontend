@@ -10,19 +10,30 @@ import { DangerIdentification } from "@/types";
 
 export const columns: ColumnDef<DangerIdentification>[] = [
   {
-    accessorKey: "voluntary_report",
+    accessorFn: (row) => {
+      if (row.voluntary_report?.report_number) {
+        return `RVP-${row.voluntary_report.report_number}`;
+      }
+      if (row.obligatory_report?.report_number) {
+        return `ROS-${row.obligatory_report.report_number}`;
+      }
+      return "N/A";
+    },
+    accessorKey: "report_number", // IMPORTANTE: usar id único
     header: ({ column }) => (
       <DataTableColumnHeader filter column={column} title="Nº de Reporte" />
     ),
     cell: ({ row }) => {
       return (
         <div className="flex justify-center">
-          {row.original.voluntary_report &&
-          row.original.voluntary_report.report_number ? (
-            <p className="font-bold">RVP-{row.original.voluntary_report.report_number}</p>
-          ) : row.original.obligatory_report &&
-            row.original.obligatory_report.report_number ? (
-            <p className="font-bold">ROS-{row.original.obligatory_report.report_number}</p>
+          {row.original.voluntary_report?.report_number ? (
+            <p className="font-bold">
+              RVP-{row.original.voluntary_report.report_number}
+            </p>
+          ) : row.original.obligatory_report?.report_number ? (
+            <p className="font-bold">
+              ROS-{row.original.obligatory_report.report_number}
+            </p>
           ) : (
             <p>N/A</p>
           )}
@@ -58,7 +69,11 @@ export const columns: ColumnDef<DangerIdentification>[] = [
   {
     accessorKey: "consequence_to_evaluate",
     header: ({ column }) => (
-      <DataTableColumnHeader filter column={column} title="Consecuencia a Evaluar" />
+      <DataTableColumnHeader
+        filter
+        column={column}
+        title="Consecuencia a Evaluar"
+      />
     ),
     cell: ({ row }) => {
       return (
@@ -71,7 +86,11 @@ export const columns: ColumnDef<DangerIdentification>[] = [
   {
     accessorKey: "information_source",
     header: ({ column }) => (
-      <DataTableColumnHeader filter column={column} title="Fuente de Informacion" />
+      <DataTableColumnHeader
+        filter
+        column={column}
+        title="Fuente de Informacion"
+      />
     ),
     cell: ({ row }) => {
       return (

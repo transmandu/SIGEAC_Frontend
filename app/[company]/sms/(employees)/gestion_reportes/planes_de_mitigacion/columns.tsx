@@ -8,13 +8,21 @@ import { ReportNumberCell } from "./_components/ReportNumberCell";
 import { MeasuresCell } from "./_components/MeasuresCell";
 import { RiskAnalysisCell } from "./_components/RiskAnalysisCell";
 
-
 // Columnas de la tabla (responsive)
 export const columns: ColumnDef<MitigationTable>[] = [
   {
     accessorKey: "report_number",
+    accessorFn: (row) => {
+      if (row.obligatory_report) {
+        return `ROS-${row.obligatory_report.report_number}`; // ← CON PREFIJO
+      }
+      if (row.voluntary_report) {
+        return `ROS-${row.voluntary_report.report_number}`; // ← CON PREFIJO
+      }
+      return "N/A";
+    },
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Reporte" filter />
+      <DataTableColumnHeader column={column} filter title="Reporte" />
     ),
     cell: ({ row }) => (
       <div className="flex justify-center">

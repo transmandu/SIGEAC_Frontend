@@ -9,13 +9,19 @@ interface ReportNumberCellProps {
   report_id?: number;
 }
 
+export const getFullReportNumber = (reportNumber?: string, type?: string) => {
+  if (!reportNumber) return "N/A";
+  const prefix = type === "obligatory" ? "ROS-" : "RVP-"; // Ajusta según prefijos reales
+  return `${prefix}${reportNumber}`;
+};
+
 export const ReportNumberCell = ({
   reportNumber,
   type,
   report_id,
 }: ReportNumberCellProps) => {
   const { selectedCompany } = useCompanyStore();
-
+  const displayNumber = getFullReportNumber(reportNumber, type);
   if (!reportNumber || !selectedCompany) return null;
 
   const href =
@@ -29,7 +35,7 @@ export const ReportNumberCell = ({
         href={href}
         className="ml-2 font-bold hover:scale-105 transition-all cursor-pointer"
       >
-        ROS-{reportNumber}
+        {displayNumber}
       </Link>
     </div>
   );

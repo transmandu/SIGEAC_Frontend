@@ -15,27 +15,42 @@ const fetchVoluntaryReportById = async ({
     `/${company}/sms/voluntary-reports/${id}`
   );
 
-  // Si hay imagen, crear la URL blob inmediatamente
-  if (data.image) {
-    const encodedFilePath: string = btoa(data.image);
-    try {
-      const imageResponse = await axiosInstance.get(
-        `/${company}/report-image/${encodedFilePath}`,
-        {
-          responseType: "blob",
-        }
-      );
-
-      const blob = new Blob([imageResponse.data]);
-      data.imageUrl = URL.createObjectURL(blob);
-    } catch (error) {
-      console.error("Error loading image:", error);
-      data.imageUrl = null;
+  // Solo cargar URLs de imagen y documento
+  const loadUrls = async () => {
+    // Cargar imagen
+    if (data.image) {
+      try {
+        const encodedImagePath = btoa(data.image);
+        const imageResponse = await axiosInstance.get(
+          `/${company}/sms/image/${encodedImagePath}`,
+          { responseType: "blob" }
+        );
+        data.imageUrl = URL.createObjectURL(new Blob([imageResponse.data]));
+      } catch (error) {
+        console.error("Error loading image:", error);
+        data.imageUrl = null;
+      }
     }
-  } else {
-    data.imageUrl = null;
-  }
 
+    // Cargar documento
+    if (data.document) {
+      try {
+        const encodedDocumentPath = btoa(data.document);
+        const documentResponse = await axiosInstance.get(
+          `/${company}/sms/document/${encodedDocumentPath}`,
+          { responseType: "blob" }
+        );
+        data.documentUrl = URL.createObjectURL(
+          new Blob([documentResponse.data])
+        );
+      } catch (error) {
+        console.error("Error loading document:", error);
+        data.documentUrl = null;
+      }
+    }
+  };
+
+  await loadUrls();
   return data;
 };
 
@@ -59,6 +74,7 @@ export type GetVoluntaryReport = {
   image?: string;
   document?: string;
   imageUrl?: string;
+  documentUrl?: string;
 };
 
 export const useGetVoluntaryReportById = ({
@@ -75,14 +91,13 @@ export const useGetVoluntaryReportById = ({
     enabled: !!company,
   });
 
-  // Cleanup de la imagen cuando el componente se desmonta o los datos cambian
+  // Cleanup de URLs
   useEffect(() => {
     return () => {
-      if (query.data?.imageUrl) {
-        URL.revokeObjectURL(query.data.imageUrl);
-      }
+      if (query.data?.imageUrl) URL.revokeObjectURL(query.data.imageUrl);
+      if (query.data?.documentUrl) URL.revokeObjectURL(query.data.documentUrl);
     };
-  }, [query.data?.imageUrl]);
-console.log("imageUrl",query.data?.imageUrl);
+  }, [query.data?.imageUrl, query.data?.documentUrl]);
+
   return query;
 };

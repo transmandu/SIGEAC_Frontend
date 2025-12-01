@@ -22,18 +22,16 @@ import {
   AlertTriangle,
   Calendar,
   ChevronRight,
-  File,
   FileText,
   Loader2,
   Mail,
   MapPin,
   Phone,
-  User,
+  User
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useEffect } from "react";
 
 const ShowVoluntaryReport = () => {
   const { report_id } = useParams<{ report_id: string }>();
@@ -56,7 +54,7 @@ const ShowVoluntaryReport = () => {
     if (!voluntaryReport) return null;
 
     return (
-      <div className="flex flex-wrap gap-3 justify-center mb-0">
+      <div className="flex flex-wrap gap-3 justify-center mb-10">
         {voluntaryReport.status === "ABIERTO" && (
           <>
             {!voluntaryReport.danger_identification_id ? (
@@ -308,9 +306,10 @@ const ShowVoluntaryReport = () => {
               <DialogTrigger asChild>
                 <div className="relative group w-full max-w-sm h-64 mx-auto cursor-pointer">
                   {/* ✅ USAR img NORMAL */}
-                  <img
+                  <Image
                     src={voluntaryReport.imageUrl}
                     alt="Imagen del reporte"
+                    fill
                     crossOrigin="use-credentials"
                     className="w-full h-full object-contain rounded-md border group-hover:border-gray-400 transition-all"
                     onError={(e) => {
@@ -331,8 +330,9 @@ const ShowVoluntaryReport = () => {
                 </DialogHeader>
                 <div className="relative h-[60vh] flex justify-center">
                   {/* ✅ USAR img NORMAL en el dialog también */}
-                  <img
+                  <Image
                     src={voluntaryReport.imageUrl}
+                    fill
                     alt="Imagen completa del reporte"
                     className="max-w-full max-h-full object-contain rounded-lg border"
                   />

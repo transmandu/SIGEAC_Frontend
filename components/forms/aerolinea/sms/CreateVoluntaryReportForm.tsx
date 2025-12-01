@@ -695,11 +695,7 @@ export function CreateVoluntaryReportForm({
                     typeof initialData.image === "string" ? (
                     <div className="relative">
                       <Image
-                        src={
-                          initialData.image.startsWith("data:image")
-                            ? initialData.image
-                            : `data:image/jpeg;base64,${initialData.image}`
-                        }
+                        src={ `${initialData.imageUrl}`}
                         alt="Preview"
                         width={64}
                         height={64}
