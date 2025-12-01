@@ -28,7 +28,7 @@ export default function DeleteVoluntaryReportDialog(data: data) {
   const handleDelete = async () => {
     try {
       await deleteVoluntaryReport.mutateAsync(data);
-      router.push(`/${data.company}/sms/reportes/reportes_voluntarios`);
+      router.push(`/${data.company}/sms/reportes`);
     } catch (error) {
       console.error("No se pudo eliminar el reportes", error);
     }

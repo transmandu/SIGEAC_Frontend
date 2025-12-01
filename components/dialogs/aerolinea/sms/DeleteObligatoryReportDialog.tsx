@@ -28,7 +28,7 @@ export default function DeleteObligatoryReportDialog(data: data) {
   const handleDelete = async () => {
     try {
       await deleteObligatoryReport.mutateAsync(data);
-      router.push(`/${data.company}/sms/reportes/reportes_obligatorios`);
+      router.push(`/${data.company}/sms/reportes`);
     } catch (error) {
       console.error("No se pudo eliminar el reportes", error);
     }
