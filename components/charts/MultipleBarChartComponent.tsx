@@ -42,8 +42,12 @@ const MultipleBarChartComponent: React.FC<BarChartProps> = ({
   }
 
   return (
-    <>
-      <h2 className="mb-2 text-sm font-semibold text-wrap">{title}</h2>
+    <div className="w-full">
+      {title && (
+        <h2 className="text-base md:text-lg font-semibold mb-4 pt-6 text-center">
+          {title}
+        </h2>
+      )}
       <div style={{ width: "100%", height }}>
         <ResponsiveContainer width="100%" height="100%">
           <BarChart
@@ -93,7 +97,7 @@ const MultipleBarChartComponent: React.FC<BarChartProps> = ({
           </BarChart>
         </ResponsiveContainer>
       </div>
-    </>
+    </div>
   );
 };
 

@@ -91,8 +91,8 @@ export const useDeleteVoluntaryReport = () => {
     }) => {
       await axiosInstance.delete(`/${company}/sms/voluntary-reports/${id}`);
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["danger-identifications"] });
+    onSuccess: (_,data) => {
+      queryClient.invalidateQueries({ queryKey: ["danger-identifications", data.company] });
       queryClient.invalidateQueries({ queryKey: ["voluntary-reports"] });
       queryClient.invalidateQueries({ queryKey: ["analysis"] });
       toast.success("¡Eliminado!", {

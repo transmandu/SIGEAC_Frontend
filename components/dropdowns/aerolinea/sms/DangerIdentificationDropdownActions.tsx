@@ -212,6 +212,7 @@ const DangerIdentificationDropdownActions = ({
               <DialogTitle className="text-center"></DialogTitle>
               {dangerIdentification.voluntary_report ? (
                 <CreateDangerIdentificationForm
+                  onClose={() => setOpenEdit(false)}
                   id={id}
                   initialData={dangerIdentification}
                   isEditing={true}

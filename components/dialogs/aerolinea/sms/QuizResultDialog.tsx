@@ -6,16 +6,20 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { CheckCircle2, XCircle, PartyPopper } from "lucide-react";
+import { CheckCircle2, XCircle, PartyPopper, Lightbulb } from "lucide-react";
 import Confetti from "react-confetti";
 import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
+import { Button } from "@/components/ui/button";
 
 export type QuizDetail = {
   question_id: number;
   question_text: string;
+  user_answer: string;
   is_correct: boolean;
   type: string;
+  correct_answer?: string;
+  feedback?: string;
 };
 
 export type QuizResults = {
@@ -95,10 +99,8 @@ export function QuizResultsDialog({
           <DialogHeader>
             <DialogTitle className="text-center text-2xl">
               {isPerfectScore ? (
-                <div className="flex items-center justify-center gap-2 text-yellow-600">
-                  <PartyPopper className="h-6 w-6" />
+                <div className="text-3xl font-extrabold bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 bg-clip-text text-transparent">
                   ¡Perfecto! 100%
-                  <PartyPopper className="h-6 w-6" />
                 </div>
               ) : (
                 "¡Quiz Completado!"
@@ -118,16 +120,21 @@ export function QuizResultsDialog({
               border rounded-lg p-4 text-center transition-all duration-300
               ${
                 isPerfectScore
-                  ? "bg-gradient-to-r from-yellow-50 to-amber-50 border-yellow-100 shadow-lg"
-                  : "bg-blue-50 border-blue-200"
+                  ? "p-8 border-4 border-amber-400 shadow-inner shadow-amber-200 shadow-xl rounded-lg"
+                  : ""
               }
             `}
             >
+              {!isPerfectScore && (
+                <div className="text-3xl font-bold mb-2 text-blue-700">
+                  Puntuación: {results.score}%
+                </div>
+              )}
               <div className="flex justify-center gap-6 mt-3 text-sm">
-                <span className="text-green-600">
+                <span className="text-green-600 font-bold">
                   ✓ {results.correct_answers} correctas
                 </span>
-                <span className="text-red-600">
+                <span className="text-red-600 font-bold">
                   ✗ {results.incorrect_answers} incorrectas
                 </span>
               </div>
@@ -139,11 +146,7 @@ export function QuizResultsDialog({
               {results.details.map((detail, index) => (
                 <div
                   key={detail.question_id}
-                  className={`p-3 border rounded-lg ${
-                    detail.is_correct
-                      ? "bg-green-50 border-green-200"
-                      : "bg-red-50 border-red-200"
-                  }`}
+                  className={`p-4 border rounded-lg`}
                 >
                   <div className="flex items-start gap-3">
                     {detail.is_correct ? (
@@ -151,17 +154,41 @@ export function QuizResultsDialog({
                     ) : (
                       <XCircle className="h-5 w-5 text-red-600 mt-0.5 flex-shrink-0" />
                     )}
-                    <div className="flex-1">
-                      <p className="font-medium">
+                    <div className="flex-1 space-y-2">
+                      <p className="font-medium ">
                         {index + 1}. {detail.question_text}
                       </p>
-                      <p
-                        className={`text-sm mt-1 ${
-                          detail.is_correct ? "text-green-700" : "text-red-700"
-                        }`}
-                      >
-                        {detail.is_correct ? "Correcto" : "Incorrecto"}
-                      </p>
+
+                      {/* Respuesta del usuario */}
+                      <div className="flex items-start gap-2">
+                        <span className="text-sm font-medium min-w-24">
+                          Tu respuesta:
+                        </span>
+                        <span
+                          className={`text-sm ${
+                            detail.is_correct
+                              ? "text-green-700 dark:text-green-300"
+                              : "text-red-600 dark:text-red-500"
+                          } font-bold`}
+                        >
+                          {detail.user_answer}
+                        </span>
+                      </div>
+
+                      {/* Respuesta correcta (solo se muestra cuando es incorrecta) */}
+                      {!detail.is_correct && detail.correct_answer && (
+                        <div className="flex items-start gap-2 bg-green-50/25 dark:bg-green-500/25 p-2 rounded border border-green-200">
+                          <Lightbulb className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
+                          <div>
+                            <span className="text-sm font-medium text-green-800 dark:text-white">
+                              Respuesta correcta:{" "}
+                            </span>
+                            <span className="text-sm text-green-700 dark:text-green-300 font-bold">
+                              {detail.correct_answer}
+                            </span>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -170,19 +197,20 @@ export function QuizResultsDialog({
 
             {/* Botón de cierre */}
             <div className="flex justify-center pt-4">
-              <button
+              <Button
+                variant="default"
                 onClick={() => onOpenChange(false)}
                 className={`
                   px-6 py-2 rounded-lg transition-colors border font-medium
                   ${
                     isPerfectScore
-                      ? "border-gray-400 text-gray-700 bg-white hover:border-gray-600 hover:text-gray-900"
-                      : "bg-blue-600 text-white hover:bg-blue-700 border-transparent"
+                      ? "hover:border-yellow-500"
+                      : "text-white hover:bg-blue-700 border-transparent"
                   }
                 `}
               >
-                {"Cerrar"}
-              </button>
+                {isPerfectScore ? "Cerrar" : "Cerrar"}
+              </Button>
             </div>
           </div>
         </DialogContent>

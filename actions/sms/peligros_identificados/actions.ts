@@ -56,8 +56,8 @@ export const useCreateDangerIdentification = () => {
       );
       return response.data;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["danger-identifications"] });
+    onSuccess: (_,data) => {
+      queryClient.invalidateQueries({ queryKey: ["danger-identifications", data.company] });
       queryClient.invalidateQueries({ queryKey: ["voluntary-reports"] });
       queryClient.invalidateQueries({ queryKey: ["voluntary-report"] });
       queryClient.invalidateQueries({ queryKey: ["analysis"] });
@@ -91,8 +91,8 @@ export const useDeleteDangerIdentification = () => {
         `/${company}/sms/danger-identifications/${id}`
       );
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["danger-identifications"] });
+    onSuccess: (_,data) => {
+      queryClient.invalidateQueries({ queryKey: ["danger-identifications", data.company] });
       queryClient.invalidateQueries({ queryKey: ["voluntary-reports"] });
       queryClient.invalidateQueries({
         queryKey: ["danger-identification-by-id"],
@@ -124,8 +124,8 @@ export const useUpdateDangerIdentification = () => {
         data
       );
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["danger-identifications"] });
+    onSuccess: (_,data) => {
+      queryClient.invalidateQueries({ queryKey: ["danger-identifications", data.company] });
       queryClient.invalidateQueries({ queryKey: ["danger-identification"] });
       toast.success("¡Actualizado!", {
         description: `La identificacion de peligro ha sido actualizada correctamente.`,

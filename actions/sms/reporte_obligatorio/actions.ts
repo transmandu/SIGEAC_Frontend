@@ -98,8 +98,8 @@ export const useDeleteObligatoryReport = () => {
     }) => {
       await axiosInstance.delete(`/${company}/sms/obligatory-reports/${id}`);
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["danger-identifications"] });
+    onSuccess: (_,data) => {
+      queryClient.invalidateQueries({ queryKey: ["danger-identifications", data.company] });
       queryClient.invalidateQueries({ queryKey: ["obligatory-reports"] });
       toast.success("¡Eliminado!", {
         description: `¡El reporte ha sido eliminada correctamente!`,

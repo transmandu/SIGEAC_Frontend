@@ -1,7 +1,5 @@
 "use client";
 
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import qs from "query-string";
 import {
   Popover,
   PopoverContent,
@@ -10,7 +8,7 @@ import {
 import { Button } from "../ui/button";
 import { format, startOfMonth, endOfMonth, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { ChevronDown } from "lucide-react";
 import { toast } from "sonner";
 import { Calendar } from "../ui/calendar";
@@ -22,18 +20,16 @@ interface DoubleDateFilterProps {
     firstRange: { start: string; end: string };
     secondRange: { start: string; end: string };
   }) => void;
+  onReset?: () => void; 
 }
 
 const DoubleDateFilter = ({
   initialFirstRange,
   initialSecondRange,
   onDateChange,
+  onReset, 
 }: DoubleDateFilterProps) => {
-  const router = useRouter();
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
-
-  // Inicializar estados con los valores de las props
+  // Inicializar estados SOLO con las props iniciales
   const [firstRange, setFirstRange] = useState<{ from?: Date; to?: Date }>(
     () => {
       if (initialFirstRange) {
@@ -57,29 +53,6 @@ const DoubleDateFilter = ({
       return {};
     }
   );
-
-  // Sincronizar con cambios en los parámetros de la URL
-  useEffect(() => {
-    const params = new URLSearchParams(searchParams.toString());
-    const fromFirst = params.get("from_first");
-    const toFirst = params.get("to_first");
-    const fromSecond = params.get("from_second");
-    const toSecond = params.get("to_second");
-
-    if (fromFirst && toFirst) {
-      setFirstRange({
-        from: parseISO(fromFirst),
-        to: parseISO(toFirst),
-      });
-    }
-
-    if (fromSecond && toSecond) {
-      setSecondRange({
-        from: parseISO(fromSecond),
-        to: parseISO(toSecond),
-      });
-    }
-  }, [searchParams]);
 
   const pushToUrl = () => {
     if (!firstRange.from || !secondRange.from) {
@@ -111,33 +84,17 @@ const DoubleDateFilter = ({
       },
     };
 
-    // Llamar a la función de callback
+    // SOLO llamar a la función de callback
     onDateChange(ranges);
-
-    // También actualizar la URL directamente
-    const query = {
-      from_first: ranges.firstRange.start,
-      to_first: ranges.firstRange.end,
-      from_second: ranges.secondRange.start,
-      to_second: ranges.secondRange.end,
-    };
-
-    const url = qs.stringifyUrl(
-      { url: pathname, query },
-      { skipEmptyString: true, skipNull: true }
-    );
-    router.push(url);
   };
 
   const handleFirstRangeChange = (month?: Date) => {
     if (!month) return;
 
     setFirstRange((prev) => {
-      // Si no hay fecha seleccionada o ya se completó el rango, empezar uno nuevo
       if (!prev.from || prev.to) {
         return { from: month, to: undefined };
       }
-      // Si el mes seleccionado es anterior al from, intercambiar
       if (month < prev.from) {
         return { from: month, to: prev.from };
       }
@@ -152,7 +109,6 @@ const DoubleDateFilter = ({
       if (!prev.from || prev.to) {
         return { from: month, to: undefined };
       }
-      // Si el mes seleccionado es anterior al from, intercambiar
       if (month < prev.from) {
         return { from: month, to: prev.from };
       }
@@ -160,16 +116,14 @@ const DoubleDateFilter = ({
     });
   };
 
-  const resetFilters = () => {
+  const handleReset = () => {
     setFirstRange({});
     setSecondRange({});
 
-    // Limpiar también los parámetros de la URL
-    const url = qs.stringifyUrl(
-      { url: pathname, query: {} },
-      { skipEmptyString: true, skipNull: true }
-    );
-    router.push(url);
+    // Si se proporcionó onReset, llamarlo
+    if (onReset) {
+      onReset();
+    }
   };
 
   return (
@@ -199,6 +153,17 @@ const DoubleDateFilter = ({
               selected={firstRange.to || firstRange.from}
               onSelect={handleFirstRangeChange}
               locale={es}
+              className="rounded-md border shadow-sm"
+              captionLayout="dropdown-buttons"
+              fromYear={2000}
+              toYear={new Date().getFullYear()}
+              components={{
+                Dropdown: (props) => (
+                  <select {...props} className="bg-popover text-popover-foreground">
+                    {props.children}
+                  </select>
+                ),
+              }}
               initialFocus
             />
           </PopoverContent>
@@ -235,7 +200,7 @@ const DoubleDateFilter = ({
       </div>
       {/* Botones */}
       <div className="flex justify-center items-center gap-2">
-        <Button onClick={resetFilters} className="w-90px" variant="outline">
+        <Button onClick={handleReset} className="w-90px" variant="outline">
           Reiniciar
         </Button>
         <Button
@@ -251,6 +216,3 @@ const DoubleDateFilter = ({
 };
 
 export default DoubleDateFilter;
-
-
-

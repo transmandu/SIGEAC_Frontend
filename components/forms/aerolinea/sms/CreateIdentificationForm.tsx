@@ -54,25 +54,41 @@ const FormSchema = z.object({
     .refine((val) => !isNaN(val.getTime()), { message: "Invalid Date" }),
   current_defenses: z
     .string()
-    .min(3, { message: "Las defensas actuales deben tener al menos 3 caracteres" })
-    .max(245, { message: "Las defensas actuales no deben exceder los 245 caracteres" }),
+    .min(3, {
+      message: "Las defensas actuales deben tener al menos 3 caracteres",
+    })
+    .max(245, {
+      message: "Las defensas actuales no deben exceder los 245 caracteres",
+    }),
   description: z
     .string()
     .min(3, { message: "La descripcion debe tener al menos 3 caracteres" })
     .max(245, { message: "La descripcion no debe exceder los 245 caracteres" }),
   possible_consequences: z
     .string()
-    .min(3, { message: "Las posibles consecuencias deben tener al menos 3 caracteres" })
-    .max(245, { message: "Las posibles consecuencias no deben exceder los 245 caracteres" }),
+    .min(3, {
+      message: "Las posibles consecuencias deben tener al menos 3 caracteres",
+    })
+    .max(245, {
+      message: "Las posibles consecuencias no deben exceder los 245 caracteres",
+    }),
   consequence_to_evaluate: z
     .string()
-    .min(3, { message: "La consecuencia a evaluar debe tener al menos 3 caracteres" })
-    .max(245, { message: "La consecuencia a evaluar no debe exceder los 245 caracteres" }),
+    .min(3, {
+      message: "La consecuencia a evaluar debe tener al menos 3 caracteres",
+    })
+    .max(245, {
+      message: "La consecuencia a evaluar no debe exceder los 245 caracteres",
+    }),
   danger_type: z.string().min(1, "Este campo es obligatorio"),
   root_cause_analysis: z
     .string()
-    .min(3, { message: "El analisis causa raiz debe tener al menos 3 caracteres" })
-    .max(500, { message: "El analisis causa raiz no debe exceder los 500 caracteres" }),
+    .min(3, {
+      message: "El analisis causa raiz debe tener al menos 3 caracteres",
+    })
+    .max(900, {
+      message: "El analisis causa raiz no debe exceder los 900 caracteres",
+    }),
   information_source_id: z.string(),
 });
 
@@ -83,9 +99,11 @@ interface FormProps {
   initialData?: DangerIdentification;
   isEditing?: boolean;
   reportType: string;
+  onClose?: () => void;
 }
 
 export default function CreateDangerIdentificationForm({
+  onClose,
   id,
   isEditing,
   initialData,
@@ -122,7 +140,8 @@ export default function CreateDangerIdentificationForm({
     resolver: zodResolver(FormSchema),
     defaultValues: {
       danger: initialData?.danger || "",
-      information_source_id: initialData?.information_source?.id.toString() || "",
+      information_source_id:
+        initialData?.information_source?.id.toString() || "",
       current_defenses: initialData?.current_defenses || "",
       risk_management_start_date: initialData?.risk_management_start_date
         ? addDays(new Date(initialData.risk_management_start_date), 1)
@@ -216,44 +235,47 @@ export default function CreateDangerIdentificationForm({
   };
 
   // --- ENVÍO ---
-const onSubmit = async (data: FormSchemaType) => {
-  try {
-    if (initialData && isEditing) {
-      // Actualización
-      await updateDangerIdentification.mutateAsync({
-        company: selectedCompany!.slug,
-        id: initialData.id.toString(),
-        data,
-      });
-    } else {
-      // Creación
-      const response = await createDangerIdentification.mutateAsync({
-        company: selectedCompany!.slug,
-        id, // id del reporte padre
-        reportType,
-        data,
-      });
+  const onSubmit = async (data: FormSchemaType) => {
+    try {
+      if (initialData && isEditing) {
+        // Actualización
+        await updateDangerIdentification.mutateAsync({
+          company: selectedCompany!.slug,
+          id: initialData.id.toString(),
+          data,
+        });
+        onClose?.();
+      } else {
+        // Creación
+        const response = await createDangerIdentification.mutateAsync({
+          company: selectedCompany!.slug,
+          id, // id del reporte padre
+          reportType,
+          data,
+        });
 
-      const newId = response.danger_identification_id;
+        const newId = response.danger_identification_id;
 
-      if (!newId) {
-        throw new Error("No se recibió el id de la identificación creada");
+        if (!newId) {
+          throw new Error("No se recibió el id de la identificación creada");
+        }
+
+        router.push(
+          `/${selectedCompany?.slug}/sms/gestion_reportes/peligros_identificados/${response.danger_identification_id}`
+        );
       }
-
-      // Redirige a la página de detalles de la identificación recién creada
-      router.push(
-        `/${selectedCompany?.slug}/sms/gestion_reportes/peligros_identificados/${response.danger_identification_id}`
-      );
+    } catch (error) {
+      console.error("Error al enviar el formulario:", error);
     }
-  } catch (error) {
-    console.error("Error al enviar el formulario:", error);
-  }
-};
 
+  };
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col space-y-4">
+      <form
+        onSubmit={form.handleSubmit(onSubmit)}
+        className="flex flex-col space-y-4"
+      >
         <FormLabel className="text-lg text-center m-2">
           Identificación de Peligro
         </FormLabel>
@@ -503,7 +525,10 @@ const onSubmit = async (data: FormSchemaType) => {
                     </FormControl>
                     <SelectContent>
                       {informationSources?.map((source) => (
-                        <SelectItem key={source.id} value={source.id.toString()}>
+                        <SelectItem
+                          key={source.id}
+                          value={source.id.toString()}
+                        >
                           {source.name}
                         </SelectItem>
                       ))}
@@ -521,7 +546,10 @@ const onSubmit = async (data: FormSchemaType) => {
             render={({ field }) => (
               <FormItem className="w-full">
                 <FormLabel>Tipo de peligro</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                >
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Seleccionar tipo de peligro" />
@@ -597,7 +625,12 @@ const onSubmit = async (data: FormSchemaType) => {
         </div>
 
         {/* --- BOTÓN ENVIAR --- */}
-        <Button type="submit">Enviar</Button>
+        <Button type="submit" disabled={createDangerIdentification.isPending || updateDangerIdentification.isPending}>
+          {createDangerIdentification.isPending || updateDangerIdentification.isPending ? (
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          ) : null}
+          {isEditing ? "Actualizar" : "Enviar"}
+        </Button>
       </form>
     </Form>
   );

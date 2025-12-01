@@ -37,7 +37,7 @@ const FormSchema = z.object({
   description: z
     .string()
     .min(3, { message: "La observacion debe tener al menos 3 caracteres" })
-    .max(75, { message: "La observacion no puede exceder los 75 caracteres" }),
+    .max(255, { message: "La observacion no puede exceder los 255 caracteres" }),
 
   date: z
     .date()

@@ -64,7 +64,12 @@ const BarChartComponent = ({
   ];
 
   return (
-    <>
+    <div className="w-full">
+
+      {title && (
+        <h2 className="text-base md:text-lg font-semibold mb-4 pt-6 text-center">{title}</h2>
+      )}
+
       <div style={{ width: "100%", height }}>
         <ResponsiveContainer width="100%" height="100%">
           <BarChart
@@ -76,7 +81,7 @@ const BarChartComponent = ({
               strokeDasharray="4"
               stroke={gridColor}
               opacity={1}
-               strokeWidth={2}
+              strokeWidth={2}
             />
 
             <XAxis
@@ -131,7 +136,7 @@ const BarChartComponent = ({
           </BarChart>
         </ResponsiveContainer>
       </div>
-    </>
+    </div>
   );
 };
 

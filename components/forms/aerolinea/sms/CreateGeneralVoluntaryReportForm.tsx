@@ -365,7 +365,6 @@ export function CreateGeneralVoluntaryReportForm({
                   </FormControl>
                   <SelectContent>
                     <SelectItem value="PZO">Puerto Ordaz</SelectItem>
-                    <SelectItem value="CBL">Ciudad Bolívar</SelectItem>
                   </SelectContent>
                 </Select>
                 <FormMessage />

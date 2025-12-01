@@ -1,6 +1,5 @@
 "use client";
 import BarChartComponent from "@/components/charts/BarChartComponent";
-import BarChartCourseComponent from "@/components/charts/BarChartCourseComponent";
 import { PieChartComponent } from "@/components/charts/PieChartComponent";
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import DataFilter from "@/components/misc/DataFilter";
@@ -9,19 +8,20 @@ import { useGetCourseStats } from "@/hooks/curso/useGetCourseStats";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { format, startOfMonth } from "date-fns";
 import { Loader2 } from "lucide-react";
-import { usePathname, useSearchParams } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
 const CourseStatsPage = () => {
   const { selectedCompany, selectedStation } = useCompanyStore();
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
 
   interface Params {
     from?: string;
     to?: string;
     [key: string]: string | undefined;
   }
-  const searchParams = useSearchParams();
-  const pathname = usePathname();
 
   const [params, setParams] = useState<Params>({
     from: format(startOfMonth(new Date()), "yyyy-MM-dd"),
@@ -44,13 +44,36 @@ const CourseStatsPage = () => {
     setParams(finalParams);
   }, [searchParams, pathname]);
 
-  // Hook calls for data fetching
+  // Manejar cambio de fechas desde DataFilter
+  const handleDateChange = (
+    dateRange: { from: Date; to: Date } | undefined
+  ) => {
+    if (!dateRange?.from || !dateRange?.to) return;
 
+    const newParams = new URLSearchParams(searchParams.toString());
+    newParams.set("from", format(dateRange.from, "yyyy-MM-dd"));
+    newParams.set("to", format(dateRange.to, "yyyy-MM-dd"));
+
+    router.push(`${pathname}?${newParams.toString()}`, { scroll: false });
+  };
+
+  // Manejar reset de fechas
+  const handleReset = () => {
+    const defaultFrom = format(startOfMonth(new Date()), "yyyy-MM-dd");
+    const defaultTo = format(new Date(), "yyyy-MM-dd");
+
+    const newParams = new URLSearchParams();
+    newParams.set("from", defaultFrom);
+    newParams.set("to", defaultTo);
+
+    router.push(`${pathname}?${newParams.toString()}`, { scroll: false });
+  };
+
+  // Hook calls for data fetching
   const {
     data: barChartData,
     isLoading: isLoadingBarChart,
     isError: isErrorBarChart,
-    refetch: refetchBarChart,
   } = useGetCourseStats(
     params.from || format(startOfMonth(new Date()), "yyyy-MM-dd"),
     params.to || format(new Date(), "yyyy-MM-dd"),
@@ -72,10 +95,6 @@ const CourseStatsPage = () => {
           },
         ];
 
-  useEffect(() => {
-    refetchBarChart();
-  }, [params.from, params.to, refetchBarChart]);
-
   return (
     <ContentLayout title="Gráficos Estadísticos de Cursos">
       <div className="flex flex-col space-y-4 mb-6">
@@ -84,7 +103,16 @@ const CourseStatsPage = () => {
             <Label className="text-lg font-semibold mb-2">
               Seleccionar Rango de Fechas:
             </Label>
-            <DataFilter />
+            {/* ✅ DataFilter conectado con las funciones de manejo */}
+            <DataFilter
+              onDateChange={handleDateChange}
+              onReset={handleReset}
+              initialDate={{
+                from:
+                  params.from || format(startOfMonth(new Date()), "yyyy-MM-dd"),
+                to: params.to || format(new Date(), "yyyy-MM-dd"),
+              }}
+            />
           </div>
         </div>
       </div>

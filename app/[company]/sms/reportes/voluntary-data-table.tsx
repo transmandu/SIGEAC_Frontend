@@ -1,5 +1,15 @@
 "use client";
 
+import { DataTablePagination } from "@/components/tables/DataTablePagination";
+import { DataTableViewOptions } from "@/components/tables/DataTableViewOptions";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import {
   ColumnDef,
   ColumnFiltersState,
@@ -11,21 +21,12 @@ import {
   SortingState,
   useReactTable,
 } from "@tanstack/react-table";
-import { DataTablePagination } from "@/components/tables/DataTablePagination";
-import { DataTableViewOptions } from "@/components/tables/DataTableViewOptions";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-import CreateVoluntaryReportDialog from "@/components/dialogs/aerolinea/sms/CreateVoluntaryReportDialog";
 import { Button } from "@/components/ui/button";
+import CreateVoluntaryReportDialog from "@/components/dialogs/aerolinea/sms/CreateVoluntaryReportDialog";
+import { BellRing } from "lucide-react";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -67,20 +68,9 @@ export function DataTable<TData, TValue>({
         </p>
       </div>
 
-      <div className="flex items-center py-4">
-        {/* <CreateVoluntaryReportDialog title="Nuevo Reporte" /> */}
-        <Button
-          onClick={() => {
-            router.push(
-              `/transmandu/sms/reportes/reportes_voluntarios/nuevo_reporte`
-            );
-          }}
-          variant="outline"
-          size="sm"
-          className=" hidden h-8 lg:flex"
-        >
-          Nuevo Reporte
-        </Button>
+      <div className="flex items-center justify-between py-4 gap-5">
+        <CreateVoluntaryReportDialog title="Nuevo" />
+
         <DataTableViewOptions table={table} />
       </div>
       <div className="rounded-md border mb-4">

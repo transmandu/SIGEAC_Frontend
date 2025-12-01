@@ -1,3 +1,4 @@
+// hooks/sms/useGetObligatoryReportAverage.ts
 import axiosInstance from "@/lib/axios";
 import { StatsByMonth } from "@/types";
 import { useQuery } from "@tanstack/react-query";
@@ -5,7 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 interface AverageReportsResponse {
   oldest_range: StatsByMonth;
   newest_range: StatsByMonth;
-};
+}
 
 const fetchObligatoryReportAverage = async (
   company: string | null,
@@ -28,7 +29,14 @@ export const useGetObligatoryReportAverage = (
   to_second: string
 ) => {
   return useQuery<AverageReportsResponse>({
-    queryKey: ["obligatory-reports-average-by-date-range"],
+    queryKey: [
+      "obligatory-reports-average-by-date-range",
+      company,
+      from_first,
+      to_first,
+      from_second,
+      to_second, // ✅ AGREGAR TODOS LOS PARÁMETROS A LA QUERY KEY
+    ],
     queryFn: () =>
       fetchObligatoryReportAverage(
         company,

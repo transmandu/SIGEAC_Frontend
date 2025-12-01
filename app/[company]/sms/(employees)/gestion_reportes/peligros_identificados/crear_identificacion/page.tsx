@@ -17,6 +17,7 @@ export default function CreateDangerIdentificationPage() {
       <div className="flex justify-center mt-6">
         <div className="w-full max-w-3xl bg-white p-6 rounded-2xl shadow-md">
           <CreateDangerIdentificationForm
+            
             id={Number(reporteId)}
             reportType="RVP"
           />

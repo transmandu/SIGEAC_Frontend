@@ -7,10 +7,9 @@ import { useGetDangerIdentificationsCountedByType } from "@/hooks/sms/useGetDang
 import { useGetPostRiskCountByDateRange } from "@/hooks/sms/useGetPostRiskByDateRange";
 import { useGetRiskCountByDateRange } from "@/hooks/sms/useGetRiskByDateRange";
 import { useGetVoluntaryReportingStatsByYear } from "@/hooks/sms/useGetVoluntaryReportingStatisticsByYear";
-import { useGetVoluntaryReportsCountedByAirportLocation } from "@/hooks/sms/useGetVoluntaryReportsCountedByAirportLocation";
 import { Loader2, Check, ChevronsUpDown, X } from "lucide-react";
-import { usePathname, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useMemo, useState } from "react";
 import { format, startOfMonth } from "date-fns";
 import { useGetIdentificationStatsBySourceName } from "@/hooks/sms/useGetIdentificationStatsBySourceName";
 import { useGetIdentificationStatsBySourceType } from "@/hooks/sms/useGetIdentificationStatsBySourceType";
@@ -31,16 +30,10 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
-import DynamicBarChart from "@/components/charts/DynamicBarChart";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import MultipleBarChartComponent from "@/components/charts/MultipleBarChartComponent";
 import { PieChartComponent } from "@/components/charts/PieChartComponent";
-
-interface Params {
-  from?: string;
-  to?: string;
-  [key: string]: string | undefined;
-}
+import { Message } from "@/components/misc/Message";
 
 const graphicsOptions = [
   {
@@ -101,129 +94,104 @@ const Statistics = () => {
   const { selectedCompany } = useCompanyStore();
   const [selectedGraphics, setSelectedGraphics] = useState<string[]>(["Todos"]);
   const [isOpen, setIsOpen] = useState(false);
-  const searchParams = useSearchParams();
+
+  const urlSearchParams = useSearchParams();
   const pathname = usePathname();
+  const router = useRouter();
 
-  const [params, setParams] = useState<Params>({
-    from: format(startOfMonth(new Date()), "yyyy-MM-dd"),
-    to: format(new Date(), "yyyy-MM-dd"),
-  });
-
-  // Hooks de datos
-  const {
-    data: barChartData,
-    isLoading: isLoadingBarChart,
-    refetch: refetchBarChart,
-  } = useGetVoluntaryReportingStatsByYear(
-    selectedCompany?.slug!,
-    params.from!,
-    params.to!,
-    "obligatory"
-  );
-
-  const {
-    data: dynamicData,
-    isLoading: isLoadingDynamicData,
-    refetch: refetchDynamicChart,
-  } = useGetDangerIdentificationsCountedByType(
-    selectedCompany?.slug!,
-    params.from!,
-    params.to!,
-    "obligatory"
-  );
-
-  const {
-    data: pieCharData,
-    isLoading: isLoadingPieCharData,
-    refetch: refetchPieChart,
-  } = useGetReportsCountedByArea(
-    selectedCompany?.slug!,
-    params.from!,
-    params.to!,
-    "obligatory"
-  );
-
-  const {
-    data: riskData,
-    isLoading: isLoadingRisk,
-    refetch: refetchRisk,
-  } = useGetRiskCountByDateRange(
-    selectedCompany?.slug!,
-    params.from!,
-    params.to!,
-    "obligatory"
-  );
-
-  const {
-    data: postRiskData,
-    isLoading: isLoadingPostRisk,
-    refetch: refetchPostRisk,
-  } = useGetPostRiskCountByDateRange(
-    selectedCompany?.slug!,
-    params.from!,
-    params.to!,
-    "obligatory"
-  );
-
-  const {
-    data: reportsBySourceName,
-    isLoading: isLoadingSourceName,
-    refetch: refetchDynamicSourceNameChart,
-  } = useGetIdentificationStatsBySourceName(
-    selectedCompany?.slug!,
-    params.from!,
-    params.to!,
-    "obligatory"
-  );
-
-  const {
-    data: reportsBySourceType,
-    isLoading: isLoadingSourceType,
-    refetch: refetchDynamicSourceTypeChart,
-  } = useGetIdentificationStatsBySourceType(
-    selectedCompany?.slug!,
-    params.from!,
-    params.to!,
-    "obligatory"
-  );
-
-  useEffect(() => {
+  // Obtener parámetros ACTUALES de la URL - SIN estado local
+  const currentParams = useMemo(() => {
     const defaultFrom = format(startOfMonth(new Date()), "yyyy-MM-dd");
     const defaultTo = format(new Date(), "yyyy-MM-dd");
 
-    const newParams: Params = {};
-    searchParams.forEach((value, key) => {
-      newParams[key] = value;
-    });
+    const urlParams = new URLSearchParams(urlSearchParams.toString());
+    return {
+      from: urlParams.get("from") || defaultFrom,
+      to: urlParams.get("to") || defaultTo,
+    };
+  }, [urlSearchParams]);
 
-    setParams({
-      from: newParams.from || defaultFrom,
-      to: newParams.to || defaultTo,
-    });
-  }, [searchParams, pathname]);
+  // Hooks de datos - Usan directamente los parámetros actuales de la URL
+  const { data: barChartData, isLoading: isLoadingBarChart } =
+    useGetVoluntaryReportingStatsByYear(
+      selectedCompany?.slug!,
+      currentParams.from,
+      currentParams.to,
+      "obligatory"
+    );
 
-  useEffect(() => {
-    const refetchFunctions = [
-      refetchBarChart,
-      refetchPieChart,
-      refetchDynamicChart,
-      refetchRisk,
-      refetchPostRisk,
-      refetchDynamicSourceNameChart,
-      refetchDynamicSourceTypeChart,
-    ];
+  const { data: dynamicData, isLoading: isLoadingDynamicData } =
+    useGetDangerIdentificationsCountedByType(
+      selectedCompany?.slug!,
+      currentParams.from,
+      currentParams.to,
+      "obligatory"
+    );
 
-    refetchFunctions.forEach((refetch) => refetch());
-  }, [
-    params,
-    refetchBarChart,
-    refetchPieChart,
-    refetchDynamicChart,
-    refetchRisk,
-    refetchPostRisk,
-    refetchDynamicSourceNameChart,
-    refetchDynamicSourceTypeChart,
-  ]);
+  const { data: pieCharData, isLoading: isLoadingPieCharData } =
+    useGetReportsCountedByArea(
+      selectedCompany?.slug!,
+      currentParams.from,
+      currentParams.to,
+      "obligatory"
+    );
+
+  const { data: riskData, isLoading: isLoadingRisk } =
+    useGetRiskCountByDateRange(
+      selectedCompany?.slug!,
+      currentParams.from,
+      currentParams.to,
+      "obligatory"
+    );
+
+  const { data: postRiskData, isLoading: isLoadingPostRisk } =
+    useGetPostRiskCountByDateRange(
+      selectedCompany?.slug!,
+      currentParams.from,
+      currentParams.to,
+      "obligatory"
+    );
+
+  const { data: reportsBySourceName, isLoading: isLoadingSourceName } =
+    useGetIdentificationStatsBySourceName(
+      selectedCompany?.slug!,
+      currentParams.from,
+      currentParams.to,
+      "obligatory"
+    );
+
+  const { data: reportsBySourceType, isLoading: isLoadingSourceType } =
+    useGetIdentificationStatsBySourceType(
+      selectedCompany?.slug!,
+      currentParams.from,
+      currentParams.to,
+      "obligatory"
+    );
+
+  // Manejar cambio de fechas desde DateFilter
+  const handleDateChange = (
+    dateRange: { from: Date; to: Date } | undefined
+  ) => {
+    if (!dateRange?.from || !dateRange?.to) return;
+
+    const newParams = new URLSearchParams();
+    newParams.set("from", format(dateRange.from, "yyyy-MM-dd"));
+    newParams.set("to", format(dateRange.to, "yyyy-MM-dd"));
+
+    router.push(`${pathname}?${newParams.toString()}`, { scroll: false });
+  };
+
+  // Manejar reset
+  const handleReset = () => {
+    const defaultFrom = format(startOfMonth(new Date()), "yyyy-MM-dd");
+    const defaultTo = format(new Date(), "yyyy-MM-dd");
+
+    const newParams = new URLSearchParams();
+    newParams.set("from", defaultFrom);
+    newParams.set("to", defaultTo);
+
+    router.push(`${pathname}?${newParams.toString()}`, { scroll: false });
+  };
 
   const handleSelectChange = (id: string) => {
     if (id === "Todos") {
@@ -260,7 +228,15 @@ const Statistics = () => {
             <Label className="text-lg font-semibold mb-2">
               Seleccionar Rango de Fechas:
             </Label>
-            <DataFilter />
+            {/* ✅ CORREGIDO: Pasar todas las props necesarias al DataFilter */}
+            <DataFilter
+              onDateChange={handleDateChange}
+              onReset={handleReset}
+              initialDate={{
+                from: currentParams.from,
+                to: currentParams.to,
+              }}
+            />
           </div>
         </div>
 
@@ -361,14 +337,14 @@ const Statistics = () => {
         )}
       </div>
 
-      <div className="grid sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-2 2xl:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {shouldShow("bar-chart") && (
           <div className="p-4 rounded-lg shadow border">
             {isLoadingBarChart ? (
               <div className="flex justify-center items-center h-48">
                 <Loader2 className="size-24 animate-spin" />
               </div>
-            ) : barChartData ? (
+            ) : barChartData && barChartData.total !==0 ? (
               <BarChartComponent
                 data={barChartData}
                 title="Peligros Identificados vs Gestionados"
@@ -376,9 +352,12 @@ const Statistics = () => {
                 bar_second_name="Gestionados"
               />
             ) : (
-              <p className="text-sm text-muted-foreground">
-                Ha ocurrido un error al cargar los datos.
-              </p>
+              <>
+                <Message
+                  title="Numero de Reportes vs Tipo de Peligros"
+                  description="No hay datos para mostrar"
+                />
+              </>
             )}
           </div>
         )}
@@ -395,9 +374,12 @@ const Statistics = () => {
                 title="Número de Reportes vs Tipo de Peligros"
               />
             ) : (
-              <p className="text-lg text-muted-foreground">
-                No hay datos para mostrar.
-              </p>
+              <>
+                <Message
+                  title="Numero de Reportes vs Tipo de Peligros"
+                  description="No hay datos para mostrar"
+                />
+              </>
             )}
           </div>
         )}
@@ -414,104 +396,12 @@ const Statistics = () => {
                 title="Número de Reportes vs Áreas"
               />
             ) : (
-              <p className="text-lg text-muted-foreground">
-                No hay datos para mostrar.
-              </p>
-            )}
-          </div>
-        )}
-
-        {shouldShow("pre-riesgo") && (
-          <div className="p-4 rounded-lg shadow border">
-            {isLoadingRisk ? (
-              <div className="flex justify-center items-center h-48">
-                <Loader2 className="size-24 animate-spin" />
-              </div>
-            ) : riskData?.length ? (
-              <PieChartComponent
-                data={riskData}
-                title="Porcentaje de Índice de Riesgo Pre-Mitigación"
-              />
-            ) : (
-              <p className="text-lg text-muted-foreground">
-                No hay datos para mostrar.
-              </p>
-            )}
-          </div>
-        )}
-
-        {shouldShow("pre-riesgo-bar") && (
-          <div className="p-4 rounded-lg shadow border">
-            {isLoadingRisk ? (
-              <div className="flex justify-center items-center h-48">
-                <Loader2 className="size-24 animate-spin" />
-              </div>
-            ) : riskData?.length ? (
-              <MultipleBarChartComponent
-                data={riskData}
-                title="Número de Reportes por Cada Índice de Riesgo"
-              />
-            ) : (
-              <p className="text-lg text-muted-foreground">
-                No hay datos para mostrar.
-              </p>
-            )}
-          </div>
-        )}
-
-        {shouldShow("post-riesgo") && (
-          <div className="p-4 rounded-lg shadow border">
-            {isLoadingPostRisk ? (
-              <div className="flex justify-center items-center h-48">
-                <Loader2 className="size-24 animate-spin" />
-              </div>
-            ) : postRiskData?.length ? (
-              <PieChartComponent
-                data={postRiskData}
-                title="Índice de Riesgo Post-Mitigación"
-              />
-            ) : (
-              <p className="text-lg text-muted-foreground">
-                No hay datos para mostrar.
-              </p>
-            )}
-          </div>
-        )}
-
-        {shouldShow("post-riesgo-bar") && (
-          <div className="p-4 rounded-lg shadow border">
-            {isLoadingPostRisk ? (
-              <div className="flex justify-center items-center h-48">
-                <Loader2 className="size-24 animate-spin" />
-              </div>
-            ) : postRiskData?.length ? (
-              <MultipleBarChartComponent
-                data={postRiskData}
-                title="Número de Reportes por Cada Índice de Riesgo"
-              />
-            ) : (
-              <p className="text-lg text-muted-foreground">
-                No hay datos para mostrar.
-              </p>
-            )}
-          </div>
-        )}
-
-        {shouldShow("fuente-id") && (
-          <div className="p-4 rounded-lg shadow border">
-            {isLoadingSourceName ? (
-              <div className="flex justify-center items-center h-48">
-                <Loader2 className="size-24 animate-spin" />
-              </div>
-            ) : reportsBySourceName?.length ? (
-              <MultipleBarChartComponent
-                data={reportsBySourceName}
-                title="Reportes vs Fuente de Identificación"
-              />
-            ) : (
-              <p className="text-lg text-muted-foreground">
-                No hay datos para mostrar.
-              </p>
+              <>
+                <Message
+                  title="Numero de Reportes vs Áreas"
+                  description="No hay datos para mostrar"
+                />
+              </>
             )}
           </div>
         )}
@@ -528,9 +418,122 @@ const Statistics = () => {
                 title="Reportes vs Método de Identificación"
               />
             ) : (
-              <p className="text-lg text-muted-foreground">
-                No hay datos para mostrar.
-              </p>
+              <>
+                <Message
+                  title="Reportes vs Método de Identificación"
+                  description="No hay datos para mostrar"
+                />
+              </>
+            )}
+          </div>
+        )}
+
+        {shouldShow("fuente-id") && (
+          <div className="p-4 rounded-lg shadow border">
+            {isLoadingSourceName ? (
+              <div className="flex justify-center items-center h-48">
+                <Loader2 className="size-24 animate-spin" />
+              </div>
+            ) : reportsBySourceName?.length ? (
+              <MultipleBarChartComponent
+                data={reportsBySourceName}
+                title="Reportes vs Fuente de Identificación"
+              />
+            ) : (
+              <>
+                <Message
+                  title="Reportes vs Fuente de Identificación"
+                  description="No hay datos para mostrar"
+                />
+              </>
+            )}
+          </div>
+        )}
+
+        {shouldShow("pre-riesgo") && (
+          <div className="p-4 rounded-lg shadow border">
+            {isLoadingRisk ? (
+              <div className="flex justify-center items-center h-48">
+                <Loader2 className="size-24 animate-spin" />
+              </div>
+            ) : riskData?.length ? (
+              <PieChartComponent
+                data={riskData}
+                title="Porcentaje de Índice de Riesgo Pre-Mitigación"
+              />
+            ) : (
+              <>
+                <Message
+                  title="Porcentaje de Índice de Riesgo Pre-Mitigación"
+                  description="No hay datos para mostrar"
+                />
+              </>
+            )}
+          </div>
+        )}
+
+        {shouldShow("pre-riesgo-bar") && (
+          <div className="p-4 rounded-lg shadow border">
+            {isLoadingRisk ? (
+              <div className="flex justify-center items-center h-48">
+                <Loader2 className="size-24 animate-spin" />
+              </div>
+            ) : riskData?.length ? (
+              <MultipleBarChartComponent
+                data={riskData}
+                title="Número de Reportes por Cada Índice de Riesgo"
+              />
+            ) : (
+              <>
+                <Message
+                  title="Número de Reportes por Cada Índice de Riesgo"
+                  description="No hay datos para mostrar"
+                />
+              </>
+            )}
+          </div>
+        )}
+
+        {shouldShow("post-riesgo") && (
+          <div className="p-4 rounded-lg shadow border">
+            {isLoadingPostRisk ? (
+              <div className="flex justify-center items-center h-48">
+                <Loader2 className="size-24 animate-spin" />
+              </div>
+            ) : postRiskData?.length ? (
+              <PieChartComponent
+                data={postRiskData}
+                title="Índice de Riesgo Post-Mitigación"
+              />
+            ) : (
+              <>
+                <Message
+                  title="Índice de Riesgo Post-Mitigación"
+                  description="No hay datos para mostrar"
+                />
+              </>
+            )}
+          </div>
+        )}
+
+        {shouldShow("post-riesgo-bar") && (
+          <div className="p-4 rounded-lg shadow border">
+            {isLoadingPostRisk ? (
+              <div className="flex justify-center items-center h-48">
+                <Loader2 className="size-24 animate-spin" />
+              </div>
+            ) : postRiskData?.length ? (
+              <MultipleBarChartComponent
+                data={postRiskData}
+                title="Número de Reportes por Cada Índice de Riesgo"
+              />
+            ) : (
+              <>
+                <Message
+                  title="Número de Reportes por Cada Índice de Riesgo"
+                  description="No hay datos para mostrar"
+                />
+              </>
             )}
           </div>
         )}

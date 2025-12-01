@@ -1283,7 +1283,7 @@ export const FirstPage = ({
           .slice(0, 5) // Toma solo los primeros 5 elementos
           .map((cause, index) => (
             <Text key={index} style={styles.cellText}>
-              <Text style={[styles.cellText2, styles.boldTitle]}>Porque? </Text>
+              <Text style={[styles.cellText2, styles.boldTitle]}> Por qué? </Text>
               {cause.trim()}
             </Text>
           ))}

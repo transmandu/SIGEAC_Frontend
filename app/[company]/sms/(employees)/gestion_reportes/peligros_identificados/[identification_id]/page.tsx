@@ -71,15 +71,15 @@ const ShowDangerIdentification = () => {
             <Dialog>
               <DialogTrigger asChild>
                 <Button
-                  variant="outline" size="sm"
+                  variant="outline"
+                  size="sm"
                   className="hidden h-8 lg:flex"
                 >
                   Editar Identificación
                 </Button>
               </DialogTrigger>
               <DialogContent className="max-h-[90vh] overflow-y-auto">
-                <DialogHeader>
-                </DialogHeader>
+                <DialogHeader></DialogHeader>
                 <CreateDangerIdentificationDialog
                   title="Editar Identificación"
                   id={id}
@@ -275,6 +275,7 @@ const ShowDangerIdentification = () => {
                     <li key={index} className="flex items-start gap-3">
                       <ChevronRight className="w-5 h-5 mt-1 flex-shrink-0 text-gray-500" />
                       <span className="text-gray-600 dark:text-gray-400">
+                        {index === 0 ? "¿Por qué Sucedió?" : "¿Por qué?"}{" "}
                         {analysis.trim()}
                       </span>
                     </li>
