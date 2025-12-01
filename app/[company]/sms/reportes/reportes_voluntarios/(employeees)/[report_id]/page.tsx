@@ -27,7 +27,8 @@ import {
   Mail,
   MapPin,
   Phone,
-  User
+  User,
+  File,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -45,7 +46,6 @@ const ShowVoluntaryReport = () => {
     id: report_id,
     company: selectedCompany?.slug,
   });
-
 
   // ==========================================================
   // ACCIONES
@@ -341,6 +341,20 @@ const ShowVoluntaryReport = () => {
             </Dialog>
           </CardContent>
         </Card>
+      )}
+
+      {voluntaryReport?.documentUrl && (
+        <div className="border border-gray-300 dark:border-gray-600 p-6 rounded-lg text-center">
+          <h3 className="text-xl font-semibold mb-4">Documento Adjunto</h3>
+          <a
+            href={`${voluntaryReport.documentUrl}`}
+            download={`RVP-${voluntaryReport.report_number}.pdf`}
+            className="inline-flex items-center px-5 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700"
+          >
+            <File className="w-5 h-5 mr-2" />
+            Descargar Documento Adjunto
+          </a>
+        </div>
       )}
     </div>
   );

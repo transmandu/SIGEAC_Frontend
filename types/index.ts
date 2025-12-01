@@ -863,6 +863,8 @@ export type ObligatoryReport = {
   danger_identification: DangerIdentification;
   image?: string;
   document?: string;
+  imageUrl?: string;
+  documentUrl?: string;
 };
 
 export type VoluntaryReport = {
