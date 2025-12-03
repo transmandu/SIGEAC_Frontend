@@ -1139,6 +1139,7 @@ export default function CreateComponentForm({
                             });
                           }
                         }}
+                        defaultCategory="componente"
                         triggerButton={
                           <Button
                             type="button"

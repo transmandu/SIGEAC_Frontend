@@ -548,6 +548,7 @@ export default function CreateToolForm({ initialData, isEditing }: { initialData
                             form.setValue("batch_id", newBatch.id.toString(), { shouldValidate: true });
                           }
                         }}
+                        defaultCategory="herramienta"
                         triggerButton={
                           <Button
                             type="button"

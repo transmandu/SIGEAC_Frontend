@@ -1560,6 +1560,7 @@ export default function CreateConsumableForm({
                               );
                             }
                           }}
+                          defaultCategory="consumible"
                           triggerButton={
                             <Button
                               type="button"
