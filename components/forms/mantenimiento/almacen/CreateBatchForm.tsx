@@ -47,7 +47,7 @@ const CATEGORY_VALUES = {
   CONSUMIBLE: "consumible",
 } as const;
 
-const UNIT_LABEL = "UNIDADES";
+const UNIT_LABEL = ["UNIDADES", "UNIDAD"];
 const WAREHOUSE_TYPE = "AERONAUTICO";
 
 const FormSchema = z.object({
@@ -76,7 +76,7 @@ export function CreateBatchForm({ onClose, onSuccess, defaultCategory }: FormPro
     location_id: selectedStation,
   });
   
-  console.log("Almacenes recibidos:", warehouses);
+  // console.log("Almacenes recibidos:", warehouses);
   
   const { data: units, isLoading: isUnitsLoading, refetch: refetchUnits } = useGetUnits(selectedCompany?.slug);
   const { createBatch } = useCreateBatch();
@@ -101,7 +101,7 @@ export function CreateBatchForm({ onClose, onSuccess, defaultCategory }: FormPro
 
   useEffect(() => {
     if (requiresUnidadOnly && units?.length && !isUnitsLoading) {
-      const unidad = units.find((u) => u.label === UNIT_LABEL);
+      const unidad = units.find((u) => UNIT_LABEL.includes(u.label));
       if (unidad && form.getValues("medition_unit") !== unidad.value) {
         form.setValue("medition_unit", unidad.value, { shouldValidate: true, shouldDirty: false });
       }
@@ -219,7 +219,7 @@ export function CreateBatchForm({ onClose, onSuccess, defaultCategory }: FormPro
                     </FormControl>
                     <SelectContent>
                       {isUnitsLoading && <Loader2 className="size-4 animate-spin" />}
-                      {units?.filter((unit) => requiresUnidadOnly ? unit.label === UNIT_LABEL : true).map((unit) => (
+                      {units?.filter((unit) => requiresUnidadOnly ? UNIT_LABEL.includes(unit.label) : true).map((unit) => (
                         <SelectItem key={unit.id} value={unit.value}>
                           {unit.label}
                         </SelectItem>
