@@ -76,8 +76,6 @@ export function CreateBatchForm({ onClose, onSuccess, defaultCategory }: FormPro
     location_id: selectedStation,
   });
   
-  // console.log("Almacenes recibidos:", warehouses);
-  
   const { data: units, isLoading: isUnitsLoading, refetch: refetchUnits } = useGetUnits(selectedCompany?.slug);
   const { createBatch } = useCreateBatch();
 
