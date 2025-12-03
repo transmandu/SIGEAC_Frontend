@@ -47,7 +47,7 @@ const CATEGORY_VALUES = {
   CONSUMIBLE: "consumible",
 } as const;
 
-const UNIT_LABEL = "UNIDAD";
+const UNIT_LABEL = "UNIDADES";
 const WAREHOUSE_TYPE = "AERONAUTICO";
 
 const FormSchema = z.object({
