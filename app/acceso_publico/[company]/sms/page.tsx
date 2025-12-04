@@ -154,7 +154,7 @@ const SMSPage = () => {
 
         {/* TABS RESPONSIVE */}
         <Tabs defaultValue="politicas" className="w-full">
-          <TabsList className="pb-40 sm:pb-2 grid w-full grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4 items-center justify-center">
+          <TabsList className="pb-40 sm:pb-2 grid w-full grid-cols-2 gap-2 lg:grid-cols-4 items-center justify-center">
             <TabsTrigger
               value="politicas"
               className="flex-col sm:flex-row items-center justify-center gap-2 px-2 sm:px-4 mt-5 sm:mt-0"
