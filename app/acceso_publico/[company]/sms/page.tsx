@@ -43,7 +43,7 @@ const SMSPage = () => {
   const SMSresponsibilities = [
     {
       image:
-        "https://ccvnd3lo965z.share.zrok.io/storage/sms/images/risk_icon.png",
+        "https://ccvnd3lo965z.share.zrok.io/storage/images/sms/risk_icon.png",
       title: "Responsabilidades SMS Dueños de Proceso",
       items: [
         "Mitigar los Riesgos",
@@ -54,7 +54,7 @@ const SMSPage = () => {
     },
     {
       image:
-        "https://ccvnd3lo965z.share.zrok.io/storage/sms/images/caution.png",
+        "https://ccvnd3lo965z.share.zrok.io/storage/images/sms/caution.png",
       title: "Responsabilidades SMS Resto del Personal",
       items: [
         "Identificar Peligros",
@@ -75,7 +75,7 @@ const SMSPage = () => {
               {/* Imagen */}
               <div className="relative h-64 lg:h-full min-h-[300px]">
                 <Image
-                  src="https://ccvnd3lo965z.share.zrok.io/storage/sms/images/LOGO_TMD.png"
+                  src="https://ccvnd3lo965z.share.zrok.io/storage/images/sms/LOGO_TMD.png"
                   alt="Logo Transmandu"
                   fill
                   className="object-cover"
@@ -154,7 +154,7 @@ const SMSPage = () => {
 
         {/* TABS RESPONSIVE */}
         <Tabs defaultValue="politicas" className="w-full">
-          <TabsList className="pb-40 sm:pb-2 grid w-full grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4 items-center justify-center">
+          <TabsList className="pb-40 sm:pb-2 grid w-full grid-cols-2 gap-2 lg:grid-cols-4 items-center justify-center">
             <TabsTrigger
               value="politicas"
               className="flex-col sm:flex-row items-center justify-center gap-2 px-2 sm:px-4 mt-5 sm:mt-0"
@@ -190,7 +190,7 @@ const SMSPage = () => {
             </TabsTrigger>
             <TabsTrigger
               value="plan-respuesta"
-              className="flex-col sm:flex-row items-center justify-center gap-2 px-2 sm:px-4 mb-4 sm:mb-0"  
+              className="flex-col sm:flex-row items-center justify-center gap-2 px-2 sm:px-4 mb-4 sm:mb-0"
             >
               <div>
                 <AlertTriangle className="h-4 w-4 flex-shrink-0" />
@@ -257,7 +257,7 @@ const SMSPage = () => {
                 <div className="pt-4 border-t transition-all duration-1000 ease-out opacity-0 animate-fade-in delay-300">
                   <div className="flex justify-center">
                     <Image
-                      src="https://ccvnd3lo965z.share.zrok.io/storage/sms/images/sms_airplane_page.jpg"
+                      src="https://ccvnd3lo965z.share.zrok.io/storage/images/sms/sms_airplane_page.jpg"
                       alt="Nuestra empresa - instalaciones y equipo"
                       width={600}
                       height={400}

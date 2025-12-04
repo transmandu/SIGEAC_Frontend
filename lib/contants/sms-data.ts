@@ -1,4 +1,15 @@
-import { BookCheck, Building2, Gavel, Handshake, RefreshCcw, SearchCheck, ShieldCheck, Siren, Trophy, Users } from "lucide-react";
+import {
+  BookCheck,
+  Building2,
+  Gavel,
+  Handshake,
+  RefreshCcw,
+  SearchCheck,
+  ShieldCheck,
+  Siren,
+  Trophy,
+  Users,
+} from "lucide-react";
 
 export interface ActionStep {
   title: string;
@@ -28,10 +39,11 @@ export const emergencyPlans: EmergencyPlan[] = [
     //PRIMERA CARTA
     cardData: {
       imageUrl:
-        "https://ccvnd3lo965z.share.zrok.io/storage/sms/images/fire-extinguisher.png",
+        "https://ccvnd3lo965z.share.zrok.io/storage/images/sms/fire-extinguisher.png",
       imageAlt: "icono_extintor_de_incedio",
       title: "TARJETA DE ACCION DIRECTOR DE EMERGENCIA",
-      stepsTitle: "Acciones a seguir durante una emergencia de incendio en las instalaciones de la empresa.",
+      stepsTitle:
+        "Acciones a seguir durante una emergencia de incendio en las instalaciones de la empresa.",
       description:
         "Garantizar la seguridad y el bienestar de las personas en caso de una emergencia; liderando y organizando el proceso de evacuación en situaciones de riesgo.",
       actionLink: {
@@ -66,10 +78,11 @@ export const emergencyPlans: EmergencyPlan[] = [
   {
     cardData: {
       imageUrl:
-        "https://ccvnd3lo965z.share.zrok.io/storage/sms/images/airplane_fire.png",
+        "https://ccvnd3lo965z.share.zrok.io/storage/images/sms/airplane_fire.png",
       imageAlt: "Incendio no controlado en hangar con aeronave en servicio",
       title: "TARJETA DE ACCION PERSONAL DE GUARDIA",
-      stepsTitle: "Acciones a seguir durante una emergencia de incendio en las instalaciones de la empresa.",
+      stepsTitle:
+        "Acciones a seguir durante una emergencia de incendio en las instalaciones de la empresa.",
       description:
         "Garantizar la seguridad y el bienestar de las personas en caso de una emergencia; liderando y organizando el proceso de evacuación en situaciones de riesgo.",
       actionLink: {
@@ -88,7 +101,7 @@ export const emergencyPlans: EmergencyPlan[] = [
           "Dirigirse al punto seguro, sin detenerse siguiendo la ruta de evacuación establecida.",
           "No se devuelva a buscar objetos personales.",
           "Al llegar al punto seguro reportarse con su jefe de área para el conteo del personal.",
-          "Tratar de controlar el incendio solo si está en su fase inicial (conato) y no ha sido declarado. Utilice los extintores de incendio solo si está capacitado, de no ser así evacue hacia el punto seguro o área de reunión como el resto del personal)."
+          "Tratar de controlar el incendio solo si está en su fase inicial (conato) y no ha sido declarado. Utilice los extintores de incendio solo si está capacitado, de no ser así evacue hacia el punto seguro o área de reunión como el resto del personal).",
         ],
       },
       {
@@ -106,10 +119,11 @@ export const emergencyPlans: EmergencyPlan[] = [
   {
     cardData: {
       imageUrl:
-        "https://ccvnd3lo965z.share.zrok.io/storage/sms/images/fire_controled.png",
+        "https://ccvnd3lo965z.share.zrok.io/storage/images/sms/fire_controled.png",
       imageAlt: "Conato de incendio en las edificaciones",
       title: "TARJETA DE ACCIÓN SMS",
-      stepsTitle: "Acciones a seguir durante una emergencia de incendio en las instalaciones de la empresa.",
+      stepsTitle:
+        "Acciones a seguir durante una emergencia de incendio en las instalaciones de la empresa.",
       description:
         "Garantizar la seguridad y el bienestar de las personas en caso de una emergencia; liderando y organizando el proceso de evacuación en situaciones de riesgo.",
       actionLink: {
@@ -123,15 +137,15 @@ export const emergencyPlans: EmergencyPlan[] = [
         items: [
           "Notificar al director de emergencia las condiciones y magnitud del incendio, y si éste puede ser controlado por medios internos.",
 
-        "Colaborar con la labor de extinción desalojando al personal cercano del área en problema.",
+          "Colaborar con la labor de extinción desalojando al personal cercano del área en problema.",
 
-        "Si el incendio es posible controlarlo con los recursos internos indicará al personal de extinción empleen los extintores más cercanos al área del problema.",
+          "Si el incendio es posible controlarlo con los recursos internos indicará al personal de extinción empleen los extintores más cercanos al área del problema.",
 
-        "Prestará apoyo al director de emergencia.",
+          "Prestará apoyo al director de emergencia.",
 
-        "Coordinara las actividades de extinción de incendio, hasta la llegada de los bomberos.",
+          "Coordinara las actividades de extinción de incendio, hasta la llegada de los bomberos.",
 
-        "Garantizara la seguridad del personal verificando riesgos cercanos",
+          "Garantizara la seguridad del personal verificando riesgos cercanos",
         ],
       },
       {
@@ -145,13 +159,12 @@ export const emergencyPlans: EmergencyPlan[] = [
 
           "Evaluar las medidas de mitigación existentes.",
 
-          "Sugerir correcciones al plan de emergencia de ser necesarias."
+          "Sugerir correcciones al plan de emergencia de ser necesarias.",
         ],
       },
     ],
   },
 ];
-
 
 export const policyCardsData = [
   {
@@ -212,18 +225,18 @@ export const policyCardsData = [
 
 export const policyImages = [
   {
-    src: "https://ccvnd3lo965z.share.zrok.io/storage/sms/images/politica_1.png",
+    src: "https://ccvnd3lo965z.share.zrok.io/storage/images/sms/politica_1.png",
     alt: "Política 1",
   },
   // {
-  //   src: "https://ccvnd3lo965z.share.zrok.io/storage/sms/images/politica_2.png",
+  //   src: "https://ccvnd3lo965z.share.zrok.io/storage/images/sms/politica_2.png",
   //   alt: "Política 2",
   // },
 ];
 
 export const SMSresponsibilities = [
   {
-    image: "https://ccvnd3lo965z.share.zrok.io/storage/sms/images/LOGO.png",
+    image: "https://ccvnd3lo965z.share.zrok.io/storage/images/sms/LOGO.png",
     title: "Responsabilidades SMS Dueños de Proceso",
     items: [
       "Mitigar los Riesgos",
@@ -233,7 +246,7 @@ export const SMSresponsibilities = [
     ],
   },
   {
-    image: "https://ccvnd3lo965z.share.zrok.io/storage/sms/images/LOGO.png",
+    image: "https://ccvnd3lo965z.share.zrok.io/storage/images/sms/LOGO.png",
     title: "Responsabilidades SMS Resto del Personal",
     items: [
       "Identificar Peligros",
@@ -242,7 +255,7 @@ export const SMSresponsibilities = [
       "Contar con los Conocimientos de las Politicas",
     ],
   },
-]; 
+];
 
 export const smsConcepts = [
   {
@@ -302,13 +315,12 @@ export const smsConstants = {
 
 export default smsConstants;
 
-
 // export const emergencyPlans: EmergencyPlan[] = [
 //   {
 //     //PRIMERA CARTA
 //     cardData: {
 //       imageUrl:
-//         "https://ccvnd3lo965z.share.zrok.io/storage/sms/images/fire-extinguisher.png",
+//         "https://ccvnd3lo965z.share.zrok.io/storage/images/sms/fire-extinguisher.png",
 //   {
 //     title: "Estructura del SMS",
 //     concept: "Posee 4 Componetes y 12 Elementos!"
@@ -324,7 +336,7 @@ export default smsConstants;
 //     //PRIMERA CARTA
 //     cardData: {
 //       imageUrl:
-//         "https://ccvnd3lo965z.share.zrok.io/storage/sms/images/fire-extinguisher.png",
+//         "https://ccvnd3lo965z.share.zrok.io/storage/images/sms/fire-extinguisher.png",
 //       imageAlt: "Conato de incendio en hangar con aeronave en servicio",
 //       title: "EMERGENCIA",
 //       description:
@@ -419,7 +431,7 @@ export default smsConstants;
 //   {
 //     cardData: {
 //       imageUrl:
-//         "https://ccvnd3lo965z.share.zrok.io/storage/sms/images/airplane_fire.png",
+//         "https://ccvnd3lo965z.share.zrok.io/storage/images/sms/airplane_fire.png",
 //       imageAlt: "Incendio no controlado en hangar con aeronave en servicio",
 //       title: "EMERGENCIA",
 //       description:
@@ -523,7 +535,7 @@ export default smsConstants;
 //   {
 //     cardData: {
 //       imageUrl:
-//         "https://ccvnd3lo965z.share.zrok.io/storage/sms/images/fire_controled.png",
+//         "https://ccvnd3lo965z.share.zrok.io/storage/images/sms/fire_controled.png",
 //       imageAlt: "Conato de incendio en las edificaciones",
 //       title: "EMERGENCIA",
 //       description:
@@ -609,7 +621,7 @@ export default smsConstants;
 //   {
 //     cardData: {
 //       imageUrl:
-//         "https://ccvnd3lo965z.share.zrok.io/storage/sms/images/burning-building.png",
+//         "https://ccvnd3lo965z.share.zrok.io/storage/images/sms/burning-building.png",
 //       imageAlt: "Incendio no controlado en las edificaciones",
 //       title: "EMERGENCIA",
 //       description:
@@ -711,7 +723,7 @@ export default smsConstants;
 //   {
 //     cardData: {
 //       imageUrl:
-//         "https://ccvnd3lo965z.share.zrok.io/storage/sms/images/fire_tools.png",
+//         "https://ccvnd3lo965z.share.zrok.io/storage/images/sms/fire_tools.png",
 //       imageAlt:
 //         "Conato de incendio en servicios de mantenimiento OMA adicionales",
 //       title: "EMERGENCIA",
@@ -806,7 +818,7 @@ export default smsConstants;
 //   {
 //     cardData: {
 //       imageUrl:
-//         "https://ccvnd3lo965z.share.zrok.io/storage/sms/images/collapse_by_fire.png",
+//         "https://ccvnd3lo965z.share.zrok.io/storage/images/sms/collapse_by_fire.png",
 //       imageAlt:
 //         "Incendio no controlado en servicios de mantenimiento OMA adicionales",
 //       title: "EMERGENCIA",
@@ -924,7 +936,6 @@ export default smsConstants;
 //   },
 // ];
 
-
 // export const policyCardsData = [
 //   {
 //     icon: Building2,
@@ -984,18 +995,18 @@ export default smsConstants;
 
 // export const policyImages = [
 //   {
-//     src: "https://ccvnd3lo965z.share.zrok.io/storage/sms/images/politica_1.png",
+//     src: "https://ccvnd3lo965z.share.zrok.io/storage/images/sms/politica_1.png",
 //     alt: "Política 1",
 //   },
 //   {
-//     src: "https://ccvnd3lo965z.share.zrok.io/storage/sms/images/politica_2.png",
+//     src: "https://ccvnd3lo965z.share.zrok.io/storage/images/sms/politica_2.png",
 //     alt: "Política 2",
 //   },
 // ];
 
 // export const SMSresponsibilities = [
 //   {
-//     image: "https://ccvnd3lo965z.share.zrok.io/storage/sms/images/LOGO.png",
+//     image: "https://ccvnd3lo965z.share.zrok.io/storage/images/sms/LOGO.png",
 //     title: "Responsabilidades SMS Dueños de Proceso",
 //     items: [
 //       "Mitigar los Riesgos",
@@ -1005,7 +1016,7 @@ export default smsConstants;
 //     ],
 //   },
 //   {
-//     image: "https://ccvnd3lo965z.share.zrok.io/storage/sms/images/LOGO.png",
+//     image: "https://ccvnd3lo965z.share.zrok.io/storage/images/sms/LOGO.png",
 //     title: "Responsabilidades SMS Resto del Personal",
 //     items: [
 //       "Identificar Peligros",
@@ -1014,7 +1025,7 @@ export default smsConstants;
 //       "Contar con los Conocimientos de las Politicas",
 //     ],
 //   },
-// ]; 
+// ];
 
 // export const smsConcepts = [
 //   {
