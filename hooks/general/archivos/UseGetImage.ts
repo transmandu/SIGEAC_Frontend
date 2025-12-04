@@ -22,7 +22,6 @@ const fetchImage = async ({
     `${company}/${origin}/image/${encodedImagePath}`,
     {
       responseType: "blob",
-      timeout: 30000,
     }
   );
 
