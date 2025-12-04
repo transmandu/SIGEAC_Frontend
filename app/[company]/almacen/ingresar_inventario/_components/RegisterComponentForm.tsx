@@ -91,8 +91,8 @@ const formSchema = z
   .object({
     serial: z
       .array(
-        z.string().min(2, {
-          message: "Cada serial debe contener al menos 2 caracteres.",
+        z.string().min(1, {
+          message: "El serial debe contener al menos 1 caracter.",
         })
       )
       .optional(),
@@ -1139,6 +1139,7 @@ export default function CreateComponentForm({
                             });
                           }
                         }}
+                        defaultCategory="componente"
                         triggerButton={
                           <Button
                             type="button"

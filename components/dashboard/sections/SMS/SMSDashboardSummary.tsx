@@ -128,13 +128,16 @@ export default function DashboardSummary({
                   <div key={index} className="p-3 border rounded-lg">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                       {/* Información del Empleado */}
-                      <div>
-                        <p className="font-semibold text-sm">Empleado:</p>
-                        <p className="text-sm">
-                          {training.employee.first_name}{" "}
-                          {training.employee.last_name}
-                        </p>
-                      </div>
+                      {training.employee.first_name &&
+                        training.employee.last_name && (
+                          <div>
+                            <p className="font-semibold text-sm">Empleado:</p>
+                            <p className="text-sm">
+                              {training.employee.first_name}{" "}
+                              {training.employee.last_name}
+                            </p>
+                          </div>
+                        )}
 
                       {/* Estado */}
                       <div>

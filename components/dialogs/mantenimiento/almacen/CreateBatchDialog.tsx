@@ -47,6 +47,7 @@ export function CreateBatchDialog({
             }
             setOpen(false);
           }}
+          defaultCategory={defaultCategory}
         />
       </DialogContent>
     </Dialog>
