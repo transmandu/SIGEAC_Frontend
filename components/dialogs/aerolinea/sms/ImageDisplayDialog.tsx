@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import { FileImage, Loader2, Download } from "lucide-react";
 import { useCompanyStore } from "@/stores/CompanyStore";
-import { useGetImage } from "@/hooks/sms/UseGetImage";
+import { useGetImage } from "@/hooks/general/archivos/UseGetImage";
 
 interface ImageDisplayDialogProps {
   fileName: string;

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Dialog,
   DialogTrigger,
@@ -9,28 +9,30 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { FileText, Loader2, Download } from "lucide-react";
 import { useCompanyStore } from "@/stores/CompanyStore";
-import { Loader2, FileText, Download } from "lucide-react";
-import axiosInstance from "@/lib/axios";
+import { useGetDocument } from "@/hooks/general/archivos/useGetDocument";
 
-interface Props {
-  fileName: string | File | undefined; // Acepta los tres tipos
+interface DocumentDisplayDialogProps {
+  fileName: string;
   triggerElement?: React.ReactNode;
   triggerText?: string;
+  className?: string;
+  variant?: "default" | "outline" | "secondary" | "ghost" | "link";
+  size?: "default" | "sm" | "lg" | "icon";
 }
 
 function DocumentDisplayDialog({
   fileName,
   triggerElement,
   triggerText = "Documento",
-}: Props) {
+  className = "",
+  variant = "outline",
+  size = "sm",
+}: DocumentDisplayDialogProps) {
   const { selectedCompany } = useCompanyStore();
   const [isOpen, setIsOpen] = useState(false);
-  const [documentUrl, setDocumentUrl] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const blobUrlRef = useRef<string | null>(null);
+  const [localDocumentUrl, setLocalDocumentUrl] = useState<string | null>(null);
 
   // Función para extraer el nombre de archivo como string
   const getFileNameString = (): string | null => {
@@ -39,110 +41,87 @@ function DocumentDisplayDialog({
     if (typeof fileName === "string") {
       return fileName.trim();
     }
-
-    if (fileName instanceof File) {
-      return fileName.name;
-    }
-
     return null;
   };
 
-  // Solo renderizar si tenemos un nombre de archivo válido
   const actualFileName = getFileNameString();
-  if (!actualFileName) {
-    return null;
-  }
 
-  const loadDocument = useCallback(async () => {
-    if (!selectedCompany?.slug) {
-      setError("Compañía no seleccionada");
-      return;
-    }
+  const {
+    data: documentUrl,
+    isLoading,
+    error,
+    refetch,
+  } = useGetDocument({
+    company: selectedCompany?.slug,
+    fileName: actualFileName || "",
+  });
 
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      const encodedDocumentPath = btoa(actualFileName);
-
-      const documentResponse = await axiosInstance.get(
-        `${selectedCompany.slug}/sms/document/${encodedDocumentPath}`,
-        {
-          responseType: "blob",
-          timeout: 30000,
-        }
-      );
-
-      const blob = new Blob([documentResponse.data], {
-        type: "application/pdf",
-      });
-      const url = URL.createObjectURL(blob);
-
-      if (blobUrlRef.current) {
-        URL.revokeObjectURL(blobUrlRef.current);
-      }
-
-      blobUrlRef.current = url;
-      setDocumentUrl(url);
-    } catch (err: any) {
-      console.error("Error loading document:", err);
-      setError(
-        err.response?.status === 404
-          ? "Documento no encontrado"
-          : "Error al cargar el documento"
-      );
-      setDocumentUrl(null);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [actualFileName, selectedCompany?.slug]);
-
+  // Cuando se abre el diálogo, activamos la query
   useEffect(() => {
-    if (isOpen) {
-      loadDocument();
+    if (isOpen && selectedCompany?.slug && actualFileName) {
+      refetch();
     }
-  }, [isOpen, loadDocument]);
+  }, [isOpen, selectedCompany?.slug, actualFileName, refetch]);
 
+  // Manejar la URL local para cleanup
+  useEffect(() => {
+    if (documentUrl) {
+      // Limpiar URL anterior si existe
+      if (localDocumentUrl && localDocumentUrl !== documentUrl) {
+        URL.revokeObjectURL(localDocumentUrl);
+      }
+      setLocalDocumentUrl(documentUrl);
+    }
+  }, [documentUrl]);
+
+  // Cleanup al desmontar
   useEffect(() => {
     return () => {
-      if (blobUrlRef.current) {
-        URL.revokeObjectURL(blobUrlRef.current);
+      if (localDocumentUrl) {
+        URL.revokeObjectURL(localDocumentUrl);
       }
     };
-  }, []);
+  }, [localDocumentUrl]);
 
   const downloadDocument = () => {
-    if (!documentUrl) return;
+    if (!localDocumentUrl || !actualFileName) return;
 
     const link = document.createElement("a");
-    link.href = documentUrl;
+    link.href = localDocumentUrl;
 
-    // Extraer solo el nombre del archivo sin la ruta para la descarga
+    // Extraer solo el nombre del archivo sin la ruta
     let downloadName = actualFileName;
-    if (
-      actualFileName &&
-      (actualFileName.includes("/") || actualFileName.includes("\\"))
-    ) {
+    if (actualFileName.includes("/") || actualFileName.includes("\\")) {
       const parts = actualFileName.split(/[\/\\]/);
       downloadName = parts[parts.length - 1];
     }
 
-    link.download = downloadName; // ← Solo aquí usamos el nombre limpio
+    // Asegurar extensión PDF si no la tiene
+    if (!downloadName.toLowerCase().endsWith(".pdf")) {
+      downloadName = `${downloadName}.pdf`;
+    }
+
+    link.download = downloadName;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
   };
 
+  const defaultTrigger = (
+    <Button variant={variant} size={size} className={`gap-2 ${className}`}>
+      <FileText size={16} />
+      {triggerText}
+    </Button>
+  );
+
+  // Solo renderizar si tenemos un nombre de archivo válido
+  if (!actualFileName) {
+    return null;
+  }
+
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger asChild>
-        {triggerElement || (
-          <Button variant="outline" size="sm" className="gap-2 h-8">
-            <FileText size={16} />
-            {triggerText}
-          </Button>
-        )}
-      </DialogTrigger>
+      <DialogTrigger asChild>{triggerElement || defaultTrigger}</DialogTrigger>
       <DialogContent className="max-w-6xl max-h-[90vh]">
         <DialogHeader>
           <DialogTitle>
@@ -153,36 +132,51 @@ function DocumentDisplayDialog({
           </DialogTitle>
         </DialogHeader>
 
-        <div className="flex flex-col h-[calc(85vh-100px)]">
+        <div className="mt-4 flex flex-col h-[70vh]">
           {isLoading ? (
             <div className="flex flex-col justify-center items-center h-full">
-              <Loader2 className="h-8 w-8 animate-spin text-gray-500 mb-2" />
+              <Loader2 className="h-10 w-10 animate-spin text-gray-500 mb-4" />
               <span>Cargando documento...</span>
             </div>
           ) : error ? (
-            <div className="flex justify-center items-center h-full text-red-500">
-              <p>{error}</p>
+            <div className="flex flex-col justify-center items-center h-full text-red-500">
+              <p className="text-lg font-medium mb-2">Error</p>
+              <p>
+                {error.message.includes("404")
+                  ? "Documento no encontrado"
+                  : "Error al cargar el documento"}
+              </p>
+              <Button
+                variant="outline"
+                className="mt-4"
+                onClick={() => refetch()}
+              >
+                Reintentar
+              </Button>
             </div>
-          ) : documentUrl ? (
+          ) : localDocumentUrl ? (
             <>
-              <div className="flex-1 overflow-hidden border rounded-lg">
+              <div className="relative flex-1 overflow-hidden rounded-lg bg-gray-50 border">
                 <iframe
-                  src={documentUrl}
+                  src={localDocumentUrl}
                   width="100%"
                   height="100%"
                   className="min-h-[500px]"
                   title={`Documento: ${actualFileName}`}
                 />
               </div>
-              <div className="flex justify-end mt-4">
-                <Button
-                  onClick={downloadDocument}
-                  className="gap-2"
-                  variant="outline"
-                >
-                  <Download size={16} />
-                  Descargar PDF
-                </Button>
+
+              <div className="flex justify-end items-center mt-4 pt-4 border-t">
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    onClick={downloadDocument}
+                    className="gap-2"
+                  >
+                    <Download size={16} />
+                    Descargar PDF
+                  </Button>
+                </div>
               </div>
             </>
           ) : (

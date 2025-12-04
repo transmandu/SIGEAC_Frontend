@@ -26,7 +26,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "../../../ui/popover";
 import { Separator } from "../../../ui/separator";
 import Image from "next/image";
 import { useCompanyStore } from "@/stores/CompanyStore";
-import { useGetImage } from "@/hooks/sms/UseGetImage";
+import { useGetImage } from "@/hooks/general/archivos/UseGetImage";
 const FormSchema = z.object({
   description: z.string().max(255),
   date: z
@@ -60,18 +60,18 @@ interface FormProps {
 
 export function EditFollowUpControlForm({ onClose, initialData }: FormProps) {
   const { selectedCompany } = useCompanyStore();
-  
+
   const {
-      data: imageUrl,
-      isLoading: isLoadingImage,
-      error: errorImage,
-      isFetching: isFetchingImage,
-    } = useGetImage({
-      company: selectedCompany?.slug,
-      origin: "sms",
-      fileName: initialData.image,
-    });
-  
+    data: imageUrl,
+    isLoading: isLoadingImage,
+    error: errorImage,
+    isFetching: isFetchingImage,
+  } = useGetImage({
+    company: selectedCompany?.slug,
+    origin: "sms",
+    fileName: initialData.image,
+  });
+
   const { plan_id, medida_id } = useParams<{
     plan_id: string;
     medida_id: string;
@@ -156,7 +156,6 @@ export function EditFollowUpControlForm({ onClose, initialData }: FormProps) {
                     mode="single"
                     selected={field.value}
                     onSelect={field.onChange}
-
                     initialFocus
                     fromYear={2000} // Año mínimo que se mostrará
                     toYear={new Date().getFullYear()} // Año máximo (actual)
@@ -187,22 +186,18 @@ export function EditFollowUpControlForm({ onClose, initialData }: FormProps) {
                 <FormLabel>Imagen General</FormLabel>
 
                 <div className="flex items-center gap-4">
-                  {field.value ? (
+                  {field.value && imageUrl ? (
                     <Image
-                      src={URL.createObjectURL(field.value)}
+                      src={imageUrl}
                       alt="Preview"
                       className="h-16 w-16 rounded-md object-cover"
                       width={64}
                       height={64}
                     />
                   ) : initialData?.image &&
-                    typeof initialData.image === "string" ? (
+                    typeof initialData.image === "string" && imageUrl ? (
                     <Image
-                      src={
-                        initialData.image.startsWith("data:image")
-                          ? initialData.image
-                          : `data:image/jpeg;base64,${initialData.image}`
-                      }
+                      src={imageUrl}
                       alt="Preview"
                       className="h-16 w-16 rounded-md object-cover"
                       width={64}
