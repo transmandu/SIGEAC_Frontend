@@ -19,20 +19,18 @@ const bulletinsData: Bulletin[] = [
   {
     id: 1,
     imageUrl:
-      "https://ccvnd3lo965z.share.zrok.io/storage/sms/images/boletin_agosto.png",
+      "https://ccvnd3lo965z.share.zrok.io/storage/images/sms/boletin_agosto.png",
     imageAlt: "Boletin de Agosto 2025",
     title: "Boletin de Septiembre 2025",
-    description:
-      "",
+    description: "",
   },
   {
     id: 2,
     imageUrl:
-      "https://ccvnd3lo965z.share.zrok.io/storage/sms/images/boletin_septiembre.png",
+      "https://ccvnd3lo965z.share.zrok.io/storage/images/sms/boletin_septiembre.png",
     imageAlt: "Boletin de Septiembre 2025",
     title: "Boletin del mes de Septiembre",
-    description:
-      "",
+    description: "",
   },
 ];
 
