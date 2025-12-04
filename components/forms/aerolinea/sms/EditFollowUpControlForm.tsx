@@ -26,6 +26,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "../../../ui/popover";
 import { Separator } from "../../../ui/separator";
 import Image from "next/image";
 import { useCompanyStore } from "@/stores/CompanyStore";
+import { useGetImage } from "@/hooks/sms/UseGetImage";
 const FormSchema = z.object({
   description: z.string().max(255),
   date: z
@@ -59,11 +60,24 @@ interface FormProps {
 
 export function EditFollowUpControlForm({ onClose, initialData }: FormProps) {
   const { selectedCompany } = useCompanyStore();
-  const { plan_id, measure_id } = useParams<{
+  
+  const {
+      data: imageUrl,
+      isLoading: isLoadingImage,
+      error: errorImage,
+      isFetching: isFetchingImage,
+    } = useGetImage({
+      company: selectedCompany?.slug,
+      origin: "sms",
+      fileName: initialData.image,
+    });
+  
+  const { plan_id, medida_id } = useParams<{
     plan_id: string;
-    measure_id: string;
+    medida_id: string;
   }>();
-  console.log("plan id and measuer id", plan_id, measure_id);
+  console.log("plan id ", plan_id);
+  console.log("measuer id", medida_id);
   const { updateFollowUpControl } = useUpdateFollowUpControl();
   const form = useForm<FormSchemaType>({
     resolver: zodResolver(FormSchema),
@@ -80,7 +94,7 @@ export function EditFollowUpControlForm({ onClose, initialData }: FormProps) {
       data: {
         ...data,
         id: initialData.id,
-        mitigation_measure_id: measure_id,
+        mitigation_measure_id: medida_id,
       },
     };
     await updateFollowUpControl.mutateAsync(formattedData);

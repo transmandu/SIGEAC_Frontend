@@ -19,5 +19,6 @@ export const useGetMeasureFollowUpControl = (data: data) => {
     queryKey: ["follow-up-controls"],
     queryFn: () => fetchMeasureFollowUpControl(data),
     staleTime: 1000 * 60 * 5, // 5 minutos
+    enabled: !!data.company && !!data.measure_id,
   });
 };

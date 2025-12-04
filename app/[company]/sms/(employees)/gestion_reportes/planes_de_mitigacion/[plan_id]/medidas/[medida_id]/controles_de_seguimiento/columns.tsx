@@ -5,15 +5,14 @@ import { ColumnDef } from "@tanstack/react-table";
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
 
 import DocumentDisplayDialog from "@/components/dialogs/aerolinea/sms/DocumentDisplayDialog";
+import ImageDisplayDialog from "@/components/dialogs/aerolinea/sms/ImageDisplayDialog";
 import FollowUpControlDropdownActions from "@/components/dropdowns/aerolinea/sms/FollowUpControlDropdownActions";
 import { Button } from "@/components/ui/button";
 import { FollowUpControl } from "@/types";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import ImageDisplayDialog from "@/components/dialogs/aerolinea/sms/ImageDisplayDialog";
 
 export const columns: ColumnDef<FollowUpControl>[] = [
-
   {
     accessorKey: "description",
     header: ({ column }) => (
@@ -52,16 +51,16 @@ export const columns: ColumnDef<FollowUpControl>[] = [
       return (
         <div className="flex justify-center items-center">
           {row.original?.document &&
-          typeof row.original?.document === "string" ? (
-            <DocumentDisplayDialog base64Document={row.original.document} />
+          (typeof row.original?.document === "string") ? (
+            <DocumentDisplayDialog fileName={row.original.document} />
           ) : (
             <Button
               variant="outline"
               size="sm"
-              className=" hidden h-8 lg:flex"
+              className="hidden h-8 lg:flex"
               disabled={true}
             >
-              Sin Documento
+              Sin documento
             </Button>
           )}
         </div>
@@ -78,7 +77,7 @@ export const columns: ColumnDef<FollowUpControl>[] = [
       return (
         <div className="flex justify-center items-center">
           {row.original?.image && typeof row.original?.image === "string" ? (
-            <ImageDisplayDialog base64Image={row.original.image} />
+            <ImageDisplayDialog fileName={row.original.image} />
           ) : (
             <Button
               variant="outline"

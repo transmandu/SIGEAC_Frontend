@@ -87,12 +87,24 @@ export const columns: ColumnDef<MitigationTable>[] = [
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Medidas" />
     ),
-    cell: ({ row }) => (
-      <MeasuresCell
-        measures={row.original.mitigation_plan?.measures || []}
-        planId={row.original.mitigation_plan?.id}
-      />
-    ),
+    cell: ({ row }) => {
+      // DEBUG: Ver qué hay realmente
+      console.log("🔍 DEBUG en columna measures:", {
+        original: row.original,
+        mitigationPlan: row.original.mitigation_plan,
+        measuresRaw: row.original.mitigation_plan?.measures,
+        typeofMeasures: typeof row.original.mitigation_plan?.measures,
+        hasMitigationPlan: !!row.original.mitigation_plan,
+        mitigationPlanId: row.original.mitigation_plan?.id,
+      });
+
+      return (
+        <MeasuresCell
+          measures={row.original.mitigation_plan?.measures || []}
+          planId={row.original.mitigation_plan?.id}
+        />
+      );
+    },
     size: 120,
     minSize: 100,
   },
