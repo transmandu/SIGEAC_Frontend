@@ -205,7 +205,7 @@ const ShowVoluntaryReport = () => {
         </h3>
       </CardHeader>
       <CardContent>
-        <p className="leading-relaxed text-gray-700">
+        <p className="leading-relaxed ">
           {voluntaryReport?.description || "N/A"}
         </p>
       </CardContent>
@@ -227,14 +227,14 @@ const ShowVoluntaryReport = () => {
               (consequence, index) =>
                 consequence.trim() && (
                   <li key={index} className="flex items-start gap-2">
-                    <ChevronRight className="w-4 h-4 mt-1 text-gray-500 flex-shrink-0" />
-                    <span className="text-gray-700">{consequence.trim()}</span>
+                    <ChevronRight className="w-4 h-4 mt-1 flex-shrink-0" />
+                    <span className="">{consequence.trim()}</span>
                   </li>
                 )
             )}
           </ul>
         ) : (
-          <p className="text-gray-700">N/A</p>
+          <p className="">N/A</p>
         )}
       </CardContent>
     </Card>
@@ -257,7 +257,7 @@ const ShowVoluntaryReport = () => {
         </CardHeader>
         <CardContent>
           {isAnonymous ? (
-            <p className="text-gray-700">
+            <p>
               Reportado por: <span className="font-medium">Anónimo</span>
             </p>
           ) : (
