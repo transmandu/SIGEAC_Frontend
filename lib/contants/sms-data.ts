@@ -38,8 +38,7 @@ export const emergencyPlans: EmergencyPlan[] = [
   {
     //PRIMERA CARTA
     cardData: {
-      imageUrl:
-        "https://ccvnd3lo965z.share.zrok.io/storage/images/sms/fire-extinguisher.png",
+      imageUrl: `${process.env.NEXT_PUBLIC_IMAGE_BASE_URL}sms/fire_extinguisher.png`,
       imageAlt: "icono_extintor_de_incedio",
       title: "TARJETA DE ACCION DIRECTOR DE EMERGENCIA",
       stepsTitle:
@@ -77,8 +76,7 @@ export const emergencyPlans: EmergencyPlan[] = [
   // SEGUNDA CARTA
   {
     cardData: {
-      imageUrl:
-        "https://ccvnd3lo965z.share.zrok.io/storage/images/sms/airplane_fire.png",
+      imageUrl: `${process.env.NEXT_PUBLIC_IMAGE_BASE_URL}sms/airplane_fire.png`,
       imageAlt: "Incendio no controlado en hangar con aeronave en servicio",
       title: "TARJETA DE ACCION PERSONAL DE GUARDIA",
       stepsTitle:
@@ -118,8 +116,7 @@ export const emergencyPlans: EmergencyPlan[] = [
   //TERCERA CARTA
   {
     cardData: {
-      imageUrl:
-        "https://ccvnd3lo965z.share.zrok.io/storage/images/sms/fire_controled.png",
+      imageUrl: `${process.env.NEXT_PUBLIC_IMAGE_BASE_URL}sms/fire_controled.png`,
       imageAlt: "Conato de incendio en las edificaciones",
       title: "TARJETA DE ACCIÓN SMS",
       stepsTitle:
