@@ -9,10 +9,10 @@ import { useGetWarehouseDashboard } from '@/hooks/sistema/dashboard/useWarehouse
 import { User } from '@/types'
 
 // Subcomponents
-import ArticlesSummary from '@/components/dashboard/sections/ArticlesSummary'
-import ToolsSummary from '@/components/dashboard/sections/ToolsSummary'
-import UsersSummary from '@/components/dashboard/sections/UsersSummary'
-import DashboardSummary from '@/components/dashboard/sections/DashboardSummary'
+import ArticlesSummary from '@/components/dashboard/sections/warehouse/ArticlesSummary'
+import ToolsSummary from '@/components/dashboard/sections/warehouse/ToolsSummary'
+import UsersSummary from '@/components/dashboard/sections/warehouse/UsersSummary'
+import DashboardSummary from '@/components/dashboard/sections/warehouse/DashboardSummary'
 
 interface WarehouseDashboardProps {
   companySlug: string
