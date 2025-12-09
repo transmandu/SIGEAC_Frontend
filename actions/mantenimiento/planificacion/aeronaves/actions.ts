@@ -20,7 +20,7 @@ export interface AircraftPartAPI {
 
 export interface CreateAircraftWithPartsData {
 aircraft: {
-  manufacturer_id: string,
+  manufacturer_id?: string,
     client_id: string,
     serial: string,
     model?: string,
@@ -30,6 +30,7 @@ aircraft: {
     fabricant_date: Date,
     comments?: string,
     location_id: string,
+    type: "MAINTENANCE" | "SHELTER",
 },
 parts: AircraftPartAPI[]
 }

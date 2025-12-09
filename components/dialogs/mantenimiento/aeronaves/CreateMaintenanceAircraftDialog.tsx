@@ -125,6 +125,7 @@ export function CreateMaintenanceAircraftDialog() {
               fabricant_date: aircraftData.fabricant_date,
               comments: aircraftData.comments,
               location_id: aircraftData.location_id,
+              type: "MAINTENANCE", // Tipo de aeronave: mantenimiento
             },
             parts: transformedParts,
           },
