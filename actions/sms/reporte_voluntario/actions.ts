@@ -152,7 +152,6 @@ export const useAcceptVoluntaryReport = () => {
 
   const acceptVoluntaryReportMutation = useMutation({
     mutationFn: async ({ company, id, data }: UpdateVoluntaryReportData) => {
-      console.log("LLAMDO DEL END POINT");
       const response = await axiosInstance.patch(
         `/${company}/sms/accept-voluntary-reports/${id}`,
         data

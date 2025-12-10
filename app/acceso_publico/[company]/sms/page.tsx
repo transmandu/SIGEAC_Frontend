@@ -39,7 +39,7 @@ const SMSPage = () => {
   const router = useRouter();
   const [isConceptOpen, setIsConceptOpen] = useState(false);
   const { data: surveyNumbers } = useGetSurveySettingNumbers(company);
-
+  console.log(emergencyPlans);
   const SMSresponsibilities = [
     {
       image:

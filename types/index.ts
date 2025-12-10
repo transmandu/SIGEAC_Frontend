@@ -1103,6 +1103,15 @@ export type Survey = {
   questions: Question[];
 };
 
+export type Bulletin = {
+  id: string;
+  date: Date;
+  title: string;
+  description: string;
+  image?: string;
+  document: string;
+}
+
 export type FlightHistory = {
   id: number;
   flight_number: string;

@@ -615,6 +615,13 @@ export function getMenuList(
               active:
                 pathname === `/${currentCompany?.slug}/sms/ajustes/encuesta`,
             },
+            {
+              href: `/${currentCompany?.slug}/sms/ajustes/boletin`,
+              label: "Boletines",
+              roles: ["SUPERUSER", "JEFE_SMS", "ANALISTA_SMS"],
+              active:
+                pathname === `/${currentCompany?.slug}/sms/ajustes/boletin`,
+            },
           ],
         },
       ],
