@@ -51,7 +51,7 @@ export function CustomCard({
             {imageUrl && (
               <div className="mb-4 flex justify-center relative h-16 w-16 sm:h-32 sm:w-32 flex-shrink-0">
                 <Image
-                  src={imageUrl}
+                  src={`${process.env.NEXT_PUBLIC_STORAGE_BASE_URL}${imageUrl}`}
                   alt={imageAlt}
                   fill
                   className={cn("object-cover", imageClassName)}

@@ -49,7 +49,7 @@ const ChildrenInfo = ({ c, index }: {
         </TooltipTrigger>
         <TooltipContent>
           {c.child_image ? (
-            <Image src={`${process.env.NEXT_PUBLIC_IMAGE_BASE_URL}/${c.child_image}`} alt={`Imagen del artículo ${c.child_serial}`} className="max-w-xs max-h-48" width={75} height={75} />
+            <Image src={`${process.env.NEXT_PUBLIC_STORAGE_BASE_URL}/${c.child_image}`} alt={`Imagen del artículo ${c.child_serial}`} className="max-w-xs max-h-48" width={75} height={75} />
           ) : (
             <p>No hay imagen disponible</p>
           )}
