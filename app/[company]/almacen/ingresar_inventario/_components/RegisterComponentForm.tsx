@@ -60,6 +60,7 @@ import { useGetConditions } from "@/hooks/administracion/useGetConditions";
 import { useGetManufacturers } from "@/hooks/general/fabricantes/useGetManufacturers";
 import { useGetBatchesByCategory } from "@/hooks/mantenimiento/almacen/renglones/useGetBatchesByCategory";
 import { useSearchBatchesByPartNumber } from "@/hooks/mantenimiento/almacen/renglones/useGetBatchesByArticlePartNumber";
+import { useGetMaintenanceAircrafts } from "@/hooks/mantenimiento/planificacion/useGetMaintenanceAircrafts";
 
 import { useCompanyStore } from "@/stores/CompanyStore";
 
@@ -80,6 +81,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { EditingArticle } from "./RegisterArticleForm";
 import { CreateManufacturerDialog } from "@/components/dialogs/general/CreateManufacturerDialog";
 import { CreateBatchDialog } from "@/components/dialogs/mantenimiento/almacen/CreateBatchDialog";
+import { CreateResguardoAircraftDialog } from "@/components/dialogs/mantenimiento/aeronaves/CreateResguardoAircraftDialog";
 import { MultiSerialInput } from "./MultiSerialInput";
 import PreviewCreateComponentDialog from "@/components/dialogs/mantenimiento/almacen/PreviewCreateComponentDialog";
 
@@ -145,6 +147,7 @@ const formSchema = z
       .optional(),
     image: z.instanceof(File).optional(),
     has_documentation: z.boolean().optional(),
+    aircraft_id: z.string().optional(),
   })
   .superRefine((vals, ctx) => {
     if (vals.fabrication_date && vals.caducate_date) {
@@ -657,6 +660,11 @@ export default function CreateComponentForm({
     error: isConditionsError,
   } = useGetConditions();
 
+  const {
+    data: aircrafts,
+    isLoading: isAircraftsLoading,
+  } = useGetMaintenanceAircrafts(selectedCompany?.slug);
+
   // Search batches by part number
   const { data: searchResults, isFetching: isSearching } =
     useSearchBatchesByPartNumber(
@@ -701,12 +709,18 @@ export default function CreateComponentForm({
         ? initialData?.component?.shell_time?.fabrication_date
         : undefined,
       has_documentation: initialData?.has_documentation ?? false,
+      aircraft_id: "",
     },
     mode: "onBlur",
   });
 
   // Watch para el campo de documentación
   const hasDocumentation = form.watch("has_documentation");
+
+  // Watch condition_id to check if it's "resguardo"
+  const conditionId = form.watch("condition_id");
+  const selectedCondition = conditions?.find(c => c.id.toString() === conditionId);
+  const isResguardo = selectedCondition?.name?.toLowerCase() === "resguardo";
 
   // Reset on prop change
   useEffect(() => {
@@ -738,6 +752,7 @@ export default function CreateComponentForm({
         ? initialData.component?.shell_time?.fabrication_date
         : undefined,
       has_documentation: initialData.has_documentation ?? false,
+      aircraft_id: "",
     });
   }, [initialData, form]);
 
@@ -859,6 +874,7 @@ export default function CreateComponentForm({
       batch_name?: string;
       batch_id: string; // Asegurar que batch_id esté en el tipo
       serial?: string | string[];
+      aircraft_id?: string;
     } = {
       ...valuesWithoutCaducateDate,
       status: "CHECKING",
@@ -876,6 +892,7 @@ export default function CreateComponentForm({
         values.calendar_date && format(values.calendar_date, "yyyy-MM-dd"),
       batch_name: enableBatchNameEdit ? values.batch_name : undefined,
       batch_id: values.batch_id, // Incluir explícitamente el batch_id del formulario
+      aircraft_id: values.aircraft_id, // Incluir aircraft_id si está presente
     };
 
     if (isEditing && initialData) {
@@ -1443,6 +1460,111 @@ export default function CreateComponentForm({
                 </FormItem>
               )}
             />
+
+            {/* Campo de aeronave - Solo se muestra cuando la condición es "resguardo" */}
+            {isResguardo && (
+              <FormField
+                control={form.control}
+                name="aircraft_id"
+                render={({ field }) => (
+                  <FormItem className="w-full">
+                    <div className="flex items-center justify-between">
+                      <FormLabel>Aeronave de origen</FormLabel>
+                      <CreateResguardoAircraftDialog
+                        onSuccess={(aircraftId) => {
+                          form.setValue("aircraft_id", aircraftId, {
+                            shouldValidate: true,
+                          });
+                        }}
+                        triggerButton={
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="h-7 text-xs"
+                          >
+                            <Plus className="h-3 w-3 mr-1" />
+                            Crear nueva
+                          </Button>
+                        }
+                      />
+                    </div>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <FormControl>
+                          <Button
+                            disabled={isAircraftsLoading || busy}
+                            variant="outline"
+                            role="combobox"
+                            className={cn(
+                              "w-full justify-between",
+                              !field.value && "text-muted-foreground"
+                            )}
+                          >
+                            {isAircraftsLoading && (
+                              <Loader2 className="size-4 animate-spin mr-2" />
+                            )}
+                            {field.value ? (
+                              <p>
+                                {
+                                  aircrafts?.find(
+                                    (a) => a.id.toString() === field.value
+                                  )?.acronym
+                                }
+                              </p>
+                            ) : (
+                              "Seleccione aeronave..."
+                            )}
+                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-[300px] p-0">
+                        <Command>
+                          <CommandInput placeholder="Buscar aeronave..." />
+                          <CommandList>
+                            <CommandEmpty className="text-xs p-2 text-center">
+                              No se encontró la aeronave.
+                            </CommandEmpty>
+                            <CommandGroup>
+                              {aircrafts?.map((aircraft) => (
+                                <CommandItem
+                                  value={aircraft.acronym}
+                                  key={aircraft.id}
+                                  onSelect={() => {
+                                    form.setValue(
+                                      "aircraft_id",
+                                      aircraft.id.toString(),
+                                      { shouldValidate: true }
+                                    );
+                                  }}
+                                >
+                                  <Check
+                                    className={cn(
+                                      "mr-2 h-4 w-4",
+                                      `${aircraft.id}` === field.value
+                                        ? "opacity-100"
+                                        : "opacity-0"
+                                    )}
+                                  />
+                                  <p>
+                                    {aircraft.acronym} - {aircraft.client?.name || "Sin empresa"}
+                                  </p>
+                                </CommandItem>
+                              ))}
+                            </CommandGroup>
+                          </CommandList>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
+                    <FormDescription>
+                      Aeronave de la que se extrajo el artículo.
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
 
             <FormField
               control={form.control}
