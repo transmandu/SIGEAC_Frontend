@@ -15,39 +15,22 @@ import { useGetDocument } from "@/hooks/general/archivos/useGetDocument";
 
 interface DocumentDisplayDialogProps {
   fileName: string;
-  triggerElement?: React.ReactNode;
-  triggerText?: string;
-  className?: string;
-  variant?: "default" | "outline" | "secondary" | "ghost" | "link";
-  size?: "default" | "sm" | "lg" | "icon";
+  isPublic?: boolean;
 }
 
 function DocumentDisplayDialog({
   fileName,
-  triggerElement,
-  triggerText = "Documento",
-  className = "",
-  variant = "outline",
-  size = "sm",
+  isPublic = false,
 }: DocumentDisplayDialogProps) {
   const { selectedCompany } = useCompanyStore();
   const [isOpen, setIsOpen] = useState(false);
-  const [localDocumentUrl, setLocalDocumentUrl] = useState<string | null>(null);
+  const [hasFetched, setHasFetched] = useState(false);
 
-  // Función para extraer el nombre de archivo como string
-  const getFileNameString = (): string | null => {
-    if (!fileName) return null;
+  const actualFileName = typeof fileName === "string" ? fileName.trim() : null;
 
-    if (typeof fileName === "string") {
-      return fileName.trim();
-    }
-    return null;
-  };
-
-  const actualFileName = getFileNameString();
-
+  // Hook para documentos privados - siempre se inicializa pero no se ejecuta hasta que se necesite
   const {
-    data: documentUrl,
+    data: privateDocumentUrl,
     isLoading,
     error,
     refetch,
@@ -56,89 +39,99 @@ function DocumentDisplayDialog({
     fileName: actualFileName || "",
   });
 
-  // Cuando se abre el diálogo, activamos la query
+  // Generar URL para documentos públicos
+  const getPublicDocumentUrl = (): string => {
+    if (!actualFileName) return "";
+    const baseUrl = process.env.NEXT_PUBLIC_DOCUMENT_BASE_URL || "";
+    const cleanFileName = actualFileName.startsWith("/")
+      ? actualFileName.substring(1)
+      : actualFileName;
+    console.log("baseUrl", baseUrl + cleanFileName);
+    return `${baseUrl}${cleanFileName}`;
+  };
+
+  // Refetch cuando se abre para documentos privados
   useEffect(() => {
-    if (isOpen && selectedCompany?.slug && actualFileName) {
+    if (
+      isOpen &&
+      !isPublic &&
+      actualFileName &&
+      selectedCompany?.slug &&
+      !hasFetched
+    ) {
       refetch();
+      setHasFetched(true);
     }
-  }, [isOpen, selectedCompany?.slug, actualFileName, refetch]);
 
-  // Manejar la URL local para cleanup
-  useEffect(() => {
-    if (documentUrl) {
-      // Limpiar URL anterior si existe
-      if (localDocumentUrl && localDocumentUrl !== documentUrl) {
-        URL.revokeObjectURL(localDocumentUrl);
-      }
-      setLocalDocumentUrl(documentUrl);
+    if (!isOpen) {
+      setHasFetched(false);
     }
-  }, [documentUrl]);
+  }, [
+    isOpen,
+    isPublic,
+    actualFileName,
+    selectedCompany?.slug,
+    refetch,
+    hasFetched,
+  ]);
 
-  // Cleanup al desmontar
-  useEffect(() => {
-    return () => {
-      if (localDocumentUrl) {
-        URL.revokeObjectURL(localDocumentUrl);
-      }
-    };
-  }, [localDocumentUrl]);
+  // Determinar la URL a usar
+  const documentUrl = isPublic
+    ? getPublicDocumentUrl()
+    : isOpen
+      ? privateDocumentUrl
+      : null;
 
   const downloadDocument = () => {
-    if (!localDocumentUrl || !actualFileName) return;
+    if (!documentUrl || !actualFileName) return;
 
     const link = document.createElement("a");
-    link.href = localDocumentUrl;
+    link.href = documentUrl;
 
-    // Extraer solo el nombre del archivo sin la ruta
-    let downloadName = actualFileName;
-    if (actualFileName.includes("/") || actualFileName.includes("\\")) {
-      const parts = actualFileName.split(/[\/\\]/);
-      downloadName = parts[parts.length - 1];
-    }
+    const fileNameParts = actualFileName.split(/[\/\\]/);
+    const downloadName = fileNameParts[fileNameParts.length - 1];
 
-    // Asegurar extensión PDF si no la tiene
-    if (!downloadName.toLowerCase().endsWith(".pdf")) {
-      downloadName = `${downloadName}.pdf`;
-    }
+    link.download = downloadName.endsWith(".pdf")
+      ? downloadName
+      : `${downloadName}.pdf`;
 
-    link.download = downloadName;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
   };
 
-  const defaultTrigger = (
-    <Button variant={variant} size={size} className={`gap-2 ${className}`}>
-      <FileText size={16} />
-      {triggerText}
-    </Button>
-  );
-
-  // Solo renderizar si tenemos un nombre de archivo válido
-  if (!actualFileName) {
-    return null;
-  }
+  if (!actualFileName) return null;
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger asChild>{triggerElement || defaultTrigger}</DialogTrigger>
+      <DialogTrigger asChild>
+        <Button
+          variant="outline"
+          size="sm"
+          className="h-8 gap-2"
+          title="Ver documento"
+        >
+          <FileText className="h-4 w-4" />
+          Ver
+        </Button>
+      </DialogTrigger>
       <DialogContent className="max-w-6xl max-h-[90vh]">
         <DialogHeader>
           <DialogTitle>
             <div className="flex items-center gap-2">
-              <FileText size={20} />
+              <FileText className="h-5 w-5" />
               Documento PDF
             </div>
           </DialogTitle>
         </DialogHeader>
 
         <div className="mt-4 flex flex-col h-[70vh]">
-          {isLoading ? (
+          {!isPublic && isLoading ? (
             <div className="flex flex-col justify-center items-center h-full">
               <Loader2 className="h-10 w-10 animate-spin text-gray-500 mb-4" />
               <span>Cargando documento...</span>
             </div>
-          ) : error ? (
+          ) : !isPublic && error ? (
             <div className="flex flex-col justify-center items-center h-full text-red-500">
               <p className="text-lg font-medium mb-2">Error</p>
               <p>
@@ -154,11 +147,11 @@ function DocumentDisplayDialog({
                 Reintentar
               </Button>
             </div>
-          ) : localDocumentUrl ? (
+          ) : documentUrl ? (
             <>
               <div className="relative flex-1 overflow-hidden rounded-lg bg-gray-50 border">
                 <iframe
-                  src={localDocumentUrl}
+                  src={documentUrl}
                   width="100%"
                   height="100%"
                   className="min-h-[500px]"
@@ -173,7 +166,7 @@ function DocumentDisplayDialog({
                     onClick={downloadDocument}
                     className="gap-2"
                   >
-                    <Download size={16} />
+                    <Download className="h-4 w-4" />
                     Descargar PDF
                   </Button>
                 </div>
