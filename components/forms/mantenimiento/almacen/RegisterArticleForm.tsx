@@ -9,9 +9,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../../../ui/select";
-import CreateComponentForm from "./CreateComponentForm";
-import CreateConsumableForm from "./CreateConsumableForm";
-import CreateToolForm from "./CreateToolForm";
+import CreateComponentForm from "@/app/[company]/almacen/ingresar_inventario/_components/RegisterComponentForm";
+import CreateConsumableForm from "@/app/[company]/almacen/ingresar_inventario/_components/RegisterConsumableForm";
+import CreateToolForm from "@/app/[company]/almacen/ingresar_inventario/_components/RegisterToolForm";
 
 export interface EditingArticle extends Article {
   batches: Batch;
@@ -28,17 +28,13 @@ export interface EditingArticle extends Article {
     article_id: number;
   };
   component?: {
-    serial: string;
-    hard_time: {
-      hour_date: string;
-      cycle_date: string;
-      calendar_date: string;
-    };
-    shell_time: {
-      caducate_date: string;
-      fabrication_date: string;
-      calendar_date: string;
-    };
+    id: number;
+    article_id: string;
+    caducate_date: string | null;
+    fabrication_date: string | null;
+    hour_date: string | null;
+    cycle_date: string | null;
+    calendary_date: string | null;
   };
   consumable?: {
     lot_number?: string;
@@ -48,6 +44,7 @@ export interface EditingArticle extends Article {
     quantity?: number;
     is_managed?: boolean | string | number;
   };
+  has_documentation?: boolean;
 }
 
 interface IRegisterArticleProps {

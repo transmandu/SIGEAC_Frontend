@@ -332,7 +332,7 @@ export const componenteCols: ColumnDef<IArticleSimple>[] = [
       }
       
       // Para componentes, caducate_date es siempre string | null
-      const date = new Date(caducateDate);
+      const date = parseDateLocal(caducateDate);
       
       // Validar que la fecha sea válida
       if (isNaN(date.getTime())) {
@@ -424,7 +424,7 @@ export const consumibleCols: ColumnDef<IArticleSimple>[] = [
       const date = caducateDate instanceof Date 
         ? caducateDate 
         : typeof caducateDate === 'string' 
-          ? new Date(caducateDate)
+          ? parseDateLocal(caducateDate)  // ✅
           : null;
       
       // Validar que la fecha sea válida
@@ -576,7 +576,7 @@ export const allCategoriesCols: ColumnDef<IArticleSimple>[] = [
       const date = caducateDate instanceof Date 
         ? caducateDate 
         : typeof caducateDate === 'string' 
-          ? new Date(caducateDate)
+          ? parseDateLocal(caducateDate)  // ✅
           : null;
       
       // Validar que la fecha sea válida

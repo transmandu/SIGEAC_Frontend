@@ -8,7 +8,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
-import { format } from "date-fns";
+import { format, parseISO} from "date-fns";
 import { es } from "date-fns/locale";
 
 import {
@@ -1179,14 +1179,12 @@ export default function CreateConsumableForm({
   >();
   const [caducateDate, setCaducateDate] = useState<Date | null | undefined>(
     initialData?.consumable?.caducate_date
-      ? new Date(initialData.consumable.caducate_date)
+      ? parseISO(initialData.consumable.caducate_date)
       : undefined
   );
-  const [fabricationDate, setFabricationDate] = useState<
-    Date | null | undefined
-  >(
+  const [fabricationDate, setFabricationDate] = useState<Date | null | undefined>(
     initialData?.consumable?.fabrication_date
-      ? new Date(initialData?.consumable?.fabrication_date)
+      ? parseISO(initialData?.consumable?.fabrication_date)
       : undefined
   );
   const [enableBatchNameEdit, setEnableBatchNameEdit] = useState(false);

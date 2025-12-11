@@ -9,7 +9,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
-import { addYears, format, subYears } from "date-fns";
+import { format, parseISO} from "date-fns";
 import { es } from "date-fns/locale";
 
 import {
@@ -604,18 +604,16 @@ export default function CreateComponentForm({
   >(undefined);
 
   // Local UI state for calendars
-  const [fabricationDate, setFabricationDate] = useState<
-    Date | null | undefined
-  >(
-    initialData?.component?.shell_time?.fabrication_date
-      ? new Date(initialData.component.shell_time.fabrication_date)
+  const [fabricationDate, setFabricationDate] = useState<Date | null | undefined>(
+    initialData?.component?.fabrication_date
+      ? parseISO(initialData.component.fabrication_date)
       : null // Por defecto "No aplica" (muy pocos componentes tienen esta fecha)
   );
   const [caducateDate, setCaducateDate] = useState<Date | null | undefined>(
-    initialData?.component?.shell_time?.caducate_date
-      ? new Date(initialData.component.shell_time.caducate_date)
+    initialData?.component?.caducate_date
+      ? parseISO(initialData.component.caducate_date)
       : null // Por defecto "No aplica" (componentes nuevos o sin fecha)
-  );
+  );  
   const [enableBatchNameEdit, setEnableBatchNameEdit] = useState(false);
 
   // Wrapper functions for DatePickerField compatibility
@@ -696,18 +694,10 @@ export default function CreateComponentForm({
       condition_id: initialData?.condition?.id?.toString() || "",
       description: initialData?.description || "",
       zone: initialData?.zone || "",
-      hour_date: initialData?.component?.hard_time?.hour_date
-        ? parseInt(initialData.component.hard_time.hour_date)
-        : undefined,
-      cycle_date: initialData?.component?.hard_time?.cycle_date
-        ? parseInt(initialData.component.hard_time.cycle_date)
-        : undefined,
-      caducate_date: initialData?.component?.shell_time?.caducate_date
-        ? initialData?.component?.shell_time?.caducate_date
-        : undefined,
-      fabrication_date: initialData?.component?.shell_time?.fabrication_date
-        ? initialData?.component?.shell_time?.fabrication_date
-        : undefined,
+      hour_date: initialData?.component?.hour_date ? parseInt(initialData.component.hour_date) : undefined,
+      cycle_date: initialData?.component?.cycle_date ? parseInt(initialData.component.cycle_date) : undefined,
+      caducate_date: initialData?.component?.caducate_date ? initialData?.component?.caducate_date : undefined,
+      fabrication_date: initialData?.component?.fabrication_date ? initialData?.component?.fabrication_date : undefined,
       has_documentation: initialData?.has_documentation ?? false,
       aircraft_id: "",
     },
@@ -739,17 +729,17 @@ export default function CreateComponentForm({
       condition_id: initialData.condition?.id?.toString() ?? "",
       description: initialData.description ?? "",
       zone: initialData.zone ?? "",
-      hour_date: initialData.component?.hard_time?.hour_date
-        ? parseInt(initialData.component.hard_time.hour_date)
+      hour_date: initialData.component?.hour_date
+        ? parseInt(initialData.component.hour_date)
         : undefined,
-      cycle_date: initialData.component?.hard_time?.cycle_date
-        ? parseInt(initialData.component.hard_time.cycle_date)
+      cycle_date: initialData.component?.cycle_date
+        ? parseInt(initialData.component.cycle_date)
         : undefined,
-      caducate_date: initialData.component?.shell_time?.caducate_date
-        ? initialData.component?.shell_time?.caducate_date
+      caducate_date: initialData.component?.caducate_date
+        ? initialData.component?.caducate_date
         : undefined,
-      fabrication_date: initialData.component?.shell_time?.fabrication_date
-        ? initialData.component?.shell_time?.fabrication_date
+      fabrication_date: initialData.component?.fabrication_date
+        ? initialData.component?.fabrication_date
         : undefined,
       has_documentation: initialData.has_documentation ?? false,
       aircraft_id: "",
