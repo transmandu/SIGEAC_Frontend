@@ -42,11 +42,10 @@ function DocumentDisplayDialog({
   // Generar URL para documentos públicos
   const getPublicDocumentUrl = (): string => {
     if (!actualFileName) return "";
-    const baseUrl = process.env.NEXT_PUBLIC_DOCUMENT_BASE_URL || "";
+    const baseUrl = process.env.NEXT_PUBLIC_STORAGE_BASE_URL || "";
     const cleanFileName = actualFileName.startsWith("/")
       ? actualFileName.substring(1)
       : actualFileName;
-    console.log("baseUrl", baseUrl + cleanFileName);
     return `${baseUrl}${cleanFileName}`;
   };
 
@@ -81,24 +80,6 @@ function DocumentDisplayDialog({
     : isOpen
       ? privateDocumentUrl
       : null;
-
-  const downloadDocument = () => {
-    if (!documentUrl || !actualFileName) return;
-
-    const link = document.createElement("a");
-    link.href = documentUrl;
-
-    const fileNameParts = actualFileName.split(/[\/\\]/);
-    const downloadName = fileNameParts[fileNameParts.length - 1];
-
-    link.download = downloadName.endsWith(".pdf")
-      ? downloadName
-      : `${downloadName}.pdf`;
-
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
 
   if (!actualFileName) return null;
 
@@ -157,19 +138,6 @@ function DocumentDisplayDialog({
                   className="min-h-[500px]"
                   title={`Documento: ${actualFileName}`}
                 />
-              </div>
-
-              <div className="flex justify-end items-center mt-4 pt-4 border-t">
-                <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    onClick={downloadDocument}
-                    className="gap-2"
-                  >
-                    <Download className="h-4 w-4" />
-                    Descargar PDF
-                  </Button>
-                </div>
               </div>
             </>
           ) : (

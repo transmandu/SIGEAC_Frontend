@@ -5,11 +5,12 @@ import { ColumnDef } from "@tanstack/react-table";
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
 
 import { dateFormat } from "@/lib/utils";
-import { Bulletin } from "@/types";
+import { SafetyBulletin } from "@/types";
 import DocumentDisplayDialog from "@/components/dialogs/aerolinea/sms/DocumentDisplayDialog";
 import { Button } from "@/components/ui/button";
+import SafetyBulletinDropdownActions from "@/components/dropdowns/aerolinea/sms/SafetyBulletinDropDownActions";
 
-export const columns: ColumnDef<Bulletin>[] = [
+export const columns: ColumnDef<SafetyBulletin>[] = [
   {
     accessorKey: "title",
     header: ({ column }) => (
@@ -77,11 +78,8 @@ export const columns: ColumnDef<Bulletin>[] = [
   {
     id: "actions",
     cell: ({ row }) => {
-      const surveyData = row.original;
-      return 2;
-      // <SurveySettingDropdownActions
-      //   surveyData={surveyData}
-      // ></SurveySettingDropdownActions>
+      const SafetyBulletin = row.original;
+      return <SafetyBulletinDropdownActions safetyBulletin={SafetyBulletin} />;
     },
   },
 ];

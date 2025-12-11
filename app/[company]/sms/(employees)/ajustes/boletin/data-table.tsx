@@ -1,9 +1,8 @@
 "use client";
 
-import CreateBulletinDialog from "@/components/dialogs/aerolinea/sms/CreateBulletinDialog";
+import CreateSafetyBulletinDialog from "@/components/dialogs/aerolinea/sms/CreateSafetyBulletinDialog";
 import { DataTablePagination } from "@/components/tables/DataTablePagination";
 import { DataTableViewOptions } from "@/components/tables/DataTableViewOptions";
-import { Button } from "@/components/ui/button";
 import {
   Table,
   TableBody,
@@ -67,7 +66,7 @@ export function DataTable<TData, TValue>({
       </div>
 
       <div className="flex items-center py-4">
-        <CreateBulletinDialog title="Nuevo" />
+        <CreateSafetyBulletinDialog title="Nuevo" />
         <DataTableViewOptions table={table} />
       </div>
 

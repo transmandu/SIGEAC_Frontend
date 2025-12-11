@@ -36,7 +36,9 @@ export const useCreateBulletin = () => {
       });
     },
     onSuccess: (_, data) => {
-      queryClient.invalidateQueries({ queryKey: ["bulletins", data.company] });
+      queryClient.invalidateQueries({
+        queryKey: ["safety-bulletins", data.company],
+      });
       toast.success("¡Creado!", {
         description: ` El boletin ha sido creado correctamente.`,
       });
@@ -53,22 +55,15 @@ export const useCreateBulletin = () => {
   };
 };
 
-export const useDeleteBulletin = () => {
+export const useDeleteSafetyBulletin = () => {
   const queryClient = useQueryClient();
-
   const deleteMutation = useMutation({
-    mutationFn: async ({
-      company,
-      id,
-    }: {
-      company: string;
-      id: string | number;
-    }) => {
+    mutationFn: async ({ company, id }: { company: string; id: string }) => {
       await axiosInstance.delete(`/${company}/sms/bulletin/${id}`);
     },
     onSuccess: (_, data) => {
       queryClient.invalidateQueries({
-        queryKey: ["delete-bulletin", data.company],
+        queryKey: ["safety-bulletins", data.company],
       });
       toast.success("¡Eliminado!", {
         description: `¡El boletin ha sido eliminado correctamente!`,
@@ -82,7 +77,7 @@ export const useDeleteBulletin = () => {
   });
 
   return {
-    deleteBulletin: deleteMutation,
+    deleteSafetyBulletin: deleteMutation,
   };
 };
 
@@ -91,11 +86,15 @@ export const useUpdateBulletin = () => {
   const updateBulletinMutation = useMutation({
     mutationKey: ["bulletin"],
     mutationFn: async ({ company, data, id }: UpdateBulletinData) => {
-      await axiosInstance.post(`/${company}/sms/bulletin/${id}`, data);
+      await axiosInstance.post(`/${company}/sms/bulletin/${id}`, data, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
     },
     onSuccess: (_, data) => {
       queryClient.invalidateQueries({
-        queryKey: ["bulletin", data.company, data.id],
+        queryKey: ["safety-bulletins", data.company],
       });
       toast.success("¡Actualizado!", {
         description: `El boletin ha sido actualizado correctamente.`,

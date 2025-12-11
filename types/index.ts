@@ -1103,7 +1103,7 @@ export type Survey = {
   questions: Question[];
 };
 
-export type Bulletin = {
+export type SafetyBulletin = {
   id: string;
   date: Date;
   title: string;
