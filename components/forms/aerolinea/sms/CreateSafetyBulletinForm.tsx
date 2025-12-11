@@ -29,21 +29,18 @@ import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { useCompanyStore } from "@/stores/CompanyStore";
-import { Bulletin } from "@/types";
 import { addDays, format } from "date-fns";
 import { es } from "date-fns/locale";
 import { CalendarIcon, FileText, Loader2, X } from "lucide-react";
-// Importa Image de Next.js
 import Image from "next/image";
-import { toast } from "@/components/ui/use-toast";
-
+import { SafetyBulletin } from "@/types";
 interface FormProps {
   onClose: (open: boolean) => void;
-  initialData?: Bulletin;
+  initialData?: SafetyBulletin;
   isEditing?: boolean;
   selectedDate?: string;
 }
-export function CreateBulletinForm({
+export function CreateSafetyBulletinForm({
   onClose,
   isEditing,
   initialData,
@@ -285,6 +282,30 @@ export function CreateBulletinForm({
                           </p>
                           <p className="text-xs text-gray-500">
                             {(field.value.size / 1024).toFixed(0)} KB
+                          </p>
+                        </div>
+                      </div>
+
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 w-8 p-0 hover:bg-red-50 hover:text-red-600"
+                        onClick={() => field.onChange(null)}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ) : initialData?.document &&
+                    typeof initialData.document === "string" ? (
+                    <div className="flex items-center justify-between p-3 rounded-lg border">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 rounded">
+                          <FileText className="h-5 w-5 text-red-600" />
+                        </div>
+                        <div>
+                          <p className="font-medium text-sm truncate max-w-[200px]">
+                            {initialData.document.split("/").pop() || ""}
                           </p>
                         </div>
                       </div>

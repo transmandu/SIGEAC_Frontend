@@ -1,26 +1,26 @@
 "use client";
 
-import { CreateBulletinForm } from "@/components/forms/aerolinea/sms/CreateBulletinForm";
+import { CreateSafetyBulletinForm } from "@/components/forms/aerolinea/sms/CreateSafetyBulletinForm";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogHeader,
-    DialogTitle,
-    DialogTrigger,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
 } from "@/components/ui/dialog";
-import { Bulletin } from "@/types";
+import { SafetyBulletin } from "@/types";
 import { useState } from "react";
 
 interface FormProps {
   title: string;
-  initialData?: Bulletin;
+  initialData?: SafetyBulletin;
   isEditing?: boolean;
 }
 
-export default function CreateBulletinDialog({
+export default function CreateSafetyBulletinDialog({
   title,
   isEditing,
   initialData,
@@ -48,13 +48,13 @@ export default function CreateBulletinDialog({
             </DialogHeader>
 
             {isEditing && initialData ? (
-              <CreateBulletinForm
+              <CreateSafetyBulletinForm
                 isEditing={true}
                 initialData={initialData}
                 onClose={() => setOpen(false)}
               />
             ) : (
-              <CreateBulletinForm onClose={() => setOpen(false)} />
+              <CreateSafetyBulletinForm onClose={() => setOpen(false)} />
             )}
           </DialogContent>
         </Dialog>
