@@ -41,7 +41,7 @@ export const columns: ColumnDef<SafetyBulletin>[] = [
     ),
     cell: ({ row }) => {
       return (
-        <p className="font-medium text-center">
+        <p className="text-xs sm:text-sm line-clamp-4 text-center">
           {row.original.description ?? "N/A"}
         </p>
       );

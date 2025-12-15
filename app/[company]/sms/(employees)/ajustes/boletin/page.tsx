@@ -4,12 +4,12 @@ import { ContentLayout } from "@/components/layout/ContentLayout";
 import LoadingPage from "@/components/misc/LoadingPage";
 import { columns } from "./columns";
 import { DataTable } from "./data-table";
-import { useGetBulletins } from "@/hooks/sms/settings/useGetBulletins";
 import { useCompanyStore } from "@/stores/CompanyStore";
+import { useGetSafetyBulletins } from "@/hooks/sms/boletin/useGetSafetyBulletins";
 
 const SurveyListPage = () => {
   const { selectedCompany } = useCompanyStore();
-  const { data, isLoading, isError } = useGetBulletins(selectedCompany?.slug);
+  const { data, isLoading, isError } = useGetSafetyBulletins(selectedCompany?.slug);
   if (isLoading) {
     return <LoadingPage />;
   }
