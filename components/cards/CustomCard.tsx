@@ -1,5 +1,5 @@
 // components/ui/custom-card.tsx
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
@@ -44,6 +44,7 @@ export function CustomCard({
 }: CustomCardProps) {
   return (
     <Card className={cn("w-full flex flex-col ", className)}>
+      <CardDescription></CardDescription>
       <CardContent className="p-6 flex flex-col flex-grow items-center sm:items-stretch">
         <div className="flex sm:flex-col items-center justify-center sm:flex-1 w-full">
           <div className="flex flex-col items-center sm:flex-1">
