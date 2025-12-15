@@ -163,6 +163,7 @@ export default function BulletinsSMSPage() {
           )
         )}
 
+        
         {/* Dialog Para el Documento Seleccionado*/}
         <Dialog
           open={!!selectedDocument}
