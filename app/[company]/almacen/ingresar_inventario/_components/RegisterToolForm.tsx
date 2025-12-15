@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { format } from "date-fns";
+import { format, parseISO} from "date-fns";
 import { es } from "date-fns/locale";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -346,8 +346,8 @@ export default function CreateToolForm({ initialData, isEditing }: { initialData
       batch_id: initialData?.batches?.id?.toString() || "",
       batch_name: initialData?.batches?.name || "",
       needs_calibration: initialData?.tool?.needs_calibration ?? false,
-      calibration_date: initialData?.tool?.calibration_date ? new Date(initialData.tool.calibration_date) : undefined,
-      next_calibration: undefined,
+      calibration_date: initialData?.tool?.calibration_date ? parseISO(initialData.tool.calibration_date) : undefined,
+      next_calibration: initialData?.tool?.next_calibration ? Number(initialData.tool.next_calibration) : undefined,
       has_documentation: initialData?.has_documentation ?? false,
     },
     mode: "onBlur",
@@ -370,8 +370,8 @@ export default function CreateToolForm({ initialData, isEditing }: { initialData
       batch_id: initialData.batches?.id?.toString() || "",
       batch_name: initialData.batches?.name || "",
       needs_calibration: initialData.tool?.needs_calibration ?? false,
-      calibration_date: initialData.tool?.calibration_date ? new Date(initialData.tool.calibration_date) : undefined,
-      next_calibration: undefined,
+      calibration_date: initialData.tool?.calibration_date ? parseISO(initialData.tool.calibration_date) : undefined,
+      next_calibration: initialData.tool?.next_calibration ? Number(initialData.tool.next_calibration) : undefined,
       has_documentation: initialData.has_documentation ?? false,
     });
   }, [initialData, form]);
@@ -381,15 +381,6 @@ export default function CreateToolForm({ initialData, isEditing }: { initialData
     if (searchResults && searchResults.length > 0 && !isEditing) {
       const firstResult = searchResults[0];
       form.setValue("batch_id", firstResult.id.toString(), { shouldValidate: true });
-      
-      // Notificar al usuario
-      if (searchResults.length === 1) {
-        console.log("✓ Descripción autocompletada");
-      } else {
-        console.log(`✓ Se encontraron ${searchResults.length} descripciones. Se seleccionó la primera.`);
-      }
-    } else if (searchResults && searchResults.length === 0 && partNumberToSearch) {
-      console.log("No se encontraron descripciones para este part number");
     }
   }, [searchResults, form, isEditing, partNumberToSearch]);
 

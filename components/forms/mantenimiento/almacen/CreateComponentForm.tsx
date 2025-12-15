@@ -185,18 +185,18 @@ const CreateComponentForm = ({
   };
 
   const [fabricationDate, setFabricationDate] = useState<Date | undefined>(
-    initialData?.component?.shell_time?.fabrication_date
-      ? new Date(initialData.component.shell_time.fabrication_date)
+    initialData?.component?.fabrication_date
+      ? new Date(initialData.component.fabrication_date)
       : undefined
   );
   const [caducateDate, setCaducateDate] = useState<Date | undefined>(
-    initialData?.component?.shell_time?.caducate_date
-      ? new Date(initialData.component.shell_time.caducate_date)
+    initialData?.component?.caducate_date
+      ? new Date(initialData.component.caducate_date)
       : undefined
   );
   const [calendarDate, setCalendarDate] = useState<Date | undefined>(
-    initialData?.component?.shell_time?.calendar_date
-      ? new Date(initialData.component.shell_time?.calendar_date)
+    initialData?.component?.calendary_date
+      ? new Date(initialData.component.calendary_date)
       : undefined
   );
   const { selectedCompany } = useCompanyStore();
@@ -236,17 +236,17 @@ const CreateComponentForm = ({
       condition_id: initialData?.condition?.id?.toString() || "",
       description: initialData?.description || "",
       zone: initialData?.zone || "",
-      hour_date: initialData?.component?.hard_time?.hour_date
-        ? parseInt(initialData.component.hard_time.hour_date)
+      hour_date: initialData?.component?.hour_date
+        ? parseInt(initialData.component.hour_date)
         : undefined,
-      cycle_date: initialData?.component?.hard_time?.cycle_date
-        ? parseInt(initialData.component.hard_time.cycle_date)
+      cycle_date: initialData?.component?.cycle_date
+        ? parseInt(initialData.component.cycle_date)
         : undefined,
-      caducate_date: initialData?.component?.shell_time?.caducate_date
-        ? initialData?.component?.shell_time?.caducate_date
+      caducate_date: initialData?.component?.caducate_date
+        ? initialData?.component?.caducate_date
         : undefined,
-      fabrication_date: initialData?.component?.shell_time?.fabrication_date
-        ? initialData?.component?.shell_time?.fabrication_date
+      fabrication_date: initialData?.component?.fabrication_date
+        ? initialData?.component?.fabrication_date
         : undefined,
     },
   });
@@ -263,17 +263,17 @@ const CreateComponentForm = ({
       condition_id: initialData.condition?.id?.toString() ?? "",
       description: initialData.description ?? "",
       zone: initialData.zone ?? "",
-      hour_date: initialData.component?.hard_time?.hour_date
-        ? parseInt(initialData.component.hard_time.hour_date)
+      hour_date: initialData.component?.hour_date
+        ? parseInt(initialData.component.hour_date)
         : undefined,
-      cycle_date: initialData.component?.hard_time?.cycle_date
-        ? parseInt(initialData.component.hard_time.cycle_date)
+      cycle_date: initialData.component?.cycle_date
+        ? parseInt(initialData.component.cycle_date)
         : undefined,
-      caducate_date: initialData.component?.shell_time?.caducate_date
-        ? initialData.component?.shell_time?.caducate_date
+      caducate_date: initialData.component?.caducate_date
+        ? initialData.component?.caducate_date
         : undefined,
-      fabrication_date: initialData.component?.shell_time?.fabrication_date
-        ? initialData.component?.shell_time?.fabrication_date
+      fabrication_date: initialData.component?.fabrication_date
+        ? initialData.component?.fabrication_date
         : undefined,
     });
   }, [initialData, form]);
