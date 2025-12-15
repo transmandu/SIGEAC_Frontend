@@ -96,10 +96,10 @@ export default function BulletinsSMSPage() {
       <div className="flex flex-col container mx-auto py-4 sm:py-6 lg:py-8 px-3 sm:px-4 lg:px-6 h-[calc(100vh-10rem)]">
         {/* Header */}
         <div className="text-center mb-8 sm:mb-10 lg:mb-12">
-          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-3 sm:mb-4">
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-3 sm:mb-4">
             Boletines de SMS
           </h1>
-          <p className="text-base sm:text-lg lg:text-xl text-gray-600 max-w-2xl sm:max-w-3xl mx-auto px-2 sm:px-4">
+          <p className="text-base sm:text-lg lg:text-xl max-w-2xl sm:max-w-3xl mx-auto px-2 sm:px-4">
             Acceda a los últimos boletines, directrices y mejores prácticas del
             sistema de gestión de seguridad para la seguridad operativa.
           </p>
