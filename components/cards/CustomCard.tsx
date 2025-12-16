@@ -50,7 +50,7 @@ export function CustomCard({
           <div className="flex flex-col items-center sm:flex-1">
             {/* Imagen */}
             {imageUrl && (
-              <div className="mb-4 flex justify-center relative h-16 w-16 sm:h-32 sm:w-32 flex-shrink-0">
+              <div className="mb-4 flex justify-center relative h-32 w-32 sm:h-60 sm:w-60 flex-shrink-0">
                 <Image
                   src={`${process.env.NEXT_PUBLIC_STORAGE_BASE_URL}${imageUrl}`}
                   alt={imageAlt}
