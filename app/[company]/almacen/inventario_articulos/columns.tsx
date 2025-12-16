@@ -1,9 +1,9 @@
 "use client";
 
-import { ColumnDef } from "@tanstack/react-table";
+import { ColumnDef, Row } from "@tanstack/react-table";
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle2, XCircle, Clock} from "lucide-react";
+import { CheckCircle2, XCircle, Clock, ChevronDown, ChevronRight, Package, MoreVertical } from "lucide-react";
 import { addDays, format, parseISO } from "date-fns";
 import { cn } from "@/lib/utils";
 import ArticleDropdownActions from "@/components/dropdowns/mantenimiento/almacen/ArticleDropdownActions";
@@ -11,6 +11,8 @@ import { WarehouseResponse } from "@/hooks/mantenimiento/almacen/articulos/useGe
 import CertificatesPopover from "@/components/popovers/CertificatesPopover";
 import { StatusColumnHeader } from "@/components/tables/StatusColumnHeader";
 import { Unit } from "@/types";
+import { GroupedArticle, GroupBy } from "@/hooks/mantenimiento/almacen/renglones/useGetArticlesByPartNumber";
+import { Button } from "@/components/ui/button";
 
 export interface IArticleSimple {
   id: number;
@@ -689,4 +691,190 @@ export const getColumnsByCategory = (
   if (cat === "CONSUMIBLE") return consumibleCols;
   if (cat === "COMPONENTE") return componenteCols;
   return baseCols; // fallback
+};
+
+// ============================================
+// COLUMNAS PARA GRUPOS (Vista de acordeón)
+// ============================================
+
+// Función para obtener columnas de grupos según el modo de agrupación
+export const getGroupColumns = (
+  groupBy: GroupBy,
+  onNavigateToDetail?: (group: GroupedArticle) => void
+): ColumnDef<GroupedArticle>[] => {
+  return [
+    // Columna de expansión
+    {
+      id: "expand",
+      header: () => null,
+      cell: ({ row }) => (
+        <Button
+          variant="ghost"
+          size="sm"
+          className="p-0 h-8 w-8"
+          onClick={() => row.toggleExpanded()}
+        >
+          {row.getIsExpanded() ? (
+            <ChevronDown className="h-5 w-5 text-muted-foreground" />
+          ) : (
+            <ChevronRight className="h-5 w-5 text-muted-foreground" />
+          )}
+        </Button>
+      ),
+      size: 40,
+    },
+    // Icono de paquete
+    {
+      id: "icon",
+      header: () => null,
+      cell: () => (
+        <Package className="h-5 w-5 text-primary" />
+      ),
+      size: 40,
+    },
+    // Part Number o Nombre según groupBy
+    {
+      id: "identifier",
+      header: ({ column }) => (
+        <DataTableColumnHeader 
+          column={column} 
+          title={groupBy === 'part_number' ? "Nro. Parte" : "Renglón"} 
+        />
+      ),
+      accessorFn: (row) => groupBy === 'part_number' ? row.part_number : row.name,
+      cell: ({ row }) => (
+        <div>
+          <div className="font-semibold text-base">
+            {groupBy === 'part_number' ? row.original.part_number : row.original.name}
+          </div>
+          <div className="text-sm text-muted-foreground">
+            {groupBy === 'part_number' ? row.original.name : (row.original.part_number && `Nro. Parte: ${row.original.part_number}`)}
+          </div>
+        </div>
+      ),
+    },
+    // Categoría
+    {
+      accessorKey: "category",
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Categoría" />
+      ),
+      cell: ({ row }) => (
+        <Badge variant="outline" className="text-xs">
+          {row.original.category}
+        </Badge>
+      ),
+    },
+    // Cantidad de artículos
+    {
+      id: "articleCount",
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Artículos" />
+      ),
+      accessorFn: (row) => row.articles?.length ?? 0,
+      cell: ({ row }) => {
+        const count = row.original.articles?.length ?? 0;
+        return (
+          <Badge 
+            variant="secondary" 
+            className={cn(
+              "text-xs",
+              count > 5 && "bg-blue-100 text-blue-700"
+            )}
+          >
+            {count} artículo{count !== 1 ? 's' : ''}
+          </Badge>
+        );
+      },
+    },
+    // Cantidad total
+    {
+      id: "totalQuantity",
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Cantidad Total" />
+      ),
+      accessorFn: (row) => row.articles?.reduce((sum, a) => sum + (a.quantity || 0), 0) ?? 0,
+      cell: ({ row }) => {
+        const total = row.original.articles?.reduce((sum, a) => sum + (a.quantity || 0), 0) ?? 0;
+        const unit = row.original.unit?.value || 'u';
+        return (
+          <div className="text-center">
+            <span className="font-medium">{total}</span>
+            <span className="text-xs text-muted-foreground ml-1">{unit}</span>
+          </div>
+        );
+      },
+    },
+    // Botón de ver detalle
+    {
+      id: "actions",
+      header: () => null,
+      cell: ({ row }) => (
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-8 w-8 p-0"
+          title="Ver Detalle"
+          onClick={(e) => {
+            e.stopPropagation();
+            onNavigateToDetail?.(row.original);
+          }}
+        >
+          <MoreVertical className="h-4 w-4" />
+        </Button>
+      ),
+      size: 40,
+    },
+  ];
+};
+
+// Columnas para la sub-tabla de artículos (dentro de un grupo expandido)
+export const getArticleSubColumns = (groupBy: GroupBy): ColumnDef<IArticleSimple>[] => {
+  const cols: ColumnDef<IArticleSimple>[] = [];
+
+  // Si es por batch_id, mostrar part_number primero
+  if (groupBy === 'batch_id') {
+    cols.push({
+      accessorKey: "part_number",
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Nro. Parte" />
+      ),
+      cell: ({ row }) => (
+        <div className="font-semibold text-primary text-center">
+          {row.original.part_number}
+        </div>
+      ),
+    });
+  }
+
+  // Agregar columnas base (sin part_number si ya se agregó)
+  const baseColsWithoutPartNumber = baseCols.filter(col => {
+    if ('accessorKey' in col) {
+      return col.accessorKey !== 'part_number';
+    }
+    return true;
+  });
+
+  cols.push(...baseColsWithoutPartNumber);
+
+  // Agregar columna de acciones
+  cols.push({
+    id: "actions",
+    header: () => (
+      <div className="text-center">Acciones</div>
+    ),
+    cell: ({ row }) => {
+      const item = row.original;
+      if (item.status === "stored" || item.status === "checking") {
+        return (
+          <div className="flex justify-center">
+            <ArticleDropdownActions id={item.id} />
+          </div>
+        );
+      }
+      return null;
+    },
+  });
+
+  return cols;
 };

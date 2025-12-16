@@ -3,14 +3,17 @@
 import {
   ColumnDef,
   ColumnFiltersState,
+  ExpandedState,
   SortingState,
   VisibilityState,
   flexRender,
   getCoreRowModel,
+  getExpandedRowModel,
   getFilteredRowModel,
   getPaginationRowModel,
   getSortedRowModel,
   useReactTable,
+  Row,
 } from "@tanstack/react-table";
 import {
   Table,
@@ -21,16 +24,26 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
+import { useState, ReactNode } from "react";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
+  // Props para filas expandibles
+  renderSubComponent?: (props: { row: Row<TData> }) => ReactNode;
+  getRowCanExpand?: (row: Row<TData>) => boolean;
+  // Props opcionales
+  showPagination?: boolean;
+  initialPageSize?: number;
 }
 
 export function DataTable<TData, TValue>({
   columns,
   data,
+  renderSubComponent,
+  getRowCanExpand,
+  showPagination = true,
+  initialPageSize = 10,
 }: DataTableProps<TData, TValue>) {
   // ============================================
   // STATE MANAGEMENT
@@ -38,6 +51,7 @@ export function DataTable<TData, TValue>({
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
+  const [expanded, setExpanded] = useState<ExpandedState>({});
 
   // ============================================
   // TABLE CONFIGURATION
@@ -52,10 +66,20 @@ export function DataTable<TData, TValue>({
     onColumnFiltersChange: setColumnFilters,
     getFilteredRowModel: getFilteredRowModel(),
     onColumnVisibilityChange: setColumnVisibility,
+    // Expansión de filas
+    getExpandedRowModel: getExpandedRowModel(),
+    onExpandedChange: setExpanded,
+    getRowCanExpand: getRowCanExpand ?? (() => !!renderSubComponent),
+    initialState: {
+      pagination: {
+        pageSize: initialPageSize,
+      },
+    },
     state: {
       sorting,
       columnFilters,
       columnVisibility,
+      expanded,
     },
   });
 
@@ -94,27 +118,42 @@ export function DataTable<TData, TValue>({
           <TableBody>
             {table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
-                <TableRow
-                  key={row.id}
-                  data-state={row.getIsSelected() && "selected"}
-                >
-                  {row.getVisibleCells().map((cell) => {
-                    const isStickyRight =
-                      (cell.column.columnDef.meta as any)?.sticky === "right";
+                <>
+                  <TableRow
+                    key={row.id}
+                    data-state={row.getIsSelected() && "selected"}
+                    className={row.getIsExpanded() ? "bg-muted/30" : ""}
+                  >
+                    {row.getVisibleCells().map((cell) => {
+                      const isStickyRight =
+                        (cell.column.columnDef.meta as any)?.sticky === "right";
 
-                    return (
-                      <TableCell
-                        key={cell.id}
-                        className={isStickyRight ? "table-sticky-right" : ""}
+                      return (
+                        <TableCell
+                          key={cell.id}
+                          className={isStickyRight ? "table-sticky-right" : ""}
+                        >
+                          {flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext()
+                          )}
+                        </TableCell>
+                      );
+                    })}
+                  </TableRow>
+                  
+                  {/* Fila expandida con sub-contenido */}
+                  {row.getIsExpanded() && renderSubComponent && (
+                    <TableRow key={`${row.id}-expanded`}>
+                      <TableCell 
+                        colSpan={columns.length}
+                        className="p-0 bg-muted/10"
                       >
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext()
-                        )}
+                        {renderSubComponent({ row })}
                       </TableCell>
-                    );
-                  })}
-                </TableRow>
+                    </TableRow>
+                  )}
+                </>
               ))
             ) : (
               <TableRow>
@@ -130,52 +169,54 @@ export function DataTable<TData, TValue>({
         </Table>
       </div>
 
-      <div className="flex items-center justify-between px-2">
-        <div className="flex-1 text-sm text-muted-foreground">
-          {table.getFilteredRowModel().rows.length} artículo(s) total(es)
+      {showPagination && (
+        <div className="flex items-center justify-between px-2">
+          <div className="flex-1 text-sm text-muted-foreground">
+            {table.getFilteredRowModel().rows.length} grupo(s) de artículos
+          </div>
+
+          <div className="flex items-center space-x-6 lg:space-x-8">
+            <div className="flex items-center space-x-2">
+              <p className="text-sm font-medium">Filas por página</p>
+              <select
+                value={table.getState().pagination.pageSize}
+                onChange={(e) => table.setPageSize(Number(e.target.value))}
+                className="h-8 w-[70px] rounded-md border border-input bg-transparent px-2 py-1 text-sm"
+              >
+                {[10, 20, 30, 40, 50].map((pageSize) => (
+                  <option key={pageSize} value={pageSize}>
+                    {pageSize}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="flex w-[100px] items-center justify-center text-sm font-medium">
+              Página {table.getState().pagination.pageIndex + 1} de{" "}
+              {table.getPageCount()}
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => table.previousPage()}
+                disabled={!table.getCanPreviousPage()}
+              >
+                Anterior
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => table.nextPage()}
+                disabled={!table.getCanNextPage()}
+              >
+                Siguiente
+              </Button>
+            </div>
+          </div>
         </div>
-
-        <div className="flex items-center space-x-6 lg:space-x-8">
-          <div className="flex items-center space-x-2">
-            <p className="text-sm font-medium">Filas por página</p>
-            <select
-              value={table.getState().pagination.pageSize}
-              onChange={(e) => table.setPageSize(Number(e.target.value))}
-              className="h-8 w-[70px] rounded-md border border-input bg-transparent px-2 py-1 text-sm"
-            >
-              {[10, 20, 30, 40, 50].map((pageSize) => (
-                <option key={pageSize} value={pageSize}>
-                  {pageSize}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="flex w-[100px] items-center justify-center text-sm font-medium">
-            Página {table.getState().pagination.pageIndex + 1} de{" "}
-            {table.getPageCount()}
-          </div>
-
-          <div className="flex items-center space-x-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => table.previousPage()}
-              disabled={!table.getCanPreviousPage()}
-            >
-              Anterior
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => table.nextPage()}
-              disabled={!table.getCanNextPage()}
-            >
-              Siguiente
-            </Button>
-          </div>
-        </div>
-      </div>
+      )}
     </div>
   );
 }
