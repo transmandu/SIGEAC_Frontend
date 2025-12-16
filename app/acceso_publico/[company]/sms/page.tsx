@@ -256,7 +256,7 @@ const SMSPage = () => {
                 <div className="pt-4 border-t transition-all duration-1000 ease-out opacity-0 animate-fade-in delay-300">
                   <div className="flex justify-center">
                     <Image
-                      src="https://ccvnd3lo965z.share.zrok.io/storage/images/sms/sms_airplane_page.jpg"
+                      src={`${process.env.NEXT_PUBLIC_STORAGE_BASE_URL}images/sms/sms_airplane_page.jpg`}
                       alt="Nuestra empresa - instalaciones y equipo"
                       width={600}
                       height={400}
