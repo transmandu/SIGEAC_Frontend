@@ -37,6 +37,7 @@ function DocumentDisplayDialog({
   } = useGetDocument({
     company: selectedCompany?.slug,
     fileName: actualFileName || "",
+    enabled: !isPublic && isOpen,
   });
 
   // Generar URL para documentos públicos

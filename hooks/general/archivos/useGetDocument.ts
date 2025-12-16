@@ -1,52 +1,44 @@
-  // hooks/useGetSMSDocument.ts
-  import axiosInstance from "@/lib/axios";
-  import { useQuery } from "@tanstack/react-query";
+// hooks/useGetSMSDocument.ts
+import axiosInstance from "@/lib/axios";
+import { useQuery } from "@tanstack/react-query";
 
-  interface UseGetDocumentProps {
-    company?: string;
-    fileName: string;
-    origin?: string; // Para consistencia con useGetImage
-  }
+interface UseGetDocumentProps {
+  company?: string;
+  fileName: string;
+  origin?: string;
+  enabled?: boolean; // <-- Nueva propiedad opcional
+}
 
-  const fetchDocument = async ({
-    company,
-    fileName,
-    origin = "sms", // Valor por defecto
-  }: UseGetDocumentProps): Promise<string> => {
-    const encodedDocumentPath = btoa(fileName);
-    const response = await axiosInstance.get(
-      `${company}/${origin}/document/${encodedDocumentPath}`,
-      {
-        responseType: "blob",
-      }
-    );
+const fetchDocument = async ({
+  company,
+  fileName,
+  origin = "sms",
+}: UseGetDocumentProps): Promise<string> => {
+  const encodedDocumentPath = btoa(fileName);
+  const response = await axiosInstance.get(
+    `${company}/${origin}/document/${encodedDocumentPath}`,
+    { responseType: "blob" }
+  );
 
-    // Verificar que sea un documento válido (PDF u otro tipo)
-    const contentType = response.headers["content-type"] || response.data.type;
-    const isValidDocument =
-      contentType.includes("pdf") ||
-      contentType.includes("application/") ||
-      contentType.includes("text/");
+  const contentType = response.headers["content-type"] || response.data.type;
 
-    if (!isValidDocument) {
-      throw new Error("El archivo no es un documento válido");
-    }
+  // Creamos el blob
+  const blob = new Blob([response.data], {
+    type: contentType || "application/pdf",
+  });
 
-    const blob = new Blob([response.data], {
-      type: contentType || "application/pdf",
-    });
+  return URL.createObjectURL(blob);
+};
 
-    return URL.createObjectURL(blob);
-  };
+export const useGetDocument = (props: UseGetDocumentProps) => {
+  const { company, fileName, origin = "sms", enabled = true } = props;
 
-  export const useGetDocument = (props: UseGetDocumentProps) => {
-    const { company, fileName, origin = "sms" } = props;
-
-    return useQuery<string, Error>({
-      queryKey: ["document", company, origin, fileName],
-      queryFn: () => fetchDocument(props),
-      staleTime: 1000 * 60 * 5, // 5 minutos
-      gcTime: 1000 * 60 * 10, // 10 minutos (cache)
-      enabled: !!company && !!fileName,
-    });
-  };
+  return useQuery<string, Error>({
+    queryKey: ["document", company, origin, fileName],
+    queryFn: () => fetchDocument(props),
+    staleTime: 1000 * 60 * 5,
+    gcTime: 1000 * 60 * 10,
+    // Ahora combina la lógica interna con la que viene por props
+    enabled: enabled && !!company && !!fileName,
+  });
+};
