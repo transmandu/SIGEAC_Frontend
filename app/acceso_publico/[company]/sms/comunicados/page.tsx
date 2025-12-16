@@ -15,6 +15,8 @@ import { useGetSafetyBulletinsByYear } from "@/hooks/sms/boletin/useGetSafetyBul
 import { useParams } from "next/navigation";
 import { Download, FileWarning, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { format  } from "date-fns";
+import { es } from "date-fns/locale";
 
 export default function BulletinsSMSPage() {
   const params = useParams();
@@ -113,7 +115,7 @@ export default function BulletinsSMSPage() {
           />
         </div>
         {/* Bulletins Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 lg:gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-5 lg:gap-6">
           {bulletinsError ? (
             <div className="flex justify-center items-center h-64">
               <p>Error al cargar los boletines</p>
@@ -129,6 +131,7 @@ export default function BulletinsSMSPage() {
                   handleDocumentClick(bulletin.document, bulletin.title)
                 }
               >
+                <h2 className="text-center font-bold text-sm sm:text-lg">{format(bulletin.date, "MMMM", { locale: es }).toLocaleUpperCase()}</h2>
                 <CustomCard
                   imageUrl={bulletin?.image || "images/no_image.png"}
                   imageAlt={bulletin.title}
@@ -163,7 +166,6 @@ export default function BulletinsSMSPage() {
           )
         )}
 
-        
         {/* Dialog Para el Documento Seleccionado*/}
         <Dialog
           open={!!selectedDocument}
@@ -204,6 +206,9 @@ export default function BulletinsSMSPage() {
             </div>
           </DialogContent>
         </Dialog>
+
+
+        
       </div>
     </GuestContentLayout>
   );
