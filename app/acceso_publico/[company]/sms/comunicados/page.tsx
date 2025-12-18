@@ -15,7 +15,7 @@ import { useGetSafetyBulletinsByYear } from "@/hooks/sms/boletin/useGetSafetyBul
 import { useParams } from "next/navigation";
 import { Download, FileWarning, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { format  } from "date-fns";
+import { format } from "date-fns";
 import { es } from "date-fns/locale";
 
 export default function BulletinsSMSPage() {
@@ -131,7 +131,11 @@ export default function BulletinsSMSPage() {
                   handleDocumentClick(bulletin.document, bulletin.title)
                 }
               >
-                <h2 className="text-center font-bold text-sm sm:text-lg">{format(bulletin.date, "MMMM", { locale: es }).toLocaleUpperCase()}</h2>
+                <h2 className="text-center font-bold text-sm sm:text-lg">
+                  {format(bulletin.date, "MMMM", {
+                    locale: es,
+                  }).toLocaleUpperCase()}
+                </h2>
                 <CustomCard
                   imageUrl={bulletin?.image || "images/no_image.png"}
                   imageAlt={bulletin.title}
@@ -189,26 +193,8 @@ export default function BulletinsSMSPage() {
                 />
               )}
             </div>
-
-            <div className="flex justify-end gap-2">
-              <Button
-                variant="outline"
-                className="w-full sm:w-auto"
-                onClick={() => {
-                  if (selectedDocument) {
-                    handleDownload(selectedDocument, selectedDocumentTitle);
-                  }
-                }}
-              >
-                <Download className="mr-2 h-4 w-4" />
-                Descargar
-              </Button>
-            </div>
           </DialogContent>
         </Dialog>
-
-
-        
       </div>
     </GuestContentLayout>
   );
