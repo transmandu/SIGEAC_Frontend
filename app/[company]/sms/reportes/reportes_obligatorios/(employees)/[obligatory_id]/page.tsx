@@ -276,7 +276,7 @@ const ShowObligatoryReport = () => {
                 </div>
               )}
 
-              <div className=" p-4 rounded-lg flex-1 border border-gray-300 rounded-lg">
+              <div className=" p-4 rounded-lg flex-1 border border-gray-300 ">
                 <p className="text-xl font-semibold text-center text-gray-800 dark:text-white mb-4 flex items-center justify-center gap-2">
                   <Plane className="w-6 h-6" />
                   Datos de Vuelo
@@ -309,7 +309,7 @@ const ShowObligatoryReport = () => {
             {/* Sección de Tripulación */}
             <div className="flex flex-col lg:flex-row justify-center items-stretch gap-4">
               {obligatoryReport.pilot && (
-                <div className="  p-4 rounded-lg flex-1 border border-gray-300 rounded-lg">
+                <div className="  p-4 rounded-lg flex-1 border border-gray-300 ">
                   <p className="text-xl font-semibold text-center text-gray-800 dark:text-white mb-4 flex items-center justify-center gap-2 ">
                     <User className="w-6 h-6" />
                     Datos del Piloto
@@ -342,7 +342,7 @@ const ShowObligatoryReport = () => {
               )}
 
               {obligatoryReport.copilot && (
-                <div className=" p-4 rounded-lg flex-1 border border-gray-300 rounded-lg">
+                <div className=" p-4 rounded-lg flex-1 border border-gray-300 ">
                   <p className="text-xl font-semibold text-center text-gray-800 dark:text-white mb-4 flex items-center justify-center gap-2">
                     <Users className="w-6 h-6" />
                     Datos del Copiloto

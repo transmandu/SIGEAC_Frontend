@@ -46,7 +46,7 @@ export default function BulletinsSMSPage() {
 
     // Agregar parámetros para mejor visualización si es PDF
     const finalUrl = fullUrl.toLowerCase().endsWith(".pdf")
-      ? `${fullUrl}#view=FitH&toolbar=0&navpanes=0`
+      ? `${fullUrl}#view=FitH&toolbar=1&navpanes=1`
       : fullUrl;
 
     setSelectedDocument(finalUrl);
