@@ -13,6 +13,7 @@ import { StatusColumnHeader } from "@/components/tables/StatusColumnHeader";
 import { Unit } from "@/types";
 import { GroupedArticle, GroupBy } from "@/hooks/mantenimiento/almacen/renglones/useGetArticlesByPartNumber";
 import { Button } from "@/components/ui/button";
+import { getUnitLabel } from '@/lib/units';
 
 export interface IArticleSimple {
   id: number;
@@ -796,11 +797,17 @@ export const getGroupColumns = (
       accessorFn: (row) => row.articles?.reduce((sum, a) => sum + (a.quantity || 0), 0) ?? 0,
       cell: ({ row }) => {
         const total = row.original.articles?.reduce((sum, a) => sum + (a.quantity || 0), 0) ?? 0;
-        const unit = row.original.unit?.value || 'u';
+        const category = row.original.category;
+        
+        // Para Herramientas y Componentes: mostrar "unidad" o "unidades"
+        const unitLabel = category === 'CONSUMIBLE'
+        ? getUnitLabel(row.original.articles?.find(a => a.unit?.value)?.unit?.value ?? row.original.unit?.value ?? 'u', total)
+        : getUnitLabel('u', total);
+        
         return (
           <div className="text-center">
             <span className="font-medium">{total}</span>
-            <span className="text-xs text-muted-foreground ml-1">{unit}</span>
+            <span className="text-xs text-muted-foreground ml-1">{unitLabel}</span>
           </div>
         );
       },

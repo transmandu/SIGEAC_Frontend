@@ -15,39 +15,37 @@ import { Input } from '@/components/ui/input'
 import { useCompanyStore } from '@/stores/CompanyStore'
 import { ArrowLeft, Loader2, Package, Search, X } from 'lucide-react'
 import { useRouter } from 'next/navigation'
-import { useSearchBatchesWithArticles } from '@/hooks/mantenimiento/almacen/renglones/useSearchBatchesWithArticles'
-import { WarehouseArticle } from '@/types/warehouse'
+import { useGetBatchById } from '@/hooks/mantenimiento/almacen/renglones/useGetBatchById'
 import { useMemo, useState } from 'react'
 import ArticleDropdownActions from '@/components/dropdowns/mantenimiento/almacen/ArticleDropdownActions'
 import { format, parseISO } from 'date-fns'
 
-interface ArticleDetailPageProps {
+interface BatchDetailPageProps {
   params: {
     company: string
-    part_number: string
+    batch_id: string
   }
 }
 
-export default function ArticleDetailPage({ params }: ArticleDetailPageProps) {
+export default function BatchDetailPage({ params }: BatchDetailPageProps) {
   const router = useRouter()
   const { selectedCompany, selectedStation } = useCompanyStore()
   const [searchTerm, setSearchTerm] = useState('')
-  const decodedPartNumber = decodeURIComponent(params.part_number)
+  const batchId = params.batch_id
 
-  // Fetch data - buscar específicamente este part_number
-  const { data: searchResults, isLoading } = useSearchBatchesWithArticles(
+  // Fetch data - buscar específicamente este batch_id
+  const { data: batchData, isLoading } = useGetBatchById(
     selectedCompany?.slug,
     selectedStation?.toString() ?? undefined,
-    decodedPartNumber
+    batchId
   )
 
-  // Transformar el resultado de búsqueda al formato esperado
+  // Transformar el resultado al formato esperado
   const group = useMemo(() => {
-    if (!searchResults || searchResults.length === 0) return null
+    if (!batchData) return null
     
-    const batchData = searchResults[0]
     return {
-      part_number: batchData.articles[0]?.part_number || decodedPartNumber,
+      batch_id: batchData.batch.id,
       name: batchData.batch.name,
       category: batchData.batch.category,
       unit: batchData.batch.medition_unit ? {
@@ -64,24 +62,24 @@ export default function ArticleDetailPage({ params }: ArticleDetailPageProps) {
         part_number: article.part_number,
         alternative_part_number: article.alternative_part_number || [],
         serial: article.serial || '',
-        lot_number: (article as any).lot_number || '', // Puede existir aunque no esté en el tipo
+        lot_number: article.lot_number || '',
         cost: article.cost ?? undefined,
         description: article.description || '',
         zone: article.zone,
         status: article.status,
-        condition: article.condition && typeof article.condition === 'object' ? {
-          id: (article.condition as any).id || 0,
-          name: (article.condition as any).name || article.condition,
-          description: (article.condition as any).description || '',
-          registered_by: (article.condition as any).registered_by || '',
-          updated_by: (article.condition as any).updated_by || ''
-        } : article.condition ? {
+        condition: typeof article.condition === 'string' ? {
           id: 0,
-          name: article.condition as string,
+          name: article.condition,
           description: '',
           registered_by: '',
           updated_by: ''
-        } : undefined,
+        } : {
+          id: 0,
+          name: 'N/A',
+          description: '',
+          registered_by: '',
+          updated_by: ''
+        },
         quantity: article.quantity,
         unit: article.unit_secondary ? {
           id: 0,
@@ -97,11 +95,11 @@ export default function ArticleDetailPage({ params }: ArticleDetailPageProps) {
         article_type: article.article_type || batchData.batch.category.toLowerCase(),
         caducate_date: article.component?.shell_time?.caducate_date || article.consumable?.caducate_date || null,
         tool: article.tool ? {
-          needs_calibration: (article.tool as any).needs_calibration === '1' || false,
-          status: (article.tool as any).status || article.status,
-          calibration_date: (article.tool as any).calibration_date,
-          next_calibration_date: (article.tool as any).next_calibration,
-          next_calibration: (article.tool as any).next_calibration
+          needs_calibration: article.tool.needs_calibration === '1' || article.tool.needs_calibration === true || false,
+          status: article.tool.status || article.status,
+          calibration_date: article.tool.calibration_date,
+          next_calibration_date: article.tool.next_calibration_date,
+          next_calibration: article.tool.next_calibration
         } : undefined,
         component: article.component ? {
           shell_time: {
@@ -111,8 +109,8 @@ export default function ArticleDetailPage({ params }: ArticleDetailPageProps) {
         } : undefined,
         consumable: article.consumable ? {
           shell_time: {
-            caducate_date: (article.consumable as any).caducate_date || null,
-            fabrication_date: (article.consumable as any).fabrication_date || null
+            caducate_date: article.consumable.caducate_date || null,
+            fabrication_date: article.consumable.fabrication_date || null
           },
           unit: article.unit_secondary ? {
             id: 0,
@@ -126,7 +124,7 @@ export default function ArticleDetailPage({ params }: ArticleDetailPageProps) {
         } : undefined
       }))
     }
-  }, [searchResults, decodedPartNumber])
+  }, [batchData])
 
   // Filtrar artículos por búsqueda
   const filteredArticles = useMemo(() => {
@@ -135,6 +133,7 @@ export default function ArticleDetailPage({ params }: ArticleDetailPageProps) {
 
     const searchLower = searchTerm.toLowerCase()
     return group.articles.filter(article => 
+      article.part_number?.toLowerCase().includes(searchLower) ||
       article.serial?.toLowerCase().includes(searchLower) ||
       article.lot_number?.toLowerCase().includes(searchLower) ||
       article.zone?.toLowerCase().includes(searchLower) ||
@@ -189,9 +188,9 @@ export default function ArticleDetailPage({ params }: ArticleDetailPageProps) {
       <ContentLayout title="No encontrado">
         <div className="text-center py-12">
           <Package className="size-16 mx-auto mb-4 text-muted-foreground opacity-50" />
-          <h2 className="text-2xl font-semibold mb-2">Artículo no encontrado</h2>
+          <h2 className="text-2xl font-semibold mb-2">Renglón no encontrado</h2>
           <p className="text-muted-foreground mb-6">
-            No se encontró el número de parte: <strong>{decodedPartNumber}</strong>
+            No se encontró el renglón con ID: <strong>{batchId}</strong>
           </p>
           <Button onClick={handleBack} variant="default">
             <ArrowLeft className="size-4 mr-2" />
@@ -203,7 +202,7 @@ export default function ArticleDetailPage({ params }: ArticleDetailPageProps) {
   }
 
   return (
-    <ContentLayout title={`Artículos - ${decodedPartNumber}`}>
+    <ContentLayout title={`Renglón - ${group.name}`}>
       <div className="flex flex-col gap-y-4">
         {/* Breadcrumbs */}
         <Breadcrumb>
@@ -221,7 +220,7 @@ export default function ArticleDetailPage({ params }: ArticleDetailPageProps) {
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbPage>{decodedPartNumber}</BreadcrumbPage>
+              <BreadcrumbPage>{group.name}</BreadcrumbPage>
             </BreadcrumbItem>
           </BreadcrumbList>
         </Breadcrumb>
@@ -241,8 +240,8 @@ export default function ArticleDetailPage({ params }: ArticleDetailPageProps) {
             <div className="flex items-center gap-3">
               <Package className="size-8 text-primary" />
               <div>
-                <h1 className="text-3xl font-bold">{group.part_number}</h1>
-                <p className="text-muted-foreground">{group.name}</p>
+                <h1 className="text-3xl font-bold">{group.name}</h1>
+                <p className="text-muted-foreground text-sm">Renglón ID: {group.batch_id}</p>
               </div>
               <Badge variant="outline" className="text-sm">
                 {group.category}
@@ -295,7 +294,7 @@ export default function ArticleDetailPage({ params }: ArticleDetailPageProps) {
         <div className="relative max-w-md">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
           <Input
-            placeholder="Buscar por serial, lote, zona, descripción..."
+            placeholder="Buscar por número de parte, serial, lote, zona, descripción..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-10 pr-8"
@@ -318,6 +317,7 @@ export default function ArticleDetailPage({ params }: ArticleDetailPageProps) {
             <table className="w-full">
               <thead className="bg-muted">
                 <tr className="text-sm font-medium">
+                  <th className="px-4 py-3 text-left">Nro. Parte</th>
                   <th className="px-4 py-3 text-left">Serial/Lote</th>
                   <th className="px-4 py-3 text-left">Zona</th>
                   <th className="px-4 py-3 text-left">Condición</th>
@@ -332,36 +332,20 @@ export default function ArticleDetailPage({ params }: ArticleDetailPageProps) {
               <tbody>
                 {filteredArticles.length === 0 ? (
                   <tr>
-                    <td colSpan={9} className="px-4 py-8 text-center text-muted-foreground">
+                    <td colSpan={10} className="px-4 py-8 text-center text-muted-foreground">
                       {searchTerm ? 'No se encontraron artículos con ese criterio' : 'No hay artículos'}
                     </td>
                   </tr>
                 ) : (
                   filteredArticles.map((article) => {
-                    const articleForActions = {
-                      id: article.id,
-                      part_number: article.part_number,
-                      alternative_part_number: article.alternative_part_number,
-                      serial: article.serial,
-                      lot_number: article.lot_number,
-                      description: article.description,
-                      zone: article.zone,
-                      quantity: article.quantity,
-                      status: article.status,
-                      condition: article.condition,
-                      unit: article.unit,
-                      has_documentation: article.has_documentation,
-                      certificates: article.certificates,
-                      batch_name: group.name,
-                      batch_id: 0,
-                      article_type: group.category.toLowerCase(),
-                    }
-
                     return (
                       <tr 
                         key={article.id} 
                         className="border-t hover:bg-muted/50 transition-colors"
                       >
+                        <td className="px-4 py-3 text-sm font-semibold text-primary">
+                          {article.part_number}
+                        </td>
                         <td className="px-4 py-3 text-sm">
                           <div>
                             <p className="font-medium">
@@ -452,3 +436,4 @@ export default function ArticleDetailPage({ params }: ArticleDetailPageProps) {
     </ContentLayout>
   )
 }
+
