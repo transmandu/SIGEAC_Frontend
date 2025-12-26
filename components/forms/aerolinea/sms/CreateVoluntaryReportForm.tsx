@@ -111,7 +111,7 @@ export function CreateVoluntaryReportForm({
       .min(3, {
         message: "Las consecuencias deben tener al menos 3 caracteres",
       })
-      .max(255, {
+      .max(999, {
         message: "Las consecuencias no debe exceder los 255 caracteres",
       }),
 
