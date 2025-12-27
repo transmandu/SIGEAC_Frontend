@@ -229,13 +229,11 @@ const InventarioArticulosPage = () => {
   const handleNavigateToDetail = useCallback((group: GroupedArticle) => {
     if (!selectedCompany?.slug) return;
     
-    if (groupBy === 'batch_id' && group.batch_id) {
-      // Navegar usando batch_id
-      router.push(`/${selectedCompany.slug}/almacen/inventario_articulos/batch/${group.batch_id}`);
-    } else if (groupBy === 'part_number' && group.part_number) {
-      // Navegar usando part_number
-      router.push(`/${selectedCompany.slug}/almacen/inventario_articulos/${encodeURIComponent(group.part_number)}`);
-    }
+    const path = groupBy === 'batch_id' 
+      ? `batch/${group.batch_id}` 
+      : encodeURIComponent(group.part_number || '');
+      
+    router.push(`/${selectedCompany.slug}/almacen/inventario_articulos/${path}`);
   }, [groupBy, selectedCompany?.slug, router]);
 
   // Columnas para la tabla de grupos

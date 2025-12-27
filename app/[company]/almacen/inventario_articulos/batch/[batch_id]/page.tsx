@@ -15,8 +15,8 @@ import { Input } from '@/components/ui/input'
 import { useCompanyStore } from '@/stores/CompanyStore'
 import { ArrowLeft, Loader2, Package, Search, X } from 'lucide-react'
 import { useRouter } from 'next/navigation'
-import { useGetBatchById } from '@/hooks/mantenimiento/almacen/renglones/useGetBatchById'
-import { useMemo, useState } from 'react'
+import { useGetArticlesByPartNumber } from '@/hooks/mantenimiento/almacen/renglones/useGetArticlesByPartNumber'
+import { useMemo, useState, useEffect } from 'react'
 import ArticleDropdownActions from '@/components/dropdowns/mantenimiento/almacen/ArticleDropdownActions'
 import { format, parseISO } from 'date-fns'
 
@@ -31,100 +31,52 @@ export default function BatchDetailPage({ params }: BatchDetailPageProps) {
   const router = useRouter()
   const { selectedCompany, selectedStation } = useCompanyStore()
   const [searchTerm, setSearchTerm] = useState('')
-  const batchId = params.batch_id
+  const batchId = parseInt(params.batch_id)
+  const [currentPage, setCurrentPage] = useState(1)
 
-  // Fetch data - buscar específicamente este batch_id
-  const { data: batchData, isLoading } = useGetBatchById(
+  // Usar el mismo endpoint que la página principal
+  const { data: paginatedData, isLoading } = useGetArticlesByPartNumber(
     selectedCompany?.slug,
     selectedStation?.toString() ?? undefined,
-    batchId
+    currentPage,
+    'batch_id' // Agrupar por batch_id
   )
 
-  // Transformar el resultado al formato esperado
+  // Buscar el batch específico en los resultados
   const group = useMemo(() => {
-    if (!batchData) return null
+    if (!paginatedData?.data) return null
+    
+    const foundBatch = paginatedData.data.find(g => g.batch_id === batchId)
+    
+    if (!foundBatch) return null
     
     return {
-      batch_id: batchData.batch.id,
-      name: batchData.batch.name,
-      category: batchData.batch.category,
-      unit: batchData.batch.medition_unit ? {
-        id: 0,
-        value: batchData.batch.medition_unit,
-        label: batchData.batch.medition_unit,
-        registered_by: '',
-        updated_by: '',
-        created_at: new Date(),
-        updated_at: new Date()
-      } : null,
-      articles: batchData.articles.map(article => ({
-        id: article.id,
-        part_number: article.part_number,
-        alternative_part_number: article.alternative_part_number || [],
-        serial: article.serial || '',
-        lot_number: article.lot_number || '',
-        cost: article.cost ?? undefined,
-        description: article.description || '',
-        zone: article.zone,
-        status: article.status,
-        condition: typeof article.condition === 'string' ? {
-          id: 0,
-          name: article.condition,
-          description: '',
-          registered_by: '',
-          updated_by: ''
-        } : {
-          id: 0,
-          name: 'N/A',
-          description: '',
-          registered_by: '',
-          updated_by: ''
-        },
-        quantity: article.quantity,
-        unit: article.unit_secondary ? {
-          id: 0,
-          value: article.unit_secondary,
-          label: article.unit_secondary,
-          registered_by: '',
-          updated_by: '',
-          created_at: new Date(),
-          updated_at: new Date()
-        } : undefined,
-        has_documentation: article.certificates && article.certificates.length > 0 || false,
-        certificates: article.certificates || [],
-        article_type: article.article_type || batchData.batch.category.toLowerCase(),
-        caducate_date: article.component?.shell_time?.caducate_date || article.consumable?.caducate_date || null,
-        tool: article.tool ? {
-          needs_calibration: article.tool.needs_calibration === '1' || article.tool.needs_calibration === true || false,
-          status: article.tool.status || article.status,
-          calibration_date: article.tool.calibration_date,
-          next_calibration_date: article.tool.next_calibration_date,
-          next_calibration: article.tool.next_calibration
-        } : undefined,
-        component: article.component ? {
-          shell_time: {
-            caducate_date: article.component.shell_time?.caducate_date || null,
-            fabrication_date: article.component.shell_time?.fabrication_date || null
-          }
-        } : undefined,
-        consumable: article.consumable ? {
-          shell_time: {
-            caducate_date: article.consumable.caducate_date || null,
-            fabrication_date: article.consumable.fabrication_date || null
-          },
-          unit: article.unit_secondary ? {
-            id: 0,
-            value: article.unit_secondary,
-            label: article.unit_secondary,
-            registered_by: '',
-            updated_by: '',
-            created_at: new Date(),
-            updated_at: new Date()
-          } : undefined
-        } : undefined
+      batch_id: foundBatch.batch_id,
+      name: foundBatch.name,
+      category: foundBatch.category,
+      unit: foundBatch.unit,
+      articles: foundBatch.articles.map(article => ({
+        ...article,
+        // Asegurar que condition tenga la estructura correcta
+        condition: typeof article.condition === 'object' && article.condition !== null
+          ? article.condition
+          : {
+              id: 0,
+              name: typeof article.condition === 'string' ? article.condition : 'N/A',
+              description: '',
+              registered_by: '',
+              updated_by: ''
+            }
       }))
     }
-  }, [batchData])
+  }, [paginatedData, batchId])
+
+  // Si no se encontró en la página actual y hay más páginas, intentar la siguiente
+  useEffect(() => {
+    if (!isLoading && !group && paginatedData && currentPage < paginatedData.last_page) {
+      setCurrentPage(prev => prev + 1)
+    }
+  }, [isLoading, group, paginatedData, currentPage])
 
   // Filtrar artículos por búsqueda
   const filteredArticles = useMemo(() => {
@@ -151,17 +103,11 @@ export default function BatchDetailPage({ params }: BatchDetailPageProps) {
       acc[a.status] = (acc[a.status] || 0) + 1
       return acc
     }, {} as Record<string, number>)
-    const byZone = group.articles.reduce((acc, a) => {
-      const zone = a.zone || 'Sin zona'
-      acc[zone] = (acc[zone] || 0) + 1
-      return acc
-    }, {} as Record<string, number>)
     const withDocs = group.articles.filter(a => a.has_documentation).length
 
     return {
       totalQuantity,
       byStatus,
-      byZone,
       withDocs,
       totalArticles: group.articles.length
     }
@@ -173,7 +119,7 @@ export default function BatchDetailPage({ params }: BatchDetailPageProps) {
 
   const handleClearSearch = () => setSearchTerm('')
 
-  if (isLoading) {
+  if (isLoading && !group) {
     return (
       <ContentLayout title="Cargando...">
         <div className="flex justify-center items-center min-h-[400px]">
@@ -183,7 +129,7 @@ export default function BatchDetailPage({ params }: BatchDetailPageProps) {
     )
   }
 
-  if (!group) {
+  if (!group && !isLoading) {
     return (
       <ContentLayout title="No encontrado">
         <div className="text-center py-12">
@@ -200,6 +146,8 @@ export default function BatchDetailPage({ params }: BatchDetailPageProps) {
       </ContentLayout>
     )
   }
+
+  if (!group) return null
 
   return (
     <ContentLayout title={`Renglón - ${group.name}`}>
@@ -241,7 +189,6 @@ export default function BatchDetailPage({ params }: BatchDetailPageProps) {
               <Package className="size-8 text-primary" />
               <div>
                 <h1 className="text-3xl font-bold">{group.name}</h1>
-                <p className="text-muted-foreground text-sm">Renglón ID: {group.batch_id}</p>
               </div>
               <Badge variant="outline" className="text-sm">
                 {group.category}
@@ -413,7 +360,9 @@ export default function BatchDetailPage({ params }: BatchDetailPageProps) {
                           )}
                         </td>
                         <td className="px-4 py-3 text-right">
-                          <ArticleDropdownActions id={article.id} />
+                          {(article.status === 'stored' || article.status === 'checking') && (
+                            <ArticleDropdownActions id={article.id} />
+                          )}
                         </td>
                       </tr>
                     )
@@ -436,4 +385,3 @@ export default function BatchDetailPage({ params }: BatchDetailPageProps) {
     </ContentLayout>
   )
 }
-

@@ -646,14 +646,14 @@ export function CreateGeneralRequisitionForm({
                                 )
                               }
                             />
-                            {/* <Input
+                            <Input
                               type="file"
                               accept="image/*"
                               className="cursor-pointer"
                               onChange={(e) =>
                                 handleArticleChange(batch.batch, index, "image", e.target.files?.[0])
                               }
-                            /> */}
+                            />
                             <Button
                               variant="ghost"
                               type="button"

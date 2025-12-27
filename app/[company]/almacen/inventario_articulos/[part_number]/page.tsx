@@ -41,25 +41,16 @@ export default function ArticleDetailPage({ params }: ArticleDetailPageProps) {
     decodedPartNumber
   )
 
-  // Transformar el resultado de búsqueda al formato esperado
+  // Transformar el resultado de búsqueda - combinar TODOS los batches encontrados
   const group = useMemo(() => {
     if (!searchResults || searchResults.length === 0) return null
     
-    const batchData = searchResults[0]
-    return {
-      part_number: batchData.articles[0]?.part_number || decodedPartNumber,
-      name: batchData.batch.name,
-      category: batchData.batch.category,
-      unit: batchData.batch.medition_unit ? {
-        id: 0,
-        value: batchData.batch.medition_unit,
-        label: batchData.batch.medition_unit,
-        registered_by: '',
-        updated_by: '',
-        created_at: new Date(),
-        updated_at: new Date()
-      } : null,
-      articles: batchData.articles.map(article => ({
+    // Obtener información del primer batch para los datos generales
+    const firstBatch = searchResults[0]
+    
+    // Combinar TODOS los artículos de TODOS los batches
+    const allArticles = searchResults.flatMap(batchData => 
+      batchData.articles.map(article => ({
         id: article.id,
         part_number: article.part_number,
         alternative_part_number: article.alternative_part_number || [],
@@ -67,6 +58,8 @@ export default function ArticleDetailPage({ params }: ArticleDetailPageProps) {
         lot_number: (article as any).lot_number || '', // Puede existir aunque no esté en el tipo
         cost: article.cost ?? undefined,
         description: article.description || '',
+        batch_name: batchData.batch.name, // Agregar nombre del batch
+        batch_category: batchData.batch.category, // Agregar categoría del batch
         zone: article.zone,
         status: article.status,
         condition: article.condition && typeof article.condition === 'object' ? {
@@ -125,6 +118,25 @@ export default function ArticleDetailPage({ params }: ArticleDetailPageProps) {
           } : undefined
         } : undefined
       }))
+    )
+    
+    // Obtener las categorías únicas de todos los batches
+    const categories = Array.from(new Set(searchResults.map(b => b.batch.category))).join(' / ')
+    
+    return {
+      part_number: decodedPartNumber,
+      name: firstBatch.batch.name,
+      category: categories, // Mostrar todas las categorías
+      unit: firstBatch.batch.medition_unit ? {
+        id: 0,
+        value: firstBatch.batch.medition_unit,
+        label: firstBatch.batch.medition_unit,
+        registered_by: '',
+        updated_by: '',
+        created_at: new Date(),
+        updated_at: new Date()
+      } : null,
+      articles: allArticles
     }
   }, [searchResults, decodedPartNumber])
 
@@ -147,7 +159,7 @@ export default function ArticleDetailPage({ params }: ArticleDetailPageProps) {
   const stats = useMemo(() => {
     if (!group) return null
 
-    const totalQuantity = group.articles.reduce((sum, a) => sum + (a.quantity || 0), 0)
+    const totalQuantity = group.articles.reduce((sum, a) => sum + (Number(a.quantity) || 0), 0)
     const byStatus = group.articles.reduce((acc, a) => {
       acc[a.status] = (acc[a.status] || 0) + 1
       return acc
@@ -158,13 +170,17 @@ export default function ArticleDetailPage({ params }: ArticleDetailPageProps) {
       return acc
     }, {} as Record<string, number>)
     const withDocs = group.articles.filter(a => a.has_documentation).length
+    
+    // Detectar si hay múltiples categorías
+    const hasMultipleCategories = group.category.includes('/')
 
     return {
       totalQuantity,
       byStatus,
       byZone,
       withDocs,
-      totalArticles: group.articles.length
+      totalArticles: group.articles.length,
+      hasMultipleCategories
     }
   }, [group])
 
@@ -242,32 +258,26 @@ export default function ArticleDetailPage({ params }: ArticleDetailPageProps) {
               <Package className="size-8 text-primary" />
               <div>
                 <h1 className="text-3xl font-bold">{group.part_number}</h1>
-                <p className="text-muted-foreground">{group.name}</p>
               </div>
-              <Badge variant="outline" className="text-sm">
-                {group.category}
-              </Badge>
             </div>
           </div>
         </div>
 
         {/* Estadísticas */}
         {stats && (
-          <div className={`grid ${group.category === 'CONSUMIBLE' ? 'grid-cols-2 md:grid-cols-4' : 'grid-cols-2 md:grid-cols-3'} gap-4`}>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="bg-card border rounded-lg p-4">
               <p className="text-sm text-muted-foreground">Total Artículos</p>
               <p className="text-2xl font-bold">{stats.totalArticles}</p>
             </div>
             
-            {/* Solo mostrar Cantidad Total para CONSUMIBLE */}
-            {group.category === 'CONSUMIBLE' && (
-              <div className="bg-card border rounded-lg p-4">
-                <p className="text-sm text-muted-foreground">Cantidad Total</p>
-                <p className="text-2xl font-bold">
-                  {stats.totalQuantity} {group.unit?.value || ''}
-                </p>
-              </div>
-            )}
+            {/* Mostrar Cantidad Total siempre */}
+            <div className="bg-card border rounded-lg p-4">
+              <p className="text-sm text-muted-foreground">Cantidad Total</p>
+              <p className="text-2xl font-bold">
+                {stats.totalQuantity} {group.unit?.value || 'u'}
+              </p>
+            </div>
             
             <div className="bg-card border rounded-lg p-4">
               <p className="text-sm text-muted-foreground">Con Documentación</p>
@@ -319,6 +329,8 @@ export default function ArticleDetailPage({ params }: ArticleDetailPageProps) {
               <thead className="bg-muted">
                 <tr className="text-sm font-medium">
                   <th className="px-4 py-3 text-left">Serial/Lote</th>
+                  <th className="px-4 py-3 text-center">Tipo</th>
+                  <th className="px-4 py-3 text-left">Renglón</th>
                   <th className="px-4 py-3 text-left">Zona</th>
                   <th className="px-4 py-3 text-left">Condición</th>
                   <th className="px-4 py-3 text-center">Cantidad</th>
@@ -332,12 +344,25 @@ export default function ArticleDetailPage({ params }: ArticleDetailPageProps) {
               <tbody>
                 {filteredArticles.length === 0 ? (
                   <tr>
-                    <td colSpan={9} className="px-4 py-8 text-center text-muted-foreground">
+                    <td colSpan={11} className="px-4 py-8 text-center text-muted-foreground">
                       {searchTerm ? 'No se encontraron artículos con ese criterio' : 'No hay artículos'}
                     </td>
                   </tr>
                 ) : (
                   filteredArticles.map((article) => {
+                    // Determinar el tipo de artículo basado en la categoría del batch
+                    const getArticleType = () => {
+                      if (article.batch_category) {
+                        return article.batch_category.toUpperCase()
+                      }
+                      if (article.tool) return 'HERRAMIENTA'
+                      if (article.consumable || article.article_type?.toLowerCase() === 'consumable') return 'CONSUMIBLE'
+                      if (article.component || article.article_type?.toLowerCase() === 'component') return 'COMPONENTE'
+                      return 'N/A'
+                    }
+                    
+                    const articleType = getArticleType()
+                    
                     const articleForActions = {
                       id: article.id,
                       part_number: article.part_number,
@@ -372,6 +397,26 @@ export default function ArticleDetailPage({ params }: ArticleDetailPageProps) {
                                 Lote: {article.lot_number}
                               </p>
                             )}
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 text-center">
+                          <Badge 
+                            variant={
+                              articleType === 'COMPONENTE' ? 'default' :
+                              articleType === 'CONSUMIBLE' ? 'secondary' :
+                              articleType === 'HERRAMIENTA' ? 'outline' :
+                              'outline'
+                            }
+                            className="text-xs font-medium"
+                          >
+                            {articleType}
+                          </Badge>
+                        </td>
+                        <td className="px-4 py-3 text-sm">
+                          <div className="max-w-[200px]">
+                            <p className="font-medium text-xs truncate" title={article.batch_name}>
+                              {article.batch_name}
+                            </p>
                           </div>
                         </td>
                         <td className="px-4 py-3 text-sm">
