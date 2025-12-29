@@ -9,7 +9,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { useCompanyStore } from "@/stores/CompanyStore"
-import RegisterArticleForm from "./_components/RegisterArticleForm"
+import RegisterArticleForm from "../../../../components/forms/mantenimiento/almacen/RegisterArticleForm"
 
 const AgregarPage = () => {
   const { selectedCompany } = useCompanyStore();

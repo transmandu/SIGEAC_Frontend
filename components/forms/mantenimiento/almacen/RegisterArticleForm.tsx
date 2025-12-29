@@ -1,23 +1,21 @@
 "use client";
 
-import { Article, Batch, Convertion } from "@/types";
-import { useState } from "react";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "../../../ui/select";
-import CreateComponentForm from "@/app/[company]/almacen/ingresar_inventario/_components/RegisterComponentForm";
-import CreateConsumableForm from "@/app/[company]/almacen/ingresar_inventario/_components/RegisterConsumableForm";
-import CreateToolForm from "@/app/[company]/almacen/ingresar_inventario/_components/RegisterToolForm";
+} from "@/components/ui/select";
+import { Article, Batch } from "@/types";
+import { useState } from "react";
+import CreateConsumableForm from "./RegisterConsumableForm";
+import CreateToolForm from "./RegisterToolForm";
+import CreateComponentForm from "./RegisterComponentForm";
+
 
 export interface EditingArticle extends Article {
   batches: Batch;
-  certificate_8130?: string;
-  certificate_vendor?: string;
-  certificate_fabricant?: string;
   tool?: {
     id: number;
     serial: string;
@@ -66,7 +64,7 @@ const RegisterArticleForm = ({
   return (
     <div className="space-y-3 mb-4">
       <h1 className="font-bold text-3xl">
-        {isEditing ? "Edicion de Articulo" : "Carga de Articulo"}
+        {isEditing ? "Edicion de Articulo" : "Ingreso de Inventario"}
       </h1>
       {!isEditing && (
         <p className="text-sm text-muted-foreground">
