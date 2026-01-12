@@ -11,7 +11,6 @@ import {
 } from "@/components/ui/dialog"
 import { useState } from "react"
 import { CreateBatchForm } from "@/components/forms/mantenimiento/almacen/CreateBatchForm"
-import { Plus } from "lucide-react"
 
 interface CreateBatchDialogProps {
   onSuccess?: (batchName: string) => void
