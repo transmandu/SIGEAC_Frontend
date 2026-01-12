@@ -11,4 +11,8 @@ export const batches_categories = [
     value: "consumible",
     label: "Consumibles"
   },
+  {
+    value: "part",
+    label: "Partes"
+  },
 ]
