@@ -32,6 +32,11 @@ interface ArticleData {
   image?: File | string;
   conversions?: UnitSelection[];
   primary_unit_id?: number;
+  life_limit_part_calendar?: string;
+  life_limit_part_hours?: string | number;
+  life_limit_part_cycles?: string | number;
+  inspector?: string;
+  inspect_date?: string;
 }
 
 export const useCreateArticle = () => {
