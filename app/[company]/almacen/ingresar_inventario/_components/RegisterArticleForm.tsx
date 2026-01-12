@@ -12,6 +12,7 @@ import { useState } from "react";
 import CreateConsumableForm from "./RegisterConsumableForm";
 import CreateToolForm from "./RegisterToolForm";
 import CreateComponentForm from "./RegisterComponentForm";
+import CreatePartForm from "./RegisterPartForm";
 
 
 export interface EditingArticle extends Article {
@@ -24,15 +25,24 @@ export interface EditingArticle extends Article {
     calibration_date?: string;
     next_calibration?: string | number;
     article_id: number;
+    inspector?: string;
+    inspect_date?: string;
   };
   component?: {
     id: number;
     article_id: string;
-    caducate_date: string | null;
-    fabrication_date: string | null;
+    caducate_date?: string;
+    fabrication_date?: string;
     hour_date: string | null;
     cycle_date: string | null;
     calendary_date: string | null;
+    life_limit_part_calendar?: string;
+    life_limit_part_hours: number | null;
+    life_limit_part_cycles: number | null;
+    shelf_life?: number;
+    shelft_life_unit?: string;
+    inspector?: string;
+    inspect_date?: string;
   };
   consumable?: {
     lot_number?: string;
@@ -41,6 +51,10 @@ export interface EditingArticle extends Article {
     min_quantity?: number | string;
     quantity?: number;
     is_managed?: boolean | string | number;
+    shelf_life?: number;
+    shelft_life_unit?: string;
+    inspector?: string;
+    inspect_date?: string;
   };
   has_documentation?: boolean;
 }
@@ -83,6 +97,7 @@ const RegisterArticleForm = ({
           <SelectItem value="consumible">Consumible</SelectItem>
           <SelectItem value="herramienta">Herramienta</SelectItem>
           <SelectItem value="componente">Componente</SelectItem>
+          <SelectItem value="parte">Parte</SelectItem>
         </SelectContent>
       </Select>
       {type === "consumible" && (
@@ -93,6 +108,9 @@ const RegisterArticleForm = ({
       )}
       {type === "componente" && (
         <CreateComponentForm isEditing={isEditing} initialData={initialData} />
+      )}
+      {type === "parte" && (
+        <CreatePartForm isEditing={isEditing} initialData={initialData} />
       )}
     </div>
   );

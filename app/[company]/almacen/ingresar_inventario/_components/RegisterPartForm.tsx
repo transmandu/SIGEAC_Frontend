@@ -499,7 +499,7 @@ export default function CreateComponentForm({
     } = {
       ...valuesWithoutCaducateDate,
       status: "CHECKING",
-      article_type: "component",
+      article_type: "part",
       part_number: normalizeUpper(values.part_number),
       alternative_part_number:
         values.alternative_part_number?.map((v) => normalizeUpper(v)) ?? [],
@@ -524,7 +524,7 @@ export default function CreateComponentForm({
       // - Si NO está marcado: solo enviar batch_id (reasigna solo este artículo a otro batch)
       const updateData: any = {
         ...formattedValues,
-        article_type: "componente",
+        article_type: "part",
       };
 
       if (enableBatchNameEdit) {
@@ -543,7 +543,7 @@ export default function CreateComponentForm({
         // Solo reasignar este artículo a otro batch (NO afecta a otros artículos)
         if (!values.batch_id) {
           toast.error("Error", {
-            description: "Debe seleccionar una descripción de componente.",
+            description: "Debe seleccionar una descripción de la parte.",
           });
           return;
         }
@@ -698,7 +698,7 @@ export default function CreateComponentForm({
         onSubmit={form.handleSubmit(onSubmit)}
       >
         {/* Encabezado */}
-        <SectionCard title="Registrar componente">
+        <SectionCard title="Registrar Parte">
           <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
             <FormField
               control={form.control}
@@ -791,7 +791,7 @@ export default function CreateComponentForm({
                 render={({ field }) => (
                   <FormItem className="flex flex-col space-y-3 mt-1.5 w-full">
                     <div className="flex items-center justify-between">
-                      <FormLabel>Descripción de Componente</FormLabel>
+                      <FormLabel>Descripción de la Parte</FormLabel>
                       <CreateBatchDialog
                         onSuccess={async (batchName) => {
                           // Invalidar la query y refetch para obtener el batch recién creado
@@ -975,7 +975,7 @@ export default function CreateComponentForm({
                       </PopoverContent>
                     </Popover>
                     <FormDescription>
-                      Descripción del componente a registrar.
+                      Descripción de la parte a registrar.
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -1045,7 +1045,7 @@ export default function CreateComponentForm({
                     />
                   </FormControl>
                   <FormDescription>
-                    Serial del componente si aplica.
+                    Serial de la parte si aplica.
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -1390,14 +1390,14 @@ export default function CreateComponentForm({
         </SectionCard>
 
         {/* Fechas y límites */}
-        <SectionCard title="Fechas del Componente">
+        <SectionCard title="Fechas de la Parte">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormItem className="w-full">
               <DatePickerField
                 label="Fecha de Fabricación"
                 value={fabricationDate}
                 setValue={setFabricationDate}
-                description="Fecha de fabricación del Componente."
+                description="Fecha de fabricación de la Parte."
                 busy={busy}
                 shortcuts="back"
                 maxYear={new Date().getFullYear()}
@@ -1410,7 +1410,7 @@ export default function CreateComponentForm({
                 label="Fecha de Caducidad"
                 value={caducateDate}
                 setValue={setCaducateDate}
-                description="Fecha de Caducidad del Componente."
+                description="Fecha de Caducidad de la Parte."
                 busy={busy}
                 shortcuts="forward"
                 showNotApplicable={true}

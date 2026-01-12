@@ -8,7 +8,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
-import { format, parseISO} from "date-fns";
+import { format, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
 
 import {
@@ -146,10 +146,18 @@ const formSchema = z.object({
   conversion_id: z.number().optional(),
   primary_unit_id: z.number().optional(),
   has_documentation: z.boolean().optional(),
+  shelf_life: z.coerce
+    .number({ invalid_type_error: "Debe ingresar una cantidad numérica" })
+    .int({ message: "Debe ser un número entero " }) // <--- Restricción de enteros
+    .min(0, { message: "No puede ser negativo." })
+    .optional()
+    .or(z.literal("").transform(() => undefined)),
+  shelf_life_unit: z.string().optional(),
+  inspector: z.string().optional(),
+  inspect_date: z.string().optional(),
 });
 
 export type FormValues = z.infer<typeof formSchema>;
-
 
 interface UnitSelection {
   conversion_id: number;
@@ -208,7 +216,7 @@ function FileField({
       name={name as any}
       render={() => {
         let inputRef: HTMLInputElement | null = null;
-        
+
         return (
           <FormItem>
             <FormLabel>{label}</FormLabel>
@@ -216,7 +224,9 @@ function FileField({
               <div className="relative">
                 <FileUpIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 z-10 pointer-events-none" />
                 <Input
-                  ref={(el) => { inputRef = el; }}
+                  ref={(el) => {
+                    inputRef = el;
+                  }}
                   type="file"
                   accept={accept}
                   disabled={busy}
@@ -235,10 +245,14 @@ function FileField({
                 <div
                   onClick={() => !busy && !fileName && inputRef?.click()}
                   className={`flex items-center justify-between pl-10 pr-3 py-2 w-full border border-gray-300 rounded ${
-                    !busy && !fileName ? "cursor-pointer hover:border-gray-400" : ""
+                    !busy && !fileName
+                      ? "cursor-pointer hover:border-gray-400"
+                      : ""
                   } ${busy ? "opacity-50" : ""}`}
                 >
-                  <span className={`text-sm truncate flex-1 ${fileName ? "text-gray-900" : "text-gray-500"}`}>
+                  <span
+                    className={`text-sm truncate flex-1 ${fileName ? "text-gray-900" : "text-gray-500"}`}
+                  >
                     {fileName || "Ningún archivo seleccionado"}
                   </span>
                   {fileName && !busy && (
@@ -341,7 +355,7 @@ function DatePickerField({
 
     // Crear fecha y verificar que sea válida
     const date = new Date(year, month - 1, day);
-    
+
     // Verificar que la fecha creada coincida con los valores ingresados
     // (esto detecta fechas inválidas como 31/02/2024)
     return (
@@ -360,8 +374,8 @@ function DatePickerField({
       return null;
     }
 
-    const parts = dateString.split('/');
-    
+    const parts = dateString.split("/");
+
     // Formato día/mes/año
     const day = parseInt(parts[0]);
     const month = parseInt(parts[1]);
@@ -375,63 +389,57 @@ function DatePickerField({
     return new Date(year, month - 1, day);
   };
 
-const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-  let newValue = e.target.value;
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let newValue = e.target.value;
 
-  // Limpiar error al escribir
-  if (validationError) {
-    setValidationError("");
-  }
-
-  // Permitir borrar todo
-  if (newValue === "") {
-    setInputValue("");
-    setValue(undefined);
-    return;
-  }
-
-  // --- NORMALIZAR: siempre trabajar a partir sólo de los dígitos que hay en el input ---
-  // Esto hace que el formato sea determinista aunque el usuario escriba "/" manualmente o pegue texto.
-  const digits = newValue.replace(/\D/g, "").slice(0, 8); // máximo ddMMyyyy
-
-  // Construir el formato de forma consistente:
-  // - 1..2 dígitos -> "d" o "dd"
-  // - 3 dígitos -> "dd/m"
-  // - 4 dígitos -> "dd/mm"
-  // - 5+ dígitos -> "dd/mm/yyyy..." (hasta 8 dígitos)
-  let formatted = "";
-  if (digits.length <= 2) {
-    formatted = digits;
-  } else if (digits.length <= 4) {
-    // dd + "/" + remaining (1 o 2 dígitos del mes)
-    formatted = digits.slice(0, 2) + "/" + digits.slice(2);
-  } else {
-    // dd + "/" + mm + "/" + yyyy-partial
-    formatted =
-      digits.slice(0, 2) +
-      "/" +
-      digits.slice(2, 4) +
-      "/" +
-      digits.slice(4); // slice(4) puede ser 1..4 dígitos del año
-  }
-
-  setInputValue(formatted);
-
-  // Validar si está completo (dd/MM/yyyy)
-  if (formatted.length === 10 && /^\d{2}\/\d{2}\/\d{4}$/.test(formatted)) {
-    const parsedDate = parseDateFromInput(formatted);
-    if (parsedDate && !isNaN(parsedDate.getTime())) {
-      setValue(parsedDate);
+    // Limpiar error al escribir
+    if (validationError) {
       setValidationError("");
-    } else {
-      setValue(undefined); // completo pero inválido (ej: 30/02/2024)
     }
-  } else {
-    setValue(undefined); // parcial
-  }
-};
 
+    // Permitir borrar todo
+    if (newValue === "") {
+      setInputValue("");
+      setValue(undefined);
+      return;
+    }
 
+    // --- NORMALIZAR: siempre trabajar a partir sólo de los dígitos que hay en el input ---
+    // Esto hace que el formato sea determinista aunque el usuario escriba "/" manualmente o pegue texto.
+    const digits = newValue.replace(/\D/g, "").slice(0, 8); // máximo ddMMyyyy
+
+    // Construir el formato de forma consistente:
+    // - 1..2 dígitos -> "d" o "dd"
+    // - 3 dígitos -> "dd/m"
+    // - 4 dígitos -> "dd/mm"
+    // - 5+ dígitos -> "dd/mm/yyyy..." (hasta 8 dígitos)
+    let formatted = "";
+    if (digits.length <= 2) {
+      formatted = digits;
+    } else if (digits.length <= 4) {
+      // dd + "/" + remaining (1 o 2 dígitos del mes)
+      formatted = digits.slice(0, 2) + "/" + digits.slice(2);
+    } else {
+      // dd + "/" + mm + "/" + yyyy-partial
+      formatted =
+        digits.slice(0, 2) + "/" + digits.slice(2, 4) + "/" + digits.slice(4); // slice(4) puede ser 1..4 dígitos del año
+    }
+
+    setInputValue(formatted);
+
+    // Validar si está completo (dd/MM/yyyy)
+    if (formatted.length === 10 && /^\d{2}\/\d{2}\/\d{4}$/.test(formatted)) {
+      const parsedDate = parseDateFromInput(formatted);
+      if (parsedDate && !isNaN(parsedDate.getTime())) {
+        setValue(parsedDate);
+        setValidationError("");
+      } else {
+        setValue(undefined); // completo pero inválido (ej: 30/02/2024)
+      }
+    } else {
+      setValue(undefined); // parcial
+    }
+  };
 
   const handleInputBlur = () => {
     setTouched(true);
@@ -445,19 +453,22 @@ const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     let inputToValidate = inputValue;
 
     // Normalizar si el formato es parcial pero incluye barras (ej: 1/1/2024)
-    const parts = inputValue.split('/');
+    const parts = inputValue.split("/");
     if (parts.length === 3) {
-      const day = parts[0].padStart(2, '0');
-      const month = parts[1].padStart(2, '0');
-      const year = parts[2].padStart(4, '0');
+      const day = parts[0].padStart(2, "0");
+      const month = parts[1].padStart(2, "0");
+      const year = parts[2].padStart(4, "0");
       // Solo normalizar si el año tiene 4 dígitos (para evitar 1/1/24)
       if (year.length === 4) {
-          inputToValidate = `${day}/${month}/${year}`;
+        inputToValidate = `${day}/${month}/${year}`;
       }
     }
-    
+
     // Validar longitud y formato (debe ser dd/mm/aaaa)
-    if (inputToValidate.length !== 10 || !/^\d{2}\/\d{2}\/\d{4}$/.test(inputToValidate)) {
+    if (
+      inputToValidate.length !== 10 ||
+      !/^\d{2}\/\d{2}\/\d{4}$/.test(inputToValidate)
+    ) {
       // Si el formato es incorrecto o incompleto, aplicamos la fecha por defecto
       const defaultDate = new Date(2001, 0, 1); // 01/01/2001
       setValue(defaultDate);
@@ -466,7 +477,7 @@ const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     }
 
     const parsedDate = parseDateFromInput(inputToValidate);
-    
+
     if (parsedDate && !isNaN(parsedDate.getTime())) {
       // Caso 1: Fecha válida (ej. 10/10/2024)
       setValue(parsedDate);
@@ -474,14 +485,14 @@ const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       setInputValue(format(parsedDate, "dd/MM/yyyy"));
     } else {
       // Caso 2: Fecha con valores inválidos o fuera de rango (ej. 10/00/2210)
-      
+
       // Aplicar la fecha por defecto: 01/01/2001
       const defaultDate = new Date(2001, 0, 1); // 01/01/2001
-      
+
       setValue(defaultDate);
       setInputValue(format(defaultDate, "dd/MM/yyyy"));
-      
-      // Si quieres mostrar un mensaje informativo ANTES de sobrescribir, 
+
+      // Si quieres mostrar un mensaje informativo ANTES de sobrescribir,
       // podrías hacerlo con un toast o una lógica de error diferente.
       // Aquí estamos CUMPLIENDO con la instrucción de reemplazar el valor, no dar un error.
     }
@@ -1106,7 +1117,7 @@ export default function CreateConsumableForm({
     isPending: isBatchesLoading,
     isError: isBatchesError,
     refetch: refetchBatches,
-  } = useGetBatchesByCategory("consumible");
+  } = useGetBatchesByCategory("CONSUMABLE");
   const {
     data: manufacturers,
     isLoading: isManufacturerLoading,
@@ -1182,7 +1193,16 @@ export default function CreateConsumableForm({
       ? parseISO(initialData.consumable.caducate_date)
       : undefined
   );
-  const [fabricationDate, setFabricationDate] = useState<Date | null | undefined>(
+
+  const [inspectDate, setInspectDate] = useState<Date | null | undefined>(
+    initialData?.component?.inspect_date
+      ? parseISO(initialData.component.inspect_date)
+      : null
+  );
+
+  const [fabricationDate, setFabricationDate] = useState<
+    Date | null | undefined
+  >(
     initialData?.consumable?.fabrication_date
       ? parseISO(initialData?.consumable?.fabrication_date)
       : undefined
@@ -1225,6 +1245,10 @@ export default function CreateConsumableForm({
         : undefined,
       primary_unit_id: initialData?.primary_unit_id || undefined,
       has_documentation: initialData?.has_documentation || false,
+      inspector: initialData?.inspector || "",
+      inspect_date: initialData?.component?.inspect_date
+        ? initialData?.component?.inspect_date
+        : undefined,
     },
     mode: "onBlur",
   });
@@ -1375,7 +1399,6 @@ export default function CreateConsumableForm({
     setOpenPreview(true);
   }
 
-
   async function submitToBackend(values: FormValues) {
     if (!selectedCompany?.slug) return;
 
@@ -1401,7 +1424,7 @@ export default function CreateConsumableForm({
       ...valuesWithoutCaducateDate,
       status: "CHECKING",
       part_number: normalizeUpper(values.part_number),
-      article_type: "consumible",
+      article_type: "consumable",
       alternative_part_number:
         values.alternative_part_number?.map((v) => normalizeUpper(v)) ?? [],
       caducate_date: caducateDateStr, // Solo string o undefined
@@ -1426,7 +1449,7 @@ export default function CreateConsumableForm({
         company: selectedCompany.slug,
         data: formattedValues,
       });
-      
+
       // Limpiar estados locales ANTES del reset para evitar que los efectos se disparen con valores obsoletos
       setSecondaryQuantity(undefined);
       setSecondarySelected(null);
@@ -1434,7 +1457,7 @@ export default function CreateConsumableForm({
       setFabricationDate(undefined);
       setCaducateDate(undefined);
       setSelectedUnits([]);
-      
+
       // Resetear el formulario después de limpiar los estados
       form.reset();
     }
@@ -1451,6 +1474,32 @@ export default function CreateConsumableForm({
           {/* Encabezado */}
           <SectionCard title="Registrar consumible">
             <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
+              <FormField
+                control={form.control}
+                name="inspector"
+                render={({ field }) => (
+                  <FormItem className="w-full">
+                    <FormLabel>Inspector (Incoming)</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Nombre del Inspector" {...field} />
+                    </FormControl>
+                    <FormMessage className="text-xs" />
+                  </FormItem>
+                )}
+              />
+
+              <FormItem className="w-full">
+                <DatePickerField
+                  label="Fecha de Incoming"
+                  value={inspectDate}
+                  setValue={setInspectDate}
+                  description="Fecha de Incoming"
+                  busy={busy}
+                  shortcuts="forward"
+                  showNotApplicable={true}
+                  required={true}
+                />
+              </FormItem>
               <FormField
                 control={form.control}
                 name="part_number"
@@ -1542,7 +1591,7 @@ export default function CreateConsumableForm({
                                 "search-batches",
                                 selectedCompany?.slug,
                                 selectedStation,
-                                "consumible",
+                                "consumable",
                               ],
                             });
                             const { data: updatedBatches } =
@@ -1558,7 +1607,7 @@ export default function CreateConsumableForm({
                               );
                             }
                           }}
-                          defaultCategory="consumible"
+                          defaultCategory="consumable"
                           triggerButton={
                             <Button
                               type="button"
@@ -1604,16 +1653,24 @@ export default function CreateConsumableForm({
                         </PopoverTrigger>
                         <PopoverContent className="p-0">
                           <Command>
-                            <CommandInput 
-                              placeholder="Buscar descripción..." 
+                            <CommandInput
+                              placeholder="Buscar descripción..."
                               onKeyDown={(e) => {
                                 if (e.key === "Tab") {
                                   e.preventDefault();
-                                  const selected = e.currentTarget.closest('[cmdk-root]')?.querySelector('[cmdk-item][aria-selected="true"]') as HTMLElement;
+                                  const selected = e.currentTarget
+                                    .closest("[cmdk-root]")
+                                    ?.querySelector(
+                                      '[cmdk-item][aria-selected="true"]'
+                                    ) as HTMLElement;
                                   if (selected) {
                                     selected.click();
                                   } else {
-                                    const firstItem = e.currentTarget.closest('[cmdk-root]')?.querySelector('[cmdk-item]:not([data-disabled="true"])') as HTMLElement;
+                                    const firstItem = e.currentTarget
+                                      .closest("[cmdk-root]")
+                                      ?.querySelector(
+                                        '[cmdk-item]:not([data-disabled="true"])'
+                                      ) as HTMLElement;
                                     if (firstItem) {
                                       firstItem.click();
                                     }
@@ -1792,29 +1849,35 @@ export default function CreateConsumableForm({
                         onKeyDown={(e) => {
                           if (e.key === "Tab") {
                             e.preventDefault();
-                            const focused = document.activeElement as HTMLElement;
-                            if (focused?.getAttribute('role') === 'option') {
+                            const focused =
+                              document.activeElement as HTMLElement;
+                            if (focused?.getAttribute("role") === "option") {
                               // Simular Enter en el elemento seleccionado
-                              const enterEvent = new KeyboardEvent('keydown', {
-                                key: 'Enter',
-                                code: 'Enter',
+                              const enterEvent = new KeyboardEvent("keydown", {
+                                key: "Enter",
+                                code: "Enter",
                                 keyCode: 13,
                                 bubbles: true,
-                                cancelable: true
+                                cancelable: true,
                               });
                               focused.dispatchEvent(enterEvent);
                             } else {
                               // Si no hay elemento enfocado, enfocar y seleccionar el primero
-                              const firstItem = e.currentTarget.querySelector('[role="option"]:not([data-disabled="true"])') as HTMLElement;
+                              const firstItem = e.currentTarget.querySelector(
+                                '[role="option"]:not([data-disabled="true"])'
+                              ) as HTMLElement;
                               if (firstItem) {
                                 firstItem.focus();
-                                const enterEvent = new KeyboardEvent('keydown', {
-                                  key: 'Enter',
-                                  code: 'Enter',
-                                  keyCode: 13,
-                                  bubbles: true,
-                                  cancelable: true
-                                });
+                                const enterEvent = new KeyboardEvent(
+                                  "keydown",
+                                  {
+                                    key: "Enter",
+                                    code: "Enter",
+                                    keyCode: 13,
+                                    bubbles: true,
+                                    cancelable: true,
+                                  }
+                                );
                                 firstItem.dispatchEvent(enterEvent);
                               }
                             }
@@ -1906,16 +1969,24 @@ export default function CreateConsumableForm({
                       </PopoverTrigger>
                       <PopoverContent className="w-[300px] p-0">
                         <Command>
-                          <CommandInput 
-                            placeholder="Buscar fabricante..." 
+                          <CommandInput
+                            placeholder="Buscar fabricante..."
                             onKeyDown={(e) => {
                               if (e.key === "Tab") {
                                 e.preventDefault();
-                                const selected = e.currentTarget.closest('[cmdk-root]')?.querySelector('[cmdk-item][aria-selected="true"]') as HTMLElement;
+                                const selected = e.currentTarget
+                                  .closest("[cmdk-root]")
+                                  ?.querySelector(
+                                    '[cmdk-item][aria-selected="true"]'
+                                  ) as HTMLElement;
                                 if (selected) {
                                   selected.click();
                                 } else {
-                                  const firstItem = e.currentTarget.closest('[cmdk-root]')?.querySelector('[cmdk-item]:not([data-disabled="true"])') as HTMLElement;
+                                  const firstItem = e.currentTarget
+                                    .closest("[cmdk-root]")
+                                    ?.querySelector(
+                                      '[cmdk-item]:not([data-disabled="true"])'
+                                    ) as HTMLElement;
                                   if (firstItem) {
                                     firstItem.click();
                                   }
@@ -2015,6 +2086,58 @@ export default function CreateConsumableForm({
             </div>
           </SectionCard>
 
+          {/* Fechas y límites */}
+          <SectionCard title="Shelf Life">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="shelf_life"
+                render={({ field }) => (
+                  <FormItem className="w-full">
+                    <FormLabel>Shelf Life</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="Ej: 10"
+                        {...field}
+                        disabled={busy}
+                        value={field.value || ""}
+                      />
+                    </FormControl>
+                    <FormDescription>Tiempo de Almacenamiento</FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="shelf_life_unit"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Shelf Life Unit</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                      value={field.value || ""}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Seleccionar la unidad" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="MONTHS">MES</SelectItem>
+                        <SelectItem value="DAYS">DIAS</SelectItem>
+                        <SelectItem value="YEARS">AÑO</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormDescription>Unidad de Tiempo</FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+          </SectionCard>
           {/* Ingreso y cantidad */}
           <SectionCard title="Ingreso y cantidad">
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
@@ -2040,16 +2163,24 @@ export default function CreateConsumableForm({
                   </PopoverTrigger>
                   <PopoverContent className="w-[300px] p-0">
                     <Command>
-                      <CommandInput 
-                        placeholder="Buscar unidad..." 
+                      <CommandInput
+                        placeholder="Buscar unidad..."
                         onKeyDown={(e) => {
                           if (e.key === "Tab") {
                             e.preventDefault();
-                            const selected = e.currentTarget.closest('[cmdk-root]')?.querySelector('[cmdk-item][aria-selected="true"]') as HTMLElement;
+                            const selected = e.currentTarget
+                              .closest("[cmdk-root]")
+                              ?.querySelector(
+                                '[cmdk-item][aria-selected="true"]'
+                              ) as HTMLElement;
                             if (selected) {
                               selected.click();
                             } else {
-                              const firstItem = e.currentTarget.closest('[cmdk-root]')?.querySelector('[cmdk-item]:not([data-disabled="true"])') as HTMLElement;
+                              const firstItem = e.currentTarget
+                                .closest("[cmdk-root]")
+                                ?.querySelector(
+                                  '[cmdk-item]:not([data-disabled="true"])'
+                                ) as HTMLElement;
                               if (firstItem) {
                                 firstItem.click();
                               }
@@ -2068,8 +2199,11 @@ export default function CreateConsumableForm({
                               value={unit.label}
                               onSelect={(val) => {
                                 const found =
-                                  units.find((u) => u.label.toLowerCase() === val.toLowerCase()) ||
-                                  null;
+                                  units.find(
+                                    (u) =>
+                                      u.label.toLowerCase() ===
+                                      val.toLowerCase()
+                                  ) || null;
                                 setSecondarySelected(found);
                                 setSelectedPrimaryUnit(found);
                                 setSecondaryOpen(false);
@@ -2116,7 +2250,11 @@ export default function CreateConsumableForm({
                         type="text"
                         inputMode="decimal"
                         disabled={busy}
-                        value={secondaryQuantity !== undefined ? secondaryQuantity.toString() : ""}
+                        value={
+                          secondaryQuantity !== undefined
+                            ? secondaryQuantity.toString()
+                            : ""
+                        }
                         onChange={(e) => {
                           const value = e.target.value;
 
@@ -2127,8 +2265,10 @@ export default function CreateConsumableForm({
                           }
 
                           // Permitir solo números, punto decimal y coma
-                          const sanitizedValue = value.replace(/[^0-9.,]/g, '').replace(',', '.');
-                          
+                          const sanitizedValue = value
+                            .replace(/[^0-9.,]/g, "")
+                            .replace(",", ".");
+
                           const n = parseFloat(sanitizedValue);
                           // Prevenir valores negativos o inválidos
                           if (Number.isNaN(n) || n < 0) {
@@ -2136,7 +2276,7 @@ export default function CreateConsumableForm({
                           }
 
                           setSecondaryQuantity(n);
-                          
+
                           // Actualizar el campo del formulario directamente con el valor numérico
                           field.onChange(n);
                         }}
@@ -2163,25 +2303,31 @@ export default function CreateConsumableForm({
                         type="text"
                         inputMode="decimal"
                         placeholder="Ej: 5"
-                        value={field.value !== undefined ? field.value.toString() : ""}
+                        value={
+                          field.value !== undefined
+                            ? field.value.toString()
+                            : ""
+                        }
                         disabled={busy}
                         onChange={(e) => {
                           const value = e.target.value;
-                          
+
                           if (value === "") {
                             field.onChange(undefined);
                             return;
                           }
 
                           // Permitir solo números, punto decimal y coma
-                          const sanitizedValue = value.replace(/[^0-9.,]/g, '').replace(',', '.');
-                          
+                          const sanitizedValue = value
+                            .replace(/[^0-9.,]/g, "")
+                            .replace(",", ".");
+
                           const n = parseFloat(sanitizedValue);
                           // Prevenir valores negativos o inválidos
                           if (Number.isNaN(n) || n < 0) {
                             return;
                           }
-                          
+
                           // Enviar el valor numérico al formulario
                           field.onChange(n);
                         }}
@@ -2348,7 +2494,9 @@ export default function CreateConsumableForm({
                   alt="Cargando..."
                 />
               ) : (
-                <span>{isEditing ? "Confirmar ingreso" : "Crear artículo"}</span>
+                <span>
+                  {isEditing ? "Confirmar ingreso" : "Crear artículo"}
+                </span>
               )}
             </Button>
 
@@ -2372,7 +2520,6 @@ export default function CreateConsumableForm({
         }}
       />
 
-
       {/* Modal de Configuración de Conversiones */}
       <UnitsModal
         open={unitsModalOpen}
@@ -2389,4 +2536,3 @@ export default function CreateConsumableForm({
     </>
   );
 }
-
