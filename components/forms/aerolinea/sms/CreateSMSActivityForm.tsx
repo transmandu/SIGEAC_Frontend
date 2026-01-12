@@ -453,7 +453,7 @@ export default function CreateSMSActivityForm({
               <FormItem className="w-full">
                 <FormLabel>Objetivo de la Acividad</FormLabel>
                 <FormControl>
-                  <Input {...field} maxLength={100} />
+                  <Input {...field} maxLength={500} />
                 </FormControl>
                 <FormMessage className="text-xs" />
               </FormItem>
