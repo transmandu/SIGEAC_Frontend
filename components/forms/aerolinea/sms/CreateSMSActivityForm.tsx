@@ -57,7 +57,7 @@ const FormSchema = z
     end_time: z.string(),
     place: z.string().max(500, "Máximo 500 caracteres"),
     topics: z.string(),
-    objetive: z.string(),
+    objetive: z.string().max(500, "Máximo 500 caracteres"),
     description: z.string().max(2000, "Máximo 2000 caracteres"),
     authorized_by: z.string(),
     planned_by: z.string(),
@@ -453,7 +453,7 @@ export default function CreateSMSActivityForm({
               <FormItem className="w-full">
                 <FormLabel>Objetivo de la Acividad</FormLabel>
                 <FormControl>
-                  <Input {...field} maxLength={100} />
+                  <Input {...field} maxLength={500} />
                 </FormControl>
                 <FormMessage className="text-xs" />
               </FormItem>
