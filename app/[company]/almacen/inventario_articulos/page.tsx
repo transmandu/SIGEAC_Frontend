@@ -29,7 +29,7 @@ import { parseISO } from 'date-fns';
 const EXPORT_PDF_ENDPOINT = '/api/inventory/export/pdf';
 const EXPORT_XLSX_ENDPOINT = '/api/inventory/export/excel';
 
-type Category = 'all' | 'COMPONENTE' | 'CONSUMIBLE' | 'HERRAMIENTA';
+type Category = 'all' | 'COMPONENT' | 'CONSUMABLE' | 'TOOL';
 
 const InventarioArticulosPage = () => {
   const { selectedCompany } = useCompanyStore();
@@ -61,12 +61,12 @@ const InventarioArticulosPage = () => {
   const common = useMemo(() => {
     if (activeCategory === 'all') return null;
     return {
-      category: activeCategory as 'COMPONENTE' | 'CONSUMIBLE' | 'HERRAMIENTA',
+      category: activeCategory as 'COMPONENT' | 'CONSUMABLE' | 'TOOL',
       search: partNumberSearch,
       filters:
-        activeCategory === 'COMPONENTE'
+        activeCategory === 'COMPONENT'
           ? { condition: componentCondition }
-          : activeCategory === 'CONSUMIBLE'
+          : activeCategory === 'CONSUMABLE'
             ? { group: consumableFilter }
             : {},
       filenamePrefix: 'inventario',
@@ -75,8 +75,8 @@ const InventarioArticulosPage = () => {
 
   // Reset subfiltros al cambiar categoría
   useEffect(() => {
-    if (activeCategory !== 'COMPONENTE') setComponentCondition('all');
-    if (activeCategory !== 'CONSUMIBLE') setConsumableFilter('all');
+    if (activeCategory !== 'COMPONENT') setComponentCondition('all');
+    if (activeCategory !== 'CONSUMABLE') setConsumableFilter('all');
   }, [activeCategory]);
 
   // Columns memo
@@ -113,15 +113,15 @@ const InventarioArticulosPage = () => {
     let filtered = bySearch;
 
     if (activeCategory !== 'all') {
-      if (activeCategory === 'COMPONENTE' && componentCondition !== 'all') {
+      if (activeCategory === 'COMPONENT' && componentCondition !== 'all') {
         filtered = filtered.filter((a) => a.condition === componentCondition);
       }
-      if (activeCategory === 'CONSUMIBLE' && consumableFilter === 'QUIMICOS') {
+      if (activeCategory === 'CONSUMABLE' && consumableFilter === 'QUIMICOS') {
         filtered = filtered.filter((a: any) => a.is_hazardous === true);
       }
     }
 
-    if (activeCategory === 'COMPONENTE' || activeCategory === 'CONSUMIBLE' || activeCategory === 'all') {
+    if (activeCategory === 'COMPONENT' || activeCategory === 'CONSUMABLE' || activeCategory === 'all') {
       return filtered.sort((a, b) => {
         const dateA = getExpiryDate(a);
         const dateB = getExpiryDate(b);
@@ -204,13 +204,13 @@ const InventarioArticulosPage = () => {
               <TabsTrigger className="flex gap-2" value="all">
                 <Package2 className="size-5" /> Todos
               </TabsTrigger>
-              <TabsTrigger className="flex gap-2" value="COMPONENTE">
+              <TabsTrigger className="flex gap-2" value="COMPONENT">
                 <Package2 className="size-5" /> Componente
               </TabsTrigger>
-              <TabsTrigger className="flex gap-2" value="CONSUMIBLE">
+              <TabsTrigger className="flex gap-2" value="CONSUMABLE">
                 <PaintBucket className="size-5" /> Consumibles
               </TabsTrigger>
-              <TabsTrigger className="flex gap-2" value="HERRAMIENTA">
+              <TabsTrigger className="flex gap-2" value="TOOL">
                 <Wrench className="size-5" /> Herramientas
               </TabsTrigger>
 
@@ -275,7 +275,7 @@ const InventarioArticulosPage = () => {
               )}
             </TabsContent>
 
-            <TabsContent value="COMPONENTE" className="mt-6">
+            <TabsContent value="COMPONENT" className="mt-6">
               <Tabs
                 value={componentCondition}
                 onValueChange={(v) => setComponentCondition(v as typeof componentCondition)}
@@ -299,7 +299,7 @@ const InventarioArticulosPage = () => {
               )}
             </TabsContent>
 
-            <TabsContent value="CONSUMIBLE" className="mt-6">
+            <TabsContent value="CONSUMABLE" className="mt-6">
               <Tabs
                 value={consumableFilter}
                 onValueChange={(v) => setConsumableFilter(v as typeof consumableFilter)}
@@ -320,7 +320,7 @@ const InventarioArticulosPage = () => {
               )}
             </TabsContent>
 
-            <TabsContent value="HERRAMIENTA" className="mt-6">
+            <TabsContent value="TOOL" className="mt-6">
               {isLoadingArticles ? (
                 <div className="flex w-full h-full justify-center items-center min-h-[300px]">
                   <Loader2 className="size-24 animate-spin" />

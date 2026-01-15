@@ -385,7 +385,7 @@ export default function CreateToolForm({
     isPending: isBatchesLoading,
     isError: isBatchesError,
     refetch: refetchBatches,
-  } = useGetBatchesByCategory("herramienta");
+  } = useGetBatchesByCategory("TOOL");
   const {
     data: manufacturers,
     isLoading: isManufacturerLoading,

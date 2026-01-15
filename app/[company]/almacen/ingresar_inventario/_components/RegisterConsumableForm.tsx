@@ -1258,7 +1258,18 @@ export default function CreateConsumableForm({
   // Reset si cambia initialData
   useEffect(() => {
     if (!initialData) return;
-    form.reset({
+
+    console.log("Initial data for edit:", {
+      quantity: initialData.consumable?.quantity,
+      min_quantity: initialData.consumable?.min_quantity,
+      quantity_type: typeof initialData.consumable?.quantity,
+    });
+    // Obtener la cantidad del initialData
+    const initialQuantity = initialData.consumable?.quantity ?? 0;
+    // Primero establecer el estado local de secondaryQuantity
+    setSecondaryQuantity(initialQuantity);
+     
+    const resetValues = {
       part_number: initialData.part_number ?? "",
       alternative_part_number: initialData.alternative_part_number ?? [],
       batch_id: initialData.batches?.id?.toString() ?? "",
@@ -1270,18 +1281,24 @@ export default function CreateConsumableForm({
       lot_number: initialData.consumable?.lot_number ?? "",
       caducate_date: initialData?.consumable?.caducate_date || undefined,
       fabrication_date: initialData?.consumable?.fabrication_date || undefined,
-      quantity: initialData.consumable?.quantity ?? 0,
-      min_quantity: initialData.consumable?.min_quantity
-        ? Number(initialData.consumable.min_quantity)
-        : undefined,
+      // Establecer quantity usando el valor del initialData
+      quantity: initialQuantity,
+      // FIX: Manejar min_quantity correctamente
+      min_quantity:
+        initialData.consumable?.min_quantity !== undefined &&
+        initialData.consumable?.min_quantity !== null
+          ? Number(initialData.consumable.min_quantity)
+          : undefined,
       primary_unit_id: initialData?.primary_unit_id || undefined,
       has_documentation: initialData.has_documentation ?? false,
-    });
-
+    };
+    
+    form.reset(resetValues);
     // Establecer la unidad primaria seleccionada si existe en initialData
     if (initialData.primary_unit_id) {
-      setSelectedPrimaryUnit({ id: initialData.primary_unit_id });
-      setSecondarySelected({ id: initialData.primary_unit_id });
+      const unitObj = { id: initialData.primary_unit_id };
+      setSelectedPrimaryUnit(unitObj);
+      setSecondarySelected(unitObj);
     }
   }, [initialData, form]);
 

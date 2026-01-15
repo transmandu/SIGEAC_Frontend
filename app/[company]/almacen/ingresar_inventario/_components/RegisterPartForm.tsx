@@ -237,7 +237,7 @@ export default function CreateComponentForm({
     isPending: isBatchesLoading,
     isError: isBatchesError,
     refetch: refetchBatches,
-  } = useGetBatchesByCategory("COMPONENT");
+  } = useGetBatchesByCategory("PART");
 
   const {
     data: manufacturers,
