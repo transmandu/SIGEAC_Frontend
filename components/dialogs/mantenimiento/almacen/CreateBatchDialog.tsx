@@ -35,7 +35,6 @@ export function CreateBatchDialog({
         <DialogHeader>
           <DialogTitle>Creación de Renglón</DialogTitle>
           <DialogDescription>
-            Cree un renglón de articulos.
           </DialogDescription>
         </DialogHeader>
         <CreateBatchForm 
