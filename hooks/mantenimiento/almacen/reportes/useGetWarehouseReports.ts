@@ -5,7 +5,7 @@ import { useCompanyStore } from "@/stores/CompanyStore";
 import axios from "axios";
 import { useEffect, useRef, useState } from "react";
 
-type Category = "COMPONENT" | "CONSUMABLE" | "TOOL";
+type Category = "COMPONENT" | "PART" | "CONSUMABLE" | "TOOL";
 
 type ExportParams = {
   category: Category;

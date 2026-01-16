@@ -16,7 +16,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useCompanyStore } from '@/stores/CompanyStore';
 import { TooltipArrow } from '@radix-ui/react-tooltip';
-import { Loader2, Package2, PaintBucket, Wrench, X } from 'lucide-react';
+import { Drill, Loader2, Package2, PaintBucket, Puzzle, Wrench, X } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { FaFilePdf } from 'react-icons/fa';
 import { RiFileExcel2Fill } from 'react-icons/ri';
@@ -29,7 +29,7 @@ import { parseISO } from 'date-fns';
 const EXPORT_PDF_ENDPOINT = '/api/inventory/export/pdf';
 const EXPORT_XLSX_ENDPOINT = '/api/inventory/export/excel';
 
-type Category = 'all' | 'COMPONENT' | 'CONSUMABLE' | 'TOOL';
+type Category = 'all' | 'COMPONENT' | 'PART' |'CONSUMABLE' | 'TOOL';
 
 const InventarioArticulosPage = () => {
   const { selectedCompany } = useCompanyStore();
@@ -61,7 +61,7 @@ const InventarioArticulosPage = () => {
   const common = useMemo(() => {
     if (activeCategory === 'all') return null;
     return {
-      category: activeCategory as 'COMPONENT' | 'CONSUMABLE' | 'TOOL',
+      category: activeCategory as 'COMPONENT' | 'PART' | 'CONSUMABLE' | 'TOOL',
       search: partNumberSearch,
       filters:
         activeCategory === 'COMPONENT'
@@ -113,7 +113,7 @@ const InventarioArticulosPage = () => {
     let filtered = bySearch;
 
     if (activeCategory !== 'all') {
-      if (activeCategory === 'COMPONENT' && componentCondition !== 'all') {
+      if ((activeCategory === 'COMPONENT' || activeCategory === 'PART') && componentCondition !== 'all') {
         filtered = filtered.filter((a) => a.condition === componentCondition);
       }
       if (activeCategory === 'CONSUMABLE' && consumableFilter === 'QUIMICOS') {
@@ -121,7 +121,7 @@ const InventarioArticulosPage = () => {
       }
     }
 
-    if (activeCategory === 'COMPONENT' || activeCategory === 'CONSUMABLE' || activeCategory === 'all') {
+    if (activeCategory === 'COMPONENT' || activeCategory === 'PART' || activeCategory === 'CONSUMABLE' || activeCategory === 'all') {
       return filtered.sort((a, b) => {
         const dateA = getExpiryDate(a);
         const dateB = getExpiryDate(b);
@@ -200,18 +200,24 @@ const InventarioArticulosPage = () => {
             value={activeCategory}
             onValueChange={(v) => setActiveCategory(v as Category)}
           >
-            <TabsList className="flex justify-center mb-4 space-x-3" aria-label="Categorías">
+            <TabsList
+              className="flex justify-center mb-4 space-x-3"
+              aria-label="Categorías"
+            >
               <TabsTrigger className="flex gap-2" value="all">
                 <Package2 className="size-5" /> Todos
               </TabsTrigger>
               <TabsTrigger className="flex gap-2" value="COMPONENT">
                 <Package2 className="size-5" /> Componente
               </TabsTrigger>
+              <TabsTrigger className="flex gap-2" value="PART">
+                <Puzzle className="size-5" /> Partes
+              </TabsTrigger>
               <TabsTrigger className="flex gap-2" value="CONSUMABLE">
                 <PaintBucket className="size-5" /> Consumibles
               </TabsTrigger>
               <TabsTrigger className="flex gap-2" value="TOOL">
-                <Wrench className="size-5" /> Herramientas
+                <Drill className="size-5" /> Herramientas
               </TabsTrigger>
 
               <CreateBatchDialog />
@@ -236,7 +242,10 @@ const InventarioArticulosPage = () => {
                     </button>
                   </TooltipTrigger>
                   <TooltipContent>
-                    {!common ? 'Selecciona una categoría específica' : 'Descargar PDF'} <TooltipArrow />
+                    {!common
+                      ? "Selecciona una categoría específica"
+                      : "Descargar PDF"}{" "}
+                    <TooltipArrow />
                   </TooltipContent>
                 </Tooltip>
 
@@ -258,7 +267,10 @@ const InventarioArticulosPage = () => {
                     </button>
                   </TooltipTrigger>
                   <TooltipContent>
-                    {!common ? 'Selecciona una categoría específica' : 'Descargar Excel'} <TooltipArrow />
+                    {!common
+                      ? "Selecciona una categoría específica"
+                      : "Descargar Excel"}{" "}
+                    <TooltipArrow />
                   </TooltipContent>
                 </Tooltip>
               </div>
@@ -278,15 +290,57 @@ const InventarioArticulosPage = () => {
             <TabsContent value="COMPONENT" className="mt-6">
               <Tabs
                 value={componentCondition}
-                onValueChange={(v) => setComponentCondition(v as typeof componentCondition)}
+                onValueChange={(v) =>
+                  setComponentCondition(v as typeof componentCondition)
+                }
                 className="mb-4"
               >
-                <TabsList className="flex justify-center mb-4 space-x-3" aria-label="Condición de componente">
+                <TabsList
+                  className="flex justify-center mb-4 space-x-3"
+                  aria-label="Condición de componente"
+                >
                   <TabsTrigger value="all">Todos</TabsTrigger>
                   <TabsTrigger value="SERVICIABLE">Serviciables</TabsTrigger>
                   <TabsTrigger value="REPARADO">Reparados</TabsTrigger>
-                  <TabsTrigger value="REMOVIDO - NO SERVICIABLE">Removidos - No Serviciables</TabsTrigger>
-                  <TabsTrigger value="REMOVIDO - CUSTODIA">Removidos - En custodia</TabsTrigger>
+                  <TabsTrigger value="REMOVIDO - NO SERVICIABLE">
+                    Removidos - No Serviciables
+                  </TabsTrigger>
+                  <TabsTrigger value="REMOVIDO - CUSTODIA">
+                    Removidos - En custodia
+                  </TabsTrigger>
+                </TabsList>
+              </Tabs>
+
+              {isLoadingArticles ? (
+                <div className="flex w-full h-full justify-center items-center min-h-[300px]">
+                  <Loader2 className="size-24 animate-spin" />
+                </div>
+              ) : (
+                <DataTable columns={cols} data={currentData} />
+              )}
+            </TabsContent>
+
+            <TabsContent value="PART" className="mt-6">
+              <Tabs
+                value={componentCondition}
+                onValueChange={(v) =>
+                  setComponentCondition(v as typeof componentCondition)
+                }
+                className="mb-4"
+              >
+                <TabsList
+                  className="flex justify-center mb-4 space-x-3"
+                  aria-label="Condición de componente"
+                >
+                  <TabsTrigger value="all">Todos</TabsTrigger>
+                  <TabsTrigger value="SERVICIABLE">Serviciables</TabsTrigger>
+                  <TabsTrigger value="REPARADO">Reparados</TabsTrigger>
+                  <TabsTrigger value="REMOVIDO - NO SERVICIABLE">
+                    Removidos - No Serviciables
+                  </TabsTrigger>
+                  <TabsTrigger value="REMOVIDO - CUSTODIA">
+                    Removidos - En custodia
+                  </TabsTrigger>
                 </TabsList>
               </Tabs>
 
@@ -302,12 +356,19 @@ const InventarioArticulosPage = () => {
             <TabsContent value="CONSUMABLE" className="mt-6">
               <Tabs
                 value={consumableFilter}
-                onValueChange={(v) => setConsumableFilter(v as typeof consumableFilter)}
+                onValueChange={(v) =>
+                  setConsumableFilter(v as typeof consumableFilter)
+                }
                 className="mb-4"
               >
-                <TabsList className="flex justify-center mb-4 space-x-3" aria-label="Filtro de consumibles">
+                <TabsList
+                  className="flex justify-center mb-4 space-x-3"
+                  aria-label="Filtro de consumibles"
+                >
                   <TabsTrigger value="all">Todos</TabsTrigger>
-                  <TabsTrigger value="QUIMICOS">Mercancia Peligrosa</TabsTrigger>
+                  <TabsTrigger value="QUIMICOS">
+                    Mercancia Peligrosa
+                  </TabsTrigger>
                 </TabsList>
               </Tabs>
 

@@ -683,10 +683,11 @@ export const allCategoriesCols: ColumnDef<IArticleSimple>[] = [
 
 // Columnas por categoría
 export const getColumnsByCategory = (
-  cat: "COMPONENT" | "CONSUMABLE" | "TOOL"
+  cat: "COMPONENT" | "PART"| "CONSUMABLE" | "TOOL"
 ): ColumnDef<IArticleSimple>[] => {
   if (cat === "TOOL") return herramientaCols;
   if (cat === "CONSUMABLE") return consumibleCols;
   if (cat === "COMPONENT") return componenteCols;
+  if (cat === "PART") return componenteCols;
   return baseCols; // fallback
 };
