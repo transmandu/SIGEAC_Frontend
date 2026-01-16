@@ -138,7 +138,7 @@ const formSchema = z
       .optional(),
     image: z.instanceof(File).optional(),
     has_documentation: z.boolean().optional(),
-    aircraft_id: z.string().optional(),
+    // aircraft_id: z.string().optional(),
     life_limit_part_hours: z.coerce
       .number({ invalid_type_error: "Debe ingresar una cantidad numérica" })
       .min(0, { message: "No puede ser negativo." })
@@ -204,28 +204,28 @@ export default function CreateComponentForm({
   const [fabricationDate, setFabricationDate] = useState<
     Date | null | undefined
   >(
-    initialData?.component?.fabrication_date
-      ? parseISO(initialData.component.fabrication_date)
+    initialData?.part_component?.fabrication_date
+      ? parseISO(initialData.part_component.fabrication_date)
       : null // Por defecto "No aplica" (muy pocos componentes tienen esta fecha)
   );
 
   const [caducateDate, setCaducateDate] = useState<Date | null | undefined>(
-    initialData?.component?.caducate_date
-      ? parseISO(initialData.component.caducate_date)
+    initialData?.part_component?.caducate_date
+      ? parseISO(initialData.part_component.caducate_date)
       : null // Por defecto "No aplica" (componentes nuevos o sin fecha)
   );
 
   const [inspectDate, setInspectDate] = useState<Date | null | undefined>(
-    initialData?.component?.inspect_date
-      ? parseISO(initialData.component.inspect_date)
+    initialData?.inspect_date
+      ? parseISO(initialData.inspect_date)
       : null // Por defecto "No aplica" (componentes nuevos o sin fecha)
   );
 
   const [lifeLimitPartCalendar, setLifeLimitPartCalendar] = useState<
     Date | null | undefined
   >(
-    initialData?.component?.life_limit_part_calendar
-      ? parseISO(initialData.component.life_limit_part_calendar)
+    initialData?.part_component?.life_limit_part_calendar
+      ? parseISO(initialData.part_component.life_limit_part_calendar)
       : null // Por defecto "No aplica" (componentes nuevos o sin fecha)
   );
 
@@ -284,34 +284,37 @@ export default function CreateComponentForm({
       condition_id: initialData?.condition?.id?.toString() || "",
       description: initialData?.description || "",
       zone: initialData?.zone || "",
-      hour_date: initialData?.component?.hour_date
-        ? parseInt(initialData.component.hour_date)
+      hour_date: initialData?.part_component?.hour_date
+        ? parseInt(initialData.part_component.hour_date)
         : undefined,
-      cycle_date: initialData?.component?.cycle_date
-        ? parseInt(initialData.component.cycle_date)
+      cycle_date: initialData?.part_component?.cycle_date
+        ? parseInt(initialData.part_component.cycle_date)
         : undefined,
-      caducate_date: initialData?.component?.caducate_date
-        ? initialData?.component?.caducate_date
+      caducate_date: initialData?.part_component?.caducate_date
+        ? initialData?.part_component?.caducate_date
         : undefined,
-      fabrication_date: initialData?.component?.fabrication_date
-        ? initialData?.component?.fabrication_date
+      fabrication_date: initialData?.part_component?.fabrication_date
+        ? initialData?.part_component?.fabrication_date
         : undefined,
       has_documentation: initialData?.has_documentation ?? false,
-      aircraft_id: "",
-      life_limit_part_calendar: initialData?.component?.life_limit_part_calendar
-        ? initialData?.component?.life_limit_part_calendar
+      // aircraft_id: "",
+      life_limit_part_calendar: initialData?.part_component
+        ?.life_limit_part_calendar
+        ? initialData?.part_component?.life_limit_part_calendar
         : undefined,
-      life_limit_part_cycles: initialData?.component?.life_limit_part_cycles
-        ? Number(initialData.component.life_limit_part_cycles)
+      life_limit_part_cycles: initialData?.part_component?.life_limit_part_cycles
+        ? Number(initialData.part_component.life_limit_part_cycles)
         : undefined,
 
-      life_limit_part_hours: initialData?.component?.life_limit_part_hours
-        ? Number(initialData.component.life_limit_part_hours)
+      life_limit_part_hours: initialData?.part_component?.life_limit_part_hours
+        ? Number(initialData.part_component.life_limit_part_hours)
         : undefined,
       inspector: initialData?.inspector || "",
-      inspect_date: initialData?.component?.inspect_date
-        ? initialData?.component?.inspect_date
+      inspect_date: initialData?.inspect_date
+        ? initialData?.inspect_date
         : undefined,
+      shelf_life_unit: initialData?.part_component?.shelf_life_unit || "",
+      shelf_life: initialData?.part_component?.shelf_life ? Number(initialData.part_component.shelf_life) : undefined,
     },
     mode: "onBlur",
   });
@@ -343,32 +346,34 @@ export default function CreateComponentForm({
       condition_id: initialData.condition?.id?.toString() ?? "",
       description: initialData.description ?? "",
       zone: initialData.zone ?? "",
-      hour_date: initialData.component?.hour_date
-        ? parseInt(initialData.component.hour_date)
+      hour_date: initialData.part_component?.hour_date
+        ? parseInt(initialData.part_component.hour_date)
         : undefined,
-      cycle_date: initialData.component?.cycle_date
-        ? parseInt(initialData.component.cycle_date)
+      cycle_date: initialData.part_component?.cycle_date
+        ? parseInt(initialData.part_component.cycle_date)
         : undefined,
-      caducate_date: initialData.component?.caducate_date
-        ? initialData.component?.caducate_date
+      caducate_date: initialData.part_component?.caducate_date
+        ? initialData.part_component?.caducate_date
         : undefined,
-      fabrication_date: initialData.component?.fabrication_date
-        ? initialData.component?.fabrication_date
+      fabrication_date: initialData.part_component?.fabrication_date
+        ? initialData.part_component?.fabrication_date
         : undefined,
       has_documentation: initialData.has_documentation ?? false,
-      aircraft_id: "",
-      life_limit_part_calendar: initialData.component?.life_limit_part_calendar
-        ? initialData.component?.life_limit_part_calendar
+      // aircraft_id: "",
+      life_limit_part_calendar: initialData.part_component
+        ?.life_limit_part_calendar
+        ? initialData.part_component?.life_limit_part_calendar
         : undefined,
-      life_limit_part_cycles: initialData?.component?.life_limit_part_cycles
-        ? Number(initialData.component.life_limit_part_cycles)
+      life_limit_part_cycles: initialData?.part_component
+        ?.life_limit_part_cycles
+        ? Number(initialData.part_component.life_limit_part_cycles)
         : undefined,
-      life_limit_part_hours: initialData?.component?.life_limit_part_hours
-        ? Number(initialData.component.life_limit_part_hours)
+      life_limit_part_hours: initialData?.part_component?.life_limit_part_hours
+        ? Number(initialData.part_component.life_limit_part_hours)
         : undefined,
       inspector: initialData.inspector || "",
-      inspect_date: initialData.component?.inspect_date
-        ? initialData.component?.inspect_date
+      inspect_date: initialData.inspect_date
+        ? initialData.inspect_date
         : undefined,
     });
   }, [initialData, form]);
@@ -518,7 +523,7 @@ export default function CreateComponentForm({
         values.calendar_date && format(values.calendar_date, "yyyy-MM-dd"),
       batch_name: enableBatchNameEdit ? values.batch_name : undefined,
       batch_id: values.batch_id, // Incluir explícitamente el batch_id del formulario
-      aircraft_id: values.aircraft_id, // Incluir aircraft_id si está presente
+      // aircraft_id: values.aircraft_id, // Incluir aircraft_id si está presente
       life_limit_part_cycles: values.life_limit_part_cycles,
       life_limit_part_hours: values.life_limit_part_hours,
     };
@@ -1135,7 +1140,7 @@ export default function CreateComponentForm({
             />
 
             {/* Campo de aeronave - Solo se muestra cuando la condición es "resguardo" */}
-            {isResguardo && (
+            {/* {isResguardo && (
               <FormField
                 control={form.control}
                 name="aircraft_id"
@@ -1238,7 +1243,7 @@ export default function CreateComponentForm({
                   </FormItem>
                 )}
               />
-            )}
+            )} */}
 
             <FormField
               control={form.control}

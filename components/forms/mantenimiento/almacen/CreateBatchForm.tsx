@@ -42,9 +42,9 @@ import CreateUnitForm from "@/components/forms/ajustes/CreateUnitForm";
 import { useGetBatchesByCategory } from "@/hooks/mantenimiento/almacen/renglones/useGetBatchesByCategory";
 
 const CATEGORY_VALUES = {
-  COMPONENTE: "componente",
-  HERRAMIENTA: "herramienta",
-  CONSUMIBLE: "consumible",
+  COMPONENTE: "component",
+  HERRAMIENTA: "tool",
+  CONSUMIBLE: "consumable",
   PARTE: "parte",
 } as const;
 

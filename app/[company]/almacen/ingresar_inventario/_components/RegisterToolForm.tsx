@@ -462,8 +462,8 @@ export default function CreateToolForm({
   }, [initialData, form]);
 
   const [inspectDate, setInspectDate] = useState<Date | null | undefined>(
-    initialData?.component?.inspect_date
-      ? parseISO(initialData.component.inspect_date)
+    initialData?.tool?.inspect_date
+      ? parseISO(initialData.tool.inspect_date)
       : null // Por defecto "No aplica" (componentes nuevos o sin fecha)
   );
   // Autocompletar descripción cuando encuentra resultados de búsqueda

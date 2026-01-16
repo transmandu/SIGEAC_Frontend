@@ -26,8 +26,10 @@ export interface EditingArticle extends Article {
     calibration_date?: string;
     next_calibration?: string | number;
     article_id: number;
+    inspect_date?: string;
+    inspector?: string;
   };
-  component?: {
+  part_component?: {
     id: number;
     article_id: string;
     caducate_date: string | null;
@@ -38,6 +40,8 @@ export interface EditingArticle extends Article {
     life_limit_part_calendar?: string;
     life_limit_part_hours?: string | number;
     life_limit_part_cycles?: string | number;
+    shelf_life?: number;
+    shelf_life_unit?: string;
     inspector?: string;
     inspect_date?: string;
   };
