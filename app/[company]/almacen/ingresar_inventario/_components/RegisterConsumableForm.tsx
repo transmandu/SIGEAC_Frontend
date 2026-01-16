@@ -89,7 +89,7 @@ import loadingGif from "@/public/loading2.gif";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { Convertion } from "@/types";
 import { useQueryClient } from "@tanstack/react-query";
-import { EditingArticle } from "./RegisterArticleForm";
+import { EditingArticle } from "@/components/forms/mantenimiento/almacen/RegisterArticleForm";
 import PreviewCreateConsumableDialog from "@/components/dialogs/mantenimiento/almacen/PreviewCreateConsumableDialog";
 
 /* ------------------------------- Schema ------------------------------- */
@@ -1195,8 +1195,8 @@ export default function CreateConsumableForm({
   );
 
   const [inspectDate, setInspectDate] = useState<Date | null | undefined>(
-    initialData?.component?.inspect_date
-      ? parseISO(initialData.component.inspect_date)
+    initialData?.consumable?.inspect_date
+      ? parseISO(initialData.consumable.inspect_date)
       : null
   );
 
@@ -1246,8 +1246,8 @@ export default function CreateConsumableForm({
       primary_unit_id: initialData?.primary_unit_id || undefined,
       has_documentation: initialData?.has_documentation || false,
       inspector: initialData?.inspector || "",
-      inspect_date: initialData?.component?.inspect_date
-        ? initialData?.component?.inspect_date
+      inspect_date: initialData?.consumable?.inspect_date
+        ? initialData?.consumable?.inspect_date
         : undefined,
     },
     mode: "onBlur",

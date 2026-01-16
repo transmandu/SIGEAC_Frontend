@@ -74,7 +74,7 @@ import { DatePickerField } from "@/components/ui/DatePickerField";
 import { SectionCard } from "@/components/ui/SectionCard";
 import { Textarea } from "@/components/ui/textarea";
 import { MultiSerialInput } from "./MultiSerialInput";
-import { EditingArticle } from "./RegisterArticleForm";
+import { EditingArticle } from "@/components/forms/mantenimiento/almacen/RegisterArticleForm";
 
 /* ------------------------------- Schema ------------------------------- */
 
@@ -301,10 +301,13 @@ export default function CreateComponentForm({
       life_limit_part_calendar: initialData?.component?.life_limit_part_calendar
         ? initialData?.component?.life_limit_part_calendar
         : undefined,
-      life_limit_part_cycles:
-        initialData?.component?.life_limit_part_cycles ?? undefined,
-      life_limit_part_hours:
-        initialData?.component?.life_limit_part_hours ?? undefined,
+      life_limit_part_cycles: initialData?.component?.life_limit_part_cycles
+        ? Number(initialData.component.life_limit_part_cycles)
+        : undefined,
+
+      life_limit_part_hours: initialData?.component?.life_limit_part_hours
+        ? Number(initialData.component.life_limit_part_hours)
+        : undefined,
       inspector: initialData?.inspector || "",
       inspect_date: initialData?.component?.inspect_date
         ? initialData?.component?.inspect_date
@@ -357,10 +360,12 @@ export default function CreateComponentForm({
       life_limit_part_calendar: initialData.component?.life_limit_part_calendar
         ? initialData.component?.life_limit_part_calendar
         : undefined,
-      life_limit_part_cycles:
-        initialData.component?.life_limit_part_cycles ?? undefined,
-      life_limit_part_hours:
-        initialData.component?.life_limit_part_hours ?? undefined,
+      life_limit_part_cycles: initialData?.component?.life_limit_part_cycles
+        ? Number(initialData.component.life_limit_part_cycles)
+        : undefined,
+      life_limit_part_hours: initialData?.component?.life_limit_part_hours
+        ? Number(initialData.component.life_limit_part_hours)
+        : undefined,
       inspector: initialData.inspector || "",
       inspect_date: initialData.component?.inspect_date
         ? initialData.component?.inspect_date

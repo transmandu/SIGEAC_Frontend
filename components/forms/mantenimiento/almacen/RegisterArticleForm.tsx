@@ -35,6 +35,11 @@ export interface EditingArticle extends Article {
     hour_date: string | null;
     cycle_date: string | null;
     calendary_date: string | null;
+    life_limit_part_calendar?: string;
+    life_limit_part_hours?: string | number;
+    life_limit_part_cycles?: string | number;
+    inspector?: string;
+    inspect_date?: string;
   };
   consumable?: {
     lot_number?: string;
@@ -43,6 +48,10 @@ export interface EditingArticle extends Article {
     min_quantity?: number | string;
     quantity?: number;
     is_managed?: boolean | string | number;
+    shelf_life?: number;
+    shelft_life_unit?: string;
+    inspect_date?: string;
+    inspector?: string;
   };
   has_documentation?: boolean;
 }

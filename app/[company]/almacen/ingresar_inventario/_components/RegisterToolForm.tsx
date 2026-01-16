@@ -64,7 +64,7 @@ import { useCompanyStore } from "@/stores/CompanyStore";
 import { Batch } from "@/types";
 
 import loadingGif from "@/public/loading2.gif";
-import { EditingArticle } from "./RegisterArticleForm";
+import { EditingArticle } from "@/components/forms/mantenimiento/almacen/RegisterArticleForm";
 import { CreateManufacturerDialog } from "@/components/dialogs/general/CreateManufacturerDialog";
 import { CreateBatchDialog } from "@/components/dialogs/mantenimiento/almacen/CreateBatchDialog";
 import { useUpdateArticle } from "@/actions/mantenimiento/almacen/inventario/articulos/actions";
