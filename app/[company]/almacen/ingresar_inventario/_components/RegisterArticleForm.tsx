@@ -28,17 +28,17 @@ export interface EditingArticle extends Article {
     inspector?: string;
     inspect_date?: string;
   };
-  component?: {
+  part_component?: {
     id: number;
     article_id: string;
-    caducate_date?: string;
-    fabrication_date?: string;
+    caducate_date?: string | null;
+    fabrication_date: string | null;
     hour_date: string | null;
     cycle_date: string | null;
     calendary_date: string | null;
     life_limit_part_calendar?: string;
-    life_limit_part_hours: number | null;
-    life_limit_part_cycles: number | null;
+    life_limit_part_hours?: string | number;
+    life_limit_part_cycles?: string | number;
     shelf_life?: number;
     shelft_life_unit?: string;
     inspector?: string;
@@ -47,7 +47,7 @@ export interface EditingArticle extends Article {
   consumable?: {
     lot_number?: string;
     caducate_date: string;
-    fabrication_date: string;
+    fabrication_date: string | null;
     min_quantity?: number | string;
     quantity?: number;
     is_managed?: boolean | string | number;
@@ -70,7 +70,7 @@ const RegisterArticleForm = ({
   initialData,
 }: IRegisterArticleProps) => {
   const [type, setType] = useState(
-    initialData?.batches.category.toLowerCase() ?? "componente"
+    initialData?.batches.category.toUpperCase() ?? "COMPONENTE"
   );
   function handleTypeSelect(data: string) {
     setType(data);
@@ -94,22 +94,22 @@ const RegisterArticleForm = ({
           <SelectValue placeholder="Seleccionar..." />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="consumible">Consumible</SelectItem>
-          <SelectItem value="herramienta">Herramienta</SelectItem>
-          <SelectItem value="componente">Componente</SelectItem>
-          <SelectItem value="parte">Parte</SelectItem>
+          <SelectItem value="CONSUMIBLE">CONSUMIBLE</SelectItem>
+          <SelectItem value="HERAMIENTA">HERRAMIENTA</SelectItem>
+          <SelectItem value="COMPONENTE">COMPONENTE</SelectItem>
+          <SelectItem value="PARTE">PARTE</SelectItem>
         </SelectContent>
       </Select>
-      {type === "consumible" && (
+      {type === "CONSUMIBLE" && (
         <CreateConsumableForm isEditing={isEditing} initialData={initialData} />
       )}
-      {type === "herramienta" && (
+      {type === "HERRAMIENTA" && (
         <CreateToolForm isEditing={isEditing} initialData={initialData} />
       )}
-      {type === "componente" && (
+      {type === "COMPONENTE" && (
         <CreateComponentForm isEditing={isEditing} initialData={initialData} />
       )}
-      {type === "parte" && (
+      {type === "PARTE" && (
         <CreatePartForm isEditing={isEditing} initialData={initialData} />
       )}
     </div>

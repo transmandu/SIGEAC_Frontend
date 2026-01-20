@@ -1,4 +1,6 @@
 import axiosInstance from "@/lib/axios"
+import { useCompanyStore } from "@/stores/CompanyStore"
+import { Batch } from "@/types"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 
@@ -43,6 +45,50 @@ export const useCreateBatch = () => {
       createBatch: createMutation,
     }
 }
+
+
+export const useUpdateBatch = () => {
+  const queryClient = useQueryClient();
+  const { selectedStation } = useCompanyStore();
+  const updateMutation = useMutation({
+    mutationFn: async ({
+      id,
+      data,
+      company,
+    }: {
+      id: string;
+      data: BatchType;
+      company: string;
+    }) => {
+      await axiosInstance.put(`/${company}/batches/${id}`, data);
+    },
+    onSuccess: (_, data) => {
+
+      queryClient.invalidateQueries({ queryKey: ["batches"] });
+      queryClient.invalidateQueries({
+        queryKey: [
+          "search-batches",
+          data.company,
+          selectedStation,
+          data.data.category,
+        ],
+      });
+      toast.success("¡Creado!", {
+        description: `El renglon ha sido actulizado correctamente`,
+      });
+    },
+    onError: (error) => {
+      toast.error("Oops!", {
+        description: "No se pudo actulizar el renglon...",
+      });
+      console.log(error);
+    },
+  });
+
+  return {
+    updateBatch: updateMutation,
+  };
+};
 
 export const useDeleteBatch = () => {
 

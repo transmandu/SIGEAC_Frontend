@@ -9,10 +9,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../../../ui/select";
-import CreateComponentForm from "@/app/[company]/almacen/ingresar_inventario/_components/RegisterComponentForm";
-import CreateConsumableForm from "@/app/[company]/almacen/ingresar_inventario/_components/RegisterConsumableForm";
-import CreateToolForm from "@/app/[company]/almacen/ingresar_inventario/_components/RegisterToolForm";
 
+import CreateToolForm from "@/app/[company]/almacen/ingresar_inventario/_components/RegisterToolForm";
+import CreateComponentForm from "@/app/[company]/almacen/ingresar_inventario/_components/RegisterComponentForm";
+import CreatePartForm from "@/app/[company]/almacen/ingresar_inventario/_components/RegisterPartForm";
+import CreateConsumableForm from "@/app/[company]/almacen/ingresar_inventario/_components/RegisterConsumableForm";
 export interface EditingArticle extends Article {
   batches: Batch;
   certificate_8130?: string;
@@ -32,7 +33,7 @@ export interface EditingArticle extends Article {
   part_component?: {
     id: number;
     article_id: string;
-    caducate_date: string | null;
+    caducate_date?: string | null;
     fabrication_date: string | null;
     hour_date: string | null;
     cycle_date: string | null;
@@ -48,7 +49,7 @@ export interface EditingArticle extends Article {
   consumable?: {
     lot_number?: string;
     caducate_date: string;
-    fabrication_date: string;
+    fabrication_date: string | null;
     min_quantity?: number | string;
     quantity?: number;
     is_managed?: boolean | string | number;
@@ -71,7 +72,7 @@ const RegisterArticleForm = ({
   initialData,
 }: IRegisterArticleProps) => {
   const [type, setType] = useState(
-    initialData?.batches.category.toLowerCase() ?? "componente"
+    initialData?.batches.category.toUpperCase() ?? "COMPONENTE"
   );
   function handleTypeSelect(data: string) {
     setType(data);
@@ -95,19 +96,23 @@ const RegisterArticleForm = ({
           <SelectValue placeholder="Seleccionar..." />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="consumible">Consumible</SelectItem>
-          <SelectItem value="herramienta">Herramienta</SelectItem>
-          <SelectItem value="componente">Componente</SelectItem>
+          <SelectItem value="CONSUMIBLE">CONSUMIBLE</SelectItem>
+          <SelectItem value="HERRAMIENTA">HERRAMIENTA</SelectItem>
+          <SelectItem value="COMPONENTE">COMPONENTE</SelectItem>
+          <SelectItem value="PARTE">PARTE</SelectItem>
         </SelectContent>
       </Select>
-      {type === "consumible" && (
+      {type === "CONSUMIBLE" && (
         <CreateConsumableForm isEditing={isEditing} initialData={initialData} />
       )}
-      {type === "herramienta" && (
+      {type === "HERRAMIENTA" && (
         <CreateToolForm isEditing={isEditing} initialData={initialData} />
       )}
-      {type === "componente" && (
+      {type === "COMPONENTE" && (
         <CreateComponentForm isEditing={isEditing} initialData={initialData} />
+      )}
+      {type === "PARTE" && (
+        <CreatePartForm isEditing={isEditing} initialData={initialData} />
       )}
     </div>
   );

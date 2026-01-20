@@ -259,7 +259,7 @@ export default function CreateComponentForm({
       selectedCompany?.slug,
       selectedStation || undefined,
       partNumberToSearch,
-      "COMPONENTE"
+      "COMPONENT"
     );
 
   // Mutations
@@ -534,7 +534,7 @@ export default function CreateComponentForm({
       // - Si NO está marcado: solo enviar batch_id (reasigna solo este artículo a otro batch)
       const updateData: any = {
         ...formattedValues,
-        article_type: "componente",
+        article_type: "COMPONENT",
       };
 
       if (enableBatchNameEdit) {

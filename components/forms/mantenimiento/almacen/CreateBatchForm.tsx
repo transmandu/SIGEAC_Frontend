@@ -1,6 +1,9 @@
 // use client
 
-import { useCreateBatch } from "@/actions/mantenimiento/almacen/inventario/lotes/actions";
+import {
+  useCreateBatch,
+  useUpdateBatch,
+} from "@/actions/mantenimiento/almacen/inventario/lotes/actions";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -28,7 +31,9 @@ import {
 } from "@/components/ui/dialog";
 import { useGetWarehousesByLocation } from "@/hooks/administracion/useGetWarehousesByUser";
 import { useGetUnits } from "@/hooks/general/unidades/useGetPrimaryUnits";
-import { batches_categories } from "@/lib/batches_categories";
+import {
+  batches_categories,
+} from "@/lib/batches_categories";
 import { generateSlug } from "@/lib/utils";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -40,12 +45,14 @@ import { Checkbox } from "../../../ui/checkbox";
 import { Textarea } from "../../../ui/textarea";
 import CreateUnitForm from "@/components/forms/ajustes/CreateUnitForm";
 import { useGetBatchesByCategory } from "@/hooks/mantenimiento/almacen/renglones/useGetBatchesByCategory";
+import { Batch } from "@/types";
+import { format } from "path";
 
 const CATEGORY_VALUES = {
-  COMPONENTE: "component",
-  HERRAMIENTA: "tool",
-  CONSUMIBLE: "consumable",
-  PARTE: "parte",
+  COMPONENTE: "COMPONENTE",
+  HERRAMIENTA: "HERRAMIENTA",
+  CONSUMIBLE: "CONSUMIBLE",
+  PARTE: "PARTE",
 } as const;
 
 const UNIT_LABEL = ["UNIDADES", "UNIDAD"];
@@ -85,12 +92,16 @@ interface FormProps {
   onClose: () => void;
   onSuccess?: (batchName: string) => void;
   defaultCategory?: string;
+  isEditing?: boolean;
+  initialData?: Batch;
 }
 
 export function CreateBatchForm({
   onClose,
   onSuccess,
   defaultCategory,
+  isEditing = false,
+  initialData,
 }: FormProps) {
   const { selectedCompany, selectedStation } = useCompanyStore();
   const {
@@ -108,10 +119,19 @@ export function CreateBatchForm({
     refetch: refetchUnits,
   } = useGetUnits(selectedCompany?.slug);
   const { createBatch } = useCreateBatch();
+  const { updateBatch } = useUpdateBatch();
 
   const form = useForm<FormSchemaType>({
     resolver: zodResolver(FormSchema),
-    defaultValues: { is_hazarous: false, category: defaultCategory || "" },
+    defaultValues: {
+      is_hazarous: false,
+      category: initialData?.category || defaultCategory || "",
+      name: initialData?.name || "",
+      description: initialData?.description || "",
+      ata_code: initialData?.ata_code || "",
+      medition_unit: initialData?.unit?.value.toString() || "",
+      warehouse_id: initialData?.warehouse_id?.toString() || "",
+    },
   });
 
   const { control, setError, clearErrors, setValue } = form;
@@ -199,18 +219,30 @@ export function CreateBatchForm({
       return;
     }
 
-    await createBatch.mutateAsync({
-      data: {
-        ...data,
-        slug: generateSlug(data.name),
-        warehouse_id: Number(data.warehouse_id),
-      },
-      company,
-    });
+    if (isEditing && initialData) {
+      await updateBatch.mutateAsync({
+        id: initialData.id.toString(),
+        data: {
+          ...data,
+          slug: generateSlug(data.name),
+          warehouse_id: Number(data.warehouse_id),
+        },
+        company,
+      });
+    } else {
+      await createBatch.mutateAsync({
+        data: {
+          ...data,
+          slug: generateSlug(data.name),
+          warehouse_id: Number(data.warehouse_id),
+        },
+        company,
+      });
+    }
     onSuccess?.(data.name);
     onClose();
   };
-
+  console.log(initialData, "initialData in CreateBatchForm");
   return (
     <Form {...form}>
       <form
@@ -231,7 +263,10 @@ export function CreateBatchForm({
                   onValueChange={field.onChange}
                   defaultValue={field.value}
                   value={field.value}
-                  disabled={!!defaultCategory}
+                  disabled={
+                    field.value === "HERRAMIENTA" ||
+                    field.value === "CONSUMIBLE"
+                  }
                 >
                   <FormControl>
                     <SelectTrigger>
@@ -239,11 +274,17 @@ export function CreateBatchForm({
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {batches_categories.map((category) => (
-                      <SelectItem key={category.value} value={category.value}>
-                        {category.label}
-                      </SelectItem>
-                    ))}
+                    {batches_categories
+                      .filter(
+                        (category) =>
+                          category.label !== "HERRAMIENTA" &&
+                          category.label !== "CONSUMIBLE"
+                      )
+                      .map((category) => (
+                        <SelectItem key={category.value} value={category.value}>
+                          {category.label}
+                        </SelectItem>
+                      ))}
                   </SelectContent>
                 </Select>
                 <FormMessage />
@@ -458,7 +499,7 @@ export function CreateBatchForm({
           {createBatch?.isPending ? (
             <Loader2 className="size-4 animate-spin" />
           ) : (
-            <p>Crear</p>
+            <p>{isEditing ? "Editar" : "Crear"}</p>
           )}
         </Button>
       </form>

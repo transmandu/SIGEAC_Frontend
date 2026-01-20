@@ -1,18 +1,18 @@
 export const batches_categories = [
   {
-    value: "tool",
-    label: "Herramientas"
+    value: "COMPONENT",
+    label: "COMPONENTE",
   },
   {
-    value: "component",
-    label: "Componentes"
+    value: "PART",
+    label: "PARTES",
   },
   {
-    value: "consumables",
-    label: "Consumibles"
+    value: "TOOL",
+    label: "HERRAMIENTA",
   },
   {
-    value: "part",
-    label: "Partes"
+    value: "CONSUMABLE",
+    label: "CONSUMIBLE",
   },
-]
+];

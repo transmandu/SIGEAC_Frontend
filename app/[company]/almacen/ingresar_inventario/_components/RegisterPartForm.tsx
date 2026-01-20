@@ -184,7 +184,7 @@ interface PreviewValues extends FormValues {
 
 /* ----------------------------- Componente ----------------------------- */
 
-export default function CreateComponentForm({
+export default function CreatePartForm({
   initialData,
   isEditing,
 }: {
@@ -204,28 +204,28 @@ export default function CreateComponentForm({
   const [fabricationDate, setFabricationDate] = useState<
     Date | null | undefined
   >(
-    initialData?.component?.fabrication_date
-      ? parseISO(initialData.component.fabrication_date)
+    initialData?.part_component?.fabrication_date
+      ? parseISO(initialData.part_component.fabrication_date)
       : null // Por defecto "No aplica" (muy pocos componentes tienen esta fecha)
   );
 
   const [caducateDate, setCaducateDate] = useState<Date | null | undefined>(
-    initialData?.component?.caducate_date
-      ? parseISO(initialData.component.caducate_date)
+    initialData?.part_component?.caducate_date
+      ? parseISO(initialData.part_component.caducate_date)
       : null // Por defecto "No aplica" (componentes nuevos o sin fecha)
   );
 
   const [inspectDate, setInspectDate] = useState<Date | null | undefined>(
-    initialData?.component?.inspect_date
-      ? parseISO(initialData.component.inspect_date)
+    initialData?.part_component?.inspect_date
+      ? parseISO(initialData.part_component.inspect_date)
       : null // Por defecto "No aplica" (componentes nuevos o sin fecha)
   );
 
   const [lifeLimitPartCalendar, setLifeLimitPartCalendar] = useState<
     Date | null | undefined
   >(
-    initialData?.component?.life_limit_part_calendar
-      ? parseISO(initialData.component.life_limit_part_calendar)
+    initialData?.part_component?.life_limit_part_calendar
+      ? parseISO(initialData.part_component.life_limit_part_calendar)
       : null // Por defecto "No aplica" (componentes nuevos o sin fecha)
   );
 
@@ -259,7 +259,7 @@ export default function CreateComponentForm({
       selectedCompany?.slug,
       selectedStation || undefined,
       partNumberToSearch,
-      "COMPONENTE"
+      "PART"
     );
 
   // Mutations
@@ -284,30 +284,30 @@ export default function CreateComponentForm({
       condition_id: initialData?.condition?.id?.toString() || "",
       description: initialData?.description || "",
       zone: initialData?.zone || "",
-      hour_date: initialData?.component?.hour_date
-        ? parseInt(initialData.component.hour_date)
+      hour_date: initialData?.part_component?.hour_date
+        ? parseInt(initialData.part_component.hour_date)
         : undefined,
-      cycle_date: initialData?.component?.cycle_date
-        ? parseInt(initialData.component.cycle_date)
+      cycle_date: initialData?.part_component?.cycle_date
+        ? parseInt(initialData.part_component.cycle_date)
         : undefined,
-      caducate_date: initialData?.component?.caducate_date
-        ? initialData?.component?.caducate_date
+      caducate_date: initialData?.part_component?.caducate_date
+        ? initialData?.part_component?.caducate_date
         : undefined,
-      fabrication_date: initialData?.component?.fabrication_date
-        ? initialData?.component?.fabrication_date
+      fabrication_date: initialData?.part_component?.fabrication_date
+        ? initialData?.part_component?.fabrication_date
         : undefined,
       has_documentation: initialData?.has_documentation ?? false,
       aircraft_id: "",
-      life_limit_part_calendar: initialData?.component?.life_limit_part_calendar
-        ? initialData?.component?.life_limit_part_calendar
+      life_limit_part_calendar: initialData?.part_component?.life_limit_part_calendar
+        ? initialData?.part_component?.life_limit_part_calendar
         : undefined,
       life_limit_part_cycles:
-        initialData?.component?.life_limit_part_cycles ?? undefined,
+        initialData?.part_component?.life_limit_part_cycles ?? undefined,
       life_limit_part_hours:
-        initialData?.component?.life_limit_part_hours ?? undefined,
+        initialData?.part_component?.life_limit_part_hours ?? undefined,
       inspector: initialData?.inspector || "",
-      inspect_date: initialData?.component?.inspect_date
-        ? initialData?.component?.inspect_date
+      inspect_date: initialData?.part_component?.inspect_date
+        ? initialData?.part_component?.inspect_date
         : undefined,
     },
     mode: "onBlur",
@@ -340,30 +340,30 @@ export default function CreateComponentForm({
       condition_id: initialData.condition?.id?.toString() ?? "",
       description: initialData.description ?? "",
       zone: initialData.zone ?? "",
-      hour_date: initialData.component?.hour_date
-        ? parseInt(initialData.component.hour_date)
+      hour_date: initialData.part_component?.hour_date
+        ? parseInt(initialData.part_component.hour_date)
         : undefined,
-      cycle_date: initialData.component?.cycle_date
-        ? parseInt(initialData.component.cycle_date)
+      cycle_date: initialData.part_component?.cycle_date
+        ? parseInt(initialData.part_component.cycle_date)
         : undefined,
-      caducate_date: initialData.component?.caducate_date
-        ? initialData.component?.caducate_date
+      caducate_date: initialData.part_component?.caducate_date
+        ? initialData.part_component?.caducate_date
         : undefined,
-      fabrication_date: initialData.component?.fabrication_date
-        ? initialData.component?.fabrication_date
+      fabrication_date: initialData.part_component?.fabrication_date
+        ? initialData.part_component?.fabrication_date
         : undefined,
       has_documentation: initialData.has_documentation ?? false,
       aircraft_id: "",
-      life_limit_part_calendar: initialData.component?.life_limit_part_calendar
-        ? initialData.component?.life_limit_part_calendar
+      life_limit_part_calendar: initialData.part_component?.life_limit_part_calendar
+        ? initialData.part_component?.life_limit_part_calendar
         : undefined,
       life_limit_part_cycles:
-        initialData.component?.life_limit_part_cycles ?? undefined,
+        initialData.part_component?.life_limit_part_cycles ?? undefined,
       life_limit_part_hours:
-        initialData.component?.life_limit_part_hours ?? undefined,
+        initialData.part_component?.life_limit_part_hours ?? undefined,
       inspector: initialData.inspector || "",
-      inspect_date: initialData.component?.inspect_date
-        ? initialData.component?.inspect_date
+      inspect_date: initialData.part_component?.inspect_date
+        ? initialData.part_component?.inspect_date
         : undefined,
     });
   }, [initialData, form]);
@@ -800,7 +800,7 @@ export default function CreateComponentForm({
                               "search-batches",
                               selectedCompany?.slug,
                               selectedStation,
-                              "component",
+                              "PART",
                             ],
                           });
                           const { data: updatedBatches } =
@@ -814,7 +814,7 @@ export default function CreateComponentForm({
                             });
                           }
                         }}
-                        defaultCategory="component"
+                        defaultCategory="PART"
                         triggerButton={
                           <Button
                             type="button"
