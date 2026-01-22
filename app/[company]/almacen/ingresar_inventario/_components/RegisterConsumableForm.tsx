@@ -1195,8 +1195,8 @@ export default function CreateConsumableForm({
   );
 
   const [inspectDate, setInspectDate] = useState<Date | null | undefined>(
-    initialData?.consumable?.inspect_date
-      ? parseISO(initialData.consumable.inspect_date)
+    initialData?.inspect_date
+      ? parseISO(initialData.inspect_date)
       : null
   );
 
@@ -1246,8 +1246,8 @@ export default function CreateConsumableForm({
       primary_unit_id: initialData?.primary_unit_id || undefined,
       has_documentation: initialData?.has_documentation || false,
       inspector: initialData?.inspector || "",
-      inspect_date: initialData?.consumable?.inspect_date
-        ? initialData?.consumable?.inspect_date
+      inspect_date: initialData?.inspect_date
+        ? initialData?.inspect_date
         : undefined,
     },
     mode: "onBlur",
@@ -1624,7 +1624,7 @@ export default function CreateConsumableForm({
                               );
                             }
                           }}
-                          defaultCategory="consumable"
+                          defaultCategory="CONSUMABLE"
                           triggerButton={
                             <Button
                               type="button"

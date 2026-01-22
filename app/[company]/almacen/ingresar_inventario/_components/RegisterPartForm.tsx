@@ -75,6 +75,7 @@ import { SectionCard } from "@/components/ui/SectionCard";
 import { Textarea } from "@/components/ui/textarea";
 import { MultiSerialInput } from "./MultiSerialInput";
 import { EditingArticle } from "./RegisterArticleForm";
+import { useAuth } from "@/contexts/AuthContext";
 
 /* ------------------------------- Schema ------------------------------- */
 
@@ -86,7 +87,7 @@ const formSchema = z
       .array(
         z.string().min(1, {
           message: "El serial debe contener al menos 1 caracter.",
-        })
+        }),
       )
       .optional(),
     part_number: z
@@ -99,7 +100,7 @@ const formSchema = z
         z.string().min(2, {
           message:
             "Cada número de parte alterno debe contener al menos 2 caracteres.",
-        })
+        }),
       )
       .optional(),
     description: z.string().optional(),
@@ -158,7 +159,19 @@ const formSchema = z
       .or(z.literal("").transform(() => undefined)),
     shelf_life_unit: z.string().optional(),
     inspector: z.string().optional(),
+    ata_code: z.string().optional(),
     inspect_date: z.string().optional(),
+    hard_time_hours: z.coerce
+      .number({ invalid_type_error: "Debe ingresar una cantidad numérica" })
+      .min(0, { message: "No puede ser negativo." })
+      .optional()
+      .or(z.literal("").transform(() => undefined)),
+    hard_time_cycles: z.coerce
+      .number({ invalid_type_error: "Debe ingresar una cantidad numérica" })
+      .min(0, { message: "No puede ser negativo." })
+      .optional()
+      .or(z.literal("").transform(() => undefined)),
+    hard_time_calendar: z.string().optional(),
   })
   .superRefine((vals, ctx) => {
     if (vals.fabrication_date && vals.caducate_date) {
@@ -191,6 +204,12 @@ export default function CreatePartForm({
   initialData?: EditingArticle;
   isEditing?: boolean;
 }) {
+  const { user } = useAuth();
+  const userRoles = user?.roles?.map((role) => role.name) || [];
+  const isEngineering = userRoles.some((role) =>
+    ["ENGINEERING", "SUPERUSER"].includes(role),
+  );
+
   const router = useRouter();
   const queryClient = useQueryClient();
   const { selectedCompany, selectedStation } = useCompanyStore();
@@ -206,19 +225,19 @@ export default function CreatePartForm({
   >(
     initialData?.part_component?.fabrication_date
       ? parseISO(initialData.part_component.fabrication_date)
-      : null // Por defecto "No aplica" (muy pocos componentes tienen esta fecha)
+      : null, // Por defecto "No aplica" (muy pocos componentes tienen esta fecha)
   );
 
   const [caducateDate, setCaducateDate] = useState<Date | null | undefined>(
     initialData?.part_component?.caducate_date
       ? parseISO(initialData.part_component.caducate_date)
-      : null // Por defecto "No aplica" (componentes nuevos o sin fecha)
+      : null, // Por defecto "No aplica" (componentes nuevos o sin fecha)
   );
 
   const [inspectDate, setInspectDate] = useState<Date | null | undefined>(
-    initialData?.part_component?.inspect_date
-      ? parseISO(initialData.part_component.inspect_date)
-      : null // Por defecto "No aplica" (componentes nuevos o sin fecha)
+    initialData?.inspect_date
+      ? parseISO(initialData.inspect_date)
+      : null, // Por defecto "No aplica" (componentes nuevos o sin fecha)
   );
 
   const [lifeLimitPartCalendar, setLifeLimitPartCalendar] = useState<
@@ -226,7 +245,15 @@ export default function CreatePartForm({
   >(
     initialData?.part_component?.life_limit_part_calendar
       ? parseISO(initialData.part_component.life_limit_part_calendar)
-      : null // Por defecto "No aplica" (componentes nuevos o sin fecha)
+      : null, // Por defecto "No aplica" (componentes nuevos o sin fecha)
+  );
+
+  const [hardTimeCalendar, setHardTimeCalendar] = useState<
+    Date | null | undefined
+  >(
+    initialData?.part_component?.hard_time_calendar
+      ? parseISO(initialData.part_component.hard_time_calendar)
+      : null, // Por defecto "No aplica" (componentes nuevos o sin fecha)
   );
 
   const [enableBatchNameEdit, setEnableBatchNameEdit] = useState(false);
@@ -259,7 +286,7 @@ export default function CreatePartForm({
       selectedCompany?.slug,
       selectedStation || undefined,
       partNumberToSearch,
-      "PART"
+      "PART",
     );
 
   // Mutations
@@ -298,17 +325,21 @@ export default function CreatePartForm({
         : undefined,
       has_documentation: initialData?.has_documentation ?? false,
       aircraft_id: "",
-      life_limit_part_calendar: initialData?.part_component?.life_limit_part_calendar
+      life_limit_part_calendar: initialData?.part_component
+        ?.life_limit_part_calendar
         ? initialData?.part_component?.life_limit_part_calendar
         : undefined,
-      life_limit_part_cycles:
-        initialData?.part_component?.life_limit_part_cycles ?? undefined,
-      life_limit_part_hours:
-        initialData?.part_component?.life_limit_part_hours ?? undefined,
-      inspector: initialData?.inspector || "",
-      inspect_date: initialData?.part_component?.inspect_date
-        ? initialData?.part_component?.inspect_date
+      life_limit_part_cycles: initialData?.part_component
+        ?.life_limit_part_cycles
+        ? Number(initialData.part_component.life_limit_part_cycles)
         : undefined,
+      life_limit_part_hours: initialData?.part_component?.life_limit_part_hours
+        ? Number(initialData.part_component.life_limit_part_hours)
+        : undefined,
+      inspect_date: initialData?.inspect_date
+        ? initialData?.inspect_date
+        : undefined,
+      ata_code: initialData?.ata_code || "",
     },
     mode: "onBlur",
   });
@@ -319,7 +350,7 @@ export default function CreatePartForm({
   // Watch condition_id to check if it's "resguardo"
   const conditionId = form.watch("condition_id");
   const selectedCondition = conditions?.find(
-    (c) => c.id.toString() === conditionId
+    (c) => c.id.toString() === conditionId,
   );
   const isResguardo = selectedCondition?.name?.toLowerCase() === "resguardo";
 
@@ -354,17 +385,21 @@ export default function CreatePartForm({
         : undefined,
       has_documentation: initialData.has_documentation ?? false,
       aircraft_id: "",
-      life_limit_part_calendar: initialData.part_component?.life_limit_part_calendar
+      life_limit_part_calendar: initialData.part_component
+        ?.life_limit_part_calendar
         ? initialData.part_component?.life_limit_part_calendar
         : undefined,
-      life_limit_part_cycles:
-        initialData.part_component?.life_limit_part_cycles ?? undefined,
-      life_limit_part_hours:
-        initialData.part_component?.life_limit_part_hours ?? undefined,
-      inspector: initialData.inspector || "",
-      inspect_date: initialData.part_component?.inspect_date
-        ? initialData.part_component?.inspect_date
+      life_limit_part_cycles: initialData.part_component?.life_limit_part_cycles
+        ? Number(initialData.part_component.life_limit_part_cycles)
         : undefined,
+      life_limit_part_hours: initialData.part_component?.life_limit_part_hours
+        ? Number(initialData.part_component.life_limit_part_hours)
+        : undefined,
+      inspector: initialData.inspector || "",
+      inspect_date: initialData?.inspect_date
+        ? initialData?.inspect_date
+        : undefined,
+      ata_code: initialData?.ata_code || "",
     });
   }, [initialData, form]);
 
@@ -381,7 +416,7 @@ export default function CreatePartForm({
         console.log("✓ Descripción autocompletada");
       } else {
         console.log(
-          `✓ Se encontraron ${searchResults.length} descripciones. Se seleccionó la primera.`
+          `✓ Se encontraron ${searchResults.length} descripciones. Se seleccionó la primera.`,
         );
       }
     } else if (
@@ -430,9 +465,7 @@ export default function CreatePartForm({
 
     const previewVals: PreviewValues = {
       ...rawValues,
-      inspect_date: inspectDate
-        ? format(inspectDate, "yyyy-MM-dd")
-        : undefined, 
+      inspect_date: inspectDate ? format(inspectDate, "yyyy-MM-dd") : undefined,
       fabrication_date: fabricationDate
         ? format(fabricationDate, "yyyy-MM-dd")
         : undefined, // o "" si quieres
@@ -449,7 +482,7 @@ export default function CreatePartForm({
           ?.name || "—",
       manufacturer_name:
         manufacturers?.find(
-          (m) => m.id.toString() === rawValues.manufacturer_id
+          (m) => m.id.toString() === rawValues.manufacturer_id,
         )?.name || "—",
       serial: Array.isArray(rawValues.serial)
         ? rawValues.serial
@@ -773,7 +806,7 @@ export default function CreatePartForm({
                       values={field.value || []}
                       onChange={(vals) =>
                         field.onChange(
-                          vals.map((v: string) => normalizeUpper(v))
+                          vals.map((v: string) => normalizeUpper(v)),
                         )
                       }
                       placeholder="Ej: 234ABAC"
@@ -806,7 +839,7 @@ export default function CreatePartForm({
                           const { data: updatedBatches } =
                             await refetchBatches();
                           const newBatch = updatedBatches?.find(
-                            (b: any) => b.name === batchName
+                            (b: any) => b.name === batchName,
                           );
                           if (newBatch) {
                             form.setValue("batch_id", newBatch.id.toString(), {
@@ -839,7 +872,7 @@ export default function CreatePartForm({
                             role="combobox"
                             className={cn(
                               "justify-between",
-                              !field.value && "text-muted-foreground"
+                              !field.value && "text-muted-foreground",
                             )}
                           >
                             {isBatchesLoading && (
@@ -868,7 +901,7 @@ export default function CreatePartForm({
                                 const selected = e.currentTarget
                                   .closest("[cmdk-root]")
                                   ?.querySelector(
-                                    '[cmdk-item][aria-selected="true"]'
+                                    '[cmdk-item][aria-selected="true"]',
                                   ) as HTMLElement;
                                 if (selected) {
                                   selected.click();
@@ -876,7 +909,7 @@ export default function CreatePartForm({
                                   const firstItem = e.currentTarget
                                     .closest("[cmdk-root]")
                                     ?.querySelector(
-                                      '[cmdk-item]:not([data-disabled="true"])'
+                                      '[cmdk-item]:not([data-disabled="true"])',
                                     ) as HTMLElement;
                                   if (firstItem) {
                                     firstItem.click();
@@ -899,13 +932,13 @@ export default function CreatePartForm({
                                       form.setValue(
                                         "batch_id",
                                         batch.id.toString(),
-                                        { shouldValidate: true }
+                                        { shouldValidate: true },
                                       );
                                       if (isEditing && enableBatchNameEdit) {
                                         form.setValue(
                                           "batch_name",
                                           batch.name,
-                                          { shouldValidate: true }
+                                          { shouldValidate: true },
                                         );
                                       }
                                     }}
@@ -915,7 +948,7 @@ export default function CreatePartForm({
                                         "mr-2 h-4 w-4",
                                         `${batch.id}` === field.value
                                           ? "opacity-100"
-                                          : "opacity-0"
+                                          : "opacity-0",
                                       )}
                                     />
                                     <p className="font-semibold text-primary">
@@ -936,8 +969,8 @@ export default function CreatePartForm({
                                 ?.filter(
                                   (batch) =>
                                     !searchResults?.some(
-                                      (sr) => sr.id === batch.id
-                                    )
+                                      (sr) => sr.id === batch.id,
+                                    ),
                                 )
                                 .map((batch) => (
                                   <CommandItem
@@ -947,13 +980,13 @@ export default function CreatePartForm({
                                       form.setValue(
                                         "batch_id",
                                         batch.id.toString(),
-                                        { shouldValidate: true }
+                                        { shouldValidate: true },
                                       );
                                       if (isEditing && enableBatchNameEdit) {
                                         form.setValue(
                                           "batch_name",
                                           batch.name,
-                                          { shouldValidate: true }
+                                          { shouldValidate: true },
                                         );
                                       }
                                     }}
@@ -963,7 +996,7 @@ export default function CreatePartForm({
                                         "mr-2 h-4 w-4",
                                         `${batch.id}` === field.value
                                           ? "opacity-100"
-                                          : "opacity-0"
+                                          : "opacity-0",
                                       )}
                                     />
                                     <p>{batch.name}</p>
@@ -1024,6 +1057,19 @@ export default function CreatePartForm({
                 </>
               )}
             </div>
+            <FormField
+              control={form.control}
+              name="ata_code"
+              render={({ field }) => (
+                <FormItem className="w-full">
+                  <FormLabel>Codigo ATA </FormLabel>
+                  <FormControl>
+                    <Input placeholder="Codigo ATA" {...field} />
+                  </FormControl>
+                  <FormMessage className="text-xs" />
+                </FormItem>
+              )}
+            />
           </div>
         </SectionCard>
 
@@ -1092,7 +1138,7 @@ export default function CreatePartForm({
                           } else {
                             // Si no hay elemento enfocado, enfocar y seleccionar el primero
                             const firstItem = e.currentTarget.querySelector(
-                              '[role="option"]:not([data-disabled="true"])'
+                              '[role="option"]:not([data-disabled="true"])',
                             ) as HTMLElement;
                             if (firstItem) {
                               firstItem.focus();
@@ -1166,7 +1212,7 @@ export default function CreatePartForm({
                             role="combobox"
                             className={cn(
                               "w-full justify-between",
-                              !field.value && "text-muted-foreground"
+                              !field.value && "text-muted-foreground",
                             )}
                           >
                             {isAircraftsLoading && (
@@ -1176,7 +1222,7 @@ export default function CreatePartForm({
                               <p>
                                 {
                                   aircrafts?.find(
-                                    (a) => a.id.toString() === field.value
+                                    (a) => a.id.toString() === field.value,
                                   )?.acronym
                                 }
                               </p>
@@ -1203,7 +1249,7 @@ export default function CreatePartForm({
                                     form.setValue(
                                       "aircraft_id",
                                       aircraft.id.toString(),
-                                      { shouldValidate: true }
+                                      { shouldValidate: true },
                                     );
                                   }}
                                 >
@@ -1212,7 +1258,7 @@ export default function CreatePartForm({
                                       "mr-2 h-4 w-4",
                                       `${aircraft.id}` === field.value
                                         ? "opacity-100"
-                                        : "opacity-0"
+                                        : "opacity-0",
                                     )}
                                   />
                                   <p>
@@ -1249,7 +1295,7 @@ export default function CreatePartForm({
                           form.setValue(
                             "manufacturer_id",
                             manufacturer.id.toString(),
-                            { shouldValidate: true }
+                            { shouldValidate: true },
                           );
                         }
                       }}
@@ -1277,7 +1323,7 @@ export default function CreatePartForm({
                           role="combobox"
                           className={cn(
                             "w-full justify-between",
-                            !field.value && "text-muted-foreground"
+                            !field.value && "text-muted-foreground",
                           )}
                         >
                           {isManufacturerLoading && (
@@ -1308,7 +1354,7 @@ export default function CreatePartForm({
                               const selected = e.currentTarget
                                 .closest("[cmdk-root]")
                                 ?.querySelector(
-                                  '[cmdk-item][aria-selected="true"]'
+                                  '[cmdk-item][aria-selected="true"]',
                                 ) as HTMLElement;
                               if (selected) {
                                 selected.click();
@@ -1316,7 +1362,7 @@ export default function CreatePartForm({
                                 const firstItem = e.currentTarget
                                   .closest("[cmdk-root]")
                                   ?.querySelector(
-                                    '[cmdk-item]:not([data-disabled="true"])'
+                                    '[cmdk-item]:not([data-disabled="true"])',
                                   ) as HTMLElement;
                                 if (firstItem) {
                                   firstItem.click();
@@ -1340,7 +1386,7 @@ export default function CreatePartForm({
                                     form.setValue(
                                       "manufacturer_id",
                                       manufacturer.id.toString(),
-                                      { shouldValidate: true }
+                                      { shouldValidate: true },
                                     );
                                   }}
                                 >
@@ -1349,7 +1395,7 @@ export default function CreatePartForm({
                                       "mr-2 h-4 w-4",
                                       `${manufacturer.id}` === field.value
                                         ? "opacity-100"
-                                        : "opacity-0"
+                                        : "opacity-0",
                                     )}
                                   />
                                   <p>
@@ -1534,6 +1580,70 @@ export default function CreatePartForm({
             />
           </div>
         </SectionCard>
+
+        {isEngineering && (
+          <SectionCard title="Hard Time Component">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="hard_time_cycles"
+                render={({ field }) => (
+                  <FormItem className="w-full">
+                    <FormLabel>Hard Time Cycles</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="text"
+                        inputMode="numeric"
+                        placeholder=""
+                        {...field}
+                        value={field.value || ""}
+                        disabled={busy}
+                        onChange={field.onChange}
+                      />
+                    </FormControl>
+                    <FormDescription>Ciclos</FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="hard_time_hours"
+                render={({ field }) => (
+                  <FormItem className="w-full">
+                    <FormLabel>Hard Time Hours</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="text"
+                        inputMode="decimal"
+                        disabled={busy}
+                        value={field.value || ""}
+                        onChange={field.onChange}
+                        placeholder=""
+                      />
+                    </FormControl>
+                    <FormDescription>Horas</FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormItem className="w-full">
+                <DatePickerField
+                  label="Hard Time Calendar"
+                  value={hardTimeCalendar}
+                  setValue={setHardTimeCalendar}
+                  description="Fecha de vencimiento del Hard Time"
+                  busy={busy}
+                  shortcuts="forward"
+                  showNotApplicable={true}
+                  required={true}
+                />
+              </FormItem>
+            </div>
+          </SectionCard>
+        )}
         {/* Descripción y archivos */}
         <SectionCard title="Detalles y documentos">
           <div className="space-y-4">

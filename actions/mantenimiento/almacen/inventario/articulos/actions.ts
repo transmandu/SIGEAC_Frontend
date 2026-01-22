@@ -37,6 +37,10 @@ interface ArticleData {
   life_limit_part_cycles?: string | number;
   inspector?: string;
   inspect_date?: string;
+  hard_time_calendar?: string;
+  hard_time_hours?: string | number;
+  hard_time_cycles?: string | number;
+  ata_code ?: string;
 }
 
 export const useCreateArticle = () => {
@@ -51,7 +55,6 @@ export const useCreateArticle = () => {
       company: string;
       data: ArticleData;
       }) => {
-      console.log('data from await to create an article ', data);
       await axiosInstance.post(`/${company}/article`, data, {
         headers: {
           "Content-Type": "multipart/form-data",

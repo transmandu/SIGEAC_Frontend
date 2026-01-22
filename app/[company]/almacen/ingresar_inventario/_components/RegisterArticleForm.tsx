@@ -25,8 +25,6 @@ export interface EditingArticle extends Article {
     calibration_date?: string;
     next_calibration?: string | number;
     article_id: number;
-    inspector?: string;
-    inspect_date?: string;
   };
   part_component?: {
     id: number;
@@ -39,10 +37,11 @@ export interface EditingArticle extends Article {
     life_limit_part_calendar?: string;
     life_limit_part_hours?: string | number;
     life_limit_part_cycles?: string | number;
+    hard_time_calendar?: string;
+    hard_time_hours?: string | number;
+    hard_time_cycles?: string | number;
     shelf_life?: number;
     shelft_life_unit?: string;
-    inspector?: string;
-    inspect_date?: string;
   };
   consumable?: {
     lot_number?: string;
@@ -53,8 +52,6 @@ export interface EditingArticle extends Article {
     is_managed?: boolean | string | number;
     shelf_life?: number;
     shelft_life_unit?: string;
-    inspector?: string;
-    inspect_date?: string;
   };
   has_documentation?: boolean;
 }

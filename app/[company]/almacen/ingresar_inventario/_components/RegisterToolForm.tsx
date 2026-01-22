@@ -462,8 +462,8 @@ export default function CreateToolForm({
   }, [initialData, form]);
 
   const [inspectDate, setInspectDate] = useState<Date | null | undefined>(
-    initialData?.tool?.inspect_date
-      ? parseISO(initialData.tool.inspect_date)
+    initialData?.inspect_date
+      ? parseISO(initialData.inspect_date)
       : null // Por defecto "No aplica" (componentes nuevos o sin fecha)
   );
   // Autocompletar descripción cuando encuentra resultados de búsqueda
@@ -716,7 +716,7 @@ export default function CreateToolForm({
                             });
                           }
                         }}
-                        defaultCategory="tool"
+                        defaultCategory="TOOL"
                         triggerButton={
                           <Button
                             type="button"

@@ -11,6 +11,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Batch } from "@/types";
+import { batches_categories } from "@/lib/batches_categories";
 
 interface EditBatchFormProps {
   onClose: () => void;
@@ -64,7 +65,6 @@ export function EditBatchForm({ onClose, onSuccess }: EditBatchFormProps) {
               initialData={batchToEdit}
               onClose={handleCloseEditDialog}
               onSuccess={handleEditSuccess}
-              defaultCategory={batchToEdit.category}
             />
           )}
         </DialogContent>

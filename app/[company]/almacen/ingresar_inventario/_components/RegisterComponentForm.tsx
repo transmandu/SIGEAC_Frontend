@@ -75,6 +75,7 @@ import { SectionCard } from "@/components/ui/SectionCard";
 import { Textarea } from "@/components/ui/textarea";
 import { MultiSerialInput } from "./MultiSerialInput";
 import { EditingArticle } from "@/components/forms/mantenimiento/almacen/RegisterArticleForm";
+import { useAuth } from "@/contexts/AuthContext";
 
 /* ------------------------------- Schema ------------------------------- */
 
@@ -86,7 +87,7 @@ const formSchema = z
       .array(
         z.string().min(1, {
           message: "El serial debe contener al menos 1 caracter.",
-        })
+        }),
       )
       .optional(),
     part_number: z
@@ -99,7 +100,7 @@ const formSchema = z
         z.string().min(2, {
           message:
             "Cada número de parte alterno debe contener al menos 2 caracteres.",
-        })
+        }),
       )
       .optional(),
     description: z.string().optional(),
@@ -159,6 +160,18 @@ const formSchema = z
     shelf_life_unit: z.string().optional(),
     inspector: z.string().optional(),
     inspect_date: z.string().optional(),
+    ata_code: z.string().optional(),
+    hard_time_hours: z.coerce
+      .number({ invalid_type_error: "Debe ingresar una cantidad numérica" })
+      .min(0, { message: "No puede ser negativo." })
+      .optional()
+      .or(z.literal("").transform(() => undefined)),
+    hard_time_cycles: z.coerce
+      .number({ invalid_type_error: "Debe ingresar una cantidad numérica" })
+      .min(0, { message: "No puede ser negativo." })
+      .optional()
+      .or(z.literal("").transform(() => undefined)),
+    hard_time_calendar: z.string().optional(),
   })
   .superRefine((vals, ctx) => {
     if (vals.fabrication_date && vals.caducate_date) {
@@ -183,7 +196,6 @@ interface PreviewValues extends FormValues {
 }
 
 /* ----------------------------- Componente ----------------------------- */
-
 export default function CreateComponentForm({
   initialData,
   isEditing,
@@ -191,6 +203,13 @@ export default function CreateComponentForm({
   initialData?: EditingArticle;
   isEditing?: boolean;
 }) {
+  //MANTENER CAMPOS HABILITADOS PARA INGENIERIA
+  const { user } = useAuth();
+  const userRoles = user?.roles?.map((role) => role.name) || [];
+  const isEngineering = userRoles.some((role) =>
+    ["ENGINEERING", "SUPERUSER"].includes(role),
+  );
+
   const router = useRouter();
   const queryClient = useQueryClient();
   const { selectedCompany, selectedStation } = useCompanyStore();
@@ -206,19 +225,17 @@ export default function CreateComponentForm({
   >(
     initialData?.part_component?.fabrication_date
       ? parseISO(initialData.part_component.fabrication_date)
-      : null // Por defecto "No aplica" (muy pocos componentes tienen esta fecha)
+      : null, // Por defecto "No aplica" (muy pocos componentes tienen esta fecha)
   );
 
   const [caducateDate, setCaducateDate] = useState<Date | null | undefined>(
     initialData?.part_component?.caducate_date
       ? parseISO(initialData.part_component.caducate_date)
-      : null // Por defecto "No aplica" (componentes nuevos o sin fecha)
+      : null, // Por defecto "No aplica" (componentes nuevos o sin fecha)
   );
 
   const [inspectDate, setInspectDate] = useState<Date | null | undefined>(
-    initialData?.inspect_date
-      ? parseISO(initialData.inspect_date)
-      : null // Por defecto "No aplica" (componentes nuevos o sin fecha)
+    initialData?.inspect_date ? parseISO(initialData.inspect_date) : null, // Por defecto "No aplica" (componentes nuevos o sin fecha)
   );
 
   const [lifeLimitPartCalendar, setLifeLimitPartCalendar] = useState<
@@ -226,7 +243,15 @@ export default function CreateComponentForm({
   >(
     initialData?.part_component?.life_limit_part_calendar
       ? parseISO(initialData.part_component.life_limit_part_calendar)
-      : null // Por defecto "No aplica" (componentes nuevos o sin fecha)
+      : null, // Por defecto "No aplica" (componentes nuevos o sin fecha)
+  );
+
+  const [hardTimeCalendar, setHardTimeCalendar] = useState<
+    Date | null | undefined
+  >(
+    initialData?.part_component?.hard_time_calendar
+      ? parseISO(initialData.part_component.hard_time_calendar)
+      : null, // Por defecto "No aplica" (componentes nuevos o sin fecha)
   );
 
   const [enableBatchNameEdit, setEnableBatchNameEdit] = useState(false);
@@ -259,7 +284,7 @@ export default function CreateComponentForm({
       selectedCompany?.slug,
       selectedStation || undefined,
       partNumberToSearch,
-      "COMPONENT"
+      "COMPONENT",
     );
 
   // Mutations
@@ -302,7 +327,8 @@ export default function CreateComponentForm({
         ?.life_limit_part_calendar
         ? initialData?.part_component?.life_limit_part_calendar
         : undefined,
-      life_limit_part_cycles: initialData?.part_component?.life_limit_part_cycles
+      life_limit_part_cycles: initialData?.part_component
+        ?.life_limit_part_cycles
         ? Number(initialData.part_component.life_limit_part_cycles)
         : undefined,
 
@@ -314,7 +340,21 @@ export default function CreateComponentForm({
         ? initialData?.inspect_date
         : undefined,
       shelf_life_unit: initialData?.part_component?.shelf_life_unit || "",
-      shelf_life: initialData?.part_component?.shelf_life ? Number(initialData.part_component.shelf_life) : undefined,
+      shelf_life: initialData?.part_component?.shelf_life
+        ? Number(initialData.part_component.shelf_life)
+        : undefined,
+
+      hard_time_calendar: initialData?.part_component?.hard_time_calendar
+        ? initialData?.part_component?.hard_time_calendar
+        : undefined,
+      hard_time_cycles: initialData?.part_component?.hard_time_cycles
+        ? Number(initialData.part_component.hard_time_cycles)
+        : undefined,
+
+      hard_time_hours: initialData?.part_component?.hard_time_hours
+        ? Number(initialData.part_component.hard_time_hours)
+        : undefined,
+      ata_code: initialData?.ata_code || "",
     },
     mode: "onBlur",
   });
@@ -325,7 +365,7 @@ export default function CreateComponentForm({
   // Watch condition_id to check if it's "resguardo"
   const conditionId = form.watch("condition_id");
   const selectedCondition = conditions?.find(
-    (c) => c.id.toString() === conditionId
+    (c) => c.id.toString() === conditionId,
   );
   const isResguardo = selectedCondition?.name?.toLowerCase() === "resguardo";
 
@@ -372,8 +412,18 @@ export default function CreateComponentForm({
         ? Number(initialData.part_component.life_limit_part_hours)
         : undefined,
       inspector: initialData.inspector || "",
+      ata_code: initialData.ata_code || "",
       inspect_date: initialData.inspect_date
         ? initialData.inspect_date
+        : undefined,
+      hard_time_calendar: initialData.part_component?.hard_time_calendar
+        ? initialData.part_component?.hard_time_calendar
+        : undefined,
+      hard_time_cycles: initialData?.part_component?.hard_time_cycles
+        ? Number(initialData.part_component.hard_time_cycles)
+        : undefined,
+      hard_time_hours: initialData?.part_component?.hard_time_hours
+        ? Number(initialData.part_component.hard_time_hours)
         : undefined,
     });
   }, [initialData, form]);
@@ -391,7 +441,7 @@ export default function CreateComponentForm({
         console.log("✓ Descripción autocompletada");
       } else {
         console.log(
-          `✓ Se encontraron ${searchResults.length} descripciones. Se seleccionó la primera.`
+          `✓ Se encontraron ${searchResults.length} descripciones. Se seleccionó la primera.`,
         );
       }
     } else if (
@@ -440,9 +490,7 @@ export default function CreateComponentForm({
 
     const previewVals: PreviewValues = {
       ...rawValues,
-      inspect_date: inspectDate
-        ? format(inspectDate, "yyyy-MM-dd")
-        : undefined, 
+      inspect_date: inspectDate ? format(inspectDate, "yyyy-MM-dd") : undefined,
       fabrication_date: fabricationDate
         ? format(fabricationDate, "yyyy-MM-dd")
         : undefined, // o "" si quieres
@@ -452,6 +500,9 @@ export default function CreateComponentForm({
       life_limit_part_calendar: lifeLimitPartCalendar
         ? format(lifeLimitPartCalendar, "yyyy-MM-dd")
         : undefined,
+      hard_time_calendar: hardTimeCalendar
+        ? format(hardTimeCalendar, "yyyy-MM-dd")
+        : undefined,
       batch_name:
         batchNameById.get(rawValues.batch_id) || rawValues.batch_name || "—",
       condition_name:
@@ -459,7 +510,7 @@ export default function CreateComponentForm({
           ?.name || "—",
       manufacturer_name:
         manufacturers?.find(
-          (m) => m.id.toString() === rawValues.manufacturer_id
+          (m) => m.id.toString() === rawValues.manufacturer_id,
         )?.name || "—",
       serial: Array.isArray(rawValues.serial)
         ? rawValues.serial
@@ -526,6 +577,9 @@ export default function CreateComponentForm({
       // aircraft_id: values.aircraft_id, // Incluir aircraft_id si está presente
       life_limit_part_cycles: values.life_limit_part_cycles,
       life_limit_part_hours: values.life_limit_part_hours,
+
+      hard_time_cycles: values.hard_time_cycles,
+      hard_time_hours: values.hard_time_hours,
     };
 
     if (isEditing && initialData) {
@@ -783,7 +837,7 @@ export default function CreateComponentForm({
                       values={field.value || []}
                       onChange={(vals) =>
                         field.onChange(
-                          vals.map((v: string) => normalizeUpper(v))
+                          vals.map((v: string) => normalizeUpper(v)),
                         )
                       }
                       placeholder="Ej: 234ABAC"
@@ -816,7 +870,7 @@ export default function CreateComponentForm({
                           const { data: updatedBatches } =
                             await refetchBatches();
                           const newBatch = updatedBatches?.find(
-                            (b: any) => b.name === batchName
+                            (b: any) => b.name === batchName,
                           );
                           if (newBatch) {
                             form.setValue("batch_id", newBatch.id.toString(), {
@@ -824,7 +878,7 @@ export default function CreateComponentForm({
                             });
                           }
                         }}
-                        defaultCategory="component"
+                        defaultCategory="COMPONENT"
                         triggerButton={
                           <Button
                             type="button"
@@ -849,7 +903,7 @@ export default function CreateComponentForm({
                             role="combobox"
                             className={cn(
                               "justify-between",
-                              !field.value && "text-muted-foreground"
+                              !field.value && "text-muted-foreground",
                             )}
                           >
                             {isBatchesLoading && (
@@ -878,7 +932,7 @@ export default function CreateComponentForm({
                                 const selected = e.currentTarget
                                   .closest("[cmdk-root]")
                                   ?.querySelector(
-                                    '[cmdk-item][aria-selected="true"]'
+                                    '[cmdk-item][aria-selected="true"]',
                                   ) as HTMLElement;
                                 if (selected) {
                                   selected.click();
@@ -886,7 +940,7 @@ export default function CreateComponentForm({
                                   const firstItem = e.currentTarget
                                     .closest("[cmdk-root]")
                                     ?.querySelector(
-                                      '[cmdk-item]:not([data-disabled="true"])'
+                                      '[cmdk-item]:not([data-disabled="true"])',
                                     ) as HTMLElement;
                                   if (firstItem) {
                                     firstItem.click();
@@ -909,13 +963,13 @@ export default function CreateComponentForm({
                                       form.setValue(
                                         "batch_id",
                                         batch.id.toString(),
-                                        { shouldValidate: true }
+                                        { shouldValidate: true },
                                       );
                                       if (isEditing && enableBatchNameEdit) {
                                         form.setValue(
                                           "batch_name",
                                           batch.name,
-                                          { shouldValidate: true }
+                                          { shouldValidate: true },
                                         );
                                       }
                                     }}
@@ -925,7 +979,7 @@ export default function CreateComponentForm({
                                         "mr-2 h-4 w-4",
                                         `${batch.id}` === field.value
                                           ? "opacity-100"
-                                          : "opacity-0"
+                                          : "opacity-0",
                                       )}
                                     />
                                     <p className="font-semibold text-primary">
@@ -946,8 +1000,8 @@ export default function CreateComponentForm({
                                 ?.filter(
                                   (batch) =>
                                     !searchResults?.some(
-                                      (sr) => sr.id === batch.id
-                                    )
+                                      (sr) => sr.id === batch.id,
+                                    ),
                                 )
                                 .map((batch) => (
                                   <CommandItem
@@ -957,13 +1011,13 @@ export default function CreateComponentForm({
                                       form.setValue(
                                         "batch_id",
                                         batch.id.toString(),
-                                        { shouldValidate: true }
+                                        { shouldValidate: true },
                                       );
                                       if (isEditing && enableBatchNameEdit) {
                                         form.setValue(
                                           "batch_name",
                                           batch.name,
-                                          { shouldValidate: true }
+                                          { shouldValidate: true },
                                         );
                                       }
                                     }}
@@ -973,7 +1027,7 @@ export default function CreateComponentForm({
                                         "mr-2 h-4 w-4",
                                         `${batch.id}` === field.value
                                           ? "opacity-100"
-                                          : "opacity-0"
+                                          : "opacity-0",
                                       )}
                                     />
                                     <p>{batch.name}</p>
@@ -1034,6 +1088,20 @@ export default function CreateComponentForm({
                 </>
               )}
             </div>
+
+            <FormField
+              control={form.control}
+              name="ata_code"
+              render={({ field }) => (
+                <FormItem className="w-full">
+                  <FormLabel>Codigo ATA </FormLabel>
+                  <FormControl>
+                    <Input placeholder="Codigo ATA" {...field} />
+                  </FormControl>
+                  <FormMessage className="text-xs" />
+                </FormItem>
+              )}
+            />
           </div>
         </SectionCard>
 
@@ -1102,7 +1170,7 @@ export default function CreateComponentForm({
                           } else {
                             // Si no hay elemento enfocado, enfocar y seleccionar el primero
                             const firstItem = e.currentTarget.querySelector(
-                              '[role="option"]:not([data-disabled="true"])'
+                              '[role="option"]:not([data-disabled="true"])',
                             ) as HTMLElement;
                             if (firstItem) {
                               firstItem.focus();
@@ -1259,7 +1327,7 @@ export default function CreateComponentForm({
                           form.setValue(
                             "manufacturer_id",
                             manufacturer.id.toString(),
-                            { shouldValidate: true }
+                            { shouldValidate: true },
                           );
                         }
                       }}
@@ -1287,7 +1355,7 @@ export default function CreateComponentForm({
                           role="combobox"
                           className={cn(
                             "w-full justify-between",
-                            !field.value && "text-muted-foreground"
+                            !field.value && "text-muted-foreground",
                           )}
                         >
                           {isManufacturerLoading && (
@@ -1318,7 +1386,7 @@ export default function CreateComponentForm({
                               const selected = e.currentTarget
                                 .closest("[cmdk-root]")
                                 ?.querySelector(
-                                  '[cmdk-item][aria-selected="true"]'
+                                  '[cmdk-item][aria-selected="true"]',
                                 ) as HTMLElement;
                               if (selected) {
                                 selected.click();
@@ -1326,7 +1394,7 @@ export default function CreateComponentForm({
                                 const firstItem = e.currentTarget
                                   .closest("[cmdk-root]")
                                   ?.querySelector(
-                                    '[cmdk-item]:not([data-disabled="true"])'
+                                    '[cmdk-item]:not([data-disabled="true"])',
                                   ) as HTMLElement;
                                 if (firstItem) {
                                   firstItem.click();
@@ -1350,7 +1418,7 @@ export default function CreateComponentForm({
                                     form.setValue(
                                       "manufacturer_id",
                                       manufacturer.id.toString(),
-                                      { shouldValidate: true }
+                                      { shouldValidate: true },
                                     );
                                   }}
                                 >
@@ -1359,7 +1427,7 @@ export default function CreateComponentForm({
                                       "mr-2 h-4 w-4",
                                       `${manufacturer.id}` === field.value
                                         ? "opacity-100"
-                                        : "opacity-0"
+                                        : "opacity-0",
                                     )}
                                   />
                                   <p>
@@ -1544,6 +1612,71 @@ export default function CreateComponentForm({
             />
           </div>
         </SectionCard>
+
+        {isEngineering && (
+          <SectionCard title="Hard Time Component">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="hard_time_cycles"
+                render={({ field }) => (
+                  <FormItem className="w-full">
+                    <FormLabel>Hard Time Cycles</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="text"
+                        inputMode="numeric"
+                        placeholder=""
+                        {...field}
+                        value={field.value || ""}
+                        disabled={busy}
+                        onChange={field.onChange}
+                      />
+                    </FormControl>
+                    <FormDescription>Ciclos</FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="hard_time_hours"
+                render={({ field }) => (
+                  <FormItem className="w-full">
+                    <FormLabel>Hard Time Hours</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="text"
+                        inputMode="decimal"
+                        disabled={busy}
+                        value={field.value || ""}
+                        onChange={field.onChange}
+                        placeholder=""
+                      />
+                    </FormControl>
+                    <FormDescription>Horas</FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormItem className="w-full">
+                <DatePickerField
+                  label="Hard Time Calendar"
+                  value={hardTimeCalendar}
+                  setValue={setHardTimeCalendar}
+                  description="Fecha de vencimiento del Hard Time"
+                  busy={busy}
+                  shortcuts="forward"
+                  showNotApplicable={true}
+                  required={true}
+                />
+              </FormItem>
+            </div>
+          </SectionCard>
+        )}
+
         {/* Descripción y archivos */}
         <SectionCard title="Detalles y documentos">
           <div className="space-y-4">

@@ -21,6 +21,7 @@ export const generateSlug = (name: string) => {
 
 
 import { DateRange } from "react-day-picker";
+import { batches_categories } from "./batches_categories";
 
 export const formatDateRangeUpdate = (range: DateRange) => {
   if (!range?.from && !range?.to) {
@@ -171,3 +172,10 @@ export const COLORS: string[] = [
   "#b685f5",
   "#bc7dfa",
 ];
+
+export const getValueFromLabel = (label: string): string => {
+  const category = batches_categories.find(
+    (cat) => cat.label.toUpperCase() === label.toUpperCase(),
+  );
+  return category?.value || "";
+};

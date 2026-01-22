@@ -71,6 +71,7 @@ export type Article = {
   primary_unit_id?: number;
   inspector?: string;
   inspect_date?: string;
+  ata_code?: string;
 };
 
 export type Bank = {

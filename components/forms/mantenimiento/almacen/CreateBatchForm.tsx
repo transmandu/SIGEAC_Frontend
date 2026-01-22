@@ -31,10 +31,8 @@ import {
 } from "@/components/ui/dialog";
 import { useGetWarehousesByLocation } from "@/hooks/administracion/useGetWarehousesByUser";
 import { useGetUnits } from "@/hooks/general/unidades/useGetPrimaryUnits";
-import {
-  batches_categories,
-} from "@/lib/batches_categories";
-import { generateSlug } from "@/lib/utils";
+import { batches_categories } from "@/lib/batches_categories";
+import { generateSlug, getValueFromLabel } from "@/lib/utils";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2, Plus } from "lucide-react";
@@ -49,10 +47,10 @@ import { Batch } from "@/types";
 import { format } from "path";
 
 const CATEGORY_VALUES = {
-  COMPONENTE: "COMPONENTE",
-  HERRAMIENTA: "HERRAMIENTA",
-  CONSUMIBLE: "CONSUMIBLE",
-  PARTE: "PARTE",
+  COMPONENTE: "COMPONENT",
+  HERRAMIENTA: "TOOL",
+  CONSUMIBLE: "CONSUMABLE",
+  PARTE: "PART",
 } as const;
 
 const UNIT_LABEL = ["UNIDADES", "UNIDAD"];
@@ -103,6 +101,8 @@ export function CreateBatchForm({
   isEditing = false,
   initialData,
 }: FormProps) {
+  // console.log("initialData", initialData);
+  // console.log("defaultCategory", defaultCategory);
   const { selectedCompany, selectedStation } = useCompanyStore();
   const {
     data: warehouses,
@@ -125,7 +125,7 @@ export function CreateBatchForm({
     resolver: zodResolver(FormSchema),
     defaultValues: {
       is_hazarous: false,
-      category: initialData?.category || defaultCategory || "",
+      category: initialData?.category ? getValueFromLabel(initialData?.category) : defaultCategory || "",
       name: initialData?.name || "",
       description: initialData?.description || "",
       ata_code: initialData?.ata_code || "",
@@ -139,7 +139,6 @@ export function CreateBatchForm({
   const category = useWatch({ control, name: "category" });
   const { data: batches } = useGetBatchesByCategory(category || "");
   const [isUnitDialogOpen, setIsUnitDialogOpen] = useState(false);
-
   const isNameDuplicate =
     category && name && batches?.some((batch) => batch.name === name);
 
@@ -194,7 +193,8 @@ export function CreateBatchForm({
 
   // Efecto para validar duplicados
   useEffect(() => {
-    isNameDuplicate
+    isNameDuplicate &&
+    !(isEditing && initialData?.name === form.getValues("name"))
       ? setError("name", {
           type: "manual",
           message: "El numero de parte ya existe en esta categoría.",
@@ -211,7 +211,7 @@ export function CreateBatchForm({
       });
       return;
     }
-    if (isNameDuplicate) {
+    if (isNameDuplicate && !(isEditing && initialData?.name === data.name)) {
       setError("name", {
         type: "manual",
         message: "El numero de parte ya existe en esta categoría.",
@@ -242,7 +242,6 @@ export function CreateBatchForm({
     onSuccess?.(data.name);
     onClose();
   };
-  console.log(initialData, "initialData in CreateBatchForm");
   return (
     <Form {...form}>
       <form
@@ -275,11 +274,15 @@ export function CreateBatchForm({
                   </FormControl>
                   <SelectContent>
                     {batches_categories
-                      .filter(
-                        (category) =>
-                          category.label !== "HERRAMIENTA" &&
-                          category.label !== "CONSUMIBLE"
-                      )
+                      .filter((category) => {
+                        if (isEditing) {
+                          return (
+                            category.value !== "HERRAMIENTA" &&
+                            category.value !== "CONSUMIBLE"
+                          );
+                        }
+                        return true;
+                      })
                       .map((category) => (
                         <SelectItem key={category.value} value={category.value}>
                           {category.label}
@@ -352,7 +355,7 @@ export function CreateBatchForm({
                         ?.filter((unit) =>
                           requiresUnidadAndWarehouseRestrictions(category)
                             ? UNIT_LABEL.includes(unit.label)
-                            : true
+                            : true,
                         )
                         .map((unit) => (
                           <SelectItem key={unit.id} value={unit.value}>
@@ -417,7 +420,7 @@ export function CreateBatchForm({
                       ?.filter((w) =>
                         requiresAeronauticWarehouse(category)
                           ? w.type === WAREHOUSE_TYPE
-                          : true
+                          : true,
                       )
                       .map((warehouse) => (
                         <SelectItem

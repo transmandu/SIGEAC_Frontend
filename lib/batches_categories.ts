@@ -5,7 +5,7 @@ export const batches_categories = [
   },
   {
     value: "PART",
-    label: "PARTES",
+    label: "PARTE",
   },
   {
     value: "TOOL",
