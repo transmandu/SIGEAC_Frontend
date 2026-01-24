@@ -82,7 +82,7 @@ export default function DashboardSummary({
             <div>
               {barChartData && (
                 <>
-                  <div className="flex flex-col m-0 p-0 border border-gray-400 rounded-lg p-2">
+                  <div className="flex flex-col m-0 border border-gray-400 rounded-lg p-2">
                     {isLoadingReportsNumberByMonth ? (
                       <Loader2 className="animate-spin" />
                     ) : isErrorReportsNumberByMonth ? (

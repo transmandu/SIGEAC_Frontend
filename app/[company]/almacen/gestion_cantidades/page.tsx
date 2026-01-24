@@ -43,13 +43,13 @@ const GestionCantidadesPage = () => {
     data: consumableResponse,
     isLoading: isLoadingConsumables,
     isError: isErrorConsumables,
-  } = useGetWarehouseArticlesByCategory(currentPage, itemsPerPage, "CONSUMIBLE");
+  } = useGetWarehouseArticlesByCategory(currentPage, itemsPerPage, "CONSUMABLE");
 
   const {
     data: componentResponse,
     isLoading: isLoadingComponents,
     isError: isErrorComponents,
-  } = useGetWarehouseArticlesByCategory(currentPage, itemsPerPage, "COMPONENTE");
+  } = useGetWarehouseArticlesByCategory(currentPage, itemsPerPage, "COMPONENT");
 
   const isLoading = isLoadingConsumables || isLoadingComponents;
   const isError = isErrorConsumables || isErrorComponents;

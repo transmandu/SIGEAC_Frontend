@@ -5,24 +5,53 @@ import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { format, parseISO} from "date-fns";
+import { addDays, format, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
-import { CalendarIcon, Check, ChevronsUpDown, FileUpIcon, Loader2, Plus, Wrench } from "lucide-react";
+import {
+  CalendarIcon,
+  Check,
+  ChevronsUpDown,
+  FileUpIcon,
+  Loader2,
+  Plus,
+  Wrench,
+} from "lucide-react";
 
-import { useConfirmIncomingArticle, useCreateArticle } from "@/actions/mantenimiento/almacen/inventario/articulos/actions";
+import {
+  useConfirmIncomingArticle,
+  useCreateArticle,
+} from "@/actions/mantenimiento/almacen/inventario/articulos/actions";
 
 import { MultiInputField } from "@/components/misc/MultiInputField";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 
@@ -35,7 +64,7 @@ import { useCompanyStore } from "@/stores/CompanyStore";
 import { Batch } from "@/types";
 
 import loadingGif from "@/public/loading2.gif";
-import { EditingArticle } from "./RegisterArticleForm";
+import { EditingArticle } from "@/components/forms/mantenimiento/almacen/RegisterArticleForm";
 import { CreateManufacturerDialog } from "@/components/dialogs/general/CreateManufacturerDialog";
 import { CreateBatchDialog } from "@/components/dialogs/mantenimiento/almacen/CreateBatchDialog";
 import { useUpdateArticle } from "@/actions/mantenimiento/almacen/inventario/articulos/actions";
@@ -86,6 +115,11 @@ const formSchema = z
       .optional(),
     image: z.instanceof(File).optional(),
     has_documentation: z.boolean().optional(),
+    inspector: z.string().optional(),
+    inspect_date: z
+      .date()
+      .refine((val) => !isNaN(val.getTime()), { message: "Invalid Date" })
+      .optional(),
   })
   .superRefine((vals, ctx) => {
     if (vals.needs_calibration) {
@@ -110,7 +144,13 @@ export type FormValues = z.infer<typeof formSchema>;
 
 /* ----------------------------- Helpers UI ----------------------------- */
 
-const SectionCard = ({ title, children }: { title: string; children: React.ReactNode }) => (
+const SectionCard = ({
+  title,
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
+}) => (
   <Card>
     <CardHeader className="pb-3">
       <CardTitle className="text-xl">{title}</CardTitle>
@@ -155,7 +195,7 @@ function FileField({
       name={name as any}
       render={() => {
         let inputRef: HTMLInputElement | null = null;
-        
+
         return (
           <FormItem>
             <FormLabel>{label}</FormLabel>
@@ -163,7 +203,9 @@ function FileField({
               <div className="relative">
                 <FileUpIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 z-10 pointer-events-none" />
                 <Input
-                  ref={(el) => { inputRef = el; }}
+                  ref={(el) => {
+                    inputRef = el;
+                  }}
                   type="file"
                   accept={accept}
                   disabled={busy}
@@ -182,10 +224,14 @@ function FileField({
                 <div
                   onClick={() => !busy && !fileName && inputRef?.click()}
                   className={`flex items-center justify-between pl-10 pr-3 py-2 w-full border border-gray-300 rounded ${
-                    !busy && !fileName ? "cursor-pointer hover:border-gray-400" : ""
+                    !busy && !fileName
+                      ? "cursor-pointer hover:border-gray-400"
+                      : ""
                   } ${busy ? "opacity-50" : ""}`}
                 >
-                  <span className={`text-sm truncate flex-1 ${fileName ? "text-gray-900" : "text-gray-500"}`}>
+                  <span
+                    className={`text-sm truncate flex-1 ${fileName ? "text-gray-900" : "text-gray-500"}`}
+                  >
                     {fileName || "Ningún archivo seleccionado"}
                   </span>
                   {fileName && !busy && (
@@ -221,7 +267,9 @@ function FileField({
                 </div>
               </div>
             </FormControl>
-            {description ? <FormDescription>{description}</FormDescription> : null}
+            {description ? (
+              <FormDescription>{description}</FormDescription>
+            ) : null}
             <FormMessage />
           </FormItem>
         );
@@ -255,26 +303,33 @@ function DatePickerField({
             <Button
               variant="outline"
               disabled={busy}
-              className={cn("w-full pl-3 text-left font-normal", !value && "text-muted-foreground")}
+              className={cn(
+                "w-full pl-3 text-left font-normal",
+                !value && "text-muted-foreground"
+              )}
             >
-              {value ? format(value, "PPP", { locale: es }) : <span>Seleccione una fecha</span>}
+              {value ? (
+                format(value, "PPP", { locale: es })
+              ) : (
+                <span>Seleccione una fecha</span>
+              )}
               <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
             </Button>
           </FormControl>
         </PopoverTrigger>
-        <PopoverContent 
-          className="w-auto p-0 z-[100]" 
+        <PopoverContent
+          className="w-auto p-0 z-[100]"
           align="start"
           side="bottom"
           sideOffset={8}
           avoidCollisions={true}
         >
-          <Calendar 
-            locale={es} 
-            mode="single" 
-            selected={value} 
-            onSelect={onSelect} 
-            initialFocus 
+          <Calendar
+            locale={es}
+            mode="single"
+            selected={value}
+            onSelect={onSelect}
+            initialFocus
             defaultMonth={value ?? new Date()}
             captionLayout="dropdown-buttons"
             fromYear={1900}
@@ -309,24 +364,42 @@ function DatePickerField({
 
 /* ----------------------------- Componente ----------------------------- */
 
-export default function CreateToolForm({ initialData, isEditing }: { initialData?: EditingArticle; isEditing?: boolean }) {
+export default function CreateToolForm({
+  initialData,
+  isEditing,
+}: {
+  initialData?: EditingArticle;
+  isEditing?: boolean;
+}) {
   const router = useRouter();
   const queryClient = useQueryClient();
   const { selectedCompany, selectedStation } = useCompanyStore();
 
   // Local state for part number search
-  const [partNumberToSearch, setPartNumberToSearch] = useState<string | undefined>(undefined);
+  const [partNumberToSearch, setPartNumberToSearch] = useState<
+    string | undefined
+  >(undefined);
 
-  const { data: batches, isPending: isBatchesLoading, isError: isBatchesError, refetch: refetchBatches } = useGetBatchesByCategory("herramienta");
-  const { data: manufacturers, isLoading: isManufacturerLoading, isError: isManufacturerError } = useGetManufacturers(selectedCompany?.slug);
+  const {
+    data: batches,
+    isPending: isBatchesLoading,
+    isError: isBatchesError,
+    refetch: refetchBatches,
+  } = useGetBatchesByCategory("TOOL");
+  const {
+    data: manufacturers,
+    isLoading: isManufacturerLoading,
+    isError: isManufacturerError,
+  } = useGetManufacturers(selectedCompany?.slug);
 
   // Search batches by part number
-  const { data: searchResults, isFetching: isSearching } = useSearchBatchesByPartNumber(
-    selectedCompany?.slug,
-    selectedStation || undefined,
-    partNumberToSearch,
-    "HERRAMIENTA"
-  );
+  const { data: searchResults, isFetching: isSearching } =
+    useSearchBatchesByPartNumber(
+      selectedCompany?.slug,
+      selectedStation || undefined,
+      partNumberToSearch,
+      "HERRAMIENTA"
+    );
 
   const { createArticle } = useCreateArticle();
   const { updateArticle } = useUpdateArticle();
@@ -346,15 +419,23 @@ export default function CreateToolForm({ initialData, isEditing }: { initialData
       batch_id: initialData?.batches?.id?.toString() || "",
       batch_name: initialData?.batches?.name || "",
       needs_calibration: initialData?.tool?.needs_calibration ?? false,
-      calibration_date: initialData?.tool?.calibration_date ? parseISO(initialData.tool.calibration_date) : undefined,
-      next_calibration: initialData?.tool?.next_calibration ? Number(initialData.tool.next_calibration) : undefined,
+      calibration_date: initialData?.tool?.calibration_date
+        ? parseISO(initialData.tool.calibration_date)
+        : undefined,
+      next_calibration: initialData?.tool?.next_calibration
+        ? Number(initialData.tool.next_calibration)
+        : undefined,
       has_documentation: initialData?.has_documentation ?? false,
+      inspector: initialData?.inspector || "",
+      inspect_date: initialData?.inspect_date
+        ? addDays(new Date(initialData.inspect_date), 1)
+        : undefined,
     },
     mode: "onBlur",
   });
 
   useEffect(() => {
-    form.setValue("article_type", "herramienta");
+    form.setValue("article_type", "tool");
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -370,25 +451,36 @@ export default function CreateToolForm({ initialData, isEditing }: { initialData
       batch_id: initialData.batches?.id?.toString() || "",
       batch_name: initialData.batches?.name || "",
       needs_calibration: initialData.tool?.needs_calibration ?? false,
-      calibration_date: initialData.tool?.calibration_date ? parseISO(initialData.tool.calibration_date) : undefined,
-      next_calibration: initialData.tool?.next_calibration ? Number(initialData.tool.next_calibration) : undefined,
+      calibration_date: initialData.tool?.calibration_date
+        ? parseISO(initialData.tool.calibration_date)
+        : undefined,
+      next_calibration: initialData.tool?.next_calibration
+        ? Number(initialData.tool.next_calibration)
+        : undefined,
       has_documentation: initialData.has_documentation ?? false,
     });
   }, [initialData, form]);
 
+  const [inspectDate, setInspectDate] = useState<Date | null | undefined>(
+    initialData?.inspect_date
+      ? parseISO(initialData.inspect_date)
+      : null // Por defecto "No aplica" (componentes nuevos o sin fecha)
+  );
   // Autocompletar descripción cuando encuentra resultados de búsqueda
   useEffect(() => {
     if (searchResults && searchResults.length > 0 && !isEditing) {
       const firstResult = searchResults[0];
-      form.setValue("batch_id", firstResult.id.toString(), { shouldValidate: true });
+      form.setValue("batch_id", firstResult.id.toString(), {
+        shouldValidate: true,
+      });
     }
   }, [searchResults, form, isEditing, partNumberToSearch]);
 
-  const busy = 
-    isBatchesLoading || 
-    isManufacturerLoading || 
-    createArticle.isPending || 
-    confirmIncoming.isPending || 
+  const busy =
+    isBatchesLoading ||
+    isManufacturerLoading ||
+    createArticle.isPending ||
+    confirmIncoming.isPending ||
     updateArticle.isPending;
 
   const batchesOptions = useMemo<Batch[] | undefined>(() => batches, [batches]);
@@ -397,11 +489,11 @@ export default function CreateToolForm({ initialData, isEditing }: { initialData
   const sortedBatches = useMemo(() => {
     if (!batches) return [];
     if (!searchResults || searchResults.length === 0) return batches;
-    
-    const searchIds = new Set(searchResults.map(r => r.id));
-    const foundBatches = batches.filter(b => searchIds.has(b.id));
-    const otherBatches = batches.filter(b => !searchIds.has(b.id));
-    
+
+    const searchIds = new Set(searchResults.map((r) => r.id));
+    const foundBatches = batches.filter((b) => searchIds.has(b.id));
+    const otherBatches = batches.filter((b) => !searchIds.has(b.id));
+
     return [...foundBatches, ...otherBatches];
   }, [batches, searchResults]);
 
@@ -414,17 +506,27 @@ export default function CreateToolForm({ initialData, isEditing }: { initialData
       ...values,
       status: "CHECKING",
       part_number: normalizeUpper(values.part_number),
-      alternative_part_number: values.alternative_part_number?.map((v) => normalizeUpper(v)) ?? [],
-      calibration_date: values.calibration_date ? format(values.calibration_date, "yyyy-MM-dd") : undefined,
+      alternative_part_number:
+        values.alternative_part_number?.map((v) => normalizeUpper(v)) ?? [],
+      calibration_date: values.calibration_date
+        ? format(values.calibration_date, "yyyy-MM-dd")
+        : undefined,
       batch_name: enableBatchNameEdit ? values.batch_name : undefined,
       // next_calibration se envía como número si existe
     };
 
     if (isEditing) {
-      await updateArticle.mutateAsync({ data: { ...payload }, id: (initialData as any)?.id, company: selectedCompany.slug });
+      await updateArticle.mutateAsync({
+        data: { ...payload },
+        id: (initialData as any)?.id,
+        company: selectedCompany.slug,
+      });
       router.push(`/${selectedCompany.slug}/ingenieria/confirmar_inventario`);
     } else {
-      await createArticle.mutateAsync({ company: selectedCompany.slug, data: payload });
+      await createArticle.mutateAsync({
+        company: selectedCompany.slug,
+        data: payload,
+      });
       form.reset();
     }
   }
@@ -440,7 +542,72 @@ export default function CreateToolForm({ initialData, isEditing }: { initialData
         {/* Header */}
         <SectionCard title="Registrar herramienta">
           <CardTitle className="sr-only">Registrar herramienta</CardTitle>
-          <div className="grid grid-cols-1 xl:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
+            <FormField
+              control={form.control}
+              name="inspector"
+              render={({ field }) => (
+                <FormItem className="w-full">
+                  <FormLabel>Inspector (Incoming)</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Nombre del Inspector" {...field} />
+                  </FormControl>
+                  <FormMessage className="text-xs" />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="inspect_date"
+              render={({ field }) => (
+                <FormItem className="flex flex-col">
+                  <FormLabel>Fecha de Inspeccion</FormLabel>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <FormControl>
+                        <Button
+                          variant={"outline"}
+                          className={cn(
+                            "w-full pl-3 text-left font-normal",
+                            !field.value && "text-muted-foreground"
+                          )}
+                        >
+                          {field.value ? (
+                            format(field.value, "PPP", { locale: es })
+                          ) : (
+                            <span>Seleccione una fecha</span>
+                          )}
+                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                        </Button>
+                      </FormControl>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={field.value}
+                        onSelect={field.onChange}
+                        initialFocus
+                        fromYear={2000}
+                        toYear={new Date().getFullYear()}
+                        captionLayout="dropdown-buttons"
+                        components={{
+                          Dropdown: (props) => (
+                            <select
+                              {...props}
+                              className="bg-popover text-popover-foreground"
+                            >
+                              {props.children}
+                            </select>
+                          ),
+                        }}
+                      />
+                    </PopoverContent>
+                  </Popover>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             <FormField
               control={form.control}
               name="part_number"
@@ -530,16 +697,26 @@ export default function CreateToolForm({ initialData, isEditing }: { initialData
                       <CreateBatchDialog
                         onSuccess={async (batchName) => {
                           // Invalidar la query y refetch para obtener el batch recién creado
-                          await queryClient.invalidateQueries({ 
-                            queryKey: ["search-batches", selectedCompany?.slug, selectedStation, "herramienta"] 
+                          await queryClient.invalidateQueries({
+                            queryKey: [
+                              "search-batches",
+                              selectedCompany?.slug,
+                              selectedStation,
+                              "tool",
+                            ],
                           });
-                          const { data: updatedBatches } = await refetchBatches();
-                          const newBatch = updatedBatches?.find((b: any) => b.name === batchName);
+                          const { data: updatedBatches } =
+                            await refetchBatches();
+                          const newBatch = updatedBatches?.find(
+                            (b: any) => b.name === batchName
+                          );
                           if (newBatch) {
-                            form.setValue("batch_id", newBatch.id.toString(), { shouldValidate: true });
+                            form.setValue("batch_id", newBatch.id.toString(), {
+                              shouldValidate: true,
+                            });
                           }
                         }}
-                        defaultCategory="herramienta"
+                        defaultCategory="TOOL"
                         triggerButton={
                           <Button
                             type="button"
@@ -713,7 +890,9 @@ export default function CreateToolForm({ initialData, isEditing }: { initialData
                     <PopoverTrigger asChild>
                       <FormControl>
                         <Button
-                          disabled={isManufacturerLoading || isManufacturerError || busy}
+                          disabled={
+                            isManufacturerLoading || isManufacturerError || busy
+                          }
                           variant="outline"
                           role="combobox"
                           className={cn(
@@ -727,8 +906,9 @@ export default function CreateToolForm({ initialData, isEditing }: { initialData
                           {field.value ? (
                             <p>
                               {
-                                manufacturers?.find((m) => `${m.id}` === field.value)
-                                  ?.name
+                                manufacturers?.find(
+                                  (m) => `${m.id}` === field.value
+                                )?.name
                               }
                             </p>
                           ) : (
@@ -740,16 +920,24 @@ export default function CreateToolForm({ initialData, isEditing }: { initialData
                     </PopoverTrigger>
                     <PopoverContent className="w-[300px] p-0">
                       <Command>
-                        <CommandInput 
-                          placeholder="Buscar fabricante..." 
+                        <CommandInput
+                          placeholder="Buscar fabricante..."
                           onKeyDown={(e) => {
                             if (e.key === "Tab") {
                               e.preventDefault();
-                              const selected = e.currentTarget.closest('[cmdk-root]')?.querySelector('[cmdk-item][aria-selected="true"]') as HTMLElement;
+                              const selected = e.currentTarget
+                                .closest("[cmdk-root]")
+                                ?.querySelector(
+                                  '[cmdk-item][aria-selected="true"]'
+                                ) as HTMLElement;
                               if (selected) {
                                 selected.click();
                               } else {
-                                const firstItem = e.currentTarget.closest('[cmdk-root]')?.querySelector('[cmdk-item]:not([data-disabled="true"])') as HTMLElement;
+                                const firstItem = e.currentTarget
+                                  .closest("[cmdk-root]")
+                                  ?.querySelector(
+                                    '[cmdk-item]:not([data-disabled="true"])'
+                                  ) as HTMLElement;
                                 if (firstItem) {
                                   firstItem.click();
                                 }
@@ -782,7 +970,9 @@ export default function CreateToolForm({ initialData, isEditing }: { initialData
                                       : "opacity-0"
                                   )}
                                 />
-                                <p>{manufacturer.name} ({manufacturer.type})</p>
+                                <p>
+                                  {manufacturer.name} ({manufacturer.type})
+                                </p>
                               </CommandItem>
                             ))}
                           </CommandGroup>
@@ -941,7 +1131,8 @@ export default function CreateToolForm({ initialData, isEditing }: { initialData
                   <div className="space-y-1 leading-none">
                     <FormLabel>¿El artículo tiene documentación?</FormLabel>
                     <FormDescription>
-                      Marque esta casilla si el artículo cuenta con documentación (certificados, imágenes, etc.).
+                      Marque esta casilla si el artículo cuenta con
+                      documentación (certificados, imágenes, etc.).
                     </FormDescription>
                   </div>
                 </FormItem>

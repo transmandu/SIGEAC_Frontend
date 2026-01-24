@@ -12,6 +12,7 @@ import { useState } from "react";
 import CreateConsumableForm from "./RegisterConsumableForm";
 import CreateToolForm from "./RegisterToolForm";
 import CreateComponentForm from "./RegisterComponentForm";
+import CreatePartForm from "./RegisterPartForm";
 
 
 export interface EditingArticle extends Article {
@@ -25,22 +26,32 @@ export interface EditingArticle extends Article {
     next_calibration?: string | number;
     article_id: number;
   };
-  component?: {
+  part_component?: {
     id: number;
     article_id: string;
-    caducate_date: string | null;
+    caducate_date?: string | null;
     fabrication_date: string | null;
     hour_date: string | null;
     cycle_date: string | null;
     calendary_date: string | null;
+    life_limit_part_calendar?: string;
+    life_limit_part_hours?: string | number;
+    life_limit_part_cycles?: string | number;
+    hard_time_calendar?: string;
+    hard_time_hours?: string | number;
+    hard_time_cycles?: string | number;
+    shelf_life?: number;
+    shelft_life_unit?: string;
   };
   consumable?: {
     lot_number?: string;
     caducate_date: string;
-    fabrication_date: string;
+    fabrication_date: string | null;
     min_quantity?: number | string;
     quantity?: number;
     is_managed?: boolean | string | number;
+    shelf_life?: number;
+    shelft_life_unit?: string;
   };
   has_documentation?: boolean;
 }
@@ -56,7 +67,7 @@ const RegisterArticleForm = ({
   initialData,
 }: IRegisterArticleProps) => {
   const [type, setType] = useState(
-    initialData?.batches.category.toLowerCase() ?? "componente"
+    initialData?.batches.category.toUpperCase() ?? "COMPONENTE"
   );
   function handleTypeSelect(data: string) {
     setType(data);
@@ -80,19 +91,23 @@ const RegisterArticleForm = ({
           <SelectValue placeholder="Seleccionar..." />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="consumible">Consumible</SelectItem>
-          <SelectItem value="herramienta">Herramienta</SelectItem>
-          <SelectItem value="componente">Componente</SelectItem>
+          <SelectItem value="CONSUMIBLE">CONSUMIBLE</SelectItem>
+          <SelectItem value="HERAMIENTA">HERRAMIENTA</SelectItem>
+          <SelectItem value="COMPONENTE">COMPONENTE</SelectItem>
+          <SelectItem value="PARTE">PARTE</SelectItem>
         </SelectContent>
       </Select>
-      {type === "consumible" && (
+      {type === "CONSUMIBLE" && (
         <CreateConsumableForm isEditing={isEditing} initialData={initialData} />
       )}
-      {type === "herramienta" && (
+      {type === "HERRAMIENTA" && (
         <CreateToolForm isEditing={isEditing} initialData={initialData} />
       )}
-      {type === "componente" && (
+      {type === "COMPONENTE" && (
         <CreateComponentForm isEditing={isEditing} initialData={initialData} />
+      )}
+      {type === "PARTE" && (
+        <CreatePartForm isEditing={isEditing} initialData={initialData} />
       )}
     </div>
   );

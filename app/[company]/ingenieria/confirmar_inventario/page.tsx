@@ -1,6 +1,7 @@
-'use client';
+"use client";
 
-import { ContentLayout } from '@/components/layout/ContentLayout';
+import { CreateBatchDialog } from "@/components/dialogs/mantenimiento/almacen/CreateBatchDialog";
+import { ContentLayout } from "@/components/layout/ContentLayout";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -8,63 +9,84 @@ import {
   BreadcrumbList,
   BreadcrumbPage,
   BreadcrumbSeparator,
-} from '@/components/ui/breadcrumb';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { TooltipProvider } from '@/components/ui/tooltip';
-import { useGetWarehouseArticlesByCategory } from '@/hooks/mantenimiento/almacen/articulos/useGetWarehouseArticlesByCategory';
-import { useCompanyStore } from '@/stores/CompanyStore';
-import { Loader2, Package2, PaintBucket, Puzzle, Wrench } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
-import { flattenArticles, getColumnsByCategory, IArticleSimple } from './columns';
-import { DataTable } from './data-table';
-type Category = 'COMPONENTE' | 'CONSUMIBLE' | 'HERRAMIENTA';
+} from "@/components/ui/breadcrumb";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { useCompanyStore } from "@/stores/CompanyStore";
+import { TooltipArrow } from "@radix-ui/react-tooltip";
+import { Drill, Loader2, Package2, PaintBucket, Puzzle, Wrench, X } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { FaFilePdf } from "react-icons/fa";
+import { RiFileExcel2Fill } from "react-icons/ri";
+import { toast } from "sonner";
+import {
+  flattenArticles,
+  getColumnsByCategory,
+  IArticleSimple,
+} from "./columns";
+import { DataTable } from "./data-table";
+import { useGetWarehouseArticlesByCategory } from "@/hooks/mantenimiento/almacen/articulos/useGetWarehouseArticlesByCategory";
+type Category = "COMPONENT" | "CONSUMABLE" | "TOOL" | "PART";
 
 const InventarioArticulosPage = () => {
   const { selectedCompany } = useCompanyStore();
-  const [activeCategory, setActiveCategory] = useState<Category>('COMPONENTE');
+  const [activeCategory, setActiveCategory] = useState<Category>("COMPONENT");
   const [componentCondition, setComponentCondition] = useState<
-    | 'all'
-    | 'SERVICIABLE'
-    | 'REMOVIDO - NO SERVICIABLE'
-    | 'REMOVIDO - CUSTODIA'
-    | 'REMOVIDO - DESCARGADA'
-    | 'REPARADO'
-    | 'USADO'
-    | 'NUEVO'
-  >('all');
+    | "all"
+    | "SERVICIABLE"
+    | "REMOVIDO - NO SERVICIABLE"
+    | "REMOVIDO - CUSTODIA"
+    | "REMOVIDO - DESCARGADA"
+    | "REPARADO"
+    | "USADO"
+    | "NUEVO"
+  >("all");
 
-  const [consumableFilter, setConsumableFilter] = useState<'all' | 'QUIMICOS'>('all');
-  const [partNumberSearch, setPartNumberSearch] = useState('');
+  const [consumableFilter, setConsumableFilter] = useState<"all" | "QUIMICOS">(
+    "all",
+  );
+  const [partNumberSearch, setPartNumberSearch] = useState("");
 
   // Fetch
-  const { data: articles, isLoading: isLoadingArticles } = useGetWarehouseArticlesByCategory(
-    1,
-    1000,
-    activeCategory,
-    true,
-    "checking"
-  );
+  const { data: articles, isLoading: isLoadingArticles } =
+    useGetWarehouseArticlesByCategory(
+      1,
+      1000,
+      activeCategory,
+      true,
+      "checking",
+    );
 
   const common = {
     category: activeCategory,
     search: partNumberSearch,
     filters:
-      activeCategory === 'COMPONENTE'
+      activeCategory === "COMPONENT"
         ? { condition: componentCondition }
-        : activeCategory === 'CONSUMIBLE'
+        : activeCategory === "CONSUMABLE"
           ? { group: consumableFilter }
           : {},
-    filenamePrefix: 'inventario',
+    filenamePrefix: "inventario",
   };
 
   // Reset subfiltros al cambiar categoría
   useEffect(() => {
-    if (activeCategory !== 'COMPONENTE') setComponentCondition('all');
-    if (activeCategory !== 'CONSUMIBLE') setConsumableFilter('all');
+    if (activeCategory !== "COMPONENT") setComponentCondition("all");
+    if (activeCategory !== "CONSUMABLE") setConsumableFilter("all");
   }, [activeCategory]);
 
   // Columns memo
-  const cols = useMemo(() => getColumnsByCategory(activeCategory), [activeCategory]);
+  const cols = useMemo(
+    () => getColumnsByCategory(activeCategory),
+    [activeCategory],
+  );
 
   // Datos + filtros memo
   const currentData = useMemo<IArticleSimple[]>(() => {
@@ -76,22 +98,30 @@ const InventarioArticulosPage = () => {
           (a) =>
             a.part_number?.toLowerCase().includes(q) ||
             (Array.isArray(a.alternative_part_number) &&
-              a.alternative_part_number.some((alt) => alt?.toLowerCase().includes(q))),
+              a.alternative_part_number.some((alt) =>
+                alt?.toLowerCase().includes(q),
+              )),
         )
       : list;
 
-    if (activeCategory === 'COMPONENTE' && componentCondition !== 'all') {
+    if ((activeCategory === "COMPONENT" || activeCategory === "PART") && componentCondition !== "all") {
       return bySearch.filter((a) => a.condition === componentCondition);
     }
 
-    if (activeCategory === 'CONSUMIBLE' && consumableFilter === 'QUIMICOS') {
+    if (activeCategory === "CONSUMABLE" && consumableFilter === "QUIMICOS") {
       return bySearch.filter((a: any) => a.is_hazardous === true);
     }
 
     return bySearch;
-  }, [articles, partNumberSearch, activeCategory, componentCondition, consumableFilter]);
+  }, [
+    articles,
+    partNumberSearch,
+    activeCategory,
+    componentCondition,
+    consumableFilter,
+  ]);
 
-  const handleClearSearch = () => setPartNumberSearch('');
+  const handleClearSearch = () => setPartNumberSearch("");
 
   return (
     <ContentLayout title="Inventario">
@@ -101,7 +131,9 @@ const InventarioArticulosPage = () => {
           <Breadcrumb>
             <BreadcrumbList>
               <BreadcrumbItem>
-                <BreadcrumbLink href={`/${selectedCompany?.slug}/dashboard`}>Inicio</BreadcrumbLink>
+                <BreadcrumbLink href={`/${selectedCompany?.slug}/dashboard`}>
+                  Inicio
+                </BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
@@ -114,54 +146,80 @@ const InventarioArticulosPage = () => {
           <div className="text-center space-y-2">
             <h1 className="text-4xl font-bold">Inventario Registrado</h1>
             <p className="text-sm text-muted-foreground italic">
-              Visualiza los articulos registrados para su verificación y posterior registro a almacén.
+              Visualiza los articulos registrados para su verificación y
+              posterior registro a almacén.
             </p>
           </div>
 
           {/* Tabs principales */}
-          <Tabs value={activeCategory} onValueChange={(v) => setActiveCategory(v as Category)}>
-            <TabsList className="flex justify-center mb-4 space-x-3" aria-label="Categorías">
-              <TabsTrigger className="flex gap-2" value="COMPONENTE">
+          <Tabs
+            value={activeCategory}
+            onValueChange={(v) => setActiveCategory(v as Category)}
+          >
+            <TabsList
+              className="flex justify-center mb-4 space-x-3"
+              aria-label="Categorías"
+            >
+              <TabsTrigger className="flex gap-2" value="all">
+                <Package2 className="size-5" /> Todos
+              </TabsTrigger>
+              <TabsTrigger className="flex gap-2" value="COMPONENT">
                 <Package2 className="size-5" /> Componente
               </TabsTrigger>
-              <TabsTrigger className="flex gap-2" value="CONSUMIBLE">
+              <TabsTrigger className="flex gap-2" value="PART">
+                <Puzzle className="size-5" /> Partes
+              </TabsTrigger>
+              <TabsTrigger className="flex gap-2" value="CONSUMABLE">
                 <PaintBucket className="size-5" /> Consumibles
               </TabsTrigger>
-              <TabsTrigger className="flex gap-2" value="HERRAMIENTA">
-                <Wrench className="size-5" /> Herramientas
-              </TabsTrigger>
-              <TabsTrigger className="flex gap-2" value="PARTE">
-                <Puzzle className="size-5" /> Partes
+              <TabsTrigger className="flex gap-2" value="TOOL">
+                <Drill className="size-5" /> Herramientas
               </TabsTrigger>
             </TabsList>
 
             {/* Sub-tabs por categoría */}
             <TabsContent value={activeCategory} className="mt-6">
-              {activeCategory === 'COMPONENTE' && (
+              {(activeCategory === "COMPONENT" || activeCategory === "PART") && (
                 <Tabs
                   value={componentCondition}
-                  onValueChange={(v) => setComponentCondition(v as typeof componentCondition)}
+                  onValueChange={(v) =>
+                    setComponentCondition(v as typeof componentCondition)
+                  }
                   className="mb-4"
                 >
-                  <TabsList className="flex justify-center mb-4 space-x-3" aria-label="Condición de componente">
+                  <TabsList
+                    className="flex justify-center mb-4 space-x-3"
+                    aria-label="Condición de componente"
+                  >
                     <TabsTrigger value="all">Todos</TabsTrigger>
                     <TabsTrigger value="SERVICIABLE">Serviciables</TabsTrigger>
                     <TabsTrigger value="REPARADO">Reparados</TabsTrigger>
-                    <TabsTrigger value="REMOVIDO - NO SERVICIABLE">Removidos - No Serviciables</TabsTrigger>
-                    <TabsTrigger value="REMOVIDO - CUSTODIA">Removidos - En custodia</TabsTrigger>
+                    <TabsTrigger value="REMOVIDO - NO SERVICIABLE">
+                      Removidos - No Serviciables
+                    </TabsTrigger>
+                    <TabsTrigger value="REMOVIDO - CUSTODIA">
+                      Removidos - En custodia
+                    </TabsTrigger>
                   </TabsList>
                 </Tabs>
               )}
 
-              {activeCategory === 'CONSUMIBLE' && (
+              {activeCategory === "CONSUMABLE" && (
                 <Tabs
                   value={consumableFilter}
-                  onValueChange={(v) => setConsumableFilter(v as typeof consumableFilter)}
+                  onValueChange={(v) =>
+                    setConsumableFilter(v as typeof consumableFilter)
+                  }
                   className="mb-4"
                 >
-                  <TabsList className="flex justify-center mb-4 space-x-3" aria-label="Filtro de consumibles">
+                  <TabsList
+                    className="flex justify-center mb-4 space-x-3"
+                    aria-label="Filtro de consumibles"
+                  >
                     <TabsTrigger value="all">Todos</TabsTrigger>
-                    <TabsTrigger value="QUIMICOS">Mercancia Peligrosa</TabsTrigger>
+                    <TabsTrigger value="QUIMICOS">
+                      Mercancia Peligrosa
+                    </TabsTrigger>
                   </TabsList>
                 </Tabs>
               )}

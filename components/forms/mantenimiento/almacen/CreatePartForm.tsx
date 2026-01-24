@@ -1,12 +1,12 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 
-import { z } from "zod";
-import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
 
 import { addYears, format, subYears } from "date-fns";
 import { es } from "date-fns/locale";
@@ -20,23 +20,9 @@ import {
   Plus,
 } from "lucide-react";
 
-import {
-  useConfirmIncomingArticle,
-  useCreateArticle,
-  useUpdateArticle,
-} from "@/actions/mantenimiento/almacen/inventario/articulos/actions";
-
-import { MultiInputField } from "@/components/misc/MultiInputField";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@/components/ui/command";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Form,
   FormControl,
@@ -59,25 +45,35 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+
+import {
+  useConfirmIncomingArticle,
+  useCreateArticle,
+  useUpdateArticle,
+} from "@/actions/mantenimiento/almacen/inventario/articulos/actions";
 
 import { useGetConditions } from "@/hooks/administracion/useGetConditions";
 import { useGetManufacturers } from "@/hooks/general/fabricantes/useGetManufacturers";
-import { useGetSecondaryUnits } from "@/hooks/general/unidades/useGetSecondaryUnits";
 import { useGetBatchesByCategory } from "@/hooks/mantenimiento/almacen/renglones/useGetBatchesByCategory";
-import { useGetConversionByUnitConsmable } from "@/hooks/mantenimiento/almacen/articulos/useGetConvertionsByConsumableUnit";
-import { Unit } from "@/types";
+
+import { useCompanyStore } from "@/stores/CompanyStore";
 
 import { cn } from "@/lib/utils";
-import { useCompanyStore } from "@/stores/CompanyStore";
-import { Batch } from "@/types";
-
 import loadingGif from "@/public/loading2.gif";
 import axiosInstance from "@/lib/axios";
 import { toast } from "sonner";
+
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import { MultiInputField } from "../../../misc/MultiInputField";
+import { Textarea } from "../../../ui/textarea";
 import { EditingArticle } from "./RegisterArticleForm";
 import { CreateManufacturerDialog } from "@/components/dialogs/general/CreateManufacturerDialog";
 
@@ -85,57 +81,79 @@ import { CreateManufacturerDialog } from "@/components/dialogs/general/CreateMan
 
 const fileMaxBytes = 10_000_000; // 10 MB
 
-const formSchema = z.object({
-  part_number: z
-    .string({ message: "Debe ingresar un número de parte." })
-    .min(2, {
-      message: "El número de parte debe contener al menos 2 caracteres.",
-    }),
-  lot_number: z.string().optional(),
-  alternative_part_number: z
-    .array(
-      z.string().min(2, {
-        message:
-          "Cada número de parte alterno debe contener al menos 2 caracteres.",
-      })
-    )
-    .optional(),
-  description: z.string().optional(),
-  zone: z.string().optional(),
-  caducate_date: z.string().optional(),
-  fabrication_date: z.string().optional(),
-  manufacturer_id: z.string().optional(),
-  condition_id: z.string().min(1, "Debe ingresar la condición del artículo."),
-  quantity: z.coerce
-    .number({ message: "Debe ingresar una cantidad." })
-    .min(0, { message: "No puede ser negativo." }),
-  min_quantity: z.coerce.number().min(0, { message: "No puede ser negativo." }).optional(),
-  batch_id: z
-    .string({ message: "Debe ingresar un lote." })
-    .min(1, "Seleccione un lote"),
-  is_managed: z.boolean().optional(),
-  certificate_8130: z
-    .instanceof(File, { message: "Suba un archivo válido." })
-    .refine((f) => f.size <= fileMaxBytes, "Tamaño máximo 10 MB.")
-    .optional(),
-  certificate_fabricant: z
-    .instanceof(File, { message: "Suba un archivo válido." })
-    .refine((f) => f.size <= fileMaxBytes, "Tamaño máximo 10 MB.")
-    .optional(),
-  certificate_vendor: z
-    .instanceof(File, { message: "Suba un archivo válido." })
-    .refine((f) => f.size <= fileMaxBytes, "Tamaño máximo 10 MB.")
-    .optional(),
-  image: z.instanceof(File).optional(),
-  // auxiliares para conversión secundaria
-  convertion_id: z.number().optional(),
-});
+const formSchema = z
+  .object({
+    serial: z
+      .string()
+      .min(2, { message: "El serial debe contener al menos 2 caracteres." })
+      .optional(),
+    part_number: z
+      .string({ message: "Debe seleccionar un número de parte." })
+      .min(2, {
+        message: "El número de parte debe contener al menos 2 caracteres.",
+      }),
+    alternative_part_number: z
+      .array(
+        z.string().min(2, {
+          message:
+            "Cada número de parte alterno debe contener al menos 2 caracteres.",
+        })
+      )
+      .optional(),
+    description: z.string().optional(),
+    zone: z
+      .string({ message: "Debe ingresar la ubicación del artículo." })
+      .min(1, "Campo requerido"),
+    caducate_date: z.string().optional(),
+    fabrication_date: z.string().optional(),
+    calendar_date: z.string().optional(),
+    cost: z.string().optional(),
+    hour_date: z.coerce
+      .number({ required_error: "Ingrese las horas máximas." })
+      .min(0, "No puede ser negativo")
+      .optional(),
+    cycle_date: z.coerce
+      .number({ required_error: "Ingrese los ciclos máximos." })
+      .min(0, "No puede ser negativo")
+      .optional(),
+    manufacturer_id: z.string().optional(),
+    condition_id: z.string().min(1, "Debe ingresar la condición del artículo."),
+    batch_id: z
+      .string({ message: "Debe ingresar un lote." })
+      .min(1, "Seleccione un lote"),
+    certificate_8130: z
+      .instanceof(File, { message: "Suba un archivo válido." })
+      .refine((f) => f.size <= fileMaxBytes, "Tamaño máximo 10 MB.")
+      .optional(),
+    certificate_fabricant: z
+      .instanceof(File, { message: "Suba un archivo válido." })
+      .refine((f) => f.size <= fileMaxBytes, "Tamaño máximo 10 MB.")
+      .optional(),
+    certificate_vendor: z
+      .instanceof(File, { message: "Suba un archivo válido." })
+      .refine((f) => f.size <= fileMaxBytes, "Tamaño máximo 10 MB.")
+      .optional(),
+    image: z.instanceof(File).optional(),
+  })
+  .superRefine((vals, ctx) => {
+    // Relaciones de fechas si existen
+    if (vals.fabrication_date && vals.caducate_date) {
+      if (vals.fabrication_date > vals.caducate_date) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message:
+            "La fecha de fabricación no puede ser posterior a la fecha de caducidad.",
+          path: ["fabrication_date"],
+        });
+      }
+    }
+  });
 
 type FormValues = z.infer<typeof formSchema>;
 
 /* ----------------------------- Componente ----------------------------- */
 
-const CreateConsumableForm = ({
+const CreatePartForm = ({
   initialData,
   isEditing,
 }: {
@@ -143,12 +161,8 @@ const CreateConsumableForm = ({
   isEditing?: boolean;
 }) => {
   const router = useRouter();
-  
-  const { selectedCompany } = useCompanyStore();
-
   const handleDownload = async (url: string) => {
     if (!url) return;
-    
     try {
       const response = await axiosInstance.get(`/warehouse/download-certificate/${url}`, {
         responseType: 'blob',
@@ -170,11 +184,28 @@ const CreateConsumableForm = ({
     }
   };
 
+  const [fabricationDate, setFabricationDate] = useState<Date | undefined>(
+    initialData?.part_component?.fabrication_date
+      ? new Date(initialData.part_component.fabrication_date)
+      : undefined
+  );
+  const [caducateDate, setCaducateDate] = useState<Date | undefined>(
+    initialData?.part_component?.caducate_date
+      ? new Date(initialData.part_component.caducate_date)
+      : undefined
+  );
+  const [calendarDate, setCalendarDate] = useState<Date | undefined>(
+    initialData?.part_component?.calendary_date
+      ? new Date(initialData.part_component.calendary_date)
+      : undefined
+  );
+  const { selectedCompany } = useCompanyStore();
+
   const {
     data: batches,
     isPending: isBatchesLoading,
     isError: isBatchesError,
-  } = useGetBatchesByCategory("CONSUMABLE");
+  } = useGetBatchesByCategory("PART");
 
   const {
     data: manufacturers,
@@ -188,135 +219,72 @@ const CreateConsumableForm = ({
     error: isConditionsError,
   } = useGetConditions();
 
-  const { data: secondaryUnits, isLoading: secondaryLoading } =
-    useGetSecondaryUnits(selectedCompany?.slug);
-
   const { createArticle } = useCreateArticle();
+
   const { updateArticle } = useUpdateArticle();
+
   const { confirmIncoming } = useConfirmIncomingArticle();
-
-  const [selectedBatchId, setSelectedBatchId] = useState<number | undefined>(
-    initialData?.batches?.id
-  );
-  
-  // Obtener el batch seleccionado para acceder a su unit.id
-  const selectedBatch = useMemo(() => {
-    return batches?.find((b) => b.id === selectedBatchId);
-  }, [batches, selectedBatchId]);
-
-  // Obtener conversiones específicas del consumible seleccionado
-  const { data: consumableConversions, isLoading: consumableConversionsLoading } =
-    useGetConversionByUnitConsmable(
-      selectedBatch?.unit?.id ?? 0,
-      selectedCompany?.slug
-    );
-
-  type ConversionData = {
-    id: number;
-    primary_unit: Unit;
-    equivalence: number;
-    secondary_unit: Unit;
-  };
-
-  const [secondaryOpen, setSecondaryOpen] = useState(false);
-  const [secondarySelected, setSecondarySelected] = useState<ConversionData | null>(null);
-  const [secondaryQuantity, setSecondaryQuantity] = useState<
-    number | undefined
-  >();
-  const [caducateDate, setCaducateDate] = useState<Date | undefined>(
-    initialData?.consumable?.caducate_date
-      ? new Date(initialData.consumable.caducate_date)
-      : undefined
-  );
-  const [fabricationDate, setFabricationDate] = useState<Date | undefined>(
-    initialData?.consumable?.fabrication_date
-      ? new Date(initialData?.consumable?.fabrication_date)
-      : undefined
-  );
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       part_number: initialData?.part_number || "",
+      serial: initialData?.serial || "",
       alternative_part_number: initialData?.alternative_part_number || [],
       batch_id: initialData?.batches?.id?.toString() || "",
       manufacturer_id: initialData?.manufacturer?.id?.toString() || "",
       condition_id: initialData?.condition?.id?.toString() || "",
       description: initialData?.description || "",
       zone: initialData?.zone || "",
-      lot_number: initialData?.consumable?.lot_number || "",
-      caducate_date: initialData?.consumable?.caducate_date
-        ? initialData?.consumable?.caducate_date
+      hour_date: initialData?.part_component?.hour_date
+        ? parseInt(initialData.part_component.hour_date)
         : undefined,
-      fabrication_date: initialData?.consumable?.fabrication_date
-        ? initialData?.consumable?.fabrication_date
+      cycle_date: initialData?.part_component?.cycle_date
+        ? parseInt(initialData.part_component.cycle_date)
         : undefined,
-      quantity: initialData?.consumable?.quantity ?? 0,
-      min_quantity: initialData?.consumable?.min_quantity 
-        ? Number(initialData.consumable.min_quantity) 
+      caducate_date: initialData?.part_component?.caducate_date
+        ? initialData?.part_component?.caducate_date
         : undefined,
-      is_managed: initialData?.consumable?.is_managed 
-        ? initialData.consumable.is_managed === "1" || initialData.consumable.is_managed === true
-        : true,
+      fabrication_date: initialData?.part_component?.fabrication_date
+        ? initialData?.part_component?.fabrication_date
+        : undefined,
     },
   });
 
-  // reset si cambia initialData
+  // Reset si cambia initialData
   useEffect(() => {
     if (!initialData) return;
     form.reset({
       part_number: initialData.part_number ?? "",
+      serial: initialData.serial ?? "",
       alternative_part_number: initialData.alternative_part_number ?? [],
       batch_id: initialData.batches?.id?.toString() ?? "",
       manufacturer_id: initialData.manufacturer?.id?.toString() ?? "",
       condition_id: initialData.condition?.id?.toString() ?? "",
       description: initialData.description ?? "",
       zone: initialData.zone ?? "",
-      lot_number: initialData.consumable?.lot_number ?? "",
-      caducate_date: initialData?.consumable?.caducate_date
-        ? initialData?.consumable?.caducate_date
+      hour_date: initialData.part_component?.hour_date
+        ? parseInt(initialData.part_component.hour_date)
         : undefined,
-      fabrication_date: initialData?.consumable?.fabrication_date
-        ? initialData?.consumable?.fabrication_date
+      cycle_date: initialData.part_component?.cycle_date
+        ? parseInt(initialData.part_component.cycle_date)
         : undefined,
-      quantity: initialData?.consumable?.quantity ?? 0,
-      min_quantity: initialData?.consumable?.min_quantity 
-        ? Number(initialData.consumable.min_quantity) 
+      caducate_date: initialData.part_component?.caducate_date
+        ? initialData.part_component?.caducate_date
         : undefined,
-      is_managed: initialData?.consumable?.is_managed 
-        ? initialData.consumable.is_managed === "1" || initialData.consumable.is_managed === true
-        : true,
+      fabrication_date: initialData.part_component?.fabrication_date
+        ? initialData.part_component?.fabrication_date
+        : undefined,
     });
   }, [initialData, form]);
-
-  // conversión secundaria -> quantity
-  useEffect(() => {
-    if (
-      secondarySelected &&
-      typeof secondaryQuantity === "number" &&
-      !Number.isNaN(secondaryQuantity)
-    ) {
-      const qty =
-        (secondarySelected.equivalence ?? 1) *
-        secondaryQuantity;
-      form.setValue("quantity", qty, {
-        shouldDirty: true,
-        shouldValidate: true,
-      });
-    }
-  }, [secondarySelected, secondaryQuantity, form]);
-
-  const normalizeUpper = (s?: string) => s?.trim().toUpperCase() ?? "";
-
   const busy =
     isBatchesLoading ||
     isManufacturerLoading ||
     isConditionsLoading ||
     createArticle.isPending ||
-    confirmIncoming.isPending ||
-    consumableConversionsLoading;
+    confirmIncoming.isPending;
 
-  const batchesOptions = useMemo<Batch[] | undefined>(() => batches, [batches]);
+  const normalizeUpper = (s?: string) => s?.trim().toUpperCase() ?? "";
 
   const onSubmit = async (values: FormValues) => {
     if (!selectedCompany?.slug) return;
@@ -324,13 +292,14 @@ const CreateConsumableForm = ({
     const formattedValues: FormValues & {
       caducate_date?: string;
       fabrication_date?: string;
+      calendar_date?: string;
       part_number: string;
       article_type: string;
       alternative_part_number?: string[];
     } = {
       ...values,
+      article_type: "PART",
       part_number: normalizeUpper(values.part_number),
-      article_type: "consumible",
       alternative_part_number:
         values.alternative_part_number?.map((v) => normalizeUpper(v)) ?? [],
       caducate_date: caducateDate
@@ -339,16 +308,19 @@ const CreateConsumableForm = ({
       fabrication_date: fabricationDate
         ? format(fabricationDate, "yyyy-MM-dd")
         : undefined,
-      convertion_id: secondarySelected?.id,
+      calendar_date:
+        values.calendar_date && format(values.calendar_date, "yyyy-MM-dd"),
     };
 
     if (isEditing && initialData) {
       await updateArticle.mutateAsync({
         data: {
           ...formattedValues,
+          batch_id: formattedValues.batch_id,
+          article_type: "PART",
         },
-        id: initialData?.id,
         company: selectedCompany.slug,
+        id: initialData.id,
       });
       router.push(`/${selectedCompany.slug}/almacen/inventario_articulos`);
     } else {
@@ -359,7 +331,6 @@ const CreateConsumableForm = ({
       form.reset();
     }
   };
-
   return (
     <Form {...form}>
       <form
@@ -369,7 +340,7 @@ const CreateConsumableForm = ({
         {/* Encabezado */}
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-xl">Registrar consumible</CardTitle>
+            <CardTitle className="text-xl">Registrar Parte</CardTitle>
           </CardHeader>
           <CardContent className="grid grid-cols-1 xl:grid-cols-3 gap-4">
             <FormField
@@ -388,27 +359,11 @@ const CreateConsumableForm = ({
                 </FormItem>
               )}
             />
-
-            <FormField
-              control={form.control}
-              name="lot_number"
-              render={({ field }) => (
-                <FormItem className="w-full">
-                  <FormLabel>Nro. de lote</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Ej: LOTE123" {...field} />
-                  </FormControl>
-                  <FormDescription>Lote del consumible.</FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
             <FormField
               control={form.control}
               name="alternative_part_number"
               render={({ field }) => (
-                <FormItem className="w-full xl:col-span-1">
+                <FormItem className="w-full xl:col-span-2">
                   <FormControl>
                     <MultiInputField
                       values={field.value || []}
@@ -416,6 +371,7 @@ const CreateConsumableForm = ({
                       placeholder="Ej: 234ABAC"
                     />
                   </FormControl>
+
                   <FormMessage />
                 </FormItem>
               )}
@@ -423,12 +379,29 @@ const CreateConsumableForm = ({
           </CardContent>
         </Card>
 
-        {/* Propiedades */}
+        {/* Identificación y estado */}
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-xl">Propiedades</CardTitle>
+            <CardTitle className="text-xl">Identificación y estado</CardTitle>
           </CardHeader>
           <CardContent className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+            <FormField
+              control={form.control}
+              name="serial"
+              render={({ field }) => (
+                <FormItem className="w-full">
+                  <FormLabel>Serial</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Ej: 05458E1" {...field} />
+                  </FormControl>
+                  <FormDescription>
+                    Serial del componente si aplica.
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
             <FormField
               control={form.control}
               name="condition_id"
@@ -464,127 +437,14 @@ const CreateConsumableForm = ({
                       )}
                     </SelectContent>
                   </Select>
-                  <FormDescription>Estado del artículo.</FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="fabrication_date"
-              render={({ field }) => (
-                <FormItem className="flex flex-col p-0 mt-2.5 w-full">
-                  <FormLabel>Fecha de Fabricacion</FormLabel>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <FormControl>
-                        <Button
-                          variant={"outline"}
-                          className={cn(
-                            "w-full pl-3 text-left font-normal",
-                            !fabricationDate && "text-muted-foreground"
-                          )}
-                        >
-                          {fabricationDate ? (
-                            format(fabricationDate, "PPP", { locale: es })
-                          ) : (
-                            <span>Seleccione una fecha</span>
-                          )}
-                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                        </Button>
-                      </FormControl>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Select
-                        onValueChange={(value) =>
-                          setFabricationDate(
-                            subYears(new Date(), parseInt(value))
-                          )
-                        }
-                      >
-                        <SelectTrigger className="p-3">
-                          <SelectValue placeholder="Seleccione una opcion..." />
-                        </SelectTrigger>
-                        <SelectContent position="popper">
-                          <SelectItem value="0">Actual</SelectItem>{" "}
-                          <SelectItem value="5">Ir 5 años atrás</SelectItem>
-                          <SelectItem value="10">Ir 10 años atrás</SelectItem>
-                          <SelectItem value="15">Ir 15 años atrás</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <Calendar
-                        locale={es}
-                        mode="single"
-                        selected={fabricationDate}
-                        onSelect={setFabricationDate}
-                        initialFocus
-                        month={fabricationDate}
-                      />
-                    </PopoverContent>
-                  </Popover>
                   <FormDescription>
-                    Fecha de creación del articulo.
-                  </FormDescription>{" "}
+                    Estado físico/operativo del artículo.
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            <FormField
-              control={form.control}
-              name="caducate_date"
-              render={({ field }) => (
-                <FormItem className="flex flex-col p-0 mt-2.5 w-full">
-                  <FormLabel>Fecha de Caducidad - Shell-Life</FormLabel>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <FormControl>
-                        <Button
-                          variant={"outline"}
-                          className={cn(
-                            "w-full pl-3 text-left font-normal",
-                            !caducateDate && "text-muted-foreground"
-                          )}
-                        >
-                          {caducateDate ? (
-                            format(caducateDate, "PPP", { locale: es })
-                          ) : (
-                            <span>Seleccione una fecha</span>
-                          )}
-                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                        </Button>
-                      </FormControl>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Select
-                        onValueChange={(value) =>
-                          setCaducateDate(addYears(new Date(), parseInt(value)))
-                        }
-                      >
-                        <SelectTrigger className="p-3">
-                          <SelectValue placeholder="Seleccione una opcion..." />
-                        </SelectTrigger>
-                        <SelectContent position="popper">
-                          <SelectItem value="0">Actual</SelectItem>{" "}
-                          <SelectItem value="5">5 años</SelectItem>
-                          <SelectItem value="10">10 años</SelectItem>{" "}
-                          <SelectItem value="15">15 años</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <Calendar
-                        locale={es}
-                        mode="single"
-                        selected={caducateDate}
-                        onSelect={setCaducateDate}
-                        initialFocus
-                        month={caducateDate}
-                      />
-                    </PopoverContent>
-                  </Popover>
-                  <FormDescription>Fecha límite del articulo.</FormDescription>{" "}
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+
             <FormField
               control={form.control}
               name="manufacturer_id"
@@ -683,13 +543,12 @@ const CreateConsumableForm = ({
                       </Command>
                     </PopoverContent>
                   </Popover>
-                  <FormDescription>
-                    Marca específica del artículo.
-                  </FormDescription>
+                  <FormDescription>Marca del artículo.</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
             />
+
             <FormField
               control={form.control}
               name="zone"
@@ -697,22 +556,20 @@ const CreateConsumableForm = ({
                 <FormItem className="w-full">
                   <FormLabel>Ubicación interna</FormLabel>
                   <FormControl>
-                    <Input
-                      placeholder="Ej: Pasillo 4, repisa 3..."
-                      {...field}
-                    />
+                    <Input placeholder="Ej: Pasillo 4, Estante B" {...field} />
                   </FormControl>
                   <FormDescription>Zona física en almacén.</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
             />
+
             <FormField
               control={form.control}
               name="batch_id"
               render={({ field }) => (
                 <FormItem className="flex flex-col space-y-3 mt-1.5 w-full">
-                  <FormLabel>Descripción de Consumible</FormLabel>
+                  <FormLabel>Descripción de Componente</FormLabel>
                   <Popover>
                     <PopoverTrigger asChild>
                       <FormControl>
@@ -760,10 +617,6 @@ const CreateConsumableForm = ({
                                     batch.id.toString(),
                                     { shouldValidate: true }
                                   );
-                                  setSelectedBatchId(batch.id);
-                                  // Resetear la selección de conversión cuando cambie el batch
-                                  setSecondarySelected(null);
-                                  setSecondaryQuantity(undefined);
                                 }}
                               >
                                 <Check
@@ -783,7 +636,7 @@ const CreateConsumableForm = ({
                     </PopoverContent>
                   </Popover>
                   <FormDescription>
-                    Descripción del Consumible a registrar.
+                    Descripción de la Parte a registrar.
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -792,201 +645,125 @@ const CreateConsumableForm = ({
           </CardContent>
         </Card>
 
-        {/* Ingreso y cantidad */}
+        {/* Fechas y límites */}
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-xl">Ingreso y cantidad</CardTitle>
+            <CardTitle className="text-xl">Ciclo de vida</CardTitle>
           </CardHeader>
-          <CardContent className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-            {!isEditing ? (
-              <>
-                {/* Método de ingreso (unidad secundaria) */}
-                <div className="flex flex-col space-y-2 mt-2.5">
-                  <FormLabel>Método de ingreso</FormLabel>
-                  <Popover open={secondaryOpen} onOpenChange={setSecondaryOpen}>
-                    <PopoverTrigger asChild>
-                      <Button
-                        disabled={
-                          consumableConversionsLoading || 
-                          !selectedBatchId ||
-                          !consumableConversions?.length
-                        }
-                        variant="outline"
-                        role="combobox"
-                        aria-expanded={secondaryOpen}
-                        className="justify-between"
-                      >
-                        {secondarySelected
-                          ? `${secondarySelected.secondary_unit?.label || secondarySelected.secondary_unit?.value || "N/A"}`
-                          : consumableConversionsLoading
-                            ? "Cargando..."
-                            : !selectedBatchId
-                              ? "Seleccione un lote primero..."
-                              : !consumableConversions?.length
-                                ? "Sin conversiones disponibles"
-                                : "Seleccione..."}
-                        <ChevronsUpDown className="opacity-50" />
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-[260px] p-0">
-                      <Command>
-                        <CommandInput placeholder="Buscar unidad..." />
-                        <CommandList>
-                          <CommandEmpty>
-                            No existen conversiones para este consumible.
-                          </CommandEmpty>
-                          <CommandGroup>
-                            {consumableConversions?.map((conversion) => (
-                              <CommandItem
-                                key={conversion.id}
-                                value={conversion.id.toString()}
-                                onSelect={(val) => {
-                                  const found =
-                                    consumableConversions.find(
-                                      (u) => u.id.toString() === val
-                                    ) || null;
-                                  setSecondarySelected(found);
-                                  setSecondaryOpen(false);
-                                  if (
-                                    found &&
-                                    typeof secondaryQuantity === "number"
-                                  ) {
-                                    const calc =
-                                      (found.equivalence ?? 1) *
-                                      (secondaryQuantity ?? 0);
-                                    form.setValue("quantity", calc, {
-                                      shouldDirty: true,
-                                      shouldValidate: true,
-                                    });
-                                    form.setValue("convertion_id", found.id, {
-                                      shouldDirty: true,
-                                    });
-                                  }
-                                }}
-                              >
-                                {conversion.secondary_unit?.label || conversion.secondary_unit?.value || "N/A"}
-                                <Check
-                                  className={cn(
-                                    "ml-auto",
-                                    secondarySelected?.id.toString() ===
-                                      conversion.id.toString()
-                                      ? "opacity-100"
-                                      : "opacity-0"
-                                  )}
-                                />
-                              </CommandItem>
-                            ))}
-                          </CommandGroup>
-                        </CommandList>
-                      </Command>
-                    </PopoverContent>
-                  </Popover>
-                  <p className="text-sm text-muted-foreground">
-                    {!selectedBatchId 
-                      ? "Primero seleccione un lote de consumible." 
-                      : "Indique cómo será ingresado el artículo."}
-                  </p>
-                </div>
-
-                {/* Cantidad secundaria */}
-                <div className="space-y-2">
-                  <FormLabel>Cantidad</FormLabel>
-                  <Input
-                    type="number"
-                    inputMode="decimal"
-                    min="0"
-                    onChange={(e) => {
-                      const n = parseFloat(e.target.value);
-                      if (!Number.isNaN(n) && n < 0) return;
-                      setSecondaryQuantity(Number.isNaN(n) ? undefined : n);
-                    }}
-                    placeholder="Ej: 2, 4, 6..."
-                  />
-                  <p className="text-sm text-muted-foreground">
-                    Cantidad según método de ingreso seleccionado.
-                  </p>
-                </div>
-
-                {/* Cantidad resultante (read-only visual, pero validada en RHF) */}
-                <FormField
-                  control={form.control}
-                  name="quantity"
-                  render={({ field }) => (
-                    <FormItem className="w-full">
-                      <FormLabel>Cantidad resultante</FormLabel>
-                      <FormControl>
-                        <Input disabled type="number" placeholder="0" {...field} />
-                      </FormControl>
-                      <FormDescription>
-                        Unidades base que se registrarán.
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </>
-            ) : (
-              /* Cantidad existente (solo al editar) */
-              <FormField
-                control={form.control}
-                name="quantity"
-                render={({ field }) => (
-                  <FormItem className="w-full">
-                    <FormLabel>Cantidad existente</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Ej: 10" {...field} />
-                    </FormControl>
-                    <FormDescription>
-                      Cantidad actual registrada del artículo.
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            )}
-
-            {/* Cantidad mínima */}
+          <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormField
               control={form.control}
-              name="min_quantity"
+              name="fabrication_date"
               render={({ field }) => (
-                <FormItem className="w-full">
-                  <FormLabel>Cantidad Mínima</FormLabel>
-                  <FormControl>
-                    <Input 
-                      placeholder="Ej: 5" 
-                      {...field}
-                      disabled={busy}
-                      onChange={(e) => {
-                        const n = parseFloat(e.target.value);
-                        if (!Number.isNaN(n) && n < 0) return;
-                        field.onChange(e.target.value === "" ? undefined : n);
-                      }}
-                    />
-                  </FormControl>
-                  <FormDescription>Cantidad mínima de stock para alertas.</FormDescription>
+                <FormItem className="flex flex-col p-0 mt-2.5 w-full">
+                  <FormLabel>Fecha de Fabricacion</FormLabel>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <FormControl>
+                        <Button
+                          variant={"outline"}
+                          className={cn(
+                            "w-full pl-3 text-left font-normal",
+                            !fabricationDate && "text-muted-foreground"
+                          )}
+                        >
+                          {fabricationDate ? (
+                            format(fabricationDate, "PPP", { locale: es })
+                          ) : (
+                            <span>Seleccione una fecha</span>
+                          )}
+                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                        </Button>
+                      </FormControl>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Select
+                        onValueChange={(value) =>
+                          setFabricationDate(
+                            subYears(new Date(), parseInt(value))
+                          )
+                        }
+                      >
+                        <SelectTrigger className="p-3">
+                          <SelectValue placeholder="Seleccione una opcion..." />
+                        </SelectTrigger>
+                        <SelectContent position="popper">
+                          <SelectItem value="0">Actual</SelectItem>{" "}
+                          <SelectItem value="5">Ir 5 años atrás</SelectItem>
+                          <SelectItem value="10">Ir 10 años atrás</SelectItem>
+                          <SelectItem value="15">Ir 15 años atrás</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <Calendar
+                        locale={es}
+                        mode="single"
+                        selected={fabricationDate}
+                        onSelect={setFabricationDate}
+                        initialFocus
+                        month={fabricationDate}
+                      />
+                    </PopoverContent>
+                  </Popover>
+                  <FormDescription>
+                    Fecha de creación del articulo.
+                  </FormDescription>{" "}
                   <FormMessage />
                 </FormItem>
               )}
             />
-
-            {/* ¿Es manejable? */}
             <FormField
               control={form.control}
-              name="is_managed"
+              name="caducate_date"
               render={({ field }) => (
-                <FormItem className="col-span-1 md:col-span-2 xl:col-span-3 flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-                  <FormControl>
-                    <Checkbox
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
-                  </FormControl>
-                  <div className="space-y-1 leading-none">
-                    <FormLabel>¿Necesita despachar el articulo en pequeñas cantidades?</FormLabel>
-                    <FormDescription>
-                    </FormDescription>
-                  </div>
+                <FormItem className="flex flex-col p-0 mt-2.5 w-full">
+                  <FormLabel>Fecha de Shell-Life</FormLabel>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <FormControl>
+                        <Button
+                          variant={"outline"}
+                          className={cn(
+                            "w-full pl-3 text-left font-normal",
+                            !caducateDate && "text-muted-foreground"
+                          )}
+                        >
+                          {caducateDate ? (
+                            format(caducateDate, "PPP", { locale: es })
+                          ) : (
+                            <span>Seleccione una fecha...</span>
+                          )}
+                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                        </Button>
+                      </FormControl>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Select
+                        onValueChange={(value) =>
+                          setCaducateDate(addYears(new Date(), parseInt(value)))
+                        }
+                      >
+                        <SelectTrigger className="p-3">
+                          <SelectValue placeholder="Seleccione una opcion..." />
+                        </SelectTrigger>
+                        <SelectContent position="popper">
+                          <SelectItem value="0">Actual</SelectItem>{" "}
+                          <SelectItem value="5">5 años</SelectItem>
+                          <SelectItem value="10">10 años</SelectItem>{" "}
+                          <SelectItem value="15">15 años</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <Calendar
+                        locale={es}
+                        mode="single"
+                        selected={caducateDate}
+                        onSelect={setCaducateDate}
+                        initialFocus
+                        month={caducateDate}
+                      />
+                    </PopoverContent>
+                  </Popover>
+                  <FormDescription>Fecha límite del articulo.</FormDescription>{" "}
+                  <FormMessage />
                 </FormItem>
               )}
             />
@@ -1004,16 +781,16 @@ const CreateConsumableForm = ({
               name="description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Detalles/Observaciones</FormLabel>
+                  <FormLabel>Observaciones</FormLabel>
                   <FormControl>
                     <Textarea
                       rows={5}
-                      placeholder="Ej: Fluido hidráulico MIL-PRF-83282..."
+                      placeholder="Ej: Motor V8 de..."
                       {...field}
                     />
                   </FormControl>
                   <FormDescription>
-                    Observaciones sobre el artículo.
+                    Breve descripción del artículo.
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -1205,9 +982,6 @@ const CreateConsumableForm = ({
           </CardContent>
         </Card>
 
-        {/* Descripción corta extra si necesitas más aire visual */}
-        {/* <Card><CardContent>...</CardContent></Card> */}
-
         {/* Acciones */}
         <div className="flex items-center gap-3">
           <Button
@@ -1247,4 +1021,4 @@ const CreateConsumableForm = ({
   );
 };
 
-export default CreateConsumableForm;
+export default CreatePartForm;

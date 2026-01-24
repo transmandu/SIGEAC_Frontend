@@ -28,7 +28,7 @@ import { allCategoriesCols, flattenArticles, getColumnsByCategory, IArticleSimpl
 import { DataTable } from './_tables/warehouse-data-table';
 import { columns as GeneralColums } from './_tables/general-columns';
 
-type Category = 'all' | 'COMPONENTE' | 'CONSUMIBLE' | 'HERRAMIENTA';
+type Category = 'all' | 'COMPONENT' | 'PART' |'CONSUMABLE' | 'TOOL';
 
 const InventarioArticulosPage = () => {
   const { selectedCompany } = useCompanyStore();
@@ -62,12 +62,12 @@ const InventarioArticulosPage = () => {
   const common = useMemo(() => {
     if (activeCategory === 'all') return null;
     return {
-      category: activeCategory as 'COMPONENTE' | 'CONSUMIBLE' | 'HERRAMIENTA',
+      category: activeCategory as 'COMPONENT' | 'PART' | 'CONSUMABLE' | 'TOOL',
       search: partNumberSearch,
       filters:
-        activeCategory === 'COMPONENTE'
+        activeCategory === 'COMPONENT'
           ? { condition: componentCondition }
-          : activeCategory === 'CONSUMIBLE'
+          : activeCategory === 'CONSUMABLE'
             ? { group: consumableFilter }
             : {},
       filenamePrefix: 'inventario',
@@ -76,8 +76,8 @@ const InventarioArticulosPage = () => {
 
   // Reset subfiltros al cambiar categoría
   useEffect(() => {
-    if (activeCategory !== 'COMPONENTE') setComponentCondition('all');
-    if (activeCategory !== 'CONSUMIBLE') setConsumableFilter('all');
+    if (activeCategory !== 'COMPONENT') setComponentCondition('all');
+    if (activeCategory !== 'CONSUMABLE') setConsumableFilter('all');
   }, [activeCategory]);
 
   // Columns memo
@@ -114,15 +114,15 @@ const InventarioArticulosPage = () => {
     let filtered = bySearch;
 
     if (activeCategory !== 'all') {
-      if (activeCategory === 'COMPONENTE' && componentCondition !== 'all') {
+      if ((activeCategory === 'COMPONENT' || activeCategory === 'PART') && componentCondition !== 'all') {
         filtered = filtered.filter((a) => a.condition === componentCondition);
       }
-      if (activeCategory === 'CONSUMIBLE' && consumableFilter === 'QUIMICOS') {
+      if (activeCategory === 'CONSUMABLE' && consumableFilter === 'QUIMICOS') {
         filtered = filtered.filter((a: any) => a.is_hazardous === true);
       }
     }
 
-    if (activeCategory === 'COMPONENTE' || activeCategory === 'CONSUMIBLE' || activeCategory === 'all') {
+    if (activeCategory === 'COMPONENT' || activeCategory === 'PART' || activeCategory === 'CONSUMABLE' || activeCategory === 'all') {
       return filtered.sort((a, b) => {
         const dateA = getExpiryDate(a);
         const dateB = getExpiryDate(b);

@@ -74,7 +74,7 @@ import { DatePickerField } from "@/components/ui/DatePickerField";
 import { SectionCard } from "@/components/ui/SectionCard";
 import { Textarea } from "@/components/ui/textarea";
 import { MultiSerialInput } from "./MultiSerialInput";
-import { EditingArticle } from "@/components/forms/mantenimiento/almacen/RegisterArticleForm";
+import { EditingArticle } from "./RegisterArticleForm";
 import { useAuth } from "@/contexts/AuthContext";
 
 /* ------------------------------- Schema ------------------------------- */
@@ -139,7 +139,7 @@ const formSchema = z
       .optional(),
     image: z.instanceof(File).optional(),
     has_documentation: z.boolean().optional(),
-    // aircraft_id: z.string().optional(),
+    aircraft_id: z.string().optional(),
     life_limit_part_hours: z.coerce
       .number({ invalid_type_error: "Debe ingresar una cantidad numérica" })
       .min(0, { message: "No puede ser negativo." })
@@ -159,8 +159,8 @@ const formSchema = z
       .or(z.literal("").transform(() => undefined)),
     shelf_life_unit: z.string().optional(),
     inspector: z.string().optional(),
-    inspect_date: z.string().optional(),
     ata_code: z.string().optional(),
+    inspect_date: z.string().optional(),
     hard_time_hours: z.coerce
       .number({ invalid_type_error: "Debe ingresar una cantidad numérica" })
       .min(0, { message: "No puede ser negativo." })
@@ -196,14 +196,14 @@ interface PreviewValues extends FormValues {
 }
 
 /* ----------------------------- Componente ----------------------------- */
-export default function CreateComponentForm({
+
+export default function CreatePartForm({
   initialData,
   isEditing,
 }: {
   initialData?: EditingArticle;
   isEditing?: boolean;
 }) {
-  //MANTENER CAMPOS HABILITADOS PARA INGENIERIA
   const { user } = useAuth();
   const userRoles = user?.roles?.map((role) => role.name) || [];
   const isEngineering = userRoles.some((role) =>
@@ -235,7 +235,9 @@ export default function CreateComponentForm({
   );
 
   const [inspectDate, setInspectDate] = useState<Date | null | undefined>(
-    initialData?.inspect_date ? parseISO(initialData.inspect_date) : null, // Por defecto "No aplica" (componentes nuevos o sin fecha)
+    initialData?.inspect_date
+      ? parseISO(initialData.inspect_date)
+      : null, // Por defecto "No aplica" (componentes nuevos o sin fecha)
   );
 
   const [lifeLimitPartCalendar, setLifeLimitPartCalendar] = useState<
@@ -262,7 +264,7 @@ export default function CreateComponentForm({
     isPending: isBatchesLoading,
     isError: isBatchesError,
     refetch: refetchBatches,
-  } = useGetBatchesByCategory("COMPONENT");
+  } = useGetBatchesByCategory("PART");
 
   const {
     data: manufacturers,
@@ -284,7 +286,7 @@ export default function CreateComponentForm({
       selectedCompany?.slug,
       selectedStation || undefined,
       partNumberToSearch,
-      "COMPONENT",
+      "PART",
     );
 
   // Mutations
@@ -322,7 +324,7 @@ export default function CreateComponentForm({
         ? initialData?.part_component?.fabrication_date
         : undefined,
       has_documentation: initialData?.has_documentation ?? false,
-      // aircraft_id: "",
+      aircraft_id: "",
       life_limit_part_calendar: initialData?.part_component
         ?.life_limit_part_calendar
         ? initialData?.part_component?.life_limit_part_calendar
@@ -331,28 +333,11 @@ export default function CreateComponentForm({
         ?.life_limit_part_cycles
         ? Number(initialData.part_component.life_limit_part_cycles)
         : undefined,
-
       life_limit_part_hours: initialData?.part_component?.life_limit_part_hours
         ? Number(initialData.part_component.life_limit_part_hours)
         : undefined,
-      inspector: initialData?.inspector || "",
       inspect_date: initialData?.inspect_date
         ? initialData?.inspect_date
-        : undefined,
-      shelf_life_unit: initialData?.part_component?.shelf_life_unit || "",
-      shelf_life: initialData?.part_component?.shelf_life
-        ? Number(initialData.part_component.shelf_life)
-        : undefined,
-
-      hard_time_calendar: initialData?.part_component?.hard_time_calendar
-        ? initialData?.part_component?.hard_time_calendar
-        : undefined,
-      hard_time_cycles: initialData?.part_component?.hard_time_cycles
-        ? Number(initialData.part_component.hard_time_cycles)
-        : undefined,
-
-      hard_time_hours: initialData?.part_component?.hard_time_hours
-        ? Number(initialData.part_component.hard_time_hours)
         : undefined,
       ata_code: initialData?.ata_code || "",
     },
@@ -399,32 +384,22 @@ export default function CreateComponentForm({
         ? initialData.part_component?.fabrication_date
         : undefined,
       has_documentation: initialData.has_documentation ?? false,
-      // aircraft_id: "",
+      aircraft_id: "",
       life_limit_part_calendar: initialData.part_component
         ?.life_limit_part_calendar
         ? initialData.part_component?.life_limit_part_calendar
         : undefined,
-      life_limit_part_cycles: initialData?.part_component
-        ?.life_limit_part_cycles
+      life_limit_part_cycles: initialData.part_component?.life_limit_part_cycles
         ? Number(initialData.part_component.life_limit_part_cycles)
         : undefined,
-      life_limit_part_hours: initialData?.part_component?.life_limit_part_hours
+      life_limit_part_hours: initialData.part_component?.life_limit_part_hours
         ? Number(initialData.part_component.life_limit_part_hours)
         : undefined,
       inspector: initialData.inspector || "",
-      ata_code: initialData.ata_code || "",
-      inspect_date: initialData.inspect_date
-        ? initialData.inspect_date
+      inspect_date: initialData?.inspect_date
+        ? initialData?.inspect_date
         : undefined,
-      hard_time_calendar: initialData.part_component?.hard_time_calendar
-        ? initialData.part_component?.hard_time_calendar
-        : undefined,
-      hard_time_cycles: initialData?.part_component?.hard_time_cycles
-        ? Number(initialData.part_component.hard_time_cycles)
-        : undefined,
-      hard_time_hours: initialData?.part_component?.hard_time_hours
-        ? Number(initialData.part_component.hard_time_hours)
-        : undefined,
+      ata_code: initialData?.ata_code || "",
     });
   }, [initialData, form]);
 
@@ -500,9 +475,6 @@ export default function CreateComponentForm({
       life_limit_part_calendar: lifeLimitPartCalendar
         ? format(lifeLimitPartCalendar, "yyyy-MM-dd")
         : undefined,
-      hard_time_calendar: hardTimeCalendar
-        ? format(hardTimeCalendar, "yyyy-MM-dd")
-        : undefined,
       batch_name:
         batchNameById.get(rawValues.batch_id) || rawValues.batch_name || "—",
       condition_name:
@@ -560,7 +532,7 @@ export default function CreateComponentForm({
     } = {
       ...valuesWithoutCaducateDate,
       status: "CHECKING",
-      article_type: "component",
+      article_type: "part",
       part_number: normalizeUpper(values.part_number),
       alternative_part_number:
         values.alternative_part_number?.map((v) => normalizeUpper(v)) ?? [],
@@ -574,12 +546,9 @@ export default function CreateComponentForm({
         values.calendar_date && format(values.calendar_date, "yyyy-MM-dd"),
       batch_name: enableBatchNameEdit ? values.batch_name : undefined,
       batch_id: values.batch_id, // Incluir explícitamente el batch_id del formulario
-      // aircraft_id: values.aircraft_id, // Incluir aircraft_id si está presente
+      aircraft_id: values.aircraft_id, // Incluir aircraft_id si está presente
       life_limit_part_cycles: values.life_limit_part_cycles,
       life_limit_part_hours: values.life_limit_part_hours,
-
-      hard_time_cycles: values.hard_time_cycles,
-      hard_time_hours: values.hard_time_hours,
     };
 
     if (isEditing && initialData) {
@@ -588,7 +557,7 @@ export default function CreateComponentForm({
       // - Si NO está marcado: solo enviar batch_id (reasigna solo este artículo a otro batch)
       const updateData: any = {
         ...formattedValues,
-        article_type: "COMPONENT",
+        article_type: "part",
       };
 
       if (enableBatchNameEdit) {
@@ -607,7 +576,7 @@ export default function CreateComponentForm({
         // Solo reasignar este artículo a otro batch (NO afecta a otros artículos)
         if (!values.batch_id) {
           toast.error("Error", {
-            description: "Debe seleccionar una descripción de componente.",
+            description: "Debe seleccionar una descripción de la parte.",
           });
           return;
         }
@@ -762,7 +731,7 @@ export default function CreateComponentForm({
         onSubmit={form.handleSubmit(onSubmit)}
       >
         {/* Encabezado */}
-        <SectionCard title="Registrar componente">
+        <SectionCard title="Registrar Parte">
           <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
             <FormField
               control={form.control}
@@ -855,7 +824,7 @@ export default function CreateComponentForm({
                 render={({ field }) => (
                   <FormItem className="flex flex-col space-y-3 mt-1.5 w-full">
                     <div className="flex items-center justify-between">
-                      <FormLabel>Descripción de Componente</FormLabel>
+                      <FormLabel>Descripción de la Parte</FormLabel>
                       <CreateBatchDialog
                         onSuccess={async (batchName) => {
                           // Invalidar la query y refetch para obtener el batch recién creado
@@ -864,7 +833,7 @@ export default function CreateComponentForm({
                               "search-batches",
                               selectedCompany?.slug,
                               selectedStation,
-                              "component",
+                              "PART",
                             ],
                           });
                           const { data: updatedBatches } =
@@ -878,7 +847,7 @@ export default function CreateComponentForm({
                             });
                           }
                         }}
-                        defaultCategory="COMPONENT"
+                        defaultCategory="PART"
                         triggerButton={
                           <Button
                             type="button"
@@ -1039,7 +1008,7 @@ export default function CreateComponentForm({
                       </PopoverContent>
                     </Popover>
                     <FormDescription>
-                      Descripción del componente a registrar.
+                      Descripción de la parte a registrar.
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -1088,7 +1057,6 @@ export default function CreateComponentForm({
                 </>
               )}
             </div>
-
             <FormField
               control={form.control}
               name="ata_code"
@@ -1123,7 +1091,7 @@ export default function CreateComponentForm({
                     />
                   </FormControl>
                   <FormDescription>
-                    Serial del componente si aplica.
+                    Serial de la parte si aplica.
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -1208,7 +1176,7 @@ export default function CreateComponentForm({
             />
 
             {/* Campo de aeronave - Solo se muestra cuando la condición es "resguardo" */}
-            {/* {isResguardo && (
+            {isResguardo && (
               <FormField
                 control={form.control}
                 name="aircraft_id"
@@ -1244,7 +1212,7 @@ export default function CreateComponentForm({
                             role="combobox"
                             className={cn(
                               "w-full justify-between",
-                              !field.value && "text-muted-foreground"
+                              !field.value && "text-muted-foreground",
                             )}
                           >
                             {isAircraftsLoading && (
@@ -1254,7 +1222,7 @@ export default function CreateComponentForm({
                               <p>
                                 {
                                   aircrafts?.find(
-                                    (a) => a.id.toString() === field.value
+                                    (a) => a.id.toString() === field.value,
                                   )?.acronym
                                 }
                               </p>
@@ -1281,7 +1249,7 @@ export default function CreateComponentForm({
                                     form.setValue(
                                       "aircraft_id",
                                       aircraft.id.toString(),
-                                      { shouldValidate: true }
+                                      { shouldValidate: true },
                                     );
                                   }}
                                 >
@@ -1290,7 +1258,7 @@ export default function CreateComponentForm({
                                       "mr-2 h-4 w-4",
                                       `${aircraft.id}` === field.value
                                         ? "opacity-100"
-                                        : "opacity-0"
+                                        : "opacity-0",
                                     )}
                                   />
                                   <p>
@@ -1311,7 +1279,7 @@ export default function CreateComponentForm({
                   </FormItem>
                 )}
               />
-            )} */}
+            )}
 
             <FormField
               control={form.control}
@@ -1468,14 +1436,14 @@ export default function CreateComponentForm({
         </SectionCard>
 
         {/* Fechas y límites */}
-        <SectionCard title="Fechas del Componente">
+        <SectionCard title="Fechas de la Parte">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormItem className="w-full">
               <DatePickerField
                 label="Fecha de Fabricación"
                 value={fabricationDate}
                 setValue={setFabricationDate}
-                description="Fecha de fabricación del Componente."
+                description="Fecha de fabricación de la Parte."
                 busy={busy}
                 shortcuts="back"
                 maxYear={new Date().getFullYear()}
@@ -1488,7 +1456,7 @@ export default function CreateComponentForm({
                 label="Fecha de Caducidad"
                 value={caducateDate}
                 setValue={setCaducateDate}
-                description="Fecha de Caducidad del Componente."
+                description="Fecha de Caducidad de la Parte."
                 busy={busy}
                 shortcuts="forward"
                 showNotApplicable={true}
@@ -1676,7 +1644,6 @@ export default function CreateComponentForm({
             </div>
           </SectionCard>
         )}
-
         {/* Descripción y archivos */}
         <SectionCard title="Detalles y documentos">
           <div className="space-y-4">
