@@ -104,7 +104,7 @@ const InventarioArticulosPage = () => {
         )
       : list;
 
-    if (activeCategory === "COMPONENT" && componentCondition !== "all") {
+    if ((activeCategory === "COMPONENT" || activeCategory === "PART") && componentCondition !== "all") {
       return bySearch.filter((a) => a.condition === componentCondition);
     }
 
@@ -179,7 +179,7 @@ const InventarioArticulosPage = () => {
 
             {/* Sub-tabs por categoría */}
             <TabsContent value={activeCategory} className="mt-6">
-              {activeCategory === "COMPONENT" && (
+              {(activeCategory === "COMPONENT" || activeCategory === "PART") && (
                 <Tabs
                   value={componentCondition}
                   onValueChange={(v) =>
