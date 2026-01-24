@@ -7,14 +7,13 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import { ScrollArea } from "@/components/ui/scroll-area"
 import { useToast } from "@/components/ui/use-toast"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { ChevronDown, ChevronRight, Folder, FolderOpen, Layers, Layers2, MinusCircle, PlusCircle } from "lucide-react"
 import { useState } from "react"
 import { Control, useFieldArray, useForm, useWatch } from "react-hook-form"
 import { z } from "zod"
-import { ScrollArea } from "@/components/ui/scroll-area"
 
 // Esquema recursivo para partes/subpartes
 const PartSchema: any = z.object({

@@ -189,12 +189,12 @@ export interface ConsumableArticle extends Article {
 export type Convertion = {
   id: number;
   registered_by: string;
-  updated_by: string | null; 
-  created_at: string; 
-  updated_at: string; 
-  secondary_unit: Unit; 
-  primary_unit: Unit; 
-  equivalence: number; 
+  updated_by: string | null;
+  created_at: string;
+  updated_at: string;
+  secondary_unit: Unit;
+  primary_unit: Unit;
+  equivalence: number;
 };
 
 export type Company = {
@@ -1173,3 +1173,11 @@ export interface WarehouseDashboard {
   }[]
 }
 
+
+export type GeneralArticle = {
+  id: number;
+  description: string,
+  variant_type: string,
+  quantity: number,
+  brand_model: string,
+}

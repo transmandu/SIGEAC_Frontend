@@ -71,10 +71,10 @@ const GestionCantidadesPage = () => {
   // Combinar información de paginación - usar la del más grande
   const response = useMemo(() => {
     if (!consumableResponse && !componentResponse) return null;
-    
-    const combinedTotal = (consumableResponse?.pagination?.total || 0) + 
+
+    const combinedTotal = (consumableResponse?.pagination?.total || 0) +
                           (componentResponse?.pagination?.total || 0);
-    
+
     return {
       batches,
       pagination: {
@@ -202,7 +202,7 @@ const GestionCantidadesPage = () => {
         </div>
 
         {/* Filter Panel */}
-        <FilterPanel 
+        <FilterPanel
           batches={batches}
           filterState={filterState}
           filterActions={filterActions}
@@ -265,9 +265,9 @@ const GestionCantidadesPage = () => {
 
         {/* Empty State */}
         {(!filterStats.filteredBatches || !Array.isArray(filterStats.filteredBatches) || filterStats.filteredBatches.length === 0) && !isLoading && !filterStats.isSearching && (
-          <EmptyState 
-            hasActiveFilters={filterStats.hasActiveFilters} 
-            onClearFilters={filterActions.clearFilters} 
+          <EmptyState
+            hasActiveFilters={filterStats.hasActiveFilters}
+            onClearFilters={filterActions.clearFilters}
           />
         )}
       </div>

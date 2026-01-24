@@ -781,11 +781,11 @@ export function getMenuList(
           submenus: [],
         },
         {
-          href: `/${currentCompany?.slug}/almacen/gestion_cantidades`,
+          href: `/${currentCompany?.slug}/almacen/gestion_cantidad_general`,
           label: "Gestión de Cantidades",
           roles: ["ANALISTA_ALMACEN", "JEFE_ALMACEN", "SUPERUSER"],
           active: pathname.includes(
-            `/${currentCompany?.slug}/almacen/gestion_cantidades`
+            `/${currentCompany?.slug}/almacen/gestion_cantidad_general`
           ),
           icon: SquarePen,
           submenus: [],

@@ -35,8 +35,7 @@ import { useCompanyStore } from "@/stores/CompanyStore";
 
 const formSchema = z.object({
   equivalence: z.coerce
-    .number({ invalid_type_error: "Debe ser un número válido." })
-    .min(0.001, "El valor de equivalencia debe ser al menos 0.001."),
+    .number({ invalid_type_error: "Debe ser un número válido." }),
   primary_unit: z.number().min(1, "Debe seleccionar la unidad primaria."),
   secondary_unit: z
     .number()
@@ -209,8 +208,6 @@ export default function CreateSecondaryUnitForm({ onClose }: FormProps) {
                   <Input
                     type="number"
                     inputMode="decimal" // Sugerencia para teclados móviles
-                    min="0.001" // Propiedades para la descripción
-                    step="0.001" // Propiedades para la descripción
                     placeholder=""
                     // Manejo de cambio: limpiamos la coma y pasamos el string. Zod hace la conversión en submit.
                     onChange={(e) => {

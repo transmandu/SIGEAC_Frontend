@@ -1,6 +1,5 @@
 'use client';
 
-import { CreateBatchDialog } from '@/components/dialogs/mantenimiento/almacen/CreateBatchDialog';
 import { ContentLayout } from '@/components/layout/ContentLayout';
 import {
   Breadcrumb,
@@ -10,21 +9,14 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { TooltipProvider } from '@/components/ui/tooltip';
+import { useGetWarehouseArticlesByCategory } from '@/hooks/mantenimiento/almacen/articulos/useGetWarehouseArticlesByCategory';
 import { useCompanyStore } from '@/stores/CompanyStore';
-import { TooltipArrow } from '@radix-ui/react-tooltip';
-import { Loader2, Package2, PaintBucket, Wrench, X } from 'lucide-react';
+import { Loader2, Package2, PaintBucket, Puzzle, Wrench } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
-import { FaFilePdf } from 'react-icons/fa';
-import { RiFileExcel2Fill } from 'react-icons/ri';
-import { toast } from 'sonner';
 import { flattenArticles, getColumnsByCategory, IArticleSimple } from './columns';
 import { DataTable } from './data-table';
-import { useGetWarehouseArticlesByCategory } from '@/hooks/mantenimiento/almacen/articulos/useGetWarehouseArticlesByCategory';
-import { useInventoryExport } from '@/hooks/mantenimiento/almacen/reportes/useGetWarehouseReports';
 type Category = 'COMPONENTE' | 'CONSUMIBLE' | 'HERRAMIENTA';
 
 const InventarioArticulosPage = () => {
@@ -137,6 +129,9 @@ const InventarioArticulosPage = () => {
               </TabsTrigger>
               <TabsTrigger className="flex gap-2" value="HERRAMIENTA">
                 <Wrench className="size-5" /> Herramientas
+              </TabsTrigger>
+              <TabsTrigger className="flex gap-2" value="PARTE">
+                <Puzzle className="size-5" /> Partes
               </TabsTrigger>
             </TabsList>
 

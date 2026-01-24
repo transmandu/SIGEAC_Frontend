@@ -43,9 +43,9 @@ export function RegisterDispatchRequestDialog() {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 {category ? (
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
+                  <Button
+                    variant="outline"
+                    size="sm"
                     className="flex items-center gap-2 h-8"
                   >
                     <Badge variant="default" className="text-xs px-2 py-0.5">
@@ -61,7 +61,7 @@ export function RegisterDispatchRequestDialog() {
                 )}
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-[180px]">
-                <DropdownMenuItem 
+                <DropdownMenuItem
                   onClick={() => setCategory("consumible")}
                   className={category === "consumible" ? "bg-accent" : ""}
                 >
@@ -70,7 +70,7 @@ export function RegisterDispatchRequestDialog() {
                     <span className="ml-auto text-xs">✓</span>
                   )}
                 </DropdownMenuItem>
-                <DropdownMenuItem 
+                <DropdownMenuItem
                   onClick={() => setCategory("componente")}
                   className={category === "componente" ? "bg-accent" : ""}
                 >
@@ -79,7 +79,7 @@ export function RegisterDispatchRequestDialog() {
                     <span className="ml-auto text-xs">✓</span>
                   )}
                 </DropdownMenuItem>
-                <DropdownMenuItem 
+                <DropdownMenuItem
                   onClick={() => setCategory("herramienta")}
                   className={category === "herramienta" ? "bg-accent" : ""}
                 >
@@ -94,28 +94,27 @@ export function RegisterDispatchRequestDialog() {
         </DialogHeader>
         {category ? (
           <>
-            <Separator className="my-4" />
             {
               category === 'consumible' && (
-                <ConsumableDispatchForm 
-                  key="consumible" 
-                  onClose={() => setOpen(false)} 
+                <ConsumableDispatchForm
+                  key="consumible"
+                  onClose={() => setOpen(false)}
                 />
               )
             }
             {
               category === 'herramienta' && (
-                <ToolDispatchForm 
-                  key="herramienta" 
-                  onClose={() => setOpen(false)} 
+                <ToolDispatchForm
+                  key="herramienta"
+                  onClose={() => setOpen(false)}
                 />
               )
             }
             {
               category === 'componente' && (
-                <ComponentDispatchForm 
-                  key="componente" 
-                  onClose={() => setOpen(false)} 
+                <ComponentDispatchForm
+                  key="componente"
+                  onClose={() => setOpen(false)}
                 />
               )
             }

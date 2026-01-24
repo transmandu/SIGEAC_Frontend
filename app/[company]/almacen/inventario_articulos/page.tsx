@@ -14,20 +14,19 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { useGetGeneralArticles } from '@/hooks/mantenimiento/almacen/almacen_general/useGetGeneralArticles';
+import { useGetWarehouseArticlesByCategory } from '@/hooks/mantenimiento/almacen/articulos/useGetWarehouseArticlesByCategory';
+import { useInventoryExport } from '@/hooks/mantenimiento/almacen/reportes/useGetWarehouseReports';
 import { useCompanyStore } from '@/stores/CompanyStore';
 import { TooltipArrow } from '@radix-ui/react-tooltip';
+import { parseISO } from 'date-fns';
 import { Loader2, Package2, PaintBucket, Wrench, X } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { FaFilePdf } from 'react-icons/fa';
 import { RiFileExcel2Fill } from 'react-icons/ri';
-import { flattenArticles, getColumnsByCategory, IArticleSimple, allCategoriesCols } from './columns';
-import { DataTable } from './data-table';
-import { useGetWarehouseArticlesByCategory } from '@/hooks/mantenimiento/almacen/articulos/useGetWarehouseArticlesByCategory';
-import { useInventoryExport } from '@/hooks/mantenimiento/almacen/reportes/useGetWarehouseReports';
-import { parseISO } from 'date-fns';
-
-const EXPORT_PDF_ENDPOINT = '/api/inventory/export/pdf';
-const EXPORT_XLSX_ENDPOINT = '/api/inventory/export/excel';
+import { allCategoriesCols, flattenArticles, getColumnsByCategory, IArticleSimple } from './_tables/warehouse-columns';
+import { DataTable } from './_tables/warehouse-data-table';
+import { columns as GeneralColums } from './_tables/general-columns';
 
 type Category = 'all' | 'COMPONENTE' | 'CONSUMIBLE' | 'HERRAMIENTA';
 
@@ -56,6 +55,8 @@ const InventarioArticulosPage = () => {
     activeCategory, // 'all', 'COMPONENTE', 'CONSUMIBLE', o 'HERRAMIENTA'
     true
   );
+
+  const { data: articlesGeneral, isLoading: isLoadingArticlesGeneral } = useGetGeneralArticles();
 
   // Preparar parámetros de exportación (solo válido cuando no es 'all')
   const common = useMemo(() => {
@@ -90,9 +91,9 @@ const InventarioArticulosPage = () => {
     const getExpiryDate = (article: IArticleSimple): Date | null => {
       const caducateDate = article.component?.caducate_date || article.consumable?.caducate_date;
       if (!caducateDate) return null;
-      const date = caducateDate instanceof Date 
-        ? caducateDate 
-        : typeof caducateDate === 'string' 
+      const date = caducateDate instanceof Date
+        ? caducateDate
+        : typeof caducateDate === 'string'
           ? parseISO(caducateDate)
           : null;
       return date && !isNaN(date.getTime()) ? date : null;
@@ -196,137 +197,155 @@ const InventarioArticulosPage = () => {
           </div>
 
           {/* Tabs principales */}
-          <Tabs
-            value={activeCategory}
-            onValueChange={(v) => setActiveCategory(v as Category)}
-          >
-            <TabsList className="flex justify-center mb-4 space-x-3" aria-label="Categorías">
-              <TabsTrigger className="flex gap-2" value="all">
-                <Package2 className="size-5" /> Todos
-              </TabsTrigger>
-              <TabsTrigger className="flex gap-2" value="COMPONENTE">
-                <Package2 className="size-5" /> Componente
-              </TabsTrigger>
-              <TabsTrigger className="flex gap-2" value="CONSUMIBLE">
-                <PaintBucket className="size-5" /> Consumibles
-              </TabsTrigger>
-              <TabsTrigger className="flex gap-2" value="HERRAMIENTA">
-                <Wrench className="size-5" /> Herramientas
-              </TabsTrigger>
 
-              <CreateBatchDialog />
-
-              {/* Botones exportación */}
-              <div className="flex gap-4 items-center">
-                {/* PDF */}
-                <Tooltip delayDuration={100}>
-                  <TooltipTrigger asChild>
-                    <button
-                      type="button"
-                      onClick={() => common && exportPdf(common)}
-                      disabled={exporting.pdf || !common}
-                      className="disabled:opacity-50"
-                      aria-label="Descargar PDF"
-                    >
-                      {exporting.pdf ? (
-                        <Loader2 className="size-5 animate-spin" />
-                      ) : (
-                        <FaFilePdf className="size-5 text-red-500/80 hover:scale-125 transition-transform" />
-                      )}
-                    </button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    {!common ? 'Selecciona una categoría específica' : 'Descargar PDF'} <TooltipArrow />
-                  </TooltipContent>
-                </Tooltip>
-
-                {/* Excel */}
-                <Tooltip delayDuration={100}>
-                  <TooltipTrigger asChild>
-                    <button
-                      type="button"
-                      onClick={() => common && exportExcel(common)}
-                      disabled={exporting.xlsx || !common}
-                      className="disabled:opacity-50"
-                      aria-label="Descargar Excel"
-                    >
-                      {exporting.xlsx ? (
-                        <Loader2 className="size-5 animate-spin" />
-                      ) : (
-                        <RiFileExcel2Fill className="size-6 text-green-600/80 hover:scale-125 transition-transform" />
-                      )}
-                    </button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    {!common ? 'Selecciona una categoría específica' : 'Descargar Excel'} <TooltipArrow />
-                  </TooltipContent>
-                </Tooltip>
-              </div>
+          <Tabs defaultValue="aeronautic" className="w-full">
+            <TabsList className='w-full'>
+              <TabsTrigger value="aeronautic">Aeronáutico</TabsTrigger>
+              <TabsTrigger value="general">General/Ferretería</TabsTrigger>
             </TabsList>
-
-            {/* Sub-tabs por categoría */}
-            <TabsContent value="all" className="mt-6">
-              {isLoadingArticles ? (
-                <div className="flex w-full h-full justify-center items-center min-h-[300px]">
-                  <Loader2 className="size-24 animate-spin" />
-                </div>
-              ) : (
-                <DataTable columns={cols} data={currentData} />
-              )}
-            </TabsContent>
-
-            <TabsContent value="COMPONENTE" className="mt-6">
+            <TabsContent value="aeronautic">
               <Tabs
-                value={componentCondition}
-                onValueChange={(v) => setComponentCondition(v as typeof componentCondition)}
-                className="mb-4"
+                value={activeCategory}
+                onValueChange={(v) => setActiveCategory(v as Category)}
               >
-                <TabsList className="flex justify-center mb-4 space-x-3" aria-label="Condición de componente">
-                  <TabsTrigger value="all">Todos</TabsTrigger>
-                  <TabsTrigger value="SERVICIABLE">Serviciables</TabsTrigger>
-                  <TabsTrigger value="REPARADO">Reparados</TabsTrigger>
-                  <TabsTrigger value="REMOVIDO - NO SERVICIABLE">Removidos - No Serviciables</TabsTrigger>
-                  <TabsTrigger value="REMOVIDO - CUSTODIA">Removidos - En custodia</TabsTrigger>
+                <TabsList className="flex justify-center mb-4 space-x-3" aria-label="Categorías">
+                  <TabsTrigger className="flex gap-2" value="all">
+                    <Package2 className="size-5" /> Todos
+                  </TabsTrigger>
+                  <TabsTrigger className="flex gap-2" value="COMPONENTE">
+                    <Package2 className="size-5" /> Componente
+                  </TabsTrigger>
+                  <TabsTrigger className="flex gap-2" value="CONSUMIBLE">
+                    <PaintBucket className="size-5" /> Consumibles
+                  </TabsTrigger>
+                  <TabsTrigger className="flex gap-2" value="HERRAMIENTA">
+                    <Wrench className="size-5" /> Herramientas
+                  </TabsTrigger>
+
+                  <CreateBatchDialog />
+
+                  {/* Botones exportación */}
+                  <div className="flex gap-4 items-center">
+                    {/* PDF */}
+                    <Tooltip delayDuration={100}>
+                      <TooltipTrigger asChild>
+                        <button
+                          type="button"
+                          onClick={() => common && exportPdf(common)}
+                          disabled={exporting.pdf || !common}
+                          className="disabled:opacity-50"
+                          aria-label="Descargar PDF"
+                        >
+                          {exporting.pdf ? (
+                            <Loader2 className="size-5 animate-spin" />
+                          ) : (
+                            <FaFilePdf className="size-5 text-red-500/80 hover:scale-125 transition-transform" />
+                          )}
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        {!common ? 'Selecciona una categoría específica' : 'Descargar PDF'} <TooltipArrow />
+                      </TooltipContent>
+                    </Tooltip>
+
+                    {/* Excel */}
+                    <Tooltip delayDuration={100}>
+                      <TooltipTrigger asChild>
+                        <button
+                          type="button"
+                          onClick={() => common && exportExcel(common)}
+                          disabled={exporting.xlsx || !common}
+                          className="disabled:opacity-50"
+                          aria-label="Descargar Excel"
+                        >
+                          {exporting.xlsx ? (
+                            <Loader2 className="size-5 animate-spin" />
+                          ) : (
+                            <RiFileExcel2Fill className="size-6 text-green-600/80 hover:scale-125 transition-transform" />
+                          )}
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        {!common ? 'Selecciona una categoría específica' : 'Descargar Excel'} <TooltipArrow />
+                      </TooltipContent>
+                    </Tooltip>
+                  </div>
                 </TabsList>
+
+                {/* Sub-tabs por categoría */}
+                <TabsContent value="all" className="mt-6">
+                  {isLoadingArticles ? (
+                    <div className="flex w-full h-full justify-center items-center min-h-[300px]">
+                      <Loader2 className="size-24 animate-spin" />
+                    </div>
+                  ) : (
+                    <DataTable columns={cols} data={currentData} />
+                  )}
+                </TabsContent>
+
+                <TabsContent value="COMPONENTE" className="mt-6">
+                  <Tabs
+                    value={componentCondition}
+                    onValueChange={(v) => setComponentCondition(v as typeof componentCondition)}
+                    className="mb-4"
+                  >
+                    <TabsList className="flex justify-center mb-4 space-x-3" aria-label="Condición de componente">
+                      <TabsTrigger value="all">Todos</TabsTrigger>
+                      <TabsTrigger value="SERVICIABLE">Serviciables</TabsTrigger>
+                      <TabsTrigger value="REPARADO">Reparados</TabsTrigger>
+                      <TabsTrigger value="REMOVIDO - NO SERVICIABLE">Removidos - No Serviciables</TabsTrigger>
+                      <TabsTrigger value="REMOVIDO - CUSTODIA">Removidos - En custodia</TabsTrigger>
+                    </TabsList>
+                  </Tabs>
+
+                  {isLoadingArticles ? (
+                    <div className="flex w-full h-full justify-center items-center min-h-[300px]">
+                      <Loader2 className="size-24 animate-spin" />
+                    </div>
+                  ) : (
+                    <DataTable columns={cols} data={currentData} />
+                  )}
+                </TabsContent>
+
+                <TabsContent value="CONSUMIBLE" className="mt-6">
+                  <Tabs
+                    value={consumableFilter}
+                    onValueChange={(v) => setConsumableFilter(v as typeof consumableFilter)}
+                    className="mb-4"
+                  >
+                    <TabsList className="flex justify-center mb-4 space-x-3" aria-label="Filtro de consumibles">
+                      <TabsTrigger value="all">Todos</TabsTrigger>
+                      <TabsTrigger value="QUIMICOS">Mercancia Peligrosa</TabsTrigger>
+                    </TabsList>
+                  </Tabs>
+
+                  {isLoadingArticles ? (
+                    <div className="flex w-full h-full justify-center items-center min-h-[300px]">
+                      <Loader2 className="size-24 animate-spin" />
+                    </div>
+                  ) : (
+                    <DataTable columns={cols} data={currentData} />
+                  )}
+                </TabsContent>
+
+                <TabsContent value="HERRAMIENTA" className="mt-6">
+                  {isLoadingArticles ? (
+                    <div className="flex w-full h-full justify-center items-center min-h-[300px]">
+                      <Loader2 className="size-24 animate-spin" />
+                    </div>
+                  ) : (
+                    <DataTable columns={cols} data={currentData} />
+                  )}
+                </TabsContent>
               </Tabs>
-
-              {isLoadingArticles ? (
-                <div className="flex w-full h-full justify-center items-center min-h-[300px]">
-                  <Loader2 className="size-24 animate-spin" />
-                </div>
-              ) : (
-                <DataTable columns={cols} data={currentData} />
-              )}
             </TabsContent>
-
-            <TabsContent value="CONSUMIBLE" className="mt-6">
-              <Tabs
-                value={consumableFilter}
-                onValueChange={(v) => setConsumableFilter(v as typeof consumableFilter)}
-                className="mb-4"
-              >
-                <TabsList className="flex justify-center mb-4 space-x-3" aria-label="Filtro de consumibles">
-                  <TabsTrigger value="all">Todos</TabsTrigger>
-                  <TabsTrigger value="QUIMICOS">Mercancia Peligrosa</TabsTrigger>
-                </TabsList>
-              </Tabs>
-
-              {isLoadingArticles ? (
+            <TabsContent value="general">
+              {isLoadingArticlesGeneral ? (
                 <div className="flex w-full h-full justify-center items-center min-h-[300px]">
                   <Loader2 className="size-24 animate-spin" />
                 </div>
               ) : (
-                <DataTable columns={cols} data={currentData} />
-              )}
-            </TabsContent>
-
-            <TabsContent value="HERRAMIENTA" className="mt-6">
-              {isLoadingArticles ? (
-                <div className="flex w-full h-full justify-center items-center min-h-[300px]">
-                  <Loader2 className="size-24 animate-spin" />
-                </div>
-              ) : (
-                <DataTable columns={cols} data={currentData} />
+                articlesGeneral && <DataTable columns={GeneralColums} data={articlesGeneral} />
               )}
             </TabsContent>
           </Tabs>
