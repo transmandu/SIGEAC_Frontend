@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useCompanyStore } from "@/stores/CompanyStore";
-import { Loader2, Package2, PaintBucket, Wrench, X } from "lucide-react";
+import { Drill, Loader2, Package2, PaintBucket, Puzzle, Wrench, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import {
   flattenArticles,
@@ -26,8 +26,8 @@ import { useGetWarehouseArticlesByCategory } from "@/hooks/mantenimiento/almacen
 const InventarioArticulosPage = () => {
   const { selectedCompany } = useCompanyStore();
   const [activeCategory, setActiveCategory] = useState<
-    "COMPONENTE" | "CONSUMIBLE" | "HERRAMIENTA"
-  >("COMPONENTE");
+    "COMPONENT" | "CONSUMABLE" | "TOOL" | "PART"
+  >("COMPONENT");
   const [componentCondition, setComponentCondition] = useState<
     "all" | "SERVICIABLE" | "REMOVIDO - NO SERVICIABLE" | "REMOVIDO - CUSTODIA"
   >("all");
@@ -41,8 +41,8 @@ const InventarioArticulosPage = () => {
     useGetWarehouseArticlesByCategory(1, 1000, activeCategory, true);
 
   useEffect(() => {
-    if (activeCategory !== "COMPONENTE") setComponentCondition("all");
-    if (activeCategory !== "CONSUMIBLE") setConsumableFilter("all");
+    if (activeCategory !== "COMPONENT") setComponentCondition("all");
+    if (activeCategory !== "CONSUMABLE") setConsumableFilter("all");
   }, [activeCategory]);
 
   const getCurrentData = (): IArticleSimple[] => {
@@ -56,7 +56,7 @@ const InventarioArticulosPage = () => {
 
     // 2) Subfiltros por pestaña
     if (
-      activeCategory === "COMPONENTE" &&
+      (activeCategory === "COMPONENT" || activeCategory === "PART") &&
       componentCondition &&
       componentCondition !== "all"
     ) {
@@ -76,7 +76,7 @@ const InventarioArticulosPage = () => {
       });
     }
 
-    if (activeCategory === "CONSUMIBLE" && consumableFilter === "QUIMICOS") {
+    if (activeCategory === "CONSUMABLE" && consumableFilter === "QUIMICOS") {
       // Si agregaste is_hazardous al flatten, úsalo. Si no, ajusta al campo real.
       return bySearch.filter((a: any) => a.is_hazardous === true);
     }
@@ -154,20 +154,26 @@ const InventarioArticulosPage = () => {
             className="flex justify-center mb-4 space-x-3"
             aria-label="Categorías"
           >
-            <TabsTrigger className="flex gap-2" value="COMPONENTE">
+            <TabsTrigger className="flex gap-2" value="all">
+              <Package2 className="size-5" /> Todos
+            </TabsTrigger>
+            <TabsTrigger className="flex gap-2" value="COMPONENT">
               <Package2 className="size-5" /> Componente
             </TabsTrigger>
-            <TabsTrigger className="flex gap-2" value="CONSUMIBLE">
+            <TabsTrigger className="flex gap-2" value="PART">
+              <Puzzle className="size-5" /> Partes
+            </TabsTrigger>
+            <TabsTrigger className="flex gap-2" value="CONSUMABLE">
               <PaintBucket className="size-5" /> Consumibles
             </TabsTrigger>
-            <TabsTrigger className="flex gap-2" value="HERRAMIENTA">
-              <Wrench className="size-5" /> Herramientas
+            <TabsTrigger className="flex gap-2" value="TOOL">
+              <Drill className="size-5" /> Herramientas
             </TabsTrigger>
           </TabsList>
 
           {/* Tab Content */}
           <TabsContent value={activeCategory} className="mt-6">
-            {activeCategory === "COMPONENTE" && (
+            {(activeCategory === "COMPONENT" || activeCategory === "PART") && (
               <Tabs
                 value={componentCondition}
                 onValueChange={(v) =>
@@ -192,7 +198,7 @@ const InventarioArticulosPage = () => {
             )}
 
             {/* Sub-tabs CONSUMIBLE */}
-            {activeCategory === "CONSUMIBLE" && (
+            {activeCategory === "CONSUMABLE" && (
               <Tabs
                 value={consumableFilter}
                 onValueChange={(v) =>
@@ -205,7 +211,9 @@ const InventarioArticulosPage = () => {
                   aria-label="Filtro de consumibles"
                 >
                   <TabsTrigger value="all">Todos</TabsTrigger>
-                  <TabsTrigger value="QUIMICOS">Mercancia Peligrosa</TabsTrigger>
+                  <TabsTrigger value="QUIMICOS">
+                    Mercancia Peligrosa
+                  </TabsTrigger>
                 </TabsList>
               </Tabs>
             )}

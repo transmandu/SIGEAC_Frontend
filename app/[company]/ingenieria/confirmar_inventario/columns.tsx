@@ -278,9 +278,9 @@ export const herramientaCols: ColumnDef<IArticleSimple>[] = [
 
 // Columnas por categoría
 export const getColumnsByCategory = (
-  cat: "COMPONENTE" | "CONSUMIBLE" | "HERRAMIENTA"
+  cat: "COMPONENT" | "CONSUMABLE" | "TOOL" | "PART"
 ): ColumnDef<IArticleSimple>[] => {
-  if (cat === "HERRAMIENTA") return herramientaCols;
-  if (cat === "CONSUMIBLE") return consumibleCols;
+  if (cat === "TOOL") return herramientaCols;
+  if (cat === "CONSUMABLE") return consumibleCols;
   return componenteCols; // componente u otros
 };
