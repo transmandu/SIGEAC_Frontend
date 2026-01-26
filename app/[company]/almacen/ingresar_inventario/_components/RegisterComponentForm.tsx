@@ -1485,7 +1485,7 @@ export default function CreateComponentForm({
 
             <FormItem className="w-full">
               <DatePickerField
-                label="Fecha de Caducidad"
+                label="Próxima Caducidad"
                 value={caducateDate}
                 setValue={setCaducateDate}
                 description="Fecha de Caducidad del Componente."

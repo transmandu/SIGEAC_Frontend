@@ -1562,7 +1562,7 @@ export default function CreateConsumableForm({
                         values={field.value || []}
                         onChange={(vals) =>
                           field.onChange(
-                            vals.map((v: string) => normalizeUpper(v))
+                            vals.map((v: string) => normalizeUpper(v)),
                           )
                         }
                         placeholder="Ej: 234ABAC"
@@ -1614,13 +1614,13 @@ export default function CreateConsumableForm({
                             const { data: updatedBatches } =
                               await refetchBatches();
                             const newBatch = updatedBatches?.find(
-                              (b: any) => b.name === batchName
+                              (b: any) => b.name === batchName,
                             );
                             if (newBatch) {
                               form.setValue(
                                 "batch_id",
                                 newBatch.id.toString(),
-                                { shouldValidate: true }
+                                { shouldValidate: true },
                               );
                             }
                           }}
@@ -1649,7 +1649,7 @@ export default function CreateConsumableForm({
                               role="combobox"
                               className={cn(
                                 "justify-between",
-                                !field.value && "text-muted-foreground"
+                                !field.value && "text-muted-foreground",
                               )}
                             >
                               {isBatchesLoading && (
@@ -1678,7 +1678,7 @@ export default function CreateConsumableForm({
                                   const selected = e.currentTarget
                                     .closest("[cmdk-root]")
                                     ?.querySelector(
-                                      '[cmdk-item][aria-selected="true"]'
+                                      '[cmdk-item][aria-selected="true"]',
                                     ) as HTMLElement;
                                   if (selected) {
                                     selected.click();
@@ -1686,7 +1686,7 @@ export default function CreateConsumableForm({
                                     const firstItem = e.currentTarget
                                       .closest("[cmdk-root]")
                                       ?.querySelector(
-                                        '[cmdk-item]:not([data-disabled="true"])'
+                                        '[cmdk-item]:not([data-disabled="true"])',
                                       ) as HTMLElement;
                                     if (firstItem) {
                                       firstItem.click();
@@ -1709,13 +1709,13 @@ export default function CreateConsumableForm({
                                         form.setValue(
                                           "batch_id",
                                           batch.id.toString(),
-                                          { shouldValidate: true }
+                                          { shouldValidate: true },
                                         );
                                         if (isEditing && enableBatchNameEdit) {
                                           form.setValue(
                                             "batch_name",
                                             batch.name,
-                                            { shouldValidate: true }
+                                            { shouldValidate: true },
                                           );
                                         }
                                       }}
@@ -1725,7 +1725,7 @@ export default function CreateConsumableForm({
                                           "mr-2 h-4 w-4",
                                           `${batch.id}` === field.value
                                             ? "opacity-100"
-                                            : "opacity-0"
+                                            : "opacity-0",
                                         )}
                                       />
                                       <p className="font-semibold text-primary">
@@ -1746,8 +1746,8 @@ export default function CreateConsumableForm({
                                   ?.filter(
                                     (batch) =>
                                       !searchResults?.some(
-                                        (sr) => sr.id === batch.id
-                                      )
+                                        (sr) => sr.id === batch.id,
+                                      ),
                                   )
                                   .map((batch) => (
                                     <CommandItem
@@ -1757,13 +1757,13 @@ export default function CreateConsumableForm({
                                         form.setValue(
                                           "batch_id",
                                           batch.id.toString(),
-                                          { shouldValidate: true }
+                                          { shouldValidate: true },
                                         );
                                         if (isEditing && enableBatchNameEdit) {
                                           form.setValue(
                                             "batch_name",
                                             batch.name,
-                                            { shouldValidate: true }
+                                            { shouldValidate: true },
                                           );
                                         }
                                       }}
@@ -1773,7 +1773,7 @@ export default function CreateConsumableForm({
                                           "mr-2 h-4 w-4",
                                           `${batch.id}` === field.value
                                             ? "opacity-100"
-                                            : "opacity-0"
+                                            : "opacity-0",
                                         )}
                                       />
                                       <p>{batch.name}</p>
@@ -1881,7 +1881,7 @@ export default function CreateConsumableForm({
                             } else {
                               // Si no hay elemento enfocado, enfocar y seleccionar el primero
                               const firstItem = e.currentTarget.querySelector(
-                                '[role="option"]:not([data-disabled="true"])'
+                                '[role="option"]:not([data-disabled="true"])',
                               ) as HTMLElement;
                               if (firstItem) {
                                 firstItem.focus();
@@ -1893,7 +1893,7 @@ export default function CreateConsumableForm({
                                     keyCode: 13,
                                     bubbles: true,
                                     cancelable: true,
-                                  }
+                                  },
                                 );
                                 firstItem.dispatchEvent(enterEvent);
                               }
@@ -1932,7 +1932,7 @@ export default function CreateConsumableForm({
                             form.setValue(
                               "manufacturer_id",
                               manufacturer.id.toString(),
-                              { shouldValidate: true }
+                              { shouldValidate: true },
                             );
                           }
                         }}
@@ -1962,7 +1962,7 @@ export default function CreateConsumableForm({
                             role="combobox"
                             className={cn(
                               "w-full justify-between",
-                              !field.value && "text-muted-foreground"
+                              !field.value && "text-muted-foreground",
                             )}
                           >
                             {isManufacturerLoading && (
@@ -1994,7 +1994,7 @@ export default function CreateConsumableForm({
                                 const selected = e.currentTarget
                                   .closest("[cmdk-root]")
                                   ?.querySelector(
-                                    '[cmdk-item][aria-selected="true"]'
+                                    '[cmdk-item][aria-selected="true"]',
                                   ) as HTMLElement;
                                 if (selected) {
                                   selected.click();
@@ -2002,7 +2002,7 @@ export default function CreateConsumableForm({
                                   const firstItem = e.currentTarget
                                     .closest("[cmdk-root]")
                                     ?.querySelector(
-                                      '[cmdk-item]:not([data-disabled="true"])'
+                                      '[cmdk-item]:not([data-disabled="true"])',
                                     ) as HTMLElement;
                                   if (firstItem) {
                                     firstItem.click();
@@ -2026,7 +2026,7 @@ export default function CreateConsumableForm({
                                       form.setValue(
                                         "manufacturer_id",
                                         manufacturer.id.toString(),
-                                        { shouldValidate: true }
+                                        { shouldValidate: true },
                                       );
                                     }}
                                   >
@@ -2035,7 +2035,7 @@ export default function CreateConsumableForm({
                                         "mr-2 h-4 w-4",
                                         `${manufacturer.id}` === field.value
                                           ? "opacity-100"
-                                          : "opacity-0"
+                                          : "opacity-0",
                                       )}
                                     />
                                     <p>
@@ -2091,7 +2091,7 @@ export default function CreateConsumableForm({
               />
 
               <DatePickerField
-                label="Fecha de Caducidad - Shelf-Life"
+                label="Próxima Caducidad"
                 value={caducateDate}
                 setValue={handleCaducateDateChange}
                 description="Fecha límite del Consumible en Almacen."
@@ -2188,7 +2188,7 @@ export default function CreateConsumableForm({
                             const selected = e.currentTarget
                               .closest("[cmdk-root]")
                               ?.querySelector(
-                                '[cmdk-item][aria-selected="true"]'
+                                '[cmdk-item][aria-selected="true"]',
                               ) as HTMLElement;
                             if (selected) {
                               selected.click();
@@ -2196,7 +2196,7 @@ export default function CreateConsumableForm({
                               const firstItem = e.currentTarget
                                 .closest("[cmdk-root]")
                                 ?.querySelector(
-                                  '[cmdk-item]:not([data-disabled="true"])'
+                                  '[cmdk-item]:not([data-disabled="true"])',
                                 ) as HTMLElement;
                               if (firstItem) {
                                 firstItem.click();
@@ -2219,7 +2219,7 @@ export default function CreateConsumableForm({
                                   units.find(
                                     (u) =>
                                       u.label.toLowerCase() ===
-                                      val.toLowerCase()
+                                      val.toLowerCase(),
                                   ) || null;
                                 setSecondarySelected(found);
                                 setSelectedPrimaryUnit(found);
@@ -2240,7 +2240,7 @@ export default function CreateConsumableForm({
                                   secondarySelected?.id.toString() ===
                                     unit.id.toString()
                                     ? "opacity-100"
-                                    : "opacity-0"
+                                    : "opacity-0",
                                 )}
                               />
                             </CommandItem>
