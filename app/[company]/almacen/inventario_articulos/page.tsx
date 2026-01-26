@@ -276,7 +276,7 @@ const InventarioArticulosPage = () => {
                 </TabsList>
 
                 {/* Sub-tabs por categoría */}
-                <TabsContent value="all" className="mt-6">
+                <TabsContent value="all">
                   {isLoadingArticles ? (
                     <div className="flex w-full h-full justify-center items-center min-h-[300px]">
                       <Loader2 className="size-24 animate-spin" />
@@ -286,7 +286,7 @@ const InventarioArticulosPage = () => {
                   )}
                 </TabsContent>
 
-                <TabsContent value="COMPONENT" className="mt-6">
+                <TabsContent value="COMPONENT">
                   <Tabs
                     value={componentCondition}
                     onValueChange={(v) => setComponentCondition(v as typeof componentCondition)}
@@ -310,7 +310,7 @@ const InventarioArticulosPage = () => {
                   )}
                 </TabsContent>
 
-                <TabsContent value="CONSUMABLE" className="mt-6">
+                <TabsContent value="CONSUMABLE">
                   <Tabs
                     value={consumableFilter}
                     onValueChange={(v) => setConsumableFilter(v as typeof consumableFilter)}
@@ -331,7 +331,7 @@ const InventarioArticulosPage = () => {
                   )}
                 </TabsContent>
 
-                <TabsContent value="TOOL" className="mt-6">
+                <TabsContent value="TOOL">
                   {isLoadingArticles ? (
                     <div className="flex w-full h-full justify-center items-center min-h-[300px]">
                       <Loader2 className="size-24 animate-spin" />
@@ -340,7 +340,7 @@ const InventarioArticulosPage = () => {
                     <DataTable columns={cols} data={currentData} />
                   )}
                 </TabsContent>
-                <TabsContent value="PART" className="mt-6">
+                <TabsContent value="PART">
                   {isLoadingArticles ? (
                     <div className="flex w-full h-full justify-center items-center min-h-[300px]">
                       <Loader2 className="size-24 animate-spin" />
