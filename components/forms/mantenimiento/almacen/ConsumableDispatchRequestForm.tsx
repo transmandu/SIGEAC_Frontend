@@ -708,36 +708,40 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
                   <CommandList>
                     <CommandEmpty>No se han encontrado artículos...</CommandEmpty>
 
-                    {/* Aeronáutico */}
-                    <CommandGroup heading="Aeronáutico (Consumibles)">
-                      {isBatchesLoading ? (
-                        <div className="flex items-center justify-center py-6">
-                          <Loader2 className="size-4 animate-spin" />
-                        </div>
-                      ) : (
-                        batches?.map((batch: BatchesWithCountProp) => (
-                          <CommandGroup key={`aero-${batch.batch_id}`} heading={batch.name}>
-                            {batch.articles.map((article) => (
-                              <CommandItem
-                                key={`a-${article.id}-${batch.batch_id}`}
-                                value={`${article.part_number} ${article.description ?? ""}`}
-                                onSelect={() => handleAddAeronautical(article)}
-                              >
-                                <Check className="mr-2 h-4 w-4 opacity-0" />
-                                <div className="flex flex-col flex-1 min-w-0">
-                                  <span className="font-medium truncate">{article.part_number}</span>
-                                  <span className="text-xs text-muted-foreground truncate">
-                                    {article.description ?? "Sin descripción"} · Disp: {article.quantity} {article.unit}
-                                  </span>
-                                </div>
-                              </CommandItem>
-                            ))}
-                          </CommandGroup>
-                        ))
-                      )}
-                    </CommandGroup>
+                    {/* ===== Aeronáutico (título visual, NO CommandGroup) ===== */}
+                    <div className="px-2 pt-2 pb-1">
+                      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                        Aeronáutico (Consumibles)
+                      </p>
+                    </div>
 
-                    {/* Ferretería */}
+                    {isBatchesLoading ? (
+                      <div className="flex items-center justify-center py-6">
+                        <Loader2 className="size-4 animate-spin" />
+                      </div>
+                    ) : (
+                      batches?.map((batch: BatchesWithCountProp) => (
+                        <CommandGroup key={`aero-${batch.batch_id}`} heading={batch.name}>
+                          {batch.articles.map((article) => (
+                            <CommandItem
+                              key={`a-${article.id}-${batch.batch_id}`}
+                              value={`${batch.name} ${article.part_number} ${article.serial ?? ""} ${article.description ?? ""}`}
+                              onSelect={() => handleAddAeronautical(article)}
+                            >
+                              <Check className="mr-2 h-4 w-4 opacity-0" />
+                              <div className="flex flex-col flex-1 min-w-0">
+                                <span className="font-medium truncate">{article.part_number}</span>
+                                <span className="text-xs text-muted-foreground truncate">
+                                  {article.description ?? "Sin descripción"} · Disp: {article.quantity} {article.unit}
+                                </span>
+                              </div>
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      ))
+                    )}
+
+                    {/* ===== Ferretería ===== */}
                     <CommandGroup heading="Ferretería (Inventario general)">
                       {isHardwareLoading ? (
                         <div className="flex items-center justify-center py-6">
