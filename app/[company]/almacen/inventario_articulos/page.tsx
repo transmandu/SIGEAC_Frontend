@@ -286,7 +286,7 @@ const InventarioArticulosPage = () => {
                   )}
                 </TabsContent>
 
-                <TabsContent value="COMPONENTE" className="mt-6">
+                <TabsContent value="COMPONENT" className="mt-6">
                   <Tabs
                     value={componentCondition}
                     onValueChange={(v) => setComponentCondition(v as typeof componentCondition)}
@@ -310,7 +310,7 @@ const InventarioArticulosPage = () => {
                   )}
                 </TabsContent>
 
-                <TabsContent value="CONSUMIBLE" className="mt-6">
+                <TabsContent value="CONSUMABLE" className="mt-6">
                   <Tabs
                     value={consumableFilter}
                     onValueChange={(v) => setConsumableFilter(v as typeof consumableFilter)}
@@ -331,7 +331,16 @@ const InventarioArticulosPage = () => {
                   )}
                 </TabsContent>
 
-                <TabsContent value="HERRAMIENTA" className="mt-6">
+                <TabsContent value="TOOL" className="mt-6">
+                  {isLoadingArticles ? (
+                    <div className="flex w-full h-full justify-center items-center min-h-[300px]">
+                      <Loader2 className="size-24 animate-spin" />
+                    </div>
+                  ) : (
+                    <DataTable columns={cols} data={currentData} />
+                  )}
+                </TabsContent>
+                <TabsContent value="PART" className="mt-6">
                   {isLoadingArticles ? (
                     <div className="flex w-full h-full justify-center items-center min-h-[300px]">
                       <Loader2 className="size-24 animate-spin" />
