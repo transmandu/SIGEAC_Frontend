@@ -73,6 +73,13 @@ const requiresAeronauticWarehouse = (category: string) => {
   );
 };
 
+const COMPONENT_PART_GROUP = [
+  CATEGORY_VALUES.COMPONENTE,
+  CATEGORY_VALUES.PARTE,
+];
+const isComponentOrPart = (category?: string) =>
+  COMPONENT_PART_GROUP.includes(category as any);
+
 const FormSchema = z.object({
   name: z.string().min(3, { message: "Debe introducir un nombre válido." }),
   description: z.string().optional(),
@@ -121,18 +128,20 @@ export function CreateBatchForm({
   const { createBatch } = useCreateBatch();
   const { updateBatch } = useUpdateBatch();
 
-  const form = useForm<FormSchemaType>({
-    resolver: zodResolver(FormSchema),
-    defaultValues: {
-      is_hazarous: false,
-      category: initialData?.category ? getValueFromLabel(initialData?.category) : defaultCategory || "",
-      name: initialData?.name || "",
-      description: initialData?.description || "",
-      ata_code: initialData?.ata_code || "",
-      medition_unit: initialData?.unit?.value.toString() || "",
-      warehouse_id: initialData?.warehouse_id?.toString() || "",
-    },
-  });
+const form = useForm<FormSchemaType>({
+  resolver: zodResolver(FormSchema),
+  defaultValues: {
+    is_hazarous: false,
+    category: initialData?.category
+      ? getValueFromLabel(initialData.category)
+      : defaultCategory || "",
+    name: initialData?.name || "",
+    description: initialData?.description || "",
+    ata_code: initialData?.ata_code || "",
+    medition_unit: initialData?.unit?.value?.toString() || "",
+    warehouse_id: initialData?.warehouse_id?.toString() || "",
+  },
+});
 
   const { control, setError, clearErrors, setValue } = form;
   const name = useWatch({ control, name: "name" });
@@ -263,8 +272,8 @@ export function CreateBatchForm({
                   defaultValue={field.value}
                   value={field.value}
                   disabled={
-                    field.value === "HERRAMIENTA" ||
-                    field.value === "CONSUMIBLE"
+                    isEditing &&
+                    !isComponentOrPart(category)
                   }
                 >
                   <FormControl>
@@ -273,16 +282,16 @@ export function CreateBatchForm({
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {batches_categories
-                      .filter((category) => {
-                        if (isEditing) {
-                          return (
-                            category.value !== "HERRAMIENTA" &&
-                            category.value !== "CONSUMIBLE"
-                          );
-                        }
-                        return true;
-                      })
+                  {batches_categories
+                    .filter((cat) => {
+                      if (!isEditing) return true;
+
+                      if (isComponentOrPart(category)) {
+                        return COMPONENT_PART_GROUP.includes(cat.value as any);
+                      }
+                      // Para cualquier otro caso, no permitir cambios
+                      return cat.value === category;
+                    })
                       .map((category) => (
                         <SelectItem key={category.value} value={category.value}>
                           {category.label}
