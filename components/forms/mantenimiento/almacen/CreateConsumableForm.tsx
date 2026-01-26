@@ -143,17 +143,17 @@ const CreateConsumableForm = ({
   isEditing?: boolean;
 }) => {
   const router = useRouter();
-  
+
   const { selectedCompany } = useCompanyStore();
 
   const handleDownload = async (url: string) => {
     if (!url) return;
-    
+
     try {
       const response = await axiosInstance.get(`/warehouse/download-certificate/${url}`, {
         responseType: 'blob',
       });
-      
+
       const downloadUrl = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement('a');
       link.href = downloadUrl;
@@ -162,7 +162,7 @@ const CreateConsumableForm = ({
       link.click();
       link.remove();
       window.URL.revokeObjectURL(downloadUrl);
-      
+
       toast.success("Certificado descargado correctamente");
     } catch (error) {
       console.error('Error descargando el archivo:', error);
@@ -198,7 +198,7 @@ const CreateConsumableForm = ({
   const [selectedBatchId, setSelectedBatchId] = useState<number | undefined>(
     initialData?.batches?.id
   );
-  
+
   // Obtener el batch seleccionado para acceder a su unit.id
   const selectedBatch = useMemo(() => {
     return batches?.find((b) => b.id === selectedBatchId);
@@ -231,7 +231,7 @@ const CreateConsumableForm = ({
   const [fabricationDate, setFabricationDate] = useState<Date | undefined>(
     initialData?.consumable?.fabrication_date
       ? new Date(initialData?.consumable?.fabrication_date)
-      : undefined
+      : undefined 
   );
 
   const form = useForm<FormValues>({
@@ -252,10 +252,10 @@ const CreateConsumableForm = ({
         ? initialData?.consumable?.fabrication_date
         : undefined,
       quantity: initialData?.consumable?.quantity ?? 0,
-      min_quantity: initialData?.consumable?.min_quantity 
-        ? Number(initialData.consumable.min_quantity) 
+      min_quantity: initialData?.consumable?.min_quantity
+        ? Number(initialData.consumable.min_quantity)
         : undefined,
-      is_managed: initialData?.consumable?.is_managed 
+      is_managed: initialData?.consumable?.is_managed
         ? initialData.consumable.is_managed === "1" || initialData.consumable.is_managed === true
         : true,
     },
@@ -280,10 +280,10 @@ const CreateConsumableForm = ({
         ? initialData?.consumable?.fabrication_date
         : undefined,
       quantity: initialData?.consumable?.quantity ?? 0,
-      min_quantity: initialData?.consumable?.min_quantity 
-        ? Number(initialData.consumable.min_quantity) 
+      min_quantity: initialData?.consumable?.min_quantity
+        ? Number(initialData.consumable.min_quantity)
         : undefined,
-      is_managed: initialData?.consumable?.is_managed 
+      is_managed: initialData?.consumable?.is_managed
         ? initialData.consumable.is_managed === "1" || initialData.consumable.is_managed === true
         : true,
     });
@@ -807,7 +807,7 @@ const CreateConsumableForm = ({
                     <PopoverTrigger asChild>
                       <Button
                         disabled={
-                          consumableConversionsLoading || 
+                          consumableConversionsLoading ||
                           !selectedBatchId ||
                           !consumableConversions?.length
                         }
@@ -882,8 +882,8 @@ const CreateConsumableForm = ({
                     </PopoverContent>
                   </Popover>
                   <p className="text-sm text-muted-foreground">
-                    {!selectedBatchId 
-                      ? "Primero seleccione un lote de consumible." 
+                    {!selectedBatchId
+                      ? "Primero seleccione un lote de consumible."
                       : "Indique cómo será ingresado el artículo."}
                   </p>
                 </div>
@@ -953,8 +953,8 @@ const CreateConsumableForm = ({
                 <FormItem className="w-full">
                   <FormLabel>Cantidad Mínima</FormLabel>
                   <FormControl>
-                    <Input 
-                      placeholder="Ej: 5" 
+                    <Input
+                      placeholder="Ej: 5"
                       {...field}
                       disabled={busy}
                       onChange={(e) => {
