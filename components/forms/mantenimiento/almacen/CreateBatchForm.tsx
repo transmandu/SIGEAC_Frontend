@@ -504,7 +504,7 @@ const form = useForm<FormSchemaType>({
           />
         )}
         <Button
-          className="bg-primary mt-2 text-white hover:bg-blue-900 disabled:bg-primary/70"
+          className="bg-primary mt-2 text-white hover:bg-blue-900"
           disabled={createBatch?.isPending}
           type="submit"
         >

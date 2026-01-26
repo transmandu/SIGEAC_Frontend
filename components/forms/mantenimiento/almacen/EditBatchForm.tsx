@@ -1,9 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
 import SelectBatchCategory from "@/components/selects/SelectBatchCategory";
-import { CreateBatchForm } from "./CreateBatchForm";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -11,7 +9,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Batch } from "@/types";
-import { batches_categories } from "@/lib/batches_categories";
+import { useState } from "react";
+import { CreateBatchForm } from "./CreateBatchForm";
 
 interface EditBatchFormProps {
   onClose: () => void;

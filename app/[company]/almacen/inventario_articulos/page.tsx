@@ -208,7 +208,7 @@ const InventarioArticulosPage = () => {
                 value={activeCategory}
                 onValueChange={(v) => setActiveCategory(v as Category)}
               >
-                <TabsList className="flex justify-center mb-4 space-x-3" aria-label="Categorías">
+                <TabsList className="flex justify-center space-x-3" aria-label="Categorías">
                   <TabsTrigger className="flex gap-2" value="all">
                     <Package2 className="size-5" /> Todos
                   </TabsTrigger>
