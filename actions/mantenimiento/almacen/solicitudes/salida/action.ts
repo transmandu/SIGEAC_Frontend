@@ -11,10 +11,14 @@ interface IDispatchRequestAction {
   requested_by: string;
   destination_place: string;
   category: string;
-  articles: {
+  aeronautical_articles?: {
     article_id: number;
     quantity?: number;
     serial?: string | null;
+  }[];
+  general_articles?: {
+    general_article_id: number;
+    quantity: number;
   }[];
   user_id: number;
   isDepartment: boolean;
@@ -48,7 +52,7 @@ export const useCreateDispatchRequest = () => {
       queryClient.invalidateQueries({
         queryKey: ["dispatches-requests", data.company, selectedStation],
       });
-      
+
       toast.success("¡Creado!", {
         description: `La solicitud ha sido creado correctamente.`,
       }),

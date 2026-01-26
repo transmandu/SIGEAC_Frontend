@@ -20,7 +20,7 @@ import { useInventoryExport } from '@/hooks/mantenimiento/almacen/reportes/useGe
 import { useCompanyStore } from '@/stores/CompanyStore';
 import { TooltipArrow } from '@radix-ui/react-tooltip';
 import { parseISO } from 'date-fns';
-import { Loader2, Package2, PaintBucket, Wrench, X } from 'lucide-react';
+import { Loader2, Package2, PaintBucket, Puzzle, Wrench, X } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { FaFilePdf } from 'react-icons/fa';
 import { RiFileExcel2Fill } from 'react-icons/ri';
@@ -212,14 +212,17 @@ const InventarioArticulosPage = () => {
                   <TabsTrigger className="flex gap-2" value="all">
                     <Package2 className="size-5" /> Todos
                   </TabsTrigger>
-                  <TabsTrigger className="flex gap-2" value="COMPONENTE">
+                  <TabsTrigger className="flex gap-2" value="COMPONENT">
                     <Package2 className="size-5" /> Componente
                   </TabsTrigger>
-                  <TabsTrigger className="flex gap-2" value="CONSUMIBLE">
+                  <TabsTrigger className="flex gap-2" value="CONSUMABLE">
                     <PaintBucket className="size-5" /> Consumibles
                   </TabsTrigger>
-                  <TabsTrigger className="flex gap-2" value="HERRAMIENTA">
+                  <TabsTrigger className="flex gap-2" value="TOOL">
                     <Wrench className="size-5" /> Herramientas
+                  </TabsTrigger>
+                  <TabsTrigger className="flex gap-2" value="PART">
+                    <Puzzle className="size-5" /> Partes
                   </TabsTrigger>
 
                   <CreateBatchDialog />

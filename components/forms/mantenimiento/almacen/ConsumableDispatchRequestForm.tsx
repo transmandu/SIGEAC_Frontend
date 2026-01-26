@@ -1,54 +1,24 @@
-"use client";
+"use client"
 
-import { useCreateDispatchRequest } from "@/actions/mantenimiento/almacen/solicitudes/salida/action";
-import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
+import { useCreateDispatchRequest } from "@/actions/mantenimiento/almacen/solicitudes/salida/action"
+import { Button } from "@/components/ui/button"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Separator } from "@/components/ui/separator"
+import { Textarea } from "@/components/ui/textarea"
+import { Calendar } from "@/components/ui/calendar"
+import { cn } from "@/lib/utils"
+import { useAuth } from "@/contexts/AuthContext"
+import { useCompanyStore } from "@/stores/CompanyStore"
+
 import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Separator } from "@/components/ui/separator";
-import { useAuth } from "@/contexts/AuthContext";
-import { useGetConversionByConsmable } from "@/hooks/mantenimiento/almacen/articulos/useGetConvertionsByConsumableId";
-import { useGetWarehousesEmployees } from "@/hooks/mantenimiento/almacen/empleados/useGetWarehousesEmployees";
-import { useGetBatchesWithInWarehouseArticles } from "@/hooks/mantenimiento/almacen/renglones/useGetBatchesWithInWarehouseArticles";
-import { useGetMaintenanceAircrafts } from "@/hooks/mantenimiento/planificacion/useGetMaintenanceAircrafts";
-import { useGetWorkOrderEmployees } from "@/hooks/mantenimiento/planificacion/useGetWorkOrderEmployees";
-import { useGetDepartments } from "@/hooks/sistema/departamento/useGetDepartment";
-import { cn } from "@/lib/utils";
-import { useCompanyStore } from "@/stores/CompanyStore";
-import type { Article, Batch } from "@/types";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { format } from "date-fns";
-import { es } from "date-fns/locale";
-import {
-  AlertCircle,
-  Building2,
-  CalendarIcon,
-  Check,
-  ChevronsUpDown,
-  Calculator,
-  Loader2,
-  Plane,
-  X,
-} from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
-import { useFieldArray, useForm } from "react-hook-form";
-import { z } from "zod";
-import { Calendar } from "@/components/ui/calendar";
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
 import {
   Command,
   CommandEmpty,
@@ -56,99 +26,134 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-} from "@/components/ui/command";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Textarea } from "@/components/ui/textarea";
+} from "@/components/ui/command"
 
-const ArticleSchema = z.object({
-  article_id: z.coerce.number(),
-  serial: z.string().nullable(),
-  quantity: z.number(),
-  batch_id: z.number(),
-});
+import { zodResolver } from "@hookform/resolvers/zod"
+import { format } from "date-fns"
+import { es } from "date-fns/locale"
+import {
+  AlertCircle,
+  Building2,
+  CalendarIcon,
+  Calculator,
+  Check,
+  ChevronsUpDown,
+  Loader2,
+  PackagePlus,
+  Plane,
+  X,
+} from "lucide-react"
+import { useCallback, useEffect, useMemo, useState } from "react"
+import { useFieldArray, useForm } from "react-hook-form"
+import { z } from "zod"
 
-const FormSchema = z.object({
-  work_order: z.string(),
-  requested_by: z.string(),
-  submission_date: z.date({ message: "Debe ingresar la fecha." }),
-  articles: z.array(ArticleSchema).min(1, {
-    message: "Debe seleccionar al menos un consumible.",
-  }),
-  justification: z.string({
-    message: "Debe ingresar una justificación de la salida.",
-  }),
-  destination_place: z.string(),
-  status: z.string(),
-  unit: z
-    .enum(["litros", "mililitros"], { message: "Debe seleccionar una unidad." })
-    .optional(),
-});
+import type { Article, Batch, GeneralArticle } from "@/types"
+import { useGetBatchesWithInWarehouseArticles } from "@/hooks/mantenimiento/almacen/renglones/useGetBatchesWithInWarehouseArticles"
+import { useGetMaintenanceAircrafts } from "@/hooks/mantenimiento/planificacion/useGetMaintenanceAircrafts"
+import { useGetWorkOrderEmployees } from "@/hooks/mantenimiento/planificacion/useGetWorkOrderEmployees"
+import { useGetDepartments } from "@/hooks/sistema/departamento/useGetDepartment"
 
-type FormSchemaType = z.infer<typeof FormSchema>;
+// Ferretería
+
+// Conversión (solo para aeronáutico)
+import { useGetConversionByConsmable } from "@/hooks/mantenimiento/almacen/articulos/useGetConvertionsByConsumableId"
+import { useGetGeneralArticles } from "@/hooks/mantenimiento/almacen/almacen_general/useGetGeneralArticles"
 
 interface FormProps {
-  onClose: () => void;
+  onClose: () => void
 }
 
 interface BatchesWithCountProp extends Batch {
-  articles: Article[];
-  batch_id: number;
+  articles: Article[]
+  batch_id: number
 }
 
+const AeronauticalItemSchema = z.object({
+  article_id: z.coerce.number(),
+  quantity: z.coerce.number(),
+})
+
+const GeneralItemSchema = z.object({
+  general_article_id: z.coerce.number(),
+  quantity: z.coerce.number(),
+})
+
+const FormSchema = z
+  .object({
+    work_order: z.string(),
+    requested_by: z.string(),
+    submission_date: z.date({ message: "Debe ingresar la fecha." }),
+    justification: z.string({ message: "Debe ingresar una justificación de la salida." }),
+    destination_place: z.string(),
+    status: z.string(),
+    unit: z.enum(["litros", "mililitros"]).optional(),
+
+    aeronautical_articles: z.array(AeronauticalItemSchema).default([]),
+    general_articles: z.array(GeneralItemSchema).default([]),
+  })
+  .superRefine((data, ctx) => {
+    const total = (data.aeronautical_articles?.length ?? 0) + (data.general_articles?.length ?? 0)
+    if (total <= 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Debe seleccionar al menos un artículo.",
+        path: ["aeronautical_articles"],
+      })
+    }
+  })
+
+type FormSchemaType = z.infer<typeof FormSchema>
+
+function sanitizeInt(raw: string) {
+  return raw.replace(/[^\d]/g, "")
+}
+
+function sanitizeDecimal(raw: string) {
+  const cleaned = raw.replace(/[^\d.]/g, "")
+  const parts = cleaned.split(".")
+  if (parts.length <= 1) return cleaned
+  return `${parts[0]}.${parts.slice(1).join("")}`
+}
+
+type MsgLevel = "error" | "warn"
+type RowMsg = { msg: string; level: MsgLevel } | undefined
+
 export function ConsumableDispatchForm({ onClose }: FormProps) {
-  const { user } = useAuth();
-  const { selectedStation, selectedCompany } = useCompanyStore();
+  const { user } = useAuth()
+  const { selectedStation, selectedCompany } = useCompanyStore()
 
-  const [openAdd, setOpenAdd] = useState(false);
-  const [isDepartment, setIsDepartment] = useState(false);
+  const [openAdd, setOpenAdd] = useState(false)
+  const [isDepartment, setIsDepartment] = useState(false)
 
-  // Estados por renglón (key = field.id) para no romper al reordenar/remover
-  const [qtyByKey, setQtyByKey] = useState<Record<string, string>>({});
-  const [qtyErrorByKey, setQtyErrorByKey] = useState<Record<string, string>>({});
-  const [autoAdjustByKey, setAutoAdjustByKey] = useState<Record<string, boolean>>(
-    {}
-  );
+  // Ajusta al warehouse_id de ferretería
+  const HARDWARE_WAREHOUSE_ID = 5
 
-  // Conversión: una sola fila activa para mantener UI/queries minimalistas
-  const [conversionRowKey, setConversionRowKey] = useState<string | null>(null);
-  const [conversionRowIndex, setConversionRowIndex] = useState<number | null>(null);
-  const [conversionArticleId, setConversionArticleId] = useState<number | null>(null);
-  const [selectedConversion, setSelectedConversion] = useState<any>(null);
-  const [conversionInput, setConversionInput] = useState("");
+  const { createDispatchRequest } = useCreateDispatchRequest()
 
-  const { createDispatchRequest } = useCreateDispatchRequest();
-
-  const { data: departments, isLoading: isDepartmentsLoading } = useGetDepartments(
-    selectedCompany?.slug
-  );
+  const { data: departments, isLoading: isDepartmentsLoading } =
+    useGetDepartments(selectedCompany?.slug)
 
   const { data: aircrafts, isLoading: isAircraftsLoading } =
-    useGetMaintenanceAircrafts(selectedCompany?.slug);
+    useGetMaintenanceAircrafts(selectedCompany?.slug)
 
   const { data: batches, isPending: isBatchesLoading } =
     useGetBatchesWithInWarehouseArticles({
       location_id: Number(selectedStation!),
       company: selectedCompany!.slug,
       category: "consumable",
-    });
+    })
 
-  const { data: employees, isLoading: employeesLoading } = useGetWorkOrderEmployees({
-    company: selectedCompany?.slug,
-    location_id: selectedStation?.toString(),
-    acronym: "MANP",
-  });
+  const { data: employees, isLoading: employeesLoading } =
+    useGetWorkOrderEmployees({
+      company: selectedCompany?.slug,
+      location_id: selectedStation?.toString(),
+      acronym: "MANP",
+    })
 
-  const {
-    data: warehouseEmployees,
-    isPending: warehouseEmployeesLoading,
-    isError: employeesError,
-  } = useGetWarehousesEmployees(selectedCompany?.slug, selectedStation);
+  const { data: hardwareRes, isLoading: isHardwareLoading } =
+    useGetGeneralArticles()
 
-  // Conversión solo para la fila activa (no por cada item)
-  const {
-    data: consumableConversion,
-    isLoading: isConversionLoading,
-  } = useGetConversionByConsmable(conversionArticleId ?? null, selectedCompany?.slug);
+  const hardwareArticles: GeneralArticle[] = hardwareRes ?? []
 
   const form = useForm<FormSchemaType>({
     resolver: zodResolver(FormSchema),
@@ -158,229 +163,289 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
       requested_by: `${user?.employee?.[0]?.dni ?? ""}`,
       destination_place: "",
       status: "proceso",
-      articles: [],
+      aeronautical_articles: [],
+      general_articles: [],
     },
-  });
+  })
 
-  const { control, setValue, getValues } = form;
+  const { control, setValue, getValues } = form
+  const aeroFA = useFieldArray({ control, name: "aeronautical_articles" })
+  const genFA = useFieldArray({ control, name: "general_articles" })
 
-  const { fields, append, remove } = useFieldArray({
-    control,
-    name: "articles",
-  });
-
-  const articleById = useMemo(() => {
-    const map = new Map<number, Article>();
+  // Lookups
+  const aeroById = useMemo(() => {
+    const map = new Map<number, Article>()
     batches?.forEach((b: BatchesWithCountProp) => {
       b.articles?.forEach((a) => {
-        if (a?.id != null) map.set(a.id, a);
-      });
-    });
-    return map;
-  }, [batches]);
+        if (a?.id != null) map.set(a.id, a)
+      })
+    })
+    return map
+  }, [batches])
 
-  // Limpia destino cuando cambie el tipo
+  const genById = useMemo(() => {
+    const map = new Map<number, GeneralArticle>()
+    hardwareArticles.forEach((a) => map.set(a.id, a))
+    return map
+  }, [hardwareArticles])
+
+  const getAeroMax = (articleId: number) => aeroById.get(articleId)?.quantity || 0
+  const getGenMax = (generalId: number) => genById.get(generalId)?.quantity || 0
+
+  // Reset destino al cambiar tipo
   useEffect(() => {
-    setValue("destination_place", "");
-  }, [isDepartment, setValue]);
+    setValue("destination_place", "")
+  }, [isDepartment, setValue])
 
-  // Helper: máximo disponible para un article_id
-  const getMaxQuantity = (articleId: number): number => {
-    return articleById.get(articleId)?.quantity || 0;
-  };
+  // =============== Cantidades (local draft por fila) ===============
+  const [qtyByKey, setQtyByKey] = useState<Record<string, string>>({})
+  const [msgByKey, setMsgByKey] = useState<Record<string, RowMsg>>({})
 
-  const setAutoAdjust = (key: string, value: boolean) => {
-    setAutoAdjustByKey((prev) => ({ ...prev, [key]: value }));
-    if (value) {
-      setTimeout(() => {
-        setAutoAdjustByKey((prev) => ({ ...prev, [key]: false }));
-      }, 3000);
-    }
-  };
+  const aeroKey = (fieldId: string) => `A:${fieldId}`
+  const genKey = (fieldId: string) => `G:${fieldId}`
 
-  const validateAndAdjustQuantity = (
+  const setRowMsg = (key: string, msg: RowMsg) => {
+    setMsgByKey((p) => ({ ...p, [key]: msg }))
+  }
+
+  const validateAndClamp = (
     key: string,
-    articleId: number,
-    rawValue: string
-  ): string => {
-    const numericValue = parseFloat(rawValue) || 0;
-    const maxQuantity = getMaxQuantity(articleId);
+    raw: string,
+    max: number,
+    mode: "int" | "decimal"
+  ) => {
+    const n = mode === "decimal" ? parseFloat(raw || "0") || 0 : parseInt(raw || "0", 10) || 0
 
-    if (numericValue <= 0) {
-      setQtyErrorByKey((prev) => ({ ...prev, [key]: "La cantidad debe ser mayor a 0" }));
-      setAutoAdjustByKey((prev) => ({ ...prev, [key]: false }));
-      return rawValue;
+    if (!raw || n <= 0) {
+      setRowMsg(key, { msg: "La cantidad debe ser mayor a 0", level: "error" })
+      return raw
     }
 
-    if (maxQuantity > 0 && numericValue > maxQuantity) {
-      setQtyErrorByKey((prev) => ({
-        ...prev,
-        [key]: `Se ajustó a la cantidad máxima disponible: ${maxQuantity}`,
-      }));
-      setAutoAdjust(key, true);
-      return maxQuantity.toString();
+    if (max > 0 && n > max) {
+      setRowMsg(key, { msg: `Se ajustó al máximo disponible: ${max}`, level: "warn" })
+      return String(max)
     }
 
-    setQtyErrorByKey((prev) => ({ ...prev, [key]: "" }));
-    setAutoAdjustByKey((prev) => ({ ...prev, [key]: false }));
-    return rawValue;
-  };
+    setRowMsg(key, undefined)
+    return raw
+  }
 
-  const syncQuantityToForm = (index: number, value: string) => {
-    const q = parseFloat(value) || 0;
-    setValue(`articles.${index}.quantity`, q);
-  };
+  const commitAeroQty = useCallback(
+    (index: number, fieldId: string) => {
+      const key = aeroKey(fieldId)
+      const item = getValues(`aeronautical_articles.${index}`)
+      const max = getAeroMax(item.article_id)
 
-  const handleAddConsumable = (article: Article, batch_id: number) => {
-    const current = getValues("articles");
+      const raw = qtyByKey[key] ?? ""
+      const adjusted = validateAndClamp(key, raw, max, "decimal")
+      setQtyByKey((p) => ({ ...p, [key]: adjusted }))
 
-    // Evitar duplicados exactos (mismo article + batch) para mantener UI simple
-    const exists = current.some(
-      (x) => x.article_id === Number(article.id) && x.batch_id === Number(batch_id)
-    );
-    if (exists) {
-      setOpenAdd(false);
-      return;
-    }
+      const q = parseFloat(adjusted || "0") || 0
+      setValue(`aeronautical_articles.${index}.quantity`, q)
+    },
+    [getValues, qtyByKey, setValue, aeroById]
+  )
 
-    append({
-      article_id: Number(article.id),
-      serial: article.serial ? article.serial : null,
-      quantity: 0,
-      batch_id: Number(batch_id),
-    });
+  const commitGenQty = useCallback(
+    (index: number, fieldId: string) => {
+      const key = genKey(fieldId)
+      const item = getValues(`general_articles.${index}`)
+      const max = getGenMax(item.general_article_id)
 
-    // unidad global (mantiene tu comportamiento: si no es "u", default litros)
-    if (article.unit !== "u") setValue("unit", "litros");
-    setOpenAdd(false);
-  };
+      const raw = qtyByKey[key] ?? ""
+      const adjusted = validateAndClamp(key, raw, max, "int")
+      setQtyByKey((p) => ({ ...p, [key]: adjusted }))
 
-  const handleRemoveRow = (index: number, key: string) => {
-    remove(index);
+      const q = parseInt(adjusted || "0", 10) || 0
+      setValue(`general_articles.${index}.quantity`, q)
+    },
+    [getValues, qtyByKey, setValue, genById]
+  )
 
-    setQtyByKey((prev) => {
-      const next = { ...prev };
-      delete next[key];
-      return next;
-    });
-    setQtyErrorByKey((prev) => {
-      const next = { ...prev };
-      delete next[key];
-      return next;
-    });
-    setAutoAdjustByKey((prev) => {
-      const next = { ...prev };
-      delete next[key];
-      return next;
-    });
+  const clearRowState = (key: string) => {
+    setQtyByKey((p) => {
+      const n = { ...p }
+      delete n[key]
+      return n
+    })
+    setMsgByKey((p) => {
+      const n = { ...p }
+      delete n[key]
+      return n
+    })
+  }
 
-    // si removiste la fila con conversión activa, cerrar panel
-    if (conversionRowKey === key) {
-      setConversionRowKey(null);
-      setConversionRowIndex(null);
-      setConversionArticleId(null);
-      setSelectedConversion(null);
-      setConversionInput("");
-    }
-  };
+  const setToMaxAero = (index: number, fieldId: string) => {
+    const key = aeroKey(fieldId)
+    const item = getValues(`aeronautical_articles.${index}`)
+    const max = getAeroMax(item.article_id)
+    const next = max > 0 ? String(max) : "0"
 
-  const setToMaxQuantity = (index: number, key: string, articleId: number) => {
-    const max = getMaxQuantity(articleId);
-    const next = max > 0 ? max.toString() : "0";
-    setQtyByKey((prev) => ({ ...prev, [key]: next }));
-    setQtyErrorByKey((prev) => ({ ...prev, [key]: "" }));
-    setAutoAdjustByKey((prev) => ({ ...prev, [key]: false }));
-    syncQuantityToForm(index, next);
-  };
+    setQtyByKey((p) => ({ ...p, [key]: next }))
+    setRowMsg(key, undefined)
+    setValue(`aeronautical_articles.${index}.quantity`, parseFloat(next) || 0)
+  }
 
-  const openConversionForRow = (index: number, key: string, articleId: number) => {
-    setConversionRowKey(key);
-    setConversionRowIndex(index);
-    setConversionArticleId(articleId);
-    setSelectedConversion(null);
-    setConversionInput("");
-  };
+  const setToMaxGen = (index: number, fieldId: string) => {
+    const key = genKey(fieldId)
+    const item = getValues(`general_articles.${index}`)
+    const max = getGenMax(item.general_article_id)
+    const next = max > 0 ? String(max) : "0"
+
+    setQtyByKey((p) => ({ ...p, [key]: next }))
+    setRowMsg(key, undefined)
+    setValue(`general_articles.${index}.quantity`, parseInt(next, 10) || 0)
+  }
+
+  // =============== Conversión (solo una fila activa) ===============
+  const [conversionRowFieldId, setConversionRowFieldId] = useState<string | null>(null)
+  const [conversionRowIndex, setConversionRowIndex] = useState<number | null>(null)
+  const [conversionArticleId, setConversionArticleId] = useState<number | null>(null)
+  const [selectedConversion, setSelectedConversion] = useState<any>(null)
+  const [conversionInput, setConversionInput] = useState("")
+
+  const { data: consumableConversion, isLoading: isConversionLoading } =
+    useGetConversionByConsmable(conversionArticleId ?? null, selectedCompany?.slug)
+
+  const closeConversion = () => {
+    setConversionRowFieldId(null)
+    setConversionRowIndex(null)
+    setConversionArticleId(null)
+    setSelectedConversion(null)
+    setConversionInput("")
+  }
+
+  const openConversionFor = (index: number, fieldId: string, articleId: number) => {
+    setConversionRowFieldId(fieldId)
+    setConversionRowIndex(index)
+    setConversionArticleId(articleId)
+    setSelectedConversion(null)
+    setConversionInput("")
+  }
 
   const applyConversion = () => {
-    if (
-      conversionRowIndex == null ||
-      conversionRowKey == null ||
-      conversionArticleId == null
-    )
-      return;
+    if (conversionRowIndex == null || conversionRowFieldId == null || conversionArticleId == null) return
+    if (!selectedConversion || !conversionInput) return
 
-    if (!selectedConversion || !conversionInput) return;
+    const inputValue = parseFloat(conversionInput) || 0
+    const result = inputValue / selectedConversion.equivalence
 
-    const inputValue = parseFloat(conversionInput) || 0;
-    const result = inputValue / selectedConversion.equivalence;
+    const max = getAeroMax(conversionArticleId)
+    let finalQuantity = result
 
-    const max = getMaxQuantity(conversionArticleId);
-    let finalQuantity = result;
+    const key = aeroKey(conversionRowFieldId)
 
     if (max > 0 && result > max) {
-      finalQuantity = max;
-      setQtyErrorByKey((prev) => ({
-        ...prev,
-        [conversionRowKey]:
-          `Conversión: ${conversionInput} ${selectedConversion.unit_primary.label} ` +
-          `= ${result.toFixed(6)} ` +
-          `${consumableConversion?.[0]?.unit_secondary?.label || "unidades"}. ` +
-          `Se ajustó al máximo disponible.`,
-      }));
-      setAutoAdjust(conversionRowKey, true);
+      finalQuantity = max
+      setRowMsg(key, {
+        msg: `Conversión: se ajustó al máximo disponible (${max}).`,
+        level: "warn",
+      })
     } else {
-      setQtyErrorByKey((prev) => ({ ...prev, [conversionRowKey]: "" }));
-      setAutoAdjustByKey((prev) => ({ ...prev, [conversionRowKey]: false }));
+      setRowMsg(key, undefined)
     }
 
-    const nextStr = finalQuantity.toString();
-    setQtyByKey((prev) => ({ ...prev, [conversionRowKey]: nextStr }));
-    syncQuantityToForm(conversionRowIndex, nextStr);
+    const nextStr = String(finalQuantity)
+    setQtyByKey((p) => ({ ...p, [key]: nextStr }))
+    setValue(`aeronautical_articles.${conversionRowIndex}.quantity`, finalQuantity)
 
-    // cerrar panel
-    setConversionRowKey(null);
-    setConversionRowIndex(null);
-    setConversionArticleId(null);
-    setSelectedConversion(null);
-    setConversionInput("");
-  };
+    closeConversion()
+  }
 
+  // =============== Agregar items ===============
+  const handleAddAeronautical = (article: Article) => {
+    const current = getValues("aeronautical_articles")
+    const exists = current.some((x) => x.article_id === Number(article.id))
+    if (exists) {
+      setOpenAdd(false)
+      return
+    }
+
+    aeroFA.append({ article_id: Number(article.id), quantity: 0 })
+
+    // Mantiene tu comportamiento: si no es "u", default litros
+    if (article.unit !== "u") setValue("unit", "litros")
+    setOpenAdd(false)
+  }
+
+  const handleAddGeneral = (ga: GeneralArticle) => {
+    const current = getValues("general_articles")
+    const exists = current.some((x) => x.general_article_id === Number(ga.id))
+    if (exists) {
+      setOpenAdd(false)
+      return
+    }
+
+    genFA.append({ general_article_id: Number(ga.id), quantity: 0 })
+    setOpenAdd(false)
+  }
+
+  const removeAeroRow = (index: number, fieldId: string) => {
+    aeroFA.remove(index)
+    clearRowState(aeroKey(fieldId))
+    if (conversionRowFieldId === fieldId) closeConversion()
+  }
+
+  const removeGenRow = (index: number, fieldId: string) => {
+    genFA.remove(index)
+    clearRowState(genKey(fieldId))
+  }
+
+  // =============== Validaciones UI submit ===============
   const hasBlockingQtyError = useMemo(() => {
-    return Object.entries(qtyErrorByKey).some(([key, msg]) => {
-      if (!msg) return false;
-      return !autoAdjustByKey[key];
-    });
-  }, [qtyErrorByKey, autoAdjustByKey]);
+    return Object.values(msgByKey).some((m) => m?.level === "error")
+  }, [msgByKey])
 
   const hasInvalidQty = useMemo(() => {
-    return fields.some((f, idx) => {
-      const key = f.id;
-      const v = parseFloat(qtyByKey[key] ?? "") || 0;
-      return v <= 0;
-    });
-  }, [fields, qtyByKey]);
+    const aeroInvalid = aeroFA.fields.some((f) => {
+      const raw = qtyByKey[aeroKey(f.id)] ?? ""
+      const v = parseFloat(raw || "0") || 0
+      return v <= 0
+    })
+    const genInvalid = genFA.fields.some((f) => {
+      const raw = qtyByKey[genKey(f.id)] ?? ""
+      const v = parseInt(raw || "0", 10) || 0
+      return v <= 0
+    })
+    return aeroInvalid || genInvalid
+  }, [aeroFA.fields, genFA.fields, qtyByKey])
 
+  // =============== Submit ===============
   const onSubmit = async (data: FormSchemaType) => {
-    // Validación final por stock (por si cambió stock o hubo edge case)
-    for (const item of data.articles) {
-      const max = getMaxQuantity(item.article_id);
+    // Validación final por stock + seteo de mensajes por fila si aplica
+    for (let i = 0; i < data.aeronautical_articles.length; i++) {
+      const item = data.aeronautical_articles[i]
+      const max = getAeroMax(item.article_id)
+      const fieldId = aeroFA.fields[i]?.id
+      const key = fieldId ? aeroKey(fieldId) : null
+
+      if (item.quantity <= 0) {
+        if (key) setRowMsg(key, { msg: "La cantidad debe ser mayor a 0", level: "error" })
+        return
+      }
       if (max > 0 && item.quantity > max) {
-        // setea error en la fila correspondiente si la encontramos
-        const idx = data.articles.findIndex(
-          (x) => x.article_id === item.article_id && x.batch_id === item.batch_id
-        );
-        const fieldKey = fields[idx]?.id;
-        if (fieldKey) {
-          setQtyErrorByKey((prev) => ({
-            ...prev,
-            [fieldKey]: `No puede retirar más de ${max} disponibles`,
-          }));
-        }
-        return;
+        if (key) setRowMsg(key, { msg: `No puede exceder el disponible (${max})`, level: "error" })
+        return
       }
     }
 
-    if (hasBlockingQtyError) return;
+    for (let i = 0; i < data.general_articles.length; i++) {
+      const item = data.general_articles[i]
+      const max = getGenMax(item.general_article_id)
+      const fieldId = genFA.fields[i]?.id
+      const key = fieldId ? genKey(fieldId) : null
+
+      if (item.quantity <= 0) {
+        if (key) setRowMsg(key, { msg: "La cantidad debe ser mayor a 0", level: "error" })
+        return
+      }
+      if (max > 0 && item.quantity > max) {
+        if (key) setRowMsg(key, { msg: `No puede exceder el disponible (${max})`, level: "error" })
+        return
+      }
+    }
+
+    if (hasBlockingQtyError) return
 
     const formattedData = {
       ...data,
@@ -391,29 +456,35 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
       approved_by: user?.employee?.[0]?.dni,
       delivered_by: user?.employee?.[0]?.dni,
       user_id: Number(user!.id),
-      isDepartment: isDepartment,
+      isDepartment,
       aircraft_id: isDepartment ? null : data.destination_place,
-    };
+    }
 
     await createDispatchRequest.mutateAsync({
       data: formattedData,
       company: selectedCompany!.slug,
-    });
+    })
 
-    onClose();
-  };
+    onClose()
+  }
+
+  const aeronauticalCount = aeroFA.fields.length
+  const generalCount = genFA.fields.length
+
+  const messageClass = (level: MsgLevel) =>
+    level === "warn" ? "text-amber-600" : "text-destructive"
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col space-y-6 w-full">
-        {/* Sección: Personal Responsable */}
+        {/* Personal Responsable */}
         <div className="space-y-4">
           <div className="flex items-center gap-3 mb-1">
-            <div className="h-px flex-1 bg-border/60"></div>
+            <div className="h-px flex-1 bg-border/60" />
             <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide px-2">
               Personal Responsable
             </span>
-            <div className="h-px flex-1 bg-border/60"></div>
+            <div className="h-px flex-1 bg-border/60" />
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -421,6 +492,7 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
               <Label className="text-sm font-medium">Entregado por:</Label>
               <Input disabled value={`${user?.first_name} ${user?.last_name}`} />
             </div>
+
             <FormField
               control={form.control}
               name="requested_by"
@@ -439,12 +511,11 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
                           <Loader2 className="size-4 animate-spin text-muted-foreground" />
                         </div>
                       )}
-                      {employees &&
-                        employees.map((employee) => (
-                          <SelectItem key={employee.id} value={`${employee.dni}`}>
-                            {employee.first_name} {employee.last_name} - {employee.job_title.name}
-                          </SelectItem>
-                        ))}
+                      {employees?.map((employee) => (
+                        <SelectItem key={employee.id} value={`${employee.dni}`}>
+                          {employee.first_name} {employee.last_name} - {employee.job_title.name}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                   <FormMessage />
@@ -454,14 +525,14 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
           </div>
         </div>
 
-        {/* Sección: Información de la Solicitud */}
+        {/* Información de la Solicitud */}
         <div className="space-y-4">
           <div className="flex items-center gap-3 mb-1">
-            <div className="h-px flex-1 bg-border/60"></div>
+            <div className="h-px flex-1 bg-border/60" />
             <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide px-2">
               Información de la Solicitud
             </span>
-            <div className="h-px flex-1 bg-border/60"></div>
+            <div className="h-px flex-1 bg-border/60" />
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -489,17 +560,13 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
                     <PopoverTrigger asChild>
                       <FormControl>
                         <Button
-                          variant={"outline"}
+                          variant="outline"
                           className={cn(
                             "h-10 w-full pl-3 text-left font-normal",
                             !field.value && "text-muted-foreground"
                           )}
                         >
-                          {field.value ? (
-                            format(field.value, "PPP", { locale: es })
-                          ) : (
-                            <span>Seleccione una fecha...</span>
-                          )}
+                          {field.value ? format(field.value, "PPP", { locale: es }) : <span>Seleccione una fecha...</span>}
                           <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                         </Button>
                       </FormControl>
@@ -558,9 +625,7 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
                   >
                     <FormControl>
                       <SelectTrigger className="h-10">
-                        <SelectValue
-                          placeholder={isDepartment ? "Seleccione un departamento..." : "Seleccione una aeronave..."}
-                        />
+                        <SelectValue placeholder={isDepartment ? "Seleccione un departamento..." : "Seleccione una aeronave..."} />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -601,108 +666,132 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
           </div>
         </div>
 
-        {/* Sección: Artículos a Retirar */}
+        {/* Artículos a Retirar */}
         <div className="space-y-4">
           <div className="flex items-center gap-3 mb-1">
-            <div className="h-px flex-1 bg-border/60"></div>
+            <div className="h-px flex-1 bg-border/60" />
             <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide px-2">
               Artículos a Retirar
             </span>
-            <div className="h-px flex-1 bg-border/60"></div>
+            <div className="h-px flex-1 bg-border/60" />
           </div>
 
-          {/* Selector para agregar (minimal) */}
-          <FormField
-            control={form.control}
-            name="articles"
-            render={() => (
-              <FormItem className="flex flex-col">
-                <FormLabel className="text-sm font-medium">Agregar consumible</FormLabel>
+          {/* Selector único */}
+          <div className="space-y-2">
+            <Label className="text-sm font-medium flex items-center justify-between">
+              Agregar artículo
+              <span className="text-xs text-muted-foreground">
+                Aeronáutico: {aeronauticalCount} · Ferretería: {generalCount}
+              </span>
+            </Label>
 
-                <Popover open={openAdd} onOpenChange={setOpenAdd}>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      role="combobox"
-                      aria-expanded={openAdd}
-                      className="w-full justify-between h-10"
-                      disabled={isBatchesLoading}
-                    >
+            <Popover open={openAdd} onOpenChange={setOpenAdd}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  role="combobox"
+                  aria-expanded={openAdd}
+                  className="w-full justify-between h-10"
+                  disabled={isBatchesLoading && isHardwareLoading}
+                >
+                  <span className="text-muted-foreground flex items-center gap-2">
+                    <PackagePlus className="h-4 w-4" />
+                    Seleccione un artículo...
+                  </span>
+                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                </Button>
+              </PopoverTrigger>
+
+              <PopoverContent className="w-full p-0" align="start">
+                <Command>
+                  <CommandInput placeholder="Buscar por parte, descripción, marca o tipo..." />
+                  <CommandList>
+                    <CommandEmpty>No se han encontrado artículos...</CommandEmpty>
+
+                    {/* Aeronáutico */}
+                    <CommandGroup heading="Aeronáutico (Consumibles)">
                       {isBatchesLoading ? (
-                        <>
-                          <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                          <span className="text-muted-foreground">Cargando...</span>
-                        </>
+                        <div className="flex items-center justify-center py-6">
+                          <Loader2 className="size-4 animate-spin" />
+                        </div>
                       ) : (
-                        <span className="text-muted-foreground">Seleccione un consumible...</span>
-                      )}
-                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                    </Button>
-                  </PopoverTrigger>
-
-                  <PopoverContent className="w-full p-0" align="start">
-                    <Command>
-                      <CommandInput placeholder="Buscar por número de parte o descripción..." />
-                      <CommandList>
-                        {isBatchesLoading ? (
-                          <div className="flex items-center justify-center py-6">
-                            <Loader2 className="size-4 animate-spin" />
-                          </div>
-                        ) : (
-                          <>
-                            <CommandEmpty>No se han encontrado consumibles...</CommandEmpty>
-                            {batches?.map((batch: BatchesWithCountProp) => (
-                              <CommandGroup key={batch.batch_id} heading={batch.name}>
-                                {batch.articles.map((article) => (
-                                  <CommandItem
-                                    key={article.id}
-                                    onSelect={() => handleAddConsumable(article, batch.batch_id)}
-                                  >
-                                    <Check className="mr-2 h-4 w-4 opacity-0" />
-                                    <div className="flex flex-col flex-1 min-w-0">
-                                      <span className="font-medium truncate">{article.part_number}</span>
-                                      <span className="text-xs text-muted-foreground">
-                                        Disponible: {article.quantity} {article.unit}
-                                      </span>
-                                    </div>
-                                  </CommandItem>
-                                ))}
-                              </CommandGroup>
+                        batches?.map((batch: BatchesWithCountProp) => (
+                          <CommandGroup key={`aero-${batch.batch_id}`} heading={batch.name}>
+                            {batch.articles.map((article) => (
+                              <CommandItem
+                                key={`a-${article.id}-${batch.batch_id}`}
+                                value={`${article.part_number} ${article.description ?? ""}`}
+                                onSelect={() => handleAddAeronautical(article)}
+                              >
+                                <Check className="mr-2 h-4 w-4 opacity-0" />
+                                <div className="flex flex-col flex-1 min-w-0">
+                                  <span className="font-medium truncate">{article.part_number}</span>
+                                  <span className="text-xs text-muted-foreground truncate">
+                                    {article.description ?? "Sin descripción"} · Disp: {article.quantity} {article.unit}
+                                  </span>
+                                </div>
+                              </CommandItem>
                             ))}
-                          </>
-                        )}
-                      </CommandList>
-                    </Command>
-                  </PopoverContent>
-                </Popover>
+                          </CommandGroup>
+                        ))
+                      )}
+                    </CommandGroup>
 
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+                    {/* Ferretería */}
+                    <CommandGroup heading="Ferretería (Inventario general)">
+                      {isHardwareLoading ? (
+                        <div className="flex items-center justify-center py-6">
+                          <Loader2 className="size-4 animate-spin" />
+                        </div>
+                      ) : (
+                        hardwareArticles.map((ga) => (
+                          <CommandItem
+                            key={`g-${ga.id}`}
+                            value={`${ga.description ?? ""} ${ga.brand_model ?? ""} ${ga.variant_type ?? ""}`}
+                            onSelect={() => handleAddGeneral(ga)}
+                          >
+                            <Check className="mr-2 h-4 w-4 opacity-0" />
+                            <div className="flex flex-col flex-1 min-w-0">
+                              <span className="font-medium truncate">{ga.description ?? "N/A"}</span>
+                              <span className="text-xs text-muted-foreground truncate">
+                                {ga.brand_model ?? "N/A"} · {ga.variant_type ?? "N/A"} · Disp: {ga.quantity ?? 0}
+                              </span>
+                            </div>
+                          </CommandItem>
+                        ))
+                      )}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
+          </div>
 
-          {/* Lista minimalista */}
-          {fields.length > 0 && (
+          {/* Aeronáutico */}
+          {aeroFA.fields.length > 0 && (
             <div className="space-y-2">
-              {fields.map((f, index) => {
-                const key = f.id;
-                const row = getValues(`articles.${index}`);
-                const article = articleById.get(row.article_id);
-                const max = row.article_id ? getMaxQuantity(row.article_id) : 0;
+              <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                Aeronáutico
+              </div>
 
-                const qty = qtyByKey[key] ?? "";
-                const err = qtyErrorByKey[key] ?? "";
-                const isAuto = !!autoAdjustByKey[key];
+              {aeroFA.fields.map((f, index) => {
+                const key = aeroKey(f.id)
+                const item = getValues(`aeronautical_articles.${index}`)
+                const article = aeroById.get(item.article_id)
+                const max = item.article_id ? getAeroMax(item.article_id) : 0
+
+                const qty = qtyByKey[key] ?? ""
+                const rowMsg = msgByKey[key]
 
                 return (
-                  <div key={key} className="border rounded-md p-3">
+                  <div key={f.id} className="border rounded-md p-3">
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0 flex-1">
                         <p className="text-sm font-medium truncate">
-                          {article?.part_number ?? `ID: ${row.article_id}`}
+                          {article?.part_number ?? `ID: ${item.article_id}`}
                         </p>
-                        <p className="text-xs text-muted-foreground">
-                          Disponible: {article?.quantity ?? 0} {article?.unit ?? ""}
+                        <p className="text-xs text-muted-foreground truncate">
+                          {article?.description ?? "Sin descripción"} · Disponible: {article?.quantity ?? 0} {article?.unit ?? ""}
                         </p>
                       </div>
 
@@ -711,7 +800,7 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
                         variant="ghost"
                         size="icon"
                         className="h-8 w-8"
-                        onClick={() => handleRemoveRow(index, key)}
+                        onClick={() => removeAeroRow(index, f.id)}
                       >
                         <X className="h-4 w-4" />
                       </Button>
@@ -719,14 +808,15 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
 
                     <div className="mt-3 grid grid-cols-1 md:grid-cols-[1fr_auto] gap-3 items-end">
                       <div className="space-y-2">
-                        <div className="flex items-center justify-between">
+                        <div className="flex items-center justify-between gap-2">
                           <Label className="text-sm font-medium">Cantidad</Label>
+
                           <div className="flex items-center gap-2">
                             <Button
                               type="button"
                               variant="ghost"
                               size="sm"
-                              onClick={() => setToMaxQuantity(index, key, row.article_id)}
+                              onClick={() => setToMaxAero(index, f.id)}
                               className="h-7 text-xs text-primary hover:text-primary"
                               disabled={!article}
                             >
@@ -738,7 +828,7 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
                               variant="outline"
                               size="sm"
                               className="h-7 px-2"
-                              onClick={() => openConversionForRow(index, key, row.article_id)}
+                              onClick={() => openConversionFor(index, f.id, item.article_id)}
                               disabled={!article || article.unit === "u"}
                             >
                               <Calculator className="h-3.5 w-3.5 mr-2" />
@@ -749,44 +839,45 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
 
                         <Input
                           type="text"
-                          min="0"
-                          step="0.001"
-                          max={max || undefined}
                           disabled={!article}
                           value={qty}
                           onChange={(e) => {
-                            const adjusted = validateAndAdjustQuantity(
-                              key,
-                              row.article_id,
-                              e.target.value
-                            );
-                            setQtyByKey((prev) => ({ ...prev, [key]: adjusted }));
-                            syncQuantityToForm(index, adjusted);
+                            const next = sanitizeDecimal(e.target.value)
+                            setQtyByKey((p) => ({ ...p, [key]: next }))
+                          }}
+                          onBlur={() => commitAeroQty(index, f.id)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                              e.preventDefault()
+                              commitAeroQty(index, f.id)
+                              ;(e.currentTarget as HTMLInputElement).blur()
+                            }
                           }}
                           placeholder={article ? `Máx: ${article.quantity}` : "Ingrese la cantidad..."}
                           className={cn(
                             "h-10",
-                            err && !isAuto && "border-destructive focus-visible:ring-destructive",
-                            isAuto && "border-amber-500 focus-visible:ring-amber-500"
+                            rowMsg?.level === "error" && "border-destructive focus-visible:ring-destructive",
+                            rowMsg?.level === "warn" && "border-amber-500 focus-visible:ring-amber-500"
                           )}
                         />
 
-                        {err && (
-                          <div
-                            className={cn(
-                              "flex items-center gap-1 text-xs",
-                              isAuto ? "text-amber-600" : "text-destructive"
-                            )}
-                          >
+                        {rowMsg?.msg && (
+                          <div className={cn("flex items-center gap-1 text-xs", messageClass(rowMsg.level))}>
                             <AlertCircle className="h-3 w-3" />
-                            {err}
+                            {rowMsg.msg}
                           </div>
+                        )}
+
+                        {max > 0 && (
+                          <p className="text-[11px] text-muted-foreground">
+                            Disponible actual: {max}
+                          </p>
                         )}
                       </div>
                     </div>
 
-                    {/* Panel de conversión (solo para 1 fila activa) */}
-                    {conversionRowKey === key && article && article.unit !== "u" && (
+                    {/* Panel Conversión (solo una fila activa) */}
+                    {conversionRowFieldId === f.id && article && article.unit !== "u" && (
                       <div className="mt-3 rounded-md bg-muted/30 p-3 space-y-2">
                         <Label className="text-sm font-medium">Conversión de Unidades</Label>
 
@@ -794,11 +885,11 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
                           <Select
                             value={selectedConversion?.id?.toString() || ""}
                             onValueChange={(value) => {
-                              const conversion = consumableConversion?.find(
-                                (conv: any) => conv.id.toString() === value
-                              );
-                              setSelectedConversion(conversion || null);
-                              setConversionInput("");
+                              const conv = consumableConversion?.find(
+                                (c: any) => c.id.toString() === value
+                              )
+                              setSelectedConversion(conv || null)
+                              setConversionInput("")
                             }}
                             disabled={isConversionLoading}
                           >
@@ -808,21 +899,20 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
                               />
                             </SelectTrigger>
                             <SelectContent>
-                              {consumableConversion?.map((conversion: any) => (
-                                <SelectItem key={conversion.id} value={conversion.id.toString()}>
-                                  {conversion.unit_primary.label} ({conversion.unit_primary.value})
+                              {consumableConversion?.map((conv: any) => (
+                                <SelectItem key={conv.id} value={conv.id.toString()}>
+                                  {conv.unit_primary.label} ({conv.unit_primary.value})
                                 </SelectItem>
                               ))}
                             </SelectContent>
                           </Select>
 
                           <Input
-                            type="number"
-                            min="0"
-                            step="0.01"
+                            type="text"
+                            inputMode="decimal"
                             placeholder="Cantidad"
                             value={conversionInput}
-                            onChange={(e) => setConversionInput(e.target.value)}
+                            onChange={(e) => setConversionInput(sanitizeDecimal(e.target.value))}
                             className="h-10 w-full md:w-28"
                             disabled={!selectedConversion}
                           />
@@ -840,13 +930,7 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
                               type="button"
                               variant="outline"
                               className="h-10"
-                              onClick={() => {
-                                setConversionRowKey(null);
-                                setConversionRowIndex(null);
-                                setConversionArticleId(null);
-                                setSelectedConversion(null);
-                                setConversionInput("");
-                              }}
+                              onClick={closeConversion}
                             >
                               Cerrar
                             </Button>
@@ -857,8 +941,7 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
                           <p className="text-xs text-muted-foreground">
                             {conversionInput} {selectedConversion.unit_primary.label} ={" "}
                             {(
-                              (parseFloat(conversionInput) || 0) /
-                              selectedConversion.equivalence
+                              (parseFloat(conversionInput) || 0) / selectedConversion.equivalence
                             ).toFixed(6)}{" "}
                             {consumableConversion?.[0]?.unit_secondary?.label || "unidades"}
                           </p>
@@ -873,20 +956,120 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
                       </div>
                     )}
                   </div>
-                );
+                )
+              })}
+            </div>
+          )}
+
+          {/* Ferretería */}
+          {genFA.fields.length > 0 && (
+            <div className="space-y-2">
+              <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                Ferretería
+              </div>
+
+              {genFA.fields.map((f, index) => {
+                const key = genKey(f.id)
+                const item = getValues(`general_articles.${index}`)
+                const ga = genById.get(item.general_article_id)
+                const max = item.general_article_id ? getGenMax(item.general_article_id) : 0
+
+                const qty = qtyByKey[key] ?? ""
+                const rowMsg = msgByKey[key]
+
+                return (
+                  <div key={f.id} className="border rounded-md p-3">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-medium truncate">
+                          {ga?.description ?? `ID: ${item.general_article_id}`}
+                        </p>
+                        <p className="text-xs text-muted-foreground truncate">
+                          {ga?.brand_model ?? "N/A"} · {ga?.variant_type ?? "N/A"} · Disponible: {ga?.quantity ?? 0}
+                        </p>
+                      </div>
+
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8"
+                        onClick={() => removeGenRow(index, f.id)}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+
+                    <div className="mt-3 grid grid-cols-1 md:grid-cols-[1fr_auto] gap-3 items-end">
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <Label className="text-sm font-medium">Cantidad</Label>
+
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setToMaxGen(index, f.id)}
+                            className="h-7 text-xs text-primary hover:text-primary"
+                            disabled={!ga}
+                          >
+                            Usar máximo
+                          </Button>
+                        </div>
+
+                        <Input
+                          type="text"
+                          disabled={!ga}
+                          value={qty}
+                          onChange={(e) => {
+                            const next = sanitizeInt(e.target.value)
+                            setQtyByKey((p) => ({ ...p, [key]: next }))
+                          }}
+                          onBlur={() => commitGenQty(index, f.id)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                              e.preventDefault()
+                              commitGenQty(index, f.id)
+                              ;(e.currentTarget as HTMLInputElement).blur()
+                            }
+                          }}
+                          placeholder={ga ? `Máx: ${ga.quantity ?? 0}` : "Ingrese la cantidad..."}
+                          className={cn(
+                            "h-10",
+                            rowMsg?.level === "error" && "border-destructive focus-visible:ring-destructive",
+                            rowMsg?.level === "warn" && "border-amber-500 focus-visible:ring-amber-500"
+                          )}
+                        />
+
+                        {rowMsg?.msg && (
+                          <div className={cn("flex items-center gap-1 text-xs", messageClass(rowMsg.level))}>
+                            <AlertCircle className="h-3 w-3" />
+                            {rowMsg.msg}
+                          </div>
+                        )}
+
+                        {max > 0 && (
+                          <p className="text-[11px] text-muted-foreground">
+                            Disponible actual: {max}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )
               })}
             </div>
           )}
         </div>
 
-        {/* Sección: Justificación */}
+        {/* Justificación */}
         <div className="space-y-4">
           <div className="flex items-center gap-3 mb-1">
-            <div className="h-px flex-1 bg-border/60"></div>
+            <div className="h-px flex-1 bg-border/60" />
             <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide px-2">
               Justificación
             </span>
-            <div className="h-px flex-1 bg-border/60"></div>
+            <div className="h-px flex-1 bg-border/60" />
           </div>
 
           <FormField
@@ -898,7 +1081,7 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
                   <Textarea
                     rows={4}
                     className="w-full resize-none"
-                    placeholder="Ej: Se necesita para la limpieza de equipos de mantenimiento..."
+                    placeholder="Ej: Se necesita para el mantenimiento..."
                     {...field}
                   />
                 </FormControl>
@@ -926,7 +1109,7 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
             className="bg-primary text-white hover:bg-primary/90 disabled:bg-primary/70 min-w-[120px] h-10"
             disabled={
               createDispatchRequest?.isPending ||
-              fields.length === 0 ||
+              (aeronauticalCount + generalCount) === 0 ||
               hasBlockingQtyError ||
               hasInvalidQty
             }
@@ -944,5 +1127,5 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
         </div>
       </form>
     </Form>
-  );
+  )
 }
