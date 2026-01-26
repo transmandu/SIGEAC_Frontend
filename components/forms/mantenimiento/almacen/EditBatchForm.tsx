@@ -22,6 +22,7 @@ export function EditBatchForm({ onClose, onSuccess }: EditBatchFormProps) {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
   const handleEditBatch = (batch: Batch) => {
+    if (isEditDialogOpen) return; // evita abrir múltiples modales
     setBatchToEdit(batch);
     setIsEditDialogOpen(true);
   };

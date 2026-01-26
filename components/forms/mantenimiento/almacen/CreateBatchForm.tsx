@@ -150,6 +150,7 @@ const form = useForm<FormSchemaType>({
   const [isUnitDialogOpen, setIsUnitDialogOpen] = useState(false);
   const isNameDuplicate =
     category && name && batches?.some((batch) => batch.name === name);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (defaultCategory)
@@ -212,44 +213,54 @@ const form = useForm<FormSchemaType>({
   }, [isNameDuplicate, setError, clearErrors]);
 
   const onSubmit = async (data: FormSchemaType) => {
-    const company = selectedCompany?.slug;
-    if (!company) {
-      setError("name", {
-        type: "manual",
-        message: "No se ha seleccionado una compañia.",
-      });
-      return;
-    }
-    if (isNameDuplicate && !(isEditing && initialData?.name === data.name)) {
-      setError("name", {
-        type: "manual",
-        message: "El numero de parte ya existe en esta categoría.",
-      });
-      return;
-    }
+    if (isSubmitting) return; // bloquea clicks múltiples
+    setIsSubmitting(true);
 
-    if (isEditing && initialData) {
-      await updateBatch.mutateAsync({
-        id: initialData.id.toString(),
-        data: {
-          ...data,
-          slug: generateSlug(data.name),
-          warehouse_id: Number(data.warehouse_id),
-        },
-        company,
-      });
-    } else {
-      await createBatch.mutateAsync({
-        data: {
-          ...data,
-          slug: generateSlug(data.name),
-          warehouse_id: Number(data.warehouse_id),
-        },
-        company,
-      });
+    try {
+      const company = selectedCompany?.slug;
+      if (!company) {
+        setError("name", {
+          type: "manual",
+          message: "No se ha seleccionado una compañia.",
+        });
+        return;
+      }
+      if (isNameDuplicate && !(isEditing && initialData?.name === data.name)) {
+        setError("name", {
+          type: "manual",
+          message: "El numero de parte ya existe en esta categoría.",
+        });
+        return;
+      }
+
+      if (isEditing && initialData) {
+        await updateBatch.mutateAsync({
+          id: initialData.id.toString(),
+          data: {
+            ...data,
+            slug: generateSlug(data.name),
+            warehouse_id: Number(data.warehouse_id),
+          },
+          company,
+        });
+      } else {
+        await createBatch.mutateAsync({
+          data: {
+            ...data,
+            slug: generateSlug(data.name),
+            warehouse_id: Number(data.warehouse_id),
+          },
+          company,
+        });
+      }
+
+      onSuccess?.(data.name);
+      onClose();
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsSubmitting(false);
     }
-    onSuccess?.(data.name);
-    onClose();
   };
   return (
     <Form {...form}>
@@ -505,14 +516,10 @@ const form = useForm<FormSchemaType>({
         )}
         <Button
           className="bg-primary mt-2 text-white hover:bg-blue-900"
-          disabled={createBatch?.isPending}
+          disabled={isSubmitting}
           type="submit"
         >
-          {createBatch?.isPending ? (
-            <Loader2 className="size-4 animate-spin" />
-          ) : (
-            <p>{isEditing ? "Editar" : "Crear"}</p>
-          )}
+          {isSubmitting ? <Loader2 className="size-4 animate-spin" /> : <p>{isEditing ? "Editar" : "Crear"}</p>}
         </Button>
       </form>
       <Dialog open={isUnitDialogOpen} onOpenChange={setIsUnitDialogOpen}>
