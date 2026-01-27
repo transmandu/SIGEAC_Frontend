@@ -157,8 +157,11 @@ export const NonRoutineTasksList = ({ tasks }: NonRoutineTasksListProps) => {
                             Tareas a realizar:
                           </h4>
                           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                            {subtasks.map((subtask) => (
+                            {subtasks.map((subtask, index) => (
                               <TaskCard
+                              index={
+                                index
+                              }
                                 task={subtask}
                                 key={subtask.id}
                                 onClick={() =>

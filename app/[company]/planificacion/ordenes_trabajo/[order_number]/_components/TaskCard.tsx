@@ -6,11 +6,13 @@ import { Badge } from '@/components/ui/badge'
 type WorkOrderTask = WorkOrder["work_order_tasks"][0]
 
 const TaskCard = ({
+  index,
   task,
   onClick,
   isNonRoutine = false
 }: {
   task: WorkOrderTask,
+  index: number,
   isNonRoutine?: boolean,
   onClick: () => void
 }) => {
@@ -21,7 +23,7 @@ const TaskCard = ({
     >
       <CardHeader>
         <CardTitle className='flex gap-2 items-center'>
-          {isNonRoutine ? 'No Rutinaria' : `Tarea: ${task.task_number}`}
+          {isNonRoutine ? 'No Rutinaria' : `Item - ${index + 1}`}
           <Badge className={task.status === "ABIERTO" ? "bg-primary" : "bg-red-500"}>{task.status}</Badge>
         </CardTitle>
         {isNonRoutine && task.non_routine && (
@@ -68,13 +70,13 @@ const TaskCard = ({
               <p className="text-sm text-muted-foreground">No asignado</p>
             )}
           </div>
-          
+
           <div className="grid grid-cols-2 gap-2 text-sm">
             <div>
               <p className="text-xs text-muted-foreground">Horas H/H:</p>
               <Badge variant="outline" className="font-mono text-xs">
-                {task.assigned_technicians?.reduce((sum, t) => sum + t.hours, 0).toFixed(1) || 
-                 task.total_man_hours?.toFixed(1) || 
+                {task.assigned_technicians?.reduce((sum, t) => sum + t.hours, 0).toFixed(1) ||
+                 task.total_man_hours?.toFixed(1) ||
                  '8.0'} h
               </Badge>
             </div>

@@ -132,8 +132,9 @@ export const RoutineTasksList = ({
         </div>
       ) : viewMode === "cards" ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredTasks.map((task) => (
+          {filteredTasks.map((task, _index) => (
             <TaskCard
+            index={_index}
               key={task.id}
               task={task}
               onClick={() => onTaskClick(task)}
@@ -202,8 +203,8 @@ export const RoutineTasksList = ({
                   </TableCell>
                   <TableCell>
                     <Badge variant="secondary" className="font-mono">
-                      {task.assigned_technicians?.reduce((sum, t) => sum + t.hours, 0).toFixed(1) || 
-                       task.total_man_hours?.toFixed(1) || 
+                      {task.assigned_technicians?.reduce((sum, t) => sum + t.hours, 0).toFixed(1) ||
+                       task.total_man_hours?.toFixed(1) ||
                        '8.0'}
                     </Badge>
                   </TableCell>
