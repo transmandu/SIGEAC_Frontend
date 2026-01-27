@@ -12,7 +12,9 @@ export const useCreateReportPage = () => {
   const queryClient = useQueryClient()
   const createMutation = useMutation({
       mutationFn: async ({data}: {data: CreateWorkOrderReportData}) => {
-          await axiosInstance.post(`/${data.company}/work-order-report-page`, data.work_order_id)
+          await axiosInstance.post(`/${data.company}/work-order-report-page`, {
+            work_order_id: data.work_order_id,
+          })
         },
       onSuccess: () => {
           queryClient.invalidateQueries({queryKey: ['work-order-report-page'], exact: false})
