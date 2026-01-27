@@ -42,7 +42,7 @@ const createPrelimnSchema = z.object({
   action_taken: z.string().min(10, "La acción debe tener al menos 10 caracteres"),
 })
 
-const PrelimInspecTable = ({ work_order }: { work_order: WorkOrder }) => {
+const ReportTable = ({ work_order }: { work_order: WorkOrder }) => {
   const { createPrelimInspection } = useCreatePrelimInspection()
   const { updatePrelimInspection } = useUpdatePrelimInspection()
   const { selectedCompany } = useCompanyStore()
@@ -241,4 +241,4 @@ const PrelimInspecTable = ({ work_order }: { work_order: WorkOrder }) => {
   )
 }
 
-export default PrelimInspecTable
+export default ReportTable

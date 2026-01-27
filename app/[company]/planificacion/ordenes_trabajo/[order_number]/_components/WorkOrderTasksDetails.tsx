@@ -8,17 +8,18 @@ import {
 } from "@/components/ui/tabs"
 import { useCheckWorkOrderArticles } from "@/hooks/mantenimiento/planificacion/useCheckWorkOrderArticles"
 import { cn } from "@/lib/utils"
-import { WorkOrder } from "@/types"
 import { useCompanyStore } from "@/stores/CompanyStore"
+import { WorkOrder } from "@/types"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useMemo, useState } from "react"
 import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 import { z } from "zod"
 import { NonRoutineTasksList } from "./NoRoutineTasksList"
+import PrelimInspecTable from "./PrelimInspecTable"
+import ReportTable from "./ReportTable"
 import { RoutineTasksList } from "./RoutineTasksList"
 import { TaskDetailsDialog } from "./TaskDetailsDialog"
-import PrelimInspecTable from "./PrelimInspecTable"
 // Esquema del formulario para asignar técnicos/inspectores
 const assignmentFormSchema = z.object({
   task_id: z.number(),
@@ -121,7 +122,7 @@ const WorkOrderTasksDetails = ({ work_order }: { work_order: WorkOrder }) => {
           <PrelimInspecTable work_order={work_order} />
         </TabsContent>
         <TabsContent value="reports" className="space-y-4">
-          <PrelimInspecTable work_order={work_order} />
+          <ReportTable work_order={work_order} />
         </TabsContent>
         <TabsContent value="rut" className="space-y-4">
           <RoutineTasksList
