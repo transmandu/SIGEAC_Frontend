@@ -80,7 +80,33 @@ const PrelimInspecTable = ({ work_order }: { work_order: WorkOrder }) => {
         const url = window.URL.createObjectURL(new Blob([response.data]));
         const link = document.createElement('a');
         link.href = url;
-        link.setAttribute('download', `WO-${work_order.order_number}.pdf`);
+        link.setAttribute('download', `PRELIM_INSPECTION_WO-${work_order.order_number}.pdf`);
+        document.body.appendChild(link);
+        link.click();
+
+        // Limpieza
+        link.parentNode?.removeChild(link);
+        window.URL.revokeObjectURL(url);
+
+      } catch (error) {
+        toast.error('Error al descargar el PDF', {
+          description: 'Hubo un problema al generar el PDF de la inspección preliminar.'
+        });
+        console.error('Error al descargar el PDF:', error);
+      }
+    };
+
+    const handleReportPrint = async () => {
+      try {
+        const response = await axiosInstance.get(`/hangar74/work-order-pdf-report/${work_order.order_number}`, {
+          responseType: 'blob', // Importante para manejar archivos binarios
+        });
+
+        // Crear URL del blob
+        const url = window.URL.createObjectURL(new Blob([response.data]));
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', `PRELIM_INSPECTION_WO-${work_order.order_number}.pdf`);
         document.body.appendChild(link);
         link.click();
 
@@ -144,6 +170,7 @@ const PrelimInspecTable = ({ work_order }: { work_order: WorkOrder }) => {
                     work_order?.preliminary_inspection.status === "FINALIZADO" && (
                       <div className="flex gap-2">
                         <Button onClick={handlePrint}><Printer /></Button>
+                        <Button onClick={handleReportPrint}><Printer className="text-red-500" /></Button>
                       </div>
                     )
                   }
