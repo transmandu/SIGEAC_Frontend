@@ -17,7 +17,7 @@ interface IDispatch {
     part_number: string;
     serial: string;
     description: string;
-    quantity: string;
+    dispatch_quantity: string;
   }[];
 }
 

@@ -1,191 +1,76 @@
-"use client"
+import DispatchArticlesDialog from '@/components/dialogs/mantenimiento/almacen/DispatchArticlesDialog';
+import { DataTableColumnHeader } from '@/components/tables/DataTableHeader';
+import { Button } from '@/components/ui/button';
+import { ColumnDef } from '@tanstack/react-table';
+import { format } from 'date-fns';
+import { es } from 'date-fns/locale';
+import { ChevronDown, ChevronRight, Package } from 'lucide-react';
+import { DispatchGroupRow } from './page';
 
-import { ColumnDef } from "@tanstack/react-table"
-import { ClipboardCheck, MoreHorizontal, SquarePen, Trash2 } from "lucide-react"
-
-import { DataTableColumnHeader } from "@/components/tables/DataTableHeader"
-import { Button } from "@/components/ui/button"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger
-} from "@/components/ui/dropdown-menu"
-
-import { Checkbox } from "@/components/ui/checkbox"
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip"
-import { DispatchRequest, WorkOrder, Convertion } from "@/types"
-import DispatchArticlesDialog from "@/components/dialogs/mantenimiento/almacen/DispatchArticlesDialog"
-import { format } from "date-fns"
-import { es } from "date-fns/locale"
-import { Badge } from "@/components/ui/badge"
-import { cn } from "@/lib/utils"
-
-interface IDispatch  {
-  id: number,
-  requested_by: string,
-  created_by: string,
-  justification: string,
-  destination_place: string,
-  submission_date: string,
-  work_order?: WorkOrder,
-  status: "PROCESO" | "APROBADO" | "RECHAZADO",
-  articles:
+export const columns: ColumnDef<DispatchGroupRow>[] = [
   {
-    id: number,
-    part_number: string,
-    serial: string,
-    description: string,
-    unit?: Convertion[],
-    quantity: string,
-  }[],
-}
-
-
-export const columns: ColumnDef<IDispatch>[] = [
-  {
-    id: "select",
-    header: ({ table }) => (
-      <Checkbox
-        checked={
-          table.getIsAllPageRowsSelected() ||
-          (table.getIsSomePageRowsSelected() && "indeterminate")
-        }
-        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-        aria-label="Seleccionar todos"
-      />
-    ),
+    id: 'expand',
+    header: () => null,
     cell: ({ row }) => (
-      <Checkbox
-        checked={row.getIsSelected()}
-        onCheckedChange={(value) => row.toggleSelected(!!value)}
-        aria-label="Seleccionar fila"
-      />
+      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => row.toggleExpanded()}>
+        {row.getIsExpanded() ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+      </Button>
     ),
     enableSorting: false,
     enableHiding: false,
+    size: 40,
   },
   {
-    accessorKey: "work_order",
-    header: ({ column }) => (
-      <DataTableColumnHeader filter column={column} title="Orden de Trabajo" />
-    ),
+    accessorKey: 'id',
+    header: ({ column }) => <DataTableColumnHeader column={column} title="N° solicitud" />,
+    cell: ({ row }) => <p className="text-center font-semibold">{row.original.id}</p>,
+  },
+  {
+    accessorKey: 'status',
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Estado" />,
+    cell: ({ row }) => <p className="text-center font-medium">{row.original.status}</p>,
+  },
+  {
+    accessorKey: 'destination_place',
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Destino" />,
     cell: ({ row }) => (
-      <p className="flex justify-center font-bold">{row.original.work_order?.order_number ? row.original.work_order?.order_number : "N/A"}</p>
-    )
-  },
-  {
-    accessorKey: "created_by",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Empleado Responsable" />
+      <p className="text-center font-medium">{row.original.destination_place ?? '—'}</p>
     ),
-    cell: ({ row }) => {
-      return (
-        <p className="font-medium text-center">{row.original.created_by}</p>
-      )
-    }
   },
   {
-    accessorKey: "justification",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Justificación" />
-    ),
+    accessorKey: 'submission_date',
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Fecha" />,
     cell: ({ row }) => {
+      const raw = row.original.submission_date;
+      if (!raw) return <p className="text-center text-muted-foreground">—</p>;
+
+      const d = new Date(raw);
+      if (Number.isNaN(d.getTime())) return <p className="text-center text-muted-foreground">—</p>;
+
       return (
-        <p className="font-medium text-center">{row.original.justification}</p>
-      )
-    }
-  },
-  {
-    accessorKey: "date",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Fecha" />
-    ),
-    cell: ({ row }) => (
-      <p className="flex justify-center text-muted-foreground italic">{format(row.original.submission_date, "PPP", {
-        locale: es
-      })}</p>
-    )
-  },
-  {
-    accessorKey: "articles",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Articulos" />
-    ),
-    cell: ({ row }) => {
-      // Transform articles to match the expected interface
-      const transformedArticles = row.original.articles.map(article => ({
-        serial: article.serial,
-        quantity: article.quantity,
-        part_number: article.part_number,
-        article_id: article.id.toString(),
-        unit: article.unit && article.unit.length > 0 ? article.unit[0].secondary_unit.value : undefined
-      }));
-      
-      return (
-        <div className="flex justify-center">
-          <DispatchArticlesDialog articles={transformedArticles} work_order={row.original.work_order?.order_number!} />
-        </div>
-      )
-    }
-  },
-  {
-    accessorKey: "status",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Status" />
-    ),
-    cell: ({ row }) => {
-      const approved = row.original.status === "APROBADO"
-      const process = row.original.status === "PROCESO"
-      return (
-        <p className="font-medium text-center">{row.original.status ? <Badge className={cn("", approved ? "bg-green-500 hover:bg-green-600" : process ? "bg-yellow-500 hover:bg-yellow-600" : "bg-red-500 hover:bg-red-600")}>{row.original.status}</Badge> :"N/A"}</p>
-      )
-    }
-  },
-  {
-    id: "actions",
-    cell: ({ row }) => {
-      return (
-        <TooltipProvider>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0">
-                <span className="sr-only">Abrir menu</span>
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="center" className="flex gap-2 justify-center">
-              <DropdownMenuSeparator />
-              <DropdownMenuItem>
-                <Tooltip>
-                  <TooltipTrigger>
-                    <Trash2 className='size-5 text-red-500' />
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Eliminar</p>
-                  </TooltipContent>
-                </Tooltip>
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <Tooltip>
-                  <TooltipTrigger>
-                    <SquarePen className="size-5" />
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    Editar
-                  </TooltipContent>
-                </Tooltip>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </TooltipProvider>
-      )
+        <p className="text-center text-muted-foreground">
+          {format(d, 'PPP', { locale: es })}
+        </p>
+      );
     },
   },
-]
+  {
+    id: 'items',
+    header: () => <p className="text-center">Ítems</p>,
+    cell: ({ row }) => (
+      <div className="flex items-center justify-center gap-2 text-muted-foreground">
+        <Package className="h-4 w-4" />
+        <span className="font-medium text-foreground">{row.original.articles?.length ?? 0}</span>
+      </div>
+    ),
+  },
+  {
+    id: 'people',
+    header: () => <p className="text-center">Detalles</p>,
+    cell: ({ row }) => (
+      <div className="flex justify-center">
+        <DispatchArticlesDialog articles={row.original.articles}/>
+      </div>
+    ),
+  },
+];

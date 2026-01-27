@@ -17,12 +17,12 @@ import { Button } from "@/components/ui/button"
 interface DialogProps {
   articles?: {
     serial?: string,
-    quantity: string | number,
-    part_number: string,
+    dispatch_quantity: string | number,
+    part_number?: string,
     article_id?: string | number,
     unit?: string,
   }[],
-  work_order: string,
+  work_order?: string,
 }
 const DispatchArticlesDialog = ({ articles, work_order }: DialogProps) => {
   return (

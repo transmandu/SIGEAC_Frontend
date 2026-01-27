@@ -14,10 +14,33 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { WorkOrder } from '@/types'
+
+
+export type DispatchArticle = {
+  id: number | null;
+  part_number?: string;
+  serial?: string;
+  description?: string | null;
+  dispatch_quantity: number | string;
+};
+
+export type DispatchGroupRow = {
+  id: number;
+  status: string;
+  requested_by: string;
+  created_by: string;
+  justification: string | null;
+  destination_place: string | null;
+  submission_date: string | null;
+  work_order?: WorkOrder;
+  articles: DispatchArticle[];
+};
+
 const DispatchRequestPage = () => {
   const { selectedCompany } = useCompanyStore();
   const { data: dispatches, isLoading: isDispatchesLoading, isError } = useGetDispatchesByLocation()
-  
+
   return (
     <ContentLayout title='Salida'>
       <div className='flex flex-col gap-y-2'>
