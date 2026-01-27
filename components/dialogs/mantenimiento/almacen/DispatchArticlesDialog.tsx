@@ -44,7 +44,7 @@ const DispatchArticlesDialog = ({ articles, work_order }: DialogProps) => {
               {
                 articles && articles.map((article) => (
                   <div key={article.article_id} className="w-[200px] group cursor-pointer" >
-                    {article.serial ?? article.part_number} - Cantidad: {article.quantity  ?? "1"} {article.unit ? article.unit : ""}
+                    {article.serial ?? article.part_number} - Cantidad: {article.dispatch_quantity  ?? "1"} {article.unit ? article.unit : ""}
                   </div>
                 ))
               }

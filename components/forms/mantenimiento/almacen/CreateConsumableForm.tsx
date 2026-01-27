@@ -231,7 +231,7 @@ const CreateConsumableForm = ({
   const [fabricationDate, setFabricationDate] = useState<Date | undefined>(
     initialData?.consumable?.fabrication_date
       ? new Date(initialData?.consumable?.fabrication_date)
-      : undefined 
+      : undefined  
   );
 
   const form = useForm<FormValues>({

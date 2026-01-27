@@ -1,6 +1,6 @@
 "use client"
 
-import { useUpdateGeneralArticleQuantity } from "@/actions/mantenimiento/almacen/articulos_generales/actions"
+import { useUpdateGeneralArticleQuantity } from "@/actions/mantenimiento/almacen/inventario/articulos_generales/actions"
 import { ContentLayout } from "@/components/layout/ContentLayout"
 import LoadingPage from "@/components/misc/LoadingPage"
 import {

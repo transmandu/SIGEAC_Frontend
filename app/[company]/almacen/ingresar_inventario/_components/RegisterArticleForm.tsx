@@ -13,6 +13,7 @@ import CreateConsumableForm from "./RegisterConsumableForm";
 import CreateToolForm from "./RegisterToolForm";
 import CreateComponentForm from "./RegisterComponentForm";
 import CreatePartForm from "./RegisterPartForm";
+import CreateGeneralArticleForm from "@/components/forms/mantenimiento/almacen/CreateGeneralArticleForm";
 
 
 export interface EditingArticle extends Article {
@@ -92,9 +93,10 @@ const RegisterArticleForm = ({
         </SelectTrigger>
         <SelectContent>
           <SelectItem value="CONSUMIBLE">CONSUMIBLE</SelectItem>
-          <SelectItem value="HERAMIENTA">HERRAMIENTA</SelectItem>
           <SelectItem value="COMPONENTE">COMPONENTE</SelectItem>
+          <SelectItem value="HERAMIENTA">HERRAMIENTA</SelectItem>
           <SelectItem value="PARTE">PARTE</SelectItem>
+          <SelectItem value="PARTE">GENERAL</SelectItem>
         </SelectContent>
       </Select>
       {type === "CONSUMIBLE" && (
@@ -109,6 +111,11 @@ const RegisterArticleForm = ({
       {type === "PARTE" && (
         <CreatePartForm isEditing={isEditing} initialData={initialData} />
       )}
+      {
+        type === "GENERAL" && (
+          <CreateGeneralArticleForm />
+        )
+      }
     </div>
   );
 };
