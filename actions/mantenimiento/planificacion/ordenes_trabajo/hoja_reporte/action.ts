@@ -3,17 +3,16 @@ import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { AxiosError } from "axios";
 import { toast } from "sonner";
 
-interface CreatePrelimInspection {
+interface CreateWorkOrderReportData {
   work_order_id: string,
+  company: string,
 }
 
 export const useCreateReportPage = () => {
-
   const queryClient = useQueryClient()
-
   const createMutation = useMutation({
-      mutationFn: async ({data, company}: {data: CreatePrelimInspection, company: string}) => {
-          await axiosInstance.post(`/${company}/work-order-report-page`, data)
+      mutationFn: async ({data}: {data: CreateWorkOrderReportData}) => {
+          await axiosInstance.post(`/${data.company}/work-order-report-page`, data.work_order_id)
         },
       onSuccess: () => {
           queryClient.invalidateQueries({queryKey: ['work-order-report-page'], exact: false})
@@ -30,7 +29,7 @@ export const useCreateReportPage = () => {
       }
   )
   return {
-    createPrelimInspection: createMutation,
+    createReportPage: createMutation,
   }
 }
 
@@ -49,6 +48,7 @@ export const useAddReport = () => {
           await axiosInstance.post(`/${company}/work-order-report-page-items/${data.id}`, data)
         },
       onSuccess: () => {
+        queryClient.invalidateQueries({queryKey: ['work-order'], exact: false})
           queryClient.invalidateQueries({queryKey: ['work-order-report-page'], exact: false})
           queryClient.invalidateQueries({queryKey: ['work-order-report-page-items'], exact: false})
           toast.success("¡Creado!", {

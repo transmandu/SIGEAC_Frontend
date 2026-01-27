@@ -23,7 +23,6 @@ import {
 } from "@/components/ui/form"
 import { Textarea } from "@/components/ui/textarea"
 import axiosInstance from "@/lib/axios"
-import { cn } from "@/lib/utils"
 import { useCompanyStore } from "@/stores/CompanyStore"
 import { WorkOrder } from "@/types"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -34,44 +33,25 @@ import { toast } from "sonner"
 import { z } from "zod"
 import { DataTable } from "../data-table"
 import { columns } from "./report-columns"
+import { useCreateReportPage } from "@/actions/mantenimiento/planificacion/ordenes_trabajo/hoja_reporte/action"
 
 // Esquema de validación con Zod
-const createPrelimnSchema = z.object({
-  ata_code: z.string().min(1, "El código ATA es requerido"),
-  report: z.string().min(10, "El reporte debe tener al menos 10 caracteres"),
-  action_taken: z.string().min(10, "La acción debe tener al menos 10 caracteres"),
+const createWorkOrderReport = z.object({
+  work_order_id: z.string(),
 })
 
 const ReportTable = ({ work_order }: { work_order: WorkOrder }) => {
-  const { createPrelimInspection } = useCreatePrelimInspection()
-  const { updatePrelimInspection } = useUpdatePrelimInspection()
   const { selectedCompany } = useCompanyStore()
   const [isDialogOpen, setIsDialogOpen] = useState(false)
-  const [isFinishOpen, setIsFinishOpen] = useState(false)
-
+  const {createReportPage} = useCreateReportPage()
   // Form hook
-  const form = useForm<z.infer<typeof createPrelimnSchema>>({
-    resolver: zodResolver(createPrelimnSchema),
+  const form = useForm<z.infer<typeof createWorkOrderReport>>({
+    resolver: zodResolver(createWorkOrderReport),
     defaultValues: {
-      ata_code: '',
-      report: '',
-      action_taken: '',
     }
   })
 
-  const handleFinishInspection = async () => {
-    if (!work_order?.preliminary_inspection) return
-    await updatePrelimInspection.mutateAsync({
-      data: {
-        id: work_order.preliminary_inspection.id.toString(),
-        status: "FINALIZADO",
-      },
-      company: selectedCompany!.slug
-    })
-    setIsFinishOpen(false)
-  }
-
-
+  form.setValue('work_order_id', work_order.id.toString())
     const handlePrint = async () => {
       try {
         const response = await axiosInstance.get(`/hangar74/work-order-pdf-report/${work_order.order_number}`, {
@@ -97,9 +77,13 @@ const ReportTable = ({ work_order }: { work_order: WorkOrder }) => {
         console.error('Error al descargar el PDF:', error);
       }
     };
-
-  const handleCreateInspection = async (values: z.infer<typeof createPrelimnSchema>) => {
-    console.log(values)
+  const handleCreateReport = async (values: z.infer<typeof createWorkOrderReport>) => {
+    await createReportPage.mutateAsync({
+      data: {
+        work_order_id: values.work_order_id,
+        company: selectedCompany?.slug || '',
+      }
+    })
   }
   return (
     <Card>
@@ -107,42 +91,14 @@ const ReportTable = ({ work_order }: { work_order: WorkOrder }) => {
         <CardTitle className="text-center w-full flex flex-col gap-4">Reportes de WO
           <>
             {
-              work_order?.preliminary_inspection ? (
+              work_order?.reports ? (
                 <div className="flex flex-col items-center gap-4">
-                  <Badge className={cn("text-center text-xl", work_order?.preliminary_inspection.status === "PROCESO" ? "bg-yellow-500" : "bg-red-500")}>
-                    {work_order?.preliminary_inspection.status}
+                  <Badge className="bg-green-500">
+                    Imprimir Hoja de Reporte
                   </Badge>
-                  {
-                    work_order?.preliminary_inspection.status === "PROCESO" && (
-                      <div className="flex gap-2">
-                        <PrelimInspectItemDialog id={work_order.preliminary_inspection.id.toString()} />
-                        <Dialog open={isFinishOpen} onOpenChange={setIsFinishOpen}>
-                          <DialogTrigger asChild>
-                            <Button variant={'outline'} className="flex items-center justify-center gap-2 h-8 border-dashed">Finalizar Inspección</Button>
-                          </DialogTrigger>
-                          <DialogContent className="sm:max-w-[425px]">
-                            <DialogHeader>
-                              <DialogTitle className="text-center text-xl">¿Desea dar por finalizado los reportes?</DialogTitle>
-                              <DialogDescription className="text-center">
-                                Se da por finalizado los reportes y se da la opción de su impresión.
-                              </DialogDescription>
-                            </DialogHeader>
-
-                            <DialogFooter>
-                              <Button disabled={updatePrelimInspection.isPending} onClick={handleFinishInspection}>{updatePrelimInspection.isPending ? <Loader2 className="animate-spin" /> : "Finalizar"}</Button>
-                            </DialogFooter>
-                          </DialogContent>
-                        </Dialog>
-                      </div>
-                    )
-                  }
-                  {
-                    work_order?.preliminary_inspection.status === "FINALIZADO" && (
-                      <div className="flex gap-2">
-                        <Button onClick={handlePrint}><Printer /></Button>
-                      </div>
-                    )
-                  }
+                  <Button variant="outline" onClick={handlePrint}>
+                    <Printer className="mr-2 h-4 w-4" />
+                  </Button>
                 </div>
               ) : (
                 <p className="text-sm text-muted italic">No hay reportes registrados...</p>
@@ -152,7 +108,7 @@ const ReportTable = ({ work_order }: { work_order: WorkOrder }) => {
         </CardTitle>
       </CardHeader>
       <CardContent>
-        {!work_order?.preliminary_inspection && (
+        {!work_order?.reports && (
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
               <div className="flex flex-col items-center justify-center py-12 space-y-4">
@@ -169,61 +125,15 @@ const ReportTable = ({ work_order }: { work_order: WorkOrder }) => {
               <DialogHeader>
                 <DialogTitle>Crear Reporte</DialogTitle>
               </DialogHeader>
-              <Form {...form}>
-                <form onSubmit={form.handleSubmit(handleCreateInspection)} className="space-y-6">
-                  <div className="flex flex-col gap-2">
-                    <FormField
-                      control={form.control}
-                      name="ata_code"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Código ATA</FormLabel>
-                          <FormControl>
-                            <Textarea placeholder="Ej. 50" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="report"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Reporte</FormLabel>
-                          <FormControl>
-                            <Textarea placeholder="Ej. Se encontró..." {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="action_taken"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Acción Efectuada</FormLabel>
-                          <FormControl>
-                            <Textarea placeholder="Ej. Se removió..." {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                  <div className="flex justify-end gap-4">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => setIsDialogOpen(false)}
-                    >
-                      Cancelar
-                    </Button>
-                    <Button type="submit">Crear Reporte</Button>
-                  </div>
-                </form>
-              </Form>
+              <DialogContent>
+                ¿Desea crear una nueva hoja de reportes para esta orden de trabajo?
+              </DialogContent>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setIsDialogOpen(false)}>Cancelar</Button>
+                <Button onClick={() => handleCreateReport(form.getValues())}>
+                  Crear
+                </Button>
+              </DialogFooter>
             </DialogContent>
           </Dialog>
         )}
