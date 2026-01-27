@@ -115,8 +115,12 @@ const WorkOrderTasksDetails = ({ work_order }: { work_order: WorkOrder }) => {
           <TabsTrigger value="insp">Insp. Preliminar</TabsTrigger>
           <TabsTrigger value="rut">Rutinarias</TabsTrigger>
           <TabsTrigger value="norut">No Rutinarias</TabsTrigger>
+          <TabsTrigger value="reports">Reportes</TabsTrigger>
         </TabsList>
         <TabsContent value="insp" className="space-y-4">
+          <PrelimInspecTable work_order={work_order} />
+        </TabsContent>
+        <TabsContent value="reports" className="space-y-4">
           <PrelimInspecTable work_order={work_order} />
         </TabsContent>
         <TabsContent value="rut" className="space-y-4">

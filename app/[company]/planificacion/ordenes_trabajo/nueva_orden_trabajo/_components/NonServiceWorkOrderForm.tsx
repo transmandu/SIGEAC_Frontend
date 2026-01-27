@@ -225,7 +225,7 @@ const NonServiceWorkOrderForm = () => {
                                     )}
                                   />
                                   {
-                                    <p>{aircraft.acronym} - {aircraft.manufacturer.name}</p>
+                                    <p>{aircraft.acronym}</p>
                                   }
                                 </CommandItem>
                               ))}

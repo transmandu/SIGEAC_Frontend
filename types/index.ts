@@ -419,7 +419,15 @@ export interface WorkOrder extends Request {
   reviewed_by: string;
   approved_by: string;
   preliminary_inspection?: PrelimInspection;
+  reports?: WorkOrderReport[];
   work_order_tasks: WorkOrderTask[];
+}
+
+export type WorkOrderReport = {
+  id: number | string;
+  ata_code: string;
+  report: string;
+  action_taken: string;
 }
 
 export type PrelimInspection = {
