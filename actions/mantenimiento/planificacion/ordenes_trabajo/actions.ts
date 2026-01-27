@@ -22,13 +22,6 @@ interface CreateWOData {
   work_order_task?: {
     description_task: string;
     ata: string;
-    task_number: string;
-    origin_manual: string;
-    task_items?: {
-      part_number: string;
-      alternate_part_number?: string;
-      serial?: string;
-    }[];
   }[];
 }
 
@@ -49,7 +42,7 @@ export const useCreateWorkOrder = () => {
         ...data,
         eventId: eventId,
       };
-      
+
       await axiosInstance.post(`/${company}/work-orders`, payload);
     },
     onSuccess: () => {

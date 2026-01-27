@@ -36,8 +36,6 @@ const manualWorkOrderSchema = z.object({
   work_order_task: z.array(z.object({
     description_task: z.string().min(1, 'La descripción de la tarea es obligatoria'),
     ata: z.string().min(1, 'Código ATA requerido'),
-    task_number: z.string().min(1, 'Número de tarea requerido'),
-    origin_manual: z.string().min(1, 'Origen manual requerido'),
     task_items: z.array(z.object({
       part_number: z.string().min(1, 'Número de parte requerido'),
       alternate_part_number: z.string().optional(),
@@ -147,7 +145,7 @@ const NonServiceWorkOrderForm = () => {
   const onSubmit = async (data: ManualWorkOrderFormValues) => {
     // Encontrar el aircraft seleccionado para obtener la información del cliente
     const selectedAircraftData = aircrafts?.find(aircraft => aircraft.id.toString() === data.aircraft_id);
-    
+
     const formattedData = {
       ...data,
       date: format(data.date, "yyyy-MM-dd"),
@@ -155,9 +153,9 @@ const NonServiceWorkOrderForm = () => {
       client_name: selectedAircraftData?.client.name,
       // authorizing ya viene del formulario, no necesitamos duplicarlo
     };
-    
+
     console.log("🚀 [NonServiceWorkOrderForm] Datos enviados al backend:", formattedData);
-    
+
     await createWorkOrder.mutateAsync({data: formattedData, company: selectedCompany!.slug, eventId});
     form.reset();
     router.push(`/${selectedCompany!.slug}/planificacion/ordenes_trabajo`);
@@ -248,10 +246,10 @@ const NonServiceWorkOrderForm = () => {
                 name="authorizing"
                 render={({ field }) => {
                   // Obtener la aeronave seleccionada para mostrar su cliente
-                  const selectedAircraftData = aircrafts?.find(aircraft => 
+                  const selectedAircraftData = aircrafts?.find(aircraft =>
                     aircraft.id.toString() === form.watch("aircraft_id")
                   );
-                  
+
                   return (
                     <FormItem>
                       <FormLabel>Autorizado Por:</FormLabel>
@@ -275,7 +273,7 @@ const NonServiceWorkOrderForm = () => {
                         </SelectContent>
                       </Select>
                       <FormDescription>
-                        {selectedAircraftData?.client 
+                        {selectedAircraftData?.client
                           ? `Cliente: ${selectedAircraftData.client.name}`
                           : "Selecciona una aeronave para ver el cliente autorizado"
                         }
@@ -388,17 +386,16 @@ const NonServiceWorkOrderForm = () => {
           </div>
           {/* Selección de tareas */}
           <div className="space-y-4">
-            <h2 className="text-3xl font-semibold text-center">Tareas Manuales</h2>
+            <h2 className="text-3xl font-semibold text-center">Registro de Items</h2>
             <div className="flex flex-col gap-4">
               <Button
-                disabled={!selectedAircraft}
                 type="button"
                 onClick={addEmptyTask}
                 variant="outline"
                 className="gap-2"
               >
                 <PlusCircle className="h-4 w-4" />
-                Agregar Tarea
+                Agregar Item
               </Button>
               <ScrollArea className={cn("flex", tasks.length > 1 ? "h-[550px]" : "")}>
                 <div className='grid grid-cols-1 lg:grid-cols-2 gap-4'>
@@ -406,30 +403,6 @@ const NonServiceWorkOrderForm = () => {
                     <div key={index} className="p-4 border rounded-lg mb-2">
                       <div className="flex gap-2 justify-between items-center">
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-2 w-full">
-                          {/* Task Number */}
-                          <FormItem>
-                            <FormLabel>Número de Tarea</FormLabel>
-                            <Input
-                              value={task.task_number}
-                              onChange={(e) =>
-                                updateTask(index, "task_number", e.target.value)
-                              }
-                              placeholder="Ej: TASK-001"
-                            />
-                            <FormMessage />
-                          </FormItem>
-                          {/* Origin Manual */}
-                          <FormItem>
-                            <FormLabel>Manual de Origen</FormLabel>
-                            <Input
-                              value={task.origin_manual}
-                              onChange={(e) =>
-                                updateTask(index, "origin_manual", e.target.value)
-                              }
-                              placeholder="Ej: Manual..."
-                            />
-                            <FormMessage />
-                          </FormItem>
                           {/* ATA Code */}
                           <FormItem>
                             <FormLabel>Código ATA</FormLabel>
@@ -464,64 +437,6 @@ const NonServiceWorkOrderForm = () => {
                         >
                           <MinusCircle className="size-4" />
                         </Button>
-                      </div>
-                      <div className="mt-4">
-                        <div className="flex justify-between items-center mb-2">
-                          <h3 className="font-medium">Artículos/Partes Necesarias</h3>
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            onClick={() => addEmptyTaskItem(index)}
-                          >
-                            <PlusCircle className="h-4 w-4 mr-2" />
-                            Agregar Artículo
-                          </Button>
-                        </div>
-
-                        <ScrollArea className={cn("", task.task_items.length > 2 ? "h-[295px]" : "")}>
-                          {task.task_items.map((item, itemIndex) => (
-                            <div key={itemIndex} className="p-3 border rounded-md bg-muted/50">
-                              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                                {/* Part Number */}
-                                <FormItem>
-                                  <FormLabel>Número de Parte*</FormLabel>
-                                  <Input
-                                    value={item.part_number}
-                                    onChange={(e) =>
-                                      updateTaskItem(index, itemIndex, "part_number", e.target.value)
-                                    }
-                                    placeholder="Ej: 1234-5678"
-                                  />
-                                </FormItem>
-
-                                {/* Alternate Part Number */}
-                                <FormItem>
-                                  <FormLabel>Número Alternativo</FormLabel>
-                                  <Input
-                                    value={item.alternate_part_number}
-                                    onChange={(e) =>
-                                      updateTaskItem(index, itemIndex, "alternate_part_number", e.target.value)
-                                    }
-                                    placeholder="Ej: 9876-5432"
-                                  />
-                                </FormItem>
-                              </div>
-                              <div className="flex justify-end mt-2">
-                                <Button
-                                  variant="ghost"
-                                  type="button"
-                                  size="sm"
-                                  onClick={() => removeTaskItem(index, itemIndex)}
-                                  className="text-red-500 hover:text-red-600"
-                                >
-                                  <MinusCircle className="h-4 w-4 mr-1" />
-                                  Eliminar
-                                </Button>
-                              </div>
-                            </div>
-                          ))}
-                        </ScrollArea>
                       </div>
                     </div>
                   ))}

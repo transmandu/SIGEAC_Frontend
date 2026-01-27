@@ -94,9 +94,9 @@ const RegisterArticleForm = ({
         <SelectContent>
           <SelectItem value="CONSUMIBLE">CONSUMIBLE</SelectItem>
           <SelectItem value="COMPONENTE">COMPONENTE</SelectItem>
-          <SelectItem value="HERAMIENTA">HERRAMIENTA</SelectItem>
+          <SelectItem value="HERRAMIENTA">HERRAMIENTA</SelectItem>
           <SelectItem value="PARTE">PARTE</SelectItem>
-          <SelectItem value="PARTE">GENERAL</SelectItem>
+          <SelectItem value="GENERAL">GENERAL</SelectItem>
         </SelectContent>
       </Select>
       {type === "CONSUMIBLE" && (

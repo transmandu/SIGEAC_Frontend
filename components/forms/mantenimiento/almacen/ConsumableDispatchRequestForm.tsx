@@ -2,6 +2,7 @@
 
 import { useCreateDispatchRequest } from "@/actions/mantenimiento/almacen/solicitudes/salida/action"
 import { Button } from "@/components/ui/button"
+import { Calendar } from "@/components/ui/calendar"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
@@ -9,16 +10,10 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Separator } from "@/components/ui/separator"
 import { Textarea } from "@/components/ui/textarea"
-import { Calendar } from "@/components/ui/calendar"
-import { cn } from "@/lib/utils"
 import { useAuth } from "@/contexts/AuthContext"
+import { cn } from "@/lib/utils"
 import { useCompanyStore } from "@/stores/CompanyStore"
 
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover"
 import {
   Command,
   CommandEmpty,
@@ -27,6 +22,7 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 
 import { zodResolver } from "@hookform/resolvers/zod"
 import { format } from "date-fns"
@@ -34,8 +30,8 @@ import { es } from "date-fns/locale"
 import {
   AlertCircle,
   Building2,
-  CalendarIcon,
   Calculator,
+  CalendarIcon,
   Check,
   ChevronsUpDown,
   Loader2,
@@ -47,17 +43,19 @@ import { useCallback, useEffect, useMemo, useState } from "react"
 import { useFieldArray, useForm } from "react-hook-form"
 import { z } from "zod"
 
-import type { Article, Batch, GeneralArticle } from "@/types"
 import { useGetBatchesWithInWarehouseArticles } from "@/hooks/mantenimiento/almacen/renglones/useGetBatchesWithInWarehouseArticles"
 import { useGetMaintenanceAircrafts } from "@/hooks/mantenimiento/planificacion/useGetMaintenanceAircrafts"
 import { useGetWorkOrderEmployees } from "@/hooks/mantenimiento/planificacion/useGetWorkOrderEmployees"
 import { useGetDepartments } from "@/hooks/sistema/departamento/useGetDepartment"
+import type { Article, Batch, GeneralArticle } from "@/types"
 
-// Ferretería
-
-// Conversión (solo para aeronáutico)
-import { useGetConversionByConsmable } from "@/hooks/mantenimiento/almacen/articulos/useGetConvertionsByConsumableId"
+// Conversión
 import { useGetGeneralArticles } from "@/hooks/mantenimiento/almacen/almacen_general/useGetGeneralArticles"
+import { useGetConversionByConsmable } from "@/hooks/mantenimiento/almacen/articulos/useGetConvertionsByConsumableId"
+import { useGetConversionByGeneralArticle } from "@/hooks/mantenimiento/almacen/articulos/useGetConvertionsByGeneralArticleId"
+
+// ✅ AJUSTA ESTE IMPORT al hook que ya creaste para artículos generales.
+// Debe devolver exactamente el mismo shape que el de consumibles (id, equivalence, unit_primary, unit_secondary, etc.)
 
 interface FormProps {
   onClose: () => void
@@ -92,7 +90,8 @@ const FormSchema = z
     general_articles: z.array(GeneralItemSchema).default([]),
   })
   .superRefine((data, ctx) => {
-    const total = (data.aeronautical_articles?.length ?? 0) + (data.general_articles?.length ?? 0)
+    const total =
+      (data.aeronautical_articles?.length ?? 0) + (data.general_articles?.length ?? 0)
     if (total <= 0) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
@@ -104,10 +103,6 @@ const FormSchema = z
 
 type FormSchemaType = z.infer<typeof FormSchema>
 
-function sanitizeInt(raw: string) {
-  return raw.replace(/[^\d]/g, "")
-}
-
 function sanitizeDecimal(raw: string) {
   const cleaned = raw.replace(/[^\d.]/g, "")
   const parts = cleaned.split(".")
@@ -118,6 +113,8 @@ function sanitizeDecimal(raw: string) {
 type MsgLevel = "error" | "warn"
 type RowMsg = { msg: string; level: MsgLevel } | undefined
 
+type ConversionTarget = "aero" | "general"
+
 export function ConsumableDispatchForm({ onClose }: FormProps) {
   const { user } = useAuth()
   const { selectedStation, selectedCompany } = useCompanyStore()
@@ -125,34 +122,29 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
   const [openAdd, setOpenAdd] = useState(false)
   const [isDepartment, setIsDepartment] = useState(false)
 
-  // Ajusta al warehouse_id de ferretería
-  const HARDWARE_WAREHOUSE_ID = 5
-
   const { createDispatchRequest } = useCreateDispatchRequest()
 
-  const { data: departments, isLoading: isDepartmentsLoading } =
-    useGetDepartments(selectedCompany?.slug)
+  const { data: departments, isLoading: isDepartmentsLoading } = useGetDepartments(
+    selectedCompany?.slug
+  )
 
-  const { data: aircrafts, isLoading: isAircraftsLoading } =
-    useGetMaintenanceAircrafts(selectedCompany?.slug)
+  const { data: aircrafts, isLoading: isAircraftsLoading } = useGetMaintenanceAircrafts(
+    selectedCompany?.slug
+  )
 
-  const { data: batches, isPending: isBatchesLoading } =
-    useGetBatchesWithInWarehouseArticles({
-      location_id: Number(selectedStation!),
-      company: selectedCompany!.slug,
-      category: "consumable",
-    })
+  const { data: batches, isPending: isBatchesLoading } = useGetBatchesWithInWarehouseArticles({
+    location_id: Number(selectedStation!),
+    company: selectedCompany!.slug,
+    category: "consumable",
+  })
 
-  const { data: employees, isLoading: employeesLoading } =
-    useGetWorkOrderEmployees({
-      company: selectedCompany?.slug,
-      location_id: selectedStation?.toString(),
-      acronym: "MANP",
-    })
+  const { data: employees, isLoading: employeesLoading } = useGetWorkOrderEmployees({
+    company: selectedCompany?.slug,
+    location_id: selectedStation?.toString(),
+    acronym: "MANP",
+  })
 
-  const { data: hardwareRes, isLoading: isHardwareLoading } =
-    useGetGeneralArticles()
-
+  const { data: hardwareRes, isLoading: isHardwareLoading } = useGetGeneralArticles()
   const hardwareArticles: GeneralArticle[] = hardwareRes ?? []
 
   const form = useForm<FormSchemaType>({
@@ -208,13 +200,8 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
     setMsgByKey((p) => ({ ...p, [key]: msg }))
   }
 
-  const validateAndClamp = (
-    key: string,
-    raw: string,
-    max: number,
-    mode: "int" | "decimal"
-  ) => {
-    const n = mode === "decimal" ? parseFloat(raw || "0") || 0 : parseInt(raw || "0", 10) || 0
+  const validateAndClamp = (key: string, raw: string, max: number) => {
+    const n = parseFloat(raw || "0") || 0
 
     if (!raw || n <= 0) {
       setRowMsg(key, { msg: "La cantidad debe ser mayor a 0", level: "error" })
@@ -237,7 +224,7 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
       const max = getAeroMax(item.article_id)
 
       const raw = qtyByKey[key] ?? ""
-      const adjusted = validateAndClamp(key, raw, max, "decimal")
+      const adjusted = validateAndClamp(key, raw, max)
       setQtyByKey((p) => ({ ...p, [key]: adjusted }))
 
       const q = parseFloat(adjusted || "0") || 0
@@ -253,10 +240,10 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
       const max = getGenMax(item.general_article_id)
 
       const raw = qtyByKey[key] ?? ""
-      const adjusted = validateAndClamp(key, raw, max, "int")
+      const adjusted = validateAndClamp(key, raw, max)
       setQtyByKey((p) => ({ ...p, [key]: adjusted }))
 
-      const q = parseInt(adjusted || "0", 10) || 0
+      const q = parseFloat(adjusted || "0") || 0
       setValue(`general_articles.${index}.quantity`, q)
     },
     [getValues, qtyByKey, setValue, genById]
@@ -294,60 +281,114 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
 
     setQtyByKey((p) => ({ ...p, [key]: next }))
     setRowMsg(key, undefined)
-    setValue(`general_articles.${index}.quantity`, parseInt(next, 10) || 0)
+    setValue(`general_articles.${index}.quantity`, parseFloat(next) || 0)
   }
 
-  // =============== Conversión (solo una fila activa) ===============
+  // =============== Conversión (una fila activa, aero o general) ===============
+  const [conversionTarget, setConversionTarget] = useState<ConversionTarget | null>(null)
   const [conversionRowFieldId, setConversionRowFieldId] = useState<string | null>(null)
   const [conversionRowIndex, setConversionRowIndex] = useState<number | null>(null)
+
   const [conversionArticleId, setConversionArticleId] = useState<number | null>(null)
+  const [conversionGeneralArticleId, setConversionGeneralArticleId] = useState<number | null>(null)
+
   const [selectedConversion, setSelectedConversion] = useState<any>(null)
   const [conversionInput, setConversionInput] = useState("")
 
-  const { data: consumableConversion, isLoading: isConversionLoading } =
+  // Aeronáutico
+  const { data: aeroConversions, isLoading: isAeroConversionLoading } =
     useGetConversionByConsmable(conversionArticleId ?? null, selectedCompany?.slug)
 
+  // Ferretería
+  const { data: genConversions, isLoading: isGenConversionLoading } =
+    useGetConversionByGeneralArticle(conversionGeneralArticleId ?? null, selectedCompany?.slug)
+
   const closeConversion = () => {
+    setConversionTarget(null)
     setConversionRowFieldId(null)
     setConversionRowIndex(null)
+    setConversionArticleId(null)
+    setConversionGeneralArticleId(null)
+    setSelectedConversion(null)
+    setConversionInput("")
+  }
+
+  const openConversionForAero = (index: number, fieldId: string, articleId: number) => {
+    setConversionTarget("aero")
+    setConversionRowFieldId(fieldId)
+    setConversionRowIndex(index)
+    setConversionArticleId(articleId)
+
+    setConversionGeneralArticleId(null)
+    setSelectedConversion(null)
+    setConversionInput("")
+  }
+
+  const openConversionForGeneral = (index: number, fieldId: string, generalArticleId: number) => {
+    setConversionTarget("general")
+    setConversionRowFieldId(fieldId)
+    setConversionRowIndex(index)
+    setConversionGeneralArticleId(generalArticleId)
+
     setConversionArticleId(null)
     setSelectedConversion(null)
     setConversionInput("")
   }
 
-  const openConversionFor = (index: number, fieldId: string, articleId: number) => {
-    setConversionRowFieldId(fieldId)
-    setConversionRowIndex(index)
-    setConversionArticleId(articleId)
-    setSelectedConversion(null)
-    setConversionInput("")
-  }
+  const getActiveConversionList = () => (conversionTarget === "general" ? genConversions : aeroConversions)
+  const isActiveConversionLoading =
+    conversionTarget === "general" ? isGenConversionLoading : isAeroConversionLoading
 
   const applyConversion = () => {
-    if (conversionRowIndex == null || conversionRowFieldId == null || conversionArticleId == null) return
+    if (conversionRowIndex == null || conversionRowFieldId == null || !conversionTarget) return
     if (!selectedConversion || !conversionInput) return
 
     const inputValue = parseFloat(conversionInput) || 0
-    const result = inputValue / selectedConversion.equivalence
+    const result = Number((inputValue / selectedConversion.equivalence).toFixed(6))
 
-    const max = getAeroMax(conversionArticleId)
+    if (conversionTarget === "aero") {
+      const id = conversionArticleId
+      if (id == null) return
+
+      const max = getAeroMax(id)
+      let finalQuantity = result
+
+      const key = aeroKey(conversionRowFieldId)
+
+      if (max > 0 && result > max) {
+        finalQuantity = max
+        setRowMsg(key, { msg: `Conversión: se ajustó al máximo disponible (${max}).`, level: "warn" })
+      } else {
+        setRowMsg(key, undefined)
+      }
+
+      const nextStr = String(finalQuantity)
+      setQtyByKey((p) => ({ ...p, [key]: nextStr }))
+      setValue(`aeronautical_articles.${conversionRowIndex}.quantity`, finalQuantity)
+
+      closeConversion()
+      return
+    }
+
+    // general
+    const gid = conversionGeneralArticleId
+    if (gid == null) return
+
+    const max = getGenMax(gid)
     let finalQuantity = result
 
-    const key = aeroKey(conversionRowFieldId)
+    const key = genKey(conversionRowFieldId)
 
     if (max > 0 && result > max) {
       finalQuantity = max
-      setRowMsg(key, {
-        msg: `Conversión: se ajustó al máximo disponible (${max}).`,
-        level: "warn",
-      })
+      setRowMsg(key, { msg: `Conversión: se ajustó al máximo disponible (${max}).`, level: "warn" })
     } else {
       setRowMsg(key, undefined)
     }
 
     const nextStr = String(finalQuantity)
     setQtyByKey((p) => ({ ...p, [key]: nextStr }))
-    setValue(`aeronautical_articles.${conversionRowIndex}.quantity`, finalQuantity)
+    setValue(`general_articles.${conversionRowIndex}.quantity`, finalQuantity)
 
     closeConversion()
   }
@@ -383,12 +424,13 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
   const removeAeroRow = (index: number, fieldId: string) => {
     aeroFA.remove(index)
     clearRowState(aeroKey(fieldId))
-    if (conversionRowFieldId === fieldId) closeConversion()
+    if (conversionTarget === "aero" && conversionRowFieldId === fieldId) closeConversion()
   }
 
   const removeGenRow = (index: number, fieldId: string) => {
     genFA.remove(index)
     clearRowState(genKey(fieldId))
+    if (conversionTarget === "general" && conversionRowFieldId === fieldId) closeConversion()
   }
 
   // =============== Validaciones UI submit ===============
@@ -404,7 +446,7 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
     })
     const genInvalid = genFA.fields.some((f) => {
       const raw = qtyByKey[genKey(f.id)] ?? ""
-      const v = parseInt(raw || "0", 10) || 0
+      const v = parseFloat(raw || "0") || 0
       return v <= 0
     })
     return aeroInvalid || genInvalid
@@ -471,8 +513,9 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
   const aeronauticalCount = aeroFA.fields.length
   const generalCount = genFA.fields.length
 
-  const messageClass = (level: MsgLevel) =>
-    level === "warn" ? "text-amber-600" : "text-destructive"
+  const messageClass = (level: MsgLevel) => (level === "warn" ? "text-amber-600" : "text-destructive")
+
+  const activeConversions = getActiveConversionList()
 
   return (
     <Form {...form}>
@@ -566,7 +609,11 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
                             !field.value && "text-muted-foreground"
                           )}
                         >
-                          {field.value ? format(field.value, "PPP", { locale: es }) : <span>Seleccione una fecha...</span>}
+                          {field.value ? (
+                            format(field.value, "PPP", { locale: es })
+                          ) : (
+                            <span>Seleccione una fecha...</span>
+                          )}
                           <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                         </Button>
                       </FormControl>
@@ -625,7 +672,9 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
                   >
                     <FormControl>
                       <SelectTrigger className="h-10">
-                        <SelectValue placeholder={isDepartment ? "Seleccione un departamento..." : "Seleccione una aeronave..."} />
+                        <SelectValue
+                          placeholder={isDepartment ? "Seleccione un departamento..." : "Seleccione una aeronave..."}
+                        />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -708,7 +757,7 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
                   <CommandList>
                     <CommandEmpty>No se han encontrado artículos...</CommandEmpty>
 
-                    {/* ===== Aeronáutico (título visual, NO CommandGroup) ===== */}
+                    {/* Aeronáutico */}
                     <div className="px-2 pt-2 pb-1">
                       <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
                         Aeronáutico (Consumibles)
@@ -741,7 +790,7 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
                       ))
                     )}
 
-                    {/* ===== Ferretería ===== */}
+                    {/* Ferretería */}
                     <CommandGroup heading="Ferretería (Inventario general)">
                       {isHardwareLoading ? (
                         <div className="flex items-center justify-center py-6">
@@ -795,7 +844,8 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
                           {article?.part_number ?? `ID: ${item.article_id}`}
                         </p>
                         <p className="text-xs text-muted-foreground truncate">
-                          {article?.description ?? "Sin descripción"} · Disponible: {article?.quantity ?? 0} {article?.unit ?? ""}
+                          {article?.description ?? "Sin descripción"} · Disponible: {article?.quantity ?? 0}{" "}
+                          {article?.unit ?? ""}
                         </p>
                       </div>
 
@@ -832,7 +882,7 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
                               variant="outline"
                               size="sm"
                               className="h-7 px-2"
-                              onClick={() => openConversionFor(index, f.id, item.article_id)}
+                              onClick={() => openConversionForAero(index, f.id, item.article_id)}
                               disabled={!article || article.unit === "u"}
                             >
                               <Calculator className="h-3.5 w-3.5 mr-2" />
@@ -872,93 +922,82 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
                           </div>
                         )}
 
-                        {max > 0 && (
-                          <p className="text-[11px] text-muted-foreground">
-                            Disponible actual: {max}
-                          </p>
-                        )}
+                        {max > 0 && <p className="text-[11px] text-muted-foreground">Disponible actual: {max}</p>}
                       </div>
                     </div>
 
-                    {/* Panel Conversión (solo una fila activa) */}
-                    {conversionRowFieldId === f.id && article && article.unit !== "u" && (
-                      <div className="mt-3 rounded-md bg-muted/30 p-3 space-y-2">
-                        <Label className="text-sm font-medium">Conversión de Unidades</Label>
+                    {/* Panel Conversión (aero) */}
+                    {conversionTarget === "aero" &&
+                      conversionRowFieldId === f.id &&
+                      article &&
+                      article.unit !== "u" && (
+                        <div className="mt-3 rounded-md bg-muted/30 p-3 space-y-2">
+                          <Label className="text-sm font-medium">Conversión de Unidades</Label>
 
-                        <div className="flex flex-col md:flex-row gap-2">
-                          <Select
-                            value={selectedConversion?.id?.toString() || ""}
-                            onValueChange={(value) => {
-                              const conv = consumableConversion?.find(
-                                (c: any) => c.id.toString() === value
-                              )
-                              setSelectedConversion(conv || null)
-                              setConversionInput("")
-                            }}
-                            disabled={isConversionLoading}
-                          >
-                            <SelectTrigger className="h-10 flex-1">
-                              <SelectValue
-                                placeholder={isConversionLoading ? "Cargando..." : "Seleccione unidad"}
-                              />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {consumableConversion?.map((conv: any) => (
-                                <SelectItem key={conv.id} value={conv.id.toString()}>
-                                  {conv.unit_primary.label} ({conv.unit_primary.value})
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-
-                          <Input
-                            type="text"
-                            inputMode="decimal"
-                            placeholder="Cantidad"
-                            value={conversionInput}
-                            onChange={(e) => setConversionInput(sanitizeDecimal(e.target.value))}
-                            className="h-10 w-full md:w-28"
-                            disabled={!selectedConversion}
-                          />
-
-                          <div className="flex gap-2">
-                            <Button
-                              type="button"
-                              className="h-10"
-                              onClick={applyConversion}
-                              disabled={!selectedConversion || !conversionInput}
+                          <div className="flex flex-col md:flex-row gap-2">
+                            <Select
+                              value={selectedConversion?.id?.toString() || ""}
+                              onValueChange={(value) => {
+                                const conv = activeConversions?.find((c: any) => c.id.toString() === value)
+                                setSelectedConversion(conv || null)
+                                setConversionInput("")
+                              }}
+                              disabled={isActiveConversionLoading}
                             >
-                              Aplicar
-                            </Button>
-                            <Button
-                              type="button"
-                              variant="outline"
-                              className="h-10"
-                              onClick={closeConversion}
-                            >
-                              Cerrar
-                            </Button>
+                              <SelectTrigger className="h-10 flex-1">
+                                <SelectValue
+                                  placeholder={isActiveConversionLoading ? "Cargando..." : "Seleccione unidad"}
+                                />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {activeConversions?.map((conv: any) => (
+                                  <SelectItem key={conv.id} value={conv.id.toString()}>
+                                    {conv.unit_primary.label} ({conv.unit_primary.value})
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+
+                            <Input
+                              type="text"
+                              inputMode="decimal"
+                              placeholder="Cantidad"
+                              value={conversionInput}
+                              onChange={(e) => setConversionInput(sanitizeDecimal(e.target.value))}
+                              className="h-10 w-full md:w-28"
+                              disabled={!selectedConversion}
+                            />
+
+                            <div className="flex gap-2">
+                              <Button
+                                type="button"
+                                className="h-10"
+                                onClick={applyConversion}
+                                disabled={!selectedConversion || !conversionInput}
+                              >
+                                Aplicar
+                              </Button>
+                              <Button type="button" variant="outline" className="h-10" onClick={closeConversion}>
+                                Cerrar
+                              </Button>
+                            </div>
                           </div>
-                        </div>
 
-                        {selectedConversion && conversionInput && (
-                          <p className="text-xs text-muted-foreground">
-                            {conversionInput} {selectedConversion.unit_primary.label} ={" "}
-                            {(
-                              (parseFloat(conversionInput) || 0) / selectedConversion.equivalence
-                            ).toFixed(6)}{" "}
-                            {consumableConversion?.[0]?.unit_secondary?.label || "unidades"}
-                          </p>
-                        )}
-
-                        {!isConversionLoading &&
-                          (!consumableConversion || consumableConversion.length === 0) && (
+                          {selectedConversion && conversionInput && (
                             <p className="text-xs text-muted-foreground">
-                              No hay conversiones disponibles para este consumible.
+                              {conversionInput} {selectedConversion.unit_primary.label} ={" "}
+                              {((parseFloat(conversionInput) || 0) / selectedConversion.equivalence).toFixed(6)}{" "}
+                              {activeConversions?.[0]?.unit_secondary?.label || "unidades"}
                             </p>
                           )}
-                      </div>
-                    )}
+
+                          {!isActiveConversionLoading && (!activeConversions || activeConversions.length === 0) && (
+                            <p className="text-xs text-muted-foreground">
+                              No hay conversiones disponibles para este artículo.
+                            </p>
+                          )}
+                        </div>
+                      )}
                   </div>
                 )
               })}
@@ -1006,19 +1045,34 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
 
                     <div className="mt-3 grid grid-cols-1 md:grid-cols-[1fr_auto] gap-3 items-end">
                       <div className="space-y-2">
-                        <div className="flex items-center justify-between">
+                        <div className="flex items-center justify-between gap-2">
                           <Label className="text-sm font-medium">Cantidad</Label>
 
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => setToMaxGen(index, f.id)}
-                            className="h-7 text-xs text-primary hover:text-primary"
-                            disabled={!ga}
-                          >
-                            Usar máximo
-                          </Button>
+                          <div className="flex items-center gap-2">
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => setToMaxGen(index, f.id)}
+                              className="h-7 text-xs text-primary hover:text-primary"
+                              disabled={!ga}
+                            >
+                              Usar máximo
+                            </Button>
+
+                            {/* ✅ Conversión también para ferretería */}
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              className="h-7 px-2"
+                              onClick={() => openConversionForGeneral(index, f.id, item.general_article_id)}
+                              disabled={!ga}
+                            >
+                              <Calculator className="h-3.5 w-3.5 mr-2" />
+                              Conversión
+                            </Button>
+                          </div>
                         </div>
 
                         <Input
@@ -1026,7 +1080,7 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
                           disabled={!ga}
                           value={qty}
                           onChange={(e) => {
-                            const next = sanitizeInt(e.target.value)
+                            const next = sanitizeDecimal(e.target.value)
                             setQtyByKey((p) => ({ ...p, [key]: next }))
                           }}
                           onBlur={() => commitGenQty(index, f.id)}
@@ -1052,13 +1106,79 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
                           </div>
                         )}
 
-                        {max > 0 && (
-                          <p className="text-[11px] text-muted-foreground">
-                            Disponible actual: {max}
+                        {max > 0 && <p className="text-[11px] text-muted-foreground">Disponible actual: {max}</p>}
+                      </div>
+                    </div>
+
+                    {/* Panel Conversión (general) */}
+                    {conversionTarget === "general" && conversionRowFieldId === f.id && ga && (
+                      <div className="mt-3 rounded-md bg-muted/30 p-3 space-y-2">
+                        <Label className="text-sm font-medium">Conversión de Unidades</Label>
+
+                        <div className="flex flex-col md:flex-row gap-2">
+                          <Select
+                            value={selectedConversion?.id?.toString() || ""}
+                            onValueChange={(value) => {
+                              const conv = activeConversions?.find((c: any) => c.id.toString() === value)
+                              setSelectedConversion(conv || null)
+                              setConversionInput("")
+                            }}
+                            disabled={isActiveConversionLoading}
+                          >
+                            <SelectTrigger className="h-10 flex-1">
+                              <SelectValue
+                                placeholder={isActiveConversionLoading ? "Cargando..." : "Seleccione unidad"}
+                              />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {activeConversions?.map((conv: any) => (
+                                <SelectItem key={conv.id} value={conv.id.toString()}>
+                                  {conv.unit_primary.label} ({conv.unit_primary.value})
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+
+                          <Input
+                            type="text"
+                            inputMode="decimal"
+                            placeholder="Cantidad"
+                            value={conversionInput}
+                            onChange={(e) => setConversionInput(sanitizeDecimal(e.target.value))}
+                            className="h-10 w-full md:w-28"
+                            disabled={!selectedConversion}
+                          />
+
+                          <div className="flex gap-2">
+                            <Button
+                              type="button"
+                              className="h-10"
+                              onClick={applyConversion}
+                              disabled={!selectedConversion || !conversionInput}
+                            >
+                              Aplicar
+                            </Button>
+                            <Button type="button" variant="outline" className="h-10" onClick={closeConversion}>
+                              Cerrar
+                            </Button>
+                          </div>
+                        </div>
+
+                        {selectedConversion && conversionInput && (
+                          <p className="text-xs text-muted-foreground">
+                            {conversionInput} {selectedConversion.unit_primary.label} ={" "}
+                            {((parseFloat(conversionInput) || 0) / selectedConversion.equivalence).toFixed(6)}{" "}
+                            {activeConversions?.[0]?.unit_secondary?.label || "unidades"}
+                          </p>
+                        )}
+
+                        {!isActiveConversionLoading && (!activeConversions || activeConversions.length === 0) && (
+                          <p className="text-xs text-muted-foreground">
+                            No hay conversiones disponibles para este artículo.
                           </p>
                         )}
                       </div>
-                    </div>
+                    )}
                   </div>
                 )
               })}
@@ -1113,7 +1233,7 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
             className="bg-primary text-white hover:bg-primary/90 disabled:bg-primary/70 min-w-[120px] h-10"
             disabled={
               createDispatchRequest?.isPending ||
-              (aeronauticalCount + generalCount) === 0 ||
+              aeronauticalCount + generalCount === 0 ||
               hasBlockingQtyError ||
               hasInvalidQty
             }

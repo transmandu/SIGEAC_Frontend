@@ -12,8 +12,9 @@ interface ArticleData {
   article_type?: string;
   description?: string;
   brand_model: string;
+  quantity: number;
   variant_type: string;
-  unit_id: string;
+  primary_unit_id: string;
   warehouse_id: string;
 }
 
@@ -62,7 +63,7 @@ export const useCreateGeneralArticle = () => {
       company: string;
       data: ArticleData;
       }) => {
-      await axiosInstance.post(`/${company}/general-article`, data, {
+      await axiosInstance.post(`/${company}/general-articles`, data, {
         headers: {
           "Content-Type": "multipart/form-data",
         },

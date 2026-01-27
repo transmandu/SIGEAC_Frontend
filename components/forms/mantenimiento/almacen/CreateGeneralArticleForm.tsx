@@ -47,7 +47,7 @@ const formSchema = z.object({
     .string({ message: "Debe ingresar una descripción." })
     .min(2, "Mínimo 2 caracteres."),
   brand_model: z.string().optional(),
-  unit_id: z.string(),
+  primary_unit_id: z.string(),
   warehouse_id: z.string(),
   variant_type: z.string().optional(),
   quantity: z.coerce
@@ -69,7 +69,7 @@ const CreateGeneralArticleForm = ({
   const router = useRouter();
   const { selectedCompany, selectedStation } = useCompanyStore();
   const { createGeneralArticle } = useCreateGeneralArticle();
-  const {data: units, isLoading: isUnitsLoading} =  useGetUnits();
+  const {data: units, isLoading: isUnitsLoading} =  useGetUnits(selectedCompany?.slug);
   const {data: warehouses, isLoading: isWarehousesLoading} = useGetWarehousesByLocation({
     company: selectedCompany?.slug,
     location_id: selectedStation ?? null,
@@ -135,7 +135,7 @@ const CreateGeneralArticleForm = ({
   return (
     <Form {...form}>
       <form
-        className="flex flex-col gap-6 max-w-5xl mx-auto"
+        className="flex flex-col gap-6 max-w-7xl mx-auto"
         onSubmit={form.handleSubmit(onSubmit)}
       >
         {/* Encabezado */}
@@ -198,7 +198,7 @@ const CreateGeneralArticleForm = ({
               name="variant_type"
               render={({ field }) => (
                 <FormItem className="w-full">
-                  <FormLabel>Tipo / N° Parte</FormLabel>
+                  <FormLabel>Presentación / Especificación</FormLabel>
                   <FormControl>
                     <Input placeholder="Ej: TOR-M6X20 / BROCA-10MM..." {...field} />
                   </FormControl>
@@ -242,14 +242,14 @@ const CreateGeneralArticleForm = ({
             />
             <FormField
               control={form.control}
-              name="unit_id"
+              name="primary_unit_id"
               render={({ field }) => (
                 <FormItem className="w-full">
                   <FormLabel>Unidad</FormLabel>
                   <FormControl>
                     <Select {...field} onValueChange={field.onChange} value={field.value}>
                       <SelectTrigger>
-                        <SelectValue placeholder="Theme" />
+                        <SelectValue placeholder="Selec. unidad..." />
                       </SelectTrigger>
                       <SelectContent>
                         {
@@ -281,7 +281,7 @@ const CreateGeneralArticleForm = ({
                   <FormControl>
                     <Select {...field} onValueChange={field.onChange} value={field.value}>
                       <SelectTrigger>
-                        <SelectValue placeholder="Theme" />
+                        <SelectValue placeholder="Selec. almacén..." />
                       </SelectTrigger>
                       <SelectContent>
                         {isWarehousesLoading ? (
