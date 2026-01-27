@@ -59,7 +59,7 @@ export const columns: ColumnDef<GeneralArticle>[] = [
     accessorKey: "variant_type",
     header: ({ column }) => (
       <div className="flex justify-center">
-        <DataTableColumnHeader filter column={column} title="Tipo / N° Parte" />
+        <DataTableColumnHeader filter column={column} title="Present. / Especif." />
       </div>
     ),
     cell: ({ row }) => {
