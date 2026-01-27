@@ -125,9 +125,9 @@ const ReportTable = ({ work_order }: { work_order: WorkOrder }) => {
               <DialogHeader>
                 <DialogTitle>Crear Reporte</DialogTitle>
               </DialogHeader>
-              <DialogContent>
+              <p>
                 ¿Desea crear una nueva hoja de reportes para esta orden de trabajo?
-              </DialogContent>
+              </p>
               <DialogFooter>
                 <Button variant="outline" onClick={() => setIsDialogOpen(false)}>Cancelar</Button>
                 <Button onClick={() => handleCreateReport(form.getValues())}>
