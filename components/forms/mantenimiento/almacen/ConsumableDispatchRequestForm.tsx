@@ -700,7 +700,7 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
                           )}
                           {aircrafts?.map((a) => (
                             <SelectItem key={a.id} value={a.id.toString()}>
-                              {a.acronym} - {a.manufacturer.name}
+                              {a.acronym}
                             </SelectItem>
                           ))}
                         </>
