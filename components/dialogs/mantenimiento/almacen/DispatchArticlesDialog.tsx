@@ -62,8 +62,8 @@ const DispatchArticlesDialog = ({ articles = [], work_order }: DispatchArticlesD
                 <ClipboardList className="h-5 w-5" />
               </div>
               <div className="space-y-1">
-                <DialogTitle className="leading-tight">
-                  Artículos despachados{" "}
+                <DialogTitle className="leading-tight flex flex-col gap-2">
+                  <span>Artículos despachados{" "}</span>
                   <span className="text-muted-foreground font-normal">
                     {work_order ? `· WO ${work_order}` : "· WO N/A"}
                   </span>
