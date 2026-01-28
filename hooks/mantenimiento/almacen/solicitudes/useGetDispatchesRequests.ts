@@ -1,6 +1,6 @@
 import axios from "@/lib/axios";
 import { useCompanyStore } from "@/stores/CompanyStore";
-import { Article, Batch, DispatchRequest, WorkOrder } from "@/types";
+import { Article, Batch, DispatchRequest, MaintenanceAircraft, WorkOrder } from "@/types";
 import { useMutation, useQuery } from "@tanstack/react-query";
 
 interface IDispatch {
@@ -11,7 +11,8 @@ interface IDispatch {
   destination_place: string;
   submission_date: string;
   status: "PROCESO" | "APROBADO" | "RECHAZADO";
-  work_order?: WorkOrder;
+  work_order?: string;
+  aircraft?: MaintenanceAircraft;
   articles: {
     id: number;
     part_number: string;

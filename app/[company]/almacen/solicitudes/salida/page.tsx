@@ -30,7 +30,7 @@ export type DispatchGroupRow = {
   status: string;
   requested_by: string;
   created_by: string;
-  aircraft: MaintenanceAircraft
+  aircraft?: MaintenanceAircraft
   justification: string | null;
   destination_place: string | null;
   submission_date: string | null;
