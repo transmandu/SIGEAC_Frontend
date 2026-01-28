@@ -1,31 +1,16 @@
 "use client"
 
 import { ColumnDef } from "@tanstack/react-table"
-import { ClipboardCheck, MoreHorizontal, SquarePen, Trash2 } from "lucide-react"
 
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader"
-import { Button } from "@/components/ui/button"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger
-} from "@/components/ui/dropdown-menu"
 
-import { Checkbox } from "@/components/ui/checkbox"
+import WorkOrderDropdownActions from "@/components/dropdowns/mantenimiento/ordenes_trabajo/WorkOrderDropdownActionts"
 import { Badge } from "@/components/ui/badge"
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip"
-import { Batch, WorkOrder } from "@/types"
-import Link from "next/link"
+import { Checkbox } from "@/components/ui/checkbox"
+import { WorkOrder } from "@/types"
 import { format, parseISO } from "date-fns"
 import { es } from "date-fns/locale"
-import WorkOrderDropdownActions from "@/components/dropdowns/mantenimiento/ordenes_trabajo/WorkOrderDropdownActionts"
+import Link from "next/link"
 
 export const columns: ColumnDef<WorkOrder>[] = [
   {
@@ -88,7 +73,7 @@ export const columns: ColumnDef<WorkOrder>[] = [
     ),
     cell: ({ row }) => {
       const status = row.original.status;
-      
+
       return (
         <div className="flex justify-center">
           <Badge

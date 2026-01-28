@@ -4,14 +4,10 @@ import { ColumnDef } from "@tanstack/react-table"
 
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader"
 
-import WorkOrderDropdownActions from "@/components/dropdowns/mantenimiento/ordenes_trabajo/WorkOrderDropdownActionts"
 import { Checkbox } from "@/components/ui/checkbox"
-import { PrelimInspectionItem, WorkOrderReport } from "@/types"
-import { format } from "date-fns"
-import { es } from "date-fns/locale"
-import Link from "next/link"
+import { WorkOrderReportItem } from "@/types"
 
-export const columns: ColumnDef<WorkOrderReport>[] = [
+export const columns: ColumnDef<WorkOrderReportItem>[] = [
   {
     id: "select",
     header: ({ table }) => (

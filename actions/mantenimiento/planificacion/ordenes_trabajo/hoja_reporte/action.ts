@@ -50,7 +50,7 @@ export const useAddReport = () => {
           await axiosInstance.post(`/${company}/work-order-report-page-items/${data.id}`, data)
         },
       onSuccess: () => {
-        queryClient.invalidateQueries({queryKey: ['work-order'], exact: false})
+          queryClient.invalidateQueries({queryKey: ['work-order'], exact: false})
           queryClient.invalidateQueries({queryKey: ['work-order-report-page'], exact: false})
           queryClient.invalidateQueries({queryKey: ['work-order-report-page-items'], exact: false})
           toast.success("¡Creado!", {

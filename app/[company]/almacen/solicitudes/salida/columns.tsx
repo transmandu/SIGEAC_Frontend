@@ -26,17 +26,30 @@ export const columns: ColumnDef<DispatchGroupRow>[] = [
     cell: ({ row }) => <p className="text-center font-semibold">{row.original.id}</p>,
   },
   {
-    accessorKey: 'status',
-    header: ({ column }) => <DataTableColumnHeader column={column} title="Estado" />,
-    cell: ({ row }) => <p className="text-center font-medium">{row.original.status}</p>,
+    accessorKey: 'created_by',
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Creado Por" />,
+    cell: ({ row }) => <p className="text-center font-medium">{row.original.created_by}</p>,
   },
-  {
-    accessorKey: 'destination_place',
-    header: ({ column }) => <DataTableColumnHeader column={column} title="Destino" />,
+    {
+    accessorKey: 'requested_by',
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Solicitado Por" />,
+    cell: ({ row }) => <p className="text-center font-medium">{row.original.requested_by}</p>,
+  },
+    {
+    accessorKey: 'work_order',
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Orden de Trabajo" />,
     cell: ({ row }) => (
-      <p className="text-center font-medium">{row.original.destination_place ?? '—'}</p>
+      <p className="text-center font-medium">{row.original.work_order ?? "-"}</p>
     ),
   },
+  {
+    accessorKey: 'aircraft.acronym',
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Destino" />,
+    cell: ({ row }) => (
+      <p className="text-center font-medium">{row.original.destination_place ?? row.original.aircraft.acronym}</p>
+    ),
+  },
+
   {
     accessorKey: 'submission_date',
     header: ({ column }) => <DataTableColumnHeader column={column} title="Fecha" />,

@@ -14,14 +14,14 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { WorkOrder } from '@/types'
+import { MaintenanceAircraft, WorkOrder } from '@/types'
 
 
 export type DispatchArticle = {
   id: number | null;
   part_number?: string;
   serial?: string;
-  description?: string | null;
+  description?: string;
   dispatch_quantity: number | string;
 };
 
@@ -30,10 +30,11 @@ export type DispatchGroupRow = {
   status: string;
   requested_by: string;
   created_by: string;
+  aircraft: MaintenanceAircraft
   justification: string | null;
   destination_place: string | null;
   submission_date: string | null;
-  work_order?: WorkOrder;
+  work_order?: string;
   articles: DispatchArticle[];
 };
 

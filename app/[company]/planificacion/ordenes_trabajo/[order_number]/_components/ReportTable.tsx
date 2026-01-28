@@ -1,39 +1,28 @@
 "use client"
-import { useCreatePrelimInspection, useUpdatePrelimInspection } from "@/actions/mantenimiento/planificacion/ordenes_trabajo/inspecccion_preliminar/actions"
-import { PrelimInspectItemDialog } from "@/components/dialogs/mantenimiento/ordenes_trabajo/PrelimInspecItemDialog"
+import { useCreateReportPage } from "@/actions/mantenimiento/planificacion/ordenes_trabajo/hoja_reporte/action"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
+  DialogTrigger
 } from "@/components/ui/dialog"
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form"
-import { Textarea } from "@/components/ui/textarea"
 import axiosInstance from "@/lib/axios"
 import { useCompanyStore } from "@/stores/CompanyStore"
 import { WorkOrder } from "@/types"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { Loader2, Printer } from "lucide-react"
+import { Printer } from "lucide-react"
 import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 import { z } from "zod"
 import { DataTable } from "../data-table"
 import { columns } from "./report-columns"
-import { useCreateReportPage } from "@/actions/mantenimiento/planificacion/ordenes_trabajo/hoja_reporte/action"
+import { AddReportItemDialog } from "./AddReportItemDialog"
 
 // Esquema de validación con Zod
 const createWorkOrderReport = z.object({
@@ -62,7 +51,7 @@ const ReportTable = ({ work_order }: { work_order: WorkOrder }) => {
         const url = window.URL.createObjectURL(new Blob([response.data]));
         const link = document.createElement('a');
         link.href = url;
-        link.setAttribute('download', `PRELIM_INSPECTION_WO-${work_order.order_number}.pdf`);
+        link.setAttribute('download', `REPORT_PAGE_WO-${work_order.order_number}.pdf`);
         document.body.appendChild(link);
         link.click();
 
@@ -91,14 +80,15 @@ const ReportTable = ({ work_order }: { work_order: WorkOrder }) => {
         <CardTitle className="text-center w-full flex flex-col gap-4">Reportes de WO
           <>
             {
-              work_order?.reports ? (
+              work_order?.work_order_report_pages ? (
                 <div className="flex flex-col items-center gap-4">
                   <Badge className="bg-green-500">
                     Imprimir Hoja de Reporte
                   </Badge>
                   <Button variant="outline" onClick={handlePrint}>
-                    <Printer className="mr-2 h-4 w-4" />
+                    <Printer/>
                   </Button>
+                  {/*<AddReportItemDialog work_order_report_pages_id={work_order.work_order_report_pages.id.toString()} />*/}
                 </div>
               ) : (
                 <p className="text-sm text-muted italic">No hay reportes registrados...</p>
@@ -108,7 +98,7 @@ const ReportTable = ({ work_order }: { work_order: WorkOrder }) => {
         </CardTitle>
       </CardHeader>
       <CardContent>
-        {!work_order?.reports && (
+        {!work_order?.work_order_report_pages && (
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
               <div className="flex flex-col items-center justify-center py-12 space-y-4">
@@ -138,10 +128,10 @@ const ReportTable = ({ work_order }: { work_order: WorkOrder }) => {
           </Dialog>
         )}
         {
-          work_order?.reports && (
+          work_order?.work_order_report_pages && (
             <div className="flex flex-col items-center justify-center">
               <div className="w-full">
-                <DataTable columns={columns} data={work_order.reports} />
+                {/*<DataTable columns={columns} data={work_order.work_order_report_pages.reports} />*/}
               </div>
             </div>
           )

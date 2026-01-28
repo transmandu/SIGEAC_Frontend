@@ -39,7 +39,7 @@ import { DataTable } from "../data-table"
 // Esquema de validación con Zod
 const createPrelimnSchema = z.object({
   authorizing: z.string().min(1, "El código ATA es requerido"),
-  observation: z.string().min(10, "La descripción debe tener al menos 10 caracteres"),
+  observation: z.string(),
 })
 
 const PrelimInspecTable = ({ work_order }: { work_order: WorkOrder }) => {
@@ -49,7 +49,7 @@ const PrelimInspecTable = ({ work_order }: { work_order: WorkOrder }) => {
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [isFinishOpen, setIsFinishOpen] = useState(false)
 
-  // Form hook
+
   const form = useForm<z.infer<typeof createPrelimnSchema>>({
     resolver: zodResolver(createPrelimnSchema),
     defaultValues: {
@@ -99,7 +99,7 @@ const PrelimInspecTable = ({ work_order }: { work_order: WorkOrder }) => {
     const handleReportPrint = async () => {
       try {
         const response = await axiosInstance.get(`/hangar74/work-order-pdf-report/${work_order.order_number}`, {
-          responseType: 'blob', // Importante para manejar archivos binarios
+          responseType: 'blob',
         });
 
         // Crear URL del blob
@@ -176,7 +176,7 @@ const PrelimInspecTable = ({ work_order }: { work_order: WorkOrder }) => {
                   }
                 </div>
               ) : (
-                <p className="text-sm text-muted italic">No hay inspección registrada...</p>
+                <p className="text-sm text-muted-foreground italic">No hay inspección registrada...</p>
               )
             }
           </>

@@ -16,6 +16,7 @@ import { Button } from "@/components/ui/button"
 
 interface DialogProps {
   articles?: {
+    description?: string,
     serial?: string,
     dispatch_quantity: string | number,
     part_number?: string,
@@ -44,7 +45,7 @@ const DispatchArticlesDialog = ({ articles, work_order }: DialogProps) => {
               {
                 articles && articles.map((article) => (
                   <div key={article.article_id} className="w-[200px] group cursor-pointer" >
-                    {article.serial ?? article.part_number} - Cantidad: {article.dispatch_quantity  ?? "1"} {article.unit ? article.unit : ""}
+                    {article.description} - Cantidad: {article.dispatch_quantity  ?? "1"} {article.unit ? article.unit : ""}
                   </div>
                 ))
               }
