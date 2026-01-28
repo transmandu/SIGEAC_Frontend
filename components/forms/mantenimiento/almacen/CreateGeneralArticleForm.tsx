@@ -48,7 +48,6 @@ const formSchema = z.object({
     .min(2, "Mínimo 2 caracteres."),
   brand_model: z.string().optional(),
   primary_unit_id: z.string(),
-  warehouse_id: z.string(),
   variant_type: z.string().optional(),
   quantity: z.coerce
     .number({ required_error: "Debe ingresar una cantidad." })
@@ -104,6 +103,7 @@ const CreateGeneralArticleForm = ({
     const payload = {
       ...values,
       description: normalize(values.description),
+      warehouse_id: 2,
       brand_model: normalize(values.brand_model) || "N/A",
       variant_type: normalize(values.variant_type) || "N/A",
       quantity: Number.isFinite(values.quantity) ? values.quantity : 0,
@@ -261,37 +261,6 @@ const CreateGeneralArticleForm = ({
                               {unit.label}
                             </SelectItem>
                           ))
-                        }
-                      </SelectContent>
-                    </Select>
-                  </FormControl>
-                  <FormDescription>
-                    Si estás creando desde cero, normalmente arranca en 0.
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="warehouse_id"
-              render={({ field }) => (
-                <FormItem className="w-full">
-                  <FormLabel>Almacén</FormLabel>
-                  <FormControl>
-                    <Select {...field} onValueChange={field.onChange} value={field.value}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selec. almacén..." />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {isWarehousesLoading ? (
-                          <SelectItem value="loading">Cargando almacenes...</SelectItem>
-                        ) : (
-                          warehouses?.map((w) => (
-                            <SelectItem key={w.id} value={w.id.toString()}>
-                              {w.name} - {w.location.address}
-                            </SelectItem>
-                          )))
                         }
                       </SelectContent>
                     </Select>
