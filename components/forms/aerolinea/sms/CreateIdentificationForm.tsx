@@ -136,6 +136,10 @@ export default function CreateDangerIdentificationForm({
   ];
   const DANGER_TYPES = ["ORGANIZACIONAL", "TECNICO", "HUMANO", "NATURAL"];
 
+  // --- SEPARADOR ---
+
+  const SEPARATOR = "|";
+
   const form = useForm<FormSchemaType>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
@@ -160,7 +164,7 @@ export default function CreateDangerIdentificationForm({
       const splitAndFilter = (str: string | undefined) =>
         str
           ? str
-              .split(",")
+              .split(SEPARATOR)
               .map((s) => s.trim())
               .filter(Boolean)
           : [];
@@ -176,7 +180,7 @@ export default function CreateDangerIdentificationForm({
     if (newDefense.trim()) {
       const updated = [...defenses, newDefense.trim()];
       setDefenses(updated);
-      form.setValue("current_defenses", updated.join(","));
+      form.setValue("current_defenses", updated.join(SEPARATOR));
       setNewDefense("");
     }
   };
@@ -197,7 +201,7 @@ export default function CreateDangerIdentificationForm({
     if (newConsequence.trim()) {
       const updated = [...consequences, newConsequence.trim()];
       setConsequences(updated);
-      form.setValue("possible_consequences", updated.join(","));
+      form.setValue("possible_consequences", updated.join(SEPARATOR));
       setNewConsequence("");
     }
   };
@@ -218,14 +222,14 @@ export default function CreateDangerIdentificationForm({
     if (newAnalysis.trim()) {
       const updated = [...analyses, newAnalysis.trim()];
       setAnalyses(updated);
-      form.setValue("root_cause_analysis", updated.join(","));
+      form.setValue("root_cause_analysis", updated.join(SEPARATOR));
       setNewAnalysis("");
     }
   };
   const removeAnalysis = (index: number) => {
     const updated = analyses.filter((_, i) => i !== index);
     setAnalyses(updated);
-    form.setValue("root_cause_analysis", updated.join(","));
+    form.setValue("root_cause_analysis", updated.join(SEPARATOR));
   };
   const handleAnalysisKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === "Enter") {
@@ -233,7 +237,6 @@ export default function CreateDangerIdentificationForm({
       addAnalysis();
     }
   };
-
   // --- ENVÍO ---
   const onSubmit = async (data: FormSchemaType) => {
     try {
