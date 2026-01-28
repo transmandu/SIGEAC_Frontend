@@ -36,6 +36,7 @@ const manualWorkOrderSchema = z.object({
   work_order_task: z.array(z.object({
     description_task: z.string().min(1, 'La descripción de la tarea es obligatoria'),
     ata: z.string().min(1, 'Código ATA requerido'),
+    material: z.string().min(1, 'Material requerido').nullable(),
     task_items: z.array(z.object({
       part_number: z.string().min(1, 'Número de parte requerido'),
       alternate_part_number: z.string().optional(),
@@ -52,6 +53,7 @@ interface TaskItem {
 
 interface TaskInProgress {
   description_task: string;
+  material: string;
   ata: string;
   task_number: string;
   origin_manual: string;
@@ -88,6 +90,7 @@ const NonServiceWorkOrderForm = () => {
 
   const addEmptyTask = () => {
     setTasks(prev => [...prev, {
+      material: '',
       description_task: '',
       ata: '',
       task_number: '',
@@ -424,6 +427,20 @@ const NonServiceWorkOrderForm = () => {
                                 updateTask(index, "description_task", e.target.value)
                               }
                               placeholder="Describa la tarea..."
+                            />
+                            <FormMessage />
+                          </FormItem>
+
+
+                          {/* Materials (full width) */}
+                          <FormItem className="md:col-span-3">
+                            <FormLabel>Material</FormLabel>
+                            <Textarea
+                              value={task.material}
+                              onChange={(e) =>
+                                updateTask(index, "material", e.target.value)
+                              }
+                              placeholder="Materiales requeridos.."
                             />
                             <FormMessage />
                           </FormItem>
