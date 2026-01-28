@@ -22,7 +22,7 @@ export type DispatchArticle = {
   part_number?: string;
   serial?: string;
   description?: string;
-  dispatch_quantity: number | string;
+  dispatch_quantity: string;
 };
 
 export type DispatchGroupRow = {

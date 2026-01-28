@@ -81,7 +81,7 @@ export const columns: ColumnDef<DispatchGroupRow>[] = [
     header: () => <p className="text-center">Detalles</p>,
     cell: ({ row }) => (
       <div className="flex justify-center">
-        <DispatchArticlesDialog articles={row.original.articles}/>
+        <DispatchArticlesDialog articles={row.original.articles} work_order={row.original.work_order}/>
       </div>
     ),
   },
