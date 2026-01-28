@@ -31,7 +31,7 @@ const manualWorkOrderSchema = z.object({
   authorizing: z.enum(["PROPIETARIO", "EXPLOTADOR"], {
     message: "Debe elegir al autorizante."
   }),
-  aircraft_id: z.string(),
+  aircraft_id: z.string().min(1, 'La aeronave es obligatoria'),
   date: z.date(),
   work_order_task: z.array(z.object({
     description_task: z.string().min(1, 'La descripción de la tarea es obligatoria'),
@@ -77,7 +77,6 @@ const NonServiceWorkOrderForm = () => {
       reviewed_by: 'José Flores',
       approved_by: "Fátima Dos Ramos",
       description: '',
-      aircraft_id: '',
       work_order_task: [],
     },
   });
