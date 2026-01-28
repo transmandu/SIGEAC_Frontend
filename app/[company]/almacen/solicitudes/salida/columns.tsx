@@ -42,6 +42,13 @@ export const columns: ColumnDef<DispatchGroupRow>[] = [
       <p className="text-center font-medium">{row.original.work_order ?? "-"}</p>
     ),
   },
+      {
+    accessorKey: 'aircraft.acronym',
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Aeronave" />,
+    cell: ({ row }) => (
+      <p className="text-center font-medium">{row.original.aircraft?.acronym ?? "-"}</p>
+    ),
+  },
   {
     accessorKey: 'submission_date',
     header: ({ column }) => <DataTableColumnHeader column={column} title="Fecha" />,
