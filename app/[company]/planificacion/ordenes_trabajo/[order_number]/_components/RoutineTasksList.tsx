@@ -120,7 +120,7 @@ export const RoutineTasksList = ({
               <p className="flex gap-2 items-center text-sm"><PackageCheck className="h-4 w-4" /> Verificar Articulos</p>
             )}
           </Button>
-          <AddRoutineTaskDialog work_order_id={work_order_id}   />
+          {/*<AddRoutineTaskDialog work_order_id={work_order_id}   ESCONDER BOTON DE CREAR TAREA EN DETALLES DE WO/>*/}
         </div>
       </div>
 
