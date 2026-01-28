@@ -103,7 +103,7 @@ const CreateGeneralArticleForm = ({
     const payload = {
       ...values,
       description: normalize(values.description),
-      warehouse_id: 2,
+      warehouse_id: "2",
       brand_model: normalize(values.brand_model) || "N/A",
       variant_type: normalize(values.variant_type) || "N/A",
       quantity: Number.isFinite(values.quantity) ? values.quantity : 0,
