@@ -62,7 +62,7 @@ export const RoutineTasksList = ({
         <div className="relative w-full sm:w-auto">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Buscar tareas..."
+            placeholder="Buscar items..."
             className="pl-9 w-full sm:w-64"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
