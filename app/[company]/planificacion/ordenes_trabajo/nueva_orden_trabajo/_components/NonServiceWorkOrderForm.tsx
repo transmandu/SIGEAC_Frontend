@@ -254,26 +254,27 @@ const NonServiceWorkOrderForm = () => {
 
                   return (
                     <FormItem>
+
+
                       <FormLabel>Autorizado Por:</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      {
+                        selectedAircraftData ? (
+                          <Input disabled value={`${selectedAircraftData.client.name} (${selectedAircraftData.client.authorizing})`} />
+                        ) :(
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Quién autoriza..." />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {selectedAircraftData?.client ? (
-                            <SelectItem value={selectedAircraftData.client.authorizing}>
-                              {selectedAircraftData.client.name} ({selectedAircraftData.client.authorizing})
-                            </SelectItem>
-                          ) : (
-                            <>
-                              <SelectItem value="PROPIETARIO">Propietario</SelectItem>
-                              <SelectItem value="EXPLOTADOR">Explotador</SelectItem>
-                            </>
-                          )}
+                          <SelectItem value="PROPIETARIO">Propietario</SelectItem>
+                          <SelectItem value="EXPLOTADOR">Explotador</SelectItem>
                         </SelectContent>
                       </Select>
+                        )
+
+                      }
                       <FormDescription>
                         {selectedAircraftData?.client
                           ? `Cliente: ${selectedAircraftData.client.name}`
