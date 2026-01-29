@@ -46,7 +46,11 @@ export const columns: ColumnDef<DispatchGroupRow>[] = [
     accessorKey: 'aircraft.acronym',
     header: ({ column }) => <DataTableColumnHeader column={column} title="Aeronave/Departamento" />,
     cell: ({ row }) => (
-      <p className="text-center font-medium">{row.original.aircraft ? row.original.aircraft.acronym : row.original.department.name}</p>
+      <p className="text-center font-medium">
+        {row.original.aircraft?.acronym ??
+        row.original.department?.name ??
+        "—"}
+      </p>
     ),
   },
   {

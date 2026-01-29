@@ -32,7 +32,7 @@ export type DispatchGroupRow = {
   created_by: string;
   aircraft?: MaintenanceAircraft
   justification: string | null;
-  department: Department;
+  department?: Department;
   submission_date: string | null;
   work_order?: string;
   articles: DispatchArticle[];
