@@ -93,7 +93,7 @@ const form = useForm<FormValues>({
   resolver: zodResolver(formSchema),
   defaultValues: {
     mode: "create",
-    quantity: undefined,
+    quantity: 0,
     warehouse_id: "2",
   },
 });
@@ -110,7 +110,7 @@ const isAddMode = mode === "add";
       description: initialData.description ?? "",
       brand_model: initialData.brand_model ?? "",
       variant_type: initialData.variant_type ?? "",
-      quantity: undefined,
+      quantity: 0,
     });
   }, [initialData, form]);
 
@@ -167,7 +167,7 @@ const isAddMode = mode === "add";
                 setUseExisting(checked);
 
                 if (checked) {
-                  form.reset({ mode: "add", quantity: undefined });
+                  form.reset({ mode: "add", quantity: 0 });
                 } else {
                   form.reset({
                     mode: "create",
@@ -176,7 +176,7 @@ const isAddMode = mode === "add";
                     variant_type: "",
                     primary_unit_id: "",
                     warehouse_id: "",
-                    quantity: undefined,
+                    quantity: 0,
                   });
                   setSelectedArticle(null);
                 }
@@ -214,7 +214,7 @@ const isAddMode = mode === "add";
                         form.setValue("description", article.description);
                         form.setValue("brand_model", article.brand_model);
                         form.setValue("variant_type", article.variant_type);
-                        form.setValue("quantity", undefined);
+                        form.setValue("quantity", 0);
                       }}
                     >
                       <SelectTrigger>
