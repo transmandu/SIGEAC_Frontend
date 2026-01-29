@@ -34,8 +34,6 @@ import { SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/compone
 import { useGetWarehousesByLocation } from "@/hooks/administracion/useGetWarehousesByUser";
 import { useAddQuantityGeneralArticle } from "@/hooks/mantenimiento/almacen/almacen_general/useAddQuantityGeneralArticle";
 import { useGetGeneralArticles } from "@/hooks/mantenimiento/almacen/almacen_general/useGetGeneralArticles";
-import { toast } from "@/components/ui/use-toast";
-
 
 export type GeneralArticle = {
   id: number;
@@ -45,33 +43,27 @@ export type GeneralArticle = {
   brand_model: string;
 };
 
-const formSchema = z.object({
-  description: z
-    .string({ message: "Debe ingresar una descripción." })
-    .min(2, "Mínimo 2 caracteres."),
-  brand_model: z.string().optional(),
-  primary_unit_id: z.string(),
-  warehouse_id: z.string(),
-  variant_type: z.string().optional(),
-  quantity: z.coerce
-    .number()
-    .min(0, "No puede ser negativo"),
-});
-
-type FormValues = z.infer<typeof formSchema>;
-
 const createSchema = z.object({
-  description: z.string().min(2),
+  mode: z.literal("create"),
+  description: z.string({message: "Debe ingresar una descripción."}).min(2, "Mínimo 2 caracteres."),
   brand_model: z.string().optional(),
   variant_type: z.string().optional(),
   primary_unit_id: z.string().min(1),
   warehouse_id: z.string().min(1),
-  quantity: z.coerce.number().min(0),
+  quantity: z.coerce.number().min(0, "No puede ser negativo"),
 });
 
 const addQuantitySchema = z.object({
+  mode: z.literal("add"),
   quantity: z.coerce.number().gt(0, "Debe ser mayor a 0"),
 });
+
+const formSchema = z.discriminatedUnion("mode", [
+  createSchema,
+  addQuantitySchema,
+]);
+
+type FormValues = z.infer<typeof formSchema>;
 
 const normalize = (s?: string) => (s ?? "").trim();
 
@@ -97,20 +89,24 @@ const CreateGeneralArticleForm = ({
     company: selectedCompany?.slug,
     location_id: selectedStation ?? null,
   });
+const form = useForm<FormValues>({
+  resolver: zodResolver(formSchema),
+  defaultValues: {
+    mode: "create",
+    quantity: undefined,
+    warehouse_id: "2",
+  },
+});
 
-  const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      description: initialData?.description ?? "",
-      brand_model: initialData?.brand_model ?? "",
-      variant_type: initialData?.variant_type ?? "",
-      quantity: undefined,
-    },
-  });
+// 👇 AHORA sí puedes usar form
+const mode = form.watch("mode");
+const isAddMode = mode === "add";
+
 
   useEffect(() => {
     if (!initialData) return;
     form.reset({
+      mode: "create",
       description: initialData.description ?? "",
       brand_model: initialData.brand_model ?? "",
       variant_type: initialData.variant_type ?? "",
@@ -125,38 +121,28 @@ const CreateGeneralArticleForm = ({
   const onSubmit = async (values: FormValues) => {
     if (!selectedCompany?.slug) return;
 
-    if (useExisting && selectedArticle) {
-      if (values.quantity === undefined || values.quantity <= 0) {
-        toast({variant: "destructive", title: "Error", description: "Ingrese una cantidad válida a sumar",});
-        return;
-      }
+    if (values.mode === "add") {
+      if (!selectedArticle) return;
+
       await addQuantityGeneralArticle.mutateAsync({
         id: selectedArticle.id,
-        quantity: values.quantity ?? 0,
+        quantity: values.quantity,
       });
 
-      router.back();
+      form.reset();
       return;
     }
 
-    const payload = {
-      ...values,
-      description: normalize(values.description),
-      brand_model: normalize(values.brand_model) || "N/A",
-      variant_type: normalize(values.variant_type) || "N/A",
-      quantity: values.quantity ?? 0,
-    };
-
     await createGeneralArticle.mutateAsync({
       company: selectedCompany.slug,
-      data: payload,
-    });
-
-    form.reset({
-      description: "",
-      brand_model: "",
-      variant_type: "",
-      quantity: undefined,
+      data: {
+        description: normalize(values.description),
+        brand_model: normalize(values.brand_model) || "N/A",
+        variant_type: normalize(values.variant_type) || "N/A",
+        primary_unit_id: values.primary_unit_id,
+        warehouse_id: values.warehouse_id,
+        quantity: values.quantity,
+      },
     });
   };
 
@@ -166,64 +152,112 @@ const CreateGeneralArticleForm = ({
         className="flex flex-col gap-6 max-w-7xl mx-auto"
         onSubmit={form.handleSubmit(onSubmit)}
       >
-        <Card>
-          <CardContent className="flex items-center gap-3 py-4">
+      {/* Artículo existente con buscador dentro del select (shadcn) */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">Artículo general existente</CardTitle>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-4">
+          <div className="flex items-center gap-2">
             <input
               type="checkbox"
               checked={useExisting}
               onChange={(e) => {
-                setUseExisting(e.target.checked);
-                setSelectedArticle(null);
-                form.reset({
-                  description: "",
-                  brand_model: "",
-                  variant_type: "",
-                  quantity: undefined,
-                });
+                const checked = e.target.checked;
+                setUseExisting(checked);
+
+                if (checked) {
+                  form.reset({ mode: "add", quantity: undefined });
+                } else {
+                  form.reset({
+                    mode: "create",
+                    description: "",
+                    brand_model: "",
+                    variant_type: "",
+                    primary_unit_id: "",
+                    warehouse_id: "",
+                    quantity: undefined,
+                  });
+                  setSelectedArticle(null);
+                }
               }}
+              className="h-4 w-4 accent-primary"
             />
             <span className="text-sm font-medium">
-              Usar artículo general existente
+              ¿Desea ingresar por medio de un artículo general existente?
             </span>
-          </CardContent>
-        </Card>
+          </div>
+
         {useExisting && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Artículo existente</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Select
-                onValueChange={(value) => {
-                  const article = generalArticles?.find(
-                    (a) => a.id.toString() === value
-                  );
+          <FormField
+            control={form.control}
+            name="description"
+            render={() => {
+              const [query, setQuery] = useState("");
+              const filteredArticles = generalArticles?.filter((a) =>
+                a.description.toLowerCase().includes(query.toLowerCase())
+              );
 
-                  if (!article) return;
+              return (
+                <FormItem className="w-full">
+                  <FormLabel>Seleccione un artículo</FormLabel>
+                  <FormControl>
+                    <Select
+                      value={selectedArticle?.id.toString() || ""}
+                      onValueChange={(value) => {
+                        const article = generalArticles?.find(
+                          (a) => a.id.toString() === value
+                        );
+                        if (!article) return;
 
-                  setSelectedArticle(article);
+                        setSelectedArticle(article);
+                        form.setValue("description", article.description);
+                        form.setValue("brand_model", article.brand_model);
+                        form.setValue("variant_type", article.variant_type);
+                        form.setValue("quantity", undefined);
+                      }}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Seleccione un artículo..." />
+                      </SelectTrigger>
 
-                  form.setValue("description", article.description);
-                  form.setValue("brand_model", article.brand_model);
-                  form.setValue("variant_type", article.variant_type);
-                  form.setValue("quantity", undefined);
-                }}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Seleccione un artículo..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {generalArticles?.map((a) => (
-                    <SelectItem key={a.id} value={a.id.toString()}>
-                      {a.description} — {a.variant_type}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </CardContent>
-          </Card>
+                      <SelectContent className="p-2 flex flex-col gap-2">
+                        {/* Buscador estático */}
+                        <div className="sticky top-0 bg-background z-10 p-1">
+                          <Input
+                            placeholder="Buscar..."
+                            value={query}
+                            onChange={(e) => setQuery(e.target.value)}
+                          />
+                        </div>
+
+                        {/* Items scrollables */}
+                        <div className="max-h-60 overflow-auto mt-1 flex flex-col gap-1">
+                          {filteredArticles?.length ? (
+                            filteredArticles.map((a) => (
+                              <SelectItem key={a.id} value={a.id.toString()}>
+                                {a.description} — {a.variant_type}
+                              </SelectItem>
+                            ))
+                          ) : (
+                            <div className="p-2 text-sm text-muted-foreground">
+                              No se encontraron artículos
+                            </div>
+                          )}
+                        </div>
+                      </SelectContent>
+                    </Select>
+                  </FormControl>
+                  <FormDescription>
+                    Busca y selecciona un artículo existente para sumar stock.
+                  </FormDescription>
+                </FormItem>
+              );
+            }}
+          />
         )}
-
+        </CardContent>
+      </Card>
         {/* Encabezado */}
         <Card>
           <CardHeader className="pb-3">
@@ -242,7 +276,7 @@ const CreateGeneralArticleForm = ({
                     <Textarea
                       rows={4}
                       placeholder="Ej: Tornillo hexagonal 1/2, arandela plana..."
-                      {...field} disabled={useExisting}
+                      {...field} disabled={isAddMode}
                     />
                   </FormControl>
                   <FormDescription>
@@ -269,7 +303,7 @@ const CreateGeneralArticleForm = ({
                 <FormItem className="w-full">
                   <FormLabel>Marca / Modelo</FormLabel>
                   <FormControl>
-                    <Input placeholder="Ej: Makita XPH12, Truper..." {...field} disabled={useExisting}/>
+                    <Input placeholder="Ej: Makita XPH12, Truper..." {...field} disabled={isAddMode}/>
                   </FormControl>
                   <FormDescription>
                     Opcional, ayuda a filtrar rápido en ferretería.
@@ -286,7 +320,7 @@ const CreateGeneralArticleForm = ({
                 <FormItem className="w-full">
                   <FormLabel>Presentación / Especificación</FormLabel>
                   <FormControl>
-                    <Input placeholder="Ej: TOR-M6X20 / BROCA-10MM..." {...field} disabled={useExisting}/>
+                    <Input placeholder="Ej: TOR-M6X20 / BROCA-10MM..." {...field} disabled={isAddMode}/>
                   </FormControl>
                   <FormDescription>
                     Tipo, variante o código interno si existe.
@@ -341,7 +375,7 @@ const CreateGeneralArticleForm = ({
                 <FormItem className="w-full">
                   <FormLabel>Unidad</FormLabel>
                   <FormControl>
-                    <Select {...field}disabled={useExisting} onValueChange={field.onChange} value={field.value}>
+                    <Select {...field}disabled={isAddMode} onValueChange={field.onChange} value={field.value}>
                       <SelectTrigger>
                         <SelectValue placeholder="Selec. unidad..." />
                       </SelectTrigger>
@@ -366,14 +400,14 @@ const CreateGeneralArticleForm = ({
                 </FormItem>
               )}
             />
-            <FormField
+            {/* <FormField
               control={form.control}
               name="warehouse_id"
               render={({ field }) => (
                 <FormItem className="w-full">
                   <FormLabel>Almacén</FormLabel>
                   <FormControl>
-                    <Select {...field} disabled={useExisting} onValueChange={field.onChange} value={field.value}>
+                    <Select {...field} disabled={isAddMode} onValueChange={field.onChange} value={field.value}>
                       <SelectTrigger>
                         <SelectValue placeholder="Selec. almacén..." />
                       </SelectTrigger>
@@ -396,7 +430,7 @@ const CreateGeneralArticleForm = ({
                   <FormMessage />
                 </FormItem>
               )}
-            />
+            /> */}
           </CardContent>
         </Card>
 
@@ -415,7 +449,7 @@ const CreateGeneralArticleForm = ({
 
           <Button
             className="bg-primary text-white hover:bg-blue-900 disabled:bg-slate-100 disabled:text-slate-400"
-            disabled={busy || !selectedCompany?.slug || (useExisting && !selectedArticle)}
+            disabled={busy || !selectedCompany?.slug || (isAddMode && !selectedArticle)}
             type="submit"
           >
             {busy ? (
@@ -427,7 +461,13 @@ const CreateGeneralArticleForm = ({
                 alt="Cargando..."
               />
             ) : (
-              <span>{isEditing ? "Guardar cambios" : "Crear artículo"}</span>
+            <span>
+              {isEditing
+                ? "Guardar cambios"
+                : useExisting
+                ? "Sumar cantidad"
+                : "Crear artículo"}
+            </span>
             )}
           </Button>
 
