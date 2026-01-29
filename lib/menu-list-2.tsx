@@ -1121,7 +1121,11 @@ export function getMenuList(
 
         // Si es la compañía restringida y el grupo es 'General', solo mostrar 'Inventario'
         if (isRestrictedCompany && group.groupLabel === "General") {
-          menus = menus.filter((menu) => menu.label === "Inventario");
+          menus = menus.filter(
+            (menu) =>
+              menu.label === "Inventario" ||
+              menu.label === "Solicitudes de Compra"
+          );
         }
 
         return {
