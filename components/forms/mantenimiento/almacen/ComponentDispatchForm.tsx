@@ -83,7 +83,7 @@ const FormSchema = z.object({
   justification: z.string({
     message: "Debe ingresar una justificación de la salida.",
   }),
-  destination_place: z.string({
+  department_id: z.string({
     message: "Debe seleccionar un destino.",
   }),
   status: z.string(),
@@ -147,7 +147,7 @@ export function ComponentDispatchForm({ onClose }: FormProps) {
       articles: [],
       justification: "",
       requested_by: `${user?.employee?.[0]?.dni ?? ""}`,
-      destination_place: "",
+      department_id: "",
       status: "proceso",
     },
   });
@@ -201,7 +201,7 @@ export function ComponentDispatchForm({ onClose }: FormProps) {
 
   // Limpiar destino cuando cambia el tipo
   useEffect(() => {
-    setValue("destination_place", "");
+    setValue("department_id", "");
   }, [isDepartment, setValue]);
 
   // Reset al cambiar artículo
@@ -272,7 +272,7 @@ export function ComponentDispatchForm({ onClose }: FormProps) {
       submission_date: format(data.submission_date, "yyyy-MM-dd"),
       category: "componente",
       isDepartment: isDepartment,
-      aircraft_id: isDepartment ? null : data.destination_place,
+      aircraft_id: isDepartment ? null : data.department_id,
     };
 
     await createDispatchRequest.mutateAsync({
@@ -424,7 +424,7 @@ export function ComponentDispatchForm({ onClose }: FormProps) {
             <div className="flex flex-col gap-3 lg:col-span-2">
               <FormField
                 control={form.control}
-                name="destination_place"
+                name="department_id"
                 render={({ field }) => (
                   <FormItem className="col-span-2">
                     <div className="flex items-center justify-between mb-2 gap-2 col-span-2 w-full">
@@ -761,7 +761,7 @@ export function ComponentDispatchForm({ onClose }: FormProps) {
               !quantity ||
               parseFloat(quantity) <= 0 ||
               !form.getValues("requested_by") ||
-              !form.getValues("destination_place") ||
+              !form.getValues("department_id") ||
               !form.getValues("submission_date")
             }
             type="submit"

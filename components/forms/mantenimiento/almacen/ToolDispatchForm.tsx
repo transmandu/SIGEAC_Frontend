@@ -63,7 +63,7 @@ const FormSchema = z.object({
   justification: z.string({
     message: "Debe ingresar una justificación de la salida.",
   }),
-  destination_place: z.string(),
+  department_id: z.string(),
   status: z.string(),
 });
 
@@ -146,7 +146,7 @@ export function ToolDispatchForm({ onClose }: FormProps) {
       articles: [],
       justification: "",
       requested_by: "",
-      destination_place: "",
+      department_id: "",
       status: "proceso",
     },
   });
@@ -161,7 +161,7 @@ export function ToolDispatchForm({ onClose }: FormProps) {
       category: "herramienta",
       user_id: Number(user!.id),
       isDepartment: isDepartment,
-      aircraft_id: isDepartment ? null : data.destination_place,
+      aircraft_id: isDepartment ? null : data.department_id,
     };
     await createDispatchRequest.mutateAsync({
       data: formattedData,
@@ -350,7 +350,7 @@ export function ToolDispatchForm({ onClose }: FormProps) {
           />
           <FormField
             control={form.control}
-            name="destination_place"
+            name="department_id"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Destino</FormLabel>
