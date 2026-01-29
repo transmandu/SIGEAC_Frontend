@@ -350,7 +350,6 @@ const isAddMode = mode === "add";
                   </FormLabel>
                   <FormControl>
                     <Input
-                      type="number"
                       min={0}
                       inputMode="numeric"
                       placeholder={useExisting ? "Ingrese cantidad a sumar" : "0"}
