@@ -47,12 +47,13 @@ import { useGetBatchesWithInWarehouseArticles } from "@/hooks/mantenimiento/alma
 import { useGetMaintenanceAircrafts } from "@/hooks/mantenimiento/planificacion/useGetMaintenanceAircrafts"
 import { useGetWorkOrderEmployees } from "@/hooks/mantenimiento/planificacion/useGetWorkOrderEmployees"
 import { useGetDepartments } from "@/hooks/sistema/departamento/useGetDepartment"
-import type { Article, Batch, GeneralArticle } from "@/types"
+import type { Article, Batch, Department, Employee, GeneralArticle } from "@/types"
 
 // Conversión
 import { useGetGeneralArticles } from "@/hooks/mantenimiento/almacen/almacen_general/useGetGeneralArticles"
 import { useGetConversionByConsmable } from "@/hooks/mantenimiento/almacen/articulos/useGetConvertionsByConsumableId"
 import { useGetConversionByGeneralArticle } from "@/hooks/mantenimiento/almacen/articulos/useGetConvertionsByGeneralArticleId"
+import { useGetEmployeesByDepartment } from "@/hooks/sistema/useGetEmployeesByDepartament"
 
 // ✅ AJUSTA ESTE IMPORT al hook que ya creaste para artículos generales.
 // Debe devolver exactamente el mismo shape que el de consumibles (id, equivalence, unit_primary, unit_secondary, etc.)
@@ -122,11 +123,15 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
   const [openAdd, setOpenAdd] = useState(false)
   const [isDepartment, setIsDepartment] = useState(false)
 
+  const [requestedBy, setRequestedBy] = useState<Employee | null>(null);
+  const [selectedDepartment, setSelectedDepartment] = useState<Department | null>(null);
   const { createDispatchRequest } = useCreateDispatchRequest()
 
   const { data: departments, isLoading: isDepartmentsLoading } = useGetDepartments(
     selectedCompany?.slug
   )
+
+  const { data: employeesByDepartment, isLoading: isEmployeesByDepartmentLoading } = useGetEmployeesByDepartment(selectedDepartment?.acronym, selectedStation, selectedCompany?.slug)
 
   const { data: aircrafts, isLoading: isAircraftsLoading } = useGetMaintenanceAircrafts(
     selectedCompany?.slug
@@ -163,7 +168,7 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
   const { control, setValue, getValues } = form
   const aeroFA = useFieldArray({ control, name: "aeronautical_articles" })
   const genFA = useFieldArray({ control, name: "general_articles" })
-
+  console.log(isDepartment, selectedDepartment)
   // Lookups
   const aeroById = useMemo(() => {
     const map = new Map<number, Article>()
@@ -535,13 +540,12 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
               <Label className="text-sm font-medium">Entregado por:</Label>
               <Input disabled value={`${user?.first_name} ${user?.last_name}`} />
             </div>
-
             <FormField
               control={form.control}
               name="requested_by"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-sm font-medium">Recibe / MTTO</FormLabel>
+                  <FormLabel className="text-sm font-medium">Recibe</FormLabel>
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
                       <SelectTrigger className="h-10">
@@ -549,12 +553,16 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {employeesLoading && (
+                      {employeesLoading || isEmployeesByDepartmentLoading && (
                         <div className="flex items-center justify-center py-4">
                           <Loader2 className="size-4 animate-spin text-muted-foreground" />
                         </div>
                       )}
-                      {employees?.map((employee) => (
+                      { isDepartment && employeesByDepartment ? employeesByDepartment.map((e) => (
+                        <SelectItem key={e.id} value={`${e.dni}`}>
+                          {e.first_name} {e.last_name} - {e.job_title.name}
+                        </SelectItem>
+                      )) : employees?.map((employee) => (
                         <SelectItem key={employee.id} value={`${employee.dni}`}>
                           {employee.first_name} {employee.last_name} - {employee.job_title.name}
                         </SelectItem>
@@ -664,10 +672,20 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
                       </label>
                     </div>
                   </div>
-
                   <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
+                    value={field.value ?? ""} // controlado
+                    onValueChange={(val) => {
+                      field.onChange(val)
+
+                      if (isDepartment) {
+                        const dep = departments?.find((d) => d.id.toString() === val)
+                        if(dep) {
+                          setSelectedDepartment(dep)
+                        }
+                      } else {
+                        setSelectedDepartment(null)
+                      }
+                    }}
                     disabled={isDepartment ? isDepartmentsLoading : isAircraftsLoading}
                   >
                     <FormControl>
@@ -677,6 +695,7 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
                         />
                       </SelectTrigger>
                     </FormControl>
+
                     <SelectContent>
                       {isDepartment ? (
                         <>
@@ -707,7 +726,6 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
                       )}
                     </SelectContent>
                   </Select>
-
                   <FormMessage />
                 </FormItem>
               )}
