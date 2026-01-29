@@ -156,7 +156,7 @@ export default function CreateFlightControlForm({ onClose, flightData }: FormPro
                                 )}
                               />
                               {
-                                <p>{aircraft.acronym} - {aircraft.manufacturer.name}</p>
+                                <p>{aircraft.acronym} - {aircraft?.manufacturer.name?? 'N/A'}</p>
                               }
                             </CommandItem>
                           ))}
