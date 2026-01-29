@@ -132,7 +132,7 @@ const isAddMode = mode === "add";
 
       await addQuantityGeneralArticle.mutateAsync({
         id: selectedArticle.id,
-        quantity: values.quantity,
+        quantity: values.quantity.toFixed(2),
       });
 
       form.reset();
@@ -147,7 +147,7 @@ const isAddMode = mode === "add";
         variant_type: normalize(values.variant_type) || "N/A",
         primary_unit_id: values.primary_unit_id,
         warehouse_id: values.warehouse_id,
-        quantity: values.quantity,
+        quantity: parseFloat(values.quantity.toFixed(2)),
       },
     });
   };
