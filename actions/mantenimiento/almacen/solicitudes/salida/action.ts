@@ -9,7 +9,6 @@ interface IDispatchRequestAction {
   submission_date: string;
   created_by: string;
   requested_by: string;
-  destination_place: string;
   category: string;
   aeronautical_articles?: {
     article_id: number;
@@ -23,6 +22,7 @@ interface IDispatchRequestAction {
   user_id: number;
   isDepartment: boolean;
   aircraft_id: string | null;
+  department_id: string | null;
 }
 
 export const useCreateDispatchRequest = () => {

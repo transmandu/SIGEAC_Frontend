@@ -82,7 +82,7 @@ const FormSchema = z
     requested_by: z.string(),
     submission_date: z.date({ message: "Debe ingresar la fecha." }),
     justification: z.string({ message: "Debe ingresar una justificación de la salida." }),
-    destination_place: z.string(),
+    department_id: z.string(),
     status: z.string(),
     unit: z.enum(["litros", "mililitros"]).optional(),
 
@@ -153,7 +153,7 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
       work_order: "",
       justification: "",
       requested_by: `${user?.employee?.[0]?.dni ?? ""}`,
-      destination_place: "",
+      department_id: "",
       status: "proceso",
       aeronautical_articles: [],
       general_articles: [],
@@ -186,7 +186,7 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
 
   // Reset destino al cambiar tipo
   useEffect(() => {
-    setValue("destination_place", "")
+    setValue("department_id", "")
   }, [isDepartment, setValue])
 
   // =============== Cantidades (local draft por fila) ===============
@@ -499,8 +499,9 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
       delivered_by: user?.employee?.[0]?.dni,
       user_id: Number(user!.id),
       isDepartment,
-      aircraft_id: isDepartment ? null : data.destination_place,
-    }
+      aircraft_id: isDepartment ? null : data.department_id,
+      department_id: isDepartment ? data.department_id : null,
+    };
 
     await createDispatchRequest.mutateAsync({
       data: formattedData,
@@ -636,7 +637,7 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
 
             <FormField
               control={form.control}
-              name="destination_place"
+              name="department_id"
               render={({ field }) => (
                 <FormItem>
                   <div className="flex items-center justify-between mb-2 gap-2">
