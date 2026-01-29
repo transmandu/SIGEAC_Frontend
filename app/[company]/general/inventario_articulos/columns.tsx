@@ -8,12 +8,14 @@ import { addDays, format, parseISO } from "date-fns";
 import { cn } from "@/lib/utils";
 import ArticleDropdownActions from "@/components/dropdowns/mantenimiento/almacen/ArticleDropdownActions";
 import { WarehouseResponse } from "@/hooks/mantenimiento/almacen/articulos/useGetWarehouseArticlesByCategory";
+import { Unit } from "@/types";
 
 export interface IArticleSimple {
   id: number;
   part_number: string;
   alternative_part_number?: string[];
   description?: string;
+  unit?: Unit;
   quantity: number;
   zone: string;
   article_type: string;
@@ -87,6 +89,7 @@ export const flattenArticles = (
       lot_number: article.lot_number,
       description: article.description,
       zone: article.zone,
+      unit: article.unit ?? undefined,
       // Normalizar cantidad: 0, null o undefined -> 1
       quantity:
         article.quantity === 0 ||
@@ -177,7 +180,7 @@ const baseCols: ColumnDef<IArticleSimple>[] = [
             variant={q > 5 ? "default" : q > 0 ? "secondary" : "destructive"}
             className="text-base font-bold px-3 py-1"
           >
-            {q}
+            {q} {row.original.unit ? row.original.unit.value : "u"}
           </Badge>
         </div>
       );
