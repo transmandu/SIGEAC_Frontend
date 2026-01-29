@@ -3,7 +3,7 @@ import { Employee } from "@/types";
 import { useQuery } from "@tanstack/react-query";
 
 const fetchEmployeesByDepartment = async (
-  department_acronym: string,
+  department_acronym?: string,
   location?: string | null,
   company?: string
 ): Promise<Employee[]> => {
@@ -14,7 +14,7 @@ const fetchEmployeesByDepartment = async (
 };
 
 export const useGetEmployeesByDepartment = (
-  department_acronym: string,
+  department_acronym?: string,
   location?: string | null,
   company?: string
 ) => {

@@ -44,9 +44,9 @@ export const columns: ColumnDef<DispatchGroupRow>[] = [
   },
       {
     accessorKey: 'aircraft.acronym',
-    header: ({ column }) => <DataTableColumnHeader column={column} title="Aeronave" />,
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Aeronave/Departamento" />,
     cell: ({ row }) => (
-      <p className="text-center font-medium">{row.original.aircraft?.acronym ?? "-"}</p>
+      <p className="text-center font-medium">{row.original.aircraft ? row.original.aircraft.acronym : row.original.department.name}</p>
     ),
   },
   {
@@ -81,7 +81,7 @@ export const columns: ColumnDef<DispatchGroupRow>[] = [
     header: () => <p className="text-center">Detalles</p>,
     cell: ({ row }) => (
       <div className="flex justify-center">
-        <DispatchArticlesDialog articles={row.original.articles}/>
+        <DispatchArticlesDialog articles={row.original.articles} work_order={row.original.work_order}/>
       </div>
     ),
   },

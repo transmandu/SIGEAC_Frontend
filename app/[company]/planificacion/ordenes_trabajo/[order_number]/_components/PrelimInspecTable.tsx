@@ -166,17 +166,16 @@ const PrelimInspecTable = ({ work_order }: { work_order: WorkOrder }) => {
                       </div>
                     )
                   }
-                  {
-                    work_order?.preliminary_inspection.status === "FINALIZADO" && (
-                      <div className="flex gap-2">
-                        <Button onClick={handlePrint}><Printer /></Button>
-                        <Button onClick={handleReportPrint}><Printer className="text-red-500" /></Button>
-                      </div>
-                    )
-                  }
                 </div>
               ) : (
                 <p className="text-sm text-muted-foreground italic">No hay inspección registrada...</p>
+              )
+            }
+            {
+              work_order?.preliminary_inspection && (
+                <div>
+                  <Button variant="ghost" onClick={handlePrint}><Printer /></Button>
+                </div>
               )
             }
           </>
@@ -248,7 +247,7 @@ const PrelimInspecTable = ({ work_order }: { work_order: WorkOrder }) => {
                     >
                       Cancelar
                     </Button>
-                    <Button type="submit">Crear Insp.</Button>
+                    <Button disabled={createPrelimInspection.isPending} type="submit">{createPrelimInspection.isPending ? <Loader2 className="animate-spin" /> : "Crear Insp."}</Button>
                   </div>
                 </form>
               </Form>

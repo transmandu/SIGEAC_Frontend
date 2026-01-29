@@ -14,7 +14,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { MaintenanceAircraft, WorkOrder } from '@/types'
+import { Department, MaintenanceAircraft, WorkOrder } from '@/types'
 
 
 export type DispatchArticle = {
@@ -22,7 +22,7 @@ export type DispatchArticle = {
   part_number?: string;
   serial?: string;
   description?: string;
-  dispatch_quantity: number | string;
+  dispatch_quantity: string;
 };
 
 export type DispatchGroupRow = {
@@ -32,7 +32,7 @@ export type DispatchGroupRow = {
   created_by: string;
   aircraft?: MaintenanceAircraft
   justification: string | null;
-  destination_place: string | null;
+  department: Department;
   submission_date: string | null;
   work_order?: string;
   articles: DispatchArticle[];
