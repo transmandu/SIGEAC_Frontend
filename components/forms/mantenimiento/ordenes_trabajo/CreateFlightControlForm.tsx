@@ -59,9 +59,9 @@ export default function CreateFlightControlForm({ onClose, flightData }: FormPro
   const { updateFlightControl } = useUpdateFlightControl()
   const { selectedCompany } = useCompanyStore()
   const { data: aircrafts, isLoading: isAircraftsLoading, isError: isAircraftsError } = useGetMaintenanceAircrafts(selectedCompany?.slug)
-  
+
   const isEditMode = !!flightData
-  
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: flightData ? {
@@ -137,7 +137,7 @@ export default function CreateFlightControlForm({ onClose, flightData }: FormPro
                     <Command>
                       <CommandInput placeholder="Busque una aeronave..." />
                       <CommandList>
-                        <CommandEmpty className="text-sm p-2 text-center">No se ha encontrado ningún fabricante.</CommandEmpty>
+                        <CommandEmpty className="text-sm p-2 text-center">No se ha encontrado ninguna aeronave.</CommandEmpty>
                         <CommandGroup>
                           {aircrafts?.map((aircraft) => (
                             <CommandItem
@@ -156,7 +156,7 @@ export default function CreateFlightControlForm({ onClose, flightData }: FormPro
                                 )}
                               />
                               {
-                                <p>{aircraft.acronym} - {aircraft.manufacturer.name}</p>
+                                <p>{aircraft.acronym}</p>
                               }
                             </CommandItem>
                           ))}
