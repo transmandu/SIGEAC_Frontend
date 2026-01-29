@@ -132,7 +132,7 @@ const isAddMode = mode === "add";
 
       await addQuantityGeneralArticle.mutateAsync({
         id: selectedArticle.id,
-        quantity: values.quantity.toFixed(2),
+        quantity: parseFloat(values.quantity.toFixed(2)),
       });
 
       form.reset();
@@ -355,7 +355,6 @@ const isAddMode = mode === "add";
                       placeholder={useExisting ? "Ingrese cantidad a sumar" : "0"}
                       {...field}
                       value={field.value ?? ""} // está bien
-                      onChange={(e) => field.onChange(Number(e.target.value))} // convierte string a number
                       className="tabular-nums"
                     />
                   </FormControl>
