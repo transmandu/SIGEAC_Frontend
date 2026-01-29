@@ -109,15 +109,15 @@ export function getMenuList(
           roles: [
             "JEFE_ADMINISTRACION",
             "SUPERUSER",
-            "JEFE_ALMACEN",
-            "JEFE_COMPRAS",
+            // "JEFE_ALMACEN",
+            // "JEFE_COMPRAS",
             "JEFE_SMS",
             "ANALISTA_SMS",
             "JEFE_CONTADURIA",
             "JEFE_RRHH",
-            "JEFE_OPERACIONES",
-            "JEFE_MANTENIMIENTO",
-            "JEFE_PLANIFICACION",
+            // "JEFE_OPERACIONES",
+            // "JEFE_MANTENIMIENTO",
+            // "JEFE_PLANIFICACION",
           ],
           active: pathname === `/${currentCompany?.slug}/general/cursos`,
           icon: Presentation,
@@ -1106,24 +1106,34 @@ export function getMenuList(
   ];
 
   // 4. Filtrar el menú completo
+  const isRestrictedCompany = currentCompany?.id === 2;
+
   return (
     fullMenu
       // Filtrar grupos por módulo activo
       .filter((group) => isModuleActive(group.moduleValue))
       // Filtrar menús y submenús
-      .map((group) => ({
-        ...group,
-        menus: group.menus
-          .filter(
-            (menu) => isModuleActive(menu.moduleValue) && hasRoleAccess(menu)
-          )
-          .map((menu) => ({
+      .map((group) => {
+        // Filtrar por acceso y módulos primero
+        let menus = group.menus.filter(
+          (menu) => isModuleActive(menu.moduleValue) && hasRoleAccess(menu)
+        );
+
+        // Si es la compañía restringida y el grupo es 'General', solo mostrar 'Inventario'
+        if (isRestrictedCompany && group.groupLabel === "General") {
+          menus = menus.filter((menu) => menu.label === "Inventario");
+        }
+
+        return {
+          ...group,
+          menus: menus.map((menu) => ({
             ...menu,
             submenus: menu.submenus.filter(
               (sub) => isModuleActive(sub.moduleValue) && hasRoleAccess(sub)
             ),
           })),
-      }))
+        };
+      })
       // Eliminar grupos vacíos
       .filter((group) => group.menus.length > 0)
   );

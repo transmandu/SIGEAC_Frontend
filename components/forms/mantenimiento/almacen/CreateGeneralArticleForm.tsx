@@ -78,9 +78,15 @@ const CreateGeneralArticleForm = ({
 
   const [useExisting, setUseExisting] = useState(false);
   const [selectedArticle, setSelectedArticle] = useState<GeneralArticle | null>(null);
-
+  const [query, setQuery] = useState("");
   const { selectedCompany, selectedStation } = useCompanyStore();
   const { data: generalArticles } = useGetGeneralArticles();
+  const filteredArticles = useMemo(() => {
+    if (!generalArticles) return [] as GeneralArticle[];
+    return generalArticles.filter((a) =>
+      a.description.toLowerCase().includes((query ?? "").toLowerCase())
+    );
+  }, [generalArticles, query]);
   const { addQuantityGeneralArticle } = useAddQuantityGeneralArticle();
 
   const { createGeneralArticle } = useCreateGeneralArticle();
@@ -193,11 +199,6 @@ const isAddMode = mode === "add";
             control={form.control}
             name="description"
             render={() => {
-              const [query, setQuery] = useState("");
-              const filteredArticles = generalArticles?.filter((a) =>
-                a.description.toLowerCase().includes(query.toLowerCase())
-              );
-
               return (
                 <FormItem className="w-full">
                   <FormLabel>Seleccione un artículo</FormLabel>
