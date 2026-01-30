@@ -36,6 +36,8 @@ import { columns as GeneralColums } from "../../almacen/inventario_articulos/_ta
 const InventarioArticulosPage = () => {
   const { selectedCompany } = useCompanyStore();
 
+  const [activeMainTab, setActiveMainTab] = useState("aeronautic");
+
   const [activeCategory, setActiveCategory] = useState<
     "COMPONENT" | "CONSUMABLE" | "TOOL" | "PART" | "all"
   >("all");
@@ -54,6 +56,14 @@ const InventarioArticulosPage = () => {
 
   const { data: articlesGeneral, isLoading: isLoadingArticlesGeneral } =
     useGetGeneralArticles();
+
+  // Logica del placeholder dinámico
+  const dynamicPlaceholder = useMemo(() => {
+    if (activeMainTab === "aeronautic") {
+      return "Búsqueda Aeronáutica - Nro. de Parte (Ej: 65-50587-4, TORNILLO, ALT-123...)";
+    }
+    return "Búsqueda General - Buscar por Descripcion";
+  }, [activeMainTab]);
 
   // 1. Columnas Aeronáuticas filtradas
   const aeroColsWithoutActions = useMemo(() => {
@@ -151,7 +161,7 @@ const InventarioArticulosPage = () => {
         {/* Búsqueda */}
         <div className="relative max-w-xl mx-auto w-full">
           <Input
-            placeholder="Búsqueda General - Nro. de Parte (Ej: 65-50587-4, TORNILLO, ALT-123...)"
+            placeholder={dynamicPlaceholder}
             value={partNumberSearch}
             onChange={(e) => setPartNumberSearch(e.target.value)}
             className="pr-8 h-11"
@@ -170,7 +180,11 @@ const InventarioArticulosPage = () => {
 
         {/* Tabs principales */}
 
-        <Tabs defaultValue="aeronautic" className="w-full">
+        <Tabs
+          value={activeMainTab}
+          onValueChange={setActiveMainTab}
+          className="w-full"
+        >
           <TabsList className="w-full">
             <TabsTrigger value="aeronautic">Aeronáutico</TabsTrigger>
             <TabsTrigger value="general">General / Ferretería</TabsTrigger>
