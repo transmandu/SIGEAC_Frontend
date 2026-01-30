@@ -1195,4 +1195,5 @@ export type GeneralArticle = {
   variant_type: string,
   quantity: number,
   brand_model: string,
+  general_primary_unit: Unit,
 }

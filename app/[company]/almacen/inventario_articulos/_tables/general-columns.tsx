@@ -94,7 +94,7 @@ export const columns: ColumnDef<GeneralArticle>[] = [
             className="tabular-nums px-2 py-1 text-xs"
             title={isZero ? "Sin stock" : "Stock disponible"}
           >
-            {isZero ? "0" : qty}
+            {isZero ? "0" : qty} {row.original.general_primary_unit?.value ?? ""}
           </Badge>
         </div>
       )
