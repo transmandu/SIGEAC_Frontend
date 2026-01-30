@@ -1,5 +1,12 @@
 import { Aircraft } from "@/types";
-import { Document, Page, StyleSheet, Text, View, Image as PDFImage } from "@react-pdf/renderer";
+import {
+  Document,
+  Page,
+  StyleSheet,
+  Text,
+  View,
+  Image as PDFImage,
+} from "@react-pdf/renderer";
 import { format, isAfter, isBefore, isEqual, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
 
@@ -33,7 +40,7 @@ const styles = StyleSheet.create({
     padding: 30,
     fontSize: 10,
     backgroundColor: "#f7f7f7",
-    fontFamily: 'Helvetica'
+    fontFamily: "Helvetica",
   },
   header: {
     textAlign: "center",
@@ -141,12 +148,12 @@ const styles = StyleSheet.create({
     textAlign: "left",
   },
   narrowHeaderWrapper: {
-  width: "80%",           // puedes ajustar a 70% si lo quieres más angosto
-  alignSelf: "center",
+    width: "80%", // puedes ajustar a 70% si lo quieres más angosto
+    alignSelf: "center",
   },
   tableBlock: {
-    marginTop: 16,          // <-- Aumenta la separación desde el encabezado
-    marginBottom: 4,       // Separación hacia los artículos
+    marginTop: 16, // <-- Aumenta la separación desde el encabezado
+    marginBottom: 4, // Separación hacia los artículos
     borderWidth: 1,
     borderColor: "#444",
   },
@@ -179,7 +186,7 @@ const styles = StyleSheet.create({
   tableCellLabel: {
     fontSize: 10,
     fontWeight: "bold",
-    fontFamily: 'Helvetica-Bold'
+    fontFamily: "Helvetica-Bold",
   },
   tableCellValue: {
     fontSize: 10,
@@ -200,9 +207,15 @@ const DispatchReportPdf = ({
   const filtered = reports.filter((r) => {
     const submission = parseISO(r.submission_date);
 
-    const matchesAircraft = aircraftFilter ? r.aircraft?.id === aircraftFilter : true;
-    const matchesStart = startDate ? (isAfter(submission, startDate) || isEqual(submission, startDate)) : true;
-    const matchesEnd = endDate ? (isBefore(submission, endDate) || isEqual(submission, endDate)) : true;
+    const matchesAircraft = aircraftFilter
+      ? r.aircraft?.id === aircraftFilter
+      : true;
+    const matchesStart = startDate
+      ? isAfter(submission, startDate) || isEqual(submission, startDate)
+      : true;
+    const matchesEnd = endDate
+      ? isBefore(submission, endDate) || isEqual(submission, endDate)
+      : true;
 
     return matchesAircraft && matchesStart && matchesEnd;
   });
@@ -354,7 +367,9 @@ const DispatchReportPdf = ({
                         </Text>
                         <Text style={styles.col}>{a.serial ?? "N/A"}</Text>
                         <Text style={styles.col}>
-                          {a.alternative_part_number?.join(", ") ?? "N/A"}
+                          {Array.isArray(a.alternative_part_number)
+                            ? a.alternative_part_number.join(", ")
+                            : (a.alternative_part_number ?? "N/A")}
                         </Text>
                       </View>
                     ))}
