@@ -444,30 +444,22 @@ export function CreateRequisitionForm({ onClose }: FormProps) {
                       <CommandEmpty>No existen renglones...</CommandEmpty>
                       <CommandGroup>
                         {data &&
-                          data.map((batch) => (
-                            <CommandItem
-                              key={batch.id}
-                              value={batch.id.toString()}
-                              onSelect={() =>
-                                handleBatchSelect(
-                                  batch.name ?? "Sin nombre",
-                                  batch.id.toString()
-                                )
-                              }
-                            >
-                              <Check
-                                className={cn(
-                                  "",
-                                  selectedBatches.some(
-                                    (b) => b.batch === batch.id.toString()
+                          data
+                            .filter((batch): batch is NonNullable<typeof batch> => Boolean(batch))
+                            .map((batch) => (
+                              <CommandItem
+                                key={batch.id}
+                                value={batch.id.toString()}
+                                onSelect={() =>
+                                  handleBatchSelect(
+                                    batch.name ?? "Sin nombre",
+                                    batch.id.toString()
                                   )
-                                    ? "opacity-100"
-                                    : "opacity-0"
-                                )}
-                              />
-                              {batch.name ?? "Sin nombre"}
-                            </CommandItem>
-                          ))}
+                                }
+                              >
+                                {batch.name ?? "Sin nombre"}
+                              </CommandItem>
+                        ))}
                       </CommandGroup>
                     </CommandList>
                   </Command>
