@@ -6,7 +6,7 @@ interface CreateFlightControlData {
   aircraft_id: string,
   flight_cycles: number,
   flight_hours: number,
-  flight_number: string,
+  flight_number?: string,
   origin: string,
   destination: string,
   aircraft_operator: string,
