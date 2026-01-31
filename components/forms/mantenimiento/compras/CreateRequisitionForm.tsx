@@ -13,10 +13,11 @@ import {
 import { useCreateRequisition } from "@/actions/mantenimiento/compras/requisiciones/actions";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/contexts/AuthContext";
-import { useGetBatchesByLocationId } from "@/hooks/mantenimiento/almacen/renglones/useGetBatchesByLocationId";
 import { useGetMaintenanceAircrafts } from "@/hooks/mantenimiento/planificacion/useGetMaintenanceAircrafts";
 import { useGetWorkOrderEmployees } from "@/hooks/mantenimiento/planificacion/useGetWorkOrderEmployees";
 import { useGetWorkOrders } from "@/hooks/mantenimiento/planificacion/useGetWorkOrders";
+import { useGetGeneralArticles } from "@/hooks/mantenimiento/almacen/almacen_general/useGetGeneralArticles";
+import { useGetArticle } from "@/hooks/mantenimiento/almacen/articulos/useGetArticle";
 import { cn } from "@/lib/utils";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -31,43 +32,56 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-} from "../../../ui/command";
-import { Popover, PopoverContent, PopoverTrigger } from "../../../ui/popover";
-import { ScrollArea } from "../../../ui/scroll-area";
+} from "@/components/ui/command";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "../../../ui/select";
-import { Separator } from "../../../ui/separator";
-import { Textarea } from "../../../ui/textarea";
+} from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
+import { Textarea } from "@/components/ui/textarea";
 
+// ----------------------
+// Esquema del formulario
+// ----------------------
 const FormSchema = z.object({
   order_number: z.string().min(3, {
     message: "Debe ingresar un nro. de orden.",
   }),
-  justification: z.string().min(2, {
-    message: "La justificacion debe tener al menos 5 caracteres.",
+  justification: z.string().min(5, {
+    message: "La justificación debe tener al menos 5 caracteres.",
   }),
   company: z.string(),
   created_by: z.string(),
   aircraft_id: z.string().optional(),
   work_order_id: z.string().optional(),
   requested_by: z.string(),
+  requisition_type: z.enum(["GENERAL", "AERONAUTICO"], {
+    errorMap: () => ({ message: "Debe seleccionar el tipo de requisición" }),
+  }),
   articles: z.array(
-    z.object({
-      batch: z.string(),
-      batch_name: z.string(),
-      batch_articles: z.array(
-        z.object({
-          part_number: z.string(),
-          quantity: z.number().min(1, "La cantidad debe ser mayor a 0"),
-        })
-      ).min(1, "Debe agregar al menos un artículo"),
-    })
-  ).min(1, "Debe seleccionar al menos un lote"),
+    z.union([
+      z.object({
+        id: z.number(),
+        description: z.string(),
+        quantity: z.number().min(1, "La cantidad debe ser mayor a 0"),
+        type: z.literal("GENERAL"),
+        variant_type: z.string(),
+        brand_model: z.string(),
+      }),
+      z.object({
+        id: z.number(),
+        part_number: z.string(),
+        serial: z.string(),
+        quantity: z.number().min(1, "La cantidad debe ser mayor a 0"),
+        type: z.literal("AERONAUTICO"),
+      }),
+    ])
+  ).min(1, "Debe agregar al menos un artículo"),
 });
 
 type FormSchemaType = z.infer<typeof FormSchema>;
@@ -76,24 +90,10 @@ interface FormProps {
   onClose: () => void;
 }
 
-// Tipos para batches y artículos
-interface Article {
-  part_number: string;
-  quantity: number;
-}
-
-interface Batch {
-  batch: string;
-  batch_name: string;
-  batch_articles: Article[];
-}
-
 export function CreateRequisitionForm({ onClose }: FormProps) {
   const { user } = useAuth();
-
-  const { mutate, data, isPending } = useGetBatchesByLocationId();
-
   const { selectedStation, selectedCompany } = useCompanyStore();
+  const { createRequisition } = useCreateRequisition();
 
   const {
     data: employees,
@@ -117,9 +117,13 @@ export function CreateRequisitionForm({ onClose }: FormProps) {
     isError: workOrdersError,
   } = useGetWorkOrders(selectedStation ?? null, selectedCompany?.slug);
 
-  const { createRequisition } = useCreateRequisition();
+  const {
+    data: generalArticles,
+    isLoading: generalArticlesLoading,
+    refetch: refetchGeneralArticles,
+  } = useGetGeneralArticles();
 
-  const [selectedBatches, setSelectedBatches] = useState<Batch[]>([]);
+  const [selectedArticles, setSelectedArticles] = useState<FormSchemaType["articles"]>([]);
 
   const form = useForm<FormSchemaType>({
     resolver: zodResolver(FormSchema),
@@ -129,125 +133,76 @@ export function CreateRequisitionForm({ onClose }: FormProps) {
       requested_by: "",
       company: "",
       created_by: "",
+      requisition_type: "GENERAL",
       articles: [],
     },
   });
 
+  // ----------------------
+  // Efectos iniciales
+  // ----------------------
   useEffect(() => {
     if (user && selectedCompany) {
       form.setValue("created_by", user.id.toString());
       form.setValue("company", selectedCompany.slug);
     }
-  }, [user, form, selectedCompany]);
+  }, [user, selectedCompany, form]);
 
   useEffect(() => {
-    if (selectedStation) {
-      mutate({
-        location_id: Number(selectedStation),
-        company: selectedCompany!.slug,
-      });
+    form.setValue("articles", selectedArticles);
+  }, [selectedArticles, form]);
+
+  useEffect(() => {
+    // Refetch de artículos al cambiar tipo de requisición
+    if (form.getValues("requisition_type") === "GENERAL") {
+      refetchGeneralArticles();
     }
-  }, [selectedStation, mutate, selectedCompany]);
+  }, [form.watch("requisition_type"), refetchGeneralArticles]);
 
-  useEffect(() => {
-    form.setValue("articles", selectedBatches);
-  }, [selectedBatches, form]);
-
-  // Maneja la selección de un lote.
-  const handleBatchSelect = (batchName: string, batchId: string) => {
-    if (!selectedBatches.some((batch) => batch.batch === batchId)) {
-      setSelectedBatches((prev) => [
-        ...prev,
-        {
-          batch: batchId,
-          batch_name: batchName ?? "Sin nombre", 
-          batch_articles: [{ part_number: "", quantity: 1 }],
-        },
-      ]);
+  // ----------------------
+  // Funciones de manejo de artículos
+  // ----------------------
+  const addArticle = (article: any) => {
+    if (!selectedArticles.some((a) => a.id === article.id)) {
+      setSelectedArticles((prev) => [...prev, article]);
     }
   };
 
-  // Maneja el cambio en un artículo.
-  const handleArticleChange = (
-    batchId: string,
-    index: number,
-    field: keyof Article,
-    value: string | number
-  ) => {
-    setSelectedBatches((prev) =>
-      prev.map((batch) =>
-        batch.batch === batchId
-          ? {
-              ...batch,
-              batch_articles: batch.batch_articles.map((article, i) =>
-                i === index ? { ...article, [field]: value } : article
-              ),
-            }
-          : batch
-      )
+  const removeArticle = (articleId: number) => {
+    setSelectedArticles((prev) => prev.filter((a) => a.id !== articleId));
+  };
+
+  const updateArticleQuantity = (articleId: number, quantity: number) => {
+    setSelectedArticles((prev) =>
+      prev.map((a) => (a.id === articleId ? { ...a, quantity } : a))
     );
   };
 
-  // Agrega un nuevo artículo a un lote.
-  const addArticle = (batchId: string) => {
-    setSelectedBatches((prev) =>
-      prev.map((batch) =>
-        batch.batch === batchId
-          ? {
-              ...batch,
-              batch_articles: [
-                ...batch.batch_articles,
-                { part_number: "", quantity: 0 },
-              ],
-            }
-          : batch
-      )
-    );
-  };
-
-  const removeArticleFromBatch = (batchId: string, articleIndex: number) => {
-    setSelectedBatches((prevBatches) =>
-      prevBatches.map((batch) =>
-        batch.batch === batchId
-          ? {
-              ...batch,
-              batch_articles: batch.batch_articles.filter(
-                (_, index) => index !== articleIndex
-              ),
-            }
-          : batch
-      )
-    );
-  };
-
-  const removeBatch = (batchId: string) => {
-    setSelectedBatches((prevBatches) =>
-      prevBatches.filter((batch) => batch.batch !== batchId)
-    );
-  };
-
+  // ----------------------
+  // Submit del formulario
+  // ----------------------
   const onSubmit = async (data: FormSchemaType) => {
     const formattedData = {
       ...data,
-      type: "AERONAUTICO",
-      work_order_id: data.work_order_id
-        ? Number(data.work_order_id)
-        : null,
-      aircraft_id: data.aircraft_id
-        ? Number(data.aircraft_id)
-        : null,
+      type: data.requisition_type,
+      work_order_id: data.work_order_id ? Number(data.work_order_id) : null,
+      aircraft_id: data.aircraft_id ? Number(data.aircraft_id) : null,
     };
     console.log(formattedData);
     // await createRequisition.mutateAsync({data: formattedData, company: selectedCompany!.slug})
     // onClose();
   };
 
+  // ----------------------
+  // Renderizado
+  // ----------------------
   return (
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit(onSubmit)}
         className="flex flex-col space-y-3"
       >
+        {/* Nro. de Orden y Orden de Trabajo */}
         <div className="flex gap-2 items-center">
           <FormField
             control={form.control}
@@ -289,6 +244,7 @@ export function CreateRequisitionForm({ onClose }: FormProps) {
               </FormItem>
             )}
           />
+          {/* Solicitante */}
           <FormField
             control={form.control}
             name="requested_by"
@@ -310,27 +266,9 @@ export function CreateRequisitionForm({ onClose }: FormProps) {
                         {employeesLoading && (
                           <Loader2 className="size-4 animate-spin mr-2" />
                         )}
-                          {field.value ? (
-                            <p>
-                              {
-                                employees?.find(
-                                  (employee) =>
-                                    `${employee.first_name} ${employee.last_name}` ===
-                                    field.value
-                                )?.first_name
-                              }{" "}
-                              -{" "}
-                              {
-                                employees?.find(
-                                  (employee) =>
-                                    `${employee.first_name} ${employee.last_name}` ===
-                                    field.value
-                                )?.last_name
-                              }
-                            </p>
-                          ) : (
-                            "Elige al solicitante..."
-                          )}
+                        {field.value
+                          ? field.value
+                          : "Elige al solicitante..."}
                         <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                       </Button>
                     </FormControl>
@@ -347,12 +285,12 @@ export function CreateRequisitionForm({ onClose }: FormProps) {
                             <CommandItem
                               value={`${employee.first_name} ${employee.last_name}`}
                               key={employee.id}
-                              onSelect={() => {
+                              onSelect={() =>
                                 form.setValue(
                                   "requested_by",
                                   `${employee.first_name} ${employee.last_name}`
-                                );
-                              }}
+                                )
+                              }
                             >
                               <Check
                                 className={cn(
@@ -363,11 +301,7 @@ export function CreateRequisitionForm({ onClose }: FormProps) {
                                     : "opacity-0"
                                 )}
                               />
-                              {
-                                <p>
-                                  {employee.first_name} {employee.last_name}
-                                </p>
-                              }
+                              {employee.first_name} {employee.last_name}
                             </CommandItem>
                           ))}
                           {employeesError && (
@@ -385,161 +319,76 @@ export function CreateRequisitionForm({ onClose }: FormProps) {
             )}
           />
         </div>
+
+        {/* Tipo de Requisición */}
         <FormField
           control={form.control}
-          name="aircraft_id"
+          name="requisition_type"
           render={({ field }) => (
-            <FormItem>
-              <FormLabel>Aeronave</FormLabel>
+            <FormItem className="w-1/2">
+              <FormLabel>Tipo de Requisición</FormLabel>
               <Select onValueChange={field.onChange} defaultValue={field.value}>
                 <FormControl>
-                  <SelectTrigger disabled={aircraftsLoading}>
-                    <SelectValue placeholder="Seleccioe la aeronave..." />
+                  <SelectTrigger>
+                    <SelectValue placeholder="Seleccione tipo..." />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  {aircrafts &&
-                    aircrafts.map((aircraft) => (
-                      <SelectItem
-                        key={aircraft.id}
-                        value={aircraft.id.toString()}
-                      >
-                        {aircraft.acronym} - {aircraft.serial}
-                      </SelectItem>
-                    ))}
+                  <SelectItem value="GENERAL">General</SelectItem>
+                  <SelectItem value="AERONAUTICO">Aeronáutico</SelectItem>
                 </SelectContent>
               </Select>
-              <FormMessage className="text-xs" />
+              <FormMessage />
             </FormItem>
           )}
         />
+
+        {/* Artículos */}
         <FormField
           control={form.control}
           name="articles"
-          render={({ field }: { field: any }) => (
+          render={({ field }) => (
             <FormItem className="flex flex-col">
               <FormLabel>Artículos</FormLabel>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <FormControl>
-                    <Button
-                      variant="outline"
-                      role="combobox"
-                      className={cn(
-                        "w-[200px] justify-between",
-                        selectedBatches.length === 0 && "text-muted-foreground"
-                      )}
-                    >
-                      {selectedBatches.length > 0
-                        ? `${selectedBatches.length} lotes seleccionados`
-                        : "Seleccione un lote..."}
-                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                    </Button>
-                  </FormControl>
-                </PopoverTrigger>
-                <PopoverContent className="w-[200px] p-0">
-                  <Command>
-                    <CommandInput placeholder="Buscar..." />
-                    <CommandList>
-                      <CommandEmpty>No existen renglones...</CommandEmpty>
-                      <CommandGroup>
-                        {data &&
-                          data
-                            .filter((batch): batch is NonNullable<typeof batch> => Boolean(batch))
-                            .map((batch) => (
-                              <CommandItem
-                                key={batch.id}
-                                value={batch.id.toString()}
-                                onSelect={() =>
-                                  handleBatchSelect(
-                                    batch.name ?? "Sin nombre",
-                                    batch.id.toString()
-                                  )
-                                }
-                              >
-                                {batch.name ?? "Sin nombre"}
-                              </CommandItem>
-                        ))}
-                      </CommandGroup>
-                    </CommandList>
-                  </Command>
-                </PopoverContent>
-              </Popover>
-              <div className="mt-4 space-y-4">
+              <div className="space-y-2">
                 <ScrollArea
-                  className={cn(
-                    "",
-                    selectedBatches.length > 2 ? "h-[300px]" : ""
-                  )}
+                  className={cn("", selectedArticles.length > 2 ? "h-[300px]" : "")}
                 >
-                  {selectedBatches.map((batch) => (
-                    <div key={batch.batch}>
-                      <div className="flex items-center">
-                        <h4 className="font-semibold">{batch.batch_name}</h4>
-                        <Button
-                          variant="ghost"
-                          type="button"
-                          size="icon"
-                          onClick={() => removeBatch(batch.batch)}
-                        >
-                          <MinusCircle className="size-4" />
-                        </Button>
-                      </div>
-                      <ScrollArea
-                        className={cn(
-                          "",
-                          batch.batch_articles.length > 2 ? "h-[150px]" : ""
-                        )}
-                      >
-                        {batch.batch_articles.map((article, index) => (
-                          <div
-                            key={index}
-                            className="flex items-center space-x-4 mt-2"
-                          >
-                            <Input
-                              placeholder="Número de parte"
-                              onChange={(e) => {
-                                handleArticleChange(
-                                  batch.batch,
-                                  index,
-                                  "part_number",
-                                  e.target.value
-                                );
-                              }}
-                            />
-                            <Input
-                              min={1}
-                              placeholder="Cantidad"
-                              onChange={(e) =>
-                                handleArticleChange(
-                                  batch.batch,
-                                  index,
-                                  "quantity",
-                                  Number(e.target.value)
-                                )
-                              }
-                            />
-                            <Button
-                              variant="ghost"
-                              type="button"
-                              size="icon"
-                              onClick={() =>
-                                removeArticleFromBatch(batch.batch, index)
-                              }
-                              className="hover:text-red-500"
-                            >
-                              <MinusCircle className="size-4" />
-                            </Button>
-                          </div>
-                        ))}
-                      </ScrollArea>
+                  {selectedArticles.map((article, index) => (
+                    <div key={article.id} className="flex items-center space-x-2 mt-2">
+                      {article.type === "GENERAL" ? (
+                        <>
+                          <Input
+                            value={article.description}
+                            disabled
+                            className="flex-1"
+                          />
+                        </>
+                      ) : (
+                        <>
+                          <Input
+                            value={article.part_number}
+                            disabled
+                            className="flex-1"
+                          />
+                        </>
+                      )}
+                      <Input
+                        type="number"
+                        min={1}
+                        value={article.quantity}
+                        onChange={(e) =>
+                          updateArticleQuantity(article.id, Number(e.target.value))
+                        }
+                        className="w-[80px]"
+                      />
                       <Button
+                        variant="ghost"
                         type="button"
-                        variant="link"
-                        onClick={() => addArticle(batch.batch)}
-                        className="mt-2 text-sm"
+                        size="icon"
+                        onClick={() => removeArticle(article.id)}
                       >
-                        Agregar artículo
+                        <MinusCircle className="size-4" />
                       </Button>
                     </div>
                   ))}
@@ -550,6 +399,7 @@ export function CreateRequisitionForm({ onClose }: FormProps) {
           )}
         />
 
+        {/* Justificación */}
         <FormField
           control={form.control}
           name="justification"
@@ -566,11 +416,15 @@ export function CreateRequisitionForm({ onClose }: FormProps) {
             </FormItem>
           )}
         />
+
+        {/* Separador */}
         <div className="flex justify-between items-center gap-x-4">
           <Separator className="flex-1" />
           <p className="text-muted-foreground">SIGEAC</p>
           <Separator className="flex-1" />
         </div>
+
+        {/* Submit */}
         <Button disabled={createRequisition.isPending}>
           Generar Requisición
         </Button>
