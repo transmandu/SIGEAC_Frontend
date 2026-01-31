@@ -844,7 +844,7 @@ export function getMenuList(
         },
         {
           href: `/${currentCompany?.slug}/planificacion/aeronaves`,
-          label: "Control de Vuelos",
+          label: "Control de Horas Vuelos",
           active: pathname.includes(
             `/${currentCompany?.slug}/planificacion/control_vuelos`
           ),
