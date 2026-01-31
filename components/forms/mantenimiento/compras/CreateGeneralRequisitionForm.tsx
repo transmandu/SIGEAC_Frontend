@@ -494,13 +494,12 @@ export function CreateGeneralRequisitionForm({
                                   <Loader2 className="size-4 animate-spin mr-2" />
                                 )}
                                 {field.value
-                                  ? aircrafts?.find(
-                                      (aircraft) => aircraft.id.toString() === field.value
-                                    )?.acronym +
-                                    " - " +
-                                    aircrafts?.find(
-                                      (aircraft) => aircraft.id.toString() === field.value
-                                    )?.manufacturer.name
+                                  ? (() => {
+                                      const a = aircrafts?.find(
+                                        (aircraft) => aircraft.id.toString() === field.value
+                                      );
+                                      return `${a?.acronym ?? "—"} - ${a?.manufacturer?.name ?? "Sin fabricante"}`;
+                                    })()
                                   : "Selec. la aeronave..."}
                                 <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                               </Button>
@@ -530,7 +529,7 @@ export function CreateGeneralRequisitionForm({
                                             : "opacity-0"
                                         )}
                                       />
-                                      {aircraft.acronym} - {aircraft.manufacturer.name}
+                                      {aircraft.acronym} - {aircraft.manufacturer?.name ?? "Sin fabricante"}
                                     </CommandItem>
                                   ))}
                                 </CommandGroup>

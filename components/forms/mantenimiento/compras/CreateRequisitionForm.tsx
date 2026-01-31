@@ -446,20 +446,22 @@ export function CreateRequisitionForm({ onClose }: FormProps) {
                         {data &&
                           data
                             .filter((batch): batch is NonNullable<typeof batch> => Boolean(batch))
-                            .map((batch) => (
-                              <CommandItem
-                                key={batch.id}
-                                value={batch.id.toString()}
-                                onSelect={() =>
-                                  handleBatchSelect(
-                                    batch.name ?? "Sin nombre",
-                                    batch.id.toString()
-                                  )
-                                }
-                              >
-                                {batch.name ?? "Sin nombre"}
-                              </CommandItem>
-                        ))}
+                            .map((batch) =>
+                              batch ? (
+                                <CommandItem
+                                  key={batch.id}
+                                  value={batch.id.toString()}
+                                  onSelect={() =>
+                                    handleBatchSelect(
+                                      batch?.name ?? "Sin nombre",
+                                      batch.id.toString()
+                                    )
+                                  }
+                                >
+                                  {batch?.name ?? "Sin nombre"}
+                                </CommandItem>
+                              ) : null
+                        )}
                       </CommandGroup>
                     </CommandList>
                   </Command>
