@@ -53,44 +53,44 @@ const WorkOrderAircraftDetailsCards = ({ work_order }: { work_order: WorkOrder }
 
   const [printOpen, setPrintOpen] = useState(false)
   const [hoursMode, setHoursMode] = useState<HoursMode>("auto")
-  const [manualHours, setManualHours] = useState<string>("")
+  const [manualHours, setManualHours] = useState<string>("") // ✅ por defecto vacío
   const [isDownloading, setIsDownloading] = useState(false)
   const [manualError, setManualError] = useState<string | null>(null)
 
+  // ✅ Si cambian de manual a auto, limpiamos error
   useEffect(() => {
-    setManualHours(String(work_order?.aircraft?.flight_hours ?? ""))
-  }, [work_order?.aircraft?.flight_hours])
-
-  const parsedManualHours = useMemo(() => {
-    const n = Number(manualHours)
-    return Number.isFinite(n) ? n : NaN
-  }, [manualHours])
+    if (hoursMode === "auto") setManualError(null)
+  }, [hoursMode])
 
   const validateManualHours = () => {
     if (hoursMode !== "manual") return true
-    if (!Number.isFinite(parsedManualHours)) {
+
+    // ✅ Permitir vacío: PDF debe salir vacío
+    if (manualHours.trim() === "") {
+      setManualError(null)
+      return true
+    }
+
+    // Acepta coma o punto
+    const normalized = manualHours.replace(",", ".")
+    const n = Number(normalized)
+
+    if (!Number.isFinite(n)) {
       setManualError("Ingresa un número válido.")
       return false
     }
-    if (parsedManualHours < 0) {
+    if (n < 0) {
       setManualError("Las horas no pueden ser negativas.")
       return false
     }
+
     setManualError(null)
     return true
   }
 
-  const handlePrint = async (opts: { mode: HoursMode; hours?: number }) => {
+  const handleDownload = async (params: Record<string, any>) => {
     try {
       setIsDownloading(true)
-
-      const params: Record<string, any> = {
-        aircraft_hours_mode: opts.mode, // "auto" | "manual"
-      }
-
-      if (opts.mode === "manual") {
-        params.aircraft_hours = opts.hours // number
-      }
 
       const response = await axiosInstance.get(
         `/${companySlug}/work-order-pdf/${work_order.order_number}`,
@@ -124,11 +124,16 @@ const WorkOrderAircraftDetailsCards = ({ work_order }: { work_order: WorkOrder }
   const onConfirmDownload = async () => {
     if (!validateManualHours()) return
 
-    await handlePrint({
-      mode: hoursMode,
-      hours: hoursMode === "manual" ? parsedManualHours : undefined,
-    })
+    const params: Record<string, any> = {
+      aircraft_hours_mode: hoursMode, // auto | manual
+    }
 
+    // ✅ Solo enviar aircraft_hours si realmente hay un valor
+    if (hoursMode === "manual" && manualHours.trim() !== "" && manualHours.trim() !== "0") {
+      params.aircraft_hours = Number(manualHours.replace(",", "."))
+    }
+
+    await handleDownload(params)
     setPrintOpen(false)
   }
 
@@ -201,7 +206,11 @@ const WorkOrderAircraftDetailsCards = ({ work_order }: { work_order: WorkOrder }
           <Dialog open={printOpen} onOpenChange={setPrintOpen}>
             <DialogTrigger asChild>
               <Button disabled={isDownloading} className="gap-2">
-                {isDownloading ? <Loader2 className="size-4 animate-spin" /> : <Printer className="size-4" />}
+                {isDownloading ? (
+                  <Loader2 className="size-4 animate-spin" />
+                ) : (
+                  <Printer className="size-4" />
+                )}
                 Descargar PDF
               </Button>
             </DialogTrigger>
@@ -246,17 +255,15 @@ const WorkOrderAircraftDetailsCards = ({ work_order }: { work_order: WorkOrder }
                     <Label htmlFor="manual-hours">Horas a mostrar</Label>
                     <Input
                       id="manual-hours"
-                      type="number"
-                      step="0.1"
-                      min="0"
+                      inputMode="decimal"
                       value={manualHours}
                       onChange={(e) => setManualHours(e.target.value)}
                       onBlur={validateManualHours}
-                      placeholder="Ej: 1234.5"
+                      placeholder="Déjalo vacío para imprimir sin horas"
                     />
                     {manualError && <p className="text-sm text-destructive">{manualError}</p>}
                     <p className="text-xs text-muted-foreground">
-                      Valor actual registrado: {work_order?.aircraft?.flight_hours ?? "N/D"}
+                      Tip: puedes escribir decimales con coma o punto.
                     </p>
                   </div>
                 )}
