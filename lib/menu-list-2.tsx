@@ -197,7 +197,7 @@ export function getMenuList(
             "CONTADOR_ADMINISTRACION",
             "TESTER",
             "ENGINEERING",
-            "TECNICO_MANTENIMIENTO",
+            "TECNICO_MANTENIMIENTO_AERONAUTICO",
             "JEFE_MANTENIMIENTO",
           ],
           submenus: [],
