@@ -206,7 +206,7 @@ const InventarioArticulosPage = () => {
                   <Puzzle className="size-5" /> Partes
                 </TabsTrigger>
                 <TabsTrigger className="flex gap-2" value="CONSUMABLE">
-                  <PaintBucket className="size-5" /> Consumiblaes
+                  <PaintBucket className="size-5" /> Consumibles
                 </TabsTrigger>
                 <TabsTrigger className="flex gap-2" value="TOOL">
                   <Drill className="size-5" /> Herramientas
