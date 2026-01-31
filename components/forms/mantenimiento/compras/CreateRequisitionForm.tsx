@@ -350,7 +350,55 @@ export function CreateRequisitionForm({ onClose }: FormProps) {
           render={({ field }) => (
             <FormItem className="flex flex-col">
               <FormLabel>Artículos</FormLabel>
-              <div className="space-y-2">
+              <Popover>
+                <PopoverTrigger asChild>
+                  <FormControl>
+                    <Button
+                      variant="outline"
+                      role="combobox"
+                      className={cn(
+                        "w-[200px] justify-between",
+                        selectedBatches.length === 0 && "text-muted-foreground"
+                      )}
+                    >
+                      {selectedBatches.length > 0
+                        ? `${selectedBatches.length} lotes seleccionados`
+                        : "Seleccione un lote..."}
+                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+                  </FormControl>
+                </PopoverTrigger>
+                <PopoverContent className="w-[200px] p-0">
+                  <Command>
+                    <CommandInput placeholder="Buscar..." />
+                    <CommandList>
+                      <CommandEmpty>No existen renglones...</CommandEmpty>
+                      <CommandGroup>
+                        {data &&
+                          data
+                            .filter((batch): batch is NonNullable<typeof batch> => Boolean(batch))
+                            .map((batch) =>
+                              batch ? (
+                                <CommandItem
+                                  key={batch.id}
+                                  value={batch.id.toString()}
+                                  onSelect={() =>
+                                    handleBatchSelect(
+                                      batch?.name ?? "Sin nombre",
+                                      batch.id.toString()
+                                    )
+                                  }
+                                >
+                                  {batch?.name ?? "Sin nombre"}
+                                </CommandItem>
+                              ) : null
+                        )}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
+              <div className="mt-4 space-y-4">
                 <ScrollArea
                   className={cn("", selectedArticles.length > 2 ? "h-[300px]" : "")}
                 >
