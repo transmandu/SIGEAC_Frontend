@@ -84,10 +84,11 @@ export function buildGeneralInventoryColumns({
       ),
       cell: ({ row }) => {
         const qty = row.original.quantity ?? 0
+        const unit = row.original.general_primary_unit?.value ?? "N/A"
         return (
           <div className="flex justify-center">
             <Badge variant="outline" className="max-w-[240px] truncate" >
-              {qty}
+              {qty} {unit}
             </Badge>
           </div>
         )

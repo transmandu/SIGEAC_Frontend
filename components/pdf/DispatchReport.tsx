@@ -1,4 +1,11 @@
-import { Document, Page, StyleSheet, Text, View, Image as PDFImage } from "@react-pdf/renderer";
+import {
+  Document,
+  Page,
+  StyleSheet,
+  Text,
+  View,
+  Image as PDFImage,
+} from "@react-pdf/renderer";
 import { format, isAfter, isBefore, isEqual, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
 
@@ -30,7 +37,7 @@ const styles = StyleSheet.create({
     padding: 30,
     fontSize: 10,
     backgroundColor: "#f7f7f7",
-    fontFamily: 'Helvetica'
+    fontFamily: "Helvetica",
   },
   header: {
     textAlign: "center",
@@ -138,12 +145,12 @@ const styles = StyleSheet.create({
     textAlign: "left",
   },
   narrowHeaderWrapper: {
-  width: "80%",           // puedes ajustar a 70% si lo quieres más angosto
-  alignSelf: "center",
+    width: "80%", // puedes ajustar a 70% si lo quieres más angosto
+    alignSelf: "center",
   },
   tableBlock: {
-    marginTop: 16,          // <-- Aumenta la separación desde el encabezado
-    marginBottom: 4,       // Separación hacia los artículos
+    marginTop: 16, // <-- Aumenta la separación desde el encabezado
+    marginBottom: 4, // Separación hacia los artículos
     borderWidth: 1,
     borderColor: "#444",
   },
@@ -176,7 +183,7 @@ const styles = StyleSheet.create({
   tableCellLabel: {
     fontSize: 10,
     fontWeight: "bold",
-    fontFamily: 'Helvetica-Bold'
+    fontFamily: "Helvetica-Bold",
   },
   tableCellValue: {
     fontSize: 10,
@@ -197,9 +204,15 @@ const DispatchReportPdf = ({
   const filtered = reports.filter((r) => {
     const submission = parseISO(r.submission_date);
 
-    const matchesAircraft = aircraftFilter ? r.aircraft === aircraftFilter : true;
-    const matchesStart = startDate ? (isAfter(submission, startDate) || isEqual(submission, startDate)) : true;
-    const matchesEnd = endDate ? (isBefore(submission, endDate) || isEqual(submission, endDate)) : true;
+    const matchesAircraft = aircraftFilter
+      ? r.aircraft === aircraftFilter
+      : true;
+    const matchesStart = startDate
+      ? isAfter(submission, startDate) || isEqual(submission, startDate)
+      : true;
+    const matchesEnd = endDate
+      ? isBefore(submission, endDate) || isEqual(submission, endDate)
+      : true;
 
     return matchesAircraft && matchesStart && matchesEnd;
   });
@@ -211,13 +224,25 @@ const DispatchReportPdf = ({
           <View style={styles.narrowHeaderWrapper}>
             <View style={styles.headerTable}>
               {/* Columna 1: Logo */}
-              <View style={[styles.headerCell, { width: "33%", alignItems: "center" }]}>
+              <View
+                style={[
+                  styles.headerCell,
+                  { width: "33%", alignItems: "center" },
+                ]}
+              >
                 <PDFImage src="/tmd_nombre.png" style={styles.logo} />
               </View>
 
               {/* Columna 2: Título */}
-              <View style={[styles.headerCell, { width: "34%", alignItems: "center" }]}>
-                <Text style={{ fontSize: 14, fontWeight: "bold" }}>Salidas de Almacén</Text>
+              <View
+                style={[
+                  styles.headerCell,
+                  { width: "34%", alignItems: "center" },
+                ]}
+              >
+                <Text style={{ fontSize: 14, fontWeight: "bold" }}>
+                  Salidas de Almacén
+                </Text>
               </View>
 
               {/* Columna 3: Fecha y Página */}
@@ -230,79 +255,97 @@ const DispatchReportPdf = ({
                 <View style={styles.rightCellHalfLast}>
                   <Text
                     style={styles.rightText}
-                    render={({ pageNumber, totalPages }) => `Página: ${pageNumber} de ${totalPages}`}
+                    render={({ pageNumber, totalPages }) =>
+                      `Página: ${pageNumber} de ${totalPages}`
+                    }
                   />
                 </View>
               </View>
             </View>
           </View>
         </View>
-        
+
         {filtered.length > 0 ? (
           filtered.map((dispatch) => (
-            <View key={dispatch.id}  wrap={false}>
+            <View key={dispatch.id} wrap={false}>
               <View style={styles.tableBlock}>
-                  {/* Fila 1 */}
-                  <View style={styles.tableRow}>
-                    <View style={[styles.tableCell, { flex: 7 }]}>
-                      <Text style={styles.tableCellValue}>
-                        <Text style={styles.tableCellLabel}>Orden de Salida: </Text>
-                        {dispatch.request_number ?? "N/A"}
+                {/* Fila 1 */}
+                <View style={styles.tableRow}>
+                  <View style={[styles.tableCell, { flex: 7 }]}>
+                    <Text style={styles.tableCellValue}>
+                      <Text style={styles.tableCellLabel}>
+                        Orden de Salida:{" "}
                       </Text>
-                    </View>
-                    <View style={[styles.tableCell2, { flex: 3 }]}>
-                      <Text style={styles.tableCellValue}>
-                        <Text style={styles.tableCellLabel}>Fecha: </Text>
-                        {format(parseISO(dispatch.submission_date), "PPP", { locale: es })}
-                      </Text>
-                    </View>
+                      {dispatch.request_number ?? "N/A"}
+                    </Text>
                   </View>
-
-                  {/* Fila 2 */}
-                  <View style={styles.tableRow}>
-                    <View style={styles.tableCell}>
-                      <Text style={styles.tableCellLabel}>Status:</Text>
-                      <Text style={styles.tableCellValue}>{dispatch.status}</Text>
-                    </View>
-                    <View style={styles.tableCell}>
-                      <Text style={styles.tableCellLabel}>Destino:</Text>
-                      <Text style={styles.tableCellValue}>{dispatch.destination_place}</Text>
-                    </View>
-                    <View style={styles.tableCell}>
-                      <Text style={styles.tableCellLabel}>Orden de Trabajo:</Text>
-                      <Text style={styles.tableCellValue}>{dispatch.work_order ?? "N/A"}</Text>
-                    </View>
-                    <View style={styles.tableCell2}>
-                      <Text style={styles.tableCellLabel}>Aeronave:</Text>
-                      <Text style={styles.tableCellValue}>{dispatch.aircraft ?? "N/A"}</Text>
-                    </View>
-                  </View>
-
-                  {/* Fila 3 */}
-                  <View style={styles.tableRow}>
-                    <View style={[styles.tableCell, { flex: 2 }]}>
-                      <Text style={styles.tableCellLabel}>Solicitado por:</Text>
-                      <Text style={styles.tableCellValue}>{dispatch.requested_by}</Text>
-                    </View>
-                    <View style={[styles.tableCell, { flex: 2 }]}>
-                      <Text style={styles.tableCellLabel}>Aprobado por:</Text>
-                      <Text style={styles.tableCellValue}>{dispatch.approved_by}</Text>
-                    </View>
-                    <View style={[styles.tableCell2, { flex: 1 }]}>
-                      <Text style={styles.tableCellLabel}>Entregado por:</Text>
-                      <Text style={styles.tableCellValue}>{dispatch.delivered_by}</Text>
-                    </View>
-                  </View>
-                  {/* Fila 4 */}
-                  <View style={styles.tableRow}>
-                    <View style={[styles.tableCell3, { flex: 1 }]}>
-                      <Text style={styles.tableCellValue}>
-                        <Text style={styles.tableCellLabel}>Justificación: </Text>
-                        {dispatch.justification ?? "N/A"}
-                      </Text>
-                    </View>
+                  <View style={[styles.tableCell2, { flex: 3 }]}>
+                    <Text style={styles.tableCellValue}>
+                      <Text style={styles.tableCellLabel}>Fecha: </Text>
+                      {format(parseISO(dispatch.submission_date), "PPP", {
+                        locale: es,
+                      })}
+                    </Text>
                   </View>
                 </View>
+
+                {/* Fila 2 */}
+                <View style={styles.tableRow}>
+                  <View style={styles.tableCell}>
+                    <Text style={styles.tableCellLabel}>Status:</Text>
+                    <Text style={styles.tableCellValue}>{dispatch.status}</Text>
+                  </View>
+                  <View style={styles.tableCell}>
+                    <Text style={styles.tableCellLabel}>Destino:</Text>
+                    <Text style={styles.tableCellValue}>
+                      {dispatch.destination_place}
+                    </Text>
+                  </View>
+                  <View style={styles.tableCell}>
+                    <Text style={styles.tableCellLabel}>Orden de Trabajo:</Text>
+                    <Text style={styles.tableCellValue}>
+                      {dispatch.work_order ?? "N/A"}
+                    </Text>
+                  </View>
+                  <View style={styles.tableCell2}>
+                    <Text style={styles.tableCellLabel}>Aeronave:</Text>
+                    <Text style={styles.tableCellValue}>
+                      {dispatch.aircraft ?? "N/A"}
+                    </Text>
+                  </View>
+                </View>
+
+                {/* Fila 3 */}
+                <View style={styles.tableRow}>
+                  <View style={[styles.tableCell, { flex: 2 }]}>
+                    <Text style={styles.tableCellLabel}>Solicitado por:</Text>
+                    <Text style={styles.tableCellValue}>
+                      {dispatch.requested_by}
+                    </Text>
+                  </View>
+                  <View style={[styles.tableCell, { flex: 2 }]}>
+                    <Text style={styles.tableCellLabel}>Aprobado por:</Text>
+                    <Text style={styles.tableCellValue}>
+                      {dispatch.approved_by}
+                    </Text>
+                  </View>
+                  <View style={[styles.tableCell2, { flex: 1 }]}>
+                    <Text style={styles.tableCellLabel}>Entregado por:</Text>
+                    <Text style={styles.tableCellValue}>
+                      {dispatch.delivered_by}
+                    </Text>
+                  </View>
+                </View>
+                {/* Fila 4 */}
+                <View style={styles.tableRow}>
+                  <View style={[styles.tableCell3, { flex: 1 }]}>
+                    <Text style={styles.tableCellValue}>
+                      <Text style={styles.tableCellLabel}>Justificación: </Text>
+                      {dispatch.justification ?? "N/A"}
+                    </Text>
+                  </View>
+                </View>
+              </View>
 
               <View style={styles.section}>
                 {dispatch.articles.length > 0 && (
@@ -319,7 +362,9 @@ const DispatchReportPdf = ({
                         <Text style={styles.col}>{a.quantity}</Text>
                         <Text style={styles.col}>{a.serial ?? "N/A"}</Text>
                         <Text style={styles.col}>
-                          {a.alternative_part_number?.join(", ") ?? "N/A"}
+                          {Array.isArray(a.alternative_part_number)
+                            ? a.alternative_part_number.join(", ")
+                            : a.alternative_part_number || "N/A"}
                         </Text>
                       </View>
                     ))}

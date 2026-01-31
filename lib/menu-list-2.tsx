@@ -109,15 +109,15 @@ export function getMenuList(
           roles: [
             "JEFE_ADMINISTRACION",
             "SUPERUSER",
-            // "JEFE_ALMACEN",
-            // "JEFE_COMPRAS",
+            "JEFE_ALMACEN",
+            "JEFE_COMPRAS",
             "JEFE_SMS",
             "ANALISTA_SMS",
             "JEFE_CONTADURIA",
             "JEFE_RRHH",
-            // "JEFE_OPERACIONES",
-            // "JEFE_MANTENIMIENTO",
-            // "JEFE_PLANIFICACION",
+            "JEFE_OPERACIONES",
+            "JEFE_MANTENIMIENTO",
+            "JEFE_PLANIFICACION",
           ],
           active: pathname === `/${currentCompany?.slug}/general/cursos`,
           icon: Presentation,
@@ -197,7 +197,8 @@ export function getMenuList(
             "CONTADOR_ADMINISTRACION",
             "TESTER",
             "ENGINEERING",
-            "TECNICO_MANTENIMIENTO_AERONAUTICO",
+            "TECNICO_MANTENIMIENTO",
+            "JEFE_MANTENIMIENTO",
           ],
           submenus: [],
         },
@@ -223,6 +224,7 @@ export function getMenuList(
             "CONTADOR_ADMINISTRACION",
             "TESTER",
             "ENGINEERING",
+            "JEFE_MANTENIMIENTO",
           ],
           submenus: [],
         },
@@ -1121,7 +1123,11 @@ export function getMenuList(
 
         // Si es la compañía restringida y el grupo es 'General', solo mostrar 'Inventario'
         if (isRestrictedCompany && group.groupLabel === "General") {
-          menus = menus.filter((menu) => menu.label === "Inventario");
+          menus = menus.filter(
+            (menu) =>
+              menu.label === "Inventario" ||
+              menu.label === "Solicitudes de Compra"
+          );
         }
 
         return {

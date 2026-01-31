@@ -63,11 +63,11 @@ const FormSchema = z.object({
       batch_articles: z.array(
         z.object({
           part_number: z.string(),
-          quantity: z.number(),
+          quantity: z.number().min(1, "La cantidad debe ser mayor a 0"),
         })
-      ),
+      ).min(1, "Debe agregar al menos un artículo"),
     })
-  ),
+  ).min(1, "Debe seleccionar al menos un lote"),
 });
 
 type FormSchemaType = z.infer<typeof FormSchema>;
@@ -125,6 +125,10 @@ export function CreateRequisitionForm({ onClose }: FormProps) {
     resolver: zodResolver(FormSchema),
     defaultValues: {
       order_number: "",
+      justification: "",
+      requested_by: "",
+      company: "",
+      created_by: "",
       articles: [],
     },
   });
@@ -132,6 +136,7 @@ export function CreateRequisitionForm({ onClose }: FormProps) {
   useEffect(() => {
     if (user && selectedCompany) {
       form.setValue("created_by", user.id.toString());
+      form.setValue("company", selectedCompany.slug);
     }
   }, [user, form, selectedCompany]);
 
@@ -149,14 +154,14 @@ export function CreateRequisitionForm({ onClose }: FormProps) {
   }, [selectedBatches, form]);
 
   // Maneja la selección de un lote.
-  const handleBatchSelect = (batchName: string, batch: string) => {
-    if (!selectedBatches.some((batch) => batch.batch === batchName)) {
+  const handleBatchSelect = (batchName: string, batchId: string) => {
+    if (!selectedBatches.some((batch) => batch.batch === batchId)) {
       setSelectedBatches((prev) => [
         ...prev,
         {
-          batch: batch,
-          batch_name: batchName,
-          batch_articles: [{ part_number: "", quantity: 0 }],
+          batch: batchId,
+          batch_name: batchName ?? "Sin nombre", 
+          batch_articles: [{ part_number: "", quantity: 1 }],
         },
       ]);
     }
@@ -164,14 +169,14 @@ export function CreateRequisitionForm({ onClose }: FormProps) {
 
   // Maneja el cambio en un artículo.
   const handleArticleChange = (
-    batchName: string,
+    batchId: string,
     index: number,
     field: keyof Article,
     value: string | number
   ) => {
     setSelectedBatches((prev) =>
       prev.map((batch) =>
-        batch.batch === batchName
+        batch.batch === batchId
           ? {
               ...batch,
               batch_articles: batch.batch_articles.map((article, i) =>
@@ -184,10 +189,10 @@ export function CreateRequisitionForm({ onClose }: FormProps) {
   };
 
   // Agrega un nuevo artículo a un lote.
-  const addArticle = (batchName: string) => {
+  const addArticle = (batchId: string) => {
     setSelectedBatches((prev) =>
       prev.map((batch) =>
-        batch.batch === batchName
+        batch.batch === batchId
           ? {
               ...batch,
               batch_articles: [
@@ -200,10 +205,10 @@ export function CreateRequisitionForm({ onClose }: FormProps) {
     );
   };
 
-  const removeArticleFromBatch = (batchName: string, articleIndex: number) => {
+  const removeArticleFromBatch = (batchId: string, articleIndex: number) => {
     setSelectedBatches((prevBatches) =>
       prevBatches.map((batch) =>
-        batch.batch === batchName
+        batch.batch === batchId
           ? {
               ...batch,
               batch_articles: batch.batch_articles.filter(
@@ -215,9 +220,9 @@ export function CreateRequisitionForm({ onClose }: FormProps) {
     );
   };
 
-  const removeBatch = (batchName: string) => {
+  const removeBatch = (batchId: string) => {
     setSelectedBatches((prevBatches) =>
-      prevBatches.filter((batch) => batch.batch !== batchName)
+      prevBatches.filter((batch) => batch.batch !== batchId)
     );
   };
 
@@ -225,13 +230,18 @@ export function CreateRequisitionForm({ onClose }: FormProps) {
     const formattedData = {
       ...data,
       type: "AERONAUTICO",
-      work_order_id: Number(data.work_order_id),
-      aircraft_id: Number(data.aircraft_id).toString(),
+      work_order_id: data.work_order_id
+        ? Number(data.work_order_id)
+        : null,
+      aircraft_id: data.aircraft_id
+        ? Number(data.aircraft_id)
+        : null,
     };
     console.log(formattedData);
     // await createRequisition.mutateAsync({data: formattedData, company: selectedCompany!.slug})
     // onClose();
   };
+
   return (
     <Form {...form}>
       <form
@@ -300,27 +310,27 @@ export function CreateRequisitionForm({ onClose }: FormProps) {
                         {employeesLoading && (
                           <Loader2 className="size-4 animate-spin mr-2" />
                         )}
-                        {field.value ? (
-                          <p>
-                            {
-                              employees?.find(
-                                (employee) =>
-                                  `${employee.first_name} ${employee.last_name}` ===
-                                  field.value
-                              )?.first_name
-                            }{" "}
-                            -{" "}
-                            {
-                              employees?.find(
-                                (employee) =>
-                                  `${employee.first_name} ${employee.last_name}` ===
-                                  field.value
-                              )?.last_name
-                            }
-                          </p>
-                        ) : (
-                          "Elige al solicitante..."
-                        )}
+                          {field.value ? (
+                            <p>
+                              {
+                                employees?.find(
+                                  (employee) =>
+                                    `${employee.first_name} ${employee.last_name}` ===
+                                    field.value
+                                )?.first_name
+                              }{" "}
+                              -{" "}
+                              {
+                                employees?.find(
+                                  (employee) =>
+                                    `${employee.first_name} ${employee.last_name}` ===
+                                    field.value
+                                )?.last_name
+                              }
+                            </p>
+                          ) : (
+                            "Elige al solicitante..."
+                          )}
                         <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                       </Button>
                     </FormControl>
@@ -434,30 +444,24 @@ export function CreateRequisitionForm({ onClose }: FormProps) {
                       <CommandEmpty>No existen renglones...</CommandEmpty>
                       <CommandGroup>
                         {data &&
-                          data.map((batch) => (
-                            <CommandItem
-                              key={batch.name}
-                              value={batch.id.toString()}
-                              onSelect={() =>
-                                handleBatchSelect(
-                                  batch.name,
-                                  batch.id.toString()
-                                )
-                              }
-                            >
-                              <Check
-                                className={cn(
-                                  "",
-                                  selectedBatches.some(
-                                    (b) => b.batch === batch.id.toString()
-                                  )
-                                    ? "opacity-100"
-                                    : "opacity-0"
-                                )}
-                              />
-                              {batch.name}
-                            </CommandItem>
-                          ))}
+                          data
+                            .filter((batch): batch is NonNullable<typeof batch> => Boolean(batch))
+                            .map((batch) =>
+                              batch ? (
+                                <CommandItem
+                                  key={batch.id}
+                                  value={batch.id.toString()}
+                                  onSelect={() =>
+                                    handleBatchSelect(
+                                      batch?.name ?? "Sin nombre",
+                                      batch.id.toString()
+                                    )
+                                  }
+                                >
+                                  {batch?.name ?? "Sin nombre"}
+                                </CommandItem>
+                              ) : null
+                        )}
                       </CommandGroup>
                     </CommandList>
                   </Command>
@@ -506,7 +510,7 @@ export function CreateRequisitionForm({ onClose }: FormProps) {
                               }}
                             />
                             <Input
-                              type="number"
+                              min={1}
                               placeholder="Cantidad"
                               onChange={(e) =>
                                 handleArticleChange(
