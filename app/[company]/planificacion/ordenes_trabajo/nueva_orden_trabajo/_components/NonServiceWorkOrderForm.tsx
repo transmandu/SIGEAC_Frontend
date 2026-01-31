@@ -36,7 +36,7 @@ const manualWorkOrderSchema = z.object({
   work_order_task: z.array(z.object({
     description_task: z.string().min(1, 'La descripción de la tarea es obligatoria'),
     ata: z.string().min(1, 'Código ATA requerido'),
-    material: z.string().min(1, 'Material requerido').nullable(),
+    material: z.string().min(1, 'Material requerido').nullable().optional(),
     task_items: z.array(z.object({
       part_number: z.string().min(1, 'Número de parte requerido'),
       alternate_part_number: z.string().optional(),

@@ -26,7 +26,7 @@ import { useCompanyStore } from "@/stores/CompanyStore";
 
 
 const formSchema = z.object({
-  flight_number: z.string(),
+  flight_number: z.string().optional(),
   aircraft_operator: z.string(),
   origin: z.string(),
   destination: z.string(),
@@ -177,7 +177,7 @@ export default function CreateFlightControlForm({ onClose, flightData }: FormPro
             name="flight_number"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Nro. de Vuelo</FormLabel>
+                <FormLabel>Nro. de Vuelo <span className="text-muted-foreground text-xs">(Opcional)</span></FormLabel>
                 <FormControl>
                   <Input placeholder="EJ: PZOCS199" {...field} />
                 </FormControl>
