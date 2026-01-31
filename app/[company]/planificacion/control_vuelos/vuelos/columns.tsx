@@ -54,7 +54,7 @@ export const getColumns = (companySlug: string): ColumnDef<FlightControl>[] => [
           <Hash className="h-4 w-4 text-muted-foreground" />
           <Button asChild variant="link" className="h-auto p-0 font-medium">
             <Link href={href} className="font-mono text-sm">
-              {n}
+              {n ?? "-"}
             </Link>
           </Button>
         </div>
