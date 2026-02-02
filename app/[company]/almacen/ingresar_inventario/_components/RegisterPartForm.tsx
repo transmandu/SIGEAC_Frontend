@@ -1453,10 +1453,10 @@ export default function CreatePartForm({
 
             <FormItem className="w-full">
               <DatePickerField
-                label="Próxima Caducidad"
+                label="Próximo Vencimiento"
                 value={caducateDate}
                 setValue={setCaducateDate}
-                description="Fecha de Caducidad de la Parte."
+                description="Fecha de Vencimiento de la Parte."
                 busy={busy}
                 shortcuts="forward"
                 showNotApplicable={true}

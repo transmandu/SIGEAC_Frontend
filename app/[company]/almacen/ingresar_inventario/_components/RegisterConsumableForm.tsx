@@ -113,7 +113,7 @@ const formSchema = z.object({
   description: z.string().optional(),
   batch_name: z.string().optional(),
   zone: z.string().optional(),
-  expiration_date: z.string().optional(),
+  caducate_date: z.string().optional(),
   fabrication_date: z.string().optional(),
   manufacturer_id: z.string().optional(),
   condition_id: z.string().min(1, "Debe ingresar la condición del artículo."),
@@ -1189,8 +1189,8 @@ export default function CreateConsumableForm({
     number | undefined
   >();
   const [caducateDate, setCaducateDate] = useState<Date | null | undefined>(
-    initialData?.consumable?.expiration_date
-      ? parseISO(initialData.consumable.expiration_date)
+    initialData?.consumable?.caducate_date
+      ? parseISO(initialData.consumable.caducate_date)
       : undefined
   );
 
@@ -1237,7 +1237,7 @@ export default function CreateConsumableForm({
       description: initialData?.description || "",
       zone: initialData?.zone || "",
       lot_number: initialData?.consumable?.lot_number || "",
-      expiration_date: initialData?.consumable?.expiration_date || undefined,
+      caducate_date: initialData?.consumable?.caducate_date || undefined,
       fabrication_date: initialData?.consumable?.fabrication_date || undefined,
       quantity: initialData?.consumable?.quantity ?? 0,
       min_quantity: initialData?.consumable?.min_quantity
@@ -1279,7 +1279,7 @@ export default function CreateConsumableForm({
       description: initialData.description ?? "",
       zone: initialData.zone ?? "",
       lot_number: initialData.consumable?.lot_number ?? "",
-      expiration_date: initialData?.consumable?.expiration_date || undefined,
+      caducate_date: initialData?.consumable?.caducate_date || undefined,
       fabrication_date: initialData?.consumable?.fabrication_date || undefined,
       // Establecer quantity usando el valor del initialData
       quantity: initialQuantity,
@@ -1419,7 +1419,7 @@ export default function CreateConsumableForm({
   async function submitToBackend(values: FormValues) {
     if (!selectedCompany?.slug) return;
 
-    const { expiration_date: _, ...valuesWithoutCaducateDate } = values;
+    const { caducate_date: _, ...valuesWithoutCaducateDate } = values;
 
     // USAR ESTA LÍNEA QUE SÍ FUNCIONA:
     const caducateDateStr: string | undefined =
@@ -1427,8 +1427,8 @@ export default function CreateConsumableForm({
         ? format(caducateDate, "yyyy-MM-dd")
         : undefined;
 
-    const formattedValues: Omit<FormValues, "expiration_date"> & {
-      expiration_date?: string; // ← MANTENER solo string | undefined
+    const formattedValues: Omit<FormValues, "caducate_date"> & {
+      caducate_date?: string; // ← MANTENER solo string | undefined
       fabrication_date?: string;
       part_number: string;
       article_type: string;
@@ -1444,7 +1444,7 @@ export default function CreateConsumableForm({
       article_type: "consumable",
       alternative_part_number:
         values.alternative_part_number?.map((v) => normalizeUpper(v)) ?? [],
-      expiration_date: caducateDateStr, // Solo string o undefined
+      caducate_date: caducateDateStr, // Solo string o undefined
       fabrication_date:
         fabricationDate && fabricationDate !== null
           ? format(fabricationDate, "yyyy-MM-dd")
@@ -2091,10 +2091,10 @@ export default function CreateConsumableForm({
               />
 
               <DatePickerField
-                label="Próxima Caducidad"
+                label="Próximo Vencimiento"
                 value={caducateDate}
                 setValue={handleCaducateDateChange}
-                description="Fecha límite del Consumible en Almacen."
+                description="Fecha de Vencimiento del Consumible,"
                 busy={busy}
                 shortcuts="forward"
                 showNotApplicable={true}

@@ -1485,10 +1485,10 @@ export default function CreateComponentForm({
 
             <FormItem className="w-full">
               <DatePickerField
-                label="Próxima Caducidad"
+                label="Próximo Vencimiento"
                 value={caducateDate}
                 setValue={setCaducateDate}
-                description="Fecha de Caducidad del Componente."
+                description="Fecha de Vencimiento del Componente."
                 busy={busy}
                 shortcuts="forward"
                 showNotApplicable={true}
