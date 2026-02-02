@@ -30,7 +30,7 @@ export interface DispatchReport {
     serial?: string;
     description: string;
     quantity: number;
-    quantity_used: number;
+    quantity_used: string;
     unit_label: string;
   }[];
 }
@@ -355,15 +355,18 @@ const DispatchReportPdf = ({
                   <>
                     <View style={styles.rowHeader}>
                       <Text style={styles.col}>N° Parte</Text>
+                      <Text style={styles.col}>Descripcion</Text>
                       <Text style={styles.col}>Cantidad Utilizada</Text>
                       <Text style={styles.col}>Serial</Text>
                       <Text style={styles.col}>Alternativos</Text>
                     </View>
                     {dispatch.articles.map((a, idx) => (
                       <View key={idx} style={styles.row}>
-                        <Text style={styles.col}>{a.part_number}</Text>
+                        <Text style={styles.col}>{a.part_number ?? "-"}</Text>
+                        <Text style={styles.col}>{a.description}</Text>
                         <Text style={styles.col}>
-                          {a.quantity_used} {a.unit_label}
+                          {parseFloat(a.quantity_used).toFixed(2)}{" "}
+                          {a.unit_label}
                         </Text>
                         <Text style={styles.col}>{a.serial ?? "N/A"}</Text>
                         <Text style={styles.col}>
