@@ -22,26 +22,23 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
+import { cn } from "@/lib/utils";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
 }
 
-export function DataTable<TData, TValue>({
-  columns,
-  data,
-}: DataTableProps<TData, TValue>) {
-  // ============================================
-  // STATE MANAGEMENT
-  // ============================================
+type ColMeta = {
+  sticky?: "right" | "left";
+  className?: string;
+};
+
+export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
 
-  // ============================================
-  // TABLE CONFIGURATION
-  // ============================================
   const table = useReactTable({
     data,
     columns,
@@ -59,9 +56,9 @@ export function DataTable<TData, TValue>({
     },
   });
 
-  // ============================================
-  // RENDER
-  // ============================================
+  const stickyHeadClass = "sticky right-0 z-40 bg-background";
+  const stickyCellClass = "sticky right-0 z-30 bg-background group-hover:bg-muted/50";
+
   return (
     <div className="space-y-4">
       <div className="rounded-md border overflow-x-auto">
@@ -70,20 +67,17 @@ export function DataTable<TData, TValue>({
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {
-                  const isStickyRight =
-                    (header.column.columnDef.meta as any)?.sticky === "right";
+                  const meta = header.column.columnDef.meta as ColMeta | undefined;
+                  const isStickyRight = meta?.sticky === "right";
 
                   return (
                     <TableHead
                       key={header.id}
-                      className={isStickyRight ? "table-sticky-right" : ""}
+                      className={cn(isStickyRight && stickyHeadClass, meta?.className)}
                     >
                       {header.isPlaceholder
                         ? null
-                        : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
+                        : flexRender(header.column.columnDef.header, header.getContext())}
                     </TableHead>
                   );
                 })}
@@ -96,21 +90,19 @@ export function DataTable<TData, TValue>({
               table.getRowModel().rows.map((row) => (
                 <TableRow
                   key={row.id}
+                  className="group"
                   data-state={row.getIsSelected() && "selected"}
                 >
                   {row.getVisibleCells().map((cell) => {
-                    const isStickyRight =
-                      (cell.column.columnDef.meta as any)?.sticky === "right";
+                    const meta = cell.column.columnDef.meta as ColMeta | undefined;
+                    const isStickyRight = meta?.sticky === "right";
 
                     return (
                       <TableCell
                         key={cell.id}
-                        className={isStickyRight ? "table-sticky-right" : ""}
+                        className={cn(isStickyRight && stickyCellClass, meta?.className)}
                       >
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext()
-                        )}
+                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
                       </TableCell>
                     );
                   })}
@@ -118,10 +110,7 @@ export function DataTable<TData, TValue>({
               ))
             ) : (
               <TableRow>
-                <TableCell
-                  colSpan={columns.length}
-                  className="h-24 text-center"
-                >
+                <TableCell colSpan={columns.length} className="h-24 text-center">
                   No hay resultados.
                 </TableCell>
               </TableRow>
@@ -152,8 +141,7 @@ export function DataTable<TData, TValue>({
           </div>
 
           <div className="flex w-[100px] items-center justify-center text-sm font-medium">
-            Página {table.getState().pagination.pageIndex + 1} de{" "}
-            {table.getPageCount()}
+            Página {table.getState().pagination.pageIndex + 1} de {table.getPageCount()}
           </div>
 
           <div className="flex items-center space-x-2">

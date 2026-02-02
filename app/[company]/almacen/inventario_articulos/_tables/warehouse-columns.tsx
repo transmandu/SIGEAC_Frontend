@@ -38,11 +38,11 @@ export interface IArticleSimple {
     next_calibration?: number | string | null; // o días
   };
   component?: {
-    expiration_date?: string | null;
+    caducate_date?: string | null;
     fabrication_date?: string | null;
   };
   consumable?: {
-    expiration_date?: string | Date | null;
+    caducate_date?: string | Date | null;
     fabrication_date?: string | Date | null;
     unit?: Unit;
   };
@@ -128,15 +128,15 @@ export const flattenArticles = (
             next_calibration: article.tool.next_calibration,
           }
         : undefined,
-      component: batch.category === "COMPONENTE" && ((article as any).expiration_date != null || article.component?.shell_time)
+      component: batch.category === "COMPONENTE" && ((article as any).caducate_date != null || article.component?.shell_time)
         ? {
-            expiration_date: (article as any).expiration_date ?? article.component?.shell_time?.expiration_date ?? null,
+            caducate_date: (article as any).caducate_date ?? article.component?.shell_time?.caducate_date ?? null,
             fabrication_date: article.component?.shell_time?.fabrication_date ?? null,
           }
         : undefined,
-      consumable: batch.category === "CONSUMIBLE" && ((article as any).expiration_date != null || article.consumable?.shell_time)
+      consumable: batch.category === "CONSUMIBLE" && ((article as any).caducate_date != null || article.consumable?.shell_time)
         ? {
-            expiration_date: (article as any).expiration_date ?? article.consumable?.shell_time?.expiration_date ?? null,
+            caducate_date: (article as any).caducate_date ?? article.consumable?.shell_time?.caducate_date ?? null,
             fabrication_date: article.consumable?.shell_time?.fabrication_date ?? null,
           }
         : undefined,
@@ -321,8 +321,8 @@ export const componenteCols: ColumnDef<IArticleSimple>[] = [
       <DataTableColumnHeader column={column} title="Shelf Life" />
     ),
     cell: ({ row }) => {
-      // Para componentes, expiration_date viene directamente en el artículo y se mapea a component.expiration_date
-      const caducateDate = row.original.component?.expiration_date;
+      // Para componentes, caducate_date viene directamente en el artículo y se mapea a component.caducate_date
+      const caducateDate = row.original.component?.caducate_date;
       if (!caducateDate) {
         return (
           <div className="text-center">
@@ -331,7 +331,7 @@ export const componenteCols: ColumnDef<IArticleSimple>[] = [
         );
       }
 
-      // Para componentes, expiration_date es siempre string | null
+      // Para componentes, caducate_date es siempre string | null
       const date = parseDateLocal(caducateDate);
 
       // Validar que la fecha sea válida
@@ -383,7 +383,8 @@ export const componenteCols: ColumnDef<IArticleSimple>[] = [
       return null;
     },
     meta: {
-      sticky: "right", // 👈 importante
+    sticky: "right",
+    className: "bg-background", // 👈 clave
   },
   },
 ];
@@ -410,8 +411,8 @@ export const consumibleCols: ColumnDef<IArticleSimple>[] = [
       <DataTableColumnHeader column={column} title="Shelf Life" />
     ),
     cell: ({ row }) => {
-      // Para consumibles, expiration_date viene directamente en el artículo y se mapea a consumable.expiration_date
-      const caducateDate = row.original.consumable?.expiration_date;
+      // Para consumibles, caducate_date viene directamente en el artículo y se mapea a consumable.caducate_date
+      const caducateDate = row.original.consumable?.caducate_date;
       if (!caducateDate) {
         return (
           <div className="text-center">
@@ -420,7 +421,7 @@ export const consumibleCols: ColumnDef<IArticleSimple>[] = [
         );
       }
 
-      // Para consumibles, expiration_date puede ser string | Date | null
+      // Para consumibles, caducate_date puede ser string | Date | null
       const date = caducateDate instanceof Date
         ? caducateDate
         : typeof caducateDate === 'string'
@@ -564,7 +565,7 @@ export const allCategoriesCols: ColumnDef<IArticleSimple>[] = [
     ),
     cell: ({ row }) => {
       // Intentar obtener fecha de caducidad de componentes o consumibles
-      const caducateDate = row.original.component?.expiration_date || row.original.consumable?.expiration_date;
+      const caducateDate = row.original.component?.caducate_date || row.original.consumable?.caducate_date;
       if (!caducateDate) {
         return (
           <div className="text-center">
