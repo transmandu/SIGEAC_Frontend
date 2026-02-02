@@ -53,7 +53,8 @@ const WorkOrderAircraftDetailsCards = ({ work_order }: { work_order: WorkOrder }
 
   const [printOpen, setPrintOpen] = useState(false)
   const [hoursMode, setHoursMode] = useState<HoursMode>("auto")
-  const [manualHours, setManualHours] = useState<string>("") // ✅ por defecto vacío
+  const [manualHours, setManualHours] = useState<string>("")
+  const [clientSignature, setClientSignature] = useState<string>("Freddy Guerrero")
   const [isDownloading, setIsDownloading] = useState(false)
   const [manualError, setManualError] = useState<string | null>(null)
 
@@ -91,7 +92,6 @@ const WorkOrderAircraftDetailsCards = ({ work_order }: { work_order: WorkOrder }
   const handleDownload = async (params: Record<string, any>) => {
     try {
       setIsDownloading(true)
-
       const response = await axiosInstance.get(
         `/${companySlug}/work-order-pdf/${work_order.order_number}`,
         {
@@ -99,14 +99,12 @@ const WorkOrderAircraftDetailsCards = ({ work_order }: { work_order: WorkOrder }
           params,
         }
       )
-
       const url = window.URL.createObjectURL(new Blob([response.data]))
       const link = document.createElement("a")
       link.href = url
       link.setAttribute("download", `WO-${work_order.order_number}.pdf`)
       document.body.appendChild(link)
       link.click()
-
       link.parentNode?.removeChild(link)
       window.URL.revokeObjectURL(url)
     } catch (error) {
@@ -123,16 +121,14 @@ const WorkOrderAircraftDetailsCards = ({ work_order }: { work_order: WorkOrder }
 
   const onConfirmDownload = async () => {
     if (!validateManualHours()) return
-
     const params: Record<string, any> = {
       aircraft_hours_mode: hoursMode, // auto | manual
+      client_signature: clientSignature,
     }
-
     // ✅ Solo enviar aircraft_hours si realmente hay un valor
     if (hoursMode === "manual" && manualHours.trim() !== "" && manualHours.trim() !== "0") {
       params.aircraft_hours = Number(manualHours.replace(",", "."))
     }
-
     await handleDownload(params)
     setPrintOpen(false)
   }
@@ -267,6 +263,12 @@ const WorkOrderAircraftDetailsCards = ({ work_order }: { work_order: WorkOrder }
                     </p>
                   </div>
                 )}
+              </div>
+
+              <div className="space-y-2">
+                <hr className="my-4" />
+                <Label className="text-sm">Firma del Cliente: <span className="text-xs text-muted-foreground">(Dejar vacío para no incluir firma)</span></Label>
+                <Input value={clientSignature} onChange={(e) => setClientSignature(e.target.value)} />
               </div>
 
               <DialogFooterUI className="gap-2">
