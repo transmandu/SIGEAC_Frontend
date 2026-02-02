@@ -22,7 +22,7 @@ interface ArticleData {
   condition_id?: number | string;
   batch_id: string;
   is_special?: boolean;
-  caducate_date?: string;
+  expiration_date?: string;
   quantity?: string | number;
   fabrication_date?: string;
   calendar_date?: string;
@@ -201,7 +201,7 @@ export const useConfirmIncomingArticle = () => {
         batches_id: string;
         is_special?: boolean;
         status: string;
-        caducate_date?: string;
+        expiration_datete?: string;
         quantity?: string | number;
         fabrication_date?: string;
         calendar_date?: string;
@@ -267,7 +267,7 @@ export const useEditArticle = () => {
         condition_id?: number | string;
         batches_id: string | number;
         is_special?: boolean;
-        caducate_date?: string;
+        expiration_datete?: string;
         fabrication_date?: string;
         quantity?: number;
         calendar_date?: string;
