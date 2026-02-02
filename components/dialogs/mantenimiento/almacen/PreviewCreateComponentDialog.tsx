@@ -21,7 +21,7 @@ interface PreviewValues {
   serial: string[];
   zone?: string;
   fabrication_date?: string | Date | null;
-  caducate_date?: string | Date | null;
+  expiration_date?: string | Date | null;
   description?: string;
   has_documentation?: boolean;
   image?: { name?: string };
@@ -107,7 +107,7 @@ export default function PreviewCreateComponentDialog({
             <h3 className="font-semibold mb-3 text-gray-700 border-b border-gray-200 pb-1">Fechas</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <PreviewRow label="Fabricación" value={formatDate(values.fabrication_date)} />
-              <PreviewRow label="Shelf-Life" value={formatDate(values.caducate_date)} />
+              <PreviewRow label="Shelf-Life" value={formatDate(values.expiration_date)} />
             </div>
           </section>
 

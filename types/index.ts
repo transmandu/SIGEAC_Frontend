@@ -185,7 +185,7 @@ export interface ConsumableArticle extends Article {
   is_managed?: boolean;
   quantity?: number;
   min_quantity?: number;
-  caducate_date?: string;
+  expiration_date?: string;
   fabrication_date?: string;
 }
 
@@ -225,7 +225,7 @@ export type Module = {
 };
 
 export interface ComponentArticle extends Article {
-  caducate_date?: string;
+  expiration_date?: string;
   fabrication_date?: string;
   hour_date?: number;
   cycle_date?: number;

@@ -66,7 +66,7 @@ interface EditingArticle extends Article {
       calendary_date: string,
     },
     shell_time: {
-      caducate_date: string,
+      expiration_date: string,
       fabrication_date: string,
     }
   },
@@ -77,7 +77,7 @@ interface EditingArticle extends Article {
     quantity: number,
     min_quantity?: number,
     shell_time: {
-      caducate_date: Date,
+      expiration_date: Date,
       fabrication_date: string,
       consumable_id: string,
     }
@@ -115,7 +115,7 @@ const formSchema = z.object({
     message: "Debe seleccionar un lote.",
   }),
   fabrication_date: z.string().optional(),
-  caducate_date: z.string().optional(),
+  expiration_date: z.string().optional(),
   quantity: z.coerce.number().optional(),
   image: z.instanceof(File).optional(),
   certificate_8130: z.instanceof(File).optional(),
@@ -131,7 +131,7 @@ interface EditArticleFormProps {
 const EditArticleForm = ({ initialData, onSuccess }: EditArticleFormProps) => {
   const router = useRouter()
   const { selectedStation, selectedCompany } = useCompanyStore()
-  
+
   const [fabricationDate, setFabricationDate] = useState<Date>()
   const [caducateDate, setCaducateDate] = useState<Date>()
   const [filteredBatches, setFilteredBatches] = useState<Batch[]>()
@@ -179,8 +179,8 @@ const EditArticleForm = ({ initialData, onSuccess }: EditArticleFormProps) => {
     if (initialData.consumable?.shell_time.fabrication_date) {
       setFabricationDate(new Date(initialData.consumable.shell_time.fabrication_date))
     }
-    if (initialData.consumable?.shell_time.caducate_date) {
-      setCaducateDate(new Date(initialData.consumable.shell_time.caducate_date))
+    if (initialData.consumable?.shell_time.expiration_date) {
+      setCaducateDate(new Date(initialData.consumable.shell_time.expiration_date))
     }
   }, [initialData])
 
@@ -208,7 +208,7 @@ const EditArticleForm = ({ initialData, onSuccess }: EditArticleFormProps) => {
       ...values,
       id: initialData.id,
       fabrication_date: fabricationDate ? format(fabricationDate, "yyyy-MM-dd") : undefined,
-      caducate_date: caducateDate ? format(caducateDate, "yyyy-MM-dd") : undefined,
+      expiration_date: caducateDate ? format(caducateDate, "yyyy-MM-dd") : undefined,
       batches_id: Number(values.batches_id),
       manufacturer_id: Number(values.manufacturer_id),
       condition_id: Number(values.condition_id),
@@ -219,7 +219,7 @@ const EditArticleForm = ({ initialData, onSuccess }: EditArticleFormProps) => {
         data: formattedValues as any,
         company: selectedCompany!.slug
       })
-      
+
       if (onSuccess) {
         onSuccess()
       } else {
@@ -558,7 +558,7 @@ const EditArticleForm = ({ initialData, onSuccess }: EditArticleFormProps) => {
 
               <FormField
                 control={form.control}
-                name="caducate_date"
+                name="expiration_date"
                 render={({ field }) => (
                   <FormItem className="flex flex-col">
                     <FormLabel>Fecha de Caducidad</FormLabel>
@@ -625,7 +625,7 @@ const EditArticleForm = ({ initialData, onSuccess }: EditArticleFormProps) => {
           {/* Archivos */}
           <div className="space-y-4">
             <h3 className="text-lg font-medium">Archivos y Documentos</h3>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 control={form.control}

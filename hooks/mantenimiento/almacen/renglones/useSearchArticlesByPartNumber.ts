@@ -18,7 +18,7 @@ export interface ArticleSearchResult {
   cost: number;
   image?: string;
   certificates?: string[];
-  
+
   // Información del batch relacionado
   batch: {
     id: number;
@@ -31,7 +31,7 @@ export interface ArticleSearchResult {
     warehouse_name: string;
     warehouse_id: number;
   };
-  
+
   // Información específica del tipo de artículo
   article_type: "CONSUMABLE" | "COMPONENT" | "TOOL";
   tool?: {
@@ -48,7 +48,7 @@ export interface ArticleSearchResult {
       calendary_date: string;
     };
     shell_time: {
-      caducate_date: string;
+      expiration_date: string;
       fabrication_date: string;
     };
   };
@@ -66,7 +66,7 @@ export interface ArticleSearchResult {
       };
     }[];
     shell_time: {
-      caducate_date: Date;
+      expiration_date: Date;
       fabrication_date: Date;
       consumable_id: string;
     };

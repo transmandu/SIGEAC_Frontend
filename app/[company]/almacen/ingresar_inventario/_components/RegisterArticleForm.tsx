@@ -30,7 +30,7 @@ export interface EditingArticle extends Article {
   part_component?: {
     id: number;
     article_id: string;
-    caducate_date?: string | null;
+    expiration_date?: string | null;
     fabrication_date: string | null;
     hour_date: string | null;
     cycle_date: string | null;
@@ -46,7 +46,7 @@ export interface EditingArticle extends Article {
   };
   consumable?: {
     lot_number?: string;
-    caducate_date: string;
+    expiration_date: string;
     fabrication_date: string | null;
     min_quantity?: number | string;
     quantity?: number;

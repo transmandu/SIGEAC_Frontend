@@ -18,7 +18,7 @@ export interface BatchWithArticles {
     min_quantity: string;
     medition_unit: string;
   };
-  
+
   // Artículos que coinciden con la búsqueda en este batch
   articles: {
     id: number;
@@ -36,7 +36,7 @@ export interface BatchWithArticles {
     image: string | null;
     certificates: string[] | null;
     article_type: string | null;
-    
+
     // Información específica del tipo de artículo
     tool?: {
       id: number;
@@ -52,7 +52,7 @@ export interface BatchWithArticles {
         calendary_date: string;
       };
       shell_time: {
-        caducate_date: string;
+        expiration_date: string;
         fabrication_date: string;
       };
     } | null;
@@ -61,7 +61,7 @@ export interface BatchWithArticles {
       is_managed: string;
       quantity: number;
       article_id: string;
-      caducate_date: string | null;
+      expiration_date: string | null;
       fabrication_date: string | null;
     } | null;
   }[];
