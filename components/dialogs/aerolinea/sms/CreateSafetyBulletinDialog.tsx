@@ -35,7 +35,7 @@ export default function CreateSafetyBulletinDialog({
               onClick={() => setOpen(true)}
               variant="outline"
               size="sm"
-              className=" hidden  lg:flex border-dashed"
+              className="flex border-dashed"
             >
               {title}
             </Button>
