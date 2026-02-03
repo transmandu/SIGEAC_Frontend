@@ -38,11 +38,11 @@ import DispatchReportPdf from "@/components/pdf/almacen/DispatchReport";
 export function DispatchReportDialog() {
   const { selectedStation, selectedCompany } = useCompanyStore();
   const [open, setOpen] = useState(false);
-  
+
   // Filtros para reporte general con rango de fechas opcional
   const [generalStartDate, setGeneralStartDate] = useState<Date | undefined>();
   const [generalEndDate, setGeneralEndDate] = useState<Date | undefined>();
-  
+
   // Filtros para reporte por aeronave con rango de fechas opcional
   const [aircraft, setAircraft] = useState<string | null>(null);
   const [aircraftStartDate, setAircraftStartDate] = useState<Date | undefined>();
@@ -50,7 +50,7 @@ export function DispatchReportDialog() {
 
   const { data: dispatchReport, isLoading: isLoadingDispatchReport } =
     useGetDispatchReport(selectedStation ?? null, selectedCompany?.slug);
-  
+
   const { data: aircrafts, isLoading: isLoadingAircrafts } = useGetAircrafts(
     selectedCompany?.slug
   );
