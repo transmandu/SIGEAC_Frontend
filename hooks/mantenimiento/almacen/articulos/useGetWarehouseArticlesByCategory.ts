@@ -30,17 +30,17 @@ export interface IWarehouseArticle {
     };
     component?: {
       shell_time?: {
-        caducate_date?: string | null;
+        expiration_date?: string | null;
         fabrication_date?: string | null;
       };
     };
     consumable?: {
       shell_time?: {
-        caducate_date?: string | Date | null;
+        expiration_date?: string | Date | null;
         fabrication_date?: string | Date | null;
       };
     };
-    caducate_date?: string | null; // Para componentes y consumibles: viene directamente en el artículo
+    expiration_date?: string | null; // Para componentes y consumibles: viene directamente en el artículo
     condition: {
       name: string;
     };

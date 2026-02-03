@@ -38,7 +38,7 @@ export interface IArticleByBatch {
       calendary_date: string,
     },
     shell_time: {
-      caducate_date: string,
+      expiration_date: string,
       fabrication_date: string,
     }
   },
@@ -56,7 +56,7 @@ export interface IArticleByBatch {
       },
     }[],
     shell_time: {
-      caducate_date: Date,
+      expiration_date: Date,
       fabrication_date: Date,
       consumable_id: string,
     }

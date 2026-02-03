@@ -19,7 +19,7 @@ interface IGetArticle {
   id: number,
   shell_time: {
     fabrication_date: string,
-    caducate_date: string,
+    expiration_date: string,
   },
   hard_time: {
     hour_date: number,

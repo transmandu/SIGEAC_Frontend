@@ -102,7 +102,7 @@ const formSchema = z.object({
     .optional(),
   description: z.string().optional(),
   zone: z.string().optional(),
-  caducate_date: z.string().optional(),
+  expiration_date: z.string().optional(),
   fabrication_date: z.string().optional(),
   manufacturer_id: z.string().optional(),
   condition_id: z.string().min(1, "Debe ingresar la condición del artículo."),
@@ -224,14 +224,14 @@ const CreateConsumableForm = ({
     number | undefined
   >();
   const [caducateDate, setCaducateDate] = useState<Date | undefined>(
-    initialData?.consumable?.caducate_date
-      ? new Date(initialData.consumable.caducate_date)
+    initialData?.consumable?.expiration_date
+      ? new Date(initialData.consumable.expiration_date)
       : undefined
   );
   const [fabricationDate, setFabricationDate] = useState<Date | undefined>(
     initialData?.consumable?.fabrication_date
       ? new Date(initialData?.consumable?.fabrication_date)
-      : undefined  
+      : undefined
   );
 
   const form = useForm<FormValues>({
@@ -245,8 +245,8 @@ const CreateConsumableForm = ({
       description: initialData?.description || "",
       zone: initialData?.zone || "",
       lot_number: initialData?.consumable?.lot_number || "",
-      caducate_date: initialData?.consumable?.caducate_date
-        ? initialData?.consumable?.caducate_date
+      expiration_date: initialData?.consumable?.expiration_date
+        ? initialData?.consumable?.expiration_date
         : undefined,
       fabrication_date: initialData?.consumable?.fabrication_date
         ? initialData?.consumable?.fabrication_date
@@ -273,8 +273,8 @@ const CreateConsumableForm = ({
       description: initialData.description ?? "",
       zone: initialData.zone ?? "",
       lot_number: initialData.consumable?.lot_number ?? "",
-      caducate_date: initialData?.consumable?.caducate_date
-        ? initialData?.consumable?.caducate_date
+      expiration_date: initialData?.consumable?.expiration_date
+        ? initialData?.consumable?.expiration_date
         : undefined,
       fabrication_date: initialData?.consumable?.fabrication_date
         ? initialData?.consumable?.fabrication_date
@@ -322,7 +322,7 @@ const CreateConsumableForm = ({
     if (!selectedCompany?.slug) return;
 
     const formattedValues: FormValues & {
-      caducate_date?: string;
+      expiration_date?: string;
       fabrication_date?: string;
       part_number: string;
       article_type: string;
@@ -333,7 +333,7 @@ const CreateConsumableForm = ({
       article_type: "consumible",
       alternative_part_number:
         values.alternative_part_number?.map((v) => normalizeUpper(v)) ?? [],
-      caducate_date: caducateDate
+      expiration_date: caducateDate
         ? format(caducateDate, "yyyy-MM-dd")
         : undefined,
       fabrication_date: fabricationDate
@@ -531,7 +531,7 @@ const CreateConsumableForm = ({
             />
             <FormField
               control={form.control}
-              name="caducate_date"
+              name="expiration_date"
               render={({ field }) => (
                 <FormItem className="flex flex-col p-0 mt-2.5 w-full">
                   <FormLabel>Fecha de Caducidad - Shell-Life</FormLabel>

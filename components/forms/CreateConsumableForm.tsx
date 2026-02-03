@@ -98,7 +98,7 @@
 //     .optional(),
 //   description: z.string().optional(),
 //   zone: z.string().optional(),
-//   caducate_date: z.string().optional(),
+//   expiration_date: z.string().optional(),
 //   fabrication_date: z.string().optional(),
 //   manufacturer_id: z.string().optional(),
 //   condition_id: z.string().min(1, "Debe ingresar la condición del artículo."),
@@ -173,8 +173,8 @@
 //     number | undefined
 //   >();
 //   const [caducateDate, setCaducateDate] = useState<Date | undefined>(
-//     initialData?.consumable?.caducate_date
-//       ? new Date(initialData.consumable.caducate_date)
+//     initialData?.consumable?.expiration_date
+//       ? new Date(initialData.consumable.expiration_date)
 //       : undefined
 //   );
 //   const [fabricationDate, setFabricationDate] = useState<Date | undefined>(
@@ -194,8 +194,8 @@
 //       description: initialData?.description || "",
 //       zone: initialData?.zone || "",
 //       lot_number: initialData?.consumable?.lot_number || "",
-//       caducate_date: initialData?.consumable?.caducate_date
-//         ? initialData?.consumable?.caducate_date
+//       expiration_date: initialData?.consumable?.expiration_date
+//         ? initialData?.consumable?.expiration_date
 //         : undefined,
 //       fabrication_date: initialData?.consumable?.fabrication_date
 //         ? initialData?.consumable?.fabrication_date
@@ -217,8 +217,8 @@
 //       description: initialData.description ?? "",
 //       zone: initialData.zone ?? "",
 //       lot_number: initialData.consumable?.lot_number ?? "",
-//       caducate_date: initialData?.consumable?.caducate_date
-//         ? initialData?.consumable?.caducate_date
+//       expiration_date: initialData?.consumable?.expiration_date
+//         ? initialData?.consumable?.expiration_date
 //         : undefined,
 //       fabrication_date: initialData?.consumable?.fabrication_date
 //         ? initialData?.consumable?.fabrication_date
@@ -261,7 +261,7 @@
 //     if (!selectedCompany?.slug) return;
 
 //     const formattedValues: FormValues & {
-//       caducate_date?: string;
+//       expiration_date?: string;
 //       fabrication_date?: string;
 //       part_number: string;
 //       article_type: string;
@@ -272,7 +272,7 @@
 //       article_type: "consumible",
 //       alternative_part_number:
 //         values.alternative_part_number?.map((v) => normalizeUpper(v)) ?? [],
-//       caducate_date: caducateDate
+//       expiration_date: caducateDate
 //         ? format(caducateDate, "yyyy-MM-dd")
 //         : undefined,
 //       fabrication_date: fabricationDate
@@ -470,7 +470,7 @@
 //             />
 //             <FormField
 //               control={form.control}
-//               name="caducate_date"
+//               name="expiration_date"
 //               render={({ field }) => (
 //                 <FormItem className="flex flex-col p-0 mt-2.5 w-full">
 //                   <FormLabel>Fecha de Caducidad</FormLabel>
@@ -790,10 +790,10 @@
 //                 <FormItem className="w-full">
 //                   <FormLabel>Cantidad Mínima</FormLabel>
 //                   <FormControl>
-//                     <Input 
-//                       type="number" 
+//                     <Input
+//                       type="number"
 //                       min="0"
-//                       placeholder="Ej: 5" 
+//                       placeholder="Ej: 5"
 //                       {...field}
 //                       disabled={busy}
 //                       onChange={(e) => {

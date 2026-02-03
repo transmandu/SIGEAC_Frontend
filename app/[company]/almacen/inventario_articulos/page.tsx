@@ -89,7 +89,7 @@ const InventarioArticulosPage = () => {
   // Datos + filtros memo
   const currentData = useMemo<IArticleSimple[]>(() => {
     const getExpiryDate = (article: IArticleSimple): Date | null => {
-      const caducateDate = article.component?.caducate_date || article.consumable?.caducate_date;
+      const caducateDate = article.component?.expiration_date || article.consumable?.expiration_date;
       if (!caducateDate) return null;
       const date = caducateDate instanceof Date
         ? caducateDate

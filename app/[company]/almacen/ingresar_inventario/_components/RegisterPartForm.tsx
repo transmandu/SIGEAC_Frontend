@@ -108,7 +108,7 @@ const formSchema = z
     zone: z
       .string({ message: "Debe ingresar la ubicación del artículo." })
       .min(1, "Campo requerido"),
-    caducate_date: z.string().optional(),
+    expiration_date: z.string().optional(),
     fabrication_date: z.string().optional(),
     calendar_date: z.string().optional(),
     cost: z.string().optional(),
@@ -174,8 +174,8 @@ const formSchema = z
     hard_time_calendar: z.string().optional(),
   })
   .superRefine((vals, ctx) => {
-    if (vals.fabrication_date && vals.caducate_date) {
-      if (vals.fabrication_date > vals.caducate_date) {
+    if (vals.fabrication_date && vals.expiration_date) {
+      if (vals.fabrication_date > vals.expiration_date) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           message:
@@ -229,8 +229,8 @@ export default function CreatePartForm({
   );
 
   const [caducateDate, setCaducateDate] = useState<Date | null | undefined>(
-    initialData?.part_component?.caducate_date
-      ? parseISO(initialData.part_component.caducate_date)
+    initialData?.part_component?.expiration_date
+      ? parseISO(initialData.part_component.expiration_date)
       : null, // Por defecto "No aplica" (componentes nuevos o sin fecha)
   );
 
@@ -317,8 +317,8 @@ export default function CreatePartForm({
       cycle_date: initialData?.part_component?.cycle_date
         ? parseInt(initialData.part_component.cycle_date)
         : undefined,
-      caducate_date: initialData?.part_component?.caducate_date
-        ? initialData?.part_component?.caducate_date
+      expiration_date: initialData?.part_component?.expiration_date
+        ? initialData?.part_component?.expiration_date
         : undefined,
       fabrication_date: initialData?.part_component?.fabrication_date
         ? initialData?.part_component?.fabrication_date
@@ -377,8 +377,8 @@ export default function CreatePartForm({
       cycle_date: initialData.part_component?.cycle_date
         ? parseInt(initialData.part_component.cycle_date)
         : undefined,
-      caducate_date: initialData.part_component?.caducate_date
-        ? initialData.part_component?.caducate_date
+      expiration_date: initialData.part_component?.expiration_date
+        ? initialData.part_component?.expiration_date
         : undefined,
       fabrication_date: initialData.part_component?.fabrication_date
         ? initialData.part_component?.fabrication_date
@@ -469,7 +469,7 @@ export default function CreatePartForm({
       fabrication_date: fabricationDate
         ? format(fabricationDate, "yyyy-MM-dd")
         : undefined, // o "" si quieres
-      caducate_date: caducateDate
+      expiration_date: caducateDate
         ? format(caducateDate, "yyyy-MM-dd")
         : undefined,
       life_limit_part_calendar: lifeLimitPartCalendar
@@ -503,7 +503,7 @@ export default function CreatePartForm({
       return; // El botón debería estar deshabilitado, pero por seguridad validamos aquí también
     }
 
-    const { caducate_date: _, ...valuesWithoutCaducateDate } = values;
+    const { expiration_date: _, ...valuesWithoutCaducateDate } = values;
     const caducateDateStr: string | undefined =
       caducateDate && caducateDate !== null
         ? format(caducateDate, "yyyy-MM-dd")
@@ -517,8 +517,8 @@ export default function CreatePartForm({
           : values.serial
         : undefined;
 
-    const formattedValues: Omit<FormValues, "caducate_date" | "serial"> & {
-      caducate_date?: string;
+    const formattedValues: Omit<FormValues, "expiration_date" | "serial"> & {
+      expiration_date?: string;
       fabrication_date?: string;
       calendar_date?: string;
       part_number: string;
@@ -537,7 +537,7 @@ export default function CreatePartForm({
       alternative_part_number:
         values.alternative_part_number?.map((v) => normalizeUpper(v)) ?? [],
       serial: serialValue,
-      caducate_date: caducateDateStr,
+      expiration_date: caducateDateStr,
       fabrication_date:
         fabricationDate && fabricationDate !== null
           ? format(fabricationDate, "yyyy-MM-dd")
@@ -1453,10 +1453,10 @@ export default function CreatePartForm({
 
             <FormItem className="w-full">
               <DatePickerField
-                label="Próxima Caducidad"
+                label="Próximo Vencimiento"
                 value={caducateDate}
                 setValue={setCaducateDate}
-                description="Fecha de Caducidad de la Parte."
+                description="Fecha de Vencimiento de la Parte."
                 busy={busy}
                 shortcuts="forward"
                 showNotApplicable={true}

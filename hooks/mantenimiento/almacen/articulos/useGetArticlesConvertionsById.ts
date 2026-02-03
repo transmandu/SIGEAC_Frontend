@@ -12,7 +12,7 @@ export interface ConsumableItem {
   is_managed: boolean;
   quantity: number;
   article_id: string;
-  caducate_date: Date;
+  expiration_date: Date;
   fabrication_date: Date;
   lot_number: string;
   min_quantity: number;

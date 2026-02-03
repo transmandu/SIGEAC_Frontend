@@ -104,7 +104,7 @@ const formSchema = z
     zone: z
       .string({ message: "Debe ingresar la ubicación del artículo." })
       .min(1, "Campo requerido"),
-    caducate_date: z.string().optional(),
+    expiration_date: z.string().optional(),
     fabrication_date: z.string().optional(),
     calendar_date: z.string().optional(),
     cost: z.string().optional(),
@@ -137,8 +137,8 @@ const formSchema = z
   })
   .superRefine((vals, ctx) => {
     // Relaciones de fechas si existen
-    if (vals.fabrication_date && vals.caducate_date) {
-      if (vals.fabrication_date > vals.caducate_date) {
+    if (vals.fabrication_date && vals.expiration_date) {
+      if (vals.fabrication_date > vals.expiration_date) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           message:
@@ -167,7 +167,7 @@ const CreatePartForm = ({
       const response = await axiosInstance.get(`/warehouse/download-certificate/${url}`, {
         responseType: 'blob',
       });
-      
+
       const downloadUrl = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement('a');
       link.href = downloadUrl;
@@ -176,7 +176,7 @@ const CreatePartForm = ({
       link.click();
       link.remove();
       window.URL.revokeObjectURL(downloadUrl);
-      
+
       toast.success("Certificado descargado correctamente");
     } catch (error) {
       console.error('Error descargando el archivo:', error);
@@ -190,8 +190,8 @@ const CreatePartForm = ({
       : undefined
   );
   const [caducateDate, setCaducateDate] = useState<Date | undefined>(
-    initialData?.part_component?.caducate_date
-      ? new Date(initialData.part_component.caducate_date)
+    initialData?.part_component?.expiration_date
+      ? new Date(initialData.part_component.expiration_date)
       : undefined
   );
   const [calendarDate, setCalendarDate] = useState<Date | undefined>(
@@ -242,8 +242,8 @@ const CreatePartForm = ({
       cycle_date: initialData?.part_component?.cycle_date
         ? parseInt(initialData.part_component.cycle_date)
         : undefined,
-      caducate_date: initialData?.part_component?.caducate_date
-        ? initialData?.part_component?.caducate_date
+      expiration_date: initialData?.part_component?.expiration_date
+        ? initialData?.part_component?.expiration_date
         : undefined,
       fabrication_date: initialData?.part_component?.fabrication_date
         ? initialData?.part_component?.fabrication_date
@@ -269,8 +269,8 @@ const CreatePartForm = ({
       cycle_date: initialData.part_component?.cycle_date
         ? parseInt(initialData.part_component.cycle_date)
         : undefined,
-      caducate_date: initialData.part_component?.caducate_date
-        ? initialData.part_component?.caducate_date
+      expiration_date: initialData.part_component?.expiration_date
+        ? initialData.part_component?.expiration_date
         : undefined,
       fabrication_date: initialData.part_component?.fabrication_date
         ? initialData.part_component?.fabrication_date
@@ -290,7 +290,7 @@ const CreatePartForm = ({
     if (!selectedCompany?.slug) return;
 
     const formattedValues: FormValues & {
-      caducate_date?: string;
+      expiration_date?: string;
       fabrication_date?: string;
       calendar_date?: string;
       part_number: string;
@@ -302,7 +302,7 @@ const CreatePartForm = ({
       part_number: normalizeUpper(values.part_number),
       alternative_part_number:
         values.alternative_part_number?.map((v) => normalizeUpper(v)) ?? [],
-      caducate_date: caducateDate
+      expiration_date: caducateDate
         ? format(caducateDate, "yyyy-MM-dd")
         : undefined,
       fabrication_date: fabricationDate
@@ -713,7 +713,7 @@ const CreatePartForm = ({
             />
             <FormField
               control={form.control}
-              name="caducate_date"
+              name="expiration_date"
               render={({ field }) => (
                 <FormItem className="flex flex-col p-0 mt-2.5 w-full">
                   <FormLabel>Fecha de Shell-Life</FormLabel>
