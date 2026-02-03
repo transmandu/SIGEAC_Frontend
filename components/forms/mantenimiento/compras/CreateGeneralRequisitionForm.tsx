@@ -10,7 +10,7 @@ import { useGetUserDepartamentEmployees } from "@/hooks/sistema/empleados/useGet
 import { cn } from "@/lib/utils"
 import { useCompanyStore } from "@/stores/CompanyStore"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { Check, ChevronsUpDown, Loader2, MinusCircle } from "lucide-react"
+import { Check, ChevronsUpDown, Loader2, MinusCircle, PlusCircle } from "lucide-react"
 import Image from "next/image"
 import { useEffect, useState } from "react"
 import { useForm } from "react-hook-form"
@@ -76,8 +76,8 @@ const FormSchema = z.object({
     ),
 }).refine(
   (data) => {
-    // Si el tipo es AVIACION, aircraft_id es obligatorio
-    if (data.type === "AVIACION" && !data.aircraft_id) {
+    // Si el tipo es AERONAUTICO, aircraft_id es obligatorio
+    if (data.type === "AERONAUTICO" && !data.aircraft_id) {
       return false;
     }
     return true;
@@ -100,6 +100,7 @@ interface FormProps {
 // Tipos para batches y artículos
 interface Article {
   part_number: string;
+  alt_part_number?: string;
   quantity: number;
   unit?: string;
 }
@@ -163,45 +164,21 @@ export function CreateGeneralRequisitionForm({
   }, [selectedStation, mutate, selectedCompany])
 
   useEffect(() => {
-    form.setValue("articles", selectedBatches);
+    setSelectedBatches([
+      {
+        batch: "1511",
+        batch_name: "TEMP",
+        category: "COMPONENT",
+        batch_articles: [
+          { part_number: "", quantity: 0 }
+        ],
+      },
+    ]);
+  }, []);
+
+  useEffect(() => {
+    form.setValue("articles", selectedBatches as any);
   }, [selectedBatches, form]);
-
-  // Maneja la selección de un lote.
-  const handleBatchSelect = (
-    batchName: string,
-    batchId: string,
-    batch_category: string
-  ) => {
-    setSelectedBatches((prev) => {
-      // Verificar si el batch ya está seleccionado
-      const exists = prev.some((b) => b.batch === batchId);
-
-      if (exists) {
-        // Si ya existe, lo eliminamos
-        return prev.filter((b) => b.batch !== batchId);
-      }
-
-      // Encontrar la unidad "UNIDAD" para componentes y herramientas
-      const unidadUnit = units?.find(
-        (u) => u.label.toUpperCase() === "UNIDAD" || u.value.toUpperCase() === "UNIDAD"
-      );
-      const defaultUnit = 
-        (batch_category === "componente" || batch_category === "herramienta") && unidadUnit
-          ? unidadUnit.id.toString()
-          : undefined;
-
-      // Si no existe, lo agregamos
-      return [
-        ...prev,
-        {
-          batch: batchId,
-          batch_name: batchName,
-          category: batch_category,
-          batch_articles: [{ part_number: "", quantity: 0, unit: defaultUnit }],
-        },
-      ];
-    });
-  };
 
   // Maneja el cambio en un artículo.
   const handleArticleChange = (
@@ -223,6 +200,41 @@ export function CreateGeneralRequisitionForm({
       )
     );
   };
+
+  const findArticleByPartNumber = (partNumber: string) => {
+    for (const batch of selectedBatches) {
+      for (const article of batch.batch_articles) {
+        if (
+          article.part_number &&
+          article.part_number.trim().toUpperCase() === partNumber.trim().toUpperCase()
+        ) {
+          return article;
+        }
+      }
+    }
+    return null;
+  };
+
+const handlePartNumberBlur = (
+  batchName: string,
+  index: number,
+  value: string
+) => {
+  if (!value) return;
+
+  const existing = findArticleByPartNumber(value);
+
+  if (!existing) return;
+
+  // Autocompleta SOLO si están vacíos
+  if (existing.alt_part_number) {
+    handleArticleChange(batchName, index, "alt_part_number", existing.alt_part_number);
+  }
+
+  if (existing.unit) {
+    handleArticleChange(batchName, index, "unit", existing.unit);
+  }
+};
 
   // Agrega un nuevo artículo a un lote.
   const addArticle = (batchName: string) => {
@@ -278,7 +290,7 @@ export function CreateGeneralRequisitionForm({
         ...batch,
         batch_articles: batch.batch_articles.map(article => ({
           ...article,
-          aircraft_id: data.type === "AVIACION" ? data.aircraft_id : undefined
+          aircraft_id: data.type === "AERONAUTICO" ? data.aircraft_id : undefined
         }))
       }))
     };
@@ -404,7 +416,7 @@ export function CreateGeneralRequisitionForm({
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="AVIACION">Aviacion</SelectItem>
+                    <SelectItem value="AERONAUTICO">Aeronáutico</SelectItem>
                     <SelectItem value="GENERAL">General</SelectItem>
                   </SelectContent>
                 </Select>
@@ -419,59 +431,7 @@ export function CreateGeneralRequisitionForm({
           render={({ field }: { field: any }) => (
             <FormItem className="flex flex-col">
               <div className="flex gap-4 items-end">
-                <FormItem className="flex flex-col w-[200px]">
-                  <FormLabel>Artículos</FormLabel>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <FormControl>
-                          <Button
-                            variant="outline"
-                            disabled={isBatchesLoading}
-                            role="combobox"
-                            className={cn(
-                              "justify-between",
-                              selectedBatches.length === 0 && "text-muted-foreground"
-                            )}
-                          >
-                            {selectedBatches.length > 0
-                              ? `${selectedBatches.length} reng. seleccionados`
-                              : "Selec. un renglón..."}
-                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                          </Button>
-                        </FormControl>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-[200px] p-0">
-                        <Command>
-                          <CommandInput placeholder="Buscar..." />
-                          <CommandList>
-                            <CommandEmpty>No existen renglones...</CommandEmpty>
-                            <CommandGroup>
-                              <div className="flex justify-center m-2"><CreateBatchDialog /></div>
-                              {data &&
-                                data.map((batch) => (
-                                  <CommandItem
-                                    key={batch.name}
-                                    value={batch.name}
-                                    onSelect={() => handleBatchSelect(batch.name, batch.id.toString(), batch.category)}
-                                  >
-                                    <Check
-                                      className={cn(
-                                        "",
-                                        selectedBatches.some((b) => b.batch === batch.id.toString())
-                                          ? "opacity-100"
-                                          : "opacity-0"
-                                      )}
-                                    />
-                                    {batch.name}
-                                  </CommandItem>
-                                ))}
-                            </CommandGroup>
-                          </CommandList>
-                        </Command>
-                      </PopoverContent>
-                    </Popover>
-                  </FormItem>
-                {form.watch("type") === "AVIACION" && (
+                {form.watch("type") === "AERONAUTICO" && (
                   <FormField
                     control={form.control}
                     name="aircraft_id"
@@ -546,7 +506,7 @@ export function CreateGeneralRequisitionForm({
               <div className="mt-4 space-y-4">
                 <ScrollArea
                   className={cn(
-                    "",
+                    "pr-2",
                     selectedBatches.length > 2 ? "h-[300px]" : ""
                   )}
                 >
@@ -554,28 +514,21 @@ export function CreateGeneralRequisitionForm({
                     <div key={batch.batch}>
                       <div className="flex items-center">
                         <h4 className="font-semibold">{batch.batch_name}</h4>
-                        <Button
-                          variant="ghost"
-                          type="button"
-                          size="icon"
-                          onClick={() => removeBatch(batch.batch)}
-                        >
-                          <MinusCircle className="size-4" />
-                        </Button>
                       </div>
                       <ScrollArea
                         className={cn(
-                          "",
+                          "pr-2",
                           batch.batch_articles.length > 2 ? "h-[150px]" : ""
                         )}
                       >
                         {batch.batch_articles.map((article, index) => (
                           <div
                             key={index}
-                            className="flex items-center space-x-4 mt-2"
+                            className="flex items-center gap-4 mt-2 py-2 px-1"
                           >
                             <Input
                               placeholder="Número de parte"
+                              value={article.part_number}
                               onChange={(e) =>
                                 handleArticleChange(
                                   batch.batch,
@@ -583,6 +536,9 @@ export function CreateGeneralRequisitionForm({
                                   "part_number",
                                   e.target.value
                                 )
+                              }
+                              onBlur={(e) =>
+                                handlePartNumberBlur(batch.batch, index, e.target.value)
                               }
                             />
 
@@ -631,7 +587,6 @@ export function CreateGeneralRequisitionForm({
                               </p>
                             )}
                             <Input
-                              type="number"
                               placeholder="Cantidad"
                               min="0"
                               step="0.1"
@@ -657,24 +612,29 @@ export function CreateGeneralRequisitionForm({
                               variant="ghost"
                               type="button"
                               size="icon"
+                              disabled={batch.batch_articles.length === 1 && index === 0}
                               onClick={() =>
                                 removeArticleFromBatch(batch.batch, index)
                               }
-                              className="hover:text-red-500"
+                              className={cn(
+                                "hover:text-red-500",
+                                batch.batch_articles.length === 1 && index === 0 &&
+                                  "opacity-40 cursor-not-allowed hover:text-inherit"
+                              )}
                             >
                               <MinusCircle className="size-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              type="button"
+                              size="icon"
+                              onClick={() => addArticle(batch.batch)}
+                            >
+                              <PlusCircle className="size-4" />
                             </Button>
                           </div>
                         ))}
                       </ScrollArea>
-                      <Button
-                        type="button"
-                        variant="link"
-                        onClick={() => addArticle(batch.batch)}
-                        className="mt-2 text-sm"
-                      >
-                        Agregar artículo
-                      </Button>
                     </div>
                   ))}
                 </ScrollArea>
