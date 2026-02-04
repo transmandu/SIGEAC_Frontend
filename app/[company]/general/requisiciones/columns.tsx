@@ -16,9 +16,9 @@ import Link from "next/link"
 
 // This type is used to define the shape of our data.
 // You can use a Zod schema here if you want.
-interface BatchesWithCountProp extends Batch {
-  article_count: number,
-}
+// interface BatchesWithCountProp extends Batch {
+//   article_count: number,
+// }
 
 export const columns: ColumnDef<Requisition>[] = [
   {
@@ -58,16 +58,6 @@ export const columns: ColumnDef<Requisition>[] = [
     }
   },
   {
-    accessorKey: "justification",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Justificación" />
-    ),
-    meta: { title: "Justificación" },
-    cell: ({ row }) => (
-      <p className="text-center flex justify-center text-muted-foreground italic">{row.original.justification?? 'N/A'}</p>
-    )
-  },
-  {
     accessorKey: "requested_by",
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Solicitado por" />
@@ -92,6 +82,16 @@ export const columns: ColumnDef<Requisition>[] = [
     }
   },
   {
+    accessorKey: "justification",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Justificación" />
+    ),
+    meta: { title: "Justificación" },
+    cell: ({ row }) => (
+      <p className="text-center flex justify-center text-muted-foreground italic">{row.original.justification?? 'N/A'}</p>
+    )
+  },
+  {
     accessorKey: "submission_date",
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Fecha de Creación" />
@@ -112,15 +112,22 @@ export const columns: ColumnDef<Requisition>[] = [
     )
   },
   {
-    accessorKey: "aircraft.acronym",
+    id: "aircraft",
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Aeronave" />
     ),
-    cell: ({ row }) => (
-      <p className="text-center italic text-muted-foreground">
-        {row.original?.aircraft?.acronym || "N/A"}
-      </p>
-    )
+    cell: ({ row }) => {
+      const aircraft =
+        row.original.batch
+          ?.flatMap(b => b.batch_articles)
+          ?.find(a => a.aircraft)?.aircraft ?? "N/A"
+
+      return (
+        <p className="text-center font-medium">
+          {aircraft}
+        </p>
+      )
+    },
   },
   {
     accessorKey: "actions",

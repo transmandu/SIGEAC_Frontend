@@ -57,7 +57,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import CertificatesCombobox from "./_components/TagCombobox";
+import CertificatesCombobox from "../../../../../components/misc/TagCombobox";
 
 interface Article {
   part_number: string;
