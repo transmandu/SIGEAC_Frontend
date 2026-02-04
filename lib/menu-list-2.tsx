@@ -151,6 +151,14 @@ export function getMenuList(
           roles: [],
           submenus: [
             {
+              href: `/${currentCompany?.slug}/general/reporte/pagina_de_sms`,
+              label: "Pagina de SMS",
+              roles: [],
+              active:
+                pathname ===
+                `/${currentCompany?.slug}/general/reporte/pagina_de_sms`,
+            },
+            {
               href: `/${currentCompany?.slug}/general/reporte/voluntario`,
               label: "Reporte Voluntario",
               roles: [],
@@ -174,6 +182,7 @@ export function getMenuList(
                 pathname ===
                 `/${currentCompany?.slug}/general/reporte/codigos_qr`,
             },
+            
           ],
         },
         {

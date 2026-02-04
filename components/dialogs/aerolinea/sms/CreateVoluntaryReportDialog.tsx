@@ -35,7 +35,7 @@ export default function CreateVoluntaryReportDialog({
               onClick={() => setOpen(true)}
               variant="outline"
               size="sm"
-              className=" hidden  lg:flex"
+              className="flex border-dashed"
             >
               {title}
             </Button>
