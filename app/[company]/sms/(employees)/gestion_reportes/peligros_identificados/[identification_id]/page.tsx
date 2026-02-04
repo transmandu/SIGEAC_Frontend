@@ -55,8 +55,8 @@ const ShowDangerIdentification = () => {
   const reportType = dangerIdentification?.voluntary_report
     ? "RVP"
     : dangerIdentification?.obligatory_report
-    ? "ROS"
-    : "N/A";
+      ? "ROS"
+      : "N/A";
 
   if (isLoading) {
     return <LoadingPage />;
@@ -190,12 +190,11 @@ const ShowDangerIdentification = () => {
                         Método de identificación:
                       </p>
                       <Badge
-                        className={`justify-center items-center text-center font-bold text-sm px-3 py-1 ${
-                          dangerIdentification.information_source.type ===
-                          "PROACTIVO"
+                        className={`justify-center items-center text-center font-bold text-sm px-3 py-1 ${dangerIdentification.information_source.type ===
+                            "PROACTIVO"
                             ? "bg-green-200 text-green-800 border-green-200 dark:bg-green-900/40 dark:text-green-300 dark:border-green-700"
                             : "bg-red-100 text-red-800 border-red-200 dark:bg-red-900/30 dark:text-red-300 dark:border-red-700"
-                        }`}
+                          }`}
                       >
                         {dangerIdentification.information_source.type}
                       </Badge>
@@ -226,7 +225,7 @@ const ShowDangerIdentification = () => {
                   </h3>
                   <ul className="space-y-3">
                     {dangerIdentification.possible_consequences
-                      .split(",")
+                      .split("\|/")
                       .map((consequence, index) => (
                         <li key={index} className="flex items-start gap-3">
                           <ChevronRight className="w-5 h-5 mt-1 flex-shrink-0 text-gray-500" />
@@ -248,7 +247,7 @@ const ShowDangerIdentification = () => {
                   </h3>
                   <ul className="space-y-3">
                     {dangerIdentification.current_defenses
-                      .split(",")
+                      .split("\|/")
                       .map((defense, index) => (
                         <li key={index} className="flex items-start gap-3">
                           <ChevronRight className="w-5 h-5 mt-1 flex-shrink-0 text-gray-500" />
@@ -270,7 +269,7 @@ const ShowDangerIdentification = () => {
               </h3>
               <ul className="space-y-3">
                 {dangerIdentification.root_cause_analysis
-                  .split(",")
+                  .split("\|/")
                   .map((analysis, index) => (
                     <li key={index} className="flex items-start gap-3">
                       <ChevronRight className="w-5 h-5 mt-1 flex-shrink-0 text-gray-500" />
