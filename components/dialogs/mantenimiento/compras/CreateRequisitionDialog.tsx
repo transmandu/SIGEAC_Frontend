@@ -17,8 +17,8 @@ import {
   TabsTrigger,
 } from "@/components/ui/tabs"
 import { useAuth } from "@/contexts/AuthContext"
-import { CreateRequisitionForm } from "@/components/forms/mantenimiento/compras/CreateRequisitionForm"
-import { CreateGeneralRequisitionForm } from "@/components/forms/mantenimiento/compras/CreateGeneralRequisitionForm"
+import { CreateEngineeringBatchRequisitionForm } from "@/components/forms/mantenimiento/compras/CreateEngineeringBatchRequisitionForm"
+import { CreateGeneralBatchRequisitionForm } from "@/components/forms/mantenimiento/compras/CreateGeneralBatchRequisitionForm"
 
 type Role = string
 
@@ -53,9 +53,9 @@ export function CreateRequisitionDialog() {
 
   const batchRequisitionRules: RoleFormRule[] = [
     {
-      allow: ["INGENIERO"],
+      allow: ["ENGINEERING"],
       render: () => (
-        <CreateRequisitionForm
+        <CreateEngineeringBatchRequisitionForm
           onClose={() => setOpen(false)}
         />
       ),
@@ -63,7 +63,7 @@ export function CreateRequisitionDialog() {
     {
       default: true,
       render: () => (
-        <CreateGeneralRequisitionForm
+        <CreateGeneralBatchRequisitionForm
           isEditing={false}
           onClose={() => setOpen(false)}
         />

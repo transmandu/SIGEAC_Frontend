@@ -72,7 +72,7 @@ export const columns: ColumnDef<Requisition>[] = [
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Status" />
     ),
-    meta: { title: "Status" },
+    meta: { title: "Estado" },
     cell: ({ row }) => {
       const process = row.original.status === 'PROCESO' || row.original.status === 'COTIZADO'
       const aproved = row.original.status === 'APROBADO'
@@ -89,16 +89,6 @@ export const columns: ColumnDef<Requisition>[] = [
     meta: { title: "Justificación" },
     cell: ({ row }) => (
       <p className="text-center flex justify-center text-muted-foreground italic">{row.original.justification?? 'N/A'}</p>
-    )
-  },
-  {
-    accessorKey: "submission_date",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Fecha de Creación" />
-    ),
-    meta: { title: "Fecha de c." },
-    cell: ({ row }) => (
-      <p className="text-center">{format(row.original.submission_date, "PPP", { locale: es })}</p>
     )
   },
   {
@@ -128,6 +118,16 @@ export const columns: ColumnDef<Requisition>[] = [
         </p>
       )
     },
+  },
+  {
+    accessorKey: "submission_date",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Fecha de Creación" />
+    ),
+    meta: { title: "Fecha de c." },
+    cell: ({ row }) => (
+      <p className="text-center">{format(row.original.submission_date, "PPP", { locale: es })}</p>
+    )
   },
   {
     accessorKey: "actions",

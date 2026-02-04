@@ -916,16 +916,16 @@ export function getMenuList(
         //   roles: ["SUPERUSER"],
         //   submenus: [],
         // },
-        {
-          href: `/${currentCompany?.slug}/ingenieria/requisiciones/nueva_requisicion`,
-          label: "Solicitudes de Compra",
-          active: pathname.includes(
-            `/${currentCompany?.slug}/ingenieria/requisiciones/nueva_requisicion`
-          ),
-          icon: ScrollText,
-          roles: ["SUPERUSER", "ENGINEERING"],
-          submenus: [],
-        },
+        // {
+        //   href: `/${currentCompany?.slug}/ingenieria/requisiciones/nueva_requisicion`,
+        //   label: "Solicitudes de Compra",
+        //   active: pathname.includes(
+        //     `/${currentCompany?.slug}/ingenieria/requisiciones/nueva_requisicion`
+        //   ),
+        //   icon: ScrollText,
+        //   roles: ["SUPERUSER", "ENGINEERING"],
+        //   submenus: [],
+        // },
       ],
     },
     {
