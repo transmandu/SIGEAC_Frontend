@@ -150,7 +150,9 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
   })
 
   const { data: hardwareRes, isLoading: isHardwareLoading } = useGetGeneralArticles()
-  const hardwareArticles: GeneralArticle[] = hardwareRes ?? []
+  const hardwareArticles = useMemo<GeneralArticle[]>(() => {
+    return hardwareRes ?? []
+  }, [hardwareRes])
 
   const form = useForm<FormSchemaType>({
     resolver: zodResolver(FormSchema),
@@ -186,8 +188,14 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
     return map
   }, [hardwareArticles])
 
-  const getAeroMax = (articleId: number) => aeroById.get(articleId)?.quantity || 0
-  const getGenMax = (generalId: number) => genById.get(generalId)?.quantity || 0
+  const getAeroMax = useCallback(
+    (articleId: number) => aeroById.get(articleId)?.quantity || 0,
+    [aeroById]
+  )
+  const getGenMax = useCallback(
+    (generalId: number) => genById.get(generalId)?.quantity || 0,
+    [genById]
+  )
 
   // Reset destino al cambiar tipo
   useEffect(() => {
@@ -205,22 +213,25 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
     setMsgByKey((p) => ({ ...p, [key]: msg }))
   }
 
-  const validateAndClamp = (key: string, raw: string, max: number) => {
-    const n = parseFloat(raw || "0") || 0
+  const validateAndClamp = useCallback(
+    (key: string, raw: string, max: number) => {
+      const n = parseFloat(raw || "0") || 0
 
-    if (!raw || n <= 0) {
-      setRowMsg(key, { msg: "La cantidad debe ser mayor a 0", level: "error" })
+      if (!raw || n <= 0) {
+        setRowMsg(key, { msg: "La cantidad debe ser mayor a 0", level: "error" })
+        return raw
+      }
+
+      if (max > 0 && n > max) {
+        setRowMsg(key, { msg: `Se ajustó al máximo disponible: ${max}`, level: "warn" })
+        return String(max)
+      }
+
+      setRowMsg(key, undefined)
       return raw
-    }
-
-    if (max > 0 && n > max) {
-      setRowMsg(key, { msg: `Se ajustó al máximo disponible: ${max}`, level: "warn" })
-      return String(max)
-    }
-
-    setRowMsg(key, undefined)
-    return raw
-  }
+    },
+    []
+  )
 
   const commitAeroQty = useCallback(
     (index: number, fieldId: string) => {
@@ -230,12 +241,11 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
 
       const raw = qtyByKey[key] ?? ""
       const adjusted = validateAndClamp(key, raw, max)
-      setQtyByKey((p) => ({ ...p, [key]: adjusted }))
 
-      const q = parseFloat(adjusted || "0") || 0
-      setValue(`aeronautical_articles.${index}.quantity`, q)
+      setQtyByKey((p) => ({ ...p, [key]: adjusted }))
+      setValue(`aeronautical_articles.${index}.quantity`, parseFloat(adjusted || "0") || 0)
     },
-    [getValues, qtyByKey, setValue, aeroById]
+    [getValues, qtyByKey, setValue, getAeroMax, validateAndClamp]
   )
 
   const commitGenQty = useCallback(
@@ -246,12 +256,11 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
 
       const raw = qtyByKey[key] ?? ""
       const adjusted = validateAndClamp(key, raw, max)
-      setQtyByKey((p) => ({ ...p, [key]: adjusted }))
 
-      const q = parseFloat(adjusted || "0") || 0
-      setValue(`general_articles.${index}.quantity`, q)
+      setQtyByKey((p) => ({ ...p, [key]: adjusted }))
+      setValue(`general_articles.${index}.quantity`, parseFloat(adjusted || "0") || 0)
     },
-    [getValues, qtyByKey, setValue, genById]
+    [getValues, qtyByKey, setValue, getGenMax, validateAndClamp]
   )
 
   const clearRowState = (key: string) => {
