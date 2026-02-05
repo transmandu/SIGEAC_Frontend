@@ -19,6 +19,7 @@ import {
 import { useAuth } from "@/contexts/AuthContext"
 import { CreateEngineeringBatchRequisitionForm } from "@/components/forms/mantenimiento/compras/CreateEngineeringBatchRequisitionForm"
 import { CreateGeneralBatchRequisitionForm } from "@/components/forms/mantenimiento/compras/CreateGeneralBatchRequisitionForm"
+import { CreateGeneralArticleRequisitionForm } from "@/components/forms/mantenimiento/compras/CreateGeneralArticleRequisitionForm"
 
 type Role = string
 
@@ -51,6 +52,7 @@ export function CreateRequisitionDialog() {
 
   const userRoles = user?.roles?.map(role => role.name) || []
 
+  /* ==================== Reglas Batch / Lote ==================== */
   const batchRequisitionRules: RoleFormRule[] = [
     {
       allow: ["ENGINEERING"],
@@ -64,6 +66,20 @@ export function CreateRequisitionDialog() {
       default: true,
       render: () => (
         <CreateGeneralBatchRequisitionForm
+          isEditing={false}
+          onClose={() => setOpen(false)}
+        />
+      ),
+    },
+  ]
+
+  /* ==================== Reglas Artículo ==================== */
+  const articleRequisitionRules: RoleFormRule[] = [
+    {
+      // Por ahora cualquier rol cae aquí
+      default: true,
+      render: () => (
+        <CreateGeneralArticleRequisitionForm
           isEditing={false}
           onClose={() => setOpen(false)}
         />
@@ -101,22 +117,16 @@ export function CreateRequisitionDialog() {
             </TabsTrigger>
           </TabsList>
 
+          {/* ================= TAB ARTÍCULO ================= */}
           <TabsContent value="articulo" className="mt-4">
-            <div className="flex flex-col items-center justify-center gap-2 py-10 text-center text-muted-foreground border border-dashed rounded-md">
-              <p className="text-sm font-medium">
-                Módulo en desarrollo
-              </p>
-              <p className="text-xs">
-                La creación de solicitudes por Artículo estará disponible próximamente.
-              </p>
-            </div>
+            {renderByRules(userRoles, articleRequisitionRules)}
           </TabsContent>
 
+          {/* ================= TAB LOTE ================= */}
           <TabsContent value="batch" className="mt-4">
             {renderByRules(userRoles, batchRequisitionRules)}
           </TabsContent>
         </Tabs>
-
       </DialogContent>
     </Dialog>
   )
