@@ -55,7 +55,7 @@ export const columns: ColumnDef<VoluntaryReport>[] = [
       );
     },
   },
-  {
+ /* {
     accessorKey: "danger_location",
     header: ({ column }) => (
       <DataTableColumnHeader
@@ -71,7 +71,7 @@ export const columns: ColumnDef<VoluntaryReport>[] = [
         </p>
       );
     },
-  },
+  }, */
   {
     accessorKey: "description",
     header: ({ column }) => (

@@ -74,7 +74,7 @@ export function DataTable<TData, TValue>({
           }}
           variant="outline"
           size="sm"
-          className=" hidden h-8 lg:flex  border-dashed"
+          className=" flex h-8 border-dashed"
         >
           Nueva
         </Button>
