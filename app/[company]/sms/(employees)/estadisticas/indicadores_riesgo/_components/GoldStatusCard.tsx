@@ -102,7 +102,7 @@ export const GoalStatusCard: React.FC<GoalStatusCardProps> = ({
                   </span>
                 </div>
                 <div className="text-2xl font-bold text-black">
-                  {result}% de reportes gestionados
+                  {Number(result).toFixed(2)}% de reportes gestionados
                 </div>
               </div>
             </div>
