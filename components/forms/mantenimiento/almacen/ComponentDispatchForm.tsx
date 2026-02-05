@@ -516,7 +516,7 @@ export function ComponentDispatchForm({ onClose }: FormProps) {
                                   key={aircraft.id}
                                   value={aircraft.id.toString()}
                                 >
-                                  {aircraft.acronym} - {aircraft.manufacturer.name}
+                                  {aircraft.acronym} - {aircraft.manufacturer?.name ?? "Sin fabricante"}
                                 </SelectItem>
                               ))}
                           </>
