@@ -457,19 +457,6 @@ const form = useForm<FormSchemaType>({
         </div>
         <FormField
           control={form.control}
-          name="alternative_part_number"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Número de Parte Alternativo</FormLabel>
-              <FormControl>
-                <Input placeholder="EJ: ALT-12345" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
           name="description"
           render={({ field }) => (
             <FormItem>
