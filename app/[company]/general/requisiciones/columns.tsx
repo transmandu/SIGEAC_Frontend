@@ -70,7 +70,7 @@ export const columns: ColumnDef<Requisition>[] = [
   {
     accessorKey: "status",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Status" />
+      <DataTableColumnHeader column={column} title="Estado" />
     ),
     meta: { title: "Estado" },
     cell: ({ row }) => {
@@ -96,16 +96,17 @@ export const columns: ColumnDef<Requisition>[] = [
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Tipo de Req." />
     ),
-    meta: { title: "Fecha de c." },
+    meta: { title: "Tipo de Req." },
     cell: ({ row }) => (
       <p className="text-center">{row.original.type}</p>
     )
   },
   {
-    id: "aircraft",
+    accessorKey: "aircraft",
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Aeronave" />
     ),
+    meta: { title: "Aeronave" },
     cell: ({ row }) => {
       const aircraft =
         row.original.batch
@@ -124,7 +125,7 @@ export const columns: ColumnDef<Requisition>[] = [
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Fecha de Creación" />
     ),
-    meta: { title: "Fecha de c." },
+    meta: { title: "Fecha de Creación" },
     cell: ({ row }) => (
       <p className="text-center">{format(row.original.submission_date, "PPP", { locale: es })}</p>
     )

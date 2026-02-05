@@ -26,28 +26,39 @@ export function DataTableViewOptions<TData>({
         <Button
           variant="outline"
           size="sm"
-          className="flex ml-auto h-8"
+          className="ml-auto h-8 flex"
         >
           <SlidersHorizontal className="mr-2 h-4 w-4" />
           Ver
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="start" className="w-[150px]">
-        <DropdownMenuLabel>Mostrar/Ocultar</DropdownMenuLabel>
+
+      <DropdownMenuContent align="start" className="w-[200px]">
+        <DropdownMenuLabel>Mostrar / Ocultar</DropdownMenuLabel>
         <DropdownMenuSeparator />
+
         {table
           .getAllColumns()
-          .filter((column) => column.getCanHide?.())
-          .map((column) => (
-            <DropdownMenuCheckboxItem
-              key={column.id}
-              className="capitalize"
-              checked={column.getIsVisible()}
-              onCheckedChange={(value) => column.toggleVisibility(!!value)}
-            >
-              {column.id}
-            </DropdownMenuCheckboxItem>
-          ))}
+          .filter((column) => column.getCanHide())
+          .map((column) => {
+            const title =
+              column.columnDef.meta?.title ??
+              (typeof column.columnDef.header === "string"
+                ? column.columnDef.header
+                : column.id);
+
+            return (
+              <DropdownMenuCheckboxItem
+                key={column.id}
+                checked={column.getIsVisible()}
+                onCheckedChange={(value) =>
+                  column.toggleVisibility(!!value)
+                }
+              >
+                {title}
+              </DropdownMenuCheckboxItem>
+            );
+          })}
       </DropdownMenuContent>
     </DropdownMenu>
   );
