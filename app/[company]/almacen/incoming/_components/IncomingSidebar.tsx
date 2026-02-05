@@ -17,8 +17,8 @@ import type {
   ChecklistGroup,
   ChecklistValue,
   IncomingConfirmPayload,
-} from "./IncomingTypes";
-import { ChecklistGroupUI } from "./ChecklistGroup";
+} from "@/app/[company]/almacen/incoming/IncomingTypes";
+import { ChecklistGroupUI } from "./CheckListGroup";
 import { cn } from "@/lib/utils";
 
 export function IncomingSidebar({
