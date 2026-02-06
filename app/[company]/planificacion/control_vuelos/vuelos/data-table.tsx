@@ -67,7 +67,6 @@ export function DataTable<TData, TValue>({
   return (
     <div>
       <div className="flex items-center justify-between py-4">
-        <CreateFlightControlDialog />
         <div className="flex items-center gap-2">
           <Link href={`/${selectedCompany?.slug}/planificacion/control_vuelos/historial_vuelo`}>
             <Button variant="outline" size="sm" className="flex items-center gap-2">

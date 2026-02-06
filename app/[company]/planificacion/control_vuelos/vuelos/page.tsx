@@ -13,6 +13,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Plane, Clock, Repeat2, AlertTriangle } from "lucide-react"
 import { DataTable } from "./data-table"
 import { getColumns } from "./columns"
+import { CreateFlightControlDialog } from "@/components/dialogs/aerolinea/administracion/CreateFlightControl"
 
 const FlightControlPage = () => {
   const { selectedCompany } = useCompanyStore()
@@ -49,21 +50,29 @@ const FlightControlPage = () => {
 
   if (isLoading || isAircraftsLoading) return <LoadingPage />
 
+  console.log('THIS IS ACTIVE AIRCRAFT ID', activeAircraftId);
+  
   return (
     <ContentLayout title="Control de vuelos">
       <div className="mx-auto w-full max-w-7xl space-y-6">
         <header className="space-y-1">
-          <h1 className="text-4xl font-semibold tracking-tight text-center">Control de Horas de Vuelo</h1>
+          <h1 className="text-4xl font-semibold tracking-tight text-center">
+            Control de Horas de Vuelo
+          </h1>
           <p className="text-sm text-muted-foreground text-center">
             Registro por aeronave con horas y ciclos por operación.
           </p>
         </header>
 
+        <CreateFlightControlDialog defaultAircraftId={activeAircraftId} />
+
         {isError && (
           <Alert variant="destructive">
             <AlertTriangle className="h-4 w-4" />
             <AlertTitle>Error</AlertTitle>
-            <AlertDescription>Ha ocurrido un problema al cargar los datos.</AlertDescription>
+            <AlertDescription>
+              Ha ocurrido un problema al cargar los datos.
+            </AlertDescription>
           </Alert>
         )}
 
@@ -107,23 +116,32 @@ const FlightControlPage = () => {
                 </TabsList>
 
                 {aircrafts.map((aircraft) => {
-                  const data = flights.filter((f) => f.aircraft?.id === aircraft.id)
+                  const data = flights.filter(
+                    (f) => f.aircraft?.id === aircraft.id,
+                  );
 
                   return (
-                    <TabsContent key={aircraft.id} value={String(aircraft.id)} className="mt-4">
+                    <TabsContent
+                      key={aircraft.id}
+                      value={String(aircraft.id)}
+                      className="mt-4"
+                    >
                       {data.length ? (
                         <DataTable columns={columns} data={data} />
                       ) : (
                         <div className="flex min-h-[240px] flex-col items-center justify-center gap-2 rounded-lg border border-dashed p-8 text-center">
                           <Plane className="h-5 w-5 text-muted-foreground" />
-                          <p className="text-sm font-medium">Sin vuelos registrados</p>
+                          <p className="text-sm font-medium">
+                            Sin vuelos registrados
+                          </p>
                           <p className="text-xs text-muted-foreground">
-                            Cuando se registren vuelos para {aircraft.acronym}, aparecerán aquí.
+                            Cuando se registren vuelos para {aircraft.acronym},
+                            aparecerán aquí.
                           </p>
                         </div>
                       )}
                     </TabsContent>
-                  )
+                  );
                 })}
               </Tabs>
             </CardContent>
@@ -131,7 +149,7 @@ const FlightControlPage = () => {
         )}
       </div>
     </ContentLayout>
-  )
+  );
 }
 
 export default FlightControlPage

@@ -1,4 +1,4 @@
-'use client';
+"use client";
 import {
   Form,
   FormControl,
@@ -16,14 +16,23 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Button } from "../../../ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "../../../ui/popover";
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "../../../ui/command";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "../../../ui/command";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { Calendar } from "../../../ui/calendar";
-import { useCreateFlightControl, useUpdateFlightControl } from "@/actions/mantenimiento/planificacion/vuelos/actions";
+import {
+  useCreateFlightControl,
+  useUpdateFlightControl,
+} from "@/actions/mantenimiento/planificacion/vuelos/actions";
 import { useCompanyStore } from "@/stores/CompanyStore";
-
 
 const formSchema = z.object({
   flight_number: z.string().optional(),
@@ -34,70 +43,84 @@ const formSchema = z.object({
   flight_hours: z.coerce.number(),
   flight_cycles: z.coerce.number(),
   aircraft_id: z.string(),
-})
-
+});
 
 interface FlightData {
-  id: string,
-  flight_number: string,
-  aircraft_operator: string,
-  origin: string,
-  destination: string,
-  flight_date: string | Date,
-  flight_hours: number,
-  flight_cycles: number,
-  aircraft_id: string,
+  id: string;
+  flight_number: string;
+  aircraft_operator: string;
+  origin: string;
+  destination: string;
+  flight_date: string | Date;
+  flight_hours: number;
+  flight_cycles: number;
+  aircraft_id: string;
 }
 
 interface FormProps {
-  onClose: () => void,
-  flightData?: FlightData,
+  onClose: () => void;
+  flightData?: FlightData;
+  deafultAircraftId?: string;
 }
 
-export default function CreateFlightControlForm({ onClose, flightData }: FormProps) {
-  const { createFlightControl } = useCreateFlightControl()
-  const { updateFlightControl } = useUpdateFlightControl()
-  const { selectedCompany } = useCompanyStore()
-  const { data: aircrafts, isLoading: isAircraftsLoading, isError: isAircraftsError } = useGetMaintenanceAircrafts(selectedCompany?.slug)
+export default function CreateFlightControlForm({
+  onClose,
+  deafultAircraftId,
+  flightData,
+}: FormProps) {
+  const { createFlightControl } = useCreateFlightControl();
+  const { updateFlightControl } = useUpdateFlightControl();
+  const { selectedCompany } = useCompanyStore();
+  const {
+    data: aircrafts,
+    isLoading: isAircraftsLoading,
+    isError: isAircraftsError,
+  } = useGetMaintenanceAircrafts(selectedCompany?.slug);
 
-  const isEditMode = !!flightData
+  const isEditMode = !!flightData;
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: flightData ? {
-      flight_cycles: flightData.flight_cycles,
-      flight_hours: flightData.flight_hours,
-      flight_number: flightData.flight_number,
-      origin: flightData.origin,
-      destination: flightData.destination,
-      aircraft_operator: flightData.aircraft_operator,
-      aircraft_id: flightData.aircraft_id.toString(),
-      flight_date: typeof flightData.flight_date === 'string' ? new Date(flightData.flight_date) : flightData.flight_date,
-    } : {
-      flight_cycles: 0,
-      flight_hours: 0,
-      flight_number: "",
-      origin: "",
-      destination: "",
-      aircraft_operator: "",
-    },
-  })
+    defaultValues: flightData
+      ? {
+          flight_cycles: flightData.flight_cycles,
+          flight_hours: flightData.flight_hours,
+          flight_number: flightData.flight_number,
+          origin: flightData.origin,
+          destination: flightData.destination,
+          aircraft_operator: flightData.aircraft_operator,
+          aircraft_id: flightData.aircraft_id.toString(),
+          flight_date:
+            typeof flightData.flight_date === "string"
+              ? new Date(flightData.flight_date)
+              : flightData.flight_date,
+        }
+      : {
+          flight_cycles: 0,
+          flight_hours: 0,
+          flight_number: "",
+          origin: "",
+          destination: "",
+          aircraft_operator: "",
+          aircraft_id: deafultAircraftId ?? "",
+        },
+  });
   const { control } = form;
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     if (isEditMode) {
       await updateFlightControl.mutateAsync({
         id: flightData.id,
         data: values,
-        company: selectedCompany!.slug
-      })
+        company: selectedCompany!.slug,
+      });
     } else {
       await createFlightControl.mutateAsync({
         data: values,
-        company: selectedCompany!.slug
-      })
+        company: selectedCompany!.slug,
+      });
     }
-    onClose()
-  }
+    onClose();
+  };
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col">
@@ -112,23 +135,31 @@ export default function CreateFlightControlForm({ onClose, flightData }: FormPro
                   <PopoverTrigger asChild>
                     <FormControl>
                       <Button
-                        disabled={isAircraftsLoading || isAircraftsError || isEditMode}
+                        disabled={
+                          isAircraftsLoading || isAircraftsError || isEditMode
+                        }
                         variant="outline"
                         role="combobox"
                         className={cn(
                           "justify-between",
-                          !field.value && "text-muted-foreground"
+                          !field.value && "text-muted-foreground",
                         )}
                       >
-                        {
-                          isAircraftsLoading && <Loader2 className="size-4 animate-spin mr-2" />
-                        }
-                        {field.value
-                          ? <p>{aircrafts?.find(
-                            (aircraft) => `${aircraft.id.toString()}` === field.value
-                          )?.acronym}</p>
-                          : "Elige la aeronave..."
-                        }
+                        {isAircraftsLoading && (
+                          <Loader2 className="size-4 animate-spin mr-2" />
+                        )}
+                        {field.value ? (
+                          <p>
+                            {
+                              aircrafts?.find(
+                                (aircraft) =>
+                                  `${aircraft.id.toString()}` === field.value,
+                              )?.acronym
+                            }
+                          </p>
+                        ) : (
+                          "Elige la aeronave..."
+                        )}
                         <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                       </Button>
                     </FormControl>
@@ -137,14 +168,19 @@ export default function CreateFlightControlForm({ onClose, flightData }: FormPro
                     <Command>
                       <CommandInput placeholder="Busque una aeronave..." />
                       <CommandList>
-                        <CommandEmpty className="text-sm p-2 text-center">No se ha encontrado ninguna aeronave.</CommandEmpty>
+                        <CommandEmpty className="text-sm p-2 text-center">
+                          No se ha encontrado ninguna aeronave.
+                        </CommandEmpty>
                         <CommandGroup>
                           {aircrafts?.map((aircraft) => (
                             <CommandItem
                               value={`${aircraft.id}`}
                               key={aircraft.id}
                               onSelect={() => {
-                                form.setValue("aircraft_id", aircraft.id.toString())
+                                form.setValue(
+                                  "aircraft_id",
+                                  aircraft.id.toString(),
+                                );
                               }}
                             >
                               <Check
@@ -152,12 +188,10 @@ export default function CreateFlightControlForm({ onClose, flightData }: FormPro
                                   "mr-2 h-4 w-4",
                                   `${aircraft.id.toString()}` === field.value
                                     ? "opacity-100"
-                                    : "opacity-0"
+                                    : "opacity-0",
                                 )}
                               />
-                              {
-                                <p>{aircraft.acronym}</p>
-                              }
+                              {<p>{aircraft.acronym}</p>}
                             </CommandItem>
                           ))}
                         </CommandGroup>
@@ -177,7 +211,12 @@ export default function CreateFlightControlForm({ onClose, flightData }: FormPro
             name="flight_number"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Nro. de Vuelo <span className="text-muted-foreground text-xs">(Opcional)</span></FormLabel>
+                <FormLabel>
+                  Nro. de Vuelo{" "}
+                  <span className="text-muted-foreground text-xs">
+                    (Opcional)
+                  </span>
+                </FormLabel>
                 <FormControl>
                   <Input placeholder="EJ: PZOCS199" {...field} />
                 </FormControl>
@@ -201,7 +240,7 @@ export default function CreateFlightControlForm({ onClose, flightData }: FormPro
                         variant={"outline"}
                         className={cn(
                           "pl-3 text-left font-normal",
-                          !field.value && "text-muted-foreground"
+                          !field.value && "text-muted-foreground",
                         )}
                       >
                         {field.value ? (
@@ -315,10 +354,20 @@ export default function CreateFlightControlForm({ onClose, flightData }: FormPro
             )}
           />
         </div>
-        <Button className="bg-primary mt-2 text-white hover:bg-blue-900 disabled:bg-primary/70 " disabled={createFlightControl?.isPending || updateFlightControl?.isPending} type="submit">
-          {(createFlightControl?.isPending || updateFlightControl?.isPending) ? <Loader2 className="size-4 animate-spin" /> : <p>{isEditMode ? 'Actualizar Vuelo' : 'Crear Vuelo'}</p>}
+        <Button
+          className="bg-primary mt-2 text-white hover:bg-blue-900 disabled:bg-primary/70 "
+          disabled={
+            createFlightControl?.isPending || updateFlightControl?.isPending
+          }
+          type="submit"
+        >
+          {createFlightControl?.isPending || updateFlightControl?.isPending ? (
+            <Loader2 className="size-4 animate-spin" />
+          ) : (
+            <p>{isEditMode ? "Actualizar Vuelo" : "Crear Vuelo"}</p>
+          )}
         </Button>
       </form>
     </Form>
-  )
+  );
 }
