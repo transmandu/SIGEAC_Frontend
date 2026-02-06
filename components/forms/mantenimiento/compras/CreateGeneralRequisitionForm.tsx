@@ -404,7 +404,7 @@ export function CreateGeneralRequisitionForm({
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="AERONAUTICO">AERONAUTICO</SelectItem>
+                    <SelectItem value="AERONAUTICO">Aeronáutico</SelectItem>
                     <SelectItem value="GENERAL">General</SelectItem>
                   </SelectContent>
                 </Select>
