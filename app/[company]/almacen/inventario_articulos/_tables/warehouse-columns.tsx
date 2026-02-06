@@ -382,10 +382,7 @@ export const componenteCols: ColumnDef<IArticleSimple>[] = [
       }
       return null;
     },
-    meta: {
-    sticky: "right",
-    className: "bg-background", // 👈 clave
-  },
+    meta: { sticky: "right", className: "bg-background" } as any,
   },
 ];
 
@@ -476,9 +473,7 @@ export const consumibleCols: ColumnDef<IArticleSimple>[] = [
       }
       return null;
     },
-    meta: {
-      sticky: "right", // 👈 importante
-    },
+    meta: { sticky: "right", className: "bg-background" } as any,
   },
 ];
 
@@ -549,9 +544,7 @@ export const herramientaCols: ColumnDef<IArticleSimple>[] = [
       }
       return null;
     },
-    meta: {
-      sticky: "right", // 👈 importante
-    },
+    meta: { sticky: "right", className: "bg-background" } as any,
   },
 ];
 
@@ -676,9 +669,7 @@ export const allCategoriesCols: ColumnDef<IArticleSimple>[] = [
       }
       return null;
     },
-    meta: {
-      sticky: "right", // 👈 importante
-    },
+    meta: { sticky: "right", className: "bg-background" } as any,
   },
 ];
 
