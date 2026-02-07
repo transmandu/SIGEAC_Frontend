@@ -10,6 +10,7 @@ interface IDispatchRequestAction {
   created_by: string;
   requested_by: string;
   category: string;
+  status?: string;
   aeronautical_articles?: {
     article_id: number;
     quantity?: number;
@@ -48,7 +49,6 @@ export const useCreateDispatchRequest = () => {
       });
     },
     onSuccess: (_, data) => {
-      console.log("invalidando querys", data.company, selectedStation);
       queryClient.invalidateQueries({
         queryKey: ["dispatches-requests", data.company, selectedStation],
       });
@@ -98,6 +98,7 @@ export const useUpdateStatusDispatchRequest = () => {
         queryKey: ["dispatches-requests-in-process"],
       }),
         queryClient.invalidateQueries({ queryKey: ["dispatched-articles"] }),
+        queryClient.invalidateQueries({ queryKey: ["warehouse-articles"] });
         toast.success("¡Actualizado!", {
           description: "¡La solicitud ha sido actualizada!",
         });
