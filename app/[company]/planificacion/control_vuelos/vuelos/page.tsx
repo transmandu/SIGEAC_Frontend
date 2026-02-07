@@ -1,57 +1,77 @@
-"use client"
+"use client";
 
-import { useEffect, useMemo, useState } from "react"
-import { ContentLayout } from "@/components/layout/ContentLayout"
-import LoadingPage from "@/components/misc/LoadingPage"
-import { useGetFlightControl } from "@/hooks/mantenimiento/planificacion/useGetFlightsControl"
-import { useCompanyStore } from "@/stores/CompanyStore"
-import { useGetMaintenanceAircrafts } from "@/hooks/mantenimiento/planificacion/useGetMaintenanceAircrafts"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Card, CardContent, CardHeader } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { Plane, Clock, Repeat2, AlertTriangle } from "lucide-react"
-import { DataTable } from "./data-table"
-import { getColumns } from "./columns"
-import { CreateFlightControlDialog } from "@/components/dialogs/aerolinea/administracion/CreateFlightControl"
+import { CreateFlightControlDialog } from "@/components/dialogs/aerolinea/administracion/CreateFlightControl";
+import { ContentLayout } from "@/components/layout/ContentLayout";
+import LoadingPage from "@/components/misc/LoadingPage";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Card, CardContent } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useGetFlightControl } from "@/hooks/mantenimiento/planificacion/useGetFlightsControl";
+import { useGetMaintenanceAircrafts } from "@/hooks/mantenimiento/planificacion/useGetMaintenanceAircrafts";
+import { useCompanyStore } from "@/stores/CompanyStore";
+import { AlertTriangle, Plane } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { getColumns } from "./columns";
+import { DataTable } from "./data-table";
+import { AircraftStatsBanner } from "./_components/AircraftStatsBanner";
+import { useGetAverageCyclesAndHours } from "@/hooks/aerolinea/vuelos/useGetAverageCyclesAndHours";
 
 const FlightControlPage = () => {
-  const { selectedCompany } = useCompanyStore()
-  const companySlug = selectedCompany?.slug ?? ""
+  const { selectedCompany } = useCompanyStore();
+  const companySlug = selectedCompany?.slug ?? "";
 
-  const { data: flights, isLoading, isError } = useGetFlightControl(companySlug)
-  const { data: aircrafts, isLoading: isAircraftsLoading } = useGetMaintenanceAircrafts(companySlug)
+  const {
+    data: flights,
+    isLoading,
+    isError,
+  } = useGetFlightControl(companySlug);
+  const { data: aircrafts, isLoading: isAircraftsLoading } =
+    useGetMaintenanceAircrafts(companySlug);
 
-  const [activeAircraftId, setActiveAircraftId] = useState<string>("")
+  const [activeAircraftId, setActiveAircraftId] = useState<string>("");
+
+  const activeAircraftAcronym = useMemo(() => {
+    const selected = aircrafts?.find((a) => String(a.id) === activeAircraftId);
+    return selected?.acronym ?? "";
+  }, [aircrafts, activeAircraftId]);
 
   useEffect(() => {
     if (!activeAircraftId && aircrafts?.length) {
-      setActiveAircraftId(String(aircrafts[0].id))
+      setActiveAircraftId(String(aircrafts[0].id));
     }
-  }, [aircrafts, activeAircraftId])
+  }, [aircrafts, activeAircraftId]);
+  const {
+    data: averageStats,
+    isLoading: isLoadingAverageStats,
+    isError: isErrorAverageStats,
+  } = useGetAverageCyclesAndHours(selectedCompany?.slug, activeAircraftAcronym);
 
-  const columns = useMemo(() => getColumns(companySlug), [companySlug])
+  const columns = useMemo(() => getColumns(companySlug), [companySlug]);
 
   const activeFlights = useMemo(() => {
-    if (!flights?.length || !activeAircraftId) return []
-    const id = Number(activeAircraftId)
-    return flights.filter((f) => f.aircraft?.id === id)
-  }, [flights, activeAircraftId])
+    if (!flights?.length || !activeAircraftId) return [];
+    const id = Number(activeAircraftId);
+    return flights.filter((f) => f.aircraft?.id === id);
+  }, [flights, activeAircraftId]);
 
   const stats = useMemo(() => {
-    const totalHours = activeFlights.reduce((acc, f) => acc + Number(f.flight_hours ?? 0), 0)
-    const totalCycles = activeFlights.reduce((acc, f) => acc + Number(f.flight_cycles ?? 0), 0)
+    const totalHours = activeFlights.reduce(
+      (acc, f) => acc + Number(f.flight_hours ?? 0),
+      0,
+    );
+    const totalCycles = activeFlights.reduce(
+      (acc, f) => acc + Number(f.flight_cycles ?? 0),
+      0,
+    );
     return {
       count: activeFlights.length,
       totalHours,
       totalCycles,
-    }
-  }, [activeFlights])
+    };
+  }, [activeFlights]);
 
-  if (isLoading || isAircraftsLoading) return <LoadingPage />
+  if (isLoading || isAircraftsLoading) return <LoadingPage />;
 
-  console.log('THIS IS ACTIVE AIRCRAFT ID', activeAircraftId);
-  
   return (
     <ContentLayout title="Control de vuelos">
       <div className="mx-auto w-full max-w-7xl space-y-6">
@@ -77,25 +97,26 @@ const FlightControlPage = () => {
         )}
 
         {!!aircrafts?.length && flights && (
-          <Card className="shadow-sm">
-            <CardHeader className="pb-3">
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Badge variant="secondary" className="gap-1">
-                    <Plane className="h-3.5 w-3.5" />
-                    {stats.count} vuelos
-                  </Badge>
-                  <Badge variant="secondary" className="gap-1">
-                    <Clock className="h-3.5 w-3.5" />
-                    {stats.totalHours.toFixed(1)} h
-                  </Badge>
-                  <Badge variant="secondary" className="gap-1">
-                    <Repeat2 className="h-3.5 w-3.5" />
-                    {stats.totalCycles} ciclos
-                  </Badge>
-                </div>
-              </div>
-            </CardHeader>
+          <Card className="">
+            <div className="flex">
+              <AircraftStatsBanner
+                title="Totales"
+                cycles={stats.totalCycles}
+                hours={stats.totalCycles}
+                flights={stats.count}
+                isVisible={true}
+              />
+
+              {averageStats && (
+                <AircraftStatsBanner
+                  title="Promedio"
+                  cycles={averageStats?.average_flight_cycles}
+                  hours={averageStats?.average_flight_hours}
+                  flights={averageStats?.total_flights}
+                  isVisible={isLoadingAverageStats ? false : true}
+                />
+              )}
+            </div>
 
             <CardContent className="pt-0">
               <Tabs
@@ -150,6 +171,6 @@ const FlightControlPage = () => {
       </div>
     </ContentLayout>
   );
-}
+};
 
-export default FlightControlPage
+export default FlightControlPage;

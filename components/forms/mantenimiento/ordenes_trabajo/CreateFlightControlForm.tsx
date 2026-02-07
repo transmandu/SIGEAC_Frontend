@@ -136,7 +136,7 @@ export default function CreateFlightControlForm({
                     <FormControl>
                       <Button
                         disabled={
-                          isAircraftsLoading || isAircraftsError || isEditMode
+                          (isAircraftsLoading || isAircraftsError || isEditMode) || (deafultAircraftId !== null)
                         }
                         variant="outline"
                         role="combobox"

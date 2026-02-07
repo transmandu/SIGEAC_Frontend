@@ -18,24 +18,31 @@ interface DateRange {
 const fetchAverageCyclesAndHours = async (
   company?: string,
   acronym?: string,
-  dateRange?: DateRange
+  dateRange?: DateRange | null,
 ): Promise<AverageCyclesAndHoursResponse> => {
- 
   const { data } = await axiosInstance.get(
-    `/${company}/average-cycles-and-hours/${acronym}?first_date=${dateRange?.first_date}&second_date=${dateRange?.second_date}`);
-    console.log(data);
+    `/${company}/average-cycles-and-hours/${acronym}`,
+    {
+      params: {
+        first_date: dateRange?.first_date,
+        second_date: dateRange?.second_date,
+      },
+    },
+  );
+
   return data;
 };
 
+//IF YOU DO NOT HAVE A DATE RANGE, THIS WILL CALCULATE ALL RECORDS
 export const useGetAverageCyclesAndHours = (
   company?: string,
   acronym?: string,
-  dateRange?: DateRange
+  dateRange?: DateRange | null
 ) => {
   return useQuery<AverageCyclesAndHoursResponse, Error>({
     queryKey: ["average-cycles-hours", company, acronym, dateRange],
-    queryFn: () => fetchAverageCyclesAndHours(company, acronym, dateRange),
+    queryFn: () => fetchAverageCyclesAndHours(company, acronym, dateRange?? null),
     refetchOnWindowFocus: false,
-    enabled: !!company && !!acronym && !!dateRange?.first_date && !!dateRange?.second_date,
+    enabled: !!company && !!acronym
   });
 };

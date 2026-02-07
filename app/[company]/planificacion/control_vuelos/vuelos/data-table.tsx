@@ -1,9 +1,9 @@
-"use client"
+"use client";
 
-import { CreateFlightControlDialog } from "@/components/dialogs/aerolinea/administracion/CreateFlightControl"
-import { DataTablePagination } from "@/components/tables/DataTablePagination"
-import { DataTableViewOptions } from "@/components/tables/DataTableViewOptions"
-import { Button } from "@/components/ui/button"
+import { CreateFlightControlDialog } from "@/components/dialogs/aerolinea/administracion/CreateFlightControl";
+import { DataTablePagination } from "@/components/tables/DataTablePagination";
+import { DataTableViewOptions } from "@/components/tables/DataTableViewOptions";
+import { Button } from "@/components/ui/button";
 import {
   Table,
   TableBody,
@@ -11,8 +11,8 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table"
-import { useCompanyStore } from "@/stores/CompanyStore"
+} from "@/components/ui/table";
+import { useCompanyStore } from "@/stores/CompanyStore";
 import {
   ColumnDef,
   ColumnFiltersState,
@@ -23,26 +23,23 @@ import {
   getSortedRowModel,
   SortingState,
   useReactTable,
-} from "@tanstack/react-table"
-import { History } from "lucide-react"
-import Link from "next/link"
-import { useRouter } from "next/navigation"
-import { useState } from "react"
+} from "@tanstack/react-table";
+import { History } from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 interface DataTableProps<TData, TValue> {
-  columns: ColumnDef<TData, TValue>[]
-  data: TData[]
+  columns: ColumnDef<TData, TValue>[];
+  data: TData[];
 }
 
 export function DataTable<TData, TValue>({
   columns,
   data,
 }: DataTableProps<TData, TValue>) {
-
-  const [sorting, setSorting] = useState<SortingState>([])
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>(
-    []
-  )
+  const [sorting, setSorting] = useState<SortingState>([]);
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
 
   const table = useReactTable({
     data,
@@ -55,27 +52,35 @@ export function DataTable<TData, TValue>({
     getFilteredRowModel: getFilteredRowModel(),
     state: {
       sorting,
-      columnFilters
-    }
-  })
+      columnFilters,
+    },
+  });
 
   const router = useRouter();
   const { selectedCompany } = useCompanyStore();
 
-  const isFiltered = table.getState().columnFilters.length > 0
+  const isFiltered = table.getState().columnFilters.length > 0;
 
   return (
     <div>
       <div className="flex items-center justify-between py-4">
-        <div className="flex items-center gap-2">
-          <Link href={`/${selectedCompany?.slug}/planificacion/control_vuelos/historial_vuelo`}>
-            <Button variant="outline" size="sm" className="flex items-center gap-2">
-              <History className="h-4 w-4" />
-              Historial de Vuelos
-            </Button>
-          </Link>
-          <DataTableViewOptions table={table} />
-        </div>
+          <div>
+            <Link
+              href={`/${selectedCompany?.slug}/planificacion/control_vuelos/historial_vuelo`}
+            >
+              <Button
+                variant="outline"
+                size="sm"
+                className="flex items-center gap-2"
+              >
+                <History className="h-4 w-4" />
+                Historial de Vuelos
+              </Button>
+            </Link>
+          </div>
+          <div>
+            <DataTableViewOptions table={table} />
+          </div>
       </div>
       <div className="rounded-md border mb-4">
         <Table>
@@ -88,11 +93,11 @@ export function DataTable<TData, TValue>({
                       {header.isPlaceholder
                         ? null
                         : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
+                            header.column.columnDef.header,
+                            header.getContext(),
+                          )}
                     </TableHead>
-                  )
+                  );
                 })}
               </TableRow>
             ))}
@@ -106,14 +111,20 @@ export function DataTable<TData, TValue>({
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext(),
+                      )}
                     </TableCell>
                   ))}
                 </TableRow>
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={columns.length} className="h-24 text-center text-muted-foreground">
+                <TableCell
+                  colSpan={columns.length}
+                  className="h-24 text-center text-muted-foreground"
+                >
                   No se ha encontrado ningún resultado...
                 </TableCell>
               </TableRow>
@@ -123,5 +134,5 @@ export function DataTable<TData, TValue>({
       </div>
       <DataTablePagination table={table} />
     </div>
-  )
+  );
 }
