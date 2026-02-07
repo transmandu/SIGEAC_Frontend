@@ -76,8 +76,8 @@ const FormSchema = z.object({
     ),
 }).refine(
   (data) => {
-    // Si el tipo es AVIACION, aircraft_id es obligatorio
-    if (data.type === "AVIACION" && !data.aircraft_id) {
+    // Si el tipo es AERONAUTICO, aircraft_id es obligatorio
+    if (data.type === "AERONAUTICO" && !data.aircraft_id) {
       return false;
     }
     return true;
@@ -278,7 +278,7 @@ export function CreateGeneralRequisitionForm({
         ...batch,
         batch_articles: batch.batch_articles.map(article => ({
           ...article,
-          aircraft_id: data.type === "AVIACION" ? data.aircraft_id : undefined
+          aircraft_id: data.type === "AERONAUTICO" ? data.aircraft_id : undefined
         }))
       }))
     };
@@ -404,7 +404,7 @@ export function CreateGeneralRequisitionForm({
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="AVIACION">Aviacion</SelectItem>
+                    <SelectItem value="AERONAUTICO">Aeronáutico</SelectItem>
                     <SelectItem value="GENERAL">General</SelectItem>
                   </SelectContent>
                 </Select>
@@ -471,7 +471,7 @@ export function CreateGeneralRequisitionForm({
                       </PopoverContent>
                     </Popover>
                   </FormItem>
-                {form.watch("type") === "AVIACION" && (
+                {form.watch("type") === "AERONAUTICO" && (
                   <FormField
                     control={form.control}
                     name="aircraft_id"
