@@ -1,7 +1,7 @@
 "use client"
 import { ContentLayout } from '@/components/layout/ContentLayout'
 import React from 'react'
-import { IncomingReview } from '../_components/IncomingReview'
+import { IncomingReview } from '../../../control_calidad/incoming/_components/IncomingReview'
 import { useParams } from 'next/navigation';
 import { useGetArticle } from '@/hooks/mantenimiento/almacen/articulos/useGetArticle';
 import { useGetArticleById } from '@/hooks/mantenimiento/almacen/articulos/useGetArticleById';

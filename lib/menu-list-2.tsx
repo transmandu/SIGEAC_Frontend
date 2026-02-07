@@ -36,6 +36,7 @@ import {
   User2,
   UserRoundCog,
   Wrench,
+  FilePen
 } from "lucide-react";
 
 type Submenu = {
@@ -182,7 +183,7 @@ export function getMenuList(
                 pathname ===
                 `/${currentCompany?.slug}/general/reporte/codigos_qr`,
             },
-            
+
           ],
         },
         {
@@ -877,6 +878,22 @@ export function getMenuList(
                 `/${currentCompany?.slug}/planificacion/control_vuelos/reportes`,
             },
           ],
+        },
+      ],
+    },
+        {
+      groupLabel: "Control de Calidad",
+      menus: [
+        {
+          href: `/${currentCompany?.slug}/control_calidad/incoming`,
+          label: "Gestión de Incoming",
+
+          active: pathname.includes(
+            `/${currentCompany?.slug}/control_calidad/incoming`
+          ),
+          icon: FilePen,
+          roles: ["JEFE_CONTROL_CALIDAD", "SUPERUSER"],
+          submenus: [],
         },
       ],
     },
