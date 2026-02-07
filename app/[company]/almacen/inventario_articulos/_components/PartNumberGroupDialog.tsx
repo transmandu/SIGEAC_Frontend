@@ -143,7 +143,7 @@ export function PartNumberGroupDialog({ open, onOpenChange, partNumber, rows }: 
                       <div className="col-span-3 px-3 py-2">Descripción</div>
                       <div className="col-span-2 px-3 py-2 text-center">Estado</div>
                       <div className="col-span-2 px-3 py-2 text-center">Ubicación</div>
-                      <div className="col-span-2 px-3 py-2 text-center">Shelf Life</div>
+                      <div className="col-span-2 px-3 py-2 text-center">Vencimiento</div>
                     </div>
 
                     <div className="divide-y">

@@ -250,7 +250,7 @@ const baseCols: ColumnDef<IArticleSimple>[] = [
         return (
           <div className="flex justify-center">
             <Badge variant="outline" className="text-xs">
-              Grupo
+              <p>Grupo <span className="text-xs text-muted-foreground">({row.original.__groupCount ?? 0})</span></p>
             </Badge>
           </div>
         );
