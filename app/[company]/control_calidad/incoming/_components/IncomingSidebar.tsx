@@ -17,7 +17,7 @@ import type {
   ChecklistGroup,
   ChecklistValue,
   IncomingConfirmPayload,
-} from "@/app/[company]/almacen/incoming/IncomingTypes";
+} from "@/app/[company]/control_calidad/incoming/IncomingTypes";
 import { ChecklistGroupUI } from "./CheckListGroup";
 import { cn } from "@/lib/utils";
 

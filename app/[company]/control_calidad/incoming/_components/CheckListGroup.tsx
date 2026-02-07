@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { ChecklistGroup, ChecklistValue } from "../../../almacen/incoming/IncomingTypes";
+import { ChecklistGroup, ChecklistValue } from "@/app/[company]/control_calidad/incoming/IncomingTypes";
 export function ChecklistGroupUI({
   group,
   values,

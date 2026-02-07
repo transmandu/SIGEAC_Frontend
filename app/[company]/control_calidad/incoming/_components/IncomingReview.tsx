@@ -16,7 +16,7 @@ import {
 import { IncomingHeader } from "./IncomingHeader";
 import { IncomingSidebar } from "./IncomingSidebar";
 import { ReadOnlyField } from "./ReadOnlyField";
-import type { ChecklistGroup, ChecklistValue, IncomingConfirmPayload } from "@/app/[company]/almacen/incoming/IncomingTypes";
+import type { ChecklistGroup, ChecklistValue, IncomingConfirmPayload } from "@/app/[company]/control_calidad/incoming/IncomingTypes";
 
 export function IncomingReview({
   article,

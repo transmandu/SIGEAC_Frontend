@@ -172,8 +172,19 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
   const genFA = useFieldArray({ control, name: "general_articles" })
 
   // Watch arrays (evita getValues repetido en render)
-  const watchedAero = useWatch({ control, name: "aeronautical_articles" }) ?? []
-  const watchedGen = useWatch({ control, name: "general_articles" }) ?? []
+  const watchedAeroRaw = useWatch({ control, name: "aeronautical_articles" })
+  const watchedGenRaw = useWatch({ control, name: "general_articles" })
+
+  const watchedAero = useMemo(() => watchedAeroRaw ?? [], [watchedAeroRaw])
+  const watchedGen = useMemo(() => watchedGenRaw ?? [], [watchedGenRaw])
+
+  const aeroSelectedSet = useMemo(() => {
+    return new Set(watchedAero.map((x) => Number(x.article_id)))
+  }, [watchedAero])
+
+  const genSelectedSet = useMemo(() => {
+    return new Set(watchedGen.map((x) => Number(x.general_article_id)))
+  }, [watchedGen])
 
   // Lookups
   const aeroById = useMemo(() => {
@@ -249,7 +260,7 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
       setQtyByKey((p) => ({ ...p, [key]: adjusted }))
       setValue(`aeronautical_articles.${index}.quantity`, parseFloat(adjusted || "0") || 0)
     },
-    [getValues, qtyByKey, setValue, getAeroMax, validateAndClamp]
+    [qtyByKey, setValue, getAeroMax, validateAndClamp, watchedAero]
   )
 
   const commitGenQty = useCallback(
@@ -264,7 +275,7 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
       setQtyByKey((p) => ({ ...p, [key]: adjusted }))
       setValue(`general_articles.${index}.quantity`, parseFloat(adjusted || "0") || 0)
     },
-    [getValues, qtyByKey, setValue, getGenMax, validateAndClamp]
+    [qtyByKey, setValue, getGenMax, validateAndClamp, watchedGen]
   )
 
   const clearRowState = (key: string) => {
