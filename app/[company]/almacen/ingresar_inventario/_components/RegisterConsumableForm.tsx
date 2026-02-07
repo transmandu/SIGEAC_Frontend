@@ -107,12 +107,11 @@ const formSchema = z.object({
     .array(
       z.string().min(2, {
         message: "Cada número alterno debe contener al menos 2 caracteres.",
-      })
+      }),
     )
     .optional(),
   description: z.string().optional(),
   batch_name: z.string().optional(),
-  zone: z.string().optional(),
   expiration_date: z.string().optional(),
   fabrication_date: z.string().optional(),
   manufacturer_id: z.string().optional(),
@@ -603,7 +602,7 @@ function DatePickerField({
                     className={cn(
                       "flex-1 pl-3 text-left font-normal",
                       (!value || value === null) && "text-muted-foreground",
-                      isInvalid && "border-destructive"
+                      isInvalid && "border-destructive",
                     )}
                   >
                     {value === null ? (
@@ -736,7 +735,7 @@ function UnitsModal({
 
   const availableUnits = availableConversion?.filter(
     (unit) =>
-      !selectedUnits.some((selected) => selected.conversion_id === unit.id)
+      !selectedUnits.some((selected) => selected.conversion_id === unit.id),
   );
 
   // Función para calcular la conversión localmente usando las equivalencias
@@ -760,7 +759,7 @@ function UnitsModal({
     const conversion = availableConversion?.find(
       (conv: any) =>
         conv.primary_unit.id.toString() === conversionFromUnit &&
-        conv.secondary_unit.id.toString() === conversionToUnit
+        conv.secondary_unit.id.toString() === conversionToUnit,
     );
 
     if (conversion && conversion.equivalence) {
@@ -810,7 +809,7 @@ function UnitsModal({
 
   const removeUnit = (unitId: number) => {
     const updatedUnits = selectedUnits.filter(
-      (unit) => unit.conversion_id !== unitId
+      (unit) => unit.conversion_id !== unitId,
     );
     onSelectedUnitsChange(updatedUnits);
   };
@@ -922,7 +921,7 @@ function UnitsModal({
                       Conversión: {conversionQuantity || "0"}{" "}
                       {
                         availableConversionUnits?.find(
-                          (u) => u.id.toString() === conversionFromUnit
+                          (u) => u.id.toString() === conversionFromUnit,
                         )?.label
                       }{" "}
                       → {conversionResult} {primaryUnit?.label}
@@ -930,13 +929,14 @@ function UnitsModal({
                         (conv: any) =>
                           conv.primary_unit.id.toString() ===
                             conversionFromUnit &&
-                          conv.secondary_unit.id.toString() === conversionToUnit
+                          conv.secondary_unit.id.toString() ===
+                            conversionToUnit,
                       )?.equivalence && (
                         <span className="block text-xs mt-1">
                           Equivalencia: 1{" "}
                           {
                             availableConversionUnits?.find(
-                              (u) => u.id.toString() === conversionFromUnit
+                              (u) => u.id.toString() === conversionFromUnit,
                             )?.label
                           }{" "}
                           ={" "}
@@ -946,7 +946,7 @@ function UnitsModal({
                                 conv.primary_unit.id.toString() ===
                                   conversionFromUnit &&
                                 conv.secondary_unit.id.toString() ===
-                                  conversionToUnit
+                                  conversionToUnit,
                             )!.equivalence}{" "}
                           {primaryUnit?.label}
                         </span>
@@ -974,7 +974,7 @@ function UnitsModal({
                       <p className="text-sm text-muted-foreground">
                         {conversionQuantity}{" "}
                         {availableConversionUnits?.find(
-                          (u) => u.id.toString() === conversionFromUnit
+                          (u) => u.id.toString() === conversionFromUnit,
                         )?.label || conversionFromUnit}{" "}
                         = {conversionResult}{" "}
                         {primaryUnit?.label || "unidad primaria"}
@@ -1045,7 +1045,7 @@ function UnitsModal({
               <div className="space-y-2">
                 {selectedUnits.map((unit) => {
                   const conversionInfo = secondaryUnits.find(
-                    (u) => u.id === unit.conversion_id
+                    (u) => u.id === unit.conversion_id,
                   );
                   return (
                     <div
@@ -1132,7 +1132,7 @@ export default function CreateConsumableForm({
 
   // USAR useGetUnits para el método de ingreso
   const { data: units, isLoading: unitsLoading } = useGetUnits(
-    selectedCompany?.slug
+    selectedCompany?.slug,
   );
 
   // Mantener useGetSecondaryUnits solo para el modal de conversiones adicionales
@@ -1141,14 +1141,14 @@ export default function CreateConsumableForm({
 
   // Estado para la unidad primaria seleccionada
   const [selectedPrimaryUnit, setSelectedPrimaryUnit] = useState<any | null>(
-    initialData?.primary_unit_id ? { id: initialData.primary_unit_id } : null
+    initialData?.primary_unit_id ? { id: initialData.primary_unit_id } : null,
   );
 
   // Conversiones posibles según la unidad primaria seleccionada
   const { data: availableConversion, isLoading: isConversionLoading } =
     useGetConversionByUnitConsmable(
       selectedPrimaryUnit?.id || 0, // Usar 0 o un valor por defecto cuando no hay selección
-      selectedCompany?.slug
+      selectedCompany?.slug,
     );
 
   // Extraer unidades primarias únicas de las conversiones disponibles
@@ -1172,7 +1172,7 @@ export default function CreateConsumableForm({
       selectedCompany?.slug,
       selectedStation || undefined,
       partNumberToSearch,
-      "CONSUMIBLE"
+      "CONSUMIBLE",
     );
 
   // Mutations
@@ -1183,7 +1183,7 @@ export default function CreateConsumableForm({
   // Local UI state
   const [secondaryOpen, setSecondaryOpen] = useState(false);
   const [secondarySelected, setSecondarySelected] = useState<any | null>(
-    initialData?.primary_unit_id ? { id: initialData.primary_unit_id } : null
+    initialData?.primary_unit_id ? { id: initialData.primary_unit_id } : null,
   );
   const [secondaryQuantity, setSecondaryQuantity] = useState<
     number | undefined
@@ -1191,13 +1191,11 @@ export default function CreateConsumableForm({
   const [caducateDate, setCaducateDate] = useState<Date | null | undefined>(
     initialData?.consumable?.expiration_date
       ? parseISO(initialData.consumable.expiration_date)
-      : undefined
+      : undefined,
   );
 
   const [inspectDate, setInspectDate] = useState<Date | null | undefined>(
-    initialData?.inspect_date
-      ? parseISO(initialData.inspect_date)
-      : null
+    initialData?.inspect_date ? parseISO(initialData.inspect_date) : null,
   );
 
   const [fabricationDate, setFabricationDate] = useState<
@@ -1205,7 +1203,7 @@ export default function CreateConsumableForm({
   >(
     initialData?.consumable?.fabrication_date
       ? parseISO(initialData?.consumable?.fabrication_date)
-      : undefined
+      : undefined,
   );
   const [enableBatchNameEdit, setEnableBatchNameEdit] = useState(false);
 
@@ -1235,7 +1233,6 @@ export default function CreateConsumableForm({
       manufacturer_id: initialData?.manufacturer?.id?.toString() || "",
       condition_id: initialData?.condition?.id?.toString() || "",
       description: initialData?.description || "",
-      zone: initialData?.zone || "",
       lot_number: initialData?.consumable?.lot_number || "",
       expiration_date: initialData?.consumable?.expiration_date || undefined,
       fabrication_date: initialData?.consumable?.fabrication_date || undefined,
@@ -1277,7 +1274,6 @@ export default function CreateConsumableForm({
       manufacturer_id: initialData.manufacturer?.id?.toString() ?? "",
       condition_id: initialData.condition?.id?.toString() ?? "",
       description: initialData.description ?? "",
-      zone: initialData.zone ?? "",
       lot_number: initialData.consumable?.lot_number ?? "",
       expiration_date: initialData?.consumable?.expiration_date || undefined,
       fabrication_date: initialData?.consumable?.fabrication_date || undefined,
@@ -1320,7 +1316,7 @@ export default function CreateConsumableForm({
         shouldValidate: true,
       });
     },
-    [form]
+    [form],
   );
 
   // Modificar el efecto existente para calcular la cantidad
@@ -1366,7 +1362,7 @@ export default function CreateConsumableForm({
         console.log("✓ Descripción autocompletada");
       } else {
         console.log(
-          `✓ Se encontraron ${searchResults.length} descripciones. Se seleccionó la primera.`
+          `✓ Se encontraron ${searchResults.length} descripciones. Se seleccionó la primera.`,
         );
       }
     } else if (
@@ -2051,25 +2047,6 @@ export default function CreateConsumableForm({
                     <FormDescription>
                       Marca específica del artículo.
                     </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="zone"
-                render={({ field }) => (
-                  <FormItem className="w-full">
-                    <FormLabel>Ubicación interna</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="Ej: Pasillo 4, repisa 3..."
-                        {...field}
-                        disabled={busy}
-                      />
-                    </FormControl>
-                    <FormDescription>Zona física en almacén.</FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}

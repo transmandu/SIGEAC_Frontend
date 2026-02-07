@@ -91,7 +91,6 @@ const formSchema = z
     model: z.string().optional(),
     description: z.string().min(2, "Al menos 2 caracteres."),
     batch_name: z.string().optional(),
-    zone: z.string().min(1, "Campo requerido"),
     manufacturer_id: z.string().min(1, "Seleccione un fabricante"),
     batch_id: z.string().min(1, "Seleccione una descripción"),
 
@@ -305,7 +304,7 @@ function DatePickerField({
               disabled={busy}
               className={cn(
                 "w-full pl-3 text-left font-normal",
-                !value && "text-muted-foreground"
+                !value && "text-muted-foreground",
               )}
             >
               {value ? (
@@ -398,7 +397,7 @@ export default function CreateToolForm({
       selectedCompany?.slug,
       selectedStation || undefined,
       partNumberToSearch,
-      "HERRAMIENTA"
+      "HERRAMIENTA",
     );
 
   const { createArticle } = useCreateArticle();
@@ -414,7 +413,6 @@ export default function CreateToolForm({
       alternative_part_number: initialData?.alternative_part_number || [],
       serial: initialData?.serial || "",
       description: initialData?.description || "",
-      zone: initialData?.zone || "",
       manufacturer_id: initialData?.manufacturer?.id?.toString() || "",
       batch_id: initialData?.batches?.id?.toString() || "",
       batch_name: initialData?.batches?.name || "",
@@ -446,7 +444,6 @@ export default function CreateToolForm({
       alternative_part_number: initialData.alternative_part_number || [],
       serial: initialData.serial || "",
       description: initialData.description || "",
-      zone: initialData.zone || "",
       manufacturer_id: initialData.manufacturer?.id?.toString() || "",
       batch_id: initialData.batches?.id?.toString() || "",
       batch_name: initialData.batches?.name || "",
@@ -462,9 +459,7 @@ export default function CreateToolForm({
   }, [initialData, form]);
 
   const [inspectDate, setInspectDate] = useState<Date | null | undefined>(
-    initialData?.inspect_date
-      ? parseISO(initialData.inspect_date)
-      : null // Por defecto "No aplica" (componentes nuevos o sin fecha)
+    initialData?.inspect_date ? parseISO(initialData.inspect_date) : null, // Por defecto "No aplica" (componentes nuevos o sin fecha)
   );
   // Autocompletar descripción cuando encuentra resultados de búsqueda
   useEffect(() => {
@@ -570,7 +565,7 @@ export default function CreateToolForm({
                           variant={"outline"}
                           className={cn(
                             "w-full pl-3 text-left font-normal",
-                            !field.value && "text-muted-foreground"
+                            !field.value && "text-muted-foreground",
                           )}
                         >
                           {field.value ? (
@@ -674,7 +669,7 @@ export default function CreateToolForm({
                       values={field.value || []}
                       onChange={(vals) =>
                         field.onChange(
-                          vals.map((v: string) => normalizeUpper(v))
+                          vals.map((v: string) => normalizeUpper(v)),
                         )
                       }
                       placeholder={`Ej: P/N-ALT-01, PN-ALT-02`}
@@ -708,7 +703,7 @@ export default function CreateToolForm({
                           const { data: updatedBatches } =
                             await refetchBatches();
                           const newBatch = updatedBatches?.find(
-                            (b: any) => b.name === batchName
+                            (b: any) => b.name === batchName,
                           );
                           if (newBatch) {
                             form.setValue("batch_id", newBatch.id.toString(), {
@@ -735,7 +730,7 @@ export default function CreateToolForm({
                         field.onChange(value);
                         if (isEditing && enableBatchNameEdit) {
                           const selectedBatch = batchesOptions?.find(
-                            (b) => b.id.toString() === value
+                            (b) => b.id.toString() === value,
                           );
                           if (selectedBatch) {
                             form.setValue("batch_name", selectedBatch.name, {
@@ -780,7 +775,7 @@ export default function CreateToolForm({
                         )}
                         {sortedBatches
                           ?.filter(
-                            (b) => !searchResults?.some((sr) => sr.id === b.id)
+                            (b) => !searchResults?.some((sr) => sr.id === b.id),
                           )
                           .map((b) => (
                             <SelectItem key={b.id} value={b.id.toString()}>
@@ -869,7 +864,7 @@ export default function CreateToolForm({
                           form.setValue(
                             "manufacturer_id",
                             manufacturer.id.toString(),
-                            { shouldValidate: true }
+                            { shouldValidate: true },
                           );
                         }
                       }}
@@ -897,7 +892,7 @@ export default function CreateToolForm({
                           role="combobox"
                           className={cn(
                             "w-full justify-between",
-                            !field.value && "text-muted-foreground"
+                            !field.value && "text-muted-foreground",
                           )}
                         >
                           {isManufacturerLoading && (
@@ -907,7 +902,7 @@ export default function CreateToolForm({
                             <p>
                               {
                                 manufacturers?.find(
-                                  (m) => `${m.id}` === field.value
+                                  (m) => `${m.id}` === field.value,
                                 )?.name
                               }
                             </p>
@@ -928,7 +923,7 @@ export default function CreateToolForm({
                               const selected = e.currentTarget
                                 .closest("[cmdk-root]")
                                 ?.querySelector(
-                                  '[cmdk-item][aria-selected="true"]'
+                                  '[cmdk-item][aria-selected="true"]',
                                 ) as HTMLElement;
                               if (selected) {
                                 selected.click();
@@ -936,7 +931,7 @@ export default function CreateToolForm({
                                 const firstItem = e.currentTarget
                                   .closest("[cmdk-root]")
                                   ?.querySelector(
-                                    '[cmdk-item]:not([data-disabled="true"])'
+                                    '[cmdk-item]:not([data-disabled="true"])',
                                   ) as HTMLElement;
                                 if (firstItem) {
                                   firstItem.click();
@@ -958,7 +953,7 @@ export default function CreateToolForm({
                                   form.setValue(
                                     "manufacturer_id",
                                     manufacturer.id.toString(),
-                                    { shouldValidate: true }
+                                    { shouldValidate: true },
                                   );
                                 }}
                               >
@@ -967,7 +962,7 @@ export default function CreateToolForm({
                                     "mr-2 h-4 w-4",
                                     `${manufacturer.id}` === field.value
                                       ? "opacity-100"
-                                      : "opacity-0"
+                                      : "opacity-0",
                                   )}
                                 />
                                 <p>
@@ -981,27 +976,6 @@ export default function CreateToolForm({
                     </PopoverContent>
                   </Popover>
                   <FormDescription>Marca del fabricante.</FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="zone"
-              render={({ field }) => (
-                <FormItem className="w-full">
-                  <FormLabel>Ubicación interna</FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="Ej: Taller, Estantería B"
-                      {...field}
-                      disabled={busy}
-                    />
-                  </FormControl>
-                  <FormDescription>
-                    Zona física en almacén/taller.
-                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -1071,7 +1045,7 @@ export default function CreateToolForm({
                             field.onChange(
                               e.target.value === ""
                                 ? undefined
-                                : Number(e.target.value)
+                                : Number(e.target.value),
                             )
                           }
                           disabled={busy}

@@ -105,9 +105,6 @@ const formSchema = z
       .optional(),
     description: z.string().optional(),
     batch_name: z.string().optional(),
-    zone: z
-      .string({ message: "Debe ingresar la ubicación del artículo." })
-      .min(1, "Campo requerido"),
     expiration_date: z.string().optional(),
     fabrication_date: z.string().optional(),
     calendar_date: z.string().optional(),
@@ -235,9 +232,7 @@ export default function CreatePartForm({
   );
 
   const [inspectDate, setInspectDate] = useState<Date | null | undefined>(
-    initialData?.inspect_date
-      ? parseISO(initialData.inspect_date)
-      : null, // Por defecto "No aplica" (componentes nuevos o sin fecha)
+    initialData?.inspect_date ? parseISO(initialData.inspect_date) : null, // Por defecto "No aplica" (componentes nuevos o sin fecha)
   );
 
   const [lifeLimitPartCalendar, setLifeLimitPartCalendar] = useState<
@@ -310,7 +305,6 @@ export default function CreatePartForm({
       manufacturer_id: initialData?.manufacturer?.id?.toString() || "",
       condition_id: initialData?.condition?.id?.toString() || "",
       description: initialData?.description || "",
-      zone: initialData?.zone || "",
       hour_date: initialData?.part_component?.hour_date
         ? parseInt(initialData.part_component.hour_date)
         : undefined,
@@ -370,7 +364,6 @@ export default function CreatePartForm({
       manufacturer_id: initialData.manufacturer?.id?.toString() ?? "",
       condition_id: initialData.condition?.id?.toString() ?? "",
       description: initialData.description ?? "",
-      zone: initialData.zone ?? "",
       hour_date: initialData.part_component?.hour_date
         ? parseInt(initialData.part_component.hour_date)
         : undefined,
@@ -1409,25 +1402,6 @@ export default function CreatePartForm({
                     </PopoverContent>
                   </Popover>
                   <FormDescription>Marca del artículo.</FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="zone"
-              render={({ field }) => (
-                <FormItem className="w-full">
-                  <FormLabel>Ubicación interna</FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="Ej: Pasillo 4, Estante B"
-                      {...field}
-                      disabled={busy}
-                    />
-                  </FormControl>
-                  <FormDescription>Zona física en almacén.</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
