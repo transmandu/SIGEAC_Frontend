@@ -1,15 +1,16 @@
 'use client';
 
 import { default as axiosInstance } from '@/lib/axios';
-import { createCookie, deleteCookie } from '@/lib/cookie';
+import { createCookie } from '@/lib/cookie';
 import { createSession, deleteSession } from '@/lib/session';
 import { useCompanyStore } from '@/stores/CompanyStore';
 import { User } from '@/types';
-import { useMutation, UseMutationResult, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, UseMutationResult, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
-import { createContext, ReactNode, useContext, useEffect, useMemo, useState } from 'react';
+import { createContext, ReactNode, useContext, useEffect, useMemo, useState, useCallback } from 'react';
 import { toast } from 'sonner';
 import { AxiosError } from "axios";
+
 interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
@@ -41,47 +42,90 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const isAuthenticated = useMemo(() => !!user, [user]);
 
-  const fetchUser = async (): Promise<User | null> => {
+  // 1. LOGOUT (Optimizado)
+  const logout = useCallback(async () => {
     try {
-      setIsLoading(true);
+      setUser(null);
+      setError(null);
+      await deleteSession();
+      await reset();
+      queryClient.clear();
+      router.push('/login');
+      toast.info('Sesión finalizada', { position: 'bottom-center' });
+    } catch (err) {
+      console.error('Error durante logout:', err);
+    }
+  }, [router, queryClient, reset]);
+
+  // 2. FETCH USER (Optimizado para RENDIMIENTO)
+  const fetchUser = useCallback(async (): Promise<User | null> => {
+    try {
       const { data } = await axiosInstance.get<User>('/user');
-      setUser(data);
+      
+      // OPTIMIZACIÓN: Solo actualiza el estado si los datos realmente cambiaron
+      setUser(prevUser => {
+        if (JSON.stringify(prevUser) === JSON.stringify(data)) return prevUser;
+        return data;
+      });
+
       setError(null);
       return data;
     } catch (err) {
       setUser(null);
-      setError(err as any || 'Error al cargar usuario');
       return null;
-    } finally {
-      setIsLoading(false);
     }
-  };
+  }, []);
 
-  // Eliminamos el useQuery anterior y lo reemplazamos por una función directa
-  // que podemos llamar manualmente cuando necesitemos
+  // 3. SYNC SESSION (Fluida)
+  const syncSession = useCallback(async () => {
+    const hasToken = document.cookie.includes('auth_token');
+    if (!hasToken) return;
 
+    const data = await fetchUser();
+    
+    if (!data && hasToken) {
+      logout();
+    }
+  }, [fetchUser, logout]);
+
+  // 4. CICLO DE VIDA (Tiempos ajustados para evitar lentitud)
   useEffect(() => {
-    // Verificamos si hay token al cargar la aplicación
     const checkAuth = async () => {
-      try {
-        setIsLoading(true);
-        // Aquí puedes verificar si existe el cookie de auth_token
-        // Si existe, hacemos el fetch del usuario
-        const token = document.cookie.includes('auth_token');
-        if (token) {
-          await fetchUser();
-        }
-      } catch (error) {
-        console.error("Error checking auth:", error);
-        setError("Error al verificar autenticación");
-      } finally {
-        setIsLoading(false);
+      setIsLoading(true);
+      if (document.cookie.includes('auth_token')) {
+        await fetchUser();
       }
+      setIsLoading(false);
     };
 
     checkAuth();
-  }, []);
 
+    window.addEventListener('focus', syncSession);
+    
+    // Cambiado a 5 minutos (300,000 ms) para no afectar el rendimiento
+    const interval = setInterval(syncSession, 300000); 
+
+    return () => {
+      window.removeEventListener('focus', syncSession);
+      clearInterval(interval);
+    };
+  }, [fetchUser, syncSession]);
+
+  // 5. INTERCEPTOR (Detección instantánea de 401)
+  useEffect(() => {
+    const interceptor = axiosInstance.interceptors.response.use(
+      (response) => response,
+      (error) => {
+        if (error.response?.status === 401) {
+          logout();
+        }
+        return Promise.reject(error);
+      }
+    );
+    return () => axiosInstance.interceptors.response.eject(interceptor);
+  }, [logout]);
+
+  // 6. LOGIN MUTATION
   const loginMutation = useMutation({
     mutationFn: async (credentials: { login: string; password: string }) => {
       const response = await axiosInstance.post<User>('/login', credentials, {
@@ -96,48 +140,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       return response.data;
     },
-    onSuccess: async (userData) => {
-      // Después de login exitoso, hacemos fetch del usuario
+    onSuccess: async () => {
       await fetchUser();
       queryClient.invalidateQueries({ queryKey: ['user'] });
       router.push('/inicio');
-      toast.success('¡Inicio correcto!', {
-        description: 'Redirigiendo...',
-        position: "bottom-center"
-      });
+      toast.success('¡Bienvenido!', { position: "bottom-center" });
     },
     onError: (err: Error) => {
       const axiosError = err as AxiosError<ApiErrorResponse>;
       const errorMessage = axiosError.response?.data?.message || 'Error al iniciar sesión';
-      
       setError(errorMessage);
-      toast.error('Error al iniciar sesión', {
-        description: errorMessage,
-        position: 'bottom-center'
-      });
+      toast.error('Error', { description: errorMessage, position: 'bottom-center' });
     },
   });
-
-  const logout = async () => {
-    try {
-      setUser(null);
-      setError(null);
-      await deleteSession();
-      await reset();
-      queryClient.clear();
-      router.push('/login');
-      router.refresh();
-      toast.success('Sesión cerrada correctamente', {
-        position: "bottom-center"
-      });
-    } catch (err) {
-      console.error('Error durante logout:', err);
-      toast.error('Error al cerrar sesión', {
-        description: 'Inténtalo de nuevo más tarde',
-        position: 'bottom-center'
-      });
-    }
-  };
 
   const contextValue = useMemo(() => ({
     user,
@@ -146,7 +161,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     error,
     loginMutation,
     logout,
-  }), [user, isAuthenticated, loading, error, loginMutation]);
+  }), [user, isAuthenticated, loading, error, loginMutation, logout]);
 
   return (
     <AuthContext.Provider value={contextValue}>
@@ -157,8 +172,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
 export const useAuth = (): AuthContextType => {
   const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth debe usarse dentro de un AuthProvider');
-  }
+  if (!context) throw new Error('useAuth debe usarse dentro de un AuthProvider');
   return context;
 };
