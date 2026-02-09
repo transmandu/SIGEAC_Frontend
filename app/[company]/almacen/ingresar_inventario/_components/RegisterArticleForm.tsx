@@ -15,7 +15,6 @@ import CreateComponentForm from "./RegisterComponentForm";
 import CreatePartForm from "./RegisterPartForm";
 import CreateGeneralArticleForm from "@/components/forms/mantenimiento/almacen/CreateGeneralArticleForm";
 
-
 export interface EditingArticle extends Article {
   batches: Batch;
   tool?: {
@@ -71,7 +70,7 @@ const RegisterArticleForm = ({
   initialData,
 }: IRegisterArticleProps) => {
   const [type, setType] = useState(
-    initialData?.batches.category.toUpperCase() ?? "COMPONENTE"
+    initialData?.batches.category.toUpperCase() ?? "COMPONENTE",
   );
   function handleTypeSelect(data: string) {
     setType(data);
@@ -79,7 +78,7 @@ const RegisterArticleForm = ({
   return (
     <div className="space-y-3 mb-4">
       <h1 className="font-bold text-3xl">
-        {isEditing ? "Edicion de Articulo" : "Ingreso de Inventario"}
+        {isEditing ? "Edicion de Articulo" : "Ingreso Administrativo"}
       </h1>
       {!isEditing && (
         <p className="text-sm text-muted-foreground">
@@ -114,11 +113,7 @@ const RegisterArticleForm = ({
       {type === "PARTE" && (
         <CreatePartForm isEditing={isEditing} initialData={initialData} />
       )}
-      {
-        type === "GENERAL" && (
-          <CreateGeneralArticleForm />
-        )
-      }
+      {type === "GENERAL" && <CreateGeneralArticleForm />}
     </div>
   );
 };
