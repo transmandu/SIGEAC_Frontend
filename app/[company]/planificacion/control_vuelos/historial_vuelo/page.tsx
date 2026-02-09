@@ -22,6 +22,7 @@ import { FlightControl } from "@/types";
 import PeriodFilter from "./_components/PeriodFilter";
 import AircraftFilter from "./_components/AircraftFilter";
 import { useFlightFilters } from "@/hooks/general/planificacion/useFlightFilters";
+import Link from "next/link";
 
 const HistorialVueloPage = () => {
   const { selectedCompany } = useCompanyStore();
@@ -47,8 +48,12 @@ const HistorialVueloPage = () => {
         <Breadcrumb>
           <BreadcrumbList>
             <BreadcrumbItem>
-              <BreadcrumbLink href={`/${selectedCompany?.slug}/dashboard`}>
-                Inicio
+              <BreadcrumbLink asChild>
+                <Link
+                  href={`/${selectedCompany?.slug}/planificacion/control_vuelos/vuelos`}
+                >
+                  Regresar
+                </Link>
               </BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
