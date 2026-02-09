@@ -42,8 +42,8 @@ export const useGetDispatchReport = (
   company?: string,
 ) => {
   return useQuery<DispatchReport[], Error>({
-    queryKey: ['dispatch-report', company, location_id],
+    queryKey: ["dispatch-report", company, location_id],
     queryFn: () => fetchDispatchReport(location_id!, company!),
-    enabled: !!company && !!location_id,
+    enabled: false, // ⛔ nunca automático
   });
 };
