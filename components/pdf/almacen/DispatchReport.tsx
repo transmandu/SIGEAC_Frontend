@@ -233,7 +233,7 @@ const DispatchReportPdf = ({
                   { width: "33%", alignItems: "center" },
                 ]}
               >
-                <PDFImage src="/tmd_nombre.png" style={styles.logo} />
+                <PDFImage src="/h74_logo.png" style={styles.logo}  />
               </View>
 
               {/* Columna 2: Título */}

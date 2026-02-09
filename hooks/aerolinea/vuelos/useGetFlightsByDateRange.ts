@@ -1,27 +1,22 @@
 "use client"
 
 import axiosInstance from "@/lib/axios";
+import { FlightControl } from "@/types";
 import { useQuery } from "@tanstack/react-query";
 
-export interface AverageCyclesAndHoursResponse {
-  aircraft_acronym: string;
-  average_flight_hours: number;
-  average_flight_cycles: number;
-  total_flights: number;
-}
 
 interface DateRange {
   first_date: string;
   second_date: string;
 }
 
-const fetchAverageCyclesAndHours = async (
+const fetchFlightsByDateRange = async (
   company?: string,
   acronym?: string,
   dateRange?: DateRange | null,
-): Promise<AverageCyclesAndHoursResponse> => {
+): Promise<FlightControl[]> => {
   const { data } = await axiosInstance.get(
-    `/${company}/average-cycles-and-hours/${acronym}`,
+    `/${company}/flights-by-date-range/${acronym}`,
     {
       params: {
         first_date: dateRange?.first_date,
@@ -34,14 +29,14 @@ const fetchAverageCyclesAndHours = async (
 };
 
 //IF YOU DO NOT HAVE A DATE RANGE, THIS WILL CALCULATE ALL RECORDS
-export const useGetAverageCyclesAndHours = (
+export const useGetFlightsByDateRange = (
   company?: string,
   acronym?: string,
   dateRange?: DateRange | null
 ) => {
-  return useQuery<AverageCyclesAndHoursResponse, Error>({
-    queryKey: ["average-cycles-hours", company, acronym, dateRange],
-    queryFn: () => fetchAverageCyclesAndHours(company, acronym, dateRange?? null),
+  return useQuery<FlightControl[], Error>({
+    queryKey: ["flights-by-date-range", company, acronym, dateRange],
+    queryFn: () => fetchFlightsByDateRange(company, acronym, dateRange?? null),
     refetchOnWindowFocus: false,
     enabled: !!company && !!acronym
   });
