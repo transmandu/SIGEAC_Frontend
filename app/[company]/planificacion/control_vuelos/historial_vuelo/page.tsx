@@ -41,7 +41,7 @@ type PeriodType = "current_month" | "month" | "year" | "custom";
 const HistorialVueloPage = () => {
   const { selectedCompany } = useCompanyStore();
 
-  const [selectedAcronym, setSelectedAcronym] = useState("");
+  const [selectedAcronym, setSelectedAcronym] = useState<string>("");
   const [periodType, setPeriodType] = useState<PeriodType>("current_month");
 
   const [selectedMonth, setSelectedMonth] = useState(
@@ -108,13 +108,12 @@ const HistorialVueloPage = () => {
   }, [periodType, selectedMonth, selectedYear, customFrom, customTo]);
 
   /* ======================================================
-     FLIGHTS QUERY
+     FLIGHTS QUERY (✔ CORRECTO)
   ====================================================== */
   const { data: flights = [], isLoading } = useGetFlightsByDateRange(
     selectedCompany?.slug,
-    selectedAcronym,
-    dateRange?.first_date,
-    dateRange?.second_date,
+    selectedAcronym || undefined,
+    dateRange ?? null,
   );
 
   /* ======================================================
@@ -281,7 +280,7 @@ const HistorialVueloPage = () => {
                 No hay vuelos para el período seleccionado
               </div>
             ) : (
-              <DataTable<FlightControl,[]>
+              <DataTable<FlightControl, []>
                 columns={columns}
                 data={flights}
                 totalRecords={flights.length}
