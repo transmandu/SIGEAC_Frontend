@@ -10,6 +10,15 @@ import { useGetSMSActivityById } from "@/hooks/sms/useGetSMSActivityById";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { addDays, format } from "date-fns";
 import { es } from "date-fns/locale";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import Image from "next/image";
 import {
   AlertCircle,
   AlertTriangle,
@@ -61,15 +70,15 @@ const ShowSMSActivity = () => {
 
   const PieChartData = AttendanceStats
     ? [
-        {
-          name: "Asistentes",
-          value: AttendanceStats.attended,
-        },
-        {
-          name: "Inasistentes",
-          value: AttendanceStats.not_attended,
-        },
-      ]
+      {
+        name: "Asistentes",
+        value: AttendanceStats.attended,
+      },
+      {
+        name: "Inasistentes",
+        value: AttendanceStats.not_attended,
+      },
+    ]
     : [];
 
   return (
@@ -185,15 +194,14 @@ const ShowSMSActivity = () => {
                       Estado y Responsables
                     </h2>
                     <Badge
-                      className={`font-bold ${
-                        activity.status === "ABIERTO"
-                          ? "bg-green-500 text-white"
-                          : activity.status === "PROCESO"
-                            ? "bg-yellow-500 text-black"
-                            : activity.status === "CERRADO"
-                              ? "bg-red-500 text-white"
-                              : "bg-gray-500 text-white"
-                      }`}
+                      className={`font-bold ${activity.status === "ABIERTO"
+                        ? "bg-green-500 text-white"
+                        : activity.status === "PROCESO"
+                          ? "bg-yellow-500 text-black"
+                          : activity.status === "CERRADO"
+                            ? "bg-red-500 text-white"
+                            : "bg-gray-500 text-white"
+                        }`}
                     >
                       {activity.status.replace("_", " ")}
                     </Badge>
@@ -336,8 +344,75 @@ const ShowSMSActivity = () => {
                     </p>
                   </div>
                 </div>
+
+              </div>
+
+              {/* Sección de Imagen y Documento */}
+              <div className="space-y-4">
+                {activity?.imageUrl && (
+                  <Card>
+                    <CardHeader className="pb-3">
+                      <h3 className="text-lg font-semibold">Imagen Adjunta</h3>
+                    </CardHeader>
+                    <CardContent>
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <div className="relative group w-full max-w-sm h-64 mx-auto cursor-pointer">
+                            {/* ✅ USAR img NORMAL */}
+                            <Image
+                              src={activity.imageUrl}
+                              alt="Imagen de la actividad"
+                              fill
+                              crossOrigin="use-credentials"
+                              className="w-full h-full object-contain rounded-md border group-hover:border-gray-400 transition-all"
+                              onError={(e) => {
+                                console.error("Error cargando imagen:", e);
+                              }}
+                            />
+                            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 bg-black/20 transition-opacity rounded-md">
+                              <span className="text-white bg-black/70 px-3 py-2 rounded-md text-sm">
+                                Ver imagen
+                              </span>
+                            </div>
+                          </div>
+                        </DialogTrigger>
+
+                        <DialogContent className="max-w-4xl max-h-[90vh] w-[95vw]">
+                          <DialogHeader>
+                            <DialogTitle>Imagen de la Actividad</DialogTitle>
+                          </DialogHeader>
+                          <div className="relative h-[60vh] flex justify-center">
+                            {/* ✅ USAR img NORMAL en el dialog también */}
+                            <Image
+                              src={activity.imageUrl}
+                              fill
+                              alt="Imagen completa de la actividad"
+                              className="max-w-full max-h-full object-contain rounded-lg border"
+                            />
+                          </div>
+                        </DialogContent>
+                      </Dialog>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {activity?.documentUrl && (
+                  <div className="border border-gray-300 dark:border-gray-600 p-6 rounded-lg text-center">
+                    <h3 className="text-xl font-semibold mb-4">Documento Adjunto</h3>
+                    <a
+                      href={`${activity.documentUrl}`}
+                      download={`ACT-${activity.activity_number}.pdf`}
+                      className="inline-flex items-center px-5 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700"
+                    >
+                      <FileText className="w-5 h-5 mr-2" />
+                      Descargar Documento Adjunto
+                    </a>
+                  </div>
+                )}
               </div>
             </TabsContent>
+
+
 
             {/* Pestaña de Participantes */}
             <TabsContent value="participantes">

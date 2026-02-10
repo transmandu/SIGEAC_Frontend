@@ -61,7 +61,7 @@ export function DataTable<TData, TValue>({
         <h1 className="text-5xl font-bold text-center">Actividades de SMS</h1>
         <p className="text-sm italic text-muted-foreground text-center">
           Aquí se pueden visualizar las actividades de SMS planificadas y
-          ejecutadas hasta el momento
+            ejecutadas hata el momento
         </p>
       </div>
 
