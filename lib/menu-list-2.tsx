@@ -36,7 +36,8 @@ import {
   User2,
   UserRoundCog,
   Wrench,
-  FilePen
+  FilePen,
+  OctagonAlert
 } from "lucide-react";
 
 type Submenu = {
@@ -746,6 +747,13 @@ export function getMenuList(
                 `/${currentCompany?.slug}/almacen/inventario_articulos`,
             },
             {
+              href: `/${currentCompany?.slug}/almacen/por_ubicar`,
+              label: "Por Ubicar",
+              active:
+                pathname ===
+                `/${currentCompany?.slug}/almacen/por_ubicar`,
+            },
+            {
               href: `/${currentCompany?.slug}/almacen/inventario_articulos/entregado`,
               label: "Entregado",
               active:
@@ -888,6 +896,17 @@ export function getMenuList(
             `/${currentCompany?.slug}/control_calidad/incoming`
           ),
           icon: FilePen,
+          roles: ["JEFE_CONTROL_CALIDAD", "SUPERUSER"],
+          submenus: [],
+        },
+        {
+          href: `/${currentCompany?.slug}/control_calidad/cuarentena`,
+          label: "Gestión de Cuarentena",
+
+          active: pathname.includes(
+            `/${currentCompany?.slug}/control_calidad/cuarentena`
+          ),
+          icon: OctagonAlert,
           roles: ["JEFE_CONTROL_CALIDAD", "SUPERUSER"],
           submenus: [],
         },

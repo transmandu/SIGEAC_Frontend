@@ -107,13 +107,14 @@ const FlightControlPage = () => {
                 isVisible={true}
               />
 
-              {averageStats && (
+              {(averageStats || isLoadingAverageStats) && (
                 <AircraftStatsBanner
                   title="Promedio"
-                  cycles={averageStats?.average_flight_cycles}
-                  hours={averageStats?.average_flight_hours}
-                  flights={averageStats?.total_flights}
-                  isVisible={isLoadingAverageStats ? false : true}
+                  cycles={averageStats?.average_flight_cycles ?? 0}
+                  hours={averageStats?.average_flight_hours ?? 0}
+                  flights={averageStats?.total_flights ?? 0}
+                  isLoading={isLoadingAverageStats}
+                  isVisible={true}
                 />
               )}
             </div>

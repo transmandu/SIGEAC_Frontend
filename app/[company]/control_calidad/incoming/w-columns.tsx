@@ -7,7 +7,7 @@ import Link from "next/link"
 import { IncomingArticle } from "./[id]/IncomingTypes"
 import IncomingArticleDropdownActions from "@/components/dropdowns/mantenimiento/control_calidad/IncomingArticleDropdownActions"
 
-export const columns: ColumnDef<IncomingArticle>[] = [
+export const w_columns: ColumnDef<IncomingArticle>[] = [
     {
     accessorKey: "batch.name",
     header: ({ column }) => (
@@ -53,23 +53,11 @@ export const columns: ColumnDef<IncomingArticle>[] = [
     header: ({ column }) => (
       <DataTableColumnHeader filter column={column} title="Cod. ATA" />
     ),
-    meta: { title: "Cod. ATA" }, // 👈 Agrega el título aquí
+    meta: { title: "Cod. ATA" },
     cell: ({ row }) => {
       return (
         <p className="text-center">{row.original.ata_code ?? "-"}</p>
       )
     }
-  },
-  {
-    accessorKey: "actions",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Acciones" />
-    ),
-    meta: { title: "Acciones" },
-    cell: ({ row }) => (
-      <div className="flex justify-center">
-        <IncomingArticleDropdownActions article={row.original} />
-      </div>
-    )
   },
 ]

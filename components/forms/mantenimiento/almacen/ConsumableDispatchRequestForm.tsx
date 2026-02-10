@@ -1113,7 +1113,7 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
                           {ga?.description ?? (generalId ? `ID: ${generalId}` : "Artículo")}
                         </p>
                         <p className="text-xs text-muted-foreground truncate">
-                          {ga?.brand_model ?? "N/A"} · {ga?.variant_type ?? "N/A"} · Disponible: {ga?.quantity ?? 0} {ga?.general_primary_unit.label ?? ""}
+                          {ga?.brand_model ?? "N/A"} · {ga?.variant_type ?? "N/A"} · Disponible: {ga?.quantity ?? 0} {ga?.general_primary_unit?.label ?? ""}
                         </p>
                       </div>
 

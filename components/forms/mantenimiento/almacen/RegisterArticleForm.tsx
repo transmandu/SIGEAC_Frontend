@@ -9,11 +9,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../../../ui/select";
-
 import CreateToolForm from "@/app/[company]/almacen/ingresar_inventario/_components/RegisterToolForm";
 import CreateComponentForm from "@/app/[company]/almacen/ingresar_inventario/_components/RegisterComponentForm";
 import CreatePartForm from "@/app/[company]/almacen/ingresar_inventario/_components/RegisterPartForm";
 import CreateConsumableForm from "@/app/[company]/almacen/ingresar_inventario/_components/RegisterConsumableForm";
+
 export interface EditingArticle extends Article {
   batches: Batch;
   certificate_8130?: string;

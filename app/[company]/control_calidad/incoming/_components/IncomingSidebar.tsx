@@ -12,9 +12,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-import { ChecklistGroupUI } from "./CheckListGroup";
 import { cn } from "@/lib/utils";
-import { ChecklistDecision, ChecklistGroup, ChecklistValue, IncomingConfirmPayload } from "../IncomingTypes";
+import { ChecklistGroupUI } from "../[id]/_components/CheckListGroup";
+import { ChecklistDecision, ChecklistGroup, ChecklistValue, IncomingConfirmPayload } from "../[id]/IncomingTypes";
 
 export function IncomingSidebar({
   groups,

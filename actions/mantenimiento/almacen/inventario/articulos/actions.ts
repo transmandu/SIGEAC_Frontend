@@ -181,56 +181,29 @@ export const useUpdateArticleStatus = () => {
 };
 
 export const useConfirmIncomingArticle = () => {
+  const {selectedCompany} = useCompanyStore();
   const queryClient = useQueryClient();
-
   const confirmIncomingArticleMutation = useMutation({
     mutationKey: ["articles"],
     mutationFn: async ({
       values,
-      company,
     }: {
       values: {
-        id?: number;
-        serial?: string;
-        part_number: string;
-        alternative_part_number?: string[];
-        description: string;
-        zone: string;
-        manufacturer_id?: number | string;
-        condition_id?: number | string;
-        batches_id: string;
-        is_special?: boolean;
-        status: string;
-        expiration_datete?: string;
-        quantity?: string | number;
-        fabrication_date?: string;
-        calendar_date?: string;
-        certificate_8130?: File | string;
-        certificate_fabricant?: File | string;
-        certificate_vendor?: File | string;
-        image?: File | string;
+        article_id: number;
+        inspector: string,
+        incoming_date: string;
       };
-      company: string;
     }) => {
-      await axiosInstance.post(
-        `/${company}/update-article-warehouse/${values.id}`,
+      await axiosInstance.patch(
+        `/${selectedCompany?.slug}/${values.article_id}/confirm-incoming`,
         {
           ...values,
         },
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        }
       );
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["article"] });
-      queryClient.invalidateQueries({ queryKey: ["in-transit-articles"] });
-      queryClient.invalidateQueries({ queryKey: ["in-reception-articles"] });
-      queryClient.invalidateQueries({ queryKey: ["articles"] });
-      queryClient.invalidateQueries({ queryKey: ["batches"] });
       queryClient.invalidateQueries({ queryKey: ["warehouse-articles"] });
+      queryClient.invalidateQueries({ queryKey: ["articles"] });
       toast.success("¡Actualizado!", {
         description: `El articulo ha sido actualizado correctamente.`,
       });
@@ -357,3 +330,36 @@ export const useUpdateArticle = () => {
     updateArticle: updateMutation,
   };
 };
+
+export const useLocateArticle = () => {
+  const queryClient = useQueryClient();
+  const {selectedCompany} = useCompanyStore();
+  const locateArticleMutation = useMutation({
+    mutationKey: ["articles"],
+    mutationFn: async ({
+      id,
+      zone,
+    }: {
+      id: number | string;
+      zone: string;
+    }) => {
+      await axiosInstance.patch(`/${selectedCompany?.slug}/${id}/locate-article`, { zone });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["articles"] });
+      queryClient.invalidateQueries({ queryKey: ["warehouse-articles"] });
+      toast.success("¡Ubicado!", {
+        description: `El articulo ha sido ubicado correctamente.`,
+      });
+    },
+    onError: (error) => {
+      toast.error("Oops!", {
+        description: "No se pudo ubicar el articulo...",
+      });
+      console.log(error);
+    },
+  });
+  return {
+    locateArticle: locateArticleMutation,
+  }
+}
