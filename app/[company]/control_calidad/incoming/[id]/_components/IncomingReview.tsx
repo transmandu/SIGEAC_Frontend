@@ -167,14 +167,22 @@ const groups: ChecklistGroup[] = useMemo(
           <section>
             <h2 className="text-sm font-semibold">Identificación</h2>
             <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-3">
-              <ReadOnlyField label="Part Number" value={article?.part_number} icon={<Hash className="h-4 w-4" />} mono />
+              <ReadOnlyField
+                label="Part Number"
+                value={article?.part_number}
+                icon={<Hash className="h-4 w-4" />}
+                mono
+              />
               <ReadOnlyField
                 label="Serial"
                 value={
                   Array.isArray(article?.serial) ? (
                     <div className="flex flex-wrap gap-2">
                       {article.serial.map((s: string) => (
-                        <span key={s} className="px-2 py-1 rounded-full border text-xs font-mono">
+                        <span
+                          key={s}
+                          className="px-2 py-1 rounded-full border text-xs font-mono"
+                        >
                           {s}
                         </span>
                       ))}
@@ -186,9 +194,21 @@ const groups: ChecklistGroup[] = useMemo(
                 icon={<Tag className="h-4 w-4" />}
                 mono
               />
-              <ReadOnlyField label="Descripción (Batch)" value={article?.batch?.name} icon={<Package className="h-4 w-4" />} />
-              <ReadOnlyField label="Condición" value={article?.condition?.name} icon={<ShieldAlert className="h-4 w-4" />} />
-              <ReadOnlyField label="Fabricante" value={article?.manufacturer?.name} icon={<Factory className="h-4 w-4" />} />
+              <ReadOnlyField
+                label="Descripción (Batch)"
+                value={article?.batch?.name}
+                icon={<Package className="h-4 w-4" />}
+              />
+              <ReadOnlyField
+                label="Condición"
+                value={article?.condition?.name}
+                icon={<ShieldAlert className="h-4 w-4" />}
+              />
+              <ReadOnlyField
+                label="Fabricante"
+                value={article?.manufacturer?.name}
+                icon={<Factory className="h-4 w-4" />}
+              />
             </div>
           </section>
 
@@ -198,10 +218,26 @@ const groups: ChecklistGroup[] = useMemo(
           <section>
             <h2 className="text-sm font-semibold">Documentos</h2>
             <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-3">
-              <ReadOnlyField label="8130" value={article?.certificate_8130 ? "Cargado" : "—"} icon={<FileText className="h-4 w-4" />} />
-              <ReadOnlyField label="Fabricante" value={article?.certificate_fabricant ? "Cargado" : "—"} icon={<FileText className="h-4 w-4" />} />
-              <ReadOnlyField label="Vendedor" value={article?.certificate_vendor ? "Cargado" : "—"} icon={<FileText className="h-4 w-4" />} />
-              <ReadOnlyField label="Imagen" value={article?.image ? "Cargada" : "—"} icon={<FileText className="h-4 w-4" />} />
+              <ReadOnlyField
+                label="8130"
+                value={article?.certificate_8130 ? "Cargado" : "—"}
+                icon={<FileText className="h-4 w-4" />}
+              />
+              <ReadOnlyField
+                label="Fabricante"
+                value={article?.certificate_fabricant ? "Cargado" : "—"}
+                icon={<FileText className="h-4 w-4" />}
+              />
+              <ReadOnlyField
+                label="Vendedor"
+                value={article?.certificate_vendor ? "Cargado" : "—"}
+                icon={<FileText className="h-4 w-4" />}
+              />
+              <ReadOnlyField
+                label="Imagen"
+                value={article?.image ? "Cargada" : "—"}
+                icon={<FileText className="h-4 w-4" />}
+              />
             </div>
 
             {/* Aquí conectas tus handlers de preview/descarga */}
@@ -213,24 +249,24 @@ const groups: ChecklistGroup[] = useMemo(
           <section>
             <h2 className="text-sm font-semibold">Observaciones</h2>
             <div className="mt-3 rounded-2xl border bg-background p-4 text-sm">
-              {article?.description ? article.description : <span className="text-muted-foreground">—</span>}
+              {article?.description ? (
+                article.description
+              ) : (
+                <span className="text-muted-foreground">—</span>
+              )}
             </div>
           </section>
         </div>
 
         <IncomingSidebar
           article_id={article.id}
-          allOk={allOk}
-          allDecided={allDecided}
           groups={groups}
           checklist={checklist}
           setChecklist={setChecklist}
-          requiredPassed={requiredPassed}
-          progress={progress}
           inspectorNotes={inspectorNotes}
           setInspectorNotes={setInspectorNotes}
         />
-
+        
       </div>
     </div>
   );

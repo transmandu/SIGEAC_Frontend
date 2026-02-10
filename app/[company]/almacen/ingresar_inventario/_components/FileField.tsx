@@ -2,16 +2,23 @@
 "use client";
 
 import { FileUpIcon } from "lucide-react";
-import { Control, UseFormSetValue } from "react-hook-form";
+import { Control, UseFormSetValue, FieldPath } from "react-hook-form";
 
-import { FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import {
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { FormValues } from "@/components/forms/mantenimiento/almacen/CreateComponentForm";
 
 type Props = {
   control: Control<FormValues>;
   setValue: UseFormSetValue<FormValues>;
-  name: string;
+  name: FieldPath<FormValues>; // Changed from string to FieldPath<FormValues>
   label: React.ReactNode;
   description?: string;
   accept: string;
@@ -64,6 +71,7 @@ export function FileField({
                   const f = e.target.files?.[0];
                   if (!f) return;
                   setValue(name, f as any, {
+                    // Type assertion is OK here
                     shouldDirty: true,
                     shouldValidate: true,
                   });
@@ -74,7 +82,9 @@ export function FileField({
           </FormControl>
 
           <FormDescription>
-            {hasCurrent ? (replaceHint ?? "Subir nuevo archivo para reemplazar el actual") : (description ?? "PDF o imagen. Máx. 10 MB.")}
+            {hasCurrent
+              ? (replaceHint ?? "Subir nuevo archivo para reemplazar el actual")
+              : (description ?? "PDF o imagen. Máx. 10 MB.")}
           </FormDescription>
 
           <FormMessage />

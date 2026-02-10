@@ -62,7 +62,7 @@ const WaitingToLocateArticleDropdownActions = ({ id }: { id: number }) => {
         </div>
         <DialogFooter className="flex flex-col gap-2 md:gap-0">
           <Button className="bg-rose-400 hover:bg-white hover:text-black hover:border hover:border-black" onClick={() => setOpen(false)} type="submit">Cancelar</Button>
-          <Button disabled={locateArticle.isPending} className="hover:bg-white hover:text-black hover:border hover:border-black transition-all" onClick={() => handleLocate(id, "Located")}>{locateArticle.isPending ? <Loader2 className="size-4 animate-spin" /> : <p>Confirmar</p>}</Button>
+          <Button disabled={locateArticle.isPending} className="hover:bg-white hover:text-black hover:border hover:border-black transition-all" onClick={() => handleLocate(id)}>{locateArticle.isPending ? <Loader2 className="size-4 animate-spin" /> : <p>Confirmar</p>}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
