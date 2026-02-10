@@ -21,6 +21,7 @@ import { useCompanyStore } from "@/stores/CompanyStore"
 import { TooltipArrow } from "@radix-ui/react-tooltip"
 import { parseISO } from "date-fns"
 import { Loader2, Package2, PaintBucket, Puzzle, Wrench, X } from "lucide-react"
+import { useRouter, usePathname, useSearchParams } from "next/navigation"
 import { useEffect, useMemo, useState } from "react"
 import { FaFilePdf } from "react-icons/fa"
 import { RiFileExcel2Fill } from "react-icons/ri"
@@ -40,6 +41,10 @@ type Category = "all" | "COMPONENT" | "PART" | "CONSUMABLE" | "TOOL"
 
 const InventarioArticulosPage = () => {
   const { selectedCompany } = useCompanyStore()
+  const router = useRouter()
+  const pathname = usePathname()
+  const searchParams = useSearchParams()
+
   const [activeCategory, setActiveCategory] = useState<Category>("all")
   const { exporting, exportPdf, exportExcel } = useInventoryExport()
 
@@ -94,6 +99,17 @@ const InventarioArticulosPage = () => {
     if (activeCategory !== "CONSUMABLE") setConsumableFilter("all")
   }, [activeCategory])
 
+  // Inicializar desde URL al cargar el componente
+  useEffect(() => {
+    const searchFromUrl = searchParams.get("search") ?? ""
+    if (searchFromUrl) {
+      setPartNumberSearch(searchFromUrl)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+
+
   // Columns memo
   const cols = useMemo(() => {
     if (activeCategory === "all") return allCategoriesCols
@@ -121,11 +137,11 @@ const InventarioArticulosPage = () => {
     const q = partNumberSearch.trim().toLowerCase()
     const bySearch = q
       ? list.filter(
-          (a) =>
-            a.part_number?.toLowerCase().includes(q) ||
-            (Array.isArray(a.alternative_part_number) &&
-              a.alternative_part_number.some((alt) => alt?.toLowerCase().includes(q)))
-        )
+        (a) =>
+          a.part_number?.toLowerCase().includes(q) ||
+          (Array.isArray(a.alternative_part_number) &&
+            a.alternative_part_number.some((alt) => alt?.toLowerCase().includes(q)))
+      )
       : list
 
     let filtered = bySearch
@@ -161,7 +177,28 @@ const InventarioArticulosPage = () => {
     return shouldGroup ? groupByPartNumber(filtered) : filtered
   }, [articles, partNumberSearch, activeCategory, componentCondition, consumableFilter])
 
-  const handleClearSearch = () => setPartNumberSearch("")
+  // Actualizar query params cuando cambia la búsqueda
+  const updateSearchParam = (value: string) => {
+    const params = new URLSearchParams()
+    if (value.trim()) {
+      params.set("search", value)
+    }
+
+    const queryString = params.toString()
+    const newUrl = queryString ? `${pathname}?${queryString}` : pathname
+    router.push(newUrl, { scroll: false })
+  }
+
+  const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const value = event.target.value
+    setPartNumberSearch(value)
+    updateSearchParam(value)
+  }
+
+  const handleClearSearch = () => {
+    setPartNumberSearch("")
+    updateSearchParam("")
+  }
 
   return (
     <ContentLayout title="Gestión de Inventario">
@@ -194,8 +231,8 @@ const InventarioArticulosPage = () => {
               <Input
                 placeholder="Búsqueda General - Nro. de Parte (Ej: 65-50587-4, TORNILLO, ALT-123...)"
                 value={partNumberSearch}
-                onChange={(e) => setPartNumberSearch(e.target.value)}
-                className="pr-8 h-11"
+                onChange={handleSearchChange}
+                className="max-w-sm"
               />
               {partNumberSearch && (
                 <Button
