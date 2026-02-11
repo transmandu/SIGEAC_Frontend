@@ -21,6 +21,7 @@ import { useState } from "react"
 import { ConsumableDispatchForm } from "@/components/forms/mantenimiento/almacen/ConsumableDispatchRequestForm"
 import { ToolDispatchForm } from "@/components/forms/mantenimiento/almacen/ToolDispatchForm"
 import { ComponentDispatchForm } from "@/components/forms/mantenimiento/almacen/ComponentDispatchForm"
+import { PartDispatchForm } from "@/components/forms/mantenimiento/almacen/PartDispatchForm"
 import { ChevronDown } from "lucide-react"
 
 
@@ -80,6 +81,13 @@ export function RegisterDispatchRequestDialog() {
                   )}
                 </DropdownMenuItem>
                 <DropdownMenuItem
+                  onClick={() => setCategory("parte")}
+                  className={category === "parte" ? "bg-accent" : ""}
+                >
+                  Parte
+                  {category === "parte" && <span className="ml-auto text-xs">✓</span>}
+                </DropdownMenuItem>
+                <DropdownMenuItem
                   onClick={() => setCategory("herramienta")}
                   className={category === "herramienta" ? "bg-accent" : ""}
                 >
@@ -115,6 +123,14 @@ export function RegisterDispatchRequestDialog() {
                 <ComponentDispatchForm
                   key="componente"
                   onClose={() => setOpen(false)}
+                />
+              )
+            }
+            {
+              category === 'parte' && (
+                <PartDispatchForm 
+                  key="parte" 
+                  onClose={() => setOpen(false)} 
                 />
               )
             }

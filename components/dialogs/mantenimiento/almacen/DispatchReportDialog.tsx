@@ -45,18 +45,25 @@ export function DispatchReportDialog() {
 
   // Filtros para reporte por aeronave con rango de fechas opcional
   const [aircraft, setAircraft] = useState<string | null>(null);
-  const [aircraftStartDate, setAircraftStartDate] = useState<Date | undefined>();
+  const [aircraftStartDate, setAircraftStartDate] = useState<
+    Date | undefined
+  >();
   const [aircraftEndDate, setAircraftEndDate] = useState<Date | undefined>();
 
-  const { data: dispatchReport, isLoading: isLoadingDispatchReport } =
-    useGetDispatchReport(selectedStation ?? null, selectedCompany?.slug);
+  const {
+    data: dispatchReport,
+    isLoading: isLoadingDispatchReport,
+    refetch,
+  } = useGetDispatchReport(selectedStation ?? null, selectedCompany?.slug);
 
   const { data: aircrafts, isLoading: isLoadingAircrafts } = useGetAircrafts(
-    selectedCompany?.slug
+    selectedCompany?.slug,
   );
 
-  const isGeneralDateRangeInvalid = generalStartDate && generalEndDate && generalEndDate < generalStartDate;
-  const isAircraftDateRangeInvalid = aircraftStartDate && aircraftEndDate && aircraftEndDate < aircraftStartDate;
+  const isGeneralDateRangeInvalid =
+    generalStartDate && generalEndDate && generalEndDate < generalStartDate;
+  const isAircraftDateRangeInvalid =
+    aircraftStartDate && aircraftEndDate && aircraftEndDate < aircraftStartDate;
 
   // Resetear filtros cuando se cierra el diálogo
   useEffect(() => {
@@ -73,9 +80,12 @@ export function DispatchReportDialog() {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button
-          onClick={() => setOpen(true)}
-          variant="outline"
-          className="flex items-center justify-center gap-2 h-8 border-dashed"
+          onClick={async () => {
+            await refetch();
+          }}
+          disabled={isLoadingDispatchReport}
+          variant={"outline"}
+          className="border-dashed h-8"
         >
           Generar Reporte
         </Button>
@@ -97,7 +107,8 @@ export function DispatchReportDialog() {
                 General <NotepadText />
               </h1>
               <p className="text-muted-foreground text-sm italic">
-                Genere un reporte con todas las salidas registradas. Opcionalmente puede filtrar por rango de fechas.
+                Genere un reporte con todas las salidas registradas.
+                Opcionalmente puede filtrar por rango de fechas.
               </p>
             </div>
 
@@ -112,7 +123,7 @@ export function DispatchReportDialog() {
                       variant="outline"
                       className={cn(
                         "w-[200px] justify-start text-left",
-                        !generalStartDate && "text-muted-foreground"
+                        !generalStartDate && "text-muted-foreground",
                       )}
                     >
                       {generalStartDate
@@ -140,7 +151,7 @@ export function DispatchReportDialog() {
                       variant="outline"
                       className={cn(
                         "w-[200px] justify-start text-left",
-                        !generalEndDate && "text-muted-foreground"
+                        !generalEndDate && "text-muted-foreground",
                       )}
                     >
                       {generalEndDate
@@ -167,7 +178,9 @@ export function DispatchReportDialog() {
             {dispatchReport && (
               <>
                 {/* Botón sin filtros de fecha */}
-                {(!generalStartDate || !generalEndDate || isGeneralDateRangeInvalid) && (
+                {(!generalStartDate ||
+                  !generalEndDate ||
+                  isGeneralDateRangeInvalid) && (
                   <PDFDownloadLink
                     fileName={`salidas_${format(new Date(), "dd-MM-yyyy", { locale: es })}.pdf`}
                     document={
@@ -186,23 +199,28 @@ export function DispatchReportDialog() {
                 )}
 
                 {/* Botón con filtros de fecha */}
-                {generalStartDate && generalEndDate && !isGeneralDateRangeInvalid && (
-                  <PDFDownloadLink
-                    fileName={`salidas_rango_${format(generalStartDate, "dd-MM-yyyy", { locale: es })}_a_${format(generalEndDate, "dd-MM-yyyy", { locale: es })}.pdf`}
-                    document={
-                      <DispatchReportPdf
-                        reports={dispatchReport}
-                        aircraftFilter={null}
-                        startDate={generalStartDate}
-                        endDate={generalEndDate}
-                      />
-                    }
-                  >
-                    <Button disabled={isLoadingDispatchReport} className="mt-2">
-                      Descargar Reporte General por Rango de Fechas
-                    </Button>
-                  </PDFDownloadLink>
-                )}
+                {generalStartDate &&
+                  generalEndDate &&
+                  !isGeneralDateRangeInvalid && (
+                    <PDFDownloadLink
+                      fileName={`salidas_rango_${format(generalStartDate, "dd-MM-yyyy", { locale: es })}_a_${format(generalEndDate, "dd-MM-yyyy", { locale: es })}.pdf`}
+                      document={
+                        <DispatchReportPdf
+                          reports={dispatchReport}
+                          aircraftFilter={null}
+                          startDate={generalStartDate}
+                          endDate={generalEndDate}
+                        />
+                      }
+                    >
+                      <Button
+                        disabled={isLoadingDispatchReport}
+                        className="mt-2"
+                      >
+                        Descargar Reporte General por Rango de Fechas
+                      </Button>
+                    </PDFDownloadLink>
+                  )}
               </>
             )}
           </div>
@@ -214,7 +232,8 @@ export function DispatchReportDialog() {
                 Filtrar por Aeronave <Plane />
               </h1>
               <p className="text-muted-foreground text-sm italic">
-                Seleccione un avión para filtrar las salidas. Opcionalmente puede agregar un rango de fechas.
+                Seleccione un avión para filtrar las salidas. Opcionalmente
+                puede agregar un rango de fechas.
               </p>
             </div>
 
@@ -251,14 +270,16 @@ export function DispatchReportDialog() {
               <div className="flex flex-col md:flex-row justify-center gap-4 items-center">
                 {/* Desde */}
                 <div className="flex flex-col items-start">
-                  <label className="text-xs font-medium">Desde (Opcional)</label>
+                  <label className="text-xs font-medium">
+                    Desde (Opcional)
+                  </label>
                   <Popover>
                     <PopoverTrigger asChild>
                       <Button
                         variant="outline"
                         className={cn(
                           "w-[200px] justify-start text-left",
-                          !aircraftStartDate && "text-muted-foreground"
+                          !aircraftStartDate && "text-muted-foreground",
                         )}
                       >
                         {aircraftStartDate
@@ -279,14 +300,16 @@ export function DispatchReportDialog() {
 
                 {/* Hasta */}
                 <div className="flex flex-col items-start">
-                  <label className="text-xs font-medium">Hasta (Opcional)</label>
+                  <label className="text-xs font-medium">
+                    Hasta (Opcional)
+                  </label>
                   <Popover>
                     <PopoverTrigger asChild>
                       <Button
                         variant="outline"
                         className={cn(
                           "w-[200px] justify-start text-left",
-                          !aircraftEndDate && "text-muted-foreground"
+                          !aircraftEndDate && "text-muted-foreground",
                         )}
                       >
                         {aircraftEndDate
@@ -314,7 +337,9 @@ export function DispatchReportDialog() {
             {aircraft && aircraft !== "all" && dispatchReport && (
               <>
                 {/* Botón sin filtros de fecha */}
-                {(!aircraftStartDate || !aircraftEndDate || isAircraftDateRangeInvalid) && (
+                {(!aircraftStartDate ||
+                  !aircraftEndDate ||
+                  isAircraftDateRangeInvalid) && (
                   <PDFDownloadLink
                     fileName={`salidas_avion_${aircraft}_${format(new Date(), "dd-MM-yyyy", { locale: es })}.pdf`}
                     document={
@@ -333,23 +358,28 @@ export function DispatchReportDialog() {
                 )}
 
                 {/* Botón con filtros de fecha */}
-                {aircraftStartDate && aircraftEndDate && !isAircraftDateRangeInvalid && (
-                  <PDFDownloadLink
-                    fileName={`salidas_avion_${aircraft}_${format(aircraftStartDate, "dd-MM-yyyy", { locale: es })}_a_${format(aircraftEndDate, "dd-MM-yyyy", { locale: es })}.pdf`}
-                    document={
-                      <DispatchReportPdf
-                        reports={dispatchReport}
-                        aircraftFilter={parseInt(aircraft)}
-                        startDate={aircraftStartDate}
-                        endDate={aircraftEndDate}
-                      />
-                    }
-                  >
-                    <Button disabled={isLoadingDispatchReport} className="mt-2">
-                      Descargar Reporte por Avión y Rango de Fechas
-                    </Button>
-                  </PDFDownloadLink>
-                )}
+                {aircraftStartDate &&
+                  aircraftEndDate &&
+                  !isAircraftDateRangeInvalid && (
+                    <PDFDownloadLink
+                      fileName={`salidas_avion_${aircraft}_${format(aircraftStartDate, "dd-MM-yyyy", { locale: es })}_a_${format(aircraftEndDate, "dd-MM-yyyy", { locale: es })}.pdf`}
+                      document={
+                        <DispatchReportPdf
+                          reports={dispatchReport}
+                          aircraftFilter={parseInt(aircraft)}
+                          startDate={aircraftStartDate}
+                          endDate={aircraftEndDate}
+                        />
+                      }
+                    >
+                      <Button
+                        disabled={isLoadingDispatchReport}
+                        className="mt-2"
+                      >
+                        Descargar Reporte por Avión y Rango de Fechas
+                      </Button>
+                    </PDFDownloadLink>
+                  )}
               </>
             )}
           </div>

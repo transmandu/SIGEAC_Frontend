@@ -36,6 +36,8 @@ import {
   User2,
   UserRoundCog,
   Wrench,
+  FilePen,
+  OctagonAlert
 } from "lucide-react";
 
 type Submenu = {
@@ -151,6 +153,14 @@ export function getMenuList(
           roles: [],
           submenus: [
             {
+              href: `/${currentCompany?.slug}/general/reporte/pagina_de_sms`,
+              label: "Pagina de SMS",
+              roles: [],
+              active:
+                pathname ===
+                `/${currentCompany?.slug}/general/reporte/pagina_de_sms`,
+            },
+            {
               href: `/${currentCompany?.slug}/general/reporte/voluntario`,
               label: "Reporte Voluntario",
               roles: [],
@@ -174,6 +184,7 @@ export function getMenuList(
                 pathname ===
                 `/${currentCompany?.slug}/general/reporte/codigos_qr`,
             },
+
           ],
         },
         {
@@ -740,6 +751,13 @@ export function getMenuList(
                 `/${currentCompany?.slug}/almacen/inventario_articulos`,
             },
             {
+              href: `/${currentCompany?.slug}/almacen/por_ubicar`,
+              label: "Por Ubicar",
+              active:
+                pathname ===
+                `/${currentCompany?.slug}/almacen/por_ubicar`,
+            },
+            {
               href: `/${currentCompany?.slug}/almacen/inventario_articulos/entregado`,
               label: "Entregado",
               active:
@@ -868,6 +886,33 @@ export function getMenuList(
                 `/${currentCompany?.slug}/planificacion/control_vuelos/reportes`,
             },
           ],
+        },
+      ],
+    },
+        {
+      groupLabel: "Control de Calidad",
+      menus: [
+        {
+          href: `/${currentCompany?.slug}/control_calidad/incoming`,
+          label: "Gestión de Incoming",
+
+          active: pathname.includes(
+            `/${currentCompany?.slug}/control_calidad/incoming`
+          ),
+          icon: FilePen,
+          roles: ["JEFE_CONTROL_CALIDAD", "SUPERUSER"],
+          submenus: [],
+        },
+        {
+          href: `/${currentCompany?.slug}/control_calidad/cuarentena`,
+          label: "Gestión de Cuarentena",
+
+          active: pathname.includes(
+            `/${currentCompany?.slug}/control_calidad/cuarentena`
+          ),
+          icon: OctagonAlert,
+          roles: ["JEFE_CONTROL_CALIDAD", "SUPERUSER"],
+          submenus: [],
         },
       ],
     },
