@@ -5,6 +5,7 @@ export type ChecklistValue = boolean | "NA";
 export type ChecklistDecision = "ACCEPTED" | "HOLD" | "REJECTED";
 
 export type ChecklistItem = {
+  id: string;
   key: string;
   label: string;
   hint?: string;

@@ -26,67 +26,69 @@ const groups: ChecklistGroup[] = useMemo(
       icon: <Package className="h-4 w-4" />,
       items: [
         {
+          id: "1",
+          key: "physical_damage",
+          label: "Inspeccione por daños físicos externos obvios",
+          hint: "Daño físico significativos en el componete/parte/consumible",
+          requiredForAccept: true,
+        },
+        {
+          id: "2",
           key: "pn_serial_oc_match",
           label:
             "Verifique que P/N, Serial, Modelo y Lote coincidan con la Orden de Compra",
-          hint:
-            "Compare contra OC y etiqueta física. Si hay diferencias, registre en observaciones y no confirme.",
+          hint: "Compare contra OC y etiqueta física. Si hay diferencias, registre en observaciones y no confirme.",
           requiredForAccept: true,
         },
         {
+          id: "3",
           key: "8130_21004_easa1_document",
           label:
             "Verifique el tipo de certificación aplicable (8130 / 21-004 / EASA 1)",
-          hint:
-            "Debe corresponder al origen del suministro y estar legible, completo y sin alteraciones.",
+          hint: "Debe corresponder al origen del suministro y estar legible, completo y sin alteraciones.",
           requiredForAccept: true,
         },
         {
+          id: "4",
           key: "ms_an_nas_as_standars",
-          label:
-            "Partes estándar conforme a MS, AN, NAS y AS (si aplica)",
-          hint:
-            "Confirme identificación, marcaje y especificación. Si no aplica, marque N/A.",
+          label: "Partes estándar conforme a MS, AN, NAS y AS (si aplica)",
+          hint: "Confirme identificación, marcaje y especificación. Si no aplica, marque N/A.",
           requiredForAccept: true,
         },
         {
+          id: "5",
           key: "canibalism_document",
           label:
             "Registros de liberación / historial (canibalización si aplica)",
-          hint:
-            "Adjunte evidencia o indique N/A. Si falta respaldo, no confirme.",
+          hint: "Adjunte evidencia o indique N/A. Si falta respaldo, no confirme.",
           requiredForAccept: true,
         },
         {
+          id: "6",
           key: "tso_standar",
-          label:
-            "Placa TSO emitida por la autoridad (si aplica)",
-          hint:
-            "Verifique presencia y legibilidad. Si el componente no es TSO, marque N/A.",
+          label: "Placa TSO emitida por la autoridad (si aplica)",
+          hint: "Verifique presencia y legibilidad. Si el componente no es TSO, marque N/A.",
           requiredForAccept: true,
         },
         {
+          id: "7",
           key: "pma",
-          label:
-            "Placa PMA emitida por la autoridad (si aplica)",
-          hint:
-            "Confirme que la parte sea PMA. Si no aplica, marque N/A.",
+          label: "Placa PMA emitida por la autoridad (si aplica)",
+          hint: "Confirme que la parte sea PMA. Si no aplica, marque N/A.",
           requiredForAccept: true,
         },
         {
+          id: "8",
           key: "tc_pc_certificate",
-          label:
-            "Certificado TC/PC (si aplica)",
-          hint:
-            "Valide que el documento corresponda al artículo y al proveedor. Si no aplica, N/A.",
+          label: "Certificado TC/PC (si aplica)",
+          hint: "Valide que el documento corresponda al artículo y al proveedor. Si no aplica, N/A.",
           requiredForAccept: true,
         },
         {
+          id: "9",
           key: "production_certificate",
-          label:
-            "Declaración de producción bajo certificado (si aplica)",
-          hint:
-            "Debe estar trazable al fabricante/producción. Si no aplica, N/A.",
+          label: "Declaración de producción bajo certificado (si aplica)",
+          hint: "Debe estar trazable al fabricante/producción. Si no aplica, N/A.",
           requiredForAccept: true,
         },
       ],
@@ -96,24 +98,24 @@ const groups: ChecklistGroup[] = useMemo(
       icon: <FileText className="h-4 w-4" />,
       items: [
         {
+          id: "10",
           key: "doc_8130",
           label: "8130 presente o N/A",
-          hint:
-            "Cargue el documento o marque N/A si el tipo de artículo no requiere 8130.",
+          hint: "Cargue el documento o marque N/A si el tipo de artículo no requiere 8130.",
           requiredForAccept: !!article?.has_documentation,
         },
         {
+          id: "11",
           key: "doc_mfg",
           label: "Certificado fabricante presente o N/A",
-          hint:
-            "Usar cuando aplique trazabilidad directa con fabricante.",
+          hint: "Usar cuando aplique trazabilidad directa con fabricante.",
           requiredForAccept: !!article?.has_documentation,
         },
         {
+          id: "12",
           key: "doc_vendor",
           label: "Certificado vendedor presente o N/A",
-          hint:
-            "Adjunte invoice/packing list si es el soporte disponible.",
+          hint: "Adjunte invoice/packing list si es el soporte disponible.",
           requiredForAccept: !!article?.has_documentation,
         },
       ],

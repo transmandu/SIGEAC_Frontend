@@ -43,6 +43,28 @@ interface ArticleData {
   ata_code ?: string;
 }
 
+
+type CheckResult = "PASS" | "FAIL";
+
+export type IncomingCheck = {
+  check_id: number;
+  result: CheckResult;
+  observation: string | null;
+};
+
+export type IncomingPayload = {
+  warehouse_id: number;
+  purchase_order_code: string;
+  purchase_order_id: number | null;
+  inspection_date: string;
+  items: {
+    article_id: number;
+    serial: string;
+    quantity: number;
+    checks: IncomingCheck[];
+  }[];
+};
+
 export const useCreateArticle = () => {
   const queryClient = useQueryClient();
 
@@ -181,42 +203,44 @@ export const useUpdateArticleStatus = () => {
 };
 
 export const useConfirmIncomingArticle = () => {
-  const {selectedCompany} = useCompanyStore();
+  const { selectedCompany } = useCompanyStore();
   const queryClient = useQueryClient();
-  const confirmIncomingArticleMutation = useMutation({
-    mutationKey: ["articles"],
-    mutationFn: async ({
-      values,
-    }: {
-      values: {
-        article_id: number;
-        inspector: string,
-        incoming_date: string;
-      };
-    }) => {
-      await axiosInstance.patch(
-        `/${selectedCompany?.slug}/${values.article_id}/confirm-incoming`,
-        {
-          ...values,
-        },
+
+  const mutation = useMutation<void, Error, IncomingPayload>({
+    mutationKey: ["incoming-inspections"],
+
+    mutationFn: async (payload) => {
+      if (!selectedCompany?.slug) {
+        throw new Error("Company no seleccionada");
+      }
+
+      await axiosInstance.post(
+        `/${selectedCompany.slug}/incoming-inspections`,
+        payload,
       );
     },
+
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["warehouse-articles"] });
       queryClient.invalidateQueries({ queryKey: ["articles"] });
-      toast.success("¡Actualizado!", {
-        description: `El articulo ha sido actualizado correctamente.`,
+      queryClient.invalidateQueries({ queryKey: ["incoming-inspections"] });
+
+      toast.success("¡Inspección creada!", {
+        description: "El artículo fue enviado correctamente.",
       });
     },
+
     onError: (error) => {
       toast.error("Oops!", {
-        description: "No se pudo actualizar el articulo...",
+        description: "No se pudo registrar la inspección...",
       });
-      console.log(error);
+
+      console.error(error);
     },
   });
+
   return {
-    confirmIncoming: confirmIncomingArticleMutation,
+    confirmIncoming: mutation,
   };
 };
 
