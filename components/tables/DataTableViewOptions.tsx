@@ -26,7 +26,7 @@ export function DataTableViewOptions<TData>({
         <Button
           variant="outline"
           size="sm"
-          className="ml-auto hidden h-8 lg:flex"
+          className="flex ml-auto h-8"
         >
           <SlidersHorizontal className="mr-2 h-4 w-4" />
           Ver

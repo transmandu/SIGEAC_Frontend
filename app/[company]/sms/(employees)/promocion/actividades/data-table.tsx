@@ -60,29 +60,28 @@ export function DataTable<TData, TValue>({
 
   return (
     <>
-      <div className="flex items-center gap-2 py-4">
-        <Button
-          onClick={() => {
-            router.push(
-              `/${selectedCompany?.slug}/sms/promocion/actividades/nueva_actividad`
-            );
-          }}
-          variant="outline"
-          size="sm"
-          className="hidden h-8 lg:flex"
-        >
-          Nueva Actividad
-        </Button>
-
-        {/* MODIFICACIÓN AQUÍ: 
-            Pasamos 'data' (las actividades) al Modal para que pueda filtrarlas y generar el PDF
-        */}
-        <ReportModal activities={data} />
-
-        <div className="ml-auto">
-          <DataTableViewOptions table={table} />
-        </div>
+      <div className="flex flex-col gap-2 mb-4">
+        <h1 className="text-5xl font-bold text-center">
+          Actividades de SMS
+        </h1>
+        <p className="text-sm italic text-muted-foreground text-center">
+          Aquí se pueden visualizar las actividades de SMS planificadas y ejecutadas hasta el momento
+        </p>
       </div>
+
+      <div className="flex items-center py-4">
+        <Button
+             onClick={() => {
+              router.push(`/${selectedCompany?.slug}/sms/promocion/actividades/nueva_actividad`);
+          }}
+                variant="outline"
+                size="sm"
+                className=" hidden h-8 lg:flex"
+              >
+                Nueva Actividad
+              </Button>
+              <DataTableViewOptions table={table} />
+            </div>
 
       <div className="rounded-md border mb-4">
         <Table>
@@ -96,7 +95,7 @@ export function DataTable<TData, TValue>({
                         ? null
                         : flexRender(
                             header.column.columnDef.header,
-                            header.getContext()
+                            header.getContext(),
                           )}
                     </TableHead>
                   );
@@ -115,7 +114,7 @@ export function DataTable<TData, TValue>({
                     <TableCell key={cell.id}>
                       {flexRender(
                         cell.column.columnDef.cell,
-                        cell.getContext()
+                        cell.getContext(),
                       )}
                     </TableCell>
                   ))}

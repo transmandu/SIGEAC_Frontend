@@ -140,7 +140,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       return response.data;
     },
-    onSuccess: async () => {
+    onSuccess: async (userData) => {
+      // Después de login exitoso, hacemos fetch del usuario
       await fetchUser();
       queryClient.invalidateQueries({ queryKey: ['user'] });
       router.push('/inicio');
@@ -149,6 +150,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     onError: (err: Error) => {
       const axiosError = err as AxiosError<ApiErrorResponse>;
       const errorMessage = axiosError.response?.data?.message || 'Error al iniciar sesión';
+      
       setError(errorMessage);
       toast.error('Error', { description: errorMessage, position: 'bottom-center' });
     },
