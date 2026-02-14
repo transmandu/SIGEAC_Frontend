@@ -4,7 +4,7 @@ import WaitingToLocateArticleDropdownActions from "@/components/dropdowns/manten
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
 import { ColumnDef } from "@tanstack/react-table";
 import { Barcode, Hash, Package, Settings, Tags, Wrench } from "lucide-react";
-import { IncomingArticle } from "../../control_calidad/incoming/[id]/IncomingTypes";
+import { IncomingArticle } from "../../control_calidad/incoming/IncomingTypes";
 
 const Header = ({
   column,

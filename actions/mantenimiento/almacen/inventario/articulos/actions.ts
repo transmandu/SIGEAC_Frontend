@@ -3,6 +3,7 @@ import { useCompanyStore } from "@/stores/CompanyStore";
 import { ComponentArticle, ConsumableArticle, ToolArticle } from "@/types";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+
 interface UnitSelection {
   conversion_id: number;
 }
@@ -41,6 +42,14 @@ interface ArticleData {
   hard_time_hours?: string | number;
   hard_time_cycles?: string | number;
   ata_code ?: string;
+}
+
+interface SendToQuarantinePayload {
+  article_id: number;
+  reason: string;
+  quarantine_entry_date: string
+  quarantine_exit_date?: string;
+
 }
 
 
@@ -387,3 +396,46 @@ export const useLocateArticle = () => {
     locateArticle: locateArticleMutation,
   }
 }
+
+export const useSendToQuarantine = () => {
+  const { selectedCompany } = useCompanyStore();
+  const queryClient = useQueryClient();
+
+  const mutation = useMutation<void, Error, SendToQuarantinePayload>({
+    mutationKey: ["quarantine-articles"],
+
+    mutationFn: async (payload) => {
+      if (!selectedCompany?.slug) {
+        throw new Error("Company no seleccionada");
+      }
+
+      await axiosInstance.post(
+        `/${selectedCompany.slug}/quarantine-articles`,
+        payload,
+      );
+    },
+
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["warehouse-articles"] });
+      queryClient.invalidateQueries({ queryKey: ["articles"] });
+      queryClient.invalidateQueries({ queryKey: ["incoming-articles"] });
+      queryClient.invalidateQueries({ queryKey: ["quarantine-articles"] });
+
+      toast.warning("¡Enviado a cuarentena!", {
+        description: "El artículo fue enviado a cuarentena correctamente.",
+      });
+    },
+
+    onError: (error) => {
+      toast.error("Oops!", {
+        description: "No se pudo registrar el artículo en cuarentena...",
+      });
+
+      console.error(error);
+    },
+  });
+
+  return {
+    sendToQuarantine: mutation,
+  };
+};

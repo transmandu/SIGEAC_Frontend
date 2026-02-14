@@ -1,11 +1,9 @@
 "use client"
 
+import IncomingArticleDropdownActions from "@/components/dropdowns/mantenimiento/control_calidad/IncomingArticleDropdownActions"
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader"
 import { ColumnDef } from "@tanstack/react-table"
-import { ClipboardCheck } from "lucide-react"
-import Link from "next/link"
-import { IncomingArticle } from "./[id]/IncomingTypes"
-import IncomingArticleDropdownActions from "@/components/dropdowns/mantenimiento/control_calidad/IncomingArticleDropdownActions"
+import { IncomingArticle } from "./IncomingTypes"
 
 export const columns: ColumnDef<IncomingArticle>[] = [
     {

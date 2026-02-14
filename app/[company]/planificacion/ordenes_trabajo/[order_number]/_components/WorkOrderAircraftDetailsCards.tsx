@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useState } from "react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -55,10 +55,14 @@ const WorkOrderAircraftDetailsCards = ({ work_order }: { work_order: WorkOrder }
   const [hoursMode, setHoursMode] = useState<HoursMode>("auto")
   const [manualHours, setManualHours] = useState<string>("")
   const [clientSignature, setClientSignature] = useState<string>("Freddy Guerrero")
+
+  // NUEVO: páginas hoja de reporte
+  const [reportPagesTotal, setReportPagesTotal] = useState<string>("1")
+  const [reportPagesError, setReportPagesError] = useState<string | null>(null)
+
   const [isDownloading, setIsDownloading] = useState(false)
   const [manualError, setManualError] = useState<string | null>(null)
 
-  // ✅ Si cambian de manual a auto, limpiamos error
   useEffect(() => {
     if (hoursMode === "auto") setManualError(null)
   }, [hoursMode])
@@ -66,13 +70,12 @@ const WorkOrderAircraftDetailsCards = ({ work_order }: { work_order: WorkOrder }
   const validateManualHours = () => {
     if (hoursMode !== "manual") return true
 
-    // ✅ Permitir vacío: PDF debe salir vacío
+    // Permitir vacío: PDF debe salir vacío
     if (manualHours.trim() === "") {
       setManualError(null)
       return true
     }
 
-    // Acepta coma o punto
     const normalized = manualHours.replace(",", ".")
     const n = Number(normalized)
 
@@ -89,31 +92,65 @@ const WorkOrderAircraftDetailsCards = ({ work_order }: { work_order: WorkOrder }
     return true
   }
 
-  const handleDownload = async (params: Record<string, any>) => {
+  const validateReportPages = () => {
+    const raw = reportPagesTotal.trim()
+    if (raw === "") {
+      setReportPagesError("Ingresa un número de páginas.")
+      return false
+    }
+
+    const n = Number(raw)
+    if (!Number.isInteger(n) || n < 1) {
+      setReportPagesError("Debe ser un entero mayor o igual a 1.")
+      return false
+    }
+
+    // límite de seguridad (ajusta si quieres)
+    if (n > 50) {
+      setReportPagesError("Máximo 50 páginas.")
+      return false
+    }
+
+    setReportPagesError(null)
+    return true
+  }
+
+  const handleDownloadPackage = async (params: Record<string, any>) => {
     try {
       setIsDownloading(true)
+
       const response = await axiosInstance.get(
-        `/${companySlug}/work-order-pdf/${work_order.order_number}`,
+        `/${companySlug}/work-orders/${work_order.order_number}/package`,
         {
           responseType: "blob",
           params,
         }
       )
-      const url = window.URL.createObjectURL(new Blob([response.data]))
+
+      // Intentar nombre del backend, si existe
+      const disposition = response.headers?.["content-disposition"] as string | undefined
+      const match = disposition?.match(/filename="?([^"]+)"?/i)
+      const fallbackName = `package_${work_order.order_number}.zip`
+      const filename = match?.[1] || fallbackName
+
+      const blob = new Blob([response.data], { type: "application/zip" })
+      const url = window.URL.createObjectURL(blob)
+
       const link = document.createElement("a")
       link.href = url
-      link.setAttribute("download", `WO-${work_order.order_number}.pdf`)
+      link.download = filename
       document.body.appendChild(link)
       link.click()
-      link.parentNode?.removeChild(link)
+
+      link.remove()
       window.URL.revokeObjectURL(url)
     } catch (error) {
       toast({
         variant: "destructive",
         title: "Error",
-        description: "No se pudo descargar el PDF. Por favor intente nuevamente.",
+        description: "No se pudo descargar el paquete. Por favor intente nuevamente.",
       })
-      console.error("Error al descargar el PDF:", error)
+      console.error("Error al descargar el paquete:", error)
     } finally {
       setIsDownloading(false)
     }
@@ -121,15 +158,27 @@ const WorkOrderAircraftDetailsCards = ({ work_order }: { work_order: WorkOrder }
 
   const onConfirmDownload = async () => {
     if (!validateManualHours()) return
+    if (!validateReportPages()) return
+
     const params: Record<string, any> = {
       aircraft_hours_mode: hoursMode, // auto | manual
-      client_signature: clientSignature,
+      client_signature: clientSignature?.trim() ?? "",
+      report_pages_total: Number(reportPagesTotal.trim()),
+      // isExplotador: work_order.isExplotador, // <- si luego quieres forzarlo desde UI
     }
-    // ✅ Solo enviar aircraft_hours si realmente hay un valor
-    if (hoursMode === "manual" && manualHours.trim() !== "" && manualHours.trim() !== "0") {
-      params.aircraft_hours = Number(manualHours.replace(",", "."))
+
+    // Manual: permitir vacío => no enviamos aircraft_hours
+    if (hoursMode === "manual") {
+      if (manualHours.trim() !== "") {
+        const normalized = manualHours.replace(",", ".")
+        const n = Number(normalized)
+        if (Number.isFinite(n) && n >= 0) {
+          params.aircraft_hours = n
+        }
+      }
     }
-    await handleDownload(params)
+
+    await handleDownloadPackage(params)
     setPrintOpen(false)
   }
 
@@ -207,19 +256,20 @@ const WorkOrderAircraftDetailsCards = ({ work_order }: { work_order: WorkOrder }
                 ) : (
                   <Printer className="size-4" />
                 )}
-                Descargar PDF
+                Descargar paquete (ZIP)
               </Button>
             </DialogTrigger>
 
             <DialogContent className="sm:max-w-md">
               <DialogHeaderUI>
-                <DialogTitleUI>Opciones de impresión</DialogTitleUI>
+                <DialogTitleUI>Opciones de descarga</DialogTitleUI>
                 <DialogDescription>
-                  Selecciona cómo quieres mostrar las horas de la aeronave en el PDF.
+                  Configura cómo se verán las horas y la hoja de reporte dentro del paquete.
                 </DialogDescription>
               </DialogHeaderUI>
 
               <div className="space-y-4">
+                {/* Horas */}
                 <div className="space-y-2">
                   <Label>Horas de aeronave</Label>
                   <RadioGroup
@@ -263,12 +313,37 @@ const WorkOrderAircraftDetailsCards = ({ work_order }: { work_order: WorkOrder }
                     </p>
                   </div>
                 )}
-              </div>
 
-              <div className="space-y-2">
-                <hr className="my-4" />
-                <Label className="text-sm">Firma del Cliente: <span className="text-xs text-muted-foreground">(Dejar vacío para no incluir firma)</span></Label>
-                <Input value={clientSignature} onChange={(e) => setClientSignature(e.target.value)} />
+                {/* Firma */}
+                <div className="space-y-2">
+                  <hr className="my-2" />
+                  <Label className="text-sm">
+                    Firma del Cliente{" "}
+                    <span className="text-xs text-muted-foreground">
+                      (Dejar vacío para no incluir firma)
+                    </span>
+                  </Label>
+                  <Input
+                    value={clientSignature}
+                    onChange={(e) => setClientSignature(e.target.value)}
+                  />
+                </div>
+
+                {/* NUEVO: páginas de hoja de reporte */}
+                <div className="space-y-2">
+                  <Label className="text-sm">Páginas de Hoja de Reporte</Label>
+                  <Input
+                    inputMode="numeric"
+                    value={reportPagesTotal}
+                    onChange={(e) => setReportPagesTotal(e.target.value)}
+                    onBlur={validateReportPages}
+                    placeholder="Ej: 1"
+                  />
+                  {reportPagesError && <p className="text-sm text-destructive">{reportPagesError}</p>}
+                  <p className="text-xs text-muted-foreground">
+                    Define cuántas páginas se generan en la hoja de reporte.
+                  </p>
+                </div>
               </div>
 
               <DialogFooterUI className="gap-2">

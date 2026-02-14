@@ -1,16 +1,18 @@
 "use client";
 
 import { Separator } from "@/components/ui/separator";
+import { useGetIncomingChecks } from "@/hooks/mantenimiento/control_calidad/useGetIncomingInspectionChecks";
 import {
   Factory,
   FileText,
   Hash,
+  Loader2,
   Package,
   ShieldAlert,
   Tag
 } from "lucide-react";
 import { useMemo, useState } from "react";
-import { ChecklistGroup, ChecklistValue, IncomingConfirmPayload } from "../IncomingTypes";
+import { ChecklistValue } from "../../IncomingTypes";
 import { IncomingHeader } from "./IncomingHeader";
 import { IncomingSidebar } from "./IncomingSidebar";
 import { ReadOnlyField } from "./ReadOnlyField";
@@ -19,115 +21,17 @@ export function IncomingReview({
 }: {
   article: any; // cambia a EditingArticle
 }) {
-const groups: ChecklistGroup[] = useMemo(
-  () => [
-    {
-      title: "Coincidencia física",
-      icon: <Package className="h-4 w-4" />,
-      items: [
-        {
-          id: "1",
-          key: "physical_damage",
-          label: "Inspeccione por daños físicos externos obvios",
-          hint: "Daño físico significativos en el componete/parte/consumible",
-          requiredForAccept: true,
-        },
-        {
-          id: "2",
-          key: "pn_serial_oc_match",
-          label:
-            "Verifique que P/N, Serial, Modelo y Lote coincidan con la Orden de Compra",
-          hint: "Compare contra OC y etiqueta física. Si hay diferencias, registre en observaciones y no confirme.",
-          requiredForAccept: true,
-        },
-        {
-          id: "3",
-          key: "8130_21004_easa1_document",
-          label:
-            "Verifique el tipo de certificación aplicable (8130 / 21-004 / EASA 1)",
-          hint: "Debe corresponder al origen del suministro y estar legible, completo y sin alteraciones.",
-          requiredForAccept: true,
-        },
-        {
-          id: "4",
-          key: "ms_an_nas_as_standars",
-          label: "Partes estándar conforme a MS, AN, NAS y AS (si aplica)",
-          hint: "Confirme identificación, marcaje y especificación. Si no aplica, marque N/A.",
-          requiredForAccept: true,
-        },
-        {
-          id: "5",
-          key: "canibalism_document",
-          label:
-            "Registros de liberación / historial (canibalización si aplica)",
-          hint: "Adjunte evidencia o indique N/A. Si falta respaldo, no confirme.",
-          requiredForAccept: true,
-        },
-        {
-          id: "6",
-          key: "tso_standar",
-          label: "Placa TSO emitida por la autoridad (si aplica)",
-          hint: "Verifique presencia y legibilidad. Si el componente no es TSO, marque N/A.",
-          requiredForAccept: true,
-        },
-        {
-          id: "7",
-          key: "pma",
-          label: "Placa PMA emitida por la autoridad (si aplica)",
-          hint: "Confirme que la parte sea PMA. Si no aplica, marque N/A.",
-          requiredForAccept: true,
-        },
-        {
-          id: "8",
-          key: "tc_pc_certificate",
-          label: "Certificado TC/PC (si aplica)",
-          hint: "Valide que el documento corresponda al artículo y al proveedor. Si no aplica, N/A.",
-          requiredForAccept: true,
-        },
-        {
-          id: "9",
-          key: "production_certificate",
-          label: "Declaración de producción bajo certificado (si aplica)",
-          hint: "Debe estar trazable al fabricante/producción. Si no aplica, N/A.",
-          requiredForAccept: true,
-        },
-      ],
-    },
-    {
-      title: "Documentación",
-      icon: <FileText className="h-4 w-4" />,
-      items: [
-        {
-          id: "10",
-          key: "doc_8130",
-          label: "8130 presente o N/A",
-          hint: "Cargue el documento o marque N/A si el tipo de artículo no requiere 8130.",
-          requiredForAccept: !!article?.has_documentation,
-        },
-        {
-          id: "11",
-          key: "doc_mfg",
-          label: "Certificado fabricante presente o N/A",
-          hint: "Usar cuando aplique trazabilidad directa con fabricante.",
-          requiredForAccept: !!article?.has_documentation,
-        },
-        {
-          id: "12",
-          key: "doc_vendor",
-          label: "Certificado vendedor presente o N/A",
-          hint: "Adjunte invoice/packing list si es el soporte disponible.",
-          requiredForAccept: !!article?.has_documentation,
-        },
-      ],
-    },
-  ],
-  [article?.has_documentation],
-);
-
-
+  const hasDocs = !!article?.has_documentation;
+  const anyDocUploaded = !!(
+    article?.certificate_8130 ||
+    article?.certificate_fabricant ||
+    article?.certificate_vendor ||
+    article?.image
+  );
+  const docRisk = hasDocs && !anyDocUploaded;
+  const { data: groups = [], isLoading: isChecksLoading } = useGetIncomingChecks(hasDocs);
   const [checklist, setChecklist] = useState<Record<string, ChecklistValue>>({});
   const [inspectorNotes, setInspectorNotes] = useState("");
-
   const flat = useMemo(() => groups.flatMap((g) => g.items), [groups]);
   const total = flat.length;
   const done = flat.filter((i) => checklist[i.key] !== undefined).length;
@@ -141,16 +45,6 @@ const groups: ChecklistGroup[] = useMemo(
 
 // “todo OK” significa: todos evaluados y todos en true
   const allOk = allDecided && flat.every((i) => checklist[i.key] === true);
-
-
-  const hasDocs = !!article?.has_documentation;
-  const anyDocUploaded = !!(
-    article?.certificate_8130 ||
-    article?.certificate_fabricant ||
-    article?.certificate_vendor ||
-    article?.image
-  );
-  const docRisk = hasDocs && !anyDocUploaded;
 
   return (
     <div className="max-w-7xl mx-auto px-4 pb-10">
@@ -260,15 +154,22 @@ const groups: ChecklistGroup[] = useMemo(
           </section>
         </div>
 
-        <IncomingSidebar
-          article_id={article.id}
-          groups={groups}
-          checklist={checklist}
-          setChecklist={setChecklist}
-          inspectorNotes={inspectorNotes}
-          setInspectorNotes={setInspectorNotes}
-        />
-        
+        {
+          groups.length > 0 ? (
+            <IncomingSidebar
+              article_id={article.id}
+              groups={groups}
+              checklist={checklist}
+              setChecklist={setChecklist}
+              inspectorNotes={inspectorNotes}
+              setInspectorNotes={setInspectorNotes}
+            />
+          ) :
+          <div className="flex items-center justify-center h-full">
+            <Loader2 className="animate-spin w-12 h-12" />
+          </div>
+        }
+
       </div>
     </div>
   );

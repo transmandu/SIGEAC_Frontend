@@ -1,4 +1,5 @@
 import { Batch } from "@/types";
+import { LucideIcon } from "lucide-react";
 
 export type ChecklistValue = boolean | "NA";
 
@@ -14,7 +15,7 @@ export type ChecklistItem = {
 
 export type ChecklistGroup = {
   title: string;
-  icon: React.ReactNode;
+  icon: LucideIcon;
   items: ChecklistItem[];
 };
 

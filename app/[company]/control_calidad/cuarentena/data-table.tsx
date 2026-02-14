@@ -1,6 +1,5 @@
 "use client"
 
-import React, { useEffect, useMemo, useState } from "react"
 import {
   ColumnDef,
   ColumnFiltersState,
@@ -9,81 +8,92 @@ import {
   getFilteredRowModel,
   getPaginationRowModel,
   getSortedRowModel,
-  RowSelectionState,
   SortingState,
   useReactTable,
 } from "@tanstack/react-table"
 
 import { DataTablePagination } from "@/components/tables/DataTablePagination"
 import { DataTableViewOptions } from "@/components/tables/DataTableViewOptions"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
+import { useRouter } from "next/navigation"
+import { useState } from "react"
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
   data: TData[]
-  onSelectionChange?: (rows: TData[]) => void
-  toolbar?: React.ReactNode
-  getRowId?: (row: TData) => string
 }
 
 export function DataTable<TData, TValue>({
   columns,
   data,
-  onSelectionChange,
-  toolbar,
-  getRowId,
 }: DataTableProps<TData, TValue>) {
+
   const [sorting, setSorting] = useState<SortingState>([])
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
-  const [rowSelection, setRowSelection] = useState<RowSelectionState>({})
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>(
+    []
+  )
+
+  const locations = [
+    {
+      label: 'Puerto Ordaz',
+      value: 'pzo'
+    }
+  ]
 
   const table = useReactTable({
     data,
     columns,
-    getRowId: getRowId as any, // opcional, si no lo pasas usa index
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
-    onRowSelectionChange: setRowSelection,
-    getFilteredRowModel: getFilteredRowModel(),
-    state: { sorting, columnFilters, rowSelection },
-    enableRowSelection: true,
+    state: {
+      sorting,
+      columnFilters
+    }
   })
-
-  useEffect(() => {
-    if (!onSelectionChange) return
-    const selected = table.getSelectedRowModel().rows.map((r) => r.original)
-    onSelectionChange(selected)
-  }, [rowSelection, onSelectionChange, table])
 
   return (
     <div>
-      <div className="flex items-center justify-between py-4 gap-3">
+      <div className="flex items-center py-4">
         <DataTableViewOptions table={table} />
-        {toolbar ? <div className="flex items-center gap-2">{toolbar}</div> : null}
       </div>
-
       <div className="rounded-md border mb-4">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => (
-                  <TableHead key={header.id}>
-                    {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
-                  </TableHead>
-                ))}
+                {headerGroup.headers.map((header) => {
+                  return (
+                    <TableHead key={header.id}>
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
+                    </TableHead>
+                  )
+                })}
               </TableRow>
             ))}
           </TableHeader>
-
           <TableBody>
             {table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
-                <TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
+                <TableRow
+                  key={row.id}
+                  data-state={row.getIsSelected() && "selected"}
+                >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
@@ -101,7 +111,6 @@ export function DataTable<TData, TValue>({
           </TableBody>
         </Table>
       </div>
-
       <DataTablePagination table={table} />
     </div>
   )

@@ -19,10 +19,20 @@ import { DataTable } from "./data-table";
 
 import LoadingPage from "@/components/misc/LoadingPage";
 import { useGetArticlesByStatus } from "@/hooks/mantenimiento/almacen/articulos/useGetArticlesByStatus";
+import { useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
+import { IncomingArticle } from "./IncomingTypes";
+import { GenerateReceptionFormButton } from "./_components/GenerateReceptionFormButton";
+import { form_columns } from "./form_columns";
 import { w_columns } from "./w-columns";
 
 
 const IncomingControlPage = () => {
+
+  const [selectedForForm, setSelectedForForm] = useState<IncomingArticle[]>([]);
+
+  const queryClient = useQueryClient();
+
   const { selectedCompany } = useCompanyStore();
 
   const {
@@ -35,6 +45,14 @@ const IncomingControlPage = () => {
     isLoading: isWaitingLoading,
   } = useGetArticlesByStatus("WAITING_TO_LOCATE");
 
+  const {
+  data: waitingForFormArticles,
+  isLoading: isWaitingForFormLoading,
+} = useGetArticlesByStatus("WAITING_FOR_FORMAT");
+
+
+
+  const waitingForFormCount = waitingForFormArticles?.length ?? 0;
   const incomingCount = incomingArticles?.length ?? 0;
   const waitingCount = waitingToLocateArticles?.length ?? 0;
 
@@ -80,6 +98,11 @@ const IncomingControlPage = () => {
               En espera por ubicar
               <Badge variant="secondary">{waitingCount}</Badge>
             </TabsTrigger>
+
+            <TabsTrigger value="waitingForm" className="gap-2">
+              Pendientes por formato
+              <Badge variant="secondary">{waitingForFormCount}</Badge>
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="incoming">
@@ -97,6 +120,28 @@ const IncomingControlPage = () => {
               <DataTable columns={w_columns} data={waitingToLocateArticles ?? []} />
             )}
           </TabsContent>
+
+          <TabsContent value="waitingForm">
+          {isWaitingForFormLoading ? (
+            <LoadingPage />
+          ) : (
+            <DataTable
+              columns={form_columns}
+              data={waitingForFormArticles ?? []}
+              getRowId={(row) => String((row as any).id)}
+              onSelectionChange={setSelectedForForm}
+              toolbar={
+                <GenerateReceptionFormButton
+                  selected={selectedForForm}
+                  onDone={() => {
+                    // refresca ambas tablas
+                    queryClient.invalidateQueries({ queryKey: ["articles-by-status"] })
+                  }}
+                />
+              }
+            />
+          )}
+        </TabsContent>
         </Tabs>
       </div>
     </ContentLayout>
