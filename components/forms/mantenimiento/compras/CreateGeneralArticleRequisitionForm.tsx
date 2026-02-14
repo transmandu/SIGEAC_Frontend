@@ -413,7 +413,7 @@ export function CreateGeneralArticleRequisitionForm({
                 >
                   <FormControl>
                     <SelectTrigger >
-                      <SelectValue placeholder="Seleccione.." />
+                      <SelectValue placeholder="Seleccione..." />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
@@ -447,7 +447,7 @@ export function CreateGeneralArticleRequisitionForm({
                     <FormControl>
                       <SelectTrigger className="w-full">
                         <SelectValue
-                          placeholder="Seleccione categoría"
+                          placeholder="Seleccione..."
                           className="truncate text-muted-foreground"
                         />
                       </SelectTrigger>
