@@ -172,7 +172,7 @@ export function CreateGeneralArticleRequisitionForm({
   const { updateRequisition } = useUpdateRequisition()
 
   const [selectedBatches, setSelectedBatches] = useState<Batch[]>([])
-  const [articleCategory, setArticleCategory] = useState("GENERAL")
+  const [articleCategory, setArticleCategory] = useState("")
   const { mutate: fetchArticles, data: articlesList, isPending: articlesLoading } =
     useGetArticlesByCategory(Number(selectedStation), articleCategory, selectedCompany?.slug)
 
@@ -199,7 +199,7 @@ export function CreateGeneralArticleRequisitionForm({
   }, [user, selectedCompany, selectedStation, initialData, form])
 
   useEffect(() => {
-    if (selectedStation && selectedCompany) {
+    if (selectedStation && selectedCompany && articleCategory) {
       fetchArticles()
     }
   }, [selectedStation, selectedCompany, articleCategory, fetchArticles])
@@ -412,7 +412,7 @@ export function CreateGeneralArticleRequisitionForm({
                   defaultValue={field.value}
                 >
                   <FormControl>
-                    <SelectTrigger>
+                    <SelectTrigger >
                       <SelectValue placeholder="Seleccione.." />
                     </SelectTrigger>
                   </FormControl>
@@ -445,8 +445,11 @@ export function CreateGeneralArticleRequisitionForm({
                     }}
                   >
                     <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Seleccione categoría" />
+                      <SelectTrigger className="w-full">
+                        <SelectValue
+                          placeholder="Seleccione categoría"
+                          className="truncate text-muted-foreground"
+                        />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -461,7 +464,7 @@ export function CreateGeneralArticleRequisitionForm({
                 </FormItem>
 
                 {/* ---------------------- SELECT DE ARTÍCULO ---------------------- */}
-                <FormItem className="flex flex-col w-[200px]">
+                <FormItem className="flex flex-col w-[220px]">
                   <FormLabel>Artículo</FormLabel>
 
                   {articleCategory ? (
@@ -469,17 +472,20 @@ export function CreateGeneralArticleRequisitionForm({
                       <PopoverTrigger asChild>
                         <FormControl>
                           <Button
+                            type="button"
                             variant="outline"
                             role="combobox"
                             className={cn(
-                              "justify-between",
+                              "w-full h-10 px-3 flex items-center justify-between overflow-hidden",
                               selectedBatches.length === 0 && "text-muted-foreground"
                             )}
                           >
+                          <span className="flex-1 text-left truncate">
                             {selectedBatches.length > 0
                               ? `${selectedBatches.length} artículos seleccionados`
                               : "Selecciona un artículo..."}
-                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                          </span>
+                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                           </Button>
                         </FormControl>
                       </PopoverTrigger>
@@ -528,9 +534,11 @@ export function CreateGeneralArticleRequisitionForm({
                         variant="outline"
                         disabled
                         role="combobox"
-                        className="justify-between text-muted-foreground"
+                        className="w-full h-10 px-3 flex items-center overflow-hidden text-muted-foreground"
                       >
-                        Seleccione una categoría primero
+                        <span className="truncate">
+                          Seleccione una categoría primero
+                        </span>
                       </Button>
                     </FormControl>
                   )}
@@ -575,7 +583,13 @@ export function CreateGeneralArticleRequisitionForm({
                                     <CommandItem
                                       key={ac.id}
                                       value={ac.id.toString()}
-                                      onSelect={() => form.setValue("aircraft_id", ac.id.toString())}
+                                      onSelect={() =>
+                                        form.setValue(
+                                          "aircraft_id",
+                                          field.value === ac.id.toString() ? undefined : ac.id.toString(),
+                                          { shouldValidate: true }
+                                        )
+                                      }
                                     >
                                       <Check
                                         className={cn(
