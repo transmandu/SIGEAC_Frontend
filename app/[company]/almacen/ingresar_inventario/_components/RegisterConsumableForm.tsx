@@ -108,7 +108,7 @@ const formSchema = z.object({
     .array(
       z.string().min(2, {
         message: "Cada número alterno debe contener al menos 2 caracteres.",
-      })
+      }),
     )
     .optional(),
   description: z.string().optional(),
@@ -147,13 +147,7 @@ const formSchema = z.object({
   conversion_id: z.number().optional(),
   primary_unit_id: z.number().optional(),
   has_documentation: z.boolean().optional(),
-  shelf_life: z.coerce
-    .number({ invalid_type_error: "Debe ingresar una cantidad numérica" })
-    .int({ message: "Debe ser un número entero " }) // <--- Restricción de enteros
-    .min(0, { message: "No puede ser negativo." })
-    .optional()
-    .or(z.literal("").transform(() => undefined)),
-  shelf_life_unit: z.string().optional(),
+  shelf_life: z.string().optional(),
   inspector: z.string().optional(),
   inspect_date: z.string().optional(),
 });
@@ -200,11 +194,9 @@ function FileField({
   const fileName = fileValue instanceof File ? fileValue.name : "";
 
   const handleClearFile = (inputRef: HTMLInputElement | null) => {
-    // Limpiar el input de archivo
     if (inputRef) {
       inputRef.value = "";
     }
-    // Limpiar el valor en el formulario
     form.setValue(name as any, undefined as any, {
       shouldDirty: true,
       shouldValidate: true,
@@ -300,6 +292,14 @@ function FileField({
   );
 }
 
+// Helper function to check if date is the "Not Applicable" date (1900-01-01)
+const isNotApplicableDate = (date: Date | null | undefined): boolean => {
+  if (!date || !(date instanceof Date)) return false;
+  return (
+    date.getFullYear() === 1900 && date.getMonth() === 0 && date.getDate() === 1
+  );
+};
+
 function DatePickerField({
   label,
   value,
@@ -328,7 +328,6 @@ function DatePickerField({
   const [isInputMode, setIsInputMode] = useState(false);
   const [validationError, setValidationError] = useState<string>("");
 
-  // Solo mostrar error si el campo fue tocado/interactuado o si hay un error explícito
   const isInvalid = required && value === undefined && touched;
   const displayError =
     error ||
@@ -336,29 +335,20 @@ function DatePickerField({
       ? "Este campo es obligatorio. Debe seleccionar una fecha o marcar 'No aplica'."
       : undefined);
 
-  // Efecto para sincronizar el input cuando cambia el valor desde fuera
   useEffect(() => {
-    if (value && value instanceof Date) {
+    if (value && value instanceof Date && !isNotApplicableDate(value)) {
       setInputValue(format(value, "dd/MM/yyyy"));
-    } else if (value === null) {
-      setInputValue("");
-    } else if (value === undefined) {
+    } else {
       setInputValue("");
     }
   }, [value]);
 
-  // Función para validar si una fecha es válida
   const isValidDate = (day: number, month: number, year: number): boolean => {
-    // Validar rangos básicos
     if (year < 1900 || year > 2100) return false;
     if (month < 1 || month > 12) return false;
     if (day < 1 || day > 31) return false;
 
-    // Crear fecha y verificar que sea válida
     const date = new Date(year, month - 1, day);
-
-    // Verificar que la fecha creada coincida con los valores ingresados
-    // (esto detecta fechas inválidas como 31/02/2024)
     return (
       date.getFullYear() === year &&
       date.getMonth() === month - 1 &&
@@ -366,26 +356,16 @@ function DatePickerField({
     );
   };
 
-  // Función para parsear la fecha desde el input solo cuando el usuario termina de escribir
   const parseDateFromInput = (dateString: string): Date | null => {
     if (!dateString.trim()) return null;
-
-    // Validar formato dd/MM/yyyy
-    if (!/^\d{2}\/\d{2}\/\d{4}$/.test(dateString)) {
-      return null;
-    }
+    if (!/^\d{2}\/\d{2}\/\d{4}$/.test(dateString)) return null;
 
     const parts = dateString.split("/");
-
-    // Formato día/mes/año
     const day = parseInt(parts[0]);
     const month = parseInt(parts[1]);
     const year = parseInt(parts[2]);
 
-    // Validar que la fecha sea válida
-    if (!isValidDate(day, month, year)) {
-      return null;
-    }
+    if (!isValidDate(day, month, year)) return null;
 
     return new Date(year, month - 1, day);
   };
@@ -393,58 +373,46 @@ function DatePickerField({
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     let newValue = e.target.value;
 
-    // Limpiar error al escribir
     if (validationError) {
       setValidationError("");
     }
 
-    // Permitir borrar todo
     if (newValue === "") {
       setInputValue("");
       setValue(undefined);
       return;
     }
 
-    // --- NORMALIZAR: siempre trabajar a partir sólo de los dígitos que hay en el input ---
-    // Esto hace que el formato sea determinista aunque el usuario escriba "/" manualmente o pegue texto.
-    const digits = newValue.replace(/\D/g, "").slice(0, 8); // máximo ddMMyyyy
+    const digits = newValue.replace(/\D/g, "").slice(0, 8);
 
-    // Construir el formato de forma consistente:
-    // - 1..2 dígitos -> "d" o "dd"
-    // - 3 dígitos -> "dd/m"
-    // - 4 dígitos -> "dd/mm"
-    // - 5+ dígitos -> "dd/mm/yyyy..." (hasta 8 dígitos)
     let formatted = "";
     if (digits.length <= 2) {
       formatted = digits;
     } else if (digits.length <= 4) {
-      // dd + "/" + remaining (1 o 2 dígitos del mes)
       formatted = digits.slice(0, 2) + "/" + digits.slice(2);
     } else {
-      // dd + "/" + mm + "/" + yyyy-partial
       formatted =
-        digits.slice(0, 2) + "/" + digits.slice(2, 4) + "/" + digits.slice(4); // slice(4) puede ser 1..4 dígitos del año
+        digits.slice(0, 2) + "/" + digits.slice(2, 4) + "/" + digits.slice(4);
     }
 
     setInputValue(formatted);
 
-    // Validar si está completo (dd/MM/yyyy)
     if (formatted.length === 10 && /^\d{2}\/\d{2}\/\d{4}$/.test(formatted)) {
       const parsedDate = parseDateFromInput(formatted);
       if (parsedDate && !isNaN(parsedDate.getTime())) {
         setValue(parsedDate);
         setValidationError("");
       } else {
-        setValue(undefined); // completo pero inválido (ej: 30/02/2024)
+        setValue(undefined);
       }
     } else {
-      setValue(undefined); // parcial
+      setValue(undefined);
     }
   };
 
   const handleInputBlur = () => {
     setTouched(true);
-    setValidationError(""); // Limpiar error antes de procesar
+    setValidationError("");
 
     if (!inputValue.trim()) {
       setValue(undefined);
@@ -453,25 +421,21 @@ function DatePickerField({
 
     let inputToValidate = inputValue;
 
-    // Normalizar si el formato es parcial pero incluye barras (ej: 1/1/2024)
     const parts = inputValue.split("/");
     if (parts.length === 3) {
       const day = parts[0].padStart(2, "0");
       const month = parts[1].padStart(2, "0");
       const year = parts[2].padStart(4, "0");
-      // Solo normalizar si el año tiene 4 dígitos (para evitar 1/1/24)
       if (year.length === 4) {
         inputToValidate = `${day}/${month}/${year}`;
       }
     }
 
-    // Validar longitud y formato (debe ser dd/mm/aaaa)
     if (
       inputToValidate.length !== 10 ||
       !/^\d{2}\/\d{2}\/\d{4}$/.test(inputToValidate)
     ) {
-      // Si el formato es incorrecto o incompleto, aplicamos la fecha por defecto
-      const defaultDate = new Date(2001, 0, 1); // 01/01/2001
+      const defaultDate = new Date(2001, 0, 1);
       setValue(defaultDate);
       setInputValue(format(defaultDate, "dd/MM/yyyy"));
       return;
@@ -480,27 +444,16 @@ function DatePickerField({
     const parsedDate = parseDateFromInput(inputToValidate);
 
     if (parsedDate && !isNaN(parsedDate.getTime())) {
-      // Caso 1: Fecha válida (ej. 10/10/2024)
       setValue(parsedDate);
-      // Formatear el input a la versión estándar (ej: 01/01/2024)
       setInputValue(format(parsedDate, "dd/MM/yyyy"));
     } else {
-      // Caso 2: Fecha con valores inválidos o fuera de rango (ej. 10/00/2210)
-
-      // Aplicar la fecha por defecto: 01/01/2001
-      const defaultDate = new Date(2001, 0, 1); // 01/01/2001
-
+      const defaultDate = new Date(2001, 0, 1);
       setValue(defaultDate);
       setInputValue(format(defaultDate, "dd/MM/yyyy"));
-
-      // Si quieres mostrar un mensaje informativo ANTES de sobrescribir,
-      // podrías hacerlo con un toast o una lógica de error diferente.
-      // Aquí estamos CUMPLIENDO con la instrucción de reemplazar el valor, no dar un error.
     }
   };
 
   const handleInputKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    // Permitir que el usuario presione Enter para confirmar (trigger handleInputBlur)
     if (e.key === "Enter") {
       handleInputBlur();
     }
@@ -518,7 +471,7 @@ function DatePickerField({
   const handleNotApplicableChange = (checked: boolean) => {
     setTouched(true);
     if (checked === true) {
-      setValue(null);
+      setValue(new Date(1900, 0, 1)); // 1900-01-01 for "Not Applicable"
       setInputValue("");
     } else {
       setValue(undefined);
@@ -541,7 +494,6 @@ function DatePickerField({
       </FormLabel>
 
       <div className="flex flex-col gap-2">
-        {/* Selector de modo: Input o Calendar */}
         <div className="flex gap-2 mb-2">
           <Button
             type="button"
@@ -565,7 +517,6 @@ function DatePickerField({
           </Button>
         </div>
 
-        {/* Modo Input */}
         {isInputMode ? (
           <div className="flex gap-2">
             <Input
@@ -592,7 +543,6 @@ function DatePickerField({
             )}
           </div>
         ) : (
-          /* Modo Calendar */
           <div className="flex gap-2">
             <Popover>
               <PopoverTrigger asChild>
@@ -604,10 +554,12 @@ function DatePickerField({
                     className={cn(
                       "flex-1 pl-3 text-left font-normal",
                       (!value || value === null) && "text-muted-foreground",
-                      isInvalid && "border-destructive"
+                      isInvalid && "border-destructive",
                     )}
                   >
                     {value === null ? (
+                      <span>N/A</span>
+                    ) : value && isNotApplicableDate(value) ? (
                       <span>N/A</span>
                     ) : value ? (
                       format(value, "PPP", { locale: es })
@@ -628,10 +580,14 @@ function DatePickerField({
                 <Calendar
                   locale={es}
                   mode="single"
-                  selected={value || undefined}
+                  selected={
+                    value && !isNotApplicableDate(value) ? value : undefined
+                  }
                   onSelect={handleCalendarSelect}
                   initialFocus
-                  defaultMonth={value || new Date()}
+                  defaultMonth={
+                    value && !isNotApplicableDate(value) ? value : new Date()
+                  }
                   captionLayout="dropdown-buttons"
                   fromYear={1900}
                   toYear={maxYear ?? new Date().getFullYear() + 20}
@@ -661,12 +617,11 @@ function DatePickerField({
           </div>
         )}
 
-        {/* Checkbox "No aplica" */}
         {showNotApplicable && (
           <div className="flex items-center space-x-2 flex-shrink-0">
             <Checkbox
               id={`not-applicable-${label.replace(/\s+/g, "-").toLowerCase()}`}
-              checked={value === null}
+              checked={value !== undefined && isNotApplicableDate(value)}
               onCheckedChange={handleNotApplicableChange}
               disabled={busy}
             />
@@ -707,7 +662,7 @@ function UnitsModal({
   primaryUnit,
   allUnits,
   availableConversionUnits,
-  availableConversion, // Agregar esta prop
+  availableConversion,
   onConversionResult,
 }: {
   open: boolean;
@@ -724,7 +679,7 @@ function UnitsModal({
     registered_by: string;
     updated_by: string | null;
   }[];
-  availableConversion?: any[]; // Agregar el tipo para availableConversion
+  availableConversion?: any[];
   onConversionResult?: (result: string) => void;
 }) {
   const [currentUnitId, setCurrentUnitId] = useState<number | "">("");
@@ -737,10 +692,9 @@ function UnitsModal({
 
   const availableUnits = availableConversion?.filter(
     (unit) =>
-      !selectedUnits.some((selected) => selected.conversion_id === unit.id)
+      !selectedUnits.some((selected) => selected.conversion_id === unit.id),
   );
 
-  // Función para calcular la conversión localmente usando las equivalencias
   const calculateConversionLocally = useCallback(() => {
     if (!conversionFromUnit || !conversionToUnit || !conversionQuantity) {
       setConversionResult("");
@@ -757,17 +711,15 @@ function UnitsModal({
 
     setIsCalculating(true);
 
-    // Buscar la conversión que coincida con las unidades seleccionadas
     const conversion = availableConversion?.find(
       (conv: any) =>
         conv.primary_unit.id.toString() === conversionFromUnit &&
-        conv.secondary_unit.id.toString() === conversionToUnit
+        conv.secondary_unit.id.toString() === conversionToUnit,
     );
 
     if (conversion && conversion.equivalence) {
-      // Calcular: cantidad / equivalencia
       const result = quantity / conversion.equivalence;
-      const resultValue = result.toFixed(6).replace(/\.?0+$/, ""); // Limitar decimales y quitar ceros innecesarios
+      const resultValue = result.toFixed(6).replace(/\.?0+$/, "");
 
       setConversionResult(resultValue);
       onConversionResult?.(resultValue);
@@ -785,12 +737,10 @@ function UnitsModal({
     onConversionResult,
   ]);
 
-  // Calcular automáticamente cuando cambian los valores
   useEffect(() => {
     calculateConversionLocally();
   }, [calculateConversionLocally]);
 
-  // Efecto para actualizar automáticamente la unidad destino cuando cambia la unidad primaria
   useEffect(() => {
     if (primaryUnit?.id) {
       setConversionToUnit(primaryUnit.id.toString());
@@ -811,7 +761,7 @@ function UnitsModal({
 
   const removeUnit = (unitId: number) => {
     const updatedUnits = selectedUnits.filter(
-      (unit) => unit.conversion_id !== unitId
+      (unit) => unit.conversion_id !== unitId,
     );
     onSelectedUnitsChange(updatedUnits);
   };
@@ -828,7 +778,6 @@ function UnitsModal({
         </DialogHeader>
 
         <div className="space-y-6">
-          {/* Botón para crear nueva conversión */}
           <div className="flex justify-between items-center">
             <h3 className="text-lg font-medium">Conversiones Existentes</h3>
             <Button
@@ -840,7 +789,6 @@ function UnitsModal({
             </Button>
           </div>
 
-          {/* Formulario para crear nueva conversión */}
           {showConversionForm && (
             <div className="p-4 border rounded-lg bg-muted/50">
               <div className="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
@@ -914,7 +862,6 @@ function UnitsModal({
                 </div>
               </div>
 
-              {/* Mostrar información de la conversión */}
               {conversionFromUnit &&
                 conversionToUnit &&
                 availableConversion && (
@@ -923,7 +870,7 @@ function UnitsModal({
                       Conversión: {conversionQuantity || "0"}{" "}
                       {
                         availableConversionUnits?.find(
-                          (u) => u.id.toString() === conversionFromUnit
+                          (u) => u.id.toString() === conversionFromUnit,
                         )?.label
                       }{" "}
                       → {conversionResult} {primaryUnit?.label}
@@ -931,13 +878,14 @@ function UnitsModal({
                         (conv: any) =>
                           conv.primary_unit.id.toString() ===
                             conversionFromUnit &&
-                          conv.secondary_unit.id.toString() === conversionToUnit
+                          conv.secondary_unit.id.toString() ===
+                            conversionToUnit,
                       )?.equivalence && (
                         <span className="block text-xs mt-1">
                           Equivalencia: 1{" "}
                           {
                             availableConversionUnits?.find(
-                              (u) => u.id.toString() === conversionFromUnit
+                              (u) => u.id.toString() === conversionFromUnit,
                             )?.label
                           }{" "}
                           ={" "}
@@ -947,7 +895,7 @@ function UnitsModal({
                                 conv.primary_unit.id.toString() ===
                                   conversionFromUnit &&
                                 conv.secondary_unit.id.toString() ===
-                                  conversionToUnit
+                                  conversionToUnit,
                             )!.equivalence}{" "}
                           {primaryUnit?.label}
                         </span>
@@ -956,7 +904,6 @@ function UnitsModal({
                   </div>
                 )}
 
-              {/* Input para mostrar el resultado de la conversión */}
               {conversionResult &&
                 !isCalculating &&
                 conversionResult !== "No se encontró conversión" && (
@@ -975,7 +922,7 @@ function UnitsModal({
                       <p className="text-sm text-muted-foreground">
                         {conversionQuantity}{" "}
                         {availableConversionUnits?.find(
-                          (u) => u.id.toString() === conversionFromUnit
+                          (u) => u.id.toString() === conversionFromUnit,
                         )?.label || conversionFromUnit}{" "}
                         = {conversionResult}{" "}
                         {primaryUnit?.label || "unidad primaria"}
@@ -984,7 +931,6 @@ function UnitsModal({
                   </div>
                 )}
 
-              {/* Mensaje de error */}
               {conversionResult === "No se encontró conversión" && (
                 <div className="mt-3 p-3 bg-destructive/10 rounded-lg">
                   <p className="text-sm text-destructive">
@@ -995,7 +941,6 @@ function UnitsModal({
             </div>
           )}
 
-          {/* Resto del componente igual... */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 border rounded-lg">
             <div className="space-y-2">
               <label className="text-sm font-medium">
@@ -1046,7 +991,7 @@ function UnitsModal({
               <div className="space-y-2">
                 {selectedUnits.map((unit) => {
                   const conversionInfo = secondaryUnits.find(
-                    (u) => u.id === unit.conversion_id
+                    (u) => u.id === unit.conversion_id,
                   );
                   return (
                     <div
@@ -1090,7 +1035,7 @@ function UnitsModal({
   );
 }
 
-/* ----------------------------- Componente ----------------------------- */
+/* ----------------------------- Componente Principal ----------------------------- */
 
 export default function CreateConsumableForm({
   initialData,
@@ -1103,16 +1048,13 @@ export default function CreateConsumableForm({
   const queryClient = useQueryClient();
   const { selectedCompany, selectedStation } = useCompanyStore();
 
-  // Local state for part number search
   const [partNumberToSearch, setPartNumberToSearch] = useState<
     string | undefined
   >(undefined);
 
-  // Modal state
   const [unitsModalOpen, setUnitsModalOpen] = useState(false);
   const [selectedUnits, setSelectedUnits] = useState<UnitSelection[]>([]);
 
-  // Data hooks
   const {
     data: batches,
     isPending: isBatchesLoading,
@@ -1131,31 +1073,25 @@ export default function CreateConsumableForm({
     error: isConditionsError,
   } = useGetConditions();
 
-  // USAR useGetUnits para el método de ingreso
   const { data: units, isLoading: unitsLoading } = useGetUnits(
-    selectedCompany?.slug
+    selectedCompany?.slug,
   );
 
-  // Mantener useGetSecondaryUnits solo para el modal de conversiones adicionales
   const { data: secondaryUnits, isLoading: secondaryUnitsLoading } =
     useGetSecondaryUnits(selectedCompany?.slug);
 
-  // Estado para la unidad primaria seleccionada
   const [selectedPrimaryUnit, setSelectedPrimaryUnit] = useState<any | null>(
-    initialData?.primary_unit_id ? { id: initialData.primary_unit_id } : null
+    initialData?.primary_unit_id ? { id: initialData.primary_unit_id } : null,
   );
 
-  // Conversiones posibles según la unidad primaria seleccionada
   const { data: availableConversion, isLoading: isConversionLoading } =
     useGetConversionByUnitConsmable(
-      selectedPrimaryUnit?.id || 0, // Usar 0 o un valor por defecto cuando no hay selección
-      selectedCompany?.slug
+      selectedPrimaryUnit?.id || 0,
+      selectedCompany?.slug,
     );
 
-  // Extraer unidades primarias únicas de las conversiones disponibles
   const primaryUnitsFromConversions = useMemo(() => {
     if (!availableConversion) return [];
-
     const unitMap = new Map();
     availableConversion.forEach((conversion) => {
       const unit = conversion.primary_unit;
@@ -1163,28 +1099,24 @@ export default function CreateConsumableForm({
         unitMap.set(unit.id, unit);
       }
     });
-
     return Array.from(unitMap.values());
   }, [availableConversion]);
 
-  // Search batches by part number
   const { data: searchResults, isFetching: isSearching } =
     useSearchBatchesByPartNumber(
       selectedCompany?.slug,
       selectedStation || undefined,
       partNumberToSearch,
-      "CONSUMIBLE"
+      "CONSUMIBLE",
     );
 
-  // Mutations
   const { createArticle } = useCreateArticle();
   const { updateArticle } = useUpdateArticle();
   const { confirmIncoming } = useConfirmIncomingArticle();
 
-  // Local UI state
   const [secondaryOpen, setSecondaryOpen] = useState(false);
   const [secondarySelected, setSecondarySelected] = useState<any | null>(
-    initialData?.primary_unit_id ? { id: initialData.primary_unit_id } : null
+    initialData?.primary_unit_id ? { id: initialData.primary_unit_id } : null,
   );
   const [secondaryQuantity, setSecondaryQuantity] = useState<
     number | undefined
@@ -1192,13 +1124,17 @@ export default function CreateConsumableForm({
   const [caducateDate, setCaducateDate] = useState<Date | null | undefined>(
     initialData?.consumable?.expiration_date
       ? parseISO(initialData.consumable.expiration_date)
-      : undefined
+      : undefined,
+  );
+
+  const [shelfDate, setShelfDate] = useState<Date | null | undefined>(
+    initialData?.consumable?.shelf_life
+      ? parseISO(initialData.consumable.shelf_life)
+      : undefined,
   );
 
   const [inspectDate, setInspectDate] = useState<Date | null | undefined>(
-    initialData?.inspect_date
-      ? parseISO(initialData.inspect_date)
-      : null
+    initialData?.inspect_date ? parseISO(initialData.inspect_date) : undefined,
   );
 
   const [fabricationDate, setFabricationDate] = useState<
@@ -1206,26 +1142,44 @@ export default function CreateConsumableForm({
   >(
     initialData?.consumable?.fabrication_date
       ? parseISO(initialData?.consumable?.fabrication_date)
-      : undefined
+      : undefined,
   );
   const [enableBatchNameEdit, setEnableBatchNameEdit] = useState(false);
 
-  // Wrapper functions for DatePickerField compatibility
   const handleFabricationDateChange = (d?: Date | null) => {
     setFabricationDate(d ?? undefined);
   };
 
   const handleCaducateDateChange = (d?: Date | null) => {
-    // Preserve null value to indicate "Not applicable"
     if (d === null) {
-      setCaducateDate(null); // ← CAMBIAR undefined por null
+      setCaducateDate(null);
     } else if (d === undefined) {
       setCaducateDate(undefined);
     } else {
       setCaducateDate(d);
     }
   };
-  // Form
+
+  const handleShelfDateChange = (d?: Date | null) => {
+    if (d === null) {
+      setShelfDate(null);
+    } else if (d === undefined) {
+      setShelfDate(undefined);
+    } else {
+      setShelfDate(d);
+    }
+  };
+
+  const handleInspectDateChange = (d?: Date | null) => {
+    if (d === null) {
+      setInspectDate(null);
+    } else if (d === undefined) {
+      setInspectDate(undefined);
+    } else {
+      setInspectDate(d);
+    }
+  };
+
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -1250,25 +1204,44 @@ export default function CreateConsumableForm({
       inspect_date: initialData?.inspect_date
         ? initialData?.inspect_date
         : undefined,
+      shelf_life: initialData?.consumable?.shelf_life || undefined,
     },
     mode: "onBlur",
   });
 
-  const hasDocumentation = form.watch("has_documentation"); // 2. **useEffect para la documentación**
+  const hasDocumentation = form.watch("has_documentation");
 
-  // Reset si cambia initialData
   useEffect(() => {
     if (!initialData) return;
 
-    console.log("Initial data for edit:", {
-      quantity: initialData.consumable?.quantity,
-      min_quantity: initialData.consumable?.min_quantity,
-      quantity_type: typeof initialData.consumable?.quantity,
-    });
-    // Obtener la cantidad del initialData
     const initialQuantity = initialData.consumable?.quantity ?? 0;
-    // Primero establecer el estado local de secondaryQuantity
     setSecondaryQuantity(initialQuantity);
+
+    // ✅ Convertimos a Date SOLO para el DatePicker
+    const expirationDate = initialData?.consumable?.expiration_date
+      ? parseISO(initialData.consumable.expiration_date)
+      : undefined;
+
+    const fabricationDateParsed = initialData?.consumable?.fabrication_date
+      ? parseISO(initialData.consumable.fabrication_date)
+      : undefined;
+
+    const shelfLifeDate = initialData?.consumable?.shelf_life
+      ? parseISO(initialData.consumable.shelf_life)
+      : undefined;
+
+    // ✅ Convertimos a string SOLO para RHF
+    const expirationDateStr = expirationDate
+      ? format(expirationDate, "yyyy-MM-dd")
+      : undefined;
+
+    const fabricationDateStr = fabricationDateParsed
+      ? format(fabricationDateParsed, "yyyy-MM-dd")
+      : undefined;
+
+    const shelfLifeDateStr = shelfLifeDate
+      ? format(shelfLifeDate, "yyyy-MM-dd")
+      : undefined;
 
     const resetValues = {
       part_number: initialData.part_number ?? "",
@@ -1280,33 +1253,39 @@ export default function CreateConsumableForm({
       description: initialData.description ?? "",
       zone: initialData.zone ?? "",
       lot_number: initialData.consumable?.lot_number ?? "",
-      expiration_date: initialData?.consumable?.expiration_date || undefined,
-      fabrication_date: initialData?.consumable?.fabrication_date || undefined,
-      // Establecer quantity usando el valor del initialData
+
+      // 🔥 RHF RECIBE STRING → ya no hay error TS
+      expiration_date: expirationDateStr,
+      fabrication_date: fabricationDateStr,
+      shelf_life: shelfLifeDateStr,
+
       quantity: initialQuantity,
-      // FIX: Manejar min_quantity correctamente
       min_quantity:
         initialData.consumable?.min_quantity !== undefined &&
         initialData.consumable?.min_quantity !== null
           ? Number(initialData.consumable.min_quantity)
           : undefined,
+
       primary_unit_id: initialData?.primary_unit_id || undefined,
       has_documentation: initialData.has_documentation ?? false,
     };
 
     form.reset(resetValues);
-    // Establecer la unidad primaria seleccionada si existe en initialData
+
+    // 🔥 MUY IMPORTANTE → sincroniza los DatePickers
+    setCaducateDate(expirationDate);
+    setFabricationDate(fabricationDateParsed);
+    setShelfDate(shelfLifeDate);
+
     if (initialData.primary_unit_id) {
       const unitObj = { id: initialData.primary_unit_id };
       setSelectedPrimaryUnit(unitObj);
       setSecondarySelected(unitObj);
     }
-  }, [initialData, form]);
+  }, [initialData]); // 👈 quitamos form para evitar renders extra
 
-  // Función para calcular y actualizar la cantidad
   const calculateAndUpdateQuantity = useCallback(
     (quantity: number | undefined, selectedUnit: any) => {
-      // Si no hay cantidad definida, establecer en 0
       if (quantity === undefined || quantity === null) {
         form.setValue("quantity", 0, {
           shouldDirty: true,
@@ -1314,26 +1293,21 @@ export default function CreateConsumableForm({
         });
         return;
       }
-
-      // Establecer la cantidad directamente
       form.setValue("quantity", quantity, {
         shouldDirty: true,
         shouldValidate: true,
       });
     },
-    [form]
+    [form],
   );
 
-  // Modificar el efecto existente para calcular la cantidad
   useEffect(() => {
-    // Prevenir actualizaciones durante el reset del formulario
     if (!secondarySelected || secondaryQuantity === undefined) {
       return;
     }
     calculateAndUpdateQuantity(secondaryQuantity, secondarySelected);
   }, [secondarySelected, secondaryQuantity, calculateAndUpdateQuantity]);
 
-  // Función para manejar el resultado de la conversión desde el modal
   const handleConversionResult = (result: string) => {
     const resultNumber = parseFloat(result);
     if (!isNaN(resultNumber)) {
@@ -1342,9 +1316,7 @@ export default function CreateConsumableForm({
     }
   };
 
-  // Efecto para actualizar selectedPrimaryUnit cuando cambia secondarySelected
   useEffect(() => {
-    // Prevenir actualizaciones si no hay unidad seleccionada (durante reset)
     if (!secondarySelected) {
       return;
     }
@@ -1355,29 +1327,14 @@ export default function CreateConsumableForm({
     });
   }, [secondarySelected, form]);
 
-  // Autocompletar descripción cuando encuentra resultados de búsqueda
   useEffect(() => {
     if (searchResults && searchResults.length > 0 && !isEditing) {
       const firstResult = searchResults[0];
       form.setValue("batch_id", firstResult.id.toString(), {
         shouldValidate: true,
       });
-
-      if (searchResults.length === 1) {
-        console.log("✓ Descripción autocompletada");
-      } else {
-        console.log(
-          `✓ Se encontraron ${searchResults.length} descripciones. Se seleccionó la primera.`
-        );
-      }
-    } else if (
-      searchResults &&
-      searchResults.length === 0 &&
-      partNumberToSearch
-    ) {
-      console.log("No se encontraron descripciones para este part number");
     }
-  }, [searchResults, form, isEditing, partNumberToSearch]);
+  }, [searchResults, form, isEditing]);
 
   const normalizeUpper = (s?: string) => s?.trim().toUpperCase() ?? "";
 
@@ -1395,7 +1352,6 @@ export default function CreateConsumableForm({
     return map;
   }, [batches]);
 
-  // Ordenar batches: primero los resultados de búsqueda, luego el resto
   const sortedBatches = useMemo(() => {
     if (!batches) return [];
     if (!searchResults || searchResults.length === 0) return batches;
@@ -1412,7 +1368,6 @@ export default function CreateConsumableForm({
 
   async function onSubmit(values: FormValues) {
     const rawValues = form.getValues();
-
     setPreviewData(rawValues);
     setOpenPreview(true);
   }
@@ -1422,15 +1377,33 @@ export default function CreateConsumableForm({
 
     const { expiration_date: _, ...valuesWithoutCaducateDate } = values;
 
-    // USAR ESTA LÍNEA QUE SÍ FUNCIONA:
+    // Format dates for backend
     const caducateDateStr: string | undefined =
-      caducateDate && caducateDate !== null
+      caducateDate && !isNotApplicableDate(caducateDate)
         ? format(caducateDate, "yyyy-MM-dd")
-        : undefined;
+        : caducateDate && isNotApplicableDate(caducateDate)
+          ? "1900-01-01"
+          : undefined;
+
+    const shelfDateStr: string | undefined =
+      shelfDate && !isNotApplicableDate(shelfDate)
+        ? format(shelfDate, "yyyy-MM-dd")
+        : shelfDate && isNotApplicableDate(shelfDate)
+          ? "1900-01-01"
+          : undefined;
+
+    const inspectDateStr: string | undefined =
+      inspectDate && !isNotApplicableDate(inspectDate)
+        ? format(inspectDate, "yyyy-MM-dd")
+        : inspectDate && isNotApplicableDate(inspectDate)
+          ? "1900-01-01"
+          : undefined;
 
     const formattedValues: Omit<FormValues, "expiration_date"> & {
-      expiration_date?: string; // ← MANTENER solo string | undefined
+      expiration_date?: string;
       fabrication_date?: string;
+      shelf_life?: string;
+      inspect_date?: string;
       part_number: string;
       article_type: string;
       status: string;
@@ -1445,11 +1418,17 @@ export default function CreateConsumableForm({
       article_type: "consumable",
       alternative_part_number:
         values.alternative_part_number?.map((v) => normalizeUpper(v)) ?? [],
-      expiration_date: caducateDateStr, // Solo string o undefined
+      expiration_date: caducateDateStr,
+      shelf_life: shelfDateStr,
+      inspect_date: inspectDateStr,
       fabrication_date:
-        fabricationDate && fabricationDate !== null
+        fabricationDate &&
+        fabricationDate !== null &&
+        !isNotApplicableDate(fabricationDate)
           ? format(fabricationDate, "yyyy-MM-dd")
-          : undefined,
+          : fabricationDate && isNotApplicableDate(fabricationDate)
+            ? "1900-01-01"
+            : undefined,
       batch_name: enableBatchNameEdit ? values.batch_name : undefined,
       conversions: selectedUnits.length > 0 ? selectedUnits : undefined,
       primary_unit_id: secondarySelected?.id,
@@ -1468,20 +1447,19 @@ export default function CreateConsumableForm({
         data: formattedValues,
       });
 
-      // Limpiar estados locales ANTES del reset para evitar que los efectos se disparen con valores obsoletos
       setSecondaryQuantity(undefined);
       setSecondarySelected(null);
       setSelectedPrimaryUnit(null);
       setFabricationDate(undefined);
       setCaducateDate(undefined);
+      setShelfDate(undefined);
+      setInspectDate(undefined);
       setSelectedUnits([]);
 
-      // Resetear el formulario después de limpiar los estados
       form.reset();
     }
   }
 
-  /* -------------------------------- UI -------------------------------- */
   return (
     <>
       <Form {...form}>
@@ -1489,7 +1467,6 @@ export default function CreateConsumableForm({
           className="flex flex-col gap-6 max-w-7xl mx-auto"
           onSubmit={form.handleSubmit(onSubmit)}
         >
-          {/* Encabezado */}
           <SectionCard title="Registrar consumible">
             <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
               <FormField
@@ -1510,7 +1487,7 @@ export default function CreateConsumableForm({
                 <DatePickerField
                   label="Fecha de Incoming"
                   value={inspectDate}
-                  setValue={setInspectDate}
+                  setValue={handleInspectDateChange}
                   description="Fecha de Incoming"
                   busy={busy}
                   shortcuts="forward"
@@ -1603,7 +1580,6 @@ export default function CreateConsumableForm({
                         <FormLabel>Descripción de Consumible</FormLabel>
                         <CreateBatchDialog
                           onSuccess={async (batchName) => {
-                            // Invalidar la query y refetch para obtener el batch recién creado
                             await queryClient.invalidateQueries({
                               queryKey: [
                                 "search-batches",
@@ -1838,7 +1814,6 @@ export default function CreateConsumableForm({
             </div>
           </SectionCard>
 
-          {/* Propiedades */}
           <SectionCard title="Propiedades">
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
               <FormField
@@ -2052,7 +2027,6 @@ export default function CreateConsumableForm({
             </div>
           </SectionCard>
 
-          {/* Fechas y límites */}
           <SectionCard title="Fechas del Consumible">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <DatePickerField
@@ -2063,13 +2037,14 @@ export default function CreateConsumableForm({
                 busy={busy}
                 shortcuts="back"
                 maxYear={new Date().getFullYear()}
+                showNotApplicable={true}
               />
 
               <DatePickerField
                 label="Próximo Vencimiento"
                 value={caducateDate}
                 setValue={handleCaducateDateChange}
-                description="Fecha de Vencimiento del Consumible,"
+                description="Proximo Vencimiento"
                 busy={busy}
                 shortcuts="forward"
                 showNotApplicable={true}
@@ -2078,62 +2053,21 @@ export default function CreateConsumableForm({
             </div>
           </SectionCard>
 
-          {/* Fechas y límites */}
           <SectionCard title="Shelf Life">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="shelf_life"
-                render={({ field }) => (
-                  <FormItem className="w-full">
-                    <FormLabel>Shelf Life</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="Ej: 10"
-                        {...field}
-                        disabled={busy}
-                        value={field.value || ""}
-                      />
-                    </FormControl>
-                    <FormDescription>Tiempo de Almacenamiento</FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="shelf_life_unit"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Shelf Life Unit</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                      value={field.value || ""}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Seleccionar la unidad" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="MONTHS">MES</SelectItem>
-                        <SelectItem value="DAYS">DIAS</SelectItem>
-                        <SelectItem value="YEARS">AÑO</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormDescription>Unidad de Tiempo</FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
+            <DatePickerField
+              label="Shelf Life"
+              value={shelfDate}
+              setValue={handleShelfDateChange}
+              description="Tiempo de Almacenamiento"
+              busy={busy}
+              shortcuts="forward"
+              showNotApplicable={true}
+              required={true}
+            />
           </SectionCard>
-          {/* Ingreso y cantidad */}
+
           <SectionCard title="Ingreso y cantidad">
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-              {/* Método de ingreso (unidades primarias) */}
               <div className="flex flex-col space-y-2 mt-2.5">
                 <FormLabel>Método de ingreso</FormLabel>
                 <Popover open={secondaryOpen} onOpenChange={setSecondaryOpen}>
@@ -2230,7 +2164,6 @@ export default function CreateConsumableForm({
                 </p>
               </div>
 
-              {/* Cantidad */}
               <FormField
                 control={form.control}
                 name="quantity"
@@ -2256,20 +2189,16 @@ export default function CreateConsumableForm({
                             return;
                           }
 
-                          // Permitir solo números, punto decimal y coma
                           const sanitizedValue = value
                             .replace(/[^0-9.,]/g, "")
                             .replace(",", ".");
 
                           const n = parseFloat(sanitizedValue);
-                          // Prevenir valores negativos o inválidos
                           if (Number.isNaN(n) || n < 0) {
                             return;
                           }
 
                           setSecondaryQuantity(n);
-
-                          // Actualizar el campo del formulario directamente con el valor numérico
                           field.onChange(n);
                         }}
                         placeholder="Ej: 15.7, 20.5, 3.14..."
@@ -2283,7 +2212,6 @@ export default function CreateConsumableForm({
                 )}
               />
 
-              {/* Cantidad mínima */}
               <FormField
                 control={form.control}
                 name="min_quantity"
@@ -2309,18 +2237,15 @@ export default function CreateConsumableForm({
                             return;
                           }
 
-                          // Permitir solo números, punto decimal y coma
                           const sanitizedValue = value
                             .replace(/[^0-9.,]/g, "")
                             .replace(",", ".");
 
                           const n = parseFloat(sanitizedValue);
-                          // Prevenir valores negativos o inválidos
                           if (Number.isNaN(n) || n < 0) {
                             return;
                           }
 
-                          // Enviar el valor numérico al formulario
                           field.onChange(n);
                         }}
                       />
@@ -2333,7 +2258,6 @@ export default function CreateConsumableForm({
                 )}
               />
 
-              {/* Botón para configurar conversiones adicionales */}
               <div className="col-span-1 md:col-span-2 xl:col-span-3">
                 <Button
                   type="button"
@@ -2357,7 +2281,6 @@ export default function CreateConsumableForm({
             </div>
           </SectionCard>
 
-          {/* Detalles y archivos */}
           <SectionCard title="Detalles y documentos">
             <div className="space-y-4">
               <FormField
@@ -2463,7 +2386,6 @@ export default function CreateConsumableForm({
             </div>
           </SectionCard>
 
-          {/* Acciones */}
           <div className="flex items-center gap-3">
             <Button
               className="bg-primary text-white hover:bg-blue-900 disabled:bg-slate-100 disabled:text-slate-400"
@@ -2505,14 +2427,13 @@ export default function CreateConsumableForm({
       <PreviewCreateConsumableDialog
         open={openPreview}
         onClose={() => setOpenPreview(false)}
-        values={previewData} // puede ser null antes de abrir
+        values={previewData}
         onConfirm={(vals) => {
           setOpenPreview(false);
-          submitToBackend(vals as unknown as FormValues); // aquí va tu función que maneja el submit real
+          submitToBackend(vals as unknown as FormValues);
         }}
       />
 
-      {/* Modal de Configuración de Conversiones */}
       <UnitsModal
         open={unitsModalOpen}
         onOpenChange={setUnitsModalOpen}
@@ -2522,7 +2443,7 @@ export default function CreateConsumableForm({
         primaryUnit={selectedPrimaryUnit}
         allUnits={units}
         availableConversionUnits={primaryUnitsFromConversions}
-        availableConversion={availableConversion} // ← Agregar esta línea
+        availableConversion={availableConversion}
         onConversionResult={handleConversionResult}
       />
     </>
