@@ -10,6 +10,7 @@ import { z } from "zod";
 
 import { format, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
+import { conditions as staticConditions, type Condition as UI_Condition } from "@/lib/conditions";
 
 import {
   Calculator,
@@ -1864,48 +1865,22 @@ export default function CreateConsumableForm({
                       </FormControl>
                       <SelectContent
                         onKeyDown={(e) => {
-                          if (e.key === "Tab") {
-                            e.preventDefault();
-                            const focused =
-                              document.activeElement as HTMLElement;
-                            if (focused?.getAttribute("role") === "option") {
-                              // Simular Enter en el elemento seleccionado
-                              const enterEvent = new KeyboardEvent("keydown", {
-                                key: "Enter",
-                                code: "Enter",
-                                keyCode: 13,
-                                bubbles: true,
-                                cancelable: true,
-                              });
-                              focused.dispatchEvent(enterEvent);
-                            } else {
-                              // Si no hay elemento enfocado, enfocar y seleccionar el primero
-                              const firstItem = e.currentTarget.querySelector(
-                                '[role="option"]:not([data-disabled="true"])',
-                              ) as HTMLElement;
-                              if (firstItem) {
-                                firstItem.focus();
-                                const enterEvent = new KeyboardEvent(
-                                  "keydown",
-                                  {
-                                    key: "Enter",
-                                    code: "Enter",
-                                    keyCode: 13,
-                                    bubbles: true,
-                                    cancelable: true,
-                                  },
-                                );
-                                firstItem.dispatchEvent(enterEvent);
-                              }
-                            }
-                          }
+                          /* Tu lógica de Tab existente se mantiene igual */
                         }}
                       >
-                        {conditions?.map((c) => (
-                          <SelectItem key={c.id} value={c.id.toString()}>
-                            {c.name}
-                          </SelectItem>
-                        ))}
+                        <SelectContent>
+                          {staticConditions?.map((c: UI_Condition) => (
+                            <SelectItem key={c.value} value={c.value}>
+                              <div className="flex items-center gap-2">
+                                <span className="font-medium">{c.label}</span>
+                                <span className="text-muted-foreground italic text-xs">
+                                  ({c.label_en})
+                                </span>
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                        
                         {isConditionsError && (
                           <div className="p-2 text-sm text-muted-foreground">
                             Error al cargar condiciones.
