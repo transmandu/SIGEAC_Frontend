@@ -498,7 +498,11 @@ export function CreateGeneralArticleRequisitionForm({
                               {articlesList?.map(article => (
                                 <CommandItem
                                   key={article.id}
-                                  value={article.part_number}
+                                  value={`${article.part_number} ${
+                                    Array.isArray(article.alternative_part_number)
+                                      ? article.alternative_part_number.join(" ")
+                                      : article.alternative_part_number ?? ""
+                                  } ${article.description ?? ""}`}
                                   onSelect={() =>
                                     handleBatchSelect(
                                       `${article.part_number} - ${Array.isArray(article.alternative_part_number) ? article.alternative_part_number.join(", ") : article.alternative_part_number ?? ""} - ${article.description ?? ""}`,
