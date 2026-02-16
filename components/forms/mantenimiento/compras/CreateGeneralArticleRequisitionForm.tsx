@@ -50,7 +50,6 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command"
-import { CreateBatchDialog } from "@/components/dialogs/mantenimiento/almacen/CreateBatchDialog"
 import { cn } from "@/lib/utils"
 import {
   Check,
@@ -496,9 +495,6 @@ export function CreateGeneralArticleRequisitionForm({
                           <CommandList>
                             <CommandEmpty>No existen artículos...</CommandEmpty>
                             <CommandGroup>
-                              <div className="flex justify-center m-2">
-                                <CreateBatchDialog />
-                              </div>
                               {articlesList?.map(article => (
                                 <CommandItem
                                   key={article.id}
