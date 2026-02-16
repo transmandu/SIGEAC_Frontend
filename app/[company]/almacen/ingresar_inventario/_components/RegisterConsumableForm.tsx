@@ -1216,6 +1216,32 @@ export default function CreateConsumableForm({
     const initialQuantity = initialData.consumable?.quantity ?? 0;
     setSecondaryQuantity(initialQuantity);
 
+    // ✅ Convertimos a Date SOLO para el DatePicker
+    const expirationDate = initialData?.consumable?.expiration_date
+      ? parseISO(initialData.consumable.expiration_date)
+      : undefined;
+
+    const fabricationDateParsed = initialData?.consumable?.fabrication_date
+      ? parseISO(initialData.consumable.fabrication_date)
+      : undefined;
+
+    const shelfLifeDate = initialData?.consumable?.shelf_life
+      ? parseISO(initialData.consumable.shelf_life)
+      : undefined;
+
+    // ✅ Convertimos a string SOLO para RHF
+    const expirationDateStr = expirationDate
+      ? format(expirationDate, "yyyy-MM-dd")
+      : undefined;
+
+    const fabricationDateStr = fabricationDateParsed
+      ? format(fabricationDateParsed, "yyyy-MM-dd")
+      : undefined;
+
+    const shelfLifeDateStr = shelfLifeDate
+      ? format(shelfLifeDate, "yyyy-MM-dd")
+      : undefined;
+
     const resetValues = {
       part_number: initialData.part_number ?? "",
       alternative_part_number: initialData.alternative_part_number ?? [],
@@ -1226,25 +1252,36 @@ export default function CreateConsumableForm({
       description: initialData.description ?? "",
       zone: initialData.zone ?? "",
       lot_number: initialData.consumable?.lot_number ?? "",
-      expiration_date: initialData?.consumable?.expiration_date || undefined,
-      fabrication_date: initialData?.consumable?.fabrication_date || undefined,
+
+      // 🔥 RHF RECIBE STRING → ya no hay error TS
+      expiration_date: expirationDateStr,
+      fabrication_date: fabricationDateStr,
+      shelf_life: shelfLifeDateStr,
+
       quantity: initialQuantity,
       min_quantity:
         initialData.consumable?.min_quantity !== undefined &&
         initialData.consumable?.min_quantity !== null
           ? Number(initialData.consumable.min_quantity)
           : undefined,
+
       primary_unit_id: initialData?.primary_unit_id || undefined,
       has_documentation: initialData.has_documentation ?? false,
     };
 
     form.reset(resetValues);
+
+    // 🔥 MUY IMPORTANTE → sincroniza los DatePickers
+    setCaducateDate(expirationDate);
+    setFabricationDate(fabricationDateParsed);
+    setShelfDate(shelfLifeDate);
+
     if (initialData.primary_unit_id) {
       const unitObj = { id: initialData.primary_unit_id };
       setSelectedPrimaryUnit(unitObj);
       setSecondarySelected(unitObj);
     }
-  }, [initialData, form]);
+  }, [initialData]); // 👈 quitamos form para evitar renders extra
 
   const calculateAndUpdateQuantity = useCallback(
     (quantity: number | undefined, selectedUnit: any) => {
@@ -2030,7 +2067,7 @@ export default function CreateConsumableForm({
                 label="Próximo Vencimiento"
                 value={caducateDate}
                 setValue={handleCaducateDateChange}
-                description="Fecha de Vencimiento del Consumible"
+                description="Proximo Vencimiento"
                 busy={busy}
                 shortcuts="forward"
                 showNotApplicable={true}
