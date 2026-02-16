@@ -172,8 +172,11 @@ export function CreateGeneralArticleRequisitionForm({
 
   const [selectedBatches, setSelectedBatches] = useState<Batch[]>([])
   const [articleCategory, setArticleCategory] = useState("")
-  const { mutate: fetchArticles, data: articlesList, isPending: articlesLoading } =
-    useGetArticlesByCategory(Number(selectedStation), articleCategory, selectedCompany?.slug)
+  const { data: articlesList, isLoading: articlesLoading, refetch: fetchArticles } = useGetArticlesByCategory(
+    Number(selectedStation),
+    articleCategory,
+    selectedCompany?.slug
+)
 
   const form = useForm<FormSchemaType>({
     resolver: zodResolver(FormSchema),
@@ -489,40 +492,46 @@ export function CreateGeneralArticleRequisitionForm({
                         </FormControl>
                       </PopoverTrigger>
 
-                      <PopoverContent className="w-[200px] p-0">
+                      <PopoverContent className="w-[220px] p-0">
                         <Command>
                           <CommandInput placeholder="Buscar artículo..." />
                           <CommandList>
                             <CommandEmpty>No existen artículos...</CommandEmpty>
                             <CommandGroup>
-                              {articlesList?.map(article => (
+                            {Array.from(
+                                new Map(
+                                articlesList?.map(article => [
+                                    `${article.part_number}-${article.batch.name}`,
+                                    article,
+                                ]) ?? []
+                                ).values()
+                            ).map(article => (
                                 <CommandItem
-                                  key={article.id}
-                                  value={`${article.part_number} ${
-                                    Array.isArray(article.alternative_part_number)
-                                      ? article.alternative_part_number.join(" ")
-                                      : article.alternative_part_number ?? ""
-                                  } ${article.description ?? ""}`}
-                                  onSelect={() =>
-                                    handleBatchSelect(
-                                      `${article.part_number} - ${Array.isArray(article.alternative_part_number) ? article.alternative_part_number.join(", ") : article.alternative_part_number ?? ""} - ${article.description ?? ""}`,
-                                      article.id.toString(),
-                                      article.article_type
-                                    )
-                                  }
-                                >
-                                  <Check
-                                    className={cn(
-                                      selectedBatches.some(b => b.batch === article.id.toString())
-                                        ? "opacity-100"
-                                        : "opacity-0"
-                                    )}
-                                  />
-                                  <span className="truncate">
-                                    {article.part_number} - {Array.isArray(article.alternative_part_number) ? article.alternative_part_number.join(", ") : article.alternative_part_number ?? ""} - {article.description ?? ""}
-                                  </span>
+                                    key={article.id}
+                                    value={`${article.part_number} ${article.batch.name} ${Array.isArray(article.alternative_part_number) ? article.alternative_part_number.join(" ") : article.alternative_part_number ?? ""}`}
+                                    onSelect={() =>
+                                        handleBatchSelect(
+                                        `${article.part_number} ${article.batch.name}`,
+                                        article.id.toString(),
+                                        article.article_type
+                                        )
+                                    }
+                                    className="flex items-center gap-2 px-2 py-1"
+                                    >
+                                    <span className="w-4 flex justify-center">
+                                        <Check
+                                        className={cn(
+                                            selectedBatches.some(b => b.batch === article.id.toString())
+                                            ? "opacity-100"
+                                            : "opacity-0"
+                                        )}
+                                        />
+                                    </span>
+                                    <span className="truncate">
+                                        {article.part_number} {article.batch.name}
+                                    </span>
                                 </CommandItem>
-                              ))}
+                            ))}
                             </CommandGroup>
                           </CommandList>
                         </Command>
