@@ -126,6 +126,7 @@ type FormSchemaType = z.infer<typeof FormSchema>
 interface Article {
   part_number: string
   alt_part_number?: string
+  alt_part_number_initial?: string
   quantity: number
   unit?: string
   image?: File
@@ -255,7 +256,8 @@ export function CreateGeneralArticleRequisitionForm({
             ...batch.batch_articles,
             {
                 part_number: article.part_number,
-                alt_part_number: Array.isArray(article.alternative_part_number)
+                alt_part_number: "",
+                alt_part_number_initial: Array.isArray(article.alternative_part_number)
                 ? article.alternative_part_number.join(", ")
                 : article.alternative_part_number ?? "",
                 quantity: 1,
@@ -650,7 +652,7 @@ export function CreateGeneralArticleRequisitionForm({
                         <div className="flex items-center gap-2">
                         <Input
                             placeholder="N/P Alterno"
-                            value={article.alt_part_number}
+                            value={article.alt_part_number || article.alt_part_number === "" ? article.alt_part_number : article.alt_part_number_initial || ""}
                             onChange={e => updateArticle(batch.batch, index, "alt_part_number", e.target.value)}
                         />
                         <Select
