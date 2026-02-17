@@ -212,43 +212,43 @@ export function CreateGeneralArticleRequisitionForm({
 
   /* ------------------------------- HANDLERS ------------------------------- */
 
-
-  const handleBatchSelect = (
-    name: string,
-    id: string,
-    category: string
-  ) => {
+    const handleBatchSelect = (article: IArticleByCategory) => {
     setSelectedBatches((prev) => {
-      const exists = prev.some((b) => b.batch === id)
-      if (exists) return prev.filter((b) => b.batch !== id)
+        const exists = prev.some((b) => b.batch === article.id.toString())
+        if (exists) {
+        return prev.filter((b) => b.batch !== article.id.toString())
+        }
 
-      const unidad = units?.find(
+        const unidad = units?.find(
         (u) =>
-          u.label.toUpperCase() === "UNIDAD" ||
-          u.value.toUpperCase() === "UNIDAD"
-      )
+            u.label.toUpperCase() === "UNIDAD" ||
+            u.value?.toUpperCase() === "UNIDAD"
+        )
 
-      return [
+        return [
         ...prev,
         {
-          batch: id,
-          batch_name: name,
-          category,
-          batch_articles: [
+            batch: article.batch.id.toString(),
+            batch_name: article.batch.name,
+            category: article.article_type?.toUpperCase() ?? "",
+            batch_articles: [
             {
-              part_number: "",
-              alt_part_number: "",
-              quantity: 1,
-              unit:
-                category === "componente" || category === "herramienta"
-                  ? unidad?.id.toString()
-                  : undefined,
+                part_number: article.part_number, // ✅ ahora sí correcto
+                alt_part_number: Array.isArray(article.alternative_part_number)
+                ? article.alternative_part_number.join(", ")
+                : article.alternative_part_number ?? "",
+                quantity: 1,
+                unit:
+                article.article_type?.toUpperCase() === "COMPONENT" ||
+                article.article_type?.toUpperCase() === "TOOL"
+                    ? unidad?.id.toString()
+                    : undefined,
             },
-          ],
+            ],
         },
-      ]
+        ]
     })
-  }
+    }
 
   const updateArticle = (
     batchId: string,
@@ -270,43 +270,7 @@ export function CreateGeneralArticleRequisitionForm({
     )
   }
 
-  const addArticle = (batchId: string) => {
-    setSelectedBatches((prev) =>
-      prev.map((b) =>
-        b.batch !== batchId
-          ? b
-          : {
-              ...b,
-              batch_articles: [
-                ...b.batch_articles,
-                {
-                  part_number: "",
-                  alt_part_number: "",
-                  quantity: 1,
-                  unit: b.batch_articles[0]?.unit,
-                },
-              ],
-            }
-      )
-    )
-  }
-
-  const removeArticle = (batchId: string, index: number) => {
-    setSelectedBatches((prev) =>
-      prev.map((b) =>
-        b.batch !== batchId
-          ? b
-          : {
-              ...b,
-              batch_articles: b.batch_articles.filter(
-                (_, i) => i !== index
-              ),
-            }
-      )
-    )
-  }
-
-  const removeBatch = (batchId: string) => {
+  const removeArticle = (batchId: string) => {
     setSelectedBatches((prev) =>
       prev.filter((b) => b.batch !== batchId)
     )
@@ -509,13 +473,7 @@ export function CreateGeneralArticleRequisitionForm({
                                 <CommandItem
                                     key={article.id}
                                     value={`${article.part_number} ${article.batch.name} ${Array.isArray(article.alternative_part_number) ? article.alternative_part_number.join(" ") : article.alternative_part_number ?? ""}`}
-                                    onSelect={() =>
-                                        handleBatchSelect(
-                                        `${article.part_number} ${article.batch.name}`,
-                                        article.id.toString(),
-                                        article.article_type
-                                        )
-                                    }
+                                    onSelect={() => handleBatchSelect(article)}
                                     className="flex items-center gap-2 px-2 py-1"
                                     >
                                     <span className="w-4 flex justify-center">
@@ -631,7 +589,7 @@ export function CreateGeneralArticleRequisitionForm({
                           variant="ghost"
                           type="button"
                           size="icon"
-                          onClick={() => removeBatch(batch.batch)}
+                          onClick={() => removeArticle(batch.batch)}
                         >
                           <MinusCircle className="size-4" />
                         </Button>
@@ -639,11 +597,6 @@ export function CreateGeneralArticleRequisitionForm({
                       <ScrollArea className={cn(batch.batch_articles.length > 2 ? "h-[125px]" : "")}>
                         {batch.batch_articles.map((article, index) => (
                           <div key={index} className="flex items-center gap-4 mt-2 py-2 px-1">
-                            <Input
-                              placeholder="Número de parte"
-                              value={article.part_number}
-                              onChange={e => updateArticle(batch.batch, index, "part_number", e.target.value)}
-                            />
                             <Input
                               placeholder="N/P Alterno"
                               value={article.alt_part_number}
@@ -668,26 +621,9 @@ export function CreateGeneralArticleRequisitionForm({
                               min={1}
                               onChange={e => updateArticle(batch.batch, index, "quantity", Number(e.target.value))}
                             />
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              type="button"
-                              onClick={() => removeArticle(batch.batch, index)}
-                              className="hover:text-red-500"
-                            >
-                              <MinusCircle className="size-4" />
-                            </Button>
                           </div>
                         ))}
                       </ScrollArea>
-                      <Button
-                        type="button"
-                        variant="link"
-                        onClick={() => addArticle(batch.batch)}
-                        className="mt-2 text-sm"
-                      >
-                        Agregar artículo
-                      </Button>
                     </div>
                   ))}
                 </ScrollArea>
