@@ -108,7 +108,7 @@ const FormSchema = z
     (data) =>
       data.articles.every((b) =>
         b.batch_articles.every(
-          (a) => b.category !== "consumible" || !!a.unit
+          (a) => b.category !== "CONSUMABLE" || !!a.unit
         )
       ),
     {
@@ -213,27 +213,48 @@ export function CreateGeneralArticleRequisitionForm({
   /* ------------------------------- HANDLERS ------------------------------- */
 
     const handleBatchSelect = (article: IArticleByCategory) => {
-    setSelectedBatches((prev) => {
-        const exists = prev.some((b) => b.batch === article.id.toString())
-        if (exists) {
-        return prev.filter((b) => b.batch !== article.id.toString())
-        }
+    const batchId = article.batch.id.toString()
+    const partNumber = article.part_number
 
-        const unidad = units?.find(
-        (u) =>
-            u.label.toUpperCase() === "UNIDAD" ||
-            u.value?.toUpperCase() === "UNIDAD"
+    setSelectedBatches(prev => {
+        const existingBatchIndex = prev.findIndex(b => b.batch === batchId)
+
+        // 🔹 Si el batch ya existe
+        if (existingBatchIndex !== -1) {
+        const batch = prev[existingBatchIndex]
+
+        const articleExists = batch.batch_articles.some(
+            a => a.part_number === partNumber
         )
 
-        return [
-        ...prev,
-        {
-            batch: article.batch.id.toString(),
-            batch_name: article.batch.name,
-            category: article.article_type?.toUpperCase() ?? "",
+        // Si el artículo ya está seleccionado → lo removemos (toggle)
+        if (articleExists) {
+            const updatedArticles = batch.batch_articles.filter(
+            a => a.part_number !== partNumber
+            )
+
+            // Si ya no quedan artículos, eliminamos el batch completo
+            if (updatedArticles.length === 0) {
+            return prev.filter(b => b.batch !== batchId)
+            }
+
+            const updatedBatch = {
+            ...batch,
+            batch_articles: updatedArticles,
+            }
+
+            return prev.map(b =>
+            b.batch === batchId ? updatedBatch : b
+            )
+        }
+
+        // 🔹 Si el batch existe pero el artículo no
+        const updatedBatch = {
+            ...batch,
             batch_articles: [
+            ...batch.batch_articles,
             {
-                part_number: article.part_number, // ✅ ahora sí correcto
+                part_number: article.part_number,
                 alt_part_number: Array.isArray(article.alternative_part_number)
                 ? article.alternative_part_number.join(", ")
                 : article.alternative_part_number ?? "",
@@ -241,7 +262,35 @@ export function CreateGeneralArticleRequisitionForm({
                 unit:
                 article.article_type?.toUpperCase() === "COMPONENT" ||
                 article.article_type?.toUpperCase() === "TOOL"
-                    ? unidad?.id.toString()
+                    ? "1" // o la unidad que corresponda
+                    : undefined,
+            },
+            ],
+        }
+
+        return prev.map(b =>
+            b.batch === batchId ? updatedBatch : b
+        )
+        }
+
+        // 🔹 Si el batch NO existe → lo creamos
+        return [
+        ...prev,
+        {
+            batch: batchId,
+            batch_name: article.batch.name,
+            category: article.article_type?.toUpperCase() ?? "",
+            batch_articles: [
+            {
+                part_number: article.part_number,
+                alt_part_number: Array.isArray(article.alternative_part_number)
+                ? article.alternative_part_number.join(", ")
+                : article.alternative_part_number ?? "",
+                quantity: 1,
+                unit:
+                article.article_type?.toUpperCase() === "COMPONENT" ||
+                article.article_type?.toUpperCase() === "TOOL"
+                    ? "1" // o la unidad que corresponda
                     : undefined,
             },
             ],
@@ -446,11 +495,11 @@ export function CreateGeneralArticleRequisitionForm({
                               selectedBatches.length === 0 && "text-muted-foreground"
                             )}
                           >
-                          <span className="flex-1 text-left truncate">
-                            {selectedBatches.length > 0
-                              ? `${selectedBatches.length} artículos seleccionados`
-                              : "Selecciona un artículo..."}
-                          </span>
+                            <span className="flex-1 text-left truncate">
+                            {selectedBatches.flatMap(b => b.batch_articles).length > 0
+                                ? `${selectedBatches.flatMap(b => b.batch_articles).length} artículos seleccionados`
+                                : "Selecciona un artículo..."}
+                            </span>
                           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                           </Button>
                         </FormControl>
@@ -479,7 +528,7 @@ export function CreateGeneralArticleRequisitionForm({
                                     <span className="w-4 flex justify-center">
                                         <Check
                                         className={cn(
-                                            selectedBatches.some(b => b.batch === article.id.toString())
+                                            selectedBatches.some(b => b.batch_articles.some(a => a.part_number === article.part_number))
                                             ? "opacity-100"
                                             : "opacity-0"
                                         )}
@@ -580,52 +629,74 @@ export function CreateGeneralArticleRequisitionForm({
               </div>
 
               <div className="mt-4 space-y-4">
-                <ScrollArea className={cn(selectedBatches.length > 1 ? "h-[280px]" : "")}>
-                  {selectedBatches.map(batch => (
-                    <div key={batch.batch}>
-                      <div className="flex items-center">
-                        <h4 className="font-semibold">{batch.batch_name}</h4>
-                        <Button
-                          variant="ghost"
-                          type="button"
-                          size="icon"
-                          onClick={() => removeArticle(batch.batch)}
+                <ScrollArea className={cn(selectedBatches.length > 1 ? "h-[250px]" : "")}>
+                {selectedBatches.flatMap(batch =>
+                    batch.batch_articles.map((article, index) => (
+                    <div
+                        key={`${batch.batch}-${article.part_number}`}
+                        className="flex flex-col gap-2 py-2 px-1 border-b last:border-b-0"
+                    >
+                        {/* Título del artículo */}
+                        <div className="flex flex-col">
+                        <span className="text-blue-600 font-semibold text-base">
+                            {article.part_number}
+                        </span>
+                        <span className="text-sm text-muted-foreground">
+                            {batch.batch_name}
+                        </span>
+                        </div>
+
+                        {/* Inputs y select debajo del título */}
+                        <div className="flex items-center gap-2">
+                        <Input
+                            placeholder="N/P Alterno"
+                            value={article.alt_part_number}
+                            onChange={e => updateArticle(batch.batch, index, "alt_part_number", e.target.value)}
+                        />
+                        <Select
+                            value={article.unit}
+                            disabled={unitsLoading || batch.category === "COMPONENT" || batch.category === "TOOL"}
+                            onValueChange={v => updateArticle(batch.batch, index, "unit", v)}
                         >
-                          <MinusCircle className="size-4" />
+                            <SelectTrigger><SelectValue placeholder="Unidad" /></SelectTrigger>
+                            <SelectContent>
+                            {units?.map(u => (
+                                <SelectItem key={u.id} value={u.id.toString()}>{u.label}</SelectItem>
+                            ))}
+                            </SelectContent>
+                        </Select>
+                        <Input
+                            placeholder="Cantidad"
+                            value={article.quantity}
+                            min={1}
+                            onChange={e => updateArticle(batch.batch, index, "quantity", Number(e.target.value))}
+                        />
+                        <Button
+                            variant="ghost"
+                            type="button"
+                            size="icon"
+                            onClick={() => {
+                            // Remover artículo
+                            const updatedBatchArticles = batch.batch_articles.filter((_, i) => i !== index)
+                            if (updatedBatchArticles.length === 0) {
+                                removeArticle(batch.batch)
+                            } else {
+                                setSelectedBatches(prev =>
+                                prev.map(b =>
+                                    b.batch === batch.batch
+                                    ? { ...b, batch_articles: updatedBatchArticles }
+                                    : b
+                                )
+                                )
+                            }
+                            }}
+                        >
+                            <MinusCircle className="size-4" />
                         </Button>
-                      </div>
-                      <ScrollArea className={cn(batch.batch_articles.length > 2 ? "h-[125px]" : "")}>
-                        {batch.batch_articles.map((article, index) => (
-                          <div key={index} className="flex items-center gap-4 mt-2 py-2 px-1">
-                            <Input
-                              placeholder="N/P Alterno"
-                              value={article.alt_part_number}
-                              onChange={e => updateArticle(batch.batch, index, "alt_part_number", e.target.value)}
-                            />
-                            <Select
-                              value={article.unit}
-                              disabled={unitsLoading || batch.category === "componente" || batch.category === "herramienta"}
-                              onValueChange={v => updateArticle(batch.batch, index, "unit", v)}
-                            >
-                              <SelectTrigger><SelectValue placeholder="Unidad" /></SelectTrigger>
-                              <SelectContent>
-                                {units?.map(u => (
-                                  <SelectItem key={u.id} value={u.id.toString()}>{u.label}</SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                            <Input
-                              type="number"
-                              placeholder="Cantidad"
-                              value={article.quantity}
-                              min={1}
-                              onChange={e => updateArticle(batch.batch, index, "quantity", Number(e.target.value))}
-                            />
-                          </div>
-                        ))}
-                      </ScrollArea>
+                        </div>
                     </div>
-                  ))}
+                    ))
+                )}
                 </ScrollArea>
               </div>
               <FormMessage />
