@@ -1037,6 +1037,10 @@ export type SMSActivity = {
   authorized_by: Employee;
   planned_by: Employee;
   executed_by: string;
+  image?: File | string;
+  document?: File | string;
+  imageUrl?: string;
+  documentUrl?: string;
   status: string;
 };
 
