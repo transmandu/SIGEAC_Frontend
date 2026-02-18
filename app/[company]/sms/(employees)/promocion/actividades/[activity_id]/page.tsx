@@ -10,15 +10,8 @@ import { useGetSMSActivityById } from "@/hooks/sms/useGetSMSActivityById";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { addDays, format } from "date-fns";
 import { es } from "date-fns/locale";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import Image from "next/image";
+import { generateMinutaPDF } from "@/utils/generateMinutaPDF";
+import { Button } from "@/components/ui/button";
 import {
   AlertCircle,
   AlertTriangle,
@@ -643,6 +636,21 @@ const ShowSMSActivity = () => {
               </div>
             </TabsContent>
           </Tabs>
+        )}
+
+        {/* 🔽 Botón Descargar Minuta al FINAL */}
+        {activity && (
+          <div className="mt-10 flex justify-center">
+            <Button
+              size="lg"
+              className="px-10"
+              onClick={() =>
+                generateMinutaPDF(activity, attendedList?.length || 0)
+              }
+            >
+              Descargar Minuta PDF
+            </Button>
+          </div>
         )}
 
         {activityError && (

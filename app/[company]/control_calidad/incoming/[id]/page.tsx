@@ -1,12 +1,10 @@
 "use client"
-import { ContentLayout } from '@/components/layout/ContentLayout'
-import React from 'react'
-import { IncomingReview } from '../../../control_calidad/incoming/_components/IncomingReview'
-import { useParams } from 'next/navigation';
-import { useGetArticle } from '@/hooks/mantenimiento/almacen/articulos/useGetArticle';
-import { useGetArticleById } from '@/hooks/mantenimiento/almacen/articulos/useGetArticleById';
+import { ContentLayout } from '@/components/layout/ContentLayout';
 import LoadingPage from '@/components/misc/LoadingPage';
+import { useGetArticleById } from '@/hooks/mantenimiento/almacen/articulos/useGetArticleById';
 import { useCompanyStore } from '@/stores/CompanyStore';
+import { useParams } from 'next/navigation';
+import { IncomingReview } from './_components/IncomingReview';
 
 const IncomingPage = () => {
   const {selectedCompany} = useCompanyStore();
@@ -18,8 +16,6 @@ const IncomingPage = () => {
       {
         article ? (
           <IncomingReview
-            onConfirm={() => console.log("CONFIRM")}
-            onTake={() => console.log("TAKE")}
             article={article}/>
         ) : (
           <p>No se encontró el artículo.</p>

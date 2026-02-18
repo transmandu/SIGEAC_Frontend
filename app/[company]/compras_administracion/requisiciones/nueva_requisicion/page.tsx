@@ -313,7 +313,7 @@ const CreateRequisitionPage = () => {
   const onSubmit = async (data: FormSchemaType) => {
     const formattedData = {
       ...data,
-      type: "AVIACION",
+      type: "AERONAUTICO",
     };
     await createRequisition.mutateAsync({data: formattedData, company: selectedCompany!.slug});
     router.push(`/${selectedCompany!.slug}/compras_administracion/requisiciones`);

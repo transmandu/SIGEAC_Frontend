@@ -51,8 +51,7 @@ export interface EditingArticle extends Article {
     min_quantity?: number | string;
     quantity?: number;
     is_managed?: boolean | string | number;
-    shelf_life?: number;
-    shelft_life_unit?: string;
+    shelf_life?: string | null;
   };
   certificate_8130?: string;
   certificate_vendor?: string;

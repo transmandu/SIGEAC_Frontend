@@ -677,6 +677,7 @@ export type Requisition = {
       quantity: number;
       unit?: Convertion;
       image: string;
+      aircraft?: string
     }[];
   }[];
   received_by: string;

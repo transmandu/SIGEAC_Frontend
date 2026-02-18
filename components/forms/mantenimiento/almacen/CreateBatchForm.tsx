@@ -157,13 +157,10 @@ const form = useForm<FormSchemaType>({
       form.setValue("category", defaultCategory, { shouldValidate: true });
   }, [defaultCategory, form]);
 
-  // Efecto para restringir unidad a "UNIDAD" o "UNIDADES" para categorías específicas
+  const shouldRestrictUnit = requiresUnidadAndWarehouseRestrictions(category);
+
   useEffect(() => {
-    if (
-      requiresUnidadAndWarehouseRestrictions(category) &&
-      units?.length &&
-      !isUnitsLoading
-    ) {
+    if (shouldRestrictUnit && units?.length && !isUnitsLoading) {
       const unidad = units.find((u) => UNIT_LABEL.includes(u.label));
       if (unidad && form.getValues("medition_unit") !== unidad.value) {
         form.setValue("medition_unit", unidad.value, {
@@ -172,13 +169,7 @@ const form = useForm<FormSchemaType>({
         });
       }
     }
-  }, [
-    requiresUnidadAndWarehouseRestrictions(category),
-    units,
-    isUnitsLoading,
-    form,
-    category,
-  ]);
+  }, [shouldRestrictUnit, units, isUnitsLoading, form]);
 
   // Efecto para restringir almacén a tipo "AERONAUTICO" para categorías específicas
   useEffect(() => {
@@ -201,16 +192,16 @@ const form = useForm<FormSchemaType>({
     }
   }, [category, warehouses, isLoading, form]);
 
-  // Efecto para validar duplicados
   useEffect(() => {
-    isNameDuplicate &&
-    !(isEditing && initialData?.name === form.getValues("name"))
-      ? setError("name", {
-          type: "manual",
-          message: "El numero de parte ya existe en esta categoría.",
-        })
-      : clearErrors("name");
-  }, [isNameDuplicate, setError, clearErrors]);
+    if (isNameDuplicate && !(isEditing && initialData?.name === form.getValues("name"))) {
+      setError("name", {
+        type: "manual",
+        message: "El numero de parte ya existe en esta categoría.",
+      });
+    } else {
+      clearErrors("name");
+    }
+  }, [isNameDuplicate, setError, clearErrors, form, initialData?.name, isEditing]);
 
   const onSubmit = async (data: FormSchemaType) => {
     if (isSubmitting) return; // bloquea clicks múltiples

@@ -11,14 +11,12 @@ type Props = {
   values: string[];
   onChange: (values: string[]) => void;
   placeholder?: string;
-  label?: string;
+  // Cambiado a ReactNode para permitir el <span> interno
+  label?: React.ReactNode; 
   disabled?: boolean;
   className?: string;
-  /** Normaliza cada item antes de guardar. Por defecto: trim + uppercase */
   normalize?: (s: string) => string;
-  /** Separadores para pegar múltiples: ej. "A, B; C" */
   delimiters?: string[];
-  /** Máximo de items (opcional) */
   maxItems?: number;
 };
 
@@ -26,7 +24,8 @@ export const MultiInputField = ({
   values,
   onChange,
   placeholder = 'Ej: 234ABAC',
-  label = 'Nros. alternos',
+  // Valor por defecto simple
+  label = 'Nros. de parte alternos',
   disabled = false,
   className,
   normalize = (s) => s.trim().toUpperCase(),
@@ -70,15 +69,11 @@ export const MultiInputField = ({
   const handleKeyDown: React.KeyboardEventHandler<HTMLInputElement> = (e) => {
     if (disabled) return;
     const key = e.key.toLowerCase();
-
-    // Enter o Tab para agregar
     if ((key === 'enter' || key === 'tab') && inputValue.trim()) {
       e.preventDefault();
       addValue();
       return;
     }
-
-    // Backspace con input vacío -> elimina último
     if (key === 'backspace' && !inputValue && values.length) {
       e.preventDefault();
       removeValue(values.length - 1);
@@ -96,9 +91,22 @@ export const MultiInputField = ({
 
   return (
     <div className={cn('w-full space-y-2', className)}>
-      {label && <label className="text-sm font-medium text-foreground">{label}</label>}
+      {/* Renderizado condicional del Label con el estilo que buscabas */}
+      {label && (
+        <label className="text-sm font-medium text-foreground flex items-center">
+          {typeof label === 'string' && label === 'Nros. de parte alternos' ? (
+            <>
+              Nros. de parte alternos 
+              <span className="text-xs italic text-gray-500 font-normal ml-1">
+                (Alternative part numbers)
+              </span>
+            </>
+          ) : (
+            label
+          )}
+        </label>
+      )}
 
-      {/* Contenedor con foco visible */}
       <div>
         <div className="flex gap-2">
           <Input
@@ -110,18 +118,20 @@ export const MultiInputField = ({
             onPaste={handlePaste}
             placeholder={placeholder}
             className="flex-1"
-            aria-label="Agregar número alterno"
           />
-          <Button type="button" onClick={addValue} disabled={disabled || !inputValue.trim()}>
+          <Button 
+            type="button" 
+            onClick={addValue} 
+            disabled={disabled || !inputValue.trim()}
+          >
             Agregar
           </Button>
         </div>
 
-        {/* Chips */}
         <div className="mt-3 flex flex-wrap gap-2">
           {values.length === 0 ? (
             <p className="text-xs text-muted-foreground">
-              Presiona Enter o Tab para agregar. Acepta coma, punto y coma y salto de línea.
+              Presiona Enter o Tab para agregar.
             </p>
           ) : (
             values.map((value, index) => (
@@ -133,7 +143,6 @@ export const MultiInputField = ({
                 <span className="truncate">{value}</span>
                 <button
                   type="button"
-                  aria-label={`Quitar ${value}`}
                   onClick={() => removeValue(index)}
                   className="ml-0.5 inline-flex h-4 w-4 items-center justify-center rounded-full hover:bg-foreground/10"
                 >
@@ -144,7 +153,6 @@ export const MultiInputField = ({
           )}
         </div>
 
-        {/* Límite opcional */}
         {typeof maxItems === 'number' && (
           <div className="mt-2 text-right text-xs text-muted-foreground">
             {values.length}/{maxItems}
