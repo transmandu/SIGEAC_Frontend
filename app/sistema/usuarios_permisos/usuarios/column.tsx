@@ -92,7 +92,7 @@ export const columns: ColumnDef<User>[] = [
           {
             item && item.roles && item?.roles?.length < 3 ? item.roles.map((rol) => (
               <div onClick={() => redirect('/administracion/usuarios_permisos/roles')} className="flex items-center justify-center cursor-pointer" key={rol.id}>
-                <Badge>{rol.name}</Badge>
+                <Badge>{rol.label}</Badge>
               </div>
             ))
               :
@@ -101,7 +101,7 @@ export const columns: ColumnDef<User>[] = [
               )
           }
           {
-            item && item.roles && item?.roles?.length <= 0 && <>No tiene permisos</>
+            item && item.roles && item?.roles?.length <= 0 && <p className="text-center italic text-muted-foreground">No tiene permisos</p>
           }
         </div>
       )
@@ -112,7 +112,6 @@ export const columns: ColumnDef<User>[] = [
     cell: ({ row }) => {
       const user = row.original
       const companies = row.original.companies
-
       return (
         <UserDropdownActions user={user} companies={companies} />
       )
