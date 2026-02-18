@@ -23,69 +23,12 @@ import { CreateGeneralArticleRequisitionForm } from "@/components/forms/mantenim
 
 type Role = string
 
-interface RoleFormRule {
-  allow?: Role[]
-  default?: boolean
-  render: () => React.ReactNode
-}
-
-function renderByRules(
-  userRoles: Role[],
-  rules: RoleFormRule[]
-) {
-  const matchedRule = rules.find(rule =>
-    rule.allow?.some(role => userRoles.includes(role))
-  )
-
-  if (matchedRule) {
-    return matchedRule.render()
-  }
-
-  const defaultRule = rules.find(rule => rule.default)
-
-  return defaultRule?.render() ?? null
-}
-
 export function CreateRequisitionDialog() {
   const { user } = useAuth()
   const [open, setOpen] = useState(false)
 
-  const userRoles = user?.roles?.map(role => role.name) || []
-
-  /* ==================== Reglas Batch / Lote ==================== */
-  const batchRequisitionRules: RoleFormRule[] = [
-    {
-      allow: ["ENGINEERING"],
-      render: () => (
-        <CreateEngineeringBatchRequisitionForm
-          onClose={() => setOpen(false)}
-        />
-      ),
-    },
-    {
-      default: true,
-      render: () => (
-        <CreateGeneralBatchRequisitionForm
-          isEditing={false}
-          onClose={() => setOpen(false)}
-        />
-      ),
-    },
-  ]
-
-  /* ==================== Reglas Artículo ==================== */
-  const articleRequisitionRules: RoleFormRule[] = [
-    {
-      // Por ahora cualquier rol cae aquí
-      default: true,
-      render: () => (
-        <CreateGeneralArticleRequisitionForm
-          isEditing={false}
-          onClose={() => setOpen(false)}
-        />
-      ),
-    },
-  ]
+  const userRoles: Role[] = user?.roles?.map(role => role.name) || []
+  const isEngineering = userRoles.includes("ENGINEERING")
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -107,26 +50,38 @@ export function CreateRequisitionDialog() {
           </DialogDescription>
         </DialogHeader>
 
-        <Tabs defaultValue="batch" className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="batch">
-              Lote
-            </TabsTrigger>
-            <TabsTrigger value="articulo">
-              Artículo
-            </TabsTrigger>
-          </TabsList>
-          {/* ================= TAB LOTE ================= */}
-          <TabsContent value="batch" className="mt-4">
-            {renderByRules(userRoles, batchRequisitionRules)}
-          </TabsContent>
+        {/* ================= ENGINEERING ================= */}
+        {isEngineering ? (
+          <CreateEngineeringBatchRequisitionForm
+            onClose={() => setOpen(false)}
+          />
+        ) : (
+          /* ================= OTROS ROLES ================= */
+          <Tabs defaultValue="batch" className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="batch">
+                Lote
+              </TabsTrigger>
+              <TabsTrigger value="articulo">
+                Artículo
+              </TabsTrigger>
+            </TabsList>
 
-          {/* ================= TAB ARTÍCULO ================= */}
-          <TabsContent value="articulo" className="mt-4">
-            {renderByRules(userRoles, articleRequisitionRules)}
-          </TabsContent>
+            <TabsContent value="batch" className="mt-4">
+              <CreateGeneralBatchRequisitionForm
+                isEditing={false}
+                onClose={() => setOpen(false)}
+              />
+            </TabsContent>
 
-        </Tabs>
+            <TabsContent value="articulo" className="mt-4">
+              <CreateGeneralArticleRequisitionForm
+                isEditing={false}
+                onClose={() => setOpen(false)}
+              />
+            </TabsContent>
+          </Tabs>
+        )}
       </DialogContent>
     </Dialog>
   )
