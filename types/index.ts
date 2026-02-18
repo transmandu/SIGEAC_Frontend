@@ -1120,6 +1120,7 @@ export type Survey = {
   location: string;
   setting?: string;
   questions: Question[];
+  answers_count?: number; // populated by withCount('answers') in backend
 };
 
 export type SafetyBulletin = {
