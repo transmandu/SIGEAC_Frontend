@@ -10,6 +10,7 @@ import { z } from "zod";
 
 import { format, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
+import { conditions as staticConditions, type Condition as UI_Condition } from "@/lib/conditions";
 
 import {
   Calculator,
@@ -116,7 +117,14 @@ const formSchema = z.object({
   expiration_date: z.string().optional(),
   fabrication_date: z.string().optional(),
   manufacturer_id: z.string().optional(),
-  condition_id: z.string().min(1, "Debe ingresar la condición del artículo."),
+  condition_id: z.any().superRefine((val, ctx) => {
+    if (val === undefined || val === null || val === "") {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Debe ingresar la condición del artículo.",
+      });
+    }
+}),
   quantity: z.coerce
     .number({ message: "Debe ingresar una cantidad." })
     .min(0, { message: "No puede ser negativo." })
@@ -305,19 +313,19 @@ function DatePickerField({
   setValue,
   description,
   busy,
-  shortcuts = "both",
   maxYear,
+  shortcuts,
   showNotApplicable = false,
   required = false,
   error,
 }: {
-  label: string;
+  label: React.ReactNode;
   value?: Date | null;
   setValue: (d?: Date | null) => void;
   description?: string;
   busy?: boolean;
-  shortcuts?: "both" | "back" | "forward" | "none";
   maxYear?: number;
+  shortcuts?: string;
   showNotApplicable?: boolean;
   required?: boolean;
   error?: string;
@@ -326,6 +334,33 @@ function DatePickerField({
   const [inputValue, setInputValue] = useState("");
   const [isInputMode, setIsInputMode] = useState(false);
   const [validationError, setValidationError] = useState<string>("");
+
+  /**
+   * DICCIONARIO DE TRADUCCIONES AUTOMÁTICAS
+   */
+  const translations: Record<string, string> = {
+    "Fecha de Fabricación": "Date of manufacture",
+    "Fecha de Expiración": "Expiration date",
+    "Fecha de Recibo": "Received date",
+    "Fecha de la Parte": "Part date",
+    "Fecha de Inspección": "Inspection date",
+    "Fecha de Incoming": "Incoming date",
+    "Próximo Vencimiento": "Next expiration date"
+  };
+
+  const renderLabelContent = () => {
+    if (typeof label === "string" && translations[label]) {
+      return (
+        <span className="flex items-center">
+          {label}
+          <span className="text-xs italic text-gray-500 font-normal ml-1">
+            ({translations[label]})
+          </span>
+        </span>
+      );
+    }
+    return label;
+  };
 
   const isInvalid = required && value === undefined && touched;
   const displayError =
@@ -470,7 +505,7 @@ function DatePickerField({
   const handleNotApplicableChange = (checked: boolean) => {
     setTouched(true);
     if (checked === true) {
-      setValue(new Date(1900, 0, 1)); // 1900-01-01 for "Not Applicable"
+      setValue(new Date(1900, 0, 1));
       setInputValue("");
     } else {
       setValue(undefined);
@@ -485,10 +520,12 @@ function DatePickerField({
     setTouched(true);
   };
 
+  const labelId = typeof label === 'string' ? label.replace(/\s+/g, "-").toLowerCase() : 'date';
+
   return (
     <FormItem className="flex flex-col p-0 mt-2.5 w-full">
-      <FormLabel>
-        {label}
+      <FormLabel className="flex items-center">
+        {renderLabelContent()}
         {required && <span className="text-destructive ml-1">*</span>}
       </FormLabel>
 
@@ -553,12 +590,10 @@ function DatePickerField({
                     className={cn(
                       "flex-1 pl-3 text-left font-normal",
                       (!value || value === null) && "text-muted-foreground",
-                      isInvalid && "border-destructive",
+                      isInvalid && "border-destructive"
                     )}
                   >
-                    {value === null ? (
-                      <span>N/A</span>
-                    ) : value && isNotApplicableDate(value) ? (
+                    {value && isNotApplicableDate(value) ? (
                       <span>N/A</span>
                     ) : value ? (
                       format(value, "PPP", { locale: es })
@@ -596,9 +631,6 @@ function DatePickerField({
                       "flex justify-center pt-1 relative items-center mb-2",
                     caption_dropdowns: "flex justify-center gap-2 items-center",
                     nav: "hidden",
-                    nav_button: "hidden",
-                    nav_button_previous: "hidden",
-                    nav_button_next: "hidden",
                   }}
                   components={{
                     Dropdown: (props) => (
@@ -617,15 +649,15 @@ function DatePickerField({
         )}
 
         {showNotApplicable && (
-          <div className="flex items-center space-x-2 flex-shrink-0">
+          <div className="flex items-center space-x-2 mt-1">
             <Checkbox
-              id={`not-applicable-${label.replace(/\s+/g, "-").toLowerCase()}`}
+              id={`not-applicable-${labelId}`}
               checked={value !== undefined && isNotApplicableDate(value)}
               onCheckedChange={handleNotApplicableChange}
               disabled={busy}
             />
             <label
-              htmlFor={`not-applicable-${label.replace(/\s+/g, "-").toLowerCase()}`}
+              htmlFor={`not-applicable-${labelId}`}
               className="text-sm font-medium leading-none cursor-pointer whitespace-nowrap select-none"
             >
               No aplica
@@ -634,7 +666,7 @@ function DatePickerField({
         )}
       </div>
 
-      {description ? <FormDescription>{description}</FormDescription> : null}
+      {description && <FormDescription>{description}</FormDescription>}
       {validationError && (
         <p className="text-sm font-medium text-destructive mt-1">
           {validationError}
@@ -1366,9 +1398,21 @@ export default function CreateConsumableForm({
   const [previewData, setPreviewData] = useState<FormValues | null>(null);
 
   async function onSubmit(values: FormValues) {
-    const rawValues = form.getValues();
-    setPreviewData(rawValues);
-    setOpenPreview(true);
+  // 1. Obtenemos los valores
+  const rawValues = form.getValues();
+
+  // 2. Transformamos los datos críticos a formato numérico
+  const formattedValues = {
+    ...rawValues,
+  // Convertimos el ID de condición a número (Ej: "10" -> 10)
+    condition_id: rawValues.condition_id ? Number(rawValues.condition_id) : null,
+    // Aprovechamos para asegurar que quantity también sea número
+    quantity: Number(rawValues.quantity),
+  };
+
+  // 3. Pasamos los datos ya formateados a la vista previa
+  setPreviewData(formattedValues as any);
+  setOpenPreview(true);
   }
 
   async function submitToBackend(values: FormValues) {
@@ -1445,7 +1489,7 @@ export default function CreateConsumableForm({
         company: selectedCompany.slug,
         data: formattedValues,
       });
-
+      console.log(formattedValues);
       setSecondaryQuantity(undefined);
       setSecondarySelected(null);
       setSelectedPrimaryUnit(null);
@@ -1473,7 +1517,9 @@ export default function CreateConsumableForm({
                 name="inspector"
                 render={({ field }) => (
                   <FormItem className="w-full">
-                    <FormLabel>Inspector (Incoming)</FormLabel>
+                    <FormLabel>
+                      Inspector (Incoming) <span className="text-xs italic text-gray-500 font-normal ml-1">(Inspector)</span>
+                    </FormLabel>
                     <FormControl>
                       <Input placeholder="Nombre del Inspector" {...field} />
                     </FormControl>
@@ -1499,7 +1545,9 @@ export default function CreateConsumableForm({
                 name="part_number"
                 render={({ field }) => (
                   <FormItem className="w-full">
-                    <FormLabel>Nro. de parte</FormLabel>
+                    <FormLabel>
+                      Nro. de parte <span className="text-xs italic text-gray-500 font-normal ml-1">(Part number)</span>
+                    </FormLabel>
                     <FormControl>
                       <Input
                         placeholder="Ej: 234ABAC"
@@ -1555,7 +1603,9 @@ export default function CreateConsumableForm({
                 name="lot_number"
                 render={({ field }) => (
                   <FormItem className="w-full">
-                    <FormLabel>Nro. de lote</FormLabel>
+                    <FormLabel>
+                      Nro. de lote <span className="text-xs italic text-gray-500 font-normal ml-1">(Lot number)</span>
+                    </FormLabel>
                     <FormControl>
                       <Input
                         placeholder="Ej: LOTE123"
@@ -1576,7 +1626,9 @@ export default function CreateConsumableForm({
                   render={({ field }) => (
                     <FormItem className="flex flex-col space-y-3 mt-1.5 w-full">
                       <div className="flex items-center justify-between">
-                        <FormLabel>Descripción de Consumible</FormLabel>
+                        <FormLabel>
+                          Descripción de consumible <span className="text-xs italic text-gray-500 font-normal ml-1">(Consumable description)</span>
+                        </FormLabel>
                         <CreateBatchDialog
                           onSuccess={async (batchName) => {
                             await queryClient.invalidateQueries({
@@ -1820,84 +1872,57 @@ export default function CreateConsumableForm({
                 name="condition_id"
                 render={({ field }) => (
                   <FormItem className="w-full">
-                    <FormLabel>Condición</FormLabel>
+                    <FormLabel>
+                      Condición <span className="text-xs italic text-gray-500 font-normal ml-1">(Condition)</span>
+                    </FormLabel>
                     <Select
                       onValueChange={field.onChange}
                       value={field.value}
-                      disabled={isConditionsLoading || busy}
+                      disabled={busy} // Simplificado: solo depende de si el form está enviando
                     >
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue
-                            placeholder={
-                              isConditionsLoading
-                                ? "Cargando..."
-                                : "Seleccione..."
-                            }
-                          />
+                          <SelectValue placeholder="Seleccione..." />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent
                         onKeyDown={(e) => {
                           if (e.key === "Tab") {
                             e.preventDefault();
-                            const focused =
-                              document.activeElement as HTMLElement;
+                            const focused = document.activeElement as HTMLElement;
                             if (focused?.getAttribute("role") === "option") {
-                              const enterEvent = new KeyboardEvent("keydown", {
-                                key: "Enter",
-                                code: "Enter",
-                                keyCode: 13,
-                                bubbles: true,
-                                cancelable: true,
-                              });
-                              focused.dispatchEvent(enterEvent);
-                            } else {
-                              const firstItem = e.currentTarget.querySelector(
-                                '[role="option"]:not([data-disabled="true"])',
-                              ) as HTMLElement;
-                              if (firstItem) {
-                                firstItem.focus();
-                                const enterEvent = new KeyboardEvent(
-                                  "keydown",
-                                  {
-                                    key: "Enter",
-                                    code: "Enter",
-                                    keyCode: 13,
-                                    bubbles: true,
-                                    cancelable: true,
-                                  },
-                                );
-                                firstItem.dispatchEvent(enterEvent);
-                              }
+                              focused.click();
                             }
                           }
                         }}
                       >
-                        {conditions?.map((c) => (
-                          <SelectItem key={c.id} value={c.id.toString()}>
-                            {c.name}
+                        {/* Mapeo limpio usando los IDs de SSMS que ya configuraste en lib/conditions.ts */}
+                        {staticConditions?.map((c: UI_Condition) => (
+                          <SelectItem key={c.value} value={c.value}>
+                            <div className="flex items-center gap-2">
+                              <span className="font-medium">{c.label}</span>
+                              <span className="text-muted-foreground italic text-xs">
+                                ({c.label_en})
+                              </span>
+                            </div>
                           </SelectItem>
                         ))}
-                        {isConditionsError && (
-                          <div className="p-2 text-sm text-muted-foreground">
-                            Error al cargar condiciones.
-                          </div>
-                        )}
                       </SelectContent>
                     </Select>
-                    <FormDescription>Estado del artículo.</FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
               />
+              
               <FormField
                 control={form.control}
                 name="manufacturer_id"
                 render={({ field }) => (
                   <FormItem className="w-full">
                     <div className="flex items-center justify-between">
-                      <FormLabel>Fabricante</FormLabel>
+                      <FormLabel>
+                        Fabricante <span className="text-xs italic text-gray-500 font-normal ml-1">(Manufacturer)</span>
+                      </FormLabel>
                       <CreateManufacturerDialog
                         defaultType="PART"
                         onSuccess={(manufacturer) => {
@@ -2034,7 +2059,9 @@ export default function CreateConsumableForm({
                 name="zone"
                 render={({ field }) => (
                   <FormItem className="w-full">
-                    <FormLabel>Ubicación interna</FormLabel>
+                    <FormLabel>
+                      Ubicación Interna <span className="text-xs italic text-gray-500 font-normal ml-1">(Internal Location)</span>
+                    </FormLabel>
                     <FormControl>
                       <Input
                         placeholder="Ej: Pasillo 4, repisa 3..."
@@ -2092,7 +2119,9 @@ export default function CreateConsumableForm({
           <SectionCard title="Ingreso y cantidad">
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
               <div className="flex flex-col space-y-2 mt-2.5">
-                <FormLabel>Método de ingreso</FormLabel>
+                <FormLabel>
+                  Metodo de Ingreso <span className="text-xs italic text-gray-500 font-normal ml-1">(Entry Method)</span>
+                </FormLabel>
                 <Popover open={secondaryOpen} onOpenChange={setSecondaryOpen}>
                   <PopoverTrigger asChild>
                     <Button
@@ -2192,7 +2221,9 @@ export default function CreateConsumableForm({
                 name="quantity"
                 render={({ field }) => (
                   <FormItem className="w-full">
-                    <FormLabel>Cantidad</FormLabel>
+                    <FormLabel>
+                      Cantidad <span className="text-xs italic text-gray-500 font-normal ml-1">(Quantity)</span>
+                    </FormLabel>
                     <FormControl>
                       <Input
                         type="text"
@@ -2240,7 +2271,9 @@ export default function CreateConsumableForm({
                 name="min_quantity"
                 render={({ field }) => (
                   <FormItem className="w-full">
-                    <FormLabel>Cantidad Mínima</FormLabel>
+                    <FormLabel>
+                      Cantidad Mínima <span className="text-xs italic text-gray-500 font-normal ml-1">(Minimum Quantity)</span>
+                    </FormLabel>
                     <FormControl>
                       <Input
                         type="text"
@@ -2311,7 +2344,9 @@ export default function CreateConsumableForm({
                 name="description"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Detalles/Observaciones</FormLabel>
+                    <FormLabel>
+                      Detalles/Observaciones <span className="text-xs italic text-gray-500 font-normal ml-1">(Minimum Quantity)</span>
+                    </FormLabel>
                     <FormControl>
                       <Textarea
                         rows={5}

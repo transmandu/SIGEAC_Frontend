@@ -31,6 +31,7 @@ import {
   File,
 } from "lucide-react";
 import Image from "next/image";
+import ImageZoom from "@/components/ui/ImageZoom"; //funcion de zoom para imagenes
 import Link from "next/link";
 import { useParams } from "next/navigation";
 
@@ -328,13 +329,16 @@ const ShowVoluntaryReport = () => {
                 <DialogHeader>
                   <DialogTitle>Imagen del Reporte</DialogTitle>
                 </DialogHeader>
-                <div className="relative h-[60vh] flex justify-center">
-                  {/* ✅ USAR img NORMAL en el dialog también */}
-                  <Image
+                {/* Vista expandida: usamos `ImageZoom` en lugar de `<Image />` para habilitar zoom/pan dentro del diálogo. */}
+                <div className="relative h-[60vh] flex justify-center" onClick={(e) => e.stopPropagation()}>
+                  <ImageZoom
                     src={voluntaryReport.imageUrl}
-                    fill
                     alt="Imagen completa del reporte"
-                    className="max-w-full max-h-full object-contain rounded-lg border"
+                    width="auto"
+                    height="100%"
+                    initialZoom={2}
+                    maxZoom={3}
+                    className="max-w-full max-h-full"
                   />
                 </div>
               </DialogContent>
