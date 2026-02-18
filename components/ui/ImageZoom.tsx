@@ -1,6 +1,7 @@
 'use client'
 
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useRef, useState, useCallback } from 'react'
+import Image from "next/image"
 
 interface ImageZoomProps {
   src: string
@@ -51,8 +52,13 @@ export default function ImageZoom({
     }
   }
 
-  const inc = () => setZoom((z) => clamp(+((z + step).toFixed(3)), minZoom, maxZoom))
-  const dec = () => {
+  const inc = useCallback(() => {
+    setZoom((z) =>
+      clamp(+((z + step).toFixed(3)), minZoom, maxZoom)
+    )
+  }, [step, minZoom, maxZoom])
+
+  const dec = useCallback(() => {
     setZoom((z) => {
       const newZ = clamp(+((z - step).toFixed(3)), minZoom, maxZoom)
       if (newZ <= minZoom) {
@@ -61,8 +67,7 @@ export default function ImageZoom({
       }
       return newZ
     })
-  }
-
+  }, [step, minZoom, maxZoom])
   // Inicia captura de pointer para panning (solo si zoom > 1)
   const onPointerDown = (e: React.PointerEvent) => {
     if (zoom <= 1) return
@@ -162,7 +167,7 @@ export default function ImageZoom({
     const node = wrapperRef.current
     node?.addEventListener('keydown', handler)
     return () => node?.removeEventListener('keydown', handler)
-  }, [minZoom])
+  }, [minZoom, dec, inc])
 
   useEffect(() => {
     if (zoom <= minZoom) {
@@ -196,7 +201,7 @@ export default function ImageZoom({
         }}
         className={`relative ${cursorClass} select-none`}
       >
-        <img
+        <Image
           src={src}
           alt={alt}
           draggable={false}

@@ -107,7 +107,7 @@ export function CreateRequisitionDialog() {
           </DialogDescription>
         </DialogHeader>
 
-        <Tabs defaultValue="articulo" className="w-full">
+        <Tabs defaultValue="batch" className="w-full">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="batch">
               Lote
