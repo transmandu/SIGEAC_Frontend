@@ -548,7 +548,9 @@ export default function CreateToolForm({
               name="inspector"
               render={({ field }) => (
                 <FormItem className="w-full">
-                  <FormLabel>Inspector (Incoming)</FormLabel>
+                  <FormLabel>
+                      inspector (Incoming) <span className="text-xs italic text-gray-500 font-normal ml-1">(Inspector)</span>
+                  </FormLabel>
                   <FormControl>
                     <Input placeholder="Nombre del Inspector" {...field} />
                   </FormControl>
@@ -562,7 +564,9 @@ export default function CreateToolForm({
               name="inspect_date"
               render={({ field }) => (
                 <FormItem className="flex flex-col">
-                  <FormLabel>Fecha de Inspeccion</FormLabel>
+                  <FormLabel>
+                    Fecha de Inspección <span className="text-xs italic text-gray-500 font-normal ml-1">(Inspection Date)</span>
+                  </FormLabel>
                   <Popover>
                     <PopoverTrigger asChild>
                       <FormControl>
@@ -613,7 +617,9 @@ export default function CreateToolForm({
               name="part_number"
               render={({ field }) => (
                 <FormItem className="w-full">
-                  <FormLabel>Nro. de parte</FormLabel>
+                  <FormLabel>
+                    Nro. de parte <span className="text-xs italic text-gray-500 font-normal ml-1">(Part number)</span>
+                  </FormLabel>
                   <FormControl>
                     <Input
                       placeholder="Ej: TW-500"
@@ -649,7 +655,9 @@ export default function CreateToolForm({
               name="serial"
               render={({ field }) => (
                 <FormItem className="w-full">
-                  <FormLabel>Serial</FormLabel>
+                  <FormLabel>
+                    Serial <span className="text-xs italic text-gray-500 font-normal ml-1">(Serial number)</span>
+                  </FormLabel>
                   <FormControl>
                     <Input
                       placeholder="Ej: S-000123"
@@ -668,7 +676,9 @@ export default function CreateToolForm({
               name="alternative_part_number"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Nros. de parte alternos</FormLabel>
+                  <FormLabel>
+                    Nros. de parte alternos <span className="text-xs italic text-gray-500 font-normal ml-1">(Alternative part numbers)</span>
+                  </FormLabel>
                   <FormControl>
                     <MultiInputField
                       values={field.value || []}
@@ -693,7 +703,9 @@ export default function CreateToolForm({
                 render={({ field }) => (
                   <FormItem className="w-full">
                     <div className="flex items-center justify-between">
-                      <FormLabel>Descripción</FormLabel>
+                      <FormLabel>
+                        Descripción <span className="text-xs italic text-gray-500 font-normal ml-1">(Description)</span>
+                      </FormLabel>
                       <CreateBatchDialog
                         onSuccess={async (batchName) => {
                           // Invalidar la query y refetch para obtener el batch recién creado
@@ -861,7 +873,9 @@ export default function CreateToolForm({
               render={({ field }) => (
                 <FormItem className="w-full">
                   <div className="flex items-center justify-between">
-                    <FormLabel>Fabricante</FormLabel>
+                    <FormLabel>
+                      Fabricante <span className="text-xs italic text-gray-500 font-normal ml-1">(Manufacturer)</span>
+                    </FormLabel>
                     <CreateManufacturerDialog
                       defaultType="PART"
                       onSuccess={(manufacturer) => {
@@ -991,7 +1005,9 @@ export default function CreateToolForm({
               name="zone"
               render={({ field }) => (
                 <FormItem className="w-full">
-                  <FormLabel>Ubicación interna</FormLabel>
+                  <FormLabel>
+                    Ubicación interna <span className="text-xs italic text-gray-500 font-normal ml-1">(Internal location)</span>
+                  </FormLabel>
                   <FormControl>
                     <Input
                       placeholder="Ej: Taller, Estantería B"
@@ -1097,7 +1113,9 @@ export default function CreateToolForm({
               name="description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Observaciones</FormLabel>
+                  <FormLabel>
+                    Observaciones <span className="text-xs italic text-gray-500 font-normal ml-1">(Observations)</span>
+                  </FormLabel>
                   <FormControl>
                     <Textarea
                       rows={5}

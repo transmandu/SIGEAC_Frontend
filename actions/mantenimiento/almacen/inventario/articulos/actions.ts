@@ -54,12 +54,28 @@ export const useCreateArticle = () => {
     }: {
       company: string;
       data: ArticleData;
-      }) => {
-      await axiosInstance.post(`/${company}/article`, data, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
+    }) => {
+      // 1. CREAMOS EL FORMDATA REAL
+      const formData = new FormData();
+
+      // 2. MAPEAMOS LOS DATOS AL FORMDATA
+      Object.entries(data).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          // Si el valor es un array (como alternative_part_number), lo metemos uno a uno o como JSON
+          if (Array.isArray(value)) {
+            value.forEach((item) => formData.append(`${key}[]`, item));
+          } else if (value instanceof File) {
+            // Si es un archivo (imagen/certificado), se adjunta tal cual
+            formData.append(key, value);
+          } else {
+            // Convertimos todo lo demás a string para el envío de formulario
+            formData.append(key, value.toString());
+          }
+        }
       });
+
+      // 3. ENVIAMOS EL FORMDATA (Axios pondrá los headers automáticamente)
+      return await axiosInstance.post(`/${company}/article`, formData);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["warehouse-articles"] });
@@ -74,6 +90,7 @@ export const useCreateArticle = () => {
       console.log(error);
     },
   });
+
   return {
     createArticle: createMutation,
   };
@@ -91,7 +108,23 @@ export const useCreateToReviewArticle = () => {
       company: string;
       data: ConsumableArticle | ComponentArticle | ToolArticle;
     }) => {
-      await axiosInstance.post(`/${company}/article`, data, {
+      // 1. Convertimos el objeto data a FormData real
+      const formData = new FormData();
+
+      Object.entries(data).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          if (value instanceof File) {
+            formData.append(key, value);
+          } else if (Array.isArray(value)) {
+            value.forEach((item) => formData.append(`${key}[]`, item));
+          } else {
+            formData.append(key, value.toString());
+          }
+        }
+      });
+
+      // 2. Enviamos el formData (Axios gestiona los límites automáticamente)
+      await axiosInstance.post(`/${company}/article`, formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
@@ -111,6 +144,7 @@ export const useCreateToReviewArticle = () => {
       console.log(error);
     },
   });
+
   return {
     createArticle: createMutation,
   };
@@ -230,33 +264,26 @@ export const useEditArticle = () => {
       company,
     }: {
       company: string;
-      data: {
-        id: number;
-        part_number: string;
-        alternative_part_number?: string[];
-        description: string;
-        zone: string;
-        manufacturer_id?: number | string;
-        condition_id?: number | string;
-        batches_id: string | number;
-        is_special?: boolean;
-        expiration_datete?: string;
-        fabrication_date?: string;
-        quantity?: number;
-        calendar_date?: string;
-        certificate_8130?: File | string;
-        certificate_fabricant?: File | string;
-        certificate_vendor?: File | string;
-        image?: File | string;
-        serial?: string;
-        hour_date?: string;
-        cycle_date?: string;
-        convertion_id?: number;
-      };
+      data: any; // Usamos any para facilitar el mapeo de los diversos tipos
     }) => {
-      await axiosInstance.post(
+      const formData = new FormData();
+
+      // Mapeo dinámico de campos al FormData
+      Object.entries(data).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          if (value instanceof File) {
+            formData.append(key, value);
+          } else if (Array.isArray(value)) {
+            value.forEach((item) => formData.append(`${key}[]`, item));
+          } else {
+            formData.append(key, value.toString());
+          }
+        }
+      });
+
+      return await axiosInstance.post(
         `/${company}/update-article-warehouse/${data.id}`,
-        data,
+        formData,
         {
           headers: {
             "Content-Type": "multipart/form-data",
@@ -279,7 +306,7 @@ export const useEditArticle = () => {
       toast.error("Oops!", {
         description: "No se pudo actualizar el articulo...",
       });
-      console.log(error)
+      console.log(error);
     },
   });
   return {
@@ -301,16 +328,27 @@ export const useUpdateArticle = () => {
       company: string;
       data: ArticleData;
     }) => {
-      await axiosInstance.post(`/${company}/update-article/${id}`, data,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
+      const formData = new FormData();
+
+      Object.entries(data).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          if (value instanceof File) {
+            formData.append(key, value);
+          } else if (Array.isArray(value)) {
+            value.forEach((item) => formData.append(`${key}[]`, item));
+          } else {
+            formData.append(key, value.toString());
+          }
         }
-      );
+      });
+
+      return await axiosInstance.post(`/${company}/update-article/${id}`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
     },
     onSuccess: () => {
-      // Invalidar todas las queries relacionadas con artículos y batches
       queryClient.invalidateQueries({ queryKey: ["warehouse-articles"] });
       queryClient.invalidateQueries({ queryKey: ["articles"] });
       queryClient.invalidateQueries({ queryKey: ["batches"] });

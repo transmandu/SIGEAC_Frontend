@@ -39,6 +39,7 @@ import { z } from "zod";
 import { FileField } from "@/app/[company]/almacen/ingresar_inventario/_components/FileField";
 import { MultiInputField } from "@/components/misc/MultiInputField";
 import { Textarea } from "@/components/ui/textarea";
+import { conditions as staticConditions, type Condition as UI_Condition } from "@/lib/conditions";
 
 const fileMaxBytes = 10_000_000; // 10 MB
 
@@ -228,7 +229,9 @@ export default function CreateComponentForm({ initialData, isEditing }: Props) {
               name="part_number"
               render={({ field }) => (
                 <FormItem className="w-full">
-                  <FormLabel>Nro. de parte</FormLabel>
+                  <FormLabel>
+                    Nro. de parte <span className="text-xs italic text-gray-500 font-normal ml-1">(Part number)</span>
+                  </FormLabel>
                   <FormControl>
                     <Input placeholder="Ej: 234ABAC" {...field} />
                   </FormControl>
@@ -260,7 +263,9 @@ export default function CreateComponentForm({ initialData, isEditing }: Props) {
               name="serial"
               render={({ field }) => (
                 <FormItem className="w-full">
-                  <FormLabel>Serial</FormLabel>
+                  <FormLabel>
+                    Serial <span className="text-xs italic text-gray-500 font-normal ml-1">(Serial Number)</span>
+                  </FormLabel>
                   <FormControl>
                     <Input placeholder="Ej: 05458E1" {...field} />
                   </FormControl>
@@ -275,29 +280,42 @@ export default function CreateComponentForm({ initialData, isEditing }: Props) {
               name="condition_id"
               render={({ field }) => (
                 <FormItem className="w-full">
-                  <FormLabel>Condición</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value} disabled={isConditionsLoading}>
+                  <FormLabel>
+                    Condición <span className="text-xs italic text-gray-500 font-normal ml-1">(Condition)</span>
+                  </FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    value={field.value}
+                    disabled={busy}
+                  >
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue
-                          placeholder={isConditionsLoading ? "Cargando..." : "Seleccione..."}
-                        />
+                        <SelectValue placeholder="Seleccione..." />
                       </SelectTrigger>
                     </FormControl>
-                    <SelectContent>
-                      {conditions?.map((c) => (
-                        <SelectItem key={c.id} value={c.id.toString()}>
-                          {c.name}
+                    <SelectContent
+                      onKeyDown={(e) => {
+                        if (e.key === "Tab") {
+                          e.preventDefault();
+                          const focused = document.activeElement as HTMLElement;
+                          if (focused?.getAttribute("role") === "option") {
+                            focused.click();
+                          }
+                        }
+                      }}
+                    >
+                      {staticConditions.map((c: UI_Condition) => (
+                        <SelectItem key={c.value} value={c.value}>
+                          <div className="flex items-center gap-2">
+                            <span className="font-medium">{c.label}</span>
+                            <span className="text-muted-foreground italic text-xs">
+                              ({c.label_en})
+                            </span>
+                          </div>
                         </SelectItem>
                       ))}
-                      {isConditionsError && (
-                        <div className="p-2 text-sm text-muted-foreground">
-                          Error al cargar condiciones.
-                        </div>
-                      )}
                     </SelectContent>
                   </Select>
-                  <FormDescription>Estado físico/operativo del artículo.</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -309,7 +327,9 @@ export default function CreateComponentForm({ initialData, isEditing }: Props) {
               render={({ field }) => (
                 <FormItem className="w-full">
                   <div className="flex items-center justify-between">
-                    <FormLabel>Fabricante</FormLabel>
+                    <FormLabel>
+                      Fabricante <span className="text-xs italic text-gray-500 font-normal ml-1">(Manufacturer)</span>
+                    </FormLabel>
                     <CreateManufacturerDialog
                       defaultType="PART"
                       onSuccess={(manufacturer) => {
@@ -398,7 +418,9 @@ export default function CreateComponentForm({ initialData, isEditing }: Props) {
               name="batch_id"
               render={({ field }) => (
                 <FormItem className="flex flex-col space-y-3 mt-1.5 w-full">
-                  <FormLabel>Descripción de componente</FormLabel>
+                  <FormLabel>
+                      Descripción de Componente <span className="text-xs italic text-gray-500 font-normal ml-1">(Component Description)</span>
+                    </FormLabel>
                   <Popover>
                     <PopoverTrigger asChild>
                       <FormControl>
@@ -470,7 +492,9 @@ export default function CreateComponentForm({ initialData, isEditing }: Props) {
               name="description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Observaciones</FormLabel>
+                  <FormLabel>
+                    Observaciones <span className="text-xs italic text-gray-500 font-normal ml-1">(Observations)</span>
+                  </FormLabel>
                   <FormControl>
                     <Textarea rows={5} placeholder="Ej: Observación relevante..." {...field} />
                   </FormControl>
