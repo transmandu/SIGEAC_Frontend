@@ -21,6 +21,19 @@ export const columns: ColumnDef<MitigationTable>[] = [
       }
       return "N/A";
     },
+    sortingFn: (rowA, rowB, columnId) => {
+      // Extraer el número de strings como "RVP-20", "ROS-18"
+      const extractNumber = (value: string) => {
+        if (!value || value === "N/A") return 0;
+        const match = value.match(/(\d+)$/);
+        return match ? parseInt(match[1], 10) : 0;
+      };
+
+      const valueA = rowA.getValue(columnId) as string;
+      const valueB = rowB.getValue(columnId) as string;
+
+      return extractNumber(valueA) - extractNumber(valueB);
+    },
     header: ({ column }) => (
       <DataTableColumnHeader column={column} filter title="Reporte" />
     ),

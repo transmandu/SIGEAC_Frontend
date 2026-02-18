@@ -20,6 +20,19 @@ export const columns: ColumnDef<DangerIdentification>[] = [
       return "N/A";
     },
     accessorKey: "report_number", // IMPORTANTE: usar id único
+    sortingFn: (rowA, rowB, columnId) => {
+      // Extraer el número de strings como "RVP-20", "ROS-18"
+      const extractNumber = (value: string) => {
+        if (!value || value === "N/A") return 0;
+        const match = value.match(/(\d+)$/);
+        return match ? parseInt(match[1], 10) : 0;
+      };
+
+      const valueA = rowA.getValue(columnId) as string;
+      const valueB = rowB.getValue(columnId) as string;
+
+      return extractNumber(valueA) - extractNumber(valueB);
+    },
     header: ({ column }) => (
       <DataTableColumnHeader filter column={column} title="Nº de Reporte" />
     ),
@@ -111,11 +124,10 @@ export const columns: ColumnDef<DangerIdentification>[] = [
         <div className="flex justify-center">
           {row.original.information_source && (
             <Badge
-              className={`justify-center items-center text-center font-bold font-sans ${
-                row.original.information_source.type === "PROACTIVO"
-                  ? "bg-green-400"
-                  : "bg-red-400"
-              }`}
+              className={`justify-center items-center text-center font-bold font-sans ${row.original.information_source.type === "PROACTIVO"
+                ? "bg-green-400"
+                : "bg-red-400"
+                }`}
             >
               {row.original.information_source.type}
             </Badge>
