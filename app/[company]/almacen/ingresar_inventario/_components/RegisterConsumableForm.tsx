@@ -1281,7 +1281,7 @@ export default function CreateConsumableForm({
       setSelectedPrimaryUnit(unitObj);
       setSecondarySelected(unitObj);
     }
-  }, [initialData]); // 👈 quitamos form para evitar renders extra
+  }, [initialData, form]); // 👈 quitamos form para evitar renders extra
 
   const calculateAndUpdateQuantity = useCallback(
     (quantity: number | undefined, selectedUnit: any) => {
