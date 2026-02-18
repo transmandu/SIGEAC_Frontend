@@ -109,23 +109,23 @@ export function CreateRequisitionDialog() {
 
         <Tabs defaultValue="articulo" className="w-full">
           <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="articulo">
-              Artículo
-            </TabsTrigger>
             <TabsTrigger value="batch">
               Lote
             </TabsTrigger>
+            <TabsTrigger value="articulo">
+              Artículo
+            </TabsTrigger>
           </TabsList>
+          {/* ================= TAB LOTE ================= */}
+          <TabsContent value="batch" className="mt-4">
+            {renderByRules(userRoles, batchRequisitionRules)}
+          </TabsContent>
 
           {/* ================= TAB ARTÍCULO ================= */}
           <TabsContent value="articulo" className="mt-4">
             {renderByRules(userRoles, articleRequisitionRules)}
           </TabsContent>
 
-          {/* ================= TAB LOTE ================= */}
-          <TabsContent value="batch" className="mt-4">
-            {renderByRules(userRoles, batchRequisitionRules)}
-          </TabsContent>
         </Tabs>
       </DialogContent>
     </Dialog>
