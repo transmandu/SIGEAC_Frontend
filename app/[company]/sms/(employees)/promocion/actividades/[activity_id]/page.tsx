@@ -3,7 +3,16 @@ import BarChartCourseComponent from "@/components/charts/BarChartCourseComponent
 import { PieChartComponent } from "@/components/charts/PieChartComponent";
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import Image from "next/image";
 import { useGetActivityAttendanceList } from "@/hooks/sms/useGetActivityAttendanceList";
 import { useGetSMSActivityAttendanceStats } from "@/hooks/sms/useGetSMSActivityAttendanceStats";
 import { useGetSMSActivityById } from "@/hooks/sms/useGetSMSActivityById";
