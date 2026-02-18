@@ -14,16 +14,27 @@ import {
   ClipboardList,
   Dot,
   HelpCircle,
-  Icon,
   XCircle,
 } from "lucide-react";
 import { Dispatch, SetStateAction, useMemo, useState } from "react";
 import { ChecklistGroup, ChecklistValue } from "../../IncomingTypes";
-import { useConfirmIncomingArticle, IncomingPayload, IncomingCheck, useSendToQuarantine } from "@/actions/mantenimiento/almacen/inventario/articulos/actions";
+import {
+  IncomingPayload,
+  IncomingCheck,
+  useConfirmIncomingArticle,
+  useSendToQuarantine,
+} from "@/actions/mantenimiento/almacen/inventario/articulos/actions";
 import { useAuth } from "@/contexts/AuthContext";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { useRouter } from "next/navigation";
@@ -87,10 +98,18 @@ export function IncomingSidebar({
 
   const hasNo = noCount > 0;
   const allDecided = done === total;
-  const allOk = flat.every((i) => checklist[i.key] === true || checklist[i.key] === "NA");
+
+  // Confirmar ingreso: solo si TODO está en OK o N/A (y por ende, no hay NO ni pendientes)
+  const approvable =
+    allDecided &&
+    flat.every((i) => {
+      const v = checklist[i.key];
+      return v === true || v === "NA";
+    });
 
   const progress = total ? Math.round((done / total) * 100) : 0;
 
+  // Cuarentena: solo si hay al menos un NO, todo está decidido y hay nota mínima
   const quarantineEnabled = hasNo && allDecided && inspectorNotes.trim().length >= 5;
 
   const [acceptOpen, setAcceptOpen] = useState(false);
@@ -108,6 +127,9 @@ export function IncomingSidebar({
   const buildPayload = (): IncomingPayload => {
     const checks: IncomingCheck[] = flat.map((item) => {
       const value = checklist[item.key];
+
+      // Si value es undefined, el flujo UI no debería permitir confirmar,
+      // pero esto lo deja razonable igualmente.
       const result: "PASS" | "FAIL" = value === false ? "FAIL" : "PASS";
 
       return {
@@ -201,13 +223,16 @@ export function IncomingSidebar({
 
         <CardContent className="p-4 space-y-4 max-h-[45vh] overflow-auto">
           {groups.map((g) => {
-            const Icon = g.icon
+            const IconComp = g.icon;
             const groupDone = g.items.filter((i) => checklist[i.key] !== undefined).length;
+
             return (
               <div key={g.title} className="space-y-2">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2 font-semibold text-sm">
-                    <span className="text-muted-foreground"><Icon /></span>
+                    <span className="text-muted-foreground">
+                      <IconComp />
+                    </span>
                     {g.title}
                   </div>
                   <span className="text-xs text-muted-foreground">
@@ -221,10 +246,7 @@ export function IncomingSidebar({
                     const stateLabel = getStateLabel(v);
 
                     return (
-                      <div
-                        key={item.key}
-                        className={cn("rounded-xl border p-3 transition-colors", getStateClass(v))}
-                      >
+                      <div key={item.key} className={cn("rounded-xl border p-3 transition-colors", getStateClass(v))}>
                         <div className="flex items-start justify-between gap-3">
                           <div className="min-w-0">
                             <div className="flex items-center gap-2">
@@ -250,9 +272,7 @@ export function IncomingSidebar({
 
                             <p className="mt-2 text-sm font-medium leading-5">{item.label}</p>
 
-                            {item.hint ? (
-                              <p className="mt-1 text-xs text-muted-foreground">{item.hint}</p>
-                            ) : null}
+                            {item.hint ? <p className="mt-1 text-xs text-muted-foreground">{item.hint}</p> : null}
                           </div>
                         </div>
 
@@ -316,7 +336,7 @@ export function IncomingSidebar({
         </CardContent>
 
         <CardFooter className="flex flex-col gap-2">
-          <Button className="w-full" disabled={!allDecided || !allOk || hasNo} onClick={() => setAcceptOpen(true)}>
+          <Button className="w-full" disabled={!approvable} onClick={() => setAcceptOpen(true)}>
             Confirmar ingreso
           </Button>
 
@@ -356,7 +376,9 @@ export function IncomingSidebar({
             <Button variant="outline" onClick={() => setAcceptOpen(false)}>
               Cancelar
             </Button>
-            <Button onClick={confirmAccept}>Confirmar</Button>
+            <Button onClick={confirmAccept} disabled={!approvable}>
+              Confirmar
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -391,7 +413,9 @@ export function IncomingSidebar({
             <Button variant="outline" onClick={() => setAcceptQuarantine(false)}>
               Cancelar
             </Button>
-            <Button onClick={confirmQuarantine}>Confirmar</Button>
+            <Button onClick={confirmQuarantine} disabled={!quarantineEnabled}>
+              Confirmar
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
