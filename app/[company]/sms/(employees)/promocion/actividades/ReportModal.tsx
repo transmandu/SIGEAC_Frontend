@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -10,95 +9,20 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { CalendarDays, FileDown, Loader2 } from "lucide-react";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { CalendarDays, FileDown, Loader2, CalendarIcon } from "lucide-react";
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
+import { cn } from "@/lib/utils";
+import { useSmsReport } from "@/hooks/sms/useGetReportSmsByDate";
 
-interface ReportModalProps {
-  activities: any[];
-}
-
-export function ReportModal({ activities }: ReportModalProps) {
-  const [reportFrom, setReportFrom] = useState("");
-  const [reportTo, setReportTo] = useState("");
-  const [isGenerating, setIsGenerating] = useState(false);
-
-  const handleGenerate = async () => {
-    // 1. Filtrar las actividades
-    const filtered = activities.filter((act) => {
-      if (!act.start_date) return !reportFrom && !reportTo;
-      const activityDate = new Date(act.start_date);
-      activityDate.setHours(0, 0, 0, 0);
-
-      if (reportFrom) {
-        const fromDate = new Date(reportFrom);
-        fromDate.setHours(0, 0, 0, 0);
-        if (activityDate < fromDate) return false;
-      }
-      if (reportTo) {
-        const toDate = new Date(reportTo);
-        toDate.setHours(0, 0, 0, 0);
-        if (activityDate > toDate) return false;
-      }
-      return true;
-    });
-
-    if (filtered.length === 0) {
-      alert("No se encontraron actividades en el rango de fechas seleccionado.");
-      return;
-    }
-
-    try {
-      setIsGenerating(true);
-
-      // Obtenemos el token para evitar el 401
-      const token = typeof window !== 'undefined' 
-        ? (localStorage.getItem('token') || document.cookie.split('; ').find(row => row.trim().startsWith('token='))?.split('=')[1])
-        : null;
-
-      const response = await fetch("http://127.0.0.1:8000/api/generate-sms-report", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Accept": "application/json",
-          "Authorization": `Bearer ${token}`
-        },
-        body: JSON.stringify({ 
-          activities: filtered,
-          company: "transmandu" 
-        }),
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error("Error de Laravel:", errorText);
-        throw new Error(`Error ${response.status}: El servidor rechazó la solicitud.`);
-      }
-
-      const blob = await response.blob();
-      
-      if (blob.type !== "application/pdf") {
-         throw new Error("El servidor no devolvió un PDF válido.");
-      }
-
-      // --- AQUÍ ESTÁ EL FIX DE LA URL ---
-      const downloadUrl = window.URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = downloadUrl; // Aquí se usa el valor
-      link.download = `Reporte_SMS_Consolidado_${new Date().toISOString().split('T')[0]}.pdf`;
-      
-      document.body.appendChild(link);
-      link.click();
-      
-      // Limpieza
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(downloadUrl);
-
-    } catch (error: any) {
-      console.error("Error al descargar el reporte:", error);
-      alert(error.message || "No se pudo generar el reporte.");
-    } finally {
-      setIsGenerating(false);
-    }
-  };
+export function ReportModal() {
+  const { 
+    reportFrom, setReportFrom, 
+    reportTo, setReportTo, 
+    isGenerating, handleGenerate 
+  } = useSmsReport();
 
   return (
     <Dialog>
@@ -109,44 +33,77 @@ export function ReportModal({ activities }: ReportModalProps) {
         </Button>
       </DialogTrigger>
       
-      <DialogContent className="sm:max-w-[450px]">
+      <DialogContent className="sm:max-w-[480px]">
         <DialogHeader className="flex flex-col items-center">
-          <DialogTitle className="text-4xl font-bold text-center">Generar Reporte</DialogTitle>
+          <DialogTitle className="text-3xl font-bold text-center">Generar Reporte</DialogTitle>
           <DialogDescription className="text-sm italic text-center">
-            Aquí se pueden generar los reportes de actividades de SMS.
+            Selecciona el rango de fechas para la consulta en el servidor.
           </DialogDescription>
         </DialogHeader>
 
         <div className="flex flex-col gap-8 py-6">
           <div className="flex flex-col gap-4">
-            <div className="flex items-center justify-center gap-2 font-bold text-2xl">
+            <div className="flex items-center justify-center gap-2 font-bold text-xl">
               <span>Rango por fechas</span>
-              <CalendarDays className="size-6" />
+              <CalendarDays className="size-5 text-primary" />
             </div>
             
-            <p className="text-[12px] italic text-muted-foreground text-center px-4 leading-tight">
-              Genere un reporte con todas las actividades registradas. <br />
-              Opcionalmente puede filtrar un rango específico.
-            </p>
-            
-            <div className="grid grid-cols-2 gap-4 mt-2">
-              <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-bold ml-1 text-foreground">Desde (Opcional)</label>
-                <input 
-                  type="date" 
-                  value={reportFrom}
-                  onChange={(e) => setReportFrom(e.target.value)}
-                  className="w-full bg-background border rounded-md px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-primary shadow-sm text-black"
-                />
+            <div className="grid grid-cols-2 gap-4">
+              {/* Selector DESDE */}
+              <div className="flex flex-col gap-2">
+                <label className="text-xs font-bold ml-1">Desde</label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "w-full justify-start text-left font-normal border-input bg-background text-foreground",
+                        !reportFrom && "text-muted-foreground"
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {reportFrom ? format(reportFrom, "dd/MM/yyyy", { locale: es }) : "DD/MM/YYYY"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={reportFrom}
+                      onSelect={setReportFrom}
+                      initialFocus
+                      locale={es}
+                    />
+                  </PopoverContent>
+                </Popover>
               </div>
-              <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-bold ml-1 text-foreground">Hasta (Opcional)</label>
-                <input 
-                  type="date" 
-                  value={reportTo}
-                  onChange={(e) => setReportTo(e.target.value)}
-                  className="w-full bg-background border rounded-md px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-primary shadow-sm text-black"
-                />
+
+              {/* Selector HASTA */}
+              <div className="flex flex-col gap-2">
+                <label className="text-xs font-bold ml-1">Hasta</label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "w-full justify-start text-left font-normal border-input bg-background text-foreground",
+                        !reportTo && "text-muted-foreground"
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {reportTo ? format(reportTo, "dd/MM/yyyy", { locale: es }) : "DD/MM/YYYY"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={reportTo}
+                      onSelect={setReportTo}
+                      disabled={(date) => (reportFrom ? date < reportFrom : false)} // No deja seleccionar fecha menor a 'Desde'
+                      initialFocus
+                      locale={es}
+                    />
+                  </PopoverContent>
+                </Popover>
               </div>
             </div>
           </div>
@@ -160,14 +117,14 @@ export function ReportModal({ activities }: ReportModalProps) {
               {isGenerating ? (
                 <>
                   <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                  Generando...
+                  Procesando...
                 </>
               ) : (
-                "Generar Reporte"
+                "Generar PDF"
               )}
             </Button>
             <p className="text-[10px] text-center text-muted-foreground italic">
-              * Si no selecciona fechas, se incluirán todos los registros que se visualizan en la tabla.
+              * El reporte se filtrará según la columna start_date de la base de datos.
             </p>
           </div>
         </div>
