@@ -4,7 +4,7 @@ import { DataTableColumnHeader } from "@/components/tables/DataTableHeader"
 import { ColumnDef } from "@tanstack/react-table"
 import { ClipboardCheck } from "lucide-react"
 import Link from "next/link"
-import { IncomingArticle } from "./[id]/IncomingTypes"
+import { IncomingArticle } from "./IncomingTypes"
 import IncomingArticleDropdownActions from "@/components/dropdowns/mantenimiento/control_calidad/IncomingArticleDropdownActions"
 
 export const w_columns: ColumnDef<IncomingArticle>[] = [

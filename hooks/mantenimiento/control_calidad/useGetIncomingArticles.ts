@@ -1,4 +1,4 @@
-import { IncomingArticle } from '@/app/[company]/control_calidad/incoming/[id]/IncomingTypes';
+import { IncomingArticle } from '@/app/[company]/control_calidad/incoming/IncomingTypes';
 import axiosInstance from '@/lib/axios';
 import { useCompanyStore } from '@/stores/CompanyStore';
 import { useQuery } from '@tanstack/react-query';

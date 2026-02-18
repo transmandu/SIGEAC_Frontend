@@ -528,9 +528,7 @@ export const consumibleCols: ColumnDef<IArticleSimple>[] = [
       return (
         <div className="text-center">
           <Badge variant={variant} className="text-sm font-medium">
-            {format(date, "dd/MM/yyyy") === "01/01/1900"
-              ? "N/A"
-              : format(date, "dd/MM/yyyy")}
+            {format(date, "dd/MM/yyyy") === "01/01/1900" ? "N/A" : format(date, "dd/MM/yyyy")}
           </Badge>
         </div>
       );
