@@ -14,6 +14,9 @@ import CreateToolForm from "./RegisterToolForm";
 import CreateComponentForm from "./RegisterComponentForm";
 import CreatePartForm from "./RegisterPartForm";
 import CreateGeneralArticleForm from "@/components/forms/mantenimiento/almacen/CreateGeneralArticleForm";
+import DirectConsumableForm from "./DirectConsumableForm";
+import DirectPartForm from "./DirectPartForm";
+import DirectComponentForm from "./DirectComponentForm";
 
 
 export interface EditingArticle extends Article {
@@ -102,16 +105,19 @@ const RegisterArticleForm = ({
         </SelectContent>
       </Select>
       {type === "CONSUMIBLE" && (
-        <CreateConsumableForm isEditing={isEditing} initialData={initialData} />
+        // <CreateConsumableForm isEditing={isEditing} initialData={initialData} />
+        <DirectConsumableForm isEditing={isEditing} initialData={initialData} />
       )}
       {type === "HERRAMIENTA" && (
         <CreateToolForm isEditing={isEditing} initialData={initialData} />
       )}
       {type === "COMPONENTE" && (
-        <CreateComponentForm isEditing={isEditing} initialData={initialData} />
+        // <CreateComponentForm isEditing={isEditing} initialData={initialData} />
+        <DirectComponentForm isEditing={isEditing} initialData={initialData} />
       )}
       {type === "PARTE" && (
-        <CreatePartForm isEditing={isEditing} initialData={initialData} />
+        // <CreatePartForm isEditing={isEditing} initialData={initialData} />
+        <DirectPartForm isEditing={isEditing} initialData={initialData} />
       )}
       {
         type === "GENERAL" && (
