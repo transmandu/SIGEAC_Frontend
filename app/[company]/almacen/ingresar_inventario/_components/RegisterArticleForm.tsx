@@ -20,7 +20,7 @@ import DirectComponentForm from "./DirectComponentForm";
 
 
 export interface EditingArticle extends Article {
-  batches: Batch;
+  batch: Batch;
   tool?: {
     id: number;
     serial: string;
@@ -73,7 +73,7 @@ const RegisterArticleForm = ({
   initialData,
 }: IRegisterArticleProps) => {
   const [type, setType] = useState(
-    initialData?.batches.category.toUpperCase() ?? "COMPONENTE"
+    initialData?.batch.category.toUpperCase() ?? "COMPONENTE"
   );
   function handleTypeSelect(data: string) {
     setType(data);
