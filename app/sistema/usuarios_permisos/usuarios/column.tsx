@@ -15,6 +15,7 @@ import UserDropdownActions from "@/components/dropdowns/ajustes/UserDropdownActi
 import { Badge } from "@/components/ui/badge"
 import { User } from "@/types"
 import { redirect } from "next/navigation"
+import { useState } from "react"
 
 
 export const columns: ColumnDef<User>[] = [
@@ -69,15 +70,18 @@ export const columns: ColumnDef<User>[] = [
       <DataTableColumnHeader column={column} title="Status" />
     ),
     cell: ({ row }) => {
-      const item = row.original
+      const item = row.original;
+
+      // Convertimos a número
+      const isActive = Number(item.isActive) === 1;
 
       return (
         <div className="flex items-center justify-center">
-          {
-            item.isActive ? <Badge className="bg-emerald-500">ACTIVO</Badge> : <Badge className="bg-rose-500">INACTIVO</Badge>
-          }
+          <Badge className={isActive ? "bg-emerald-500" : "bg-rose-500"}>
+            {isActive ? "ACTIVO" : "INACTIVO"}
+          </Badge>
         </div>
-      )
+      );
     }
   },
   {
