@@ -308,25 +308,32 @@ export function CreateUserForm() {
                       <Command>
                         <CommandInput placeholder="Buscar rol..." />
                         <CommandList>
-                          <CommandEmpty>No company found.</CommandEmpty>
+                          <CommandEmpty>No se encontraron roles.</CommandEmpty>
                           <CommandGroup>
                             {
                               isRolesLoading && <Loader2 className="animate-spin size-4" />
                             }
                             {roles?.map((role) => (
+
                               <CommandItem
                                 key={role.id}
-                                value={role.id.toString()}
+                                value={role.name}
                                 onSelect={() => handleRoleSelect(role.id.toString())}
+                                className="flex items-center justify-start pl-1 pr-1 py-1 text-[12px] cursor-pointer"
                               >
-                                <Check
-                                  className={cn(
-                                    "mr-2 h-4 w-4",
-                                    isRoleSelected(role.id.toString()) ? "opacity-100" : "opacity-0"
-                                  )}
-                                />
-                                {role.name}
+                                <div className="flex items-center gap-1 w-full text-left">
+                                  <Check
+                                    className={cn(
+                                      "h-3 w-3 shrink-0",
+                                      isRoleSelected(role.id.toString()) ? "opacity-100" : "opacity-0"
+                                    )}
+                                  />
+                                  <span className="truncate flex-1 text-left leading-none tracking-tighter">
+                                    {role.name}
+                                  </span>
+                                </div>
                               </CommandItem>
+                              
                             ))}
                             {
                               rolesError && <p className="text-center text-muted-foreground text-sm">Ha ocurrido un error al cargar los roles...</p>

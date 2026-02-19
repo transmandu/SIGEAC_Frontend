@@ -65,13 +65,15 @@ export function ReportModal() {
                       {reportFrom ? format(reportFrom, "dd/MM/yyyy", { locale: es }) : "DD/MM/YYYY"}
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
+                  {/* Ajuste: avoidCollisions y align para estabilidad */}
+                  <PopoverContent className="w-auto p-0" align="start" avoidCollisions={false}>
                     <Calendar
                       mode="single"
                       selected={reportFrom}
                       onSelect={setReportFrom}
                       initialFocus
                       locale={es}
+                      fixedWeeks // Ajuste: Mantiene siempre 6 filas de altura
                     />
                   </PopoverContent>
                 </Popover>
@@ -93,14 +95,16 @@ export function ReportModal() {
                       {reportTo ? format(reportTo, "dd/MM/yyyy", { locale: es }) : "DD/MM/YYYY"}
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
+                  {/* Ajuste: avoidCollisions y align para estabilidad */}
+                  <PopoverContent className="w-auto p-0" align="start" avoidCollisions={false}>
                     <Calendar
                       mode="single"
                       selected={reportTo}
                       onSelect={setReportTo}
-                      disabled={(date) => (reportFrom ? date < reportFrom : false)} // No deja seleccionar fecha menor a 'Desde'
+                      disabled={(date) => (reportFrom ? date < reportFrom : false)}
                       initialFocus
                       locale={es}
+                      fixedWeeks // Ajuste: Mantiene siempre 6 filas de altura
                     />
                   </PopoverContent>
                 </Popover>
