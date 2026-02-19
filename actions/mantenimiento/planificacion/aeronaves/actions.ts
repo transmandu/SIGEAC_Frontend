@@ -8,11 +8,14 @@ export interface AircraftPartAPI {
   part_number: string;
   serial: string;
   manufacturer_id: string;
+
   time_since_new: number;
   time_since_overhaul: number;
+
   cycles_since_new: number;
   cycles_since_overhaul: number;
-  condition_type: "NEW" | "OVERHAULED";
+
+  condition_id: string;
   is_father: boolean;
   part_type: "engine" | "apu" | "propeller";
   sub_parts?: AircraftPartAPI[];
@@ -41,7 +44,7 @@ export const useCreateMaintenanceAircraft = () => {
 
   const createMutation = useMutation({
       mutationFn: async ({data, company}: {data: CreateAircraftWithPartsData, company: string}) => {
-          console.log("📡 Enviando al backend:", data);
+      console.log("📡 Enviando al backend:", data);
           await axiosInstance.post(`/${company}/aircrafts`, data)
         },
       onSuccess: () => {
