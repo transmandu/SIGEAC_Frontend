@@ -70,7 +70,7 @@ const RegisterArticleForm = ({
   initialData,
 }: IRegisterArticleProps) => {
   const [type, setType] = useState(
-    initialData?.batches.category.toUpperCase() ?? "COMPONENTE"
+    initialData?.batches?.category.toUpperCase() ?? "COMPONENTE"
   );
   function handleTypeSelect(data: string) {
     setType(data);
