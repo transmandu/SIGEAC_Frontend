@@ -3,14 +3,14 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle2, XCircle, Clock} from "lucide-react";
+import { CheckCircle2, XCircle, Clock } from "lucide-react";
 import { addDays, format, parseISO } from "date-fns";
 import { cn } from "@/lib/utils";
 import ArticleDropdownActions from "@/components/dropdowns/mantenimiento/almacen/ArticleDropdownActions";
 import { WarehouseResponse } from "@/hooks/mantenimiento/almacen/articulos/useGetWarehouseArticlesByCategory";
-import CertificatesPopover from "@/components/popovers/CertificatesPopover";
 import { StatusColumnHeader } from "@/components/tables/StatusColumnHeader";
 import { Unit } from "@/types";
+import { formatCondition } from "@/lib/warehouse/conditions";
 
 export interface IArticleSimple {
   id: number;
@@ -18,7 +18,7 @@ export interface IArticleSimple {
   alternative_part_number?: string[];
   description?: string;
   unit?: Unit;
-  quantity: number
+  quantity: number;
   zone: string;
   article_type: string;
   serial?: string;
@@ -28,14 +28,14 @@ export interface IArticleSimple {
   is_hazardous?: boolean;
   batch_name: string;
   batch_id: number;
-  min_quantity?: number | string; // Directamente en el artículo
+  min_quantity?: number | string;
   has_documentation?: boolean;
   certificates?: string[];
   tool?: {
     status?: string | null;
-    calibration_date?: string | null; // ISO string o "dd/MM/yyyy"
-    next_calibration_date?: string | null; // si guardas fecha
-    next_calibration?: number | string | null; // o días
+    calibration_date?: string | null;
+    next_calibration_date?: string | null;
+    next_calibration?: number | string | null;
   };
   component?: {
     expiration_date?: string | null;
@@ -44,8 +44,14 @@ export interface IArticleSimple {
   consumable?: {
     expiration_date?: string | Date | null;
     fabrication_date?: string | Date | null;
+    shelf_life?: string | Date | null;
     unit?: Unit;
   };
+
+  // ✅ grouping helpers
+  __isGroup?: boolean;
+  __groupCount?: number;
+  subRows?: IArticleSimple[];
 }
 
 export const getStatusBadge = (status: string | null | undefined) => {
@@ -65,10 +71,10 @@ export const getStatusBadge = (status: string | null | undefined) => {
       icon: any;
     }
   > = {
-    stored: { label: "En Stock", variant: "default", icon: CheckCircle2 },
-    checking: { label: "En Revision", variant: "warning", icon: Clock },
+    stored: { label: "Disponible", variant: "default", icon: CheckCircle2 },
+    checking: { label: "Revision", variant: "warning", icon: Clock },
     dispatched: { label: "Despachado", variant: "secondary", icon: Clock },
-    inuse: { label: "En uso", variant: "warning", icon: Clock },
+    inuse: { label: "En Uso", variant: "warning", icon: Clock },
     transit: { label: "En Tránsito", variant: "outline", icon: Clock },
     maintenance: { label: "Mantenimiento", variant: "outline", icon: Clock },
   };
@@ -88,61 +94,110 @@ export const getStatusBadge = (status: string | null | undefined) => {
   );
 };
 
-export const flattenArticles = (
-  data: WarehouseResponse | undefined
-): IArticleSimple[] => {
+export const flattenArticles = (data: WarehouseResponse | undefined): IArticleSimple[] => {
   if (!data?.batches) return [];
   return data.batches.flatMap((batch) =>
     batch.articles.map((article) => {
-      const articleWithDoc = article as typeof article & { has_documentation?: boolean; certificates?: string[] };
+      const articleWithDoc = article as typeof article & {
+        has_documentation?: boolean;
+        certificates?: string[];
+      };
+
       return {
-      id: article.id,
-      part_number: article.part_number,
-      alternative_part_number: article.alternative_part_number,
-      serial: article.serial,
-      lot_number: article.lot_number,
-      description: article.description,
-      zone: article.zone,
-      // Normalizar cantidad: 0, null o undefined -> 1
-      quantity:
-        article.quantity === 0 ||
-        article.quantity === null ||
-        article.quantity === undefined
-          ? 1
-          : article.quantity,
-      status: article.status,
-      condition: article.condition ? article.condition.name : "N/A",
-      article_type: article.article_type ?? "N/A",
-      batch_name: batch.name,
-      is_hazardous: batch.is_hazardous ?? undefined,
-      batch_id: batch.batch_id,
-      min_quantity: article.min_quantity, // Directamente desde el artículo
-      has_documentation: articleWithDoc.has_documentation ?? false,
-      certificates: articleWithDoc.certificates ?? [],
-      unit: article.unit ?? undefined,
-      tool: article.tool
-        ? {
-            status: article.tool.status,
-            calibration_date: article.tool.calibration_date,
-            next_calibration_date: article.tool.next_calibration_date,
-            next_calibration: article.tool.next_calibration,
-          }
-        : undefined,
-      component: batch.category === "COMPONENTE" && ((article as any).expiration_date != null || article.component?.shell_time)
-        ? {
-            expiration_date: (article as any).expiration_date ?? article.component?.shell_time?.expiration_date ?? null,
-            fabrication_date: article.component?.shell_time?.fabrication_date ?? null,
-          }
-        : undefined,
-      consumable: batch.category === "CONSUMIBLE" && ((article as any).expiration_date != null || article.consumable?.shell_time)
-        ? {
-            expiration_date: (article as any).expiration_date ?? article.consumable?.shell_time?.expiration_date ?? null,
-            fabrication_date: article.consumable?.shell_time?.fabrication_date ?? null,
-          }
-        : undefined,
+        id: article.id,
+        part_number: article.part_number,
+        alternative_part_number: article.alternative_part_number,
+        serial: article.serial,
+        lot_number: article.lot_number,
+        description: article.description,
+        zone: article.zone,
+
+        // ✅ No normalizar 0 -> 1
+        quantity: Number(article.quantity ?? 0),
+
+        status: article.status,
+        condition: article.condition ? article.condition.name : "N/A",
+        article_type: article.article_type ?? "N/A",
+        batch_name: batch.name,
+        is_hazardous: batch.is_hazardous ?? undefined,
+        batch_id: batch.batch_id,
+
+        min_quantity: article.min_quantity,
+        has_documentation: articleWithDoc.has_documentation ?? false,
+        certificates: articleWithDoc.certificates ?? [],
+        unit: article.unit ?? undefined,
+
+        tool: article.tool
+          ? {
+              status: article.tool.status,
+              calibration_date: article.tool.calibration_date,
+              next_calibration_date: article.tool.next_calibration_date,
+              next_calibration: article.tool.next_calibration,
+            }
+          : undefined,
+
+        component:
+          batch.category === "COMPONENTE" &&
+          ((article as any).expiration_date != null ||
+            article.component?.shell_time)
+            ? {
+                expiration_date:
+                  (article as any).expiration_date ??
+                  article.component?.shell_time?.expiration_date ??
+                  null,
+                fabrication_date:
+                  article.component?.shell_time?.fabrication_date ?? null,
+              }
+            : undefined,
+
+        consumable:
+          batch.category === "CONSUMIBLE"
+            ? {
+                expiration_date: (article as any).expiration_date ?? null,
+                fabrication_date: (article as any).fabrication_date ?? null,
+                shelf_life: (article as any).shelf_life ?? null, // ✅ AGREGAR ESTA LÍNEA
+                unit: article.unit ?? undefined,
+              }
+            : undefined,
       };
     })
   );
+};
+
+// Helper parse local date
+const parseDateLocal = (dateString: string): Date => {
+  if (dateString.match(/^\d{4}-\d{2}-\d{2}$/)) {
+    const [year, month, day] = dateString.split("-").map(Number);
+    return new Date(year, month - 1, day);
+  }
+  return parseISO(dateString);
+};
+
+// ✅ Columna cantidad (solo consumible y all)
+// Ahora: si es grupo, muestra __groupCount aquí (sin badge en PN)
+const quantityCol: ColumnDef<IArticleSimple> = {
+  accessorKey: "quantity",
+  header: ({ column }) => <DataTableColumnHeader column={column} title="Cantidad" />,
+  cell: ({ row }) => {
+    const isGroup = !!row.original.__isGroup;
+
+    const q = isGroup
+      ? Number(row.original.__groupCount ?? 0)
+      : Number(row.original.quantity ?? 0);
+
+    const unit = row.original.unit?.value ?? "u";
+
+    return (
+      <div className="flex justify-center items-center">
+        <Badge
+          variant={q > 5 ? "default" : q > 0 ? "secondary" : "destructive"}
+          className="text-base font-bold px-3 py-1"
+        >
+          {q} {unit}
+        </Badge>
+      </div>
+    );
+  },
 };
 
 const baseCols: ColumnDef<IArticleSimple>[] = [
@@ -152,22 +207,11 @@ const baseCols: ColumnDef<IArticleSimple>[] = [
       <DataTableColumnHeader filter column={column} title="Part Number" />
     ),
     cell: ({ row }) => (
-      <div className="font-bold text-center text-base">
-        {row.original.part_number}
+      <div className="flex items-center justify-center">
+        <span className="font-bold text-base">{row.original.part_number}</span>
       </div>
     ),
   },
-  // {
-  //   accessorKey: 'alternative_part_number',
-  //   header: ({ column }) => <DataTableColumnHeader filter column={column} title="Alt. Part Number" />,
-  //   cell: ({ row }) => (
-  //     <div className="font-bold text-center text-base">
-  //       {row.original.alternative_part_number && row.original.alternative_part_number.length > 0
-  //         ? row.original.alternative_part_number.join('/ ')
-  //         : 'N/A'}
-  //     </div>
-  //   ),
-  // },
   {
     accessorKey: "serial",
     header: ({ column }) => (
@@ -175,7 +219,9 @@ const baseCols: ColumnDef<IArticleSimple>[] = [
     ),
     cell: ({ row }) => (
       <div className="text-center text-sm font-medium">
-        {row.original.serial ? (
+        {row.original.__isGroup ? (
+          <span className="text-muted-foreground italic">—</span>
+        ) : row.original.serial ? (
           row.original.serial
         ) : row.original.lot_number ? (
           row.original.lot_number
@@ -192,44 +238,63 @@ const baseCols: ColumnDef<IArticleSimple>[] = [
     ),
     cell: ({ row }) => (
       <div className="text-muted-foreground font-bold text-center max-w-xs line-clamp-2">
-        {row.original.batch_name || "Sin descripción"}
+        {row.original.__isGroup
+          ? row.original.batch_name || "Grupo"
+          : row.original.batch_name || "Sin descripción"}
       </div>
     ),
   },
   {
-    accessorKey: "quantity",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Cantidad" />
-    ),
-    cell: ({ row }) => {
-      let q = row.original.quantity ?? 0;
-      // Para componentes, si la cantidad es 0, se muestra como 1
-      const articleType = row.original.article_type?.toLowerCase();
-      if (articleType === "componente" && q === 0) {
-        q = 1;
-      }
+  accessorKey: "condition",
+  header: ({ column }) => (
+    <DataTableColumnHeader filter column={column} title="Condición" />
+  ),
+  cell: ({ row }) => {
+    const condition = row.original.condition
+
+    if (row.original.__isGroup) {
       return (
-        <div className="flex justify-center items-center">
-          <Badge
-            variant={q > 5 ? "default" : q > 0 ? "secondary" : "destructive"}
-            className="text-base font-bold px-3 py-1"
-          >
-            {q} {row.original.unit ? row.original.unit.value : "u"}
-          </Badge>
-          {/* <span className="text-xs font-bold">
-            {row.original.unit ? row.original.unit.value : "u"}
-          </span> */}
+        <div className="text-muted-foreground font-bold text-center max-w-xs line-clamp-2">
+          {"-"}
         </div>
-      );
-    },
+      )
+    }
+
+    const c = formatCondition(condition)
+
+    return (
+      <div className="flex-col text-center max-w-xs line-clamp-2 leading-tight">
+        {c ? (
+          <>
+            <span className="font-bold text-foreground">{c.es}</span>{" "}
+            <span className="text-xs text-muted-foreground italic">({c.en})</span>
+          </>
+        ) : (
+          <span className="text-muted-foreground font-bold">Sin condición</span>
+        )}
+      </div>
+    )
   },
+},
+
   {
     accessorKey: "status",
     header: ({ column }) => <StatusColumnHeader column={column} />,
     cell: ({ row }) => {
+      if (row.original.__isGroup) {
+        return (
+          <div className="flex justify-center">
+            <Badge variant="outline" className="text-xs">
+              <p>Grupo <span className="text-xs text-muted-foreground">({row.original.__groupCount ?? 0})</span></p>
+            </Badge>
+          </div>
+        );
+      }
+
       const calibrated = row.original.tool?.status === "CALIBRADO";
       const calibrating = row.original.tool?.status === "EN CALIBRACION";
       const descalibrated = row.original.tool?.status === "VENCIDO";
+
       return (
         <div className="flex flex-col justify-center items-center space-y-2">
           {!calibrating && getStatusBadge(row.original.status?.toUpperCase())}
@@ -246,39 +311,11 @@ const baseCols: ColumnDef<IArticleSimple>[] = [
                       : ""
               )}
             >
-              {row.original.tool.status
-                ? row.original.tool.status
-                : "Sin estado"}
+              {row.original.tool.status ? row.original.tool.status : "Sin estado"}
             </Badge>
           )}
         </div>
       );
-    },
-    sortingFn: (rowA, rowB) => {
-      // Orden personalizado de estados
-      const statusOrder: Record<string, number> = {
-        'INCOMING': 1,
-        'DISPATCHED': 2,
-        'TRANSIT': 3,
-        'QUARANTINE': 4,
-        'QUARENTINE': 4, // por si viene con typo
-        'STORED': 5,
-        'INUSE': 6,
-        'SHELTERED': 7,
-        'RECEPTION': 8,
-        'INTOOLBOX': 9,
-        'RESERVED': 10,
-        'CHECKING': 11,
-        'MAINTENANCE': 12,
-      };
-
-      const statusA = (rowA.original.status || '').toUpperCase();
-      const statusB = (rowB.original.status || '').toUpperCase();
-
-      const orderA = statusOrder[statusA] ?? 999;
-      const orderB = statusOrder[statusB] ?? 999;
-
-      return orderA - orderB;
     },
   },
   {
@@ -288,40 +325,33 @@ const baseCols: ColumnDef<IArticleSimple>[] = [
     ),
     cell: ({ row }) => (
       <div className="text-center font-medium text-sm">
-        {row.original.zone || (
+        {row.original.__isGroup ? (
+          <span className="text-muted-foreground italic">—</span>
+        ) : row.original.zone ? (
+          row.original.zone
+        ) : (
           <span className="text-muted-foreground">Sin asignar</span>
         )}
       </div>
     ),
   },
-  {
-    accessorKey: "has_documentation",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Documentación" />
-    ),
-    cell: ({ row }) => {
-      const hasDoc = row.original.has_documentation ?? false;
-      const certificates = row.original.certificates ?? [];
-      return (
-        <CertificatesPopover
-          hasDocumentation={hasDoc}
-          certificates={certificates}
-        />
-      );
-    },
-  },
 ];
 
-// Columnas para COMPONENTE
+// COMPONENTE (sin cantidad)
 export const componenteCols: ColumnDef<IArticleSimple>[] = [
   ...baseCols,
   {
     id: "shelf_life",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Shelf Life" />
-    ),
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Shelf Life" />,
     cell: ({ row }) => {
-      // Para componentes, expiration_date viene directamente en el artículo y se mapea a component.expiration_date
+      if (row.original.__isGroup) {
+        return (
+          <div className="text-center">
+            <span className="text-muted-foreground italic">—</span>
+          </div>
+        );
+      }
+
       const caducateDate = row.original.component?.expiration_date;
       if (!caducateDate) {
         return (
@@ -331,10 +361,7 @@ export const componenteCols: ColumnDef<IArticleSimple>[] = [
         );
       }
 
-      // Para componentes, expiration_date es siempre string | null
       const date = parseDateLocal(caducateDate);
-
-      // Validar que la fecha sea válida
       if (isNaN(date.getTime())) {
         return (
           <div className="text-center">
@@ -346,14 +373,13 @@ export const componenteCols: ColumnDef<IArticleSimple>[] = [
       const today = new Date();
       today.setHours(0, 0, 0, 0);
       date.setHours(0, 0, 0, 0);
-      const daysUntilExpiry = Math.ceil((date.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+      const daysUntilExpiry = Math.ceil(
+        (date.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
+      );
 
       let variant: "default" | "secondary" | "destructive" | "outline" = "default";
-      if (daysUntilExpiry < 0) {
-        variant = "destructive"; // Vencido
-      } else if (daysUntilExpiry <= 30) {
-        variant = "secondary"; // Próximo a vencer (30 días o menos)
-      }
+      if (daysUntilExpiry < 0) variant = "destructive";
+      else if (daysUntilExpiry <= 30) variant = "secondary";
 
       return (
         <div className="text-center">
@@ -366,13 +392,11 @@ export const componenteCols: ColumnDef<IArticleSimple>[] = [
   },
   {
     id: "actions",
-    header: () => (
-      <div className="sticky right-0 bg-background z-50 text-center">
-        Acciones
-      </div>
-    ),
+    header: () => <div className="sticky right-0 bg-background z-50 text-center">Acciones</div>,
     cell: ({ row }) => {
       const item = row.original;
+      if (item.__isGroup) return null;
+
       if (item.status === "stored" || item.status === "checking") {
         return (
           <div className="sticky right-0 bg-background z-50 flex justify-center">
@@ -382,36 +406,28 @@ export const componenteCols: ColumnDef<IArticleSimple>[] = [
       }
       return null;
     },
-    meta: {
-    sticky: "right",
-    className: "bg-background", // 👈 clave
-  },
+    meta: { sticky: "right", className: "bg-background" } as any,
   },
 ];
 
-// Columnas extra para CONSUMIBLE
+// CONSUMIBLE (con cantidad)
 export const consumibleCols: ColumnDef<IArticleSimple>[] = [
   ...baseCols,
+  quantityCol,
   {
-    accessorKey: "min_quantity",
+    id: "expiration_date",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Cant. Mínima" />
-    ),
-    cell: ({ row }) => (
-      <div className="text-center font-medium text-sm">
-        {row.original.min_quantity || (
-          <span className="text-muted-foreground">0</span>
-        )}
-      </div>
-    ),
-  },
-  {
-    id: "shelf_life",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Shelf Life" />
+      <DataTableColumnHeader column={column} title="Proximo Vencimiento" />
     ),
     cell: ({ row }) => {
-      // Para consumibles, expiration_date viene directamente en el artículo y se mapea a consumable.expiration_date
+      if (row.original.__isGroup) {
+        return (
+          <div className="text-center">
+            <span className="text-muted-foreground italic">—</span>
+          </div>
+        );
+      }
+
       const caducateDate = row.original.consumable?.expiration_date;
       if (!caducateDate) {
         return (
@@ -421,14 +437,13 @@ export const consumibleCols: ColumnDef<IArticleSimple>[] = [
         );
       }
 
-      // Para consumibles, expiration_date puede ser string | Date | null
-      const date = caducateDate instanceof Date
-        ? caducateDate
-        : typeof caducateDate === 'string'
-          ? parseDateLocal(caducateDate)  // ✅
-          : null;
+      const date =
+        caducateDate instanceof Date
+          ? caducateDate
+          : typeof caducateDate === "string"
+            ? parseDateLocal(caducateDate)
+            : null;
 
-      // Validar que la fecha sea válida
       if (!date || isNaN(date.getTime())) {
         return (
           <div className="text-center">
@@ -440,19 +455,80 @@ export const consumibleCols: ColumnDef<IArticleSimple>[] = [
       const today = new Date();
       today.setHours(0, 0, 0, 0);
       date.setHours(0, 0, 0, 0);
-      const daysUntilExpiry = Math.ceil((date.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+      const daysUntilExpiry = Math.ceil(
+        (date.getTime() - today.getTime()) / (1000 * 60 * 60 * 24),
+      );
 
-      let variant: "default" | "secondary" | "destructive" | "outline" = "default";
-      if (daysUntilExpiry < 0) {
-        variant = "destructive"; // Vencido
-      } else if (daysUntilExpiry <= 30) {
-        variant = "secondary"; // Próximo a vencer (30 días o menos)
-      }
+      let variant: "default" | "secondary" | "destructive" | "outline" =
+        "default";
+      if (daysUntilExpiry < 0) variant = "destructive";
+      else if (daysUntilExpiry <= 30) variant = "secondary";
 
       return (
         <div className="text-center">
           <Badge variant={variant} className="text-sm font-medium">
-            {format(date, "dd/MM/yyyy")}
+            {format(date, "dd/MM/yyyy") === "01/01/1900"
+              ? "N/A"
+              : format(date, "dd/MM/yyyy")}
+          </Badge>
+        </div>
+      );
+    },
+  },
+  {
+    id: "shelf_life",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Shelf Life" />
+    ),
+    cell: ({ row }) => {
+      if (row.original.__isGroup) {
+        return (
+          <div className="text-center">
+            <span className="text-muted-foreground italic">—</span>
+          </div>
+        );
+      }
+
+      const shelf_date = row.original.consumable?.shelf_life;
+      if (!shelf_date) {
+        return (
+          <div className="text-center">
+            <span className="text-muted-foreground italic">N/A</span>
+          </div>
+        );
+      }
+
+      const date =
+        shelf_date instanceof Date
+          ? shelf_date
+          : typeof shelf_date === "string"
+            ? parseDateLocal(shelf_date)
+            : null;
+
+      if (!date || isNaN(date.getTime())) {
+        return (
+          <div className="text-center">
+            <span className="text-muted-foreground italic">N/A</span>
+          </div>
+        );
+      }
+
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      date.setHours(0, 0, 0, 0);
+      const daysUntilExpiry = Math.ceil(
+        (date.getTime() - today.getTime()) / (1000 * 60 * 60 * 24),
+      );
+
+      let variant: "default" | "secondary" | "destructive" | "outline" =
+        "default";
+      if (daysUntilExpiry < 0) variant = "destructive";
+      else if (daysUntilExpiry <= 30) variant = "secondary";
+
+      return (
+        <div className="text-center">
+          <Badge variant={variant} className="text-sm font-medium">
+            {format(date, "dd/MM/yyyy") === "01/01/1900" ? "N/A" : format(date, "dd/MM/yyyy")}
           </Badge>
         </div>
       );
@@ -467,6 +543,8 @@ export const consumibleCols: ColumnDef<IArticleSimple>[] = [
     ),
     cell: ({ row }) => {
       const item = row.original;
+      if (item.__isGroup) return null;
+
       if (item.status === "stored" || item.status === "checking") {
         return (
           <div className="sticky right-0 bg-background z-50 flex justify-center">
@@ -476,49 +554,39 @@ export const consumibleCols: ColumnDef<IArticleSimple>[] = [
       }
       return null;
     },
-    meta: {
-      sticky: "right", // 👈 importante
-    },
+    meta: { sticky: "right", className: "bg-background" } as any,
   },
 ];
 
-// Función helper para parsear fechas ISO como fechas locales
-const parseDateLocal = (dateString: string): Date => {
-  // Si la fecha viene como "YYYY-MM-DD" sin hora, parsearla como fecha local
-  if (dateString.match(/^\d{4}-\d{2}-\d{2}$/)) {
-    const [year, month, day] = dateString.split('-').map(Number);
-    return new Date(year, month - 1, day);
-  }
-  // Si tiene hora, usar parseISO
-  return parseISO(dateString);
-};
-
-// Columnas extra para HERRAMIENTA
+// HERRAMIENTA (sin cantidad)
 export const herramientaCols: ColumnDef<IArticleSimple>[] = [
   ...baseCols,
   {
     accessorKey: "calibration_date",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Fech. Calibración" />
-    ),
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Fech. Calibración" />,
     cell: ({ row }) => (
       <div className="text-center text-sm font-bold text-muted-foreground">
-        {row.original.tool?.calibration_date
-          ? format(parseDateLocal(row.original.tool.calibration_date), "dd/MM/yyyy")
-          : "N/A"}
+        {row.original.__isGroup ? (
+          "—"
+        ) : row.original.tool?.calibration_date ? (
+          format(parseDateLocal(row.original.tool.calibration_date), "dd/MM/yyyy")
+        ) : (
+          "N/A"
+        )}
       </div>
     ),
   },
   {
     id: "next_calibration",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Prox. Cal." />
-    ),
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Prox. Cal." />,
     cell: ({ row }) => {
+      if (row.original.__isGroup) {
+        return <div className="text-center text-sm font-bold text-muted-foreground">—</div>;
+      }
+
       return (
         <div className="text-center text-sm font-bold text-muted-foreground">
-          {row.original.tool?.next_calibration &&
-          row.original.tool.calibration_date
+          {row.original.tool?.next_calibration && row.original.tool.calibration_date
             ? format(
                 addDays(
                   parseDateLocal(row.original.tool.calibration_date),
@@ -533,13 +601,11 @@ export const herramientaCols: ColumnDef<IArticleSimple>[] = [
   },
   {
     id: "actions",
-    header: () => (
-      <div className="sticky right-0 bg-background z-50 text-center">
-        Acciones
-      </div>
-    ),
+    header: () => <div className="sticky right-0 bg-background z-50 text-center">Acciones</div>,
     cell: ({ row }) => {
       const item = row.original;
+      if (item.__isGroup) return null;
+
       if (item.status === "stored" || item.status === "checking") {
         return (
           <div className="sticky right-0 bg-background z-50 flex justify-center">
@@ -549,23 +615,29 @@ export const herramientaCols: ColumnDef<IArticleSimple>[] = [
       }
       return null;
     },
-    meta: {
-      sticky: "right", // 👈 importante
-    },
+    meta: { sticky: "right", className: "bg-background" } as any,
   },
 ];
 
-// Columnas para TODOS (incluye todas las columnas de todas las categorías)
+// ALL (con cantidad porque mezcla categorías)
 export const allCategoriesCols: ColumnDef<IArticleSimple>[] = [
   ...baseCols,
+  quantityCol,
   {
     id: "shelf_life",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Shelf Life" />
-    ),
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Shelf Life" />,
     cell: ({ row }) => {
-      // Intentar obtener fecha de caducidad de componentes o consumibles
-      const caducateDate = row.original.component?.expiration_date || row.original.consumable?.expiration_date;
+      if (row.original.__isGroup) {
+        return (
+          <div className="text-center">
+            <span className="text-muted-foreground italic">—</span>
+          </div>
+        );
+      }
+
+      const caducateDate =
+        row.original.component?.expiration_date || row.original.consumable?.expiration_date;
+
       if (!caducateDate) {
         return (
           <div className="text-center">
@@ -574,13 +646,13 @@ export const allCategoriesCols: ColumnDef<IArticleSimple>[] = [
         );
       }
 
-      const date = caducateDate instanceof Date
-        ? caducateDate
-        : typeof caducateDate === 'string'
-          ? parseDateLocal(caducateDate)  // ✅
-          : null;
+      const date =
+        caducateDate instanceof Date
+          ? caducateDate
+          : typeof caducateDate === "string"
+            ? parseDateLocal(caducateDate)
+            : null;
 
-      // Validar que la fecha sea válida
       if (!date || isNaN(date.getTime())) {
         return (
           <div className="text-center">
@@ -592,14 +664,13 @@ export const allCategoriesCols: ColumnDef<IArticleSimple>[] = [
       const today = new Date();
       today.setHours(0, 0, 0, 0);
       date.setHours(0, 0, 0, 0);
-      const daysUntilExpiry = Math.ceil((date.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+      const daysUntilExpiry = Math.ceil(
+        (date.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
+      );
 
       let variant: "default" | "secondary" | "destructive" | "outline" = "default";
-      if (daysUntilExpiry < 0) {
-        variant = "destructive"; // Vencido
-      } else if (daysUntilExpiry <= 30) {
-        variant = "secondary"; // Próximo a vencer (30 días o menos)
-      }
+      if (daysUntilExpiry < 0) variant = "destructive";
+      else if (daysUntilExpiry <= 30) variant = "secondary";
 
       return (
         <div className="text-center">
@@ -611,62 +682,12 @@ export const allCategoriesCols: ColumnDef<IArticleSimple>[] = [
     },
   },
   {
-    accessorKey: "calibration_date",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Fech. Calibración" />
-    ),
-    cell: ({ row }) => (
-      <div className="text-center text-sm font-bold text-muted-foreground">
-        {row.original.tool?.calibration_date
-          ? format(parseDateLocal(row.original.tool.calibration_date), "dd/MM/yyyy")
-          : "N/A"}
-      </div>
-    ),
-  },
-  {
-    id: "next_calibration",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Prox. Cal." />
-    ),
-    cell: ({ row }) => {
-      return (
-        <div className="text-center text-sm font-bold text-muted-foreground">
-          {row.original.tool?.next_calibration &&
-          row.original.tool.calibration_date
-            ? format(
-                addDays(
-                  parseDateLocal(row.original.tool.calibration_date),
-                  Number(row.original.tool.next_calibration)
-                ),
-                "dd/MM/yyyy"
-              )
-            : "N/A"}
-        </div>
-      );
-    },
-  },
-  {
-    accessorKey: "min_quantity",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Cant. Mínima" />
-    ),
-    cell: ({ row }) => (
-      <div className="text-center font-medium text-sm">
-        {row.original.min_quantity || (
-          <span className="text-muted-foreground">N/A</span>
-        )}
-      </div>
-    ),
-  },
-  {
     id: "actions",
-    header: () => (
-      <div className="sticky right-0 bg-background z-50 text-center">
-        Acciones
-      </div>
-    ),
+    header: () => <div className="sticky right-0 bg-background z-50 text-center">Acciones</div>,
     cell: ({ row }) => {
       const item = row.original;
+      if (item.__isGroup) return null;
+
       if (item.status === "stored" || item.status === "checking") {
         return (
           <div className="sticky right-0 bg-background z-50 flex justify-center">
@@ -676,19 +697,48 @@ export const allCategoriesCols: ColumnDef<IArticleSimple>[] = [
       }
       return null;
     },
-    meta: {
-      sticky: "right", // 👈 importante
-    },
+    meta: { sticky: "right", className: "bg-background" } as any,
   },
 ];
 
-// Columnas por categoría
 export const getColumnsByCategory = (
-  cat: "COMPONENT" | "PART"| "CONSUMABLE" | "TOOL"
+  cat: "COMPONENT" | "PART" | "CONSUMABLE" | "TOOL"
 ): ColumnDef<IArticleSimple>[] => {
   if (cat === "TOOL") return herramientaCols;
   if (cat === "CONSUMABLE") return consumibleCols;
   if (cat === "COMPONENT") return componenteCols;
   if (cat === "PART") return componenteCols;
-  return baseCols; // fallback
+  return baseCols;
 };
+
+export function groupByPartNumber(list: IArticleSimple[]) {
+  const byPn: Record<string, IArticleSimple[]> = {};
+
+  for (const item of list) {
+    const pn = (item.part_number || "").trim();
+    if (!pn) continue;
+    if (!byPn[pn]) byPn[pn] = [];
+    byPn[pn].push(item);
+  }
+
+  const result: IArticleSimple[] = [];
+
+  for (const pn of Object.keys(byPn)) {
+    const items = byPn[pn];
+
+    if (items.length <= 1) {
+      result.push(items[0]);
+      continue;
+    }
+
+    const first = items[0];
+    result.push({
+      ...first,
+      __isGroup: true,
+      __groupCount: items.length,
+      subRows: items,
+    });
+  }
+
+  return result;
+}

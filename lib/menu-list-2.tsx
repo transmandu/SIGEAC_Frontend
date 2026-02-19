@@ -36,6 +36,8 @@ import {
   User2,
   UserRoundCog,
   Wrench,
+  FilePen,
+  OctagonAlert
 } from "lucide-react";
 
 type Submenu = {
@@ -182,7 +184,7 @@ export function getMenuList(
                 pathname ===
                 `/${currentCompany?.slug}/general/reporte/codigos_qr`,
             },
-            
+
           ],
         },
         {
@@ -194,12 +196,9 @@ export function getMenuList(
           icon: PackageSearch,
           roles: [
             "SUPERUSER",
-            "JEFE_ALMACEN",
-            "ANALISTA_ALMACEN",
             "ANALISTA_COMPRAS",
             "ANALISTA_PLANIFICACION",
             "JEFE_PLANIFICACION",
-            "JEFE_ALMACENAMIENTO",
             "ANALISTA_ADMINISTRACION",
             "RRHH_ADMINISTRACION",
             "JEFE_ADMINISTRACION",
@@ -222,18 +221,17 @@ export function getMenuList(
             "SUPERUSER",
             "JEFE_ALMACEN",
             "ANALISTA_ALMACEN",
-            "ANALISTA_COMPRAS",
+            "JEFE_DESARROLLO",
             "ANALISTA_DESARROLLO",
-            "ANALISTA_PLANIFICACION",
             "JEFE_PLANIFICACION",
-            "JEFE_ALMACENAMIENTO",
+            "ANALISTA_PLANIFICACION",
+            "JEFE_MANTENIMIENTO",
             "ANALISTA_ADMINISTRACION",
             "RRHH_ADMINISTRACION",
             "JEFE_ADMINISTRACION",
             "CONTADOR_ADMINISTRACION",
             "TESTER",
             "ENGINEERING",
-            "JEFE_MANTENIMIENTO",
           ],
           submenus: [],
         },
@@ -749,6 +747,13 @@ export function getMenuList(
                 `/${currentCompany?.slug}/almacen/inventario_articulos`,
             },
             {
+              href: `/${currentCompany?.slug}/almacen/por_ubicar`,
+              label: "Por Ubicar",
+              active:
+                pathname ===
+                `/${currentCompany?.slug}/almacen/por_ubicar`,
+            },
+            {
               href: `/${currentCompany?.slug}/almacen/inventario_articulos/entregado`,
               label: "Entregado",
               active:
@@ -880,6 +885,33 @@ export function getMenuList(
         },
       ],
     },
+        {
+      groupLabel: "Control de Calidad",
+      menus: [
+        {
+          href: `/${currentCompany?.slug}/control_calidad/incoming`,
+          label: "Gestión de Incoming",
+
+          active: pathname.includes(
+            `/${currentCompany?.slug}/control_calidad/incoming`
+          ),
+          icon: FilePen,
+          roles: ["JEFE_CONTROL_CALIDAD", "SUPERUSER"],
+          submenus: [],
+        },
+        {
+          href: `/${currentCompany?.slug}/control_calidad/cuarentena`,
+          label: "Gestión de Cuarentena",
+
+          active: pathname.includes(
+            `/${currentCompany?.slug}/control_calidad/cuarentena`
+          ),
+          icon: OctagonAlert,
+          roles: ["JEFE_CONTROL_CALIDAD", "SUPERUSER"],
+          submenus: [],
+        },
+      ],
+    },
     {
       groupLabel: "Mantenimiento",
       moduleValue: "maintenance",
@@ -920,16 +952,16 @@ export function getMenuList(
         //   roles: ["SUPERUSER"],
         //   submenus: [],
         // },
-        {
-          href: `/${currentCompany?.slug}/ingenieria/requisiciones/nueva_requisicion`,
-          label: "Solicitudes de Compra",
-          active: pathname.includes(
-            `/${currentCompany?.slug}/ingenieria/requisiciones/nueva_requisicion`
-          ),
-          icon: ScrollText,
-          roles: ["SUPERUSER", "ENGINEERING"],
-          submenus: [],
-        },
+        // {
+        //   href: `/${currentCompany?.slug}/ingenieria/requisiciones/nueva_requisicion`,
+        //   label: "Solicitudes de Compra",
+        //   active: pathname.includes(
+        //     `/${currentCompany?.slug}/ingenieria/requisiciones/nueva_requisicion`
+        //   ),
+        //   icon: ScrollText,
+        //   roles: ["SUPERUSER", "ENGINEERING"],
+        //   submenus: [],
+        // },
       ],
     },
     {

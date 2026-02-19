@@ -393,7 +393,7 @@ const CreateRequisitionPage = () => {
      try {
        const payload = {
          ...data,
-         type: "AVIACION",
+         type: "AERONAUTICO",
        };
        const result = await createRequisition.mutateAsync({
          data: payload,

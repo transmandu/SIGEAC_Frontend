@@ -20,7 +20,7 @@ const ConfirmIncomingPage = () => {
   return (
     <ContentLayout title="Editar Articulo">
       {/* {data?.batches?.category} */}
-      <RegisterArticleForm isEditing initialData={data} category={data?.batches?.category} />
+      <RegisterArticleForm isEditing initialData={data} category={data?.batch?.category} />
     </ContentLayout>
   );
 };

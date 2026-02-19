@@ -15,7 +15,7 @@ const AgregarPage = () => {
   const { selectedCompany } = useCompanyStore();
 
   return (
-    <ContentLayout title='Ingreso de Inventario'>
+    <ContentLayout title='Ingreso de Inv.'>
       <Breadcrumb>
         <BreadcrumbList>
           <BreadcrumbItem>

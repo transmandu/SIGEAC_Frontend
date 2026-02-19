@@ -15,6 +15,7 @@ import UserDropdownActions from "@/components/dropdowns/ajustes/UserDropdownActi
 import { Badge } from "@/components/ui/badge"
 import { User } from "@/types"
 import { redirect } from "next/navigation"
+import { useState } from "react"
 
 
 export const columns: ColumnDef<User>[] = [
@@ -69,15 +70,18 @@ export const columns: ColumnDef<User>[] = [
       <DataTableColumnHeader column={column} title="Status" />
     ),
     cell: ({ row }) => {
-      const item = row.original
+      const item = row.original;
+
+      // Convertimos a número
+      const isActive = Number(item.isActive) === 1;
 
       return (
         <div className="flex items-center justify-center">
-          {
-            item.isActive ? <Badge className="bg-emerald-500">ACTIVO</Badge> : <Badge className="bg-rose-500">INACTIVO</Badge>
-          }
+          <Badge className={isActive ? "bg-emerald-500" : "bg-rose-500"}>
+            {isActive ? "ACTIVO" : "INACTIVO"}
+          </Badge>
         </div>
-      )
+      );
     }
   },
   {
@@ -92,7 +96,7 @@ export const columns: ColumnDef<User>[] = [
           {
             item && item.roles && item?.roles?.length < 3 ? item.roles.map((rol) => (
               <div onClick={() => redirect('/administracion/usuarios_permisos/roles')} className="flex items-center justify-center cursor-pointer" key={rol.id}>
-                <Badge>{rol.name}</Badge>
+                <Badge>{rol.label}</Badge>
               </div>
             ))
               :
@@ -101,7 +105,7 @@ export const columns: ColumnDef<User>[] = [
               )
           }
           {
-            item && item.roles && item?.roles?.length <= 0 && <>No tiene permisos</>
+            item && item.roles && item?.roles?.length <= 0 && <p className="text-center italic text-muted-foreground">No tiene permisos</p>
           }
         </div>
       )
@@ -110,10 +114,10 @@ export const columns: ColumnDef<User>[] = [
   {
     id: "actions",
     cell: ({ row }) => {
-      const id = row.original.id
+      const user = row.original
       const companies = row.original.companies
       return (
-        <UserDropdownActions id={id.toString()} companies={companies} />
+        <UserDropdownActions user={user} companies={companies} />
       )
     },
   },

@@ -25,6 +25,8 @@ import {
 } from "@tanstack/react-table";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+// IMPORTANTE: Asegúrate de que el archivo existe en la misma carpeta
+import { ReportModal } from "./ReportModal"; 
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -37,6 +39,7 @@ export function DataTable<TData, TValue>({
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+  
   const table = useReactTable({
     data,
     columns,
@@ -66,19 +69,27 @@ export function DataTable<TData, TValue>({
         </p>
       </div>
 
-      <div className="flex items-center py-4">
-        <Button
-             onClick={() => {
+      <div className="flex items-center justify-between py-4">
+        {/* Grupo de botones a la izquierda */}
+        <div className="flex items-center gap-2">
+          <Button
+            onClick={() => {
               router.push(`/${selectedCompany?.slug}/sms/promocion/actividades/nueva_actividad`);
-          }}
-                variant="outline"
-                size="sm"
-                className=" flex h-8"
-              >
-                Nueva Actividad
-              </Button>
-              <DataTableViewOptions table={table} />
-            </div>
+            }}
+            variant="outline"
+            size="sm"
+            className="hidden h-8 lg:flex"
+          >
+            Nueva Actividad
+          </Button>
+
+          {/* CAMBIO APLICADO: Ahora usa 'activities' en lugar de 'data' */}
+          <ReportModal activities={data as any} />
+        </div>
+
+        {/* Opciones de visualización de columnas a la derecha */}
+        <DataTableViewOptions table={table} />
+      </div>
 
       <div className="rounded-md border mb-4">
         <Table>
@@ -92,7 +103,7 @@ export function DataTable<TData, TValue>({
                         ? null
                         : flexRender(
                             header.column.columnDef.header,
-                            header.getContext()
+                            header.getContext(),
                           )}
                     </TableHead>
                   );
@@ -111,7 +122,7 @@ export function DataTable<TData, TValue>({
                     <TableCell key={cell.id}>
                       {flexRender(
                         cell.column.columnDef.cell,
-                        cell.getContext()
+                        cell.getContext(),
                       )}
                     </TableCell>
                   ))}

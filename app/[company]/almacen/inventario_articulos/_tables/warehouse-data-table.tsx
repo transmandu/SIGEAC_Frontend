@@ -1,5 +1,6 @@
-"use client";
+"use client"
 
+import * as React from "react"
 import {
   ColumnDef,
   ColumnFiltersState,
@@ -11,7 +12,7 @@ import {
   getPaginationRowModel,
   getSortedRowModel,
   useReactTable,
-} from "@tanstack/react-table";
+} from "@tanstack/react-table"
 import {
   Table,
   TableBody,
@@ -19,25 +20,32 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
-import { useState } from "react";
-import { cn } from "@/lib/utils";
+} from "@/components/ui/table"
+import { Button } from "@/components/ui/button"
+import { useState } from "react"
+import { cn } from "@/lib/utils"
 
 interface DataTableProps<TData, TValue> {
-  columns: ColumnDef<TData, TValue>[];
-  data: TData[];
+  columns: ColumnDef<TData, TValue>[]
+  data: TData[]
+  onRowClick?: (row: TData) => void
+  rowClassName?: (row: TData) => string
 }
 
 type ColMeta = {
-  sticky?: "right" | "left";
-  className?: string;
-};
+  sticky?: "right" | "left"
+  className?: string
+}
 
-export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData, TValue>) {
-  const [sorting, setSorting] = useState<SortingState>([]);
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
-  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
+export function DataTable<TData, TValue>({
+  columns,
+  data,
+  onRowClick,
+  rowClassName,
+}: DataTableProps<TData, TValue>) {
+  const [sorting, setSorting] = useState<SortingState>([])
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
 
   const table = useReactTable({
     data,
@@ -54,10 +62,10 @@ export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData
       columnFilters,
       columnVisibility,
     },
-  });
+  })
 
-  const stickyHeadClass = "sticky right-0 z-40 bg-background";
-  const stickyCellClass = "sticky right-0 z-30 bg-background group-hover:bg-muted/50";
+  const stickyHeadClass = "sticky right-0 z-40 bg-background"
+  const stickyCellClass = "sticky right-0 z-30 bg-background group-hover:bg-muted/50"
 
   return (
     <div className="space-y-4">
@@ -67,8 +75,8 @@ export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {
-                  const meta = header.column.columnDef.meta as ColMeta | undefined;
-                  const isStickyRight = meta?.sticky === "right";
+                  const meta = header.column.columnDef.meta as ColMeta | undefined
+                  const isStickyRight = meta?.sticky === "right"
 
                   return (
                     <TableHead
@@ -79,7 +87,7 @@ export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData
                         ? null
                         : flexRender(header.column.columnDef.header, header.getContext())}
                     </TableHead>
-                  );
+                  )
                 })}
               </TableRow>
             ))}
@@ -90,12 +98,13 @@ export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData
               table.getRowModel().rows.map((row) => (
                 <TableRow
                   key={row.id}
-                  className="group"
+                  className={cn("group", rowClassName?.(row.original))}
                   data-state={row.getIsSelected() && "selected"}
+                  onClick={() => onRowClick?.(row.original)}
                 >
                   {row.getVisibleCells().map((cell) => {
-                    const meta = cell.column.columnDef.meta as ColMeta | undefined;
-                    const isStickyRight = meta?.sticky === "right";
+                    const meta = cell.column.columnDef.meta as ColMeta | undefined
+                    const isStickyRight = meta?.sticky === "right"
 
                     return (
                       <TableCell
@@ -104,7 +113,7 @@ export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData
                       >
                         {flexRender(cell.column.columnDef.cell, cell.getContext())}
                       </TableCell>
-                    );
+                    )
                   })}
                 </TableRow>
               ))
@@ -140,7 +149,7 @@ export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData
             </select>
           </div>
 
-          <div className="flex w-[100px] items-center justify-center text-sm font-medium">
+          <div className="flex w-[120px] items-center justify-center text-sm font-medium">
             Página {table.getState().pagination.pageIndex + 1} de {table.getPageCount()}
           </div>
 
@@ -165,5 +174,5 @@ export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData
         </div>
       </div>
     </div>
-  );
+  )
 }

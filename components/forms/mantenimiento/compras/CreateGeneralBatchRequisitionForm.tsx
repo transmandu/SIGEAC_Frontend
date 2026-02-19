@@ -76,8 +76,8 @@ const FormSchema = z.object({
     ),
 }).refine(
   (data) => {
-    // Si el tipo es AVIACION, aircraft_id es obligatorio
-    if (data.type === "AVIACION" && !data.aircraft_id) {
+    // Si el tipo es AERONAUTICO, aircraft_id es obligatorio
+    if (data.type === "AERONAUTICO" && !data.aircraft_id) {
       return false;
     }
     return true;
@@ -111,7 +111,7 @@ interface Batch {
   batch_articles: Article[];
 }
 
-export function CreateGeneralRequisitionForm({
+export function CreateGeneralBatchRequisitionForm({
   onClose,
   initialData,
   isEditing,
@@ -278,7 +278,7 @@ export function CreateGeneralRequisitionForm({
         ...batch,
         batch_articles: batch.batch_articles.map(article => ({
           ...article,
-          aircraft_id: data.type === "AVIACION" ? data.aircraft_id : undefined
+          aircraft_id: data.type === "AERONAUTICO" ? data.aircraft_id : undefined
         }))
       }))
     };
@@ -295,7 +295,7 @@ export function CreateGeneralRequisitionForm({
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit(onSubmit)}
-        className="flex flex-col space-y-3"
+        className="flex flex-col space-y-3 max-h-[90vh]"
       >
         <div className="flex gap-2 items-center">
           <FormField
@@ -328,7 +328,7 @@ export function CreateGeneralRequisitionForm({
                                   field.value
                               )?.first_name
                             }{" "}
-                            -{" "}
+                            {" "}
                             {
                               employees?.find(
                                 (employee) =>
@@ -404,7 +404,7 @@ export function CreateGeneralRequisitionForm({
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="AVIACION">Aviacion</SelectItem>
+                    <SelectItem value="AERONAUTICO">Aeronáutico</SelectItem>
                     <SelectItem value="GENERAL">General</SelectItem>
                   </SelectContent>
                 </Select>
@@ -420,7 +420,7 @@ export function CreateGeneralRequisitionForm({
             <FormItem className="flex flex-col">
               <div className="flex gap-4 items-end">
                 <FormItem className="flex flex-col w-[200px]">
-                  <FormLabel>Artículos</FormLabel>
+                  <FormLabel>Lote/Renglón</FormLabel>
                     <Popover>
                       <PopoverTrigger asChild>
                         <FormControl>
@@ -471,7 +471,7 @@ export function CreateGeneralRequisitionForm({
                       </PopoverContent>
                     </Popover>
                   </FormItem>
-                {form.watch("type") === "AVIACION" && (
+                {form.watch("type") === "AERONAUTICO" && (
                   <FormField
                     control={form.control}
                     name="aircraft_id"
@@ -493,14 +493,18 @@ export function CreateGeneralRequisitionForm({
                                 {isAircraftsLoading && (
                                   <Loader2 className="size-4 animate-spin mr-2" />
                                 )}
-                                {field.value
-                                  ? (() => {
+                                {field.value ? (
+                                  <span className="truncate max-w-[140px]">
+                                    {(() => {
                                       const a = aircrafts?.find(
                                         (aircraft) => aircraft.id.toString() === field.value
                                       );
                                       return `${a?.acronym ?? "—"} - ${a?.manufacturer?.name ?? "Sin fabricante"}`;
-                                    })()
-                                  : "Selec. la aeronave..."}
+                                    })()}
+                                  </span>
+                                ) : (
+                                  "Selec. la aeronave..."
+                                )}
                                 <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                               </Button>
                             </FormControl>
@@ -547,7 +551,7 @@ export function CreateGeneralRequisitionForm({
                 <ScrollArea
                   className={cn(
                     "",
-                    selectedBatches.length > 2 ? "h-[300px]" : ""
+                    selectedBatches.length > 1 ? "h-[280px]" : ""
                   )}
                 >
                   {selectedBatches.map((batch) => (
@@ -566,13 +570,13 @@ export function CreateGeneralRequisitionForm({
                       <ScrollArea
                         className={cn(
                           "",
-                          batch.batch_articles.length > 2 ? "h-[150px]" : ""
+                          batch.batch_articles.length > 2 ? "h-[125px]" : ""
                         )}
                       >
                         {batch.batch_articles.map((article, index) => (
                           <div
                             key={index}
-                            className="flex items-center space-x-4 mt-2"
+                            className="flex items-center gap-4 mt-2 py-2 px-1"
                           >
                             <Input
                               placeholder="Número de parte"

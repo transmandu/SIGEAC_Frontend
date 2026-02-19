@@ -85,68 +85,68 @@ const CompanySelect = () => {
 
   // Render
   return (
-    <div className="hidden items-center space-x-2 justify-center md:flex md:flex-1">
-      <Select
-        value={getCompanySelectValue()}
-        onValueChange={handleCompanySelect}
-      >
-        <SelectTrigger className="w-[180px]">
-          <SelectValue placeholder={getCompanySelectPlaceholder()} />
-        </SelectTrigger>
-        <SelectContent>
-          {userLoading ? (
-            <div className="flex items-center justify-center p-2">
-              <Loader2 className="size-4 animate-spin" />
-            </div>
-          ) : (
-            user?.companies?.map((company: Company) => (
-              <SelectItem value={company.id.toString()} key={company.id}>
-                {company.name}
-              </SelectItem>
-            ))
-          )}
-        </SelectContent>
-      </Select>
+<div className="flex flex-wrap items-center justify-center gap-2 w-full">
+  <Select
+    value={getCompanySelectValue()}
+    onValueChange={handleCompanySelect}
+  >
+    <SelectTrigger className="w-[140px] sm:w-[160px] md:w-[180px]">
+      <SelectValue placeholder={getCompanySelectPlaceholder()} />
+    </SelectTrigger>
+    <SelectContent>
+      {userLoading ? (
+        <div className="flex items-center justify-center p-2">
+          <Loader2 className="w-4 h-4 animate-spin" />
+        </div>
+      ) : (
+        user?.companies?.map((company: Company) => (
+          <SelectItem value={company.id.toString()} key={company.id}>
+            {company.name}
+          </SelectItem>
+        ))
+      )}
+    </SelectContent>
+  </Select>
 
-      <Select
-        disabled={!selectedCompany}
-        value={selectedStation || ''}
-        onValueChange={handleStationSelect}
-      >
-        <SelectTrigger className="w-[180px]">
-          <SelectValue
-            placeholder={
-              locationsLoading ? (
-                <Loader2 className="animate-spin size-4" />
-              ) : (
-                stationAddress || 'Estación'
-              )
-            }
-          />
-        </SelectTrigger>
-        <SelectContent>
-          {locationsLoading ? (
-            <div className="flex items-center justify-center p-2">
-              <Loader2 className="size-4 animate-spin" />
-            </div>
-          ) : isError ? (
-            <p className="p-2 text-xs text-muted-foreground italic">
-              Ha ocurrido un error al cargar las estaciones...
-            </p>
-          ) : locations?.length === 0 ? (
-            <p className="p-2 text-xs text-muted-foreground italic">
-              No hay estaciones disponibles
-            </p>
+  <Select
+    disabled={!selectedCompany}
+    value={selectedStation || ''}
+    onValueChange={handleStationSelect}
+  >
+    <SelectTrigger className="w-[140px] sm:w-[160px] md:w-[180px]">
+      <SelectValue
+        placeholder={
+          locationsLoading ? (
+            <Loader2 className="animate-spin w-4 h-4" />
           ) : (
-            locations?.map((location) => (
-              <SelectItem value={location.id.toString()} key={location.id}>
-                {location.cod_iata}
-              </SelectItem>
-            ))
-          )}
-        </SelectContent>
-      </Select>
-    </div>
+            stationAddress || 'Estación'
+          )
+        }
+      />
+    </SelectTrigger>
+    <SelectContent>
+      {locationsLoading ? (
+        <div className="flex items-center justify-center p-2">
+          <Loader2 className="animate-spin w-4 h-4" />
+        </div>
+      ) : isError ? (
+        <p className="p-2 text-xs text-muted-foreground italic">
+          Ha ocurrido un error al cargar las estaciones...
+        </p>
+      ) : locations?.length === 0 ? (
+        <p className="p-2 text-xs text-muted-foreground italic">
+          No hay estaciones disponibles
+        </p>
+      ) : (
+        locations?.map((location) => (
+          <SelectItem value={location.id.toString()} key={location.id}>
+            {location.cod_iata}
+          </SelectItem>
+        ))
+      )}
+    </SelectContent>
+  </Select>
+</div>
   );
 };
 

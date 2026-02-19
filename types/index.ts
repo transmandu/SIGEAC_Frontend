@@ -677,6 +677,7 @@ export type Requisition = {
       quantity: number;
       unit?: Convertion;
       image: string;
+      aircraft?: string
     }[];
   }[];
   received_by: string;
@@ -685,7 +686,7 @@ export type Requisition = {
   submission_date: Date;
   work_order: WorkOrder;
   aircraft: Aircraft;
-  type: "GENERAL" | "AVIACION";
+  type: "GENERAL" | "AERONAUTICO";
 };
 
 export type AdministrationRequisition = {
@@ -769,6 +770,7 @@ export type User = {
   roles?: {
     id: number;
     name: string;
+    label: string;
     permissions: Permission[];
   }[];
   permissions: Permission[];

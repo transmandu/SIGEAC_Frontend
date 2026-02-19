@@ -130,6 +130,7 @@ const RequisitionPage = () => {
                               <p className='text-sm text-muted-foreground'>N° Parte Alt:</p>
                               <p className='font-medium'>{article.article_alt_part_number || "N/A"}</p>
                             </div>
+                            
                             <div>
                               <p className='text-sm text-muted-foreground'>Cantidad:</p>
                               <p className='font-medium'>{article.quantity} {article.unit?.label}</p>

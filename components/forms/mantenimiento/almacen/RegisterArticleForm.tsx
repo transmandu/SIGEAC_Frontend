@@ -9,13 +9,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../../../ui/select";
-
 import CreateToolForm from "@/app/[company]/almacen/ingresar_inventario/_components/RegisterToolForm";
 import CreateComponentForm from "@/app/[company]/almacen/ingresar_inventario/_components/RegisterComponentForm";
 import CreatePartForm from "@/app/[company]/almacen/ingresar_inventario/_components/RegisterPartForm";
 import CreateConsumableForm from "@/app/[company]/almacen/ingresar_inventario/_components/RegisterConsumableForm";
+
 export interface EditingArticle extends Article {
-  batches: Batch;
+  batch: Batch;
   certificate_8130?: string;
   certificate_vendor?: string;
   certificate_fabricant?: string;
@@ -54,8 +54,7 @@ export interface EditingArticle extends Article {
     min_quantity?: number | string;
     quantity?: number;
     is_managed?: boolean | string | number;
-    shelf_life?: number;
-    shelft_life_unit?: string;
+    shelf_life?: string | null;
   };
   has_documentation?: boolean;
 }
@@ -71,7 +70,7 @@ const RegisterArticleForm = ({
   initialData,
 }: IRegisterArticleProps) => {
   const [type, setType] = useState(
-    initialData?.batches.category.toUpperCase() ?? "COMPONENTE"
+    initialData?.batch.category.toUpperCase() ?? "COMPONENTE"
   );
   function handleTypeSelect(data: string) {
     setType(data);
