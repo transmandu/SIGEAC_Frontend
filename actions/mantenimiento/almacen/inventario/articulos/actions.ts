@@ -3,6 +3,7 @@ import { useCompanyStore } from "@/stores/CompanyStore";
 import { ComponentArticle, ConsumableArticle, ToolArticle } from "@/types";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+
 interface UnitSelection {
   conversion_id: number;
 }
@@ -42,6 +43,36 @@ interface ArticleData {
   hard_time_cycles?: string | number;
   ata_code ?: string;
 }
+
+interface SendToQuarantinePayload {
+  article_id: number;
+  reason: string;
+  quarantine_entry_date: string
+  quarantine_exit_date?: string;
+
+}
+
+
+type CheckResult = "PASS" | "FAIL";
+
+export type IncomingCheck = {
+  check_id: number;
+  result: CheckResult;
+  observation: string | null;
+};
+
+export type IncomingPayload = {
+  warehouse_id: number;
+  purchase_order_code: string;
+  purchase_order_id: number | null;
+  inspection_date: string;
+  items: {
+    article_id: number;
+    serial: string;
+    quantity: number;
+    checks: IncomingCheck[];
+  }[];
+};
 
 export const useCreateArticle = () => {
   const queryClient = useQueryClient();
@@ -215,42 +246,44 @@ export const useUpdateArticleStatus = () => {
 };
 
 export const useConfirmIncomingArticle = () => {
-  const {selectedCompany} = useCompanyStore();
+  const { selectedCompany } = useCompanyStore();
   const queryClient = useQueryClient();
-  const confirmIncomingArticleMutation = useMutation({
-    mutationKey: ["articles"],
-    mutationFn: async ({
-      values,
-    }: {
-      values: {
-        article_id: number;
-        inspector: string,
-        incoming_date: string;
-      };
-    }) => {
-      await axiosInstance.patch(
-        `/${selectedCompany?.slug}/${values.article_id}/confirm-incoming`,
-        {
-          ...values,
-        },
+
+  const mutation = useMutation<void, Error, IncomingPayload>({
+    mutationKey: ["incoming-inspections"],
+
+    mutationFn: async (payload) => {
+      if (!selectedCompany?.slug) {
+        throw new Error("Company no seleccionada");
+      }
+
+      await axiosInstance.post(
+        `/${selectedCompany.slug}/incoming-inspections`,
+        payload,
       );
     },
+
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["warehouse-articles"] });
       queryClient.invalidateQueries({ queryKey: ["articles"] });
-      toast.success("¡Actualizado!", {
-        description: `El articulo ha sido actualizado correctamente.`,
+      queryClient.invalidateQueries({ queryKey: ["incoming-inspections"] });
+
+      toast.success("¡Inspección creada!", {
+        description: "El artículo fue enviado correctamente.",
       });
     },
+
     onError: (error) => {
       toast.error("Oops!", {
-        description: "No se pudo actualizar el articulo...",
+        description: "No se pudo registrar la inspección...",
       });
-      console.log(error);
+
+      console.error(error);
     },
   });
+
   return {
-    confirmIncoming: confirmIncomingArticleMutation,
+    confirmIncoming: mutation,
   };
 };
 
@@ -401,3 +434,46 @@ export const useLocateArticle = () => {
     locateArticle: locateArticleMutation,
   }
 }
+
+export const useSendToQuarantine = () => {
+  const { selectedCompany } = useCompanyStore();
+  const queryClient = useQueryClient();
+
+  const mutation = useMutation<void, Error, SendToQuarantinePayload>({
+    mutationKey: ["quarantine-articles"],
+
+    mutationFn: async (payload) => {
+      if (!selectedCompany?.slug) {
+        throw new Error("Company no seleccionada");
+      }
+
+      await axiosInstance.post(
+        `/${selectedCompany.slug}/quarantine-articles`,
+        payload,
+      );
+    },
+
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["warehouse-articles"] });
+      queryClient.invalidateQueries({ queryKey: ["articles"] });
+      queryClient.invalidateQueries({ queryKey: ["incoming-articles"] });
+      queryClient.invalidateQueries({ queryKey: ["quarantine-articles"] });
+
+      toast.warning("¡Enviado a cuarentena!", {
+        description: "El artículo fue enviado a cuarentena correctamente.",
+      });
+    },
+
+    onError: (error) => {
+      toast.error("Oops!", {
+        description: "No se pudo registrar el artículo en cuarentena...",
+      });
+
+      console.error(error);
+    },
+  });
+
+  return {
+    sendToQuarantine: mutation,
+  };
+};

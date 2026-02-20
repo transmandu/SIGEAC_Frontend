@@ -198,7 +198,7 @@ interface PreviewValues extends FormValues {
 
 /* ----------------------------- Componente ----------------------------- */
 
-export default function CreatePartForm({
+export default function DirectPartForm({
   initialData,
   isEditing,
 }: {
@@ -306,8 +306,8 @@ export default function CreatePartForm({
           : [initialData.serial]
         : [],
       alternative_part_number: initialData?.alternative_part_number || [],
-      batch_id: initialData?.batch?.id?.toString() || "",
-      batch_name: initialData?.batch?.name || "",
+      batch_id: initialData?.batches?.id?.toString() || "",
+      batch_name: initialData?.batches?.name || "",
       manufacturer_id: initialData?.manufacturer?.id?.toString() || "",
       condition_id: initialData?.condition?.id?.toString() || "",
       description: initialData?.description || "",

@@ -416,8 +416,8 @@ export default function CreateToolForm({
       description: initialData?.description || "",
       zone: initialData?.zone || "",
       manufacturer_id: initialData?.manufacturer?.id?.toString() || "",
-      batch_id: initialData?.batches?.id?.toString() || "",
-      batch_name: initialData?.batches?.name || "",
+      batch_id: initialData?.batch?.id?.toString() || "",
+      batch_name: initialData?.batch?.name || "",
       needs_calibration: initialData?.tool?.needs_calibration ?? false,
       calibration_date: initialData?.tool?.calibration_date
         ? parseISO(initialData.tool.calibration_date)

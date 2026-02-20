@@ -1,4 +1,4 @@
-import { IncomingArticle } from "@/app/[company]/control_calidad/incoming/[id]/IncomingTypes"
+import { IncomingArticle } from "@/app/[company]/control_calidad/incoming/IncomingTypes"
 import {
   DropdownMenu,
   DropdownMenuContent,

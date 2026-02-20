@@ -7,22 +7,20 @@ import {
 
 
 import { useDeleteUser } from "@/actions/aerolinea/usuarios/actions"
-import { EyeIcon, Loader2, MoreHorizontal, Trash2 } from "lucide-react"
+import { EditUserDialog } from "@/components/dialogs/ajustes/EditUserDialog"
+import { User } from "@/types"
+import { Loader2, MoreHorizontal, Trash2, UserPen } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { Button } from "../../ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "../../ui/dialog"
 
-const UserDropdownActions = ({ id, companies }: { id: number | string, companies: { id: number, name: string }[] }) => {
+const UserDropdownActions = ({ user, companies }: { user: User, companies: { id: number, name: string }[] }) => {
 
   const [open, setOpen] = useState<boolean>(false)
-
-  const router = useRouter()
-
   const { deleteUser } = useDeleteUser()
-
   const handleDelete = async (id: number | string, companies: { id: number, name: string }[]) => {
-    await deleteUser.mutateAsync({ id, companies });
+    await deleteUser.mutateAsync({ id: user.id, companies });
     setOpen(false);
   }
   return (
@@ -40,11 +38,7 @@ const UserDropdownActions = ({ id, companies }: { id: number | string, companies
               <Trash2 className='size-5 text-red-500' />
             </DropdownMenuItem>
           </DialogTrigger>
-          <DropdownMenuItem onClick={() => {
-            router.push(`/administracion/usuarios_permisos/usuarios/${id}`)
-          }}>
-            <EyeIcon className="size-5" />
-          </DropdownMenuItem>
+            <EditUserDialog user={user}/>
         </DropdownMenuContent>
       </DropdownMenu>
       <DialogContent>
@@ -56,7 +50,7 @@ const UserDropdownActions = ({ id, companies }: { id: number | string, companies
         </DialogHeader>
         <DialogFooter className="flex flex-col gap-2 md:gap-0">
           <Button className="bg-rose-400 hover:bg-white hover:text-black hover:border hover:border-black" onClick={() => setOpen(false)} type="submit">Cancelar</Button>
-          <Button disabled={deleteUser.isPending} className="hover:bg-white hover:text-black hover:border hover:border-black transition-all" onClick={() => handleDelete(id, companies)}>{deleteUser.isPending ? <Loader2 className="size-4 animate-spin" /> : <p>Confirmar</p>}</Button>
+          <Button disabled={deleteUser.isPending} className="hover:bg-white hover:text-black hover:border hover:border-black transition-all" onClick={() => handleDelete(user.id, companies)}>{deleteUser.isPending ? <Loader2 className="size-4 animate-spin" /> : <p>Confirmar</p>}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

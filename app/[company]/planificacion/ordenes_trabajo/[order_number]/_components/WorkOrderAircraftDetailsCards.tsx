@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useState } from "react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -55,10 +55,14 @@ const WorkOrderAircraftDetailsCards = ({ work_order }: { work_order: WorkOrder }
   const [hoursMode, setHoursMode] = useState<HoursMode>("auto")
   const [manualHours, setManualHours] = useState<string>("")
   const [clientSignature, setClientSignature] = useState<string>("Freddy Guerrero")
+
+  // NUEVO: páginas hoja de reporte
+  const [reportPagesTotal, setReportPagesTotal] = useState<string>("2")
+  const [reportPagesError, setReportPagesError] = useState<string | null>(null)
+
   const [isDownloading, setIsDownloading] = useState(false)
   const [manualError, setManualError] = useState<string | null>(null)
 
-  // ✅ Si cambian de manual a auto, limpiamos error
   useEffect(() => {
     if (hoursMode === "auto") setManualError(null)
   }, [hoursMode])
@@ -66,13 +70,12 @@ const WorkOrderAircraftDetailsCards = ({ work_order }: { work_order: WorkOrder }
   const validateManualHours = () => {
     if (hoursMode !== "manual") return true
 
-    // ✅ Permitir vacío: PDF debe salir vacío
+    // Permitir vacío: PDF debe salir vacío
     if (manualHours.trim() === "") {
       setManualError(null)
       return true
     }
 
-    // Acepta coma o punto
     const normalized = manualHours.replace(",", ".")
     const n = Number(normalized)
 
@@ -89,47 +92,102 @@ const WorkOrderAircraftDetailsCards = ({ work_order }: { work_order: WorkOrder }
     return true
   }
 
-  const handleDownload = async (params: Record<string, any>) => {
-    try {
-      setIsDownloading(true)
-      const response = await axiosInstance.get(
-        `/${companySlug}/work-order-pdf/${work_order.order_number}`,
-        {
-          responseType: "blob",
-          params,
-        }
-      )
-      const url = window.URL.createObjectURL(new Blob([response.data]))
-      const link = document.createElement("a")
-      link.href = url
-      link.setAttribute("download", `WO-${work_order.order_number}.pdf`)
-      document.body.appendChild(link)
-      link.click()
-      link.parentNode?.removeChild(link)
-      window.URL.revokeObjectURL(url)
-    } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "No se pudo descargar el PDF. Por favor intente nuevamente.",
-      })
-      console.error("Error al descargar el PDF:", error)
-    } finally {
-      setIsDownloading(false)
+  const validateReportPages = () => {
+    const raw = reportPagesTotal.trim()
+    if (raw === "") {
+      setReportPagesError("Ingresa un número de páginas.")
+      return false
     }
+
+    const n = Number(raw)
+    if (!Number.isInteger(n) || n < 1) {
+      setReportPagesError("Debe ser un entero mayor o igual a 1.")
+      return false
+    }
+
+    // límite de seguridad (ajusta si quieres)
+    if (n > 50) {
+      setReportPagesError("Máximo 50 páginas.")
+      return false
+    }
+
+    setReportPagesError(null)
+    return true
   }
+
+const handleDownloadPackage = async (params: Record<string, any>) => {
+  // 🚫 Evitar doble ejecución
+  if (isDownloading) return;
+
+  try {
+    setIsDownloading(true);
+
+    const response = await axiosInstance.get(
+      `/${companySlug}/work-orders/${work_order.order_number}/package`,
+      {
+        responseType: "blob",
+        params,
+      },
+    );
+
+    // Obtener filename desde backend
+    const disposition = response.headers?.["content-disposition"] as
+      | string
+      | undefined;
+    const match = disposition?.match(/filename="?([^"]+)"?/i);
+    const fallbackName = `package_${work_order.order_number}.pdf`;
+    const filename = match?.[1] || fallbackName;
+
+    // ✅ USAR EL CONTENT-TYPE REAL
+    const blob = new Blob([response.data], {
+      type: response.headers["content-type"] || "application/pdf",
+    });
+
+    const url = window.URL.createObjectURL(blob);
+
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+  } catch (error) {
+    toast({
+      variant: "destructive",
+      title: "Error",
+      description: "No se pudo descargar el PDF. Por favor intente nuevamente.",
+    });
+    console.error("Error al descargar el PDF:", error);
+  } finally {
+    setIsDownloading(false);
+  }
+};
 
   const onConfirmDownload = async () => {
     if (!validateManualHours()) return
+    if (!validateReportPages()) return
+
     const params: Record<string, any> = {
       aircraft_hours_mode: hoursMode, // auto | manual
-      client_signature: clientSignature,
+      client_signature: clientSignature?.trim() ?? "",
+      report_pages_total: Number(reportPagesTotal.trim()),
+      // isExplotador: work_order.isExplotador, // <- si luego quieres forzarlo desde UI
     }
-    // ✅ Solo enviar aircraft_hours si realmente hay un valor
-    if (hoursMode === "manual" && manualHours.trim() !== "" && manualHours.trim() !== "0") {
-      params.aircraft_hours = Number(manualHours.replace(",", "."))
+
+    // Manual: permitir vacío => no enviamos aircraft_hours
+    if (hoursMode === "manual") {
+      if (manualHours.trim() !== "") {
+        const normalized = manualHours.replace(",", ".")
+        const n = Number(normalized)
+        if (Number.isFinite(n) && n >= 0) {
+          params.aircraft_hours = n
+        }
+      }
     }
-    await handleDownload(params)
+
+    await handleDownloadPackage(params)
     setPrintOpen(false)
   }
 
@@ -149,7 +207,9 @@ const WorkOrderAircraftDetailsCards = ({ work_order }: { work_order: WorkOrder }
                 <p className="text-sm text-gray-600 flex gap-1 items-center">
                   Fecha de Orden <CalendarFold className="size-4" />
                 </p>
-                <p className="font-medium">{format(work_order.date, "PPP", { locale: es })}</p>
+                <p className="font-medium">
+                  {format(work_order.date, "PPP", { locale: es })}
+                </p>
               </div>
 
               <div className="flex flex-col items-center">
@@ -180,7 +240,9 @@ const WorkOrderAircraftDetailsCards = ({ work_order }: { work_order: WorkOrder }
 
               <div className="flex flex-col items-center">
                 <p className="text-sm text-gray-600">Número de Tareas</p>
-                <p className="font-medium">{work_order.work_order_tasks.length} tarea(s)</p>
+                <p className="font-medium">
+                  {work_order.work_order_tasks.length} tarea(s)
+                </p>
               </div>
             </div>
           )}
@@ -192,7 +254,7 @@ const WorkOrderAircraftDetailsCards = ({ work_order }: { work_order: WorkOrder }
               "scale-125 cursor-pointer hover:scale-150 transition-all ease-in",
               work_order.status === "ABIERTO"
                 ? "bg-green-500 hover:bg-green-600"
-                : "bg-red-500 hover:bg-red-600"
+                : "bg-red-500 hover:bg-red-600",
             )}
           >
             {work_order?.status}
@@ -207,26 +269,25 @@ const WorkOrderAircraftDetailsCards = ({ work_order }: { work_order: WorkOrder }
                 ) : (
                   <Printer className="size-4" />
                 )}
-                Descargar PDF
+                Descargar paquete (PDF)
               </Button>
             </DialogTrigger>
 
             <DialogContent className="sm:max-w-md">
               <DialogHeaderUI>
-                <DialogTitleUI>Opciones de impresión</DialogTitleUI>
-                <DialogDescription>
-                  Selecciona cómo quieres mostrar las horas de la aeronave en el PDF.
-                </DialogDescription>
+                <DialogTitleUI>Opciones de descarga</DialogTitleUI>
+                <DialogDescription></DialogDescription>
               </DialogHeaderUI>
 
               <div className="space-y-4">
+                {/* Horas */}
                 <div className="space-y-2">
                   <Label>Horas de aeronave</Label>
                   <RadioGroup
                     value={hoursMode}
                     onValueChange={(v) => {
-                      setHoursMode(v as HoursMode)
-                      setManualError(null)
+                      setHoursMode(v as HoursMode);
+                      setManualError(null);
                     }}
                     className="grid gap-2"
                   >
@@ -257,29 +318,66 @@ const WorkOrderAircraftDetailsCards = ({ work_order }: { work_order: WorkOrder }
                       onBlur={validateManualHours}
                       placeholder="Déjalo vacío para imprimir sin horas"
                     />
-                    {manualError && <p className="text-sm text-destructive">{manualError}</p>}
+                    {manualError && (
+                      <p className="text-sm text-destructive">{manualError}</p>
+                    )}
                     <p className="text-xs text-muted-foreground">
                       Tip: puedes escribir decimales con coma o punto.
                     </p>
                   </div>
                 )}
-              </div>
 
-              <div className="space-y-2">
-                <hr className="my-4" />
-                <Label className="text-sm">Firma del Cliente: <span className="text-xs text-muted-foreground">(Dejar vacío para no incluir firma)</span></Label>
-                <Input value={clientSignature} onChange={(e) => setClientSignature(e.target.value)} />
+                {/* Firma */}
+                <div className="space-y-2">
+                  <hr className="my-2" />
+                  <Label className="text-sm">
+                    Firma del Cliente{" "}
+                    <span className="text-xs text-muted-foreground">
+                      (Dejar vacío para no incluir firma)
+                    </span>
+                  </Label>
+                  <Input
+                    value={clientSignature}
+                    onChange={(e) => setClientSignature(e.target.value)}
+                  />
+                </div>
+
+                {/* NUEVO: páginas de hoja de reporte */}
+                <div className="space-y-2">
+                  <Label className="text-sm">Páginas de Hoja de Reporte</Label>
+                  <Input
+                    inputMode="numeric"
+                    value={reportPagesTotal}
+                    onChange={(e) => setReportPagesTotal(e.target.value)}
+                    onBlur={validateReportPages}
+                    placeholder="Ej: 2"
+                    defaultValue={2}
+                  />
+                  {reportPagesError && (
+                    <p className="text-sm text-destructive">
+                      {reportPagesError}
+                    </p>
+                  )}
+                  <p className="text-xs text-muted-foreground">
+                    Define cuántas páginas se generan en la hoja de reporte.
+                  </p>
+                </div>
               </div>
 
               <DialogFooterUI className="gap-2">
                 <Button
+                  type="button"
                   variant="outline"
                   onClick={() => setPrintOpen(false)}
                   disabled={isDownloading}
                 >
                   Cancelar
                 </Button>
-                <Button onClick={onConfirmDownload} disabled={isDownloading}>
+                <Button
+                  type="button"
+                  onClick={onConfirmDownload}
+                  disabled={isDownloading}
+                >
                   {isDownloading ? "Descargando..." : "Confirmar y descargar"}
                 </Button>
               </DialogFooterUI>
@@ -302,14 +400,18 @@ const WorkOrderAircraftDetailsCards = ({ work_order }: { work_order: WorkOrder }
                 <p className="text-sm text-gray-600 flex justify-center items-center gap-1">
                   Horas de Vuelo <Clock3 className="size-4" />
                 </p>
-                <p className="font-medium">{work_order.aircraft.flight_hours}</p>
+                <p className="font-medium">
+                  {work_order.aircraft.flight_hours}
+                </p>
               </div>
 
               <div className="flex flex-col justify-center text-center">
                 <p className="text-sm text-gray-600 flex justify-center items-center gap-1">
                   Ciclos de Vuelo <RefreshCw className="size-4" />
                 </p>
-                <p className="font-medium">{work_order.aircraft.flight_cycles}</p>
+                <p className="font-medium">
+                  {work_order.aircraft.flight_cycles}
+                </p>
               </div>
 
               <div className="flex flex-col justify-center text-center">
@@ -336,7 +438,7 @@ const WorkOrderAircraftDetailsCards = ({ work_order }: { work_order: WorkOrder }
         </CardFooter>
       </Card>
     </div>
-  )
+  );
 }
 
 export default WorkOrderAircraftDetailsCards

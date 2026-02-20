@@ -126,7 +126,7 @@ function buildTreeFromAssignments(assignments: AircraftAssignment[]): PartNode[]
 // Configuración de tipos de partes
 // =========================
 const PART_TYPE_CONFIG = [
-  { 
+  {
     type: "ENGINE",
     icon: Cog,
     color: "blue",
@@ -221,11 +221,11 @@ function MonthlyFlightStats({ acronym }: { acronym: string }) {
 // =========================
 // Componente de fila de parte
 // =========================
-function PartTableRow({ 
-  assignment, 
-  typeConfig 
-}: { 
-  assignment: AircraftAssignment; 
+function PartTableRow({
+  assignment,
+  typeConfig
+}: {
+  assignment: AircraftAssignment;
   typeConfig: typeof PART_TYPE_CONFIG[number];
 }) {
   return (
@@ -320,7 +320,7 @@ export function PlanificationAircraftTab({ aircraft }: { aircraft: MaintenanceAi
     // Si tenemos aircraft_parts, convertirlos al formato de assignments
     if (aircraft.aircraft_parts && aircraft.aircraft_parts.length > 0) {
       const assignments: AircraftAssignment[] = [];
-      
+
       // Convertir las horas de vuelo de la aeronave (vienen como string "4,324.00")
       const aircraftHours = parseFloat(String(aircraft.flight_hours).replace(/,/g, '')) || 0;
       const aircraftCycles = parseFloat(String(aircraft.flight_cycles).replace(/,/g, '')) || 0;
@@ -329,7 +329,7 @@ export function PlanificationAircraftTab({ aircraft }: { aircraft: MaintenanceAi
         // Convertir strings a números
         const partHours = parseFloat(part.time_since_new || part.part_hours || 0);
         const partCycles = parseFloat(part.cycles_since_new || part.part_cycles || 0);
-        
+
         const assignment: AircraftAssignment = {
           id: String(part.id),
           removed_date: null,
@@ -344,7 +344,7 @@ export function PlanificationAircraftTab({ aircraft }: { aircraft: MaintenanceAi
             parent_part_id: part.aircraft_part_id, // Usar el ID del padre directamente
           }
         };
-        
+
         assignments.push(assignment);
       });
 
@@ -364,7 +364,7 @@ export function PlanificationAircraftTab({ aircraft }: { aircraft: MaintenanceAi
 
   // Árbol agrupado por categorías
   const tree = useMemo(() => buildTreeFromAssignments(currentAssignments), [currentAssignments])
-  
+
   // Agrupar partes por categorías basándose en part_type
   const partsByCategory = useMemo(() => {
     const categories = {
@@ -372,23 +372,23 @@ export function PlanificationAircraftTab({ aircraft }: { aircraft: MaintenanceAi
       APU: [] as PartNode[],
       PROPELLER: [] as PartNode[]
     };
-    
+
     console.log('========== DEBUG: Agrupación de Partes ==========');
     console.log('Total de nodos en el árbol:', tree.length);
-    
+
     tree.forEach(node => {
       const part = node.part as any;
-      
+
       // Log detallado de cada parte
       console.log('\n--- Parte ---');
       console.log('Nombre:', part.part_name);
       console.log('Part Number:', part.part_number);
       console.log('Part Type (del backend):', part.part_type);
       console.log('Objeto completo:', part);
-      
+
       // Normalizar part_type a mayúsculas para la comparación
       const partType = part.part_type?.toUpperCase();
-      
+
       if (partType === "ENGINE") {
         console.log('✅ Clasificado como: ENGINE (por part_type)');
         categories.ENGINE.push(node);
@@ -402,7 +402,7 @@ export function PlanificationAircraftTab({ aircraft }: { aircraft: MaintenanceAi
         // Fallback: detectar por nombre
         const partName = part.part_name?.toLowerCase() || "";
         console.log('⚠️ part_type no reconocido, usando fallback por nombre:', partName);
-        
+
         if (partName.includes('engine') || partName.includes('motor')) {
           console.log('✅ Clasificado como: ENGINE (por nombre)');
           categories.ENGINE.push(node);
@@ -418,13 +418,13 @@ export function PlanificationAircraftTab({ aircraft }: { aircraft: MaintenanceAi
         }
       }
     });
-    
+
     console.log('\n========== Resumen de Clasificación ==========');
     console.log('ENGINE (Plantas de Poder):', categories.ENGINE.length);
     console.log('APU:', categories.APU.length);
     console.log('PROPELLER (Hélices):', categories.PROPELLER.length);
     console.log('==============================================\n');
-    
+
     return categories;
   }, [tree])
 
@@ -449,12 +449,12 @@ export function PlanificationAircraftTab({ aircraft }: { aircraft: MaintenanceAi
       APU: [] as AircraftAssignment[],
       PROPELLER: [] as AircraftAssignment[]
     };
-    
+
     filteredFlat.forEach(assignment => {
       const part = assignment.aircraft_part as any;
       // Normalizar part_type a mayúsculas para la comparación
       const partType = part.part_type?.toUpperCase();
-      
+
       if (partType === "ENGINE") {
         categories.ENGINE.push(assignment);
       } else if (partType === "APU") {
@@ -475,7 +475,7 @@ export function PlanificationAircraftTab({ aircraft }: { aircraft: MaintenanceAi
         }
       }
     });
-    
+
     return categories;
   }, [filteredFlat])
 
@@ -601,7 +601,7 @@ export function PlanificationAircraftTab({ aircraft }: { aircraft: MaintenanceAi
                       </div>
                     </div>
                   )}
-                  
+
                   {/* APU */}
                   {partsByCategory.APU.length > 0 && (
                     <div className="space-y-2">
@@ -616,7 +616,7 @@ export function PlanificationAircraftTab({ aircraft }: { aircraft: MaintenanceAi
                       </div>
                     </div>
                   )}
-                  
+
                   {/* Hélices */}
                   {partsByCategory.PROPELLER.length > 0 && (
                     <div className="space-y-2">
@@ -685,12 +685,12 @@ export function PlanificationAircraftTab({ aircraft }: { aircraft: MaintenanceAi
                             </TableRow>
                           </TableHeader>
                           <TableBody>
-                        {PART_TYPE_CONFIG.flatMap(typeConfig => 
+                        {PART_TYPE_CONFIG.flatMap(typeConfig =>
                           filteredPartsByCategory[typeConfig.type].map(assignment => (
-                            <PartTableRow 
-                              key={assignment.id} 
-                              assignment={assignment} 
-                              typeConfig={typeConfig} 
+                            <PartTableRow
+                              key={assignment.id}
+                              assignment={assignment}
+                              typeConfig={typeConfig}
                             />
                           ))
                         )}
