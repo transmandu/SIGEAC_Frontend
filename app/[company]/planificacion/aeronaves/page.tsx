@@ -28,7 +28,7 @@ const AircraftsPage = () => {
 
   // Query del buscador
   const [query, setQuery] = useState<string>('');
-  
+
   // Filtro de operador/cliente
   const [selectedOperator, setSelectedOperator] = useState<string>('all');
 
@@ -42,16 +42,16 @@ const AircraftsPage = () => {
   // Filtrado flexible por múltiples campos + operador
   const filteredAircrafts = useMemo<MaintenanceAircraft[]>(() => {
     if (!aircrafts) return [];
-    
+
     let filtered = aircrafts;
-    
+
     // Filtrar por operador si no es "all"
     if (selectedOperator !== 'all') {
-      filtered = filtered.filter((a: MaintenanceAircraft) => 
+      filtered = filtered.filter((a: MaintenanceAircraft) =>
         a.client?.id?.toString() === selectedOperator
       );
     }
-    
+
     // Filtrar por búsqueda de texto
     const q = normalize(query);
     if (q) {
@@ -59,31 +59,30 @@ const AircraftsPage = () => {
       const hayCoincidencia =
         normalize(a.acronym).includes(q) ||
           normalize(a.model).includes(q) ||
-        normalize(a.manufacturer.name).includes(q) ||
           normalize(a.serial).includes(q) ||
           normalize(a.client?.name).includes(q);
       return hayCoincidencia;
     });
     }
-    
+
     return filtered;
   }, [aircrafts, query, selectedOperator]);
-  
+
   // Agrupar aeronaves por operador
   const aircraftsByOperator = useMemo(() => {
     const groups: Record<string, MaintenanceAircraft[]> = {};
-    
+
     filteredAircrafts.forEach((aircraft) => {
       const operatorId = aircraft.client?.id?.toString() || 'sin-operador';
       const operatorName = aircraft.client?.name || 'Sin Operador';
       const key = `${operatorId}|${operatorName}`;
-      
+
       if (!groups[key]) {
         groups[key] = [];
       }
       groups[key].push(aircraft);
     });
-    
+
     return groups;
   }, [filteredAircrafts]);
 
@@ -199,10 +198,10 @@ const AircraftsPage = () => {
                 {Object.entries(aircraftsByOperator).map(([key, groupAircrafts]) => {
                   const [operatorId, operatorName] = key.split('|');
                   const isOpen = tabValue && groupAircrafts.some(a => a.acronym === tabValue);
-                  
+
                   return (
-                    <AccordionItem 
-                      key={key} 
+                    <AccordionItem
+                      key={key}
                       value={key}
                       className="border-2 border-border/50 rounded-xl overflow-hidden bg-card hover:border-primary/30 transition-all duration-200 shadow-sm hover:shadow-md"
                     >
@@ -226,15 +225,15 @@ const AircraftsPage = () => {
                       </AccordionTrigger>
                       <AccordionContent className="px-6 pb-5 pt-2 bg-muted/30">
                         <div className="rounded-lg bg-background p-4 border border-border/50">
-                          <Tabs 
-                            value={tabValue} 
+                          <Tabs
+                            value={tabValue}
                             onValueChange={setTabValue}
                             className="w-full"
                           >
                             <TabsList className="flex flex-wrap justify-start w-full gap-2 bg-muted/50 p-2 rounded-lg">
                               {groupAircrafts.map((aircraft) => (
-                                <TabsTrigger 
-                                  key={aircraft.id} 
+                                <TabsTrigger
+                                  key={aircraft.id}
                                   value={aircraft.acronym}
                                   className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground px-4 py-2 rounded-md font-medium transition-all hover:scale-105"
                                 >
@@ -277,8 +276,8 @@ const AircraftsPage = () => {
           <Tabs value={tabValue} onValueChange={setTabValue}>
                     <TabsList className="flex flex-wrap justify-center w-full gap-2 bg-muted/50 p-2 rounded-lg">
               {filteredAircrafts.map((aircraft) => (
-                        <TabsTrigger 
-                          key={aircraft.id} 
+                        <TabsTrigger
+                          key={aircraft.id}
                           value={aircraft.acronym}
                           className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground px-4 py-2 rounded-md font-medium transition-all hover:scale-105"
                         >
