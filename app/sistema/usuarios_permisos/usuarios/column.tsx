@@ -17,6 +17,7 @@ import { User } from "@/types"
 import { redirect } from "next/navigation"
 import { useState } from "react"
 import UserStatusButton  from "@/components/misc/UserStatusButton"
+import { Info } from "lucide-react"
 
 
 export const columns: ColumnDef<User>[] = [
@@ -68,7 +69,19 @@ export const columns: ColumnDef<User>[] = [
   {
     accessorKey: "isActive",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Status" />
+      <div className="flex items-center justify-center gap-1">
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Info className="h-4 w-4 text-muted-foreground/90 cursor-help" />
+          </TooltipTrigger>
+          <TooltipContent side="top">
+            <p className="text-sm text-gray-600">
+              Para activar o desactivar un usuario, haga clic en su estado.
+            </p>
+          </TooltipContent>
+        </Tooltip>
+        <DataTableColumnHeader column={column} title="Status" />
+      </div>
     ),
     cell: ({ row }) => {
       const item = row.original
