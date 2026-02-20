@@ -8,11 +8,11 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { FollowUpControl } from "@/types";
-import { format } from "date-fns";
+// Importamos parseISO
+import { format, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
-import { useTheme } from "next-themes";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { Button } from "@/components/ui/button";
 
@@ -33,12 +33,22 @@ const FollowUpControlDialog = ({
 }: FollowUpControlDialogProps) => {
   const { selectedCompany } = useCompanyStore();
 
+  // Función auxiliar para no repetir la lógica de normalización
+  const getNormalizedDate = (dateInput: any) => {
+    const dateString = String(dateInput as unknown);
+    const parsedDate = parseISO(dateString);
+    return new Date(
+      parsedDate.getUTCFullYear(),
+      parsedDate.getUTCMonth(),
+      parsedDate.getUTCDate()
+    );
+  };
+
   if (!showTrigger) {
     return (
       <DialogContent>
         <DialogHeader>
-          <DialogDescription className={`font-semibold`}
-          >
+          <DialogDescription className={`font-semibold`}>
             Controles de Seguimiento de las Medidas
           </DialogDescription>
         </DialogHeader>
@@ -49,11 +59,11 @@ const FollowUpControlDialog = ({
               {followUpControls.map((control, index) => (
                 <li key={control.id} className="mb-2">
                   <ul className="font-semibold">
-                    {++index} ) {control.description}
+                    {index + 1} ) {control.description}
                   </ul>
                   <ul className="text-sm text-gray-600">
                     <p className="font-medium text-left">
-                      {format(control.date, "PPP", {
+                      {format(getNormalizedDate(control.date), "PPP", {
                         locale: es,
                       })}
                     </p>
@@ -109,11 +119,11 @@ const FollowUpControlDialog = ({
               {followUpControls.map((control, index) => (
                 <li key={control.id} className="mb-2">
                   <ul className="font-semibold">
-                    {++index} ) {control.description}
+                    {index + 1} ) {control.description}
                   </ul>
                   <ul className="text-sm text-gray-600">
                     <p className="font-medium text-left">
-                      {format(control.date, "PPP", {
+                      {format(getNormalizedDate(control.date), "PPP", {
                         locale: es,
                       })}
                     </p>
@@ -132,7 +142,7 @@ const FollowUpControlDialog = ({
           href={`/${selectedCompany?.slug}/sms/gestion_reportes/planes_de_mitigacion/${planId}/medidas/${measureId}/controles_de_seguimiento`}
         >
           <div className="flex justify-end mt-4">
-            <Button className="w-1/3 " variant="outline" >Ver más</Button>
+            <Button className="w-1/3 " variant="outline">Ver más</Button>
           </div>
         </Link>
       </DialogContent>
