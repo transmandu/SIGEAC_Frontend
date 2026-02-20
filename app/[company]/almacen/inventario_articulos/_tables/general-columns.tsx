@@ -85,16 +85,15 @@ export const columns: ColumnDef<GeneralArticle>[] = [
     ),
     cell: ({ row }) => {
       const qty = Number(row.original.quantity ?? 0)
-      const isZero = !Number.isFinite(qty) || qty <= 0
+      const isAvailable = qty > 0;
 
       return (
         <div className="flex justify-center">
           <Badge
-            variant={isZero ? "outline" : "secondary"}
+            variant={isAvailable ? "default" : "destructive"}
             className="tabular-nums px-2 py-1 text-xs"
-            title={isZero ? "Sin stock" : "Stock disponible"}
           >
-            {isZero ? "0" : qty} {row.original.general_primary_unit?.value ?? ""}
+            {isAvailable ? "Disponible" : "No Disponible"}
           </Badge>
         </div>
       )
