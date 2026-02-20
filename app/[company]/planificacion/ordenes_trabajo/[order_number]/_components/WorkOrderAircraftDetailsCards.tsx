@@ -115,46 +115,55 @@ const WorkOrderAircraftDetailsCards = ({ work_order }: { work_order: WorkOrder }
     return true
   }
 
-  const handleDownloadPackage = async (params: Record<string, any>) => {
-    try {
-      setIsDownloading(true)
+const handleDownloadPackage = async (params: Record<string, any>) => {
+  // 🚫 Evitar doble ejecución
+  if (isDownloading) return;
 
-      const response = await axiosInstance.get(
-        `/${companySlug}/work-orders/${work_order.order_number}/package`,
-        {
-          responseType: "blob",
-          params,
-        }
-      )
+  try {
+    setIsDownloading(true);
 
-      // Intentar nombre del backend, si existe
-      const disposition = response.headers?.["content-disposition"] as string | undefined
-      const match = disposition?.match(/filename="?([^"]+)"?/i)
-      const fallbackName = `package_${work_order.order_number}.zip`
-      const filename = match?.[1] || fallbackName
+    const response = await axiosInstance.get(
+      `/${companySlug}/work-orders/${work_order.order_number}/package`,
+      {
+        responseType: "blob",
+        params,
+      },
+    );
 
-      const blob = new Blob([response.data], { type: "application/zip" })
-      const url = window.URL.createObjectURL(blob)
+    // Obtener filename desde backend
+    const disposition = response.headers?.["content-disposition"] as
+      | string
+      | undefined;
+    const match = disposition?.match(/filename="?([^"]+)"?/i);
+    const fallbackName = `package_${work_order.order_number}.pdf`;
+    const filename = match?.[1] || fallbackName;
 
-      const link = document.createElement("a")
-      link.href = url
-      link.download = filename
-      document.body.appendChild(link)
-      link.click()
+    // ✅ USAR EL CONTENT-TYPE REAL
+    const blob = new Blob([response.data], {
+      type: response.headers["content-type"] || "application/pdf",
+    });
 
-      link.remove()
-      window.URL.revokeObjectURL(url)
-    } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "No se pudo descargar el paquete. Por favor intente nuevamente.",
-      })
-      console.error("Error al descargar el paquete:", error)
-    } finally {
-      setIsDownloading(false)
-    }
+    const url = window.URL.createObjectURL(blob);
+
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+  } catch (error) {
+    toast({
+      variant: "destructive",
+      title: "Error",
+      description: "No se pudo descargar el PDF. Por favor intente nuevamente.",
+    });
+    console.error("Error al descargar el PDF:", error);
+  } finally {
+    setIsDownloading(false);
   }
+};
 
   const onConfirmDownload = async () => {
     if (!validateManualHours()) return
@@ -198,7 +207,9 @@ const WorkOrderAircraftDetailsCards = ({ work_order }: { work_order: WorkOrder }
                 <p className="text-sm text-gray-600 flex gap-1 items-center">
                   Fecha de Orden <CalendarFold className="size-4" />
                 </p>
-                <p className="font-medium">{format(work_order.date, "PPP", { locale: es })}</p>
+                <p className="font-medium">
+                  {format(work_order.date, "PPP", { locale: es })}
+                </p>
               </div>
 
               <div className="flex flex-col items-center">
@@ -229,7 +240,9 @@ const WorkOrderAircraftDetailsCards = ({ work_order }: { work_order: WorkOrder }
 
               <div className="flex flex-col items-center">
                 <p className="text-sm text-gray-600">Número de Tareas</p>
-                <p className="font-medium">{work_order.work_order_tasks.length} tarea(s)</p>
+                <p className="font-medium">
+                  {work_order.work_order_tasks.length} tarea(s)
+                </p>
               </div>
             </div>
           )}
@@ -241,7 +254,7 @@ const WorkOrderAircraftDetailsCards = ({ work_order }: { work_order: WorkOrder }
               "scale-125 cursor-pointer hover:scale-150 transition-all ease-in",
               work_order.status === "ABIERTO"
                 ? "bg-green-500 hover:bg-green-600"
-                : "bg-red-500 hover:bg-red-600"
+                : "bg-red-500 hover:bg-red-600",
             )}
           >
             {work_order?.status}
@@ -256,15 +269,14 @@ const WorkOrderAircraftDetailsCards = ({ work_order }: { work_order: WorkOrder }
                 ) : (
                   <Printer className="size-4" />
                 )}
-                Descargar paquete (ZIP)
+                Descargar paquete (PDF)
               </Button>
             </DialogTrigger>
 
             <DialogContent className="sm:max-w-md">
               <DialogHeaderUI>
                 <DialogTitleUI>Opciones de descarga</DialogTitleUI>
-                <DialogDescription>
-                </DialogDescription>
+                <DialogDescription></DialogDescription>
               </DialogHeaderUI>
 
               <div className="space-y-4">
@@ -274,8 +286,8 @@ const WorkOrderAircraftDetailsCards = ({ work_order }: { work_order: WorkOrder }
                   <RadioGroup
                     value={hoursMode}
                     onValueChange={(v) => {
-                      setHoursMode(v as HoursMode)
-                      setManualError(null)
+                      setHoursMode(v as HoursMode);
+                      setManualError(null);
                     }}
                     className="grid gap-2"
                   >
@@ -306,7 +318,9 @@ const WorkOrderAircraftDetailsCards = ({ work_order }: { work_order: WorkOrder }
                       onBlur={validateManualHours}
                       placeholder="Déjalo vacío para imprimir sin horas"
                     />
-                    {manualError && <p className="text-sm text-destructive">{manualError}</p>}
+                    {manualError && (
+                      <p className="text-sm text-destructive">{manualError}</p>
+                    )}
                     <p className="text-xs text-muted-foreground">
                       Tip: puedes escribir decimales con coma o punto.
                     </p>
@@ -339,7 +353,11 @@ const WorkOrderAircraftDetailsCards = ({ work_order }: { work_order: WorkOrder }
                     placeholder="Ej: 2"
                     defaultValue={2}
                   />
-                  {reportPagesError && <p className="text-sm text-destructive">{reportPagesError}</p>}
+                  {reportPagesError && (
+                    <p className="text-sm text-destructive">
+                      {reportPagesError}
+                    </p>
+                  )}
                   <p className="text-xs text-muted-foreground">
                     Define cuántas páginas se generan en la hoja de reporte.
                   </p>
@@ -348,13 +366,18 @@ const WorkOrderAircraftDetailsCards = ({ work_order }: { work_order: WorkOrder }
 
               <DialogFooterUI className="gap-2">
                 <Button
+                  type="button"
                   variant="outline"
                   onClick={() => setPrintOpen(false)}
                   disabled={isDownloading}
                 >
                   Cancelar
                 </Button>
-                <Button onClick={onConfirmDownload} disabled={isDownloading}>
+                <Button
+                  type="button"
+                  onClick={onConfirmDownload}
+                  disabled={isDownloading}
+                >
                   {isDownloading ? "Descargando..." : "Confirmar y descargar"}
                 </Button>
               </DialogFooterUI>
@@ -377,14 +400,18 @@ const WorkOrderAircraftDetailsCards = ({ work_order }: { work_order: WorkOrder }
                 <p className="text-sm text-gray-600 flex justify-center items-center gap-1">
                   Horas de Vuelo <Clock3 className="size-4" />
                 </p>
-                <p className="font-medium">{work_order.aircraft.flight_hours}</p>
+                <p className="font-medium">
+                  {work_order.aircraft.flight_hours}
+                </p>
               </div>
 
               <div className="flex flex-col justify-center text-center">
                 <p className="text-sm text-gray-600 flex justify-center items-center gap-1">
                   Ciclos de Vuelo <RefreshCw className="size-4" />
                 </p>
-                <p className="font-medium">{work_order.aircraft.flight_cycles}</p>
+                <p className="font-medium">
+                  {work_order.aircraft.flight_cycles}
+                </p>
               </div>
 
               <div className="flex flex-col justify-center text-center">
@@ -411,7 +438,7 @@ const WorkOrderAircraftDetailsCards = ({ work_order }: { work_order: WorkOrder }
         </CardFooter>
       </Card>
     </div>
-  )
+  );
 }
 
 export default WorkOrderAircraftDetailsCards
