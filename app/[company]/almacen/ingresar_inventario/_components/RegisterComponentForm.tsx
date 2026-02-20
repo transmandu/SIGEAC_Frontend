@@ -117,7 +117,7 @@ export default function CreateComponentForm({ initialData, isEditing }: Props) {
       part_number: initialData?.part_number || "",
       serial: initialData?.serial || "",
       alternative_part_number: initialData?.alternative_part_number || [],
-      batch_id: initialData?.batches?.id?.toString() || "",
+      batch_id: initialData?.batch?.id?.toString() || "",
       manufacturer_id: initialData?.manufacturer?.id?.toString() || "",
       condition_id: initialData?.condition?.id?.toString() || "",
       description: initialData?.description || "",

@@ -57,7 +57,7 @@ const WorkOrderAircraftDetailsCards = ({ work_order }: { work_order: WorkOrder }
   const [clientSignature, setClientSignature] = useState<string>("Freddy Guerrero")
 
   // NUEVO: páginas hoja de reporte
-  const [reportPagesTotal, setReportPagesTotal] = useState<string>("1")
+  const [reportPagesTotal, setReportPagesTotal] = useState<string>("2")
   const [reportPagesError, setReportPagesError] = useState<string | null>(null)
 
   const [isDownloading, setIsDownloading] = useState(false)
@@ -264,7 +264,6 @@ const WorkOrderAircraftDetailsCards = ({ work_order }: { work_order: WorkOrder }
               <DialogHeaderUI>
                 <DialogTitleUI>Opciones de descarga</DialogTitleUI>
                 <DialogDescription>
-                  Configura cómo se verán las horas y la hoja de reporte dentro del paquete.
                 </DialogDescription>
               </DialogHeaderUI>
 
@@ -337,7 +336,8 @@ const WorkOrderAircraftDetailsCards = ({ work_order }: { work_order: WorkOrder }
                     value={reportPagesTotal}
                     onChange={(e) => setReportPagesTotal(e.target.value)}
                     onBlur={validateReportPages}
-                    placeholder="Ej: 1"
+                    placeholder="Ej: 2"
+                    defaultValue={2}
                   />
                   {reportPagesError && <p className="text-sm text-destructive">{reportPagesError}</p>}
                   <p className="text-xs text-muted-foreground">

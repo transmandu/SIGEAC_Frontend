@@ -18,11 +18,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 const UserDropdownActions = ({ user, companies }: { user: User, companies: { id: number, name: string }[] }) => {
 
   const [open, setOpen] = useState<boolean>(false)
-
-  const router = useRouter()
-
   const { deleteUser } = useDeleteUser()
-
   const handleDelete = async (id: number | string, companies: { id: number, name: string }[]) => {
     await deleteUser.mutateAsync({ id: user.id, companies });
     setOpen(false);
@@ -42,7 +38,7 @@ const UserDropdownActions = ({ user, companies }: { user: User, companies: { id:
               <Trash2 className='size-5 text-red-500' />
             </DropdownMenuItem>
           </DialogTrigger>
-          <DropdownMenuItem>
+          <DropdownMenuItem asChild>
             <EditUserDialog user={user} />
           </DropdownMenuItem>
         </DropdownMenuContent>

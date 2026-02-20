@@ -770,6 +770,7 @@ export type User = {
   roles?: {
     id: number;
     name: string;
+    label: string;
     permissions: Permission[];
   }[];
   permissions: Permission[];
