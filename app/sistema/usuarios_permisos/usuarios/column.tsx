@@ -16,6 +16,7 @@ import { Badge } from "@/components/ui/badge"
 import { User } from "@/types"
 import { redirect } from "next/navigation"
 import { useState } from "react"
+import UserStatusButton  from "@/components/misc/UserStatusButton"
 
 
 export const columns: ColumnDef<User>[] = [
@@ -70,18 +71,18 @@ export const columns: ColumnDef<User>[] = [
       <DataTableColumnHeader column={column} title="Status" />
     ),
     cell: ({ row }) => {
-      const item = row.original;
+      const item = row.original
 
-      // Convertimos a número
-      const isActive = Number(item.isActive) === 1;
+      const isActive = Number(item.isActive) === 1
 
       return (
         <div className="flex items-center justify-center">
-          <Badge className={isActive ? "bg-emerald-500" : "bg-rose-500"}>
-            {isActive ? "ACTIVO" : "INACTIVO"}
-          </Badge>
+          <UserStatusButton
+            userId={Number(item.id)}
+            isActive={isActive}
+          />
         </div>
-      );
+      )
     }
   },
   {
@@ -92,11 +93,11 @@ export const columns: ColumnDef<User>[] = [
     cell: ({ row }) => {
       const item = row.original
       return (
-        <div className="flex flex-col gap-2 justify-center">
+        <div className="flex flex-col gap-2 justify-center items-center">
           {
             item && item.roles && item?.roles?.length < 3 ? item.roles.map((rol) => (
               <div onClick={() => redirect('/administracion/usuarios_permisos/roles')} className="flex items-center justify-center cursor-pointer" key={rol.id}>
-                <Badge>{rol.label}</Badge>
+                <Badge className="text-center">{rol.label}</Badge>
               </div>
             ))
               :
