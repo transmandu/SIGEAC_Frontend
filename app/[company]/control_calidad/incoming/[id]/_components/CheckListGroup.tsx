@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { ChecklistGroup, ChecklistValue } from "../IncomingTypes";
+import { ChecklistGroup, ChecklistValue } from "../../IncomingTypes";
+
 export function ChecklistGroupUI({
   group,
   values,
@@ -10,10 +11,11 @@ export function ChecklistGroupUI({
   values: Record<string, ChecklistValue>;
   onChange: (key: string, value: ChecklistValue) => void;
 }) {
+  const Icon  = group.icon;
   return (
     <div className="rounded-2xl border bg-background p-4">
       <div className="flex items-center gap-2">
-        <span className="text-muted-foreground">{group.icon}</span>
+        <span className="text-muted-foreground"><Icon /></span>
         <p className="text-sm font-semibold">{group.title}</p>
       </div>
 

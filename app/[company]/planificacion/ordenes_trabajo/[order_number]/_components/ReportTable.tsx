@@ -130,7 +130,7 @@ const ReportTable = ({ work_order }: { work_order: WorkOrder }) => {
       setIsDownloading(true)
 
       const response = await axiosInstance.get(
-        `/${companySlug}/work-order-pdf-report/${work_order.order_number}`,
+        `/${companySlug}/work-orders-report-pdf/${work_order.order_number}`,
         {
           responseType: "blob",
           params,

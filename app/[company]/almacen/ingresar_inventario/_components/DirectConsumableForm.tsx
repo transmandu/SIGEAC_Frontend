@@ -1068,7 +1068,7 @@ function UnitsModal({
 
 /* ----------------------------- Componente Principal ----------------------------- */
 
-export default function CreateConsumableForm({
+export default function DirectConsumableForm({
   initialData,
   isEditing,
 }: {
@@ -1216,8 +1216,8 @@ export default function CreateConsumableForm({
     defaultValues: {
       part_number: initialData?.part_number || "",
       alternative_part_number: initialData?.alternative_part_number || [],
-      batch_id: initialData?.batch?.id?.toString() || "",
-      batch_name: initialData?.batch?.name || "",
+      batch_id: initialData?.batches?.id?.toString() || "",
+      batch_name: initialData?.batches?.name || "",
       manufacturer_id: initialData?.manufacturer?.id?.toString() || "",
       condition_id: initialData?.condition?.id?.toString() || "",
       description: initialData?.description || "",
@@ -1277,8 +1277,8 @@ export default function CreateConsumableForm({
     const resetValues = {
       part_number: initialData.part_number ?? "",
       alternative_part_number: initialData.alternative_part_number ?? [],
-      batch_id: initialData.batch?.id?.toString() ?? "",
-      batch_name: initialData.batch?.name ?? "",
+      batch_id: initialData.batches?.id?.toString() ?? "",
+      batch_name: initialData.batches?.name ?? "",
       manufacturer_id: initialData.manufacturer?.id?.toString() ?? "",
       condition_id: initialData.condition?.id?.toString() ?? "",
       description: initialData.description ?? "",

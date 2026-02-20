@@ -10,6 +10,7 @@ import ArticleDropdownActions from "@/components/dropdowns/mantenimiento/almacen
 import { WarehouseResponse } from "@/hooks/mantenimiento/almacen/articulos/useGetWarehouseArticlesByCategory";
 import { StatusColumnHeader } from "@/components/tables/StatusColumnHeader";
 import { Unit } from "@/types";
+import { formatCondition } from "@/lib/warehouse/conditions";
 
 export interface IArticleSimple {
   id: number;
@@ -244,6 +245,39 @@ const baseCols: ColumnDef<IArticleSimple>[] = [
     ),
   },
   {
+  accessorKey: "condition",
+  header: ({ column }) => (
+    <DataTableColumnHeader filter column={column} title="Condición" />
+  ),
+  cell: ({ row }) => {
+    const condition = row.original.condition
+
+    if (row.original.__isGroup) {
+      return (
+        <div className="text-muted-foreground font-bold text-center max-w-xs line-clamp-2">
+          {"-"}
+        </div>
+      )
+    }
+
+    const c = formatCondition(condition)
+
+    return (
+      <div className="flex-col text-center max-w-xs line-clamp-2 leading-tight">
+        {c ? (
+          <>
+            <span className="font-bold text-foreground">{c.es}</span>{" "}
+            <span className="text-xs text-muted-foreground italic">({c.en})</span>
+          </>
+        ) : (
+          <span className="text-muted-foreground font-bold">Sin condición</span>
+        )}
+      </div>
+    )
+  },
+},
+
+  {
     accessorKey: "status",
     header: ({ column }) => <StatusColumnHeader column={column} />,
     cell: ({ row }) => {
@@ -372,7 +406,7 @@ export const componenteCols: ColumnDef<IArticleSimple>[] = [
       }
       return null;
     },
-    meta: { sticky: "right", className: "bg-background" },
+    meta: { sticky: "right", className: "bg-background" } as any,
   },
 ];
 
@@ -494,9 +528,7 @@ export const consumibleCols: ColumnDef<IArticleSimple>[] = [
       return (
         <div className="text-center">
           <Badge variant={variant} className="text-sm font-medium">
-            {format(date, "dd/MM/yyyy") === "01/01/1900"
-              ? "N/A"
-              : format(date, "dd/MM/yyyy")}
+            {format(date, "dd/MM/yyyy") === "01/01/1900" ? "N/A" : format(date, "dd/MM/yyyy")}
           </Badge>
         </div>
       );
@@ -522,7 +554,7 @@ export const consumibleCols: ColumnDef<IArticleSimple>[] = [
       }
       return null;
     },
-    meta: { sticky: "right" },
+    meta: { sticky: "right", className: "bg-background" } as any,
   },
 ];
 
@@ -583,7 +615,7 @@ export const herramientaCols: ColumnDef<IArticleSimple>[] = [
       }
       return null;
     },
-    meta: { sticky: "right" },
+    meta: { sticky: "right", className: "bg-background" } as any,
   },
 ];
 
@@ -665,7 +697,7 @@ export const allCategoriesCols: ColumnDef<IArticleSimple>[] = [
       }
       return null;
     },
-    meta: { sticky: "right" },
+    meta: { sticky: "right", className: "bg-background" } as any,
   },
 ];
 

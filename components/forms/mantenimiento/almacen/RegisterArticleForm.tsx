@@ -15,7 +15,7 @@ import CreatePartForm from "@/app/[company]/almacen/ingresar_inventario/_compone
 import CreateConsumableForm from "@/app/[company]/almacen/ingresar_inventario/_components/RegisterConsumableForm";
 
 export interface EditingArticle extends Article {
-  batches: Batch;
+  batch: Batch;
   certificate_8130?: string;
   certificate_vendor?: string;
   certificate_fabricant?: string;
@@ -70,7 +70,7 @@ const RegisterArticleForm = ({
   initialData,
 }: IRegisterArticleProps) => {
   const [type, setType] = useState(
-    initialData?.batches.category.toUpperCase() ?? "COMPONENTE"
+    initialData?.batch.category.toUpperCase() ?? "COMPONENTE"
   );
   function handleTypeSelect(data: string) {
     setType(data);
