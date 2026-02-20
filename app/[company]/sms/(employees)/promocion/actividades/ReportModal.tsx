@@ -29,13 +29,13 @@ export function ReportModal() {
       <DialogTrigger asChild>
         <Button variant="outline" size="sm" className="h-8 flex gap-2">
           <FileDown className="size-4" />
-          Generar Reporte
+          Generar Cronograma
         </Button>
       </DialogTrigger>
       
       <DialogContent className="sm:max-w-[480px]">
         <DialogHeader className="flex flex-col items-center">
-          <DialogTitle className="text-3xl font-bold text-center">Generar Reporte</DialogTitle>
+          <DialogTitle className="text-3xl font-bold text-center">Generar Cronograma </DialogTitle>
           <DialogDescription className="text-sm italic text-center">
             Selecciona el rango de fechas para la consulta en el servidor.
           </DialogDescription>
