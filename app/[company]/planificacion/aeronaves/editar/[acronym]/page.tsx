@@ -310,7 +310,7 @@ export default function EditAircraftPage({ params }: { params: { acronym: string
                                                 <div className="text-sm font-medium">{aircraftData?.serial}</div>
                                                 
                                                 <div className="text-sm text-muted-foreground">Matrícula</div>
-                                                <div className="text-sm font-medium">{aircraftData?.model}</div>
+                                                <div className="text-sm font-medium">{aircraftData?.acronym}</div>
                                                 
                                                 <div className="text-sm text-muted-foreground">Fecha de Fabricación</div>
                                                 <div className="text-sm font-medium">{aircraftData?.fabricant_date?.getFullYear()}</div>

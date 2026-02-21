@@ -528,7 +528,7 @@ export function PlanificationAircraftTab({ aircraft }: { aircraft: MaintenanceAi
               <CardContent>
                 <div className="grid grid-cols-2 gap-3 text-sm">
                   <div className="flex items-center gap-2 text-muted-foreground"><Hash className="h-4 w-4" /> Matrícula</div>
-                  <div className="font-medium">{aircraft.model || "—"}</div>
+                  <div className="font-medium">{aircraft.acronym || "—"}</div>
 
                   <div className="flex items-center gap-2 text-muted-foreground"><Hash className="h-4 w-4" /> Serial</div>
                   <div className="font-medium">{aircraft.serial || "—"}</div>
