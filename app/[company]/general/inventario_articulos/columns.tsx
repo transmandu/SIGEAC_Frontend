@@ -170,17 +170,18 @@ const baseCols: ColumnDef<IArticleSimple>[] = [
   {
     accessorKey: "quantity",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Cantidad" />
+      <DataTableColumnHeader column={column} title="Disponiblidad" />
     ),
     cell: ({ row }) => {
       const q = row.original.quantity ?? 0;
+      const isAvailable = q > 0;
       return (
         <div className="flex justify-center">
           <Badge
-            variant={q > 5 ? "default" : q > 0 ? "secondary" : "destructive"}
+            variant={isAvailable ? "default" : "destructive"}
             className="text-base font-bold px-3 py-1"
           >
-            {q} {row.original.unit ? row.original.unit.value : "u"}
+            {isAvailable ? "Disponible" : "No Disponible"}
           </Badge>
         </div>
       );

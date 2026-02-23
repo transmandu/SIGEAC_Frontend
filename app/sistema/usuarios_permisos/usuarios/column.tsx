@@ -15,6 +15,9 @@ import UserDropdownActions from "@/components/dropdowns/ajustes/UserDropdownActi
 import { Badge } from "@/components/ui/badge"
 import { User } from "@/types"
 import { redirect } from "next/navigation"
+import { useState } from "react"
+import UserStatusButton  from "@/components/misc/UserStatusButton"
+import { Info } from "lucide-react"
 
 
 export const columns: ColumnDef<User>[] = [
@@ -66,16 +69,31 @@ export const columns: ColumnDef<User>[] = [
   {
     accessorKey: "isActive",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Status" />
+      <div className="flex items-center justify-center gap-1">
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Info className="h-4 w-4 text-muted-foreground/90 cursor-help" />
+          </TooltipTrigger>
+          <TooltipContent side="top">
+            <p className="text-sm text-gray-600">
+              Para activar o desactivar un usuario, haga clic en su estado.
+            </p>
+          </TooltipContent>
+        </Tooltip>
+        <DataTableColumnHeader column={column} title="Status" />
+      </div>
     ),
     cell: ({ row }) => {
       const item = row.original
 
+      const isActive = Number(item.isActive) === 1
+
       return (
         <div className="flex items-center justify-center">
-          {
-            item.isActive ? <Badge className="bg-emerald-500">ACTIVO</Badge> : <Badge className="bg-rose-500">INACTIVO</Badge>
-          }
+          <UserStatusButton
+            userId={Number(item.id)}
+            isActive={isActive}
+          />
         </div>
       )
     }
@@ -88,11 +106,11 @@ export const columns: ColumnDef<User>[] = [
     cell: ({ row }) => {
       const item = row.original
       return (
-        <div className="flex flex-col gap-2 justify-center">
+        <div className="flex flex-col gap-2 justify-center items-center">
           {
             item && item.roles && item?.roles?.length < 3 ? item.roles.map((rol) => (
               <div onClick={() => redirect('/administracion/usuarios_permisos/roles')} className="flex items-center justify-center cursor-pointer" key={rol.id}>
-                <Badge>{rol.name}</Badge>
+                <Badge className="text-center">{rol.label}</Badge>
               </div>
             ))
               :
@@ -101,7 +119,7 @@ export const columns: ColumnDef<User>[] = [
               )
           }
           {
-            item && item.roles && item?.roles?.length <= 0 && <>No tiene permisos</>
+            item && item.roles && item?.roles?.length <= 0 && <p className="text-center italic text-muted-foreground">No tiene permisos</p>
           }
         </div>
       )
@@ -110,10 +128,10 @@ export const columns: ColumnDef<User>[] = [
   {
     id: "actions",
     cell: ({ row }) => {
-      const id = row.original.id
+      const user = row.original
       const companies = row.original.companies
       return (
-        <UserDropdownActions id={id.toString()} companies={companies} />
+        <UserDropdownActions user={user} companies={companies} />
       )
     },
   },
