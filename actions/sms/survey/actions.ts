@@ -225,7 +225,7 @@ export const useUpdateQuestion = () => {
       question_id,
       data,
     }: UpdateQuestionData) => {
-      const response = await axiosInstance.put(
+      const response = await axiosInstance.patch(
         `/${company}/${location_id}/sms/survey/${survey_number}/question/${question_id}`,
         data
       );

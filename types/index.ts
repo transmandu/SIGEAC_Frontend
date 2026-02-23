@@ -1098,6 +1098,7 @@ export type Option = {
   id: string;
   text: string;
   is_correct: boolean | null; //NULL MEANS IS NOT SURVEY OPTION OF TYPE QUIZ
+  updated_by?: string;
 };
 
 export type Question = {
@@ -1106,6 +1107,7 @@ export type Question = {
   type: 'SINGLE' | 'MULTIPLE' | 'OPEN';
   is_required: boolean;
   options?: Option[];
+  update_by?: string;
 };
 
 export type Survey = {

@@ -241,7 +241,8 @@ export function SurveyQuestionsManager({ surveyData, onClose }: Props) {
     const [questionText, setQuestionText] = useState("");
     const [questionType, setQuestionType] = useState<"SINGLE" | "MULTIPLE" | "OPEN">("SINGLE");
     const [questionRequired, setQuestionRequired] = useState(true);
-    const [questionOptions, setQuestionOptions] = useState<Array<{ text: string; is_correct: boolean }>>(
+    const [questionOptions, setQuestionOptions] = useState<
+        Array<{ text: string; is_correct: boolean; id?: string }>>(
         [{ text: "", is_correct: false }]
     );
 
@@ -266,7 +267,12 @@ export function SurveyQuestionsManager({ surveyData, onClose }: Props) {
         setQuestionRequired(question.is_required);
         setQuestionOptions(
             question.options && question.options.length > 0
-                ? question.options.map((opt) => ({ text: opt.text, is_correct: opt.is_correct ?? false }))
+                ? question.options.map((opt) => ({
+                        id: opt.id,
+                        text: opt.text,
+                        is_correct: opt.is_correct ?? false 
+                    
+                    }))
                 : [{ text: "", is_correct: false }]
         );
         setExpandedQuestions(new Set([question.id]));
