@@ -74,7 +74,7 @@ export const columns: ColumnDef<ResponsesBySurvey>[] = [
     ),
     cell: ({ row }) => {
       // Mostrar email para usuarios anónimos, user_id para usuarios autenticados
-      const identifier = row.original.email ?? row.original.user_id;
+      const identifier = row.original.email ?? row.original.user;
       return (
         <div className="flex justify-center">
           <a
