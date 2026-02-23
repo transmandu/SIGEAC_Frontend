@@ -37,7 +37,6 @@ export const columns: ColumnDef<SMSActivity>[] = [
     ),
   },
   {
-    /* --- CAMBIO AQUÍ: Se reemplaza description por title --- */
     accessorKey: "title",
     header: ({ column }) => (
       <DataTableColumnHeader filter column={column} title="Título" />

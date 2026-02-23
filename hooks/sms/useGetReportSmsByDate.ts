@@ -18,6 +18,11 @@ export function useSmsReport(company: string = "transmandu") {
       return;
     }
 
+    if (reportTo < reportFrom) {
+      alert("La fecha 'Hasta' no puede ser anterior a la fecha 'Desde'.");
+      return;
+    }
+
     try {
       setIsGenerating(true);
 
@@ -26,7 +31,7 @@ export function useSmsReport(company: string = "transmandu") {
       // 2. Petición GET con Axios
       // En GET, los datos se pasan en la propiedad 'params'
       const response = await axiosInstance.get(
-        `/${company}/sms-Report-By-Date`, 
+        `/${company}/sms-report-by-date`, 
         { 
           params: { 
             from: format(reportFrom, "yyyy-MM-dd"), 
@@ -50,8 +55,10 @@ export function useSmsReport(company: string = "transmandu") {
       const downloadUrl = window.URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = downloadUrl;
-      
-      const fileName = `Reporte_SMS_${company}_${format(new Date(), "yyyyMMdd")}.pdf`;
+
+      const dateFromStr = format(reportFrom, "yyyy-MM-dd");
+      const dateToStr = format(reportTo, "yyyy-MM-dd");
+      const fileName = `cronograma_sms_${company}_${dateFromStr}_al_${dateToStr}.pdf`;
       link.download = fileName;
 
       document.body.appendChild(link);
