@@ -10,7 +10,6 @@ import { useGetAuthorizedEmployeesFromCompany } from "@/hooks/sistema/autorizado
 const AuthorizeEmployeesPage = () => {
   const { selectedCompany } = useCompanyStore();
 
-  // Obtenemos los empleados que esta empresa ha autorizado a otras empresas
   const {
     data: authorizedEmployees,
     isPending: loading,
@@ -28,13 +27,15 @@ const AuthorizeEmployeesPage = () => {
         Desde esta sección también puede registrar nuevas autorizaciones cuando sea necesario.
       </p>
 
+      {/* Loading */}
       {loading && (
         <div className="grid mt-72 place-content-center">
           <Loader2 className="w-12 h-12 animate-spin" />
         </div>
       )}
 
-      {error && (
+      {/* Error */}
+      {error && !loading && (
         <div className="grid mt-72 place-content-center">
           <p className="text-sm text-muted-foreground">
             Ha ocurrido un error al cargar las autorizaciones de empleados...
@@ -42,14 +43,12 @@ const AuthorizeEmployeesPage = () => {
         </div>
       )}
 
-      {authorizedEmployees && authorizedEmployees.length > 0 ? (
-        <DataTable columns={columns} data={authorizedEmployees} />
-      ) : (
-        !loading && (
-          <p className="text-center text-muted-foreground mt-24">
-            No hay empleados autorizados por esta empresa.
-          </p>
-        )
+      {/* DataTable SIEMPRE visible cuando no esté cargando */}
+      {!loading && !error && (
+        <DataTable
+          columns={columns}
+          data={authorizedEmployees ?? []}
+        />
       )}
     </ContentLayout>
   );

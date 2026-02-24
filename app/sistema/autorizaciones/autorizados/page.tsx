@@ -43,14 +43,11 @@ const AuthorizedEmployeesPage = () => {
         </div>
       )}
 
-      {authorizedEmployees && authorizedEmployees.length > 0 ? (
-        <DataTable columns={columns} data={authorizedEmployees} />
-      ) : (
-        !loading && (
-          <p className="text-center text-muted-foreground mt-24">
-            No existen empleados autorizados para operar en esta empresa.
-          </p>
-        )
+      {!loading && !error && (
+        <DataTable
+          columns={columns}
+          data={authorizedEmployees ?? []}
+        />
       )}
     </ContentLayout>
   );
