@@ -27,13 +27,13 @@ const fetchSurveyResponses = async ({
   return data;
 };
 
-export const useGetSurveyResponses = (survey_number:string) => {
+export const useGetSurveyResponses = (survey_number: string) => {
   const { selectedCompany } = useCompanyStore();
   return useQuery<ResponsesBySurvey[]>({
-    queryKey: ["survey-responses", selectedCompany?.slug],
+    queryKey: ["survey-responses", selectedCompany?.slug, survey_number],
     queryFn: () =>
       fetchSurveyResponses({ company: selectedCompany?.slug, survey_number }),
     staleTime: 1000 * 60 * 5, // 5 minutos
-    enabled: !!selectedCompany?.slug  && !!survey_number,
+    enabled: !!selectedCompany?.slug && !!survey_number,
   });
 };

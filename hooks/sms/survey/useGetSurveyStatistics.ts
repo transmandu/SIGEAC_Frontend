@@ -31,7 +31,7 @@ const fetchSurveyStats = async ({
 export const useGetSurveyStats = (survey_number: string) => {
   const { selectedCompany } = useCompanyStore();
   return useQuery<SurveyStatistics>({
-    queryKey: ["survey-responses", selectedCompany?.slug, survey_number], // Agrega survey_number al queryKey
+    queryKey: ["survey-statistics", selectedCompany?.slug, survey_number],
     queryFn: () =>
       fetchSurveyStats({ company: selectedCompany?.slug, survey_number }),
     staleTime: 1000 * 60 * 5, // 5 minutos
