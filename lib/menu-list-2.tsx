@@ -4,6 +4,7 @@ import { Company } from "@/types";
 import { format } from "date-fns";
 import {
   AreaChartIcon,
+  Award,
   Blocks,
   BookCheck,
   BookUser,
@@ -37,7 +38,8 @@ import {
   UserRoundCog,
   Wrench,
   FilePen,
-  OctagonAlert
+  OctagonAlert,
+  GraduationCap,
 } from "lucide-react";
 
 type Submenu = {
@@ -543,6 +545,16 @@ export function getMenuList(
             },
           ],
         },
+
+        {
+          href: `/${currentCompany?.slug}/sms/certificados`,
+          label: "Certificados",
+          active: pathname.includes(`/${currentCompany?.slug}/sms/certificados`),
+          icon: Award,
+          roles: ["SUPERUSER", "JEFE_SMS", "ANALISTA_SMS"],
+          submenus: [],
+        },
+
         {
           href: "",
           label: "Promoción",

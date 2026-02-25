@@ -34,6 +34,7 @@ import {
   User2,
   UserRoundCog,
   Wrench,
+  GraduationCap,
 } from "lucide-react";
 
 type Submenu = {
