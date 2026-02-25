@@ -19,9 +19,9 @@ export const useCreateJobTitle = () => {
 
   const createMutation = useMutation({
     mutationFn: async ({ company, data }: JobTitleFormSchema) =>
-      await axiosInstance.post(`/job_titles`, data),
+      await axiosInstance.post(`/job-titles`, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["job_titles"] });
+      queryClient.invalidateQueries({ queryKey: ["job-titles"] });
       toast.success("¡Creado!", {
         description: "¡El cargo ha sido creado correctamente!",
       });
@@ -42,9 +42,9 @@ export const useUpdateJobTitle = () => {
 
   const updateMutation = useMutation({
     mutationFn: async ({ company, id, data }: UpdateJobTitleFormSchema) =>
-      await axiosInstance.put(`/job_titles/${id}`, data),
+      await axiosInstance.put(`/job-titles/${id}`, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["job_titles"] });
+      queryClient.invalidateQueries({ queryKey: ["job-titles"] });
       toast.success("¡Actualizado!", {
         description: "¡El cargo ha sido actualizado correctamente!",
       });
@@ -65,9 +65,9 @@ export const useDeleteJobTitle = () => {
 
   const deleteMutation = useMutation({
     mutationFn: async ({ id, company }: { id: number; company: string }) =>
-      await axiosInstance.delete(`/${company}/job_titles/${id}`),
+      await axiosInstance.delete(`/${company}/job-titles/${id}`),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["job_titles"] });
+      queryClient.invalidateQueries({ queryKey: ["job-titles"] });
       toast.success("¡Eliminado!", {
         description: "¡El cargo ha sido eliminado correctamente!",
       });

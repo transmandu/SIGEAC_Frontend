@@ -37,7 +37,8 @@ import {
   UserRoundCog,
   Wrench,
   FilePen,
-  OctagonAlert
+  OctagonAlert,
+  KeyRound,
 } from "lucide-react";
 
 type Submenu = {
@@ -999,7 +1000,11 @@ export function getMenuList(
               href: "/ajustes/globales/proveedores",
               label: "Proveedores",
               active: pathname === "/ajustes/globales/proveedores",
-              roles: ["JEFE_COMPRAS", "ANALISTA_COMPRAS", "SUPERUSER"],
+              roles: [
+                "JEFE_COMPRAS", 
+                "ANALISTA_COMPRAS", 
+                "SUPERUSER"
+              ],
             },
             {
               href: "/ajustes/globales/clientes",
@@ -1026,38 +1031,42 @@ export function getMenuList(
               href: "/ajustes/globales/fuentes_informacion",
               label: "Fuentes de Informacion",
               active: pathname === "/ajustes/globales/fuentes_informacion",
-              roles: ["JEFE_SMS", "ANALISTA_SMS", "SUPERUSER"],
+              roles: [
+                "JEFE_SMS", 
+                "ANALISTA_SMS", 
+                "SUPERUSER"
+              ],
             },
           ],
         },
-        {
-          href: "/ajustes/bancos_cuentas",
-          label: "Bancos",
-          active: pathname.includes("/bancos_cuentas"),
-          icon: Landmark,
-          roles: [
-            "SUPERUSER",
-            "ANALISTA_ADMINISTRACION",
-            "JEFE_ADMINISTRACION",
-          ],
-          submenus: [
-            {
-              href: "/ajustes/bancos_cuentas/bancos",
-              label: "Bancos",
-              active: pathname === "/ajustes/bancos_cuentas/bancos",
-            },
-            {
-              href: "/ajustes/bancos_cuentas/cuentas",
-              label: "Cuentas",
-              active: pathname === "/ajustes/bancos_cuentas/cuentas",
-            },
-            {
-              href: "/ajustes/bancos_cuentas/tarjetas",
-              label: "Tarjetas",
-              active: pathname === "/ajustes/bancos_cuentas/tarjetas",
-            },
-          ],
-        },
+        // {
+        //   href: "/ajustes/bancos_cuentas",
+        //   label: "Bancos",
+        //   active: pathname.includes("/bancos_cuentas"),
+        //   icon: Landmark,
+        //   roles: [
+        //     "SUPERUSER",
+        //     "ANALISTA_ADMINISTRACION",
+        //     "JEFE_ADMINISTRACION",
+        //   ],
+        //   submenus: [
+        //     {
+        //       href: "/ajustes/bancos_cuentas/bancos",
+        //       label: "Bancos",
+        //       active: pathname === "/ajustes/bancos_cuentas/bancos",
+        //     },
+        //     {
+        //       href: "/ajustes/bancos_cuentas/cuentas",
+        //       label: "Cuentas",
+        //       active: pathname === "/ajustes/bancos_cuentas/cuentas",
+        //     },
+        //     {
+        //       href: "/ajustes/bancos_cuentas/tarjetas",
+        //       label: "Tarjetas",
+        //       active: pathname === "/ajustes/bancos_cuentas/tarjetas",
+        //     },
+        //   ],
+        // },
         {
           href: "/ajustes/cuenta",
           label: "Cuenta",
@@ -1069,7 +1078,7 @@ export function getMenuList(
       ],
     },
     {
-      groupLabel: "Sistema",
+      groupLabel: "Administrador",
       menus: [
         {
           href: "/sistema/modulos",
@@ -1081,7 +1090,7 @@ export function getMenuList(
         },
         {
           href: "/sistema/usuarios_permisos",
-          label: "Usuarios Y Permisos",
+          label: "Usuarios y Permisos",
           active: pathname.includes("/sistema/usuarios_permisos"),
           icon: User2,
           roles: ["ADMIN", "SUPERUSER"],
@@ -1104,8 +1113,27 @@ export function getMenuList(
           ],
         },
         {
+          href: "/sistema/autorizaciones/",
+          label: "Autorizaciones",
+          active: pathname.includes("/sistema/autorizaciones"),
+          icon: KeyRound,
+          roles: ["ADMIN", "SUPERUSER"],
+          submenus: [
+            {
+              href: "/sistema/autorizaciones/autorizar",
+              label: "Autorizar Empleados",
+              active: pathname === "/sistema/autorizaciones/autorizar",
+            },
+            {
+              href: "/sistema/autorizaciones/autorizados",
+              label: "Empleados Autorizados",
+              active: pathname === "/sistema/autorizaciones/autorizados",
+            },
+          ]
+        },
+        {
           href: "/sistema/empresas/",
-          label: "Empresas",
+          label: "Empresa",
           active: pathname.includes("/sistema/empresas/"),
           icon: Building2,
           roles: ["ADMIN", "SUPERUSER"],
@@ -1113,6 +1141,7 @@ export function getMenuList(
             {
               href: "/sistema/empresas/empresas",
               label: "Administrar Empresas",
+              roles: ["SUPERUSER"],
               active: pathname === "/sistema/empresas/empresas",
             },
             {
@@ -1139,6 +1168,11 @@ export function getMenuList(
               href: "/sistema/empresas/almacenes",
               label: "Administrar Almacenes",
               active: pathname === "/sistema/empresas/almacenes",
+            },
+            {
+              href: "/sistema/empresas/autorizados",
+              label: "Administrar Autorizados",
+              active: pathname === "/sistema/empresas/autorizados",
             },
           ],
         },
