@@ -41,7 +41,7 @@ const SMSPage = () => {
   const { data: surveyNumbers } = useGetSurveySettingNumbers(company);
   const SMSresponsibilities = [
     {
-      image: `${process.env.NEXT_PUBLIC_STORAGE_BASE_URL}/images/sms/risk_icon.png`,
+      image: `${process.env.NEXT_PUBLIC_STORAGE_BASE_URL}images/sms/risk_icon.png`,
       title: "Responsabilidades SMS Dueños de Proceso",
       items: [
         "Mitigar los Riesgos",
@@ -51,7 +51,7 @@ const SMSPage = () => {
       ],
     },
     {
-      image: `${process.env.NEXT_PUBLIC_STORAGE_BASE_URL}/images/sms/caution.png`,
+      image: `${process.env.NEXT_PUBLIC_STORAGE_BASE_URL}images/sms/caution.png`,
       title: "Responsabilidades SMS Resto del Personal",
       items: [
         "Identificar Peligros",
@@ -72,7 +72,7 @@ const SMSPage = () => {
               {/* Imagen */}
               <div className="relative h-64 lg:h-full min-h-[300px]">
                 <Image
-                  src={`${process.env.NEXT_PUBLIC_STORAGE_BASE_URL}/images/sms/LOGO_TMD.png`}
+                  src={`${process.env.NEXT_PUBLIC_STORAGE_BASE_URL}images/sms/LOGO_TMD.png`}
                   alt="Logo Transmandu"
                   fill
                   className="object-cover"
