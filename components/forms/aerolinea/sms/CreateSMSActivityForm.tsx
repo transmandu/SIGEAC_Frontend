@@ -9,7 +9,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-
+import Image from "next/image";
 import {
   useCreateSMSActivity,
   useUpdateSMSActivity,
@@ -63,6 +63,8 @@ const FormSchema = z
     planned_by: z.string(),
     executed_by: z.string().optional(),
     title: z.string(),
+    image: z.any().optional(),
+    document: z.any().optional(),
   })
   .refine(
     (data) => {
@@ -202,6 +204,8 @@ export default function CreateSMSActivityForm({
         id: initialData.id.toString(),
         data: {
           ...data,
+          image: data.image,
+          document: data.document,
           status: initialData.status,
         },
       };
@@ -224,7 +228,7 @@ export default function CreateSMSActivityForm({
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit(onSubmit)}
-        className="flex flex-col space-y-3"
+        className="flex flex-col space-y-3 max-h-[80vh] overflow-y-auto p-2"
       >
         <FormLabel className="text-lg text-center m-2"></FormLabel>
         {/* ... (el resto del JSX no necesita cambios) ... */}
@@ -612,6 +616,80 @@ export default function CreateSMSActivityForm({
             )}
           />
         </div>
+
+        {/* Sección de Carga de Archivos */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <FormField
+            control={form.control}
+            name="image"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Imagen del Reporte</FormLabel>
+                <div className="flex flex-col gap-4">
+                  {/* Vista previa de la imagen */}
+                  {(field.value instanceof File || initialData?.imageUrl) && (
+                    <div className="relative w-24 h-24 border rounded-md overflow-hidden">
+                      <Image
+                        src={
+                          field.value instanceof File
+                            ? URL.createObjectURL(field.value)
+                            : initialData?.imageUrl || ""
+                        }
+                        alt="Preview"
+                        fill
+                        className="object-contain"
+                      />
+                    </div>
+                  )}
+
+                  <FormControl>
+                    <Input
+                      type="file"
+                      accept="image/jpeg, image/png, image/jpg"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          field.onChange(file);
+                        }
+                      }}
+                    />
+                  </FormControl>
+                </div>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="document"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Documento PDF</FormLabel>
+                <div className="flex items-center gap-4">
+                  {field.value && (
+                    <div>
+                      <p className="text-sm text-gray-500">
+                        Archivo seleccionado:
+                      </p>
+                      <p className="font-semibold text-sm">
+                        {field.value.name}
+                      </p>
+                    </div>
+                  )}
+                  <FormControl>
+                    <Input
+                      type="file"
+                      accept="application/pdf"
+                      onChange={(e) => field.onChange(e.target.files?.[0])}
+                    />
+                  </FormControl>
+                </div>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
         <div className="flex justify-between items-center gap-x-4">
           <Separator className="flex-1" />
           <p className="text-muted-foreground">SIGEAC</p>

@@ -25,7 +25,7 @@ import {
 } from "@tanstack/react-table";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { ReportModal } from "./ReportModal"; 
+import { ReportModal } from "./ReportModal";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -38,7 +38,6 @@ export function DataTable<TData, TValue>({
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
-  
   const table = useReactTable({
     data,
     columns,
@@ -60,33 +59,26 @@ export function DataTable<TData, TValue>({
   return (
     <>
       <div className="flex flex-col gap-2 mb-4">
-        <h1 className="text-5xl font-bold text-center">
-          Actividades de SMS
-        </h1>
+        <h1 className="text-5xl font-bold text-center">Actividades de SMS</h1>
         <p className="text-sm italic text-muted-foreground text-center">
-          Aquí se pueden visualizar las actividades de SMS planificadas y ejecutadas hasta el momento
+          Aquí se pueden visualizar las actividades de SMS planificadas y
+            ejecutadas hata el momento
         </p>
       </div>
 
-      <div className="flex items-center justify-between py-4">
-        {/* Grupo de botones a la izquierda */}
-        <div className="flex items-center gap-2">
-          <Button
-            onClick={() => {
-              router.push(`/${selectedCompany?.slug}/sms/promocion/actividades/nueva_actividad`);
-            }}
-            variant="outline"
-            size="sm"
-            className="hidden h-8 lg:flex"
-          >
-            Nueva Actividad
-          </Button>
-
-          {/* ReportModal llamado correctamente sin props excedentes */}
-          <ReportModal />
-        </div>
-
-        {/* Opciones de visualización de columnas a la derecha */}
+      <div className="flex items-center py-4">
+        <Button
+          onClick={() => {
+            router.push(
+              `/${selectedCompany?.slug}/sms/promocion/actividades/nueva_actividad`,
+            );
+          }}
+          variant="outline"
+          size="sm"
+          className=" border-dashed flex h-8"
+        >
+          Nueva Actividad
+        </Button>
         <DataTableViewOptions table={table} />
       </div>
 

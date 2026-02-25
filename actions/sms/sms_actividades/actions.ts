@@ -18,6 +18,8 @@ interface SMSActivityData {
   authorized_by: string;
   planned_by: string;
   executed_by?: string;
+  image?: File | string;
+  document?: File | string;
 }
 interface updateSMSActivityData {
   company: string | null;
@@ -37,6 +39,8 @@ interface updateSMSActivityData {
     authorized_by: string;
     planned_by: string;
     executed_by?: string;
+    image?: File | string;
+    document?: File | string;
     status: string;
   };
 }
@@ -51,9 +55,23 @@ export const useCreateSMSActivity = () => {
       company: string | null;
       data: SMSActivityData;
     }) => {
+      const formData = new FormData();
+      Object.entries(data).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          if (value instanceof Date) {
+            const year = value.getFullYear();
+            const month = String(value.getMonth() + 1).padStart(2, "0");
+            const day = String(value.getDate()).padStart(2, "0");
+            formData.append(key, `${year}-${month}-${day}`);
+          } else {
+            formData.append(key, value as string | Blob);
+          }
+        }
+      });
+
       const response = await axiosInstance.post(
         `/${company}/sms/activities`,
-        data,
+        formData,
         {
           headers: {
             "Content-Type": "multipart/form-data",
@@ -116,9 +134,30 @@ export const useUpdateSMSActivity = () => {
 
   const updateSMSActivityMutation = useMutation({
     mutationFn: async ({ company, id, data }: updateSMSActivityData) => {
-      const response = await axiosInstance.patch(
+      const formData = new FormData();
+      formData.append("_method", "PATCH");
+
+      Object.entries(data).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          if (value instanceof Date) {
+            const year = value.getFullYear();
+            const month = String(value.getMonth() + 1).padStart(2, "0");
+            const day = String(value.getDate()).padStart(2, "0");
+            formData.append(key, `${year}-${month}-${day}`);
+          } else {
+            formData.append(key, value as string | Blob);
+          }
+        }
+      });
+
+      const response = await axiosInstance.post(
         `/${company}/sms/activities/${id}`,
-        data
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
       );
       return response.data;
     },

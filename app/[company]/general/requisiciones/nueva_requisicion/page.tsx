@@ -154,16 +154,16 @@ const CreateRequisitionPage = () => {
   const {
     data: employees,
     isPending: employeesLoading,
-  } = useGetUserDepartamentEmployees();
+  } = useGetUserDepartamentEmployees(selectedCompany?.slug);
   const { data: secondaryUnits, isLoading: secondaryUnitLoading } =
     useGetSecondaryUnits(selectedCompany?.slug);
   const {
     data: aircrafts,
     isLoading: isAircraftsLoading,
-  } = useGetMaintenanceAircrafts();
+  } = useGetMaintenanceAircrafts(selectedCompany?.slug);
   const { createRequisition } = useCreateRequisition();
   const [selectedBatches, setSelectedBatches] = useState<Batch[]>([]);
-  const router = useRouter();
+  const router = useRouter()
 
   const form = useForm<FormSchemaType>({
     resolver: zodResolver(FormSchema),
@@ -178,9 +178,9 @@ const CreateRequisitionPage = () => {
 
   useEffect(() => {
     if (user && selectedCompany && selectedStation) {
-      form.setValue("created_by", user.id.toString())
-      form.setValue("company", selectedCompany!.slug)
-      form.setValue("location_id", selectedStation)
+      form.setValue("created_by", user.id.toString());
+      form.setValue("company", selectedCompany?.slug);
+      form.setValue("location_id", selectedStation);
     }
   }, [user, form, selectedCompany, selectedStation]);
 
@@ -188,7 +188,7 @@ const CreateRequisitionPage = () => {
     if (selectedStation) {
       mutate({location_id: Number(selectedStation), company: selectedCompany!.slug})
     }
-  }, [selectedStation, mutate, selectedCompany]);
+  }, [selectedStation, mutate, selectedCompany])
 
   useEffect(() => {
     form.setValue("articles", selectedBatches);
@@ -313,20 +313,21 @@ const CreateRequisitionPage = () => {
   const onSubmit = async (data: FormSchemaType) => {
     const formattedData = {
       ...data,
-      type: "AVIACION",
-    };
-    await createRequisition.mutateAsync({data: formattedData, company: selectedCompany!.slug});
-    router.push(`/${selectedCompany!.slug}/compras_administracion/requisiciones`);
-  };
+      type: "GENERAL",
+    }
+        
+    await createRequisition.mutateAsync({data: formattedData, company: selectedCompany!.slug})
+    router.push(`/${selectedCompany!.slug}/general/requisiciones`)
+  }
 
   return (
-    <ContentLayout title="Requisición">
+    <ContentLayout title="Solicitud de Compra">
       <div className="space-y-6">
         <h1 className="text-5xl font-bold text-center">
-          Crear Nueva Requisición
+          Crear Nueva Solicitud de Compra
         </h1>
         <p className="text-muted-foreground text-center italic">
-          Ingrese la información para crear una requisición de uno o múltiples
+          Ingrese la información para crear una solicitud de compra de uno o múltiples
           artículos.
         </p>
         <Form {...form}>
@@ -359,13 +360,13 @@ const CreateRequisitionPage = () => {
                             {field.value
                               ? employees?.find(
                                   (employee) =>
-                                    `${employee.first_name} ${employee.last_name}` ===
+                                    `${employee.dni}` ===
                                     field.value
                                 )?.first_name +
                                 " " +
                                 employees?.find(
                                   (employee) =>
-                                    `${employee.first_name} ${employee.last_name}` ===
+                                    `${employee.dni}` ===
                                     field.value
                                 )?.last_name
                               : "Elige al solicitante..."}
@@ -383,19 +384,19 @@ const CreateRequisitionPage = () => {
                             <CommandGroup>
                               {employees?.map((employee) => (
                                 <CommandItem
-                                  value={`${employee.first_name} ${employee.last_name}`}
+                                  value={`${employee.dni}`}
                                   key={employee.id}
                                   onSelect={() => {
                                     form.setValue(
                                       "requested_by",
-                                      `${employee.first_name} ${employee.last_name}`
+                                      `${employee.dni}`
                                     );
                                   }}
                                 >
                                   <Check
                                     className={cn(
                                       "mr-2 h-4 w-4",
-                                      `${employee.first_name} ${employee.last_name}` ===
+                                      `${employee.dni}` ===
                                         field.value
                                         ? "opacity-100"
                                         : "opacity-0"
@@ -822,7 +823,7 @@ const CreateRequisitionPage = () => {
               name="justification"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Justificación</FormLabel>
+                  <FormLabel>Descripción</FormLabel>
                   <FormControl>
                     <Textarea
                       placeholder="Ej: Necesidad de la pieza X para instalación..."
@@ -870,7 +871,7 @@ const CreateRequisitionPage = () => {
               {createRequisition.isPending ? (
                 <Loader2 className="ml-2 h-4 w-4 animate-spin" />
               ) : (
-                "Crear Requisición"
+                "Crear Solicitud de Compra"
               )}
             </Button>
           </form>

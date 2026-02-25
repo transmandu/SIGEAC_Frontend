@@ -145,10 +145,7 @@ export function ComponentDispatchForm({ onClose }: FormProps) {
   })
 
   const { data: generalRes, isLoading: isGeneralLoading } = useGetGeneralArticles()
-  const generalArticles = useMemo<GeneralArticle[]>(
-    () => generalRes ?? [],
-    [generalRes]
-  )
+  const generalArticles: GeneralArticle[] = generalRes ?? []
 
   const form = useForm<FormSchemaType>({
     resolver: zodResolver(FormSchema),
@@ -166,11 +163,8 @@ export function ComponentDispatchForm({ onClose }: FormProps) {
   const compFA = useFieldArray({ control, name: "aeronautical_articles" })
   const genFA = useFieldArray({ control, name: "general_articles" })
 
-  const watchedCompRaw = useWatch({ control, name: "aeronautical_articles" })
-  const watchedGenRaw = useWatch({ control, name: "general_articles" })
-
-  const watchedComp = useMemo(() => watchedCompRaw ?? [], [watchedCompRaw])
-  const watchedGen = useMemo(() => watchedGenRaw ?? [], [watchedGenRaw])
+  const watchedComp = useWatch({ control, name: "aeronautical_articles" }) ?? []
+  const watchedGen = useWatch({ control, name: "general_articles" }) ?? []
 
   // Limpiar destino cuando cambia el tipo
   useEffect(() => {
@@ -190,35 +184,8 @@ export function ComponentDispatchForm({ onClose }: FormProps) {
     return map
   }, [generalArticles])
 
-  const getCompMax = useCallback(
-    (id: number) => compById.get(id)?.quantity ?? 0,
-    [compById]
-  )
-
-  const getGenMax = useCallback(
-    (id: number) => genById.get(id)?.quantity ?? 0,
-    [genById]
-  )
-
-  const validateAndClamp = useCallback(
-    (key: string, raw: string, max: number) => {
-      const n = parseFloat(raw || "0") || 0
-
-      if (!raw || n <= 0) {
-        setRowMsg(key, { msg: "La cantidad debe ser mayor a 0", level: "error" })
-        return raw
-      }
-
-      if (max > 0 && n > max) {
-        setRowMsg(key, { msg: `Se ajustó al máximo disponible: ${max}`, level: "warn" })
-        return String(max)
-      }
-
-      setRowMsg(key, undefined)
-      return raw
-    },
-    []
-  )
+  const getCompMax = (id: number) => compById.get(id)?.quantity ?? 0
+  const getGenMax = (id: number) => genById.get(id)?.quantity ?? 0
 
   // selected sets para toggles
   const compSelectedSet = useMemo(() => new Set(watchedComp.map((x) => Number(x.article_id))), [watchedComp])
@@ -236,6 +203,23 @@ export function ComponentDispatchForm({ onClose }: FormProps) {
 
   const setRowMsg = (key: string, msg: RowMsg) => setMsgByKey((p) => ({ ...p, [key]: msg }))
 
+  const validateAndClamp = (key: string, raw: string, max: number) => {
+    const n = parseFloat(raw || "0") || 0
+
+    if (!raw || n <= 0) {
+      setRowMsg(key, { msg: "La cantidad debe ser mayor a 0", level: "error" })
+      return raw
+    }
+
+    if (max > 0 && n > max) {
+      setRowMsg(key, { msg: `Se ajustó al máximo disponible: ${max}`, level: "warn" })
+      return String(max)
+    }
+
+    setRowMsg(key, undefined)
+    return raw
+  }
+
   const commitCompQty = useCallback(
     (index: number, fieldId: string) => {
       const key = compKey(fieldId)
@@ -245,11 +229,12 @@ export function ComponentDispatchForm({ onClose }: FormProps) {
 
       const raw = qtyByKey[key] ?? ""
       const adjusted = validateAndClamp(key, raw, max)
-
       setQtyByKey((p) => ({ ...p, [key]: adjusted }))
-      setValue(`aeronautical_articles.${index}.quantity`, 1)
+
+      const q = 1
+      setValue(`aeronautical_articles.${index}.quantity`, q)
     },
-    [qtyByKey, setValue, watchedComp, getCompMax, validateAndClamp]
+    [qtyByKey, setValue, watchedComp, compById]
   )
 
   const commitGenQty = useCallback(
@@ -261,13 +246,13 @@ export function ComponentDispatchForm({ onClose }: FormProps) {
 
       const raw = qtyByKey[key] ?? ""
       const adjusted = validateAndClamp(key, raw, max)
-
       setQtyByKey((p) => ({ ...p, [key]: adjusted }))
-      setValue(`general_articles.${index}.quantity`, parseFloat(adjusted || "0") || 0)
-    },
-    [qtyByKey, setValue, watchedGen, getGenMax, validateAndClamp]
-  )
 
+      const q = parseFloat(adjusted || "0") || 0
+      setValue(`general_articles.${index}.quantity`, q)
+    },
+    [qtyByKey, setValue, watchedGen, genById]
+  )
 
   const clearRowState = (key: string) => {
     setQtyByKey((p) => {

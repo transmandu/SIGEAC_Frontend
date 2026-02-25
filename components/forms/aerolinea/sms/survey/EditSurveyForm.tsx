@@ -28,7 +28,7 @@ import { Separator } from "@/components/ui/separator";
 import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useState, useRef, useEffect } from "react";
-import { useCreateSurvey } from "@/actions/sms/survey/actions";
+import { useCreateSurvey, useUpdateSurvey } from "@/actions/sms/survey/actions";
 import {
   Select,
   SelectContent,
@@ -37,9 +37,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
+import { Survey } from "@/types";
+import { useCompanyStore } from "@/stores/CompanyStore";
 
 interface FormProps {
   onClose: () => void;
+  initialData?: Survey;
 }
 
 // Esquema para las opciones de preguntas
@@ -48,7 +51,7 @@ const OptionSchema = z.object({
   is_correct: z.boolean().optional(),
 });
 
-// Esquema para las preguntas - CORREGIDO
+// Esquema para las preguntas
 const QuestionSchema = z
   .object({
     text: z.string().min(3, "La pregunta debe tener al menos 3 caracteres"),
@@ -59,15 +62,13 @@ const QuestionSchema = z
   .refine(
     (data) => {
       if (data.type === "OPEN") {
-        return true; // Las preguntas abiertas no necesitan opciones
+        return true;
       }
 
-      // Para preguntas de selección, validar opciones
       if (!data.options || data.options.length === 0) {
         return false;
       }
 
-      // Validar que todas las opciones tengan texto
       const emptyOptions = data.options.filter((opt) => !opt.text.trim());
       if (emptyOptions.length > 0) {
         return false;
@@ -82,7 +83,7 @@ const QuestionSchema = z
     }
   );
 
-// Esquema principal del formulario - SIMPLIFICADO
+// Esquema principal del formulario
 const FormSchema = z.object({
   title: z.string().min(3, "El nombre debe tener al menos 3 caracteres."),
   description: z.string().min(3, "La descripción es obligatoria."),
@@ -94,7 +95,7 @@ const FormSchema = z.object({
 
 type FormSchemaType = z.infer<typeof FormSchema>;
 
-// Componente para el input de opción con manejo de Enter
+// Componente para el input de opción
 interface OptionInputProps {
   questionIndex: number;
   optionIndex: number;
@@ -136,7 +137,6 @@ function OptionInput({
 
   return (
     <div className="flex items-center space-x-2">
-      {/* Checkbox/Radio para respuesta correcta (solo en QUIZ) */}
       {surveyType === "QUIZ" && questionType !== "OPEN" && (
         <div className="flex items-center">
           {questionType === "SINGLE" ? (
@@ -546,23 +546,33 @@ function QuestionItem({
   );
 }
 
-export function CreateSurveyForm({ onClose }: FormProps) {
+export function EditSurveyForm({ onClose, initialData }: FormProps) {
   const { createSurvey } = useCreateSurvey();
+  const { updateSurvey } = useUpdateSurvey();
+  const { selectedCompany, selectedStation } = useCompanyStore();
 
   const form = useForm<FormSchemaType>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
-      title: "",
-      description: "",
-      type: "SURVEY",
-      questions: [
-        {
-          text: "",
-          type: "SINGLE",
-          is_required: true,
-          options: [{ text: "", is_correct: false }],
-        },
-      ],
+      title: initialData?.title || "",
+      description: initialData?.description || "",
+      type: initialData?.type || "SURVEY",
+      questions: initialData?.questions?.map((q) => ({
+        text: q.text,
+        type: q.type,
+        is_required: q.is_required,
+        options: q.options?.map((opt) => ({
+          text: opt.text,
+          is_correct: opt.is_correct || false,
+        })) || [{ text: "", is_correct: false }],
+      })) || [
+          {
+            text: "",
+            type: "SINGLE" as const,
+            is_required: true,
+            options: [{ text: "", is_correct: false }],
+          },
+        ],
     },
   });
 
@@ -614,11 +624,22 @@ export function CreateSurveyForm({ onClose }: FormProps) {
 
 
     try {
-      await createSurvey.mutateAsync(formPayload);
+      if (initialData) {
+        // Modo edición
+        await updateSurvey.mutateAsync({
+          company: selectedCompany!.slug,
+          location_id: selectedStation!,
+          survey_number: initialData.survey_number,
+          data: formPayload,
+        });
+      } else {
+        // Modo creación
+        await createSurvey.mutateAsync(formPayload);
+      }
       form.reset();
       onClose();
     } catch (error) {
-      console.error("Error al crear la encuesta:", error);
+      console.error("Error al procesar la encuesta:", error);
     }
   };
 
@@ -657,9 +678,13 @@ export function CreateSurveyForm({ onClose }: FormProps) {
         className="w-full max-w-6xl mx-auto p-6 space-y-6"
       >
         <div className="text-center">
-          <h1 className="text-2xl font-bold">Creación de Encuesta</h1>
+          <h1 className="text-2xl font-bold">
+            {initialData ? "Edición de Encuesta" : "Creación de Encuesta"}
+          </h1>
           <p className="text-gray-600 mt-2">
-            Complete la información requerida para crear una nueva encuesta
+            {initialData
+              ? "Modifique los campos necesarios para actualizar la encuesta"
+              : "Complete la información requerida para crear una nueva encuesta"}
           </p>
         </div>
 
@@ -770,11 +795,13 @@ export function CreateSurveyForm({ onClose }: FormProps) {
 
         <Button
           type="submit"
-          disabled={createSurvey.isPending}
+          disabled={createSurvey.isPending || updateSurvey.isPending}
           className="w-full"
         >
-          {createSurvey.isPending ? (
+          {createSurvey.isPending || updateSurvey.isPending ? (
             <Loader2 className="size-4 animate-spin" />
+          ) : initialData ? (
+            `Actualizar ${surveyType === "QUIZ" ? "Trivia" : "Encuesta"}`
           ) : (
             `Crear ${surveyType === "QUIZ" ? "Trivia" : "Encuesta"}`
           )}

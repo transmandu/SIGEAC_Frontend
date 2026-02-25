@@ -150,9 +150,7 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
   })
 
   const { data: hardwareRes, isLoading: isHardwareLoading } = useGetGeneralArticles()
-  const hardwareArticles = useMemo<GeneralArticle[]>(() => {
-    return hardwareRes ?? []
-  }, [hardwareRes])
+  const hardwareArticles: GeneralArticle[] = hardwareRes ?? []
 
   const form = useForm<FormSchemaType>({
     resolver: zodResolver(FormSchema),
@@ -172,19 +170,8 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
   const genFA = useFieldArray({ control, name: "general_articles" })
 
   // Watch arrays (evita getValues repetido en render)
-  const watchedAeroRaw = useWatch({ control, name: "aeronautical_articles" })
-  const watchedGenRaw = useWatch({ control, name: "general_articles" })
-
-  const watchedAero = useMemo(() => watchedAeroRaw ?? [], [watchedAeroRaw])
-  const watchedGen = useMemo(() => watchedGenRaw ?? [], [watchedGenRaw])
-
-  const aeroSelectedSet = useMemo(() => {
-    return new Set(watchedAero.map((x) => Number(x.article_id)))
-  }, [watchedAero])
-
-  const genSelectedSet = useMemo(() => {
-    return new Set(watchedGen.map((x) => Number(x.general_article_id)))
-  }, [watchedGen])
+  const watchedAero = useWatch({ control, name: "aeronautical_articles" }) ?? []
+  const watchedGen = useWatch({ control, name: "general_articles" }) ?? []
 
   // Lookups
   const aeroById = useMemo(() => {
@@ -203,13 +190,14 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
     return map
   }, [hardwareArticles])
 
-  const getAeroMax = useCallback(
-    (articleId: number) => aeroById.get(articleId)?.quantity || 0,
-    [aeroById]
-  )
-  const getGenMax = useCallback(
-    (generalId: number) => genById.get(generalId)?.quantity || 0,
-    [genById]
+  const getAeroMax = (articleId: number) => aeroById.get(articleId)?.quantity || 0
+  const getGenMax = (generalId: number) => genById.get(generalId)?.quantity || 0
+
+  // selected sets para mostrar check y hacer toggle remove desde el buscador
+  const aeroSelectedSet = useMemo(() => new Set(watchedAero.map((x) => Number(x.article_id))), [watchedAero])
+  const genSelectedSet = useMemo(
+    () => new Set(watchedGen.map((x) => Number(x.general_article_id))),
+    [watchedGen]
   )
 
   // Reset destino al cambiar tipo
@@ -228,25 +216,22 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
     setMsgByKey((p) => ({ ...p, [key]: msg }))
   }
 
-  const validateAndClamp = useCallback(
-    (key: string, raw: string, max: number) => {
-      const n = parseFloat(raw || "0") || 0
+  const validateAndClamp = (key: string, raw: string, max: number) => {
+    const n = parseFloat(raw || "0") || 0
 
-      if (!raw || n <= 0) {
-        setRowMsg(key, { msg: "La cantidad debe ser mayor a 0", level: "error" })
-        return raw
-      }
-
-      if (max > 0 && n > max) {
-        setRowMsg(key, { msg: `Se ajustó al máximo disponible: ${max}`, level: "warn" })
-        return String(max)
-      }
-
-      setRowMsg(key, undefined)
+    if (!raw || n <= 0) {
+      setRowMsg(key, { msg: "La cantidad debe ser mayor a 0", level: "error" })
       return raw
-    },
-    []
-  )
+    }
+
+    if (max > 0 && n > max) {
+      setRowMsg(key, { msg: `Se ajustó al máximo disponible: ${max}`, level: "warn" })
+      return String(max)
+    }
+
+    setRowMsg(key, undefined)
+    return raw
+  }
 
   const commitAeroQty = useCallback(
     (index: number, fieldId: string) => {
@@ -256,11 +241,12 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
 
       const raw = qtyByKey[key] ?? ""
       const adjusted = validateAndClamp(key, raw, max)
-
       setQtyByKey((p) => ({ ...p, [key]: adjusted }))
-      setValue(`aeronautical_articles.${index}.quantity`, parseFloat(adjusted || "0") || 0)
+
+      const q = parseFloat(adjusted || "0") || 0
+      setValue(`aeronautical_articles.${index}.quantity`, q)
     },
-    [qtyByKey, setValue, getAeroMax, validateAndClamp, watchedAero]
+    [qtyByKey, setValue, watchedAero, aeroById]
   )
 
   const commitGenQty = useCallback(
@@ -271,11 +257,12 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
 
       const raw = qtyByKey[key] ?? ""
       const adjusted = validateAndClamp(key, raw, max)
-
       setQtyByKey((p) => ({ ...p, [key]: adjusted }))
-      setValue(`general_articles.${index}.quantity`, parseFloat(adjusted || "0") || 0)
+
+      const q = parseFloat(adjusted || "0") || 0
+      setValue(`general_articles.${index}.quantity`, q)
     },
-    [qtyByKey, setValue, getGenMax, validateAndClamp, watchedGen]
+    [qtyByKey, setValue, watchedGen, genById]
   )
 
   const clearRowState = (key: string) => {
@@ -1113,7 +1100,7 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
                           {ga?.description ?? (generalId ? `ID: ${generalId}` : "Artículo")}
                         </p>
                         <p className="text-xs text-muted-foreground truncate">
-                          {ga?.brand_model ?? "N/A"} · {ga?.variant_type ?? "N/A"} · Disponible: {ga?.quantity ?? 0} {ga?.general_primary_unit?.label ?? ""}
+                          {ga?.brand_model ?? "N/A"} · {ga?.variant_type ?? "N/A"} · Disponible: {ga?.quantity ?? 0} {ga?.general_primary_unit.label ?? ""}
                         </p>
                       </div>
 

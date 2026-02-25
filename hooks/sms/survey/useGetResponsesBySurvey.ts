@@ -12,7 +12,7 @@ export interface ResponsesBySurvey {
   survey_number: string;
   survey_type: string;
   email: string | null;
-  user_id: string | null;
+  user: string | null;
   response_date: string; // o Date si planeas convertirlo
   questions_answered: number;
 }

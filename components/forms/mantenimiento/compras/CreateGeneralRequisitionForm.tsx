@@ -111,7 +111,7 @@ interface Batch {
   batch_articles: Article[];
 }
 
-export function CreateGeneralBatchRequisitionForm({
+export function CreateGeneralRequisitionForm({
   onClose,
   initialData,
   isEditing,
@@ -295,7 +295,7 @@ export function CreateGeneralBatchRequisitionForm({
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit(onSubmit)}
-        className="flex flex-col space-y-3 max-h-[90vh]"
+        className="flex flex-col space-y-3"
       >
         <div className="flex gap-2 items-center">
           <FormField
@@ -328,7 +328,7 @@ export function CreateGeneralBatchRequisitionForm({
                                   field.value
                               )?.first_name
                             }{" "}
-                            {" "}
+                            -{" "}
                             {
                               employees?.find(
                                 (employee) =>
@@ -420,7 +420,7 @@ export function CreateGeneralBatchRequisitionForm({
             <FormItem className="flex flex-col">
               <div className="flex gap-4 items-end">
                 <FormItem className="flex flex-col w-[200px]">
-                  <FormLabel>Lote/Renglón</FormLabel>
+                  <FormLabel>Artículos</FormLabel>
                     <Popover>
                       <PopoverTrigger asChild>
                         <FormControl>
@@ -493,18 +493,14 @@ export function CreateGeneralBatchRequisitionForm({
                                 {isAircraftsLoading && (
                                   <Loader2 className="size-4 animate-spin mr-2" />
                                 )}
-                                {field.value ? (
-                                  <span className="truncate max-w-[140px]">
-                                    {(() => {
+                                {field.value
+                                  ? (() => {
                                       const a = aircrafts?.find(
                                         (aircraft) => aircraft.id.toString() === field.value
                                       );
                                       return `${a?.acronym ?? "—"} - ${a?.manufacturer?.name ?? "Sin fabricante"}`;
-                                    })()}
-                                  </span>
-                                ) : (
-                                  "Selec. la aeronave..."
-                                )}
+                                    })()
+                                  : "Selec. la aeronave..."}
                                 <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                               </Button>
                             </FormControl>
@@ -551,7 +547,7 @@ export function CreateGeneralBatchRequisitionForm({
                 <ScrollArea
                   className={cn(
                     "",
-                    selectedBatches.length > 1 ? "h-[280px]" : ""
+                    selectedBatches.length > 2 ? "h-[300px]" : ""
                   )}
                 >
                   {selectedBatches.map((batch) => (
@@ -570,13 +566,13 @@ export function CreateGeneralBatchRequisitionForm({
                       <ScrollArea
                         className={cn(
                           "",
-                          batch.batch_articles.length > 2 ? "h-[125px]" : ""
+                          batch.batch_articles.length > 2 ? "h-[150px]" : ""
                         )}
                       >
                         {batch.batch_articles.map((article, index) => (
                           <div
                             key={index}
-                            className="flex items-center gap-4 mt-2 py-2 px-1"
+                            className="flex items-center space-x-4 mt-2"
                           >
                             <Input
                               placeholder="Número de parte"

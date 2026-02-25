@@ -1,12 +1,8 @@
-import { Batch } from "@/types";
-import { LucideIcon } from "lucide-react";
-
 export type ChecklistValue = boolean | "NA";
 
 export type ChecklistDecision = "ACCEPTED" | "HOLD" | "REJECTED";
 
 export type ChecklistItem = {
-  id: string;
   key: string;
   label: string;
   hint?: string;
@@ -15,7 +11,7 @@ export type ChecklistItem = {
 
 export type ChecklistGroup = {
   title: string;
-  icon: LucideIcon;
+  icon: React.ReactNode;
   items: ChecklistItem[];
 };
 
@@ -25,13 +21,3 @@ export type IncomingConfirmPayload = {
   notes?: string;
   final_zone?: string;
 };
-
-
-export interface IncomingArticle {
-  id: number
-  batch: Batch,
-  part_number: string
-  alternative_part_number?: string[]
-  serial: string,
-  ata_code: string,
-}

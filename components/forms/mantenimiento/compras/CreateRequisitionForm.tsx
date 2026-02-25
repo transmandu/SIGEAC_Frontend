@@ -88,7 +88,7 @@ interface Batch {
   batch_articles: Article[];
 }
 
-export function CreateEngineeringBatchRequisitionForm({ onClose }: FormProps) {
+export function CreateRequisitionForm({ onClose }: FormProps) {
   const { user } = useAuth();
 
   const { mutate, data, isPending } = useGetBatchesByLocationId();

@@ -416,8 +416,8 @@ export default function CreateToolForm({
       description: initialData?.description || "",
       zone: initialData?.zone || "",
       manufacturer_id: initialData?.manufacturer?.id?.toString() || "",
-      batch_id: initialData?.batch?.id?.toString() || "",
-      batch_name: initialData?.batch?.name || "",
+      batch_id: initialData?.batches?.id?.toString() || "",
+      batch_name: initialData?.batches?.name || "",
       needs_calibration: initialData?.tool?.needs_calibration ?? false,
       calibration_date: initialData?.tool?.calibration_date
         ? parseISO(initialData.tool.calibration_date)
@@ -548,9 +548,7 @@ export default function CreateToolForm({
               name="inspector"
               render={({ field }) => (
                 <FormItem className="w-full">
-                  <FormLabel>
-                      inspector (Incoming) <span className="text-xs italic text-gray-500 font-normal ml-1">(Inspector)</span>
-                  </FormLabel>
+                  <FormLabel>Inspector (Incoming)</FormLabel>
                   <FormControl>
                     <Input placeholder="Nombre del Inspector" {...field} />
                   </FormControl>
@@ -564,9 +562,7 @@ export default function CreateToolForm({
               name="inspect_date"
               render={({ field }) => (
                 <FormItem className="flex flex-col">
-                  <FormLabel>
-                    Fecha de Inspección <span className="text-xs italic text-gray-500 font-normal ml-1">(Inspection Date)</span>
-                  </FormLabel>
+                  <FormLabel>Fecha de Inspeccion</FormLabel>
                   <Popover>
                     <PopoverTrigger asChild>
                       <FormControl>
@@ -617,9 +613,7 @@ export default function CreateToolForm({
               name="part_number"
               render={({ field }) => (
                 <FormItem className="w-full">
-                  <FormLabel>
-                    Nro. de parte <span className="text-xs italic text-gray-500 font-normal ml-1">(Part number)</span>
-                  </FormLabel>
+                  <FormLabel>Nro. de parte</FormLabel>
                   <FormControl>
                     <Input
                       placeholder="Ej: TW-500"
@@ -655,9 +649,7 @@ export default function CreateToolForm({
               name="serial"
               render={({ field }) => (
                 <FormItem className="w-full">
-                  <FormLabel>
-                    Serial <span className="text-xs italic text-gray-500 font-normal ml-1">(Serial number)</span>
-                  </FormLabel>
+                  <FormLabel>Serial</FormLabel>
                   <FormControl>
                     <Input
                       placeholder="Ej: S-000123"
@@ -676,9 +668,7 @@ export default function CreateToolForm({
               name="alternative_part_number"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>
-                    Nros. de parte alternos <span className="text-xs italic text-gray-500 font-normal ml-1">(Alternative part numbers)</span>
-                  </FormLabel>
+                  <FormLabel>Nros. de parte alternos</FormLabel>
                   <FormControl>
                     <MultiInputField
                       values={field.value || []}
@@ -703,9 +693,7 @@ export default function CreateToolForm({
                 render={({ field }) => (
                   <FormItem className="w-full">
                     <div className="flex items-center justify-between">
-                      <FormLabel>
-                        Descripción <span className="text-xs italic text-gray-500 font-normal ml-1">(Description)</span>
-                      </FormLabel>
+                      <FormLabel>Descripción</FormLabel>
                       <CreateBatchDialog
                         onSuccess={async (batchName) => {
                           // Invalidar la query y refetch para obtener el batch recién creado
@@ -873,9 +861,7 @@ export default function CreateToolForm({
               render={({ field }) => (
                 <FormItem className="w-full">
                   <div className="flex items-center justify-between">
-                    <FormLabel>
-                      Fabricante <span className="text-xs italic text-gray-500 font-normal ml-1">(Manufacturer)</span>
-                    </FormLabel>
+                    <FormLabel>Fabricante</FormLabel>
                     <CreateManufacturerDialog
                       defaultType="PART"
                       onSuccess={(manufacturer) => {
@@ -1005,9 +991,7 @@ export default function CreateToolForm({
               name="zone"
               render={({ field }) => (
                 <FormItem className="w-full">
-                  <FormLabel>
-                    Ubicación interna <span className="text-xs italic text-gray-500 font-normal ml-1">(Internal location)</span>
-                  </FormLabel>
+                  <FormLabel>Ubicación interna</FormLabel>
                   <FormControl>
                     <Input
                       placeholder="Ej: Taller, Estantería B"
@@ -1113,9 +1097,7 @@ export default function CreateToolForm({
               name="description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>
-                    Observaciones <span className="text-xs italic text-gray-500 font-normal ml-1">(Observations)</span>
-                  </FormLabel>
+                  <FormLabel>Observaciones</FormLabel>
                   <FormControl>
                     <Textarea
                       rows={5}

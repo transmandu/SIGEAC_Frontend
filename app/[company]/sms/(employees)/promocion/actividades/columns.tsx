@@ -37,14 +37,14 @@ export const columns: ColumnDef<SMSActivity>[] = [
     ),
   },
   {
-    accessorKey: "title",
+    accessorKey: "description",
     header: ({ column }) => (
-      <DataTableColumnHeader filter column={column} title="Título" />
+      <DataTableColumnHeader column={column} title="Descripcion" />
     ),
-    meta: { title: "Título" },
+    meta: { title: "Descripcion" },
     cell: ({ row }) => (
-      <p className="font-medium text-center italic">
-        {row.original.title ?? "N/A"}
+      <p className="font-medium text-center">
+        {row.original.description ?? "N/A"}
       </p>
     ),
   },
@@ -74,7 +74,7 @@ export const columns: ColumnDef<SMSActivity>[] = [
           ${
             row.original.status === "CERRADO"
               ? "bg-red-400"
-              : "bg-green-500" 
+              : "bg-green-500" // Color gris oscuro (puedes ajustar el tono)
           }`}
             >
               {row.original.status}

@@ -56,12 +56,13 @@ function ImageDisplayDialog({
   // Manejar la URL local para cleanup
   useEffect(() => {
     if (imageUrl) {
+      // Limpiar URL anterior si existe
       if (localImageUrl && localImageUrl !== imageUrl) {
         URL.revokeObjectURL(localImageUrl);
       }
       setLocalImageUrl(imageUrl);
     }
-  }, [imageUrl, localImageUrl]);
+  }, [imageUrl]);
 
   // Cleanup al desmontar
   useEffect(() => {

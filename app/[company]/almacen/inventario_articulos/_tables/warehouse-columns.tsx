@@ -10,7 +10,6 @@ import ArticleDropdownActions from "@/components/dropdowns/mantenimiento/almacen
 import { WarehouseResponse } from "@/hooks/mantenimiento/almacen/articulos/useGetWarehouseArticlesByCategory";
 import { StatusColumnHeader } from "@/components/tables/StatusColumnHeader";
 import { Unit } from "@/types";
-import { formatCondition } from "@/lib/warehouse/conditions";
 
 export interface IArticleSimple {
   id: number;
@@ -44,7 +43,6 @@ export interface IArticleSimple {
   consumable?: {
     expiration_date?: string | Date | null;
     fabrication_date?: string | Date | null;
-    shelf_life?: string | Date | null;
     unit?: Unit;
   };
 
@@ -138,25 +136,25 @@ export const flattenArticles = (data: WarehouseResponse | undefined): IArticleSi
 
         component:
           batch.category === "COMPONENTE" &&
-          ((article as any).expiration_date != null ||
-            article.component?.shell_time)
+          ((article as any).expiration_date != null || article.component?.shell_time)
             ? {
                 expiration_date:
                   (article as any).expiration_date ??
                   article.component?.shell_time?.expiration_date ??
                   null,
-                fabrication_date:
-                  article.component?.shell_time?.fabrication_date ?? null,
+                fabrication_date: article.component?.shell_time?.fabrication_date ?? null,
               }
             : undefined,
 
         consumable:
-          batch.category === "CONSUMIBLE"
+          batch.category === "CONSUMIBLE" &&
+          ((article as any).expiration_date != null || article.consumable?.shell_time)
             ? {
-                expiration_date: (article as any).expiration_date ?? null,
-                fabrication_date: (article as any).fabrication_date ?? null,
-                shelf_life: (article as any).shelf_life ?? null, // ✅ AGREGAR ESTA LÍNEA
-                unit: article.unit ?? undefined,
+                expiration_date:
+                  (article as any).expiration_date ??
+                  article.consumable?.shell_time?.expiration_date ??
+                  null,
+                fabrication_date: article.consumable?.shell_time?.fabrication_date ?? null,
               }
             : undefined,
       };
@@ -244,39 +242,6 @@ const baseCols: ColumnDef<IArticleSimple>[] = [
       </div>
     ),
   },
-  {
-  accessorKey: "condition",
-  header: ({ column }) => (
-    <DataTableColumnHeader filter column={column} title="Condición" />
-  ),
-  cell: ({ row }) => {
-    const condition = row.original.condition
-
-    if (row.original.__isGroup) {
-      return (
-        <div className="text-muted-foreground font-bold text-center max-w-xs line-clamp-2">
-          {"-"}
-        </div>
-      )
-    }
-
-    const c = formatCondition(condition)
-
-    return (
-      <div className="flex-col text-center max-w-xs line-clamp-2 leading-tight">
-        {c ? (
-          <>
-            <span className="font-bold text-foreground">{c.es}</span>{" "}
-            <span className="text-xs text-muted-foreground italic">({c.en})</span>
-          </>
-        ) : (
-          <span className="text-muted-foreground font-bold">Sin condición</span>
-        )}
-      </div>
-    )
-  },
-},
-
   {
     accessorKey: "status",
     header: ({ column }) => <StatusColumnHeader column={column} />,
@@ -406,7 +371,7 @@ export const componenteCols: ColumnDef<IArticleSimple>[] = [
       }
       return null;
     },
-    meta: { sticky: "right", className: "bg-background" } as any,
+    meta: { sticky: "right", className: "bg-background" },
   },
 ];
 
@@ -415,10 +380,8 @@ export const consumibleCols: ColumnDef<IArticleSimple>[] = [
   ...baseCols,
   quantityCol,
   {
-    id: "expiration_date",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Proximo Vencimiento" />
-    ),
+    id: "shelf_life",
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Shelf Life" />,
     cell: ({ row }) => {
       if (row.original.__isGroup) {
         return (
@@ -456,79 +419,17 @@ export const consumibleCols: ColumnDef<IArticleSimple>[] = [
       today.setHours(0, 0, 0, 0);
       date.setHours(0, 0, 0, 0);
       const daysUntilExpiry = Math.ceil(
-        (date.getTime() - today.getTime()) / (1000 * 60 * 60 * 24),
+        (date.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
       );
 
-      let variant: "default" | "secondary" | "destructive" | "outline" =
-        "default";
+      let variant: "default" | "secondary" | "destructive" | "outline" = "default";
       if (daysUntilExpiry < 0) variant = "destructive";
       else if (daysUntilExpiry <= 30) variant = "secondary";
 
       return (
         <div className="text-center">
           <Badge variant={variant} className="text-sm font-medium">
-            {format(date, "dd/MM/yyyy") === "01/01/1900"
-              ? "N/A"
-              : format(date, "dd/MM/yyyy")}
-          </Badge>
-        </div>
-      );
-    },
-  },
-  {
-    id: "shelf_life",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Shelf Life" />
-    ),
-    cell: ({ row }) => {
-      if (row.original.__isGroup) {
-        return (
-          <div className="text-center">
-            <span className="text-muted-foreground italic">—</span>
-          </div>
-        );
-      }
-
-      const shelf_date = row.original.consumable?.shelf_life;
-      if (!shelf_date) {
-        return (
-          <div className="text-center">
-            <span className="text-muted-foreground italic">N/A</span>
-          </div>
-        );
-      }
-
-      const date =
-        shelf_date instanceof Date
-          ? shelf_date
-          : typeof shelf_date === "string"
-            ? parseDateLocal(shelf_date)
-            : null;
-
-      if (!date || isNaN(date.getTime())) {
-        return (
-          <div className="text-center">
-            <span className="text-muted-foreground italic">N/A</span>
-          </div>
-        );
-      }
-
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      date.setHours(0, 0, 0, 0);
-      const daysUntilExpiry = Math.ceil(
-        (date.getTime() - today.getTime()) / (1000 * 60 * 60 * 24),
-      );
-
-      let variant: "default" | "secondary" | "destructive" | "outline" =
-        "default";
-      if (daysUntilExpiry < 0) variant = "destructive";
-      else if (daysUntilExpiry <= 30) variant = "secondary";
-
-      return (
-        <div className="text-center">
-          <Badge variant={variant} className="text-sm font-medium">
-            {format(date, "dd/MM/yyyy") === "01/01/1900" ? "N/A" : format(date, "dd/MM/yyyy")}
+            {format(date, "dd/MM/yyyy")}
           </Badge>
         </div>
       );
@@ -536,11 +437,7 @@ export const consumibleCols: ColumnDef<IArticleSimple>[] = [
   },
   {
     id: "actions",
-    header: () => (
-      <div className="sticky right-0 bg-background z-50 text-center">
-        Acciones
-      </div>
-    ),
+    header: () => <div className="sticky right-0 bg-background z-50 text-center">Acciones</div>,
     cell: ({ row }) => {
       const item = row.original;
       if (item.__isGroup) return null;
@@ -554,7 +451,7 @@ export const consumibleCols: ColumnDef<IArticleSimple>[] = [
       }
       return null;
     },
-    meta: { sticky: "right", className: "bg-background" } as any,
+    meta: { sticky: "right" },
   },
 ];
 
@@ -615,7 +512,7 @@ export const herramientaCols: ColumnDef<IArticleSimple>[] = [
       }
       return null;
     },
-    meta: { sticky: "right", className: "bg-background" } as any,
+    meta: { sticky: "right" },
   },
 ];
 
@@ -697,7 +594,7 @@ export const allCategoriesCols: ColumnDef<IArticleSimple>[] = [
       }
       return null;
     },
-    meta: { sticky: "right", className: "bg-background" } as any,
+    meta: { sticky: "right" },
   },
 ];
 

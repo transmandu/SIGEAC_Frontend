@@ -37,6 +37,7 @@ export function IncomingHeader({
   total,
   okCount,
   docRisk,
+  onTake,
 }: {
   article: any; // cámbialo a EditingArticle si quieres
   progress: number;
@@ -44,6 +45,7 @@ export function IncomingHeader({
   total: number;
   okCount: number;
   docRisk: boolean;
+  onTake?: () => void;
 }) {
   const hasDocs = !!article?.has_documentation;
 
@@ -81,7 +83,8 @@ export function IncomingHeader({
           <div className="mt-3 flex flex-wrap gap-2">
             <InfoPill icon={<Hash className="h-4 w-4" />} label="ATA" value={article?.ata_code} />
             <InfoPill icon={<Factory className="h-4 w-4" />} label="Fabricante" value={article?.manufacturer?.name} />
-            <InfoPill icon={<Tag className="h-4 w-4" />} label="Descripción" value={article?.batch?.name} />
+            <InfoPill icon={<MapPin className="h-4 w-4" />} label="Zona" value={article?.zone} />
+            <InfoPill icon={<Tag className="h-4 w-4" />} label="Descripción" value={article?.batches?.name} />
           </div>
         </div>
 
@@ -104,6 +107,12 @@ export function IncomingHeader({
               </p>
             </div>
           </div>
+
+          {onTake ? (
+            <Button type="button" variant="outline" onClick={onTake} className="w-full lg:w-[360px]">
+              Tomar para inspección
+            </Button>
+          ) : null}
         </div>
       </div>
     </div>

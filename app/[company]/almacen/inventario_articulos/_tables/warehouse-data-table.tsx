@@ -43,9 +43,10 @@ export function DataTable<TData, TValue>({
   onRowClick,
   rowClassName,
 }: DataTableProps<TData, TValue>) {
-  const [sorting, setSorting] = useState<SortingState>([])
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
-  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
+
+  const [sorting, setSorting] = React.useState<SortingState>([]);
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
 
   const table = useReactTable({
     data,
@@ -63,6 +64,7 @@ export function DataTable<TData, TValue>({
       columnVisibility,
     },
   })
+
 
   const stickyHeadClass = "sticky right-0 z-40 bg-background"
   const stickyCellClass = "sticky right-0 z-30 bg-background group-hover:bg-muted/50"

@@ -677,7 +677,6 @@ export type Requisition = {
       quantity: number;
       unit?: Convertion;
       image: string;
-      aircraft?: string
     }[];
   }[];
   received_by: string;
@@ -1038,6 +1037,10 @@ export type SMSActivity = {
   authorized_by: Employee;
   planned_by: Employee;
   executed_by: string;
+  image?: File | string;
+  document?: File | string;
+  imageUrl?: string;
+  documentUrl?: string;
   status: string;
 };
 
@@ -1096,6 +1099,7 @@ export type Option = {
   id: string;
   text: string;
   is_correct: boolean | null; //NULL MEANS IS NOT SURVEY OPTION OF TYPE QUIZ
+  updated_by?: string;
 };
 
 export type Question = {
@@ -1104,6 +1108,7 @@ export type Question = {
   type: 'SINGLE' | 'MULTIPLE' | 'OPEN';
   is_required: boolean;
   options?: Option[];
+  update_by?: string;
 };
 
 export type Survey = {
@@ -1118,6 +1123,7 @@ export type Survey = {
   location: string;
   setting?: string;
   questions: Question[];
+  answers_count?: number; // populated by withCount('answers') in backend
 };
 
 export type SafetyBulletin = {

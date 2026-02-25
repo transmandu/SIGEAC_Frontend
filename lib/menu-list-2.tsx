@@ -196,9 +196,12 @@ export function getMenuList(
           icon: PackageSearch,
           roles: [
             "SUPERUSER",
+            "JEFE_ALMACEN",
+            "ANALISTA_ALMACEN",
             "ANALISTA_COMPRAS",
             "ANALISTA_PLANIFICACION",
             "JEFE_PLANIFICACION",
+            "JEFE_ALMACENAMIENTO",
             "ANALISTA_ADMINISTRACION",
             "RRHH_ADMINISTRACION",
             "JEFE_ADMINISTRACION",
@@ -221,17 +224,18 @@ export function getMenuList(
             "SUPERUSER",
             "JEFE_ALMACEN",
             "ANALISTA_ALMACEN",
-            "JEFE_DESARROLLO",
+            "ANALISTA_COMPRAS",
             "ANALISTA_DESARROLLO",
-            "JEFE_PLANIFICACION",
             "ANALISTA_PLANIFICACION",
-            "JEFE_MANTENIMIENTO",
+            "JEFE_PLANIFICACION",
+            "JEFE_ALMACENAMIENTO",
             "ANALISTA_ADMINISTRACION",
             "RRHH_ADMINISTRACION",
             "JEFE_ADMINISTRACION",
             "CONTADOR_ADMINISTRACION",
             "TESTER",
             "ENGINEERING",
+            "JEFE_MANTENIMIENTO",
           ],
           submenus: [],
         },
@@ -951,16 +955,16 @@ export function getMenuList(
         //   roles: ["SUPERUSER"],
         //   submenus: [],
         // },
-        // {
-        //   href: `/${currentCompany?.slug}/ingenieria/requisiciones/nueva_requisicion`,
-        //   label: "Solicitudes de Compra",
-        //   active: pathname.includes(
-        //     `/${currentCompany?.slug}/ingenieria/requisiciones/nueva_requisicion`
-        //   ),
-        //   icon: ScrollText,
-        //   roles: ["SUPERUSER", "ENGINEERING"],
-        //   submenus: [],
-        // },
+        {
+          href: `/${currentCompany?.slug}/ingenieria/requisiciones/nueva_requisicion`,
+          label: "Solicitudes de Compra",
+          active: pathname.includes(
+            `/${currentCompany?.slug}/ingenieria/requisiciones/nueva_requisicion`
+          ),
+          icon: ScrollText,
+          roles: ["SUPERUSER", "ENGINEERING"],
+          submenus: [],
+        },
       ],
     },
     {
@@ -1001,8 +1005,8 @@ export function getMenuList(
               label: "Proveedores",
               active: pathname === "/ajustes/globales/proveedores",
               roles: [
-                "JEFE_COMPRAS", 
-                "ANALISTA_COMPRAS", 
+                "JEFE_COMPRAS",
+                "ANALISTA_COMPRAS",
                 "SUPERUSER"
               ],
             },
@@ -1032,8 +1036,8 @@ export function getMenuList(
               label: "Fuentes de Informacion",
               active: pathname === "/ajustes/globales/fuentes_informacion",
               roles: [
-                "JEFE_SMS", 
-                "ANALISTA_SMS", 
+                "JEFE_SMS",
+                "ANALISTA_SMS",
                 "SUPERUSER"
               ],
             },
