@@ -153,7 +153,7 @@ export function getMenuList(
           roles: [],
           submenus: [
             {
-              href: `/${currentCompany?.slug}/general/reporte/pagina_de_sms`,
+              href: `/acceso_publico/${currentCompany?.slug}/sms`,
               label: "Pagina de SMS",
               roles: [],
               active:
@@ -184,14 +184,13 @@ export function getMenuList(
                 pathname ===
                 `/${currentCompany?.slug}/general/reporte/codigos_qr`,
             },
-
           ],
         },
         {
           href: `/${currentCompany?.slug}/general/inventario_articulos`,
           label: "Inventario",
           active: pathname.includes(
-            `/${currentCompany?.slug}/general/inventario_articulos`
+            `/${currentCompany?.slug}/general/inventario_articulos`,
           ),
           icon: PackageSearch,
           roles: [
@@ -214,7 +213,7 @@ export function getMenuList(
           href: `/${currentCompany?.slug}/general/requisiciones`,
           label: "Solicitudes de Compra",
           active: pathname.includes(
-            `/${currentCompany?.slug}/general/requisiciones`
+            `/${currentCompany?.slug}/general/requisiciones`,
           ),
           icon: ScrollText,
           roles: [
@@ -274,7 +273,7 @@ export function getMenuList(
           href: `/${currentCompany?.slug}/administracion/creditos`,
           label: "Créditos",
           active: pathname.includes(
-            `/${currentCompany?.slug}/administracion/creditos`
+            `/${currentCompany?.slug}/administracion/creditos`,
           ),
           icon: CreditCardIcon,
           roles: [
@@ -312,7 +311,7 @@ export function getMenuList(
           href: `/${currentCompany?.slug}/administracion/gestion_cajas`,
           label: "Finanzas",
           active: pathname.includes(
-            `/${currentCompany?.slug}/administracion/gestion_cajas`
+            `/${currentCompany?.slug}/administracion/gestion_cajas`,
           ),
           icon: Landmark,
           roles: [
@@ -357,7 +356,7 @@ export function getMenuList(
           href: `/${currentCompany?.slug}/administracion/gestion_general`,
           label: "General",
           active: pathname.includes(
-            `/${currentCompany?.slug}/administracion/gestion_general`
+            `/${currentCompany?.slug}/administracion/gestion_general`,
           ),
           icon: BookUser,
           roles: [
@@ -388,7 +387,7 @@ export function getMenuList(
           href: `/${currentCompany?.slug}/administracion/operaciones`,
           label: "Operaciones",
           active: pathname.includes(
-            `/${currentCompany?.slug}/administracion/operaciones`
+            `/${currentCompany?.slug}/administracion/operaciones`,
           ),
           icon: PackageOpen,
           roles: [
@@ -410,7 +409,7 @@ export function getMenuList(
           href: `/${currentCompany?.slug}/administracion/gestion_vuelos`,
           label: "Vuelos",
           active: pathname.includes(
-            `/${currentCompany?.slug}/administracion/gestion_vuelos`
+            `/${currentCompany?.slug}/administracion/gestion_vuelos`,
           ),
           icon: PlaneIcon,
           roles: [
@@ -477,7 +476,7 @@ export function getMenuList(
           href: `/${currentCompany?.slug}/sms`,
           label: "Gestion de Reportes",
           active: pathname.includes(
-            `/${currentCompany?.slug}/sms/gestion_reportes`
+            `/${currentCompany?.slug}/sms/gestion_reportes`,
           ),
           icon: ShieldAlert,
           roles: ["ANALISTA_SMS", "JEFE_SMS", "SUPERUSER"],
@@ -505,7 +504,7 @@ export function getMenuList(
           label: "Estadisticas",
           icon: AreaChartIcon,
           active: pathname.includes(
-            `/${currentCompany?.slug}/sms/estadisticas`
+            `/${currentCompany?.slug}/sms/estadisticas`,
           ),
           roles: ["ANALISTA_SMS", "JEFE_SMS", "SUPERUSER"],
           submenus: [
@@ -588,7 +587,7 @@ export function getMenuList(
           href: "",
           label: "Gestión de Encuestas",
           active: pathname.includes(
-            `/${currentCompany?.slug}/sms/gestion_encuestas`
+            `/${currentCompany?.slug}/sms/gestion_encuestas`,
           ),
           icon: ClipboardCheck,
           roles: ["SUPERUSER", "JEFE_SMS", "ANALISTA_SMS"],
@@ -644,7 +643,7 @@ export function getMenuList(
           href: `/${currentCompany?.slug}/compras/requisiciones`,
           label: "Requisiciones",
           active: pathname.includes(
-            `/${currentCompany?.slug}/compras/requisiciones`
+            `/${currentCompany?.slug}/compras/requisiciones`,
           ),
           icon: ClipboardList,
           roles: ["ANALISTA_COMPRAS", "JEFE_COMPRAS", "SUPERUSER"],
@@ -654,7 +653,7 @@ export function getMenuList(
           href: `/${currentCompany?.slug}/compras/cotizaciones`,
           label: "Cotizaciones",
           active: pathname.includes(
-            `/${currentCompany?.slug}/compras/cotizaciones`
+            `/${currentCompany?.slug}/compras/cotizaciones`,
           ),
           icon: HandCoins,
           roles: ["ANALISTA_COMPRAS", "JEFE_COMPRAS", "SUPERUSER"],
@@ -664,7 +663,7 @@ export function getMenuList(
           href: `/${currentCompany?.slug}/compras/ordenes_compra`,
           label: "Ordenes de Compra",
           active: pathname.includes(
-            `/${currentCompany?.slug}/compras/ordenes_compra`
+            `/${currentCompany?.slug}/compras/ordenes_compra`,
           ),
           icon: Receipt,
           roles: [
@@ -724,7 +723,7 @@ export function getMenuList(
           href: `/${currentCompany?.slug}/almacen/ingresar_inventario`,
           label: "Ingreso de Inventario",
           active: pathname.includes(
-            `/${currentCompany?.slug}/almacen/ingresar_inventario`
+            `/${currentCompany?.slug}/almacen/ingresar_inventario`,
           ),
           icon: Boxes,
           roles: ["ANALISTA_ALMACEN", "JEFE_ALMACEN", "SUPERUSER"],
@@ -734,7 +733,7 @@ export function getMenuList(
           href: `/${currentCompany?.slug}/almacen/inventario_articulos`,
           label: "Inventario",
           active: pathname.includes(
-            `/${currentCompany?.slug}/almacen/inventario`
+            `/${currentCompany?.slug}/almacen/inventario`,
           ),
           icon: PackageOpen,
           roles: ["ANALISTA_ALMACEN", "JEFE_ALMACEN", "SUPERUSER"],
@@ -750,8 +749,7 @@ export function getMenuList(
               href: `/${currentCompany?.slug}/almacen/por_ubicar`,
               label: "Por Ubicar",
               active:
-                pathname ===
-                `/${currentCompany?.slug}/almacen/por_ubicar`,
+                pathname === `/${currentCompany?.slug}/almacen/por_ubicar`,
             },
             {
               href: `/${currentCompany?.slug}/almacen/inventario_articulos/entregado`,
@@ -766,7 +764,7 @@ export function getMenuList(
           href: "",
           label: "Solicitudes",
           active: pathname.includes(
-            `/${currentCompany?.slug}/almacen/solicitudes`
+            `/${currentCompany?.slug}/almacen/solicitudes`,
           ),
           icon: ClipboardCopy,
           roles: ["ANALISTA_ALMACEN", "JEFE_ALMACEN", "SUPERUSER"],
@@ -792,7 +790,7 @@ export function getMenuList(
           label: "Cajas de Herramientas",
           roles: ["ANALISTA_ALMACEN", "JEFE_ALMACEN", "SUPERUSER"],
           active: pathname.includes(
-            `/${currentCompany?.slug}/almacen/caja_herramientas`
+            `/${currentCompany?.slug}/almacen/caja_herramientas`,
           ),
           icon: Wrench,
           submenus: [],
@@ -802,7 +800,7 @@ export function getMenuList(
           label: "Gestión de Cantidades",
           roles: ["ANALISTA_ALMACEN", "JEFE_ALMACEN", "SUPERUSER"],
           active: pathname.includes(
-            `/${currentCompany?.slug}/almacen/gestion_cantidad_general`
+            `/${currentCompany?.slug}/almacen/gestion_cantidad_general`,
           ),
           icon: SquarePen,
           submenus: [],
@@ -817,7 +815,7 @@ export function getMenuList(
           href: `/${currentCompany?.slug}/planificacion/calendario`,
           label: "Calendario de Servicios",
           active: pathname.includes(
-            `/${currentCompany?.slug}/planificacion/calendario`
+            `/${currentCompany?.slug}/planificacion/calendario`,
           ),
           icon: CalendarFold,
           roles: ["ANALISTA_PLANIFICACION", "JEFE_PLANIFICACION", "SUPERUSER"],
@@ -827,7 +825,7 @@ export function getMenuList(
           href: `/${currentCompany?.slug}/planificacion/ordenes_trabajo`,
           label: "Ordenes de Trabajo",
           active: pathname.includes(
-            `/${currentCompany?.slug}/planificacion/ordenes_trabajo`
+            `/${currentCompany?.slug}/planificacion/ordenes_trabajo`,
           ),
           icon: SquarePen,
           roles: ["ANALISTA_PLANIFICACION", "JEFE_PLANIFICACION", "SUPERUSER"],
@@ -845,7 +843,7 @@ export function getMenuList(
           href: `/${currentCompany?.slug}/planificacion/aeronaves`,
           label: "Aeronaves",
           active: pathname.includes(
-            `/${currentCompany?.slug}/planificacion/reportes`
+            `/${currentCompany?.slug}/planificacion/reportes`,
           ),
           icon: Plane,
           roles: ["ANALISTA_PLANIFICACION", "JEFE_PLANIFICACION", "SUPERUSER"],
@@ -862,7 +860,7 @@ export function getMenuList(
           href: `/${currentCompany?.slug}/planificacion/aeronaves`,
           label: "Control de Horas Vuelos",
           active: pathname.includes(
-            `/${currentCompany?.slug}/planificacion/control_vuelos`
+            `/${currentCompany?.slug}/planificacion/control_vuelos`,
           ),
           icon: BookCheck,
           roles: ["ANALISTA_PLANIFICACION", "JEFE_PLANIFICACION", "SUPERUSER"],
@@ -885,7 +883,7 @@ export function getMenuList(
         },
       ],
     },
-        {
+    {
       groupLabel: "Control de Calidad",
       menus: [
         {
@@ -893,7 +891,7 @@ export function getMenuList(
           label: "Gestión de Incoming",
 
           active: pathname.includes(
-            `/${currentCompany?.slug}/control_calidad/incoming`
+            `/${currentCompany?.slug}/control_calidad/incoming`,
           ),
           icon: FilePen,
           roles: ["JEFE_CONTROL_CALIDAD", "SUPERUSER"],
@@ -904,7 +902,7 @@ export function getMenuList(
           label: "Gestión de Cuarentena",
 
           active: pathname.includes(
-            `/${currentCompany?.slug}/control_calidad/cuarentena`
+            `/${currentCompany?.slug}/control_calidad/cuarentena`,
           ),
           icon: OctagonAlert,
           roles: ["JEFE_CONTROL_CALIDAD", "SUPERUSER"],
@@ -920,7 +918,7 @@ export function getMenuList(
           href: `/${currentCompany?.slug}/mantenimiento/servicios`,
           label: "Servicios",
           active: pathname.includes(
-            `/${currentCompany?.slug}/mantenimiento/servicios`
+            `/${currentCompany?.slug}/mantenimiento/servicios`,
           ),
           icon: Drill,
           roles: ["ANALISTA_PLANIFICACION", "JEFE_PLANIFICACION", "SUPERUSER"],
@@ -936,7 +934,7 @@ export function getMenuList(
           href: `/${currentCompany?.slug}/ingenieria/confirmar_inventario`,
           label: "Confirmar Inventario",
           active: pathname.includes(
-            `/${currentCompany?.slug}/ingenieria/confirmar_inventario`
+            `/${currentCompany?.slug}/ingenieria/confirmar_inventario`,
           ),
           icon: ClipboardCheck,
           roles: ["SUPERUSER", "ENGINEERING"],
