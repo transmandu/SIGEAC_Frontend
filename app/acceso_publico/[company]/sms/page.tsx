@@ -41,8 +41,7 @@ const SMSPage = () => {
   const { data: surveyNumbers } = useGetSurveySettingNumbers(company);
   const SMSresponsibilities = [
     {
-      image:
-        "https://ccvnd3lo965z.share.zrok.io/storage/images/sms/risk_icon.png",
+      image: `${process.env.NEXT_PUBLIC_STORAGE_BASE_URL}images/sms/risk_icon.png`,
       title: "Responsabilidades SMS Dueños de Proceso",
       items: [
         "Mitigar los Riesgos",
@@ -52,8 +51,7 @@ const SMSPage = () => {
       ],
     },
     {
-      image:
-        "https://ccvnd3lo965z.share.zrok.io/storage/images/sms/caution.png",
+      image: `${process.env.NEXT_PUBLIC_STORAGE_BASE_URL}images/sms/caution.png`,
       title: "Responsabilidades SMS Resto del Personal",
       items: [
         "Identificar Peligros",
@@ -74,7 +72,7 @@ const SMSPage = () => {
               {/* Imagen */}
               <div className="relative h-64 lg:h-full min-h-[300px]">
                 <Image
-                  src="https://ccvnd3lo965z.share.zrok.io/storage/images/sms/LOGO_TMD.png"
+                  src={`${process.env.NEXT_PUBLIC_STORAGE_BASE_URL}images/sms/LOGO_TMD.png`}
                   alt="Logo Transmandu"
                   fill
                   className="object-cover"
@@ -110,7 +108,7 @@ const SMSPage = () => {
                   <Button
                     onClick={() =>
                       router.push(
-                        `https://sigeac-one.vercel.app/acceso_publico/${company}/sms/crear_reporte/voluntario`
+                        `https://sigeac-one.vercel.app/acceso_publico/${company}/sms/crear_reporte/voluntario`,
                       )
                     }
                     className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white transition-all duration-300"
@@ -122,7 +120,7 @@ const SMSPage = () => {
                   <Button
                     onClick={() =>
                       router.push(
-                        `https://sigeac-one.vercel.app/acceso_publico/${company}/sms/crear_reporte/obligatorio`
+                        `https://sigeac-one.vercel.app/acceso_publico/${company}/sms/crear_reporte/obligatorio`,
                       )
                     }
                     variant="outline"
@@ -314,7 +312,7 @@ const SMSPage = () => {
                     className="border-l-4 border-l-blue-500 pl-4 cursor-pointer flex flex-col"
                     onClick={() =>
                       router.push(
-                        `/acceso_publico/${company}/sms/encuesta/${surveyNumbers?.SMS_SURVEY}`
+                        `/acceso_publico/${company}/sms/encuesta/${surveyNumbers?.SMS_SURVEY}`,
                       )
                     }
                   >
@@ -330,7 +328,7 @@ const SMSPage = () => {
                     className="border-l-4 border-l-blue-500 pl-4 cursor-pointer flex flex-col"
                     onClick={() =>
                       router.push(
-                        `/acceso_publico/${company}/sms/encuesta/${surveyNumbers?.SMS_QUIZ}`
+                        `/acceso_publico/${company}/sms/encuesta/${surveyNumbers?.SMS_QUIZ}`,
                       )
                     }
                   >
