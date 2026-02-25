@@ -3,11 +3,12 @@ const nextConfig = {
   images: {
     remotePatterns: [
       {
+        protocol: "http", // O "https" si tiene certificado
         hostname: "172.190.0.162",
       },
       {
         protocol: "https",
-        hostname: "https://apisigeac.share.zrok.io",
+        hostname: "apisigeac.share.zrok.io",
       },
     ],
   },
