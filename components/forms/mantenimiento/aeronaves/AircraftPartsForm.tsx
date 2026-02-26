@@ -294,7 +294,7 @@ export function AircraftPartsInfoForm({ onNext, onBack, initialData }: {
                       ${isNotApplicable
                         ? 'bg-gray-200 dark:bg-gray-800 text-gray-500'
                         : hasContent
-                          ? `${colorClasses.color} bg-white dark:bg-gray-950 ring-2 ring-current ring-opacity-20`
+                          ? `${colorClasses.color} bg-card dark:bg-gray-950 ring-2 ring-current ring-opacity-20`
                           : 'bg-gray-100 dark:bg-gray-800 text-gray-400'
                       }
                     `}>
@@ -312,7 +312,7 @@ export function AircraftPartsInfoForm({ onNext, onBack, initialData }: {
                     {/* Checkbox "No Aplica" */}
                     <div className={`
                       flex items-center space-x-2 mb-3 p-2 rounded-lg transition-colors
-                      ${isNotApplicable ? 'bg-gray-100 dark:bg-gray-800/50' : 'hover:bg-white/50 dark:hover:bg-gray-900/30'}
+                      ${isNotApplicable ? 'bg-gray-100 dark:bg-gray-800/50' : 'hover:bg-card/50 dark:hover:bg-gray-900/30'}
                     `}>
                       <Checkbox
                         id={`not-applicable-${categoryKey}`}
@@ -448,7 +448,7 @@ function PartSection({ form, index, path, onRemove, onToggleExpand, isExpanded, 
   const category = form.watch(`${path}.category` as `parts.${number}.category`);
 
   return (
-    <div className="mb-8 border rounded-lg p-4 bg-white shadow-sm">
+    <div className="mb-8 border rounded-lg p-4 bg-card shadow-sm">
       <div className="flex justify-between items-center mb-3">
         <div className="flex items-center space-x-2">
           <button type="button" onClick={onToggleExpand} className="text-muted-foreground">
