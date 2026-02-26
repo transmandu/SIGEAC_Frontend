@@ -156,7 +156,7 @@ export function getMenuList(
           roles: [],
           submenus: [
             {
-              href: `/acceso_publico/${currentCompany?.slug}/sms`,
+              href: `https://sigeac-one.vercel.app/acceso_publico/transmandu/sms`,
               label: "Pagina de SMS",
               roles: [],
               active:
@@ -797,13 +797,13 @@ export function getMenuList(
                 pathname ===
                 `/${currentCompany?.slug}/almacen/solicitudes/salida`,
             },
-            {
-              href: `/${currentCompany?.slug}/almacen/solicitudes/pendiente`,
-              label: "Pendiente",
-              active:
-                pathname ===
-                `/${currentCompany?.slug}/almacen/solicitudes/pendiente`,
-            },
+            // {
+            //   href: `/${currentCompany?.slug}/almacen/solicitudes/pendiente`,
+            //   label: "Pendiente",
+            //   active:
+            //     pathname ===
+            //     `/${currentCompany?.slug}/almacen/solicitudes/pendiente`,
+            // },
           ],
         },
         {
@@ -1020,11 +1020,7 @@ export function getMenuList(
               href: "/ajustes/globales/proveedores",
               label: "Proveedores",
               active: pathname === "/ajustes/globales/proveedores",
-              roles: [
-                "JEFE_COMPRAS", 
-                "ANALISTA_COMPRAS", 
-                "SUPERUSER"
-              ],
+              roles: ["JEFE_COMPRAS", "ANALISTA_COMPRAS", "SUPERUSER"],
             },
             {
               href: "/ajustes/globales/clientes",
@@ -1051,11 +1047,7 @@ export function getMenuList(
               href: "/ajustes/globales/fuentes_informacion",
               label: "Fuentes de Informacion",
               active: pathname === "/ajustes/globales/fuentes_informacion",
-              roles: [
-                "JEFE_SMS", 
-                "ANALISTA_SMS", 
-                "SUPERUSER"
-              ],
+              roles: ["JEFE_SMS", "ANALISTA_SMS", "SUPERUSER"],
             },
           ],
         },
@@ -1149,7 +1141,7 @@ export function getMenuList(
               label: "Empleados Autorizados",
               active: pathname === "/sistema/autorizaciones/autorizados",
             },
-          ]
+          ],
         },
         {
           href: "/sistema/empresas/",
