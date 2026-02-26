@@ -153,14 +153,14 @@ export function getMenuList(
           icon: ShieldCheck,
           roles: [],
           submenus: [
-            {
-              href: `https://sigeac-one.vercel.app/acceso_publico/transmandu/sms`,
-              label: "Pagina de SMS",
-              roles: [],
-              active:
-                pathname ===
-                `/${currentCompany?.slug}/general/reporte/pagina_de_sms`,
-            },
+            // {
+            //   href: `https://sigeac-one.vercel.app/acceso_publico/transmandu/sms`,
+            //   label: "Pagina de SMS",
+            //   roles: [],
+            //   active:
+            //     pathname ===
+            //     `/${currentCompany?.slug}/general/reporte/pagina_de_sms`,
+            // },
             {
               href: `/${currentCompany?.slug}/general/reporte/voluntario`,
               label: "Reporte Voluntario",
