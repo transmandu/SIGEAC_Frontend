@@ -78,7 +78,7 @@ export const generateMinutaPDF = async (activity: any, attendeesCount: number) =
       const pos = topicPositions[i];
       if (!pos) return; // Evita escribir fuera del área
 
-      write(`${i + 1}. ${t.trim()}`, pos.x, pos.y, 9, 420); // TEMA INDIVIDUAL
+      write(t, pos.x, pos.y, 9, 420);
     });
 
     // ================== OBSERVACIONES ==================

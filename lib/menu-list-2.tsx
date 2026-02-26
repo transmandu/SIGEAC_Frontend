@@ -187,6 +187,14 @@ export function getMenuList(
                 pathname ===
                 `/${currentCompany?.slug}/general/reporte/codigos_qr`,
             },
+
+            {
+              href: `/${currentCompany?.slug}/sms/certificados`,
+              label: "Certificados",
+              roles: [], // Libre para que Richard lo vea
+              active: pathname === `/${currentCompany?.slug}/sms/certificados`,
+            },
+
           ],
         },
         {
