@@ -777,13 +777,13 @@ export function getMenuList(
                 pathname ===
                 `/${currentCompany?.slug}/almacen/solicitudes/salida`,
             },
-            {
-              href: `/${currentCompany?.slug}/almacen/solicitudes/pendiente`,
-              label: "Pendiente",
-              active:
-                pathname ===
-                `/${currentCompany?.slug}/almacen/solicitudes/pendiente`,
-            },
+            // {
+            //   href: `/${currentCompany?.slug}/almacen/solicitudes/pendiente`,
+            //   label: "Pendiente",
+            //   active:
+            //     pathname ===
+            //     `/${currentCompany?.slug}/almacen/solicitudes/pendiente`,
+            // },
           ],
         },
         {
