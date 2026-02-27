@@ -36,9 +36,6 @@ export const useCreateCourseAttendance = () => {
         queryKey: ["course-attendance-stats", data.course_id],
       });
       queryClient.invalidateQueries({
-        queryKey: ["sms-activity-attendance-list", data.course_id],
-      });
-      queryClient.invalidateQueries({
         queryKey: ["course-by-id", data.course_id],
       });
 
@@ -80,7 +77,7 @@ export const useMarkCourseAttendance = () => {
         queryKey: ["course-attendance-stats", data.course_id],
       });
       queryClient.invalidateQueries({
-        queryKey: ["sms-activity-attendance-list", data.course_id],
+        queryKey: ["sms-course-attendance-list", data.course_id],
       });
       queryClient.invalidateQueries({
         queryKey: ["course-by-id", data.course_id],
