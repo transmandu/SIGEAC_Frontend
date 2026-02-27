@@ -21,9 +21,9 @@ interface IDispatchRequestAction {
     quantity: number;
   }[];
   user_id: number;
-  aircraft_id: string | null;
-  authorized_employee_id: string | null;
-  department_id: string | null;
+  aircraft_id?: string;
+  authorized_employee_id?: string;
+  department_id?: string;
 }
 
 export const useCreateDispatchRequest = () => {

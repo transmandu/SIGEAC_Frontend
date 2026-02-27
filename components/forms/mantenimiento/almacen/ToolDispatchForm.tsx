@@ -161,7 +161,7 @@ export function ToolDispatchForm({ onClose }: FormProps) {
       category: "herramienta",
       user_id: Number(user!.id),
       isDepartment: isDepartment,
-      aircraft_id: isDepartment ? null : data.department_id,
+      aircraft_id: isDepartment ? undefined : data.department_id,
     };
     await createDispatchRequest.mutateAsync({
       data: formattedData,

@@ -537,16 +537,14 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
       approved_by: user?.employee?.[0]?.dni,
       delivered_by: user?.employee?.[0]?.dni,
       user_id: Number(user!.id),
-      aircraft_id: data.dispatch_type === "aircraft" ? data.aircraft_id : null,
-      department_id: data.dispatch_type === "department" ? data.department_id : null,
+      aircraft_id: data.dispatch_type === "aircraft" ? data.aircraft_id : undefined,
+      department_id: data.dispatch_type === "department" ? data.department_id : undefined,
     }
 
-    // await createDispatchRequest.mutateAsync({
-    //   data: formattedData,
-    //   company: selectedCompany!.slug,
-    // })
-
-    console.log(formattedData)
+     await createDispatchRequest.mutateAsync({
+       data: formattedData,
+       company: selectedCompany!.slug,
+     })
 
     onClose()
   }
