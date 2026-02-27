@@ -1,6 +1,5 @@
 "use client";
 
-// 1. Agregamos useState a los imports de React
 import { useState } from "react"; 
 import {
   Dialog,
@@ -20,14 +19,13 @@ import { cn } from "@/lib/utils";
 import { useSmsReport } from "@/hooks/sms/useGetReportSmsByDate";
 
 export function ReportModal() {
-  // 2. Estado para controlar la visibilidad del modal
   const [isOpen, setIsOpen] = useState(false);
 
-  // 3. Pasamos el callback para cerrar el modal al hook
   const { 
     reportFrom, setReportFrom, 
     reportTo, setReportTo, 
-    isGenerating, handleGenerate 
+    isGenerating, handleGenerate,
+    canGenerate // <--- Traemos canGenerate del hook
   } = useSmsReport(() => setIsOpen(false)); 
 
   return (
@@ -71,14 +69,13 @@ export function ReportModal() {
                       {reportFrom ? format(reportFrom, "dd/MM/yyyy", { locale: es }) : "DD/MM/YYYY"}
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start" avoidCollisions={false}>
+                  <PopoverContent className="w-auto p-0" align="start">
                     <Calendar
                       mode="single"
                       selected={reportFrom}
                       onSelect={setReportFrom}
                       initialFocus
                       locale={es}
-                      fixedWeeks
                     />
                   </PopoverContent>
                 </Popover>
@@ -100,7 +97,7 @@ export function ReportModal() {
                       {reportTo ? format(reportTo, "dd/MM/yyyy", { locale: es }) : "DD/MM/YYYY"}
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start" avoidCollisions={false}>
+                  <PopoverContent className="w-auto p-0" align="start">
                     <Calendar
                       mode="single"
                       selected={reportTo}
@@ -108,7 +105,6 @@ export function ReportModal() {
                       disabled={(date) => (reportFrom ? date < reportFrom : false)}
                       initialFocus
                       locale={es}
-                      fixedWeeks
                     />
                   </PopoverContent>
                 </Popover>
@@ -119,8 +115,13 @@ export function ReportModal() {
           <div className="flex flex-col gap-3">
             <Button 
               onClick={handleGenerate} 
-              disabled={isGenerating} 
-              className="w-full font-bold text-lg h-12"
+              // Cambiamos disabled para que dependa de canGenerate
+              disabled={!canGenerate} 
+              className={cn(
+                "w-full font-bold text-lg h-12 transition-all duration-200",
+                // Si no puede generar, forzamos estilos de "apagado"
+                !canGenerate && "bg-muted text-muted-foreground cursor-not-allowed opacity-50 shadow-none border-none hover:bg-muted"
+              )}
             >
               {isGenerating ? (
                 <>
