@@ -42,15 +42,11 @@ export function DispatchReportDialog() {
   const { selectedStation, selectedCompany } = useCompanyStore();
   const [open, setOpen] = useState(false);
 
-  // Estados Unificados
   const [dispatchData, setDispatchData] = useState<DispatchReport[]>([]);
   const [loadingDownload, setLoadingDownload] = useState(false);
 
-  // Fechas únicas para ambos tipos de reporte
   const [startDate, setStartDate] = useState<Date | undefined>();
   const [endDate, setEndDate] = useState<Date | undefined>();
-
-  // Selección de aeronave
   const [aircraft, setAircraft] = useState<string | null>(null);
 
   const { mutateAsync } = useGetDispatchReport();
@@ -58,9 +54,11 @@ export function DispatchReportDialog() {
     selectedCompany?.slug,
   );
 
+  // --- LÓGICA DE VALIDACIÓN ---
   const isDateRangeInvalid = startDate && endDate && endDate < startDate;
+  // Nueva constante para verificar si faltan las fechas
+  const areDatesMissing = !startDate || !endDate;
 
-  // Limpieza al cerrar el diálogo
   useEffect(() => {
     if (!open) {
       setStartDate(undefined);
@@ -71,20 +69,18 @@ export function DispatchReportDialog() {
   }, [open]);
 
   const handleDownload = async (type: "general" | "aircraft") => {
-    if (!selectedStation || !selectedCompany?.slug) return;
+    if (!selectedStation || !selectedCompany?.slug || areDatesMissing) return;
 
     try {
       setLoadingDownload(true);
-
-      // Si es general, ignoramos el ID de aeronave. Si es por aeronave, lo enviamos.
       const currentAircraftId = type === "aircraft" ? aircraft : undefined;
 
       const data = await mutateAsync({
         location_id: selectedStation,
         company: selectedCompany.slug,
-        aircraft_id: currentAircraftId, // Asegúrate que tu hook/API acepte este parámetro
-        from: startDate ? format(startDate, "yyyy-MM-dd") : undefined,
-        to: endDate ? format(endDate, "yyyy-MM-dd") : undefined,
+        aircraft_id: currentAircraftId,
+        from: format(startDate, "yyyy-MM-dd"), // Ya sabemos que existen por areDatesMissing
+        to: format(endDate, "yyyy-MM-dd"),
       });
 
       if (data) {
@@ -109,15 +105,15 @@ export function DispatchReportDialog() {
         <DialogHeader>
           <DialogTitle>Generar Reporte de Almacén</DialogTitle>
           <DialogDescription>
-            Selecciona un rango de fechas y elige el tipo de reporte.
+            Selecciona un rango de fechas de forma obligatoria para continuar.
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6 flex flex-col items-center py-4">
-          {/* SECCIÓN DE FECHAS (UNIFICADA) */}
           <div className="w-full space-y-2">
             <label className="text-sm font-medium flex items-center gap-2 justify-center">
-              <CalendarIcon className="w-4 h-4" /> Rango de Fechas
+              <CalendarIcon className="w-4 h-4" /> Rango de Fechas{" "}
+              <span className="text-destructive">*</span>
             </label>
             <div className="flex gap-2 justify-center">
               <Popover>
@@ -126,7 +122,8 @@ export function DispatchReportDialog() {
                     variant="outline"
                     className={cn(
                       "w-[180px] text-xs",
-                      !startDate && "text-muted-foreground",
+                      !startDate &&
+                        "text-muted-foreground border-destructive/50",
                     )}
                   >
                     {startDate
@@ -149,7 +146,7 @@ export function DispatchReportDialog() {
                     variant="outline"
                     className={cn(
                       "w-[180px] text-xs",
-                      !endDate && "text-muted-foreground",
+                      !endDate && "text-muted-foreground border-destructive/50",
                     )}
                   >
                     {endDate
@@ -183,7 +180,10 @@ export function DispatchReportDialog() {
             <Button
               className="w-full"
               onClick={() => handleDownload("general")}
-              disabled={loadingDownload || isDateRangeInvalid}
+              // DESHABILITADO SI FALTAN FECHAS O SON INVÁLIDAS
+              disabled={
+                loadingDownload || areDatesMissing || isDateRangeInvalid
+              }
             >
               Descargar
             </Button>
@@ -218,22 +218,28 @@ export function DispatchReportDialog() {
                 variant="secondary"
                 className="w-full"
                 onClick={() => handleDownload("aircraft")}
-                disabled={loadingDownload || isDateRangeInvalid || !aircraft}
+                // DESHABILITADO SI FALTAN FECHAS, SON INVÁLIDAS O NO HAY AERONAVE
+                disabled={
+                  loadingDownload ||
+                  areDatesMissing ||
+                  isDateRangeInvalid ||
+                  !aircraft
+                }
               >
                 Generar por Aeronave Seleccionada
               </Button>
             </div>
           </div>
 
-          {/* GENERADOR PDF (HIDDEN TRIGGER) */}
+          {/* GENERADOR PDF */}
           {dispatchData.length > 0 && (
             <BlobProvider
               document={
                 <DispatchReportPdf
                   reports={dispatchData}
                   aircraftFilter={aircraft ? parseInt(aircraft) : null}
-                  startDate={startDate}
-                  endDate={endDate}
+                  startDate={startDate!}
+                  endDate={endDate!}
                 />
               }
             >
@@ -241,7 +247,6 @@ export function DispatchReportDialog() {
                 if (!loading && blob) {
                   const url = URL.createObjectURL(blob);
                   window.open(url, "_blank");
-                  // Limpiamos los datos para evitar bucles de apertura
                   setTimeout(() => setDispatchData([]), 100);
                 }
                 return null;
