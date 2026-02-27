@@ -1,5 +1,7 @@
 "use client";
 
+// 1. Agregamos useState a los imports de React
+import { useState } from "react"; 
 import {
   Dialog,
   DialogContent,
@@ -18,14 +20,18 @@ import { cn } from "@/lib/utils";
 import { useSmsReport } from "@/hooks/sms/useGetReportSmsByDate";
 
 export function ReportModal() {
+  // 2. Estado para controlar la visibilidad del modal
+  const [isOpen, setIsOpen] = useState(false);
+
+  // 3. Pasamos el callback para cerrar el modal al hook
   const { 
     reportFrom, setReportFrom, 
     reportTo, setReportTo, 
     isGenerating, handleGenerate 
-  } = useSmsReport();
+  } = useSmsReport(() => setIsOpen(false)); 
 
   return (
-    <Dialog>
+    <Dialog open={isOpen} onOpenChange={setIsOpen}> 
       <DialogTrigger asChild>
         <Button variant="outline" size="sm" className="h-8 flex gap-2">
           <FileDown className="size-4" />
@@ -35,7 +41,7 @@ export function ReportModal() {
       
       <DialogContent className="sm:max-w-[480px]">
         <DialogHeader className="flex flex-col items-center">
-          <DialogTitle className="text-3xl font-bold text-center">Generar Cronograma </DialogTitle>
+          <DialogTitle className="text-3xl font-bold text-center">Generar Cronograma</DialogTitle>
           <DialogDescription className="text-sm italic text-center">
             Selecciona el rango de fechas para la consulta en el servidor.
           </DialogDescription>
@@ -65,7 +71,6 @@ export function ReportModal() {
                       {reportFrom ? format(reportFrom, "dd/MM/yyyy", { locale: es }) : "DD/MM/YYYY"}
                     </Button>
                   </PopoverTrigger>
-                  {/* Ajuste: avoidCollisions y align para estabilidad */}
                   <PopoverContent className="w-auto p-0" align="start" avoidCollisions={false}>
                     <Calendar
                       mode="single"
@@ -73,7 +78,7 @@ export function ReportModal() {
                       onSelect={setReportFrom}
                       initialFocus
                       locale={es}
-                      fixedWeeks // Ajuste: Mantiene siempre 6 filas de altura
+                      fixedWeeks
                     />
                   </PopoverContent>
                 </Popover>
@@ -95,7 +100,6 @@ export function ReportModal() {
                       {reportTo ? format(reportTo, "dd/MM/yyyy", { locale: es }) : "DD/MM/YYYY"}
                     </Button>
                   </PopoverTrigger>
-                  {/* Ajuste: avoidCollisions y align para estabilidad */}
                   <PopoverContent className="w-auto p-0" align="start" avoidCollisions={false}>
                     <Calendar
                       mode="single"
@@ -104,7 +108,7 @@ export function ReportModal() {
                       disabled={(date) => (reportFrom ? date < reportFrom : false)}
                       initialFocus
                       locale={es}
-                      fixedWeeks // Ajuste: Mantiene siempre 6 filas de altura
+                      fixedWeeks
                     />
                   </PopoverContent>
                 </Popover>
@@ -127,9 +131,6 @@ export function ReportModal() {
                 "Generar PDF"
               )}
             </Button>
-            <p className="text-[10px] text-center text-muted-foreground italic">
-              * El reporte se filtrará según la columna start_date de la base de datos.
-            </p>
           </div>
         </div>
       </DialogContent>
