@@ -27,6 +27,7 @@ export type DispatchArticle = {
 
 export type DispatchGroupRow = {
   id: number;
+  request_number: string;
   status: string;
   requested_by: string;
   created_by: string;

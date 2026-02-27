@@ -57,11 +57,11 @@ export const useCreateSMSActivityAttendance = () => {
       });
 
       queryClient.invalidateQueries({
-        queryKey: ["sms-activity-attendance-list"],
+        queryKey: ["sms-activity-attendance-list", data.activity_id],
       });
 
       queryClient.invalidateQueries({
-        queryKey: ["sms-activity-attendance-stats"],
+        queryKey: ["sms-activity-attendance-stats", data.activity_id],
       });
 
       toast.success("Actualizado!", {
@@ -99,11 +99,11 @@ export const useMarkSMSActivityAttendance = () => {
       });
 
       queryClient.invalidateQueries({
-        queryKey: ["sms-activity-attendance-list"],
+        queryKey: ["sms-activity-attendance-list", data.activity_id],
       });
 
       queryClient.invalidateQueries({
-        queryKey: ["sms-activity-attendance-stats"],
+        queryKey: ["sms-activity-attendance-stats", data.activity_id],
       });
       queryClient.invalidateQueries({ queryKey: ["sms-activities"] });
       
