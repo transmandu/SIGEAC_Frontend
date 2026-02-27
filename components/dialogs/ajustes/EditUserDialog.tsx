@@ -19,14 +19,13 @@ export function EditUserDialog({ user }: { user: User }) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <DropdownMenuItem
-          onSelect={(e) => {
-            e.preventDefault()
-            setOpen(true)
-          }}
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          className="flex items-center justify-center"
         >
           <UserPen className="size-5 text-blue-500" />
-        </DropdownMenuItem>
+        </button>
       </DialogTrigger>
 
       <DialogContent className="sm:max-w-[550px]">

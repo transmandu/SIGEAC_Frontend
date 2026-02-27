@@ -21,6 +21,11 @@ export const columns: ColumnDef<DispatchGroupRow>[] = [
     size: 40,
   },
   {
+    accessorKey: 'request_number',
+    header: ({ column }) => <DataTableColumnHeader column={column} title="N° solicitud" />,
+    cell: ({ row }) => <p className="text-center font-semibold">{row.original.request_number}</p>,
+  },
+  {
     accessorKey: 'created_by',
     header: ({ column }) => <DataTableColumnHeader column={column} title="Creado Por" />,
     cell: ({ row }) => <p className="text-center font-medium">{row.original.created_by}</p>,

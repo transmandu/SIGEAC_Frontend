@@ -5,6 +5,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 
 interface IDispatch {
   id: number;
+  request_number: string;
   requested_by: string;
   created_by: string;
   justification: string;

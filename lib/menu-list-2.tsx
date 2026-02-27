@@ -153,14 +153,14 @@ export function getMenuList(
           icon: ShieldCheck,
           roles: [],
           submenus: [
-            {
-              href: `/acceso_publico/${currentCompany?.slug}/sms`,
-              label: "Pagina de SMS",
-              roles: [],
-              active:
-                pathname ===
-                `/${currentCompany?.slug}/general/reporte/pagina_de_sms`,
-            },
+            // {
+            //   href: `https://sigeac-one.vercel.app/acceso_publico/transmandu/sms`,
+            //   label: "Pagina de SMS",
+            //   roles: [],
+            //   active:
+            //     pathname ===
+            //     `/${currentCompany?.slug}/general/reporte/pagina_de_sms`,
+            // },
             {
               href: `/${currentCompany?.slug}/general/reporte/voluntario`,
               label: "Reporte Voluntario",
@@ -266,201 +266,201 @@ export function getMenuList(
         },
       ],
     },
-    {
-      groupLabel: "Administración",
-      moduleValue: "administration",
-      menus: [
-        {
-          href: `/${currentCompany?.slug}/administracion/creditos`,
-          label: "Créditos",
-          active: pathname.includes(
-            `/${currentCompany?.slug}/administracion/creditos`,
-          ),
-          icon: CreditCardIcon,
-          roles: [
-            "SUPERUSER",
-            "ANALISTA_ADMINISTRACION",
-            "JEFE_ADMINISTRACION",
-            "JEFE_CONTADURIA",
-            "RRHH_ADMINISTRACION",
-          ],
-          submenus: [
-            {
-              href: `/${currentCompany?.slug}/administracion/creditos/credito_arrendamiento`,
-              label: "Arrendamiento",
-              active:
-                pathname ===
-                `/${currentCompany?.slug}/administracion/creditos/credito_arrendamiento`,
-            },
-            {
-              href: `/${currentCompany?.slug}/administracion/creditos/cuentas_por_pagar`,
-              label: "Cuentas por Pagar",
-              active:
-                pathname ===
-                `/${currentCompany?.slug}/administracion/creditos/cuentas_por_pagar`,
-            },
-            {
-              href: `/${currentCompany?.slug}/administracion/creditos/credito_vuelo`,
-              label: "Vuelos",
-              active:
-                pathname ===
-                `/${currentCompany?.slug}/administracion/creditos/credito_vuelo`,
-            },
-          ],
-        },
-        {
-          href: `/${currentCompany?.slug}/administracion/gestion_cajas`,
-          label: "Finanzas",
-          active: pathname.includes(
-            `/${currentCompany?.slug}/administracion/gestion_cajas`,
-          ),
-          icon: Landmark,
-          roles: [
-            "SUPERUSER",
-            "ANALISTA_ADMINISTRACION",
-            "JEFE_ADMINISTRACION",
-            "JEFE_CONTADURIA",
-            "RRHH_ADMINISTRACION",
-          ],
-          submenus: [
-            {
-              href: `/${currentCompany?.slug}/administracion/gestion_cajas/categorias`,
-              label: "Categorías",
-              active:
-                pathname ===
-                `/${currentCompany?.slug}/administracion/gestion_cajas/categorias`,
-            },
-            {
-              href: `/${currentCompany?.slug}/administracion/gestion_cajas/cajas`,
-              label: "Cajas",
-              active:
-                pathname ===
-                `/${currentCompany?.slug}/administracion/gestion_cajas/cajas`,
-            },
-            {
-              href: `/${currentCompany?.slug}/administracion/gestion_cajas/cuentas`,
-              label: "Cuentas",
-              active:
-                pathname ===
-                `/${currentCompany?.slug}/administracion/gestion_cajas/cuentas`,
-            },
-            {
-              href: `/${currentCompany?.slug}/administracion/gestion_cajas/movimientos`,
-              label: "Movimientos",
-              active:
-                pathname ===
-                `/${currentCompany?.slug}/administracion/gestion_cajas/movimientos`,
-            },
-          ],
-        },
-        {
-          href: `/${currentCompany?.slug}/administracion/gestion_general`,
-          label: "General",
-          active: pathname.includes(
-            `/${currentCompany?.slug}/administracion/gestion_general`,
-          ),
-          icon: BookUser,
-          roles: [
-            "SUPERUSER",
-            "ANALISTA_ADMINISTRACION",
-            "JEFE_ADMINISTRACION",
-            "JEFE_CONTADURIA",
-            "RRHH_ADMINISTRACION",
-          ],
-          submenus: [
-            {
-              href: `/${currentCompany?.slug}/administracion/gestion_general/clientes`,
-              label: "Clientes",
-              active:
-                pathname ===
-                `/${currentCompany?.slug}/administracion/gestion_general/clientes`,
-            },
-            {
-              href: `/${currentCompany?.slug}/administracion/gestion_general/proveedor`,
-              label: "Proveedor",
-              active:
-                pathname ===
-                `/${currentCompany?.slug}/administracion/gestion_general/proveedor`,
-            },
-          ],
-        },
-        {
-          href: `/${currentCompany?.slug}/administracion/operaciones`,
-          label: "Operaciones",
-          active: pathname.includes(
-            `/${currentCompany?.slug}/administracion/operaciones`,
-          ),
-          icon: PackageOpen,
-          roles: [
-            "SUPERUSER",
-            "ANALISTA_ADMINISTRACION",
-            "JEFE_ADMINISTRACION",
-          ],
-          submenus: [
-            {
-              href: `/${currentCompany?.slug}/administracion/operaciones/arrendamiento`,
-              label: "Arrendamiento",
-              active:
-                pathname ===
-                `/${currentCompany?.slug}/administracion/operaciones/arrendamiento`,
-            },
-          ],
-        },
-        {
-          href: `/${currentCompany?.slug}/administracion/gestion_vuelos`,
-          label: "Vuelos",
-          active: pathname.includes(
-            `/${currentCompany?.slug}/administracion/gestion_vuelos`,
-          ),
-          icon: PlaneIcon,
-          roles: [
-            "SUPERUSER",
-            "ANALISTA_ADMINISTRACION",
-            "JEFE_ADMINISTRACION",
-            "RRHH_ADMINISTRACION",
-          ],
-          submenus: [
-            {
-              href: `/${currentCompany?.slug}/administracion/gestion_vuelos/aviones`,
-              label: "Aeronaves",
-              active:
-                pathname ===
-                `/${currentCompany?.slug}/administracion/gestion_vuelos/aviones`,
-              roles: [
-                "SUPERUSER",
-                "ANALISTA_ADMINISTRACION",
-                "JEFE_ADMINISTRACION",
-                "RRHH_ADMINISTRACION",
-              ],
-            },
-            {
-              href: `/${currentCompany?.slug}/administracion/gestion_vuelos/rutas`,
-              label: "Rutas",
-              active:
-                pathname ===
-                `/${currentCompany?.slug}/administracion/gestion_vuelos/rutas`,
-              roles: [
-                "SUPERUSER",
-                "ANALISTA_ADMINISTRACION",
-                "JEFE_ADMINISTRACION",
-              ], // RRHH no puede ver Rutas
-            },
-            {
-              href: `/${currentCompany?.slug}/administracion/gestion_vuelos/vuelos`,
-              label: "Vuelos",
-              active:
-                pathname ===
-                `/${currentCompany?.slug}/administracion/gestion_vuelos/vuelos`,
-              roles: [
-                "SUPERUSER",
-                "ANALISTA_ADMINISTRACION",
-                "JEFE_ADMINISTRACION",
-              ], // RRHH no puede ver Vuelos
-            },
-          ],
-        },
-      ],
-    },
+    // {
+    //   groupLabel: "Administración",
+    //   moduleValue: "administration",
+    //   menus: [
+    //     {
+    //       href: `/${currentCompany?.slug}/administracion/creditos`,
+    //       label: "Créditos",
+    //       active: pathname.includes(
+    //         `/${currentCompany?.slug}/administracion/creditos`,
+    //       ),
+    //       icon: CreditCardIcon,
+    //       roles: [
+    //         "SUPERUSER",
+    //         "ANALISTA_ADMINISTRACION",
+    //         "JEFE_ADMINISTRACION",
+    //         "JEFE_CONTADURIA",
+    //         "RRHH_ADMINISTRACION",
+    //       ],
+    //       submenus: [
+    //         {
+    //           href: `/${currentCompany?.slug}/administracion/creditos/credito_arrendamiento`,
+    //           label: "Arrendamiento",
+    //           active:
+    //             pathname ===
+    //             `/${currentCompany?.slug}/administracion/creditos/credito_arrendamiento`,
+    //         },
+    //         {
+    //           href: `/${currentCompany?.slug}/administracion/creditos/cuentas_por_pagar`,
+    //           label: "Cuentas por Pagar",
+    //           active:
+    //             pathname ===
+    //             `/${currentCompany?.slug}/administracion/creditos/cuentas_por_pagar`,
+    //         },
+    //         {
+    //           href: `/${currentCompany?.slug}/administracion/creditos/credito_vuelo`,
+    //           label: "Vuelos",
+    //           active:
+    //             pathname ===
+    //             `/${currentCompany?.slug}/administracion/creditos/credito_vuelo`,
+    //         },
+    //       ],
+    //     },
+    //     {
+    //       href: `/${currentCompany?.slug}/administracion/gestion_cajas`,
+    //       label: "Finanzas",
+    //       active: pathname.includes(
+    //         `/${currentCompany?.slug}/administracion/gestion_cajas`,
+    //       ),
+    //       icon: Landmark,
+    //       roles: [
+    //         "SUPERUSER",
+    //         "ANALISTA_ADMINISTRACION",
+    //         "JEFE_ADMINISTRACION",
+    //         "JEFE_CONTADURIA",
+    //         "RRHH_ADMINISTRACION",
+    //       ],
+    //       submenus: [
+    //         {
+    //           href: `/${currentCompany?.slug}/administracion/gestion_cajas/categorias`,
+    //           label: "Categorías",
+    //           active:
+    //             pathname ===
+    //             `/${currentCompany?.slug}/administracion/gestion_cajas/categorias`,
+    //         },
+    //         {
+    //           href: `/${currentCompany?.slug}/administracion/gestion_cajas/cajas`,
+    //           label: "Cajas",
+    //           active:
+    //             pathname ===
+    //             `/${currentCompany?.slug}/administracion/gestion_cajas/cajas`,
+    //         },
+    //         {
+    //           href: `/${currentCompany?.slug}/administracion/gestion_cajas/cuentas`,
+    //           label: "Cuentas",
+    //           active:
+    //             pathname ===
+    //             `/${currentCompany?.slug}/administracion/gestion_cajas/cuentas`,
+    //         },
+    //         {
+    //           href: `/${currentCompany?.slug}/administracion/gestion_cajas/movimientos`,
+    //           label: "Movimientos",
+    //           active:
+    //             pathname ===
+    //             `/${currentCompany?.slug}/administracion/gestion_cajas/movimientos`,
+    //         },
+    //       ],
+    //     },
+    //     {
+    //       href: `/${currentCompany?.slug}/administracion/gestion_general`,
+    //       label: "General",
+    //       active: pathname.includes(
+    //         `/${currentCompany?.slug}/administracion/gestion_general`,
+    //       ),
+    //       icon: BookUser,
+    //       roles: [
+    //         "SUPERUSER",
+    //         "ANALISTA_ADMINISTRACION",
+    //         "JEFE_ADMINISTRACION",
+    //         "JEFE_CONTADURIA",
+    //         "RRHH_ADMINISTRACION",
+    //       ],
+    //       submenus: [
+    //         {
+    //           href: `/${currentCompany?.slug}/administracion/gestion_general/clientes`,
+    //           label: "Clientes",
+    //           active:
+    //             pathname ===
+    //             `/${currentCompany?.slug}/administracion/gestion_general/clientes`,
+    //         },
+    //         {
+    //           href: `/${currentCompany?.slug}/administracion/gestion_general/proveedor`,
+    //           label: "Proveedor",
+    //           active:
+    //             pathname ===
+    //             `/${currentCompany?.slug}/administracion/gestion_general/proveedor`,
+    //         },
+    //       ],
+    //     },
+    //     {
+    //       href: `/${currentCompany?.slug}/administracion/operaciones`,
+    //       label: "Operaciones",
+    //       active: pathname.includes(
+    //         `/${currentCompany?.slug}/administracion/operaciones`,
+    //       ),
+    //       icon: PackageOpen,
+    //       roles: [
+    //         "SUPERUSER",
+    //         "ANALISTA_ADMINISTRACION",
+    //         "JEFE_ADMINISTRACION",
+    //       ],
+    //       submenus: [
+    //         {
+    //           href: `/${currentCompany?.slug}/administracion/operaciones/arrendamiento`,
+    //           label: "Arrendamiento",
+    //           active:
+    //             pathname ===
+    //             `/${currentCompany?.slug}/administracion/operaciones/arrendamiento`,
+    //         },
+    //       ],
+    //     },
+    //     {
+    //       href: `/${currentCompany?.slug}/administracion/gestion_vuelos`,
+    //       label: "Vuelos",
+    //       active: pathname.includes(
+    //         `/${currentCompany?.slug}/administracion/gestion_vuelos`,
+    //       ),
+    //       icon: PlaneIcon,
+    //       roles: [
+    //         "SUPERUSER",
+    //         "ANALISTA_ADMINISTRACION",
+    //         "JEFE_ADMINISTRACION",
+    //         "RRHH_ADMINISTRACION",
+    //       ],
+    //       submenus: [
+    //         {
+    //           href: `/${currentCompany?.slug}/administracion/gestion_vuelos/aviones`,
+    //           label: "Aeronaves",
+    //           active:
+    //             pathname ===
+    //             `/${currentCompany?.slug}/administracion/gestion_vuelos/aviones`,
+    //           roles: [
+    //             "SUPERUSER",
+    //             "ANALISTA_ADMINISTRACION",
+    //             "JEFE_ADMINISTRACION",
+    //             "RRHH_ADMINISTRACION",
+    //           ],
+    //         },
+    //         {
+    //           href: `/${currentCompany?.slug}/administracion/gestion_vuelos/rutas`,
+    //           label: "Rutas",
+    //           active:
+    //             pathname ===
+    //             `/${currentCompany?.slug}/administracion/gestion_vuelos/rutas`,
+    //           roles: [
+    //             "SUPERUSER",
+    //             "ANALISTA_ADMINISTRACION",
+    //             "JEFE_ADMINISTRACION",
+    //           ], // RRHH no puede ver Rutas
+    //         },
+    //         {
+    //           href: `/${currentCompany?.slug}/administracion/gestion_vuelos/vuelos`,
+    //           label: "Vuelos",
+    //           active:
+    //             pathname ===
+    //             `/${currentCompany?.slug}/administracion/gestion_vuelos/vuelos`,
+    //           roles: [
+    //             "SUPERUSER",
+    //             "ANALISTA_ADMINISTRACION",
+    //             "JEFE_ADMINISTRACION",
+    //           ], // RRHH no puede ver Vuelos
+    //         },
+    //       ],
+    //     },
+    //   ],
+    // },
     {
       groupLabel: "SMS",
       moduleValue: "sms",
@@ -752,13 +752,13 @@ export function getMenuList(
               active:
                 pathname === `/${currentCompany?.slug}/almacen/por_ubicar`,
             },
-            {
-              href: `/${currentCompany?.slug}/almacen/inventario_articulos/entregado`,
-              label: "Entregado",
-              active:
-                pathname ===
-                `/${currentCompany?.slug}/almacen/inventario_articulos/entregado`,
-            },
+            // {
+            //   href: `/${currentCompany?.slug}/almacen/inventario_articulos/entregado`,
+            //   label: "Entregado",
+            //   active:
+            //     pathname ===
+            //     `/${currentCompany?.slug}/almacen/inventario_articulos/entregado`,
+            // },
           ],
         },
         {
@@ -777,13 +777,13 @@ export function getMenuList(
                 pathname ===
                 `/${currentCompany?.slug}/almacen/solicitudes/salida`,
             },
-            {
-              href: `/${currentCompany?.slug}/almacen/solicitudes/pendiente`,
-              label: "Pendiente",
-              active:
-                pathname ===
-                `/${currentCompany?.slug}/almacen/solicitudes/pendiente`,
-            },
+            // {
+            //   href: `/${currentCompany?.slug}/almacen/solicitudes/pendiente`,
+            //   label: "Pendiente",
+            //   active:
+            //     pathname ===
+            //     `/${currentCompany?.slug}/almacen/solicitudes/pendiente`,
+            // },
           ],
         },
         {
@@ -873,13 +873,13 @@ export function getMenuList(
                 pathname ===
                 `/${currentCompany?.slug}/planificacion/control_vuelos/vuelos`,
             },
-            {
-              href: `/${currentCompany?.slug}/planificacion/control_vuelos/reportes`,
-              label: "Reportes",
-              active:
-                pathname ===
-                `/${currentCompany?.slug}/planificacion/control_vuelos/reportes`,
-            },
+            // {
+            //   href: `/${currentCompany?.slug}/planificacion/control_vuelos/reportes`,
+            //   label: "Reportes",
+            //   active:
+            //     pathname ===
+            //     `/${currentCompany?.slug}/planificacion/control_vuelos/reportes`,
+            // },
           ],
         },
       ],
@@ -1000,11 +1000,7 @@ export function getMenuList(
               href: "/ajustes/globales/proveedores",
               label: "Proveedores",
               active: pathname === "/ajustes/globales/proveedores",
-              roles: [
-                "JEFE_COMPRAS", 
-                "ANALISTA_COMPRAS", 
-                "SUPERUSER"
-              ],
+              roles: ["JEFE_COMPRAS", "ANALISTA_COMPRAS", "SUPERUSER"],
             },
             {
               href: "/ajustes/globales/clientes",
@@ -1031,11 +1027,7 @@ export function getMenuList(
               href: "/ajustes/globales/fuentes_informacion",
               label: "Fuentes de Informacion",
               active: pathname === "/ajustes/globales/fuentes_informacion",
-              roles: [
-                "JEFE_SMS", 
-                "ANALISTA_SMS", 
-                "SUPERUSER"
-              ],
+              roles: ["JEFE_SMS", "ANALISTA_SMS", "SUPERUSER"],
             },
           ],
         },
@@ -1129,7 +1121,7 @@ export function getMenuList(
               label: "Empleados Autorizados",
               active: pathname === "/sistema/autorizaciones/autorizados",
             },
-          ]
+          ],
         },
         {
           href: "/sistema/empresas/",
