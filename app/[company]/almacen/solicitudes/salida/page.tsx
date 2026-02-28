@@ -36,7 +36,7 @@ export type DispatchGroupRow = {
   department?: Department;
   submission_date: string | null;
   authorized_employee?: {
-    employee_name: string;
+    full_name: string;
     from_company_db: string;
   }
   work_order?: string;

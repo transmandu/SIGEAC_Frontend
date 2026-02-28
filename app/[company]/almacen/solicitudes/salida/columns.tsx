@@ -40,7 +40,7 @@ export const columns: ColumnDef<DispatchGroupRow>[] = [
       }
       // Caso 2: no viene requested_by pero existe authorized_employee
       if (authorized_employee) {
-        return ( <div className="text-center leading-tight"> <p className="font-medium"> {authorized_employee.employee_name} </p> <p className="text-xs text-muted-foreground"> {authorized_employee.from_company_db} </p> </div> );
+        return ( <div className="text-center leading-tight"> <p className="font-medium"> {authorized_employee.full_name} </p> <p className="text-xs text-muted-foreground"> {authorized_employee.from_company_db} </p> </div> );
       }
       // Caso 3: ninguno existe
       return ( <p className="text-center text-muted-foreground"> — </p> );
@@ -53,14 +53,13 @@ export const columns: ColumnDef<DispatchGroupRow>[] = [
       <p className="text-center font-medium">{row.original.work_order ?? "-"}</p>
     ),
   },
-      {
+  {
     accessorKey: 'aircraft.acronym',
-    header: ({ column }) => <DataTableColumnHeader column={column} title="Aeronave/Departamento/" />,
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Aeronave/Departamento" />,
     cell: ({ row }) => (
       <p className="text-center font-medium">
         {row.original.aircraft?.acronym ??
         row.original.department?.name ??
-        row.original.authorized_employee?.employee_name ??
         "—"}
       </p>
     ),
