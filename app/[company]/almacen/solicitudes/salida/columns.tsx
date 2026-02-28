@@ -40,7 +40,7 @@ export const columns: ColumnDef<DispatchGroupRow>[] = [
       }
       // Caso 2: no viene requested_by pero existe authorized_employee
       if (authorized_employee) {
-        return ( <div className="text-center leading-tight"> <p className="font-medium"> {authorized_employee.full_name} </p> <p className="text-xs text-muted-foreground"> {authorized_employee.from_company_db} </p> </div> );
+        return ( <div className="text-center leading-tight"> <p className="font-medium"> {authorized_employee.full_name} </p> <p className="text-xs text-muted-foreground uppercase"> {authorized_employee.from_company_db} </p> </div> );
       }
       // Caso 3: ninguno existe
       return ( <p className="text-center text-muted-foreground"> — </p> );
