@@ -37,6 +37,7 @@ export type DispatchGroupRow = {
   submission_date: string | null;
   authorized_employee?: {
     employee_name: string;
+    from_company_db: string;
   }
   work_order?: string;
   articles: DispatchArticle[];
