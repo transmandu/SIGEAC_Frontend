@@ -1,6 +1,7 @@
-import axios from '@/lib/axios';
-import { Aircraft } from '@/types';
-import { useQuery } from '@tanstack/react-query';
+import axios from "@/lib/axios";
+import { Aircraft } from "@/types";
+import { useMutation } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 export interface DispatchReport {
   id: number;
@@ -27,23 +28,44 @@ export interface DispatchReport {
   }[];
 }
 
-const fetchDispatchReport = async (
-  location_id: string,
-  company?: string,
-): Promise<DispatchReport[]> => {
-  const { data } = await axios.get(
-    `/${company}/${location_id}/report-dispatch-orders`
-  );
+interface DispatchParams {
+  location_id: string;
+  company: string;
+  from?: string;
+  to?: string;
+  aircraft_id?: string | null; // <-- Nueva propiedad opcional
+}
+
+const fetchDispatchReport = async ({
+  location_id,
+  company,
+  from,
+  to,
+  aircraft_id, // <-- Recibir el ID
+}: DispatchParams): Promise<DispatchReport[]> => {
+  const params = new URLSearchParams();
+
+  if (from) params.append("from", from);
+  if (to) params.append("to", to);
+  if (aircraft_id) params.append("aircraft_id", aircraft_id); // <-- Añadir a los params si existe
+
+  const url = `/${company}/${location_id}/report-dispatch-orders${
+    params.toString() ? `?${params.toString()}` : ""
+  }`;
+
+  const { data } = await axios.get(url);
+
+  if (Array.isArray(data) && data.length === 0) {
+    toast.info("Sin resultados", {
+      description: `No hay datos de despacho para los filtros seleccionados.`,
+    });
+  }
+
   return data;
 };
 
-export const useGetDispatchReport = (
-  location_id: string | null,
-  company?: string,
-) => {
-  return useQuery<DispatchReport[], Error>({
-    queryKey: ["dispatch-report", company, location_id],
-    queryFn: () => fetchDispatchReport(location_id!, company!),
-    enabled: false, // ⛔ nunca automático
+export const useGetDispatchReport = () => {
+  return useMutation({
+    mutationFn: fetchDispatchReport,
   });
 };

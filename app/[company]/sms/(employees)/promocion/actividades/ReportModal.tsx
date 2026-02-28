@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react"; 
 import {
   Dialog,
   DialogContent,
@@ -18,14 +19,17 @@ import { cn } from "@/lib/utils";
 import { useSmsReport } from "@/hooks/sms/useGetReportSmsByDate";
 
 export function ReportModal() {
+  const [isOpen, setIsOpen] = useState(false);
+
   const { 
     reportFrom, setReportFrom, 
     reportTo, setReportTo, 
-    isGenerating, handleGenerate 
-  } = useSmsReport();
+    isGenerating, handleGenerate,
+    canGenerate // <--- Traemos canGenerate del hook
+  } = useSmsReport(() => setIsOpen(false)); 
 
   return (
-    <Dialog>
+    <Dialog open={isOpen} onOpenChange={setIsOpen}> 
       <DialogTrigger asChild>
         <Button variant="outline" size="sm" className="h-8 flex gap-2">
           <FileDown className="size-4" />
@@ -35,7 +39,7 @@ export function ReportModal() {
       
       <DialogContent className="sm:max-w-[480px]">
         <DialogHeader className="flex flex-col items-center">
-          <DialogTitle className="text-3xl font-bold text-center">Generar Cronograma </DialogTitle>
+          <DialogTitle className="text-3xl font-bold text-center">Generar Cronograma</DialogTitle>
           <DialogDescription className="text-sm italic text-center">
             Selecciona el rango de fechas para la consulta en el servidor.
           </DialogDescription>
@@ -65,15 +69,13 @@ export function ReportModal() {
                       {reportFrom ? format(reportFrom, "dd/MM/yyyy", { locale: es }) : "DD/MM/YYYY"}
                     </Button>
                   </PopoverTrigger>
-                  {/* Ajuste: avoidCollisions y align para estabilidad */}
-                  <PopoverContent className="w-auto p-0" align="start" avoidCollisions={false}>
+                  <PopoverContent className="w-auto p-0" align="start">
                     <Calendar
                       mode="single"
                       selected={reportFrom}
                       onSelect={setReportFrom}
                       initialFocus
                       locale={es}
-                      fixedWeeks // Ajuste: Mantiene siempre 6 filas de altura
                     />
                   </PopoverContent>
                 </Popover>
@@ -95,8 +97,7 @@ export function ReportModal() {
                       {reportTo ? format(reportTo, "dd/MM/yyyy", { locale: es }) : "DD/MM/YYYY"}
                     </Button>
                   </PopoverTrigger>
-                  {/* Ajuste: avoidCollisions y align para estabilidad */}
-                  <PopoverContent className="w-auto p-0" align="start" avoidCollisions={false}>
+                  <PopoverContent className="w-auto p-0" align="start">
                     <Calendar
                       mode="single"
                       selected={reportTo}
@@ -104,7 +105,6 @@ export function ReportModal() {
                       disabled={(date) => (reportFrom ? date < reportFrom : false)}
                       initialFocus
                       locale={es}
-                      fixedWeeks // Ajuste: Mantiene siempre 6 filas de altura
                     />
                   </PopoverContent>
                 </Popover>
@@ -115,8 +115,13 @@ export function ReportModal() {
           <div className="flex flex-col gap-3">
             <Button 
               onClick={handleGenerate} 
-              disabled={isGenerating} 
-              className="w-full font-bold text-lg h-12"
+              // Cambiamos disabled para que dependa de canGenerate
+              disabled={!canGenerate} 
+              className={cn(
+                "w-full font-bold text-lg h-12 transition-all duration-200",
+                // Si no puede generar, forzamos estilos de "apagado"
+                !canGenerate && "bg-muted text-muted-foreground cursor-not-allowed opacity-50 shadow-none border-none hover:bg-muted"
+              )}
             >
               {isGenerating ? (
                 <>
@@ -127,9 +132,6 @@ export function ReportModal() {
                 "Generar PDF"
               )}
             </Button>
-            <p className="text-[10px] text-center text-muted-foreground italic">
-              * El reporte se filtrará según la columna start_date de la base de datos.
-            </p>
           </div>
         </div>
       </DialogContent>

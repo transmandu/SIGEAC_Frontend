@@ -199,7 +199,7 @@ export function PartDispatchForm({ onClose }: FormProps) {
       submission_date: format(data.submission_date, "yyyy-MM-dd"),
       category: "parte",
       isDepartment: isDepartment,
-      aircraft_id: isDepartment ? null : data.department_id,
+      aircraft_id: isDepartment ? undefined : data.department_id,
     };
 
     await createDispatchRequest.mutateAsync({ data: { ...formattedData, user_id: Number(user!.id) }, company: selectedCompany!.slug });
@@ -481,4 +481,3 @@ export function PartDispatchForm({ onClose }: FormProps) {
   </Form>
 );
 }
-
