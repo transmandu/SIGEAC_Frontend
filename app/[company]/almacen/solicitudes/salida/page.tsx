@@ -35,6 +35,9 @@ export type DispatchGroupRow = {
   justification: string | null;
   department?: Department;
   submission_date: string | null;
+  authorized_employee?: {
+    employee_name: string;
+  }
   work_order?: string;
   articles: DispatchArticle[];
 };

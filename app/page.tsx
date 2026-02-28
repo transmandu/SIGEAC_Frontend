@@ -17,12 +17,39 @@ export default function Home() {
   return (
     <div className="w-full h-screen flex flex-col lg:flex-row bg-sky-100">
       <div className="w-full flex justify-center h-full bg-clouds bg-cover relative animate-moveBackground rounded-b-full lg:rounded-r-full lg:rounded-b-none">
-        <motion.div initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="mt-24 lg:mt-0" key="plane">
-          <Image className="lg:absolute lg:top-56 lg:-right-3 w-[600px] lg:w-auto" src={'/plane3.webp'} width={850} height={850} alt="avion-al" />
+        <motion.div
+          key="plane"
+          className="mt-24 lg:mt-0"
+          initial={{
+            opacity: 0,
+            scale: 0.25,
+            x: -220,
+            y: -140,
+            filter: "blur(6px)",
+          }}
+          animate={{
+            opacity: 1,
+            scale: 1,
+            x: 0,
+            y: 0,
+            filter: "blur(0px)",
+          }}
+          transition={{
+            duration: 1.6,
+            ease: [0.22, 1, 0.36, 1]
+          }}
+        >
+          <Image
+            className="lg:absolute lg:top-50 lg:-right-32 w-[600px] -rotate-12 lg:w-auto"
+            src={'/plane3.png'}
+            width={890}
+            height={890}
+            alt="avion-al"
+            priority
+          />
         </motion.div>
       </div>
+
       <div className="w-full h-full flex flex-col items-center justify-center gap-4">
         <div className="flex flex-col justify-center items-center gap-4">
           <Logo />

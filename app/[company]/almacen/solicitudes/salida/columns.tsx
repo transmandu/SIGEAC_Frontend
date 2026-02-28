@@ -21,7 +21,7 @@ export const columns: ColumnDef<DispatchGroupRow>[] = [
     size: 40,
   },
   {
-    accessorKey: 'id',
+    accessorKey: 'request_number',
     header: ({ column }) => <DataTableColumnHeader column={column} title="N° solicitud" />,
     cell: ({ row }) => <p className="text-center font-semibold">{row.original.request_number}</p>,
   },
@@ -44,11 +44,12 @@ export const columns: ColumnDef<DispatchGroupRow>[] = [
   },
       {
     accessorKey: 'aircraft.acronym',
-    header: ({ column }) => <DataTableColumnHeader column={column} title="Aeronave/Departamento" />,
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Aeronave/Departamento/" />,
     cell: ({ row }) => (
       <p className="text-center font-medium">
         {row.original.aircraft?.acronym ??
         row.original.department?.name ??
+        row.original.authorized_employee?.employee_name ??
         "—"}
       </p>
     ),
