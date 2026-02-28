@@ -220,9 +220,14 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
   )
 
   // Reset destino al cambiar tipo
+  const dispatchType = useWatch({
+    control: form.control,
+    name: "dispatch_type",
+  })
+
   useEffect(() => {
     setValue("department_id", "")
-  }, [setValue, form.watch("dispatch_type")])
+  }, [dispatchType, setValue])
 
   // =============== Cantidades (local draft por fila) ===============
   const [qtyByKey, setQtyByKey] = useState<Record<string, string>>({})
@@ -882,7 +887,7 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
                         )}
                         {authorizedEmployees?.map((a) => (
                           <SelectItem key={a.id} value={a.id.toString()}>
-                            {a.employee_name} - {a.to_company_db.toUpperCase()}
+                            {a.employee_name} - {a.from_company_db.toUpperCase()}
                           </SelectItem>
                         ))}
                         </SelectContent>
