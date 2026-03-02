@@ -1,3 +1,4 @@
+// app/[company]/dashboard/page.tsx
 "use client";
 
 import dynamic from "next/dynamic";
@@ -8,19 +9,9 @@ import { useCompanyStore } from "@/stores/CompanyStore";
 const WarehouseDashboard = dynamic(
   () => import("@/components/dashboard/WarehouseDashboard")
 );
-
 const SMSDashboard = dynamic(
   () => import("@/components/dashboard/SMSDashboard")
 );
-
-const AdministrationDashboard = dynamic(
-  () => import("@/components/dashboard/AdministrationDashboard")
-);
-
-const SuperUserDashboard = dynamic(
-  () => import("@/components/dashboard/SuperUserDashboard")
-);
-
 const DefaultDashboard = dynamic(
   () => import("@/components/dashboard/DefaultDashboard")
 );
@@ -36,48 +27,21 @@ export default function DashboardPage() {
   }
 
   const roleNames = user.roles?.map((r) => r.name) || [];
+  const hasRole = (names: string[]) => names.some((r) => roleNames.includes(r));
 
-  const hasRole = (names: string[]) =>
-    names.some((r) => roleNames.includes(r));
-
+  // Determinar el tipo de dashboard basado en los roles
   const getDashboardType = () => {
-    if (hasRole(["SUPERUSER"])) {
-      return "SUPERUSER";
-    }
-
-    if (hasRole(["JEFE_ALMACEN", "ANALISTA_ALMACEN"])) {
+    if (hasRole(["SUPERUSER", "JEFE_ALMACEN", "ANALISTA_ALMACEN"])) {
       return "WAREHOUSE";
     }
-
-    if (hasRole(["JEFE_SMS", "ANALISTA_SMS"])) {
+    if (hasRole(["SUPERUSER", "JEFE_SMS", "ANALISTA_SMS"])) {
       return "SMS";
     }
-
-    if (
-      hasRole([
-        "ANALISTA_ADMINISTRACION",
-        "RRHH_ADMINISTRACION",
-        "JEFE_ADMINISTRACION",
-        "CONTADOR_ADMINISTRACION",
-      ])
-    ) {
-      return "ADMINISTRATION";
-    }
-
     return "DEFAULT";
   };
 
+  // Usar switch case para renderizar el dashboard correspondiente
   switch (getDashboardType()) {
-    case "SUPERUSER":
-      return (
-        <SuperUserDashboard
-          companySlug={selectedCompany?.slug || ""}
-          location_id={location_id || ""}
-          user={user}
-          roleNames={roleNames}
-        />
-      );
-
     case "WAREHOUSE":
       return (
         <WarehouseDashboard
@@ -91,16 +55,6 @@ export default function DashboardPage() {
     case "SMS":
       return (
         <SMSDashboard
-          companySlug={selectedCompany?.slug || ""}
-          location_id={location_id || ""}
-          user={user}
-          roleNames={roleNames}
-        />
-      );
-
-    case "ADMINISTRATION":
-      return (
-        <AdministrationDashboard
           companySlug={selectedCompany?.slug || ""}
           location_id={location_id || ""}
           user={user}
