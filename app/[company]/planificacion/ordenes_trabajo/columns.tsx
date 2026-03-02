@@ -42,9 +42,14 @@ export const columns: ColumnDef<WorkOrder>[] = [
     ),
     cell: ({ row }) => {
       return (
-        <Link href={`/hangar74/planificacion/ordenes_trabajo/${row.original.order_number}`} className="font-medium flex justify-center hover:scale-105 hover:text-blue-600 transition-all ease-in cursor-pointer duration-150">{row.original.order_number}</Link>
-      )
-    }
+        <Link
+          href={`/hangar74/planificacion/ordenes_trabajo/${row.original.order_number}`}
+          className="font-medium flex justify-center hover:scale-105 hover:text-blue-600 transition-all ease-in cursor-pointer duration-150"
+        >
+          {row.original.order_number}
+        </Link>
+      );
+    },
   },
   {
     accessorKey: "aircraft.acronym",
@@ -53,9 +58,14 @@ export const columns: ColumnDef<WorkOrder>[] = [
     ),
     cell: ({ row }) => {
       return (
-        <Link href={`/hangar74/planificacion/aeronaves`} className="font-medium flex justify-center hover:scale-105 hover:text-blue-600 transition-all ease-in cursor-pointer duration-150">{row.original.aircraft.acronym}</Link>
-      )
-    }
+        <Link
+          href={`/hangar74/planificacion/aeronaves`}
+          className="font-medium flex justify-center hover:scale-105 hover:text-blue-600 transition-all ease-in cursor-pointer duration-150"
+        >
+          {row.original.aircraft.acronym}
+        </Link>
+      );
+    },
   },
   {
     accessorKey: "description",
@@ -63,8 +73,10 @@ export const columns: ColumnDef<WorkOrder>[] = [
       <DataTableColumnHeader column={column} title="Descripción" />
     ),
     cell: ({ row }) => (
-      <p className="flex justify-center text-muted-foreground">{row.original.description}</p>
-    )
+      <p className="flex justify-center text-muted-foreground">
+        {row.original.description}
+      </p>
+    ),
   },
   {
     accessorKey: "status",
@@ -88,35 +100,28 @@ export const columns: ColumnDef<WorkOrder>[] = [
             {status}
           </Badge>
         </div>
-      )
-    }
+      );
+    },
   },
   {
-    accessorKey: "elaborated_by",
+    accessorKey: "client",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Elaborado" />
+      <DataTableColumnHeader column={column} title="Cliente" />
     ),
     cell: ({ row }) => (
-      <p className="flex justify-center">{row.original.elaborated_by ?? "N/A"}</p>
-    )
+      <p className="flex justify-center">
+        {row.original.aircraft.client?.name ?? "N/A"}
+      </p>
+    ),
   },
   {
     accessorKey: "reviewed_by",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Revisado" />
+      <DataTableColumnHeader column={column} title="Nº de Items" />
     ),
     cell: ({ row }) => (
-      <p className="flex justify-center">{row.original.reviewed_by ?? "N/A"}</p>
-    )
-  },
-  {
-    accessorKey: "approved_by",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Aprobado" />
+      <p className="flex justify-center">{row.original.work_order_tasks.length ?? "N/A"}</p>
     ),
-    cell: ({ row }) => (
-      <p className="flex justify-center">{row.original.approved_by ?? "N/A"}</p>
-    )
   },
   {
     accessorKey: "date",
@@ -124,15 +129,17 @@ export const columns: ColumnDef<WorkOrder>[] = [
       <DataTableColumnHeader column={column} title="Fecha" />
     ),
     cell: ({ row }) => (
-      <p className="flex justify-center">{row.original.date ? format(parseISO(row.original.date), "PPP", { locale: es }) : "N/A"}</p>
-    )
+      <p className="flex justify-center">
+        {row.original.date
+          ? format(parseISO(row.original.date), "PPP", { locale: es })
+          : "N/A"}
+      </p>
+    ),
   },
   {
     id: "actions",
     cell: ({ row }) => {
-      return (
-        <WorkOrderDropdownActions work_order={row.original} />
-      )
+      return <WorkOrderDropdownActions work_order={row.original} />;
     },
   },
-]
+];

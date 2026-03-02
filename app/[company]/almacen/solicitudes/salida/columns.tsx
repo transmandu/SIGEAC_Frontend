@@ -30,26 +30,36 @@ export const columns: ColumnDef<DispatchGroupRow>[] = [
     header: ({ column }) => <DataTableColumnHeader column={column} title="Creado Por" />,
     cell: ({ row }) => <p className="text-center font-medium">{row.original.created_by}</p>,
   },
-    {
+  {
     accessorKey: 'requested_by',
-    header: ({ column }) => <DataTableColumnHeader column={column} title="Solicitado Por" />,
-    cell: ({ row }) => <p className="text-center font-medium">{row.original.requested_by}</p>,
+    header: ({ column }) => ( <DataTableColumnHeader column={column} title="Solicitado Por" /> ),
+    cell: ({ row }) => { const { requested_by, authorized_employee } = row.original;
+      // Caso 1: viene requested_by normal
+      if (requested_by) {
+        return ( <p className="text-center font-medium"> {requested_by} </p> );
+      }
+      // Caso 2: no viene requested_by pero existe authorized_employee
+      if (authorized_employee) {
+        return ( <div className="text-center leading-tight"> <p className="font-medium"> {authorized_employee.full_name} </p> <p className="text-xs text-muted-foreground uppercase"> {authorized_employee.from_company_db} </p> </div> );
+      }
+      // Caso 3: ninguno existe
+      return ( <p className="text-center text-muted-foreground"> — </p> );
+    },
   },
-    {
+  {
     accessorKey: 'work_order',
     header: ({ column }) => <DataTableColumnHeader column={column} title="Orden de Trabajo" />,
     cell: ({ row }) => (
       <p className="text-center font-medium">{row.original.work_order ?? "-"}</p>
     ),
   },
-      {
+  {
     accessorKey: 'aircraft.acronym',
-    header: ({ column }) => <DataTableColumnHeader column={column} title="Aeronave/Departamento/" />,
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Aeronave/Departamento" />,
     cell: ({ row }) => (
       <p className="text-center font-medium">
         {row.original.aircraft?.acronym ??
         row.original.department?.name ??
-        row.original.authorized_employee?.employee_name ??
         "—"}
       </p>
     ),
