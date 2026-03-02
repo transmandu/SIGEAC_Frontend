@@ -1,15 +1,10 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, useRef } from "react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
+  Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle,
 } from "@/components/ui/card"
 import { toast } from "@/components/ui/use-toast"
 import axiosInstance from "@/lib/axios"
@@ -17,29 +12,12 @@ import { cn } from "@/lib/utils"
 import { WorkOrder } from "@/types"
 import { format } from "date-fns"
 import { es } from "date-fns/locale"
-import {
-  CalendarFold,
-  Clock3,
-  Eye,
-  FileCheck2,
-  MapPin,
-  PencilLine,
-  Printer,
-  RefreshCw,
-  User,
-  Loader2,
-} from "lucide-react"
+import { Eye, Printer, Loader2 } from "lucide-react"
 import Link from "next/link"
 import { useCompanyStore } from "@/stores/CompanyStore"
 
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter as DialogFooterUI,
-  DialogHeader as DialogHeaderUI,
-  DialogTitle as DialogTitleUI,
-  DialogTrigger,
+  Dialog, DialogContent, DialogTrigger,
 } from "@/components/ui/dialog"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Input } from "@/components/ui/input"
@@ -55,390 +33,198 @@ const WorkOrderAircraftDetailsCards = ({ work_order }: { work_order: WorkOrder }
   const [hoursMode, setHoursMode] = useState<HoursMode>("auto")
   const [manualHours, setManualHours] = useState<string>("")
   const [clientSignature, setClientSignature] = useState<string>("Freddy Guerrero")
-
-  // NUEVO: páginas hoja de reporte
   const [reportPagesTotal, setReportPagesTotal] = useState<string>("2")
-  const [reportPagesError, setReportPagesError] = useState<string | null>(null)
-
+  
   const [isDownloading, setIsDownloading] = useState(false)
-  const [manualError, setManualError] = useState<string | null>(null)
+  const [isPreviewing, setIsPreviewing] = useState(false)
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+  const [previewBlob, setPreviewBlob] = useState<Blob | null>(null)
+
+  const lastParamsRef = useRef<string>("");
 
   useEffect(() => {
-    if (hoursMode === "auto") setManualError(null)
-  }, [hoursMode])
+    return () => { if (previewUrl) window.URL.revokeObjectURL(previewUrl); };
+  }, [previewUrl]);
 
-  const validateManualHours = () => {
-    if (hoursMode !== "manual") return true
-
-    // Permitir vacío: PDF debe salir vacío
-    if (manualHours.trim() === "") {
-      setManualError(null)
-      return true
-    }
-
-    const normalized = manualHours.replace(",", ".")
-    const n = Number(normalized)
-
-    if (!Number.isFinite(n)) {
-      setManualError("Ingresa un número válido.")
-      return false
-    }
-    if (n < 0) {
-      setManualError("Las horas no pueden ser negativas.")
-      return false
-    }
-
-    setManualError(null)
-    return true
-  }
-
-  const validateReportPages = () => {
-    const raw = reportPagesTotal.trim()
-    if (raw === "") {
-      setReportPagesError("Ingresa un número de páginas.")
-      return false
-    }
-
-    const n = Number(raw)
-    if (!Number.isInteger(n) || n < 1) {
-      setReportPagesError("Debe ser un entero mayor o igual a 1.")
-      return false
-    }
-
-    // límite de seguridad (ajusta si quieres)
-    if (n > 50) {
-      setReportPagesError("Máximo 50 páginas.")
-      return false
-    }
-
-    setReportPagesError(null)
-    return true
-  }
-
-const handleDownloadPackage = async (params: Record<string, any>) => {
-  // 🚫 Evitar doble ejecución
-  if (isDownloading) return;
-
-  try {
-    setIsDownloading(true);
-
-    const response = await axiosInstance.get(
-      `/${companySlug}/work-orders/${work_order.order_number}/package`,
-      {
-        responseType: "blob",
-        params,
-      },
-    );
-
-    // Obtener filename desde backend
-    const disposition = response.headers?.["content-disposition"] as
-      | string
-      | undefined;
-    const match = disposition?.match(/filename="?([^"]+)"?/i);
-    const fallbackName = `package_${work_order.order_number}.pdf`;
-    const filename = match?.[1] || fallbackName;
-
-    // ✅ USAR EL CONTENT-TYPE REAL
-    const blob = new Blob([response.data], {
-      type: response.headers["content-type"] || "application/pdf",
-    });
-
-    const url = window.URL.createObjectURL(blob);
-
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = filename;
-    document.body.appendChild(link);
-    link.click();
-
-    document.body.removeChild(link);
-    window.URL.revokeObjectURL(url);
-  } catch (error) {
-    toast({
-      variant: "destructive",
-      title: "Error",
-      description: "No se pudo descargar el PDF. Por favor intente nuevamente.",
-    });
-    console.error("Error al descargar el PDF:", error);
-  } finally {
-    setIsDownloading(false);
-  }
-};
-
-  const onConfirmDownload = async () => {
-    if (!validateManualHours()) return
-    if (!validateReportPages()) return
-
+  const handleAction = async (mode: 'download' | 'preview') => {
+    const isDownload = mode === 'download';
     const params: Record<string, any> = {
-      aircraft_hours_mode: hoursMode, // auto | manual
+      aircraft_hours_mode: hoursMode,
       client_signature: clientSignature?.trim() ?? "",
       report_pages_total: Number(reportPagesTotal.trim()),
-      // isExplotador: work_order.isExplotador, // <- si luego quieres forzarlo desde UI
     }
 
-    // Manual: permitir vacío => no enviamos aircraft_hours
-    if (hoursMode === "manual") {
-      if (manualHours.trim() !== "") {
-        const normalized = manualHours.replace(",", ".")
-        const n = Number(normalized)
-        if (Number.isFinite(n) && n >= 0) {
-          params.aircraft_hours = n
-        }
+    if (hoursMode === "manual" && manualHours.trim() !== "") {
+      params.aircraft_hours = Number(manualHours.replace(",", "."));
+    }
+
+    const currentParamsJson = JSON.stringify(params);
+
+    if (previewUrl && previewBlob && currentParamsJson === lastParamsRef.current) {
+        if (isDownload) {
+            const url = window.URL.createObjectURL(previewBlob);
+            const link = document.createElement("a");
+            link.href = url;
+            link.download = `WO_${work_order.order_number}.pdf`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            setPrintOpen(false);
+            return;
+        } else if (mode === 'preview') return;
+    }
+
+    isDownload ? setIsDownloading(true) : setIsPreviewing(true);
+
+    try {
+      const response = await axiosInstance.get(
+        `/${companySlug}/work-orders/${work_order.order_number}/package`,
+        { responseType: "blob", params }
+      );
+      const blob = new Blob([response.data], { type: "application/pdf" });
+      const url = window.URL.createObjectURL(blob);
+
+      if (isDownload) {
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `WO_${work_order.order_number}.pdf`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        setPrintOpen(false);
+      } else {
+        lastParamsRef.current = currentParamsJson;
+        if (previewUrl) window.URL.revokeObjectURL(previewUrl);
+        setPreviewUrl(url);
+        setPreviewBlob(blob);
       }
+    } catch (error) {
+      toast({ variant: "destructive", title: "Error", description: "No se pudo generar el PDF." });
+    } finally {
+      setIsDownloading(false);
+      setIsPreviewing(false);
     }
-
-    await handleDownloadPackage(params)
-    setPrintOpen(false)
-  }
+  };
 
   return (
     <div className="flex gap-4 justify-center w-full">
-      {/* Detalles de Orden de Trabajo */}
-      <Card className="w-1/2">
-        <CardHeader className="flex justify-center text-center">
-          <CardTitle>WO - {work_order!.order_number}</CardTitle>
-          <CardDescription>{work_order?.description}</CardDescription>
+      <Card className="w-1/2 border-border bg-card text-card-foreground">
+        <CardHeader className="text-center">
+          <CardTitle>WO - {work_order.order_number}</CardTitle>
+          <CardDescription>{work_order.description}</CardDescription>
         </CardHeader>
-
         <CardContent>
-          {work_order && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="flex flex-col items-center">
-                <p className="text-sm text-gray-600 flex gap-1 items-center">
-                  Fecha de Orden <CalendarFold className="size-4" />
-                </p>
-                <p className="font-medium">
-                  {format(work_order.date, "PPP", { locale: es })}
-                </p>
-              </div>
-
-              <div className="flex flex-col items-center">
-                <p className="text-sm text-gray-600 flex gap-1 items-center">
-                  Elaborado Por <PencilLine className="size-4" />
-                </p>
-                <p className="font-medium">{work_order.elaborated_by}</p>
-              </div>
-
-              <div className="flex flex-col items-center">
-                <p className="text-sm text-gray-600 flex gap-1 items-center">
-                  Revisado Por <Eye className="size-4" />
-                </p>
-                <p className="font-medium">{work_order.reviewed_by}</p>
-              </div>
-
-              <div className="flex flex-col items-center">
-                <p className="text-sm text-gray-600 flex gap-1 items-center">
-                  Aprobado Por <FileCheck2 className="size-4" />
-                </p>
-                <p className="font-medium">{work_order.approved_by}</p>
-              </div>
-
-              <div className="flex flex-col items-center">
-                <p className="text-sm text-gray-600">Cliente</p>
-                <p className="font-medium">{work_order.aircraft.client.name}</p>
-              </div>
-
-              <div className="flex flex-col items-center">
-                <p className="text-sm text-gray-600">Número de Tareas</p>
-                <p className="font-medium">
-                  {work_order.work_order_tasks.length} tarea(s)
-                </p>
-              </div>
-            </div>
-          )}
+          <div className="grid grid-cols-2 gap-4 text-center text-sm">
+            <div><p className="text-muted-foreground italic text-xs uppercase tracking-tight">Fecha de Orden</p><p className="font-medium">{format(work_order.date, "PPP", { locale: es })}</p></div>
+            <div><p className="text-muted-foreground italic text-xs uppercase tracking-tight">Cliente</p><p className="font-medium">{work_order.aircraft.client.name}</p></div>
+          </div>
         </CardContent>
+        <CardFooter className="flex flex-col gap-6">
+          <Badge className={work_order.status === "ABIERTO" ? "bg-green-500 hover:bg-green-600 text-white" : "bg-red-500 text-white"}>{work_order.status}</Badge>
 
-        <CardFooter className="flex flex-col justify-between space-y-10">
-          <Badge
-            className={cn(
-              "scale-125 cursor-pointer hover:scale-150 transition-all ease-in",
-              work_order.status === "ABIERTO"
-                ? "bg-green-500 hover:bg-green-600"
-                : "bg-red-500 hover:bg-red-600",
-            )}
-          >
-            {work_order?.status}
-          </Badge>
-
-          {/* Dialog de descarga */}
-          <Dialog open={printOpen} onOpenChange={setPrintOpen}>
+          <Dialog open={printOpen} onOpenChange={(val) => { 
+            setPrintOpen(val); 
+            if(!val) { setPreviewUrl(null); setPreviewBlob(null); lastParamsRef.current = ""; } 
+          }}>
             <DialogTrigger asChild>
-              <Button disabled={isDownloading} className="gap-2">
-                {isDownloading ? (
-                  <Loader2 className="size-4 animate-spin" />
-                ) : (
-                  <Printer className="size-4" />
-                )}
-                Descargar paquete (PDF)
-              </Button>
+              <Button className="gap-2 px-8"><Printer className="size-4" /> Descargar paquete (PDF)</Button>
             </DialogTrigger>
 
-            <DialogContent className="sm:max-w-md">
-              <DialogHeaderUI>
-                <DialogTitleUI>Opciones de descarga</DialogTitleUI>
-                <DialogDescription></DialogDescription>
-              </DialogHeaderUI>
+            {/* Ajuste de la X del modal para que no estorbe */}
+            <DialogContent className={cn(
+              "transition-all duration-300 ease-in-out p-6 overflow-hidden [&>button]:right-2 [&>button]:top-2 bg-background text-foreground border-border",
+              previewUrl ? "max-w-[98vw] w-[98vw] h-[96vh]" : "max-w-md"
+            )}>
+              <div className={cn("flex h-full gap-8", previewUrl ? "flex-row" : "flex-col")}>
+                
+                {/* PANEL DE CONTROL (20%) - Usando colores adaptativos */}
+                <div className={cn("flex flex-col gap-5 transition-all", previewUrl ? "w-[320px] border-r border-border pr-6" : "w-full")}>
+                  <h2 className="font-bold text-2xl tracking-tight text-foreground">{previewUrl ? "Ajustes" : "Configuración"}</h2>
+                  
+                  <div className="space-y-3">
+                    <Label className="text-xs font-bold uppercase text-primary tracking-widest">Horas de aeronave</Label>
+                    <RadioGroup value={hoursMode} onValueChange={(v) => setHoursMode(v as HoursMode)} className="flex flex-col gap-2">
+                      <div className="flex items-center gap-2 border border-input p-3 rounded-lg hover:bg-accent cursor-pointer transition-all">
+                        <RadioGroupItem value="auto" id="auto" /><Label htmlFor="auto" className="text-sm cursor-pointer font-medium">Automáticas (del sistema)</Label>
+                      </div>
+                      <div className="flex items-center gap-2 border border-input p-3 rounded-lg hover:bg-accent cursor-pointer transition-all">
+                        <RadioGroupItem value="manual" id="manual" /><Label htmlFor="manual" className="text-sm cursor-pointer font-medium">Manuales (definir valor)</Label>
+                      </div>
+                    </RadioGroup>
+                  </div>
 
-              <div className="space-y-4">
-                {/* Horas */}
-                <div className="space-y-2">
-                  <Label>Horas de aeronave</Label>
-                  <RadioGroup
-                    value={hoursMode}
-                    onValueChange={(v) => {
-                      setHoursMode(v as HoursMode);
-                      setManualError(null);
-                    }}
-                    className="grid gap-2"
-                  >
-                    <div className="flex items-center gap-2 rounded-md border p-3">
-                      <RadioGroupItem value="auto" id="hours-auto" />
-                      <Label htmlFor="hours-auto" className="cursor-pointer">
-                        Automáticas (del sistema)
-                      </Label>
-                    </div>
+                  {hoursMode === "manual" && (
+                    <Input className="h-10 text-sm bg-background border-input" placeholder="0.00" value={manualHours} onChange={(e) => setManualHours(e.target.value)} />
+                  )}
+                  
+                  <div className="space-y-2">
+                    <Label className="text-xs font-bold uppercase text-primary tracking-widest">Firma del Cliente</Label>
+                    <Input className="h-10 text-sm bg-background border-input" value={clientSignature} onChange={(e) => setClientSignature(e.target.value)} />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label className="text-xs font-bold uppercase text-primary tracking-widest">Páginas Hoja Reporte</Label>
+                    <Input className="h-10 text-sm bg-background border-input" type="number" value={reportPagesTotal} onChange={(e) => setReportPagesTotal(e.target.value)} />
+                  </div>
 
-                    <div className="flex items-center gap-2 rounded-md border p-3">
-                      <RadioGroupItem value="manual" id="hours-manual" />
-                      <Label htmlFor="hours-manual" className="cursor-pointer">
-                        Manuales (definir valor)
-                      </Label>
-                    </div>
-                  </RadioGroup>
+                  <div className="flex flex-col gap-3 mt-auto pt-6 border-t border-border">
+                    {!previewUrl && (
+                        <Button 
+                        variant="outline" 
+                        onClick={() => handleAction('preview')} 
+                        disabled={isPreviewing}
+                        className="h-11 border-primary text-primary hover:bg-primary hover:text-primary-foreground transition-all font-semibold"
+                        >
+                        {isPreviewing ? <Loader2 className="animate-spin size-4 mr-2" /> : <Eye className="size-4 mr-2" />} 
+                        Ver Vista Previa
+                        </Button>
+                    )}
+                    
+                    <Button 
+                      onClick={() => handleAction('download')} 
+                      disabled={isDownloading}
+                      className="h-11 bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg font-bold transition-all active:scale-[0.98]"
+                    >
+                      {isDownloading ? <Loader2 className="animate-spin size-4 mr-2" /> : <Printer className="size-4 mr-2" />} 
+                      {previewUrl ? "Descargar PDF Final" : "Generar y Descargar"}
+                    </Button>
+
+                    {previewUrl && (
+                        <Button 
+                          variant="outline" 
+                          className="h-11 border-input text-muted-foreground hover:bg-accent hover:text-foreground transition-all font-semibold" 
+                          onClick={() => { setPreviewUrl(null); setPreviewBlob(null); lastParamsRef.current = ""; }}
+                        >
+                          Cerrar Vista Previa
+                        </Button>
+                    )}
+                  </div>
                 </div>
 
-                {hoursMode === "manual" && (
-                  <div className="space-y-2">
-                    <Label htmlFor="manual-hours">Horas a mostrar</Label>
-                    <Input
-                      id="manual-hours"
-                      inputMode="decimal"
-                      value={manualHours}
-                      onChange={(e) => setManualHours(e.target.value)}
-                      onBlur={validateManualHours}
-                      placeholder="Déjalo vacío para imprimir sin horas"
+                {/* VISOR DE PDF (80%) */}
+                {previewUrl && (
+                  <div className="flex-[4] relative border border-border rounded-xl bg-muted/30 overflow-hidden shadow-2xl">
+                    <iframe 
+                      src={`${previewUrl}#view=FitH&navpanes=0`} 
+                      className="w-full h-full border-none" 
+                      title="Preview" 
                     />
-                    {manualError && (
-                      <p className="text-sm text-destructive">{manualError}</p>
-                    )}
-                    <p className="text-xs text-muted-foreground">
-                      Tip: puedes escribir decimales con coma o punto.
-                    </p>
                   </div>
                 )}
-
-                {/* Firma */}
-                <div className="space-y-2">
-                  <hr className="my-2" />
-                  <Label className="text-sm">
-                    Firma del Cliente{" "}
-                    <span className="text-xs text-muted-foreground">
-                      (Dejar vacío para no incluir firma)
-                    </span>
-                  </Label>
-                  <Input
-                    value={clientSignature}
-                    onChange={(e) => setClientSignature(e.target.value)}
-                  />
-                </div>
-
-                {/* NUEVO: páginas de hoja de reporte */}
-                <div className="space-y-2">
-                  <Label className="text-sm">Páginas de Hoja de Reporte</Label>
-                  <Input
-                    inputMode="numeric"
-                    value={reportPagesTotal}
-                    onChange={(e) => setReportPagesTotal(e.target.value)}
-                    onBlur={validateReportPages}
-                    placeholder="Ej: 2"
-                    defaultValue={2}
-                  />
-                  {reportPagesError && (
-                    <p className="text-sm text-destructive">
-                      {reportPagesError}
-                    </p>
-                  )}
-                  <p className="text-xs text-muted-foreground">
-                    Define cuántas páginas se generan en la hoja de reporte.
-                  </p>
-                </div>
               </div>
-
-              <DialogFooterUI className="gap-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setPrintOpen(false)}
-                  disabled={isDownloading}
-                >
-                  Cancelar
-                </Button>
-                <Button
-                  type="button"
-                  onClick={onConfirmDownload}
-                  disabled={isDownloading}
-                >
-                  {isDownloading ? "Descargando..." : "Confirmar y descargar"}
-                </Button>
-              </DialogFooterUI>
             </DialogContent>
           </Dialog>
         </CardFooter>
       </Card>
 
-      {/* Detalles de Aeronave */}
-      <Card className="w-1/3">
-        <CardHeader className="text-center">
-          <CardTitle>Aeronave - {work_order?.aircraft.acronym}</CardTitle>
-          <CardDescription>{work_order?.aircraft.comments}</CardDescription>
-        </CardHeader>
-
-        <CardContent>
-          {work_order && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="flex flex-col justify-center text-center">
-                <p className="text-sm text-gray-600 flex justify-center items-center gap-1">
-                  Horas de Vuelo <Clock3 className="size-4" />
-                </p>
-                <p className="font-medium">
-                  {work_order.aircraft.flight_hours}
-                </p>
-              </div>
-
-              <div className="flex flex-col justify-center text-center">
-                <p className="text-sm text-gray-600 flex justify-center items-center gap-1">
-                  Ciclos de Vuelo <RefreshCw className="size-4" />
-                </p>
-                <p className="font-medium">
-                  {work_order.aircraft.flight_cycles}
-                </p>
-              </div>
-
-              <div className="flex flex-col justify-center text-center">
-                <p className="text-sm text-gray-600 flex justify-center items-center gap-1">
-                  Cliente <User className="size-4" />
-                </p>
-                <p className="font-medium">{work_order.aircraft.client.name}</p>
-              </div>
-
-              <div className="flex flex-col justify-center text-center">
-                <p className="text-sm text-gray-600 flex justify-center items-center gap-1">
-                  Ubicación <MapPin className="size-4" />
-                </p>
-                <p className="font-medium">Puerto Ordaz</p>
-              </div>
-            </div>
-          )}
-        </CardContent>
-
-        <CardFooter className="flex justify-center">
-          <Link href={`/${companySlug}/planificacion/aeronaves`}>
-            <Button>Ver Aeronave</Button>
-          </Link>
+      <Card className="w-1/3 text-center border-border bg-card text-card-foreground">
+        <CardHeader><CardTitle className="text-primary">{work_order.aircraft.acronym}</CardTitle></CardHeader>
+        <CardFooter className="justify-center">
+          <Link href={`/${companySlug}/planificacion/aeronaves`}><Button variant="outline" size="sm" className="hover:bg-primary hover:text-primary-foreground transition-colors">Ver Aeronave</Button></Link>
         </CardFooter>
       </Card>
     </div>
-  );
+  )
 }
 
 export default WorkOrderAircraftDetailsCards
