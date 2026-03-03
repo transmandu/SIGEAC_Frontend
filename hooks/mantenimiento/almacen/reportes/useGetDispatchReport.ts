@@ -22,7 +22,7 @@ export const useGetDispatchReport = () => {
             from: params.from,
             to: params.to,
           },
-          responseType: "blob", // 🔥 obligatorio para PDF
+          responseType: "blob", // ✅ Se mantiene como blob para archivos binarios (ZIP)
         },
       );
 
