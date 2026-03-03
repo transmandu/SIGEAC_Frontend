@@ -85,16 +85,6 @@ export const columns: ColumnDef<DispatchGroupRow>[] = [
     },
   },
   {
-    id: 'items',
-    header: () => <p className="text-center">Ítems</p>,
-    cell: ({ row }) => (
-      <div className="flex items-center justify-center gap-2 text-muted-foreground">
-        <Package className="h-4 w-4" />
-        <span className="font-medium text-foreground">{row.original.articles?.length ?? 0}</span>
-      </div>
-    ),
-  },
-  {
     id: 'people',
     header: () => <p className="text-center">Detalles</p>,
     cell: ({ row }) => (
