@@ -39,6 +39,7 @@ import {
   FilePen,
   OctagonAlert,
   KeyRound,
+  Library,
 } from "lucide-react";
 
 type Submenu = {
@@ -102,6 +103,7 @@ export function getMenuList(
         },
       ],
     },
+    
     {
       groupLabel: "General",
       moduleValue: "",
@@ -109,20 +111,14 @@ export function getMenuList(
         {
           href: `/${currentCompany?.slug}/general/cursos`,
           label: "Cursos",
-          roles: [
-            "SUPERUSER",
-            "JEFE_SMS",
-            "ANALISTA_SMS",
-          ],
+          roles: ["SUPERUSER", "JEFE_SMS", "ANALISTA_SMS"],
           active: pathname === `/${currentCompany?.slug}/general/cursos`,
           icon: Presentation,
           submenus: [
             {
               href: `/${currentCompany?.slug}/general/cursos/calendario`,
               label: "Calendario",
-              active:
-                pathname ===
-                `/${currentCompany?.slug}/general/cursos/calendario`,
+              active: pathname === `/${currentCompany?.slug}/general/cursos/calendario`,
             },
             {
               href: `/${currentCompany?.slug}/general/cursos`,
@@ -132,9 +128,7 @@ export function getMenuList(
             {
               href: `/${currentCompany?.slug}/general/cursos/estadisticas`,
               label: "Estadisticas",
-              active:
-                pathname ===
-                `/${currentCompany?.slug}/general/cursos/estadisticas`,
+              active: pathname === `/${currentCompany?.slug}/general/cursos/estadisticas`,
             },
           ],
         },
@@ -145,46 +139,30 @@ export function getMenuList(
           icon: ShieldCheck,
           roles: [],
           submenus: [
-            // {
-            //   href: `https://sigeac-one.vercel.app/acceso_publico/transmandu/sms`,
-            //   label: "Pagina de SMS",
-            //   roles: [],
-            //   active:
-            //     pathname ===
-            //     `/${currentCompany?.slug}/general/reporte/pagina_de_sms`,
-            // },
             {
               href: `/${currentCompany?.slug}/general/reporte/voluntario`,
               label: "Reporte Voluntario",
               roles: [],
-              active:
-                pathname ===
-                `/${currentCompany?.slug}/general/reporte/voluntario`,
+              active: pathname === `/${currentCompany?.slug}/general/reporte/voluntario`,
             },
             {
               href: `/${currentCompany?.slug}/general/reporte/obligatorio`,
               label: "Reporte Obligatorio",
               roles: [],
-              active:
-                pathname ===
-                `/${currentCompany?.slug}/general/reporte/obligatorio`,
+              active: pathname === `/${currentCompany?.slug}/general/reporte/obligatorio`,
             },
             {
               href: `/${currentCompany?.slug}/general/reporte/codigos_qr`,
               label: "Codigos QR",
               roles: [],
-              active:
-                pathname ===
-                `/${currentCompany?.slug}/general/reporte/codigos_qr`,
+              active: pathname === `/${currentCompany?.slug}/general/reporte/codigos_qr`,
             },
           ],
         },
         {
           href: `/${currentCompany?.slug}/general/inventario_articulos`,
           label: "Inventario",
-          active: pathname.includes(
-            `/${currentCompany?.slug}/general/inventario_articulos`,
-          ),
+          active: pathname.includes(`/${currentCompany?.slug}/general/inventario_articulos`),
           icon: PackageSearch,
           roles: [
             "SUPERUSER",
@@ -204,9 +182,7 @@ export function getMenuList(
         {
           href: `/${currentCompany?.slug}/general/requisiciones`,
           label: "Solicitudes de Compra",
-          active: pathname.includes(
-            `/${currentCompany?.slug}/general/requisiciones`,
-          ),
+          active: pathname.includes(`/${currentCompany?.slug}/general/requisiciones`),
           icon: ScrollText,
           roles: [
             "SUPERUSER",
@@ -224,8 +200,18 @@ export function getMenuList(
           ],
           submenus: [],
         },
+        // --- NUEVO MÓDULO DE BIBLIOTECA ---
+        {
+          href: `/${currentCompany?.slug}/general/biblioteca`,
+          label: "Biblioteca Digital",
+          active: pathname.includes(`/${currentCompany?.slug}/general/biblioteca`),
+          icon: Library, // Recuerda importar 'Library' de lucide-react
+          roles: [], // Abierto para todos, el controlador filtra por carpeta física
+          submenus: [],
+        },
       ],
     },
+
     {
       groupLabel: "Desarrollo",
       moduleValue: "development",
