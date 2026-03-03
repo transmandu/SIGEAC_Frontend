@@ -1,4 +1,5 @@
 import { useDeleteWorkOrder } from "@/actions/mantenimiento/planificacion/ordenes_trabajo/actions"
+import EditWorkOrderForm from "@/components/forms/mantenimiento/planificacion/ordenes_trabajo/EditWorkOrderForm"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -6,16 +7,16 @@ import {
   DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu"
 import { WorkOrder } from "@/types"
-import { Loader2, MoreHorizontal, SearchCheck, Trash2 } from "lucide-react"
+import { Edit, Loader2, MoreHorizontal, Trash2 } from "lucide-react"
 import { useState } from "react"
 import { Button } from "../../../ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "../../../ui/dialog"
-import Link from "next/link"
 import { useCompanyStore } from "@/stores/CompanyStore"
 
 const WorkOrderDropdownActions = ({ work_order }: { work_order: WorkOrder }) => {
 
   const [openDelete, setOpenDelete] = useState<boolean>(false)
+  const [openEdit, setOpenEdit] = useState<boolean>(false)
 
   const { deleteWorkOrder } = useDeleteWorkOrder()
   const { selectedCompany } = useCompanyStore()
@@ -39,14 +40,46 @@ const WorkOrderDropdownActions = ({ work_order }: { work_order: WorkOrder }) => 
             <MoreHorizontal className="h-4 w-4" />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="center" className="flex gap-2 justify-center">
-          <DropdownMenuItem onClick={() => setOpenDelete(true)} className="cursor-pointer">
+        <DropdownMenuContent align="center" className="flex flex-col gap-2 justify-center">
+          {/* Opción Editar */}
+          <DropdownMenuItem
+            onClick={() => setOpenEdit(true)}
+            className="cursor-pointer"
+          >
+            <Edit className="size-5 text-blue-500" />
+            <p className="pl-2">Editar</p>
+          </DropdownMenuItem>
+
+          {/* Opción Eliminar */}
+          <DropdownMenuItem
+            onClick={() => setOpenDelete(true)}
+            className="cursor-pointer"
+          >
             <Trash2 className='size-5 text-red-500' />
+            <p className="pl-2">Eliminar</p>
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
 
-      {/* Dialogo para Eliminar */}
+      {/* Dialog para Editar */}
+      <Dialog open={openEdit} onOpenChange={setOpenEdit}>
+        <DialogContent className="flex flex-col max-w-4xl mx-2 max-h-[92vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-center">
+              Editar Orden de Trabajo — {work_order.order_number}
+            </DialogTitle>
+            <DialogDescription className="text-center">
+              Modifique los campos que desea actualizar y presione &quot;Guardar Cambios&quot;.
+            </DialogDescription>
+          </DialogHeader>
+          <EditWorkOrderForm
+            work_order={work_order}
+            onClose={() => setOpenEdit(false)}
+          />
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog para Eliminar */}
       <Dialog open={openDelete} onOpenChange={setOpenDelete}>
         <DialogContent>
           <DialogHeader>

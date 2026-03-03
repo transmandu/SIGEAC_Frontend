@@ -3,8 +3,12 @@
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { NotepadText, Plane, Calendar as CalendarIcon } from "lucide-react";
-import { BlobProvider } from "@react-pdf/renderer";
+import {
+  NotepadText,
+  Plane,
+  Calendar as CalendarIcon,
+  Loader2,
+} from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -32,17 +36,11 @@ import { cn } from "@/lib/utils";
 
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { useGetAircrafts } from "@/hooks/aerolinea/aeronaves/useGetAircrafts";
-import {
-  useGetDispatchReport,
-  DispatchReport,
-} from "@/hooks/mantenimiento/almacen/reportes/useGetDispatchReport";
-import DispatchReportPdf from "@/components/pdf/almacen/DispatchReport";
+import { useGetDispatchReport } from "@/hooks/mantenimiento/almacen/reportes/useGetDispatchReport";
 
 export function DispatchReportDialog() {
   const { selectedStation, selectedCompany } = useCompanyStore();
   const [open, setOpen] = useState(false);
-
-  const [dispatchData, setDispatchData] = useState<DispatchReport[]>([]);
   const [loadingDownload, setLoadingDownload] = useState(false);
 
   const [startDate, setStartDate] = useState<Date | undefined>();
@@ -50,13 +48,12 @@ export function DispatchReportDialog() {
   const [aircraft, setAircraft] = useState<string | null>(null);
 
   const { mutateAsync } = useGetDispatchReport();
+
   const { data: aircrafts, isLoading: isLoadingAircrafts } = useGetAircrafts(
     selectedCompany?.slug,
   );
 
-  // --- LÓGICA DE VALIDACIÓN ---
   const isDateRangeInvalid = startDate && endDate && endDate < startDate;
-  // Nueva constante para verificar si faltan las fechas
   const areDatesMissing = !startDate || !endDate;
 
   useEffect(() => {
@@ -64,7 +61,6 @@ export function DispatchReportDialog() {
       setStartDate(undefined);
       setEndDate(undefined);
       setAircraft(null);
-      setDispatchData([]);
     }
   }, [open]);
 
@@ -73,21 +69,36 @@ export function DispatchReportDialog() {
 
     try {
       setLoadingDownload(true);
-      const currentAircraftId = type === "aircraft" ? aircraft : undefined;
 
-      const data = await mutateAsync({
+      const blob = await mutateAsync({
         location_id: selectedStation,
         company: selectedCompany.slug,
-        aircraft_id: currentAircraftId,
-        from: format(startDate, "yyyy-MM-dd"), // Ya sabemos que existen por areDatesMissing
-        to: format(endDate, "yyyy-MM-dd"),
+        aircraft_id: type === "aircraft" ? aircraft : undefined,
+        from: format(startDate!, "yyyy-MM-dd"),
+        to: format(endDate!, "yyyy-MM-dd"),
       });
 
-      if (data) {
-        setDispatchData(data);
-      }
+      // 🔥 Crear archivo PDF descargable correctamente
+      const url = window.URL.createObjectURL(
+        new Blob([blob], { type: "application/pdf" }),
+      );
+
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `reporte-despachos-${format(
+        new Date(),
+        "yyyyMMdd-HHmmss",
+      )}.pdf`;
+
+      document.body.appendChild(link);
+      link.click();
+
+      link.remove();
+      window.URL.revokeObjectURL(url);
+
+      setOpen(false);
     } catch (error) {
-      console.error("Error al obtener el reporte:", error);
+      console.error("Error al generar el reporte:", error);
     } finally {
       setLoadingDownload(false);
     }
@@ -105,27 +116,21 @@ export function DispatchReportDialog() {
         <DialogHeader>
           <DialogTitle>Generar Reporte de Almacén</DialogTitle>
           <DialogDescription>
-            Selecciona un rango de fechas de forma obligatoria para continuar.
+            Selecciona un rango de fechas obligatorio.
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6 flex flex-col items-center py-4">
+          {/* FECHAS */}
           <div className="w-full space-y-2">
             <label className="text-sm font-medium flex items-center gap-2 justify-center">
-              <CalendarIcon className="w-4 h-4" /> Rango de Fechas{" "}
-              <span className="text-destructive">*</span>
+              <CalendarIcon className="w-4 h-4" /> Rango de Fechas
             </label>
+
             <div className="flex gap-2 justify-center">
               <Popover>
                 <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      "w-[180px] text-xs",
-                      !startDate &&
-                        "text-muted-foreground border-destructive/50",
-                    )}
-                  >
+                  <Button variant="outline" className={cn("w-[180px] text-xs")}>
                     {startDate
                       ? format(startDate, "dd/MM/yyyy", { locale: es })
                       : "Desde"}
@@ -142,13 +147,7 @@ export function DispatchReportDialog() {
 
               <Popover>
                 <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      "w-[180px] text-xs",
-                      !endDate && "text-muted-foreground border-destructive/50",
-                    )}
-                  >
+                  <Button variant="outline" className={cn("w-[180px] text-xs")}>
                     {endDate
                       ? format(endDate, "dd/MM/yyyy", { locale: es })
                       : "Hasta"}
@@ -163,96 +162,58 @@ export function DispatchReportDialog() {
                 </PopoverContent>
               </Popover>
             </div>
-            {isDateRangeInvalid && (
-              <p className="text-[10px] text-destructive text-center">
-                La fecha final debe ser posterior a la inicial.
-              </p>
-            )}
           </div>
 
           <hr className="w-full border-muted" />
 
-          {/* OPCIÓN 1: GENERAL */}
-          <div className="w-full space-y-4 text-center">
-            <h3 className="text-sm font-bold flex gap-2 items-center justify-center">
-              Reporte General <NotepadText className="w-4 h-4" />
-            </h3>
-            <Button
-              className="w-full"
-              onClick={() => handleDownload("general")}
-              // DESHABILITADO SI FALTAN FECHAS O SON INVÁLIDAS
-              disabled={
-                loadingDownload || areDatesMissing || isDateRangeInvalid
-              }
-            >
-              Descargar
-            </Button>
-          </div>
+          {/* REPORTE GENERAL */}
+          <Button
+            className="w-full"
+            onClick={() => handleDownload("general")}
+            disabled={loadingDownload || areDatesMissing || isDateRangeInvalid}
+          >
+            {loadingDownload && (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            )}
+            Descargar Reporte Completo
+          </Button>
 
-          {/* OPCIÓN 2: POR AERONAVE */}
-          <div className="w-full space-y-4 text-center">
-            <h3 className="text-sm font-bold flex gap-2 items-center justify-center">
-              Filtrar por Aeronave <Plane className="w-4 h-4" />
-            </h3>
-            <div className="flex flex-col gap-3 items-center">
-              <Select
-                onValueChange={(value) =>
-                  setAircraft(value === "all" ? null : value)
-                }
-                value={aircraft || "all"}
-              >
-                <SelectTrigger disabled={isLoadingAircrafts} className="w-full">
-                  <SelectValue placeholder="Seleccione una aeronave" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todas las aeronaves</SelectItem>
-                  {aircrafts?.map((item) => (
-                    <SelectItem key={item.id} value={item.id.toString()}>
-                      {item.acronym ?? `Aeronave #${item.id}`}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+          {/* REPORTE POR AERONAVE */}
+          <Select
+            onValueChange={(value) =>
+              setAircraft(value === "all" ? null : value)
+            }
+            value={aircraft || "all"}
+          >
+            <SelectTrigger disabled={isLoadingAircrafts}>
+              <SelectValue placeholder="Seleccione una aeronave" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todas las aeronaves</SelectItem>
+              {aircrafts?.map((item) => (
+                <SelectItem key={item.id} value={item.id.toString()}>
+                  {item.acronym ?? `Aeronave #${item.id}`}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
 
-              <Button
-                variant="secondary"
-                className="w-full"
-                onClick={() => handleDownload("aircraft")}
-                // DESHABILITADO SI FALTAN FECHAS, SON INVÁLIDAS O NO HAY AERONAVE
-                disabled={
-                  loadingDownload ||
-                  areDatesMissing ||
-                  isDateRangeInvalid ||
-                  !aircraft
-                }
-              >
-                Generar por Aeronave Seleccionada
-              </Button>
-            </div>
-          </div>
-
-          {/* GENERADOR PDF */}
-          {dispatchData.length > 0 && (
-            <BlobProvider
-              document={
-                <DispatchReportPdf
-                  reports={dispatchData}
-                  aircraftFilter={aircraft ? parseInt(aircraft) : null}
-                  startDate={startDate!}
-                  endDate={endDate!}
-                />
-              }
-            >
-              {({ blob, loading }) => {
-                if (!loading && blob) {
-                  const url = URL.createObjectURL(blob);
-                  window.open(url, "_blank");
-                  setTimeout(() => setDispatchData([]), 100);
-                }
-                return null;
-              }}
-            </BlobProvider>
-          )}
+          <Button
+            variant="secondary"
+            className="w-full"
+            onClick={() => handleDownload("aircraft")}
+            disabled={
+              loadingDownload ||
+              areDatesMissing ||
+              isDateRangeInvalid ||
+              !aircraft
+            }
+          >
+            {loadingDownload && (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            )}
+            Generar por Aeronave
+          </Button>
         </div>
       </DialogContent>
     </Dialog>
