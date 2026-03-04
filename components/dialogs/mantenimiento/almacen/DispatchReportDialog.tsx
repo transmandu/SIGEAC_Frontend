@@ -70,7 +70,7 @@ export function DispatchReportDialog() {
     try {
       setLoadingDownload(true);
 
-      const blobData = await mutateAsync({
+      const blob = await mutateAsync({
         location_id: selectedStation,
         company: selectedCompany.slug,
         aircraft_id: type === "aircraft" ? aircraft : undefined,
@@ -78,25 +78,21 @@ export function DispatchReportDialog() {
         to: format(endDate!, "yyyy-MM-dd"),
       });
 
-      // ✅ 1. Cambiamos el tipo a application/zip
+      // 🔥 Crear archivo PDF descargable correctamente
       const url = window.URL.createObjectURL(
-        new Blob([blobData], { type: "application/zip" }),
+        new Blob([blob], { type: "application/pdf" }),
       );
 
       const link = document.createElement("a");
       link.href = url;
-
-      // ✅ 2. Cambiamos la extensión a .zip
-      const fileName = type === "aircraft" ? "reporte-aeronave" : "reporte-completo";
-      link.download = `${fileName}-${format(
+      link.download = `reporte-despachos-${format(
         new Date(),
         "yyyyMMdd-HHmmss",
-      )}.zip`;
+      )}.pdf`;
 
       document.body.appendChild(link);
       link.click();
 
-      // ✅ 3. Limpieza
       link.remove();
       window.URL.revokeObjectURL(url);
 
