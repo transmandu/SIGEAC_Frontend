@@ -9,8 +9,8 @@ import ImageDisplayDialog from "@/components/dialogs/aerolinea/sms/ImageDisplayD
 import FollowUpControlDropdownActions from "@/components/dropdowns/aerolinea/sms/FollowUpControlDropdownActions";
 import { Button } from "@/components/ui/button";
 import { FollowUpControl } from "@/types";
-import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import { format, parseISO } from "date-fns";
 
 export const columns: ColumnDef<FollowUpControl>[] = [
   {
@@ -25,16 +25,30 @@ export const columns: ColumnDef<FollowUpControl>[] = [
       );
     },
   },
-  {
+    {
     accessorKey: "date",
     header: ({ column }) => (
       <DataTableColumnHeader filter column={column} title="Fecha del Control" />
     ),
     meta: { title: "Fecha de Control" },
     cell: ({ row }) => {
+      const rawDate = row.original.date;
+
+      if (!rawDate) return <p className="text-center">-</p>;
+
+      const dateString = String(rawDate as unknown);
+
+      const parsedDate = parseISO(dateString);
+
+      const year = parsedDate.getUTCFullYear();
+      const month = parsedDate.getUTCMonth();
+      const day = parsedDate.getUTCDate();
+
+      const normalizedDate = new Date(year, month, day);
+
       return (
         <p className="font-medium text-center">
-          {format(row.original.date, "PPP", {
+          {format(normalizedDate, "PPP", {
             locale: es,
           })}
         </p>

@@ -52,7 +52,35 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setUser(null);
       setError(err as any || 'Error al cargar usuario');
       return null;
-    } finally {
+    }
+  }, []);
+
+  // 3. SYNC SESSION (Fluida) - Ignora SUPERUSER
+  const syncSession = useCallback(async () => {
+    const hasToken = document.cookie.includes('auth_token');
+    if (!hasToken) return;
+
+    const data = await fetchUser();
+
+    // Si el usuario actual es SUPERUSER, no aplicar logout automático
+    const isSuperUser = data?.roles?.some(
+      (role) => role.name === 'SUPERUSER'
+    );
+
+    if (isSuperUser) return;
+
+    if (!data && hasToken) {
+      logout();
+    }
+  }, [fetchUser, logout]);
+
+  // 4. CICLO DE VIDA (Tiempos ajustados para evitar lentitud)
+  useEffect(() => {
+    const checkAuth = async () => {
+      setIsLoading(true);
+      if (document.cookie.includes('auth_token')) {
+        await fetchUser();
+      }
       setIsLoading(false);
     }
   };
@@ -82,6 +110,33 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     checkAuth();
   }, []);
 
+    window.addEventListener('focus', syncSession);
+
+    const interval = setInterval(() => {
+      syncSession();
+    }, 300000); // 5 minutos
+
+    return () => {
+      window.removeEventListener('focus', syncSession);
+      clearInterval(interval);
+    };
+  }, [fetchUser, syncSession]);
+
+  // 5. INTERCEPTOR (Detección instantánea de 401)
+  useEffect(() => {
+    const interceptor = axiosInstance.interceptors.response.use(
+      (response) => response,
+      (error) => {
+        if (error.response?.status === 401) {
+          logout();
+        }
+        return Promise.reject(error);
+      }
+    );
+    return () => axiosInstance.interceptors.response.eject(interceptor);
+  }, [logout]);
+
+  // 6. LOGIN MUTATION
   const loginMutation = useMutation({
     mutationFn: async (credentials: { login: string; password: string }) => {
       const response = await axiosInstance.post<User>('/login', credentials, {

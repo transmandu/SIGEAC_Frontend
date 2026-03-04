@@ -245,10 +245,11 @@ const ShowSMSActivity = () => {
                 </div>
               </div>
 
-              {/* Sección de detalles combinada */}
-              <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-                {/* Horario y Cronograma */}
-                <div className="rounded-lg border border-gray-300 p-5 dark:border-gray-700 dark:bg-gray-800">
+              {/* Sección de detalles combinada con correcciones de estiramiento */}
+              <div className="grid grid-cols-1 gap-6 lg:grid-cols-3 items-start">
+                
+                {/* 1. Horario y Cronograma - h-fit asegura que no colapse */}
+                <div className="rounded-lg border border-gray-300 p-5 dark:border-gray-700 dark:bg-gray-800 h-fit flex flex-col">
                   <h3 className="mb-3 flex items-center gap-2 text-xl font-semibold text-gray-800 dark:text-gray-200">
                     <Calendar className="h-5 w-5" />
                     Horario y Cronograma
@@ -295,20 +296,20 @@ const ShowSMSActivity = () => {
                   </div>
                 </div>
 
-                {/* Temas */}
-                <div className="rounded-lg border border-gray-300 p-5 dark:border-gray-700 dark:bg-gray-800">
+                {/* 2. Temas - Eliminado max-height para que se estire según la lista */}
+                <div className="rounded-lg border border-gray-300 p-5 dark:border-gray-700 dark:bg-gray-800 h-fit">
                   <h3 className="mb-3 flex items-center gap-2 text-xl font-semibold text-gray-800 dark:text-gray-200">
                     <FileText className="h-5 w-5" />
                     Temas
                   </h3>
                   {activity.topics ? (
-                    <ul className="space-y-2 max-h-60 overflow-y-auto">
+                    <ul className="space-y-2">
                       {activity.topics.split(",").map(
                         (topic, index) =>
                           topic.trim() && (
                             <li key={index} className="flex items-start gap-2">
                               <ChevronRight className="w-4 h-4 mt-1 flex-shrink-0 text-blue-500" />
-                              <span className="text-sm text-gray-600 dark:text-gray-400">
+                              <span className="text-sm text-gray-600 dark:text-gray-400 break-words">
                                 {topic.trim()}
                               </span>
                             </li>
@@ -322,24 +323,24 @@ const ShowSMSActivity = () => {
                   )}
                 </div>
 
-                {/* Observaciones y Descripción */}
-                <div className="space-y-4">
-                  <div className="rounded-lg border border-gray-300 p-5 dark:border-gray-700 dark:bg-gray-800">
+                {/* 3. Observaciones y Descripción - break-words es clave para textos largos */}
+                <div className="space-y-4 h-fit">
+                  <div className="rounded-lg border border-gray-300 p-5 dark:border-gray-700 dark:bg-gray-800 h-fit">
                     <h3 className="mb-3 flex items-center gap-2 text-lg font-semibold text-gray-800 dark:text-gray-200">
                       <FileText className="h-5 w-5" />
                       Observaciones
                     </h3>
-                    <p className="text-sm whitespace-pre-line text-gray-600 dark:text-gray-400">
+                    <p className="text-sm whitespace-pre-line break-words text-gray-600 dark:text-gray-400">
                       {activity.objetive || "No hay observaciones registradas"}
                     </p>
                   </div>
 
-                  <div className="rounded-lg border border-gray-300 p-5 dark:border-gray-700 dark:bg-gray-800">
+                  <div className="rounded-lg border border-gray-300 p-5 dark:border-gray-700 dark:bg-gray-800 h-fit">
                     <h3 className="mb-3 flex items-center gap-2 text-lg font-semibold text-gray-800 dark:text-gray-200">
                       <FileText className="h-5 w-5" />
                       Descripción
                     </h3>
-                    <p className="text-sm whitespace-pre-line text-gray-600 dark:text-gray-400">
+                    <p className="text-sm whitespace-pre-line break-words text-gray-600 dark:text-gray-400">
                       {activity.description || "No hay descripción registrada"}
                     </p>
                   </div>
@@ -410,6 +411,8 @@ const ShowSMSActivity = () => {
                   </div>
                 )}
               </div>
+
+              
             </TabsContent>
 
 

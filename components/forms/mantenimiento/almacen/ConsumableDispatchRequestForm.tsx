@@ -3,7 +3,6 @@
 import { useCreateDispatchRequest } from "@/actions/mantenimiento/almacen/solicitudes/salida/action"
 import { Button } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
-import { Checkbox } from "@/components/ui/checkbox"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -29,15 +28,13 @@ import { format } from "date-fns"
 import { es } from "date-fns/locale"
 import {
   AlertCircle,
-  Building2,
   Calculator,
   CalendarIcon,
   Check,
   ChevronsUpDown,
   Loader2,
   PackagePlus,
-  Plane,
-  X,
+  X
 } from "lucide-react"
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { useFieldArray, useForm, useWatch } from "react-hook-form"
@@ -53,6 +50,7 @@ import type { Article, Batch, Department, Employee, GeneralArticle } from "@/typ
 import { useGetGeneralArticles } from "@/hooks/mantenimiento/almacen/almacen_general/useGetGeneralArticles"
 import { useGetConversionByConsmable } from "@/hooks/mantenimiento/almacen/articulos/useGetConvertionsByConsumableId"
 import { useGetConversionByGeneralArticle } from "@/hooks/mantenimiento/almacen/articulos/useGetConvertionsByGeneralArticleId"
+import { useGetAuthorizedEmployees } from "@/hooks/sistema/autorizados/useGetAuthorizedEmployees"
 import { useGetEmployeesByDepartment } from "@/hooks/sistema/useGetEmployeesByDepartament"
 
 interface FormProps {
@@ -77,13 +75,17 @@ const GeneralItemSchema = z.object({
 const FormSchema = z
   .object({
     work_order: z.string(),
+    dispatch_type: z.enum(['aircraft', 'department', 'authorized'], {
+    message: 'Debe seleccionar el tipo de despacho.',
+    }),
     requested_by: z.string(),
     submission_date: z.date({ message: "Debe ingresar la fecha." }),
     justification: z.string({ message: "Debe ingresar una justificación de la salida." }),
-    department_id: z.string(),
+    department_id: z.string().optional(),
     status: z.string(),
     unit: z.enum(["litros", "mililitros"]).optional(),
-
+    aircraft_id: z.string().optional(),
+    authorized_employee_id: z.string().optional(),
     aeronautical_articles: z.array(AeronauticalItemSchema).default([]),
     general_articles: z.array(GeneralItemSchema).default([]),
   })
@@ -115,11 +117,8 @@ type ConversionTarget = "aero" | "general"
 export function ConsumableDispatchForm({ onClose }: FormProps) {
   const { user } = useAuth()
   const { selectedStation, selectedCompany } = useCompanyStore()
-
   const [openAdd, setOpenAdd] = useState(false)
   const [addTab, setAddTab] = useState<"aero" | "general">("aero")
-
-  const [isDepartment, setIsDepartment] = useState(false)
 
   const [requestedBy, setRequestedBy] = useState<Employee | null>(null)
   const [selectedDepartment, setSelectedDepartment] = useState<Department | null>(null)
@@ -134,6 +133,10 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
     useGetEmployeesByDepartment(selectedDepartment?.acronym, selectedStation, selectedCompany?.slug)
 
   const { data: aircrafts, isLoading: isAircraftsLoading } = useGetMaintenanceAircrafts(
+    selectedCompany?.slug
+  )
+
+  const { data: authorizedEmployees, isLoading: isAuthorizedEmployeesLoading } = useGetAuthorizedEmployees(
     selectedCompany?.slug
   )
 
@@ -201,9 +204,14 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
   )
 
   // Reset destino al cambiar tipo
+  const dispatchType = useWatch({
+    control: form.control,
+    name: "dispatch_type",
+  })
+
   useEffect(() => {
     setValue("department_id", "")
-  }, [isDepartment, setValue])
+  }, [dispatchType, setValue])
 
   // =============== Cantidades (local draft por fila) ===============
   const [qtyByKey, setQtyByKey] = useState<Record<string, string>>({})
@@ -517,15 +525,14 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
       approved_by: user?.employee?.[0]?.dni,
       delivered_by: user?.employee?.[0]?.dni,
       user_id: Number(user!.id),
-      isDepartment,
-      aircraft_id: isDepartment ? null : data.department_id,
-      department_id: isDepartment ? data.department_id : null,
+      aircraft_id: data.dispatch_type === "aircraft" ? data.aircraft_id : undefined,
+      department_id: data.dispatch_type === "department" ? data.department_id : undefined,
     }
 
-    await createDispatchRequest.mutateAsync({
-      data: formattedData,
-      company: selectedCompany!.slug,
-    })
+     await createDispatchRequest.mutateAsync({
+       data: formattedData,
+       company: selectedCompany!.slug,
+     })
 
     onClose()
   }
@@ -542,58 +549,106 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col space-y-6 w-full">
         {/* Personal Responsable */}
-        <div className="space-y-4">
-          <div className="flex items-center gap-3 mb-1">
-            <div className="h-px flex-1 bg-border/60" />
-            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide px-2">
-              Personal Responsable
-            </span>
-            <div className="h-px flex-1 bg-border/60" />
-          </div>
+<div className="space-y-4">
+  <div className="flex items-center gap-3 mb-1">
+    <div className="h-px flex-1 bg-border/60" />
+    <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide px-2">
+      Personal Responsable
+    </span>
+    <div className="h-px flex-1 bg-border/60" />
+  </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="flex flex-col gap-2 mt-2">
-              <Label className="text-sm font-medium">Entregado por:</Label>
-              <Input disabled value={`${user?.first_name} ${user?.last_name}`} />
-            </div>
+  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
+    {/* Entregado por */}
+    <div className="space-y-2">
+      <Label className="text-sm font-medium">Entregado por</Label>
+      <Input
+        className="h-10"
+        disabled
+        value={`${user?.first_name ?? ""} ${user?.last_name ?? ""}`.trim()}
+      />
+      <p className="text-xs text-muted-foreground">
+        Usuario actual que registra la entrega.
+      </p>
+    </div>
 
-            <FormField
-              control={form.control}
-              name="requested_by"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-sm font-medium">Recibe</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger className="h-10">
-                        <SelectValue placeholder="Seleccione el responsable..." />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {(employeesLoading || isEmployeesByDepartmentLoading) && (
-                        <div className="flex items-center justify-center py-4">
-                          <Loader2 className="size-4 animate-spin text-muted-foreground" />
-                        </div>
-                      )}
-                      {isDepartment && employeesByDepartment
-                        ? employeesByDepartment.map((e) => (
-                            <SelectItem key={e.id} value={`${e.dni}`}>
-                              {e.first_name} {e.last_name} - {e.job_title.name}
-                            </SelectItem>
-                          ))
-                        : employees?.map((employee) => (
-                            <SelectItem key={employee.id} value={`${employee.dni}`}>
-                              {employee.first_name} {employee.last_name} - {employee.job_title.name}
-                            </SelectItem>
-                          ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-        </div>
+    {/* Recibe (dinámico) */}
+    {form.watch("dispatch_type") !== "authorized" ? (
+      <FormField
+        control={form.control}
+        name="requested_by"
+        render={({ field }) => {
+          const dispatchType = form.watch("dispatch_type");
+
+          const recibeLabel =
+            dispatchType === "department"
+              ? "Recibe (del departamento)"
+              : "Recibe";
+
+          const items =
+            dispatchType === "department" && employeesByDepartment
+              ? employeesByDepartment
+              : employees ?? [];
+
+          const isLoading =
+            employeesLoading || isEmployeesByDepartmentLoading;
+
+          return (
+            <FormItem className="space-y-2">
+              <FormLabel className="text-sm font-medium">
+                {recibeLabel}
+              </FormLabel>
+
+              <Select
+                onValueChange={field.onChange}
+                value={field.value ?? ""}
+              >
+                <FormControl>
+                  <SelectTrigger className="h-10 w-full">
+                    <SelectValue placeholder="Seleccione el responsable..." />
+                  </SelectTrigger>
+                </FormControl>
+
+                <SelectContent>
+                  {isLoading && (
+                    <div className="flex items-center justify-center py-4">
+                      <Loader2 className="size-4 animate-spin text-muted-foreground" />
+                    </div>
+                  )}
+
+                  {!isLoading && items.length === 0 && (
+                    <div className="px-3 py-2 text-sm text-muted-foreground">
+                      No hay empleados disponibles.
+                    </div>
+                  )}
+
+                  {!isLoading &&
+                    items.map((e) => (
+                      <SelectItem key={e.id} value={`${e.dni}`}>
+                        {e.first_name} {e.last_name} - {e.job_title.name}
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
+
+              <FormMessage />
+              <p className="text-xs text-muted-foreground">
+                {dispatchType === "department"
+                  ? "Listado filtrado por el departamento seleccionado."
+                  : "Listado general de empleados."}
+              </p>
+            </FormItem>
+          );
+        }}
+      />
+    ) : (
+      // Placeholder opcional para que no “salte” el layout en desktop
+      <div className="hidden md:block rounded-md border border-dashed p-4 text-sm text-muted-foreground mt-3">
+        Para “Terceros” no se selecciona responsable interno en esta sección.
+      </div>
+    )}
+  </div>
+</div>
 
         {/* Información de la Solicitud */}
         <div className="space-y-4">
@@ -604,7 +659,49 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
             </span>
             <div className="h-px flex-1 bg-border/60" />
           </div>
-
+          <div className="w-full flex justify-center mx-auto">
+            <FormField
+            control={form.control}
+            name="dispatch_type"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="flex justify-center">Tipo de Despacho</FormLabel>
+                <FormControl>
+                  <div className="flex gap-4">
+                    <label className="flex items-center space-x-2">
+                      <input
+                        type="radio"
+                        value="aircraft"
+                        checked={field.value === 'aircraft'}
+                        onChange={() => field.onChange('aircraft')}
+                      />
+                      <span>Aeronave</span>
+                    </label>
+                    <label className="flex items-center space-x-2">
+                      <input
+                        type="radio"
+                        value="department"
+                        checked={field.value === 'department'}
+                        onChange={() => field.onChange('department')}
+                      />
+                      <span>Departamento</span>
+                    </label>
+                    <label className="flex items-center space-x-2">
+                      <input
+                        type="radio"
+                        value="authorized"
+                        checked={field.value === 'authorized'}
+                        onChange={() => field.onChange('authorized')}
+                      />
+                      <span>Terceros</span>
+                    </label>
+                  </div>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <FormField
               control={form.control}
@@ -656,94 +753,134 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
                 </FormItem>
               )}
             />
+            {
+              form.watch("dispatch_type") === "department" && (
+                <FormField
+                  control={form.control}
+                  name="department_id"
+                  render={({ field }) => (
+                    <FormItem className="mt-1">
+                        <FormLabel className="text-sm font-medium flex items-center gap-2">
+                          Departamento
+                        </FormLabel>
+                      <Select
+                        value={field.value ?? ""}
+                        onValueChange={(val) => {
+                          field.onChange(val)
+                            const dep = departments?.find((d) => d.id.toString() === val)
+                            if (dep) setSelectedDepartment(dep)
 
-            <FormField
-              control={form.control}
-              name="department_id"
-              render={({ field }) => (
-                <FormItem>
-                  <div className="flex items-center justify-between mb-2 gap-2">
-                    <FormLabel className="text-sm font-medium flex items-center gap-2">
-                      {isDepartment ? (
-                        <Building2 className="h-4 w-4 text-muted-foreground" />
-                      ) : (
-                        <Plane className="h-4 w-4 text-muted-foreground" />
-                      )}
-                      Destino
-                    </FormLabel>
-
-                    <div className="flex items-center gap-1">
-                      <Checkbox
-                        id="is-department"
-                        checked={isDepartment}
-                        onCheckedChange={(checked) => setIsDepartment(checked as boolean)}
-                        className="h-4 w-4"
-                      />
-                      <label
-                        htmlFor="is-department"
-                        className="text-xs text-center font-medium leading-none cursor-pointer text-muted-foreground"
+                        }}
+                        disabled={isDepartmentsLoading}
                       >
-                        ¿Es para un departamento?
-                      </label>
-                    </div>
-                  </div>
-
-                  <Select
-                    value={field.value ?? ""}
-                    onValueChange={(val) => {
-                      field.onChange(val)
-
-                      if (isDepartment) {
-                        const dep = departments?.find((d) => d.id.toString() === val)
-                        if (dep) setSelectedDepartment(dep)
-                      } else {
-                        setSelectedDepartment(null)
-                      }
-                    }}
-                    disabled={isDepartment ? isDepartmentsLoading : isAircraftsLoading}
-                  >
-                    <FormControl>
-                      <SelectTrigger className="h-10">
-                        <SelectValue
-                          placeholder={isDepartment ? "Seleccione un departamento..." : "Seleccione una aeronave..."}
-                        />
-                      </SelectTrigger>
-                    </FormControl>
-
-                    <SelectContent>
-                      {isDepartment ? (
-                        <>
-                          {isDepartmentsLoading && (
-                            <div className="flex items-center justify-center py-4">
-                              <Loader2 className="size-4 animate-spin text-muted-foreground" />
-                            </div>
-                          )}
-                          {departments?.map((d) => (
-                            <SelectItem key={d.id} value={d.id.toString()}>
-                              {d.name}
-                            </SelectItem>
-                          ))}
-                        </>
-                      ) : (
-                        <>
+                        <FormControl>
+                          <SelectTrigger className="h-10">
+                            <SelectValue
+                              placeholder={"Seleccione un departamento..."}
+                            />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                              {isDepartmentsLoading && (
+                                <div className="flex items-center justify-center py-4">
+                                  <Loader2 className="size-4 animate-spin text-muted-foreground" />
+                                </div>
+                              )}
+                              {departments?.map((d) => (
+                                <SelectItem key={d.id} value={d.id.toString()}>
+                                  {d.name}
+                                </SelectItem>
+                              ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )
+            }
+            {
+              form.watch("dispatch_type") === "aircraft" && (
+                <FormField
+                  control={form.control}
+                  name="aircraft_id"
+                  render={({ field }) => (
+                    <FormItem className="mt-1">
+                        <FormLabel className="text-sm font-medium flex items-center gap-2">
+                          Aeronave
+                        </FormLabel>
+                      <Select
+                        value={field.value ?? ""}
+                        onValueChange={field.onChange}
+                        disabled={isAircraftsLoading}
+                      >
+                        <FormControl>
+                          <SelectTrigger className="h-10">
+                            <SelectValue
+                              placeholder={"Seleccione una aeronave..."}
+                            />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
                           {isAircraftsLoading && (
-                            <div className="flex items-center justify-center py-4">
-                              <Loader2 className="size-4 animate-spin text-muted-foreground" />
-                            </div>
-                          )}
-                          {aircrafts?.map((a) => (
-                            <SelectItem key={a.id} value={a.id.toString()}>
-                              {a.acronym}
-                            </SelectItem>
-                          ))}
-                        </>
-                      )}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                          <div className="flex items-center justify-center py-4">
+                            <Loader2 className="size-4 animate-spin text-muted-foreground" />
+                          </div>
+                        )}
+                        {aircrafts?.map((a) => (
+                          <SelectItem key={a.id} value={a.id.toString()}>
+                            {a.acronym}
+                          </SelectItem>
+                        ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )
+            }
+            {
+              form.watch("dispatch_type") === "authorized" && (
+                <FormField
+                  control={form.control}
+                  name="authorized_employee_id"
+                  render={({ field }) => (
+                    <FormItem className="mt-1">
+                        <FormLabel className="text-sm font-medium flex items-center gap-2">
+                          Empleado Autorizado
+                        </FormLabel>
+                      <Select
+                        value={field.value ?? ""}
+                        onValueChange={field.onChange}
+                        disabled={isAuthorizedEmployeesLoading}
+                      >
+                        <FormControl>
+                          <SelectTrigger className="h-10">
+                            <SelectValue
+                              placeholder={"Seleccione un empleado autorizado..."}
+                            />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {isAuthorizedEmployeesLoading && (
+                          <div className="flex items-center justify-center py-4">
+                            <Loader2 className="size-4 animate-spin text-muted-foreground" />
+                          </div>
+                        )}
+                        {authorizedEmployees?.map((a) => (
+                          <SelectItem key={a.id} value={a.id.toString()}>
+                            {a.employee_name} - {a.from_company_db.toUpperCase()}
+                          </SelectItem>
+                        ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )
+            }
           </div>
         </div>
 

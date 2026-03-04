@@ -20,44 +20,47 @@ import { Separator } from "../../ui/separator"
 import { toast } from "sonner"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
+const optionalCode = z.preprocess(
+  (val) => {
+    if (typeof val === "string" && val.trim() === "") {
+      return undefined;
+    }
+    return val;
+  },
+  z.string()
+    .min(3, "El código debe tener la longitud correcta.")
+    .max(6, "El código debe tener la longitud correcta.")
+    .optional()
+);
+
 const LocationSchema = z.object({
-  type: z.string().min(2, "Nombre requerido"),
+  type: z.string().min(1, "El tipo es requerido"),
   address: z.string().min(5, "Dirección requerida"),
-  cod_iata: z.string(),
+  cod_iata: optionalCode,
   isMainBase: z.boolean().default(false),
 });
 
 const FormSchema = z.object({
   acronym: z.string({ message: "El acronimo es requerido." }),
-  name: z.string().min(3, {
-    message: "El usuario debe tener al menos 3 caracteres.",
+  name: z.string().min(2, {
+    message: "El acrónimo debe tener al menos 2 caracteres.",
+  }).max(20, {
+    message: "El acrónimo no puede tener más de 6 caracteres.",
   }),
-  fiscal_address: z.string().min(2, {
+  fiscal_address: z.string().min(5, {
     message: "La direccion debe tener al menos 5 caracteres.",
   }),
   rif: z.string().min(4, {
     message: "Debe ingresar un RIF válido."
   }),
-  description: z.string().min(10, {
+  description: z.string().min(4, {
     message: "Debe proveer una descripcion minima."
   }),
   phone_number: z.string(),
   alt_phone_number: z.string().optional(),
-  cod_inac: z.string().min(3, {
-    message: "El codigo debe tener la longitud correcta.",
-  }).max(3, {
-    message: "El codigo debe tener la longitud correcta.",
-  }),
-  cod_iata: z.string().min(3, {
-    message: "El codigo debe tener la longitud correcta.",
-  }).max(3, {
-    message: "El codigo debe tener la longitud correcta.",
-  }),
-  cod_oaci: z.string().min(3, {
-    message: "El codigo debe tener la longitud correcta.",
-  }).max(3, {
-    message: "El codigo debe tener la longitud correcta.",
-  }),
+  cod_inac: optionalCode,
+  cod_iata: optionalCode,
+  cod_oaci: optionalCode,
   modules: z.array(z.string()),
   isOMAC: z.boolean(),
   locations: z.array(LocationSchema).min(1, "Debe agregar al menos una ubicación").optional(),
@@ -91,9 +94,6 @@ export function CreateCompanyForm({ onClose }: FormProps) {
     phone_number: "",
     description: "",
     alt_phone_number: "",
-    cod_iata: "",
-    cod_oaci: "",
-    cod_inac: "",
   },
 })
 
@@ -111,10 +111,15 @@ export function CreateCompanyForm({ onClose }: FormProps) {
     form.setValue('modules', selectedModules);
   }, [selectedModules, form]);
 
-  const onSubmit = (data: FormSchemaType) => {
-    createCompany.mutateAsync(data)
-    console.log(data)
-  }
+  const onSubmit = async (data: FormSchemaType) => {
+    try {
+      await createCompany.mutateAsync(data);
+      toast.success("Empresa creada correctamente");
+      onClose();
+    } catch (error) {
+      toast.error("Ocurrió un error al crear la empresa");
+    }
+  };
 
   return (
     <Form {...form}>
@@ -223,7 +228,7 @@ export function CreateCompanyForm({ onClose }: FormProps) {
                   name="cod_inac"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Código INAC</FormLabel>
+                      <FormLabel>Código INAC <span className="text-xs text-muted-foreground">(opcional)</span></FormLabel>
                       <FormControl>
                         <Input placeholder="ABC123" {...field} />
                       </FormControl>
@@ -236,7 +241,7 @@ export function CreateCompanyForm({ onClose }: FormProps) {
                   name="cod_iata"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Código IATA</FormLabel>
+                      <FormLabel>Código IATA <span className="text-xs text-muted-foreground">(opcional)</span></FormLabel>
                       <FormControl>
                         <Input placeholder="ABC123" {...field} />
                       </FormControl>
@@ -249,7 +254,7 @@ export function CreateCompanyForm({ onClose }: FormProps) {
                   name="cod_oaci"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Código OACI</FormLabel>
+                      <FormLabel>Código OACI <span className="text-xs text-muted-foreground">(opcional)</span></FormLabel>
                       <FormControl>
                         <Input placeholder="ABC123" {...field} />
                       </FormControl>
@@ -435,7 +440,7 @@ const LocationsStep = ({ control }: {control: Control<FormSchemaType>}) => {
           render={({ field }) => (
             <FormItem>
               <FormLabel>Tipo *</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
+              <Select onValueChange={field.onChange} defaultValue={typeof field.value === "string" ? field.value : undefined}>
                 <FormControl>
                   <SelectTrigger>
                     <SelectValue placeholder="Seleccione..." />

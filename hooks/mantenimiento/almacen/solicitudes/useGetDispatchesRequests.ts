@@ -1,11 +1,14 @@
+import { AuthorizedEmployee } from "@/app/sistema/autorizaciones/autorizados/columns";
 import axios from "@/lib/axios";
 import { useCompanyStore } from "@/stores/CompanyStore";
-import { Article, Batch, DispatchRequest, MaintenanceAircraft, WorkOrder } from "@/types";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { MaintenanceAircraft } from "@/types";
+import { useQuery } from "@tanstack/react-query";
 
 interface IDispatch {
   id: number;
+  request_number: string;
   requested_by: string;
+  auhtorized_employee?: AuthorizedEmployee;
   created_by: string;
   justification: string;
   destination_place: string;

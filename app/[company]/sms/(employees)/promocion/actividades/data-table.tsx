@@ -25,6 +25,7 @@ import {
 } from "@tanstack/react-table";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { ReportModal } from "./ReportModal"; 
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -65,19 +66,25 @@ export function DataTable<TData, TValue>({
         </p>
       </div>
 
-      <div className="flex items-center py-4">
-        <Button
-          onClick={() => {
-            router.push(
-              `/${selectedCompany?.slug}/sms/promocion/actividades/nueva_actividad`,
-            );
-          }}
-          variant="outline"
-          size="sm"
-          className=" border-dashed flex h-8"
-        >
-          Nueva Actividad
-        </Button>
+      <div className="flex items-center justify-between py-4">
+        {/* Grupo de botones a la izquierda */}
+        <div className="flex items-center gap-2">
+          <Button
+            onClick={() => {
+              router.push(`/${selectedCompany?.slug}/sms/promocion/actividades/nueva_actividad`);
+            }}
+            variant="outline"
+            size="sm"
+            className="hidden h-8 lg:flex"
+          >
+            Nueva Actividad
+          </Button>
+
+          {/* ReportModal llamado correctamente sin props excedentes */}
+          <ReportModal />
+        </div>
+
+        {/* Opciones de visualización de columnas a la derecha */}
         <DataTableViewOptions table={table} />
       </div>
 

@@ -37,7 +37,7 @@ export const columns: ColumnDef<SMSActivity>[] = [
     ),
   },
   {
-    accessorKey: "description",
+    accessorKey: "title",
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Descripcion" />
     ),

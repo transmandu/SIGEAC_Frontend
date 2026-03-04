@@ -67,8 +67,7 @@ const manualWorkOrderSchema = z.object({
       z.object({
         description_task: z
           .string()
-          .min(1, "La descripción de la tarea es obligatoria")
-          .max(645, "La descripción no puede exceder los 645 caracteres"),
+          .min(1, "La descripción de la tarea es obligatoria"),
         ata: z.string().min(1, "Código ATA requerido"),
         material: z.string().nullable().optional(),
         task_items: z
