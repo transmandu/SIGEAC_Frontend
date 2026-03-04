@@ -130,84 +130,132 @@ const WorkOrderAircraftDetailsCards = ({ work_order }: { work_order: WorkOrder }
               <Button className="gap-2 px-8"><Printer className="size-4" /> Descargar paquete (PDF)</Button>
             </DialogTrigger>
 
-            {/* Ajuste de la X del modal para que no estorbe */}
-            <DialogContent className={cn(
-              "transition-all duration-300 ease-in-out p-6 overflow-hidden [&>button]:right-2 [&>button]:top-2 bg-background text-foreground border-border",
-              previewUrl ? "max-w-[98vw] w-[98vw] h-[96vh]" : "max-w-md"
-            )}>
-              <div className={cn("flex h-full gap-8", previewUrl ? "flex-row" : "flex-col")}>
+            <DialogContent
+              className={cn(
+                "transition-all duration-300 ease-in-out p-6 overflow-y-auto [&>button]:right-2 [&>button]:top-2 bg-background text-foreground border-border",
+                previewUrl ? "max-w-[98vw] w-[98vw] h-[96vh]" : "max-w-md"
+              )}
+            >
+              <div
+                className={cn(
+                  "flex gap-6 h-full",
+                  previewUrl ? "flex-col lg:flex-row" : "flex-col"
+                )}
+              >
                 
-                {/* PANEL DE CONTROL (20%) - Usando colores adaptativos */}
-                <div className={cn("flex flex-col gap-5 transition-all", previewUrl ? "w-[320px] border-r border-border pr-6" : "w-full")}>
-                  <h2 className="font-bold text-2xl tracking-tight text-foreground">{previewUrl ? "Ajustes" : "Configuración"}</h2>
+                {/* PANEL DE CONTROL */}
+                <div
+                  className={cn(
+                    "flex flex-col gap-5 transition-all",
+                    previewUrl
+                      ? "w-full lg:w-[320px] lg:border-r border-border lg:pr-6"
+                      : "w-full"
+                  )}
+                >
+                  <h2 className="font-bold text-2xl tracking-tight text-foreground">
+                    {previewUrl ? "Ajustes" : "Configuración"}
+                  </h2>
                   
                   <div className="space-y-3">
                     <Label className="text-xs font-bold uppercase text-primary tracking-widest">Horas de aeronave</Label>
                     <RadioGroup value={hoursMode} onValueChange={(v) => setHoursMode(v as HoursMode)} className="flex flex-col gap-2">
                       <div className="flex items-center gap-2 border border-input p-3 rounded-lg hover:bg-accent cursor-pointer transition-all">
-                        <RadioGroupItem value="auto" id="auto" /><Label htmlFor="auto" className="text-sm cursor-pointer font-medium">Automáticas (del sistema)</Label>
+                        <RadioGroupItem value="auto" id="auto" />
+                        <Label htmlFor="auto" className="text-sm cursor-pointer font-medium">
+                          Automáticas (del sistema)
+                        </Label>
                       </div>
                       <div className="flex items-center gap-2 border border-input p-3 rounded-lg hover:bg-accent cursor-pointer transition-all">
-                        <RadioGroupItem value="manual" id="manual" /><Label htmlFor="manual" className="text-sm cursor-pointer font-medium">Manuales (definir valor)</Label>
+                        <RadioGroupItem value="manual" id="manual" />
+                        <Label htmlFor="manual" className="text-sm cursor-pointer font-medium">
+                          Manuales (definir valor)
+                        </Label>
                       </div>
                     </RadioGroup>
                   </div>
 
                   {hoursMode === "manual" && (
-                    <Input className="h-10 text-sm bg-background border-input" placeholder="0.00" value={manualHours} onChange={(e) => setManualHours(e.target.value)} />
+                    <Input
+                      className="h-10 text-sm bg-background border-input"
+                      placeholder="0.00"
+                      value={manualHours}
+                      onChange={(e) => setManualHours(e.target.value)}
+                    />
                   )}
                   
                   <div className="space-y-2">
                     <Label className="text-xs font-bold uppercase text-primary tracking-widest">Firma del Cliente</Label>
-                    <Input className="h-10 text-sm bg-background border-input" value={clientSignature} onChange={(e) => setClientSignature(e.target.value)} />
+                    <Input
+                      className="h-10 text-sm bg-background border-input"
+                      value={clientSignature}
+                      onChange={(e) => setClientSignature(e.target.value)}
+                    />
                   </div>
                   
                   <div className="space-y-2">
                     <Label className="text-xs font-bold uppercase text-primary tracking-widest">Páginas Hoja Reporte</Label>
-                    <Input className="h-10 text-sm bg-background border-input" type="number" value={reportPagesTotal} onChange={(e) => setReportPagesTotal(e.target.value)} />
+                    <Input
+                      className="h-10 text-sm bg-background border-input"
+                      type="number"
+                      value={reportPagesTotal}
+                      onChange={(e) => setReportPagesTotal(e.target.value)}
+                    />
                   </div>
 
                   <div className="flex flex-col gap-3 mt-auto pt-6 border-t border-border">
                     {!previewUrl && (
-                        <Button 
-                        variant="outline" 
-                        onClick={() => handleAction('preview')} 
+                      <Button
+                        variant="outline"
+                        onClick={() => handleAction('preview')}
                         disabled={isPreviewing}
                         className="h-11 border-primary text-primary hover:bg-primary hover:text-primary-foreground transition-all font-semibold"
-                        >
-                        {isPreviewing ? <Loader2 className="animate-spin size-4 mr-2" /> : <Eye className="size-4 mr-2" />} 
+                      >
+                        {isPreviewing ? <Loader2 className="animate-spin size-4 mr-2" /> : <Eye className="size-4 mr-2" />}
                         Ver Vista Previa
-                        </Button>
+                      </Button>
                     )}
                     
-                    <Button 
-                      onClick={() => handleAction('download')} 
+                    <Button
+                      onClick={() => handleAction('download')}
                       disabled={isDownloading}
                       className="h-11 bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg font-bold transition-all active:scale-[0.98]"
                     >
-                      {isDownloading ? <Loader2 className="animate-spin size-4 mr-2" /> : <Printer className="size-4 mr-2" />} 
+                      {isDownloading ? <Loader2 className="animate-spin size-4 mr-2" /> : <Printer className="size-4 mr-2" />}
                       {previewUrl ? "Descargar PDF Final" : "Generar y Descargar"}
                     </Button>
 
                     {previewUrl && (
-                        <Button 
-                          variant="outline" 
-                          className="h-11 border-input text-muted-foreground hover:bg-accent hover:text-foreground transition-all font-semibold" 
-                          onClick={() => { setPreviewUrl(null); setPreviewBlob(null); lastParamsRef.current = ""; }}
-                        >
-                          Cerrar Vista Previa
-                        </Button>
+                      <Button
+                        variant="outline"
+                        className="h-11 border-input text-muted-foreground hover:bg-accent hover:text-foreground transition-all font-semibold"
+                        onClick={() => { setPreviewUrl(null); setPreviewBlob(null); lastParamsRef.current = ""; }}
+                      >
+                        Cerrar Vista Previa
+                      </Button>
                     )}
                   </div>
                 </div>
 
-                {/* VISOR DE PDF (80%) */}
+                {/* VISOR PDF */}
                 {previewUrl && (
-                  <div className="flex-[4] relative border border-border rounded-xl bg-muted/30 overflow-hidden shadow-2xl">
-                    <iframe 
-                      src={`${previewUrl}#view=FitH&navpanes=0`} 
-                      className="w-full h-full border-none" 
-                      title="Preview" 
+                  <div
+                    className="
+                      relative
+                      border
+                      border-border
+                      rounded-xl
+                      bg-muted/30
+                      overflow-hidden
+                      shadow-2xl
+                      w-full
+                      h-[60vh]
+                      lg:h-full
+                    "
+                  >
+                    <iframe
+                      src={`${previewUrl}#view=FitH&navpanes=0`}
+                      className="w-full h-full border-none"
+                      title="Preview"
                     />
                   </div>
                 )}
@@ -218,9 +266,15 @@ const WorkOrderAircraftDetailsCards = ({ work_order }: { work_order: WorkOrder }
       </Card>
 
       <Card className="w-1/3 text-center border-border bg-card text-card-foreground">
-        <CardHeader><CardTitle className="text-primary">{work_order.aircraft.acronym}</CardTitle></CardHeader>
+        <CardHeader>
+          <CardTitle className="text-primary">{work_order.aircraft.acronym}</CardTitle>
+        </CardHeader>
         <CardFooter className="justify-center">
-          <Link href={`/${companySlug}/planificacion/aeronaves`}><Button variant="outline" size="sm" className="hover:bg-primary hover:text-primary-foreground transition-colors">Ver Aeronave</Button></Link>
+          <Link href={`/${companySlug}/planificacion/aeronaves`}>
+            <Button variant="outline" size="sm" className="hover:bg-primary hover:text-primary-foreground transition-colors">
+              Ver Aeronave
+            </Button>
+          </Link>
         </CardFooter>
       </Card>
     </div>
