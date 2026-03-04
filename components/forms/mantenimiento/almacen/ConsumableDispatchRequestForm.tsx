@@ -3,7 +3,6 @@
 import { useCreateDispatchRequest } from "@/actions/mantenimiento/almacen/solicitudes/salida/action"
 import { Button } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
-import { Checkbox } from "@/components/ui/checkbox"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -29,15 +28,13 @@ import { format } from "date-fns"
 import { es } from "date-fns/locale"
 import {
   AlertCircle,
-  Building2,
   Calculator,
   CalendarIcon,
   Check,
   ChevronsUpDown,
   Loader2,
   PackagePlus,
-  Plane,
-  X,
+  X
 } from "lucide-react"
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { useFieldArray, useForm, useWatch } from "react-hook-form"
@@ -53,9 +50,8 @@ import type { Article, Batch, Department, Employee, GeneralArticle } from "@/typ
 import { useGetGeneralArticles } from "@/hooks/mantenimiento/almacen/almacen_general/useGetGeneralArticles"
 import { useGetConversionByConsmable } from "@/hooks/mantenimiento/almacen/articulos/useGetConvertionsByConsumableId"
 import { useGetConversionByGeneralArticle } from "@/hooks/mantenimiento/almacen/articulos/useGetConvertionsByGeneralArticleId"
-import { useGetEmployeesByDepartment } from "@/hooks/sistema/useGetEmployeesByDepartament"
-import { values } from "pdf-lib"
 import { useGetAuthorizedEmployees } from "@/hooks/sistema/autorizados/useGetAuthorizedEmployees"
+import { useGetEmployeesByDepartment } from "@/hooks/sistema/useGetEmployeesByDepartament"
 
 interface FormProps {
   onClose: () => void

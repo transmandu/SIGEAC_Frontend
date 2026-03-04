@@ -40,7 +40,10 @@ export const columns: ColumnDef<DispatchGroupRow>[] = [
       }
       // Caso 2: no viene requested_by pero existe authorized_employee
       if (authorized_employee) {
-        return ( <div className="text-center leading-tight"> <p className="font-medium"> {authorized_employee.full_name} </p> <p className="text-xs text-muted-foreground uppercase"> {authorized_employee.from_company_db} </p> </div> );
+        return (
+        <div className="text-center leading-tight">
+          <p className="font-medium"> {authorized_employee.full_name} </p> <p className="text-xs text-muted-foreground uppercase"> {authorized_employee.from_company_db} </p>
+         </div> );
       }
       // Caso 3: ninguno existe
       return ( <p className="text-center text-muted-foreground"> — </p> );
@@ -55,7 +58,7 @@ export const columns: ColumnDef<DispatchGroupRow>[] = [
   },
   {
     accessorKey: 'aircraft.acronym',
-    header: ({ column }) => <DataTableColumnHeader column={column} title="Aeronave/Departamento" />,
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Destino" />,
     cell: ({ row }) => (
       <p className="text-center font-medium">
         {row.original.aircraft?.acronym ??
@@ -80,16 +83,6 @@ export const columns: ColumnDef<DispatchGroupRow>[] = [
         </p>
       );
     },
-  },
-  {
-    id: 'items',
-    header: () => <p className="text-center">Ítems</p>,
-    cell: ({ row }) => (
-      <div className="flex items-center justify-center gap-2 text-muted-foreground">
-        <Package className="h-4 w-4" />
-        <span className="font-medium text-foreground">{row.original.articles?.length ?? 0}</span>
-      </div>
-    ),
   },
   {
     id: 'people',

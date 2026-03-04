@@ -16,7 +16,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Separator } from "@/components/ui/separator"
-import { ClipboardList, PackageOpen, Hash, Barcode, X } from "lucide-react"
+import { ClipboardList, PackageOpen, Hash, Barcode, X, Package } from "lucide-react"
 
 type Article = {
   description?: string
@@ -48,8 +48,10 @@ const DispatchArticlesDialog = ({ articles = [], work_order }: DispatchArticlesD
     <Dialog>
       <DialogTrigger asChild>
         <Button variant="ghost" size="sm" className="gap-2">
-          <ClipboardList className="h-4 w-4" />
-          Ver artículos
+          <div className="flex items-center justify-center gap-2 text-muted-foreground">
+             <Package className="h-4 w-4" />
+            <span className="font-medium text-foreground">{articles?.length ?? 0}</span>
+          </div>
         </Button>
       </DialogTrigger>
 

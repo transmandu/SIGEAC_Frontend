@@ -1,12 +1,7 @@
 'use client'
 
-import { ContentLayout } from '@/components/layout/ContentLayout'
-import React, { useEffect } from 'react'
 import { columns } from '@/app/[company]/almacen/solicitudes/salida/columns'
-import { DataTable } from './data-table'
-import { useGetDispatchesByLocation } from '@/hooks/mantenimiento/almacen/solicitudes/useGetDispatchesRequests'
-import { useCompanyStore } from '@/stores/CompanyStore'
-import { Loader2 } from 'lucide-react'
+import { ContentLayout } from '@/components/layout/ContentLayout'
 import { Breadcrumb, BreadcrumbEllipsis, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb"
 import {
   DropdownMenu,
@@ -14,7 +9,11 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Department, MaintenanceAircraft, WorkOrder } from '@/types'
+import { useGetDispatchesByLocation } from '@/hooks/mantenimiento/almacen/solicitudes/useGetDispatchesRequests'
+import { useCompanyStore } from '@/stores/CompanyStore'
+import { Department, MaintenanceAircraft } from '@/types'
+import { Loader2 } from 'lucide-react'
+import { DataTable } from './data-table'
 
 
 export type DispatchArticle = {
