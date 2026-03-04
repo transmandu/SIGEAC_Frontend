@@ -42,7 +42,7 @@ export const columns: ColumnDef<DispatchGroupRow>[] = [
       if (authorized_employee) {
         return (
         <div className="text-center leading-tight">
-          <p className="font-medium"> {authorized_employee.full_name} </p> <p className="text-xs text-muted-foreground uppercase"> - {authorized_employee.from_company_db} </p>
+          <p className="font-medium"> {authorized_employee.full_name} </p> <p className="text-xs text-muted-foreground uppercase"> {authorized_employee.from_company_db} </p>
          </div> );
       }
       // Caso 3: ninguno existe
@@ -58,7 +58,7 @@ export const columns: ColumnDef<DispatchGroupRow>[] = [
   },
   {
     accessorKey: 'aircraft.acronym',
-    header: ({ column }) => <DataTableColumnHeader column={column} title="Aeronave/Departamento" />,
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Destino" />,
     cell: ({ row }) => (
       <p className="text-center font-medium">
         {row.original.aircraft?.acronym ??
