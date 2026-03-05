@@ -409,11 +409,12 @@ export function ComponentDispatchForm({ onClose }: FormProps) {
     const formattedData = {
       ...data,
       created_by: `${user?.employee?.[0]?.dni ?? ""}`,
+      approved_by: user?.employee?.[0]?.dni,
       delivered_by: `${user?.employee?.[0]?.dni ?? ""}`,
       submission_date: format(data.submission_date, "yyyy-MM-dd"),
       category: "componente",
       isDepartment,
-      aircraft_id: isDepartment ? null : data.department_id,
+      aircraft_id: isDepartment ? undefined : data.department_id,
       // si es departamento, el backend suele esperar department_id; tú ya lo mandas en data.department_id
     }
 

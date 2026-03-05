@@ -9,7 +9,7 @@ import {
 import { useDeleteUser } from "@/actions/aerolinea/usuarios/actions"
 import { EditUserDialog } from "@/components/dialogs/ajustes/EditUserDialog"
 import { User } from "@/types"
-import { Loader2, MoreHorizontal, Trash2 } from "lucide-react"
+import { Loader2, MoreHorizontal, Trash2, UserPen } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { Button } from "../../ui/button"
@@ -38,9 +38,7 @@ const UserDropdownActions = ({ user, companies }: { user: User, companies: { id:
               <Trash2 className='size-5 text-red-500' />
             </DropdownMenuItem>
           </DialogTrigger>
-          <DropdownMenuItem asChild>
-            <EditUserDialog user={user} />
-          </DropdownMenuItem>
+            <EditUserDialog user={user}/>
         </DropdownMenuContent>
       </DropdownMenu>
       <DialogContent>

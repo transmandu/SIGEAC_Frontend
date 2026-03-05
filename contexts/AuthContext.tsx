@@ -76,13 +76,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   }, []);
 
-  // 3. SYNC SESSION (Fluida)
+  // 3. SYNC SESSION (Fluida) - Ignora SUPERUSER
   const syncSession = useCallback(async () => {
     const hasToken = document.cookie.includes('auth_token');
     if (!hasToken) return;
 
     const data = await fetchUser();
-    
+
+    // Si el usuario actual es SUPERUSER, no aplicar logout automático
+    const isSuperUser = data?.roles?.some(
+      (role) => role.name === 'SUPERUSER'
+    );
+
+    if (isSuperUser) return;
+
     if (!data && hasToken) {
       logout();
     }
@@ -101,9 +108,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     checkAuth();
 
     window.addEventListener('focus', syncSession);
-    
-    // Cambiado a 5 minutos (300,000 ms) para no afectar el rendimiento
-    const interval = setInterval(syncSession, 300000); 
+
+    const interval = setInterval(() => {
+      syncSession();
+    }, 300000); // 5 minutos
 
     return () => {
       window.removeEventListener('focus', syncSession);

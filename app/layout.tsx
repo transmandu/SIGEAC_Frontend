@@ -6,6 +6,7 @@ import type { Metadata } from "next";
 import { Poppins } from "next/font/google";
 import "./globals.css";
 import { RedirectHandler } from "@/components/misc/RedirectHandler";
+import { TooltipProvider } from "@/components/ui/tooltip";
 
 const inter = Poppins({ subsets: ["latin"], weight: ["100", "300", "400", "500", "700", "900"] });
 
@@ -32,7 +33,9 @@ export default function RootLayout({
               enableSystem
               disableTransitionOnChange
             >
-              {children}
+              <TooltipProvider delayDuration={200}> {/* 👈 Aquí */}
+                {children}
+              </TooltipProvider>
               <Toaster />
             </ThemeProvider>
           </AuthProvider>

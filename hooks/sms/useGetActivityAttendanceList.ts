@@ -36,7 +36,7 @@ export const useGetActivityAttendanceList = ({
   activity_id: string;
 }) => {
   return useQuery<AttendanceData[], Error>({
-    queryKey: ["sms-activity-attendance-list"], // Incluye el activity_id en la clave
+    queryKey: ["sms-activity-attendance-list", activity_id], // Incluye el activity_id en la clave
     queryFn: () => fetchAttendanceList({ company, activity_id }),
     staleTime: 1000 * 60 * 5, // 5 minutos
     enabled: !!company, // Solo ejecuta si activity_id tiene valor

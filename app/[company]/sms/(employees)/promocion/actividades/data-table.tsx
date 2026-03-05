@@ -25,7 +25,6 @@ import {
 } from "@tanstack/react-table";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-// IMPORTANTE: Asegúrate de que el archivo existe en la misma carpeta
 import { ReportModal } from "./ReportModal"; 
 
 interface DataTableProps<TData, TValue> {
@@ -83,8 +82,8 @@ export function DataTable<TData, TValue>({
             Nueva Actividad
           </Button>
 
-          {/* CAMBIO APLICADO: Ahora usa 'activities' en lugar de 'data' */}
-          <ReportModal activities={data as any} />
+          {/* ReportModal llamado correctamente sin props excedentes */}
+          <ReportModal />
         </div>
 
         {/* Opciones de visualización de columnas a la derecha */}

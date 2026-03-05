@@ -222,18 +222,18 @@ export const policyCardsData = [
 
 export const policyImages = [
   {
-    src: "https://ccvnd3lo965z.share.zrok.io/storage/images/sms/politica_1.png",
+    src: `${process.env.NEXT_PUBLIC_STORAGE_BASE_URL}images/sms/politica_1.png`,
     alt: "Política 1",
   },
   // {
-  //   src: "https://ccvnd3lo965z.share.zrok.io/storage/images/sms/politica_2.png",
+  //   src: `${process.env.NEXT_PUBLIC_STORAGE_BASE_URL}images/sms/politica_2.png`,
   //   alt: "Política 2",
   // },
 ];
 
 export const SMSresponsibilities = [
   {
-    image: "https://ccvnd3lo965z.share.zrok.io/storage/images/sms/LOGO.png",
+    image: `${process.env.NEXT_PUBLIC_STORAGE_BASE_URL}images/sms/LOGO.png`,
     title: "Responsabilidades SMS Dueños de Proceso",
     items: [
       "Mitigar los Riesgos",
@@ -243,7 +243,7 @@ export const SMSresponsibilities = [
     ],
   },
   {
-    image: "https://ccvnd3lo965z.share.zrok.io/storage/images/sms/LOGO.png",
+    image: `${process.env.NEXT_PUBLIC_STORAGE_BASE_URL}images/sms/LOGO.png`,
     title: "Responsabilidades SMS Resto del Personal",
     items: [
       "Identificar Peligros",
@@ -317,7 +317,7 @@ export default smsConstants;
 //     //PRIMERA CARTA
 //     cardData: {
 //       imageUrl:
-//         "https://ccvnd3lo965z.share.zrok.io/storage/images/sms/fire-extinguisher.png",
+//         `${process.env.NEXT_PUBLIC_STORAGE_BASE_URL}images/sms/fire-extinguisher.png",
 //   {
 //     title: "Estructura del SMS",
 //     concept: "Posee 4 Componetes y 12 Elementos!"
@@ -333,7 +333,7 @@ export default smsConstants;
 //     //PRIMERA CARTA
 //     cardData: {
 //       imageUrl:
-//         "https://ccvnd3lo965z.share.zrok.io/storage/images/sms/fire-extinguisher.png",
+//         `${process.env.NEXT_PUBLIC_STORAGE_BASE_URL}images/sms/fire-extinguisher.png",
 //       imageAlt: "Conato de incendio en hangar con aeronave en servicio",
 //       title: "EMERGENCIA",
 //       description:
@@ -428,7 +428,7 @@ export default smsConstants;
 //   {
 //     cardData: {
 //       imageUrl:
-//         "https://ccvnd3lo965z.share.zrok.io/storage/images/sms/airplane_fire.png",
+//         `${process.env.NEXT_PUBLIC_STORAGE_BASE_URL}images/sms/airplane_fire.png",
 //       imageAlt: "Incendio no controlado en hangar con aeronave en servicio",
 //       title: "EMERGENCIA",
 //       description:
@@ -532,7 +532,7 @@ export default smsConstants;
 //   {
 //     cardData: {
 //       imageUrl:
-//         "https://ccvnd3lo965z.share.zrok.io/storage/images/sms/fire_controled.png",
+//         `${process.env.NEXT_PUBLIC_STORAGE_BASE_URL}images/sms/fire_controled.png",
 //       imageAlt: "Conato de incendio en las edificaciones",
 //       title: "EMERGENCIA",
 //       description:
@@ -618,7 +618,7 @@ export default smsConstants;
 //   {
 //     cardData: {
 //       imageUrl:
-//         "https://ccvnd3lo965z.share.zrok.io/storage/images/sms/burning-building.png",
+//         `${process.env.NEXT_PUBLIC_STORAGE_BASE_URL}images/sms/burning-building.png",
 //       imageAlt: "Incendio no controlado en las edificaciones",
 //       title: "EMERGENCIA",
 //       description:
@@ -720,7 +720,7 @@ export default smsConstants;
 //   {
 //     cardData: {
 //       imageUrl:
-//         "https://ccvnd3lo965z.share.zrok.io/storage/images/sms/fire_tools.png",
+//         `${process.env.NEXT_PUBLIC_STORAGE_BASE_URL}images/sms/fire_tools.png",
 //       imageAlt:
 //         "Conato de incendio en servicios de mantenimiento OMA adicionales",
 //       title: "EMERGENCIA",
@@ -815,7 +815,7 @@ export default smsConstants;
 //   {
 //     cardData: {
 //       imageUrl:
-//         "https://ccvnd3lo965z.share.zrok.io/storage/images/sms/collapse_by_fire.png",
+//         `${process.env.NEXT_PUBLIC_STORAGE_BASE_URL}images/sms/collapse_by_fire.png",
 //       imageAlt:
 //         "Incendio no controlado en servicios de mantenimiento OMA adicionales",
 //       title: "EMERGENCIA",
@@ -992,18 +992,18 @@ export default smsConstants;
 
 // export const policyImages = [
 //   {
-//     src: "https://ccvnd3lo965z.share.zrok.io/storage/images/sms/politica_1.png",
+//     src: `${process.env.NEXT_PUBLIC_STORAGE_BASE_URL}images/sms/politica_1.png",
 //     alt: "Política 1",
 //   },
 //   {
-//     src: "https://ccvnd3lo965z.share.zrok.io/storage/images/sms/politica_2.png",
+//     src: `${process.env.NEXT_PUBLIC_STORAGE_BASE_URL}images/sms/politica_2.png",
 //     alt: "Política 2",
 //   },
 // ];
 
 // export const SMSresponsibilities = [
 //   {
-//     image: "https://ccvnd3lo965z.share.zrok.io/storage/images/sms/LOGO.png",
+//     image: `${process.env.NEXT_PUBLIC_STORAGE_BASE_URL}images/sms/LOGO.png",
 //     title: "Responsabilidades SMS Dueños de Proceso",
 //     items: [
 //       "Mitigar los Riesgos",
@@ -1013,7 +1013,7 @@ export default smsConstants;
 //     ],
 //   },
 //   {
-//     image: "https://ccvnd3lo965z.share.zrok.io/storage/images/sms/LOGO.png",
+//     image: `${process.env.NEXT_PUBLIC_STORAGE_BASE_URL}images/sms/LOGO.png",
 //     title: "Responsabilidades SMS Resto del Personal",
 //     items: [
 //       "Identificar Peligros",

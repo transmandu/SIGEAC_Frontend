@@ -35,10 +35,11 @@ export const columns: ColumnDef<Company>[] = [
     header: ({ column }) => (
       <DataTableColumnHeader filter column={column} title="Nombre" />
     ),
-    cell: ({ row }) =>
-      <>
-        <span className="flex justify-center font-bold">{row.original.name}</span>
-      </>
+    cell: ({ row }) => (
+      <div className="text-center font-bold">
+        {row.original.name}
+      </div>
+    ),
   },
   {
     accessorKey: "label",
@@ -64,12 +65,15 @@ export const columns: ColumnDef<Company>[] = [
     cell: ({ row }) =>
       <span className="flex justify-center text-muted-foreground">{row.original.phone_number}</span>
   },
-    {
+  {
     accessorKey: "label",
     header: ({ column }) => (
       <DataTableColumnHeader filter column={column} title="Ubicación" />
     ),
-    cell: ({ row }) =>
-      <span className="flex justify-center font-semibold">{row.original.fiscal_address}</span>
+    cell: ({ row }) => (
+      <div className="text-center font-semibold">
+        {row.original.fiscal_address}
+      </div>
+    ),
   },
 ]
