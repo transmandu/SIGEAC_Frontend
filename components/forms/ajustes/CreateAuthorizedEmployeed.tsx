@@ -6,7 +6,10 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { useCreateAuthorizedEmployee } from "@/hooks/sistema/autorizados/useCreateAuthorizedEmployee";
 import { useGetEmployeesByCompany } from "@/hooks/sistema/empleados/useGetEmployees";
+import { useGetUserDepartamentEmployees } from "@/hooks/sistema/empleados/useGetUserDepartamentEmployees";
 import { useGetCompanies } from "@/hooks/sistema/useGetCompanies";
+import { useAuth } from "@/contexts/AuthContext";
+import { useMemo } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -32,10 +35,15 @@ interface Props {
 
 export function AuthorizedEmployeeForm({ onSuccess }: Props) {
   const { selectedCompany } = useCompanyStore();
+  const { user } = useAuth();
   const { mutateAsync, isPending } = useCreateAuthorizedEmployee();
 
-  const { data: employees = [], isLoading } =
-    useGetEmployeesByCompany(selectedCompany?.slug);
+  const isSuperUser = user?.roles?.some((role) => role.name === "SUPERUSER");
+  const { data: departmentEmployees = [], isPending: deptLoading } =
+    useGetUserDepartamentEmployees(!isSuperUser ? selectedCompany?.slug : undefined);
+
+  const { data: allEmployees = [], isLoading: allEmployeesLoading } =
+    useGetEmployeesByCompany(isSuperUser ? selectedCompany?.slug : undefined);
 
   const { data: companies = [], isLoading: isLoadingCompanies } =
     useGetCompanies();
@@ -66,9 +74,13 @@ export function AuthorizedEmployeeForm({ onSuccess }: Props) {
     onSuccess?.();
   };
 
-  // Filtrar para que NO aparezca la empresa origen
-  const filteredCompanies = companies.filter(
-    (company) => company.slug !== selectedCompany?.slug
+  const employees = isSuperUser ? allEmployees : departmentEmployees;
+  const isLoading = isSuperUser ? allEmployeesLoading : deptLoading;
+
+  const filteredCompanies = useMemo(
+    () =>
+      companies.filter((company) => company.slug !== selectedCompany?.slug),
+    [companies, selectedCompany?.slug]
   );
 
   return (
@@ -106,8 +118,7 @@ export function AuthorizedEmployeeForm({ onSuccess }: Props) {
                   </span>
                   {(emp.job_title?.name || emp.department?.name) && (
                     <span className="text-sm text-muted-foreground">
-                      {emp.job_title?.name ?? "–"} –{" "}
-                      {emp.department?.name ?? "–"}
+                      {emp.job_title?.name ?? "–"} – {emp.department?.name ?? "–"}
                     </span>
                   )}
                 </div>
@@ -117,9 +128,7 @@ export function AuthorizedEmployeeForm({ onSuccess }: Props) {
         </Select>
 
         {errors.dni_employee && (
-          <p className="text-sm text-destructive">
-            {errors.dni_employee.message}
-          </p>
+          <p className="text-sm text-destructive">{errors.dni_employee.message}</p>
         )}
       </div>
 
@@ -167,9 +176,7 @@ export function AuthorizedEmployeeForm({ onSuccess }: Props) {
         </Select>
 
         {errors.to_company_db && (
-          <p className="text-sm text-destructive">
-            {errors.to_company_db.message}
-          </p>
+          <p className="text-sm text-destructive">{errors.to_company_db.message}</p>
         )}
       </div>
 
