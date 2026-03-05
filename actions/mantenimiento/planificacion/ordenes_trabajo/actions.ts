@@ -1,4 +1,5 @@
 import axiosInstance from "@/lib/axios";
+
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
@@ -99,4 +100,161 @@ export const useDeleteWorkOrder = () => {
   return {
     deleteWorkOrder: deleteMutation,
   };
+};
+
+// ─────────────────────────────────────────────────────
+// UPDATE WORK ORDER (campos principales)
+// ─────────────────────────────────────────────────────
+interface UpdateWOData {
+  description?: string;
+  elaborated_by?: string;
+  reviewed_by?: string;
+  approved_by?: string;
+  date?: string;
+  aircraft_id?: string;
+}
+
+export const useUpdateWorkOrder = () => {
+  const queryClient = useQueryClient();
+
+  const updateMutation = useMutation({
+    mutationFn: async ({
+      id,
+      data,
+      company,
+    }: {
+      id: number | string;
+      data: UpdateWOData;
+      company: string;
+    }) => {
+      await axiosInstance.put(`/${company}/work-orders/${id}`, data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["work-orders"], exact: false });
+      queryClient.invalidateQueries({ queryKey: ["work-order"], exact: false });
+      toast.success("¡Actualizado!", {
+        description: `La orden de trabajo ha sido actualizada correctamente.`,
+      });
+    },
+    onError: (error) => {
+      toast.error("Oops!", {
+        description: "No se pudo actualizar la orden de trabajo...",
+      });
+      console.log(error);
+    },
+  });
+
+  return { updateWorkOrder: updateMutation };
+};
+
+// ─────────────────────────────────────────────────────
+// UPDATE WORK ORDER TASK (editar tarea individual)
+// ─────────────────────────────────────────────────────
+interface UpdateWOTaskData {
+  description_task?: string;
+  ata?: string;
+  material?: string | null;
+}
+
+export const useUpdateWorkOrderTask = () => {
+  const queryClient = useQueryClient();
+
+  const updateTaskMutation = useMutation({
+    mutationFn: async ({
+      id,
+      data,
+      company,
+    }: {
+      id: number | string;
+      data: UpdateWOTaskData;
+      company: string;
+    }) => {
+      await axiosInstance.put(`/${company}/update-work-order-task/${id}`, data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["work-orders"], exact: false });
+    },
+    onError: (error) => {
+      toast.error("Oops!", { description: "No se pudo actualizar la tarea..." });
+      console.log(error);
+    },
+  });
+
+  return { updateWorkOrderTask: updateTaskMutation };
+};
+
+// ─────────────────────────────────────────────────────
+// DELETE WORK ORDER TASK (eliminar tarea)
+// ─────────────────────────────────────────────────────
+export const useDeleteWorkOrderTask = () => {
+  const queryClient = useQueryClient();
+
+  const deleteTaskMutation = useMutation({
+    mutationFn: async ({
+      id,
+      company,
+    }: {
+      id: number | string;
+      company: string;
+    }) => {
+      await axiosInstance.delete(`/${company}/work-order-tasks/${id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["work-orders"], exact: false });
+      toast.success("¡Eliminada!", {
+        description: "La tarea ha sido eliminada correctamente.",
+      });
+    },
+    onError: (error) => {
+      toast.error("Oops!", { description: "No se pudo eliminar la tarea..." });
+      console.log(error);
+    },
+  });
+
+  return { deleteWorkOrderTask: deleteTaskMutation };
+};
+
+// ─────────────────────────────────────────────────────
+// ADD WORK ORDER TASK (agregar tarea nueva a orden existente)
+// ─────────────────────────────────────────────────────
+interface AddWOTaskData {
+  description_task: string;
+  ata: string;
+  material?: string | null;
+  task_items?: { part_number: string; alternate_part_number?: string }[];
+}
+
+export const useAddWorkOrderTask = () => {
+  const queryClient = useQueryClient();
+
+  const addTaskMutation = useMutation({
+    mutationFn: async ({
+      work_order_id,
+      data,
+      company,
+    }: {
+      work_order_id: number | string;
+      data: AddWOTaskData;
+      company: string;
+    }) => {
+      await axiosInstance.post(
+        `/${company}/${work_order_id}/store-work-order-task`,
+        {
+          ...data,
+          task_items: data.task_items ?? [],
+          task_number: "N/A",
+          origin_manual: null,
+        }
+      );
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["work-orders"], exact: false });
+    },
+    onError: (error) => {
+      toast.error("Oops!", { description: "No se pudo agregar la tarea..." });
+      console.log(error);
+    },
+  });
+
+  return { addWorkOrderTask: addTaskMutation };
 };

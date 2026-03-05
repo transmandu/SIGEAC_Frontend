@@ -1,71 +1,61 @@
-import axios from "@/lib/axios";
-import { Aircraft } from "@/types";
+"use client";
+
+import axiosInstance from "@/lib/axios";
 import { useMutation } from "@tanstack/react-query";
-import { toast } from "sonner";
+import { toast } from "sonner"; // Ajusta según tu librería de toast
 
-export interface DispatchReport {
-  id: number;
-  request_number: string;
-  status: string;
-  requested_by: string;
-  approved_by: string;
-  delivered_by: string;
-  created_by: string;
-  justification: string;
-  destination_place: string;
-  submission_date: string;
-  work_order?: string;
-  aircraft?: Aircraft;
-  articles: {
-    id: number;
-    part_number: string;
-    alternative_part_number?: string[];
-    serial?: string;
-    description: string;
-    quantity: number;
-    quantity_used: string;
-    unit_label: string;
-  }[];
-}
-
-interface DispatchParams {
-  location_id: string;
+interface DispatchReportParams {
+  location_id: number | string;
   company: string;
-  from?: string;
-  to?: string;
-  aircraft_id?: string | null; // <-- Nueva propiedad opcional
+  aircraft_id?: string | null;
+  from: string;
+  to: string;
 }
-
-const fetchDispatchReport = async ({
-  location_id,
-  company,
-  from,
-  to,
-  aircraft_id, // <-- Recibir el ID
-}: DispatchParams): Promise<DispatchReport[]> => {
-  const params = new URLSearchParams();
-
-  if (from) params.append("from", from);
-  if (to) params.append("to", to);
-  if (aircraft_id) params.append("aircraft_id", aircraft_id); // <-- Añadir a los params si existe
-
-  const url = `/${company}/${location_id}/report-dispatch-orders${
-    params.toString() ? `?${params.toString()}` : ""
-  }`;
-
-  const { data } = await axios.get(url);
-
-  if (Array.isArray(data) && data.length === 0) {
-    toast.info("Sin resultados", {
-      description: `No hay datos de despacho para los filtros seleccionados.`,
-    });
-  }
-
-  return data;
-};
 
 export const useGetDispatchReport = () => {
   return useMutation({
-    mutationFn: fetchDispatchReport,
+    mutationFn: async (params: DispatchReportParams) => {
+      try {
+        const response = await axiosInstance.get(
+          `/${params.company}/${params.location_id}/dispatch-report-pdf`,
+          {
+            params: {
+              aircraft_id: params.aircraft_id ?? undefined,
+              from: params.from,
+              to: params.to,
+            },
+            responseType: "blob",
+          },
+        );
+        return response.data;
+      } catch (error: any) {
+        // Si el servidor responde con un error (ej: 400), el mensaje viene dentro del Blob
+        if (error.response?.data instanceof Blob) {
+          const text = await error.response.data.text();
+          const errorData = JSON.parse(text);
+          throw new Error(errorData.error || "No se encontraron datos");
+        }
+        throw error;
+      }
+    },
+    onSuccess: (data) => {
+      // Descarga automática del PDF
+      const url = window.URL.createObjectURL(new Blob([data]));
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute(
+        "download",
+        `Reporte_Despacho_${new Date().getTime()}.pdf`,
+      );
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    },
+    onError: (error: any) => {
+      // Muestra el mensaje enviado desde Laravel: "No hay registros..."
+      toast.error("Oops!", {
+        description: error.message || "¡Hubo un error al generar el reporte!",
+      });
+    },
   });
 };
