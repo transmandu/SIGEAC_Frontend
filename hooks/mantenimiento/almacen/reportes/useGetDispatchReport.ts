@@ -2,6 +2,7 @@
 
 import axiosInstance from "@/lib/axios";
 import { useMutation } from "@tanstack/react-query";
+import { toast } from "sonner"; // Ajusta según tu librería de toast
 
 interface DispatchReportParams {
   location_id: number | string;
@@ -14,19 +15,47 @@ interface DispatchReportParams {
 export const useGetDispatchReport = () => {
   return useMutation({
     mutationFn: async (params: DispatchReportParams) => {
-      const response = await axiosInstance.get(
-        `/${params.company}/${params.location_id}/dispatch-report-pdf`,
-        {
-          params: {
-            aircraft_id: params.aircraft_id ?? undefined,
-            from: params.from,
-            to: params.to,
+      try {
+        const response = await axiosInstance.get(
+          `/${params.company}/${params.location_id}/dispatch-report-pdf`,
+          {
+            params: {
+              aircraft_id: params.aircraft_id ?? undefined,
+              from: params.from,
+              to: params.to,
+            },
+            responseType: "blob",
           },
-          responseType: "blob", // 🔥 obligatorio para PDF
-        },
+        );
+        return response.data;
+      } catch (error: any) {
+        // Si el servidor responde con un error (ej: 400), el mensaje viene dentro del Blob
+        if (error.response?.data instanceof Blob) {
+          const text = await error.response.data.text();
+          const errorData = JSON.parse(text);
+          throw new Error(errorData.error || "No se encontraron datos");
+        }
+        throw error;
+      }
+    },
+    onSuccess: (data) => {
+      // Descarga automática del PDF
+      const url = window.URL.createObjectURL(new Blob([data]));
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute(
+        "download",
+        `Reporte_Despacho_${new Date().getTime()}.pdf`,
       );
-
-      return response.data;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    },
+    onError: (error: any) => {
+      // Muestra el mensaje enviado desde Laravel: "No hay registros..."
+      toast.error("Oops!", {
+        description: error.message || "¡Hubo un error al generar el reporte!",
+      });
     },
   });
 };
