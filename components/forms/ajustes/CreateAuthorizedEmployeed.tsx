@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { useCreateAuthorizedEmployee } from "@/hooks/sistema/autorizados/useCreateAuthorizedEmployee";
 import { useGetEmployeesByCompany } from "@/hooks/sistema/empleados/useGetEmployees";
+import { useGetCompanies } from "@/hooks/sistema/useGetCompanies";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -36,6 +37,9 @@ export function AuthorizedEmployeeForm({ onSuccess }: Props) {
   const { data: employees = [], isLoading } =
     useGetEmployeesByCompany(selectedCompany?.slug);
 
+  const { data: companies = [], isLoading: isLoadingCompanies } =
+    useGetCompanies();
+
   const {
     handleSubmit,
     setValue,
@@ -62,9 +66,13 @@ export function AuthorizedEmployeeForm({ onSuccess }: Props) {
     onSuccess?.();
   };
 
+  // Filtrar para que NO aparezca la empresa origen
+  const filteredCompanies = companies.filter(
+    (company) => company.slug !== selectedCompany?.slug
+  );
+
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-
       {/* Empleado */}
       <div className="space-y-2">
         <Label>Empleado</Label>
@@ -98,7 +106,8 @@ export function AuthorizedEmployeeForm({ onSuccess }: Props) {
                   </span>
                   {(emp.job_title?.name || emp.department?.name) && (
                     <span className="text-sm text-muted-foreground">
-                      {emp.job_title?.name ?? "–"} – {emp.department?.name ?? "–"}
+                      {emp.job_title?.name ?? "–"} –{" "}
+                      {emp.department?.name ?? "–"}
                     </span>
                   )}
                 </div>
@@ -117,12 +126,17 @@ export function AuthorizedEmployeeForm({ onSuccess }: Props) {
       {/* Empresa Origen */}
       <div className="space-y-2">
         <Label>Empresa Origen</Label>
-        <Input disabled value={selectedCompany?.slug ?? ""} className="uppercase" />
+        <Input
+          disabled
+          value={selectedCompany?.slug ?? ""}
+          className="uppercase"
+        />
       </div>
 
       {/* Empresa Destino */}
       <div className="space-y-2">
         <Label>Empresa Destino</Label>
+
         <Select
           value={toCompany}
           onValueChange={(value) => setValue("to_company_db", value)}
@@ -130,11 +144,25 @@ export function AuthorizedEmployeeForm({ onSuccess }: Props) {
           <SelectTrigger>
             <SelectValue placeholder="Seleccione empresa destino" />
           </SelectTrigger>
+
           <SelectContent>
-            <SelectItem value="estelar">Estelar</SelectItem>
-            <SelectItem value="hangar74">Hangar74</SelectItem>
-            <SelectItem value="transmandu">Transmandu</SelectItem>
-            <SelectItem value="canaimaholding">Canaima Holding</SelectItem>
+            {isLoadingCompanies && (
+              <SelectItem value="loading" disabled>
+                Cargando empresas...
+              </SelectItem>
+            )}
+
+            {!isLoadingCompanies && filteredCompanies.length === 0 && (
+              <SelectItem value="empty" disabled>
+                No hay empresas disponibles
+              </SelectItem>
+            )}
+
+            {filteredCompanies.map((company) => (
+              <SelectItem key={company.id} value={company.slug}>
+                {company.name}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
 
