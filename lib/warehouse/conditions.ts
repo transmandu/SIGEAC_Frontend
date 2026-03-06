@@ -8,7 +8,7 @@ const CONDITIONS: Array<{ value: string; es: string; en: string }> = [
   { value: "REPAIRABLE", es: "Reparable", en: "Repairable" },
   { value: "TESTED", es: "Probado", en: "Tested" },
   { value: "AS REMOVED", es: "Removido", en: "As Removed" },
-  { value: "INSPECTION", es: "Inspección", en: "Inspection" },
+  { value: "INSPECTION", es: "Inspeccionado", en: "Inspected" },
 ]
 
 const CONDITION_MAP = new Map<string, ConditionLabel>(
@@ -18,5 +18,6 @@ const CONDITION_MAP = new Map<string, ConditionLabel>(
 export function formatCondition(value?: string | null): ConditionLabel | null {
   if (!value) return null
   const key = String(value).trim().toUpperCase()
+  console.log("Valor recibido de la DB:", key) // <--- Mira esto en la consola del navegador (F12)
   return CONDITION_MAP.get(key) ?? { es: String(value), en: String(value) }
 }
