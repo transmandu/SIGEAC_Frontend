@@ -1118,7 +1118,10 @@ export function getMenuList(
           label: "Autorizaciones",
           active: pathname.includes("/sistema/autorizaciones"),
           icon: KeyRound,
-          roles: ["ADMIN", "SUPERUSER"],
+          roles: [
+            "SUPERUSER", 
+            // "JEFE_ADMINISTRACION", "JEFE_ALMACEN", "JEFE_PLANIFICACION", "JEFE_SMS", "JEFE_MANTENIMIENTO", "RRHH_ADMINISTRACION", "JEFE_NDT", "JEFE_COMPRAS"
+          ],
           submenus: [
             {
               href: "/sistema/autorizaciones/autorizar",

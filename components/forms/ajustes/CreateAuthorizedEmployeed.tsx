@@ -6,6 +6,10 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { useCreateAuthorizedEmployee } from "@/hooks/sistema/autorizados/useCreateAuthorizedEmployee";
 import { useGetEmployeesByCompany } from "@/hooks/sistema/empleados/useGetEmployees";
+import { useGetUserDepartamentEmployees } from "@/hooks/sistema/empleados/useGetUserDepartamentEmployees";
+import { useGetCompanies } from "@/hooks/sistema/useGetCompanies";
+import { useAuth } from "@/contexts/AuthContext";
+import { useMemo } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -31,10 +35,18 @@ interface Props {
 
 export function AuthorizedEmployeeForm({ onSuccess }: Props) {
   const { selectedCompany } = useCompanyStore();
+  const { user } = useAuth();
   const { mutateAsync, isPending } = useCreateAuthorizedEmployee();
 
-  const { data: employees = [], isLoading } =
-    useGetEmployeesByCompany(selectedCompany?.slug);
+  const isSuperUser = user?.roles?.some((role) => role.name === "SUPERUSER");
+  const { data: departmentEmployees = [], isPending: deptLoading } =
+    useGetUserDepartamentEmployees(!isSuperUser ? selectedCompany?.slug : undefined);
+
+  const { data: allEmployees = [], isLoading: allEmployeesLoading } =
+    useGetEmployeesByCompany(isSuperUser ? selectedCompany?.slug : undefined);
+
+  const { data: companies = [], isLoading: isLoadingCompanies } =
+    useGetCompanies();
 
   const {
     handleSubmit,
@@ -62,9 +74,17 @@ export function AuthorizedEmployeeForm({ onSuccess }: Props) {
     onSuccess?.();
   };
 
+  const employees = isSuperUser ? allEmployees : departmentEmployees;
+  const isLoading = isSuperUser ? allEmployeesLoading : deptLoading;
+
+  const filteredCompanies = useMemo(
+    () =>
+      companies.filter((company) => company.slug !== selectedCompany?.slug),
+    [companies, selectedCompany?.slug]
+  );
+
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-
       {/* Empleado */}
       <div className="space-y-2">
         <Label>Empleado</Label>
@@ -108,21 +128,24 @@ export function AuthorizedEmployeeForm({ onSuccess }: Props) {
         </Select>
 
         {errors.dni_employee && (
-          <p className="text-sm text-destructive">
-            {errors.dni_employee.message}
-          </p>
+          <p className="text-sm text-destructive">{errors.dni_employee.message}</p>
         )}
       </div>
 
       {/* Empresa Origen */}
       <div className="space-y-2">
         <Label>Empresa Origen</Label>
-        <Input disabled value={selectedCompany?.slug ?? ""} className="uppercase" />
+        <Input
+          disabled
+          value={selectedCompany?.slug ?? ""}
+          className="uppercase"
+        />
       </div>
 
       {/* Empresa Destino */}
       <div className="space-y-2">
         <Label>Empresa Destino</Label>
+
         <Select
           value={toCompany}
           onValueChange={(value) => setValue("to_company_db", value)}
@@ -130,18 +153,30 @@ export function AuthorizedEmployeeForm({ onSuccess }: Props) {
           <SelectTrigger>
             <SelectValue placeholder="Seleccione empresa destino" />
           </SelectTrigger>
+
           <SelectContent>
-            <SelectItem value="estelar">Estelar</SelectItem>
-            <SelectItem value="hangar74">Hangar74</SelectItem>
-            <SelectItem value="transmandu">Transmandu</SelectItem>
-            <SelectItem value="canaimaholding">Canaima Holding</SelectItem>
+            {isLoadingCompanies && (
+              <SelectItem value="loading" disabled>
+                Cargando empresas...
+              </SelectItem>
+            )}
+
+            {!isLoadingCompanies && filteredCompanies.length === 0 && (
+              <SelectItem value="empty" disabled>
+                No hay empresas disponibles
+              </SelectItem>
+            )}
+
+            {filteredCompanies.map((company) => (
+              <SelectItem key={company.id} value={company.slug}>
+                {company.name}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
 
         {errors.to_company_db && (
-          <p className="text-sm text-destructive">
-            {errors.to_company_db.message}
-          </p>
+          <p className="text-sm text-destructive">{errors.to_company_db.message}</p>
         )}
       </div>
 
