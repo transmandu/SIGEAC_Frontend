@@ -109,7 +109,7 @@ export const useDeleteSecondaryUnit = () => {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: number | string) => {
-      await axiosInstance.delete(`/${selectedCompany?.slug}/convertion/${id}`);
+      await axiosInstance.delete(`/${selectedCompany?.slug}/conversion/${id}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({
