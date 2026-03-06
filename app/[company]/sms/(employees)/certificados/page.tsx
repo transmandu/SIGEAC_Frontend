@@ -50,14 +50,12 @@ const CertificatesPage = () => {
     <ContentLayout title="Certificados">
       <div className="flex flex-col gap-y-4">
         
-        {/* Mantenemos tu Loader original */}
         {isLoading && (
           <div className="flex w-full h-full justify-center items-center py-20">
             <Loader2 className="size-24 animate-spin text-muted-foreground" />
           </div>
         )}
 
-        {/* Solo mostramos la tabla si NO está cargando y NO hay error */}
         {!isLoading && !isError && (
           <div className="animate-in fade-in duration-500">
             <DataTableCertificates 
@@ -69,25 +67,26 @@ const CertificatesPage = () => {
           </div>
         )}
 
-        {/* Mensaje de Error estándar */}
         {isError && !isLoading && (
           <p className="text-sm text-muted-foreground text-center py-10">
             Ha ocurrido un error al cargar los certificados...
           </p>
         )}
 
-        {/* DIALOG DE CARGA */}
+        {/* DIALOG DE CARGA CORREGIDO */}
         <Dialog open={open} onOpenChange={setOpen}>
-          <DialogContent className="sm:max-w-[480px] bg-slate-900 border-slate-800">
+          {/* Eliminamos bg-slate-900 y border-slate-800 para usar variables del tema */}
+          <DialogContent className="sm:max-w-[480px] bg-background border-border shadow-lg">
             <DialogHeader>
-              <DialogTitle className="text-center text-xl font-bold text-white">
-                {isManagement ? "Cargar Certificado a Personal" : "Subir mi Certificado"}
+              <DialogTitle className="text-center text-xl font-bold text-foreground">
+                {isManagement ? "Cargar Certificado a Empleado" : "Subir mi Certificado"}
               </DialogTitle>
             </DialogHeader>
+            
             {isManagement ? (
               <CreateCertificateForm onClose={() => setOpen(false)} />
             ) : (
-              <p className="text-white text-center py-4 text-sm opacity-70">
+              <p className="text-muted-foreground text-center py-4 text-sm">
                 No tienes permisos para realizar esta acción.
               </p>
             )}

@@ -57,6 +57,7 @@ export const CreateCertificateForm = ({ onClose }: CreateCertificateFormProps) =
 
   const [fileName, setFileName] = useState<string | null>(null);
   const [openPopover, setOpenPopover] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
 
   // Lógica de Roles
   const isManagement = user?.roles?.some(role => 
@@ -125,6 +126,28 @@ export const CreateCertificateForm = ({ onClose }: CreateCertificateFormProps) =
     }
   };
 
+  // Lógica para Arrastrar y Soltar
+  const onDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const onDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+  };
+
+  const onDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      const files = e.dataTransfer.files;
+      setValue("document", files as any); // Seteamos el archivo en React Hook Form
+      setFileName(files[0].name);
+    }
+  };
+
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-5 py-2">
       
@@ -150,10 +173,14 @@ export const CreateCertificateForm = ({ onClose }: CreateCertificateFormProps) =
                 <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0" align="start">
-              <Command className="w-full">
+            <PopoverContent 
+              className="w-[var(--radix-popover-trigger-width)] p-0 shadow-md" 
+              align="start"
+              onWheel={(e) => e.stopPropagation()}
+            >
+              <Command className="w-full" shouldFilter={true}>
                 <CommandInput placeholder="Buscar por nombre o DNI..." />
-                <CommandList>
+                <CommandList className="max-h-[200px] overflow-y-auto overflow-x-hidden">
                   <CommandEmpty>No se encontraron resultados.</CommandEmpty>
                   <CommandGroup>
                     {employees?.map((emp: any) => (
@@ -230,11 +257,11 @@ export const CreateCertificateForm = ({ onClose }: CreateCertificateFormProps) =
         </div>
 
       <div className="grid gap-2">
-        <Label htmlFor="completion_date">Fecha de Finalización</Label>
-        <Input
+        <Label htmlFor="completion_date">Fecha de Carga</Label>
+        <input
           id="completion_date"
           type="date"
-          className="bg-background"
+          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
           {...register("completion_date", { required: "La fecha es obligatoria" })}
         />
         {errors.completion_date && <p className="text-xs text-red-500">{errors.completion_date.message as string}</p>}
@@ -244,10 +271,14 @@ export const CreateCertificateForm = ({ onClose }: CreateCertificateFormProps) =
         <Label>Documento</Label>
         <label
           htmlFor="dropzone-file"
+          onDragOver={onDragOver}
+          onDragLeave={onDragLeave}
+          onDrop={onDrop}
           className={`flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer transition-all ${
+            isDragging ? "border-blue-500 bg-blue-50 dark:bg-blue-900/10 scale-[1.01]" : 
             fileName 
               ? "border-green-500/50 bg-green-50/10 dark:bg-green-950/10" 
-              : "border-muted hover:border-blue-500/50 hover:bg-accent/50 bg-background"
+              : "border-slate-300 dark:border-slate-700 hover:border-blue-500/50 hover:bg-slate-50 dark:hover:bg-accent/50 bg-background"
           }`}
         >
           <div className="flex flex-col items-center justify-center pt-5 pb-6 text-center px-2">
@@ -258,8 +289,10 @@ export const CreateCertificateForm = ({ onClose }: CreateCertificateFormProps) =
               </>
             ) : (
               <>
-                <UploadCloud className="w-8 h-8 mb-2 text-muted-foreground" />
-                <p className="text-xs text-muted-foreground font-medium">Subir archivo</p>
+                <UploadCloud className={`w-8 h-8 mb-2 transition-colors ${isDragging ? "text-blue-500" : "text-muted-foreground"}`} />
+                <p className="text-xs text-muted-foreground font-medium">
+                  {isDragging ? "Suelta el archivo aquí" : "Subir archivo"}
+                </p>
                 <p className="text-[10px] text-muted-foreground/60 mt-1">PDF, JPG o PNG (Max. 10MB)</p>
               </>
             )}
