@@ -270,8 +270,8 @@ export function SurveyQuestionsManager({ surveyData, onClose }: Props) {
                 ? question.options.map((opt) => ({
                         id: opt.id,
                         text: opt.text,
-                        is_correct: opt.is_correct ?? false 
-                    
+                        is_correct: opt.is_correct ?? false
+
                     }))
                 : [{ text: "", is_correct: false }]
         );
