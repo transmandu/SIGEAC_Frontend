@@ -1,11 +1,11 @@
-"use client"
+"use client";
 
-import { ColumnDef } from "@tanstack/react-table"
+import { ColumnDef } from "@tanstack/react-table";
 
-import { DataTableColumnHeader } from "@/components/tables/DataTableHeader"
+import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
 
-import { Checkbox } from "@/components/ui/checkbox"
-import { Employee } from "@/types"
+import { Checkbox } from "@/components/ui/checkbox";
+import { Employee } from "@/types";
 
 export const columns: ColumnDef<Employee>[] = [
   {
@@ -35,30 +35,38 @@ export const columns: ColumnDef<Employee>[] = [
     header: ({ column }) => (
       <DataTableColumnHeader filter column={column} title="Nombre" />
     ),
-    cell: ({ row }) =>
+    cell: ({ row }) => (
       <>
-        <span className='flex justify-center font-bold'>{row.original.first_name}</span>
+        <span className="flex justify-center font-bold">
+          {row.original.first_name}
+        </span>
       </>
+    ),
   },
-    {
+  {
     accessorKey: "last_name",
     header: ({ column }) => (
-      <DataTableColumnHeader filter column={column} title="Nombre" />
+      <DataTableColumnHeader filter column={column} title="Apellido" />
     ),
-    cell: ({ row }) =>
+    cell: ({ row }) => (
       <>
-        <span className='flex justify-center font-bold'>{row.original.last_name}</span>
+        <span className="flex justify-center font-bold">
+          {row.original.last_name}
+        </span>
       </>
+    ),
   },
   {
     accessorKey: "dni",
     header: ({ column }) => (
       <DataTableColumnHeader filter column={column} title="Cedula" />
     ),
-    cell: ({ row }) =>
+    cell: ({ row }) => (
       <>
-        <span className="flex justify-center font-semibold italic text-muted-foreground">{row.original.dni_type}-{row.original.dni}</span>
-
+        <span className="flex justify-center font-semibold italic text-muted-foreground">
+          {row.original.dni_type}-{row.original.dni}
+        </span>
       </>
+    ),
   },
-]
+];
