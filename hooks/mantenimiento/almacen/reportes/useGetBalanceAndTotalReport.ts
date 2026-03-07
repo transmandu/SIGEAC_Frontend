@@ -14,44 +14,55 @@ interface BalanceParams {
 
 export const useGetBalanceAndTotalReport = () => {
   return useMutation({
+    retry: false,
+
     mutationFn: async (params: BalanceParams) => {
-      const response = await axiosInstance.get(
-        `/${params.company}/${params.location_id}/balance-and-total-report-pdf`,
-        {
-          params: { ...params, aircraft_id: params.aircraft_id ?? undefined },
-          responseType: "blob",
-        },
-      );
+      try {
+        const response = await axiosInstance.get(
+          `/${params.company}/${params.location_id}/balance-and-total-report-pdf`,
+          {
+            params: {
+              aircraft_id: params.aircraft_id ?? undefined,
+              from: params.from,
+              to: params.to,
+            },
+            responseType: "blob",
+          }
+        );
 
-      // Si el servidor responde con JSON en lugar de PDF, es un error (aunque axios no lo lance)
-      if (response.data.type === "application/json") {
-        const reader = new FileReader();
-        return new Promise((_, reject) => {
-          reader.onload = () => {
-            const error = JSON.parse(reader.result as string);
-            reject(new Error(error.error || "No hay datos"));
-          };
-          reader.readAsText(response.data);
-        });
+        // Si el backend devuelve JSON (cuando no hay datos)
+        const contentType = response.headers["content-type"];
+
+        if (contentType?.includes("application/json")) {
+          const text = await response.data.text();
+          const error = JSON.parse(text);
+
+          throw new Error(
+            error.error || "No se encontraron datos para los filtros seleccionados"
+          );
+        }
+
+        return response.data;
+      } catch (error: any) {
+        // Cuando Axios lanza error con Blob
+        if (error.response?.data instanceof Blob) {
+          const text = await error.response.data.text();
+          const errorData = JSON.parse(text);
+
+          throw new Error(
+            errorData.error || "No se encontraron datos para los filtros seleccionados"
+          );
+        }
+
+        throw new Error("Error al generar el reporte");
       }
+    },
 
-      return response.data;
-    },
-    onSuccess: (data) => {
-      // Descarga directa
-      const url = window.URL.createObjectURL(new Blob([data]));
-      const link = document.createElement("a");
-      link.href = url;
-      link.setAttribute(
-        "download",
-        `Reporte_${new Date().toLocaleDateString()}.pdf`,
-      );
-      link.click();
-    },
     onError: (error: any) => {
       toast.error("Oops!", {
         description:
-          error.message,
+          error.message ||
+          "Ocurrió un problema al generar el reporte.",
       });
     },
   });
