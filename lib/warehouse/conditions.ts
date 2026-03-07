@@ -8,7 +8,7 @@ const CONDITIONS: Array<{ value: string; es: string; en: string }> = [
   { value: "REPAIRABLE", es: "Reparable", en: "Repairable" },
   { value: "TESTED", es: "Probado", en: "Tested" },
   { value: "AS REMOVED", es: "Removido", en: "As Removed" },
-  { value: "INSPECTION", es: "Inspeccionado", en: "Inspected" },
+  { value: "INSPECTED", es: "Inspeccionado", en: "Inspected" },
 ]
 
 const CONDITION_MAP = new Map<string, ConditionLabel>(
