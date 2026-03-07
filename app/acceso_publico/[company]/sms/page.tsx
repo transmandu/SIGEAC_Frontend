@@ -108,7 +108,7 @@ const SMSPage = () => {
                   <Button
                     onClick={() =>
                       router.push(
-                        `https://sigeac-one.vercel.app/acceso_publico/${company}/sms/crear_reporte/voluntario`,
+                        `/acceso_publico/${company}/sms/crear_reporte/voluntario`,
                       )
                     }
                     className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white transition-all duration-300"
@@ -120,7 +120,7 @@ const SMSPage = () => {
                   <Button
                     onClick={() =>
                       router.push(
-                        `https://sigeac-one.vercel.app/acceso_publico/${company}/sms/crear_reporte/obligatorio`,
+                        `/acceso_publico/${company}/sms/crear_reporte/obligatorio`,
                       )
                     }
                     variant="outline"
