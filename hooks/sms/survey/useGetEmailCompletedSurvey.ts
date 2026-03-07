@@ -37,8 +37,9 @@ export const useGetEmailCompletedSurvey = ({
   company?: string;
 }) => {
   // Solo habilitar la consulta si tenemos todos los datos necesarios
+  // Funciona tanto con emails (usuarios anónimos) como con usernames (usuarios autenticados)
   const isEnabled =
-    !!company && !!id && id !== "temp" && !!email && email.includes("@");
+    !!company && !!id && id !== "temp" && !!email && email.length > 0;
 
   return useQuery<boolean>({
     queryKey: ["survey-is-completed", company, id, email],

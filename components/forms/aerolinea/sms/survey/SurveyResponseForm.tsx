@@ -27,6 +27,7 @@ import { useForm } from "react-hook-form";
 import { QuestionItem } from "./QuestionItem";
 import { createSurveyValidator } from "@/components/forms/validators/sms/createSurveyValidator";
 import { useEmailValidation } from "@/hooks/sms/survey/useEmailValidation";
+import { useGetEmailCompletedSurvey } from "@/hooks/sms/survey/useGetEmailCompletedSurvey";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
@@ -49,7 +50,7 @@ export default function SurveyResponseForm() {
   const company = params.company as string;
   const surveyNumber = params.survey_number as string;
   const { createSurveyAnswers } = useCreateSurveyAnswers();
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const router = useRouter();
 
   const {
@@ -61,11 +62,23 @@ export default function SurveyResponseForm() {
     company,
   });
 
-  // Hook para validación de email
+  // Hook para validación de email (usuarios anónimos)
   const emailValidation = useEmailValidation(
     survey?.id?.toString() || "",
     company
   );
+
+  // Hook para verificar si el usuario autenticado ya respondió
+  // Reutilizamos useGetEmailCompletedSurvey pasando el username como identificador
+  // El backend busca en columnas email OR user_id, por lo que funciona para ambos casos
+  const { data: authUserHasCompleted, isLoading: authCheckLoading } = useGetEmailCompletedSurvey({
+    id: survey?.id?.toString() || "",
+    email: user?.username || "",
+    company,
+  });
+
+  const hasCompleted = user ? !!authUserHasCompleted : emailValidation.hasCompleted;
+  const isCheckLoading = user ? authCheckLoading : emailValidation.isLoading;
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -77,23 +90,23 @@ export default function SurveyResponseForm() {
   const surveyResponseSchema = survey
     ? createSurveyValidator(survey, user, emailValidation)
     : z.object({
-        survey_number: z.string(),
-        email: user
-          ? z.string().optional()
-          : z
-              .string()
-              .email("Email inválido")
-              .min(1, "El email es obligatorio"),
-        responses: z.array(
-          z.object({
-            question_id: z.number(),
-            answer: z.object({
-              text: z.string().optional(),
-              option_ids: z.array(z.number()).optional(),
-            }),
-          })
-        ),
-      });
+      survey_number: z.string(),
+      email: user
+        ? z.string().optional()
+        : z
+          .string()
+          .email("Email inválido")
+          .min(1, "El email es obligatorio"),
+      responses: z.array(
+        z.object({
+          question_id: z.number(),
+          answer: z.object({
+            text: z.string().optional(),
+            option_ids: z.array(z.number()).optional(),
+          }),
+        })
+      ),
+    });
 
   const form = useForm<SurveyResponseType>({
     resolver: zodResolver(surveyResponseSchema),
@@ -140,7 +153,8 @@ export default function SurveyResponseForm() {
         company: company,
         answers: {
           survey_number: data.survey_number,
-          email: data.email,
+          // Solo incluir email si el usuario NO está autenticado
+          ...(user ? {} : { email: data.email }),
           responses: data.responses,
         },
       };
@@ -157,8 +171,8 @@ export default function SurveyResponseForm() {
     } catch (error: any) {
       setSubmitError(
         error.response?.data?.message ||
-          error.message ||
-          "Error al enviar las respuestas. Intenta nuevamente."
+        error.message ||
+        "Error al enviar las respuestas. Intenta nuevamente."
       );
     } finally {
       setIsSubmitting(false);
@@ -191,7 +205,8 @@ export default function SurveyResponseForm() {
 
   const requiredQuestions = survey.questions.filter((q: any) => q.is_required);
   const requiredCount = requiredQuestions.length;
-  const showEmailField = !user;
+  // El campo email solo se muestra cuando: auth ya cargó Y el usuario NO está autenticado
+  const showEmailField = !authLoading && !user;
 
   return (
     <div className="max-w-2xl mx-auto p-4 space-y-6">
@@ -223,7 +238,8 @@ export default function SurveyResponseForm() {
           <SubmitButton
             isSubmitting={isSubmitting}
             isValid={form.formState.isValid}
-            emailValidation={emailValidation}
+            hasCompleted={hasCompleted}
+            isCheckLoading={isCheckLoading}
           />
         </form>
       </Form>
@@ -421,15 +437,15 @@ function EmailField({
 function SubmitButton({
   isSubmitting,
   isValid,
-  emailValidation,
+  hasCompleted,
+  isCheckLoading,
 }: {
   isSubmitting: boolean;
   isValid: boolean;
-  emailValidation: any;
+  hasCompleted: boolean;
+  isCheckLoading: boolean;
 }) {
-  const { hasCompleted, isLoading } = emailValidation;
-
-  const isDisabled = isSubmitting || !isValid || hasCompleted || isLoading;
+  const isDisabled = isSubmitting || !isValid || hasCompleted || isCheckLoading;
 
   return (
     <div className="flex justify-center pt-4">

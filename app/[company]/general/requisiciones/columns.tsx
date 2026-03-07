@@ -64,7 +64,7 @@ export const columns: ColumnDef<Requisition>[] = [
     ),
     meta: { title: "Solicitado por" },
     cell: ({ row }) => (
-      <p className="flex text-center font-bold">{row.original.requested_by}</p>
+      <p className="flex text-center font-bold">{row.original.requested_by ?? "-"}</p>
     )
   },
   {
