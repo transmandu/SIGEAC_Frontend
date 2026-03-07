@@ -443,7 +443,7 @@ export function CreateGeneralArticleRequisitionForm({
         </div>
 
         {/* ROW 2: Categoría + Artículo + [Aeronave] */}
-        <FormFieldp
+        <FormField
           control={form.control}
           name="articles"
           render={({ field: _ }: any) => (
