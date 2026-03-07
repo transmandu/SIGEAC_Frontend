@@ -688,9 +688,8 @@ export function CreateVoluntaryReportForm({
                       <Image
                         src={previewImage}
                         alt="Preview"
-                        width={64}
-                        height={64}
-                        className="rounded-md object-contain h-16 w-auto"
+                        fill
+                        className="object-contain"
                       />
                     </div>
                   ) : initialData?.image ? (
