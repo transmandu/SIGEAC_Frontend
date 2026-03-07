@@ -397,7 +397,7 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
     defaultValues: {
       work_order: "",
       justification: "",
-      requested_by: `${user?.employee?.[0]?.dni ?? ""}`,
+      requested_by: "",
       department_id: "",
       status: "proceso",
       aeronautical_articles: [],
