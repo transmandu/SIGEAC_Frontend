@@ -10,6 +10,7 @@ interface BalanceParams {
   aircraft_id?: string | null;
   from: string;
   to: string;
+  format?: "pdf" | "excel"; // <-- PDF o Excel
 }
 
 export const useGetBalanceAndTotalReport = () => {
@@ -17,40 +18,45 @@ export const useGetBalanceAndTotalReport = () => {
     retry: false,
 
     mutationFn: async (params: BalanceParams) => {
-      try {
-        const response = await axiosInstance.get(
-          `/${params.company}/${params.location_id}/balance-and-total-report-pdf`,
-          {
-            params: {
-              aircraft_id: params.aircraft_id ?? undefined,
-              from: params.from,
-              to: params.to,
-            },
-            responseType: "blob",
-          }
-        );
+      const format = params.format ?? "pdf";
 
-        // Si el backend devuelve JSON (cuando no hay datos)
+      const endpoint =
+        format === "excel"
+          ? `/${params.company}/${params.location_id}/balance-and-total-report-excel`
+          : `/${params.company}/${params.location_id}/balance-and-total-report-pdf`;
+
+      try {
+        const response = await axiosInstance.get(endpoint, {
+          params: {
+            aircraft_id: params.aircraft_id ?? undefined,
+            from: params.from,
+            to: params.to,
+          },
+          responseType: "blob",
+        });
+
         const contentType = response.headers["content-type"];
 
+        // Si backend devuelve JSON (sin resultados)
         if (contentType?.includes("application/json")) {
           const text = await response.data.text();
           const error = JSON.parse(text);
 
           throw new Error(
-            error.error || "No se encontraron datos para los filtros seleccionados"
+            error.error ||
+              "No se encontraron datos para los filtros seleccionados"
           );
         }
 
-        return response.data;
+        return response.data; // Blob real (PDF o Excel)
       } catch (error: any) {
-        // Cuando Axios lanza error con Blob
         if (error.response?.data instanceof Blob) {
           const text = await error.response.data.text();
           const errorData = JSON.parse(text);
 
           throw new Error(
-            errorData.error || "No se encontraron datos para los filtros seleccionados"
+            errorData.error ||
+              "No se encontraron datos para los filtros seleccionados"
           );
         }
 

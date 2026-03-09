@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { Calendar as CalendarIcon, Loader2, FileText, Scale, Download, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -11,6 +12,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
+import { RiFileExcel2Fill } from "react-icons/ri";
 
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { useGetAircrafts } from "@/hooks/aerolinea/aeronaves/useGetAircrafts";
@@ -74,7 +76,7 @@ export function DispatchReportDialog() {
       const blob =
         reportType === "dispatch"
           ? await getDispatch(params)
-          : await getBalance(params);
+          : await getBalance({ ...params, format: "pdf" }); // PDF
 
       if (!blob) return;
 
@@ -250,20 +252,67 @@ export function DispatchReportDialog() {
             </TabsContent>
 
             <TabsContent value="balance">
-              <Button
-                className="w-full"
-                onClick={() => handleDownload("balance")}
-                disabled={
-                  loadingDownload || areDatesMissing || isDateRangeInvalid
-                }
-              >
-                {loadingDownload ? (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                ) : (
-                  <Download className="mr-2 h-4 w-4" />
-                )}
-                Descargar Balance Total
-              </Button>
+              <div className="flex gap-2">
+                <Button
+                  className="w-full"
+                  onClick={() => handleDownload("balance")}
+                  disabled={loadingDownload || areDatesMissing || isDateRangeInvalid}
+                >
+                  {loadingDownload ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <Download className="mr-2 h-4 w-4" />
+                  )}
+                  Descargar Balance Total
+                </Button>
+
+                {/* Botón Excel */}
+                <TooltipProvider>
+                  <Tooltip delayDuration={100}>
+                    <TooltipTrigger asChild>
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          if (!selectedStation || !selectedCompany?.slug || areDatesMissing || isDateRangeInvalid) return;
+                          try {
+                            setLoadingDownload(true);
+                            const params = {
+                              location_id: selectedStation,
+                              company: selectedCompany.slug,
+                              aircraft_id: aircraft || undefined,
+                              from: format(startDate!, "yyyy-MM-dd"),
+                              to: format(endDate!, "yyyy-MM-dd"),
+                            };
+                            const blob = await getBalance({ ...params, format: "excel" }); // ⬅️ Excel
+                            if (!blob) return;
+
+                            const url = URL.createObjectURL(blob);
+                            const link = document.createElement("a");
+                            link.href = url;
+                            link.download = `reporte-balance-total-${format(startDate!, "yyyyMMdd")}-${format(endDate!, "yyyyMMdd")}.xlsx`;
+                            link.click();
+                            setTimeout(() => URL.revokeObjectURL(url), 100);
+                          } finally {
+                            setLoadingDownload(false);
+                          }
+                        }}
+                        disabled={loadingDownload || areDatesMissing || isDateRangeInvalid}
+                        className="disabled:opacity-50"
+                        aria-label="Descargar Excel"
+                      >
+                        {loadingDownload ? (
+                          <Loader2 className="size-5 animate-spin" />
+                        ) : (
+                          <RiFileExcel2Fill className="size-6 text-green-600/80 hover:scale-125 transition-transform" />
+                        )}
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      {!selectedStation || !selectedCompany?.slug ? "Selecciona ubicación y compañía" : "Descargar Excel"}
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
             </TabsContent>
           </div>
         </Tabs>
