@@ -61,11 +61,12 @@ const InventarioArticulosPage = () => {
   const [groupOpen, setGroupOpen] = useState(false)
   const [groupPn, setGroupPn] = useState("")
   const [groupRows, setGroupRows] = useState<IArticleSimple[]>([])
+  const [apiPage, setApiPage] = useState(1)
 
   // Fetch - Una sola llamada que maneja todas las categorías
   const { data: articles, isLoading: isLoadingArticles } = useGetWarehouseArticlesByCategory(
-    1,
-    1000,
+    apiPage,
+    100,
     activeCategory,
     true
   )
@@ -88,10 +89,11 @@ const InventarioArticulosPage = () => {
     }
   }, [activeCategory, partNumberSearch, componentCondition, consumableFilter])
 
-  // Reset subfiltros al cambiar categoría
+  // Reset subfiltros y página al cambiar categoría
   useEffect(() => {
     if (activeCategory !== "COMPONENT") setComponentCondition("all")
     if (activeCategory !== "CONSUMABLE") setConsumableFilter("all")
+    setApiPage(1)
   }, [activeCategory])
 
   // Columns memo
@@ -160,6 +162,17 @@ const InventarioArticulosPage = () => {
     const shouldGroup = activeCategory === "all" || activeCategory === "COMPONENT" || activeCategory === "PART"
     return shouldGroup ? groupByPartNumber(filtered) : filtered
   }, [articles, partNumberSearch, activeCategory, componentCondition, consumableFilter])
+
+  const serverPagination = articles?.pagination
+    ? {
+        currentPage: articles.pagination.current_page,
+        lastPage: articles.pagination.last_page,
+        total: articles.pagination.total,
+        from: articles.pagination.from ?? 0,
+        to: articles.pagination.to ?? 0,
+        onPageChange: setApiPage,
+      }
+    : undefined
 
   const handleClearSearch = () => setPartNumberSearch("")
 
@@ -302,6 +315,7 @@ const InventarioArticulosPage = () => {
                     <DataTable
                       columns={cols}
                       data={currentData}
+                      serverPagination={serverPagination}
                       onRowClick={(row: any) => {
                         if (!row?.__isGroup || !row?.subRows?.length) return
                         setGroupPn(row.part_number)
@@ -337,6 +351,7 @@ const InventarioArticulosPage = () => {
                     <DataTable
                       columns={cols}
                       data={currentData}
+                      serverPagination={serverPagination}
                       onRowClick={(row: any) => {
                         if (!row?.__isGroup || !row?.subRows?.length) return
                         setGroupPn(row.part_number)
@@ -366,7 +381,7 @@ const InventarioArticulosPage = () => {
                       <Loader2 className="size-24 animate-spin" />
                     </div>
                   ) : (
-                    <DataTable columns={cols} data={currentData} />
+                    <DataTable columns={cols} data={currentData} serverPagination={serverPagination} />
                   )}
                 </TabsContent>
 
@@ -377,7 +392,7 @@ const InventarioArticulosPage = () => {
                       <Loader2 className="size-24 animate-spin" />
                     </div>
                   ) : (
-                    <DataTable columns={cols} data={currentData} />
+                    <DataTable columns={cols} data={currentData} serverPagination={serverPagination} />
                   )}
                 </TabsContent>
 
@@ -391,6 +406,7 @@ const InventarioArticulosPage = () => {
                     <DataTable
                       columns={cols}
                       data={currentData}
+                      serverPagination={serverPagination}
                       onRowClick={(row: any) => {
                         if (!row?.__isGroup || !row?.subRows?.length) return
                         setGroupPn(row.part_number)
