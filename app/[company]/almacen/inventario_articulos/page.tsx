@@ -56,6 +56,7 @@ const InventarioArticulosPage = () => {
 
   const [consumableFilter, setConsumableFilter] = useState<"all" | "QUIMICOS">("all")
   const [partNumberSearch, setPartNumberSearch] = useState("")
+  const [debouncedSearch, setDebouncedSearch] = useState("")
 
   // Dialog (grupo PN)
   const [groupOpen, setGroupOpen] = useState(false)
@@ -63,13 +64,28 @@ const InventarioArticulosPage = () => {
   const [groupRows, setGroupRows] = useState<IArticleSimple[]>([])
   const [apiPage, setApiPage] = useState(1)
 
-  // Fetch - Una sola llamada que maneja todas las categorías
-  const { data: articles, isLoading: isLoadingArticles } = useGetWarehouseArticlesByCategory(
+  // Debounce search input and reset to page 1
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(partNumberSearch)
+      setApiPage(1)
+    }, 400)
+    return () => clearTimeout(timer)
+  }, [partNumberSearch])
+
+  const isSearching = debouncedSearch.trim().length > 0
+
+  // Paginated fetch — always used; sends part_number to backend when searching
+  const { data: pagedArticles, isLoading: isLoadingArticles } = useGetWarehouseArticlesByCategory(
     apiPage,
-    100,
+    15,
     activeCategory,
-    true
+    true,
+    undefined,
+    debouncedSearch.trim() || undefined,
   )
+
+  const articles = pagedArticles
 
   const { data: articlesGeneral, isLoading: isLoadingArticlesGeneral } = useGetGeneralArticles()
 
@@ -120,17 +136,7 @@ const InventarioArticulosPage = () => {
 
     const list = flattenArticles(articles) ?? []
 
-    const q = partNumberSearch.trim().toLowerCase()
-    const bySearch = q
-      ? list.filter(
-          (a) =>
-            a.part_number?.toLowerCase().includes(q) ||
-            (Array.isArray(a.alternative_part_number) &&
-              a.alternative_part_number.some((alt) => alt?.toLowerCase().includes(q)))
-        )
-      : list
-
-    let filtered = bySearch
+    let filtered = list
 
     if (activeCategory !== "all") {
       if ((activeCategory === "COMPONENT" || activeCategory === "PART") && componentCondition !== "all") {
@@ -161,15 +167,15 @@ const InventarioArticulosPage = () => {
     // ✅ Agrupar por PN en: all / component / part
     const shouldGroup = activeCategory === "all" || activeCategory === "COMPONENT" || activeCategory === "PART"
     return shouldGroup ? groupByPartNumber(filtered) : filtered
-  }, [articles, partNumberSearch, activeCategory, componentCondition, consumableFilter])
+  }, [articles, activeCategory, componentCondition, consumableFilter])
 
-  const serverPagination = articles?.pagination
+  const serverPagination = pagedArticles?.pagination
     ? {
-        currentPage: articles.pagination.current_page,
-        lastPage: articles.pagination.last_page,
-        total: articles.pagination.total,
-        from: articles.pagination.from ?? 0,
-        to: articles.pagination.to ?? 0,
+        currentPage: pagedArticles.pagination.current_page,
+        lastPage: pagedArticles.pagination.last_page,
+        total: pagedArticles.pagination.total,
+        from: pagedArticles.pagination.from ?? 0,
+        to: pagedArticles.pagination.to ?? 0,
         onPageChange: setApiPage,
       }
     : undefined
@@ -221,10 +227,10 @@ const InventarioArticulosPage = () => {
                 </Button>
               )}
             </div>
-            {partNumberSearch && (
+            {debouncedSearch && (
               <p className="text-xs text-muted-foreground text-center">
-                Filtrando por: <span className="font-medium text-foreground">{partNumberSearch}</span> •{" "}
-                {currentData.length} resultado(s)
+                Filtrando por: <span className="font-medium text-foreground">{debouncedSearch}</span> •{" "}
+                {isLoadingArticles ? "buscando..." : `${pagedArticles?.pagination?.total ?? currentData.length} resultado(s)`}
               </p>
             )}
           </div>
