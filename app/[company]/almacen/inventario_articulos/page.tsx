@@ -15,7 +15,7 @@ import { Input } from "@/components/ui/input"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { useGetGeneralArticles } from "@/hooks/mantenimiento/almacen/almacen_general/useGetGeneralArticles"
-import { useGetWarehouseArticlesByCategory } from "@/hooks/mantenimiento/almacen/articulos/useGetWarehouseArticlesByCategory"
+import { useGetWarehouseArticlesByCategory, useGetAllWarehouseArticlesByCategory } from "@/hooks/mantenimiento/almacen/articulos/useGetWarehouseArticlesByCategory"
 import { useInventoryExport } from "@/hooks/mantenimiento/almacen/reportes/useGetWarehouseReports"
 import { useCompanyStore } from "@/stores/CompanyStore"
 import { TooltipArrow } from "@radix-ui/react-tooltip"
@@ -56,6 +56,7 @@ const InventarioArticulosPage = () => {
 
   const [consumableFilter, setConsumableFilter] = useState<"all" | "QUIMICOS">("all")
   const [partNumberSearch, setPartNumberSearch] = useState("")
+  const [debouncedSearch, setDebouncedSearch] = useState("")
 
   // Dialog (grupo PN)
   const [groupOpen, setGroupOpen] = useState(false)
@@ -63,13 +64,34 @@ const InventarioArticulosPage = () => {
   const [groupRows, setGroupRows] = useState<IArticleSimple[]>([])
   const [apiPage, setApiPage] = useState(1)
 
-  // Fetch - Una sola llamada que maneja todas las categorías
-  const { data: articles, isLoading: isLoadingArticles } = useGetWarehouseArticlesByCategory(
+  // Debounce search input and reset to page 1
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(partNumberSearch)
+      setApiPage(1)
+    }, 400)
+    return () => clearTimeout(timer)
+  }, [partNumberSearch])
+
+  const isSearching = debouncedSearch.trim().length > 0
+
+  // Paginated fetch — normal browsing
+  const { data: pagedArticles, isLoading: isLoadingPaged } = useGetWarehouseArticlesByCategory(
     apiPage,
-    100,
+    15,
     activeCategory,
-    true
+    !isSearching,
   )
+
+  // All-pages fetch — used when search is active
+  const { data: allArticles, isLoading: isLoadingAll, isError: isErrorAll } = useGetAllWarehouseArticlesByCategory(
+    activeCategory,
+    isSearching,
+  )
+
+  const articles = isSearching ? allArticles : pagedArticles
+  // Don't block on error — show empty table rather than infinite spinner
+  const isLoadingArticles = isSearching ? (isLoadingAll && !isErrorAll) : isLoadingPaged
 
   const { data: articlesGeneral, isLoading: isLoadingArticlesGeneral } = useGetGeneralArticles()
 
@@ -120,7 +142,7 @@ const InventarioArticulosPage = () => {
 
     const list = flattenArticles(articles) ?? []
 
-    const q = partNumberSearch.trim().toLowerCase()
+    const q = debouncedSearch.trim().toLowerCase()
     const bySearch = q
       ? list.filter(
           (a) =>
@@ -161,15 +183,15 @@ const InventarioArticulosPage = () => {
     // ✅ Agrupar por PN en: all / component / part
     const shouldGroup = activeCategory === "all" || activeCategory === "COMPONENT" || activeCategory === "PART"
     return shouldGroup ? groupByPartNumber(filtered) : filtered
-  }, [articles, partNumberSearch, activeCategory, componentCondition, consumableFilter])
+  }, [articles, debouncedSearch, activeCategory, componentCondition, consumableFilter])
 
-  const serverPagination = articles?.pagination
+  const serverPagination = !isSearching && pagedArticles?.pagination
     ? {
-        currentPage: articles.pagination.current_page,
-        lastPage: articles.pagination.last_page,
-        total: articles.pagination.total,
-        from: articles.pagination.from ?? 0,
-        to: articles.pagination.to ?? 0,
+        currentPage: pagedArticles.pagination.current_page,
+        lastPage: pagedArticles.pagination.last_page,
+        total: pagedArticles.pagination.total,
+        from: pagedArticles.pagination.from ?? 0,
+        to: pagedArticles.pagination.to ?? 0,
         onPageChange: setApiPage,
       }
     : undefined
@@ -221,10 +243,10 @@ const InventarioArticulosPage = () => {
                 </Button>
               )}
             </div>
-            {partNumberSearch && (
+            {debouncedSearch && (
               <p className="text-xs text-muted-foreground text-center">
-                Filtrando por: <span className="font-medium text-foreground">{partNumberSearch}</span> •{" "}
-                {currentData.length} resultado(s)
+                Filtrando por: <span className="font-medium text-foreground">{debouncedSearch}</span> •{" "}
+                {isLoadingAll ? "buscando..." : `${currentData.length} resultado(s) (todas las páginas)`}
               </p>
             )}
           </div>
