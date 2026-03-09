@@ -515,12 +515,12 @@ function QuestionItem({
                           </span>
                           {(correctOptionsCount === 0 ||
                             correctOptionsCount === options.length) && (
-                            <span className="text-red-500 ml-auto whitespace-nowrap flex-shrink-0">
-                              {correctOptionsCount === 0
-                                ? "Debe haber al menos una correcta"
-                                : "Debe haber al menos una incorrecta"}
-                            </span>
-                          )}
+                              <span className="text-red-500 ml-auto whitespace-nowrap flex-shrink-0">
+                                {correctOptionsCount === 0
+                                  ? "Debe haber al menos una correcta"
+                                  : "Debe haber al menos una incorrecta"}
+                              </span>
+                            )}
                         </>
                       )}
                     </div>
@@ -612,7 +612,7 @@ export function CreateSurveyForm({ onClose }: FormProps) {
       }),
     };
 
-  
+
     try {
       await createSurvey.mutateAsync(formPayload);
       form.reset();
@@ -670,20 +670,24 @@ export function CreateSurveyForm({ onClose }: FormProps) {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Tipo de Encuesta</FormLabel>
-                <Select
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecciona el tipo de encuesta" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="SURVEY">ENCUESTA</SelectItem>
-                    <SelectItem value="QUIZ">TRIVIA</SelectItem>
-                  </SelectContent>
-                </Select>
+                <div className="flex gap-2">
+                  {[
+                    { label: "ENCUESTA", value: "SURVEY" },
+                    { label: "TRIVIA", value: "QUIZ" },
+                  ].map((opt) => (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      onClick={() => field.onChange(opt.value)}
+                      className={`px-4 py-2 text-sm rounded-md border transition-colors ${field.value === opt.value
+                          ? "bg-primary text-primary-foreground border-primary"
+                          : "bg-background text-foreground border-border hover:bg-muted"
+                        }`}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
                 <FormMessage />
               </FormItem>
             )}

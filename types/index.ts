@@ -1117,6 +1117,7 @@ export type Survey = {
   updated_by: string;
   location: string;
   setting?: string;
+  answers_count: number;
   questions: Question[];
 };
 

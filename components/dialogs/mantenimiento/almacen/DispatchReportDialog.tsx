@@ -3,37 +3,12 @@
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import {
-  Calendar as CalendarIcon,
-  Loader2,
-  FileText,
-  Scale,
-  Download,
-  AlertCircle,
-} from "lucide-react";
-
+import { Calendar as CalendarIcon, Loader2, FileText, Scale, Download, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Calendar } from "@/components/ui/calendar";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 
@@ -75,13 +50,15 @@ export function DispatchReportDialog() {
   }, [open]);
 
   const handleDownload = async (reportType: "dispatch" | "balance") => {
+
+    if (loadingDownload) return;
+
     if (
       !selectedStation ||
       !selectedCompany?.slug ||
       areDatesMissing ||
       isDateRangeInvalid
-    )
-      return;
+    ) return;
 
     try {
       setLoadingDownload(true);
@@ -99,24 +76,29 @@ export function DispatchReportDialog() {
           ? await getDispatch(params)
           : await getBalance(params);
 
-      const url = window.URL.createObjectURL(
-        new Blob([blob], { type: "application/pdf" }),
-      );
+      if (!blob) return;
+
+      const url = URL.createObjectURL(blob);
 
       const link = document.createElement("a");
       link.href = url;
-      const reportName =
-        reportType === "dispatch" ? "reporte-despachos-" : "reporte-balance-total-";
-      link.download = `${reportName}${format(new Date(), "yyyyMMdd")}.pdf`;
 
-      document.body.appendChild(link);
+      const reportName =
+        reportType === "dispatch"
+          ? "reporte-salidas"
+          : "reporte-balance-total";
+
+      link.download = `${reportName}-${format(
+        startDate!,
+        "yyyyMMdd"
+      )}-${format(endDate!, "yyyyMMdd")}.pdf`;
+
       link.click();
-      link.remove();
-      window.URL.revokeObjectURL(url);
+
+      setTimeout(() => URL.revokeObjectURL(url), 100);
 
       setOpen(false);
-    } catch (error) {
-      console.error("Error al generar el reporte:", error);
+
     } finally {
       setLoadingDownload(false);
     }
@@ -141,7 +123,7 @@ export function DispatchReportDialog() {
         <Tabs defaultValue="dispatch" className="w-full">
           <TabsList className="grid w-full grid-cols-2 mb-4">
             <TabsTrigger value="dispatch" className="flex gap-2 text-xs">
-              <FileText className="w-3.5 h-3.5" /> Reporte Despachos
+              <FileText className="w-3.5 h-3.5" /> Reporte Salidas
             </TabsTrigger>
             <TabsTrigger value="balance" className="flex gap-2 text-xs">
               <Scale className="w-3.5 h-3.5" /> Balance Total
@@ -263,7 +245,7 @@ export function DispatchReportDialog() {
                 ) : (
                   <Download className="mr-2 h-4 w-4" />
                 )}
-                Descargar Reporte de Despachos
+                Descargar Reporte de Salidas
               </Button>
             </TabsContent>
 

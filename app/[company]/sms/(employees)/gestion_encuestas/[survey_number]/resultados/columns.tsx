@@ -73,14 +73,15 @@ export const columns: ColumnDef<ResponsesBySurvey>[] = [
       <DataTableColumnHeader filter column={column} title="Usuario" />
     ),
     cell: ({ row }) => {
-      //const { selectedCompany } = useCompanyStore();
+      // Mostrar email para usuarios anónimos, user_id para usuarios autenticados
+      const identifier = row.original.email ?? row.original.user;
       return (
         <div className="flex justify-center">
           <a
-            href={`/transmandu/sms/gestion_encuestas/${row.original.survey_number}/resultados/${row.original.email}`}
+            href={`/transmandu/sms/gestion_encuestas/${row.original.survey_number}/resultados/${identifier}`}
             className="font-bold hover:scale-105 hover:no-underline transition-colors duration-200 cursor-pointer"
           >
-            {row.original.email}
+            {identifier ?? "N/A"}
           </a>
         </div>
       );
