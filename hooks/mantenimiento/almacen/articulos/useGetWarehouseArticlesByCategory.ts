@@ -71,6 +71,7 @@ const fetchWarehouseArticlesByCategory = async (
   status?: string,
   page: number = 1,
   per_page: number = 15,
+  part_number?: string,
 ): Promise<WarehouseResponse> => {
   const params = new URLSearchParams({
     category,
@@ -78,6 +79,7 @@ const fetchWarehouseArticlesByCategory = async (
     page: String(page),
     per_page: String(per_page),
   });
+  if (part_number?.trim()) params.set("part_number", part_number.trim());
   const { data } = await axiosInstance.get(`/${company}/${location_id}/articles-by-category?${params.toString()}`);
 
   return {
@@ -100,11 +102,12 @@ export const useGetWarehouseArticlesByCategory = (
   category: string,
   enabled: boolean = true,
   status?: string,
+  part_number?: string,
 ) => {
   const { selectedCompany, selectedStation } = useCompanyStore();
   return useQuery<WarehouseResponse, Error>({
-    queryKey: ["warehouse-articles", selectedCompany?.slug, selectedStation, page, per_page, category],
-    queryFn: () => fetchWarehouseArticlesByCategory(selectedStation, category, selectedCompany?.slug, status, page, per_page),
+    queryKey: ["warehouse-articles", selectedCompany?.slug, selectedStation, page, per_page, category, part_number],
+    queryFn: () => fetchWarehouseArticlesByCategory(selectedStation, category, selectedCompany?.slug, status, page, per_page, part_number),
     enabled: enabled && !!selectedCompany && !!selectedStation,
   });
 };

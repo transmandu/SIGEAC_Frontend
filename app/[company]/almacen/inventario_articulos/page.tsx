@@ -15,7 +15,7 @@ import { Input } from "@/components/ui/input"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { useGetGeneralArticles } from "@/hooks/mantenimiento/almacen/almacen_general/useGetGeneralArticles"
-import { useGetWarehouseArticlesByCategory, useGetAllWarehouseArticlesByCategory } from "@/hooks/mantenimiento/almacen/articulos/useGetWarehouseArticlesByCategory"
+import { useGetWarehouseArticlesByCategory } from "@/hooks/mantenimiento/almacen/articulos/useGetWarehouseArticlesByCategory"
 import { useInventoryExport } from "@/hooks/mantenimiento/almacen/reportes/useGetWarehouseReports"
 import { useCompanyStore } from "@/stores/CompanyStore"
 import { TooltipArrow } from "@radix-ui/react-tooltip"
@@ -75,23 +75,17 @@ const InventarioArticulosPage = () => {
 
   const isSearching = debouncedSearch.trim().length > 0
 
-  // Paginated fetch — normal browsing
-  const { data: pagedArticles, isLoading: isLoadingPaged } = useGetWarehouseArticlesByCategory(
+  // Paginated fetch — always used; sends part_number to backend when searching
+  const { data: pagedArticles, isLoading: isLoadingArticles } = useGetWarehouseArticlesByCategory(
     apiPage,
     15,
     activeCategory,
-    !isSearching,
+    true,
+    undefined,
+    debouncedSearch.trim() || undefined,
   )
 
-  // All-pages fetch — used when search is active
-  const { data: allArticles, isLoading: isLoadingAll, isError: isErrorAll } = useGetAllWarehouseArticlesByCategory(
-    activeCategory,
-    isSearching,
-  )
-
-  const articles = isSearching ? allArticles : pagedArticles
-  // Don't block on error — show empty table rather than infinite spinner
-  const isLoadingArticles = isSearching ? (isLoadingAll && !isErrorAll) : isLoadingPaged
+  const articles = pagedArticles
 
   const { data: articlesGeneral, isLoading: isLoadingArticlesGeneral } = useGetGeneralArticles()
 
@@ -142,17 +136,7 @@ const InventarioArticulosPage = () => {
 
     const list = flattenArticles(articles) ?? []
 
-    const q = debouncedSearch.trim().toLowerCase()
-    const bySearch = q
-      ? list.filter(
-          (a) =>
-            a.part_number?.toLowerCase().includes(q) ||
-            (Array.isArray(a.alternative_part_number) &&
-              a.alternative_part_number.some((alt) => alt?.toLowerCase().includes(q)))
-        )
-      : list
-
-    let filtered = bySearch
+    let filtered = list
 
     if (activeCategory !== "all") {
       if ((activeCategory === "COMPONENT" || activeCategory === "PART") && componentCondition !== "all") {
@@ -183,9 +167,9 @@ const InventarioArticulosPage = () => {
     // ✅ Agrupar por PN en: all / component / part
     const shouldGroup = activeCategory === "all" || activeCategory === "COMPONENT" || activeCategory === "PART"
     return shouldGroup ? groupByPartNumber(filtered) : filtered
-  }, [articles, debouncedSearch, activeCategory, componentCondition, consumableFilter])
+  }, [articles, activeCategory, componentCondition, consumableFilter])
 
-  const serverPagination = !isSearching && pagedArticles?.pagination
+  const serverPagination = pagedArticles?.pagination
     ? {
         currentPage: pagedArticles.pagination.current_page,
         lastPage: pagedArticles.pagination.last_page,
@@ -246,7 +230,7 @@ const InventarioArticulosPage = () => {
             {debouncedSearch && (
               <p className="text-xs text-muted-foreground text-center">
                 Filtrando por: <span className="font-medium text-foreground">{debouncedSearch}</span> •{" "}
-                {isLoadingAll ? "buscando..." : `${currentData.length} resultado(s) (todas las páginas)`}
+                {isLoadingArticles ? "buscando..." : `${pagedArticles?.pagination?.total ?? currentData.length} resultado(s)`}
               </p>
             )}
           </div>

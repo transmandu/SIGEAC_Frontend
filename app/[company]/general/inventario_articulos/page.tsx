@@ -50,9 +50,27 @@ const InventarioArticulosPage = () => {
     "all",
   );
   const [partNumberSearch, setPartNumberSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [apiPage, setApiPage] = useState(1);
+
+  // Debounce search and reset page
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(partNumberSearch);
+      setApiPage(1);
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [partNumberSearch]);
 
   const { data: articles, isLoading: isLoadingArticles } =
-    useGetWarehouseArticlesByCategory(1, 1000, activeCategory as any, true);
+    useGetWarehouseArticlesByCategory(
+      apiPage,
+      15,
+      activeCategory as any,
+      true,
+      undefined,
+      debouncedSearch.trim() || undefined,
+    );
 
   const { data: articlesGeneral, isLoading: isLoadingArticlesGeneral } =
     useGetGeneralArticles();
@@ -94,15 +112,11 @@ const InventarioArticulosPage = () => {
   useEffect(() => {
     if (activeCategory !== "COMPONENT") setComponentCondition("all");
     if (activeCategory !== "CONSUMABLE") setConsumableFilter("all");
+    setApiPage(1);
   }, [activeCategory]);
 
   const getCurrentAeronauticData = (): IArticleSimple[] => {
-    const list = flattenArticles(articles) ?? [];
-    const q = partNumberSearch.trim().toLowerCase();
-
-    let filtered = q
-      ? list.filter((a) => a.part_number?.toLowerCase().includes(q))
-      : list;
+    let filtered = flattenArticles(articles) ?? [];
 
     if (
       (activeCategory === "COMPONENT" || activeCategory === "PART") &&
@@ -129,6 +143,17 @@ const InventarioArticulosPage = () => {
         )
       : articlesGeneral;
   };
+
+  const serverPagination = articles?.pagination
+    ? {
+        currentPage: articles.pagination.current_page,
+        lastPage: articles.pagination.last_page,
+        total: articles.pagination.total,
+        from: articles.pagination.from ?? 0,
+        to: articles.pagination.to ?? 0,
+        onPageChange: setApiPage,
+      }
+    : undefined;
 
   const handleClearSearch = () => setPartNumberSearch("");
 
@@ -244,6 +269,7 @@ const InventarioArticulosPage = () => {
                 <DataTable
                   columns={aeroColsWithoutActions}
                   data={getCurrentAeronauticData()}
+                  serverPagination={serverPagination}
                 />
               )}
             </Tabs>
