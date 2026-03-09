@@ -65,7 +65,7 @@ const InventarioArticulosPage = () => {
   // Fetch - Una sola llamada que maneja todas las categorías
   const { data: articles, isLoading: isLoadingArticles } = useGetWarehouseArticlesByCategory(
     1,
-    100,
+    1000,
     activeCategory,
     true
   )
