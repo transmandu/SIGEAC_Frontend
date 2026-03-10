@@ -1,10 +1,11 @@
 "use client";
 
 import { ColumnDef } from "@tanstack/react-table";
-import { Button } from "@/components/ui/button";
-import { FileText, ExternalLink, User, Calendar } from "lucide-react";
+import { User, Calendar } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+// Importamos tu nuevo componente de acciones
+import CertificatesDropDownActions from "@/components/dropdowns/aerolinea/sms/CertificatesDropDownActions";
 
 export type CertificateColumn = {
   id: number;
@@ -18,30 +19,7 @@ export type CertificateColumn = {
   document: string;
 };
 
-const ActionsCell = ({ docPath, company }: { docPath: string; company: string }) => {
-  const handleView = () => {
-    if (!docPath || !company) return;
-    const encodedPath = btoa(docPath).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
-    const url = `${apiUrl}/${company}/sms/certificates/serve/${encodedPath}`;
-    window.open(url, "_blank");
-  };
-
-  return (
-    <div className="flex justify-end">
-      <Button
-        variant="outline"
-        size="sm"
-        onClick={handleView}
-        className="flex items-center gap-2 hover:bg-blue-600 hover:text-white transition-colors"
-      >
-        <FileText className="h-4 w-4" />
-        <span className="hidden md:inline font-medium">Ver Archivo</span>
-        <ExternalLink className="h-3 w-3 opacity-50" />
-      </Button>
-    </div>
-  );
-};
+// --- HEMOS ELIMINADO EL ANTIGUO ActionsCell DE AQUÍ PARA LIMPIAR EL CÓDIGO ---
 
 export const getColumns = (companySlug: string): ColumnDef<CertificateColumn>[] => [
   {
@@ -83,10 +61,8 @@ export const getColumns = (companySlug: string): ColumnDef<CertificateColumn>[] 
       const start = row.original.course?.start_date;
       const end = row.original.course?.end_date;
 
-      // Función para corregir el desfase de zona horaria y manejar undefined
       const formatUTCDate = (dateString: string | undefined) => {
         if (!dateString) return "---";
-        // Al concatenar T00:00:00 forzamos a JS a no restar horas por zona horaria
         const date = new Date(dateString + 'T00:00:00');
         return format(date, "dd/MM/yyyy", { locale: es });
       };
@@ -114,7 +90,6 @@ export const getColumns = (companySlug: string): ColumnDef<CertificateColumn>[] 
     header: "Fecha de Carga",
     cell: ({ row }) => {
       const date = row.getValue("completion_date") as string;
-      // Para la fecha de carga también aplicamos el ajuste para evitar saltos de día
       const dateObj = date ? new Date(date + 'T00:00:00') : null;
       
       return (
@@ -129,12 +104,14 @@ export const getColumns = (companySlug: string): ColumnDef<CertificateColumn>[] 
   },
   {
     id: "actions",
-    header: () => <div className="text-right">Acciones</div>,
+    header: () => <div className="text-right px-4">Acciones</div>,
     cell: ({ row }) => (
-      <ActionsCell 
-        docPath={row.original.document} 
-        company={companySlug} 
-      />
+      <div className="flex justify-end">
+        <CertificatesDropDownActions 
+          certificate={row.original} 
+          companySlug={companySlug} 
+        />
+      </div>
     ),
   },
 ];

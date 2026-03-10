@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useParams } from "next/navigation";
 import { useGetSMSCoursesList, useGetEmployeesList } from "@/hooks/sms/useGetCertificates";
@@ -38,7 +38,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-
 import { cn } from "@/lib/utils";
 
 interface CreateCertificateFormProps {
@@ -48,18 +47,19 @@ interface CreateCertificateFormProps {
 export const CreateCertificateForm = ({ onClose }: CreateCertificateFormProps) => {
   const params = useParams();
   const companySlug = params.company as string;
-  
   const { user } = useAuth();
   
   const { data: courses, isLoading: loadingCourses } = useGetSMSCoursesList(companySlug);
   const { data: employees, isLoading: loadingEmployees } = useGetEmployeesList(companySlug);
   const { mutateAsync: createCertificate, isPending } = useCreateSMSCertificate();
 
+  // --- CAMBIO: Lógica de carga unificada ---
+  const isDataLoading = loadingCourses || (user?.roles?.some(r => ['JEFE_SMS', 'ANALISTA_SMS', 'SUPERUSER'].includes(r.name.toUpperCase())) && loadingEmployees);
+
   const [fileName, setFileName] = useState<string | null>(null);
   const [openPopover, setOpenPopover] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
 
-  // Lógica de Roles
   const isManagement = user?.roles?.some(role => 
     ['JEFE_SMS', 'ANALISTA_SMS', 'SUPERUSER'].includes(role.name.toUpperCase())
   );
@@ -126,7 +126,6 @@ export const CreateCertificateForm = ({ onClose }: CreateCertificateFormProps) =
     }
   };
 
-  // Lógica para Arrastrar y Soltar
   const onDragOver = (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(true);
@@ -143,7 +142,7 @@ export const CreateCertificateForm = ({ onClose }: CreateCertificateFormProps) =
     
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
       const files = e.dataTransfer.files;
-      setValue("document", files as any); // Seteamos el archivo en React Hook Form
+      setValue("document", files as any);
       setFileName(files[0].name);
     }
   };
@@ -164,12 +163,15 @@ export const CreateCertificateForm = ({ onClose }: CreateCertificateFormProps) =
                 role="combobox"
                 aria-expanded={openPopover}
                 className="w-full justify-between bg-background font-normal"
+                disabled={isDataLoading} // Deshabilitar mientras carga
               >
-                {selectedDni
+                {isDataLoading ? "Cargando lista de empleados..." : (
+                  selectedDni
                   ? employees?.find((emp: any) => emp.dni === selectedDni)
                     ? `${employees.find((emp: any) => emp.dni === selectedDni).last_name}, ${employees.find((emp: any) => emp.dni === selectedDni).first_name}`
                     : "Seleccionar empleado..."
-                  : "Seleccionar empleado..."}
+                  : "Seleccionar empleado..."
+                )}
                 <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
               </Button>
             </PopoverTrigger>
@@ -211,7 +213,6 @@ export const CreateCertificateForm = ({ onClose }: CreateCertificateFormProps) =
             </PopoverContent>
           </Popover>
           <input type="hidden" {...register("employee_dni", { required: isManagement })} />
-
           {errors.employee_dni && (
             <p className="text-xs text-red-500 font-medium">Debe seleccionar un empleado</p>
           )}
@@ -235,9 +236,10 @@ export const CreateCertificateForm = ({ onClose }: CreateCertificateFormProps) =
           <Select 
             onValueChange={(value) => setValue("course_id", value)} 
             defaultValue={watch("course_id")}
+            disabled={isDataLoading} // Deshabilitar mientras carga
           >
             <SelectTrigger className="w-full">
-              <SelectValue placeholder="Seleccione el curso realizado" />
+              <SelectValue placeholder={isDataLoading ? "Cargando cursos..." : "Seleccione el curso realizado"} />
             </SelectTrigger>
             <SelectContent>
               {courses?.map((course: any) => (
@@ -309,15 +311,25 @@ export const CreateCertificateForm = ({ onClose }: CreateCertificateFormProps) =
       </div>
 
       <div className="flex justify-end gap-3 pt-4 border-t border-border">
-        <Button variant="outline" type="button" onClick={onClose} disabled={isPending}>
+        <Button variant="outline" type="button" onClick={onClose} disabled={isPending || isDataLoading}>
           Cancelar
         </Button>
         <Button 
           type="submit" 
-          disabled={isPending || loadingCourses || (isManagement && loadingEmployees)}
+          disabled={isPending || isDataLoading}
           className="min-w-[140px]"
         >
-          {isPending ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Guardando...</> : "Guardar Certificado"}
+          {isDataLoading ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" /> 
+              Cargando datos...
+            </>
+          ) : isPending ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" /> 
+              Guardando...
+            </>
+          ) : "Guardar Certificado"}
         </Button>
       </div>
     </form>
