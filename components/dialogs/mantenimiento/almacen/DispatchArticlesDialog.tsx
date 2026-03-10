@@ -18,6 +18,7 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { Separator } from "@/components/ui/separator"
 import { ClipboardList, PackageOpen, Hash, Barcode, X, Package } from "lucide-react"
 
+
 type Article = {
   description?: string
   serial?: string
@@ -55,46 +56,32 @@ const DispatchArticlesDialog = ({ articles = [], work_order }: DispatchArticlesD
         </Button>
       </DialogTrigger>
 
-      <DialogContent className="p-0 overflow-hidden sm:max-w-lg">
+      <DialogContent className="p-0 overflow-hidden sm:max-w-lg [&>button]:hidden">
         {/* Header */}
-        <DialogHeader className="px-6 py-5 border-b">
-          <div className="flex items-start justify-between gap-4">
-            <div className="flex items-start gap-3">
-              <div className="mt-0.5 rounded-md border bg-muted/40 p-2">
-                <ClipboardList className="h-5 w-5" />
-              </div>
-              <div className="space-y-1">
-                <DialogTitle className="leading-tight flex flex-col gap-2">
-                  <span>Artículos despachados </span>
-                  <span className="text-muted-foreground font-normal">
-                    {work_order ? `· WO ${work_order}` : "· WO N/A"}
-                  </span>
-                </DialogTitle>
-                <DialogDescription>
-                  {hasArticles
-                    ? `${articles.length} ítem(s)`
-                    : "No hay artículos para mostrar."}
-                </DialogDescription>
-              </div>
+        <DialogHeader className="px-6 py-6 border-b space-y-4">
+          {/* Top row */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="rounded-md border bg-muted/40 p-2"> <ClipboardList className="h-5 w-5" /> </div>
+              <DialogTitle className="text-base font-semibold"> Artículos despachados </DialogTitle>
             </div>
-
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3">
               <Image
                 src="/h74_logo.png"
                 width={44}
                 height={44}
                 alt="logo"
-                className="h-11 w-11 rounded-md border object-contain bg-white"
+                className="h-11 w-11 rounded-md border bg-white object-contain"
               />
-
-              <DialogClose asChild>
-                <Button variant="ghost" size="icon" className="h-9 w-9">
-                  <X className="h-4 w-4" />
-                  <span className="sr-only">Cerrar</span>
-                </Button>
-              </DialogClose>
             </div>
           </div>
+          {/* Metadata row */}
+          <div className="flex items-center justify-between text-sm text-muted-foreground">
+            <div> {work_order ? `WO ${work_order}` : "WO N/A"} </div>
+            <div> {hasArticles ? `${articles.length} ítem(s)` : "Sin artículos"} </div>
+
+          </div>
+
         </DialogHeader>
 
         {/* Body */}
@@ -113,8 +100,6 @@ const DispatchArticlesDialog = ({ articles = [], work_order }: DispatchArticlesD
             </div>
           ) : (
             <>
-              <Separator className="mb-4" />
-
               <ScrollArea className="h-[320px] pr-3">
                 <div className="space-y-2">
                   {articles.map((a, idx) => {
