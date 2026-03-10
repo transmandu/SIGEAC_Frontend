@@ -230,6 +230,7 @@ export const columns: ColumnDef<DispatchGroupRow>[] = [
         <DispatchArticlesDialog
           articles={row.original.articles}
           work_order={row.original.work_order}
+          justification={row.original.justification} 
         />
       </div>
     ),
