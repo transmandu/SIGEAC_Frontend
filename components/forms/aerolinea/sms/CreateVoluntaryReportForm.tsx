@@ -65,6 +65,8 @@ export function CreateVoluntaryReportForm({
   const [consequences, setConsequences] = useState<string[]>([]);
   const [newConsequence, setNewConsequence] = useState("");
 
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
+
   const { user } = useAuth();
 
   const userRoles = user?.roles?.map((role) => role.name) || [];
@@ -681,21 +683,20 @@ export function CreateVoluntaryReportForm({
               <FormItem>
                 <FormLabel>Imagen del Reporte</FormLabel>
                 <div className="flex items-center gap-4">
-                  {field.value ? (
+                  {previewImage ? (
                     <div className="relative">
                       <Image
-                        src={URL.createObjectURL(field.value)}
+                        src={previewImage}
                         alt="Preview"
                         width={64}
                         height={64}
                         className="rounded-md object-contain h-16 w-auto"
                       />
                     </div>
-                  ) : initialData?.image &&
-                    typeof initialData.image === "string" ? (
+                  ) : initialData?.image ? (
                     <div className="relative">
                       <Image
-                        src={ `${initialData.imageUrl}`}
+                        src={`/${initialData.image}`} // <-- Aquí es la clave
                         alt="Preview"
                         width={64}
                         height={64}
@@ -703,11 +704,19 @@ export function CreateVoluntaryReportForm({
                       />
                     </div>
                   ) : null}
+
                   <FormControl>
                     <Input
                       type="file"
                       accept="image/jpeg, image/png"
-                      onChange={(e) => field.onChange(e.target.files?.[0])}
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        field.onChange(file);
+
+                        if (file) {
+                          setPreviewImage(URL.createObjectURL(file));
+                        }
+                      }}
                     />
                   </FormControl>
                 </div>

@@ -40,8 +40,8 @@ export function CreateBatchDialog({
             </Button>
           )}
         </DialogTrigger>
-        <DialogContent className="">
-          <DialogHeader className="px-1">
+        <DialogContent className="w-full max-w-2xl">
+          <DialogHeader className="px-4">
             <DialogTitle>Renglón</DialogTitle>
             <DialogDescription></DialogDescription>
           </DialogHeader>

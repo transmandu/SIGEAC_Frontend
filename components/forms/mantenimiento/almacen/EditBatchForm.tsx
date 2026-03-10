@@ -55,7 +55,7 @@ export function EditBatchForm({ onClose, onSuccess }: EditBatchFormProps) {
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
-              Editar Batch: {batchToEdit?.name || `ID: ${batchToEdit?.id}`}
+              {batchToEdit?.name || `ID: ${batchToEdit?.id}`}
             </DialogTitle>
           </DialogHeader>
 

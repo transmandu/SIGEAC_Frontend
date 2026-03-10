@@ -26,35 +26,35 @@ function safeDateLabel(raw?: string | null) {
 }
 
 export const columns: ColumnDef<DispatchGroupRow>[] = [
-  {
-    id: 'expand',
-    header: () => null,
-    cell: ({ row }) => {
-      const expanded = row.getIsExpanded();
-      return (
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          className="h-8 w-8"
-          onClick={() => row.toggleExpanded()}
-          aria-label={expanded ? 'Contraer fila' : 'Expandir fila'}
-        >
-          {expanded ? (
-            <ChevronDown className="h-4 w-4" />
-          ) : (
-            <ChevronRight className="h-4 w-4" />
-          )}
-        </Button>
-      );
-    },
-    enableSorting: false,
-    enableHiding: false,
-    size: 40,
-  },
-
+  // {
+  //   id: 'expand',
+  //   header: () => null,
+  //   cell: ({ row }) => {
+  //     const expanded = row.getIsExpanded();
+  //     return (
+  //       <Button
+  //         type="button"
+  //         variant="ghost"
+  //         size="icon"
+  //         className="h-8 w-8"
+  //         onClick={() => row.toggleExpanded()}
+  //         aria-label={expanded ? 'Contraer fila' : 'Expandir fila'}
+  //       >
+  //         {expanded ? (
+  //           <ChevronDown className="h-4 w-4" />
+  //         ) : (
+  //           <ChevronRight className="h-4 w-4" />
+  //         )}
+  //       </Button>
+  //     );
+  //   },
+  //   enableSorting: false,
+  //   enableHiding: false,
+  //   size: 40,
+  // },
   {
     accessorKey: 'request_number',
+    meta: { title: 'Solicitud' },
     header: ({ column }) => (
       <DataTableColumnHeader
         column={column}
@@ -74,13 +74,14 @@ export const columns: ColumnDef<DispatchGroupRow>[] = [
 
   {
     accessorKey: 'created_by',
+    meta: { title: 'Creado por' },
     header: ({ column }) => (
       <DataTableColumnHeader
         column={column}
         title="Creado por"
         icon={Users}
         filter
-        align="left"
+        align="center"
       />
     ),
     cell: ({ row }) => (
@@ -91,13 +92,14 @@ export const columns: ColumnDef<DispatchGroupRow>[] = [
 
   {
     accessorKey: 'requested_by',
+    meta: { title: 'Solicitante' },
     header: ({ column }) => (
       <DataTableColumnHeader
         column={column}
         title="Solicitante"
         icon={Users}
         filter
-        align="left"
+        align="center"
       />
     ),
     cell: ({ row }) => {
@@ -125,6 +127,7 @@ export const columns: ColumnDef<DispatchGroupRow>[] = [
 
   {
     accessorKey: 'work_order',
+    meta: { title: 'OT' },
     header: ({ column }) => (
       <DataTableColumnHeader
         column={column}
@@ -144,6 +147,7 @@ export const columns: ColumnDef<DispatchGroupRow>[] = [
 
   {
     id: 'destination',
+    meta: { title: 'Destino' },
     accessorFn: (row) => row.aircraft?.acronym ?? row.department?.name ?? '',
     header: ({ column }) => (
       <DataTableColumnHeader
@@ -179,13 +183,18 @@ export const columns: ColumnDef<DispatchGroupRow>[] = [
         );
       }
 
-      return <p className="text-left text-muted-foreground">—</p>;
+      return (
+        <div className="flex items-center justify-center">
+          <p className="text-muted-foreground">—</p>
+        </div>
+      );
     },
     size: 200,
   },
 
   {
     accessorKey: 'submission_date',
+    meta: { title: 'Fecha' },
     header: ({ column }) => (
       <DataTableColumnHeader
         column={column}
@@ -209,6 +218,7 @@ export const columns: ColumnDef<DispatchGroupRow>[] = [
 
   {
     id: 'articles',
+    meta: { title: 'Artículos' },
     header: () => (
       <div className="flex items-center justify-center gap-2">
         <Package className="h-4 w-4 opacity-80" />

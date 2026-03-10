@@ -70,11 +70,18 @@ const fetchWarehouseArticlesByCategory = async (
   company?: string,
   status?: string,
   page: number = 1,
-  per_page: number = 25
+  per_page: number = 15,
+  part_number?: string,
 ): Promise<WarehouseResponse> => {
-  const { data } = await axiosInstance.get(`/${company}/${location_id}/articles-by-category?category=${category}&status=${status??"all"}&page=${page}&per_page=${per_page}`);
+  const params = new URLSearchParams({
+    category,
+    status: status ?? "all",
+    page: String(page),
+    per_page: String(per_page),
+  });
+  if (part_number?.trim()) params.set("part_number", part_number.trim());
+  const { data } = await axiosInstance.get(`/${company}/${location_id}/articles-by-category?${params.toString()}`);
 
-  // console.log(data);
   return {
     batches: data.data || [],
     pagination: {
@@ -88,17 +95,51 @@ const fetchWarehouseArticlesByCategory = async (
   };
 };
 
+/** Normal paginated fetch — one page at a time */
 export const useGetWarehouseArticlesByCategory = (
   page: number = 1,
-  per_page: number = 25,
+  per_page: number = 15,
+  category: string,
+  enabled: boolean = true,
+  status?: string,
+  part_number?: string,
+) => {
+  const { selectedCompany, selectedStation } = useCompanyStore();
+  return useQuery<WarehouseResponse, Error>({
+    queryKey: ["warehouse-articles", selectedCompany?.slug, selectedStation, page, per_page, category, part_number],
+    queryFn: () => fetchWarehouseArticlesByCategory(selectedStation, category, selectedCompany?.slug, status, page, per_page, part_number),
+    enabled: enabled && !!selectedCompany && !!selectedStation,
+  });
+};
+
+/** Fetch ALL pages sequentially — used for client-side search across the full dataset */
+export const useGetAllWarehouseArticlesByCategory = (
   category: string,
   enabled: boolean = true,
   status?: string,
 ) => {
   const { selectedCompany, selectedStation } = useCompanyStore();
   return useQuery<WarehouseResponse, Error>({
-    queryKey: ["warehouse-articles", selectedCompany?.slug, selectedStation, page, per_page, category],
-    queryFn: () => fetchWarehouseArticlesByCategory(selectedStation, category, selectedCompany?.slug,status, page, per_page),
+    queryKey: ["warehouse-articles-all", selectedCompany?.slug, selectedStation, category],
+    queryFn: async () => {
+      // Fetch page 1 to discover total pages
+      const first = await fetchWarehouseArticlesByCategory(selectedStation, category, selectedCompany?.slug, status, 1, 15);
+      const { last_page } = first.pagination;
+      const allBatches = [...first.batches];
+
+      // Fetch remaining pages sequentially to avoid overwhelming the server
+      for (let page = 2; page <= last_page; page++) {
+        const pageData = await fetchWarehouseArticlesByCategory(selectedStation, category, selectedCompany?.slug, status, page, 15);
+        allBatches.push(...pageData.batches);
+      }
+
+      return {
+        batches: allBatches,
+        pagination: { ...first.pagination, current_page: 1 },
+      };
+    },
     enabled: enabled && !!selectedCompany && !!selectedStation,
+    staleTime: 2 * 60 * 1000, // cache all-pages data for 2 minutes
+    retry: false, // don't retry — failing fast is better than hanging
   });
 };
