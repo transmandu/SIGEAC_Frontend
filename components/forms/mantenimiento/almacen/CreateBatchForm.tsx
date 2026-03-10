@@ -131,7 +131,7 @@ export function CreateBatchForm({
 const form = useForm<FormSchemaType>({
   resolver: zodResolver(FormSchema),
   defaultValues: {
-    is_hazarous: false,
+    is_hazarous: initialData?.is_hazarous || false,
     category: initialData?.category
       ? getValueFromLabel(initialData.category)
       : defaultCategory || "",
