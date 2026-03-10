@@ -26,33 +26,32 @@ function safeDateLabel(raw?: string | null) {
 }
 
 export const columns: ColumnDef<DispatchGroupRow>[] = [
-  {
-    id: 'expand',
-    header: () => null,
-    cell: ({ row }) => {
-      const expanded = row.getIsExpanded();
-      return (
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          className="h-8 w-8"
-          onClick={() => row.toggleExpanded()}
-          aria-label={expanded ? 'Contraer fila' : 'Expandir fila'}
-        >
-          {expanded ? (
-            <ChevronDown className="h-4 w-4" />
-          ) : (
-            <ChevronRight className="h-4 w-4" />
-          )}
-        </Button>
-      );
-    },
-    enableSorting: false,
-    enableHiding: false,
-    size: 40,
-  },
-
+  // {
+  //   id: 'expand',
+  //   header: () => null,
+  //   cell: ({ row }) => {
+  //     const expanded = row.getIsExpanded();
+  //     return (
+  //       <Button
+  //         type="button"
+  //         variant="ghost"
+  //         size="icon"
+  //         className="h-8 w-8"
+  //         onClick={() => row.toggleExpanded()}
+  //         aria-label={expanded ? 'Contraer fila' : 'Expandir fila'}
+  //       >
+  //         {expanded ? (
+  //           <ChevronDown className="h-4 w-4" />
+  //         ) : (
+  //           <ChevronRight className="h-4 w-4" />
+  //         )}
+  //       </Button>
+  //     );
+  //   },
+  //   enableSorting: false,
+  //   enableHiding: false,
+  //   size: 40,
+  // },
   {
     accessorKey: 'request_number',
     header: ({ column }) => (
