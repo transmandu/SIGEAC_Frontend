@@ -112,7 +112,7 @@ export const CreateCertificateForm = ({ onClose }: CreateCertificateFormProps) =
         company: companySlug,
         data: formData,
       });
-      toast.success("¡Certificado guardado con éxito!");
+      
       onClose();
     } catch (error: any) {
       const serverMessage = error.response?.data?.message || "Error en el servidor";

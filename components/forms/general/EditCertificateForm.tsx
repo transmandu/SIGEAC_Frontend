@@ -58,7 +58,7 @@ const EditCertificateForm = ({ onClose, certificate }: EditCertificateFormProps)
 
   const selectedDni = watch("employee_dni");
 
-  const onSubmit = async (data: EditFormValues) => {
+const onSubmit = async (data: EditFormValues) => {
     const formData = new FormData();
     formData.append("_method", "PUT"); 
     formData.append("course_id", data.course_id);
@@ -75,7 +75,7 @@ const EditCertificateForm = ({ onClose, certificate }: EditCertificateFormProps)
         id: certificate.id, 
         data: formData 
       });
-      toast.success("Certificado actualizado correctamente");
+      
       onClose();
     } catch (error) {
       console.error(error);
