@@ -85,9 +85,9 @@ const FormSchema = z.object({
   description: z.string().optional(),
   category: z.string({ message: "Debe ingresar una categoria para el lote." }),
   alternative_part_number: z.string().optional(),
-  ata_code: z.string().optional(),
+  // ata_code: z.string().optional(),
   is_hazarous: z.boolean().optional(),
-  medition_unit: z.string().min(1, { message: "Debe seleccionar una unidad." }),
+  // medition_unit: z.string().min(1, { message: "Debe seleccionar una unidad." }),
   warehouse_id: z.string(),
 });
 
@@ -137,8 +137,8 @@ const form = useForm<FormSchemaType>({
       : defaultCategory || "",
     name: initialData?.name || "",
     description: initialData?.description || "",
-    ata_code: initialData?.ata_code || "",
-    medition_unit: initialData?.unit?.value?.toString() || "",
+    // ata_code: initialData?.ata_code || "",
+    // medition_unit: initialData?.unit?.value?.toString() || "",
     warehouse_id: initialData?.warehouse_id?.toString() || "",
   },
 });
@@ -159,17 +159,17 @@ const form = useForm<FormSchemaType>({
 
   const shouldRestrictUnit = requiresUnidadAndWarehouseRestrictions(category);
 
-  useEffect(() => {
-    if (shouldRestrictUnit && units?.length && !isUnitsLoading) {
-      const unidad = units.find((u) => UNIT_LABEL.includes(u.label));
-      if (unidad && form.getValues("medition_unit") !== unidad.value) {
-        form.setValue("medition_unit", unidad.value, {
-          shouldValidate: true,
-          shouldDirty: false,
-        });
-      }
-    }
-  }, [shouldRestrictUnit, units, isUnitsLoading, form]);
+  // useEffect(() => {
+  //   if (shouldRestrictUnit && units?.length && !isUnitsLoading) {
+  //     const unidad = units.find((u) => UNIT_LABEL.includes(u.label));
+  //     if (unidad && form.getValues("medition_unit") !== unidad.value) {
+  //       form.setValue("medition_unit", unidad.value, {
+  //         shouldValidate: true,
+  //         shouldDirty: false,
+  //       });
+  //     }
+  //   }
+  // }, [shouldRestrictUnit, units, isUnitsLoading, form]);
 
   // Efecto para restringir almacén a tipo "AERONAUTICO" para categorías específicas
   useEffect(() => {
@@ -273,10 +273,7 @@ const form = useForm<FormSchemaType>({
                   onValueChange={field.onChange}
                   defaultValue={field.value}
                   value={field.value}
-                  disabled={
-                    isEditing &&
-                    !isComponentOrPart(category)
-                  }
+                  disabled={isEditing && !isComponentOrPart(category)}
                 >
                   <FormControl>
                     <SelectTrigger>
@@ -284,16 +281,18 @@ const form = useForm<FormSchemaType>({
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                  {batches_categories
-                    .filter((cat) => {
-                      if (!isEditing) return true;
+                    {batches_categories
+                      .filter((cat) => {
+                        if (!isEditing) return true;
 
-                      if (isComponentOrPart(category)) {
-                        return COMPONENT_PART_GROUP.includes(cat.value as any);
-                      }
-                      // Para cualquier otro caso, no permitir cambios
-                      return cat.value === category;
-                    })
+                        if (isComponentOrPart(category)) {
+                          return COMPONENT_PART_GROUP.includes(
+                            cat.value as any,
+                          );
+                        }
+                        // Para cualquier otro caso, no permitir cambios
+                        return cat.value === category;
+                      })
                       .map((category) => (
                         <SelectItem key={category.value} value={category.value}>
                           {category.label}
@@ -318,7 +317,7 @@ const form = useForm<FormSchemaType>({
               </FormItem>
             )}
           />
-          <FormField
+          {/* <FormField
             control={form.control}
             name="ata_code"
             render={({ field }) => (
@@ -330,10 +329,10 @@ const form = useForm<FormSchemaType>({
                 <FormMessage />
               </FormItem>
             )}
-          />
+          /> */}
         </div>
         <div className="flex gap-2 w-full">
-          <FormField
+          {/* <FormField
             control={form.control}
             name="medition_unit"
             render={({ field }) => (
@@ -400,7 +399,7 @@ const form = useForm<FormSchemaType>({
                 <FormMessage />
               </FormItem>
             )}
-          />
+          /> */}
           <FormField
             control={form.control}
             name="warehouse_id"
@@ -454,6 +453,28 @@ const form = useForm<FormSchemaType>({
               </FormItem>
             )}
           />
+
+          {category === CATEGORY_VALUES.CONSUMIBLE && (
+            <FormField
+              control={form.control}
+              name="is_hazarous"
+              render={({ field }) => (
+                <FormItem className="flex flex-row space-x-3 space-y-0 p-8 w-full">
+                  <FormControl>
+                    <Checkbox
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                  <div className="space-y-1 leading-none">
+                    <FormLabel>
+                      ¿El renglón contiene articulos peligrosos?
+                    </FormLabel>
+                  </div>
+                </FormItem>
+              )}
+            />
+          )}
         </div>
         <FormField
           control={form.control}
@@ -471,36 +492,19 @@ const form = useForm<FormSchemaType>({
             </FormItem>
           )}
         />
-        {category === CATEGORY_VALUES.CONSUMIBLE && (
-          <FormField
-            control={form.control}
-            name="is_hazarous"
-            render={({ field }) => (
-              <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-                <FormControl>
-                  <Checkbox
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                  />
-                </FormControl>
-                <div className="space-y-1 leading-none">
-                  <FormLabel>
-                    ¿El renglón contiene articulos peligrosos?
-                  </FormLabel>
-                </div>
-              </FormItem>
-            )}
-          />
-        )}
         <Button
           className="bg-primary mt-2 text-white hover:bg-blue-900"
           disabled={isSubmitting}
           type="submit"
         >
-          {isSubmitting ? <Loader2 className="size-4 animate-spin" /> : <p>{isEditing ? "Editar" : "Crear"}</p>}
+          {isSubmitting ? (
+            <Loader2 className="size-4 animate-spin" />
+          ) : (
+            <p>{isEditing ? "Guardar" : "Crear"}</p>
+          )}
         </Button>
       </form>
-      <Dialog open={isUnitDialogOpen} onOpenChange={setIsUnitDialogOpen}>
+      {/* <Dialog open={isUnitDialogOpen} onOpenChange={setIsUnitDialogOpen}>
         <DialogContent className="sm:max-w-[420px]">
           <DialogHeader>
             <DialogTitle>Crear Unidad Primaria</DialogTitle>
@@ -519,7 +523,7 @@ const form = useForm<FormSchemaType>({
             }}
           />
         </DialogContent>
-      </Dialog>
+      </Dialog> */}
     </Form>
   );
 }

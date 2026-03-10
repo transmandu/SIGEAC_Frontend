@@ -124,9 +124,9 @@ const SelectBatchCategory = ({
 
   return (
     <div className="flex flex-col gap-4 w-full">
-      <div className="flex gap-4 items-end w-full">
+      <div className="flex-col gap-4 items-end w-full">
         {/* Selector de categoría */}
-        <div className="space-y-2 w-1/3">
+        <div className="space-y-2 w-1/2">
           <label className="text-sm font-medium">Categoría</label>
           <Select value={type} onValueChange={handleTypeSelect}>
             <SelectTrigger className="w-full">
