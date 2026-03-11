@@ -31,6 +31,7 @@ type Article = {
 interface DispatchArticlesDialogProps {
   articles?: Article[]
   work_order?: string
+  justification?: string | null
 }
 
 function formatQty(value: string) {
@@ -42,7 +43,7 @@ function formatQty(value: string) {
   })
 }
 
-const DispatchArticlesDialog = ({ articles = [], work_order }: DispatchArticlesDialogProps) => {
+const DispatchArticlesDialog = ({ articles = [], work_order, justification }: DispatchArticlesDialogProps) => {
   const hasArticles = articles.length > 0
 
   return (
@@ -177,12 +178,15 @@ const DispatchArticlesDialog = ({ articles = [], work_order }: DispatchArticlesD
           )}
         </div>
 
-        {/* Footer */}
-        <DialogFooter className="px-6 py-4 border-t">
+        <DialogFooter className="px-6 py-4 border-t flex items-start justify-between sm:justify-between">
+          {/* Justificación - izquierda */}
+          <div className="flex flex-col text-sm max-w-[70%]">
+            <span className="font-medium text-foreground"> Justificación: </span>
+            <span className="text-muted-foreground italic break-words"> {justification?.trim() || "Sin justificación"} </span>
+          </div>
+          {/* Botón cerrar - derecha */}
           <DialogClose asChild>
-            <Button variant="outline" className="w-full sm:w-auto">
-              Cerrar
-            </Button>
+            <Button variant="outline"> Cerrar </Button>
           </DialogClose>
         </DialogFooter>
       </DialogContent>
