@@ -1,18 +1,15 @@
 import axiosInstance from "@/lib/axios";
-import { Vendor } from "@/types";
+import { ThirdParty, Vendor } from "@/types";
 import { useQuery } from "@tanstack/react-query";
 
-const fetchThirdParties = async (company?: string): Promise<Vendor[]> => {
-  if (!company) return [];
-
-  const { data } = await axiosInstance.get(`/${company}/vendors`);
+const fetchThirdParties = async (): Promise<ThirdParty[]> => {
+  const { data } = await axiosInstance.get(`/third-parties`);
   return data;
 };
 
-export const useGetThirdParties = (company?: string) => {
-  return useQuery<Vendor[]>({
-    queryKey: ["third-parties", company],
-    queryFn: () => fetchThirdParties(company),
-    enabled: !!company,
+export const useGetThirdParties = () => {
+  return useQuery<ThirdParty[]>({
+    queryKey: ["third-parties"],
+    queryFn: () => fetchThirdParties(),
   });
 };

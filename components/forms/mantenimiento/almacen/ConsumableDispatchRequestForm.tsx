@@ -47,7 +47,7 @@ import { z } from "zod"
 import { useGetBatchesWithInWarehouseArticles } from "@/hooks/mantenimiento/almacen/renglones/useGetBatchesWithInWarehouseArticles"
 import { useGetMaintenanceAircrafts } from "@/hooks/mantenimiento/planificacion/useGetMaintenanceAircrafts"
 import { useGetDepartments } from "@/hooks/sistema/departamento/useGetDepartment"
-import type { Article, Batch, Department, GeneralArticle, Vendor } from "@/types"
+import type { Article, Batch, Department, GeneralArticle, ThirdParty, Vendor } from "@/types"
 
 import { useGetGeneralArticles } from "@/hooks/mantenimiento/almacen/almacen_general/useGetGeneralArticles"
 import { useGetConversionByConsmable } from "@/hooks/mantenimiento/almacen/articulos/useGetConvertionsByConsumableId"
@@ -82,6 +82,9 @@ const FormSchema = z
       message: "Debe seleccionar el tipo de despacho.",
     }),
     requested_by: z.string(),
+    third_party_requested_by: z.string().optional(),
+    third_party_receiver: z.string().optional(),
+    third_party_authorizer: z.string().optional(),
     submission_date: z.date({ message: "Debe ingresar la fecha." }),
     justification: z.string({ message: "Debe ingresar una justificación de la salida." }),
     department_id: z.string().optional(),
@@ -428,9 +431,7 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
   const { data: authorizedEmployees, isLoading: isAuthorizedEmployeesLoading } =
     useGetAuthorizedEmployees(selectedCompany?.slug)
 
-  const { data: thirdParties, isLoading: isThirdPartiesLoading } = useGetThirdParties(
-    selectedCompany?.slug
-  )
+  const { data: thirdParties, isLoading: isThirdPartiesLoading } = useGetThirdParties()
 
   const { data: batches, isPending: isBatchesLoading } = useGetBatchesWithInWarehouseArticles({
     location_id: Number(selectedStation!),
@@ -515,7 +516,7 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
   )
 
   const groupedThirdParties = useMemo(() => {
-    const groups = new Map<string, Vendor[]>()
+    const groups = new Map<string, ThirdParty[]>()
 
     ;(thirdParties ?? []).forEach((party) => {
       const key = party.type || "SIN TIPO"
@@ -1198,11 +1199,11 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
                             <CommandList>
                               <CommandEmpty>No se encontraron terceros.</CommandEmpty>
                               {groupedThirdParties.map(([type, items]) => (
-                                <CommandGroup key={type} heading={type}>
+                                <CommandGroup key={type} heading={type === "CLIENT_COMPANY" ? "EMPRESA" : "PERSONA"}>
                                   {items.map((party) => (
                                     <CommandItem
                                       key={party.id}
-                                      value={`${party.name} ${party.type} ${party.email ?? ""} ${party.phone ?? ""}`}
+                                      value={`${party.name} ${party.type}`}
                                       onSelect={() => {
                                         field.onChange(party.id.toString())
                                         form.setValue("requested_by", party.name, {
@@ -1223,7 +1224,7 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
                                       <div className="flex min-w-0 flex-col">
                                         <span className="font-medium truncate">{party.name}</span>
                                         <span className="text-xs text-muted-foreground truncate">
-                                          {party.email || party.phone || party.address || party.type}
+                                          {party.type === "CLIENT_COMPANY" ? "EMPRESA" : "PERSONA"}
                                         </span>
                                       </div>
                                     </CommandItem>
@@ -1243,9 +1244,65 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
           </div>
           {
             dispatchType === "third_party" && (
-              <div>
-                npm run dev
-              </div>
+            <div className="flex gap-2 items-center">
+              <FormField
+                control={form.control}
+                name="third_party_requested_by"
+                render={({ field }) => (
+                  <FormItem className="w-full">
+                    <FormLabel className="text-sm font-medium">Solicitado Por</FormLabel>
+                    <FormControl>
+                      <Input className="h-10 w-full" placeholder="Ej: OT-000123" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="third_party_receiver"
+                render={({ field }) => (
+                  <FormItem className="w-full">
+                    <FormLabel className="text-sm font-medium">Recibirá</FormLabel>
+                    <FormControl>
+                      <Input className="h-10 w-full" placeholder="Ej: OT-000123" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="third_party_authorizer"
+                render={({ field }) => (
+                  <FormItem className="mt-1 w-full">
+                    <FormLabel className="text-sm font-medium w-full">Autorizado Por</FormLabel>
+                    <Select
+                      value={field.value ?? ""}
+                      onValueChange={(val) => {
+                        field.onChange(val)
+                        const dep = departments?.find((d) => d.id.toString() === val)
+                        if (dep) setSelectedDepartment(dep)
+                      }}
+                      disabled={isDepartmentsLoading}
+                    >
+                      <FormControl>
+                        <SelectTrigger className="h-10 w-full">
+                          <SelectValue placeholder="Seleccione..." />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="Julian Rodriguez">Julián Rodriguez</SelectItem>
+                        <SelectItem value="Ali Ugueto">Ali Ugueto</SelectItem>
+                        <SelectItem value="Freddy Guerrero">Freddy Guerrero</SelectItem>
+                        <SelectItem value="Fernanda Hernandez">Fernanda Hernandez</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
             )
           }
         </div>
