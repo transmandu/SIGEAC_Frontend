@@ -71,6 +71,16 @@ export function getMenuList(
   userRoles: string[]
 ): Group[] {
   const date = format(new Date(), "yyyy-MM-dd");
+  const isValidHref = (href: string): boolean => {
+    return (
+      href.length > 0 &&
+      !href.includes("undefined") &&
+      (href.startsWith("/") ||
+        href.startsWith("http://") ||
+        href.startsWith("https://"))
+    );
+  };
+
   // Verificar acceso por rol
   const hasRoleAccess = (menuItem: { roles?: string[] }): boolean => {
     return (
@@ -1186,12 +1196,27 @@ export function getMenuList(
 
         return {
           ...group,
-          menus: menus.map((menu) => ({
-            ...menu,
-            submenus: menu.submenus.filter(
-              (sub) => isModuleActive(sub.moduleValue) && hasRoleAccess(sub)
-            ),
-          })),
+          menus: menus
+            .map((menu) => {
+              const submenus = menu.submenus.filter(
+                (sub) =>
+                  isModuleActive(sub.moduleValue) &&
+                  hasRoleAccess(sub) &&
+                  isValidHref(sub.href)
+              );
+              const href = isValidHref(menu.href) ? menu.href : submenus[0]?.href;
+
+              if (!href) {
+                return null;
+              }
+
+              return {
+                ...menu,
+                href,
+                submenus,
+              };
+            })
+            .filter((menu): menu is Menu => menu !== null),
         };
       })
       // Eliminar grupos vacíos

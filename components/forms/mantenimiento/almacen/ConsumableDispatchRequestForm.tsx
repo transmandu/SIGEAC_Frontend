@@ -37,6 +37,7 @@ import {
   PackagePlus,
   Plane,
   UserCheck,
+  Users,
   X,
 } from "lucide-react"
 import { useCallback, useEffect, useMemo, useState } from "react"
@@ -46,13 +47,14 @@ import { z } from "zod"
 import { useGetBatchesWithInWarehouseArticles } from "@/hooks/mantenimiento/almacen/renglones/useGetBatchesWithInWarehouseArticles"
 import { useGetMaintenanceAircrafts } from "@/hooks/mantenimiento/planificacion/useGetMaintenanceAircrafts"
 import { useGetDepartments } from "@/hooks/sistema/departamento/useGetDepartment"
-import type { Article, Batch, Department, GeneralArticle } from "@/types"
+import type { Article, Batch, Department, GeneralArticle, Vendor } from "@/types"
 
 import { useGetGeneralArticles } from "@/hooks/mantenimiento/almacen/almacen_general/useGetGeneralArticles"
 import { useGetConversionByConsmable } from "@/hooks/mantenimiento/almacen/articulos/useGetConvertionsByConsumableId"
 import { useGetConversionByGeneralArticle } from "@/hooks/mantenimiento/almacen/articulos/useGetConvertionsByGeneralArticleId"
 import { useGetAuthorizedEmployees } from "@/hooks/sistema/autorizados/useGetAuthorizedEmployees"
 import { useGetEmployeesByCompany } from "@/hooks/sistema/empleados/useGetEmployees"
+import { useGetThirdParties } from "@/hooks/general/terceros/useGetThirdParties"
 
 interface FormProps {
   onClose: () => void
@@ -76,7 +78,7 @@ const GeneralItemSchema = z.object({
 const FormSchema = z
   .object({
     work_order: z.string(),
-    dispatch_type: z.enum(["aircraft", "department", "authorized"], {
+    dispatch_type: z.enum(["aircraft", "department", "authorized", "third_party"], {
       message: "Debe seleccionar el tipo de despacho.",
     }),
     requested_by: z.string(),
@@ -87,6 +89,7 @@ const FormSchema = z
     unit: z.enum(["litros", "mililitros"]).optional(),
     aircraft_id: z.string().optional(),
     authorized_employee_id: z.string().optional(),
+    third_party_id: z.string().optional(),
     aeronautical_articles: z.array(AeronauticalItemSchema).default([]),
     general_articles: z.array(GeneralItemSchema).default([]),
   })
@@ -98,6 +101,50 @@ const FormSchema = z
         code: z.ZodIssueCode.custom,
         message: "Debe seleccionar al menos un artículo.",
         path: ["aeronautical_articles"],
+      })
+    }
+  })
+  .superRefine((data, ctx) => {
+    if (
+      (data.dispatch_type === "aircraft" || data.dispatch_type === "department") &&
+      !data.requested_by.trim()
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Debe seleccionar quien recibe.",
+        path: ["requested_by"],
+      })
+    }
+
+    if (data.dispatch_type === "aircraft" && !data.aircraft_id) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Debe seleccionar una aeronave.",
+        path: ["aircraft_id"],
+      })
+    }
+
+    if (data.dispatch_type === "department" && !data.department_id) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Debe seleccionar un departamento.",
+        path: ["department_id"],
+      })
+    }
+
+    if (data.dispatch_type === "authorized" && !data.authorized_employee_id) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Debe seleccionar un autorizado.",
+        path: ["authorized_employee_id"],
+      })
+    }
+
+    if (data.dispatch_type === "third_party" && !data.third_party_id) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Debe seleccionar un tercero.",
+        path: ["third_party_id"],
       })
     }
   })
@@ -123,7 +170,8 @@ const MSG_CLASS: Record<MsgLevel, string> = {
 const DISPATCH_TYPES = [
   { value: "aircraft" as const, label: "Aeronave", icon: Plane },
   { value: "department" as const, label: "Departamento", icon: Building2 },
-  { value: "authorized" as const, label: "Terceros", icon: UserCheck },
+  { value: "authorized" as const, label: "Autorizados", icon: UserCheck },
+  { value: "third_party" as const, label: "Terceros", icon: Users },
 ]
 
 // ── Sub-components ─────────────────────────────────────────────────────────────
@@ -358,14 +406,13 @@ function ArticleRowCard({
   )
 }
 
-// ── Main component ─────────────────────────────────────────────────────────────
-
 export function ConsumableDispatchForm({ onClose }: FormProps) {
   const { user } = useAuth()
   const { selectedStation, selectedCompany } = useCompanyStore()
   const [openAdd, setOpenAdd] = useState(false)
   const [addTab, setAddTab] = useState<"aero" | "general">("aero")
   const [openEmployee, setOpenEmployee] = useState(false)
+  const [openThirdParty, setOpenThirdParty] = useState(false)
   const [selectedDepartment, setSelectedDepartment] = useState<Department | null>(null)
 
   const { createDispatchRequest } = useCreateDispatchRequest()
@@ -380,6 +427,10 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
 
   const { data: authorizedEmployees, isLoading: isAuthorizedEmployeesLoading } =
     useGetAuthorizedEmployees(selectedCompany?.slug)
+
+  const { data: thirdParties, isLoading: isThirdPartiesLoading } = useGetThirdParties(
+    selectedCompany?.slug
+  )
 
   const { data: batches, isPending: isBatchesLoading } = useGetBatchesWithInWarehouseArticles({
     location_id: Number(selectedStation!),
@@ -399,6 +450,7 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
       justification: "",
       requested_by: "",
       department_id: "",
+      third_party_id: "",
       status: "proceso",
       aeronautical_articles: [],
       general_articles: [],
@@ -413,6 +465,7 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
   const watchedAeroRaw = useWatch({ control, name: "aeronautical_articles" })
   const watchedGenRaw = useWatch({ control, name: "general_articles" })
   const dispatchType = useWatch({ control, name: "dispatch_type" })
+  const thirdPartyId = useWatch({ control, name: "third_party_id" })
 
   const watchedAero = useMemo(() => watchedAeroRaw ?? [], [watchedAeroRaw])
   const watchedGen = useMemo(() => watchedGenRaw ?? [], [watchedGenRaw])
@@ -453,10 +506,51 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
     [genById]
   )
 
+  const internalReceiverRequired =
+    dispatchType === "aircraft" || dispatchType === "department"
+
+  const selectedThirdParty = useMemo(
+    () => thirdParties?.find((party) => party.id.toString() === thirdPartyId) ?? null,
+    [thirdParties, thirdPartyId]
+  )
+
+  const groupedThirdParties = useMemo(() => {
+    const groups = new Map<string, Vendor[]>()
+
+    ;(thirdParties ?? []).forEach((party) => {
+      const key = party.type || "SIN TIPO"
+      const current = groups.get(key) ?? []
+      current.push(party)
+      groups.set(key, current)
+    })
+
+    return Array.from(groups.entries())
+  }, [thirdParties])
+
   useEffect(() => {
-    setValue("department_id", "")
-    if (dispatchType === "authorized") setValue("requested_by", "")
-  }, [dispatchType, setValue])
+    if (dispatchType !== "department") {
+      setValue("department_id", "")
+      setSelectedDepartment(null)
+    }
+
+    if (dispatchType !== "aircraft") {
+      setValue("aircraft_id", "")
+    }
+
+    if (dispatchType !== "authorized") {
+      setValue("authorized_employee_id", "")
+    }
+
+    if (dispatchType !== "third_party") {
+      setValue("third_party_id", "")
+      setOpenThirdParty(false)
+    }
+
+    if (!internalReceiverRequired) {
+      setValue("requested_by", "")
+      setOpenEmployee(false)
+    }
+  }, [dispatchType, internalReceiverRequired, setValue])
 
   // ── Quantity local draft state ──────────────────────────────────────────────
   const [qtyByKey, setQtyByKey] = useState<Record<string, string>>({})
@@ -779,7 +873,7 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
               </p>
             </div>
 
-            {dispatchType !== "authorized" ? (
+            {internalReceiverRequired ? (
               <FormField
                 control={form.control}
                 name="requested_by"
@@ -858,8 +952,9 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
                 }}
               />
             ) : (
-              <div className="hidden md:flex items-center rounded-md border border-dashed p-4 text-sm text-muted-foreground">
-                Para &quot;Terceros&quot; no se selecciona responsable interno en esta sección.
+              <div className="mt-3 text-center items-center rounded-md border border-dashed p-4 text-sm text-muted-foreground">
+                Para <span className="font-medium">{dispatchType === "authorized" ? "Autorizados" : "Terceros"}</span>{" "}no se
+                selecciona responsable interno en esta sección.
               </div>
             )}
           </div>
@@ -1067,7 +1162,92 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
                 )}
               />
             )}
+
+            {dispatchType === "third_party" && (
+              <FormField
+                control={form.control}
+                name="third_party_id"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-sm font-medium">Tercero</FormLabel>
+                    <Popover open={openThirdParty} onOpenChange={setOpenThirdParty}>
+                      <PopoverTrigger asChild>
+                        <FormControl>
+                          <Button
+                            variant="outline"
+                            role="combobox"
+                            aria-expanded={openThirdParty}
+                            className={cn(
+                              "h-10 w-full justify-between font-normal",
+                              !field.value && "text-muted-foreground"
+                            )}
+                          >
+                            {selectedThirdParty?.name ?? "Selecc. un tercero..."}
+                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-full p-0" align="start">
+                        {isThirdPartiesLoading ? (
+                          <div className="flex items-center justify-center py-6">
+                            <Loader2 className="size-4 animate-spin text-muted-foreground" />
+                          </div>
+                        ) : (
+                          <Command>
+                            <CommandInput placeholder="Buscar tercero..." />
+                            <CommandList>
+                              <CommandEmpty>No se encontraron terceros.</CommandEmpty>
+                              {groupedThirdParties.map(([type, items]) => (
+                                <CommandGroup key={type} heading={type}>
+                                  {items.map((party) => (
+                                    <CommandItem
+                                      key={party.id}
+                                      value={`${party.name} ${party.type} ${party.email ?? ""} ${party.phone ?? ""}`}
+                                      onSelect={() => {
+                                        field.onChange(party.id.toString())
+                                        form.setValue("requested_by", party.name, {
+                                          shouldDirty: true,
+                                          shouldValidate: true,
+                                        })
+                                        setOpenThirdParty(false)
+                                      }}
+                                    >
+                                      <Check
+                                        className={cn(
+                                          "mr-2 h-4 w-4 shrink-0",
+                                          field.value === party.id.toString()
+                                            ? "opacity-100"
+                                            : "opacity-0"
+                                        )}
+                                      />
+                                      <div className="flex min-w-0 flex-col">
+                                        <span className="font-medium truncate">{party.name}</span>
+                                        <span className="text-xs text-muted-foreground truncate">
+                                          {party.email || party.phone || party.address || party.type}
+                                        </span>
+                                      </div>
+                                    </CommandItem>
+                                  ))}
+                                </CommandGroup>
+                              ))}
+                            </CommandList>
+                          </Command>
+                        )}
+                      </PopoverContent>
+                    </Popover>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
           </div>
+          {
+            dispatchType === "third_party" && (
+              <div>
+                npm run dev
+              </div>
+            )
+          }
         </div>
 
         {/* Artículos a Retirar */}
