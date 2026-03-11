@@ -15,13 +15,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Search, ChevronsUpDown, Check, Edit, Loader2 } from "lucide-react";
+import { Search, ChevronsUpDown, Check, Edit, Loader2, Loader } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useGetBatchesByCategory } from "@/hooks/mantenimiento/almacen/renglones/useGetBatchesByCategory";
 // Importa el nuevo hook (ajusta la ruta según tu proyecto)
 import { Batch } from "@/types";
 import { useSearchBatchesByPartNumber } from "@/hooks/mantenimiento/almacen/renglones/useGetBatchesByArticlePartNumber";
 import { useCompanyStore } from "@/stores/CompanyStore";
+import Loading from "@/app/[company]/loading";
 
 interface IRegisterArticleProps {
   isEditing?: boolean;
@@ -124,9 +125,9 @@ const SelectBatchCategory = ({
 
   return (
     <div className="flex flex-col gap-4 w-full">
-      <div className="flex gap-4 items-end w-full">
+      <div className="flex-col gap-4 items-end w-full">
         {/* Selector de categoría */}
-        <div className="space-y-2 w-1/3">
+        <div className="space-y-2 w-1/2">
           <label className="text-sm font-medium">Categoría</label>
           <Select value={type} onValueChange={handleTypeSelect}>
             <SelectTrigger className="w-full">
@@ -151,9 +152,7 @@ const SelectBatchCategory = ({
               onChange={(e) => setPartNumberToSearch(e.target.value)}
               className="pr-8"
             />
-            {isSearching && (
-              <Loader2 className="absolute right-2 top-2.5 h-4 w-4 animate-spin text-muted-foreground" />
-            )}
+            {isSearching && <Loader2 />}
           </div>
         </div>
       </div>
@@ -200,14 +199,16 @@ const SelectBatchCategory = ({
                 className="w-full justify-between overflow-auto"
                 disabled={isBatchesLoading || !displayBatches?.length}
               >
-                <span className="truncate">
-                  {selectedBatch
-                    ? getBatchLabel(selectedBatch)
-                    : isBatchesLoading || isSearching
-                      ? "Buscando..."
-                      : !displayBatches?.length
-                        ? "No se encontraron resultados"
-                        : "Seleccionar batch..."}
+                <span className="truncate flex items-center justify-center gap-2">
+                  {selectedBatch ? (
+                    getBatchLabel(selectedBatch)
+                  ) : isBatchesLoading || isSearching ? (
+                    <Loader2 className=" w-8 animate-spin" /> // Aquí insertas tu componente
+                  ) : !displayBatches?.length ? (
+                    "No se encontraron resultados"
+                  ) : (
+                    "Seleccionar batch..."
+                  )}
                 </span>
                 <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
               </Button>
