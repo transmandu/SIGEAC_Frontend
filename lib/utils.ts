@@ -179,3 +179,12 @@ export const getValueFromLabel = (label: string): string => {
   );
   return category?.value || "";
 };
+
+export const getThirdPartyTypeLabel = (type: string): string => {
+  const labels: Record<string, string> = {
+    CLIENT_COMPANY: "COMPAÑÍA CLIENTE",
+    CLIENT_PERSON: "PERSONA CLIENTE",
+    OTHER: "OTRO",
+  };
+  return labels[type] ?? type;
+};
