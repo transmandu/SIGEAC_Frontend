@@ -10,6 +10,7 @@ interface DispatchReportParams {
   aircraft_id?: string | null;
   from: string;
   to: string;
+  format?: "pdf" | "excel";
 }
 
 export const useGetDispatchReport = () => {
@@ -17,20 +18,23 @@ export const useGetDispatchReport = () => {
     retry: false,
 
     mutationFn: async (params: DispatchReportParams) => {
-      try {
-        const response = await axiosInstance.get(
-          `/${params.company}/${params.location_id}/dispatch-report-pdf`,
-          {
-            params: {
-              aircraft_id: params.aircraft_id ?? undefined,
-              from: params.from,
-              to: params.to,
-            },
-            responseType: "blob",
-          }
-        );
+      const format = params.format ?? "pdf";
 
-        // Detectar si el backend devolvió JSON en lugar de PDF
+      const endpoint =
+        format === "excel"
+          ? `/${params.company}/${params.location_id}/dispatch-report-excel`
+          : `/${params.company}/${params.location_id}/dispatch-report-pdf`;
+
+      try {
+        const response = await axiosInstance.get(endpoint, {
+          params: {
+            aircraft_id: params.aircraft_id ?? undefined,
+            from: params.from,
+            to: params.to,
+          },
+          responseType: "blob",
+        });
+
         const contentType = response.headers["content-type"];
 
         if (contentType?.includes("application/json")) {
@@ -44,7 +48,6 @@ export const useGetDispatchReport = () => {
 
         return response.data;
       } catch (error: any) {
-        // Manejo de errores cuando Axios devuelve Blob
         if (error.response?.data instanceof Blob) {
           const text = await error.response.data.text();
           const errorData = JSON.parse(text);
@@ -60,9 +63,7 @@ export const useGetDispatchReport = () => {
 
     onError: (error: any) => {
       toast.error("Oops!", {
-        description:
-          error.message ||
-          "Ocurrió un problema al generar el reporte.",
+        description: error.message || "Ocurrió un problema al generar el reporte.",
       });
     },
   });
