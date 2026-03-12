@@ -1,6 +1,6 @@
 "use client";
 
-import { Home, Info, Mail, LogIn } from "lucide-react";
+import { Home, LogIn } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 

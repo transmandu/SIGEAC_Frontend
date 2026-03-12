@@ -551,6 +551,12 @@ export type Vendor = {
   email: string;
 };
 
+export type ThirdParty = {
+  id: string,
+  name: string,
+  type: string,
+}
+
 export type Permission = {
   id: number;
   name: string;

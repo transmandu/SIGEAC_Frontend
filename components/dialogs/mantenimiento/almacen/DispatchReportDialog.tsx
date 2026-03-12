@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Calendar as CalendarIcon, Loader2, FileText, Scale, Download, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -15,12 +15,24 @@ import { cn } from "@/lib/utils";
 import { RiFileExcel2Fill } from "react-icons/ri";
 
 import { useCompanyStore } from "@/stores/CompanyStore";
+import { useAuth } from "@/contexts/AuthContext";
 import { useGetAircrafts } from "@/hooks/aerolinea/aeronaves/useGetAircrafts";
 import { useGetDispatchReport } from "@/hooks/mantenimiento/almacen/reportes/useGetDispatchReport";
 import { useGetBalanceAndTotalReport } from "@/hooks/mantenimiento/almacen/reportes/useGetBalanceAndTotalReport";
 
 export function DispatchReportDialog() {
   const { selectedStation, selectedCompany } = useCompanyStore();
+  const { user } = useAuth();
+
+  const roles = user?.roles ?? [];
+
+  const isAdminRole = roles.some((r) =>
+    ["JEFE_ADMINISTRACION", "ANALISTA_ADMINISTRACION"].includes(r.name)
+  );
+
+const defaultTab = isAdminRole ? "balance" : "dispatch";
+
+  const [activeTab, setActiveTab] = useState(defaultTab);
   const [open, setOpen] = useState(false);
   const [loadingDownload, setLoadingDownload] = useState(false);
 
@@ -28,10 +40,8 @@ export function DispatchReportDialog() {
   const [endDate, setEndDate] = useState<Date | undefined>();
   const [aircraft, setAircraft] = useState<string | null>(null);
 
-  // Fecha actual para restringir el futuro
   const today = new Date();
 
-  // Hooks de mutación
   const { mutateAsync: getDispatch } = useGetDispatchReport();
   const { mutateAsync: getBalance } = useGetBalanceAndTotalReport();
 
@@ -39,7 +49,6 @@ export function DispatchReportDialog() {
     selectedCompany?.slug,
   );
 
-  // Validaciones de estado
   const isDateRangeInvalid = startDate && endDate && endDate < startDate;
   const areDatesMissing = !startDate || !endDate;
 
@@ -48,11 +57,11 @@ export function DispatchReportDialog() {
       setStartDate(undefined);
       setEndDate(undefined);
       setAircraft(null);
+      setActiveTab(defaultTab);
     }
-  }, [open]);
+  }, [open, defaultTab]);
 
   const handleDownload = async (reportType: "dispatch" | "balance") => {
-
     if (loadingDownload) return;
 
     if (
@@ -76,7 +85,7 @@ export function DispatchReportDialog() {
       const blob =
         reportType === "dispatch"
           ? await getDispatch(params)
-          : await getBalance({ ...params, format: "pdf" }); // PDF
+          : await getBalance({ ...params, format: "pdf" });
 
       if (!blob) return;
 
@@ -100,7 +109,6 @@ export function DispatchReportDialog() {
       setTimeout(() => URL.revokeObjectURL(url), 100);
 
       setOpen(false);
-
     } finally {
       setLoadingDownload(false);
     }
@@ -122,7 +130,7 @@ export function DispatchReportDialog() {
           </DialogDescription>
         </DialogHeader>
 
-        <Tabs defaultValue="dispatch" className="w-full">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-2 mb-4">
             <TabsTrigger value="dispatch" className="flex gap-2 text-xs">
               <FileText className="w-3.5 h-3.5" /> Reporte Salidas
@@ -133,7 +141,6 @@ export function DispatchReportDialog() {
           </TabsList>
 
           <div className="space-y-6 py-2">
-            {/* SECCIÓN: RANGO DE FECHAS CON RESTRICCIONES */}
             <div className="w-full space-y-3 p-4 bg-muted/30 rounded-lg border">
               <label className="text-sm font-medium flex items-center gap-2">
                 <CalendarIcon className="w-4 h-4 text-primary" /> Rango de
@@ -141,7 +148,6 @@ export function DispatchReportDialog() {
               </label>
 
               <div className="flex gap-2 justify-between">
-                {/* FECHA DESDE */}
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button
@@ -162,13 +168,12 @@ export function DispatchReportDialog() {
                       selected={startDate}
                       onSelect={setStartDate}
                       locale={es}
-                      disabled={(date) => date > today} // No fechas futuras
+                      disabled={(date) => date > today}
                       initialFocus
                     />
                   </PopoverContent>
                 </Popover>
 
-                {/* FECHA HASTA */}
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button
@@ -189,7 +194,6 @@ export function DispatchReportDialog() {
                       selected={endDate}
                       onSelect={setEndDate}
                       locale={es}
-                      // Restricción: No futuro Y no menor que Fecha Inicio
                       disabled={(date) =>
                         date > today || (startDate ? date < startDate : false)
                       }
@@ -199,7 +203,6 @@ export function DispatchReportDialog() {
                 </Popover>
               </div>
 
-              {/* Alerta visual si el rango es inválido */}
               {isDateRangeInvalid && (
                 <div className="flex items-center gap-2 text-[10px] text-destructive mt-1 animate-pulse">
                   <AlertCircle className="w-3 h-3" />
@@ -208,7 +211,6 @@ export function DispatchReportDialog() {
               )}
             </div>
 
-            {/* FILTRO POR AERONAVE */}
             <div className="space-y-2">
               <label className="text-sm font-medium">
                 Filtro por Aeronave (Opcional)
@@ -233,7 +235,6 @@ export function DispatchReportDialog() {
               </Select>
             </div>
 
-            {/* BOTONES DE DESCARGA */}
             <TabsContent value="dispatch">
               <Button
                 className="w-full"
@@ -256,7 +257,9 @@ export function DispatchReportDialog() {
                 <Button
                   className="w-full"
                   onClick={() => handleDownload("balance")}
-                  disabled={loadingDownload || areDatesMissing || isDateRangeInvalid}
+                  disabled={
+                    loadingDownload || areDatesMissing || isDateRangeInvalid
+                  }
                 >
                   {loadingDownload ? (
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -266,14 +269,19 @@ export function DispatchReportDialog() {
                   Descargar Balance Total
                 </Button>
 
-                {/* Botón Excel */}
                 <TooltipProvider>
                   <Tooltip delayDuration={100}>
                     <TooltipTrigger asChild>
                       <button
                         type="button"
                         onClick={async () => {
-                          if (!selectedStation || !selectedCompany?.slug || areDatesMissing || isDateRangeInvalid) return;
+                          if (
+                            !selectedStation ||
+                            !selectedCompany?.slug ||
+                            areDatesMissing ||
+                            isDateRangeInvalid
+                          )
+                            return;
                           try {
                             setLoadingDownload(true);
                             const params = {
@@ -283,20 +291,28 @@ export function DispatchReportDialog() {
                               from: format(startDate!, "yyyy-MM-dd"),
                               to: format(endDate!, "yyyy-MM-dd"),
                             };
-                            const blob = await getBalance({ ...params, format: "excel" }); // ⬅️ Excel
+                            const blob = await getBalance({
+                              ...params,
+                              format: "excel",
+                            });
                             if (!blob) return;
 
                             const url = URL.createObjectURL(blob);
                             const link = document.createElement("a");
                             link.href = url;
-                            link.download = `reporte-balance-total-${format(startDate!, "yyyyMMdd")}-${format(endDate!, "yyyyMMdd")}.xlsx`;
+                            link.download = `reporte-balance-total-${format(
+                              startDate!,
+                              "yyyyMMdd"
+                            )}-${format(endDate!, "yyyyMMdd")}.xlsx`;
                             link.click();
                             setTimeout(() => URL.revokeObjectURL(url), 100);
                           } finally {
                             setLoadingDownload(false);
                           }
                         }}
-                        disabled={loadingDownload || areDatesMissing || isDateRangeInvalid}
+                        disabled={
+                          loadingDownload || areDatesMissing || isDateRangeInvalid
+                        }
                         className="disabled:opacity-50"
                         aria-label="Descargar Excel"
                       >
@@ -308,7 +324,9 @@ export function DispatchReportDialog() {
                       </button>
                     </TooltipTrigger>
                     <TooltipContent>
-                      {!selectedStation || !selectedCompany?.slug ? "Selecciona ubicación y compañía" : "Descargar Excel"}
+                      {!selectedStation || !selectedCompany?.slug
+                        ? "Selecciona ubicación y compañía"
+                        : "Descargar Excel"}
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>

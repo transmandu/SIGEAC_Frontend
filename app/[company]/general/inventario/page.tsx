@@ -10,15 +10,15 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import { useDebounce } from '@/hooks/helpers/useDebounce';
-import { useSearchBatchesWithArticles } from '@/hooks/mantenimiento/almacen/renglones/useSearchBatchesWithArticles';
 import { useGetBatchesWithArticlesCount } from '@/hooks/mantenimiento/almacen/renglones/useGetBatchesWithArticleCount';
+import { useSearchBatchesWithArticles } from '@/hooks/mantenimiento/almacen/renglones/useSearchBatchesWithArticles';
 import { useCompanyStore } from '@/stores/CompanyStore';
 import { Loader2, Package } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
+import { BatchWithArticlesView } from './_components/BatchWithArticlesView';
 import SearchSection from './_components/SearchSection';
 import { columns } from './columns';
 import { DataTable } from './data-table';
-import { BatchWithArticlesView } from './_components/BatchWithArticlesView';
 
 const InventarioPage = () => {
   const { selectedStation, selectedCompany } = useCompanyStore();
@@ -83,7 +83,7 @@ const InventarioPage = () => {
                     </div>
                   ) : (
                     batchesWithArticles && (
-                      <BatchWithArticlesView 
+                      <BatchWithArticlesView
                         batches={batchesWithArticles}
                         companySlug={selectedCompany?.slug}
                       />
@@ -114,4 +114,3 @@ const InventarioPage = () => {
 }
 
 export default InventarioPage
-
