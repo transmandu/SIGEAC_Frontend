@@ -19,7 +19,6 @@ export const generateSlug = (name: string) => {
     .replace(/[^\w-]/g, ""); // Remover caracteres especiales excepto "-"
 };
 
-
 import { DateRange } from "react-day-picker";
 import { batches_categories } from "./batches_categories";
 
@@ -45,25 +44,31 @@ export const formatDateRangeUpdate = (range: DateRange) => {
 
 export const formatDateRange = (
   period: { from?: Date | null; to?: Date | null },
-  locale?: Locale
+  locale?: Locale,
 ): string => {
   // Verificar si `period.from` es una fecha válida
-  if ((!period.from || !(period.from instanceof Date) || isNaN(period.from.getTime())) && (!period.from || !(period.from instanceof Date) || isNaN(period.from.getTime()))) {
+  if (
+    (!period.from ||
+      !(period.from instanceof Date) ||
+      isNaN(period.from.getTime())) &&
+    (!period.from ||
+      !(period.from instanceof Date) ||
+      isNaN(period.from.getTime()))
+  ) {
     return "Invalid date";
   }
 
   return `${format(period.from, "LLL dd", { locale })} - ${format(period.to!, "LLL dd, y", { locale })}`;
-}
+};
 
-  // Si ambas fechas son válidas, formatea el rango
-
+// Si ambas fechas son válidas, formatea el rango
 
 export function formatCurrency(value: number) {
-  return Intl.NumberFormat("en-US",{
-    style: 'currency',
+  return Intl.NumberFormat("en-US", {
+    style: "currency",
     currency: "USD",
     minimumFractionDigits: 2,
-  }).format(value)
+  }).format(value);
 }
 
 //función auxiliar para manejar la lógica de los símbolos
@@ -81,22 +86,23 @@ export function getCurrencySymbol(coinType: string): string {
 export function formatCurrencyJ(
   value: number | string, // Acepta ambos tipos
   coinType: string,
-  locale: string = 'es-US'
+  locale: string = "es-US",
 ): string {
   // Convertir a número
-  const numericValue = typeof value === 'string'
-    ? parseFloat(value.replace(',', '.')) // Reemplaza comas por puntos para locales que usan coma decimal
-    : value;
+  const numericValue =
+    typeof value === "string"
+      ? parseFloat(value.replace(",", ".")) // Reemplaza comas por puntos para locales que usan coma decimal
+      : value;
 
   // Verificar si es un número válido
   if (isNaN(numericValue)) {
-    return 'Valor inválido';
+    return "Valor inválido";
   }
 
   const symbol = getCurrencySymbol(coinType);
   const formattedValue = new Intl.NumberFormat(locale, {
     minimumFractionDigits: 2,
-    maximumFractionDigits: 2
+    maximumFractionDigits: 2,
   }).format(numericValue);
 
   return `${formattedValue} ${symbol}`.trim();
@@ -124,7 +130,8 @@ export function dateFormat(date: string | Date, DateFormat: string) {
   });
 }
 
-export function timeFormat(hour: Date, outPutFormat: string = "HH:mm") { // Para transformate date a strins y mostrarlos en Tables
+export function timeFormat(hour: Date, outPutFormat: string = "HH:mm") {
+  // Para transformate date a strins y mostrarlos en Tables
   const timeString = hour.toString();
   const parsedTime = parse(timeString, "HH:mm:ss", new Date());
   const time = format(parsedTime, outPutFormat);
@@ -178,4 +185,14 @@ export const getValueFromLabel = (label: string): string => {
     (cat) => cat.label.toUpperCase() === label.toUpperCase(),
   );
   return category?.value || "";
+};
+
+export const getThirdPartyTypeLabel = (type: string): string => {
+  const labels: Record<string, string> = {
+    CLIENT_COMPANY: "EMPRESA",
+    CLIENT_PERSON: "PERSONA",
+    OTHER: "Otro",
+    SIN_TIPO: "Sin Tipo",
+  };
+  return labels[type] || type;
 };
