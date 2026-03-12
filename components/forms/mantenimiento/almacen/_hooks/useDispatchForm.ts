@@ -129,7 +129,7 @@ export function useDispatchForm(onClose: () => void) {
   const { data: departments, isLoading: isDepartmentsLoading } = useGetDepartments(selectedCompany?.slug)
   const { data: aircrafts, isLoading: isAircraftsLoading } = useGetMaintenanceAircrafts(selectedCompany?.slug)
   const { data: authorizedEmployees, isLoading: isAuthorizedEmployeesLoading } = useGetAuthorizedEmployees(selectedCompany?.slug)
-  const { data: thirdParties, isLoading: isThirdPartiesLoading } = useGetThirdParties(selectedCompany?.slug)
+  const { data: thirdParties, isLoading: isThirdPartiesLoading } = useGetThirdParties()
   const { data: batches, isPending: isBatchesLoading } = useGetBatchesWithInWarehouseArticles({
     location_id: Number(selectedStation!),
     company: selectedCompany!.slug,

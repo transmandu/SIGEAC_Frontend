@@ -24,6 +24,8 @@ interface IDispatchRequestAction {
   aircraft_id?: string;
   authorized_employee_id?: string;
   department_id?: string;
+  approved_by?: string
+  delivered_by?: string
 }
 
 export const useCreateDispatchRequest = () => {
