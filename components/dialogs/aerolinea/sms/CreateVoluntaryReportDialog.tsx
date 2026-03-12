@@ -28,14 +28,14 @@ export default function CreateVoluntaryReportDialog({
   const [open, setOpen] = useState(false);
   return (
     <>
-      <Card className="flex">
+      <Card className="flex w-full sm:w-auto">
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
             <Button
               onClick={() => setOpen(true)}
               variant="outline"
               size="sm"
-              className="flex border-dashed"
+              className="w-full sm:w-auto"
             >
               {title}
             </Button>

@@ -37,14 +37,14 @@ export default function DeleteVoluntaryReportDialog(data: data) {
 
   return (
     <>
-      <Card className="flex">
+      <Card className="flex w-full sm:w-auto">
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
             <Button
               onClick={() => setOpen(true)}
               variant="outline"
               size="sm"
-              className=" hidden lg:flex"
+              className="w-full sm:w-auto "
             >
               Eliminar
             </Button>

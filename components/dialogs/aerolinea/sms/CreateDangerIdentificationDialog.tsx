@@ -32,14 +32,14 @@ export default function CreateDangerIdentificationDialog({
   const [open, setOpen] = useState(false);
 
   return (
-    <Card className="flex">
+    <Card className="flex w-full sm:w-auto">
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogTrigger asChild>
           <Button
             onClick={() => setOpen(true)}
             variant="outline"
             size="sm"
-            className="hidden h-8 lg:flex"
+            className="h-8 w-full sm:w-auto "
           >
             {title}
           </Button>

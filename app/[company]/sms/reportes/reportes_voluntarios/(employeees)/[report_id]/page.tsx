@@ -86,7 +86,7 @@ const ShowVoluntaryReport = () => {
           </div>
 
           {/* Botones de acción */}
-          <div className="flex flex-wrap gap-3 justify-center">
+          <div className="flex w-full flex-wrap items-stretch justify-center gap-3 sm:items-center">
             {voluntaryReport.status === "ABIERTO" && (
               <>
                 {!voluntaryReport.danger_identification_id ? (
@@ -96,7 +96,12 @@ const ShowVoluntaryReport = () => {
                     reportType="RVP"
                   />
                 ) : (
-                  <Button variant="outline" size="sm" asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    asChild
+                    className="w-full sm:w-auto"
+                  >
                     <Link
                       href={`/${selectedCompany?.slug}/sms/gestion_reportes/peligros_identificados/${voluntaryReport.danger_identification_id}`}
                     >
@@ -126,31 +131,31 @@ const ShowVoluntaryReport = () => {
 
           <div className="w-full space-y-6">
             {/* Bloque 1: Fechas + Ubicación */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 ">
               {/* Fecha del reporte */}
-              <div className="border border-gray-300 dark:border-gray-600 p-6 rounded-lg space-y-2">
+              <div className="flex flex-col border border-gray-300 dark:border-gray-600 p-6 rounded-lg space-y-4 justify-around">
                 <div className="flex items-center gap-2 mb-3">
                   <Calendar className="w-5 h-5 text-gray-600 dark:text-gray-300" />
                   <h3 className="text-base font-semibold text-gray-700 dark:text-gray-300">
-                    Fecha del Reporte
+                    Fecha del Reporte:
                   </h3>
+                  <p className="text-gray-600 dark:text-gray-400">
+                    {dateFormat(voluntaryReport.report_date || "", "PPP")}
+                  </p>
                 </div>
-                <p className="text-gray-600 dark:text-gray-400">
-                  {dateFormat(voluntaryReport.report_date || "", "PPP")}
-                </p>
-              </div>
 
-              {/* Fecha de identificación */}
-              <div className="border border-gray-300 dark:border-gray-600 p-6 rounded-lg space-y-2">
                 <div className="flex items-center gap-2 mb-3">
                   <Calendar className="w-5 h-5 text-gray-600 dark:text-gray-300" />
                   <h3 className="text-base font-semibold text-gray-700 dark:text-gray-300">
-                    Fecha de Identificación
+                    Fecha de Identificación:
                   </h3>
+                  <p className="text-gray-600 dark:text-gray-400">
+                    {dateFormat(
+                      voluntaryReport.identification_date || "",
+                      "PPP",
+                    )}
+                  </p>
                 </div>
-                <p className="text-gray-600 dark:text-gray-400">
-                  {dateFormat(voluntaryReport.identification_date || "", "PPP")}
-                </p>
               </div>
 
               {/* Ubicación */}
@@ -207,22 +212,17 @@ const ShowVoluntaryReport = () => {
                 </h3>
                 {voluntaryReport.possible_consequences ? (
                   <ul className="space-y-3">
-                    {voluntaryReport.possible_consequences
-                      .split(",")
-                      .map(
-                        (consequence, index) =>
-                          consequence.trim() && (
-                            <li
-                              key={index}
-                              className="flex items-start gap-3"
-                            >
-                              <ChevronRight className="w-5 h-5 mt-1 flex-shrink-0 text-gray-500" />
-                              <span className="text-gray-600 dark:text-gray-400">
-                                {consequence.trim()}
-                              </span>
-                            </li>
-                          )
-                      )}
+                    {voluntaryReport.possible_consequences.split(",").map(
+                      (consequence, index) =>
+                        consequence.trim() && (
+                          <li key={index} className="flex items-start gap-3">
+                            <ChevronRight className="w-5 h-5 mt-1 flex-shrink-0 text-gray-500" />
+                            <span className="text-gray-600 dark:text-gray-400">
+                              {consequence.trim()}
+                            </span>
+                          </li>
+                        ),
+                    )}
                   </ul>
                 ) : (
                   <p className="text-gray-600 dark:text-gray-400">N/A</p>
@@ -241,8 +241,7 @@ const ShowVoluntaryReport = () => {
               !voluntaryReport.reporter_name &&
               !voluntaryReport.reporter_last_name ? (
                 <p className="text-gray-600 dark:text-gray-400">
-                  Reportado por:{" "}
-                  <span className="font-medium">Anónimo</span>
+                  Reportado por: <span className="font-medium">Anónimo</span>
                 </p>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
