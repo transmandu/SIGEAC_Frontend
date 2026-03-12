@@ -1160,11 +1160,6 @@ export function getMenuList(
               label: "Administrar Almacenes",
               active: pathname === "/sistema/empresas/almacenes",
             },
-            {
-              href: "/sistema/empresas/autorizados",
-              label: "Administrar Autorizados",
-              active: pathname === "/sistema/empresas/autorizados",
-            },
           ],
         },
       ],
