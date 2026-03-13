@@ -1,120 +1,140 @@
 "use client"
 
 import { ColumnDef } from "@tanstack/react-table"
-
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader"
-
 import RequisitionsDropdownActions from "@/components/dropdowns/mantenimiento/compras/RequisitionDropdownActions"
 import { Badge } from "@/components/ui/badge"
-import { Checkbox } from "@/components/ui/checkbox"
 import { cn } from "@/lib/utils"
 import { Batch, Requisition } from "@/types"
 import { format } from "date-fns"
 import { es } from "date-fns/locale"
 import Link from "next/link"
 
-
-// This type is used to define the shape of our data.
-// You can use a Zod schema here if you want.
+// Volvemos a incluir la interfaz sin modificar nada más
 interface BatchesWithCountProp extends Batch {
-  article_count: number,
+  article_count: number
 }
 
 export const columns: ColumnDef<Requisition>[] = [
   {
-    id: "select",
-    header: ({ table }) => (
-      <Checkbox
-        checked={
-          table.getIsAllPageRowsSelected() ||
-          (table.getIsSomePageRowsSelected() && "indeterminate")
-        }
-        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-        aria-label="Seleccionar todos"
-      />
-    ),
-    cell: ({ row }) => (
-      <Checkbox
-        checked={row.getIsSelected()}
-        onCheckedChange={(value) => row.toggleSelected(!!value)}
-        aria-label="Seleccionar fila"
-      />
-    ),
-    enableSorting: false,
-    enableHiding: false,
-  },
-  {
     accessorKey: "order_number",
     header: ({ column }) => (
-      <DataTableColumnHeader filter column={column} title="Nro. Req." />
+      <div className="flex justify-center w-full">
+        <DataTableColumnHeader filter column={column} title="Nro. Req." />
+      </div>
     ),
-    meta: { title: "Nro. Req." }, // 👈 Agrega el título aquí
-    cell: ({ row }) => {
-      return (
-        <div className="flex justify-center">
-          <Link href={`/hangar74/general/requisiciones/${row.original.order_number}`} className="text-center font-bold">{row.original.order_number}</Link>
-        </div>
-      )
-    }
+    meta: { title: "Nro. Req." },
+    cell: ({ row }) => (
+      <div className="flex justify-center">
+        <Link
+          href={`/hangar74/general/requisiciones/${row.original.order_number}`}
+          className="font-bold text-center"
+        >
+          {row.original.order_number}
+        </Link>
+      </div>
+    )
   },
   {
     accessorKey: "justification",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Justificación" />
+      <div className="flex justify-center w-full">
+        <DataTableColumnHeader column={column} title="Justificación" />
+      </div>
     ),
     meta: { title: "Justificación" },
     cell: ({ row }) => (
-      <p className="text-center flex justify-center text-muted-foreground italic">{row.original.justification}</p>
+      <div className="flex justify-center">
+        <p className="text-muted-foreground italic text-center max-w-xs truncate">
+          {row.original.justification}
+        </p>
+      </div>
     )
   },
   {
     accessorKey: "requested_by",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Solicitado por" />
+      <div className="flex justify-center w-full">
+        <DataTableColumnHeader column={column} title="Solicitado por" />
+      </div>
     ),
     meta: { title: "Solicitado por" },
     cell: ({ row }) => (
-      <p className="flex justify-center font-bold">{row.original.requested_by}</p>
+      <div className="flex justify-center">
+        <p className="font-bold text-center">
+          {row.original.requested_by}
+        </p>
+      </div>
     )
   },
   {
     accessorKey: "status",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Status" />
+      <div className="flex justify-center w-full">
+        <DataTableColumnHeader column={column} title="Status" />
+      </div>
     ),
     meta: { title: "Status" },
     cell: ({ row }) => {
-      const process = row.original.status === 'PROCESO' || row.original.status === 'COTIZADO'
-      const aproved = row.original.status === 'APROBADO'
+      const process =
+        row.original.status === "PROCESO" ||
+        row.original.status === "COTIZADO"
+
+      const approved = row.original.status === "APROBADO"
+
       return (
-        <Badge className={cn("flex justify-center", process ? "bg-yellow-500" : aproved ? "bg-green-500" : "bg-red-500")} > {row.original.status.toUpperCase()}</Badge >
+        <div className="flex justify-center">
+          <Badge
+            className={cn(
+              process
+                ? "bg-yellow-500"
+                : approved
+                ? "bg-green-500"
+                : "bg-red-500"
+            )}
+          >
+            {row.original.status.toUpperCase()}
+          </Badge>
+        </div>
       )
     }
   },
   {
     accessorKey: "submission_date",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Fecha de Creación" />
+      <div className="flex justify-center w-full">
+        <DataTableColumnHeader column={column} title="Fecha de Creación" />
+      </div>
     ),
-    meta: { title: "Fecha de c." },
+    meta: { title: "Fecha de Creación" },
     cell: ({ row }) => (
-      <p className="text-center">{format(row.original.submission_date, "PPP", { locale: es })}</p>
+      <div className="flex justify-center">
+        <p className="text-center">
+          {format(row.original.submission_date, "PPP", { locale: es })}
+        </p>
+      </div>
     )
   },
   {
     accessorKey: "type",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Tipo de Req." />
+      <div className="flex justify-center w-full">
+        <DataTableColumnHeader column={column} title="Tipo de Req." />
+      </div>
     ),
-    meta: { title: "Fecha de c." },
+    meta: { title: "Tipo de Req." },
     cell: ({ row }) => (
-      <p className="text-center">{row.original.type}</p>
+      <div className="flex justify-center">
+        <p className="text-center">{row.original.type}</p>
+      </div>
     )
   },
   {
-    accessorKey: "actions",
+    id: "actions",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Acciones" />
+      <div className="flex justify-center w-full">
+        <DataTableColumnHeader column={column} title="Acciones" />
+      </div>
     ),
     meta: { title: "Acciones" },
     cell: ({ row }) => (
@@ -122,5 +142,5 @@ export const columns: ColumnDef<Requisition>[] = [
         <RequisitionsDropdownActions req={row.original} />
       </div>
     )
-  },
+  }
 ]

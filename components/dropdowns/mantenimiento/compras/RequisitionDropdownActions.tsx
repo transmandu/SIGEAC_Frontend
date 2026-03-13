@@ -1,3 +1,5 @@
+"use client"
+
 import { useDeleteRequisition, useUpdateRequisitionStatus } from "@/actions/mantenimiento/compras/requisiciones/actions"
 import {
   DropdownMenu,
@@ -16,13 +18,13 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import LoadingPage from "../../../misc/LoadingPage"
 import { PDFDownloadLink } from "@react-pdf/renderer"
 import RequisitionReportPdf from "@/components/pdf/almacen/RequisitionReportPdf"
-
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
 function transformApiData(apiData: any) {
   return {
     order_number: apiData.order_number,
     justification: apiData.justification,
-    company: "", // Add appropriate value
+    company: "",
     created_by: apiData.created_by.id.toString(),
     tax: "0",
     requested_by: apiData.requested_by,
@@ -30,9 +32,7 @@ function transformApiData(apiData: any) {
       batch: batch.id.toString(),
       batch_name: batch.name,
       batch_articles: batch.batch_articles.map((article: any) => ({
-        part_number: article.article_part_number ||
-          article.article_alt_part_number ||
-          article.pma,
+        part_number: article.article_part_number || article.article_alt_part_number || article.pma,
         unit: article.unit,
         quantity: parseFloat(article.quantity),
         image: article.image || null,
@@ -42,91 +42,83 @@ function transformApiData(apiData: any) {
 }
 
 const RequisitionsDropdownActions = ({ req }: { req: Requisition }) => {
-
   const { user } = useAuth()
-
   const [open, setOpen] = useState<boolean>(false)
-
   const [openDelete, setOpenDelete] = useState<boolean>(false)
-
   const [openConfirm, setOpenConfirm] = useState<boolean>(false)
-
   const [openReject, setOpenReject] = useState<boolean>(false)
-
-
   const { deleteRequisition } = useDeleteRequisition()
-
   const { updateStatusRequisition } = useUpdateRequisitionStatus()
-
   const { selectedCompany } = useCompanyStore()
+  const userRoles = user?.roles?.map(role => role.name) || []
+  const initialData = transformApiData(req)
 
-  const userRoles = user?.roles?.map(role => role.name) || [];
-
-  const initialData = transformApiData(req);
-
-  if (!selectedCompany) {
-    return <LoadingPage />
-  }
+  if (!selectedCompany) return <LoadingPage />
 
   const handleDelete = async (id: number, company: string) => {
-    await deleteRequisition.mutateAsync({
-      id,
-      company: selectedCompany!.slug
-    });
+    await deleteRequisition.mutateAsync({ id, company: selectedCompany!.slug })
     setOpenDelete(false)
   }
 
-
   const handleReject = async (id: number, updated_by: string, status: string, company: string) => {
-    const data = {
-      status,
-      updated_by,
-    };
-    await updateStatusRequisition.mutateAsync({
-      id,
-      data,
-      company: selectedCompany!.slug
-    });
+    const data = { status, updated_by }
+    await updateStatusRequisition.mutateAsync({ id, data, company: selectedCompany!.slug })
     setOpenReject(false)
   }
 
   return (
-    <>
+    <TooltipProvider>
       <DropdownMenu open={open} onOpenChange={setOpen}>
         <DropdownMenuTrigger>
           <Button variant="ghost" className="h-8 w-8 p-0">
-            <span className="sr-only">Abrir menu</span>
+            <span className="sr-only">Abrir menú</span>
             <MoreHorizontal className="h-4 w-4" />
           </Button>
         </DropdownMenuTrigger>
+
         <DropdownMenuContent align="center" className="flex gap-2 justify-center">
-          {
-            ((userRoles.includes("ANALISTA_COMPRAS")) || (userRoles.includes("SUPERUSER"))) && (
-              <>
-                {
-                  (req.status !== 'APROBADA' && req.status !== 'COTIZADO') && (
+          {((userRoles.includes("ANALISTA_COMPRAS")) || (userRoles.includes("SUPERUSER"))) && (
+            <>
+              {req.status !== 'APROBADA' && req.status !== 'COTIZADO' && (
+                <Tooltip>
+                  <TooltipTrigger asChild>
                     <DropdownMenuItem disabled={req.status === 'APROBADO' || req.status === 'RECHAZADO'} className="cursor-pointer">
                       <ClipboardCheck onClick={() => setOpenConfirm(true)} className='size-5' />
                     </DropdownMenuItem>
-                  )
-                }
-                <DropdownMenuItem disabled={req.status === 'RECHAZADO'} onClick={() => setOpenReject(true)} className="cursor-pointer">
-                  <ClipboardX className="size-5" />
+                  </TooltipTrigger>
+                  <TooltipContent>Aprobar / Generar cotización</TooltipContent>
+                </Tooltip>
+              )}
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <DropdownMenuItem disabled={req.status === 'RECHAZADO'} onClick={() => setOpenReject(true)} className="cursor-pointer">
+                    <ClipboardX className="size-5" />
+                  </DropdownMenuItem>
+                </TooltipTrigger>
+                <TooltipContent>Rechazar requisición</TooltipContent>
+              </Tooltip>
+            </>
+          )}
+
+          <PDFDownloadLink fileName={`${req.order_number}.pdf`} document={<RequisitionReportPdf requisition={req} />}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <DropdownMenuItem className="cursor-pointer">
+                  <FileDown className="size-5 text-blue-600 hover:text-blue-700" />
                 </DropdownMenuItem>
-              </>
-            )
-          }
-          <PDFDownloadLink
-            fileName={`${req.order_number}.pdf`}
-            document={<RequisitionReportPdf requisition={req} />}
-          >
-            <DropdownMenuItem className="cursor-pointer">
-              <FileDown className="size-5 text-blue-600 hover:text-blue-700" />
-            </DropdownMenuItem>
+              </TooltipTrigger>
+              <TooltipContent>Descargar PDF</TooltipContent>
+            </Tooltip>
           </PDFDownloadLink>
-          <DropdownMenuItem onClick={() => setOpenDelete(true)} className="cursor-pointer">
-            <Trash2 className="size-5 text-red-500" />
-          </DropdownMenuItem>
+
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <DropdownMenuItem onClick={() => setOpenDelete(true)} className="cursor-pointer">
+                <Trash2 className="size-5 text-red-500" />
+              </DropdownMenuItem>
+            </TooltipTrigger>
+            <TooltipContent>Eliminar requisición</TooltipContent>
+          </Tooltip>
         </DropdownMenuContent>
       </DropdownMenu>
 
@@ -140,7 +132,9 @@ const RequisitionsDropdownActions = ({ req }: { req: Requisition }) => {
           </DialogHeader>
           <DialogFooter>
             <Button type="button" variant={"destructive"} onClick={() => setOpenDelete(false)}>Cancelar</Button>
-            <Button onClick={() => handleDelete(req.id, selectedCompany!.slug)} disabled={deleteRequisition.isPending} className="bg-primary text-white">{deleteRequisition.isPending ? <Loader2 className="animate-spin size-4" /> : "Confirmar"}</Button>
+            <Button onClick={() => handleDelete(req.id, selectedCompany!.slug)} disabled={deleteRequisition.isPending} className="bg-primary text-white">
+              {deleteRequisition.isPending ? <Loader2 className="animate-spin size-4" /> : "Confirmar"}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -166,12 +160,14 @@ const RequisitionsDropdownActions = ({ req }: { req: Requisition }) => {
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button onClick={() => handleReject(req.id, `${user?.first_name} ${user?.last_name}`, "RECHAZADO", selectedCompany!.slug)} disabled={updateStatusRequisition.isPending} className="bg-primary text-white">{updateStatusRequisition.isPending ? <Loader2 className="animate-spin size-4" /> : "Confirmar"}</Button>
+            <Button onClick={() => handleReject(req.id, `${user?.first_name} ${user?.last_name}`, "RECHAZADO", selectedCompany!.slug)} disabled={updateStatusRequisition.isPending} className="bg-primary text-white">
+              {updateStatusRequisition.isPending ? <Loader2 className="animate-spin size-4" /> : "Confirmar"}
+            </Button>
             <Button type="button" variant={"destructive"} onClick={() => setOpenReject(false)}>Cancelar</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </>
+    </TooltipProvider>
   )
 }
 
