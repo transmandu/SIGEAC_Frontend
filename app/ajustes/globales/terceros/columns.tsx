@@ -3,6 +3,7 @@ import { ColumnDef } from "@tanstack/react-table"
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader"
 import { Checkbox } from "@/components/ui/checkbox"
 import { ThirdParty } from "@/types"
+import { getThirdPartyTypeLabel } from "@/lib/utils"
 
 export const columns: ColumnDef<ThirdParty>[] = [
   {
@@ -43,10 +44,10 @@ export const columns: ColumnDef<ThirdParty>[] = [
     header: ({ column }) => (
       <DataTableColumnHeader filter column={column} title="Tipo" />
     ),
-    meta: { title: 'Ubicacion' },
+    meta: { title: 'Tipo' },
     cell: ({ row }) =>
       <div className="flex justify-center">
-        <span className='text-muted-foreground italic'>{row.original.type}</span>
+        <span className='text-muted-foreground italic'>{getThirdPartyTypeLabel(row.original.type)}</span>
       </div>
   },
 ]

@@ -119,11 +119,7 @@ export function getMenuList(
         {
           href: `/${currentCompany?.slug}/general/cursos`,
           label: "Cursos",
-          roles: [
-            "SUPERUSER",
-            "JEFE_SMS",
-            "ANALISTA_SMS",
-          ],
+          roles: ["SUPERUSER", "JEFE_SMS", "ANALISTA_SMS"],
           active: pathname === `/${currentCompany?.slug}/general/cursos`,
           icon: Presentation,
           submenus: [
@@ -1010,6 +1006,12 @@ export function getMenuList(
                 "ANALISTA_ADMINISTRACION",
                 "SUPERUSER",
               ],
+            },
+            {
+              href: "/ajustes/globales/terceros",
+              label: "Terceros",
+              active: pathname === "/ajustes/terceros/clientes",
+              roles: [],
             },
             {
               href: "/ajustes/globales/condiciones",
