@@ -39,5 +39,5 @@ next-env.d.ts
 
 #Ai
 
-/.claude/*/
+/.claude/
 /.agents/*/
