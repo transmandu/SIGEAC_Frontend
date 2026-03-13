@@ -1044,6 +1044,10 @@ export type SMSActivity = {
   authorized_by: Employee;
   planned_by: Employee;
   executed_by: string;
+  image?: File | string;
+  document?: File | string;
+  imageUrl?: string;
+  documentUrl?: string;
   status: string;
 };
 
@@ -1205,4 +1209,16 @@ export type GeneralArticle = {
   quantity: number,
   brand_model: string,
   general_primary_unit: Unit,
+}
+
+export interface SMSCertificate {
+  id: number;
+  employee_id: number;
+  course_id: number;
+  completion_date: string;
+  document: string;
+  course?: {
+    id: number;
+    name: string;
+  };
 }

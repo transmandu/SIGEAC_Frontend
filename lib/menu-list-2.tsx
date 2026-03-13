@@ -4,6 +4,7 @@ import { Company } from "@/types";
 import { format } from "date-fns";
 import {
   AreaChartIcon,
+  Award,
   Blocks,
   BookCheck,
   BookUser,
@@ -38,6 +39,7 @@ import {
   Wrench,
   FilePen,
   OctagonAlert,
+  GraduationCap,
   KeyRound,
 } from "lucide-react";
 
@@ -183,6 +185,14 @@ export function getMenuList(
                 pathname ===
                 `/${currentCompany?.slug}/general/reporte/codigos_qr`,
             },
+
+            {
+              href: `/${currentCompany?.slug}/sms/certificados`,
+              label: "Certificados",
+              roles: [], // Libre para que Richard lo vea
+              active: pathname === `/${currentCompany?.slug}/sms/certificados`,
+            },
+
           ],
         },
         {
@@ -538,6 +548,16 @@ export function getMenuList(
             },
           ],
         },
+
+        {
+          href: `/${currentCompany?.slug}/sms/certificados`,
+          label: "Certificados",
+          active: pathname.includes(`/${currentCompany?.slug}/sms/certificados`),
+          icon: Award,
+          roles: ["SUPERUSER", "JEFE_SMS", "ANALISTA_SMS"],
+          submenus: [],
+        },
+
         {
           href: "",
           label: "Promoción",
