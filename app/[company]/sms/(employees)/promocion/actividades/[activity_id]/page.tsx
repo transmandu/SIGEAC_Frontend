@@ -3,6 +3,13 @@ import BarChartCourseComponent from "@/components/charts/BarChartCourseComponent
 import { PieChartComponent } from "@/components/charts/PieChartComponent";
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useGetActivityAttendanceList } from "@/hooks/sms/useGetActivityAttendanceList";
 import { useGetSMSActivityAttendanceStats } from "@/hooks/sms/useGetSMSActivityAttendanceStats";
@@ -32,6 +39,8 @@ import {
   ClipboardList,
 } from "lucide-react";
 import { useParams } from "next/navigation";
+import Image from "next/image";
+
 
 const ShowSMSActivity = () => {
   const { selectedCompany } = useCompanyStore();
@@ -341,7 +350,65 @@ const ShowSMSActivity = () => {
                 </div>
               </div>
 
-              
+
+              {/* Sección de Imagen y Documento */}
+              {(activity?.imageUrl || activity?.documentUrl) && (
+                <div className="space-y-4">
+                  {activity?.imageUrl && (
+                    <div className="rounded-lg border border-gray-300 p-5 dark:border-gray-700 dark:bg-gray-800">
+                      <h3 className="mb-3 text-lg font-semibold text-gray-800 dark:text-gray-200">
+                        Imagen Adjunta
+                      </h3>
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <div className="relative group w-full max-w-sm h-64 mx-auto cursor-pointer">
+                            <Image
+                              src={activity.imageUrl}
+                              alt="Imagen de la actividad"
+                              fill
+                              className="w-full h-full object-contain rounded-md border group-hover:border-gray-400 transition-all"
+                            />
+                            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 bg-black/20 transition-opacity rounded-md">
+                              <span className="text-white bg-black/70 px-3 py-2 rounded-md text-sm">
+                                Ver imagen completa
+                              </span>
+                            </div>
+                          </div>
+                        </DialogTrigger>
+                        <DialogContent className="max-w-4xl max-h-[90vh] w-[95vw]">
+                          <DialogHeader>
+                            <DialogTitle>Imagen de la Actividad</DialogTitle>
+                          </DialogHeader>
+                          <div className="relative h-[60vh] flex justify-center">
+                            <Image
+                              src={activity.imageUrl}
+                              fill
+                              alt="Imagen completa de la actividad"
+                              className="max-w-full max-h-full object-contain rounded-lg border"
+                            />
+                          </div>
+                        </DialogContent>
+                      </Dialog>
+                    </div>
+                  )}
+
+                  {activity?.documentUrl && (
+                    <div className="rounded-lg border border-gray-300 p-5 dark:border-gray-700 dark:bg-gray-800 text-center">
+                      <h3 className="text-lg font-semibold mb-4 text-gray-800 dark:text-gray-200">
+                        Documento Adjunto
+                      </h3>
+                      <a
+                        href={activity.documentUrl}
+                        download={`ACT-${activity.activity_number}.pdf`}
+                        className="inline-flex items-center px-5 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700"
+                      >
+                        <FileText className="w-5 h-5 mr-2" />
+                        Descargar Documento Adjunto
+                      </a>
+                    </div>
+                  )}
+                </div>
+              )}
             </TabsContent>
 
             {/* Pestaña de Participantes */}

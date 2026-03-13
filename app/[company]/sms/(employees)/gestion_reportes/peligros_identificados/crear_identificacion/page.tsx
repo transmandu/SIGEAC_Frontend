@@ -14,15 +14,14 @@ export default function CreateDangerIdentificationPage() {
 
   return (
     <ContentLayout title="Crear Identificación de Peligro">
-      <div className="flex justify-center mt-6">
-        <div className="w-full max-w-3xl bg-white p-6 rounded-2xl shadow-md">
+      
+        
           <CreateDangerIdentificationForm
-            
             id={Number(reporteId)}
             reportType="RVP"
           />
-        </div>
-      </div>
+        
+      
     </ContentLayout>
   );
 }
