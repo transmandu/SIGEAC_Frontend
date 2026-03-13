@@ -1210,3 +1210,15 @@ export type GeneralArticle = {
   brand_model: string,
   general_primary_unit: Unit,
 }
+
+export interface SMSCertificate {
+  id: number;
+  employee_id: number;
+  course_id: number;
+  completion_date: string;
+  document: string;
+  course?: {
+    id: number;
+    name: string;
+  };
+}
