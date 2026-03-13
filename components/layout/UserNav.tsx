@@ -20,9 +20,14 @@ import {
   TooltipTrigger
 } from "@/components/ui/tooltip";
 import { useAuth } from "@/contexts/AuthContext";
+import { useCompanyStore } from "@/stores/CompanyStore";
 
 export function UserNav() {
   const { user, loading, logout } = useAuth()
+  const { selectedCompany, selectedStation } = useCompanyStore();
+  const dashboardHref = selectedCompany
+    ? `/${selectedCompany.slug}/dashboard${selectedStation ? `?station=${selectedStation}` : ""}`
+    : "/inicio";
   return (
     <DropdownMenu>
       <TooltipProvider disableHoverableContent>
@@ -73,7 +78,7 @@ export function UserNav() {
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
           <DropdownMenuItem className="hover:cursor-pointer" asChild>
-            <Link href="/dashboard" className="flex items-center">
+            <Link href={dashboardHref} className="flex items-center">
               <LayoutGrid className="w-4 h-4 mr-3 text-muted-foreground" />
               Dashboard
             </Link>

@@ -13,7 +13,7 @@ const fetchObligatoryReports = async (
 
 export const useGetObligatoryReports = (company?: string) => {
   return useQuery<ObligatoryReport[]>({
-    queryKey: ["obligatory-reports"],
+    queryKey: ["obligatory-reports", company],
     queryFn: () => fetchObligatoryReports(company),
     staleTime: 1000 * 60 * 5, // 5 minutos
     enabled: !!company,

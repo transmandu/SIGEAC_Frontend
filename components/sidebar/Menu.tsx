@@ -15,9 +15,9 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useAuth } from "@/contexts/AuthContext";
+import { useRouteSelection } from "@/hooks/helpers/use-route-selection";
 import { getMenuList } from "@/lib/menu-list-2";
 import { cn } from "@/lib/utils";
-import { useCompanyStore } from "@/stores/CompanyStore";
 
 interface MenuProps {
   isOpen: boolean | undefined;
@@ -26,13 +26,31 @@ interface MenuProps {
 export function Menu({ isOpen }: MenuProps) {
   const { user } = useAuth();
   const pathname = usePathname();
-  const { selectedCompany } = useCompanyStore();
+  const { currentCompany, currentStation } = useRouteSelection();
 
-  // Memoize the menu list to prevent unnecessary recalculations
   const menuList = useMemo(() => {
     const userRoles = user?.roles?.map((role) => role.name) || [];
-    return getMenuList(pathname, selectedCompany, userRoles);
-  }, [pathname, selectedCompany, user?.roles]);
+    const withStation = (href: string) => {
+      if (!currentStation || !href.startsWith("/")) {
+        return href;
+      }
+
+      const separator = href.includes("?") ? "&" : "?";
+      return `${href}${separator}station=${currentStation}`;
+    };
+
+    return getMenuList(pathname, currentCompany, userRoles).map((group) => ({
+      ...group,
+      menus: group.menus.map((menu) => ({
+        ...menu,
+        href: withStation(menu.href),
+        submenus: menu.submenus.map((submenu) => ({
+          ...submenu,
+          href: withStation(submenu.href),
+        })),
+      })),
+    }));
+  }, [currentCompany, currentStation, pathname, user?.roles]);
 
   // Calculate the minimum height for the menu container
   const menuContainerHeight = useMemo(() => {

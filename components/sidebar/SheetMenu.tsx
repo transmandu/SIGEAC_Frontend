@@ -19,6 +19,9 @@ import { useAuth } from "@/contexts/AuthContext";
 export function SheetMenu() {
   const { selectedCompany, selectedStation } = useCompanyStore();
   const { user } = useAuth();
+  const dashboardHref = selectedCompany
+    ? `/${selectedCompany.slug}/dashboard${selectedStation ? `?station=${selectedStation}` : ""}`
+    : "/inicio";
   return (
     <Sheet>
       <SheetTrigger className="lg:hidden" asChild>
@@ -34,7 +37,7 @@ export function SheetMenu() {
             asChild
           >
             <Link
-              href={user ? `/login` : `/${selectedCompany?.slug}/dashboard`}
+              href={user ? dashboardHref : `/login`}
               className="flex items-center gap-2"
             >
               <Image src={"/logo.png"} width={150} height={150} alt="Logo" />

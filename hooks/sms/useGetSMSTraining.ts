@@ -9,7 +9,7 @@ const fetchSMSTraining = async (company?: string): Promise<SMSTraining[]> => {
 
 export const useGetSMSTraining = (company?: string) => {
   return useQuery<SMSTraining[]>({
-    queryKey: ["sms-training"],
+    queryKey: ["sms-training", company],
     queryFn: () => fetchSMSTraining(company),
     staleTime: 1000 * 60 * 5, // 5 minutos
     enabled: !!company,

@@ -13,6 +13,9 @@ import Link from "next/link";
 export function Sidebar() {
   const sidebar = useStore(useSidebarToggle, (state) => state);
   const { selectedCompany, selectedStation } = useCompanyStore();
+  const dashboardHref = selectedCompany
+    ? `/${selectedCompany.slug}/dashboard${selectedStation ? `?station=${selectedStation}` : ""}`
+    : "/inicio";
   if (!sidebar) return null;
   return (
     <aside
@@ -33,7 +36,7 @@ export function Sidebar() {
             asChild
           >
             <Link
-              href={`/${selectedCompany?.slug}/dashboard`}
+              href={dashboardHref}
               className="flex items-center justify-center w-full"
             >
               <Image src={"/logo.png"} width={150} height={150} alt="Logo" />

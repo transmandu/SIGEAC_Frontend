@@ -3,7 +3,7 @@
 import dynamic from "next/dynamic";
 import LoadingPage from "@/components/misc/LoadingPage";
 import { useAuth } from "@/contexts/AuthContext";
-import { useCompanyStore } from "@/stores/CompanyStore";
+import { useRouteSelection } from "@/hooks/helpers/use-route-selection";
 
 const WarehouseDashboard = dynamic(
   () => import("@/components/dashboard/WarehouseDashboard")
@@ -26,13 +26,13 @@ const DefaultDashboard = dynamic(
 );
 
 export default function DashboardPage() {
-  const { selectedCompany, selectedStation: location_id } = useCompanyStore();
+  const { currentCompany, currentStation } = useRouteSelection();
   const { user, loading } = useAuth();
 
   if (loading) return <LoadingPage />;
 
   if (!user) {
-    return <DefaultDashboard companySlug={selectedCompany?.slug || ""} />;
+    return <DefaultDashboard companySlug={currentCompany?.slug || ""} />;
   }
 
   const roleNames = user.roles?.map((r) => r.name) || [];
@@ -71,8 +71,8 @@ export default function DashboardPage() {
     case "SUPERUSER":
       return (
         <SuperUserDashboard
-          companySlug={selectedCompany?.slug || ""}
-          location_id={location_id || ""}
+          companySlug={currentCompany?.slug || ""}
+          location_id={currentStation || ""}
           user={user}
           roleNames={roleNames}
         />
@@ -81,8 +81,8 @@ export default function DashboardPage() {
     case "WAREHOUSE":
       return (
         <WarehouseDashboard
-          companySlug={selectedCompany?.slug || ""}
-          location_id={location_id || ""}
+          companySlug={currentCompany?.slug || ""}
+          location_id={currentStation || ""}
           user={user}
           roleNames={roleNames}
         />
@@ -91,8 +91,8 @@ export default function DashboardPage() {
     case "SMS":
       return (
         <SMSDashboard
-          companySlug={selectedCompany?.slug || ""}
-          location_id={location_id || ""}
+          companySlug={currentCompany?.slug || ""}
+          location_id={currentStation || ""}
           user={user}
           roleNames={roleNames}
         />
@@ -101,8 +101,8 @@ export default function DashboardPage() {
     case "ADMINISTRATION":
       return (
         <AdministrationDashboard
-          companySlug={selectedCompany?.slug || ""}
-          location_id={location_id || ""}
+          companySlug={currentCompany?.slug || ""}
+          location_id={currentStation || ""}
           user={user}
           roleNames={roleNames}
         />
@@ -110,6 +110,6 @@ export default function DashboardPage() {
 
     case "DEFAULT":
     default:
-      return <DefaultDashboard companySlug={selectedCompany?.slug || ""} />;
+      return <DefaultDashboard companySlug={currentCompany?.slug || ""} />;
   }
 }

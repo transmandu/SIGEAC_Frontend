@@ -2,7 +2,8 @@
   "permissions": {
     "allow": [
       "Bash(npx skills:*)",
-      "Bash(claude mcp:*)"
+      "Bash(claude mcp:*)",
+      "Bash(find \"C:\\\\Users\\\\aanton\\\\Proyecto\\\\SIGEAC_TRANSMANDU\\\\SIGEAC_Frontend\" -maxdepth 2 -name \"tsconfig.json\" -o -name \"next.config*\" -o -name \"vite.config*\" 2>/dev/null | head -10)"
     ]
   }
 }

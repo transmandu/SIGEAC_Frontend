@@ -2,6 +2,7 @@
 
 import { ReactNode, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+
 import { useAuth } from '@/contexts/AuthContext';
 import LoadingPage from '../misc/LoadingPage';
 
@@ -15,47 +16,33 @@ const ProtectedLayout = ({ children, roles, permissions }: ProtectedLayoutProps)
   const { user, loading } = useAuth();
   const router = useRouter();
 
-  useEffect(() => {
-    if (!loading && !user) {
-      router.push('/login');
-    }
-  }, [loading, user, router]);
+  const userRoles = user?.roles?.map((role) => role.name) || [];
+  const userPermissions =
+    user?.roles?.flatMap((role) =>
+      role.permissions.map((permission) => permission.name)
+    ) || [];
+
+  const shouldRedirectToLogin = !loading && !user;
+  const shouldRedirectToNotAuthorized =
+    !loading &&
+    !!user &&
+    ((roles && !roles.some((role) => userRoles.includes(role))) ||
+      (permissions &&
+        !permissions.some((permission) => userPermissions.includes(permission))));
 
   useEffect(() => {
-    if (!loading && user) {
-      const userRoles = user.roles?.map(role => role.name) || [];
-      const userPermissions = user.roles?.flatMap(role =>
-        role.permissions.map(permission => permission.name)
-      ) || [];
-
-      if (roles && !roles.some(role => userRoles.includes(role))) {
-        router.push('/not-authorized');
-        return;
-      }
-
-      if (permissions && !permissions.some(permission => userPermissions.includes(permission))) {
-        router.push('/not-authorized');
-      }
+    if (shouldRedirectToLogin) {
+      router.replace('/login');
+      return;
     }
-  }, [loading, user, roles, permissions, router]);
+
+    if (shouldRedirectToNotAuthorized) {
+      router.replace('/not-authorized');
+    }
+  }, [router, shouldRedirectToLogin, shouldRedirectToNotAuthorized]);
 
   if (loading) return <LoadingPage />;
-
-  if (!user) return null;
-
-  // Verificación final para asegurarnos que no redirigimos por error
-  const finalUserRoles = user.roles?.map(role => role.name) || [];
-  const finalUserPermissions = user.roles?.flatMap(role =>
-    role.permissions.map(permission => permission.name)
-  ) || [];
-
-  if (roles && !roles.some(role => finalUserRoles.includes(role))) {
-    return null;
-  }
-
-  if (permissions && !permissions.some(permission => finalUserPermissions.includes(permission))) {
-    return null;
-  }
+  if (shouldRedirectToLogin || shouldRedirectToNotAuthorized) return null;
 
   return <>{children}</>;
 };

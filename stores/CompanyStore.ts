@@ -16,7 +16,7 @@ interface CompanyState {
 
 interface CompanyActions {
     setSelectedCompany: (company: Company) => void;
-    setSelectedStation: (station: string) => void;
+    setSelectedStation: (station: string | null) => void;
     initFromLocalStorage: () => void;
     reset: () => void;
 }
@@ -26,21 +26,37 @@ const initialState: CompanyState = {
     selectedStation: null,
 };
 
+const isBrowser = typeof window !== "undefined";
+
 export const useCompanyStore = create<CompanyState & CompanyActions>((set) => ({
     ...initialState,
 
     setSelectedCompany: (company) => {
         set({ selectedCompany: company });
-        // Guardamos el objeto como JSON en localStorage
-        localStorage.setItem('selectedCompany', JSON.stringify(company));
+        if (isBrowser) {
+            localStorage.setItem('selectedCompany', JSON.stringify(company));
+        }
     },
 
     setSelectedStation: (station) => {
         set({ selectedStation: station });
-        localStorage.setItem('selectedStation', station);
+        if (!isBrowser) {
+            return;
+        }
+
+        if (station) {
+            localStorage.setItem('selectedStation', station);
+            return;
+        }
+
+        localStorage.removeItem('selectedStation');
     },
 
     initFromLocalStorage: () => {
+        if (!isBrowser) {
+            return;
+        }
+
         const savedSelectedCompany = localStorage.getItem('selectedCompany');
         if (savedSelectedCompany) {
             try {
@@ -62,7 +78,9 @@ export const useCompanyStore = create<CompanyState & CompanyActions>((set) => ({
 
     reset: () => {
         set(initialState);
-        localStorage.removeItem('selectedCompany');
-        localStorage.removeItem('selectedStation');
+        if (isBrowser) {
+            localStorage.removeItem('selectedCompany');
+            localStorage.removeItem('selectedStation');
+        }
     }
 }));
