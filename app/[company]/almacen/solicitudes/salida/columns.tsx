@@ -1,19 +1,17 @@
 import DispatchArticlesDialog from '@/components/dialogs/mantenimiento/almacen/DispatchArticlesDialog';
+import DispatchRequestDropdownActions from '@/components/dropdowns/mantenimiento/almacen/DispatchRequestDropdownActions';
 import { DataTableColumnHeader } from '@/components/tables/DataTableHeader';
-import { Button } from '@/components/ui/button';
 import { ColumnDef } from '@tanstack/react-table';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import {
-  ChevronDown,
-  ChevronRight,
+  Calendar,
   FileText,
+  MapPin,
   Package,
   Plane,
   Users,
-  Wrench,
-  Calendar,
-  MapPin,
+  Wrench
 } from 'lucide-react';
 import { DispatchGroupRow } from './page';
 
@@ -230,8 +228,25 @@ export const columns: ColumnDef<DispatchGroupRow>[] = [
         <DispatchArticlesDialog
           articles={row.original.articles}
           work_order={row.original.work_order}
-          justification={row.original.justification} 
+          justification={row.original.justification}
         />
+      </div>
+    ),
+    enableSorting: false,
+    size: 110,
+  },
+  {
+    id: 'actions',
+    meta: { title: 'Acciones' },
+    header: () => (
+      <div className="flex items-center justify-center gap-2">
+        <Package className="h-4 w-4 opacity-80" />
+        <span>Acciones</span>
+      </div>
+    ),
+    cell: ({ row }) => (
+      <div className="flex justify-center">
+        <DispatchRequestDropdownActions id={row.original.id} />
       </div>
     ),
     enableSorting: false,
