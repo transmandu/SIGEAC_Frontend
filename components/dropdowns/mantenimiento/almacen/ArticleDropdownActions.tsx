@@ -20,13 +20,16 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { useAuth } from "@/contexts/AuthContext";
+import { cn } from "@/lib/utils";
 
 const ArticleDropdownActions = ({ id }: { id: string | number }) => {
   const [open, setOpen] = useState<boolean>(false);
   const router = useRouter();
   const { selectedCompany } = useCompanyStore();
   const { deleteArticle } = useDeleteArticle();
-
+  const {user} = useAuth()
+  const roles = user?.roles?.map((r) => r.label) ?? []
   const handleDelete = (id: number | string) => {
     deleteArticle.mutate(
       { id, company: selectedCompany!.slug },
@@ -59,11 +62,11 @@ const ArticleDropdownActions = ({ id }: { id: string | number }) => {
           >
             <SquarePen className="size-5" />
           </DropdownMenuItem>
-          {/* <DialogTrigger asChild>
-            <DropdownMenuItem className="cursor-pointer">
+          <DialogTrigger asChild>
+            <DropdownMenuItem className={cn("cursor-pointer", roles.includes("SUPERUSER") ? "" : "hidden" )}>
               <Trash2 className="size-5 text-red-500" />
             </DropdownMenuItem>
-          </DialogTrigger> */}
+          </DialogTrigger>
         </DropdownMenuContent>
       </DropdownMenu>
       <DialogContent>
