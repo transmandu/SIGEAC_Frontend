@@ -657,7 +657,7 @@ export function getMenuList(
       menus: [
         {
           href: `/${currentCompany?.slug}/compras/requisiciones`,
-          label: "Requisiciones",
+          label: "Solicitudes de Compra",
           active: pathname.includes(
             `/${currentCompany?.slug}/compras/requisiciones`,
           ),

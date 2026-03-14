@@ -2,6 +2,7 @@
 
 import { ContentLayout } from '@/components/layout/ContentLayout';
 import LoadingPage from '@/components/misc/LoadingPage';
+import BackButton from '@/components/misc/BackButton';
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb';
 import { useAuth } from '@/contexts/AuthContext';
 import { useGetRequisition } from '@/hooks/mantenimiento/compras/useGetRequisitions';
@@ -40,22 +41,29 @@ const RequisitionsPage = () => {
   }
 
   return (
-    <ContentLayout title="Inventario">
+    <ContentLayout title="Requisiciones">
       <div className="flex flex-col gap-y-2">
-        <Breadcrumb>
-          <BreadcrumbList>
-            <BreadcrumbItem>
-              <BreadcrumbLink href={`/${selectedCompany?.slug}/dashboard`}>Inicio</BreadcrumbLink>
-            </BreadcrumbItem>
-            <BreadcrumbSeparator />
-            <BreadcrumbItem>General</BreadcrumbItem>
-            <BreadcrumbSeparator />
-            <BreadcrumbItem>
-              <BreadcrumbPage>Solicitudes de Compra</BreadcrumbPage>
-            </BreadcrumbItem>
-          </BreadcrumbList>
-        </Breadcrumb>
-        <h1 className="text-4xl font-bold text-center">Requisiciones de Compra</h1>
+
+        <div className="flex items-center gap-2">
+          <BackButton iconOnly tooltip="Volver" variant="secondary" />
+          <Breadcrumb>
+            <BreadcrumbList>
+              <BreadcrumbItem>
+                <BreadcrumbLink href={`/${selectedCompany?.slug}/dashboard`}>Inicio</BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbLink>Compras</BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbPage>Solicitudes de Compra</BreadcrumbPage>
+              </BreadcrumbItem>
+            </BreadcrumbList>
+          </Breadcrumb>
+        </div>
+
+        <h1 className="text-4xl font-bold text-center">Solicitudes de Compra</h1>
         <p className="text-sm text-muted-foreground text-center italic">
           Aquí puede observar todas las solicitudes de compra generales. <br />Filtre y/o busque si desea una en específico.
         </p>

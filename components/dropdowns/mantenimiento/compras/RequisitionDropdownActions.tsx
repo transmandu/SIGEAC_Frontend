@@ -95,7 +95,7 @@ const RequisitionsDropdownActions = ({ req }: { req: Requisition }) => {
                     <ClipboardX className="size-5" />
                   </DropdownMenuItem>
                 </TooltipTrigger>
-                <TooltipContent>Rechazar requisición</TooltipContent>
+                <TooltipContent>Rechazar solicitud</TooltipContent>
               </Tooltip>
             </>
           )}
@@ -117,7 +117,7 @@ const RequisitionsDropdownActions = ({ req }: { req: Requisition }) => {
                 <Trash2 className="size-5 text-red-500" />
               </DropdownMenuItem>
             </TooltipTrigger>
-            <TooltipContent>Eliminar requisición</TooltipContent>
+            <TooltipContent>Eliminar solicitud</TooltipContent>
           </Tooltip>
         </DropdownMenuContent>
       </DropdownMenu>
@@ -125,9 +125,9 @@ const RequisitionsDropdownActions = ({ req }: { req: Requisition }) => {
       <Dialog open={openDelete} onOpenChange={setOpenDelete}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle className="text-center text-3xl">¿Eliminar Requisición?</DialogTitle>
+            <DialogTitle className="text-center text-3xl">¿Eliminar Solicitud?</DialogTitle>
             <DialogDescription className="text-center">
-              Esta acción no se puede deshacer. ¿Estás seguro de eliminar esta requisición?
+              Esta acción no se puede deshacer. ¿Estás seguro de eliminar esta solicitud?
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -154,9 +154,9 @@ const RequisitionsDropdownActions = ({ req }: { req: Requisition }) => {
       <Dialog open={openReject} onOpenChange={setOpenReject}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle className="text-center text-3xl">Rechazar Requisición</DialogTitle>
+            <DialogTitle className="text-center text-3xl">Rechazar Solicitud</DialogTitle>
             <DialogDescription className="text-center">
-              ¿Estás seguro de rechazar esta requisición?
+              ¿Estás seguro de rechazar esta solicitud?
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
