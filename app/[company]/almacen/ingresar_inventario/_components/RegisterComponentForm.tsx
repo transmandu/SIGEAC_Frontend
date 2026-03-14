@@ -130,7 +130,7 @@ export default function CreateComponentForm({ initialData, isEditing }: Props) {
       part_number: initialData.part_number ?? "",
       serial: initialData.serial ?? "",
       alternative_part_number: initialData.alternative_part_number ?? [],
-      batch_id: initialData.batches?.id?.toString() ?? "",
+      batch_id: initialData.batch?.id?.toString() ?? "",
       manufacturer_id: initialData.manufacturer?.id?.toString() ?? "",
       condition_id: initialData.condition?.id?.toString() ?? "",
       description: initialData.description ?? "",
@@ -217,7 +217,10 @@ export default function CreateComponentForm({ initialData, isEditing }: Props) {
 
   return (
     <Form {...form}>
-      <form className="flex flex-col gap-6 max-w-7xl mx-auto" onSubmit={form.handleSubmit(onSubmit)}>
+      <form
+        className="flex flex-col gap-6 max-w-7xl mx-auto"
+        onSubmit={form.handleSubmit(onSubmit)}
+      >
         {/* Encabezado */}
         <Card>
           <CardHeader className="pb-3">
@@ -230,12 +233,17 @@ export default function CreateComponentForm({ initialData, isEditing }: Props) {
               render={({ field }) => (
                 <FormItem className="w-full">
                   <FormLabel>
-                    Nro. de parte <span className="text-xs italic text-gray-500 font-normal ml-1">(Part number)</span>
+                    Nro. de parte{" "}
+                    <span className="text-xs italic text-gray-500 font-normal ml-1">
+                      (Part number)
+                    </span>
                   </FormLabel>
                   <FormControl>
                     <Input placeholder="Ej: 234ABAC" {...field} />
                   </FormControl>
-                  <FormDescription>Identificador principal del artículo.</FormDescription>
+                  <FormDescription>
+                    Identificador principal del artículo.
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -264,12 +272,17 @@ export default function CreateComponentForm({ initialData, isEditing }: Props) {
               render={({ field }) => (
                 <FormItem className="w-full">
                   <FormLabel>
-                    Serial <span className="text-xs italic text-gray-500 font-normal ml-1">(Serial Number)</span>
+                    Serial{" "}
+                    <span className="text-xs italic text-gray-500 font-normal ml-1">
+                      (Serial Number)
+                    </span>
                   </FormLabel>
                   <FormControl>
                     <Input placeholder="Ej: 05458E1" {...field} />
                   </FormControl>
-                  <FormDescription>Si aplica, serial del componente.</FormDescription>
+                  <FormDescription>
+                    Si aplica, serial del componente.
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -281,7 +294,10 @@ export default function CreateComponentForm({ initialData, isEditing }: Props) {
               render={({ field }) => (
                 <FormItem className="w-full">
                   <FormLabel>
-                    Condición <span className="text-xs italic text-gray-500 font-normal ml-1">(Condition)</span>
+                    Condición{" "}
+                    <span className="text-xs italic text-gray-500 font-normal ml-1">
+                      (Condition)
+                    </span>
                   </FormLabel>
                   <Select
                     onValueChange={field.onChange}
@@ -328,19 +344,31 @@ export default function CreateComponentForm({ initialData, isEditing }: Props) {
                 <FormItem className="w-full">
                   <div className="flex items-center justify-between">
                     <FormLabel>
-                      Fabricante <span className="text-xs italic text-gray-500 font-normal ml-1">(Manufacturer)</span>
+                      Fabricante{" "}
+                      <span className="text-xs italic text-gray-500 font-normal ml-1">
+                        (Manufacturer)
+                      </span>
                     </FormLabel>
                     <CreateManufacturerDialog
                       defaultType="PART"
                       onSuccess={(manufacturer) => {
                         if (manufacturer?.id) {
-                          form.setValue("manufacturer_id", manufacturer.id.toString(), {
-                            shouldValidate: true,
-                          });
+                          form.setValue(
+                            "manufacturer_id",
+                            manufacturer.id.toString(),
+                            {
+                              shouldValidate: true,
+                            },
+                          );
                         }
                       }}
                       triggerButton={
-                        <Button type="button" variant="ghost" size="sm" className="h-7 text-xs">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 text-xs"
+                        >
                           <Plus className="h-3 w-3 mr-1" />
                           Crear nuevo
                         </Button>
@@ -352,17 +380,26 @@ export default function CreateComponentForm({ initialData, isEditing }: Props) {
                     <PopoverTrigger asChild>
                       <FormControl>
                         <Button
-                          disabled={isManufacturerLoading || isManufacturerError}
+                          disabled={
+                            isManufacturerLoading || isManufacturerError
+                          }
                           variant="outline"
                           role="combobox"
-                          className={cn("w-full justify-between", !field.value && "text-muted-foreground")}
+                          className={cn(
+                            "w-full justify-between",
+                            !field.value && "text-muted-foreground",
+                          )}
                         >
-                          {isManufacturerLoading && <Loader2 className="size-4 animate-spin mr-2" />}
+                          {isManufacturerLoading && (
+                            <Loader2 className="size-4 animate-spin mr-2" />
+                          )}
                           {field.value ? (
                             <p>
-                              {manufacturers
-                                ?.filter((m) => m.type === "PART")
-                                .find((m) => `${m.id}` === field.value)?.name}
+                              {
+                                manufacturers?.find(
+                                  (m) => `${m.id}` === field.value,
+                                )?.name
+                              }
                             </p>
                           ) : (
                             "Seleccione fabricante..."
@@ -380,27 +417,34 @@ export default function CreateComponentForm({ initialData, isEditing }: Props) {
                             No se encontró el fabricante.
                           </CommandEmpty>
                           <CommandGroup>
-                            {manufacturers
-                              ?.filter((m) => m.type === "PART")
-                              .map((manufacturer) => (
-                                <CommandItem
-                                  value={`${manufacturer.name}`}
-                                  key={manufacturer.id}
-                                  onSelect={() => {
-                                    form.setValue("manufacturer_id", manufacturer.id.toString(), {
+                            {manufacturers?.map((manufacturer) => (
+                              <CommandItem
+                                value={`${manufacturer.name} `}
+                                key={manufacturer.id}
+                                onSelect={() => {
+                                  form.setValue(
+                                    "manufacturer_id",
+                                    manufacturer.id.toString(),
+                                    {
                                       shouldValidate: true,
-                                    });
-                                  }}
-                                >
-                                  <Check
-                                    className={cn(
-                                      "mr-2 h-4 w-4",
-                                      `${manufacturer.id}` === field.value ? "opacity-100" : "opacity-0"
-                                    )}
-                                  />
-                                  <p>{manufacturer.name}</p>
-                                </CommandItem>
-                              ))}
+                                    },
+                                  );
+                                }}
+                              >
+                                <Check
+                                  className={cn(
+                                    "mr-2 h-4 w-4",
+                                    `${manufacturer.id}` === field.value
+                                      ? "opacity-100"
+                                      : "opacity-0",
+                                  )}
+                                />
+                                <p>{manufacturer.name} </p>
+                                <p className="italic text-xs">
+                                  ({manufacturer.type})
+                                </p>
+                              </CommandItem>
+                            ))}
                           </CommandGroup>
                         </CommandList>
                       </Command>
@@ -419,8 +463,11 @@ export default function CreateComponentForm({ initialData, isEditing }: Props) {
               render={({ field }) => (
                 <FormItem className="flex flex-col space-y-3 mt-1.5 w-full">
                   <FormLabel>
-                      Descripción de Componente <span className="text-xs italic text-gray-500 font-normal ml-1">(Component Description)</span>
-                    </FormLabel>
+                    Descripción de Componente{" "}
+                    <span className="text-xs italic text-gray-500 font-normal ml-1">
+                      (Component Description)
+                    </span>
+                  </FormLabel>
                   <Popover>
                     <PopoverTrigger asChild>
                       <FormControl>
@@ -428,11 +475,21 @@ export default function CreateComponentForm({ initialData, isEditing }: Props) {
                           disabled={isBatchesLoading || isBatchesError}
                           variant="outline"
                           role="combobox"
-                          className={cn("justify-between", !field.value && "text-muted-foreground")}
+                          className={cn(
+                            "justify-between",
+                            !field.value && "text-muted-foreground",
+                          )}
                         >
-                          {isBatchesLoading && <Loader2 className="size-4 animate-spin mr-2" />}
+                          {isBatchesLoading && (
+                            <Loader2 className="size-4 animate-spin mr-2" />
+                          )}
                           {field.value ? (
-                            <p>{batches?.find((b) => `${b.id}` === field.value)?.name}</p>
+                            <p>
+                              {
+                                batches?.find((b) => `${b.id}` === field.value)
+                                  ?.name
+                              }
+                            </p>
                           ) : (
                             "Elegir descripción..."
                           )}
@@ -454,15 +511,21 @@ export default function CreateComponentForm({ initialData, isEditing }: Props) {
                                 value={`${batch.name}`}
                                 key={batch.id}
                                 onSelect={() => {
-                                  form.setValue("batch_id", batch.id.toString(), {
-                                    shouldValidate: true,
-                                  });
+                                  form.setValue(
+                                    "batch_id",
+                                    batch.id.toString(),
+                                    {
+                                      shouldValidate: true,
+                                    },
+                                  );
                                 }}
                               >
                                 <Check
                                   className={cn(
                                     "mr-2 h-4 w-4",
-                                    `${batch.id}` === field.value ? "opacity-100" : "opacity-0"
+                                    `${batch.id}` === field.value
+                                      ? "opacity-100"
+                                      : "opacity-0",
                                   )}
                                 />
                                 <p>{batch.name}</p>
@@ -473,7 +536,9 @@ export default function CreateComponentForm({ initialData, isEditing }: Props) {
                       </Command>
                     </PopoverContent>
                   </Popover>
-                  <FormDescription>Descripción del componente a registrar.</FormDescription>
+                  <FormDescription>
+                    Descripción del componente a registrar.
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -493,12 +558,21 @@ export default function CreateComponentForm({ initialData, isEditing }: Props) {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>
-                    Observaciones <span className="text-xs italic text-gray-500 font-normal ml-1">(Observations)</span>
+                    Observaciones{" "}
+                    <span className="text-xs italic text-gray-500 font-normal ml-1">
+                      (Observations)
+                    </span>
                   </FormLabel>
                   <FormControl>
-                    <Textarea rows={5} placeholder="Ej: Observación relevante..." {...field} />
+                    <Textarea
+                      rows={5}
+                      placeholder="Ej: Observación relevante..."
+                      {...field}
+                    />
                   </FormControl>
-                  <FormDescription>Notas del ingreso administrativo.</FormDescription>
+                  <FormDescription>
+                    Notas del ingreso administrativo.
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -516,59 +590,76 @@ export default function CreateComponentForm({ initialData, isEditing }: Props) {
                 description="Imagen descriptiva."
               />
 
-                <FileField
-                  control={form.control}
-                  setValue={form.setValue}
-                  name="certificate_8130"
-                  label={
-                    <>
-                      Certificado <span className="text-primary font-semibold">8130 / 21-004 / EASA 1</span>
-                    </>
-                  }
-                  accept=".pdf,image/*"
-                  currentFileLabel={isEditing && initialData?.certificate_8130 ? initialData.certificate_8130.split("/").pop() : undefined}
-                  onDownload={
-                    isEditing && initialData?.certificate_8130
-                      ? () => handleDownload(initialData.certificate_8130!)
-                      : undefined
-                  }
-                />
+              <FileField
+                control={form.control}
+                setValue={form.setValue}
+                name="certificate_8130"
+                label={
+                  <>
+                    Certificado{" "}
+                    <span className="text-primary font-semibold">
+                      8130 / 21-004 / EASA 1
+                    </span>
+                  </>
+                }
+                accept=".pdf,image/*"
+                currentFileLabel={
+                  isEditing && initialData?.certificate_8130
+                    ? initialData.certificate_8130.split("/").pop()
+                    : undefined
+                }
+                onDownload={
+                  isEditing && initialData?.certificate_8130
+                    ? () => handleDownload(initialData.certificate_8130!)
+                    : undefined
+                }
+              />
 
-                <FileField
-                  control={form.control}
-                  setValue={form.setValue}
-                  name="certificate_fabricant"
-                  label={
-                    <>
-                      Certificado del <span className="text-primary">fabricante</span>
-                    </>
-                  }
-                  accept=".pdf,image/*"
-                  currentFileLabel={isEditing && initialData?.certificate_fabricant ? initialData.certificate_fabricant.split("/").pop() : undefined}
-                  onDownload={
-                    isEditing && initialData?.certificate_fabricant
-                      ? () => handleDownload(initialData.certificate_fabricant!)
-                      : undefined
-                  }
-                />
+              <FileField
+                control={form.control}
+                setValue={form.setValue}
+                name="certificate_fabricant"
+                label={
+                  <>
+                    Certificado del{" "}
+                    <span className="text-primary">fabricante</span>
+                  </>
+                }
+                accept=".pdf,image/*"
+                currentFileLabel={
+                  isEditing && initialData?.certificate_fabricant
+                    ? initialData.certificate_fabricant.split("/").pop()
+                    : undefined
+                }
+                onDownload={
+                  isEditing && initialData?.certificate_fabricant
+                    ? () => handleDownload(initialData.certificate_fabricant!)
+                    : undefined
+                }
+              />
 
-                <FileField
-                  control={form.control}
-                  setValue={form.setValue}
-                  name="certificate_vendor"
-                  label={
-                    <>
-                      Certificado del <span className="text-primary">vendedor</span>
-                    </>
-                  }
-                  accept=".pdf,image/*"
-                  currentFileLabel={isEditing && initialData?.certificate_vendor ? initialData.certificate_vendor.split("/").pop() : undefined}
-                  onDownload={
-                    isEditing && initialData?.certificate_vendor
-                      ? () => handleDownload(initialData.certificate_vendor!)
-                      : undefined
-                  }
-                />
+              <FileField
+                control={form.control}
+                setValue={form.setValue}
+                name="certificate_vendor"
+                label={
+                  <>
+                    Certificado del{" "}
+                    <span className="text-primary">vendedor</span>
+                  </>
+                }
+                accept=".pdf,image/*"
+                currentFileLabel={
+                  isEditing && initialData?.certificate_vendor
+                    ? initialData.certificate_vendor.split("/").pop()
+                    : undefined
+                }
+                onDownload={
+                  isEditing && initialData?.certificate_vendor
+                    ? () => handleDownload(initialData.certificate_vendor!)
+                    : undefined
+                }
+              />
             </div>
           </CardContent>
         </Card>
@@ -586,9 +677,17 @@ export default function CreateComponentForm({ initialData, isEditing }: Props) {
             type="submit"
           >
             {busy ? (
-              <Image className="text-black" src={loadingGif} width={170} height={170} alt="Cargando..." />
+              <Image
+                className="text-black"
+                src={loadingGif}
+                width={170}
+                height={170}
+                alt="Cargando..."
+              />
             ) : (
-              <span>{isEditing ? "Confirmar ingreso" : "Registrar ingreso"}</span>
+              <span>
+                {isEditing ? "Confirmar ingreso" : "Registrar ingreso"}
+              </span>
             )}
           </Button>
 
