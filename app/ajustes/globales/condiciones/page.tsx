@@ -20,10 +20,10 @@ const { data, isLoading, isError } = useGetConditions();
     <ContentLayout title="Condiciones">
       {" "}
       <h1 className="text-5xl font-bold text-center mt-2">
-        Control de Clientes
+        Control de Codiciones
       </h1>
       <p className="text-sm text-muted-foreground text-center italic mt-2">
-        Aquí puede llevar el control de los clientes registrados.
+        Aquí puede llevar el control de las condiciones registradas en el sistema.
       </p>
       {data && <DataTable columns={columns} data={data} />}
       {isError && (
