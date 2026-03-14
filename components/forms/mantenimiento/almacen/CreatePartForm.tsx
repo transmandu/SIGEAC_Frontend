@@ -493,8 +493,7 @@ const CreatePartForm = ({
                             <p>
                               {
                                 manufacturers
-                                  ?.filter((m) => m.type === "PART")
-                                  .find((m) => `${m.id}` === field.value)
+                                  ?.find((m) => `${m.id}` === field.value)
                                   ?.name
                               }
                             </p>
@@ -514,8 +513,7 @@ const CreatePartForm = ({
                           </CommandEmpty>
                           <CommandGroup>
                             {manufacturers
-                              ?.filter((m) => m.type === "PART")
-                              .map((manufacturer) => (
+                              ?.map((manufacturer) => (
                                 <CommandItem
                                   value={`${manufacturer.name}`}
                                   key={manufacturer.id}

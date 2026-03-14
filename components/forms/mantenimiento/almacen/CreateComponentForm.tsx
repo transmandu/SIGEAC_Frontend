@@ -352,8 +352,7 @@ export default function CreateComponentForm({ initialData, isEditing }: Props) {
                           {field.value ? (
                             <p>
                               {manufacturers
-                                ?.filter((m) => m.type === "PART")
-                                .find((m) => `${m.id}` === field.value)?.name}
+                                ?.find((m) => `${m.id}` === field.value)?.name}
                             </p>
                           ) : (
                             "Seleccione fabricante..."
@@ -372,8 +371,7 @@ export default function CreateComponentForm({ initialData, isEditing }: Props) {
                           </CommandEmpty>
                           <CommandGroup>
                             {manufacturers
-                              ?.filter((m) => m.type === "PART")
-                              .map((manufacturer) => (
+                              ?.map((manufacturer) => (
                                 <CommandItem
                                   value={`${manufacturer.name}`}
                                   key={manufacturer.id}
