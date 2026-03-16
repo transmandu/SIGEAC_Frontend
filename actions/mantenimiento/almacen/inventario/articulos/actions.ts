@@ -194,8 +194,9 @@ export const useDeleteArticle = () => {
     }) => {
       await axiosInstance.delete(`/${company}/article/${id}`);
     },
-    onSuccess: () => {
+    onSuccess: (_,data) => {
       queryClient.invalidateQueries({ queryKey: ["articles"] });
+      queryClient.invalidateQueries({ queryKey: ["warehouse-articles", data.company]});
       // queryClient.invalidateQueries({queryKey: ['warehouse-articles']})
       toast.success("¡Eliminado!", {
         description: `¡El articulo ha sido eliminado correctamente!`,
