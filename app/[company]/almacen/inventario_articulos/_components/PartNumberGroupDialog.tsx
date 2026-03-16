@@ -9,20 +9,18 @@ import {
   DialogDescription,
   DialogFooter,
   DialogHeader,
-  DialogTitle,
-  DialogTrigger,
+  DialogTitle
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
-import { Pencil, Search, Trash2, X } from "lucide-react";
+import { Loader2, Pencil, Search, Trash2, X } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import * as React from "react";
 
 import { useDeleteArticle } from "@/actions/mantenimiento/almacen/inventario/articulos/actions";
 import { useAuth } from "@/contexts/AuthContext";
 import { formatCondition } from "@/lib/warehouse/conditions";
-import { DropdownMenuItem } from "@radix-ui/react-dropdown-menu";
 import { useState } from "react";
 import type { IArticleSimple } from "../_tables/warehouse-columns";
 import { getStatusBadge } from "../_tables/warehouse-columns";
@@ -91,10 +89,23 @@ export function PartNumberGroupDialog({
   const company = String((params as any)?.company ?? "");
 
   const { deleteArticle } = useDeleteArticle();
+  const [articleIdToDelete, setArticleIdToDelete] = useState<
+    string | number | null
+  >(null);
   const [openDeleteArt, setOpenDeleteArt] = useState<boolean>(false);
 
   const { user } = useAuth();
   const roles = user?.roles?.map((r) => r.name) ?? [];
+
+  const handleDelete = () => {
+    if (articleIdToDelete === null) return;
+    deleteArticle.mutate(
+      { id: articleIdToDelete, company },
+      {
+        onSuccess: () => setOpenDeleteArt(false), // Cierra el modal solo si la eliminación fue exitosa
+      },
+    );
+  };
 
   const goEdit = React.useCallback(
     (articleId: string | number) => {
@@ -285,21 +296,29 @@ export function PartNumberGroupDialog({
                                 type="button"
                                 variant="ghost"
                                 size="icon"
-                                className="h-8 w-8"
+                                className="h-8 w-8 p-2"
                                 onClick={() => goEdit(r.id)}
                                 aria-label="Editar artículo"
                               >
                                 <Pencil className="h-4 w-4" />
                               </Button>
 
-                              <DialogTrigger asChild>
-                                {roles.includes("SUPERUSER") ||
-                                roles.includes("JEFE_ALMACEN") ? (
-                                  <DropdownMenuItem className="cursor-pointer">
-                                    <Trash2 className="size-5 text-red-500" />
-                                  </DropdownMenuItem>
-                                ) : null}
-                              </DialogTrigger>
+                              {(roles.includes("SUPERUSER") ||
+                                roles.includes("JEFE_ALMACEN")) && (
+                                <Button
+                                  type="button"
+                                  disabled={deleteArticle.isPending}
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-8 w-8 p-2"
+                                  onClick={() => {
+                                    setArticleIdToDelete(r.id);
+                                    setOpenDeleteArt(true);
+                                  }}
+                                >
+                                  <Trash2 className="h-5 w-5 text-red-500" />
+                                </Button>
+                              )}
                             </div>
                           </div>
                         );
@@ -312,6 +331,39 @@ export function PartNumberGroupDialog({
           )}
         </div>
 
+        {/* Delete dialog */}
+        <Dialog open={openDeleteArt} onOpenChange={setOpenDeleteArt}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle className="text-center">
+                ¿Seguro que desea eliminar el reporte?
+              </DialogTitle>
+              <DialogDescription className="text-center p-2 mb-0 pb-0">
+                Esta acción es irreversible y eliminará por completo el reporte.
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter className="flex flex-col-reverse gap-2 md:gap-0">
+              <Button
+                className="bg-rose-400 hover:bg-white hover:text-black hover:border hover:border-black"
+                onClick={() => setOpenDeleteArt(false)}
+                type="submit"
+              >
+                Cancelar
+              </Button>
+              <Button
+                disabled={deleteArticle.isPending}
+                className="hover:bg-white hover:text-black hover:border hover:border-black transition-all"
+                onClick={() => handleDelete()}
+              >
+                {deleteArticle.isPending ? (
+                  <Loader2 className="size-4 animate-spin" />
+                ) : (
+                  <p>Confirmar</p>
+                )}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
         {/* FOOTER */}
         <DialogFooter className="px-6 py-4 border-t shrink-0">
           <DialogClose asChild>
