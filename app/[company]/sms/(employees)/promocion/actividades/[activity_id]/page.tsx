@@ -15,6 +15,8 @@ import { useGetActivityAttendanceList } from "@/hooks/sms/useGetActivityAttendan
 import { useGetSMSActivityAttendanceStats } from "@/hooks/sms/useGetSMSActivityAttendanceStats";
 import { useGetSMSActivityById } from "@/hooks/sms/useGetSMSActivityById";
 import { useCompanyStore } from "@/stores/CompanyStore";
+import { useDeleteActivityImage } from "@/hooks/sms/useDeleteActivityImage";
+import { useDeleteActivityDocument } from "@/hooks/sms/useDeleteActivityDocument";
 import { addDays, format } from "date-fns";
 import { es } from "date-fns/locale";
 import { generateMinutaPDF } from "@/utils/generateMinutaPDF";
@@ -37,14 +39,18 @@ import {
   UserCheck,
   Info,
   ClipboardList,
+  Trash2,
 } from "lucide-react";
 import { useParams } from "next/navigation";
 import Image from "next/image";
 
-
 const ShowSMSActivity = () => {
   const { selectedCompany } = useCompanyStore();
   const { activity_id } = useParams<{ activity_id: string }>();
+
+  const { mutate: deleteImage, isPending: isDeletingImage } = useDeleteActivityImage();
+  const { mutate: deleteDocument, isPending: isDeletingDocument } = useDeleteActivityDocument();
+
 
   const {
     data: activity,
@@ -63,6 +69,7 @@ const ShowSMSActivity = () => {
     company: selectedCompany?.slug,
     activity_id: activity_id.toString(),
   });
+ 
 
   const {
     data: AttendanceStats,
@@ -139,64 +146,51 @@ const ShowSMSActivity = () => {
               </TabsTrigger>
             </TabsList>
 
-            {/* Pestaña de Información General (combinada con Detalles) */}
-            <TabsContent value="informacion" className="space-y-6">
-              {/* Sección superior con información básica */}
-              <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-                {/* Tarjeta de información básica */}
+            {/* ── PESTAÑA INFORMACIÓN ─────────────────────────────────────────── */}
+            <TabsContent value="informacion" className="space-y-4">
+
+              {/* ROW 1: Información General | Estado y Responsables */}
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+
+                {/* Información General */}
                 <div className="rounded-lg border border-gray-300 p-5 dark:border-gray-700 dark:bg-gray-800">
-                  <h2 className="mb-4 text-xl font-bold text-gray-800 dark:text-gray-200">
+                  <h2 className="mb-4 flex items-center gap-2 text-base font-bold text-gray-800 dark:text-gray-200 uppercase tracking-wide">
+                    <Tag className="h-4 w-4 text-blue-500" />
                     Información General
                   </h2>
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-2">
-                      <Tag className="h-5 w-5 text-gray-600 dark:text-gray-300" />
-                      <p className="text-lg font-medium text-gray-700 dark:text-gray-300">
-                        <span className="font-bold">Título:</span>{" "}
-                        {activity.title || "N/A"}
-                      </p>
+                  <dl className="grid grid-cols-1 gap-y-3 sm:grid-cols-2">
+                    <div>
+                      <dt className="text-xs font-semibold uppercase text-gray-500 dark:text-gray-400">Título</dt>
+                      <dd className="mt-0.5 text-sm font-medium text-gray-800 dark:text-gray-200 break-words">{activity.title || "N/A"}</dd>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <FileText className="h-5 w-5 text-gray-600 dark:text-gray-300" />
-                      <p className="text-lg font-medium text-gray-700 dark:text-gray-300">
-                        <span className="font-bold">Nombre:</span>{" "}
-                        {activity.activity_name || "N/A"}
-                      </p>
+                    <div>
+                      <dt className="text-xs font-semibold uppercase text-gray-500 dark:text-gray-400">Nombre</dt>
+                      <dd className="mt-0.5 text-sm font-medium text-gray-800 dark:text-gray-200 break-words">{activity.activity_name || "N/A"}</dd>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Hash className="h-5 w-5 text-gray-600 dark:text-gray-300" />
-                      <p className="text-lg font-medium text-gray-700 dark:text-gray-300">
-                        <span className="font-bold">Número:</span>{" "}
-                        {activity.activity_number || "N/A"}
-                      </p>
+                    <div>
+                      <dt className="text-xs font-semibold uppercase text-gray-500 dark:text-gray-400">Número</dt>
+                      <dd className="mt-0.5 text-sm font-medium text-gray-800 dark:text-gray-200">
+                        <span className="inline-flex items-center gap-1"><Hash className="h-3.5 w-3.5 text-gray-400" />{activity.activity_number || "N/A"}</span>
+                      </dd>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Calendar className="h-5 w-5 text-gray-600 dark:text-gray-300" />
-                      <p className="text-gray-700 dark:text-gray-300">
-                        <span className="font-bold">Fecha:</span>{" "}
-                        {format(addDays(activity.start_date, 1), "PPP", {
-                          locale: es,
-                        })}
-                      </p>
+                    <div>
+                      <dt className="text-xs font-semibold uppercase text-gray-500 dark:text-gray-400">Lugar</dt>
+                      <dd className="mt-0.5 text-sm font-medium text-gray-800 dark:text-gray-200 break-words">
+                        <span className="inline-flex items-center gap-1"><MapPin className="h-3.5 w-3.5 text-gray-400" />{activity.place || "N/A"}</span>
+                      </dd>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <MapPin className="h-5 w-5 text-gray-600 dark:text-gray-300" />
-                      <p className="text-gray-700 dark:text-gray-300">
-                        <span className="font-bold">Lugar:</span>{" "}
-                        {activity.place || "N/A"}
-                      </p>
-                    </div>
-                  </div>
+                  </dl>
                 </div>
 
-                {/* Tarjeta de estado y responsables */}
+                {/* Estado y Responsables */}
                 <div className="rounded-lg border border-gray-300 p-5 dark:border-gray-700 dark:bg-gray-800">
                   <div className="mb-4 flex items-center justify-between">
-                    <h2 className="text-xl font-bold text-gray-800 dark:text-gray-200">
-                      Estado y Responsables
+                    <h2 className="flex items-center gap-2 text-base font-bold text-gray-800 dark:text-gray-200 uppercase tracking-wide">
+                      <Users className="h-4 w-4 text-blue-500" />
+                      Responsables
                     </h2>
                     <Badge
-                      className={`font-bold ${
+                      className={`font-bold text-xs ${
                         activity.status === "ABIERTO"
                           ? "bg-green-500 text-white"
                           : activity.status === "PROCESO"
@@ -209,138 +203,103 @@ const ShowSMSActivity = () => {
                       {activity.status.replace("_", " ")}
                     </Badge>
                   </div>
-                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-                    <div className="flex flex-col">
-                      <p className="text-sm font-bold text-gray-700 dark:text-gray-400">
-                        Autorizado por:
-                      </p>
-                      <p className="text-base">
-                        {activity.authorized_by.first_name || "N/A"}{" "}
-                        {activity.authorized_by.last_name || "N/A"}
-                      </p>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">
-                        {activity.authorized_by.job_title?.name || "N/A"}{" "}
-                        {activity.authorized_by.department?.name || ""}
-                      </p>
+                  <dl className="grid grid-cols-1 gap-y-3 sm:grid-cols-3">
+                    <div>
+                      <dt className="text-xs font-semibold uppercase text-gray-500 dark:text-gray-400">Autorizado por</dt>
+                      <dd className="mt-0.5 text-sm font-medium text-gray-800 dark:text-gray-200">
+                        {activity.authorized_by.first_name} {activity.authorized_by.last_name}
+                      </dd>
+                      <dd className="text-xs text-gray-500 dark:text-gray-400">{activity.authorized_by.job_title?.name || "N/A"}</dd>
                     </div>
-                    <div className="flex flex-col">
-                      <p className="text-sm font-bold text-gray-700 dark:text-gray-400">
-                        Elaborado por:
-                      </p>
-                      <p className="text-base">
-                        {activity.planned_by.first_name || "N/A"}{" "}
-                        {activity.planned_by.last_name || "N/A"}
-                      </p>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">
-                        {activity.planned_by.job_title?.name || "N/A"}{" "}
-                        {activity.planned_by.department?.name || ""}
-                      </p>
+                    <div>
+                      <dt className="text-xs font-semibold uppercase text-gray-500 dark:text-gray-400">Elaborado por</dt>
+                      <dd className="mt-0.5 text-sm font-medium text-gray-800 dark:text-gray-200">
+                        {activity.planned_by.first_name} {activity.planned_by.last_name}
+                      </dd>
+                      <dd className="text-xs text-gray-500 dark:text-gray-400">{activity.planned_by.job_title?.name || "N/A"}</dd>
                     </div>
-                    <div className="flex flex-col">
-                      <p className="text-sm font-bold text-gray-700 dark:text-gray-400">
-                        Realizado por:
-                      </p>
-                      <p className="text-base">
-                        {activity.executed_by || "N/A"}
-                      </p>
+                    <div>
+                      <dt className="text-xs font-semibold uppercase text-gray-500 dark:text-gray-400">Realizado por</dt>
+                      <dd className="mt-0.5 text-sm font-medium text-gray-800 dark:text-gray-200">{activity.executed_by || "N/A"}</dd>
                     </div>
-                  </div>
+                  </dl>
                 </div>
               </div>
 
-              {/* Sección de detalles combinada con correcciones de estiramiento */}
-              <div className="grid grid-cols-1 gap-6 lg:grid-cols-3 items-start">
-                
-                {/* 1. Horario y Cronograma - h-fit asegura que no colapse */}
-                <div className="rounded-lg border border-gray-300 p-5 dark:border-gray-700 dark:bg-gray-800 h-fit flex flex-col">
-                  <h3 className="mb-3 flex items-center gap-2 text-xl font-semibold text-gray-800 dark:text-gray-200">
-                    <Calendar className="h-5 w-5" />
-                    Horario y Cronograma
+              {/* ROW 2: Cronograma | Temas | Observaciones + Descripción */}
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+
+                {/* Cronograma */}
+                <div className="rounded-lg border border-gray-300 p-5 dark:border-gray-700 dark:bg-gray-800">
+                  <h3 className="mb-3 flex items-center gap-2 text-base font-bold text-gray-800 dark:text-gray-200 uppercase tracking-wide">
+                    <Calendar className="h-4 w-4 text-blue-500" />
+                    Cronograma
                   </h3>
-                  <div className="space-y-3">
+                  <dl className="space-y-2.5">
                     <div className="grid grid-cols-2 gap-2">
                       <div>
-                        <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                          Hora Inicio:
-                        </p>
-                        <p className="font-semibold">{activity.start_time}</p>
+                        <dt className="text-xs font-semibold uppercase text-gray-500 dark:text-gray-400">Hora inicio</dt>
+                        <dd className="mt-0.5 text-sm font-semibold text-gray-800 dark:text-gray-200">{activity.start_time}</dd>
                       </div>
                       <div>
-                        <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                          Hora Final:
-                        </p>
-                        <p className="font-semibold">
-                          {activity.end_time || "N/A"}
-                        </p>
+                        <dt className="text-xs font-semibold uppercase text-gray-500 dark:text-gray-400">Hora fin</dt>
+                        <dd className="mt-0.5 text-sm font-semibold text-gray-800 dark:text-gray-200">{activity.end_time || "N/A"}</dd>
                       </div>
                     </div>
-                    <div className="border-t pt-3">
+                    <div className="border-t pt-2.5 dark:border-gray-600 grid grid-cols-2 gap-2">
                       <div>
-                        <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                          Fecha Inicio:
-                        </p>
-                        <p className="font-semibold">
-                          {format(addDays(activity.start_date, 1), "PPP", {
-                            locale: es,
-                          })}
-                        </p>
+                        <dt className="text-xs font-semibold uppercase text-gray-500 dark:text-gray-400">Fecha inicio</dt>
+                        <dd className="mt-0.5 text-sm font-semibold text-gray-800 dark:text-gray-200">
+                          {format(addDays(activity.start_date, 1), "dd MMM yyyy", { locale: es })}
+                        </dd>
                       </div>
-                      <div className="mt-2">
-                        <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                          Fecha Finalización:
-                        </p>
-                        <p className="font-semibold">
-                          {format(addDays(activity.end_date, 1), "PPP", {
-                            locale: es,
-                          })}
-                        </p>
+                      <div>
+                        <dt className="text-xs font-semibold uppercase text-gray-500 dark:text-gray-400">Fecha fin</dt>
+                        <dd className="mt-0.5 text-sm font-semibold text-gray-800 dark:text-gray-200">
+                          {format(addDays(activity.end_date, 1), "dd MMM yyyy", { locale: es })}
+                        </dd>
                       </div>
                     </div>
-                  </div>
+                  </dl>
                 </div>
 
-                {/* 2. Temas - Eliminado max-height para que se estire según la lista */}
-                <div className="rounded-lg border border-gray-300 p-5 dark:border-gray-700 dark:bg-gray-800 h-fit">
-                  <h3 className="mb-3 flex items-center gap-2 text-xl font-semibold text-gray-800 dark:text-gray-200">
-                    <FileText className="h-5 w-5" />
+                {/* Temas */}
+                <div className="rounded-lg border border-gray-300 p-5 dark:border-gray-700 dark:bg-gray-800">
+                  <h3 className="mb-3 flex items-center gap-2 text-base font-bold text-gray-800 dark:text-gray-200 uppercase tracking-wide">
+                    <ClipboardList className="h-4 w-4 text-blue-500" />
                     Temas
                   </h3>
                   {activity.topics ? (
-                    <ul className="space-y-2">
+                    <ul className="space-y-1.5">
                       {activity.topics.split(",").map(
                         (topic, index) =>
                           topic.trim() && (
                             <li key={index} className="flex items-start gap-2">
-                              <ChevronRight className="w-4 h-4 mt-1 flex-shrink-0 text-blue-500" />
-                              <span className="text-sm text-gray-600 dark:text-gray-400 break-words">
-                                {topic.trim()}
-                              </span>
+                              <ChevronRight className="w-3.5 h-3.5 mt-0.5 flex-shrink-0 text-blue-500" />
+                              <span className="text-sm text-gray-600 dark:text-gray-400 break-words">{topic.trim()}</span>
                             </li>
-                          )
+                          ),
                       )}
                     </ul>
                   ) : (
-                    <p className="text-gray-500 dark:text-gray-400">
-                      No hay temas registrados
-                    </p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">No hay temas registrados</p>
                   )}
                 </div>
 
-                {/* 3. Observaciones y Descripción - break-words es clave para textos largos */}
-                <div className="space-y-4 h-fit">
-                  <div className="rounded-lg border border-gray-300 p-5 dark:border-gray-700 dark:bg-gray-800 h-fit">
-                    <h3 className="mb-3 flex items-center gap-2 text-lg font-semibold text-gray-800 dark:text-gray-200">
-                      <FileText className="h-5 w-5" />
+                {/* Observaciones + Descripción apiladas */}
+                <div className="flex flex-col gap-4">
+                  <div className="rounded-lg border border-gray-300 p-5 dark:border-gray-700 dark:bg-gray-800 flex-1">
+                    <h3 className="mb-2 flex items-center gap-2 text-base font-bold text-gray-800 dark:text-gray-200 uppercase tracking-wide">
+                      <AlertTriangle className="h-4 w-4 text-blue-500" />
                       Observaciones
                     </h3>
                     <p className="text-sm whitespace-pre-line break-words text-gray-600 dark:text-gray-400">
                       {activity.objetive || "No hay observaciones registradas"}
                     </p>
                   </div>
-
-                  <div className="rounded-lg border border-gray-300 p-5 dark:border-gray-700 dark:bg-gray-800 h-fit">
-                    <h3 className="mb-3 flex items-center gap-2 text-lg font-semibold text-gray-800 dark:text-gray-200">
-                      <FileText className="h-5 w-5" />
+                  <div className="rounded-lg border border-gray-300 p-5 dark:border-gray-700 dark:bg-gray-800 flex-1">
+                    <h3 className="mb-2 flex items-center gap-2 text-base font-bold text-gray-800 dark:text-gray-200 uppercase tracking-wide">
+                      <FileText className="h-4 w-4 text-blue-500" />
                       Descripción
                     </h3>
                     <p className="text-sm whitespace-pre-line break-words text-gray-600 dark:text-gray-400">
@@ -350,28 +309,50 @@ const ShowSMSActivity = () => {
                 </div>
               </div>
 
-
-              {/* Sección de Imagen y Documento */}
+              {/* ROW 3: Imagen | Documento (solo si existen) */}
               {(activity?.imageUrl || activity?.documentUrl) && (
-                <div className="space-y-4">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+
+                  {/* Imagen */}
                   {activity?.imageUrl && (
                     <div className="rounded-lg border border-gray-300 p-5 dark:border-gray-700 dark:bg-gray-800">
-                      <h3 className="mb-3 text-lg font-semibold text-gray-800 dark:text-gray-200">
-                        Imagen Adjunta
-                      </h3>
+                      <div className="flex items-center justify-between mb-3">
+                        <h3 className="flex items-center gap-2 text-base font-bold text-gray-800 dark:text-gray-200 uppercase tracking-wide">
+                          <FileText className="h-4 w-4 text-blue-500" />
+                          Imagen Adjunta
+                        </h3>
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          disabled={isDeletingImage}
+                          onClick={() => {
+                            if (window.confirm("¿Estás seguro de que deseas eliminar esta imagen?")) {
+                              deleteImage({
+                                company: selectedCompany?.slug as string,
+                                activityId: activity_id as string,
+                              });
+                            }
+                          }}
+                        >
+                          {isDeletingImage ? (
+                            <Loader2 className="h-4 w-4 animate-spin mr-1" />
+                          ) : (
+                            <Trash2 className="h-4 w-4 mr-1" />
+                          )}
+                          Eliminar
+                        </Button>
+                      </div>
                       <Dialog>
                         <DialogTrigger asChild>
-                          <div className="relative group w-full max-w-sm h-64 mx-auto cursor-pointer">
+                          <div className="relative group w-full h-48 cursor-pointer rounded-md overflow-hidden border border-gray-200 dark:border-gray-600">
                             <Image
                               src={activity.imageUrl}
                               alt="Imagen de la actividad"
                               fill
-                              className="w-full h-full object-contain rounded-md border group-hover:border-gray-400 transition-all"
+                              className="object-contain transition-transform group-hover:scale-105"
                             />
-                            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 bg-black/20 transition-opacity rounded-md">
-                              <span className="text-white bg-black/70 px-3 py-2 rounded-md text-sm">
-                                Ver imagen completa
-                              </span>
+                            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 bg-black/30 transition-opacity">
+                              <span className="text-white bg-black/60 px-3 py-1.5 rounded-md text-sm">Ver completa</span>
                             </div>
                           </div>
                         </DialogTrigger>
@@ -384,7 +365,7 @@ const ShowSMSActivity = () => {
                               src={activity.imageUrl}
                               fill
                               alt="Imagen completa de la actividad"
-                              className="max-w-full max-h-full object-contain rounded-lg border"
+                              className="object-contain rounded-lg"
                             />
                           </div>
                         </DialogContent>
@@ -392,18 +373,42 @@ const ShowSMSActivity = () => {
                     </div>
                   )}
 
+                  {/* Documento */}
                   {activity?.documentUrl && (
-                    <div className="rounded-lg border border-gray-300 p-5 dark:border-gray-700 dark:bg-gray-800 text-center">
-                      <h3 className="text-lg font-semibold mb-4 text-gray-800 dark:text-gray-200">
-                        Documento Adjunto
-                      </h3>
+                    <div className="rounded-lg border border-gray-300 p-5 dark:border-gray-700 dark:bg-gray-800">
+                      <div className="flex items-center justify-between mb-4">
+                        <h3 className="flex items-center gap-2 text-base font-bold text-gray-800 dark:text-gray-200 uppercase tracking-wide">
+                          <FileText className="h-4 w-4 text-blue-500" />
+                          Documento Adjunto
+                        </h3>
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          disabled={isDeletingDocument}
+                          onClick={() => {
+                            if (window.confirm("¿Estás seguro de que deseas eliminar este documento?")) {
+                              deleteDocument({
+                                company: selectedCompany?.slug as string,
+                                activityId: activity_id as string,
+                              });
+                            }
+                          }}
+                        >
+                          {isDeletingDocument ? (
+                            <Loader2 className="h-4 w-4 animate-spin mr-1" />
+                          ) : (
+                            <Trash2 className="h-4 w-4 mr-1" />
+                          )}
+                          Eliminar
+                        </Button>
+                      </div>
                       <a
                         href={activity.documentUrl}
                         download={`ACT-${activity.activity_number}.pdf`}
-                        className="inline-flex items-center px-5 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700"
+                        className="inline-flex items-center gap-2 px-4 py-2.5 rounded-md text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 transition-colors"
                       >
-                        <FileText className="w-5 h-5 mr-2" />
-                        Descargar Documento Adjunto
+                        <FileText className="w-4 h-4" />
+                        Descargar Documento
                       </a>
                     </div>
                   )}
