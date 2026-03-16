@@ -28,14 +28,16 @@ const ArticleDropdownActions = ({ id }: { id: string | number }) => {
   const router = useRouter();
   const { selectedCompany } = useCompanyStore();
   const { deleteArticle } = useDeleteArticle();
-  const {user} = useAuth()
-  const roles = user?.roles?.map((r) => r.label) ?? []
+  const { user } = useAuth();
+
+ const roles = user?.roles?.map((r) => r.name) ?? [];
+
   const handleDelete = (id: number | string) => {
     deleteArticle.mutate(
       { id, company: selectedCompany!.slug },
       {
         onSuccess: () => setOpen(false), // Cierra el modal solo si la eliminación fue exitosa
-      }
+      },
     );
   };
 
@@ -56,16 +58,18 @@ const ArticleDropdownActions = ({ id }: { id: string | number }) => {
             className="cursor-pointer"
             onClick={() => {
               router.push(
-                `/${selectedCompany?.slug}/almacen/inventario_articulos/editar/${id}`
+                `/${selectedCompany?.slug}/almacen/inventario_articulos/editar/${id}`,
               );
             }}
           >
             <SquarePen className="size-5" />
           </DropdownMenuItem>
           <DialogTrigger asChild>
-            <DropdownMenuItem className={cn("cursor-pointer", roles.includes("SUPERUSER") ? "" : "hidden" )}>
-              <Trash2 className="size-5 text-red-500" />
-            </DropdownMenuItem>
+            {roles.includes("SUPERUSER") || roles.includes("JEFE_ALMACEN") ? (
+              <DropdownMenuItem className="cursor-pointer">
+                <Trash2 className="size-5 text-red-500" />
+              </DropdownMenuItem>
+            ) : null}
           </DialogTrigger>
         </DropdownMenuContent>
       </DropdownMenu>
