@@ -76,10 +76,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { MultiSerialInput } from "./MultiSerialInput";
 import { EditingArticle } from "./RegisterArticleForm";
 import { useAuth } from "@/contexts/AuthContext";
-import {
-  getConditionLabel,
-} from "@/lib/conditions";
+import { getConditionLabel } from "@/lib/conditions";
 import { Condition } from "@/types";
+import { useGetAircraftAcronyms } from "@/hooks/aerolinea/aeronaves/useGetAircraftAcronyms";
 /* ------------------------------- Schema ------------------------------- */
 
 const fileMaxBytes = 10_000_000; // 10 MB
@@ -226,14 +225,14 @@ export default function DirectPartForm({
   const [fabricationDate, setFabricationDate] = useState<
     Date | null | undefined
   >(
-    initialData?.part_component?.fabrication_date
-      ? parseISO(initialData.part_component.fabrication_date)
+    initialData?.partComponent?.fabrication_date
+      ? parseISO(initialData.partComponent.fabrication_date)
       : null, // Por defecto "No aplica" (muy pocos componentes tienen esta fecha)
   );
 
   const [caducateDate, setCaducateDate] = useState<Date | null | undefined>(
-    initialData?.part_component?.expiration_date
-      ? parseISO(initialData.part_component.expiration_date)
+    initialData?.partComponent?.expiration_date
+      ? parseISO(initialData.partComponent.expiration_date)
       : null, // Por defecto "No aplica" (componentes nuevos o sin fecha)
   );
 
@@ -244,16 +243,16 @@ export default function DirectPartForm({
   const [lifeLimitPartCalendar, setLifeLimitPartCalendar] = useState<
     Date | null | undefined
   >(
-    initialData?.part_component?.life_limit_part_calendar
-      ? parseISO(initialData.part_component.life_limit_part_calendar)
+    initialData?.partComponent?.life_limit_part_calendar
+      ? parseISO(initialData.partComponent.life_limit_part_calendar)
       : null, // Por defecto "No aplica" (componentes nuevos o sin fecha)
   );
 
   const [hardTimeCalendar, setHardTimeCalendar] = useState<
     Date | null | undefined
   >(
-    initialData?.part_component?.hard_time_calendar
-      ? parseISO(initialData.part_component.hard_time_calendar)
+    initialData?.partComponent?.hard_time_calendar
+      ? parseISO(initialData.partComponent.hard_time_calendar)
       : null, // Por defecto "No aplica" (componentes nuevos o sin fecha)
   );
 
@@ -272,6 +271,7 @@ export default function DirectPartForm({
     isLoading: isManufacturerLoading,
     isError: isManufacturerError,
   } = useGetManufacturers(selectedCompany?.slug);
+
   const {
     data: conditions,
     isLoading: isConditionsLoading,
@@ -312,30 +312,29 @@ export default function DirectPartForm({
       condition_id: initialData?.condition?.id?.toString() || "",
       description: initialData?.description || "",
       zone: initialData?.zone || "",
-      hour_date: initialData?.part_component?.hour_date
-        ? parseInt(initialData.part_component.hour_date)
+      hour_date: initialData?.partComponent?.hour_date
+        ? parseInt(initialData.partComponent.hour_date)
         : undefined,
-      cycle_date: initialData?.part_component?.cycle_date
-        ? parseInt(initialData.part_component.cycle_date)
+      cycle_date: initialData?.partComponent?.cycle_date
+        ? parseInt(initialData.partComponent.cycle_date)
         : undefined,
-      expiration_date: initialData?.part_component?.expiration_date
-        ? initialData?.part_component?.expiration_date
+      expiration_date: initialData?.partComponent?.expiration_date
+        ? initialData?.partComponent?.expiration_date
         : undefined,
-      fabrication_date: initialData?.part_component?.fabrication_date
-        ? initialData?.part_component?.fabrication_date
+      fabrication_date: initialData?.partComponent?.fabrication_date
+        ? initialData?.partComponent?.fabrication_date
         : undefined,
       has_documentation: initialData?.has_documentation ?? false,
       aircraft_id: "",
-      life_limit_part_calendar: initialData?.part_component
+      life_limit_part_calendar: initialData?.partComponent
         ?.life_limit_part_calendar
-        ? initialData?.part_component?.life_limit_part_calendar
+        ? initialData?.partComponent?.life_limit_part_calendar
         : undefined,
-      life_limit_part_cycles: initialData?.part_component
-        ?.life_limit_part_cycles
-        ? Number(initialData.part_component.life_limit_part_cycles)
+      life_limit_part_cycles: initialData?.partComponent?.life_limit_part_cycles
+        ? Number(initialData.partComponent.life_limit_part_cycles)
         : undefined,
-      life_limit_part_hours: initialData?.part_component?.life_limit_part_hours
-        ? Number(initialData.part_component.life_limit_part_hours)
+      life_limit_part_hours: initialData?.partComponent?.life_limit_part_hours
+        ? Number(initialData.partComponent.life_limit_part_hours)
         : undefined,
       inspect_date: initialData?.inspect_date
         ? initialData?.inspect_date
@@ -350,10 +349,14 @@ export default function DirectPartForm({
 
   // Watch condition_id to check if it's "resguardo"
   const conditionId = form.watch("condition_id");
+
   const selectedCondition = conditions?.find(
     (c) => c.id.toString() === conditionId,
   );
-  const isResguardo = selectedCondition?.name?.toLowerCase() === "resguardo";
+
+  const isSafekeepingOrRemoved =
+    selectedCondition?.name?.toUpperCase() === "SAFEKEEPING" ||
+    selectedCondition?.name?.toUpperCase() === "AS REMOVED";
 
   // Reset on prop change
   useEffect(() => {
@@ -372,29 +375,29 @@ export default function DirectPartForm({
       condition_id: initialData.condition?.id?.toString() ?? "",
       description: initialData.description ?? "",
       zone: initialData.zone ?? "",
-      hour_date: initialData.part_component?.hour_date
-        ? parseInt(initialData.part_component.hour_date)
+      hour_date: initialData.partComponent?.hour_date
+        ? parseInt(initialData.partComponent.hour_date)
         : undefined,
-      cycle_date: initialData.part_component?.cycle_date
-        ? parseInt(initialData.part_component.cycle_date)
+      cycle_date: initialData.partComponent?.cycle_date
+        ? parseInt(initialData.partComponent.cycle_date)
         : undefined,
-      expiration_date: initialData.part_component?.expiration_date
-        ? initialData.part_component?.expiration_date
+      expiration_date: initialData.partComponent?.expiration_date
+        ? initialData.partComponent?.expiration_date
         : undefined,
-      fabrication_date: initialData.part_component?.fabrication_date
-        ? initialData.part_component?.fabrication_date
+      fabrication_date: initialData.partComponent?.fabrication_date
+        ? initialData.partComponent?.fabrication_date
         : undefined,
       has_documentation: initialData.has_documentation ?? false,
       aircraft_id: "",
-      life_limit_part_calendar: initialData.part_component
+      life_limit_part_calendar: initialData.partComponent
         ?.life_limit_part_calendar
-        ? initialData.part_component?.life_limit_part_calendar
+        ? initialData.partComponent?.life_limit_part_calendar
         : undefined,
-      life_limit_part_cycles: initialData.part_component?.life_limit_part_cycles
-        ? Number(initialData.part_component.life_limit_part_cycles)
+      life_limit_part_cycles: initialData.partComponent?.life_limit_part_cycles
+        ? Number(initialData.partComponent.life_limit_part_cycles)
         : undefined,
-      life_limit_part_hours: initialData.part_component?.life_limit_part_hours
-        ? Number(initialData.part_component.life_limit_part_hours)
+      life_limit_part_hours: initialData.partComponent?.life_limit_part_hours
+        ? Number(initialData.partComponent.life_limit_part_hours)
         : undefined,
       inspector: initialData.inspector || "",
       inspect_date: initialData?.inspect_date
@@ -1207,7 +1210,7 @@ export default function DirectPartForm({
             />
 
             {/* Campo de aeronave - Solo se muestra cuando la condición es "resguardo" */}
-            {isResguardo && (
+            {isSafekeepingOrRemoved && (
               <FormField
                 control={form.control}
                 name="aircraft_id"
