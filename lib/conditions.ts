@@ -7,7 +7,7 @@ export interface Condition {
 export const getConditionLabel = (key: string) => {
   const CONDITIONS = [
     { key: "NEW", label: "Nuevo" },
-    { key: "FACTORY_NEW", label: "Nuevo de Fábrica" },
+    { key: "FACTORY NEW", label: "Nuevo de Fábrica" },
     { key: "OVERHAULED", label: "Overhauled" },
     { key: "INSPECTED", label: "Inspeccionado" },
     { key: "REPAIRABLE", label: "Reparable" },
