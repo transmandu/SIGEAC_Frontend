@@ -19,6 +19,7 @@ export const getColumns = (selectedCompany?: { slug: string }): ColumnDef<Quote>
         <DataTableColumnHeader filter column={column} title="Nro. de Cotización" />
       </div>
     ),
+    meta: { title: "Nro. de Cotización" },
     cell: ({ row }) => (
       <div className="flex justify-center">
         <Link

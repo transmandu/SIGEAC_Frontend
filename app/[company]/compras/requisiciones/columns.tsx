@@ -9,7 +9,6 @@ import { Batch, Requisition } from "@/types"
 import { format } from "date-fns"
 import { es } from "date-fns/locale"
 import Link from "next/link"
-// Volvemos a incluir la interfaz sin modificar nada más
 interface BatchesWithCountProp extends Batch {
   article_count: number
 }
@@ -22,6 +21,7 @@ export const getColumns = (selectedCompany?: { slug: string }): ColumnDef<Requis
         <DataTableColumnHeader filter column={column} title="Nro. Req." />
       </div>
     ),
+    meta: { title: "Nro. Req." },
     cell: ({ row }) => (
       <div className="flex justify-center">
         <Link
