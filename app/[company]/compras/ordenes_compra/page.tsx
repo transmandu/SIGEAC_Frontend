@@ -5,20 +5,21 @@ import LoadingPage from '@/components/misc/LoadingPage'
 import BackButton from '@/components/misc/BackButton'
 import { useGetPurchaseOrders } from '@/hooks/mantenimiento/compras/useGetPurchaseOrders'
 import { useCompanyStore } from '@/stores/CompanyStore'
-import { columns } from './columns'
+import { getColumns } from './columns'
 import { DataTable } from './data-table'
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb'
 
 const PurchaseOrdersPage = () => {
   const { selectedStation, selectedCompany } = useCompanyStore()
+
   const { data: po, isLoading, isError } = useGetPurchaseOrders(
-    selectedCompany?.slug || null,
-    selectedStation || null
+    selectedCompany?.slug ?? '', 
+    selectedStation ?? ''
   )
 
-  if (isLoading) {
-    return <LoadingPage />
-  }
+  const columns = getColumns(selectedCompany ?? undefined)
+
+  if (isLoading) return <LoadingPage />
 
   return (
     <ContentLayout title="Ordenes de Compra">
@@ -29,7 +30,7 @@ const PurchaseOrdersPage = () => {
           <Breadcrumb>
             <BreadcrumbList>
               <BreadcrumbItem>
-                <BreadcrumbLink href={`/${selectedCompany?.slug}/dashboard`}>Inicio</BreadcrumbLink>
+                <BreadcrumbLink href={`/${selectedCompany?.slug ?? ''}/dashboard`}>Inicio</BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
@@ -49,11 +50,7 @@ const PurchaseOrdersPage = () => {
           Filtre y/o busque si desea una específica.
         </p>
 
-        {po && po.length > 0 ? (
-          <DataTable columns={columns} data={po} />
-        ) : (
-          <DataTable columns={columns} data={[]} />
-        )}
+        <DataTable columns={columns} data={po || []} />
 
         {isError && (
           <p className="text-muted-foreground italic">

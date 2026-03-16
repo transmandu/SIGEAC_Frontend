@@ -3,21 +3,24 @@
 import { ContentLayout } from '@/components/layout/ContentLayout'
 import { useGetQuotes } from '@/hooks/mantenimiento/compras/useGetQuotes'
 import { useCompanyStore } from '@/stores/CompanyStore'
-import { Loader2 } from 'lucide-react'
-import { columns } from './columns'
+import { getColumns } from './columns'
 import { DataTable } from './data-table'
 import LoadingPage from '@/components/misc/LoadingPage'
 import BackButton from '@/components/misc/BackButton'
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb'
 
 const QuotesOrdersPage = () => {
-  const { selectedStation, selectedCompany } = useCompanyStore();
-  const { data: quotes, isLoading, isError } = useGetQuotes(selectedCompany && selectedCompany.slug || null,
-    selectedStation || null);
+  const { selectedStation, selectedCompany } = useCompanyStore()
 
-  if (isLoading) {
-    return <LoadingPage />;
-  }
+  const { data: quotes, isLoading, isError } = useGetQuotes(
+    selectedCompany?.slug ?? null,
+    selectedStation ?? null
+  )
+
+  if (!selectedCompany || isLoading) return <LoadingPage />
+
+  // Columnas dinámicas con la compañía
+  const columns = getColumns(selectedCompany)
 
   return (
     <ContentLayout title='Cotizaciones'>
@@ -28,7 +31,7 @@ const QuotesOrdersPage = () => {
           <Breadcrumb>
             <BreadcrumbList>
               <BreadcrumbItem>
-                <BreadcrumbLink href={`/${selectedCompany?.slug}/dashboard`}>Inicio</BreadcrumbLink>
+                <BreadcrumbLink href={`/${selectedCompany.slug}/dashboard`}>Inicio</BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
@@ -47,14 +50,11 @@ const QuotesOrdersPage = () => {
           Aquí puede observar todas las cotizaciones generales. <br />Filtre y/o busque si desea una en específico.
         </p>
 
-        {
-          quotes && (
-            <DataTable columns={columns} data={quotes} />
-          )
-        }
-        {
-          isError && <p className='text-muted-foreground italic'>Ha ocurrido un error al cargar las cotizaciones...</p>
-        }
+        <DataTable columns={columns} data={quotes || []} />
+
+        {isError && (
+          <p className='text-muted-foreground italic'>Ha ocurrido un error al cargar las cotizaciones...</p>
+        )}
       </div>
     </ContentLayout>
   )

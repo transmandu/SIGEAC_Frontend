@@ -1,4 +1,4 @@
-"use client"
+'use client'
 
 import { ColumnDef } from "@tanstack/react-table"
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader"
@@ -10,7 +10,8 @@ import { es } from "date-fns/locale"
 import Link from "next/link"
 import PurchaseOrderDropdownActions from "@/components/dropdowns/mantenimiento/compras/PurchaseOrderDropdownActions"
 
-export const columns: ColumnDef<PurchaseOrder>[] = [
+// Creamos función que recibe la compañía
+export const getColumns = (selectedCompany?: { slug: string }): ColumnDef<PurchaseOrder>[] => [
   {
     accessorKey: "order_number",
     header: ({ column }) => (
@@ -22,7 +23,7 @@ export const columns: ColumnDef<PurchaseOrder>[] = [
     cell: ({ row }) => (
       <div className="flex justify-center">
         <Link
-          href={`/hangar74/compras/ordenes_compra/${row.original.order_number}`}
+          href={`/${selectedCompany?.slug}/compras/ordenes_compra/${row.original.order_number}`}
           className="font-bold text-center hover:italic hover:scale-110 transition-all"
         >
           {row.original.order_number}
@@ -72,9 +73,7 @@ export const columns: ColumnDef<PurchaseOrder>[] = [
     meta: { title: "Proveedor" },
     cell: ({ row }) => (
       <div className="flex justify-center">
-        <p className="font-medium text-center">
-          {row.original.vendor.name}
-        </p>
+        <p className="font-medium text-center">{row.original.vendor.name}</p>
       </div>
     )
   },
@@ -94,11 +93,7 @@ export const columns: ColumnDef<PurchaseOrder>[] = [
         <div className="flex justify-center">
           <Badge
             className={cn(
-              process
-                ? "bg-yellow-500"
-                : paid
-                ? "bg-green-500"
-                : "bg-red-500"
+              process ? "bg-yellow-500" : paid ? "bg-green-500" : "bg-red-500"
             )}
           >
             {row.original.status.toUpperCase()}
@@ -117,9 +112,7 @@ export const columns: ColumnDef<PurchaseOrder>[] = [
     meta: { title: "Artículos" },
     cell: ({ row }) => (
       <div className="flex justify-center">
-        <span>
-          Total de {row.original.article_purchase_order.length} artículo(s)
-        </span>
+        <span>Total de {row.original.article_purchase_order.length} artículo(s)</span>
       </div>
     )
   },

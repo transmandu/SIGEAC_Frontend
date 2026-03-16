@@ -1,4 +1,4 @@
-"use client"
+'use client'
 
 import { ColumnDef } from "@tanstack/react-table"
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader"
@@ -10,8 +10,8 @@ import { es } from "date-fns/locale"
 import Link from "next/link"
 import QuoteDropdownActions from "@/components/dropdowns/mantenimiento/compras/QuoteDropdownActions"
 
-// Columnas para cotizaciones
-export const columns: ColumnDef<Quote>[] = [
+// Generamos las columnas dinámicamente pasando selectedCompany
+export const getColumns = (selectedCompany?: { slug: string }): ColumnDef<Quote>[] => [
   {
     accessorKey: "quote_number",
     header: ({ column }) => (
@@ -19,11 +19,10 @@ export const columns: ColumnDef<Quote>[] = [
         <DataTableColumnHeader filter column={column} title="Nro. de Cotización" />
       </div>
     ),
-    meta: { title: "Nro. Cotización" },
     cell: ({ row }) => (
       <div className="flex justify-center">
         <Link
-          href={`/hangar74/compras/cotizaciones/${row.original.quote_number}`}
+          href={`/${selectedCompany?.slug}/compras/cotizaciones/${row.original.quote_number}`}
           className="font-bold text-center hover:italic hover:scale-110 transition-all"
         >
           {row.original.quote_number}
@@ -38,21 +37,19 @@ export const columns: ColumnDef<Quote>[] = [
         <DataTableColumnHeader column={column} title="Nro. de Requisición" />
       </div>
     ),
-    meta: { title: "Nro. Requisición" },
     cell: ({ row }) => (
       <div className="flex justify-center">
-        <p className="font-medium text-center">{row.original.requisition_order.order_number ?? "N/A"}</p>
+        <p className="font-medium text-center">{row.original.requisition_order?.order_number ?? "N/A"}</p>
       </div>
     )
   },
   {
-    accessorKey: "purchase_date",
+    accessorKey: "quote_date",
     header: ({ column }) => (
       <div className="flex justify-center w-full">
         <DataTableColumnHeader column={column} title="Fecha" />
       </div>
     ),
-    meta: { title: "Fecha" },
     cell: ({ row }) => (
       <div className="flex justify-center">
         <p className="text-muted-foreground italic text-center">
@@ -68,10 +65,9 @@ export const columns: ColumnDef<Quote>[] = [
         <DataTableColumnHeader column={column} title="Proveedor" />
       </div>
     ),
-    meta: { title: "Proveedor" },
     cell: ({ row }) => (
       <div className="flex justify-center">
-        <p className="font-medium text-center">{row.original.vendor.name}</p>
+        <p className="font-medium text-center">{row.original.vendor?.name}</p>
       </div>
     )
   },
@@ -82,19 +78,16 @@ export const columns: ColumnDef<Quote>[] = [
         <DataTableColumnHeader column={column} title="Status" />
       </div>
     ),
-    meta: { title: "Status" },
     cell: ({ row }) => {
-      const process = row.original.status === "PENDIENTE"
+      const pending = row.original.status === "PENDIENTE"
       const approved = row.original.status === "APROBADO"
       return (
         <div className="flex justify-center">
           <Badge
             className={cn(
-              process
-                ? "bg-yellow-500"
-                : approved
-                ? "bg-green-500"
-                : "bg-red-500"
+              pending ? "bg-yellow-500" :
+              approved ? "bg-green-500" :
+              "bg-red-500"
             )}
           >
             {row.original.status.toUpperCase()}
@@ -104,16 +97,15 @@ export const columns: ColumnDef<Quote>[] = [
     }
   },
   {
-    accessorKey: "articles",
+    accessorKey: "article_quote_order",
     header: ({ column }) => (
       <div className="flex justify-center w-full">
         <DataTableColumnHeader column={column} title="Artículos" />
       </div>
     ),
-    meta: { title: "Artículos" },
     cell: ({ row }) => (
       <div className="flex justify-center">
-        <span>Total de {row.original.article_quote_order.length} artículo(s)</span>
+        <span>Total de {row.original.article_quote_order?.length ?? 0} artículo(s)</span>
       </div>
     )
   },
@@ -124,11 +116,10 @@ export const columns: ColumnDef<Quote>[] = [
         <DataTableColumnHeader column={column} title="Acciones" />
       </div>
     ),
-    meta: { title: "Acciones" },
     cell: ({ row }) => (
       <div className="flex justify-center">
         <QuoteDropdownActions quote={row.original} />
       </div>
-    ),
-  },
+    )
+  }
 ]

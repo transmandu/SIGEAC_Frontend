@@ -52,7 +52,7 @@ const RequisitionPage = () => {
       <Card className='max-w-7xl mx-auto'>
         <CardHeader className='flex flex-col items-center'>
           <CardTitle className='flex justify-center text-5xl mb-2'>#{order_number}</CardTitle>
-          <Badge className={cn("text-lg", data?.status === 'aprobada' ? "bg-green-500" : "bg-yellow-600")}>
+          <Badge className={cn("text-lg", data?.status === 'APROBADO' ? "bg-green-500" : "bg-yellow-600")}>
             {data?.status.toUpperCase()}
           </Badge>
         </CardHeader>
@@ -61,13 +61,12 @@ const RequisitionPage = () => {
           {/* Imagen principal de la requisición */}
           {data?.image && (
             <div className="flex flex-col items-center gap-2">
-              <div className="max-w-sm overflow-hidden">
+              <div className="relative w-[250px] h-[250px]">
                 <Image
-                  src={data.image.startsWith('data:image')
-                    ? data.image
-                    : `data:image/jpeg;base64,${data.image}`}
+                  src={data.image.startsWith('data:image') ? data.image : `data:image/jpeg;base64,${data.image}`}
                   alt="Imagen de la requisición"
-                  className="w-[250px] h-[250px] object-contain border rounded-md"
+                  fill
+                  className="object-contain border rounded-md"
                   onError={(e) => {
                     (e.target as HTMLImageElement).style.display = 'none';
                   }}
