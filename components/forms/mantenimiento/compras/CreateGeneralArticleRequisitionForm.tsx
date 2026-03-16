@@ -67,6 +67,7 @@ import {
   Tag,
   User,
 } from "lucide-react"
+import { ArticleImageAttachment } from "./_components/ArticleImageAttachment"
 
 /* -------------------------------------------------------------------------- */
 /*                                   SCHEMA                                   */
@@ -477,7 +478,7 @@ export function CreateGeneralArticleRequisitionForm({
                 </FormItem>
 
                 {/* Artículo */}
-                <FormItem className="flex flex-col min-w-[200px] flex-1">
+                <FormItem className="flex flex-col min-w-[20px] flex-none">
                   <FormLabel className="flex items-center gap-1.5">
                     <Package className="size-3.5 text-muted-foreground" />
                     Artículo
@@ -491,7 +492,7 @@ export function CreateGeneralArticleRequisitionForm({
                             variant="outline"
                             role="combobox"
                             className={cn(
-                              "w-full justify-between overflow-hidden",
+                              "w-[265px] justify-between overflow-hidden",
                               selectedBatches.length === 0 && "text-muted-foreground"
                             )}
                           >
@@ -504,7 +505,8 @@ export function CreateGeneralArticleRequisitionForm({
                           </Button>
                         </FormControl>
                       </PopoverTrigger>
-                      <PopoverContent className="w-[260px] p-0">
+
+                      <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0" align="start">
                         <Command>
                           <CommandInput placeholder="Buscar artículo..." />
                           <CommandList>
@@ -512,15 +514,16 @@ export function CreateGeneralArticleRequisitionForm({
                             <CommandGroup>
                               {Array.from(
                                 new Map(
-                                  articlesList?.map((a) => [
-                                    `${a.part_number}-${a.batch.name}`,
-                                    a,
-                                  ]) ?? []
+                                  articlesList?.map((a) => [`${a.part_number}-${a.batch.name}`, a]) ?? []
                                 ).values()
                               ).map((article) => (
                                 <CommandItem
                                   key={article.id}
-                                  value={`${article.part_number} ${article.batch.name} ${Array.isArray(article.alternative_part_number) ? article.alternative_part_number.join(" ") : article.alternative_part_number ?? ""}`}
+                                  value={`${article.part_number} ${article.batch.name} ${
+                                    Array.isArray(article.alternative_part_number)
+                                      ? article.alternative_part_number.join(" ")
+                                      : article.alternative_part_number ?? ""
+                                  }`}
                                   onSelect={() => handleBatchSelect(article)}
                                   className="flex items-center gap-2 px-2 py-1"
                                 >
@@ -549,7 +552,7 @@ export function CreateGeneralArticleRequisitionForm({
                       <Button
                         variant="outline"
                         disabled
-                        className="w-full justify-start text-muted-foreground overflow-hidden"
+                        className="w-[265px] justify-start text-muted-foreground overflow-hidden"
                       >
                         <span className="truncate">Seleccione una categoría primero</span>
                       </Button>
@@ -642,13 +645,11 @@ export function CreateGeneralArticleRequisitionForm({
                             <div className="flex items-center gap-2">
                               <Input
                                 placeholder="N/P Alterno"
-                                value={
-                                  article.alt_part_number !== undefined
-                                    ? article.alt_part_number
-                                    : article.alt_part_number_initial ?? ""
-                                }
+                                value={article.alt_part_number ?? article.alt_part_number_initial ?? ""}
                                 className="text-xs h-8"
-                                onChange={(e) => updateArticle(batch.batch, index, "alt_part_number", e.target.value)}
+                                onChange={(e) =>
+                                  updateArticle(batch.batch, index, "alt_part_number", e.target.value)
+                                }
                               />
                               <Select
                                 value={article.unit}
@@ -667,13 +668,21 @@ export function CreateGeneralArticleRequisitionForm({
                                 </SelectContent>
                               </Select>
                               <Input
-                                type="number"
                                 placeholder="Cant."
                                 value={article.quantity}
                                 min={1}
                                 className="text-xs h-8 w-20 shrink-0"
-                                onChange={(e) => updateArticle(batch.batch, index, "quantity", Number(e.target.value))}
+                                onChange={(e) =>
+                                  updateArticle(batch.batch, index, "quantity", Number(e.target.value))
+                                }
                               />
+
+                              {/* NUEVO: botón de adjuntar imagen */}
+                              <ArticleImageAttachment
+                                article={article}
+                                onChangeImage={(file) => updateArticle(batch.batch, index, "image", file)}
+                              />
+
                               <Button
                                 variant="ghost"
                                 type="button"
