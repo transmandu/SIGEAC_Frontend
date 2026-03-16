@@ -10,7 +10,6 @@ import { z } from "zod";
 
 import { format, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
-import { conditions as staticConditions, type Condition as UI_Condition } from "@/lib/conditions";
 
 import {
   Calculator,
@@ -92,6 +91,8 @@ import { Convertion } from "@/types";
 import { useQueryClient } from "@tanstack/react-query";
 import { EditingArticle } from "@/components/forms/mantenimiento/almacen/RegisterArticleForm";
 import PreviewCreateConsumableDialog from "@/components/dialogs/mantenimiento/almacen/PreviewCreateConsumableDialog";
+import { getConditionLabel } from "@/lib/conditions";
+import { Condition } from "@/types";
 
 /* ------------------------------- Schema ------------------------------- */
 
@@ -124,7 +125,7 @@ const formSchema = z.object({
         message: "Debe ingresar la condición del artículo.",
       });
     }
-}),
+  }),
   quantity: z.coerce
     .number({ message: "Debe ingresar una cantidad." })
     .min(0, { message: "No puede ser negativo." })
@@ -345,7 +346,7 @@ function DatePickerField({
     "Fecha de la Parte": "Part date",
     "Fecha de Inspección": "Inspection date",
     "Fecha de Incoming": "Incoming date",
-    "Próximo Vencimiento": "Next expiration date"
+    "Próximo Vencimiento": "Next expiration date",
   };
 
   const renderLabelContent = () => {
@@ -520,7 +521,10 @@ function DatePickerField({
     setTouched(true);
   };
 
-  const labelId = typeof label === 'string' ? label.replace(/\s+/g, "-").toLowerCase() : 'date';
+  const labelId =
+    typeof label === "string"
+      ? label.replace(/\s+/g, "-").toLowerCase()
+      : "date";
 
   return (
     <FormItem className="flex flex-col p-0 mt-2.5 w-full">
@@ -590,7 +594,7 @@ function DatePickerField({
                     className={cn(
                       "flex-1 pl-3 text-left font-normal",
                       (!value || value === null) && "text-muted-foreground",
-                      isInvalid && "border-destructive"
+                      isInvalid && "border-destructive",
                     )}
                   >
                     {value && isNotApplicableDate(value) ? (
@@ -1398,21 +1402,23 @@ export default function DirectConsumableForm({
   const [previewData, setPreviewData] = useState<FormValues | null>(null);
 
   async function onSubmit(values: FormValues) {
-  // 1. Obtenemos los valores
-  const rawValues = form.getValues();
+    // 1. Obtenemos los valores
+    const rawValues = form.getValues();
 
-  // 2. Transformamos los datos críticos a formato numérico
-  const formattedValues = {
-    ...rawValues,
-  // Convertimos el ID de condición a número (Ej: "10" -> 10)
-    condition_id: rawValues.condition_id ? Number(rawValues.condition_id) : null,
-    // Aprovechamos para asegurar que quantity también sea número
-    quantity: Number(rawValues.quantity),
-  };
+    // 2. Transformamos los datos críticos a formato numérico
+    const formattedValues = {
+      ...rawValues,
+      // Convertimos el ID de condición a número (Ej: "10" -> 10)
+      condition_id: rawValues.condition_id
+        ? Number(rawValues.condition_id)
+        : null,
+      // Aprovechamos para asegurar que quantity también sea número
+      quantity: Number(rawValues.quantity),
+    };
 
-  // 3. Pasamos los datos ya formateados a la vista previa
-  setPreviewData(formattedValues as any);
-  setOpenPreview(true);
+    // 3. Pasamos los datos ya formateados a la vista previa
+    setPreviewData(formattedValues as any);
+    setOpenPreview(true);
   }
 
   async function submitToBackend(values: FormValues) {
@@ -1518,7 +1524,10 @@ export default function DirectConsumableForm({
                 render={({ field }) => (
                   <FormItem className="w-full">
                     <FormLabel>
-                      Inspector (Incoming) <span className="text-xs italic text-gray-500 font-normal ml-1">(Inspector)</span>
+                      Inspector (Incoming){" "}
+                      <span className="text-xs italic text-gray-500 font-normal ml-1">
+                        (Inspector)
+                      </span>
                     </FormLabel>
                     <FormControl>
                       <Input placeholder="Nombre del Inspector" {...field} />
@@ -1546,7 +1555,10 @@ export default function DirectConsumableForm({
                 render={({ field }) => (
                   <FormItem className="w-full">
                     <FormLabel>
-                      Nro. de parte <span className="text-xs italic text-gray-500 font-normal ml-1">(Part number)</span>
+                      Nro. de parte{" "}
+                      <span className="text-xs italic text-gray-500 font-normal ml-1">
+                        (Part number)
+                      </span>
                     </FormLabel>
                     <FormControl>
                       <Input
@@ -1604,7 +1616,10 @@ export default function DirectConsumableForm({
                 render={({ field }) => (
                   <FormItem className="w-full">
                     <FormLabel>
-                      Nro. de lote <span className="text-xs italic text-gray-500 font-normal ml-1">(Lot number)</span>
+                      Nro. de lote{" "}
+                      <span className="text-xs italic text-gray-500 font-normal ml-1">
+                        (Lot number)
+                      </span>
                     </FormLabel>
                     <FormControl>
                       <Input
@@ -1627,7 +1642,10 @@ export default function DirectConsumableForm({
                     <FormItem className="flex flex-col space-y-3 mt-1.5 w-full">
                       <div className="flex items-center justify-between">
                         <FormLabel>
-                          Descripción de consumible <span className="text-xs italic text-gray-500 font-normal ml-1">(Consumable description)</span>
+                          Descripción de consumible{" "}
+                          <span className="text-xs italic text-gray-500 font-normal ml-1">
+                            (Consumable description)
+                          </span>
                         </FormLabel>
                         <CreateBatchDialog
                           onSuccess={async (batchName) => {
@@ -1873,7 +1891,10 @@ export default function DirectConsumableForm({
                 render={({ field }) => (
                   <FormItem className="w-full">
                     <FormLabel>
-                      Condición <span className="text-xs italic text-gray-500 font-normal ml-1">(Condition)</span>
+                      Condición{" "}
+                      <span className="text-xs italic text-gray-500 font-normal ml-1">
+                        (Condition)
+                      </span>
                     </FormLabel>
                     <Select
                       onValueChange={field.onChange}
@@ -1889,20 +1910,20 @@ export default function DirectConsumableForm({
                         onKeyDown={(e) => {
                           if (e.key === "Tab") {
                             e.preventDefault();
-                            const focused = document.activeElement as HTMLElement;
+                            const focused =
+                              document.activeElement as HTMLElement;
                             if (focused?.getAttribute("role") === "option") {
                               focused.click();
                             }
                           }
                         }}
                       >
-                        {/* Mapeo limpio usando los IDs de SSMS que ya configuraste en lib/conditions.ts */}
-                        {staticConditions?.map((c: UI_Condition) => (
-                          <SelectItem key={c.value} value={c.value}>
+                        {conditions?.map((c: Condition) => (
+                          <SelectItem key={c.name} value={c.id.toString()}>
                             <div className="flex items-center gap-2">
-                              <span className="font-medium">{c.label}</span>
+                              <span className="font-medium">{c.name}</span>
                               <span className="text-muted-foreground italic text-xs">
-                                ({c.label_en})
+                                {getConditionLabel(c.name.toUpperCase())}
                               </span>
                             </div>
                           </SelectItem>
@@ -1921,7 +1942,10 @@ export default function DirectConsumableForm({
                   <FormItem className="w-full">
                     <div className="flex items-center justify-between">
                       <FormLabel>
-                        Fabricante <span className="text-xs italic text-gray-500 font-normal ml-1">(Manufacturer)</span>
+                        Fabricante{" "}
+                        <span className="text-xs italic text-gray-500 font-normal ml-1">
+                          (Manufacturer)
+                        </span>
                       </FormLabel>
                       <CreateManufacturerDialog
                         defaultType="PART"
@@ -2060,7 +2084,10 @@ export default function DirectConsumableForm({
                 render={({ field }) => (
                   <FormItem className="w-full">
                     <FormLabel>
-                      Ubicación Interna <span className="text-xs italic text-gray-500 font-normal ml-1">(Internal Location)</span>
+                      Ubicación Interna{" "}
+                      <span className="text-xs italic text-gray-500 font-normal ml-1">
+                        (Internal Location)
+                      </span>
                     </FormLabel>
                     <FormControl>
                       <Input
@@ -2120,7 +2147,10 @@ export default function DirectConsumableForm({
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
               <div className="flex flex-col space-y-2 mt-2.5">
                 <FormLabel>
-                  Metodo de Ingreso <span className="text-xs italic text-gray-500 font-normal ml-1">(Entry Method)</span>
+                  Metodo de Ingreso{" "}
+                  <span className="text-xs italic text-gray-500 font-normal ml-1">
+                    (Entry Method)
+                  </span>
                 </FormLabel>
                 <Popover open={secondaryOpen} onOpenChange={setSecondaryOpen}>
                   <PopoverTrigger asChild>
@@ -2222,7 +2252,10 @@ export default function DirectConsumableForm({
                 render={({ field }) => (
                   <FormItem className="w-full">
                     <FormLabel>
-                      Cantidad <span className="text-xs italic text-gray-500 font-normal ml-1">(Quantity)</span>
+                      Cantidad{" "}
+                      <span className="text-xs italic text-gray-500 font-normal ml-1">
+                        (Quantity)
+                      </span>
                     </FormLabel>
                     <FormControl>
                       <Input
@@ -2272,7 +2305,10 @@ export default function DirectConsumableForm({
                 render={({ field }) => (
                   <FormItem className="w-full">
                     <FormLabel>
-                      Cantidad Mínima <span className="text-xs italic text-gray-500 font-normal ml-1">(Minimum Quantity)</span>
+                      Cantidad Mínima{" "}
+                      <span className="text-xs italic text-gray-500 font-normal ml-1">
+                        (Minimum Quantity)
+                      </span>
                     </FormLabel>
                     <FormControl>
                       <Input
@@ -2345,7 +2381,10 @@ export default function DirectConsumableForm({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>
-                      Detalles/Observaciones <span className="text-xs italic text-gray-500 font-normal ml-1">(Minimum Quantity)</span>
+                      Detalles/Observaciones{" "}
+                      <span className="text-xs italic text-gray-500 font-normal ml-1">
+                        (Minimum Quantity)
+                      </span>
                     </FormLabel>
                     <FormControl>
                       <Textarea

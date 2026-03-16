@@ -76,7 +76,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { MultiSerialInput } from "./MultiSerialInput";
 import { EditingArticle } from "./RegisterArticleForm";
 import { useAuth } from "@/contexts/AuthContext";
-import { conditions as staticConditions, type Condition as UI_Condition } from "@/lib/conditions";
+import {
+  getConditionLabel
+} from "@/lib/conditions";
+
+import { Condition } from "@/types";
 
 /* ------------------------------- Schema ------------------------------- */
 
@@ -236,9 +240,7 @@ export default function CreatePartForm({
   );
 
   const [inspectDate, setInspectDate] = useState<Date | null | undefined>(
-    initialData?.inspect_date
-      ? parseISO(initialData.inspect_date)
-      : null, // Por defecto "No aplica" (componentes nuevos o sin fecha)
+    initialData?.inspect_date ? parseISO(initialData.inspect_date) : null, // Por defecto "No aplica" (componentes nuevos o sin fecha)
   );
 
   const [lifeLimitPartCalendar, setLifeLimitPartCalendar] = useState<
@@ -740,7 +742,10 @@ export default function CreatePartForm({
               render={({ field }) => (
                 <FormItem className="w-full">
                   <FormLabel>
-                      Inspector (Incoming) <span className="text-xs italic text-gray-500 font-normal ml-1">(Inspector)</span>
+                    Inspector (Incoming){" "}
+                    <span className="text-xs italic text-gray-500 font-normal ml-1">
+                      (Inspector)
+                    </span>
                   </FormLabel>
                   <FormControl>
                     <Input placeholder="Nombre del Inspector" {...field} />
@@ -769,7 +774,10 @@ export default function CreatePartForm({
               render={({ field }) => (
                 <FormItem className="w-full">
                   <FormLabel>
-                    Nro. de parte <span className="text-xs italic text-gray-500 font-normal ml-1">(part number)</span>
+                    Nro. de parte{" "}
+                    <span className="text-xs italic text-gray-500 font-normal ml-1">
+                      (part number)
+                    </span>
                   </FormLabel>
                   <FormControl>
                     <Input
@@ -830,7 +838,10 @@ export default function CreatePartForm({
                   <FormItem className="flex flex-col space-y-3 mt-1.5 w-full">
                     <div className="flex items-center justify-between">
                       <FormLabel>
-                        Descripción de la parte <span className="text-xs italic text-gray-500 font-normal ml-1">(Part description)</span>
+                        Descripción de la parte{" "}
+                        <span className="text-xs italic text-gray-500 font-normal ml-1">
+                          (Part description)
+                        </span>
                       </FormLabel>
                       <CreateBatchDialog
                         onSuccess={async (batchName) => {
@@ -1070,7 +1081,10 @@ export default function CreatePartForm({
               render={({ field }) => (
                 <FormItem className="w-full">
                   <FormLabel>
-                    Código ATA <span className="text-xs italic text-gray-500 font-normal ml-1">(ATA code)</span>
+                    Código ATA{" "}
+                    <span className="text-xs italic text-gray-500 font-normal ml-1">
+                      (ATA code)
+                    </span>
                   </FormLabel>
                   <FormControl>
                     <Input placeholder="Codigo ATA" {...field} />
@@ -1091,7 +1105,10 @@ export default function CreatePartForm({
               render={({ field }) => (
                 <FormItem className="w-full">
                   <FormLabel>
-                    Serial <span className="text-xs italic text-gray-500 font-normal ml-1">(Serial number)</span>
+                    Serial{" "}
+                    <span className="text-xs italic text-gray-500 font-normal ml-1">
+                      (Serial number)
+                    </span>
                   </FormLabel>
                   <FormControl>
                     <MultiSerialInput
@@ -1115,7 +1132,10 @@ export default function CreatePartForm({
               render={({ field }) => (
                 <FormItem className="w-full">
                   <FormLabel>
-                    Condición <span className="text-xs italic text-gray-500 font-normal ml-1">(Condition)</span>
+                    Condición{" "}
+                    <span className="text-xs italic text-gray-500 font-normal ml-1">
+                      (Condition)
+                    </span>
                   </FormLabel>
                   <Select
                     onValueChange={field.onChange}
@@ -1169,12 +1189,12 @@ export default function CreatePartForm({
                       }}
                     >
                       {/* Mapeo idéntico usando staticConditions */}
-                      {staticConditions?.map((c: UI_Condition) => (
-                        <SelectItem key={c.value} value={c.value}>
+                      {conditions?.map((c: Condition) => (
+                        <SelectItem key={c.name} value={c.id.toString()}>
                           <div className="flex items-center gap-2">
-                            <span className="font-medium">{c.label}</span>
+                            <span className="font-medium">{c.name}</span>
                             <span className="text-muted-foreground italic text-xs">
-                              ({c.label_en})
+                              {getConditionLabel(c.name.toUpperCase())}
                             </span>
                           </div>
                         </SelectItem>
@@ -1299,7 +1319,10 @@ export default function CreatePartForm({
                 <FormItem className="w-full">
                   <div className="flex items-center justify-between">
                     <FormLabel>
-                      Fabricante <span className="text-xs italic text-gray-500 font-normal ml-1">(Manufacturer)</span>
+                      Fabricante{" "}
+                      <span className="text-xs italic text-gray-500 font-normal ml-1">
+                        (Manufacturer)
+                      </span>
                     </FormLabel>
                     <CreateManufacturerDialog
                       defaultType="PART"
@@ -1433,7 +1456,10 @@ export default function CreatePartForm({
               render={({ field }) => (
                 <FormItem className="w-full">
                   <FormLabel>
-                    Ubicación interna <span className="text-xs italic text-gray-500 font-normal ml-1">(internal location)</span>
+                    Ubicación interna{" "}
+                    <span className="text-xs italic text-gray-500 font-normal ml-1">
+                      (internal location)
+                    </span>
                   </FormLabel>
                   <FormControl>
                     <Input
@@ -1668,7 +1694,10 @@ export default function CreatePartForm({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>
-                    Observaciones <span className="text-xs italic text-gray-500 font-normal ml-1">(Observations)</span>
+                    Observaciones{" "}
+                    <span className="text-xs italic text-gray-500 font-normal ml-1">
+                      (Observations)
+                    </span>
                   </FormLabel>
                   <FormControl>
                     <Textarea

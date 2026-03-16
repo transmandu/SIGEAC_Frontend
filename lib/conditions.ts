@@ -4,14 +4,20 @@ export interface Condition {
   label_en: string;
 }
 
-export const conditions: Condition[] = [
-  { value: "1", label: "Nuevo", label_en: "New" },
-  { value: "5", label: "Nuevo de Fábrica", label_en: "Factory New" },
-  { value: "4", label: "Overhauled", label_en: "Overhauled" },
-  { value: "9", label: "Inspeccionado", label_en: "Inspected" },
-  { value: "10", label: "Reparable", label_en: "Repairable" },
-  { value: "3", label: "Reparado", label_en: "Repaired" },
-  { value: "6", label: "Testeado", label_en: "Tested" },
-  { value: "7", label: "Removido", label_en: "As Removed" },
-  { value: "11", label: "Resguardo", label_en: "Safekeeping" },
-];
+export const getConditionLabel = (key: string) => {
+  const CONDITIONS = [
+    { key: "NEW", label: "Nuevo" },
+    { key: "FACTORY_NEW", label: "Nuevo de Fábrica" },
+    { key: "OVERHAULED", label: "Overhauled" },
+    { key: "INSPECTED", label: "Inspeccionado" },
+    { key: "REPAIRABLE", label: "Reparable" },
+    { key: "REPAIRED", label: "Reparado" },
+    { key: "TESTED", label: "Testeado" },
+    { key: "AS_REMOVED", label: "Removido" },
+    { key: "SAFEKEEPING", label: "Resguardo" },
+  ];
+
+  const condition = CONDITIONS.find((c) => c.key === key);
+  
+  return condition ? condition.label : "Unknown";
+};
