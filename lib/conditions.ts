@@ -13,7 +13,7 @@ export const getConditionLabel = (key: string) => {
     { key: "REPAIRABLE", label: "Reparable" },
     { key: "REPAIRED", label: "Reparado" },
     { key: "TESTED", label: "Testeado" },
-    { key: "AS_REMOVED", label: "Removido" },
+    { key: "AS REMOVED", label: "Removido" },
     { key: "SAFEKEEPING", label: "Resguardo" },
   ];
 
