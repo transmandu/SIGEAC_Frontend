@@ -7,7 +7,6 @@ import {
   Award,
   Blocks,
   BookCheck,
-  BookUser,
   Boxes,
   Building2,
   CalendarClock,
@@ -16,17 +15,17 @@ import {
   ClipboardCopy,
   ClipboardList,
   ClipboardPen,
-  CreditCardIcon,
   Drill,
+  FilePen,
   Globe,
   HandCoins,
-  Landmark,
+  KeyRound,
   LayoutGrid,
   LucideIcon,
+  OctagonAlert,
   PackageOpen,
   PackageSearch,
   Plane,
-  PlaneIcon,
   Presentation,
   Receipt,
   ScrollText,
@@ -36,11 +35,7 @@ import {
   SquarePen,
   User2,
   UserRoundCog,
-  Wrench,
-  FilePen,
-  OctagonAlert,
-  GraduationCap,
-  KeyRound,
+  Wrench
 } from "lucide-react";
 
 type Submenu = {
@@ -549,14 +544,14 @@ export function getMenuList(
           ],
         },
 
-        {
-          href: `/${currentCompany?.slug}/sms/certificados`,
-          label: "Certificados",
-          active: pathname.includes(`/${currentCompany?.slug}/sms/certificados`),
-          icon: Award,
-          roles: ["SUPERUSER", "JEFE_SMS", "ANALISTA_SMS"],
-          submenus: [],
-        },
+        // {
+        //   href: `/${currentCompany?.slug}/sms/certificados`,
+        //   label: "Certificados",
+        //   active: pathname.includes(`/${currentCompany?.slug}/sms/certificados`),
+        //   icon: Award,
+        //   roles: ["SUPERUSER", "JEFE_SMS", "ANALISTA_SMS"],
+        //   submenus: [],
+        // },
 
         {
           href: "",

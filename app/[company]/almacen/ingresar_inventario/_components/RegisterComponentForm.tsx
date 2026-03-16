@@ -39,7 +39,9 @@ import { z } from "zod";
 import { FileField } from "@/app/[company]/almacen/ingresar_inventario/_components/FileField";
 import { MultiInputField } from "@/components/misc/MultiInputField";
 import { Textarea } from "@/components/ui/textarea";
-import { conditions as staticConditions, type Condition as UI_Condition } from "@/lib/conditions";
+import { getConditionLabel } from "@/lib/conditions";   
+
+import { Condition } from '@/types';
 
 const fileMaxBytes = 10_000_000; // 10 MB
 
@@ -320,12 +322,14 @@ export default function CreateComponentForm({ initialData, isEditing }: Props) {
                         }
                       }}
                     >
-                      {staticConditions.map((c: UI_Condition) => (
-                        <SelectItem key={c.value} value={c.value}>
+                      {conditions?.map((c: Condition) => (
+                        <SelectItem key={c.name} value={c.id.toString()}>
                           <div className="flex items-center gap-2">
-                            <span className="font-medium">{c.label}</span>
+                            <span className="font-medium">{c.name}</span>
                             <span className="text-muted-foreground italic text-xs">
-                              ({c.label_en})
+                              {getConditionLabel(
+                                c.name.toUpperCase(),
+                              )}
                             </span>
                           </div>
                         </SelectItem>
