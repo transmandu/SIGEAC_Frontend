@@ -11,7 +11,7 @@ import { ObligatoryReport } from "@/types";
 
 export const columns: ColumnDef<ObligatoryReport>[] = [
   {
-    accessorKey: "report_code",
+    accessorKey: "report_number",
     header: ({ column }) => (
       <DataTableColumnHeader filter column={column} title="Nro. de Reporte" />
     ),
