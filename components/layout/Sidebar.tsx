@@ -36,7 +36,7 @@ export function Sidebar() {
               href={`/${selectedCompany?.slug}/dashboard`}
               className="flex items-center justify-center w-full"
             >
-              <Image src={"/logo.png"} width={150} height={150} alt="Logo" />
+              <Image src={"/logo.png"} width={150} height={150} alt="Logo" priority/>
             </Link>
           </Button>
         </div>

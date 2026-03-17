@@ -72,6 +72,7 @@ const DispatchArticlesDialog = ({ articles = [], work_order, justification }: Di
                 width={44}
                 height={44}
                 alt="logo"
+                priority
                 className="h-11 w-11 rounded-md border bg-white object-contain"
               />
             </div>

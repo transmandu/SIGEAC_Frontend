@@ -69,7 +69,7 @@ const RequisitionsDropdownActions = ({ req }: { req: Requisition }) => {
   return (
     <TooltipProvider>
       <DropdownMenu open={open} onOpenChange={setOpen}>
-        <DropdownMenuTrigger>
+        <DropdownMenuTrigger asChild>
           <Button variant="ghost" className="h-8 w-8 p-0">
             <span className="sr-only">Abrir menú</span>
             <MoreHorizontal className="h-4 w-4" />
@@ -81,15 +81,16 @@ const RequisitionsDropdownActions = ({ req }: { req: Requisition }) => {
             <>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <span>
                     <DropdownMenuItem
+                      asChild
                       disabled={req.status === 'APROBADO' || req.status === 'RECHAZADO'}
                       className="cursor-pointer"
                       onClick={() => setOpenConfirm(true)}
                     >
-                      <Receipt className='size-5' />
+                      <button>
+                        <Receipt className='size-5' />
+                      </button>
                     </DropdownMenuItem>
-                  </span>
                 </TooltipTrigger>
                 <TooltipContent>
                   {req.status === "RECHAZADO"

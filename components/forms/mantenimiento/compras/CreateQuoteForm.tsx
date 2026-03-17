@@ -434,14 +434,14 @@ export function CreateQuoteForm({
                           Cantidad
                         </FormLabel>
                         <FormControl>
-                          <Input
-                            id={`quantity-${index}`}
-                            disabled
-                            className="disabled:opacity-85 font-semibold"
-                            type="number"
-                            min={1}
-                            {...field}
-                          />
+                        <Input
+                          id={`quantity-${index}`}
+                          type="number"
+                          min={1}
+                          className="font-semibold"
+                          value={field.value ?? ""}
+                          onChange={(e) => field.onChange(Number(e.target.value))}
+                        />
                         </FormControl>
                         <FormMessage />
                       </FormItem>

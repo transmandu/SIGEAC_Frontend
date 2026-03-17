@@ -83,7 +83,7 @@ const QuoteDropdownActions = ({ quote }: { quote: Quote }) => {
         </Tooltip>
       ) : (
         <DropdownMenu>
-          <DropdownMenuTrigger>
+          <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="h-8 w-8 p-0">
               <span className="sr-only">Abrir menú</span>
               <MoreHorizontal className="h-4 w-4" />
@@ -93,9 +93,11 @@ const QuoteDropdownActions = ({ quote }: { quote: Quote }) => {
           <DropdownMenuContent align="center" className="flex gap-2 justify-center">
             <Tooltip>
               <TooltipTrigger asChild>
-                <DropdownMenuItem onClick={() => setOpenApprove(true)}>
-                  <ClipboardCheck className='size-5 text-green-500' />
-                </DropdownMenuItem>
+                <div>
+                  <DropdownMenuItem onClick={() => setOpenApprove(true)}>
+                    <ClipboardCheck className='size-5 text-green-500' />
+                  </DropdownMenuItem>
+                </div>
               </TooltipTrigger>
               <TooltipContent>Aprobar cotización</TooltipContent>
             </Tooltip>
