@@ -116,3 +116,43 @@ export const useUpdateStatusDispatchRequest = () => {
     updateDispatchStatus: updateStatusMutation,
   };
 };
+
+export const useDeleteDispatchRequest = () => {
+  const queryClient = useQueryClient();
+  const { selectedStation } = useCompanyStore();
+
+  const deleteMutation = useMutation({
+    mutationFn: async ({
+      id,
+      company,
+    }: {
+      id: string | number;
+      company: string;
+    }) => {
+      await axiosInstance.delete(`/${company}/dispatch-order/${id}`);
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: ["dispatches-requests", variables.company, selectedStation],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["dispatches-requests-in-process", variables.company, selectedStation],
+      });
+      queryClient.invalidateQueries({ queryKey: ["dispatched-articles", variables.company] });
+      queryClient.invalidateQueries({ queryKey: ["warehouse-articles"] });
+      toast.success("Â¡Eliminado!", {
+        description: "La solicitud ha sido eliminada correctamente.",
+      });
+    },
+    onError: (error) => {
+      toast.error("Oops!", {
+        description: "No se pudo eliminar la solicitud...",
+      });
+      console.log(error);
+    },
+  });
+
+  return {
+    deleteDispatchRequest: deleteMutation,
+  };
+};

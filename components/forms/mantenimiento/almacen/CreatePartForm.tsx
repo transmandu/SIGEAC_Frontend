@@ -97,7 +97,7 @@ const formSchema = z
         z.string().min(2, {
           message:
             "Cada número de parte alterno debe contener al menos 2 caracteres.",
-        })
+        }),
       )
       .optional(),
     description: z.string().optional(),
@@ -164,14 +164,17 @@ const CreatePartForm = ({
   const handleDownload = async (url: string) => {
     if (!url) return;
     try {
-      const response = await axiosInstance.get(`/warehouse/download-certificate/${url}`, {
-        responseType: 'blob',
-      });
+      const response = await axiosInstance.get(
+        `/warehouse/download-certificate/${url}`,
+        {
+          responseType: "blob",
+        },
+      );
 
       const downloadUrl = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement('a');
+      const link = document.createElement("a");
       link.href = downloadUrl;
-      link.setAttribute('download', url.split('/').pop() || 'certificate');
+      link.setAttribute("download", url.split("/").pop() || "certificate");
       document.body.appendChild(link);
       link.click();
       link.remove();
@@ -179,25 +182,25 @@ const CreatePartForm = ({
 
       toast.success("Certificado descargado correctamente");
     } catch (error) {
-      console.error('Error descargando el archivo:', error);
+      console.error("Error descargando el archivo:", error);
       toast.error("Error al descargar el certificado");
     }
   };
 
   const [fabricationDate, setFabricationDate] = useState<Date | undefined>(
-    initialData?.part_component?.fabrication_date
-      ? new Date(initialData.part_component.fabrication_date)
-      : undefined
+    initialData?.partComponent?.fabrication_date
+      ? new Date(initialData.partComponent.fabrication_date)
+      : undefined,
   );
   const [caducateDate, setCaducateDate] = useState<Date | undefined>(
-    initialData?.part_component?.expiration_date
-      ? new Date(initialData.part_component.expiration_date)
-      : undefined
+    initialData?.partComponent?.expiration_date
+      ? new Date(initialData.partComponent.expiration_date)
+      : undefined,
   );
   const [calendarDate, setCalendarDate] = useState<Date | undefined>(
-    initialData?.part_component?.calendary_date
-      ? new Date(initialData.part_component.calendary_date)
-      : undefined
+    initialData?.partComponent?.calendary_date
+      ? new Date(initialData.partComponent.calendary_date)
+      : undefined,
   );
   const { selectedCompany } = useCompanyStore();
 
@@ -236,17 +239,17 @@ const CreatePartForm = ({
       condition_id: initialData?.condition?.id?.toString() || "",
       description: initialData?.description || "",
       zone: initialData?.zone || "",
-      hour_date: initialData?.part_component?.hour_date
-        ? parseInt(initialData.part_component.hour_date)
+      hour_date: initialData?.partComponent?.hour_date
+        ? parseInt(initialData.partComponent.hour_date)
         : undefined,
-      cycle_date: initialData?.part_component?.cycle_date
-        ? parseInt(initialData.part_component.cycle_date)
+      cycle_date: initialData?.partComponent?.cycle_date
+        ? parseInt(initialData.partComponent.cycle_date)
         : undefined,
-      expiration_date: initialData?.part_component?.expiration_date
-        ? initialData?.part_component?.expiration_date
+      expiration_date: initialData?.partComponent?.expiration_date
+        ? initialData?.partComponent?.expiration_date
         : undefined,
-      fabrication_date: initialData?.part_component?.fabrication_date
-        ? initialData?.part_component?.fabrication_date
+      fabrication_date: initialData?.partComponent?.fabrication_date
+        ? initialData?.partComponent?.fabrication_date
         : undefined,
     },
   });
@@ -263,17 +266,17 @@ const CreatePartForm = ({
       condition_id: initialData.condition?.id?.toString() ?? "",
       description: initialData.description ?? "",
       zone: initialData.zone ?? "",
-      hour_date: initialData.part_component?.hour_date
-        ? parseInt(initialData.part_component.hour_date)
+      hour_date: initialData.partComponent?.hour_date
+        ? parseInt(initialData.partComponent.hour_date)
         : undefined,
-      cycle_date: initialData.part_component?.cycle_date
-        ? parseInt(initialData.part_component.cycle_date)
+      cycle_date: initialData.partComponent?.cycle_date
+        ? parseInt(initialData.partComponent.cycle_date)
         : undefined,
-      expiration_date: initialData.part_component?.expiration_date
-        ? initialData.part_component?.expiration_date
+      expiration_date: initialData.partComponent?.expiration_date
+        ? initialData.partComponent?.expiration_date
         : undefined,
-      fabrication_date: initialData.part_component?.fabrication_date
-        ? initialData.part_component?.fabrication_date
+      fabrication_date: initialData.partComponent?.fabrication_date
+        ? initialData.partComponent?.fabrication_date
         : undefined,
     });
   }, [initialData, form]);
@@ -456,9 +459,13 @@ const CreatePartForm = ({
                       defaultType="PART"
                       onSuccess={(manufacturer) => {
                         if (manufacturer?.id) {
-                          form.setValue("manufacturer_id", manufacturer.id.toString(), {
-                            shouldValidate: true,
-                          });
+                          form.setValue(
+                            "manufacturer_id",
+                            manufacturer.id.toString(),
+                            {
+                              shouldValidate: true,
+                            },
+                          );
                         }
                       }}
                       triggerButton={
@@ -478,12 +485,14 @@ const CreatePartForm = ({
                     <PopoverTrigger asChild>
                       <FormControl>
                         <Button
-                          disabled={isManufacturerLoading || isManufacturerError}
+                          disabled={
+                            isManufacturerLoading || isManufacturerError
+                          }
                           variant="outline"
                           role="combobox"
                           className={cn(
                             "w-full justify-between",
-                            !field.value && "text-muted-foreground"
+                            !field.value && "text-muted-foreground",
                           )}
                         >
                           {isManufacturerLoading && (
@@ -494,8 +503,7 @@ const CreatePartForm = ({
                               {
                                 manufacturers
                                   ?.filter((m) => m.type === "PART")
-                                  .find((m) => `${m.id}` === field.value)
-                                  ?.name
+                                  .find((m) => `${m.id}` === field.value)?.name
                               }
                             </p>
                           ) : (
@@ -523,7 +531,7 @@ const CreatePartForm = ({
                                     form.setValue(
                                       "manufacturer_id",
                                       manufacturer.id.toString(),
-                                      { shouldValidate: true }
+                                      { shouldValidate: true },
                                     );
                                   }}
                                 >
@@ -532,7 +540,7 @@ const CreatePartForm = ({
                                       "mr-2 h-4 w-4",
                                       `${manufacturer.id}` === field.value
                                         ? "opacity-100"
-                                        : "opacity-0"
+                                        : "opacity-0",
                                     )}
                                   />
                                   <p>{manufacturer.name}</p>
@@ -579,7 +587,7 @@ const CreatePartForm = ({
                           role="combobox"
                           className={cn(
                             "justify-between",
-                            !field.value && "text-muted-foreground"
+                            !field.value && "text-muted-foreground",
                           )}
                         >
                           {isBatchesLoading && (
@@ -615,7 +623,7 @@ const CreatePartForm = ({
                                   form.setValue(
                                     "batch_id",
                                     batch.id.toString(),
-                                    { shouldValidate: true }
+                                    { shouldValidate: true },
                                   );
                                 }}
                               >
@@ -624,7 +632,7 @@ const CreatePartForm = ({
                                     "mr-2 h-4 w-4",
                                     `${batch.id}` === field.value
                                       ? "opacity-100"
-                                      : "opacity-0"
+                                      : "opacity-0",
                                   )}
                                 />
                                 <p>{batch.name}</p>
@@ -664,7 +672,7 @@ const CreatePartForm = ({
                           variant={"outline"}
                           className={cn(
                             "w-full pl-3 text-left font-normal",
-                            !fabricationDate && "text-muted-foreground"
+                            !fabricationDate && "text-muted-foreground",
                           )}
                         >
                           {fabricationDate ? (
@@ -680,7 +688,7 @@ const CreatePartForm = ({
                       <Select
                         onValueChange={(value) =>
                           setFabricationDate(
-                            subYears(new Date(), parseInt(value))
+                            subYears(new Date(), parseInt(value)),
                           )
                         }
                       >
@@ -724,7 +732,7 @@ const CreatePartForm = ({
                           variant={"outline"}
                           className={cn(
                             "w-full pl-3 text-left font-normal",
-                            !caducateDate && "text-muted-foreground"
+                            !caducateDate && "text-muted-foreground",
                           )}
                         >
                           {caducateDate ? (
@@ -845,10 +853,12 @@ const CreatePartForm = ({
                           <span className="font-medium">Archivo actual:</span>{" "}
                           <button
                             type="button"
-                            onClick={() => handleDownload(initialData.certificate_8130!)}
+                            onClick={() =>
+                              handleDownload(initialData.certificate_8130!)
+                            }
                             className="text-primary hover:underline cursor-pointer underline"
                           >
-                            {initialData.certificate_8130.split('/').pop()}
+                            {initialData.certificate_8130.split("/").pop()}
                           </button>
                         </div>
                       )}
@@ -894,10 +904,12 @@ const CreatePartForm = ({
                           <span className="font-medium">Archivo actual:</span>{" "}
                           <button
                             type="button"
-                            onClick={() => handleDownload(initialData.certificate_fabricant!)}
+                            onClick={() =>
+                              handleDownload(initialData.certificate_fabricant!)
+                            }
                             className="text-primary hover:underline cursor-pointer underline"
                           >
-                            {initialData.certificate_fabricant.split('/').pop()}
+                            {initialData.certificate_fabricant.split("/").pop()}
                           </button>
                         </div>
                       )}
@@ -943,10 +955,12 @@ const CreatePartForm = ({
                           <span className="font-medium">Archivo actual:</span>{" "}
                           <button
                             type="button"
-                            onClick={() => handleDownload(initialData.certificate_vendor!)}
+                            onClick={() =>
+                              handleDownload(initialData.certificate_vendor!)
+                            }
                             className="text-primary hover:underline cursor-pointer underline"
                           >
-                            {initialData.certificate_vendor.split('/').pop()}
+                            {initialData.certificate_vendor.split("/").pop()}
                           </button>
                         </div>
                       )}

@@ -47,7 +47,7 @@ const FormSchema = z.object({
   danger: z
     .string()
     .min(3, { message: "El peligro debe tener al menos 3 caracteres" })
-    .max(245, { message: "El peligro no debe exceder los 245 caracteres" }),
+    .max(1000, { message: "El peligro no debe exceder los 245 caracteres" }),
   danger_area: z.string(),
   risk_management_start_date: z
     .date()
@@ -57,19 +57,19 @@ const FormSchema = z.object({
     .min(3, {
       message: "Las defensas actuales deben tener al menos 3 caracteres",
     })
-    .max(245, {
+    .max(1000, {
       message: "Las defensas actuales no deben exceder los 245 caracteres",
     }),
   description: z
     .string()
     .min(3, { message: "La descripcion debe tener al menos 3 caracteres" })
-    .max(245, { message: "La descripcion no debe exceder los 245 caracteres" }),
+    .max(1000, { message: "La descripcion no debe exceder los 245 caracteres" }),
   possible_consequences: z
     .string()
     .min(3, {
       message: "Las posibles consecuencias deben tener al menos 3 caracteres",
     })
-    .max(245, {
+    .max(1000, {
       message: "Las posibles consecuencias no deben exceder los 245 caracteres",
     }),
   consequence_to_evaluate: z
@@ -77,7 +77,7 @@ const FormSchema = z.object({
     .min(3, {
       message: "La consecuencia a evaluar debe tener al menos 3 caracteres",
     })
-    .max(245, {
+    .max(1000, {
       message: "La consecuencia a evaluar no debe exceder los 245 caracteres",
     }),
   danger_type: z.string().min(1, "Este campo es obligatorio"),

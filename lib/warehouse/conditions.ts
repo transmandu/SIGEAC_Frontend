@@ -18,6 +18,5 @@ const CONDITION_MAP = new Map<string, ConditionLabel>(
 export function formatCondition(value?: string | null): ConditionLabel | null {
   if (!value) return null
   const key = String(value).trim().toUpperCase()
-  console.log("Valor recibido de la DB:", key) // <--- Mira esto en la consola del navegador (F12)
   return CONDITION_MAP.get(key) ?? { es: String(value), en: String(value) }
 }

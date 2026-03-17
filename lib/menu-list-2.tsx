@@ -4,9 +4,9 @@ import { Company } from "@/types";
 import { format } from "date-fns";
 import {
   AreaChartIcon,
+  Award,
   Blocks,
   BookCheck,
-  BookUser,
   Boxes,
   Building2,
   CalendarClock,
@@ -15,17 +15,17 @@ import {
   ClipboardCopy,
   ClipboardList,
   ClipboardPen,
-  CreditCardIcon,
   Drill,
+  FilePen,
   Globe,
   HandCoins,
-  Landmark,
+  KeyRound,
   LayoutGrid,
   LucideIcon,
+  OctagonAlert,
   PackageOpen,
   PackageSearch,
   Plane,
-  PlaneIcon,
   Presentation,
   Receipt,
   ScrollText,
@@ -36,9 +36,6 @@ import {
   User2,
   UserRoundCog,
   Wrench,
-  FilePen,
-  OctagonAlert,
-  KeyRound,
   Library,
 } from "lucide-react";
 
@@ -165,8 +162,18 @@ export function getMenuList(
               href: `/${currentCompany?.slug}/general/reporte/codigos_qr`,
               label: "Codigos QR",
               roles: [],
-              active: pathname === `/${currentCompany?.slug}/general/reporte/codigos_qr`,
+              active:
+                pathname ===
+                `/${currentCompany?.slug}/general/reporte/codigos_qr`,
             },
+
+            {
+              href: `/${currentCompany?.slug}/sms/certificados`,
+              label: "Certificados",
+              roles: [], // Libre para que Richard lo vea
+              active: pathname === `/${currentCompany?.slug}/sms/certificados`,
+            },
+
           ],
         },
         {
@@ -528,6 +535,16 @@ export function getMenuList(
             },
           ],
         },
+
+        // {
+        //   href: `/${currentCompany?.slug}/sms/certificados`,
+        //   label: "Certificados",
+        //   active: pathname.includes(`/${currentCompany?.slug}/sms/certificados`),
+        //   icon: Award,
+        //   roles: ["SUPERUSER", "JEFE_SMS", "ANALISTA_SMS"],
+        //   submenus: [],
+        // },
+
         {
           href: "",
           label: "Promoción",
@@ -996,6 +1013,12 @@ export function getMenuList(
                 "ANALISTA_ADMINISTRACION",
                 "SUPERUSER",
               ],
+            },
+            {
+              href: "/ajustes/globales/terceros",
+              label: "Terceros",
+              active: pathname === "/ajustes/terceros/clientes",
+              roles: [],
             },
             {
               href: "/ajustes/globales/condiciones",

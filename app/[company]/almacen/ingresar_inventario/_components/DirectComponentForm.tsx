@@ -76,7 +76,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { MultiSerialInput } from "./MultiSerialInput";
 import { EditingArticle } from "./RegisterArticleForm";
 import { useAuth } from "@/contexts/AuthContext";
-import { conditions as staticConditions, type Condition as UI_Condition } from "@/lib/conditions";
+
+import { Condition } from "@/types";
+import { getConditionLabel } from "@/lib/conditions";
 
 /* ------------------------------- Schema ------------------------------- */
 
@@ -224,36 +226,34 @@ export default function DirectComponentForm({
   const [fabricationDate, setFabricationDate] = useState<
     Date | null | undefined
   >(
-    initialData?.part_component?.fabrication_date
-      ? parseISO(initialData.part_component.fabrication_date)
+    initialData?.partComponent?.fabrication_date
+      ? parseISO(initialData.partComponent.fabrication_date)
       : null, // Por defecto "No aplica" (muy pocos componentes tienen esta fecha)
   );
 
   const [caducateDate, setCaducateDate] = useState<Date | null | undefined>(
-    initialData?.part_component?.expiration_date
-      ? parseISO(initialData.part_component.expiration_date)
+    initialData?.partComponent?.expiration_date
+      ? parseISO(initialData.partComponent.expiration_date)
       : null, // Por defecto "No aplica" (componentes nuevos o sin fecha)
   );
 
   const [inspectDate, setInspectDate] = useState<Date | null | undefined>(
-    initialData?.inspect_date
-      ? parseISO(initialData.inspect_date)
-      : null, // Por defecto "No aplica" (componentes nuevos o sin fecha)
+    initialData?.inspect_date ? parseISO(initialData.inspect_date) : null, // Por defecto "No aplica" (componentes nuevos o sin fecha)
   );
 
   const [lifeLimitPartCalendar, setLifeLimitPartCalendar] = useState<
     Date | null | undefined
   >(
-    initialData?.part_component?.life_limit_part_calendar
-      ? parseISO(initialData.part_component.life_limit_part_calendar)
+    initialData?.partComponent?.life_limit_part_calendar
+      ? parseISO(initialData.partComponent.life_limit_part_calendar)
       : null, // Por defecto "No aplica" (componentes nuevos o sin fecha)
   );
 
   const [hardTimeCalendar, setHardTimeCalendar] = useState<
     Date | null | undefined
   >(
-    initialData?.part_component?.hard_time_calendar
-      ? parseISO(initialData.part_component.hard_time_calendar)
+    initialData?.partComponent?.hard_time_calendar
+      ? parseISO(initialData.partComponent.hard_time_calendar)
       : null, // Por defecto "No aplica" (componentes nuevos o sin fecha)
   );
 
@@ -306,36 +306,35 @@ export default function DirectComponentForm({
           : [initialData.serial]
         : [],
       alternative_part_number: initialData?.alternative_part_number || [],
-      batch_id: initialData?.batches?.id?.toString() || "",
-      batch_name: initialData?.batches?.name || "",
+      batch_id: initialData?.batch?.id?.toString() || "",
+      batch_name: initialData?.batch?.name || "",
       manufacturer_id: initialData?.manufacturer?.id?.toString() || "",
       condition_id: initialData?.condition?.id?.toString() || "",
       description: initialData?.description || "",
       zone: initialData?.zone || "",
-      hour_date: initialData?.part_component?.hour_date
-        ? parseInt(initialData.part_component.hour_date)
+      hour_date: initialData?.partComponent?.hour_date
+        ? parseInt(initialData.partComponent.hour_date)
         : undefined,
-      cycle_date: initialData?.part_component?.cycle_date
-        ? parseInt(initialData.part_component.cycle_date)
+      cycle_date: initialData?.partComponent?.cycle_date
+        ? parseInt(initialData.partComponent.cycle_date)
         : undefined,
-      expiration_date: initialData?.part_component?.expiration_date
-        ? initialData?.part_component?.expiration_date
+      expiration_date: initialData?.partComponent?.expiration_date
+        ? initialData?.partComponent?.expiration_date
         : undefined,
-      fabrication_date: initialData?.part_component?.fabrication_date
-        ? initialData?.part_component?.fabrication_date
+      fabrication_date: initialData?.partComponent?.fabrication_date
+        ? initialData?.partComponent?.fabrication_date
         : undefined,
       has_documentation: initialData?.has_documentation ?? false,
-      aircraft_id: "",
-      life_limit_part_calendar: initialData?.part_component
+      aircraft_id: initialData?.partComponent?.aircraft_id?.toString() ?? "",
+      life_limit_part_calendar: initialData?.partComponent
         ?.life_limit_part_calendar
-        ? initialData?.part_component?.life_limit_part_calendar
+        ? initialData?.partComponent?.life_limit_part_calendar
         : undefined,
-      life_limit_part_cycles: initialData?.part_component
-        ?.life_limit_part_cycles
-        ? Number(initialData.part_component.life_limit_part_cycles)
+      life_limit_part_cycles: initialData?.partComponent?.life_limit_part_cycles
+        ? Number(initialData.partComponent.life_limit_part_cycles)
         : undefined,
-      life_limit_part_hours: initialData?.part_component?.life_limit_part_hours
-        ? Number(initialData.part_component.life_limit_part_hours)
+      life_limit_part_hours: initialData?.partComponent?.life_limit_part_hours
+        ? Number(initialData.partComponent.life_limit_part_hours)
         : undefined,
       inspect_date: initialData?.inspect_date
         ? initialData?.inspect_date
@@ -353,8 +352,9 @@ export default function DirectComponentForm({
   const selectedCondition = conditions?.find(
     (c) => c.id.toString() === conditionId,
   );
-  const isResguardo = selectedCondition?.name?.toLowerCase() === "resguardo";
-
+  const isSafekeepingOrRemoved =
+    selectedCondition?.name?.toUpperCase() === "SAFEKEEPING" ||
+    selectedCondition?.name?.toUpperCase() === "AS REMOVED";
   // Reset on prop change
   useEffect(() => {
     if (!initialData) return;
@@ -366,35 +366,35 @@ export default function DirectComponentForm({
           : [initialData.serial]
         : [],
       alternative_part_number: initialData.alternative_part_number ?? [],
-      batch_id: initialData.batches?.id?.toString() ?? "",
-      batch_name: initialData.batches?.name ?? "",
+      batch_id: initialData.batch?.id?.toString() ?? "",
+      batch_name: initialData.batch?.name ?? "",
       manufacturer_id: initialData.manufacturer?.id?.toString() ?? "",
       condition_id: initialData.condition?.id?.toString() ?? "",
       description: initialData.description ?? "",
       zone: initialData.zone ?? "",
-      hour_date: initialData.part_component?.hour_date
-        ? parseInt(initialData.part_component.hour_date)
+      hour_date: initialData.partComponent?.hour_date
+        ? parseInt(initialData.partComponent.hour_date)
         : undefined,
-      cycle_date: initialData.part_component?.cycle_date
-        ? parseInt(initialData.part_component.cycle_date)
+      cycle_date: initialData.partComponent?.cycle_date
+        ? parseInt(initialData.partComponent.cycle_date)
         : undefined,
-      expiration_date: initialData.part_component?.expiration_date
-        ? initialData.part_component?.expiration_date
+      expiration_date: initialData.partComponent?.expiration_date
+        ? initialData.partComponent?.expiration_date
         : undefined,
-      fabrication_date: initialData.part_component?.fabrication_date
-        ? initialData.part_component?.fabrication_date
+      fabrication_date: initialData.partComponent?.fabrication_date
+        ? initialData.partComponent?.fabrication_date
         : undefined,
       has_documentation: initialData.has_documentation ?? false,
-      aircraft_id: "",
-      life_limit_part_calendar: initialData.part_component
+      aircraft_id: initialData.partComponent?.aircraft_id?.toString() ?? "",
+      life_limit_part_calendar: initialData.partComponent
         ?.life_limit_part_calendar
-        ? initialData.part_component?.life_limit_part_calendar
+        ? initialData.partComponent?.life_limit_part_calendar
         : undefined,
-      life_limit_part_cycles: initialData.part_component?.life_limit_part_cycles
-        ? Number(initialData.part_component.life_limit_part_cycles)
+      life_limit_part_cycles: initialData.partComponent?.life_limit_part_cycles
+        ? Number(initialData.partComponent.life_limit_part_cycles)
         : undefined,
-      life_limit_part_hours: initialData.part_component?.life_limit_part_hours
-        ? Number(initialData.part_component.life_limit_part_hours)
+      life_limit_part_hours: initialData.partComponent?.life_limit_part_hours
+        ? Number(initialData.partComponent.life_limit_part_hours)
         : undefined,
       inspector: initialData.inspector || "",
       inspect_date: initialData?.inspect_date
@@ -577,7 +577,7 @@ export default function DirectComponentForm({
         // Solo reasignar este artículo a otro batch (NO afecta a otros artículos)
         if (!values.batch_id) {
           toast.error("Error", {
-            description: "Debe seleccionar una descripción de la parte.",
+            description: "Debe seleccionar una descripción del componente.",
           });
           return;
         }
@@ -593,7 +593,7 @@ export default function DirectComponentForm({
       });
       // Esperar un momento para que las queries se invaliden antes de redirigir
       await new Promise((resolve) => setTimeout(resolve, 100));
-      router.push(`/${selectedCompany.slug}/ingenieria/confirmar_inventario`);
+      // router.push(`/${selectedCompany.slug}/ingenieria/confirmar_inventario`);
       router.refresh(); // Forzar refresco de la página
     } else {
       await createArticle.mutateAsync({
@@ -740,7 +740,10 @@ export default function DirectComponentForm({
               render={({ field }) => (
                 <FormItem className="w-full">
                   <FormLabel>
-                      Inspector (Incoming) <span className="text-xs italic text-gray-500 font-normal ml-1">(Inspector)</span>
+                    Inspector (Incoming){" "}
+                    <span className="text-xs italic text-gray-500 font-normal ml-1">
+                      (Inspector)
+                    </span>
                   </FormLabel>
                   <FormControl>
                     <Input placeholder="Nombre del Inspector" {...field} />
@@ -769,7 +772,10 @@ export default function DirectComponentForm({
               render={({ field }) => (
                 <FormItem className="w-full">
                   <FormLabel>
-                    Nro. de parte <span className="text-xs italic text-gray-500 font-normal ml-1">(part number)</span>
+                    Nro. de parte{" "}
+                    <span className="text-xs italic text-gray-500 font-normal ml-1">
+                      (part number)
+                    </span>
                   </FormLabel>
                   <FormControl>
                     <Input
@@ -830,7 +836,10 @@ export default function DirectComponentForm({
                   <FormItem className="flex flex-col space-y-3 mt-1.5 w-full">
                     <div className="flex items-center justify-between">
                       <FormLabel>
-                        Descripción de la parte <span className="text-xs italic text-gray-500 font-normal ml-1">(Part description)</span>
+                        Descripción del componente{" "}
+                        <span className="text-xs italic text-gray-500 font-normal ml-1">
+                          (Component description)
+                        </span>
                       </FormLabel>
                       <CreateBatchDialog
                         onSuccess={async (batchName) => {
@@ -1015,7 +1024,7 @@ export default function DirectComponentForm({
                       </PopoverContent>
                     </Popover>
                     <FormDescription>
-                      Descripción de la parte a registrar.
+                      Descripción del componente a registrar.
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -1070,7 +1079,10 @@ export default function DirectComponentForm({
               render={({ field }) => (
                 <FormItem className="w-full">
                   <FormLabel>
-                    Código ATA <span className="text-xs italic text-gray-500 font-normal ml-1">(ATA code)</span>
+                    Código ATA{" "}
+                    <span className="text-xs italic text-gray-500 font-normal ml-1">
+                      (ATA code)
+                    </span>
                   </FormLabel>
                   <FormControl>
                     <Input placeholder="Codigo ATA" {...field} />
@@ -1091,7 +1103,10 @@ export default function DirectComponentForm({
               render={({ field }) => (
                 <FormItem className="w-full">
                   <FormLabel>
-                    Serial <span className="text-xs italic text-gray-500 font-normal ml-1">(Serial number)</span>
+                    Serial{" "}
+                    <span className="text-xs italic text-gray-500 font-normal ml-1">
+                      (Serial number)
+                    </span>
                   </FormLabel>
                   <FormControl>
                     <MultiSerialInput
@@ -1101,9 +1116,7 @@ export default function DirectComponentForm({
                       placeholder="Ej: 05458E1"
                     />
                   </FormControl>
-                  <FormDescription>
-                    Serial de la parte si aplica.
-                  </FormDescription>
+                  <FormDescription>Serial del componente.</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -1115,7 +1128,10 @@ export default function DirectComponentForm({
               render={({ field }) => (
                 <FormItem className="w-full">
                   <FormLabel>
-                    Condición <span className="text-xs italic text-gray-500 font-normal ml-1">(Condition)</span>
+                    Condición{" "}
+                    <span className="text-xs italic text-gray-500 font-normal ml-1">
+                      (Condition)
+                    </span>
                   </FormLabel>
                   <Select
                     onValueChange={field.onChange}
@@ -1169,12 +1185,14 @@ export default function DirectComponentForm({
                       }}
                     >
                       {/* Mapeo idéntico usando staticConditions */}
-                      {staticConditions?.map((c: UI_Condition) => (
-                        <SelectItem key={c.value} value={c.value}>
+                      {conditions?.map((c: Condition) => (
+                        <SelectItem key={c.name} value={c.id.toString()}>
                           <div className="flex items-center gap-2">
-                            <span className="font-medium">{c.label}</span>
-                            <span className="text-muted-foreground italic text-xs">
-                              ({c.label_en})
+                            <span className="font-medium">
+                              {getConditionLabel(c.name.toUpperCase())}
+                            </span>
+                            <span className="text-muted-foreground italic text-[9px]">
+                              ({c.name})
                             </span>
                           </div>
                         </SelectItem>
@@ -1187,7 +1205,7 @@ export default function DirectComponentForm({
             />
 
             {/* Campo de aeronave - Solo se muestra cuando la condición es "resguardo" */}
-            {isResguardo && (
+            {isSafekeepingOrRemoved && (
               <FormField
                 control={form.control}
                 name="aircraft_id"
@@ -1299,7 +1317,10 @@ export default function DirectComponentForm({
                 <FormItem className="w-full">
                   <div className="flex items-center justify-between">
                     <FormLabel>
-                      Fabricante <span className="text-xs italic text-gray-500 font-normal ml-1">(Manufacturer)</span>
+                      Fabricante{" "}
+                      <span className="text-xs italic text-gray-500 font-normal ml-1">
+                        (Manufacturer)
+                      </span>
                     </FormLabel>
                     <CreateManufacturerDialog
                       defaultType="PART"
@@ -1433,7 +1454,10 @@ export default function DirectComponentForm({
               render={({ field }) => (
                 <FormItem className="w-full">
                   <FormLabel>
-                    Ubicación interna <span className="text-xs italic text-gray-500 font-normal ml-1">(internal location)</span>
+                    Ubicación interna{" "}
+                    <span className="text-xs italic text-gray-500 font-normal ml-1">
+                      (internal location)
+                    </span>
                   </FormLabel>
                   <FormControl>
                     <Input
@@ -1451,14 +1475,14 @@ export default function DirectComponentForm({
         </SectionCard>
 
         {/* Fechas y límites */}
-        <SectionCard title="Fechas de la Parte">
+        <SectionCard title="Fechas del Componente">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormItem className="w-full">
               <DatePickerField
                 label="Fecha de Fabricación"
                 value={fabricationDate}
                 setValue={setFabricationDate}
-                description="Fecha de fabricación de la Parte."
+                description="Fecha de fabricación del Componente."
                 busy={busy}
                 shortcuts="back"
                 maxYear={new Date().getFullYear()}
@@ -1471,7 +1495,7 @@ export default function DirectComponentForm({
                 label="Próximo Vencimiento"
                 value={caducateDate}
                 setValue={setCaducateDate}
-                description="Fecha de Vencimiento de la Parte."
+                description="Fecha de Vencimiento del Componente."
                 busy={busy}
                 shortcuts="forward"
                 showNotApplicable={true}
@@ -1668,7 +1692,10 @@ export default function DirectComponentForm({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>
-                    Observaciones <span className="text-xs italic text-gray-500 font-normal ml-1">(Observations)</span>
+                    Observaciones{" "}
+                    <span className="text-xs italic text-gray-500 font-normal ml-1">
+                      (Observations)
+                    </span>
                   </FormLabel>
                   <FormControl>
                     <Textarea

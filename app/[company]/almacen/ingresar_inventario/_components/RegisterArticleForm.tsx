@@ -18,7 +18,6 @@ import DirectConsumableForm from "./DirectConsumableForm";
 import DirectPartForm from "./DirectPartForm";
 import DirectComponentForm from "./DirectComponentForm";
 
-
 export interface EditingArticle extends Article {
   batch: Batch;
   tool?: {
@@ -30,9 +29,10 @@ export interface EditingArticle extends Article {
     next_calibration?: string | number;
     article_id: number;
   };
-  part_component?: {
+  partComponent?: {
     id: number;
     article_id: string;
+    aircraft_id?: string;
     expiration_date?: string | null;
     fabrication_date: string | null;
     hour_date: string | null;
@@ -73,7 +73,7 @@ const RegisterArticleForm = ({
   initialData,
 }: IRegisterArticleProps) => {
   const [type, setType] = useState(
-    initialData?.batch.category.toUpperCase() ?? "COMPONENTE"
+    initialData?.batch.category.toUpperCase() ?? "COMPONENTE",
   );
   function handleTypeSelect(data: string) {
     setType(data);
@@ -119,11 +119,7 @@ const RegisterArticleForm = ({
         // <CreatePartForm isEditing={isEditing} initialData={initialData} />
         <DirectPartForm isEditing={isEditing} initialData={initialData} />
       )}
-      {
-        type === "GENERAL" && (
-          <CreateGeneralArticleForm />
-        )
-      }
+      {type === "GENERAL" && <CreateGeneralArticleForm />}
     </div>
   );
 };

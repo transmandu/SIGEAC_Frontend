@@ -2,12 +2,6 @@
 "use client";
 
 import { useState } from "react";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { CustomCard } from "@/components/cards/CustomCard";
 import { GuestContentLayout } from "@/components/layout/GuestContentLayout";
 import { YearPicker } from "@/components/selects/YearPicker";
@@ -23,11 +17,8 @@ export default function BulletinsSMSPage() {
   const company = params.company as string;
 
   const [selectedYear, setSelectedYear] = useState<number>(
-    new Date().getFullYear()
+    new Date().getFullYear(),
   );
-  const [selectedDocument, setSelectedDocument] = useState<string | null>(null);
-  const [selectedDocumentTitle, setSelectedDocumentTitle] =
-    useState<string>("");
 
   const handleYearChange = (year: number | undefined) => {
     if (year !== undefined) {
@@ -46,16 +37,23 @@ export default function BulletinsSMSPage() {
 
     // Agregar parámetros para mejor visualización si es PDF
     const finalUrl = fullUrl.toLowerCase().endsWith(".pdf")
-      ? `${fullUrl}#view=FitH&toolbar=1&navpanes=1`
+      ? `${fullUrl}`
       : fullUrl;
 
-    setSelectedDocument(finalUrl);
-    setSelectedDocumentTitle(title);
-    console.log("Documento seleccionado:", finalUrl);
+    // Abrir en una nueva pestaña
+    window.open(finalUrl, "_blank", "noopener,noreferrer");
+
+    console.log("Documento abierto en nueva pestaña:", finalUrl);
   };
 
   // Función para forzar la descarga del archivo
-  const handleDownload = (documentUrl: string, title: string) => {
+  const handleDownload = (
+    documentUrl: string,
+    title: string,
+    e: React.MouseEvent,
+  ) => {
+    e.stopPropagation(); // Evitar que se active handleDocumentClick
+
     // Verificar si la URL ya tiene el dominio completo
     const isFullUrl = documentUrl.startsWith("http");
 
@@ -69,7 +67,6 @@ export default function BulletinsSMSPage() {
     link.href = fullUrl;
 
     // Forzar la descarga agregando el atributo download
-    // Extraer el nombre del archivo del URL o usar el título del boletín
     const fileName =
       fullUrl.split("/").pop() || `${title.replace(/\s+/g, "_")}.pdf`;
     link.download = fileName;
@@ -106,6 +103,7 @@ export default function BulletinsSMSPage() {
             sistema de gestión de seguridad para la seguridad operativa.
           </p>
         </div>
+
         <div className="flex justify-center mb-4">
           <YearPicker
             value={selectedYear}
@@ -114,6 +112,7 @@ export default function BulletinsSMSPage() {
             className="w-1/8"
           />
         </div>
+
         {/* Bulletins Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-5 lg:gap-6">
           {bulletinsError ? (
@@ -155,9 +154,10 @@ export default function BulletinsSMSPage() {
             ))
           )}
         </div>
+
         {bulletinsLoading ? (
           <div className="flex justify-center items-center h-64">
-            <Loader2 className="animate-spin sm:h-24 sm:w-24 h-12 w-12"></Loader2>
+            <Loader2 className="animate-spin sm:h-24 sm:w-24 h-12 w-12" />
           </div>
         ) : (
           selectedYear &&
@@ -169,32 +169,6 @@ export default function BulletinsSMSPage() {
             </div>
           )
         )}
-
-        {/* Dialog Para el Documento Seleccionado*/}
-        <Dialog
-          open={!!selectedDocument}
-          onOpenChange={(open) => {
-            if (!open) setSelectedDocument(null);
-          }}
-        >
-          <DialogContent className="max-w-[90vw] max-h-[80vh] sm:max-w-[65vw] sm:max-h-[80vh] w-full h-full rounded-lg">
-            <DialogHeader>
-              <DialogTitle className="sm:text-lg text-base font-semibold">
-                {selectedDocumentTitle}
-              </DialogTitle>
-            </DialogHeader>
-
-            <div className="flex-1 min-h-[60vh] h-full">
-              {selectedDocument && (
-                <iframe
-                  src={selectedDocument}
-                  className="w-full h-full min-h-[60vh] border-0 rounded-lg"
-                  title="Document Preview"
-                />
-              )}
-            </div>
-          </DialogContent>
-        </Dialog>
       </div>
     </GuestContentLayout>
   );
