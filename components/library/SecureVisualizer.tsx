@@ -1,107 +1,194 @@
-"use client";
+'use client';
 
-import { useState, useEffect } from "react";
-import { ShieldCheck, Loader2, AlertCircle } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useState, useEffect } from 'react';
+import { X, Loader2, ShieldCheck, Lock } from 'lucide-react';
+import { Worker, Viewer } from '@react-pdf-viewer/core';
+import { defaultLayoutPlugin } from '@react-pdf-viewer/default-layout';
 
-// Nota: He eliminado 'X' y 'Button' de los imports porque ya no se usarán manualmente aquí.
+import '@react-pdf-viewer/core/lib/styles/index.css';
+import '@react-pdf-viewer/default-layout/lib/styles/index.css';
 
-interface SecureVisualizerProps {
-  isOpen: boolean;
-  onClose: () => void;
-  fileUrl: string | null;
-  title?: string;
-}
+import libraryService from '@/lib/libraryService';
 
-export default function SecureVisualizer({
-  isOpen,
-  onClose,
-  fileUrl,
-  title = "Visualizador Seguro SIGEAC"
-}: SecureVisualizerProps) {
-  const [isLoading, setIsLoading] = useState(true);
+export default function DocumentViewer({ company, documentId, isOpen, onClose }: any) {
+  const [fileUrl, setFileUrl] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  
+  // 1. ESTADO PARA DETECTAR EL TEMA
+  const [currentTheme, setCurrentTheme] = useState<'light' | 'dark'>('dark');
 
-  // Resetear el loading cada vez que cambie la URL o se abra
   useEffect(() => {
-    if (isOpen) setIsLoading(true);
-  }, [fileUrl, isOpen]);
+    const updateTheme = () => {
+      const isDark = document.documentElement.classList.contains('dark');
+      setCurrentTheme(isDark ? 'dark' : 'light');
+    };
 
-  // Bloqueo de teclas básicas de guardado/impresión
+    updateTheme();
+    
+    // Observador para cambios en la clase 'dark' del documento (Tailwind)
+    const observer = new MutationObserver(updateTheme);
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+    
+    return () => observer.disconnect();
+  }, []);
+
+  // 2. BLOQUEO DE TECLADO
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && (e.key === 'p' || e.key === 's')) {
+      const isControl = e.ctrlKey || e.metaKey;
+      const forbiddenKeys = ['s', 'p', 'u', 'c'];
+      if (isControl && forbiddenKeys.includes(e.key.toLowerCase())) {
         e.preventDefault();
-        // Opcional: mostrar una notificación discreta en lugar de un alert
-        // console.warn("Acción no permitida por políticas de seguridad de SIGEAC.");
+        return false;
       }
     };
 
-    if (isOpen) {
-      window.addEventListener('keydown', handleKeyDown);
-    }
+    if (isOpen) window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isOpen]);
 
+  const defaultLayoutPluginInstance = defaultLayoutPlugin({
+    sidebarTabs: () => [],
+    renderToolbar: (Toolbar) => (
+      <Toolbar>
+        {(slots) => {
+          const { Zoom, ZoomIn, ZoomOut, EnterFullScreen, NumberOfPages, CurrentPageInput } = slots;
+          return (
+            <div className="flex items-center justify-between w-full px-4">
+              <div className="flex items-center gap-2">
+                <ZoomOut /> <Zoom /> <ZoomIn />
+              </div>
+              <div className="flex items-center gap-2 text-gray-400 text-xs font-bold">
+                <CurrentPageInput /> / <NumberOfPages />
+              </div>
+              <div className="flex items-center">
+                <EnterFullScreen />
+              </div>
+            </div>
+          );
+        }}
+      </Toolbar>
+    ),
+  });
+
+  useEffect(() => {
+    let currentBlobUrl: string | null = null;
+    if (isOpen && documentId) {
+      const loadFile = async () => {
+        setLoading(true);
+        try {
+          const url = await libraryService.getFileBlob(company, documentId);
+          setFileUrl(url);
+          currentBlobUrl = url;
+        } catch (error) {
+          console.error("Error en visor seguro:", error);
+        } finally {
+          setLoading(false);
+        }
+      };
+      loadFile();
+    }
+    return () => {
+      if (currentBlobUrl) {
+        URL.revokeObjectURL(currentBlobUrl);
+        setFileUrl(null);
+      }
+    };
+  }, [isOpen, documentId, company]);
+
+  if (!isOpen) return null;
+
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-[98vw] w-[98vw] h-[96vh] p-0 gap-0 overflow-hidden border-none bg-slate-950 flex flex-col">
+    <div className={`fixed inset-0 z-[200] flex items-center justify-center p-2 md:p-6 select-none backdrop-blur-sm transition-colors duration-300 ${
+      currentTheme === 'dark' ? 'bg-black/95' : 'bg-slate-900/40'
+    }`}>
+      <div className={`relative w-full h-full max-w-7xl rounded-2xl overflow-hidden border flex flex-col shadow-2xl transition-all duration-300 ${
+        currentTheme === 'dark' 
+          ? 'bg-[#111214] border-gray-800' 
+          : 'bg-white border-gray-300'
+      }`}>
         
-        {/* Header Mejorado - Ahora sin el botón de cerrar manual */}
-        <DialogHeader className="p-4 bg-slate-900 border-b border-slate-800 flex flex-row items-center justify-between space-y-0 shrink-0">
-          <div className="flex items-center gap-4"> {/* Gap aumentado para más aire */}
-            <div className="bg-blue-600 p-2 rounded-lg shadow-lg shadow-blue-900/20"> {/* Icono y contenedor ligeramente más grandes */}
-              <ShieldCheck className="size-5 text-white" />
+        {/* HEADER */}
+        <div className={`p-4 border-b flex justify-between items-center transition-colors ${
+          currentTheme === 'dark' ? 'bg-[#1a1c1e] border-gray-800' : 'bg-gray-50 border-gray-200'
+        }`}>
+          <div className="flex items-center gap-3">
+            <div className={`p-2 rounded-lg ${currentTheme === 'dark' ? 'bg-emerald-500/10' : 'bg-emerald-500/20'}`}>
+              <ShieldCheck className="h-5 w-5 text-emerald-500" />
             </div>
             <div>
-              {/* MEJORA 2: Título más grande, legible y profesional */}
-              <DialogTitle className="text-xl font-bold text-slate-50 uppercase tracking-wide">
-                {title}
-              </DialogTitle>
-              <p className="text-[11px] text-slate-400 font-medium tracking-wide">MODO DE SOLO LECTURA • CONTROLADO POR SEGURIDAD OPERACIONAL</p>
+              <h3 className={`text-xs font-black uppercase tracking-[0.2em] ${currentTheme === 'dark' ? 'text-white' : 'text-slate-900'}`}>
+                SecureStream Engine
+              </h3>
+              <p className="text-[9px] text-gray-500 font-bold uppercase">Modo Lectura Protegido</p>
             </div>
           </div>
-          {/* MEJORA 1: Se eliminó el Button y el icono X que estaban aquí.
-              El Dialog de Shadcn UI se encargará de mostrar el botón de cerrar. */}
-        </DialogHeader>
-        
-        {/* Contenedor Principal (sin cambios significativos) */}
-        <div 
-          className="relative flex-1 w-full bg-[#020617] flex items-center justify-center overflow-hidden"
-          onContextMenu={(e) => e.preventDefault()} // Bloqueo clic derecho simple
-        >
-          {/* Marca de Agua en Patrón */}
-          <div className="absolute inset-0 z-10 pointer-events-none select-none flex flex-wrap gap-20 items-center justify-center opacity-[0.04]">
-            {Array.from({ length: 12 }).map((_, i) => (
-              <p key={i} className="text-4xl font-black rotate-[-35deg] text-white uppercase tracking-tighter whitespace-nowrap">
-                SIGEAC CONFIDENCIAL
-              </p>
-            ))}
-          </div>
+          <button onClick={onClose} className="p-2 hover:bg-red-500/10 hover:text-red-500 text-gray-500 rounded-xl transition-all">
+            <X className="h-6 w-6" />
+          </button>
+        </div>
 
-          {/* Loader */}
-          {isLoading && (
-            <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-slate-950/80 backdrop-blur-sm">
-              <Loader2 className="size-12 text-blue-500 animate-spin mb-4" />
-              <p className="text-slate-400 text-sm animate-pulse font-medium">Cifrando y cargando documento...</p>
+        {/* ÁREA DE RENDERIZADO */}
+        <div 
+          className={`flex-1 overflow-hidden relative custom-pdf-viewer ${currentTheme === 'dark' ? 'bg-[#0e0f11]' : 'bg-gray-100'}`}
+          onContextMenu={(e) => e.preventDefault()}
+          onCopy={(e) => e.preventDefault()}
+        >
+          {/* AJUSTE DE CONTRASTE PARA RESALTADO SEGÚN TEMA */}
+          <style>{`
+            .rpv-core__text-layer {
+              user-select: text !important;
+              -webkit-user-select: text;
+            }
+            ::selection {
+              background: ${currentTheme === 'dark' ? 'rgba(0, 120, 215, 0.9)' : 'rgba(0, 80, 200, 0.9)'} !important; 
+              color: ${currentTheme === 'dark' ? 'white' : 'inherit'} !important;
+            }
+            ::-moz-selection {
+              background: ${currentTheme === 'dark' ? 'rgba(0, 120, 215, 0.9)' : 'rgba(0, 80, 200, 0.9)'} !important;
+              color: ${currentTheme === 'dark' ? 'white' : 'inherit'} !important;
+            }
+          `}</style>
+
+          {loading ? (
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-4">
+              <Loader2 className="h-12 w-12 animate-spin text-emerald-500" />
+              <div className="text-center">
+                <p className={`text-[10px] font-black uppercase tracking-widest ${currentTheme === 'dark' ? 'text-gray-400' : 'text-slate-500'}`}>
+                  Iniciando Virtualización
+                </p>
+              </div>
             </div>
-          )}
-          
-          {fileUrl ? (
-            <iframe 
-              src={`${fileUrl}#toolbar=0&navpanes=0&scrollbar=0`} 
-              className={`w-full h-full border-none z-0 transition-opacity duration-500 ${isLoading ? 'opacity-0' : 'opacity-100'}`}
-              title="Visor de Documentos"
-              onLoad={() => setIsLoading(false)}
-            />
           ) : (
-            <div className="flex flex-col items-center text-slate-500 gap-4">
-              <AlertCircle className="size-12" />
-              <p className="font-medium text-lg">No se pudo cargar el recurso.</p>
-              <p className="text-sm">Verifique la URL del documento o contacte a soporte.</p>
-            </div>
+            fileUrl && (
+              <div className="h-full overflow-hidden">
+                <Worker workerUrl="https://unpkg.com/pdfjs-dist@3.4.120/build/pdf.worker.min.js">
+                  <Viewer 
+                    fileUrl={fileUrl} 
+                    plugins={[defaultLayoutPluginInstance]} 
+                    theme={currentTheme}
+                    defaultScale={0.9}
+                  />
+                </Worker>
+              </div>
+            )
           )}
         </div>
-      </DialogContent>
-    </Dialog>
+
+        {/* FOOTER */}
+        <div className={`p-2 border-t flex justify-center items-center gap-6 transition-colors ${
+          currentTheme === 'dark' ? 'bg-[#1a1c1e] border-gray-800' : 'bg-gray-50 border-gray-200'
+        }`}>
+           <div className={`flex items-center gap-2 text-[8px] font-black uppercase ${currentTheme === 'dark' ? 'text-gray-600' : 'text-slate-400'}`}>
+              <Lock className="h-3 w-3" />
+              Contenido Protegido
+           </div>
+           <div className="w-px h-3 bg-gray-300 dark:bg-gray-800"></div>
+           <div className={`text-[8px] font-black uppercase ${currentTheme === 'dark' ? 'text-gray-700' : 'text-slate-500'}`}>
+             © SIGEAC Digital Library
+           </div>
+        </div>
+      </div>
+    </div>
   );
 }

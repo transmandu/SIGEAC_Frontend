@@ -1,6 +1,5 @@
 import axiosInstance from './axios';
 
-// Definimos una interfaz básica para los documentos (opcional pero recomendado en TS)
 export interface Document {
     id: number;
     title: string;
@@ -19,7 +18,7 @@ const libraryService = {
      */
     getDocuments: async (company: string) => {
         const response = await axiosInstance.get(`/${company}/library/documents`);
-        return response.data; // Retorna { total: x, data: { Area: [docs] } }
+        return response.data;
     },
 
     /**
@@ -43,11 +42,22 @@ const libraryService = {
     },
 
     /**
-     * Retorna la URL completa para el visor de PDFs
+     * Retorna la URL para el visor (usada como fallback)
      */
     getViewUrl: (company: string, id: number) => {
-        const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
-        return `${baseUrl}/${company}/library/view?id=${id}`;
+        const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000/api';
+        return `${baseUrl}/${company}/library/view/${id}`;
+    },
+
+    /**
+     * Obtiene el archivo como un Blob para visualización segura
+     */
+    getFileBlob: async (company: string, documentId: number) => {
+        const response = await axiosInstance.get(`/${company}/library/view/${documentId}`, {
+            responseType: 'blob' 
+        });
+        // Creamos una URL temporal que solo vive en la sesión del navegador
+        return URL.createObjectURL(response.data);
     }
 };
 

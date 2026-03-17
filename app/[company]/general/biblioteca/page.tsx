@@ -1,31 +1,33 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { useParams } from "next/navigation"; // Para detectar la empresa de la URL
+import { useParams } from "next/navigation";
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import { Button } from "@/components/ui/button";
-import { Plus, Search, FolderOpen, MoreVertical, Loader2 } from "lucide-react";
+import { Plus, Search, FolderOpen, Loader2 } from "lucide-react";
 import DocumentTable from "./data-table"; 
 import UploadModal from "./UploadModal"; 
+import DocumentViewer from "@/components/library/SecureVisualizer";
 import libraryService from "@/lib/libraryService";
 
 const BibliotecaPage = () => {
   const params = useParams();
-  // Prioridad: 1. URL params, 2. Estado local (fallback)
   const companySlug = (params.company as string) || "transmandu";
 
-  // ESTADOS
+  // ESTADOS EXISTENTES
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [groupedDocuments, setGroupedDocuments] = useState<any>({});
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
 
-  // 1. FUNCIÓN PARA TRAER DATOS (Lógica del page antiguo)
+  // 2. NUEVOS ESTADOS PARA EL VISOR
+  const [viewingDocId, setViewingDocId] = useState<number | null>(null);
+  const [isViewerOpen, setIsViewerOpen] = useState(false);
+
   const fetchDocs = useCallback(async () => {
     setLoading(true);
     try {
       const response = await libraryService.getDocuments(companySlug);
-      // El backend devuelve { total: x, data: { "Depto": [docs] } }
       setGroupedDocuments(response.data || {});
     } catch (error) {
       console.error("Error al cargar la biblioteca:", error);
@@ -34,14 +36,18 @@ const BibliotecaPage = () => {
     }
   }, [companySlug]);
 
-  // 2. EFECTO DE CARGA INICIAL
   useEffect(() => {
     if (companySlug) {
       fetchDocs();
     }
   }, [companySlug, fetchDocs]);
 
-  // 3. LÓGICA DE FILTRADO (Para que la barra de búsqueda funcione)
+  // 3. FUNCIÓN PARA DISPARAR EL VISOR
+  const handleOpenViewer = (id: number) => {
+    setViewingDocId(id);
+    setIsViewerOpen(true);
+  };
+
   const filteredDocuments = Object.keys(groupedDocuments).reduce((acc: any, dept) => {
     const docs = (groupedDocuments as any)[dept].filter((doc: any) =>
       doc.title.toLowerCase().includes(searchTerm.toLowerCase())
@@ -91,7 +97,7 @@ const BibliotecaPage = () => {
         </div>
       </div>
 
-      {/* CONTENEDOR DE LA TABLA CON LOADING STATE */}
+      {/* CONTENEDOR DE LA TABLA */}
       <div className="w-full rounded-lg border border-gray-200 p-8 shadow-md dark:border-gray-800 dark:bg-gray-900 bg-white">
         <div className="flex items-center gap-2 mb-6 border-b pb-4 dark:border-gray-800">
           <FolderOpen className="h-5 w-5 text-blue-600" />
@@ -111,6 +117,7 @@ const BibliotecaPage = () => {
               company={companySlug}
               groupedDocuments={filteredDocuments}
               onRefresh={fetchDocs}
+              onView={handleOpenViewer} // 4. PASAR LA FUNCIÓN A LA TABLA
             />
           )}
         </div>
@@ -121,7 +128,15 @@ const BibliotecaPage = () => {
         company={companySlug}
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        onSuccess={fetchDocs} // Esto hace que al subir uno, la lista se actualice sola
+        onSuccess={fetchDocs}
+      />
+
+      {/* 5. EL VISOR SE RENDERIZA AQUÍ ABAJO */}
+      <DocumentViewer
+        company={companySlug}
+        documentId={viewingDocId}
+        isOpen={isViewerOpen}
+        onClose={() => setIsViewerOpen(false)}
       />
     </ContentLayout>
   );

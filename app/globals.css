@@ -2,99 +2,91 @@
 @tailwind components;
 @tailwind utilities;
 
+/* 1. IMPORTS DE LA LIBRERÍA PDF 
+*/
+@import '@react-pdf-viewer/core/lib/styles/index.css';
+@import '@react-pdf-viewer/default-layout/lib/styles/index.css';
+
 @layer base {
+  :root {
+    --background: 226 100% 100%;
+    --foreground: 226 5% 10%;
+    --card: 226 50% 100%;
+    --card-foreground: 226 5% 15%;
+    --popover: 226 100% 100%;
+    --popover-foreground: 226 100% 10%;
+    --primary: 226 100% 60%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 226 30% 90%;
+    --secondary-foreground: 0 0% 0%;
+    --muted: 188 30% 95%;
+    --muted-foreground: 226 5% 40%;
+    --accent: 188 30% 90%;
+    --accent-foreground: 226 5% 15%;
+    --destructive: 0 100% 50%;
+    --destructive-foreground: 226 5% 100%;
+    --border: 226 30% 82%;
+    --input: 226 30% 50%;
+    --ring: 226 100% 60%;
+    --radius: 0.5rem;
+    --chart-1: 12 76% 61%;
+    --chart-2: 173 58% 39%;
+    --chart-3: 197 37% 24%;
+    --chart-4: 43 74% 66%;
+    --chart-5: 27 87% 67%;
 
-:root  {
-  --background: 226 100% 100%;
-  --foreground: 226 5% 10%;
-  --card: 226 50% 100%;
-  --card-foreground: 226 5% 15%;
-  --popover: 226 100% 100%;
-  --popover-foreground: 226 100% 10%;
-  --primary: 226 100% 60%;
-  --primary-foreground: 0 0% 100%;
-  --secondary: 226 30% 90%;
-  --secondary-foreground: 0 0% 0%;
-  --muted: 188 30% 95%;
-  --muted-foreground: 226 5% 40%;
-  --accent: 188 30% 90%;
-  --accent-foreground: 226 5% 15%;
-  --destructive: 0 100% 50%;
-  --destructive-foreground: 226 5% 100%;
-  --border: 226 30% 82%;
-  --input: 226 30% 50%;
-  --ring: 226 100% 60%;
-  --radius: 0.5rem;
-  --chart-1: 12 76% 61%;
-  --chart-2: 173 58% 39%;
-  --chart-3: 197 37% 24%;
-  --chart-4: 43 74% 66%;
-  --chart-5: 27 87% 67%;
-  /*
-    Estilos del Calendario
-  */
-  --sx-color-primary: #6750a4;
-  --sx-color-on-primary: #fff;
-  --sx-color-primary-container: #eaddff;
-  --sx-color-on-primary-container: #21005e;
-  --sx-color-secondary: #625b71;
-  --sx-color-on-secondary: #fff;
-  --sx-color-secondary-container: #e8def8;
-  --sx-color-on-secondary-container: #1e192b;
-  --sx-color-tertiary: #7d5260;
-  --sx-color-on-tertiary: #fff;
-  --sx-color-tertiary-container: #ffd8e4;
-  --sx-color-on-tertiary-container: #370b1e;
-  --sx-color-surface: #fef7ff;
-  --sx-color-surface-dim: #ded8e1;
-  --sx-color-surface-bright: #fef7ff;
-  --sx-color-on-surface: #1c1b1f;
-  --sx-color-surface-container: #f3edf7;
-  --sx-color-surface-container-low: #f7f2fa;
-  --sx-color-surface-container-high: #ece6f0;
-  --sx-color-background: #fff;
-  --sx-color-on-background: #1c1b1f;
-  --sx-color-outline: #79747e;
-  --sx-color-outline-variant: #c4c7c5;
-  --sx-color-shadow: #000;
-  --sx-color-surface-tint: #6750a4;
-  --sx-color-neutral: var(--sx-color-outline);
-  --sx-color-neutral-variant: var(--sx-color-outline-variant);
-}
-.dark  {
-  --background: 226 50% 10%;
-  --foreground: 226 5% 100%;
-  --card: 226 50% 10%;
-  --card-foreground: 226 5% 100%;
-  --popover: 226 50% 5%;
-  --popover-foreground: 226 5% 100%;
-  --primary: 226 100% 60%;
-  --primary-foreground: 0 0% 100%;
-  --secondary: 226 30% 20%;
-  --secondary-foreground: 0 0% 100%;
-  --muted: 188 30% 25%;
-  --muted-foreground: 226 5% 65%;
-  --accent: 188 30% 25%;
-  --accent-foreground: 226 5% 95%;
-  --destructive: 0 100% 50%;
-  --destructive-foreground: 226 5% 100%;
-  --border: 226 30% 50%;
-  --input: 226 30% 50%;
-  --ring: 226 100% 60%;
-  --radius: 0.5rem;
-  --chart-1: 220 70% 50%;
-  --chart-2: 160 60% 45%;
-  --chart-3: 30 80% 55%;
-  --chart-4: 280 65% 60%;
-  --chart-5: 340 75% 55%;
-}
-}
+    /* Estilos del Calendario */
+    --sx-color-primary: #6750a4;
+    --sx-color-on-primary: #fff;
+    --sx-color-primary-container: #eaddff;
+    --sx-color-on-primary-container: #21005e;
+    --sx-color-secondary: #625b71;
+    --sx-color-on-secondary: #fff;
+    --sx-color-secondary-container: #e8def8;
+    --sx-color-on-secondary-container: #1e192b;
+    --sx-color-tertiary: #7d5260;
+    --sx-color-on-tertiary: #fff;
+    --sx-color-tertiary-container: #ffd8e4;
+    --sx-color-on-tertiary-container: #370b1e;
+    --sx-color-surface: #fef7ff;
+    --sx-color-surface-dim: #ded8e1;
+    --sx-color-surface-bright: #fef7ff;
+    --sx-color-on-surface: #1c1b1f;
+    --sx-color-surface-container: #f3edf7;
+    --sx-color-surface-container-low: #f7f2fa;
+    --sx-color-surface-container-high: #ece6f0;
+    --sx-color-background: #fff;
+    --sx-color-on-background: #1c1b1f;
+    --sx-color-outline: #79747e;
+    --sx-color-outline-variant: #c4c7c5;
+    --sx-color-shadow: #000;
+    --sx-color-surface-tint: #6750a4;
+    --sx-color-neutral: var(--sx-color-outline);
+    --sx-color-neutral-variant: var(--sx-color-outline-variant);
+  }
 
-.sx-react-calendar-wrapper {
-  width: 1200px;
-  max-width: 100vw;
-  height: 800px;
-  max-height: 90vh;
+  .dark {
+    --background: 226 50% 10%;
+    --foreground: 226 5% 100%;
+    --card: 226 50% 10%;
+    --card-foreground: 226 5% 100%;
+    --popover: 226 50% 5%;
+    --popover-foreground: 226 5% 100%;
+    --primary: 226 100% 60%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 226 30% 20%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 188 30% 25%;
+    --muted-foreground: 226 5% 65%;
+    --accent: 188 30% 25%;
+    --accent-foreground: 226 5% 95%;
+    --destructive: 0 100% 50%;
+    --destructive-foreground: 226 5% 100%;
+    --border: 226 30% 50%;
+    --input: 226 30% 50%;
+    --ring: 226 100% 60%;
+    --radius: 0.5rem;
+  }
 }
 
 @layer base {
@@ -106,15 +98,57 @@
   }
 }
 
-/* En tu archivo global.css */
 @layer components {
+  /* Estilos generales de tablas */
   .tasks-table th {
     @apply font-semibold text-sm bg-muted/30;
   }
   .tasks-table td {
     @apply align-top;
   }
+
+  .sx-react-calendar-wrapper {
+    width: 1200px;
+    max-width: 100vw;
+    height: 800px;
+    max-height: 90vh;
+  }
+
+  /* 2. BLINDAJE DEL VISOR SEGURO 
+  */
+  .custom-pdf-viewer {
+    /* Bloquea la selección de texto para evitar copias */
+    user-select: none !important;
+    -webkit-user-select: none !important;
+    -moz-user-select: none !important;
+    -ms-user-select: none !important;
+  }
+
+  /* Forzamos el tema oscuro en la librería para que no brille en blanco al cargar */
+  .rpv-core__viewer {
+    background-color: #0e0f11 !important;
+  }
+  
+  .rpv-core__inner-pages {
+    background-color: #0e0f11 !important;
+  }
+
+  /* Estilos para el Toolbar de la librería (ajuste visual) */
+  .rpv-core__toolbar {
+    background-color: #1a1c1e !important;
+    border-bottom: 1px solid #1f2937 !important;
+    color: #f3f4f6 !important;
+  }
+
+  /* BLOQUEO DE IMPRESIÓN: Si el usuario intenta imprimir, la página saldrá en blanco */
+  @media print {
+    .custom-pdf-viewer, .rpv-core__viewer, body {
+      display: none !important;
+    }
+  }
 }
+
+/* Animaciones */
 @keyframes fade-in {
   0% {
     opacity: 0;
@@ -129,6 +163,7 @@
 .animate-fade-in {
   animation: fade-in 0.6s ease-out forwards;
 }
+
 .table-sticky-right {
   position: sticky;
   right: 0;
