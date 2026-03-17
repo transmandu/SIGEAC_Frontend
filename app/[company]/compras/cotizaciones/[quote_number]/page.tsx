@@ -3,6 +3,7 @@
 import { useDeleteQuote } from '@/actions/mantenimiento/compras/cotizaciones/actions';
 import { ContentLayout } from '@/components/layout/ContentLayout';
 import LoadingPage from '@/components/misc/LoadingPage';
+import BackButton from '@/components/misc/BackButton';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -58,9 +59,12 @@ const QuotePage = () => {
   return (
     <ContentLayout title="Cotización">
       <div className="flex flex-col gap-y-2 mb-12">
-        <h1 className="text-4xl font-bold text-center">
-          Cotización Nro: <span className="text-blue-600">#{quote_number}</span>
-        </h1>
+        <div className="flex items-center gap-2">
+          <BackButton iconOnly tooltip="Volver" variant="secondary" />
+          <h1 className="text-4xl font-bold text-center flex-1">
+            Cotización Nro: <span className="text-blue-600">#{quote_number}</span>
+          </h1>
+        </div>
         <p className="text-sm text-muted-foreground text-center italic">
           Detalles de la cotización #{quote_number}
         </p>
