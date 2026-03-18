@@ -78,7 +78,7 @@ export default function BulletinsSMSPage() {
     // Simular clic
     document.body.appendChild(link);
     link.click();
-    document.body.removeChild(link);
+    link.remove();
   };
 
   const {

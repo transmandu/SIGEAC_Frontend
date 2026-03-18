@@ -93,7 +93,7 @@ function ImageDisplayDialog({
     link.download = downloadName;
     document.body.appendChild(link);
     link.click();
-    document.body.removeChild(link);
+    link.remove();
   };
 
   const defaultTrigger = (

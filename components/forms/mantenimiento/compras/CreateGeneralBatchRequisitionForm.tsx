@@ -24,6 +24,7 @@ import { Separator } from "../../../ui/separator"
 import { Textarea } from "../../../ui/textarea"
 import { useGetUnits } from "@/hooks/general/unidades/useGetPrimaryUnits"
 import { Badge } from "@/components/ui/badge"
+import { ArticleImageAttachment } from "./_components/ArticleImageAttachment"
 
 const FormSchema = z.object({
   justification: z
@@ -103,6 +104,7 @@ interface Article {
   part_number: string;
   quantity: number;
   unit?: string;
+  image?: File;
 }
 
 interface Batch {
@@ -548,11 +550,7 @@ export function CreateGeneralBatchRequisitionForm({
                                 ))}
                               </SelectContent>
                             </Select>
-                            {form.formState.errors.articles?.[batchIndex]?.batch_articles?.[index]?.unit && (
-                              <p className="text-destructive text-xs whitespace-nowrap">
-                                Unidad requerida.
-                              </p>
-                            )}
+
                             <Input
                               type="number"
                               placeholder="Cant."
@@ -562,6 +560,12 @@ export function CreateGeneralBatchRequisitionForm({
                               className="text-xs h-8 w-20 shrink-0"
                               onChange={(e) => handleArticleChange(batch.batch, index, "quantity", Number(e.target.value))}
                             />
+
+                            <ArticleImageAttachment
+                              article={article}
+                              onChangeImage={(file) => handleArticleChange(batch.batch, index, "image", file)}
+                            />
+
                             <Button
                               variant="ghost"
                               type="button"
