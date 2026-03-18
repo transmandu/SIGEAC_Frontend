@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { useAuth } from "@/contexts/AuthContext"
 import { useCompanyStore } from "@/stores/CompanyStore"
+import { useRouter } from 'next/navigation';
 import { Quote } from "@/types"
 import { ClipboardCheck, ClipboardX, Loader2, MoreHorizontal, Minus } from "lucide-react"
 import { useState } from "react"
@@ -26,7 +27,7 @@ const QuoteDropdownActions = ({ quote }: { quote: Quote }) => {
   const { updateStatusQuote } = useUpdateQuoteStatus()
   const { updateStatusRequisition } = useUpdateRequisitionStatus()
   const { createPurchaseOrder } = useCreatePurchaseOrder()
-
+  const router = useRouter()
   const handleReject = async (id: number) => {
     const data = {
       status: "RECHAZADA",
