@@ -12,6 +12,17 @@ export interface Document {
     created_at: string;
 }
 
+// Interfaz para los logs de trazabilidad
+export interface ActivityLog {
+    id: number;
+    employee_name: string; // Asegúrate de que diga esto
+    document_title: string;
+    department: string;
+    ip_address: string;
+    accessed_at: string;   // Asegúrate de que diga esto
+    action?: string; 
+}
+
 const libraryService = {
     /**
      * Obtiene los documentos agrupados por departamento
@@ -56,8 +67,27 @@ const libraryService = {
         const response = await axiosInstance.get(`/${company}/library/view/${documentId}`, {
             responseType: 'blob' 
         });
-        // Creamos una URL temporal que solo vive en la sesión del navegador
         return URL.createObjectURL(response.data);
+    },
+
+    /**
+     * Obtiene el historial de trazabilidad de la empresa
+     * (Lógica de filtrado por rol se maneja en el Backend)
+     */
+    getTrazabilidad: async (company: string) => {
+        const response = await axiosInstance.get(`/${company}/library/trazabilidad`);
+        return response.data;
+    },
+
+    /**
+     * Registra una acción (VIEW/DOWNLOAD) en la auditoría
+     */
+    registerLog: async (company: string, documentId: number, action: 'VIEW' | 'DOWNLOAD') => {
+        const response = await axiosInstance.post(`/${company}/library/logs`, {
+            document_id: documentId,
+            action: action
+        });
+        return response.data;
     }
 };
 

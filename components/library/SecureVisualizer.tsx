@@ -1,9 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { X, Loader2, ShieldCheck, Lock } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { X, Loader2, ShieldCheck, Lock, Frown, RotateCcw } from 'lucide-react';
 import { Worker, Viewer } from '@react-pdf-viewer/core';
 import { defaultLayoutPlugin } from '@react-pdf-viewer/default-layout';
+import { Button } from "@/components/ui/button";
 
 import '@react-pdf-viewer/core/lib/styles/index.css';
 import '@react-pdf-viewer/default-layout/lib/styles/index.css';
@@ -12,39 +13,61 @@ import libraryService from '@/lib/libraryService';
 
 export default function DocumentViewer({ company, documentId, isOpen, onClose }: any) {
   const [fileUrl, setFileUrl] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
-  
-  // 1. ESTADO PARA DETECTAR EL TEMA
   const [currentTheme, setCurrentTheme] = useState<'light' | 'dark'>('dark');
+  const activeUrlRef = useRef<string | null>(null); // Ref para limpieza agresiva de RAM
 
+  // ========================================================================
+  // 🧪 MODO PRUEBA JURADO (ESTADOS)
+  // ========================================================================
+  //const [loading, setLoading] = useState(false); 
+  //const [error, setError] = useState<string | null>(
+  //  "No pudimos establecer una conexión segura para cargar este documento. Es posible que el archivo no esté disponible."
+  //);
+
+  // --- LÓGICA REAL (DESCOMENTAR AL FINALIZAR) ---
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+
+  // --- DETECCIÓN DE TEMA ---
   useEffect(() => {
     const updateTheme = () => {
       const isDark = document.documentElement.classList.contains('dark');
       setCurrentTheme(isDark ? 'dark' : 'light');
     };
-
     updateTheme();
-    
-    // Observador para cambios en la clase 'dark' del documento (Tailwind)
     const observer = new MutationObserver(updateTheme);
     observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
-    
     return () => observer.disconnect();
   }, []);
 
-  // 2. BLOQUEO DE TECLADO
+  // --- BLOQUEO DE SEGURIDAD (TECLADO Y COPIADO) ---
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       const isControl = e.ctrlKey || e.metaKey;
+      
+      // Bloqueo de teclas de sistema + Bloqueo de 'C' (Copiar)
       const forbiddenKeys = ['s', 'p', 'u', 'c'];
       if (isControl && forbiddenKeys.includes(e.key.toLowerCase())) {
         e.preventDefault();
-        return false;
       }
     };
 
-    if (isOpen) window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    const handleCopy = (e: ClipboardEvent) => {
+      // Bloquea cualquier intento de copiar al portapapeles
+      e.preventDefault();
+      // Opcional: podrías disparar una alerta de "Contenido Protegido"
+    };
+
+    if (isOpen) {
+      window.addEventListener('keydown', handleKeyDown);
+      window.addEventListener('copy', handleCopy);
+    }
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('copy', handleCopy);
+    };
   }, [isOpen]);
 
   const defaultLayoutPluginInstance = defaultLayoutPlugin({
@@ -71,56 +94,63 @@ export default function DocumentViewer({ company, documentId, isOpen, onClose }:
     ),
   });
 
-  useEffect(() => {
-    let currentBlobUrl: string | null = null;
-    if (isOpen && documentId) {
-      const loadFile = async () => {
-        setLoading(true);
-        try {
-          const url = await libraryService.getFileBlob(company, documentId);
-          setFileUrl(url);
-          currentBlobUrl = url;
-        } catch (error) {
-          console.error("Error en visor seguro:", error);
-        } finally {
-          setLoading(false);
-        }
-      };
-      loadFile();
+  // --- FUNCIÓN DE CARGA ---
+  const loadFile = async () => {
+    if (!isOpen || !documentId) return;
+    
+    setLoading(true);
+    setError(null);
+    try {
+      const url = await libraryService.getFileBlob(company, documentId);
+      
+      // Limpieza preventiva si el usuario salta de un manual a otro
+      if (activeUrlRef.current) {
+        URL.revokeObjectURL(activeUrlRef.current);
+      }
+
+      activeUrlRef.current = url;
+      setFileUrl(url);
+    } catch (err) {
+      setError("No pudimos establecer una conexión segura para cargar este documento.");
+    } finally {
+      setLoading(false);
     }
+  };
+
+  // --- EFECTO DE CARGA Y LIMPIEZA AGRESIVA ---
+  useEffect(() => {
+    if (isOpen && documentId) {
+       loadFile(); // ⚠️ MODO PRUEBA (Descomentar en producción)
+    }
+    
     return () => {
-      if (currentBlobUrl) {
-        URL.revokeObjectURL(currentBlobUrl);
+      if (activeUrlRef.current) {
+        URL.revokeObjectURL(activeUrlRef.current); // Libera la RAM inmediatamente
+        activeUrlRef.current = null;
         setFileUrl(null);
       }
     };
-  }, [isOpen, documentId, company]);
+  }, [isOpen, documentId]);
 
   if (!isOpen) return null;
 
   return (
-    <div className={`fixed inset-0 z-[200] flex items-center justify-center p-2 md:p-6 select-none backdrop-blur-sm transition-colors duration-300 ${
+    <div className={`fixed inset-0 z-[200] flex items-center justify-center p-2 md:p-6 backdrop-blur-sm transition-colors duration-300 ${
       currentTheme === 'dark' ? 'bg-black/95' : 'bg-slate-900/40'
     }`}>
       <div className={`relative w-full h-full max-w-7xl rounded-2xl overflow-hidden border flex flex-col shadow-2xl transition-all duration-300 ${
-        currentTheme === 'dark' 
-          ? 'bg-[#111214] border-gray-800' 
-          : 'bg-white border-gray-300'
+        currentTheme === 'dark' ? 'bg-[#111214] border-gray-800' : 'bg-white border-gray-300'
       }`}>
         
         {/* HEADER */}
-        <div className={`p-4 border-b flex justify-between items-center transition-colors ${
-          currentTheme === 'dark' ? 'bg-[#1a1c1e] border-gray-800' : 'bg-gray-50 border-gray-200'
-        }`}>
+        <div className={`p-4 border-b flex justify-between items-center ${currentTheme === 'dark' ? 'bg-[#1a1c1e] border-gray-800' : 'bg-gray-50 border-gray-200'}`}>
           <div className="flex items-center gap-3">
             <div className={`p-2 rounded-lg ${currentTheme === 'dark' ? 'bg-emerald-500/10' : 'bg-emerald-500/20'}`}>
               <ShieldCheck className="h-5 w-5 text-emerald-500" />
             </div>
             <div>
-              <h3 className={`text-xs font-black uppercase tracking-[0.2em] ${currentTheme === 'dark' ? 'text-white' : 'text-slate-900'}`}>
-                SecureStream Engine
-              </h3>
-              <p className="text-[9px] text-gray-500 font-bold uppercase">Modo Lectura Protegido</p>
+              <h3 className={`text-xs font-black uppercase tracking-[0.2em] ${currentTheme === 'dark' ? 'text-white' : 'text-slate-900'}`}>Visualizador Seguro</h3>
+              <p className="text-[9px] text-gray-500 font-bold uppercase">Transmisión Protegida</p>
             </div>
           </div>
           <button onClick={onClose} className="p-2 hover:bg-red-500/10 hover:text-red-500 text-gray-500 rounded-xl transition-all">
@@ -128,46 +158,57 @@ export default function DocumentViewer({ company, documentId, isOpen, onClose }:
           </button>
         </div>
 
-        {/* ÁREA DE RENDERIZADO */}
+        {/* ÁREA DE CONTENIDO */}
         <div 
-          className={`flex-1 overflow-hidden relative custom-pdf-viewer ${currentTheme === 'dark' ? 'bg-[#0e0f11]' : 'bg-gray-100'}`}
+          className="flex-1 overflow-hidden relative select-text" 
           onContextMenu={(e) => e.preventDefault()}
-          onCopy={(e) => e.preventDefault()}
         >
-          {/* AJUSTE DE CONTRASTE PARA RESALTADO SEGÚN TEMA */}
-          <style>{`
-            .rpv-core__text-layer {
-              user-select: text !important;
-              -webkit-user-select: text;
-            }
-            ::selection {
-              background: ${currentTheme === 'dark' ? 'rgba(0, 120, 215, 0.9)' : 'rgba(0, 80, 200, 0.9)'} !important; 
-              color: ${currentTheme === 'dark' ? 'white' : 'inherit'} !important;
-            }
-            ::-moz-selection {
-              background: ${currentTheme === 'dark' ? 'rgba(0, 120, 215, 0.9)' : 'rgba(0, 80, 200, 0.9)'} !important;
-              color: ${currentTheme === 'dark' ? 'white' : 'inherit'} !important;
-            }
-          `}</style>
+          {loading && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center bg-inherit z-10">
+              <Loader2 className="h-10 w-10 animate-spin text-emerald-500" />
+              <p className="mt-4 text-[10px] font-black uppercase tracking-widest text-gray-500 text-center px-4">Iniciando Virtualización AES-256...</p>
+            </div>
+          )}
 
-          {loading ? (
-            <div className="absolute inset-0 flex flex-col items-center justify-center gap-4">
-              <Loader2 className="h-12 w-12 animate-spin text-emerald-500" />
-              <div className="text-center">
-                <p className={`text-[10px] font-black uppercase tracking-widest ${currentTheme === 'dark' ? 'text-gray-400' : 'text-slate-500'}`}>
-                  Iniciando Virtualización
-                </p>
+          {error ? (
+            <div className="flex flex-col items-center justify-center h-full p-8 text-center bg-inherit animate-in fade-in zoom-in duration-300">
+              <div className="mb-6 p-6 rounded-full bg-amber-500/10 animate-pulse">
+                <Frown className="h-16 w-16 text-amber-500" />
+              </div>
+              <h2 className={`text-xl font-bold mb-2 uppercase tracking-tight ${currentTheme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                Algo salió mal...
+              </h2>
+              <p className="max-w-md text-sm text-gray-500 mb-10 font-medium italic leading-relaxed">
+                {error}
+              </p>
+              
+              <div className="flex flex-col sm:flex-row gap-4 w-full max-w-sm justify-center">
+                <Button 
+                  onClick={loadFile} 
+                  variant="default" 
+                  className="bg-emerald-600 hover:bg-emerald-700 w-full sm:w-auto flex items-center gap-2 group transition-all active:scale-95"
+                >
+                  <RotateCcw className="h-4 w-4 group-hover:rotate-[-90deg] transition-transform" />
+                  Reintentar
+                </Button>
+                <Button 
+                  onClick={onClose} 
+                  variant="outline" 
+                  className="border-gray-500 w-full sm:w-auto hover:bg-red-500/5 hover:text-red-500 transition-colors"
+                >
+                  Cerrar Visor
+                </Button>
               </div>
             </div>
           ) : (
             fileUrl && (
-              <div className="h-full overflow-hidden">
+              <div className="h-full">
                 <Worker workerUrl="https://unpkg.com/pdfjs-dist@3.4.120/build/pdf.worker.min.js">
                   <Viewer 
                     fileUrl={fileUrl} 
                     plugins={[defaultLayoutPluginInstance]} 
                     theme={currentTheme}
-                    defaultScale={0.9}
+                    defaultScale={1.0}
                   />
                 </Worker>
               </div>
@@ -176,16 +217,9 @@ export default function DocumentViewer({ company, documentId, isOpen, onClose }:
         </div>
 
         {/* FOOTER */}
-        <div className={`p-2 border-t flex justify-center items-center gap-6 transition-colors ${
-          currentTheme === 'dark' ? 'bg-[#1a1c1e] border-gray-800' : 'bg-gray-50 border-gray-200'
-        }`}>
-           <div className={`flex items-center gap-2 text-[8px] font-black uppercase ${currentTheme === 'dark' ? 'text-gray-600' : 'text-slate-400'}`}>
-              <Lock className="h-3 w-3" />
-              Contenido Protegido
-           </div>
-           <div className="w-px h-3 bg-gray-300 dark:bg-gray-800"></div>
-           <div className={`text-[8px] font-black uppercase ${currentTheme === 'dark' ? 'text-gray-700' : 'text-slate-500'}`}>
-             © SIGEAC Digital Library
+        <div className={`p-3 border-t flex justify-center items-center gap-4 ${currentTheme === 'dark' ? 'bg-[#1a1c1e] border-gray-800' : 'bg-gray-50 border-gray-200'}`}>
+           <div className="flex items-center gap-2 text-[8px] font-bold uppercase text-gray-500 tracking-tighter">
+              <Lock className="h-3 w-3" />© SIGEAC Digital Library - 2026
            </div>
         </div>
       </div>

@@ -10,8 +10,17 @@ import {
   Calendar, 
   Building2, 
   CheckCircle2,
-  ChevronDown 
+  ChevronDown,
+  Layers // Nuevo icono para los niveles SMS
 } from 'lucide-react';
+
+// Estructura de carpetas basada en tu imagen
+const SMS_STRUCTURE: Record<string, string[]> = {
+  "1_politicas_objetivos": ["1.1_compromiso", "1.2_rendicion_cuentas", "1.3_personal_clave", "1.4_respuesta_emergencias", "1.5_documentacion"],
+  "2_gestion_riesgos": ["2.1_identificacion_peligros", "2.2_evaluacion_mitigacion"],
+  "3_aseguramiento": ["3.1_medicion_rendimiento", "3.2_gestion_cambio", "4.3_mejora_continua"],
+  "4_promocion": ["4.1_instruccion_educacion", "4.2_comunicacion"]
+};
 
 export default function UploadModal({ company, isOpen, onClose, onSuccess }: any) {
   const [loading, setLoading] = useState(false);
@@ -22,6 +31,10 @@ export default function UploadModal({ company, isOpen, onClose, onSuccess }: any
   const [categories, setCategories] = useState<{ id: number, name: string }[]>([]);
   const [loadingData, setLoadingData] = useState(false);
 
+  // Nuevos estados para la jerarquía SMS
+  const [smsPillar, setSmsPillar] = useState('');
+  const [smsSubPoint, setSmsSubPoint] = useState('');
+
   const [formData, setFormData] = useState({
     title: '',
     category_id: '',
@@ -30,7 +43,6 @@ export default function UploadModal({ company, isOpen, onClose, onSuccess }: any
     expiration_date: '',
   });
 
-  // Carga de datos desde la API
   useEffect(() => {
     if (isOpen && company) {
       const fetchData = async () => {
@@ -43,7 +55,7 @@ export default function UploadModal({ company, isOpen, onClose, onSuccess }: any
           setDepartments(deptsRes.data);
           setCategories(catsRes.data);
         } catch (error) {
-          console.error("Error al cargar datos del backend:", error);
+          console.error("Error al cargar datos:", error);
         } finally {
           setLoadingData(false);
         }
@@ -51,6 +63,14 @@ export default function UploadModal({ company, isOpen, onClose, onSuccess }: any
       fetchData();
     }
   }, [isOpen, company]);
+
+  // Limpiar estados de SMS si se cambia de departamento
+  useEffect(() => {
+    if (formData.department_id !== "9") {
+      setSmsPillar('');
+      setSmsSubPoint('');
+    }
+  }, [formData.department_id]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -66,6 +86,12 @@ export default function UploadModal({ company, isOpen, onClose, onSuccess }: any
     data.append('department_id', formData.department_id);
     data.append('department_name', formData.department_name);
     
+    // Adjuntar datos de SMS si aplica
+    if (formData.department_id === "9") {
+      data.append('sms_pillar', smsPillar);
+      data.append('sms_sub_point', smsSubPoint);
+    }
+
     if (hasExpiry && formData.expiration_date) {
       data.append('expiration_date', formData.expiration_date);
     }
@@ -74,9 +100,10 @@ export default function UploadModal({ company, isOpen, onClose, onSuccess }: any
       await libraryService.uploadDocument(company, data);
       onSuccess();
       onClose();
-      // Reset de estados
       setFile(null);
       setFormData({ title: '', category_id: '', department_id: '', department_name: '', expiration_date: '' });
+      setSmsPillar('');
+      setSmsSubPoint('');
     } catch (error: any) {
       alert("Error al guardar: " + (error.response?.data?.message || "Error de servidor"));
     } finally {
@@ -90,27 +117,20 @@ export default function UploadModal({ company, isOpen, onClose, onSuccess }: any
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 transition-opacity">
       <div className="bg-white dark:bg-[#1a1c1e] rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden border border-gray-200 dark:border-gray-800 animate-in zoom-in-95 duration-200">
         
-        {/* Cabecera Estilo Profesional */}
         <div className="bg-gray-50 dark:bg-gray-800/40 px-6 py-4 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center">
           <div className="flex items-center gap-2">
             <div className="p-1.5 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
               <UploadCloud className="h-5 w-5 text-blue-600 dark:text-blue-400" />
             </div>
-            <h2 className="text-lg font-bold text-gray-800 dark:text-white tracking-tight">
-              Subir nuevo documento
-            </h2>
+            <h2 className="text-lg font-bold text-gray-800 dark:text-white tracking-tight">Subir nuevo documento</h2>
           </div>
-          <button 
-            onClick={onClose} 
-            className="text-gray-400 hover:text-red-500 transition-colors p-1 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-full"
-          >
+          <button onClick={onClose} className="text-gray-400 hover:text-red-500 transition-colors p-1 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-full">
             <X className="h-5 w-5" />
           </button>
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-5">
           
-          {/* Nombre del Documento */}
           <div className="space-y-1.5">
             <label className="text-[11px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500 flex items-center gap-2">
               <FileText className="h-3.5 w-3.5 text-blue-500" /> Nombre del Documento
@@ -124,17 +144,14 @@ export default function UploadModal({ company, isOpen, onClose, onSuccess }: any
             />
           </div>
 
-          {/* Grid de Desplegables (Blindados) */}
           <div className="grid grid-cols-2 gap-4">
-            {/* Departamento */}
             <div className="space-y-1.5">
               <label className="text-[11px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500 flex items-center gap-2">
                 <Building2 className="h-3.5 w-3.5 text-blue-500" /> Área / Depto
               </label>
               <div className="relative">
                 <select 
-                  required
-                  disabled={loadingData}
+                  required disabled={loadingData}
                   className="w-full h-11 pl-4 pr-10 border border-gray-300 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-gray-800 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none cursor-pointer appearance-none relative z-10"
                   value={formData.department_id}
                   onChange={(e) => {
@@ -144,9 +161,7 @@ export default function UploadModal({ company, isOpen, onClose, onSuccess }: any
                   }}
                 >
                   <option value="" disabled>Seleccionar</option>
-                  {departments.map(d => (
-                    <option key={d.id} value={d.id} className="dark:bg-gray-800">{d.name}</option>
-                  ))}
+                  {departments.map(d => (<option key={d.id} value={d.id}>{d.name}</option>))}
                 </select>
                 <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none z-20">
                   <ChevronDown className="h-4 w-4 text-gray-400" />
@@ -154,23 +169,19 @@ export default function UploadModal({ company, isOpen, onClose, onSuccess }: any
               </div>
             </div>
 
-            {/* Categoría */}
             <div className="space-y-1.5">
               <label className="text-[11px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500 flex items-center gap-2">
                 <Tag className="h-3.5 w-3.5 text-blue-500" /> Categoría
               </label>
               <div className="relative">
                 <select 
-                  required
-                  disabled={loadingData}
+                  required disabled={loadingData}
                   className="w-full h-11 pl-4 pr-10 border border-gray-300 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-gray-800 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none cursor-pointer appearance-none relative z-10"
                   value={formData.category_id}
                   onChange={(e) => setFormData({...formData, category_id: e.target.value})}
                 >
                   <option value="" disabled>Seleccionar</option>
-                  {categories.map(c => (
-                    <option key={c.id} value={c.id} className="dark:bg-gray-800">{c.name}</option>
-                  ))}
+                  {categories.map(c => (<option key={c.id} value={c.id}>{c.name}</option>))}
                 </select>
                 <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none z-20">
                   <ChevronDown className="h-4 w-4 text-gray-400" />
@@ -179,72 +190,83 @@ export default function UploadModal({ company, isOpen, onClose, onSuccess }: any
             </div>
           </div>
 
-          {/* Selector de Vigencia */}
+          {/* SECCIÓN ESPECIAL SMS (ID 9) */}
+          <div className={`transition-all duration-500 ease-in-out overflow-hidden ${formData.department_id === "9" ? 'max-h-40 opacity-100 translate-y-0' : 'max-h-0 opacity-0 -translate-y-4'}`}>
+            <div className="grid grid-cols-2 gap-4 p-4 bg-blue-50/50 dark:bg-blue-900/10 rounded-2xl border border-blue-100 dark:border-blue-900/20">
+              <div className="space-y-1.5 col-span-1">
+                <label className="text-[10px] font-bold uppercase text-blue-600 dark:text-blue-400 flex items-center gap-2">
+                  <Layers className="h-3 w-3" /> Fase SMS
+                </label>
+                <div className="relative">
+                  <select 
+                    required={formData.department_id === "9"}
+                    className="w-full h-10 pl-3 pr-8 border border-blue-200 dark:border-blue-900/40 rounded-lg bg-white dark:bg-gray-800 text-xs text-gray-800 dark:text-white outline-none focus:ring-2 focus:ring-blue-500 appearance-none"
+                    value={smsPillar}
+                    onChange={(e) => { setSmsPillar(e.target.value); setSmsSubPoint(''); }}
+                  >
+                    <option value="">Pilar...</option>
+                    {Object.keys(SMS_STRUCTURE).map(p => (
+                      <option key={p} value={p}>{p.replace(/_/g, ' ').toUpperCase()}</option>
+                    ))}
+                  </select>
+                  <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 h-3 w-3 text-blue-400 pointer-events-none" />
+                </div>
+              </div>
+
+              <div className="space-y-1.5 col-span-1">
+                <label className="text-[10px] font-bold uppercase text-blue-600 dark:text-blue-400 flex items-center gap-2">
+                  <Layers className="h-3 w-3" /> Punto
+                </label>
+                <div className="relative">
+                  <select 
+                    required={formData.department_id === "9"}
+                    disabled={!smsPillar}
+                    className="w-full h-10 pl-3 pr-8 border border-blue-200 dark:border-blue-900/40 rounded-lg bg-white dark:bg-gray-800 text-xs text-gray-800 dark:text-white outline-none focus:ring-2 focus:ring-blue-500 appearance-none disabled:opacity-50"
+                    value={smsSubPoint}
+                    onChange={(e) => setSmsSubPoint(e.target.value)}
+                  >
+                    <option value="">Elemento...</option>
+                    {smsPillar && SMS_STRUCTURE[smsPillar].map(s => (
+                      <option key={s} value={s}>{s.replace(/_/g, ' ').toUpperCase()}</option>
+                    ))}
+                  </select>
+                  <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 h-3 w-3 text-blue-400 pointer-events-none" />
+                </div>
+              </div>
+            </div>
+          </div>
+
           <div className="space-y-2">
             <label className="text-[11px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500 flex items-center gap-2">
               <Calendar className="h-3.5 w-3.5 text-blue-500" /> Vigencia
             </label>
             <div className="grid grid-cols-2 gap-2 p-1 bg-gray-100 dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
-              <button
-                type="button"
-                className={`py-2 text-[10px] font-black rounded-lg transition-all duration-300 ${!hasExpiry ? 'bg-white dark:bg-gray-700 shadow-sm text-blue-600 dark:text-blue-400' : 'text-gray-400'}`}
-                onClick={() => setHasExpiry(false)}
-              >
-                PERMANENTE
-              </button>
-              <button
-                type="button"
-                className={`py-2 text-[10px] font-black rounded-lg transition-all duration-300 ${hasExpiry ? 'bg-white dark:bg-gray-700 shadow-sm text-blue-600 dark:text-blue-400' : 'text-gray-400'}`}
-                onClick={() => setHasExpiry(true)}
-              >
-                CON VENCIMIENTO
-              </button>
+              <button type="button" className={`py-2 text-[10px] font-black rounded-lg transition-all ${!hasExpiry ? 'bg-white dark:bg-gray-700 shadow-sm text-blue-600 dark:text-blue-400' : 'text-gray-400'}`} onClick={() => setHasExpiry(false)}>PERMANENTE</button>
+              <button type="button" className={`py-2 text-[10px] font-black rounded-lg transition-all ${hasExpiry ? 'bg-white dark:bg-gray-700 shadow-sm text-blue-600 dark:text-blue-400' : 'text-gray-400'}`} onClick={() => setHasExpiry(true)}>CON VENCIMIENTO</button>
             </div>
           </div>
 
-          {/* Animación Suave para Fecha de Expiración */}
-          <div 
-            className={`transition-all duration-500 ease-in-out overflow-hidden ${hasExpiry ? 'max-h-24 opacity-100 translate-y-0' : 'max-h-0 opacity-0 -translate-y-2'}`}
-          >
+          <div className={`transition-all duration-500 overflow-hidden ${hasExpiry ? 'max-h-24 opacity-100' : 'max-h-0 opacity-0'}`}>
             <div className="space-y-1.5 pt-1">
-              <label className="text-[11px] font-bold uppercase text-blue-600 dark:text-blue-400 flex items-center gap-2">
-                <Calendar className="h-3.5 w-3.5" /> Fecha de Expiración
-              </label>
-              <input 
-                type="date" 
-                required={hasExpiry}
-                className="w-full h-11 px-4 border border-blue-200 dark:border-blue-900/40 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none bg-blue-50/30 dark:bg-blue-900/10 text-gray-800 dark:text-white"
-                onChange={(e) => setFormData({...formData, expiration_date: e.target.value})}
-              />
+              <label className="text-[11px] font-bold uppercase text-blue-600 dark:text-blue-400 flex items-center gap-2"><Calendar className="h-3.5 w-3.5" /> Fecha de Expiración</label>
+              <input type="date" required={hasExpiry} className="w-full h-11 px-4 border border-blue-200 dark:border-blue-900/40 rounded-xl outline-none bg-blue-50/30 dark:bg-blue-900/10 text-gray-800 dark:text-white" onChange={(e) => setFormData({...formData, expiration_date: e.target.value})} />
             </div>
           </div>
 
-          {/* Zona de Archivo */}
           <div className="pt-2">
-            <label className={`relative flex flex-col items-center justify-center w-full h-28 border-2 border-dashed rounded-2xl cursor-pointer transition-all duration-300 ${file ? 'border-green-500 bg-green-50/30 dark:bg-green-900/10' : 'border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/40 hover:bg-gray-100 dark:hover:bg-gray-800/60'}`}>
+            <label className={`relative flex flex-col items-center justify-center w-full h-28 border-2 border-dashed rounded-2xl cursor-pointer transition-all ${file ? 'border-green-500 bg-green-50/30' : 'border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/40'}`}>
               <div className="flex flex-col items-center justify-center text-center px-4">
-                {file ? <CheckCircle2 className="h-7 w-7 text-green-500 mb-1 animate-bounce" /> : <UploadCloud className="h-7 w-7 text-gray-400 mb-1" />}
-                <p className="text-sm dark:text-gray-300 font-medium">
-                  {file ? '¡Archivo seleccionado!' : 'Haz clic para subir archivo'}
-                </p>
+                {file ? <CheckCircle2 className="h-7 w-7 text-green-500 mb-1" /> : <UploadCloud className="h-7 w-7 text-gray-400 mb-1" />}
+                <p className="text-sm dark:text-gray-300 font-medium">{file ? '¡Archivo seleccionado!' : 'Haz clic para subir archivo'}</p>
                 <p className="text-[10px] text-gray-400 truncate max-w-[200px]">{file ? file.name : 'PDF o Excel (Max 10MB)'}</p>
               </div>
               <input type="file" className="hidden" accept=".pdf,.xlsx,.xls" onChange={(e) => setFile(e.target.files ? e.target.files[0] : null)} />
             </label>
           </div>
 
-          {/* Footer de Acciones */}
           <div className="flex gap-3 pt-4 border-t dark:border-gray-800">
-            <button 
-              type="button" onClick={onClose}
-              className="flex-1 px-4 py-3 text-[11px] font-black tracking-widest text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-all uppercase"
-            >
-              CANCELAR
-            </button>
-            <button 
-              type="submit" disabled={loading || loadingData}
-              className="flex-1 px-4 py-3 text-[11px] font-black tracking-widest text-white bg-blue-600 rounded-xl hover:bg-blue-700 transition-all disabled:opacity-50 shadow-lg shadow-blue-500/20"
-            >
+            <button type="button" onClick={onClose} className="flex-1 px-4 py-3 text-[11px] font-black tracking-widest text-gray-400 hover:text-gray-600 uppercase">CANCELAR</button>
+            <button type="submit" disabled={loading || loadingData} className="flex-1 px-4 py-3 text-[11px] font-black tracking-widest text-white bg-blue-600 rounded-xl hover:bg-blue-700 disabled:opacity-50 shadow-lg shadow-blue-500/20">
               {loading ? 'SUBIENDO...' : 'GUARDAR ARCHIVO'}
             </button>
           </div>
