@@ -124,19 +124,19 @@ export function CollapseMenuButton({
             key={index}
             variant="ghost"
             className={cn(
-              "group relative m-1 h-10 w-full justify-start rounded-xl border border-transparent bg-transparent px-3 text-muted-foreground transition-all duration-200",
+              "group relative m-1 h-10 w-[calc(100%-0.5rem)] justify-start rounded-xl border border-transparent bg-transparent px-3 text-muted-foreground transition-all duration-200",
               "hover:border-border/60 hover:bg-muted/35 hover:text-foreground",
               active && "border-border/70 bg-background text-foreground"
             )}
             asChild
           >
             <Link href={href}>
-              <span
+              {/* <span
                 className={cn(
                   "absolute left-0 top-1/2 h-5 w-px -translate-y-1/2 bg-border/70",
                   index === submenus.length - 1 && "h-0"
                 )}
-              />
+              /> */}
               <span className="mr-3 ml-2 flex h-6 w-6 shrink-0 items-center justify-center text-muted-foreground/80">
                 <Dot size={16} />
               </span>

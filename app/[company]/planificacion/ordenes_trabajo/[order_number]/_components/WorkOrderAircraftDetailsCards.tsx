@@ -68,7 +68,8 @@ const WorkOrderAircraftDetailsCards = ({ work_order }: { work_order: WorkOrder }
             link.download = `WO_${work_order.order_number}.pdf`;
             document.body.appendChild(link);
             link.click();
-            document.body.removeChild(link);
+            link.remove()
+            window.URL.revokeObjectURL(url);
             setPrintOpen(false);
             return;
         } else if (mode === 'preview') return;
@@ -90,7 +91,8 @@ const WorkOrderAircraftDetailsCards = ({ work_order }: { work_order: WorkOrder }
         link.download = `WO_${work_order.order_number}.pdf`;
         document.body.appendChild(link);
         link.click();
-        document.body.removeChild(link);
+        link.remove()
+        window.URL.revokeObjectURL(url);
         setPrintOpen(false);
       } else {
         lastParamsRef.current = currentParamsJson;

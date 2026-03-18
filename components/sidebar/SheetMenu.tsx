@@ -37,7 +37,7 @@ export function SheetMenu() {
               href={user ? `/login` : `/${selectedCompany?.slug}/dashboard`}
               className="flex items-center gap-2"
             >
-              <Image src={"/logo.png"} width={150} height={150} alt="Logo" />
+              <Image src={"/logo.png"} width={150} height={150} alt="Logo" priority/>
             </Link>
           </Button>
         </SheetHeader>

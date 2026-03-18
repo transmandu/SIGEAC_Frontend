@@ -43,7 +43,7 @@ export function Menu({ isOpen }: MenuProps) {
 
   const getItemClassName = (active: boolean) =>
     cn(
-      "group relative m-1 h-11 w-full justify-start overflow-hidden rounded-xl border px-3 text-[13px] transition-all duration-200",
+      "group relative m-1 h-11 w-full justify-start overflow-hidden rounded-xl border pl-2 pr-3 text-[13px] transition-all duration-200",
       "border-transparent bg-transparent text-muted-foreground hover:border-border/70 hover:bg-muted/40 hover:text-foreground",
       active &&
         "border-border/80 bg-muted/60 text-foreground shadow-sm shadow-black/5"

@@ -3,6 +3,7 @@
 import { useDeleteQuote } from '@/actions/mantenimiento/compras/cotizaciones/actions';
 import { ContentLayout } from '@/components/layout/ContentLayout';
 import LoadingPage from '@/components/misc/LoadingPage';
+import BackButton from '@/components/misc/BackButton';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -14,24 +15,26 @@ import {
 } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useGetQuoteByQuoteNumber } from '@/hooks/mantenimiento/compras/useGetQuoteByQuoteNumber';
+import { useGetPurchaseOrderByQuoteId } from '@/hooks/mantenimiento/compras/useGetPurchaseOrderByQuoteId';
 import { cn } from '@/lib/utils';
 import { useCompanyStore } from '@/stores/CompanyStore';
 import { Trash2, Loader2, User } from 'lucide-react';
 import { useParams, useRouter } from 'next/navigation';
-
 import { useState } from 'react';
 
 const QuotePage = () => {
-
   const [openDelete, setOpenDelete] = useState<boolean>(false);
-
   const { selectedCompany } = useCompanyStore();
-
   const router = useRouter();
-
   const { quote_number } = useParams<{ quote_number: string }>();
-
   const { data, isLoading } = useGetQuoteByQuoteNumber(selectedCompany?.slug ?? null, quote_number);
+
+  const quoteId = data?.id;
+
+  const { data: purchaseOrder, isLoading: loadingPO } = useGetPurchaseOrderByQuoteId({
+    company: selectedCompany?.slug ?? null,
+    quoteId: quoteId
+  });
 
   const { deleteQuote } = useDeleteQuote();
 
@@ -45,12 +48,23 @@ const QuotePage = () => {
     router.push(`/${selectedCompany!.slug}/general/cotizaciones`);
   };
 
+  const handleApprove = () => {};
+
+  const goToPurchaseOrder = () => {
+    if (purchaseOrder?.order_number) {
+      router.push(`/${selectedCompany!.slug}/compras/ordenes_compra/${purchaseOrder.order_number}`);
+    }
+  };
+
   return (
     <ContentLayout title="Cotización">
       <div className="flex flex-col gap-y-2 mb-12">
-        <h1 className="text-4xl font-bold text-center">
-          Cotización Nro: <span className="text-blue-600">#{quote_number}</span>
-        </h1>
+        <div className="flex items-center gap-2">
+          <BackButton iconOnly tooltip="Volver" variant="secondary" />
+          <h1 className="text-4xl font-bold text-center flex-1">
+            Cotización Nro: <span className="text-blue-600">#{quote_number}</span>
+          </h1>
+        </div>
         <p className="text-sm text-muted-foreground text-center italic">
           Detalles de la cotización #{quote_number}
         </p>
@@ -84,9 +98,12 @@ const QuotePage = () => {
               </p>
             </div>
           </div>
-          <p className="text-center font-medium italic">
-            {data?.justification}
-          </p>
+          <div className='text-center'>
+            <h2 className='font-semibold text-lg mb-2'>Justificación:</h2>
+            <p className="font-medium italic bg-secondary p-4 rounded-md">
+              {data?.justification || "No se proporcionó justificación"}
+            </p>
+          </div>
           <div className="flex justify-center gap-2">
             {data?.article_quote_order.map((article) => (
               <Card
@@ -97,14 +114,12 @@ const QuotePage = () => {
                 <CardContent>
                   <p className="font-medium">
                     Nro. de Parte:{" "}
-                    <span className="font-bold italic">
-                      {article.article_part_number}
-                    </span>
+                    <span className="font-bold italic">{article.article_part_number}</span>
                   </p>
                   <p className="font-medium">
                     Cantidad:{" "}
                     <span className="font-bold italic">
-                      {article.quantity} {article.unit ? article.unit.label: "UNIDADES"}
+                      {article.quantity} {article.unit ? article.unit.label : "UNIDADES"}
                     </span>
                   </p>
                   <p className="font-medium">
@@ -116,10 +131,7 @@ const QuotePage = () => {
                   <p className="font-medium">
                     Total:{" "}
                     <span className="font-bold italic">
-                      $
-                      {(article.quantity * Number(article.unit_price)).toFixed(
-                        2
-                      )}
+                      ${(article.quantity * Number(article.unit_price)).toFixed(2)}
                     </span>
                   </p>
                 </CardContent>
@@ -127,14 +139,19 @@ const QuotePage = () => {
             ))}
           </div>
         </CardContent>
-        {data?.status !== "aprobada" && (
-          <CardFooter className="flex gap-2 justify-end">
-            <Button>Aprobar</Button>
-            <Button onClick={() => setOpenDelete(true)} variant={"destructive"}>
-              <Trash2 />
-            </Button>
-          </CardFooter>
-        )}
+        <CardFooter className="flex gap-2 justify-end">
+          {data?.status === "PENDIENTE" && <Button onClick={handleApprove}>Aprobar</Button>}
+          {data?.status === "APROBADO" && !loadingPO && purchaseOrder?.order_number && (
+            <Button onClick={goToPurchaseOrder}>Ver Orden de Compra</Button>
+          )}
+          <Button
+            onClick={() => setOpenDelete(true)}
+            variant={"destructive"}
+            disabled={data?.status === "APROBADO"}
+          >
+            <Trash2 />
+          </Button>
+        </CardFooter>
       </Card>
       <Dialog open={openDelete} onOpenChange={setOpenDelete}>
         <DialogContent>
@@ -153,7 +170,7 @@ const QuotePage = () => {
             </Button>
             <Button
               onClick={() => handleDelete(data!.id, selectedCompany!.slug)}
-              disabled={deleteQuote.isPending}
+              disabled={deleteQuote.isPending || data?.status === "APROBADO"}
             >
               {deleteQuote.isPending ? (
                 <Loader2 className="animate-spin size-4" />

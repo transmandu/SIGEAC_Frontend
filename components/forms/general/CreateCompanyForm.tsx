@@ -292,59 +292,62 @@ export function CreateCompanyForm({ onClose }: FormProps) {
                 render={({ field }) => (
                   <FormItem className="flex flex-col">
                     <FormLabel>Modulos</FormLabel>
+
                     <Popover open={openModules} onOpenChange={setOpenModules}>
                       <PopoverTrigger asChild>
-                        <Button
-                          variant="outline"
-                          className="w-full justify-between"
-                        >
-                          {selectedModules?.length > 0 && (
+                        <Button variant="outline" className="w-full justify-between">
+                          {selectedModules.length > 0 ? (
                             <>
                               <Separator orientation="vertical" className="mx-2 h-4" />
+
+                              {/* Móvil: mostrar nombre si solo hay uno, cantidad si hay varios */}
                               <Badge
                                 variant="secondary"
                                 className="rounded-sm px-1 font-normal lg:hidden"
                               >
-                                {selectedModules.length}
+                                {selectedModules.length === 1
+                                  ? modules?.find((m) => m.id.toString() === selectedModules[0])?.label ||
+                                    selectedModules[0]
+                                  : selectedModules.length}
                               </Badge>
+
+                              {/* Escritorio: mostrar nombres o cantidad si >3 */}
                               <div className="hidden space-x-1 lg:flex">
                                 {selectedModules.length > 3 ? (
-                                  <Badge
-                                    variant="secondary"
-                                    className="rounded-sm px-1 font-normal"
-                                  >
+                                  <Badge variant="secondary" className="rounded-sm px-1 font-normal">
                                     {selectedModules.length} seleccionados
                                   </Badge>
                                 ) : (
-                                  modules?.filter((option) => selectedModules.includes(option.id.toString()))
-                                    .map((option) => (
+                                  selectedModules.map((id) => {
+                                    const mod = modules?.find((m) => m.id.toString() === id);
+                                    return (
                                       <Badge
+                                        key={id}
                                         variant="secondary"
-                                        key={option.id}
                                         className="rounded-sm px-1 font-medium"
                                       >
-                                        {option.label}
+                                        {mod?.label || id} {/* fallback seguro */}
                                       </Badge>
-                                    ))
+                                    );
+                                  })
                                 )}
                               </div>
                             </>
+                          ) : (
+                            "Seleccione..."
                           )}
-                          {
-                            selectedModules.length <= 0 && "Seleccione..."
-                          }
+
                           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                         </Button>
                       </PopoverTrigger>
+
                       <PopoverContent className="w-[200px] p-0">
                         <Command>
                           <CommandInput placeholder="Buscar modulos..." />
                           <CommandList>
                             <CommandEmpty>No se han encontrado modulos...</CommandEmpty>
                             <CommandGroup>
-                              {
-                                isLoadingModules && <Loader2 className="animate-spin size-4" />
-                              }
+                              {isLoadingModules && <Loader2 className="animate-spin size-4" />}
                               {modules?.map((m) => (
                                 <CommandItem
                                   key={m.id}
@@ -354,20 +357,25 @@ export function CreateCompanyForm({ onClose }: FormProps) {
                                   <Check
                                     className={cn(
                                       "mr-2 h-4 w-4",
-                                      isModuleSelected(m.id.toString()) ? "opacity-100" : "opacity-0"
+                                      isModuleSelected(m.id.toString())
+                                        ? "opacity-100"
+                                        : "opacity-0"
                                     )}
                                   />
                                   {m.label}
                                 </CommandItem>
                               ))}
-                              {
-                                isModulesError && <p className="text-center text-muted-foreground text-sm">Ha ocurrido un error al cargar los modulos...</p>
-                              }
+                              {isModulesError && (
+                                <p className="text-center text-muted-foreground text-sm">
+                                  Ha ocurrido un error al cargar los modulos...
+                                </p>
+                              )}
                             </CommandGroup>
                           </CommandList>
                         </Command>
                       </PopoverContent>
                     </Popover>
+
                     <FormMessage />
                   </FormItem>
                 )}
