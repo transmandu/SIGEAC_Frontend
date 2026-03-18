@@ -106,7 +106,7 @@ const RequisitionPage = () => {
 
           <div className='text-center'>
             <h2 className='font-semibold text-lg mb-2'>Justificación:</h2>
-            <p className='font-medium italic bg-gray-50 p-4 rounded-md'>
+            <p className='font-medium italic bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 p-4 rounded-md'>
               {data?.justification || "No se proporcionó justificación"}
             </p>
           </div>
