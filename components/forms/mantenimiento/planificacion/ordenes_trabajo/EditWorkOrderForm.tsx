@@ -251,10 +251,10 @@ const EditWorkOrderForm = ({ work_order, onClose }: EditWorkOrderFormProps) => {
         open={!!taskToDelete}
         onOpenChange={(open) => { if (!open) setTaskToDelete(null); }}
       >
-        <AlertDialogContent>
+        <AlertDialogContent aria-describedby="delete-task-description">
           <AlertDialogHeader>
             <AlertDialogTitle>¿Eliminar esta tarea?</AlertDialogTitle>
-            <AlertDialogDescription>
+            <AlertDialogDescription id="delete-task-description">
               Esta acción es <strong>irreversible</strong>. Se eliminarán la tarea y todos sus
               ítems asociados de la orden de trabajo.
             </AlertDialogDescription>
