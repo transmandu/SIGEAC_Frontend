@@ -126,9 +126,11 @@ export default function BulletinsSMSPage() {
               <div
                 key={bulletin.id}
                 className="cursor-pointer transition-transform duration-200 hover:scale-[1.02] active:scale-95"
-                onClick={() =>
-                  handleDocumentClick(bulletin.document, bulletin.title)
-                }
+                onClick={() => {
+                  if (bulletin.document) {
+                    handleDocumentClick(bulletin.document, bulletin.title || "");
+                  }
+                }}
               >
                 <h2 className="text-center font-bold text-sm sm:text-lg">
                   {format(bulletin.date, "MMMM", {

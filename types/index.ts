@@ -1138,7 +1138,7 @@ export type SafetyBulletin = {
   title: string;
   description: string;
   image?: string;
-  document: string;
+  document?: string;
 }
 
 export type FlightHistory = {

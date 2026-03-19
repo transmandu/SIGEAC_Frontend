@@ -81,6 +81,31 @@ export const useDeleteSafetyBulletin = () => {
   };
 };
 
+export const useDeleteBulletinDocument = () => {
+  const queryClient = useQueryClient();
+  const mutation = useMutation({
+    mutationFn: async ({ company, id }: { company: string; id: string | number }) => {
+      await axiosInstance.delete(`/${company}/sms/bulletin/${id}/document`);
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: ["safety-bulletins", variables.company],
+      });
+      toast.success("¡Documento eliminado!", {
+        description: "El documento ha sido eliminado correctamente.",
+      });
+    },
+    onError: () => {
+      toast.error("Oops!", {
+        description: "No se pudo eliminar el documento.",
+      });
+    },
+  });
+  return {
+    deleteBulletinDocument: mutation,
+  };
+};
+
 export const useUpdateBulletin = () => {
   const queryClient = useQueryClient();
   const updateBulletinMutation = useMutation({

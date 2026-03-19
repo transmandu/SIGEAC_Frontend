@@ -13,10 +13,12 @@ import {
 import { Input } from "@/components/ui/input";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
+import { useState } from "react";
 import { z } from "zod";
 
 import {
   useCreateBulletin,
+  useDeleteBulletinDocument,
   useUpdateBulletin,
 } from "@/actions/sms/boletin/actions";
 import { Calendar } from "@/components/ui/calendar";
@@ -49,6 +51,16 @@ export function CreateSafetyBulletinForm({
   const { selectedCompany } = useCompanyStore();
   const { createBulletin } = useCreateBulletin();
   const { updateBulletin } = useUpdateBulletin();
+  const { deleteBulletinDocument } = useDeleteBulletinDocument();
+  const [documentMarkedForDeletion, setDocumentMarkedForDeletion] = useState(false);
+
+  const baseDocumentSchema = z
+    .instanceof(File, { message: "Debes seleccionar un archivo PDF" })
+    .refine((file) => file.size <= 10 * 1024 * 1024, "Máximo 10MB")
+    .refine(
+      (file) => file.type === "application/pdf",
+      "Solo se permiten archivos PDF"
+    );
 
   const FormSchema = z.object({
     title: z.string(),
@@ -63,15 +75,10 @@ export function CreateSafetyBulletinForm({
         (file) => ["image/jpeg", "image/png"].includes(file.type),
         "Solo JPEG/PNG"
       )
+      .nullable()
       .optional(),
 
-    document: z
-      .instanceof(File, { message: "Debes seleccionar un archivo PDF" }) // Mensaje cuando no hay archivo
-      .refine((file) => file.size <= 10 * 1024 * 1024, "Máximo 10MB")
-      .refine(
-        (file) => file.type === "application/pdf",
-        "Solo se permiten archivos PDF"
-      ),
+    document: isEditing ? baseDocumentSchema.nullable().optional() : baseDocumentSchema,
   });
 
   type FormSchemaType = z.infer<typeof FormSchema>;
@@ -91,6 +98,13 @@ export function CreateSafetyBulletinForm({
 
   const onSubmit = async (data: FormSchemaType) => {
     if (initialData && isEditing) {
+      // Si el usuario marcó el documento para eliminar, ejecutar la eliminación primero
+      if (documentMarkedForDeletion && initialData.id) {
+        await deleteBulletinDocument.mutateAsync({
+          company: selectedCompany!.slug,
+          id: initialData.id,
+        });
+      }
       const value = {
         company: selectedCompany!.slug,
         id: initialData.id,
@@ -98,22 +112,30 @@ export function CreateSafetyBulletinForm({
           title: data.title,
           description: data.description,
           date: data.date,
-          image: data.image,
-          document: data.document,
+          image: data.image ?? undefined,
+          document: data.document ?? undefined,
         },
       };
-      updateBulletin.mutateAsync(value);
+      await updateBulletin.mutateAsync(value);
     } else {
-      try {
-        await createBulletin.mutateAsync({
-          company: selectedCompany!.slug,
-          data: data,
-        });
-        console.log("data", data);
-      } catch (error) {
-        console.error("Error al crear el boletin:", error);
+        try {
+          // Creamos un objeto limpio donde convertimos null a undefined
+          const cleanData = {
+            ...data,
+            image: data.image ?? undefined,
+            document: data.document ?? undefined,
+          };
+
+          await createBulletin.mutateAsync({
+            company: selectedCompany!.slug,
+            data: cleanData, // Pasamos el objeto limpio aquí
+          });
+          
+          console.log("data", cleanData);
+        } catch (error) {
+          console.error("Error al crear el boletin:", error);
+        }
       }
-    }
     onClose(false);
   };
 
@@ -176,6 +198,7 @@ export function CreateSafetyBulletinForm({
                       <Calendar
                         mode="single"
                         selected={field.value}
+                        defaultMonth={field.value}
                         onSelect={field.onChange}
                         disabled={false}
                         initialFocus
@@ -270,7 +293,7 @@ export function CreateSafetyBulletinForm({
               <FormItem>
                 <FormLabel>Documento PDF</FormLabel>
                 <div className="flex flex-col-reverse gap-2">
-                  {field.value ? (
+                  {field.value instanceof File ? (
                     <div className="flex items-center justify-between p-3 rounded-lg border">
                       <div className="flex items-center gap-3">
                         <div className="p-2 bg-red-100 rounded">
@@ -291,12 +314,12 @@ export function CreateSafetyBulletinForm({
                         variant="ghost"
                         size="sm"
                         className="h-8 w-8 p-0 hover:bg-red-50 hover:text-red-600"
-                        onClick={() => field.onChange(null)}
+                        onClick={() => field.onChange(undefined)}
                       >
                         <X className="h-4 w-4" />
                       </Button>
                     </div>
-                  ) : initialData?.document &&
+                  ) : !documentMarkedForDeletion && field.value !== null && initialData?.document &&
                     typeof initialData.document === "string" ? (
                     <div className="flex items-center justify-between p-3 rounded-lg border">
                       <div className="flex items-center gap-3">
@@ -315,7 +338,11 @@ export function CreateSafetyBulletinForm({
                         variant="ghost"
                         size="sm"
                         className="h-8 w-8 p-0 hover:bg-red-50 hover:text-red-600"
-                        onClick={() => field.onChange(null)}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          setDocumentMarkedForDeletion(true);
+                        }}
                       >
                         <X className="h-4 w-4" />
                       </Button>

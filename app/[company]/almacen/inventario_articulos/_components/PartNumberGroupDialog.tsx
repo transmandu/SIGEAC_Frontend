@@ -1,6 +1,7 @@
-"use client"
+"use client";
 
-import * as React from "react"
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogClose,
@@ -8,32 +9,34 @@ import {
   DialogDescription,
   DialogFooter,
   DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Separator } from "@/components/ui/separator"
-import { Input } from "@/components/ui/input"
-import { cn } from "@/lib/utils"
-import { Search, X, Pencil } from "lucide-react"
-import { useParams, useRouter } from "next/navigation"
+  DialogTitle
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Separator } from "@/components/ui/separator";
+import { cn } from "@/lib/utils";
+import { Loader2, Pencil, Search, Trash2, X } from "lucide-react";
+import { useParams, useRouter } from "next/navigation";
+import * as React from "react";
 
-import type { IArticleSimple } from "../_tables/warehouse-columns"
-import { getStatusBadge } from "../_tables/warehouse-columns"
-import { formatCondition } from "@/lib/warehouse/conditions"
+import { useDeleteArticle } from "@/actions/mantenimiento/almacen/inventario/articulos/actions";
+import { useAuth } from "@/contexts/AuthContext";
+import { formatCondition } from "@/lib/warehouse/conditions";
+import { useState } from "react";
+import type { IArticleSimple } from "../_tables/warehouse-columns";
+import { getStatusBadge } from "../_tables/warehouse-columns";
 
 type Props = {
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  partNumber: string
-  rows: IArticleSimple[]
-}
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  partNumber: string;
+  rows: IArticleSimple[];
+};
 
 function toSearchable(r: IArticleSimple) {
-  const serialOrLot = r.serial || r.lot_number || ""
-  const desc = r.batch_name || r.description || ""
-  const status = (r.status || "").toUpperCase()
-  const zone = r.zone || ""
+  const serialOrLot = r.serial || r.lot_number || "";
+  const desc = r.batch_name || r.description || "";
+  const status = (r.status || "").toUpperCase();
+  const zone = r.zone || "";
 
   const shelf =
     r.component?.expiration_date ||
@@ -41,11 +44,11 @@ function toSearchable(r: IArticleSimple) {
       ? r.consumable.expiration_date
       : r.consumable?.expiration_date instanceof Date
         ? r.consumable.expiration_date.toISOString()
-        : "")
+        : "");
 
   return {
     blob: `${serialOrLot} ${desc} ${status} ${zone} ${shelf}`.toLowerCase(),
-  }
+  };
 }
 
 function formatShelf(r: IArticleSimple) {
@@ -55,39 +58,64 @@ function formatShelf(r: IArticleSimple) {
       ? r.consumable.expiration_date
       : r.consumable?.expiration_date instanceof Date
         ? r.consumable.expiration_date.toISOString()
-        : null)
+        : null);
 
-  return shelf ? String(shelf).slice(0, 10) : null
+  return shelf ? String(shelf).slice(0, 10) : null;
 }
 
-
-export function PartNumberGroupDialog({ open, onOpenChange, partNumber, rows }: Props) {
-  const [query, setQuery] = React.useState("")
-  const q = query.trim().toLowerCase()
+export function PartNumberGroupDialog({
+  open,
+  onOpenChange,
+  partNumber,
+  rows,
+}: Props) {
+  const [query, setQuery] = React.useState("");
+  const q = query.trim().toLowerCase();
 
   const filtered = React.useMemo(() => {
-    if (!q) return rows
-    return rows.filter((r) => toSearchable(r).blob.includes(q))
-  }, [rows, q])
+    if (!q) return rows;
+    return rows.filter((r) => toSearchable(r).blob.includes(q));
+  }, [rows, q]);
 
-  const count = rows?.length ?? 0
-  const shown = filtered?.length ?? 0
+  const count = rows?.length ?? 0;
+  const shown = filtered?.length ?? 0;
 
   React.useEffect(() => {
-    if (!open) setQuery("")
-  }, [open])
+    if (!open) setQuery("");
+  }, [open]);
 
-  const router = useRouter()
-  const params = useParams()
-  const company = String((params as any)?.company ?? "")
+  const router = useRouter();
+  const params = useParams();
+  const company = String((params as any)?.company ?? "");
+
+  const { deleteArticle } = useDeleteArticle();
+  const [articleIdToDelete, setArticleIdToDelete] = useState<
+    string | number | null
+  >(null);
+  const [openDeleteArt, setOpenDeleteArt] = useState<boolean>(false);
+
+  const { user } = useAuth();
+  const roles = user?.roles?.map((r) => r.name) ?? [];
+
+  const handleDelete = () => {
+    if (articleIdToDelete === null) return;
+    deleteArticle.mutate(
+      { id: articleIdToDelete, company },
+      {
+        onSuccess: () => setOpenDeleteArt(false), // Cierra el modal solo si la eliminación fue exitosa
+      },
+    );
+  };
 
   const goEdit = React.useCallback(
     (articleId: string | number) => {
-      if (!company) return
-      router.push(`/${company}/almacen/inventario_articulos/editar/${articleId}`)
+      if (!company) return;
+      router.push(
+        `/${company}/almacen/inventario_articulos/editar/${articleId}`,
+      );
     },
-    [router, company]
-  )
+    [router, company],
+  );
 
   /**
    * 7 columnas (incluye acciones):
@@ -96,7 +124,7 @@ export function PartNumberGroupDialog({ open, onOpenChange, partNumber, rows }: 
    * Bajé el ancho de descripción para que no absorba todo.
    */
   const gridCols =
-    "[grid-template-columns:150px_260px_120px_140px_160px_160px_64px]"
+    "[grid-template-columns:150px_260px_120px_140px_160px_160px_64px]";
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -104,17 +132,20 @@ export function PartNumberGroupDialog({ open, onOpenChange, partNumber, rows }: 
         <DialogHeader className="px-6 py-5 border-b">
           <div className="w-full space-y-3">
             <DialogTitle className="leading-tight text-3xl flex justify-center w-full">
-              Artículos del PN{" "}
-              #<span className="font-bold text-blue-800">{partNumber}</span>
+              Artículos del PN #
+              <span className="font-bold text-blue-800">{partNumber}</span>
             </DialogTitle>
 
             <DialogDescription className="flex items-center justify-between gap-3">
               <span>
-                {count ? `${count} unidad(es) encontradas` : "No hay artículos para mostrar."}
+                {count
+                  ? `${count} unidad(es) encontradas`
+                  : "No hay artículos para mostrar."}
                 {count > 0 && q && (
                   <span className="text-muted-foreground">
                     {" "}
-                    • Mostrando <span className="font-medium text-foreground">{shown}</span>
+                    • Mostrando{" "}
+                    <span className="font-medium text-foreground">{shown}</span>
                   </span>
                 )}
               </span>
@@ -136,7 +167,7 @@ export function PartNumberGroupDialog({ open, onOpenChange, partNumber, rows }: 
                     className={cn(
                       "absolute right-2 top-1/2 -translate-y-1/2",
                       "h-7 w-7 inline-flex items-center justify-center rounded-md",
-                      "text-muted-foreground hover:text-foreground hover:bg-muted"
+                      "text-muted-foreground hover:text-foreground hover:bg-muted",
                     )}
                     aria-label="Limpiar búsqueda"
                   >
@@ -159,7 +190,9 @@ export function PartNumberGroupDialog({ open, onOpenChange, partNumber, rows }: 
               {!shown ? (
                 <div className="py-10 text-center">
                   <p className="text-sm font-medium">Sin resultados</p>
-                  <p className="text-sm text-muted-foreground">Prueba con otro término de búsqueda.</p>
+                  <p className="text-sm text-muted-foreground">
+                    Prueba con otro término de búsqueda.
+                  </p>
                 </div>
               ) : (
                 /**
@@ -174,7 +207,7 @@ export function PartNumberGroupDialog({ open, onOpenChange, partNumber, rows }: 
                       className={cn(
                         "grid",
                         gridCols,
-                        "bg-muted/40 text-xs font-semibold text-muted-foreground"
+                        "bg-muted/40 text-xs font-semibold text-muted-foreground",
                       )}
                     >
                       <div className="px-3 py-2">Serial / Lote</div>
@@ -188,28 +221,49 @@ export function PartNumberGroupDialog({ open, onOpenChange, partNumber, rows }: 
 
                     <div className="divide-y">
                       {filtered.map((r) => {
-                        const serialOrLot = r.serial || r.lot_number || "N/A"
-                        const desc = r.batch_name || r.description || "Sin descripción"
-                        const shelf = formatShelf(r)
+                        const serialOrLot = r.serial || r.lot_number || "N/A";
+                        const desc =
+                          r.batch_name || r.description || "Sin descripción";
+                        const shelf = formatShelf(r);
 
                         return (
-                          <div key={r.id} className={cn("grid", gridCols, "items-center hover:bg-muted/30")}>
-                            <div className="px-3 py-2 text-sm font-medium truncate">{serialOrLot}</div>
+                          <div
+                            key={r.id}
+                            className={cn(
+                              "grid",
+                              gridCols,
+                              "items-center hover:bg-muted/30",
+                            )}
+                          >
+                            <div className="px-3 py-2 text-sm font-medium truncate">
+                              {serialOrLot}
+                            </div>
 
-                            <div className="px-3 py-2 text-sm text-muted-foreground truncate">{desc}</div>
+                            <div className="px-3 py-2 text-sm text-muted-foreground truncate">
+                              {desc}
+                            </div>
 
                             <div className="px-3 py-2 text-center text-sm">
                               {(() => {
-                                  const c = formatCondition(r.condition as any)
-                                  if (!c) return <span className="text-muted-foreground text-sm">N/A</span>
-
+                                const c = formatCondition(r.condition as any);
+                                if (!c)
                                   return (
-                                    <div className="inline-flex flex-col items-center">
-                                      <span className="text-base font-medium">{c.es}</span>
-                                      <span className="text-xs text-muted-foreground italic">({c.en})</span>
-                                    </div>
-                                  )
-                                })()}
+                                    <span className="text-muted-foreground text-sm">
+                                      N/A
+                                    </span>
+                                  );
+
+                                return (
+                                  <div className="inline-flex flex-col items-center">
+                                    <span className="text-base font-medium">
+                                      {c.es}
+                                    </span>
+                                    <span className="text-xs text-muted-foreground italic">
+                                      ({c.en})
+                                    </span>
+                                  </div>
+                                );
+                              })()}
                             </div>
 
                             <div className="px-3 py-2 flex justify-center">
@@ -217,7 +271,11 @@ export function PartNumberGroupDialog({ open, onOpenChange, partNumber, rows }: 
                             </div>
 
                             <div className="px-3 py-2 text-center text-sm font-medium">
-                              {r.zone || <span className="text-muted-foreground">N/A</span>}
+                              {r.zone || (
+                                <span className="text-muted-foreground">
+                                  N/A
+                                </span>
+                              )}
                             </div>
 
                             <div className="px-3 py-2 flex justify-center">
@@ -226,7 +284,9 @@ export function PartNumberGroupDialog({ open, onOpenChange, partNumber, rows }: 
                                   {shelf}
                                 </Badge>
                               ) : (
-                                <span className="text-muted-foreground text-sm">N/A</span>
+                                <span className="text-muted-foreground text-sm">
+                                  N/A
+                                </span>
                               )}
                             </div>
 
@@ -236,15 +296,32 @@ export function PartNumberGroupDialog({ open, onOpenChange, partNumber, rows }: 
                                 type="button"
                                 variant="ghost"
                                 size="icon"
-                                className="h-8 w-8"
+                                className="h-8 w-8 p-2"
                                 onClick={() => goEdit(r.id)}
                                 aria-label="Editar artículo"
                               >
                                 <Pencil className="h-4 w-4" />
                               </Button>
+
+                              {(roles.includes("SUPERUSER") ||
+                                roles.includes("JEFE_ALMACEN")) && (
+                                <Button
+                                  type="button"
+                                  disabled={deleteArticle.isPending}
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-8 w-8 p-2"
+                                  onClick={() => {
+                                    setArticleIdToDelete(r.id);
+                                    setOpenDeleteArt(true);
+                                  }}
+                                >
+                                  <Trash2 className="h-5 w-5 text-red-500" />
+                                </Button>
+                              )}
                             </div>
                           </div>
-                        )
+                        );
                       })}
                     </div>
                   </div>
@@ -254,6 +331,39 @@ export function PartNumberGroupDialog({ open, onOpenChange, partNumber, rows }: 
           )}
         </div>
 
+        {/* Delete dialog */}
+        <Dialog open={openDeleteArt} onOpenChange={setOpenDeleteArt}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle className="text-center">
+                ¿Seguro que desea eliminar el reporte?
+              </DialogTitle>
+              <DialogDescription className="text-center p-2 mb-0 pb-0">
+                Esta acción es irreversible y eliminará por completo el reporte.
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter className="flex flex-col-reverse gap-2 md:gap-0">
+              <Button
+                className="bg-rose-400 hover:bg-white hover:text-black hover:border hover:border-black"
+                onClick={() => setOpenDeleteArt(false)}
+                type="submit"
+              >
+                Cancelar
+              </Button>
+              <Button
+                disabled={deleteArticle.isPending}
+                className="hover:bg-white hover:text-black hover:border hover:border-black transition-all"
+                onClick={() => handleDelete()}
+              >
+                {deleteArticle.isPending ? (
+                  <Loader2 className="size-4 animate-spin" />
+                ) : (
+                  <p>Confirmar</p>
+                )}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
         {/* FOOTER */}
         <DialogFooter className="px-6 py-4 border-t shrink-0">
           <DialogClose asChild>
@@ -264,5 +374,5 @@ export function PartNumberGroupDialog({ open, onOpenChange, partNumber, rows }: 
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

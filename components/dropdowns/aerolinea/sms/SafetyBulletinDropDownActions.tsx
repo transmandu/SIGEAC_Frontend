@@ -114,6 +114,7 @@ const SafetyBulletinDropdownActions = ({
             <DialogDescription className="text-center p-2 mb-0 pb-0"></DialogDescription>
 
             <CreateSafetyBulletinForm
+              key={openEdit ? (safetyBulletin.document ?? "no-doc") : "closed"}
               isEditing={true}
               initialData={safetyBulletin}
               onClose={() => setOpenEdit(false)}
