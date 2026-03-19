@@ -773,6 +773,7 @@ export type User = {
   last_name: string;
   email: string;
   isActive: boolean;
+  job_name?: string;
   roles?: {
     id: number;
     name: string;

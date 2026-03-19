@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react"; // Añadido useMemo
 import { useParams, useRouter } from "next/navigation";
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/contexts/AuthContext"; // Importación necesaria para los permisos
 import { 
   Plus, 
   Search, 
@@ -29,6 +30,7 @@ import libraryService from "@/lib/libraryService";
 const BibliotecaPage = () => {
   const params = useParams();
   const router = useRouter();
+  const { user } = useAuth(); // Obtenemos el usuario para validar roles
   const companySlug = (params.company as string) || "transmandu";
 
   // --- ESTADOS ---
@@ -48,6 +50,20 @@ const BibliotecaPage = () => {
     status: true,
     actions: true,
   });
+
+  // --- LÓGICA DE GESTIÓN (Estilo Certificados) ---
+  const canManage = useMemo(() => {
+    // 1. Verificamos si es Superuser en la Master
+    const isSuperUser = user?.roles?.some(role => 
+      role.name.toUpperCase() === 'SUPERUSER'
+    );
+
+    // 2. Verificamos si es Director (Nombre del cargo en el Tenant)
+    // Nota: Asegúrate de que tu backend incluya 'job_name' en el recurso del usuario
+    const isDirector = user?.job_name === 'Director';
+
+    return isSuperUser || isDirector;
+  }, [user]);
 
   // --- FUNCIONES ---
   const fetchDocs = useCallback(async () => {
@@ -100,26 +116,31 @@ const BibliotecaPage = () => {
       {/* BARRA DE CONTROLES */}
       <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex flex-wrap items-center gap-3">
-          <Button
-            onClick={() => setIsModalOpen(true)}
-            variant="outline"
-            size="sm"
-            className="w-fit flex items-center gap-1.5 rounded-lg border-blue-600 text-blue-600 hover:bg-blue-50 dark:border-blue-500 dark:text-blue-400 font-medium px-4 shadow-sm transition-all active:scale-95"
-          >
-            <Plus className="h-4 w-4" />
-            Subir Documento
-          </Button>
+          
+          {/* BOTONES CONDICIONALES: Solo visibles para Superuser o Director */}
+          {canManage && (
+            <>
+              <Button
+                onClick={() => setIsModalOpen(true)}
+                variant="outline"
+                size="sm"
+                className="w-fit flex items-center gap-1.5 rounded-lg border-blue-600 text-blue-600 hover:bg-blue-50 dark:border-blue-500 dark:text-blue-400 font-medium px-4 shadow-sm transition-all active:scale-95"
+              >
+                <Plus className="h-4 w-4" />
+                Subir Documento
+              </Button>
 
-          {/* BOTÓN DE TRAZABILIDAD - RUTA ACTUALIZADA */}
-          <Button
-            onClick={() => router.push(`/${companySlug}/general/biblioteca/trazabilidad`)}
-            variant="outline"
-            size="sm"
-            className="w-fit flex items-center gap-1.5 rounded-lg border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium px-4 shadow-sm transition-all active:scale-95"
-          >
-            <History className="h-4 w-4" />
-            Trazabilidad
-          </Button>
+              <Button
+                onClick={() => router.push(`/${companySlug}/general/biblioteca/trazabilidad`)}
+                variant="outline"
+                size="sm"
+                className="w-fit flex items-center gap-1.5 rounded-lg border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium px-4 shadow-sm transition-all active:scale-95"
+              >
+                <History className="h-4 w-4" />
+                Trazabilidad
+              </Button>
+            </>
+          )}
         </div>
 
         {/* BUSCADOR COMPACTO */}
@@ -212,6 +233,8 @@ const BibliotecaPage = () => {
               onRefresh={fetchDocs}
               onView={handleOpenViewer}
               columnVisibility={columnVisibility}
+              // Opcional: pasar canManage si quieres ocultar el botón de borrar en la tabla
+              canManage={canManage} 
             />
           )}
         </div>
