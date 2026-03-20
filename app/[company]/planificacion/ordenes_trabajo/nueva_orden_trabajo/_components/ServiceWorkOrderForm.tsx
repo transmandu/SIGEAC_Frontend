@@ -241,7 +241,7 @@ const ServiceWorkOrderForm = () => {
   const onSubmit = async (data: WorkOrderFormValues) => {
     // Encontrar el aircraft seleccionado para obtener la información del cliente
     const selectedAircraftData = aircrafts?.find(aircraft => aircraft.id.toString() === data.aircraft_id);
-    
+
     const formattedData = {
       ...data,
       date: format(data.date, "yyyy-MM-dd"),
@@ -260,12 +260,12 @@ const ServiceWorkOrderForm = () => {
         }))
       })),
     };
-    
+
     console.log("🚀 [ServiceWorkOrderForm] Datos enviados al backend:", formattedData);
     console.log("📋 [ServiceWorkOrderForm] Cliente seleccionado:", selectedAircraftData?.client);
     console.log("✈️ [ServiceWorkOrderForm] Aeronave seleccionada:", selectedAircraftData?.acronym);
-    
-    await createWorkOrder.mutateAsync({data: formattedData, company: selectedCompany!.slug});
+
+    await createWorkOrder.mutateAsync({ data: formattedData, company: selectedCompany!.slug });
     form.reset();
     router.push(`/${selectedCompany!.slug}/planificacion/ordenes_trabajo`);
   };
@@ -334,7 +334,7 @@ const ServiceWorkOrderForm = () => {
                                   key={aircraft.id}
                                   onSelect={() => {
                                     form.setValue("aircraft_id", aircraft.id.toString());
-                                    setSelectedAircraft(aircraft.manufacturer.id.toString());
+                                    setSelectedAircraft(aircraft.id.toString());
                                   }}
                                 >
                                   <Check
@@ -346,7 +346,7 @@ const ServiceWorkOrderForm = () => {
                                     )}
                                   />
                                   {
-                                    <p>{aircraft.acronym} - {aircraft.manufacturer.name}</p>
+                                    <p>{aircraft.acronym}</p>
                                   }
                                 </CommandItem>
                               ))}

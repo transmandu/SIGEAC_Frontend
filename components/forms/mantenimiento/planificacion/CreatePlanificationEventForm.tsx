@@ -45,8 +45,8 @@ const CreatePlanificationEventForm = ({
   onClose: (open: boolean) => void
 }) => {
   const [selectedAircraft, setSelectedAircraft] = useState<string | null>(null)
-  const {selectedCompany, selectedStation} = useCompanyStore()
-  const {createPlanificationEvent} = useCreatePlanificationEvent()
+  const { selectedCompany, selectedStation } = useCompanyStore()
+  const { createPlanificationEvent } = useCreatePlanificationEvent()
   const { data: aircrafts, isLoading: isAircraftsLoading, isError: isAircraftsError } = useGetMaintenanceAircrafts(selectedCompany?.slug);
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -65,14 +65,15 @@ const CreatePlanificationEventForm = ({
     return format(date, "yyyy-MM-dd HH:mm")
   }
 
-   async function onSubmit(values: z.infer<typeof formSchema>) {
+  async function onSubmit(values: z.infer<typeof formSchema>) {
     await createPlanificationEvent.mutateAsync({
-        company: selectedCompany!.slug,
-        data:{
-          ...values,
-           location_id: selectedStation!,
-        }})
-        onClose(false)
+      company: selectedCompany!.slug,
+      data: {
+        ...values,
+        location_id: selectedStation!,
+      }
+    })
+    onClose(false)
   }
 
   return (
@@ -138,7 +139,7 @@ const CreatePlanificationEventForm = ({
                               key={aircraft.id}
                               onSelect={() => {
                                 form.setValue("aircraft_id", aircraft.id.toString());
-                                setSelectedAircraft(aircraft.manufacturer.id.toString());
+                                setSelectedAircraft(aircraft.id.toString());
                               }}
                             >
                               <Check
@@ -150,7 +151,7 @@ const CreatePlanificationEventForm = ({
                                 )}
                               />
                               {
-                                <p>{aircraft.acronym} - {aircraft.manufacturer.name}</p>
+                                <p>{aircraft.acronym}</p>
                               }
                             </CommandItem>
                           ))}
@@ -221,7 +222,7 @@ const CreatePlanificationEventForm = ({
                         )}
                       >
                         {field.value ? (
-                          format(new Date(field.value), "PPP", {locale: es})
+                          format(new Date(field.value), "PPP", { locale: es })
                         ) : (
                           <span>Seleccione una fecha</span>
                         )}
@@ -290,7 +291,7 @@ const CreatePlanificationEventForm = ({
                         )}
                       >
                         {field.value ? (
-                          format(new Date(field.value), "PPP", {locale: es})
+                          format(new Date(field.value), "PPP", { locale: es })
                         ) : (
                           <span>Seleccione una fecha</span>
                         )}
