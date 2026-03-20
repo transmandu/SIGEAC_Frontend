@@ -1,10 +1,10 @@
-"use client";
+'use client';
 
-import { useEffect, useState, useCallback, useMemo } from "react"; // Añadido useMemo
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import { Button } from "@/components/ui/button";
-import { useAuth } from "@/contexts/AuthContext"; // Importación necesaria para los permisos
+import { useAuth } from "@/contexts/AuthContext";
 import { 
   Plus, 
   Search, 
@@ -26,24 +26,22 @@ import DocumentTable from "./data-table";
 import UploadModal from "./UploadModal"; 
 import DocumentViewer from "@/components/library/SecureVisualizer";
 import libraryService from "@/lib/libraryService";
+import { toast } from "sonner"; // O tu librería de notificaciones
 
 const BibliotecaPage = () => {
   const params = useParams();
   const router = useRouter();
-  const { user } = useAuth(); // Obtenemos el usuario para validar roles
+  const { user } = useAuth();
   const companySlug = (params.company as string) || "transmandu";
 
-  // --- ESTADOS ---
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [groupedDocuments, setGroupedDocuments] = useState<any>({});
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
 
-  // ESTADOS PARA EL VISOR
   const [viewingDocId, setViewingDocId] = useState<number | null>(null);
   const [isViewerOpen, setIsViewerOpen] = useState(false);
 
-  // ESTADO PARA VISIBILIDAD DE COLUMNAS
   const [columnVisibility, setColumnVisibility] = useState({
     title: true,
     expiry_date: true,
@@ -51,21 +49,14 @@ const BibliotecaPage = () => {
     actions: true,
   });
 
-  // --- LÓGICA DE GESTIÓN (Estilo Certificados) ---
   const canManage = useMemo(() => {
-    // 1. Verificamos si es Superuser en la Master
     const isSuperUser = user?.roles?.some(role => 
       role.name.toUpperCase() === 'SUPERUSER'
     );
-
-    // 2. Verificamos si es Director (Nombre del cargo en el Tenant)
-    // Nota: Asegúrate de que tu backend incluya 'job_name' en el recurso del usuario
     const isDirector = user?.job_name === 'Director';
-
     return isSuperUser || isDirector;
   }, [user]);
 
-  // --- FUNCIONES ---
   const fetchDocs = useCallback(async () => {
     setLoading(true);
     try {
@@ -78,6 +69,19 @@ const BibliotecaPage = () => {
     }
   }, [companySlug]);
 
+  // --- NUEVA FUNCIÓN DE BORRADO ---
+  const handleDeleteDocument = async (id: number) => {
+    try {
+      // Asumiendo que libraryService tiene un método delete o similar
+      await libraryService.deleteDocument(companySlug, id); 
+      toast.success("Documento eliminado correctamente");
+      fetchDocs(); // Recargamos la lista
+    } catch (error) {
+      console.error("Error al eliminar:", error);
+      toast.error("No se pudo eliminar el documento");
+    }
+  };
+
   useEffect(() => {
     if (companySlug) {
       fetchDocs();
@@ -89,7 +93,6 @@ const BibliotecaPage = () => {
     setIsViewerOpen(true);
   };
 
-  // --- LÓGICA DE FILTRADO POR NOMBRE ---
   const filteredDocuments = Object.keys(groupedDocuments).reduce((acc: any, dept) => {
     const docs = (groupedDocuments as any)[dept].filter((doc: any) =>
       doc.title.toLowerCase().includes(searchTerm.toLowerCase())
@@ -102,7 +105,6 @@ const BibliotecaPage = () => {
 
   return (
     <ContentLayout title="Biblioteca Digital">
-      {/* TÍTULO Y SUBTÍTULO */}
       <div className="flex flex-col gap-2 mb-12">
         <h1 className="text-5xl font-bold text-center text-gray-900 dark:text-white">
           Biblioteca Digital
@@ -113,11 +115,8 @@ const BibliotecaPage = () => {
         </p>
       </div>
 
-      {/* BARRA DE CONTROLES */}
       <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex flex-wrap items-center gap-3">
-          
-          {/* BOTONES CONDICIONALES: Solo visibles para Superuser o Director */}
           {canManage && (
             <>
               <Button
@@ -143,7 +142,6 @@ const BibliotecaPage = () => {
           )}
         </div>
 
-        {/* BUSCADOR COMPACTO */}
         <div className="flex items-center w-full sm:w-64 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg shadow-sm focus-within:ring-1 focus-within:ring-blue-500 transition-all">
           <div className="pl-3 py-2">
             <Search className="h-4 w-4 text-gray-400" />
@@ -211,7 +209,6 @@ const BibliotecaPage = () => {
         </div>
       </div>
 
-      {/* CONTENEDOR DE LA TABLA */}
       <div className="w-full rounded-lg border border-gray-200 p-8 shadow-md dark:border-gray-800 dark:bg-gray-900 bg-white">
         <div className="flex items-center gap-2 mb-6 border-b pb-4 dark:border-gray-800">
           <FolderOpen className="h-5 w-5 text-blue-600" />
@@ -232,8 +229,8 @@ const BibliotecaPage = () => {
               groupedDocuments={filteredDocuments}
               onRefresh={fetchDocs}
               onView={handleOpenViewer}
+              onDelete={handleDeleteDocument}
               columnVisibility={columnVisibility}
-              // Opcional: pasar canManage si quieres ocultar el botón de borrar en la tabla
               canManage={canManage} 
             />
           )}
