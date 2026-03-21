@@ -16,7 +16,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "
 import { useGetPurchaseOrder } from '@/hooks/mantenimiento/compras/useGetPurchaseOrder';
 import { cn } from '@/lib/utils';
 import { useCompanyStore } from '@/stores/CompanyStore';
-import { Trash2, User, Truck, DollarSign, Building, CreditCard } from 'lucide-react';
+import { Trash2, User, Truck, Building, CreditCard } from 'lucide-react';
 import { useParams } from 'next/navigation';
 import { useState } from 'react';
 
@@ -93,10 +93,10 @@ const CotizacionPage = () => {
 
                   <div className='flex flex-col gap-2 flex-1 min-w-[280px] text-gray-900 dark:text-white'>
                     <p className='font-bold text-lg'>Tax: <span className='font-normal'>${displayValue(data.tax, '0')}</span></p>
-                    <p className='font-bold text-lg'>Wire Fee: <span className='font-normal'>${displayValue(data.wire_fee, '0')}</span></p>
-                    <p className='font-bold text-lg'>Handling Fee: <span className='font-normal'>${displayValue(data.handling_fee, '0')}</span></p>
+                    {/* <p className='font-bold text-lg'>Wire Fee: <span className='font-normal'>${displayValue(data.wire_fee, '0')}</span></p> */}
+                    <p className='font-bold text-lg'>Fee de Manejo: <span className='font-normal'>${displayValue(data.handling_fee, '0')}</span></p>
                     <p className='font-bold text-lg'>Envío USA: <span className='font-normal'>${displayValue(data.usa_shipping, '0')}</span></p>
-                    <p className='font-bold text-lg'>Envío OCK21: <span className='font-normal'>${displayValue(data.ock_shipping, '0')}</span></p>
+                    <p className='font-bold text-lg'>Envío Internacional: <span className='font-normal'>${displayValue(data.ock_shipping, '0')}</span></p>
                   </div>
 
                 </div>
@@ -123,6 +123,9 @@ const CotizacionPage = () => {
                     <CardHeader className='p-4 bg-gray-50 dark:bg-secondary border-b'>
                       <CardTitle className='text-lg font-bold text-center text-gray-900 dark:text-white'>
                         {displayValue(article.batch?.name)} - {article.article_part_number}
+                        <span className='block text-sm font-semibold text-gray-600 dark:text-gray-300'>
+                          ${displayValue(article.unit_price)}
+                        </span>
                       </CardTitle>
                     </CardHeader>
 

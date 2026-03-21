@@ -142,7 +142,7 @@ const RequisitionPage = () => {
 
                             <div>
                               <p className='text-sm text-muted-foreground'>Cantidad:</p>
-                              <p className='font-medium'>{article.quantity}</p>
+                              <p className='font-medium'>{article.quantity} {article.unit?.label}</p>
                             </div>
 
                             {article.manual && (

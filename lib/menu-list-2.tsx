@@ -1045,6 +1045,12 @@ export function getMenuList(
               active: pathname === "/ajustes/globales/fuentes_informacion",
               roles: ["JEFE_SMS", "ANALISTA_SMS", "SUPERUSER"],
             },
+            {
+              href: "/ajustes/globales/agencias_envio",
+              label: "Agencias de Envío",
+              active: pathname === "/ajustes/globales/agencias_envio",
+              roles: ["JEFE_COMPRAS", "ANALISTA_COMPRAS", "SUPERUSER"],
+            },
           ],
         },
         // {

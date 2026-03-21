@@ -156,7 +156,7 @@ export function CompletePurchaseForm({ onClose, po }: FormProps) {
               </FormItem>
             )}
           />
-          <FormField
+          {/* <FormField
             control={form.control}
             name="wire_fee"
             render={({ field }) => (
@@ -168,7 +168,7 @@ export function CompletePurchaseForm({ onClose, po }: FormProps) {
                 <FormMessage />
               </FormItem>
             )}
-          />
+          /> */}
           <FormField
             control={form.control}
             name="handling_fee"
@@ -205,7 +205,7 @@ export function CompletePurchaseForm({ onClose, po }: FormProps) {
             render={({ field }) => (
               <FormItem>
                 <FormLabel className="flex justify-center">
-                  Envío - OCK21
+                  Envío - Internacional
                 </FormLabel>
                 <FormControl>
                   <AmountInput placeholder="$0.00 " {...field} />
