@@ -9,8 +9,7 @@ import { useMutation, UseMutationResult, useQueryClient } from '@tanstack/react-
 import { useRouter } from 'next/navigation';
 import { createContext, ReactNode, useContext, useEffect, useMemo, useState, useCallback } from 'react';
 import { toast } from 'sonner';
-import { AxiosError } from "axios";
-
+import { AxiosError } from "axios"
 interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
@@ -48,7 +47,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setUser(null);
       setError(null);
       await deleteSession();
-      await reset();
+      reset();
       queryClient.clear();
       router.push('/login');
       toast.info('Sesión finalizada', { position: 'bottom-center' });
@@ -61,7 +60,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const fetchUser = useCallback(async (): Promise<User | null> => {
     try {
       const { data } = await axiosInstance.get<User>('/user');
-      
+
       // OPTIMIZACIÓN: Solo actualiza el estado si los datos realmente cambiaron
       setUser(prevUser => {
         if (JSON.stringify(prevUser) === JSON.stringify(data)) return prevUser;
@@ -107,17 +106,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     checkAuth();
 
-    window.addEventListener('focus', syncSession);
-
     const interval = setInterval(() => {
       syncSession();
     }, 300000); // 5 minutos
 
     return () => {
-      window.removeEventListener('focus', syncSession);
       clearInterval(interval);
     };
-  }, [fetchUser, syncSession]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // 5. INTERCEPTOR (Detección instantánea de 401)
   useEffect(() => {
@@ -149,16 +146,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       return response.data;
     },
     onSuccess: async (userData) => {
-      // Después de login exitoso, hacemos fetch del usuario
-      await fetchUser();
-      queryClient.invalidateQueries({ queryKey: ['user'] });
+      setUser(userData);
       router.push('/inicio');
       toast.success('¡Bienvenido!', { position: "bottom-center" });
     },
     onError: (err: Error) => {
       const axiosError = err as AxiosError<ApiErrorResponse>;
       const errorMessage = axiosError.response?.data?.message || 'Error al iniciar sesión';
-      
+
       setError(errorMessage);
       toast.error('Error', { description: errorMessage, position: 'bottom-center' });
     },
