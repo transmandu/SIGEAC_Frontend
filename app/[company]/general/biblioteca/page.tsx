@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback, useMemo } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
@@ -25,12 +25,12 @@ import {
 import DocumentTable from "./data-table"; 
 import UploadModal from "./UploadModal"; 
 import DocumentViewer from "@/components/library/SecureVisualizer";
+import TraceabilityPanel from "@/components/library/TraceabilityPanel"; 
 import libraryService from "@/lib/libraryService";
-import { toast } from "sonner"; // O tu librería de notificaciones
+import { toast } from "sonner";
 
 const BibliotecaPage = () => {
   const params = useParams();
-  const router = useRouter();
   const { user } = useAuth();
   const companySlug = (params.company as string) || "transmandu";
 
@@ -41,6 +41,9 @@ const BibliotecaPage = () => {
 
   const [viewingDocId, setViewingDocId] = useState<number | null>(null);
   const [isViewerOpen, setIsViewerOpen] = useState(false);
+
+  // Estado para controlar qué historial mostrar (ID específico o 'global')
+  const [auditTarget, setAuditTarget] = useState<number | 'global' | null>(null);
 
   const [columnVisibility, setColumnVisibility] = useState({
     title: true,
@@ -69,13 +72,11 @@ const BibliotecaPage = () => {
     }
   }, [companySlug]);
 
-  // --- NUEVA FUNCIÓN DE BORRADO ---
   const handleDeleteDocument = async (id: number) => {
     try {
-      // Asumiendo que libraryService tiene un método delete o similar
       await libraryService.deleteDocument(companySlug, id); 
       toast.success("Documento eliminado correctamente");
-      fetchDocs(); // Recargamos la lista
+      fetchDocs();
     } catch (error) {
       console.error("Error al eliminar:", error);
       toast.error("No se pudo eliminar el documento");
@@ -88,25 +89,18 @@ const BibliotecaPage = () => {
     }
   }, [companySlug, fetchDocs]);
 
-  const handleOpenViewer = (id: number) => {
-    setViewingDocId(id);
-    setIsViewerOpen(true);
-  };
-
   const filteredDocuments = Object.keys(groupedDocuments).reduce((acc: any, dept) => {
     const docs = (groupedDocuments as any)[dept].filter((doc: any) =>
       doc.title.toLowerCase().includes(searchTerm.toLowerCase())
     );
-    if (docs.length > 0) {
-      acc[dept] = docs;
-    }
+    if (docs.length > 0) acc[dept] = docs;
     return acc;
   }, {});
 
   return (
     <ContentLayout title="Biblioteca Digital">
       <div className="flex flex-col gap-2 mb-12">
-        <h1 className="text-5xl font-bold text-center text-gray-900 dark:text-white">
+        <h1 className="text-5xl font-bold text-center text-gray-900 dark:text-white uppercase tracking-tighter">
           Biblioteca Digital
         </h1>
         <p className="text-sm italic text-muted-foreground text-center">
@@ -129,24 +123,25 @@ const BibliotecaPage = () => {
                 Subir Documento
               </Button>
 
+              {/* BOTÓN HISTORIAL: Restaurado al diseño slate original */}
               <Button
-                onClick={() => router.push(`/${companySlug}/general/biblioteca/trazabilidad`)}
+                onClick={() => setAuditTarget('global')}
                 variant="outline"
                 size="sm"
                 className="w-fit flex items-center gap-1.5 rounded-lg border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium px-4 shadow-sm transition-all active:scale-95"
               >
                 <History className="h-4 w-4" />
-                Trazabilidad
+                Historial
               </Button>
             </>
           )}
         </div>
 
+        {/* Buscador y Control de Columnas */}
         <div className="flex items-center w-full sm:w-64 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg shadow-sm focus-within:ring-1 focus-within:ring-blue-500 transition-all">
           <div className="pl-3 py-2">
             <Search className="h-4 w-4 text-gray-400" />
           </div>
-
           <input
             type="text"
             placeholder="Buscar documento..."
@@ -154,82 +149,51 @@ const BibliotecaPage = () => {
             onChange={(e) => setSearchTerm(e.target.value)}
             className="flex-1 bg-transparent border-none outline-none px-2 py-2 text-sm text-gray-800 dark:text-white placeholder:text-gray-400"
           />
-
           <div className="h-6 w-[1px] bg-gray-300 dark:bg-gray-600 mx-1" />
-
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className="h-8 w-8 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 mr-1 text-gray-500"
-              >
+              <Button variant="ghost" size="icon" className="h-8 w-8 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 mr-1 text-gray-500">
                 <MoreVertical className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56 rounded-xl shadow-xl border-gray-200 dark:border-gray-800">
-              <DropdownMenuLabel className="text-xs font-semibold uppercase tracking-wider text-gray-500 py-2">
-                Mostrar / Ocultar
-              </DropdownMenuLabel>
+              <DropdownMenuLabel className="text-xs font-semibold uppercase tracking-wider text-gray-500 py-2">Mostrar / Ocultar</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              
-              <DropdownMenuCheckboxItem
-                checked={columnVisibility.title}
-                onCheckedChange={(v) => setColumnVisibility(prev => ({ ...prev, title: !!v }))}
-                className="text-sm cursor-pointer"
-              >
-                Título del documento
-              </DropdownMenuCheckboxItem>
-              
-              <DropdownMenuCheckboxItem
-                checked={columnVisibility.expiry_date}
-                onCheckedChange={(v) => setColumnVisibility(prev => ({ ...prev, expiry_date: !!v }))}
-                className="text-sm cursor-pointer"
-              >
-                Fecha de vencimiento
-              </DropdownMenuCheckboxItem>
-
-              <DropdownMenuCheckboxItem
-                checked={columnVisibility.status}
-                onCheckedChange={(v) => setColumnVisibility(prev => ({ ...prev, status: !!v }))}
-                className="text-sm cursor-pointer"
-              >
-                Estado (Vigencia)
-              </DropdownMenuCheckboxItem>
-
-              <DropdownMenuCheckboxItem
-                checked={columnVisibility.actions}
-                onCheckedChange={(v) => setColumnVisibility(prev => ({ ...prev, actions: !!v }))}
-                className="text-sm cursor-pointer"
-              >
-                Acciones
-              </DropdownMenuCheckboxItem>
+              {Object.keys(columnVisibility).map((col) => (
+                <DropdownMenuCheckboxItem
+                  key={col}
+                  checked={(columnVisibility as any)[col]}
+                  onCheckedChange={(v) => setColumnVisibility(prev => ({ ...prev, [col]: !!v }))}
+                  className="text-sm cursor-pointer capitalize"
+                >
+                  {col.replace('_', ' ')}
+                </DropdownMenuCheckboxItem>
+              ))}
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
       </div>
 
-      <div className="w-full rounded-lg border border-gray-200 p-8 shadow-md dark:border-gray-800 dark:bg-gray-900 bg-white">
+      {/* Contenedor de la Tabla */}
+      <div className="w-full rounded-lg border border-gray-200 p-8 shadow-md dark:border-gray-800 dark:bg-gray-900 bg-white relative">
         <div className="flex items-center gap-2 mb-6 border-b pb-4 dark:border-gray-800">
           <FolderOpen className="h-5 w-5 text-blue-600" />
-          <h2 className="text-lg font-bold text-gray-800 dark:text-gray-200 uppercase tracking-tight">
-            Documentos Organizados
-          </h2>
+          <h2 className="text-lg font-bold text-gray-800 dark:text-gray-200 uppercase tracking-tight">Documentos Organizados</h2>
         </div>
-
         <div className="overflow-hidden">
           {loading ? (
             <div className="flex flex-col items-center justify-center py-20">
               <Loader2 className="h-8 w-8 animate-spin text-blue-600 mb-2" />
-              <p className="text-sm text-gray-500">Cargando archivos de {companySlug}...</p>
+              <p className="text-sm text-gray-500">Cargando archivos...</p>
             </div>
           ) : (
             <DocumentTable
               company={companySlug}
               groupedDocuments={filteredDocuments}
               onRefresh={fetchDocs}
-              onView={handleOpenViewer}
+              onView={(id: number) => { setViewingDocId(id); setIsViewerOpen(true); }}
               onDelete={handleDeleteDocument}
+              onAudit={(id: number) => setAuditTarget(id)}
               columnVisibility={columnVisibility}
               canManage={canManage} 
             />
@@ -237,19 +201,25 @@ const BibliotecaPage = () => {
         </div>
       </div>
 
-      <UploadModal
-        company={companySlug}
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onSuccess={fetchDocs}
-      />
+      <UploadModal company={companySlug} isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onSuccess={fetchDocs} />
+      <DocumentViewer company={companySlug} documentId={viewingDocId} isOpen={isViewerOpen} onClose={() => setIsViewerOpen(false)} />
 
-      <DocumentViewer
-        company={companySlug}
-        documentId={viewingDocId}
-        isOpen={isViewerOpen}
-        onClose={() => setIsViewerOpen(false)}
-      />
+      {/* PANEL LATERAL DE TRAZABILIDAD */}
+      {auditTarget && (
+        <div className="fixed inset-0 z-[100] flex justify-end overflow-hidden">
+          <div 
+            className="absolute inset-0 bg-black/40 backdrop-blur-[2px] animate-in fade-in duration-300" 
+            onClick={() => setAuditTarget(null)} 
+          />
+          <div className="relative z-10 h-full">
+            <TraceabilityPanel 
+              documentId={auditTarget === 'global' ? null : auditTarget} 
+              company={companySlug} 
+              onClose={() => setAuditTarget(null)} 
+            />
+          </div>
+        </div>
+      )}
     </ContentLayout>
   );
 };

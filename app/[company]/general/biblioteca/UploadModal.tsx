@@ -11,10 +11,10 @@ import {
   Building2, 
   CheckCircle2,
   ChevronDown,
-  Layers // Nuevo icono para los niveles SMS
+  Layers,
+  PlusCircle 
 } from 'lucide-react';
 
-// Estructura de carpetas basada en tu imagen
 const SMS_STRUCTURE: Record<string, string[]> = {
   "1_politicas_objetivos": ["1.1_compromiso", "1.2_rendicion_cuentas", "1.3_personal_clave", "1.4_respuesta_emergencias", "1.5_documentacion"],
   "2_gestion_riesgos": ["2.1_identificacion_peligros", "2.2_evaluacion_mitigacion"],
@@ -31,9 +31,10 @@ export default function UploadModal({ company, isOpen, onClose, onSuccess }: any
   const [categories, setCategories] = useState<{ id: number, name: string }[]>([]);
   const [loadingData, setLoadingData] = useState(false);
 
-  // Nuevos estados para la jerarquía SMS
   const [smsPillar, setSmsPillar] = useState('');
   const [smsSubPoint, setSmsSubPoint] = useState('');
+  
+  const [newCategoryName, setNewCategoryName] = useState('');
 
   const [formData, setFormData] = useState({
     title: '',
@@ -64,7 +65,6 @@ export default function UploadModal({ company, isOpen, onClose, onSuccess }: any
     }
   }, [isOpen, company]);
 
-  // Limpiar estados de SMS si se cambia de departamento
   useEffect(() => {
     if (formData.department_id !== "9") {
       setSmsPillar('');
@@ -78,6 +78,10 @@ export default function UploadModal({ company, isOpen, onClose, onSuccess }: any
         return alert("Error: Por favor completa todos los campos obligatorios.");
     }
 
+    if (formData.category_id === 'otro' && !newCategoryName.trim()) {
+        return alert("Por favor escribe el nombre de la nueva categoría.");
+    }
+
     setLoading(true);
     const data = new FormData();
     data.append('file', file);
@@ -86,29 +90,42 @@ export default function UploadModal({ company, isOpen, onClose, onSuccess }: any
     data.append('department_id', formData.department_id);
     data.append('department_name', formData.department_name);
     
-    // Adjuntar datos de SMS si aplica
+    if (formData.category_id === 'otro') {
+        data.append('new_category_name', newCategoryName);
+    }
+
     if (formData.department_id === "9") {
       data.append('sms_pillar', smsPillar);
       data.append('sms_sub_point', smsSubPoint);
     }
 
+    // 🔥 CAMBIO AQUÍ: Enviamos el valor de requires_expiry explícitamente a Laravel
     if (hasExpiry && formData.expiration_date) {
+      data.append('requires_expiry', '1');
       data.append('expiration_date', formData.expiration_date);
+    } else {
+      data.append('requires_expiry', '0');
     }
 
     try {
       await libraryService.uploadDocument(company, data);
       onSuccess();
-      onClose();
-      setFile(null);
-      setFormData({ title: '', category_id: '', department_id: '', department_name: '', expiration_date: '' });
-      setSmsPillar('');
-      setSmsSubPoint('');
+      handleInternalClose();
     } catch (error: any) {
       alert("Error al guardar: " + (error.response?.data?.message || "Error de servidor"));
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleInternalClose = () => {
+    setFile(null);
+    setFormData({ title: '', category_id: '', department_id: '', department_name: '', expiration_date: '' });
+    setSmsPillar('');
+    setSmsSubPoint('');
+    setNewCategoryName('');
+    setHasExpiry(false); // Reseteamos también el estado del botón
+    onClose();
   };
 
   if (!isOpen) return null;
@@ -124,7 +141,7 @@ export default function UploadModal({ company, isOpen, onClose, onSuccess }: any
             </div>
             <h2 className="text-lg font-bold text-gray-800 dark:text-white tracking-tight">Subir nuevo documento</h2>
           </div>
-          <button onClick={onClose} className="text-gray-400 hover:text-red-500 transition-colors p-1 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-full">
+          <button onClick={handleInternalClose} className="text-gray-400 hover:text-red-500 transition-colors p-1 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-full">
             <X className="h-5 w-5" />
           </button>
         </div>
@@ -145,7 +162,7 @@ export default function UploadModal({ company, isOpen, onClose, onSuccess }: any
           </div>
 
           <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-1.5">
+            <div className="space-y-1.5 text-left">
               <label className="text-[11px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500 flex items-center gap-2">
                 <Building2 className="h-3.5 w-3.5 text-blue-500" /> Área / Depto
               </label>
@@ -163,36 +180,48 @@ export default function UploadModal({ company, isOpen, onClose, onSuccess }: any
                   <option value="" disabled>Seleccionar</option>
                   {departments.map(d => (<option key={d.id} value={d.id}>{d.name}</option>))}
                 </select>
-                <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none z-20">
-                  <ChevronDown className="h-4 w-4 text-gray-400" />
-                </div>
+                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none z-20" />
               </div>
             </div>
 
-            <div className="space-y-1.5">
+            <div className="space-y-1.5 text-left">
               <label className="text-[11px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500 flex items-center gap-2">
                 <Tag className="h-3.5 w-3.5 text-blue-500" /> Categoría
               </label>
               <div className="relative">
                 <select 
                   required disabled={loadingData}
-                  className="w-full h-11 pl-4 pr-10 border border-gray-300 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-gray-800 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none cursor-pointer appearance-none relative z-10"
+                  className={`w-full h-11 pl-4 pr-10 border rounded-xl bg-white dark:bg-gray-800 text-gray-800 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none cursor-pointer appearance-none relative z-10 ${formData.category_id === 'otro' ? 'border-blue-500' : 'border-gray-300 dark:border-gray-700'}`}
                   value={formData.category_id}
                   onChange={(e) => setFormData({...formData, category_id: e.target.value})}
                 >
                   <option value="" disabled>Seleccionar</option>
                   {categories.map(c => (<option key={c.id} value={c.id}>{c.name}</option>))}
+                  <option value="otro" className="text-blue-500 font-bold">+ AGREGAR NUEVA...</option>
                 </select>
-                <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none z-20">
-                  <ChevronDown className="h-4 w-4 text-gray-400" />
-                </div>
+                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none z-20" />
               </div>
             </div>
           </div>
 
-          {/* SECCIÓN ESPECIAL SMS (ID 9) */}
+          {formData.category_id === 'otro' && (
+            <div className="space-y-1.5 animate-in slide-in-from-top-2 duration-300">
+              <label className="text-[10px] font-bold uppercase text-blue-600 dark:text-blue-400 flex items-center gap-2">
+                <PlusCircle className="h-3 w-3" /> Nombre de la nueva categoría
+              </label>
+              <input 
+                type="text" 
+                required
+                className="w-full h-10 px-4 border border-blue-500 rounded-xl bg-blue-50/20 dark:bg-blue-900/10 text-gray-800 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                placeholder="Ej. Certificados de Calidad"
+                value={newCategoryName}
+                onChange={(e) => setNewCategoryName(e.target.value)}
+              />
+            </div>
+          )}
+
           <div className={`transition-all duration-500 ease-in-out overflow-hidden ${formData.department_id === "9" ? 'max-h-40 opacity-100 translate-y-0' : 'max-h-0 opacity-0 -translate-y-4'}`}>
-            <div className="grid grid-cols-2 gap-4 p-4 bg-blue-50/50 dark:bg-blue-900/10 rounded-2xl border border-blue-100 dark:border-blue-900/20">
+             <div className="grid grid-cols-2 gap-4 p-4 bg-blue-50/50 dark:bg-blue-900/10 rounded-2xl border border-blue-100 dark:border-blue-900/20">
               <div className="space-y-1.5 col-span-1">
                 <label className="text-[10px] font-bold uppercase text-blue-600 dark:text-blue-400 flex items-center gap-2">
                   <Layers className="h-3 w-3" /> Fase SMS
@@ -247,7 +276,7 @@ export default function UploadModal({ company, isOpen, onClose, onSuccess }: any
           </div>
 
           <div className={`transition-all duration-500 overflow-hidden ${hasExpiry ? 'max-h-24 opacity-100' : 'max-h-0 opacity-0'}`}>
-            <div className="space-y-1.5 pt-1">
+            <div className="space-y-1.5 pt-1 text-left">
               <label className="text-[11px] font-bold uppercase text-blue-600 dark:text-blue-400 flex items-center gap-2"><Calendar className="h-3.5 w-3.5" /> Fecha de Expiración</label>
               <input type="date" required={hasExpiry} className="w-full h-11 px-4 border border-blue-200 dark:border-blue-900/40 rounded-xl outline-none bg-blue-50/30 dark:bg-blue-900/10 text-gray-800 dark:text-white" onChange={(e) => setFormData({...formData, expiration_date: e.target.value})} />
             </div>
@@ -265,7 +294,7 @@ export default function UploadModal({ company, isOpen, onClose, onSuccess }: any
           </div>
 
           <div className="flex gap-3 pt-4 border-t dark:border-gray-800">
-            <button type="button" onClick={onClose} className="flex-1 px-4 py-3 text-[11px] font-black tracking-widest text-gray-400 hover:text-gray-600 uppercase">CANCELAR</button>
+            <button type="button" onClick={handleInternalClose} className="flex-1 px-4 py-3 text-[11px] font-black tracking-widest text-gray-400 hover:text-gray-600 uppercase">CANCELAR</button>
             <button type="submit" disabled={loading || loadingData} className="flex-1 px-4 py-3 text-[11px] font-black tracking-widest text-white bg-blue-600 rounded-xl hover:bg-blue-700 disabled:opacity-50 shadow-lg shadow-blue-500/20">
               {loading ? 'SUBIENDO...' : 'GUARDAR ARCHIVO'}
             </button>
