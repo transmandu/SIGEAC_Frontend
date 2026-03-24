@@ -39,7 +39,7 @@ import { z } from "zod";
 import { FileField } from "@/app/[company]/almacen/ingresar_inventario/_components/FileField";
 import { MultiInputField } from "@/components/misc/MultiInputField";
 import { Textarea } from "@/components/ui/textarea";
-import { getConditionLabel } from "@/lib/conditions";   
+import { getConditionLabel } from "@/lib/conditions";
 
 import { Condition } from '@/types';
 

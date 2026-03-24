@@ -4,9 +4,7 @@ import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
-  DialogFooter,
   DialogHeader,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import {
   Tooltip,
@@ -19,6 +17,7 @@ import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { Requisition } from "@/types";
 import { CreateQuoteForm } from "@/components/forms/mantenimiento/compras/CreateQuoteForm";
+import { DialogTrigger } from "@radix-ui/react-dialog";
 
 interface GenerateQuoteDialogProps {
   req: Requisition;
@@ -61,36 +60,33 @@ const GenerateQuoteDialog = ({
               </Button>
             </DialogTrigger>
           </TooltipTrigger>
-          <TooltipContent>
-            Generar Cotización
-          </TooltipContent>
+          <TooltipContent>Generar cotización</TooltipContent>
         </Tooltip>
       </TooltipProvider>
 
-      <DialogContent className="sm:max-w-3xl">
-        <DialogHeader className="flex flex-col items-center text-center gap-3">
-          <div className="bg-blue-100 text-blue-600 p-3 rounded-full">
-            <Receipt className="h-6 w-6" />
+      <DialogContent className="sm:max-w-3xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader className="pb-2 border-b border-border/60">
+          <div className="flex items-center gap-3">
+            <div className="flex items-center justify-center h-9 w-9 rounded-lg bg-amber-100 dark:bg-amber-950/60 text-amber-600 dark:text-amber-500 shrink-0">
+              <Receipt className="h-4 w-4" />
+            </div>
+            <div>
+              <h2 className="text-base font-semibold leading-tight">
+                Generar cotización
+              </h2>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Req. <span className="font-mono">{req.order_number}</span>
+                {" · "}
+                {req.requested_by}
+              </p>
+            </div>
           </div>
-          <h2 className="text-xl font-semibold">
-            Generar cotización
-          </h2>
-          <p className="text-sm text-muted-foreground max-w-sm">
-            Complete la información necesaria para generar la cotización de la requisición.
-          </p>
         </DialogHeader>
 
-        <CreateQuoteForm req={req} onClose={() => handleOpenChange(false)} />
-
-        <DialogFooter className="flex gap-2 sm:justify-center mt-4">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => handleOpenChange(false)}
-          >
-            Cancelar
-          </Button>
-        </DialogFooter>
+        <CreateQuoteForm
+          req={req}
+          onClose={() => handleOpenChange(false)}
+        />
       </DialogContent>
     </Dialog>
   );

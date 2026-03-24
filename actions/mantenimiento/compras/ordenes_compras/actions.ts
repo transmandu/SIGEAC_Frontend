@@ -24,6 +24,7 @@ interface CreatePurchaseOrderData {
         name: string;
     };
     article_part_number: string;
+    article_alt_part_number?: string;
     quantity: number;
     unit_price: string;
     image: string;

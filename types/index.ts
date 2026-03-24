@@ -589,6 +589,7 @@ export type PurchaseOrder = {
     };
     id: number;
     article_part_number: string;
+    article_alt_part_number?: string;
     quantity: number;
     unit?: Unit;
     unit_price: string;
@@ -597,6 +598,7 @@ export type PurchaseOrder = {
     ock_tracking: string;
     article_location: string;
   }[];
+  articles: Article[];
   status: string;
   purchase_date: Date;
   tax: number;
@@ -626,6 +628,7 @@ export type Quote = {
       name: string;
     };
     article_part_number: string;
+    article_alt_part_number?: string;
     quantity: number;
     unit_price: string;
     unit?: Unit;
