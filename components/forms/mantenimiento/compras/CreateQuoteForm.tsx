@@ -11,20 +11,16 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/contexts/AuthContext";
 import { useGetVendors } from "@/hooks/general/proveedores/useGetVendors";
-import { useGetSecondaryUnits } from "@/hooks/general/unidades/useGetSecondaryUnits";
 import { useGetLocationsByCompanyId } from "@/hooks/sistema/useGetLocationsByCompanyId";
 import { cn } from "@/lib/utils";
 import { useCompanyStore } from "@/stores/CompanyStore";
-import { Requisition } from "@/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { CalendarIcon, Check, ChevronsUpDown, Loader2 } from "lucide-react";
+import { CalendarIcon, Check, ChevronsUpDown, Loader2, PackageSearch } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useFieldArray, useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
@@ -63,6 +59,7 @@ const FormSchema = z.object({
   articles: z.array(
     z.object({
       part_number: z.string(),
+      alt_part_number: z.string().optional(),
       quantity: z.number().min(1, { message: "Debe ingresar al menos 1." }),
       unit: z.string().optional(),
       unit_price: z
@@ -77,44 +74,54 @@ const FormSchema = z.object({
 
 type FormSchemaType = z.infer<typeof FormSchema>;
 
+export interface QuoteableRequisition {
+  id: number;
+  order_number: string;
+  requested_by: string;
+  justification: string;
+  batch: {
+    batch_articles: {
+      article_part_number: string;
+      article_alt_part_number?: string;
+      quantity: number;
+      unit?: {
+        id: number;
+      } | null;
+    }[];
+  }[];
+}
+
 export function CreateQuoteForm({
-  initialData,
   onClose,
   req,
+  initialData: _initialData,
 }: {
-  initialData?: any;
   onClose: () => void;
-  req: Requisition;
+  req: QuoteableRequisition;
+  initialData?: unknown;
 }) {
   const { selectedCompany } = useCompanyStore();
-
   const [openVendor, setOpenVendor] = useState(false);
-
   const [openVendorDialog, setOpenVendorDialog] = useState(false);
-
   const { updateStatusRequisition } = useUpdateRequisitionStatus();
-
   const { data: units } = useGetUnits(selectedCompany?.slug);
-
   const { createQuote } = useCreateQuote();
-
   const { user } = useAuth();
 
-  const transformedArticles =
-    initialData?.articles?.flatMap((article: any) =>
-      article.batch_articles.map((batchArticle: any) => ({
-        part_number: batchArticle.part_number,
-        quantity: batchArticle.quantity,
-        unit: batchArticle.unit ? batchArticle.unit.id.toString() : undefined,
-        unit_price: 0,
-        image: batchArticle.image,
-      }))
-    ) || [];
+  const transformedArticles = req.batch.flatMap((batch) =>
+    batch.batch_articles.map((article: any) => ({
+      part_number: article.article_part_number,
+      alt_part_number: article.article_alt_part_number ?? "",
+      quantity: article.quantity,
+      unit: article.unit ? article.unit.id.toString() : undefined,
+      unit_price: "0",
+    }))
+  );
 
   const form = useForm<FormSchemaType>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
-      justification: initialData?.justification || "",
+      justification: req.justification || "",
       articles: transformedArticles,
     },
   });
@@ -125,20 +132,16 @@ export function CreateQuoteForm({
     control,
     name: "articles",
   });
+
   const calculateTotal = (articles: FormSchemaType["articles"]) => {
-    const articlesTotal = articles.reduce(
+    return articles.reduce(
       (sum, article) =>
         sum + (article.quantity * Number(article.unit_price) || 0),
       0
     );
-    return articlesTotal;
   };
 
-  const articles = useWatch({
-    control,
-    name: "articles",
-  });
-
+  const articles = useWatch({ control, name: "articles" });
   const total = useMemo(() => calculateTotal(articles), [articles]);
 
   const {
@@ -186,35 +189,37 @@ export function CreateQuoteForm({
     onClose();
   };
 
+  const isPending = createQuote.isPending || updateStatusRequisition.isPending;
+
   return (
     <Form {...form}>
-      <form
-        onSubmit={handleSubmit(onSubmit)}
-        className="flex flex-col space-y-4"
-      >
-        <div className="flex gap-2 items-center">
+      <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5">
+
+        {/* ── Sección meta: fecha / proveedor / destino ────────────────── */}
+        <div className="grid grid-cols-3 gap-3">
+          {/* Fecha */}
           <FormField
             control={form.control}
             name="quote_date"
             render={({ field }) => (
-              <FormItem className="flex flex-col mt-1.5">
-                <FormLabel>Fecha de Cotizacion</FormLabel>
+              <FormItem className="flex flex-col">
+                <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground mb-1">
+                  Fecha de cotización
+                </FormLabel>
                 <Popover>
                   <PopoverTrigger asChild>
                     <FormControl>
                       <Button
-                        variant={"outline"}
+                        variant="outline"
                         className={cn(
-                          "w-[240px] pl-3 text-left font-normal",
+                          "w-full justify-start text-left font-normal text-sm h-9",
                           !field.value && "text-muted-foreground"
                         )}
                       >
-                        {field.value ? (
-                          format(field.value, "PPP", { locale: es })
-                        ) : (
-                          <span>Seleccione la fecha</span>
-                        )}
-                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                        <CalendarIcon className="mr-2 h-3.5 w-3.5 opacity-60" />
+                        {field.value
+                          ? format(field.value, "dd MMM yyyy", { locale: es })
+                          : "Seleccionar fecha"}
                       </Button>
                     </FormControl>
                   </PopoverTrigger>
@@ -235,13 +240,16 @@ export function CreateQuoteForm({
               </FormItem>
             )}
           />
+
           {/* Proveedor */}
           <FormField
             control={form.control}
             name="vendor_id"
             render={({ field }) => (
-              <FormItem className="w-full flex flex-col mt-1 space-y-3">
-                <FormLabel>Proveedor</FormLabel>
+              <FormItem className="flex flex-col">
+                <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground mb-1">
+                  Proveedor
+                </FormLabel>
                 <Popover open={openVendor} onOpenChange={setOpenVendor}>
                   <PopoverTrigger asChild>
                     <FormControl>
@@ -250,62 +258,50 @@ export function CreateQuoteForm({
                         variant="outline"
                         role="combobox"
                         className={cn(
-                          "justify-between",
+                          "w-full justify-between text-sm h-9",
                           !field.value && "text-muted-foreground"
                         )}
                       >
-                        {isVendorsLoading && (
-                          <Loader2 className="size-4 animate-spin mr-2" />
-                        )}
-                        {field.value ? (
-                          <p>
-                            {
-                              vendors?.find(
-                                (vendor) => vendor.id.toString() === field.value
-                              )?.name
-                            }
-                          </p>
+                        {isVendorsLoading ? (
+                          <Loader2 className="size-3.5 animate-spin" />
+                        ) : field.value ? (
+                          <span className="truncate">
+                            {vendors?.find((v) => v.id.toString() === field.value)?.name}
+                          </span>
                         ) : (
-                          "Elige al proveedor..."
+                          "Seleccionar..."
                         )}
-                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        <ChevronsUpDown className="ml-1 h-3.5 w-3.5 shrink-0 opacity-40" />
                       </Button>
                     </FormControl>
                   </PopoverTrigger>
-                  <PopoverContent className="w-[200px] p-0">
+                  <PopoverContent className="w-[220px] p-0">
                     <Command>
-                      <CommandInput placeholder="Busque un proveedor..." />
+                      <CommandInput placeholder="Buscar proveedor..." className="text-sm" />
                       <CommandList>
-                        <CommandEmpty>
-                          No se ha encontrado un proveedor.
-                        </CommandEmpty>
+                        <CommandEmpty>Sin resultados.</CommandEmpty>
                         <CommandGroup>
-                          <Dialog
-                            open={openVendorDialog}
-                            onOpenChange={setOpenVendorDialog}
-                          >
+                          <Dialog open={openVendorDialog} onOpenChange={setOpenVendorDialog}>
                             <DialogTrigger asChild>
-                              <div className="flex justify-center">
+                              <div className="flex justify-center py-1 px-2">
                                 <Button
-                                  variant={"ghost"}
-                                  className="w-[130px] h-[30px] m-1"
+                                  variant="ghost"
+                                  size="sm"
+                                  className="w-full text-xs h-7"
                                   onClick={() => setOpenVendorDialog(true)}
                                 >
-                                  Crear Proveedor
+                                  + Crear proveedor
                                 </Button>
                               </div>
                             </DialogTrigger>
                             <DialogContent className="sm:max-w-[490px]">
                               <DialogHeader>
-                                <DialogTitle>Creación de Proveedor</DialogTitle>
+                                <DialogTitle>Crear proveedor</DialogTitle>
                                 <DialogDescription>
-                                  Cree un proveedor rellenando la información
-                                  necesaria.
+                                  Complete la información del nuevo proveedor.
                                 </DialogDescription>
                               </DialogHeader>
-                              <CreateVendorForm
-                                onClose={() => setOpenVendorDialog(false)}
-                              />
+                              <CreateVendorForm onClose={() => setOpenVendorDialog(false)} />
                             </DialogContent>
                           </Dialog>
                           {vendors?.map((vendor) => (
@@ -313,27 +309,23 @@ export function CreateQuoteForm({
                               value={vendor.name}
                               key={vendor.id.toString()}
                               onSelect={() => {
-                                form.setValue(
-                                  "vendor_id",
-                                  vendor.id.toString()
-                                );
+                                form.setValue("vendor_id", vendor.id.toString());
                                 setOpenVendor(false);
                               }}
+                              className="text-sm"
                             >
                               <Check
                                 className={cn(
-                                  "mr-2 h-4 w-4",
-                                  vendor.id === field.value
-                                    ? "opacity-100"
-                                    : "opacity-0"
+                                  "mr-2 h-3.5 w-3.5",
+                                  vendor.id.toString() === field.value ? "opacity-100" : "opacity-0"
                                 )}
                               />
-                              {<p>{vendor.name}</p>}
+                              {vendor.name}
                             </CommandItem>
                           ))}
                           {isVendorsErros && (
-                            <p className="text-sm text-muted-foreground">
-                              Ha ocurrido un error al cargar los datos...
+                            <p className="text-xs text-muted-foreground px-2 py-1">
+                              Error al cargar proveedores.
                             </p>
                           )}
                         </CommandGroup>
@@ -345,19 +337,20 @@ export function CreateQuoteForm({
               </FormItem>
             )}
           />
+
+          {/* Destino */}
           <FormField
             control={form.control}
             name="location_id"
             render={({ field }) => (
-              <FormItem className="w-full">
-                <FormLabel>Destino</FormLabel>
-                <Select
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                >
+              <FormItem className="flex flex-col">
+                <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground mb-1">
+                  Destino
+                </FormLabel>
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
                   <FormControl>
-                    <SelectTrigger disabled={isLocationsPending}>
-                      <SelectValue placeholder="Seleccione la ubicacion" />
+                    <SelectTrigger disabled={isLocationsPending} className="h-9 text-sm">
+                      <SelectValue placeholder="Seleccionar ubicación" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
@@ -365,8 +358,9 @@ export function CreateQuoteForm({
                       <SelectItem
                         key={location.id}
                         value={location.id.toString()}
+                        className="text-sm"
                       >
-                        {location.address} - {location.type}
+                        {location.address} — {location.type}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -376,16 +370,20 @@ export function CreateQuoteForm({
             )}
           />
         </div>
-        {/* Justificación */}
+
+        {/* ── Justificación ─────────────────────────────────────────────── */}
         <FormField
           control={control}
           name="justification"
           render={({ field }) => (
-            <FormItem className="w-full">
-              <FormLabel>Justificación</FormLabel>
+            <FormItem>
+              <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                Justificación
+              </FormLabel>
               <FormControl>
                 <Textarea
-                  placeholder="Ej: Necesidad de la pieza X para instalación..."
+                  placeholder="Describa la necesidad que origina esta cotización..."
+                  className="resize-none text-sm min-h-[72px]"
                   {...field}
                 />
               </FormControl>
@@ -394,131 +392,172 @@ export function CreateQuoteForm({
           )}
         />
 
-        {/* Artículos */}
-        <div className="space-y-4">
-          <h3 className="text-lg font-bold">Artículos</h3>
-          <ScrollArea className={cn("", fields.length > 3 && "h-[280px]")}>
-            {fields.map((field, index) => (
-              <div key={field.id} className="flex gap-4 items-end p-2 border-b">
-                {/* Número de parte */}
-                <FormField
-                  control={control}
-                  name={`articles.${index}.part_number`}
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel htmlFor={`part-number-${index}`}>
-                        # Parte
-                      </FormLabel>
-                      <FormControl>
-                        <Input
-                          id={`part-number-${index}`}
-                          disabled
-                          className="disabled:opacity-85 disabled:cursor-default font-semibold"
-                          placeholder="Ej: ABC123"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+        {/* ── Artículos ─────────────────────────────────────────────────── */}
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+              Artículos
+            </span>
+            <span className="text-xs text-muted-foreground tabular-nums">
+              {fields.length} {fields.length === 1 ? "ítem" : "ítems"}
+            </span>
+          </div>
 
-                {/* Cantidad y Unidad */}
-                <div className="flex gap-2 items-end">
+          {/* Cabecera de columnas */}
+          <div className="grid grid-cols-[1fr_72px_130px_88px] gap-3 px-3 pb-1 border-b border-border/60">
+            <span className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70">
+              Parte / Alterno
+            </span>
+            <span className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70">
+              Cant.
+            </span>
+            <span className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70">
+              P. Unitario
+            </span>
+            <span className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70 text-right">
+              Total
+            </span>
+          </div>
+
+          <ScrollArea className={cn(fields.length > 3 && "h-[260px]")}>
+            <div className="space-y-0">
+              {fields.map((field, index) => (
+                <div
+                  key={field.id}
+                  className="grid grid-cols-[1fr_72px_130px_88px] gap-3 items-start px-3 py-3 border-b border-border/30 last:border-0 hover:bg-muted/20 transition-colors"
+                >
+                  {/* ── Identidad de parte ── */}
+                  <div className="space-y-1.5 min-w-0">
+                    {/* Número de parte principal */}
+                    <FormField
+                      control={control}
+                      name={`articles.${index}.part_number`}
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormControl>
+                            <Input
+                              disabled
+                              className="font-mono text-sm h-8 bg-muted/60 border-border/50 disabled:opacity-100 disabled:cursor-default tracking-wide"
+                              {...field}
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                    {/* Número de parte alterno */}
+                    <FormField
+                      control={control}
+                      name={`articles.${index}.alt_part_number`}
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormControl>
+                            <div className="flex items-center gap-1.5">
+                              <span className="shrink-0 text-[10px] font-mono font-semibold text-amber-600 dark:text-amber-500 bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800/60 px-1.5 py-0.5 rounded tracking-widest select-none">
+                                ALT
+                              </span>
+                              <Input
+                                placeholder="N/A"
+                                className="font-mono text-sm h-7 text-muted-foreground placeholder:text-muted-foreground/40 border-dashed"
+                                {...field}
+                              />
+                            </div>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  {/* ── Cantidad + Unidad ── */}
+                  <div className="space-y-1.5">
+                    <FormField
+                      control={control}
+                      name={`articles.${index}.quantity`}
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormControl>
+                            <Input
+                              type="number"
+                              min={1}
+                              className="font-mono text-sm h-8 text-center"
+                              value={field.value ?? ""}
+                              onChange={(e) => field.onChange(Number(e.target.value))}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    {articles[index]?.unit && (
+                      <Select value={articles[index].unit!.toString()} disabled>
+                        <SelectTrigger className="h-7 text-xs border-dashed disabled:opacity-70 disabled:cursor-default">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {units?.map((unit) => (
+                            <SelectItem key={unit.id} value={unit.id.toString()} className="text-xs">
+                              {unit.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+                  </div>
+
+                  {/* ── Precio unitario ── */}
                   <FormField
                     control={control}
-                    name={`articles.${index}.quantity`}
+                    name={`articles.${index}.unit_price`}
                     render={({ field }) => (
-                      <FormItem className="flex-1">
-                        <FormLabel htmlFor={`quantity-${index}`}>
-                          Cantidad
-                        </FormLabel>
+                      <FormItem>
                         <FormControl>
-                        <Input
-                          id={`quantity-${index}`}
-                          type="number"
-                          min={1}
-                          className="font-semibold"
-                          value={field.value ?? ""}
-                          onChange={(e) => field.onChange(Number(e.target.value))}
-                        />
+                          <AmountInput {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
 
-                  {articles[index]?.unit && (
-                    <FormItem className="flex-1">
-                      <FormLabel htmlFor={`unit-${index}`}>Unidad</FormLabel>
-                      <Select value={articles[index].unit.toString()} disabled>
-                        <SelectTrigger id={`unit-${index}`}>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {units?.map((unit) => (
-                            <SelectItem
-                              key={unit.id}
-                              value={unit.id.toString()}
-                            >
-                              {unit.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </FormItem>
-                  )}
-                </div>
-
-                {/* Precio Unitario */}
-                <FormField
-                  control={control}
-                  name={`articles.${index}.unit_price`}
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel htmlFor={`unit-price-${index}`}>
-                        Precio Unitario
-                      </FormLabel>
-                      <FormControl>
-                        <AmountInput {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                {/* Total del Artículo */}
-                <div className="flex flex-col">
-                  <Label className="mb-2">Total</Label>
-                  <p className="text-base font-bold p-2 rounded-md">
-                    {new Intl.NumberFormat("es-AR", {
-                      style: "currency",
-                      currency: "ARS",
-                    }).format(
-                      (articles[index]?.quantity || 0) *
+                  {/* ── Total de línea ── */}
+                  <div className="flex items-center justify-end pt-0.5">
+                    <span className="font-mono text-sm font-semibold tabular-nums text-right">
+                      ${(
+                        (articles[index]?.quantity || 0) *
                         (Number(articles[index]?.unit_price) || 0)
-                    )}
-                  </p>
+                      ).toFixed(2)}
+                    </span>
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </ScrollArea>
         </div>
 
-        {/* Total general */}
-        <div className=" font-bold text-lg">
-          Total General: ${total.toFixed(2)}
+        {/* ── Total general ─────────────────────────────────────────────── */}
+        <div className="flex justify-end pt-1 border-t border-border/60">
+          <div className="flex items-baseline gap-3">
+            <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+              Total
+            </span>
+            <span className="font-mono text-xl font-bold tabular-nums">
+              ${total.toFixed(2)}
+            </span>
+          </div>
         </div>
-        <Separator />
-        {/* Botón para enviar */}
+
+        {/* ── Enviar ────────────────────────────────────────────────────── */}
         <Button
-          disabled={createQuote.isPending || updateStatusRequisition.isPending}
+          disabled={isPending}
           type="submit"
+          className="w-full h-10"
         >
-          {createQuote.isPending || updateStatusRequisition.isPending ? (
+          {isPending ? (
             <Loader2 className="size-4 animate-spin" />
           ) : (
-            "Crear Cotizacion"
+            <>
+              <PackageSearch className="size-4 mr-2" />
+              Crear cotización
+            </>
           )}
         </Button>
       </form>

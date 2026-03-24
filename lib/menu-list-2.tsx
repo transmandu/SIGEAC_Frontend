@@ -33,6 +33,7 @@ import {
   ShieldAlert,
   ShieldCheck,
   SquarePen,
+  Truck,
   User2,
   UserRoundCog,
   Wrench
@@ -685,6 +686,22 @@ export function getMenuList(
           ],
           submenus: [],
         },
+        {
+          href: `/${currentCompany?.slug}/compras/en_transito`,
+          label: "Art. en Tránsito",
+          active: pathname.includes(
+            `/${currentCompany?.slug}/compras/en_transito`,
+          ),
+          icon: Truck,
+          roles: [
+            "ANALISTA_COMPRAS",
+            "JEFE_COMPRAS",
+            "SUPERUSER",
+            "JEFE_ADMINISTRACION",
+          ],
+          submenus: [],
+
+        }
       ],
     },
     // {

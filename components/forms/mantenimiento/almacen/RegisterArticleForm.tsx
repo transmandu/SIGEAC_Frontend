@@ -10,12 +10,12 @@ import {
   SelectValue,
 } from "../../../ui/select";
 import CreateToolForm from "@/app/[company]/almacen/ingresar_inventario/_components/RegisterToolForm";
-import CreateComponentForm from "@/app/[company]/almacen/ingresar_inventario/_components/RegisterComponentForm";
 import CreatePartForm from "@/app/[company]/almacen/ingresar_inventario/_components/RegisterPartForm";
 import DirectComponentForm from "@/app/[company]/almacen/ingresar_inventario/_components/DirectComponentForm";
 import DirectConsumableForm from "@/app/[company]/almacen/ingresar_inventario/_components/DirectConsumableForm";
 import DirectPartForm from "@/app/[company]/almacen/ingresar_inventario/_components/DirectPartForm";
 import CreateConsumableForm from "@/app/[company]/almacen/ingresar_inventario/_components/RegisterConsumableForm";
+import CreateComponentForm from "@/app/[company]/almacen/ingresar_inventario/_components/RegisterComponentForm";
 
 export interface EditingArticle extends Article {
   batch: Batch;
@@ -90,8 +90,7 @@ const RegisterArticleForm = ({
       )}
       <Select
         disabled={isEditing}
-        value={type}
-        onValueChange={handleTypeSelect}
+        value={type} onValueChange={handleTypeSelect}
       >
         <SelectTrigger className="w-[230px]">
           <SelectValue placeholder="Seleccionar..." />
@@ -103,9 +102,11 @@ const RegisterArticleForm = ({
           <SelectItem value="PARTE">PARTE</SelectItem>
         </SelectContent>
       </Select>
-      {type === "CONSUMIBLE" && (
-        <DirectConsumableForm isEditing={isEditing} initialData={initialData} />
-      )}
+      {
+        type === "CONSUMIBLE" && (
+          <DirectConsumableForm isEditing={isEditing} initialData={initialData} />
+        )
+      }
       {type === "HERRAMIENTA" && (
         <CreateToolForm isEditing={isEditing} initialData={initialData} />
       )}

@@ -246,11 +246,10 @@ function FileField({
                 />
                 <div
                   onClick={() => !busy && !fileName && inputRef?.click()}
-                  className={`flex items-center justify-between pl-10 pr-3 py-2 w-full border border-gray-300 rounded ${
-                    !busy && !fileName
+                  className={`flex items-center justify-between pl-10 pr-3 py-2 w-full border border-gray-300 rounded ${!busy && !fileName
                       ? "cursor-pointer hover:border-gray-400"
                       : ""
-                  } ${busy ? "opacity-50" : ""}`}
+                    } ${busy ? "opacity-50" : ""}`}
                 >
                   <span
                     className={`text-sm truncate flex-1 ${fileName ? "text-gray-900" : "text-gray-500"}`}
@@ -913,29 +912,29 @@ function UnitsModal({
                       {availableConversion.find(
                         (conv: any) =>
                           conv.primary_unit.id.toString() ===
-                            conversionFromUnit &&
+                          conversionFromUnit &&
                           conv.secondary_unit.id.toString() ===
-                            conversionToUnit,
+                          conversionToUnit,
                       )?.equivalence && (
-                        <span className="block text-xs mt-1">
-                          Equivalencia: 1{" "}
-                          {
-                            availableConversionUnits?.find(
-                              (u) => u.id.toString() === conversionFromUnit,
-                            )?.label
-                          }{" "}
-                          ={" "}
-                          {1 /
-                            availableConversion.find(
-                              (conv: any) =>
-                                conv.primary_unit.id.toString() ===
+                          <span className="block text-xs mt-1">
+                            Equivalencia: 1{" "}
+                            {
+                              availableConversionUnits?.find(
+                                (u) => u.id.toString() === conversionFromUnit,
+                              )?.label
+                            }{" "}
+                            ={" "}
+                            {1 /
+                              availableConversion.find(
+                                (conv: any) =>
+                                  conv.primary_unit.id.toString() ===
                                   conversionFromUnit &&
-                                conv.secondary_unit.id.toString() ===
+                                  conv.secondary_unit.id.toString() ===
                                   conversionToUnit,
-                            )!.equivalence}{" "}
-                          {primaryUnit?.label}
-                        </span>
-                      )}
+                              )!.equivalence}{" "}
+                            {primaryUnit?.label}
+                          </span>
+                        )}
                     </p>
                   </div>
                 )}
@@ -1216,13 +1215,15 @@ export default function CreateConsumableForm({
     }
   };
 
+  const currentBatch = initialData?.batch ?? initialData?.batches;
+
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       part_number: initialData?.part_number || "",
       alternative_part_number: initialData?.alternative_part_number || [],
-      batch_id: initialData?.batch?.id?.toString() || "",
-      batch_name: initialData?.batch?.name || "",
+      batch_id: currentBatch?.id?.toString() || "",
+      batch_name: currentBatch?.name || "",
       manufacturer_id: initialData?.manufacturer?.id?.toString() || "",
       condition_id: initialData?.condition?.id?.toString() || "",
       description: initialData?.description || "",
@@ -1282,8 +1283,8 @@ export default function CreateConsumableForm({
     const resetValues = {
       part_number: initialData.part_number ?? "",
       alternative_part_number: initialData.alternative_part_number ?? [],
-      batch_id: initialData.batch?.id?.toString() ?? "",
-      batch_name: initialData.batch?.name ?? "",
+      batch_id: currentBatch?.id?.toString() ?? "",
+      batch_name: currentBatch?.name ?? "",
       manufacturer_id: initialData.manufacturer?.id?.toString() ?? "",
       condition_id: initialData.condition?.id?.toString() ?? "",
       description: initialData.description ?? "",
@@ -1298,7 +1299,7 @@ export default function CreateConsumableForm({
       quantity: initialQuantity,
       min_quantity:
         initialData.consumable?.min_quantity !== undefined &&
-        initialData.consumable?.min_quantity !== null
+          initialData.consumable?.min_quantity !== null
           ? Number(initialData.consumable.min_quantity)
           : undefined,
 
@@ -1314,11 +1315,14 @@ export default function CreateConsumableForm({
     setShelfDate(shelfLifeDate);
 
     if (initialData.primary_unit_id) {
-      const unitObj = { id: initialData.primary_unit_id };
+      const unitObj =
+        units?.find((unit) => unit.id === initialData.primary_unit_id) ?? {
+          id: initialData.primary_unit_id,
+        };
       setSelectedPrimaryUnit(unitObj);
       setSecondarySelected(unitObj);
     }
-  }, [initialData, form]); // 👈 quitamos form para evitar renders extra
+  }, [currentBatch, initialData, form, units]); // 👈 quitamos form para evitar renders extra
 
   const calculateAndUpdateQuantity = useCallback(
     (quantity: number | undefined, selectedUnit: any) => {
@@ -1473,8 +1477,8 @@ export default function CreateConsumableForm({
       inspect_date: inspectDateStr,
       fabrication_date:
         fabricationDate &&
-        fabricationDate !== null &&
-        !isNotApplicableDate(fabricationDate)
+          fabricationDate !== null &&
+          !isNotApplicableDate(fabricationDate)
           ? format(fabricationDate, "yyyy-MM-dd")
           : fabricationDate && isNotApplicableDate(fabricationDate)
             ? "1900-01-01"

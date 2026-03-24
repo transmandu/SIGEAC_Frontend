@@ -230,6 +230,7 @@ export const useUpdateArticleStatus = () => {
       queryClient.invalidateQueries({ queryKey: ["in-reception-articles"] });
       queryClient.invalidateQueries({ queryKey: ["checking-articles"] });
       queryClient.invalidateQueries({ queryKey: ["warehouse-articles"] });
+      queryClient.invalidateQueries({ queryKey: ["purchase-orders"] });
       toast.success("¡Actualizado!", {
         description: `El articulo ha sido actualizado correctamente.`,
       });

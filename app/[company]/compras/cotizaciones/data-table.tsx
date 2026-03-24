@@ -53,9 +53,8 @@ export function DataTable<TData, TValue>({
     }
   })
 
-  const router = useRouter();
 
-  const isFiltered = table.getState().columnFilters.length > 0
+
 
   return (
     <div>

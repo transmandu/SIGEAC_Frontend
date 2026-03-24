@@ -1215,13 +1215,15 @@ export default function DirectConsumableForm({
     }
   };
 
+  const currentBatch = initialData?.batch ?? initialData?.batches;
+
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       part_number: initialData?.part_number || "",
       alternative_part_number: initialData?.alternative_part_number || [],
-      batch_id: initialData?.batches?.id?.toString() || "",
-      batch_name: initialData?.batches?.name || "",
+      batch_id: currentBatch?.id?.toString() || "",
+      batch_name: currentBatch?.name || "",
       manufacturer_id: initialData?.manufacturer?.id?.toString() || "",
       condition_id: initialData?.condition?.id?.toString() || "",
       description: initialData?.description || "",
@@ -1281,8 +1283,8 @@ export default function DirectConsumableForm({
     const resetValues = {
       part_number: initialData.part_number ?? "",
       alternative_part_number: initialData.alternative_part_number ?? [],
-      batch_id: initialData.batches?.id?.toString() ?? "",
-      batch_name: initialData.batches?.name ?? "",
+      batch_id: currentBatch?.id?.toString() ?? "",
+      batch_name: currentBatch?.name ?? "",
       manufacturer_id: initialData.manufacturer?.id?.toString() ?? "",
       condition_id: initialData.condition?.id?.toString() ?? "",
       description: initialData.description ?? "",
@@ -1313,11 +1315,14 @@ export default function DirectConsumableForm({
     setShelfDate(shelfLifeDate);
 
     if (initialData.primary_unit_id) {
-      const unitObj = { id: initialData.primary_unit_id };
+      const unitObj =
+        units?.find((unit) => unit.id === initialData.primary_unit_id) ?? {
+          id: initialData.primary_unit_id,
+        };
       setSelectedPrimaryUnit(unitObj);
       setSecondarySelected(unitObj);
     }
-  }, [initialData, form]); // 👈 quitamos form para evitar renders extra
+  }, [currentBatch, initialData, form, units]); // 👈 quitamos form para evitar renders extra
 
   const calculateAndUpdateQuantity = useCallback(
     (quantity: number | undefined, selectedUnit: any) => {
