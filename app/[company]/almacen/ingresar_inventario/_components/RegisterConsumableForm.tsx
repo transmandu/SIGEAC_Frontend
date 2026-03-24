@@ -246,11 +246,10 @@ function FileField({
                 />
                 <div
                   onClick={() => !busy && !fileName && inputRef?.click()}
-                  className={`flex items-center justify-between pl-10 pr-3 py-2 w-full border border-gray-300 rounded ${
-                    !busy && !fileName
+                  className={`flex items-center justify-between pl-10 pr-3 py-2 w-full border border-gray-300 rounded ${!busy && !fileName
                       ? "cursor-pointer hover:border-gray-400"
                       : ""
-                  } ${busy ? "opacity-50" : ""}`}
+                    } ${busy ? "opacity-50" : ""}`}
                 >
                   <span
                     className={`text-sm truncate flex-1 ${fileName ? "text-gray-900" : "text-gray-500"}`}
@@ -913,29 +912,29 @@ function UnitsModal({
                       {availableConversion.find(
                         (conv: any) =>
                           conv.primary_unit.id.toString() ===
-                            conversionFromUnit &&
+                          conversionFromUnit &&
                           conv.secondary_unit.id.toString() ===
-                            conversionToUnit,
+                          conversionToUnit,
                       )?.equivalence && (
-                        <span className="block text-xs mt-1">
-                          Equivalencia: 1{" "}
-                          {
-                            availableConversionUnits?.find(
-                              (u) => u.id.toString() === conversionFromUnit,
-                            )?.label
-                          }{" "}
-                          ={" "}
-                          {1 /
-                            availableConversion.find(
-                              (conv: any) =>
-                                conv.primary_unit.id.toString() ===
+                          <span className="block text-xs mt-1">
+                            Equivalencia: 1{" "}
+                            {
+                              availableConversionUnits?.find(
+                                (u) => u.id.toString() === conversionFromUnit,
+                              )?.label
+                            }{" "}
+                            ={" "}
+                            {1 /
+                              availableConversion.find(
+                                (conv: any) =>
+                                  conv.primary_unit.id.toString() ===
                                   conversionFromUnit &&
-                                conv.secondary_unit.id.toString() ===
+                                  conv.secondary_unit.id.toString() ===
                                   conversionToUnit,
-                            )!.equivalence}{" "}
-                          {primaryUnit?.label}
-                        </span>
-                      )}
+                              )!.equivalence}{" "}
+                            {primaryUnit?.label}
+                          </span>
+                        )}
                     </p>
                   </div>
                 )}
@@ -1300,7 +1299,7 @@ export default function CreateConsumableForm({
       quantity: initialQuantity,
       min_quantity:
         initialData.consumable?.min_quantity !== undefined &&
-        initialData.consumable?.min_quantity !== null
+          initialData.consumable?.min_quantity !== null
           ? Number(initialData.consumable.min_quantity)
           : undefined,
 
@@ -1478,8 +1477,8 @@ export default function CreateConsumableForm({
       inspect_date: inspectDateStr,
       fabrication_date:
         fabricationDate &&
-        fabricationDate !== null &&
-        !isNotApplicableDate(fabricationDate)
+          fabricationDate !== null &&
+          !isNotApplicableDate(fabricationDate)
           ? format(fabricationDate, "yyyy-MM-dd")
           : fabricationDate && isNotApplicableDate(fabricationDate)
             ? "1900-01-01"

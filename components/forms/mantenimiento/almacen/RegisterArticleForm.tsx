@@ -103,21 +103,19 @@ const RegisterArticleForm = ({
         </SelectContent>
       </Select>
       {
-        type === "COMPONENTE" && (
-          <RegisterArticleForm isEditing={isEditing} initialData={initialData} />
+        type === "CONSUMIBLE" && (
+          <DirectConsumableForm isEditing={isEditing} initialData={initialData} />
         )
       }
-
-      {/* )} */}
-      {/* {type === "HERRAMIENTA" && ( */}
-      {/*   <CreateToolForm isEditing={isEditing} initialData={initialData} /> */}
-      {/* )} */}
-      {/* {type === "COMPONENTE" && ( */}
-      {/*   <DirectComponentForm isEditing={isEditing} initialData={initialData} /> */}
-      {/* )} */}
-      {/* {type === "PARTE" && ( */}
-      {/*   <DirectPartForm isEditing={isEditing} initialData={initialData} /> */}
-      {/* )} */}
+      {type === "HERRAMIENTA" && (
+        <CreateToolForm isEditing={isEditing} initialData={initialData} />
+      )}
+      {type === "COMPONENTE" && (
+        <DirectComponentForm isEditing={isEditing} initialData={initialData} />
+      )}
+      {type === "PARTE" && (
+        <DirectPartForm isEditing={isEditing} initialData={initialData} />
+      )}
     </div>
   );
 };
