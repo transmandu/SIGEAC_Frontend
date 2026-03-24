@@ -169,11 +169,11 @@ function CompactCheckRow({
       className={cn(
         "rounded-lg border-[2px] p-3 transition-colors",
         value === true &&
-          "border-emerald-500 bg-emerald-50/50 dark:bg-emerald-950/20",
+        "border-emerald-500 bg-emerald-50/50 dark:bg-emerald-950/20",
         value === false &&
-          "border-red-500 bg-red-50/50 dark:bg-red-950/20",
+        "border-red-500 bg-red-50/50 dark:bg-red-950/20",
         value === "NA" &&
-          "border-slate-400 bg-slate-50/50 dark:border-l-slate-500 dark:bg-slate-800/20",
+        "border-slate-400 bg-slate-50/50 dark:border-l-slate-500 dark:bg-slate-800/20",
         value === undefined && "border-l-slate-200 dark:border-l-slate-700"
       )}
     >
@@ -258,11 +258,11 @@ function StampCheckRow({
       className={cn(
         "rounded-xl border-l-[3px] p-4 transition-colors",
         value === true &&
-          "border-l-emerald-500 bg-emerald-50/50 dark:bg-emerald-950/20",
+        "border-l-emerald-500 bg-emerald-50/50 dark:bg-emerald-950/20",
         value === false &&
-          "border-l-red-500 bg-red-50/50 dark:bg-red-950/20",
+        "border-l-red-500 bg-red-50/50 dark:bg-red-950/20",
         value === "NA" &&
-          "border-l-slate-400 bg-slate-50/50 dark:border-l-slate-500 dark:bg-slate-800/20",
+        "border-l-slate-400 bg-slate-50/50 dark:border-l-slate-500 dark:bg-slate-800/20",
         value === undefined && "border-l-slate-200 dark:border-l-slate-700"
       )}
     >
@@ -505,7 +505,7 @@ export function IncomingReview({ article }: { article: any }) {
 
   const quarantineEnabled = inspectorNotes.trim().length >= 5;
   const actionDisabled =
-    decision === "QUARANTINE" ? !quarantineEnabled : false;
+    (decision === "QUARANTINE" ? !quarantineEnabled : false) || (progress !== 100);
 
   /* ── Handlers ── */
   const setValue = (key: string, val: ChecklistValue) =>
@@ -688,10 +688,10 @@ export function IncomingReview({ article }: { article: any }) {
                   value={article?.batch?.name}
                 />
                 <InfoField
-                    icon={<Package className="h-4 w-4" />}
-                    label="Cantidad"
-                    value={consumable.quantity === null ? "1" : `${consumable.quantity}`}
-                  />
+                  icon={<Package className="h-4 w-4" />}
+                  label="Cantidad"
+                  value={consumable ? `${consumable.quantity}` : "1"}
+                />
                 {article?.batch?.ata_code && (
                   <InfoField
                     icon={<ShieldAlert className="h-4 w-4" />}

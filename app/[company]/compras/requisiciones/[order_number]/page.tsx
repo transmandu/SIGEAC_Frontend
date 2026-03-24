@@ -6,31 +6,73 @@ import LoadingPage from '@/components/misc/LoadingPage';
 import BackButton from '@/components/misc/BackButton';
 import { Badge } from '@/components/ui/badge';
 import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle
-} from "@/components/ui/card";
-import { Separator } from '@/components/ui/separator';
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from '@/components/ui/breadcrumb';
 import { useGetRequisitionByOrderNumber } from '@/hooks/mantenimiento/compras/useGetRequisitionByOrderNumber';
+import { useAuth } from '@/contexts/AuthContext';
 import { cn } from '@/lib/utils';
 import { useCompanyStore } from '@/stores/CompanyStore';
-import { FileText, User, Image as ImageIcon } from 'lucide-react';
+import { format } from 'date-fns';
+import { es } from 'date-fns/locale';
+import { CalendarDays, Plane, User } from 'lucide-react';
 import Image from 'next/image';
 import { useParams, useRouter } from 'next/navigation';
 import { useState } from 'react';
 import DeleteRequisitionDialog from './_components/DeleteRequisitionDialog';
+import GenerateQuoteDialog from './_components/GenerateQuoteDialog';
+import RejectRequisitionDialog from './_components/RejectRequisitionDialog';
 
+// ── Status badge ──────────────────────────────────────────────────────
+const statusCls = (status?: string) => {
+  switch (status) {
+    case 'APROBADO':
+      return 'bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-950/50 dark:text-emerald-400 dark:border-emerald-800';
+    case 'RECHAZADO':
+      return 'bg-destructive/10 text-destructive border-destructive/30';
+    default:
+      return 'bg-amber-100 text-amber-700 border-amber-200 dark:bg-amber-950/50 dark:text-amber-400 dark:border-amber-800';
+  }
+};
+
+// ── Meta item ─────────────────────────────────────────────────────────
+function MetaItem({
+  label,
+  value,
+  icon: Icon,
+}: {
+  label: string;
+  value?: string | null;
+  icon?: React.ElementType;
+}) {
+  return (
+    <div className="flex flex-col gap-0.5">
+      <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground/60">
+        {label}
+      </span>
+      <span className="text-sm font-medium flex items-center gap-1.5">
+        {Icon && <Icon className="size-3.5 text-muted-foreground/50 shrink-0" />}
+        {value ?? '—'}
+      </span>
+    </div>
+  );
+}
+
+// ── Página ────────────────────────────────────────────────────────────
 const RequisitionPage = () => {
-  const [openDelete, setOpenDelete] = useState<boolean>(false);
+  const [openDelete, setOpenDelete] = useState(false);
   const { selectedCompany } = useCompanyStore();
+  const { user } = useAuth();
   const router = useRouter();
   const { order_number } = useParams<{ order_number: string }>();
 
   const { data, isLoading } = useGetRequisitionByOrderNumber({
     company: selectedCompany?.slug,
-    order_number
+    order_number,
   });
 
   const { deleteRequisition } = useDeleteRequisition();
@@ -40,189 +82,280 @@ const RequisitionPage = () => {
   const handleDelete = async () => {
     await deleteRequisition.mutateAsync({
       id: data!.id,
-      company: selectedCompany!.slug
+      company: selectedCompany!.slug,
     });
-
     router.push(`/${selectedCompany!.slug}/compras/requisiciones`);
   };
 
+  const userRoles = user?.roles?.map((r) => r.name) ?? [];
+  const userName = `${user?.first_name} ${user?.last_name}`;
+
   return (
-    <ContentLayout title='Inventario'>
-      <div className="flex items-center gap-2 mb-4">
-        <BackButton iconOnly tooltip="Volver" variant="secondary"/>
-        <h1 className='text-4xl font-bold text-center flex-1'>
-          Nro. Requisición: <span className='text-blue-600'>#{order_number}</span>
-        </h1>
-      </div>
+    <ContentLayout title="Requisición">
+      <div className="flex flex-col gap-y-5 max-w-4xl">
 
-      <p className='text-sm text-muted-foreground text-center italic mb-6'>
-        Detalles de la orden de requisición #{order_number}
-      </p>
+        {/* ── Breadcrumb ──────────────────────────────────────────────── */}
+        <div className="flex items-center gap-2">
+          <BackButton iconOnly tooltip="Volver" variant="secondary" />
+          <Breadcrumb>
+            <BreadcrumbList>
+              <BreadcrumbItem>
+                <BreadcrumbLink href={`/${selectedCompany?.slug}/dashboard`}>
+                  Inicio
+                </BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbLink href={`/${selectedCompany?.slug}/compras/requisiciones`}>
+                  Requisiciones
+                </BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbPage className="font-mono">{order_number}</BreadcrumbPage>
+              </BreadcrumbItem>
+            </BreadcrumbList>
+          </Breadcrumb>
+        </div>
 
-      <Card className='max-w-7xl mx-auto'>
-        <CardHeader className='flex flex-col items-center'>
-          <CardTitle className='flex justify-center text-5xl mb-2'>
-            #{order_number}
-          </CardTitle>
-          <Badge className={cn("text-lg", data?.status === 'APROBADO' ? "bg-green-500" : "bg-yellow-600")}>
-            {data?.status.toUpperCase()}
-          </Badge>
-        </CardHeader>
-
-        <CardContent className='flex flex-col gap-4'>
-          {data?.image && (
-            <div className="flex flex-col items-center gap-2">
-              <div className="relative w-[250px] h-[250px]">
-                <Image
-                  src={data.image.startsWith('data:image') ? data.image : `data:image/jpeg;base64,${data.image}`}
-                  alt="Imagen de la requisición"
-                  fill
-                  className="object-contain border rounded-md"
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).style.display = 'none';
-                  }}
-                />
-              </div>
-              <p className="text-sm text-muted-foreground">
-                Imagen adjunta a la requisición
-              </p>
+        {/* ── Header ──────────────────────────────────────────────────── */}
+        <div className="flex items-start justify-between gap-4 pb-4 border-b border-border/60">
+          <div className="space-y-1">
+            <div className="flex items-center gap-3 flex-wrap">
+              <span className="font-mono text-2xl font-bold tracking-wide">
+                {order_number}
+              </span>
+              <Badge
+                className={cn(
+                  'text-xs font-medium px-2 py-0.5 border',
+                  statusCls(data?.status)
+                )}
+              >
+                {data?.status}
+              </Badge>
             </div>
-          )}
-
-          <div className='flex w-full justify-center gap-24 text-xl'>
-            <div className='flex flex-col gap-2 items-center'>
-              <h1>Creado Por:</h1>
-              <p className='font-bold flex gap-2 items-center'>
-                <User /> {data?.created_by.first_name} {data?.created_by.last_name}
-              </p>
-            </div>
-            <div className='flex flex-col gap-2 items-center'>
-              <h1>Solicitado Por:</h1>
-              <p className='font-bold flex gap-2 items-center'>
-                <User /> {data?.requested_by}
-              </p>
-            </div>
-          </div>
-
-          <div className='text-center'>
-            <h2 className='font-semibold text-lg mb-2'>Justificación:</h2>
-            <p className='font-medium italic bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 p-4 rounded-md'>
-              {data?.justification || "No se proporcionó justificación"}
+            <p className="text-xs text-muted-foreground">
+              Requisición de{' '}
+              {data?.type === 'AERONAUTICO'
+                ? 'material aeronáutico'
+                : 'uso general'}
             </p>
           </div>
 
-          <div className='flex flex-wrap justify-center gap-4'>
-            {data && data.batch.map((batch) => (
-              <Card key={batch.id} className='w-full max-w-xl'>
-                <CardHeader className='pb-2'>
-                  <CardTitle className='text-2xl text-center'>
-                    {batch.name}
-                  </CardTitle>
-                </CardHeader>
+          {/* Acciones */}
+          <div className="flex items-center gap-1.5 shrink-0">
+            {data && <GenerateQuoteDialog req={data} />}
+            {data && (
+              <RejectRequisitionDialog
+                req={data}
+                userRoles={userRoles}
+                userName={userName}
+              />
+            )}
+            <DeleteRequisitionDialog
+              open={openDelete}
+              onOpenChange={setOpenDelete}
+              onConfirm={handleDelete}
+              loading={deleteRequisition.isPending}
+              status={data?.status}
+            />
+          </div>
+        </div>
 
-                <CardContent className='space-y-4'>
-                  {batch.batch_articles.map((article, index) => (
-                    <div key={`${article.article_part_number}-${index}`} className='space-y-4'>
-                      <div className='grid grid-cols-1 md:grid-cols-2'>
-                        <div className='space-y-2'>
-                          <h3 className='font-semibold text-lg flex items-center gap-2'>
-                            <FileText className='h-5 w-5' /> Artículo {index + 1}
-                          </h3>
+        {/* ── Meta ────────────────────────────────────────────────────── */}
+        <div className="grid grid-cols-3 gap-x-6 gap-y-3 px-3 py-3 rounded-md border border-border/50 bg-muted/20">
+          <MetaItem
+            label="Creado por"
+            value={
+              data?.created_by
+                ? `${data.created_by.first_name} ${data.created_by.last_name}`
+                : undefined
+            }
+            icon={User}
+          />
+          <MetaItem
+            label="Solicitado por"
+            value={data?.requested_by}
+            icon={User}
+          />
+          <MetaItem
+            label="Fecha de envío"
+            value={
+              data?.submission_date
+                ? format(new Date(data.submission_date), 'dd MMM yyyy', {
+                    locale: es,
+                  })
+                : undefined
+            }
+            icon={CalendarDays}
+          />
+          {data?.aircraft && (
+            <MetaItem
+              label="Aeronave"
+              value={`${data.aircraft.brand} ${data.aircraft.model} (${data.aircraft.acronym})`}
+              icon={Plane}
+            />
+          )}
+        </div>
 
-                          <div className='grid grid-cols-2 gap-2'>
-                            <div>
-                              <p className='text-sm text-muted-foreground'>N° Parte:</p>
-                              <p className='font-medium'>{article.article_part_number || "N/A"}</p>
-                            </div>
+        {/* ── Justificación ───────────────────────────────────────────── */}
+        {data?.justification && (
+          <div className="space-y-1.5">
+            <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+              Justificación
+            </span>
+            <p className="text-sm text-muted-foreground leading-relaxed px-3 py-2.5 rounded-md border border-border/50 bg-muted/20 border-l-2 border-l-border">
+              {data.justification}
+            </p>
+          </div>
+        )}
 
-                            <div>
-                              <p className='text-sm text-muted-foreground'>N° Parte Alt:</p>
-                              <p className='font-medium'>{article.article_alt_part_number || "N/A"}</p>
-                            </div>
+        {/* ── Imagen adjunta ───────────────────────────────────────────── */}
+        {(data as any)?.image && (
+          <div className="flex items-start gap-3">
+            <div className="relative w-20 h-20 shrink-0 rounded border border-border/40 overflow-hidden bg-muted/30">
+              <Image
+                src={
+                  (data as any).image.startsWith('data:image')
+                    ? (data as any).image
+                    : `data:image/jpeg;base64,${(data as any).image}`
+                }
+                alt="Imagen adjunta"
+                fill
+                className="object-contain"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).style.display = 'none';
+                }}
+              />
+            </div>
+            <span className="text-xs text-muted-foreground mt-1">
+              Imagen adjunta a la requisición
+            </span>
+          </div>
+        )}
 
-                            <div>
-                              <p className='text-sm text-muted-foreground'>Cantidad:</p>
-                              <p className='font-medium'>{article.quantity}</p>
-                            </div>
+        {/* ── Artículos por lote ───────────────────────────────────────── */}
+        <div className="space-y-3">
+          <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+            Artículos solicitados
+          </span>
 
-                            {article.manual && (
-                              <div>
-                                <p className='text-sm text-muted-foreground'>Manual:</p>
-                                <p className='font-medium'>{article.manual}</p>
-                              </div>
-                            )}
+          {data?.batch.map((batch, batchIdx) => (
+            <div
+              key={`${batch.name}-${batchIdx}`}
+              className="rounded-md border border-border/60 overflow-hidden"
+            >
+              {/* Batch header */}
+              <div className="flex items-center gap-2 px-3 py-2 bg-muted/20 border-b border-border/50">
+                <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground/60">
+                  Lote
+                </span>
+                <span className="text-sm font-semibold">{batch.name}</span>
+                <span className="ml-auto text-[10px] text-muted-foreground/50 tabular-nums">
+                  {batch.batch_articles.length}{' '}
+                  {batch.batch_articles.length === 1 ? 'artículo' : 'artículos'}
+                </span>
+              </div>
 
-                            {article.reference_cod && (
-                              <div>
-                                <p className='text-sm text-muted-foreground'>Cód. Referencia:</p>
-                                <p className='font-medium'>{article.reference_cod}</p>
-                              </div>
-                            )}
+              {/* Column headers */}
+              <div className="grid grid-cols-[1fr_56px_72px] gap-3 px-3 py-1.5 border-b border-border/40">
+                {['Parte / Alterno', 'Cant.', 'Unidad'].map((h) => (
+                  <span
+                    key={h}
+                    className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground/60"
+                  >
+                    {h}
+                  </span>
+                ))}
+              </div>
 
-                            {article.pma && (
-                              <div>
-                                <p className='text-sm text-muted-foreground'>PMA:</p>
-                                <p className='font-medium'>{article.pma}</p>
-                              </div>
-                            )}
-
-                            {article.justification && (
-                              <div className='col-span-2'>
-                                <p className='text-sm text-muted-foreground'>Justificación:</p>
-                                <p className='font-medium italic'>{article.justification}</p>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-
-                        <div className='flex flex-col items-center'>
-                          {article.image ? (
-                            <>
-                              <div className='max-w-xs'>
-                                <Image
-                                  src={article.image.startsWith('data:image')
-                                    ? article.image
-                                    : `data:image/jpeg;base64,${article.image}`}
-                                  alt={`Imagen del artículo ${article.article_part_number}`}
-                                  className='max-h-48 object-contain border rounded-md'
-                                  width={300}
-                                  height={200}
-                                />
-                              </div>
-                              <p className='text-sm text-muted-foreground mt-2'>
-                                Imagen del artículo
-                              </p>
-                            </>
-                          ) : (
-                            <div className='flex flex-col items-center justify-center h-full text-muted-foreground'>
-                              <ImageIcon className='h-12 w-12' />
-                              <p className='text-sm mt-2'>No hay imagen</p>
-                            </div>
-                          )}
-                        </div>
+              {/* Article rows */}
+              {batch.batch_articles.map((article, idx) => {
+                const a = article as any;
+                return (
+                  <div
+                    key={`${article.article_part_number}-${idx}`}
+                    className="grid grid-cols-[1fr_56px_72px] gap-3 items-start px-3 py-2.5 border-b border-border/30 last:border-0 hover:bg-muted/20 transition-colors"
+                  >
+                    {/* PN identity block */}
+                    <div className="space-y-1 min-w-0">
+                      <div className="font-mono text-sm bg-muted/60 px-1.5 py-0.5 rounded border border-border/40 truncate tracking-wide">
+                        {article.article_part_number || 'N/A'}
                       </div>
 
-                      {index < batch.batch_articles.length - 1 && (
-                        <Separator className='my-4' />
+                      {a.article_alt_part_number ? (
+                        <div className="flex items-center gap-1.5">
+                          <span className="shrink-0 text-[9px] font-mono font-semibold text-amber-600 dark:text-amber-500 bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800/60 px-1 py-0.5 rounded tracking-widest select-none">
+                            ALT
+                          </span>
+                          <span className="font-mono text-[11px] text-muted-foreground truncate">
+                            {a.article_alt_part_number}
+                          </span>
+                        </div>
+                      ) : (
+                        <span className="text-[10px] font-mono text-muted-foreground/30 border border-dashed border-border/30 px-1 py-0.5 rounded">
+                          ALT —
+                        </span>
+                      )}
+
+                      {/* Optional fields */}
+                      {a.manual && (
+                        <span className="text-[10px] text-muted-foreground/60 block">
+                          Manual: {a.manual}
+                        </span>
+                      )}
+                      {a.reference_cod && (
+                        <span className="text-[10px] text-muted-foreground/60 block">
+                          Ref: {a.reference_cod}
+                        </span>
+                      )}
+                      {a.pma && (
+                        <span className="text-[10px] text-muted-foreground/60 block">
+                          PMA: {a.pma}
+                        </span>
+                      )}
+                      {a.justification && (
+                        <span className="text-[10px] text-muted-foreground/60 italic block">
+                          "{a.justification}"
+                        </span>
+                      )}
+
+                      {/* Article image thumbnail */}
+                      {article.image && (
+                        <div className="relative w-10 h-10 rounded border border-border/40 overflow-hidden bg-muted/30 mt-1">
+                          <Image
+                            src={
+                              article.image.startsWith('data:image')
+                                ? article.image
+                                : `data:image/jpeg;base64,${article.image}`
+                            }
+                            alt={`Imagen ${article.article_part_number}`}
+                            fill
+                            className="object-contain"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).style.display = 'none';
+                            }}
+                          />
+                        </div>
                       )}
                     </div>
-                  ))}
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </CardContent>
 
-        <CardFooter className='flex justify-end'>
-          <DeleteRequisitionDialog
-            open={openDelete}
-            onOpenChange={setOpenDelete}
-            onConfirm={handleDelete}
-            loading={deleteRequisition.isPending}
-            status={data?.status}
-          />
-        </CardFooter>
-      </Card>
+                    {/* Quantity */}
+                    <span className="font-mono text-sm tabular-nums pt-0.5">
+                      {article.quantity}
+                    </span>
+
+                    {/* Unit */}
+                    <span className="text-sm text-muted-foreground pt-0.5">
+                      {article.unit?.label ?? '—'}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          ))}
+        </div>
+      </div>
     </ContentLayout>
   );
 };

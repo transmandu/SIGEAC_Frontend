@@ -112,8 +112,8 @@ const RegisterArticleForm = ({
         <CreateToolForm isEditing={isEditing} initialData={initialData} />
       )}
       {type === "COMPONENTE" && (
-        // <CreateComponentForm isEditing={isEditing} initialData={initialData} />
-        <DirectComponentForm isEditing={isEditing} initialData={initialData} />
+        <CreateComponentForm isEditing={isEditing} initialData={initialData} />
+        //<DirectComponentForm isEditing={isEditing} initialData={initialData} />
       )}
       {type === "PARTE" && (
         // <CreatePartForm isEditing={isEditing} initialData={initialData} />

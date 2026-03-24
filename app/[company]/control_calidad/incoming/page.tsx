@@ -46,9 +46,9 @@ const IncomingControlPage = () => {
   } = useGetArticlesByStatus("WAITING_TO_LOCATE");
 
   const {
-  data: waitingForFormArticles,
-  isLoading: isWaitingForFormLoading,
-} = useGetArticlesByStatus("WAITING_FOR_FORMAT");
+    data: waitingForFormArticles,
+    isLoading: isWaitingForFormLoading,
+  } = useGetArticlesByStatus("WAITING_FOR_FORMAT");
 
 
 
@@ -94,14 +94,14 @@ const IncomingControlPage = () => {
               <Badge variant="secondary">{incomingCount}</Badge>
             </TabsTrigger>
 
-            <TabsTrigger value="waiting" className="gap-2">
-              En espera por ubicar
-              <Badge variant="secondary">{waitingCount}</Badge>
-            </TabsTrigger>
-
             <TabsTrigger value="waitingForm" className="gap-2">
               Pendientes por formato
               <Badge variant="secondary">{waitingForFormCount}</Badge>
+            </TabsTrigger>
+
+            <TabsTrigger value="waiting" className="gap-2">
+              En espera por ubicar
+              <Badge variant="secondary">{waitingCount}</Badge>
             </TabsTrigger>
           </TabsList>
 
@@ -122,26 +122,26 @@ const IncomingControlPage = () => {
           </TabsContent>
 
           <TabsContent value="waitingForm">
-          {isWaitingForFormLoading ? (
-            <LoadingPage />
-          ) : (
-            <DataTable
-              columns={form_columns}
-              data={waitingForFormArticles ?? []}
-              getRowId={(row) => String((row as any).id)}
-              onSelectionChange={setSelectedForForm}
-              toolbar={
-                <GenerateReceptionFormButton
-                  selected={selectedForForm}
-                  onDone={() => {
-                    // refresca ambas tablas
-                    queryClient.invalidateQueries({ queryKey: ["articles-by-status"] })
-                  }}
-                />
-              }
-            />
-          )}
-        </TabsContent>
+            {isWaitingForFormLoading ? (
+              <LoadingPage />
+            ) : (
+              <DataTable
+                columns={form_columns}
+                data={waitingForFormArticles ?? []}
+                getRowId={(row) => String((row as any).id)}
+                onSelectionChange={setSelectedForForm}
+                toolbar={
+                  <GenerateReceptionFormButton
+                    selected={selectedForForm}
+                    onDone={() => {
+                      // refresca ambas tablas
+                      queryClient.invalidateQueries({ queryKey: ["articles-by-status"] })
+                    }}
+                  />
+                }
+              />
+            )}
+          </TabsContent>
         </Tabs>
       </div>
     </ContentLayout>
