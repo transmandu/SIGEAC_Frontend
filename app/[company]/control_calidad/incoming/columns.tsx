@@ -33,7 +33,7 @@ export const columns: ColumnDef<IncomingArticle>[] = [
     ),
     meta: { title: "Nro. Parte Alternativo" },
     cell: ({ row }) => (
-      <p className="text-center italic text-muted-foreground">{row.original.alternative_part_number?.join('/ ') ?? "-"}</p>
+      <p className="text-center italic text-muted-foreground">{row.original.alt_part_number?.join('/ ') ?? "-"}</p>
     )
   },
   {
