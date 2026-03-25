@@ -16,6 +16,7 @@ import {
   ClipboardList,
   ClipboardPen,
   Drill,
+  FileBox,
   FilePen,
   Globe,
   HandCoins,
@@ -747,6 +748,16 @@ export function getMenuList(
       groupLabel: "Almacen",
       moduleValue: "warehouse",
       menus: [
+        {
+          href: `/${currentCompany?.slug}/almacen/recepcion_administrativa`,
+          label: "Recepción Administrativa",
+          active: pathname.includes(
+            `/${currentCompany?.slug}/almacen/recepcion_administrativa`,
+          ),
+          icon: FileBox,
+          roles: ["ANALISTA_ALMACEN", "JEFE_ALMACEN", "SUPERUSER"],
+          submenus: [],
+        },
         {
           href: `/${currentCompany?.slug}/almacen/ingresar_inventario`,
           label: "Ingreso de Inventario",

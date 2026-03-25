@@ -364,7 +364,7 @@ function DatePickerField({
 
 /* ----------------------------- Componente ----------------------------- */
 
-export default function CreateToolForm({
+export default function RegisterToolForm({
   initialData,
   isEditing,
 }: {

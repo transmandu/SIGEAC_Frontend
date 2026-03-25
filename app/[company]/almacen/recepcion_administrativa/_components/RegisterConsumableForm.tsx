@@ -157,8 +157,6 @@ const formSchema = z.object({
   primary_unit_id: z.number().optional(),
   has_documentation: z.boolean().optional(),
   shelf_life: z.string().optional(),
-  inspector: z.string().optional(),
-  inspect_date: z.string().optional(),
 });
 
 export type FormValues = z.infer<typeof formSchema>;
@@ -1072,7 +1070,7 @@ function UnitsModal({
 
 /* ----------------------------- Componente Principal ----------------------------- */
 
-export default function CreateConsumableForm({
+export default function RegisterConsumableForm({
   initialData,
   isEditing,
 }: {
@@ -1237,10 +1235,6 @@ export default function CreateConsumableForm({
         : undefined,
       primary_unit_id: initialData?.primary_unit_id || undefined,
       has_documentation: initialData?.has_documentation || false,
-      inspector: initialData?.inspector || "",
-      inspect_date: initialData?.inspect_date
-        ? initialData?.inspect_date
-        : undefined,
       shelf_life: initialData?.consumable?.shelf_life || undefined,
     },
     mode: "onBlur",
@@ -1467,7 +1461,7 @@ export default function CreateConsumableForm({
       primary_unit_id?: number;
     } = {
       ...valuesWithoutCaducateDate,
-      status: "CHECKING",
+      status: "INCOMING",
       part_number: normalizeUpper(values.part_number),
       article_type: "consumable",
       alternative_part_number:
@@ -1521,39 +1515,8 @@ export default function CreateConsumableForm({
           className="flex flex-col gap-6 max-w-7xl mx-auto"
           onSubmit={form.handleSubmit(onSubmit)}
         >
-          <SectionCard title="Registrar consumible">
+          <SectionCard title="Registrar Consumible">
             <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
-              <FormField
-                control={form.control}
-                name="inspector"
-                render={({ field }) => (
-                  <FormItem className="w-full">
-                    <FormLabel>
-                      Inspector (Incoming){" "}
-                      <span className="text-xs italic text-gray-500 font-normal ml-1">
-                        (Inspector)
-                      </span>
-                    </FormLabel>
-                    <FormControl>
-                      <Input placeholder="Nombre del Inspector" {...field} />
-                    </FormControl>
-                    <FormMessage className="text-xs" />
-                  </FormItem>
-                )}
-              />
-
-              <FormItem className="w-full">
-                <DatePickerField
-                  label="Fecha de Incoming"
-                  value={inspectDate}
-                  setValue={handleInspectDateChange}
-                  description="Fecha de Incoming"
-                  busy={busy}
-                  shortcuts="forward"
-                  showNotApplicable={true}
-                  required={true}
-                />
-              </FormItem>
               <FormField
                 control={form.control}
                 name="part_number"
