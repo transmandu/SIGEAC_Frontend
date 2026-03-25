@@ -1,4 +1,15 @@
-<footer className="bg-background p-4">
-    <h1 className="text-foreground">My Footer</h1>
-    <p className="text-muted-foreground">Some footer text here</p>
-</footer>
+import React from "react";
+
+const Footer = () => {
+  const currentYear = new Date().getFullYear();
+
+  return (
+    <div className="container h-[60px] mx-auto flex justify-center items-center">
+      <p className="text-sm text-muted-foreground">
+        &copy; {currentYear} <span className="font-bold text-foreground">SIGEAC</span> | All rights reserved.
+      </p>
+    </div>
+  );
+};
+
+export default Footer;
