@@ -5,24 +5,10 @@ import { useParams } from "next/navigation";
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
-import { 
-  Plus, 
-  Search, 
-  FolderOpen, 
-  Loader2, 
-  MoreVertical,
-  History 
-} from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuCheckboxItem,
-  DropdownMenuContent,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { Plus, Search, FolderOpen, Loader2, MoreVertical, History } from "lucide-react";
+import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
-import DocumentTable from "./data-table"; 
+import DocumentTable from "./DocumentTable";
 import UploadModal from "./UploadModal"; 
 import DocumentViewer from "@/components/library/SecureVisualizer";
 import TraceabilityPanel from "@/components/library/TraceabilityPanel"; 
@@ -42,7 +28,6 @@ const BibliotecaPage = () => {
   const [viewingDocId, setViewingDocId] = useState<number | null>(null);
   const [isViewerOpen, setIsViewerOpen] = useState(false);
 
-  // Estado para controlar qué historial mostrar (ID específico o 'global')
   const [auditTarget, setAuditTarget] = useState<number | 'global' | null>(null);
 
   const [columnVisibility, setColumnVisibility] = useState({
@@ -53,9 +38,7 @@ const BibliotecaPage = () => {
   });
 
   const canManage = useMemo(() => {
-    const isSuperUser = user?.roles?.some(role => 
-      role.name.toUpperCase() === 'SUPERUSER'
-    );
+    const isSuperUser = user?.roles?.some(role => role.name.toUpperCase() === 'SUPERUSER');
     const isDirector = user?.job_name === 'Director';
     return isSuperUser || isDirector;
   }, [user]);
@@ -123,7 +106,6 @@ const BibliotecaPage = () => {
                 Subir Documento
               </Button>
 
-              {/* BOTÓN HISTORIAL: Restaurado al diseño slate original */}
               <Button
                 onClick={() => setAuditTarget('global')}
                 variant="outline"
@@ -137,8 +119,7 @@ const BibliotecaPage = () => {
           )}
         </div>
 
-        {/* Buscador y Control de Columnas */}
-        <div className="flex items-center w-full sm:w-64 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg shadow-sm focus-within:ring-1 focus-within:ring-blue-500 transition-all">
+        <div className="flex items-center w-full sm:w-64 bg-white dark:bg-gray-800 border border-slate-300 dark:border-gray-700 rounded-lg shadow-sm focus-within:ring-1 focus-within:ring-blue-500 transition-all">
           <div className="pl-3 py-2">
             <Search className="h-4 w-4 text-gray-400" />
           </div>
@@ -149,7 +130,7 @@ const BibliotecaPage = () => {
             onChange={(e) => setSearchTerm(e.target.value)}
             className="flex-1 bg-transparent border-none outline-none px-2 py-2 text-sm text-gray-800 dark:text-white placeholder:text-gray-400"
           />
-          <div className="h-6 w-[1px] bg-gray-300 dark:bg-gray-600 mx-1" />
+          <div className="h-6 w-[1px] bg-slate-300 dark:bg-gray-600 mx-1" />
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon" className="h-8 w-8 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 mr-1 text-gray-500">
@@ -174,17 +155,18 @@ const BibliotecaPage = () => {
         </div>
       </div>
 
-      {/* Contenedor de la Tabla */}
-      <div className="w-full rounded-lg border border-gray-200 p-8 shadow-md dark:border-gray-800 dark:bg-gray-900 bg-white relative">
-        <div className="flex items-center gap-2 mb-6 border-b pb-4 dark:border-gray-800">
+      <div className="w-full rounded-xl border border-slate-300 p-8 shadow-md dark:border-gray-800 dark:bg-gray-900 bg-slate-50/50 relative">
+        <div className="flex items-center gap-2 mb-6 border-b pb-4 border-slate-300 dark:border-gray-800">
           <FolderOpen className="h-5 w-5 text-blue-600" />
-          <h2 className="text-lg font-bold text-gray-800 dark:text-gray-200 uppercase tracking-tight">Documentos Organizados</h2>
+          <h2 className="text-lg font-black text-slate-900 dark:text-gray-200 uppercase tracking-tight">
+            Documentos Organizados
+          </h2>
         </div>
         <div className="overflow-hidden">
           {loading ? (
             <div className="flex flex-col items-center justify-center py-20">
               <Loader2 className="h-8 w-8 animate-spin text-blue-600 mb-2" />
-              <p className="text-sm text-gray-500">Cargando archivos...</p>
+              <p className="text-sm text-slate-500">Cargando archivos...</p>
             </div>
           ) : (
             <DocumentTable
@@ -204,19 +186,11 @@ const BibliotecaPage = () => {
       <UploadModal company={companySlug} isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onSuccess={fetchDocs} />
       <DocumentViewer company={companySlug} documentId={viewingDocId} isOpen={isViewerOpen} onClose={() => setIsViewerOpen(false)} />
 
-      {/* PANEL LATERAL DE TRAZABILIDAD */}
       {auditTarget && (
         <div className="fixed inset-0 z-[100] flex justify-end overflow-hidden">
-          <div 
-            className="absolute inset-0 bg-black/40 backdrop-blur-[2px] animate-in fade-in duration-300" 
-            onClick={() => setAuditTarget(null)} 
-          />
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px] animate-in fade-in duration-300" onClick={() => setAuditTarget(null)} />
           <div className="relative z-10 h-full">
-            <TraceabilityPanel 
-              documentId={auditTarget === 'global' ? null : auditTarget} 
-              company={companySlug} 
-              onClose={() => setAuditTarget(null)} 
-            />
+            <TraceabilityPanel documentId={auditTarget === 'global' ? null : auditTarget} company={companySlug} onClose={() => setAuditTarget(null)} />
           </div>
         </div>
       )}

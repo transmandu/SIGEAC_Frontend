@@ -84,6 +84,7 @@ export default function TraceabilityPanel({ documentId, company, onClose }: any)
             <History className="h-5 w-5 text-white" />
           </div>
           <div>
+            {/* Header se queda intacto como lo tenías */}
             <h3 className="text-sm font-black text-slate-950 dark:text-white uppercase tracking-widest leading-none mb-1">Historial</h3>
             <p className="text-[10px] text-slate-600 dark:text-gray-400 font-bold uppercase tracking-tight italic">Documentos compartidos</p>
           </div>
@@ -98,11 +99,11 @@ export default function TraceabilityPanel({ documentId, company, onClose }: any)
         {loading ? (
           <div className="flex flex-col items-center justify-center py-20 gap-3">
             <Loader2 className="h-8 w-8 animate-spin text-blue-700" />
-            <p className="text-[10px] font-black text-slate-600 dark:text-gray-400 uppercase tracking-widest">Cargando registros...</p>
+            <p className="text-[10px] font-semibold text-slate-600 dark:text-gray-400 uppercase tracking-widest">Cargando registros...</p>
           </div>
         ) : logs.length === 0 ? (
           <div className="text-center py-20 border-2 border-dashed border-slate-300 dark:border-gray-800 rounded-3xl bg-white dark:bg-transparent">
-            <p className="text-[10px] text-slate-600 font-black uppercase px-10">Sin registros de actividad</p>
+            <p className="text-[10px] text-slate-600 font-semibold uppercase px-10">Sin registros de actividad</p>
           </div>
         ) : (
           <div className="relative border-l-2 border-slate-300 dark:border-gray-700 ml-4 space-y-8 pb-6">
@@ -121,11 +122,11 @@ export default function TraceabilityPanel({ documentId, company, onClose }: any)
                     <div className="flex justify-between items-center mb-3 pb-2 border-b border-slate-100 dark:border-gray-800/50">
                       <div className="flex items-center gap-2">
                         {active ? (
-                          <span className="flex items-center gap-1 text-[9px] font-black text-emerald-600 uppercase bg-emerald-100 dark:bg-emerald-500/10 px-2 py-0.5 rounded-full">
+                          <span className="flex items-center gap-1 text-[9px] font-semibold text-emerald-600 uppercase bg-emerald-100 dark:bg-emerald-500/10 px-2 py-0.5 rounded-full">
                             <CheckCircle2 className="h-2.5 w-2.5" /> Activo
                           </span>
                         ) : (
-                          <span className="flex items-center gap-1 text-[9px] font-black text-slate-500 uppercase bg-slate-100 dark:bg-slate-500/10 px-2 py-0.5 rounded-full">
+                          <span className="flex items-center gap-1 text-[9px] font-semibold text-slate-500 uppercase bg-slate-100 dark:bg-slate-500/10 px-2 py-0.5 rounded-full">
                             <AlertCircle className="h-2.5 w-2.5" /> Expirado
                           </span>
                         )}
@@ -136,9 +137,9 @@ export default function TraceabilityPanel({ documentId, company, onClose }: any)
                       </span>
                     </div>
 
-                    {!documentId && log.document_title && (
+                    {log.document_title && (
                       <div className="mb-3">
-                        <p className="text-[12px] font-black text-blue-800 dark:text-blue-400 uppercase tracking-tight truncate leading-tight">
+                        <p className="text-[12px] font-semibold text-blue-800 dark:text-blue-400 uppercase tracking-tight truncate leading-tight">
                           {log.document_title}
                         </p>
                       </div>
@@ -146,14 +147,14 @@ export default function TraceabilityPanel({ documentId, company, onClose }: any)
 
                     <div className="grid grid-cols-2 gap-3 mb-4">
                       <div>
-                        <p className="text-[8px] text-slate-500 dark:text-gray-500 font-black uppercase tracking-widest mb-1">Generado por</p>
-                        <div className="text-[11px] font-black text-slate-950 dark:text-gray-100 uppercase tracking-tighter leading-tight">
+                        <p className="text-[8px] text-slate-500 dark:text-gray-500 font-semibold uppercase tracking-widest mb-1">Generado por</p>
+                        <div className="text-[11px] font-semibold text-slate-950 dark:text-gray-100 uppercase tracking-tighter leading-tight">
                           {formatEmployeeName(log.created_by_name)}
                         </div>
                       </div>
                       <div className="border-l border-slate-300 dark:border-gray-800 pl-3 relative">
-                        <p className="text-[8px] text-slate-500 dark:text-gray-500 font-black uppercase tracking-widest mb-1">Asignado a</p>
-                        <div className="text-[11px] font-black text-slate-950 dark:text-gray-100 uppercase tracking-tighter leading-tight">
+                        <p className="text-[8px] text-slate-500 dark:text-gray-500 font-semibold uppercase tracking-widest mb-1">Asignado a</p>
+                        <div className="text-[11px] font-semibold text-slate-950 dark:text-gray-100 uppercase tracking-tighter leading-tight">
                           {formatEmployeeName(log.shared_with_name || 'Personal Externo')}
                         </div>
                         <div className="absolute right-0 bottom-0 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -178,26 +179,22 @@ export default function TraceabilityPanel({ documentId, company, onClose }: any)
         )}
       </div>
 
-      {/* MODAL QR DINÁMICO REPARADO (EMPUJADO A LA IZQUIERDA PARA NO PISAR EL HISTORIAL) */}
+      {/* MODAL QR DINÁMICO */}
       <Dialog open={!!selectedQR} onOpenChange={() => setSelectedQR(null)}>
         <DialogContent 
           className={`sm:max-w-[380px] p-0 flex flex-col items-center overflow-hidden shadow-2xl outline-none animate-in zoom-in-95 duration-200 
-            ${/* 👈 Forzar margen izquierdo negativo para empujarlo al lado contrario del panel */ ''}
             sm:!ml-[-440px] sm:!translate-x-0
-            ${/* 👈 Forzar visualización al frente del Overlay */ ''}
             !z-[100]
             bg-white dark:bg-[#1a1c1e] border-slate-200 dark:border-gray-800`
           }
         >
-          
           <div className="w-full px-6 py-4 border-b flex items-center justify-center bg-slate-100/50 dark:bg-gray-800/40 border-slate-200 dark:border-gray-700">
-            <DialogTitle className="text-slate-900 dark:text-white text-center text-xs font-black uppercase tracking-widest">
+            <DialogTitle className="text-slate-900 dark:text-white text-center text-xs font-semibold uppercase tracking-widest">
               Vista del Código QR
             </DialogTitle>
           </div>
 
           <div className="p-6 flex flex-col items-center w-full space-y-6">
-            {/* Contenedor del QR */}
             <div className="p-5 bg-white rounded-2xl shadow-xl border border-slate-200 dark:border-transparent">
               {selectedQR && (
                 <QRCodeSVG 
@@ -217,7 +214,6 @@ export default function TraceabilityPanel({ documentId, company, onClose }: any)
             </div>
 
             <div className="w-full space-y-4 pb-2">
-              {/* Input con botón de copiar integrado */}
               <div className="flex items-center gap-2 p-1.5 rounded-xl border bg-slate-50 dark:bg-gray-800/50 border-slate-200 dark:border-gray-700">
                 <input 
                   readOnly 
@@ -238,7 +234,7 @@ export default function TraceabilityPanel({ documentId, company, onClose }: any)
 
               <button 
                 onClick={() => setSelectedQR(null)}
-                className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-black text-[11px] uppercase tracking-widest transition-all active:scale-95 shadow-lg shadow-blue-500/20"
+                className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold text-[11px] uppercase tracking-widest transition-all active:scale-95 shadow-lg shadow-blue-500/20"
               >
                 CERRAR VISOR
               </button>
