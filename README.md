@@ -1,36 +1,125 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# SIGEAC – Sistema de Gestión Aeronáutica Civil
 
-## Getting Started
+**SIGEAC** is a modern, multi-tenant web platform for managing civil aviation operations. It covers fleet management, inventory control, procurement, quality assurance, staff administration, and real-time reporting — all in one place.
 
-First, run the development server:
+Built with **Next.js 14**, **TypeScript**, **Tailwind CSS**, and a **Laravel** backend API.
+
+---
+
+## ✈️ Features
+
+- **Administration** – Aircraft fleet tracking, flight history, routes, and expense management
+- **Warehouse / Inventory** – Parts, consumables, and component control across multiple warehouses
+- **Purchases** – Full procurement workflow: requisitions → quotes → purchase orders → in-transit tracking
+- **Quality Control** – Compliance checklists and inspection management
+- **Maintenance** – Maintenance service tracking and history
+- **Training** – Course management with calendar view and attendance statistics
+- **Reporting** – Operational dashboards, financial summaries, and PDF export
+- **System Administration** – Companies, employees, departments, roles, and granular permissions
+- **Real-time Notifications** – Live updates via WebSocket (Laravel Reverb / Pusher)
+- **Multi-tenant** – Multiple companies with isolated data under the same platform
+- **Dark / Light theme** – User-selectable interface theme
+
+---
+
+## 🛠️ Tech Stack
+
+| Category | Technology |
+|---|---|
+| Framework | Next.js 14 (App Router) |
+| Language | TypeScript 5 |
+| Styling | Tailwind CSS, Radix UI, shadcn/ui |
+| State management | TanStack React Query, Zustand |
+| Forms & validation | React Hook Form, Zod |
+| Tables | TanStack React Table |
+| Calendar | Schedule-X, React Big Calendar |
+| Charts | Recharts |
+| Real-time | Laravel Echo, Pusher JS |
+| PDF generation | @react-pdf/renderer, pdf-lib |
+| QR codes | qrcode.react |
+| HTTP client | Axios |
+| Animations | Framer Motion |
+| Auth | JWT (jose), cookies (js-cookie, nookies) |
+
+---
+
+## 🚀 Getting Started
+
+### Prerequisites
+
+- Node.js 18+ and npm
+- A running instance of the [SIGEAC Backend](https://github.com/transmandu/SIGEAC_Backend) (Laravel API)
+
+### Installation
+
+```bash
+npm install
+```
+
+### Environment Variables
+
+Create a `.env.local` file in the project root with the following variables:
+
+```env
+NEXT_PUBLIC_API_BASE_URL=http://your-backend-url/api
+
+NEXT_PUBLIC_REVERB_APP_KEY=your-reverb-app-key
+NEXT_PUBLIC_REVERB_HOST=your-reverb-host
+NEXT_PUBLIC_REVERB_PORT=8080
+NEXT_PUBLIC_REVERB_SCHEME=ws
+```
+
+### Running the Development Server
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Production Build
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+```bash
+npm run build
+npm start
+```
 
-## Learn More
+### Linting
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+npm run lint
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+---
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
+## 📁 Project Structure
 
-## Deploy on Vercel
+```
+SIGEAC_Frontend/
+├── app/                  # Next.js App Router (pages & layouts)
+├── components/           # Reusable UI components (organized by domain)
+├── actions/              # Server & client action handlers
+├── contexts/             # React contexts (auth, company selection)
+├── hooks/                # Custom React hooks (data fetching, authorization)
+├── stores/               # Zustand state stores
+├── lib/                  # Shared utilities (axios, cookies, sessions, PDF)
+├── utils/                # Helper functions
+├── providers/            # React context providers
+├── types/                # TypeScript type definitions
+├── public/               # Static assets
+└── middleware.ts         # Route protection middleware
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+---
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+## 🔐 Authentication & Authorization
+
+- Authentication uses Bearer tokens stored in cookies and sent as `Authorization` headers.
+- Role-based access control (RBAC) is enforced both on the frontend (via middleware and hooks) and the backend.
+- Route protection is handled in `middleware.ts`.
+
+---
+
+## 📄 License
+
+This project is proprietary software. All rights reserved by **Transmandu C.A.**
