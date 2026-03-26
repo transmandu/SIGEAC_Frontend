@@ -112,6 +112,7 @@ interface UpdateWOData {
   approved_by?: string;
   date?: string;
   aircraft_id?: string;
+  document?: File;
 }
 
 export const useUpdateWorkOrder = () => {
@@ -127,7 +128,15 @@ export const useUpdateWorkOrder = () => {
       data: UpdateWOData;
       company: string;
     }) => {
-      await axiosInstance.put(`/${company}/work-orders/${id}`, data);
+      await axiosInstance.post(
+          `/${company}/work-orders/${id}`,
+          { ...data, _method: 'PUT' }, 
+          {
+              headers: {
+                  'Content-Type': 'multipart/form-data', 
+              },
+          }
+      );
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["work-orders"], exact: false });
@@ -257,4 +266,39 @@ export const useAddWorkOrderTask = () => {
   });
 
   return { addWorkOrderTask: addTaskMutation };
+};
+
+// Agrega esta interfaz y este hook NUEVO al final del archivo actions.ts
+
+export const useCloseWorkOrder = () => {
+  const queryClient = useQueryClient();
+
+  const closeMutation = useMutation({
+    mutationFn: async ({
+      id,
+      company,
+    }: {
+      id: number | string;
+      company: string;
+    }) => {
+      // Usamos PATCH solo para cambiar el status
+      await axiosInstance.patch(`/${company}/work-orders/${id}`, {
+        status: "CERRADO",
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["work-orders"], exact: false });
+      queryClient.invalidateQueries({ queryKey: ["work-order"], exact: false });
+      toast.success("¡Orden cerrada!", {
+        description: "La orden de trabajo ha sido cerrada correctamente.",
+      });
+    },
+    onError: () => {
+      toast.error("Oops!", {
+        description: "No se pudo cerrar la orden de trabajo.",
+      });
+    },
+  });
+
+  return { closeWorkOrder: closeMutation };
 };

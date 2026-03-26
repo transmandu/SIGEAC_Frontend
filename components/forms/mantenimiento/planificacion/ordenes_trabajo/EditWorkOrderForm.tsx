@@ -58,6 +58,11 @@ const editWorkOrderSchema = z.object({
   reviewed_by: z.string().min(1, "Campo obligatorio"),
   approved_by: z.string().min(1, "Campo obligatorio"),
   date: z.date({ required_error: "La fecha es obligatoria" }),
+  document: z
+      .instanceof(File)
+      .refine((f) => f.size <= 10 * 1024 * 1024, "Máximo 10MB")
+      .refine((f) => f.type === "application/pdf", "Solo se permiten archivos PDF")
+      .optional(),
 });
 
 type EditWorkOrderFormValues = z.infer<typeof editWorkOrderSchema>;
@@ -195,6 +200,7 @@ const EditWorkOrderForm = ({ work_order, onClose }: EditWorkOrderFormProps) => {
           reviewed_by: data.reviewed_by,
           approved_by: data.approved_by,
           date: format(data.date, "yyyy-MM-dd"),
+          document: data.document,
         },
       });
 
@@ -306,7 +312,7 @@ const EditWorkOrderForm = ({ work_order, onClose }: EditWorkOrderFormProps) => {
 
         {isClosed && (
           <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-sm text-red-600 dark:bg-red-950 dark:border-red-800 dark:text-red-400">
-            ⚠️ Esta orden de trabajo está <strong>CERRADA</strong> y no puede ser modificada.
+            Esta orden de trabajo está <strong>CERRADA</strong> y no puede ser modificada.
           </div>
         )}
 
@@ -415,6 +421,37 @@ const EditWorkOrderForm = ({ work_order, onClose }: EditWorkOrderFormProps) => {
                 )}
               />
             </div>
+
+            <FormField
+              control={form.control}
+              name="document"
+              render={({ field }) => (
+                <FormItem className="md:col-span-2">
+                  <FormLabel>Documento PDF (opcional)</FormLabel>
+                  <div className="flex items-center gap-4">
+                    {/* Muestra el nombre del archivo si ya hay uno seleccionado */}
+                    {field.value && (
+                      <p className="text-sm font-semibold text-muted-foreground">
+                        {field.value.name}
+                      </p>
+                    )}
+                    {/* Muestra si ya había un documento guardado */}
+                    {!field.value && work_order.document && (
+                      <p className="text-xs text-green-600">Ya tiene un documento cargado</p>
+                    )}
+                    <FormControl>
+                      <Input
+                        type="file"
+                        accept="application/pdf"
+                        disabled={isClosed}
+                        onChange={(e) => field.onChange(e.target.files?.[0])}
+                      />
+                    </FormControl>
+                  </div>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
             <Separator />
 
