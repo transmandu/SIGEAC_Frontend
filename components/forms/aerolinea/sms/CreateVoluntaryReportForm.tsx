@@ -65,6 +65,8 @@ export function CreateVoluntaryReportForm({
   const [consequences, setConsequences] = useState<string[]>([]);
   const [newConsequence, setNewConsequence] = useState("");
 
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
+
   const { user } = useAuth();
 
   const userRoles = user?.roles?.map((role) => role.name) || [];
@@ -680,34 +682,30 @@ export function CreateVoluntaryReportForm({
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Imagen del Reporte</FormLabel>
-                <div className="flex items-center gap-4">
-                  {field.value ? (
-                    <div className="relative">
+                <div className="flex flex-col gap-4">
+                  {/* Vista previa de imagen — solo si hay una fuente válida */}
+                  {(field.value instanceof File || initialData?.imageUrl) && (
+                    <div className="relative w-24 h-24 border rounded-md overflow-hidden">
                       <Image
-                        src={URL.createObjectURL(field.value)}
+                        src={
+                          field.value instanceof File
+                            ? URL.createObjectURL(field.value)
+                            : initialData?.imageUrl || ""
+                        }
                         alt="Preview"
-                        width={64}
-                        height={64}
-                        className="rounded-md object-contain h-16 w-auto"
+                        fill
+                        className="object-contain"
                       />
                     </div>
-                  ) : initialData?.image &&
-                    typeof initialData.image === "string" ? (
-                    <div className="relative">
-                      <Image
-                        src={ `${initialData.imageUrl}`}
-                        alt="Preview"
-                        width={64}
-                        height={64}
-                        className="rounded-md object-contain h-16 w-auto"
-                      />
-                    </div>
-                  ) : null}
+                  )}
                   <FormControl>
                     <Input
                       type="file"
-                      accept="image/jpeg, image/png"
-                      onChange={(e) => field.onChange(e.target.files?.[0])}
+                      accept="image/jpeg, image/png, image/jpg"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) field.onChange(file);
+                      }}
                     />
                   </FormControl>
                 </div>

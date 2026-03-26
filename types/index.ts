@@ -552,6 +552,12 @@ export type Vendor = {
   email: string;
 };
 
+export type ThirdParty = {
+  id: string,
+  name: string,
+  type: string,
+}
+
 export type Permission = {
   id: number;
   name: string;
@@ -584,6 +590,7 @@ export type PurchaseOrder = {
     };
     id: number;
     article_part_number: string;
+    article_alt_part_number?: string;
     quantity: number;
     unit?: Unit;
     unit_price: string;
@@ -592,6 +599,7 @@ export type PurchaseOrder = {
     ock_tracking: string;
     article_location: string;
   }[];
+  articles: Article[];
   status: string;
   purchase_date: Date;
   tax: number;
@@ -621,6 +629,7 @@ export type Quote = {
       name: string;
     };
     article_part_number: string;
+    article_alt_part_number?: string;
     quantity: number;
     unit_price: string;
     unit?: Unit;
@@ -1039,6 +1048,10 @@ export type SMSActivity = {
   authorized_by: Employee;
   planned_by: Employee;
   executed_by: string;
+  image?: File | string;
+  document?: File | string;
+  imageUrl?: string;
+  documentUrl?: string;
   status: string;
 };
 
@@ -1118,6 +1131,7 @@ export type Survey = {
   updated_by: string;
   location: string;
   setting?: string;
+  answers_count: number;
   questions: Question[];
 };
 
@@ -1127,7 +1141,7 @@ export type SafetyBulletin = {
   title: string;
   description: string;
   image?: string;
-  document: string;
+  document?: string;
 }
 
 export type FlightHistory = {
@@ -1199,4 +1213,29 @@ export type GeneralArticle = {
   quantity: number,
   brand_model: string,
   general_primary_unit: Unit,
+}
+
+export interface SMSCertificate {
+  id: number;
+  employee_id: number;
+  course_id: number;
+  completion_date: string;
+  document: string;
+  course?: {
+    id: number;
+    name: string;
+  };
+}
+export interface ShippingAgency { 
+  id: number; 
+  name: string; 
+  code: string; 
+  description?: string | null; 
+  type: 'NATIONAL' | 'INTERNATIONAL'; 
+  phone?: string | null; 
+  email?: string | null; 
+  created_at: string; 
+  updated_at: string; 
+  created_by: string; 
+  updated_by: string; 
 }

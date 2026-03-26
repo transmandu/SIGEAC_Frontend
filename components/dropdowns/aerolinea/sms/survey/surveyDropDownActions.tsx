@@ -18,15 +18,18 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { Survey } from "@/types";
-import { EyeIcon, Loader2, MoreHorizontal, Trash2, QrCode } from "lucide-react";
+import { EyeIcon, Loader2, MoreHorizontal, Trash2, QrCode, Edit } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { SurveyQuestionsManager } from "@/components/forms/aerolinea/sms/survey/SurveyQuestionsManager";
+import { toast } from "sonner";
 
 const SurveyDropdownActions = ({ surveyData }: { surveyData: Survey }) => {
   const { selectedCompany, selectedStation } = useCompanyStore();
   const [open, setOpen] = useState<boolean>(false);
   const [openDelete, setOpenDelete] = useState<boolean>(false);
   const [openQR, setOpenQR] = useState<boolean>(false);
+  const [openEdit, setOpenEdit] = useState<boolean>(false);
 
   const { deleteSurvey } = useDeleteSurvey();
   const router = useRouter();
@@ -39,6 +42,22 @@ const SurveyDropdownActions = ({ surveyData }: { surveyData: Survey }) => {
     };
     await deleteSurvey.mutateAsync(value);
     setOpenDelete(false);
+  };
+
+  const handleEditClick = () => {
+    // Verificar si la encuesta ya ha sido respondida
+    // Nota: Asumimos que el backend enviará un campo para indicar esto
+    // Si no existe, se puede verificar consultando las respuestas
+    const hasResponses = false; // TODO: Implementar verificación real con el backend
+
+    if (hasResponses) {
+      toast.warning("No se puede editar", {
+        description: "Esta encuesta ya ha sido respondida y no se puede modificar.",
+      });
+      return;
+    }
+
+    setOpenEdit(true);
   };
 
   return (
@@ -81,6 +100,14 @@ const SurveyDropdownActions = ({ surveyData }: { surveyData: Survey }) => {
               <DropdownMenuItem onClick={() => setOpenQR(true)}>
                 <QrCode className="size-5" />
                 <p className="pl-2">QR</p>
+              </DropdownMenuItem>
+            </DialogTrigger>
+
+            {/* Opción Editar*/}
+            <DialogTrigger asChild>
+              <DropdownMenuItem onClick={() => handleEditClick()}>
+                <Edit className="size-5" />
+                <p className="pl-2">Editar</p>
               </DropdownMenuItem>
             </DialogTrigger>
           </DropdownMenuContent>
@@ -139,6 +166,21 @@ const SurveyDropdownActions = ({ surveyData }: { surveyData: Survey }) => {
                 size={200}
               />
             </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Dialog para Editar */}
+        <Dialog open={openEdit} onOpenChange={setOpenEdit}>
+          <DialogContent className="flex flex-col max-w-6xl m-2 max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="text-center">
+                Editar {surveyData.type === "QUIZ" ? "Trivia" : "Encuesta"}
+              </DialogTitle>
+            </DialogHeader>
+            <SurveyQuestionsManager
+              surveyData={surveyData}
+              onClose={() => setOpenEdit(false)}
+            />
           </DialogContent>
         </Dialog>
       </Dialog>

@@ -8,8 +8,9 @@ const CONDITIONS: Array<{ value: string; es: string; en: string }> = [
   { value: "REPAIRABLE", es: "Reparable", en: "Repairable" },
   { value: "TESTED", es: "Probado", en: "Tested" },
   { value: "AS REMOVED", es: "Removido", en: "As Removed" },
-  { value: "INSPECTION", es: "Inspección", en: "Inspection" },
-]
+  { value: "INSPECTED", es: "Inspeccionado", en: "Inspected" },
+  { value: "SAFEKEEPING", es: "Resguardo", en: "Safekeeping" },
+];
 
 const CONDITION_MAP = new Map<string, ConditionLabel>(
   CONDITIONS.map((c) => [c.value.trim().toUpperCase(), { es: c.es, en: c.en }])

@@ -76,8 +76,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { MultiSerialInput } from "./MultiSerialInput";
 import { EditingArticle } from "./RegisterArticleForm";
 import { useAuth } from "@/contexts/AuthContext";
-import { conditions as staticConditions, type Condition as UI_Condition } from "@/lib/conditions";
-
+import { getConditionLabel } from "@/lib/conditions";
+import { Condition } from "@/types";
+import { useGetAircraftAcronyms } from "@/hooks/aerolinea/aeronaves/useGetAircraftAcronyms";
 /* ------------------------------- Schema ------------------------------- */
 
 const fileMaxBytes = 10_000_000; // 10 MB
@@ -224,36 +225,34 @@ export default function DirectPartForm({
   const [fabricationDate, setFabricationDate] = useState<
     Date | null | undefined
   >(
-    initialData?.part_component?.fabrication_date
-      ? parseISO(initialData.part_component.fabrication_date)
+    initialData?.partComponent?.fabrication_date
+      ? parseISO(initialData.partComponent.fabrication_date)
       : null, // Por defecto "No aplica" (muy pocos componentes tienen esta fecha)
   );
 
   const [caducateDate, setCaducateDate] = useState<Date | null | undefined>(
-    initialData?.part_component?.expiration_date
-      ? parseISO(initialData.part_component.expiration_date)
+    initialData?.partComponent?.expiration_date
+      ? parseISO(initialData.partComponent.expiration_date)
       : null, // Por defecto "No aplica" (componentes nuevos o sin fecha)
   );
 
   const [inspectDate, setInspectDate] = useState<Date | null | undefined>(
-    initialData?.inspect_date
-      ? parseISO(initialData.inspect_date)
-      : null, // Por defecto "No aplica" (componentes nuevos o sin fecha)
+    initialData?.inspect_date ? parseISO(initialData.inspect_date) : null, // Por defecto "No aplica" (componentes nuevos o sin fecha)
   );
 
   const [lifeLimitPartCalendar, setLifeLimitPartCalendar] = useState<
     Date | null | undefined
   >(
-    initialData?.part_component?.life_limit_part_calendar
-      ? parseISO(initialData.part_component.life_limit_part_calendar)
+    initialData?.partComponent?.life_limit_part_calendar
+      ? parseISO(initialData.partComponent.life_limit_part_calendar)
       : null, // Por defecto "No aplica" (componentes nuevos o sin fecha)
   );
 
   const [hardTimeCalendar, setHardTimeCalendar] = useState<
     Date | null | undefined
   >(
-    initialData?.part_component?.hard_time_calendar
-      ? parseISO(initialData.part_component.hard_time_calendar)
+    initialData?.partComponent?.hard_time_calendar
+      ? parseISO(initialData.partComponent.hard_time_calendar)
       : null, // Por defecto "No aplica" (componentes nuevos o sin fecha)
   );
 
@@ -272,6 +271,7 @@ export default function DirectPartForm({
     isLoading: isManufacturerLoading,
     isError: isManufacturerError,
   } = useGetManufacturers(selectedCompany?.slug);
+
   const {
     data: conditions,
     isLoading: isConditionsLoading,
@@ -312,30 +312,29 @@ export default function DirectPartForm({
       condition_id: initialData?.condition?.id?.toString() || "",
       description: initialData?.description || "",
       zone: initialData?.zone || "",
-      hour_date: initialData?.part_component?.hour_date
-        ? parseInt(initialData.part_component.hour_date)
+      hour_date: initialData?.partComponent?.hour_date
+        ? parseInt(initialData.partComponent.hour_date)
         : undefined,
-      cycle_date: initialData?.part_component?.cycle_date
-        ? parseInt(initialData.part_component.cycle_date)
+      cycle_date: initialData?.partComponent?.cycle_date
+        ? parseInt(initialData.partComponent.cycle_date)
         : undefined,
-      expiration_date: initialData?.part_component?.expiration_date
-        ? initialData?.part_component?.expiration_date
+      expiration_date: initialData?.partComponent?.expiration_date
+        ? initialData?.partComponent?.expiration_date
         : undefined,
-      fabrication_date: initialData?.part_component?.fabrication_date
-        ? initialData?.part_component?.fabrication_date
+      fabrication_date: initialData?.partComponent?.fabrication_date
+        ? initialData?.partComponent?.fabrication_date
         : undefined,
       has_documentation: initialData?.has_documentation ?? false,
       aircraft_id: "",
-      life_limit_part_calendar: initialData?.part_component
+      life_limit_part_calendar: initialData?.partComponent
         ?.life_limit_part_calendar
-        ? initialData?.part_component?.life_limit_part_calendar
+        ? initialData?.partComponent?.life_limit_part_calendar
         : undefined,
-      life_limit_part_cycles: initialData?.part_component
-        ?.life_limit_part_cycles
-        ? Number(initialData.part_component.life_limit_part_cycles)
+      life_limit_part_cycles: initialData?.partComponent?.life_limit_part_cycles
+        ? Number(initialData.partComponent.life_limit_part_cycles)
         : undefined,
-      life_limit_part_hours: initialData?.part_component?.life_limit_part_hours
-        ? Number(initialData.part_component.life_limit_part_hours)
+      life_limit_part_hours: initialData?.partComponent?.life_limit_part_hours
+        ? Number(initialData.partComponent.life_limit_part_hours)
         : undefined,
       inspect_date: initialData?.inspect_date
         ? initialData?.inspect_date
@@ -350,10 +349,14 @@ export default function DirectPartForm({
 
   // Watch condition_id to check if it's "resguardo"
   const conditionId = form.watch("condition_id");
+
   const selectedCondition = conditions?.find(
     (c) => c.id.toString() === conditionId,
   );
-  const isResguardo = selectedCondition?.name?.toLowerCase() === "resguardo";
+
+  const isSafekeepingOrRemoved =
+    selectedCondition?.name?.toUpperCase() === "SAFEKEEPING" ||
+    selectedCondition?.name?.toUpperCase() === "AS REMOVED";
 
   // Reset on prop change
   useEffect(() => {
@@ -372,29 +375,29 @@ export default function DirectPartForm({
       condition_id: initialData.condition?.id?.toString() ?? "",
       description: initialData.description ?? "",
       zone: initialData.zone ?? "",
-      hour_date: initialData.part_component?.hour_date
-        ? parseInt(initialData.part_component.hour_date)
+      hour_date: initialData.partComponent?.hour_date
+        ? parseInt(initialData.partComponent.hour_date)
         : undefined,
-      cycle_date: initialData.part_component?.cycle_date
-        ? parseInt(initialData.part_component.cycle_date)
+      cycle_date: initialData.partComponent?.cycle_date
+        ? parseInt(initialData.partComponent.cycle_date)
         : undefined,
-      expiration_date: initialData.part_component?.expiration_date
-        ? initialData.part_component?.expiration_date
+      expiration_date: initialData.partComponent?.expiration_date
+        ? initialData.partComponent?.expiration_date
         : undefined,
-      fabrication_date: initialData.part_component?.fabrication_date
-        ? initialData.part_component?.fabrication_date
+      fabrication_date: initialData.partComponent?.fabrication_date
+        ? initialData.partComponent?.fabrication_date
         : undefined,
       has_documentation: initialData.has_documentation ?? false,
       aircraft_id: "",
-      life_limit_part_calendar: initialData.part_component
+      life_limit_part_calendar: initialData.partComponent
         ?.life_limit_part_calendar
-        ? initialData.part_component?.life_limit_part_calendar
+        ? initialData.partComponent?.life_limit_part_calendar
         : undefined,
-      life_limit_part_cycles: initialData.part_component?.life_limit_part_cycles
-        ? Number(initialData.part_component.life_limit_part_cycles)
+      life_limit_part_cycles: initialData.partComponent?.life_limit_part_cycles
+        ? Number(initialData.partComponent.life_limit_part_cycles)
         : undefined,
-      life_limit_part_hours: initialData.part_component?.life_limit_part_hours
-        ? Number(initialData.part_component.life_limit_part_hours)
+      life_limit_part_hours: initialData.partComponent?.life_limit_part_hours
+        ? Number(initialData.partComponent.life_limit_part_hours)
         : undefined,
       inspector: initialData.inspector || "",
       inspect_date: initialData?.inspect_date
@@ -740,7 +743,10 @@ export default function DirectPartForm({
               render={({ field }) => (
                 <FormItem className="w-full">
                   <FormLabel>
-                      Inspector (Incoming) <span className="text-xs italic text-gray-500 font-normal ml-1">(Inspector)</span>
+                    Inspector (Incoming){" "}
+                    <span className="text-xs italic text-gray-500 font-normal ml-1">
+                      (Inspector)
+                    </span>
                   </FormLabel>
                   <FormControl>
                     <Input placeholder="Nombre del Inspector" {...field} />
@@ -769,7 +775,10 @@ export default function DirectPartForm({
               render={({ field }) => (
                 <FormItem className="w-full">
                   <FormLabel>
-                    Nro. de parte <span className="text-xs italic text-gray-500 font-normal ml-1">(part number)</span>
+                    Nro. de parte{" "}
+                    <span className="text-xs italic text-gray-500 font-normal ml-1">
+                      (part number)
+                    </span>
                   </FormLabel>
                   <FormControl>
                     <Input
@@ -830,7 +839,10 @@ export default function DirectPartForm({
                   <FormItem className="flex flex-col space-y-3 mt-1.5 w-full">
                     <div className="flex items-center justify-between">
                       <FormLabel>
-                        Descripción de la parte <span className="text-xs italic text-gray-500 font-normal ml-1">(Part description)</span>
+                        Descripción de la parte{" "}
+                        <span className="text-xs italic text-gray-500 font-normal ml-1">
+                          (Part description)
+                        </span>
                       </FormLabel>
                       <CreateBatchDialog
                         onSuccess={async (batchName) => {
@@ -1070,7 +1082,10 @@ export default function DirectPartForm({
               render={({ field }) => (
                 <FormItem className="w-full">
                   <FormLabel>
-                    Código ATA <span className="text-xs italic text-gray-500 font-normal ml-1">(ATA code)</span>
+                    Código ATA{" "}
+                    <span className="text-xs italic text-gray-500 font-normal ml-1">
+                      (ATA code)
+                    </span>
                   </FormLabel>
                   <FormControl>
                     <Input placeholder="Codigo ATA" {...field} />
@@ -1091,7 +1106,10 @@ export default function DirectPartForm({
               render={({ field }) => (
                 <FormItem className="w-full">
                   <FormLabel>
-                    Serial <span className="text-xs italic text-gray-500 font-normal ml-1">(Serial number)</span>
+                    Serial{" "}
+                    <span className="text-xs italic text-gray-500 font-normal ml-1">
+                      (Serial number)
+                    </span>
                   </FormLabel>
                   <FormControl>
                     <MultiSerialInput
@@ -1115,7 +1133,10 @@ export default function DirectPartForm({
               render={({ field }) => (
                 <FormItem className="w-full">
                   <FormLabel>
-                    Condición <span className="text-xs italic text-gray-500 font-normal ml-1">(Condition)</span>
+                    Condición{" "}
+                    <span className="text-xs italic text-gray-500 font-normal ml-1">
+                      (Condition)
+                    </span>
                   </FormLabel>
                   <Select
                     onValueChange={field.onChange}
@@ -1169,12 +1190,14 @@ export default function DirectPartForm({
                       }}
                     >
                       {/* Mapeo idéntico usando staticConditions */}
-                      {staticConditions?.map((c: UI_Condition) => (
-                        <SelectItem key={c.value} value={c.value}>
+                      {conditions?.map((c: Condition) => (
+                        <SelectItem key={c.name} value={c.id.toString()}>
                           <div className="flex items-center gap-2">
-                            <span className="font-medium">{c.label}</span>
-                            <span className="text-muted-foreground italic text-xs">
-                              ({c.label_en})
+                            <span className="font-medium">
+                              {getConditionLabel(c.name.toUpperCase())}
+                            </span>
+                            <span className="text-muted-foreground italic text-[9px]">
+                              ({c.name})
                             </span>
                           </div>
                         </SelectItem>
@@ -1187,7 +1210,7 @@ export default function DirectPartForm({
             />
 
             {/* Campo de aeronave - Solo se muestra cuando la condición es "resguardo" */}
-            {isResguardo && (
+            {isSafekeepingOrRemoved && (
               <FormField
                 control={form.control}
                 name="aircraft_id"
@@ -1299,7 +1322,10 @@ export default function DirectPartForm({
                 <FormItem className="w-full">
                   <div className="flex items-center justify-between">
                     <FormLabel>
-                      Fabricante <span className="text-xs italic text-gray-500 font-normal ml-1">(Manufacturer)</span>
+                      Fabricante{" "}
+                      <span className="text-xs italic text-gray-500 font-normal ml-1">
+                        (Manufacturer)
+                      </span>
                     </FormLabel>
                     <CreateManufacturerDialog
                       defaultType="PART"
@@ -1433,7 +1459,10 @@ export default function DirectPartForm({
               render={({ field }) => (
                 <FormItem className="w-full">
                   <FormLabel>
-                    Ubicación interna <span className="text-xs italic text-gray-500 font-normal ml-1">(internal location)</span>
+                    Ubicación interna{" "}
+                    <span className="text-xs italic text-gray-500 font-normal ml-1">
+                      (internal location)
+                    </span>
                   </FormLabel>
                   <FormControl>
                     <Input
@@ -1668,7 +1697,10 @@ export default function DirectPartForm({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>
-                    Observaciones <span className="text-xs italic text-gray-500 font-normal ml-1">(Observations)</span>
+                    Observaciones{" "}
+                    <span className="text-xs italic text-gray-500 font-normal ml-1">
+                      (Observations)
+                    </span>
                   </FormLabel>
                   <FormControl>
                     <Textarea

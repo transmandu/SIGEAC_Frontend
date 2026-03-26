@@ -11,8 +11,7 @@ import {
   SortingState,
   useReactTable,
 } from "@tanstack/react-table"
-
-import { CreateBatchDialog } from "@/components/dialogs/mantenimiento/almacen/CreateBatchDialog"
+import { CreateThirdPartyDialog } from "@/components/dialogs/general/CreateThirdPartyDialog"
 import { DataTablePagination } from "@/components/tables/DataTablePagination"
 import { DataTableViewOptions } from "@/components/tables/DataTableViewOptions"
 import { Button } from "@/components/ui/button"
@@ -24,14 +23,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { useRouter } from "next/navigation"
+import { ListRestart } from "lucide-react"
 import { useState } from "react"
-
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
   data: TData[]
 }
-
 export function DataTable<TData, TValue>({
   columns,
   data,
@@ -56,13 +53,24 @@ export function DataTable<TData, TValue>({
     }
   })
 
-  const router = useRouter();
-
   const isFiltered = table.getState().columnFilters.length > 0
 
   return (
     <div>
       <div className="flex items-center py-4">
+        <div className="flex gap-x-2 items-center">
+          {isFiltered && (
+            <Button
+              variant="ghost"
+              onClick={() => table.resetColumnFilters()}
+              className="h-8 px-2 lg:px-3"
+            >
+              Reiniciar
+              <ListRestart className="ml-2 h-4 w-4" />
+            </Button>
+          )}
+          <CreateThirdPartyDialog />
+        </div>
         <DataTableViewOptions table={table} />
       </div>
       <div className="rounded-md border mb-4">

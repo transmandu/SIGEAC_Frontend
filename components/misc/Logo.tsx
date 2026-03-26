@@ -11,9 +11,9 @@ const Logo = () => {
         {
           theme != "dark"
           ?
-          <Image src={logo} alt='Logo SIGEAC' width={350} height={350} className='w-auto h-auto'  />
+          <Image src={logo} alt='Logo SIGEAC' width={350} height={350} className='w-auto h-auto' priority />
           :
-          <Image src={logoDark} alt='Logo SIGEAC' width={350} height={350} className='w-[350px] h-[350px]' />
+          <Image src={logoDark} alt='Logo SIGEAC' width={350} height={350} className='w-[350px] h-[350px]' priority/>
         }
     </>
   )

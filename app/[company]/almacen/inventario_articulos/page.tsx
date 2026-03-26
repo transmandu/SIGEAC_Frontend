@@ -56,19 +56,36 @@ const InventarioArticulosPage = () => {
 
   const [consumableFilter, setConsumableFilter] = useState<"all" | "QUIMICOS">("all")
   const [partNumberSearch, setPartNumberSearch] = useState("")
+  const [debouncedSearch, setDebouncedSearch] = useState("")
 
   // Dialog (grupo PN)
   const [groupOpen, setGroupOpen] = useState(false)
   const [groupPn, setGroupPn] = useState("")
   const [groupRows, setGroupRows] = useState<IArticleSimple[]>([])
+  const [apiPage, setApiPage] = useState(1)
 
-  // Fetch - Una sola llamada que maneja todas las categorías
-  const { data: articles, isLoading: isLoadingArticles } = useGetWarehouseArticlesByCategory(
-    1,
-    1000,
+  // Debounce search input and reset to page 1
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(partNumberSearch)
+      setApiPage(1)
+    }, 400)
+    return () => clearTimeout(timer)
+  }, [partNumberSearch])
+
+  const isSearching = debouncedSearch.trim().length > 0
+
+  // Paginated fetch — always used; sends part_number to backend when searching
+  const { data: pagedArticles, isLoading: isLoadingArticles } = useGetWarehouseArticlesByCategory(
+    apiPage,
+    15,
     activeCategory,
-    true
+    true,
+    undefined,
+    debouncedSearch.trim() || undefined,
   )
+
+  const articles = pagedArticles
 
   const { data: articlesGeneral, isLoading: isLoadingArticlesGeneral } = useGetGeneralArticles()
 
@@ -88,10 +105,11 @@ const InventarioArticulosPage = () => {
     }
   }, [activeCategory, partNumberSearch, componentCondition, consumableFilter])
 
-  // Reset subfiltros al cambiar categoría
+  // Reset subfiltros y página al cambiar categoría
   useEffect(() => {
     if (activeCategory !== "COMPONENT") setComponentCondition("all")
     if (activeCategory !== "CONSUMABLE") setConsumableFilter("all")
+    setApiPage(1)
   }, [activeCategory])
 
   // Columns memo
@@ -118,17 +136,7 @@ const InventarioArticulosPage = () => {
 
     const list = flattenArticles(articles) ?? []
 
-    const q = partNumberSearch.trim().toLowerCase()
-    const bySearch = q
-      ? list.filter(
-          (a) =>
-            a.part_number?.toLowerCase().includes(q) ||
-            (Array.isArray(a.alternative_part_number) &&
-              a.alternative_part_number.some((alt) => alt?.toLowerCase().includes(q)))
-        )
-      : list
-
-    let filtered = bySearch
+    let filtered = list
 
     if (activeCategory !== "all") {
       if ((activeCategory === "COMPONENT" || activeCategory === "PART") && componentCondition !== "all") {
@@ -159,7 +167,18 @@ const InventarioArticulosPage = () => {
     // ✅ Agrupar por PN en: all / component / part
     const shouldGroup = activeCategory === "all" || activeCategory === "COMPONENT" || activeCategory === "PART"
     return shouldGroup ? groupByPartNumber(filtered) : filtered
-  }, [articles, partNumberSearch, activeCategory, componentCondition, consumableFilter])
+  }, [articles, activeCategory, componentCondition, consumableFilter])
+
+  const serverPagination = pagedArticles?.pagination
+    ? {
+        currentPage: pagedArticles.pagination.current_page,
+        lastPage: pagedArticles.pagination.last_page,
+        total: pagedArticles.pagination.total,
+        from: pagedArticles.pagination.from ?? 0,
+        to: pagedArticles.pagination.to ?? 0,
+        onPageChange: setApiPage,
+      }
+    : undefined
 
   const handleClearSearch = () => setPartNumberSearch("")
 
@@ -208,10 +227,10 @@ const InventarioArticulosPage = () => {
                 </Button>
               )}
             </div>
-            {partNumberSearch && (
+            {debouncedSearch && (
               <p className="text-xs text-muted-foreground text-center">
-                Filtrando por: <span className="font-medium text-foreground">{partNumberSearch}</span> •{" "}
-                {currentData.length} resultado(s)
+                Filtrando por: <span className="font-medium text-foreground">{debouncedSearch}</span> •{" "}
+                {isLoadingArticles ? "buscando..." : `${pagedArticles?.pagination?.total ?? currentData.length} resultado(s)`}
               </p>
             )}
           </div>
@@ -302,6 +321,7 @@ const InventarioArticulosPage = () => {
                     <DataTable
                       columns={cols}
                       data={currentData}
+                      serverPagination={serverPagination}
                       onRowClick={(row: any) => {
                         if (!row?.__isGroup || !row?.subRows?.length) return
                         setGroupPn(row.part_number)
@@ -337,6 +357,7 @@ const InventarioArticulosPage = () => {
                     <DataTable
                       columns={cols}
                       data={currentData}
+                      serverPagination={serverPagination}
                       onRowClick={(row: any) => {
                         if (!row?.__isGroup || !row?.subRows?.length) return
                         setGroupPn(row.part_number)
@@ -366,7 +387,7 @@ const InventarioArticulosPage = () => {
                       <Loader2 className="size-24 animate-spin" />
                     </div>
                   ) : (
-                    <DataTable columns={cols} data={currentData} />
+                    <DataTable columns={cols} data={currentData} serverPagination={serverPagination} />
                   )}
                 </TabsContent>
 
@@ -377,7 +398,7 @@ const InventarioArticulosPage = () => {
                       <Loader2 className="size-24 animate-spin" />
                     </div>
                   ) : (
-                    <DataTable columns={cols} data={currentData} />
+                    <DataTable columns={cols} data={currentData} serverPagination={serverPagination} />
                   )}
                 </TabsContent>
 
@@ -391,6 +412,7 @@ const InventarioArticulosPage = () => {
                     <DataTable
                       columns={cols}
                       data={currentData}
+                      serverPagination={serverPagination}
                       onRowClick={(row: any) => {
                         if (!row?.__isGroup || !row?.subRows?.length) return
                         setGroupPn(row.part_number)

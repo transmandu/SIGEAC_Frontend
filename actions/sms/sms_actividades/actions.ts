@@ -1,6 +1,7 @@
 import axiosInstance from "@/lib/axios";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { format } from "date-fns";
 import { toast } from "sonner";
 
 interface SMSActivityData {
@@ -18,6 +19,8 @@ interface SMSActivityData {
   authorized_by: string;
   planned_by: string;
   executed_by?: string;
+  image?: File;
+  document?: File;
 }
 interface updateSMSActivityData {
   company: string | null;
@@ -38,6 +41,8 @@ interface updateSMSActivityData {
     planned_by: string;
     executed_by?: string;
     status: string;
+    image?: File | string;
+    document?: File | string;
   };
 }
 
@@ -51,9 +56,27 @@ export const useCreateSMSActivity = () => {
       company: string | null;
       data: SMSActivityData;
     }) => {
+      const formData = new FormData();
+      formData.append("activity_name", data.activity_name);
+      formData.append("title", data.title);
+      formData.append("activity_number", data.activity_number);
+      formData.append("start_date", format(new Date(data.start_date), "yyyy-MM-dd"));
+      formData.append("end_date", format(new Date(data.end_date), "yyyy-MM-dd"));
+      formData.append("start_time", data.start_time);
+      formData.append("end_time", data.end_time);
+      formData.append("place", data.place);
+      formData.append("topics", data.topics);
+      formData.append("objetive", data.objetive);
+      formData.append("description", data.description);
+      formData.append("authorized_by", data.authorized_by);
+      formData.append("planned_by", data.planned_by);
+      if (data.executed_by) formData.append("executed_by", data.executed_by);
+      if (data.image instanceof File) formData.append("image", data.image);
+      if (data.document instanceof File) formData.append("document", data.document);
+
       const response = await axiosInstance.post(
         `/${company}/sms/activities`,
-        data,
+        formData,
         {
           headers: {
             "Content-Type": "multipart/form-data",
@@ -116,9 +139,33 @@ export const useUpdateSMSActivity = () => {
 
   const updateSMSActivityMutation = useMutation({
     mutationFn: async ({ company, id, data }: updateSMSActivityData) => {
-      const response = await axiosInstance.patch(
+      const formData = new FormData();
+      // Spoofing PATCH via POST since multipart/form-data doesn't work with PATCH in some servers
+      formData.append("_method", "PATCH");
+      formData.append("activity_name", data.activity_name);
+      formData.append("title", data.title);
+      formData.append("activity_number", data.activity_number);
+      formData.append("start_date", format(new Date(data.start_date), "yyyy-MM-dd"));
+      formData.append("end_date", format(new Date(data.end_date), "yyyy-MM-dd"));
+      formData.append("start_time", data.start_time);
+      formData.append("end_time", data.end_time);
+      formData.append("place", data.place);
+      formData.append("topics", data.topics);
+      formData.append("objetive", data.objetive);
+      formData.append("description", data.description);
+      formData.append("authorized_by", data.authorized_by);
+      formData.append("planned_by", data.planned_by);
+      formData.append("status", data.status);
+      if (data.executed_by) formData.append("executed_by", data.executed_by);
+      if (data.image instanceof File) formData.append("image", data.image);
+      if (data.document instanceof File) formData.append("document", data.document);
+
+      const response = await axiosInstance.post(
         `/${company}/sms/activities/${id}`,
-        data
+        formData,
+        {
+          headers: { "Content-Type": "multipart/form-data" },
+        }
       );
       return response.data;
     },
@@ -208,5 +255,36 @@ export const useCloseSMSActivity = () => {
   });
   return {
     closeSMSActivity: closeSMSActivityMutation,
+  };
+};
+
+export const useOpenSMSActivity = () => {
+  const queryClient = useQueryClient();
+  const { selectedCompany } = useCompanyStore();
+
+  const openSMSActivityMutation = useMutation({
+    mutationFn: async (id: string) => {
+      // Ajusta esta URL según tu API (ej. /open-sms-activity o similar)
+      const response = await axiosInstance.patch(
+        `/${selectedCompany?.slug}/sms/open-sms-activity/${id}`
+      );
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["sms-activities"] });
+      toast.success("Reabierta", {
+        description: `La actividad se ha vuelto a abrir correctamente.`,
+      });
+    },
+    onError: (error) => {
+      toast.error("Oops!", {
+        description: "No se pudo reabrir la actividad...",
+      });
+      console.log(error);
+    },
+  });
+
+  return {
+    openSMSActivity: openSMSActivityMutation,
   };
 };

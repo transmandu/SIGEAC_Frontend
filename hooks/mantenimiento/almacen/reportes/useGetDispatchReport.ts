@@ -2,7 +2,7 @@
 
 import axiosInstance from "@/lib/axios";
 import { useMutation } from "@tanstack/react-query";
-import { toast } from "sonner"; // Ajusta según tu librería de toast
+import { toast } from "sonner";
 
 interface DispatchReportParams {
   location_id: number | string;
@@ -10,51 +10,60 @@ interface DispatchReportParams {
   aircraft_id?: string | null;
   from: string;
   to: string;
+  format?: "pdf" | "excel";
 }
 
 export const useGetDispatchReport = () => {
   return useMutation({
+    retry: false,
+
     mutationFn: async (params: DispatchReportParams) => {
+      const format = params.format ?? "pdf";
+
+      const endpoint =
+        format === "excel"
+          ? `/${params.company}/${params.location_id}/dispatch-report-excel`
+          : `/${params.company}/${params.location_id}/dispatch-report-pdf`;
+
       try {
-        const response = await axiosInstance.get(
-          `/${params.company}/${params.location_id}/dispatch-report-pdf`,
-          {
-            params: {
-              aircraft_id: params.aircraft_id ?? undefined,
-              from: params.from,
-              to: params.to,
-            },
-            responseType: "blob",
+        const response = await axiosInstance.get(endpoint, {
+          params: {
+            aircraft_id: params.aircraft_id ?? undefined,
+            from: params.from,
+            to: params.to,
           },
-        );
+          responseType: "blob",
+        });
+
+        const contentType = response.headers["content-type"];
+
+        if (contentType?.includes("application/json")) {
+          const text = await response.data.text();
+          const error = JSON.parse(text);
+
+          throw new Error(
+            error.error || "No se encontraron datos para los filtros seleccionados"
+          );
+        }
+
         return response.data;
       } catch (error: any) {
-        // Si el servidor responde con un error (ej: 400), el mensaje viene dentro del Blob
         if (error.response?.data instanceof Blob) {
           const text = await error.response.data.text();
           const errorData = JSON.parse(text);
-          throw new Error(errorData.error || "No se encontraron datos");
+
+          throw new Error(
+            errorData.error || "No se encontraron datos para los filtros seleccionados"
+          );
         }
-        throw error;
+
+        throw new Error("Error al generar el reporte");
       }
     },
-    onSuccess: (data) => {
-      // Descarga automática del PDF
-      const url = window.URL.createObjectURL(new Blob([data]));
-      const link = document.createElement("a");
-      link.href = url;
-      link.setAttribute(
-        "download",
-        `Reporte_Despacho_${new Date().getTime()}.pdf`,
-      );
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-    },
+
     onError: (error: any) => {
-      // Muestra el mensaje enviado desde Laravel: "No hay registros..."
       toast.error("Oops!", {
-        description: error.message || "¡Hubo un error al generar el reporte!",
+        description: error.message || "Ocurrió un problema al generar el reporte.",
       });
     },
   });

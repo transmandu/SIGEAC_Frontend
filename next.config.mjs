@@ -8,7 +8,7 @@ const nextConfig = {
       },
       {
         protocol: "https",
-        hostname: "apisigeac.share.zrok.io",
+        hostname: "apisigeactmd74.share.zrok.io",
       },
     ],
   },

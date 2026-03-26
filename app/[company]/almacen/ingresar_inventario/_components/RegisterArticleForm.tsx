@@ -1,5 +1,6 @@
 "use client";
 
+import CreateGeneralArticleForm from "@/components/forms/mantenimiento/almacen/CreateGeneralArticleForm";
 import {
   Select,
   SelectContent,
@@ -9,14 +10,10 @@ import {
 } from "@/components/ui/select";
 import { Article, Batch } from "@/types";
 import { useState } from "react";
-import CreateConsumableForm from "./RegisterConsumableForm";
-import CreateToolForm from "./RegisterToolForm";
-import CreateComponentForm from "./RegisterComponentForm";
-import CreatePartForm from "./RegisterPartForm";
-import CreateGeneralArticleForm from "@/components/forms/mantenimiento/almacen/CreateGeneralArticleForm";
 import DirectConsumableForm from "./DirectConsumableForm";
 import DirectPartForm from "./DirectPartForm";
 import DirectComponentForm from "./DirectComponentForm";
+import DirectToolForm from "./DirectToolForm";
 
 
 export interface EditingArticle extends Article {
@@ -30,9 +27,10 @@ export interface EditingArticle extends Article {
     next_calibration?: string | number;
     article_id: number;
   };
-  part_component?: {
+  partComponent?: {
     id: number;
     article_id: string;
+    aircraft_id?: string;
     expiration_date?: string | null;
     fabrication_date: string | null;
     hour_date: string | null;
@@ -73,7 +71,7 @@ const RegisterArticleForm = ({
   initialData,
 }: IRegisterArticleProps) => {
   const [type, setType] = useState(
-    initialData?.batch.category.toUpperCase() ?? "COMPONENTE"
+    initialData?.batch.category.toUpperCase() ?? "COMPONENTE",
   );
   function handleTypeSelect(data: string) {
     setType(data);
@@ -109,21 +107,16 @@ const RegisterArticleForm = ({
         <DirectConsumableForm isEditing={isEditing} initialData={initialData} />
       )}
       {type === "HERRAMIENTA" && (
-        <CreateToolForm isEditing={isEditing} initialData={initialData} />
+        <DirectToolForm isEditing={isEditing} initialData={initialData} />
       )}
       {type === "COMPONENTE" && (
-        // <CreateComponentForm isEditing={isEditing} initialData={initialData} />
         <DirectComponentForm isEditing={isEditing} initialData={initialData} />
       )}
       {type === "PARTE" && (
         // <CreatePartForm isEditing={isEditing} initialData={initialData} />
         <DirectPartForm isEditing={isEditing} initialData={initialData} />
       )}
-      {
-        type === "GENERAL" && (
-          <CreateGeneralArticleForm />
-        )
-      }
+      {type === "GENERAL" && <CreateGeneralArticleForm />}
     </div>
   );
 };

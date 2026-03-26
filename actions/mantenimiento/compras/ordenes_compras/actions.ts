@@ -18,11 +18,13 @@ interface CreatePurchaseOrderData {
   total: number,
   vendor_id: number,
   created_by: string,
+  quote_order_id: number;
   articles_purchase_orders: {
     batch: {
         name: string;
     };
     article_part_number: string;
+    article_alt_part_number?: string;
     quantity: number;
     unit_price: string;
     image: string;

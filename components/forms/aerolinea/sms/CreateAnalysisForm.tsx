@@ -139,7 +139,7 @@ export default function CreateAnalysisForm({
         try {
           await createAnalysis.mutateAsync(values);
           router.push(
-            `/${selectedCompany?.slug}/sms/gestion_reportes/planes_de_mitigacion`
+            `/${selectedCompany?.slug}/sms/gestion_reportes/planes_de_mitigacion`,
           );
         } catch (error) {
           console.error("Error al crear el análisis:", error);
@@ -176,16 +176,14 @@ export default function CreateAnalysisForm({
                 value={field.value}
               >
                 <FormControl>
-                  <SelectTrigger
-                    className={field.value ? "bg-blue-50 border-blue-300" : ""}
-                  >
+                  <SelectTrigger>
                     <SelectValue placeholder="Seleccionar probabilidad de riesgo" />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
                   {PROBABILITY.map((probability, index) => (
                     <SelectItem key={index} value={probability.value}>
-                      <span className="text-black">
+                      <span>
                         {probability.name} ({probability.value})
                       </span>
                     </SelectItem>
@@ -214,7 +212,6 @@ export default function CreateAnalysisForm({
               >
                 <FormControl>
                   <SelectTrigger
-                    className={field.value ? "bg-blue-50 border-blue-300" : ""}
                   >
                     <SelectValue placeholder="Seleccionar severidad del peligro" />
                   </SelectTrigger>
@@ -222,7 +219,7 @@ export default function CreateAnalysisForm({
                 <SelectContent>
                   {SEVERITY.map((severity, index) => (
                     <SelectItem key={index} value={severity.value}>
-                      <span className="text-black">
+                      <span>
                         {severity.name} ({severity.value})
                       </span>
                     </SelectItem>
@@ -246,7 +243,10 @@ export default function CreateAnalysisForm({
           <p className="text-muted-foreground">SIGEAC</p>
           <Separator className="flex-1" />
         </div>
-        <Button type="submit" disabled={updateAnalyses.isPending || createAnalysis.isPending}>
+        <Button
+          type="submit"
+          disabled={updateAnalyses.isPending || createAnalysis.isPending}
+        >
           {isEditing ? "Actualizar" : "Enviar"}
         </Button>
       </form>

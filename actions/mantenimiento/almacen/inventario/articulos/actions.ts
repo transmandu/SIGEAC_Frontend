@@ -194,8 +194,9 @@ export const useDeleteArticle = () => {
     }) => {
       await axiosInstance.delete(`/${company}/article/${id}`);
     },
-    onSuccess: () => {
+    onSuccess: (_,data) => {
       queryClient.invalidateQueries({ queryKey: ["articles"] });
+      queryClient.invalidateQueries({ queryKey: ["warehouse-articles", data.company]});
       // queryClient.invalidateQueries({queryKey: ['warehouse-articles']})
       toast.success("¡Eliminado!", {
         description: `¡El articulo ha sido eliminado correctamente!`,
@@ -229,6 +230,7 @@ export const useUpdateArticleStatus = () => {
       queryClient.invalidateQueries({ queryKey: ["in-reception-articles"] });
       queryClient.invalidateQueries({ queryKey: ["checking-articles"] });
       queryClient.invalidateQueries({ queryKey: ["warehouse-articles"] });
+      queryClient.invalidateQueries({ queryKey: ["purchase-orders"] });
       toast.success("¡Actualizado!", {
         description: `El articulo ha sido actualizado correctamente.`,
       });

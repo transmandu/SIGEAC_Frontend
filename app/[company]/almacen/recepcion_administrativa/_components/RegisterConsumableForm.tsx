@@ -10,7 +10,9 @@ import { z } from "zod";
 
 import { format, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
-import { conditions as staticConditions, type Condition as UI_Condition } from "@/lib/conditions";
+import { getConditionLabel } from "@/lib/conditions";
+
+import { Condition } from "@/types";
 
 import {
   Calculator,
@@ -124,7 +126,7 @@ const formSchema = z.object({
         message: "Debe ingresar la condición del artículo.",
       });
     }
-}),
+  }),
   quantity: z.coerce
     .number({ message: "Debe ingresar una cantidad." })
     .min(0, { message: "No puede ser negativo." })
@@ -155,8 +157,6 @@ const formSchema = z.object({
   primary_unit_id: z.number().optional(),
   has_documentation: z.boolean().optional(),
   shelf_life: z.string().optional(),
-  inspector: z.string().optional(),
-  inspect_date: z.string().optional(),
 });
 
 export type FormValues = z.infer<typeof formSchema>;
@@ -244,11 +244,10 @@ function FileField({
                 />
                 <div
                   onClick={() => !busy && !fileName && inputRef?.click()}
-                  className={`flex items-center justify-between pl-10 pr-3 py-2 w-full border border-gray-300 rounded ${
-                    !busy && !fileName
+                  className={`flex items-center justify-between pl-10 pr-3 py-2 w-full border border-gray-300 rounded ${!busy && !fileName
                       ? "cursor-pointer hover:border-gray-400"
                       : ""
-                  } ${busy ? "opacity-50" : ""}`}
+                    } ${busy ? "opacity-50" : ""}`}
                 >
                   <span
                     className={`text-sm truncate flex-1 ${fileName ? "text-gray-900" : "text-gray-500"}`}
@@ -345,7 +344,7 @@ function DatePickerField({
     "Fecha de la Parte": "Part date",
     "Fecha de Inspección": "Inspection date",
     "Fecha de Incoming": "Incoming date",
-    "Próximo Vencimiento": "Next expiration date"
+    "Próximo Vencimiento": "Next expiration date",
   };
 
   const renderLabelContent = () => {
@@ -520,7 +519,10 @@ function DatePickerField({
     setTouched(true);
   };
 
-  const labelId = typeof label === 'string' ? label.replace(/\s+/g, "-").toLowerCase() : 'date';
+  const labelId =
+    typeof label === "string"
+      ? label.replace(/\s+/g, "-").toLowerCase()
+      : "date";
 
   return (
     <FormItem className="flex flex-col p-0 mt-2.5 w-full">
@@ -590,7 +592,7 @@ function DatePickerField({
                     className={cn(
                       "flex-1 pl-3 text-left font-normal",
                       (!value || value === null) && "text-muted-foreground",
-                      isInvalid && "border-destructive"
+                      isInvalid && "border-destructive",
                     )}
                   >
                     {value && isNotApplicableDate(value) ? (
@@ -908,29 +910,29 @@ function UnitsModal({
                       {availableConversion.find(
                         (conv: any) =>
                           conv.primary_unit.id.toString() ===
-                            conversionFromUnit &&
+                          conversionFromUnit &&
                           conv.secondary_unit.id.toString() ===
-                            conversionToUnit,
+                          conversionToUnit,
                       )?.equivalence && (
-                        <span className="block text-xs mt-1">
-                          Equivalencia: 1{" "}
-                          {
-                            availableConversionUnits?.find(
-                              (u) => u.id.toString() === conversionFromUnit,
-                            )?.label
-                          }{" "}
-                          ={" "}
-                          {1 /
-                            availableConversion.find(
-                              (conv: any) =>
-                                conv.primary_unit.id.toString() ===
+                          <span className="block text-xs mt-1">
+                            Equivalencia: 1{" "}
+                            {
+                              availableConversionUnits?.find(
+                                (u) => u.id.toString() === conversionFromUnit,
+                              )?.label
+                            }{" "}
+                            ={" "}
+                            {1 /
+                              availableConversion.find(
+                                (conv: any) =>
+                                  conv.primary_unit.id.toString() ===
                                   conversionFromUnit &&
-                                conv.secondary_unit.id.toString() ===
+                                  conv.secondary_unit.id.toString() ===
                                   conversionToUnit,
-                            )!.equivalence}{" "}
-                          {primaryUnit?.label}
-                        </span>
-                      )}
+                              )!.equivalence}{" "}
+                            {primaryUnit?.label}
+                          </span>
+                        )}
                     </p>
                   </div>
                 )}
@@ -1068,7 +1070,7 @@ function UnitsModal({
 
 /* ----------------------------- Componente Principal ----------------------------- */
 
-export default function CreateConsumableForm({
+export default function RegisterConsumableForm({
   initialData,
   isEditing,
 }: {
@@ -1211,13 +1213,15 @@ export default function CreateConsumableForm({
     }
   };
 
+  const currentBatch = initialData?.batch ?? initialData?.batches;
+
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       part_number: initialData?.part_number || "",
       alternative_part_number: initialData?.alternative_part_number || [],
-      batch_id: initialData?.batch?.id?.toString() || "",
-      batch_name: initialData?.batch?.name || "",
+      batch_id: currentBatch?.id?.toString() || "",
+      batch_name: currentBatch?.name || "",
       manufacturer_id: initialData?.manufacturer?.id?.toString() || "",
       condition_id: initialData?.condition?.id?.toString() || "",
       description: initialData?.description || "",
@@ -1231,10 +1235,6 @@ export default function CreateConsumableForm({
         : undefined,
       primary_unit_id: initialData?.primary_unit_id || undefined,
       has_documentation: initialData?.has_documentation || false,
-      inspector: initialData?.inspector || "",
-      inspect_date: initialData?.inspect_date
-        ? initialData?.inspect_date
-        : undefined,
       shelf_life: initialData?.consumable?.shelf_life || undefined,
     },
     mode: "onBlur",
@@ -1277,8 +1277,8 @@ export default function CreateConsumableForm({
     const resetValues = {
       part_number: initialData.part_number ?? "",
       alternative_part_number: initialData.alternative_part_number ?? [],
-      batch_id: initialData.batch?.id?.toString() ?? "",
-      batch_name: initialData.batch?.name ?? "",
+      batch_id: currentBatch?.id?.toString() ?? "",
+      batch_name: currentBatch?.name ?? "",
       manufacturer_id: initialData.manufacturer?.id?.toString() ?? "",
       condition_id: initialData.condition?.id?.toString() ?? "",
       description: initialData.description ?? "",
@@ -1293,7 +1293,7 @@ export default function CreateConsumableForm({
       quantity: initialQuantity,
       min_quantity:
         initialData.consumable?.min_quantity !== undefined &&
-        initialData.consumable?.min_quantity !== null
+          initialData.consumable?.min_quantity !== null
           ? Number(initialData.consumable.min_quantity)
           : undefined,
 
@@ -1309,11 +1309,14 @@ export default function CreateConsumableForm({
     setShelfDate(shelfLifeDate);
 
     if (initialData.primary_unit_id) {
-      const unitObj = { id: initialData.primary_unit_id };
+      const unitObj =
+        units?.find((unit) => unit.id === initialData.primary_unit_id) ?? {
+          id: initialData.primary_unit_id,
+        };
       setSelectedPrimaryUnit(unitObj);
       setSecondarySelected(unitObj);
     }
-  }, [initialData, form]); // 👈 quitamos form para evitar renders extra
+  }, [currentBatch, initialData, form, units]); // 👈 quitamos form para evitar renders extra
 
   const calculateAndUpdateQuantity = useCallback(
     (quantity: number | undefined, selectedUnit: any) => {
@@ -1398,21 +1401,23 @@ export default function CreateConsumableForm({
   const [previewData, setPreviewData] = useState<FormValues | null>(null);
 
   async function onSubmit(values: FormValues) {
-  // 1. Obtenemos los valores
-  const rawValues = form.getValues();
+    // 1. Obtenemos los valores
+    const rawValues = form.getValues();
 
-  // 2. Transformamos los datos críticos a formato numérico
-  const formattedValues = {
-    ...rawValues,
-  // Convertimos el ID de condición a número (Ej: "10" -> 10)
-    condition_id: rawValues.condition_id ? Number(rawValues.condition_id) : null,
-    // Aprovechamos para asegurar que quantity también sea número
-    quantity: Number(rawValues.quantity),
-  };
+    // 2. Transformamos los datos críticos a formato numérico
+    const formattedValues = {
+      ...rawValues,
+      // Convertimos el ID de condición a número (Ej: "10" -> 10)
+      condition_id: rawValues.condition_id
+        ? Number(rawValues.condition_id)
+        : null,
+      // Aprovechamos para asegurar que quantity también sea número
+      quantity: Number(rawValues.quantity),
+    };
 
-  // 3. Pasamos los datos ya formateados a la vista previa
-  setPreviewData(formattedValues as any);
-  setOpenPreview(true);
+    // 3. Pasamos los datos ya formateados a la vista previa
+    setPreviewData(formattedValues as any);
+    setOpenPreview(true);
   }
 
   async function submitToBackend(values: FormValues) {
@@ -1456,7 +1461,7 @@ export default function CreateConsumableForm({
       primary_unit_id?: number;
     } = {
       ...valuesWithoutCaducateDate,
-      status: "CHECKING",
+      status: "INCOMING",
       part_number: normalizeUpper(values.part_number),
       article_type: "consumable",
       alternative_part_number:
@@ -1466,8 +1471,8 @@ export default function CreateConsumableForm({
       inspect_date: inspectDateStr,
       fabrication_date:
         fabricationDate &&
-        fabricationDate !== null &&
-        !isNotApplicableDate(fabricationDate)
+          fabricationDate !== null &&
+          !isNotApplicableDate(fabricationDate)
           ? format(fabricationDate, "yyyy-MM-dd")
           : fabricationDate && isNotApplicableDate(fabricationDate)
             ? "1900-01-01"
@@ -1510,43 +1515,18 @@ export default function CreateConsumableForm({
           className="flex flex-col gap-6 max-w-7xl mx-auto"
           onSubmit={form.handleSubmit(onSubmit)}
         >
-          <SectionCard title="Registrar consumible">
+          <SectionCard title="Registrar Consumible">
             <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
-              <FormField
-                control={form.control}
-                name="inspector"
-                render={({ field }) => (
-                  <FormItem className="w-full">
-                    <FormLabel>
-                      Inspector (Incoming) <span className="text-xs italic text-gray-500 font-normal ml-1">(Inspector)</span>
-                    </FormLabel>
-                    <FormControl>
-                      <Input placeholder="Nombre del Inspector" {...field} />
-                    </FormControl>
-                    <FormMessage className="text-xs" />
-                  </FormItem>
-                )}
-              />
-
-              <FormItem className="w-full">
-                <DatePickerField
-                  label="Fecha de Incoming"
-                  value={inspectDate}
-                  setValue={handleInspectDateChange}
-                  description="Fecha de Incoming"
-                  busy={busy}
-                  shortcuts="forward"
-                  showNotApplicable={true}
-                  required={true}
-                />
-              </FormItem>
               <FormField
                 control={form.control}
                 name="part_number"
                 render={({ field }) => (
                   <FormItem className="w-full">
                     <FormLabel>
-                      Nro. de parte <span className="text-xs italic text-gray-500 font-normal ml-1">(Part number)</span>
+                      Nro. de parte{" "}
+                      <span className="text-xs italic text-gray-500 font-normal ml-1">
+                        (Part number)
+                      </span>
                     </FormLabel>
                     <FormControl>
                       <Input
@@ -1604,7 +1584,10 @@ export default function CreateConsumableForm({
                 render={({ field }) => (
                   <FormItem className="w-full">
                     <FormLabel>
-                      Nro. de lote <span className="text-xs italic text-gray-500 font-normal ml-1">(Lot number)</span>
+                      Nro. de lote{" "}
+                      <span className="text-xs italic text-gray-500 font-normal ml-1">
+                        (Lot number)
+                      </span>
                     </FormLabel>
                     <FormControl>
                       <Input
@@ -1627,7 +1610,10 @@ export default function CreateConsumableForm({
                     <FormItem className="flex flex-col space-y-3 mt-1.5 w-full">
                       <div className="flex items-center justify-between">
                         <FormLabel>
-                          Descripción de consumible <span className="text-xs italic text-gray-500 font-normal ml-1">(Consumable description)</span>
+                          Descripción de consumible{" "}
+                          <span className="text-xs italic text-gray-500 font-normal ml-1">
+                            (Consumable description)
+                          </span>
                         </FormLabel>
                         <CreateBatchDialog
                           onSuccess={async (batchName) => {
@@ -1873,7 +1859,10 @@ export default function CreateConsumableForm({
                 render={({ field }) => (
                   <FormItem className="w-full">
                     <FormLabel>
-                      Condición <span className="text-xs italic text-gray-500 font-normal ml-1">(Condition)</span>
+                      Condición{" "}
+                      <span className="text-xs italic text-gray-500 font-normal ml-1">
+                        (Condition)
+                      </span>
                     </FormLabel>
                     <Select
                       onValueChange={field.onChange}
@@ -1889,7 +1878,8 @@ export default function CreateConsumableForm({
                         onKeyDown={(e) => {
                           if (e.key === "Tab") {
                             e.preventDefault();
-                            const focused = document.activeElement as HTMLElement;
+                            const focused =
+                              document.activeElement as HTMLElement;
                             if (focused?.getAttribute("role") === "option") {
                               focused.click();
                             }
@@ -1897,12 +1887,14 @@ export default function CreateConsumableForm({
                         }}
                       >
                         {/* Mapeo limpio usando los IDs de SSMS que ya configuraste en lib/conditions.ts */}
-                        {staticConditions?.map((c: UI_Condition) => (
-                          <SelectItem key={c.value} value={c.value}>
+                        {conditions?.map((c: Condition) => (
+                          <SelectItem key={c.name} value={c.id.toString()}>
                             <div className="flex items-center gap-2">
-                              <span className="font-medium">{c.label}</span>
-                              <span className="text-muted-foreground italic text-xs">
-                                ({c.label_en})
+                              <span className="font-medium">
+                                {getConditionLabel(c.name.toUpperCase())}
+                              </span>
+                              <span className="text-muted-foreground italic text-[9px]">
+                                ({c.name})
                               </span>
                             </div>
                           </SelectItem>
@@ -1921,7 +1913,10 @@ export default function CreateConsumableForm({
                   <FormItem className="w-full">
                     <div className="flex items-center justify-between">
                       <FormLabel>
-                        Fabricante <span className="text-xs italic text-gray-500 font-normal ml-1">(Manufacturer)</span>
+                        Fabricante{" "}
+                        <span className="text-xs italic text-gray-500 font-normal ml-1">
+                          (Manufacturer)
+                        </span>
                       </FormLabel>
                       <CreateManufacturerDialog
                         defaultType="PART"
@@ -2060,7 +2055,10 @@ export default function CreateConsumableForm({
                 render={({ field }) => (
                   <FormItem className="w-full">
                     <FormLabel>
-                      Ubicación Interna <span className="text-xs italic text-gray-500 font-normal ml-1">(Internal Location)</span>
+                      Ubicación Interna{" "}
+                      <span className="text-xs italic text-gray-500 font-normal ml-1">
+                        (Internal Location)
+                      </span>
                     </FormLabel>
                     <FormControl>
                       <Input
@@ -2120,7 +2118,10 @@ export default function CreateConsumableForm({
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
               <div className="flex flex-col space-y-2 mt-2.5">
                 <FormLabel>
-                  Metodo de Ingreso <span className="text-xs italic text-gray-500 font-normal ml-1">(Entry Method)</span>
+                  Metodo de Ingreso{" "}
+                  <span className="text-xs italic text-gray-500 font-normal ml-1">
+                    (Entry Method)
+                  </span>
                 </FormLabel>
                 <Popover open={secondaryOpen} onOpenChange={setSecondaryOpen}>
                   <PopoverTrigger asChild>
@@ -2222,7 +2223,10 @@ export default function CreateConsumableForm({
                 render={({ field }) => (
                   <FormItem className="w-full">
                     <FormLabel>
-                      Cantidad <span className="text-xs italic text-gray-500 font-normal ml-1">(Quantity)</span>
+                      Cantidad{" "}
+                      <span className="text-xs italic text-gray-500 font-normal ml-1">
+                        (Quantity)
+                      </span>
                     </FormLabel>
                     <FormControl>
                       <Input
@@ -2272,7 +2276,10 @@ export default function CreateConsumableForm({
                 render={({ field }) => (
                   <FormItem className="w-full">
                     <FormLabel>
-                      Cantidad Mínima <span className="text-xs italic text-gray-500 font-normal ml-1">(Minimum Quantity)</span>
+                      Cantidad Mínima{" "}
+                      <span className="text-xs italic text-gray-500 font-normal ml-1">
+                        (Minimum Quantity)
+                      </span>
                     </FormLabel>
                     <FormControl>
                       <Input
@@ -2345,7 +2352,10 @@ export default function CreateConsumableForm({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>
-                      Detalles/Observaciones <span className="text-xs italic text-gray-500 font-normal ml-1">(Minimum Quantity)</span>
+                      Detalles/Observaciones{" "}
+                      <span className="text-xs italic text-gray-500 font-normal ml-1">
+                        (Minimum Quantity)
+                      </span>
                     </FormLabel>
                     <FormControl>
                       <Textarea

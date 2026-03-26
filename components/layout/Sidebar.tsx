@@ -23,21 +23,23 @@ export function Sidebar() {
     >
       <SidebarToggle isOpen={sidebar?.isOpen} setIsOpen={sidebar?.setIsOpen} />
       <div className="relative h-full flex flex-col px-3 py-4 overflow-y-auto shadow-md dark:shadow-zinc-800 mt-5">
-        <Button
-          className={cn(
-            "transition-transform ease-in-out duration-300 mb-1 mt-4",
-            sidebar?.isOpen === false ? "translate-x-1" : "translate-x-0"
-          )}
-          variant="link"
-          asChild
-        >
-          <Link
-            href={`/${selectedCompany?.slug}/dashboard`}
-            className="flex items-center gap-2"
+        <div className="bg-background rounded-md px-2 pt-2 pb-4 mb-1 mt-4 shadow-sm dark:shadow-zinc-900 flex justify-center">
+          <Button
+            className={cn(
+              "transition-transform ease-in-out duration-300 w-full justify-center",
+              sidebar?.isOpen === false ? "translate-x-1" : "translate-x-0"
+            )}
+            variant="link"
+            asChild
           >
-            <Image src={"/logo.png"} width={150} height={150} alt="Logo" />
-          </Link>
-        </Button>
+            <Link
+              href={`/${selectedCompany?.slug}/dashboard`}
+              className="flex items-center justify-center w-full"
+            >
+              <Image src={"/logo.png"} width={150} height={150} alt="Logo" priority/>
+            </Link>
+          </Button>
+        </div>
         {selectedCompany && selectedStation ? (
           <Menu isOpen={sidebar?.isOpen}  />
         ) : (

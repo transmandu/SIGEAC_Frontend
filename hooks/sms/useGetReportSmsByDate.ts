@@ -63,7 +63,7 @@ export function useSmsReport(onSuccess?: () => void, company: string = "transman
       
       document.body.appendChild(link);
       link.click();
-      document.body.removeChild(link);
+      link.remove();
       window.URL.revokeObjectURL(downloadUrl);
 
       toast.success("Reporte descargado", {

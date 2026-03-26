@@ -9,10 +9,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../../../ui/select";
-import CreateToolForm from "@/app/[company]/almacen/ingresar_inventario/_components/RegisterToolForm";
-import CreateComponentForm from "@/app/[company]/almacen/ingresar_inventario/_components/RegisterComponentForm";
-import CreatePartForm from "@/app/[company]/almacen/ingresar_inventario/_components/RegisterPartForm";
-import CreateConsumableForm from "@/app/[company]/almacen/ingresar_inventario/_components/RegisterConsumableForm";
+import DirectComponentForm from "@/app/[company]/almacen/ingresar_inventario/_components/DirectComponentForm";
+import DirectConsumableForm from "@/app/[company]/almacen/ingresar_inventario/_components/DirectConsumableForm";
+import DirectPartForm from "@/app/[company]/almacen/ingresar_inventario/_components/DirectPartForm";
+import CreateToolForm from "./CreateToolForm";
 
 export interface EditingArticle extends Article {
   batch: Batch;
@@ -28,7 +28,7 @@ export interface EditingArticle extends Article {
     next_calibration?: string | number;
     article_id: number;
   };
-  part_component?: {
+  partComponent?: {
     id: number;
     article_id: string;
     expiration_date?: string | null;
@@ -70,7 +70,7 @@ const RegisterArticleForm = ({
   initialData,
 }: IRegisterArticleProps) => {
   const [type, setType] = useState(
-    initialData?.batch.category.toUpperCase() ?? "COMPONENTE"
+    initialData?.batch.category.toUpperCase() ?? "COMPONENTE",
   );
   function handleTypeSelect(data: string) {
     setType(data);
@@ -87,8 +87,7 @@ const RegisterArticleForm = ({
       )}
       <Select
         disabled={isEditing}
-        value={type}
-        onValueChange={handleTypeSelect}
+        value={type} onValueChange={handleTypeSelect}
       >
         <SelectTrigger className="w-[230px]">
           <SelectValue placeholder="Seleccionar..." />
@@ -100,17 +99,19 @@ const RegisterArticleForm = ({
           <SelectItem value="PARTE">PARTE</SelectItem>
         </SelectContent>
       </Select>
-      {type === "CONSUMIBLE" && (
-        <CreateConsumableForm isEditing={isEditing} initialData={initialData} />
-      )}
+      {
+        type === "CONSUMIBLE" && (
+          <DirectConsumableForm isEditing={isEditing} initialData={initialData} />
+        )
+      }
       {type === "HERRAMIENTA" && (
         <CreateToolForm isEditing={isEditing} initialData={initialData} />
       )}
       {type === "COMPONENTE" && (
-        <CreateComponentForm isEditing={isEditing} initialData={initialData} />
+        <DirectComponentForm isEditing={isEditing} initialData={initialData} />
       )}
       {type === "PARTE" && (
-        <CreatePartForm isEditing={isEditing} initialData={initialData} />
+        <DirectPartForm isEditing={isEditing} initialData={initialData} />
       )}
     </div>
   );

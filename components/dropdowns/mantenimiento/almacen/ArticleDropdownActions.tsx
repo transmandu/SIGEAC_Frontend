@@ -20,19 +20,23 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { useAuth } from "@/contexts/AuthContext";
 
 const ArticleDropdownActions = ({ id }: { id: string | number }) => {
   const [open, setOpen] = useState<boolean>(false);
   const router = useRouter();
   const { selectedCompany } = useCompanyStore();
   const { deleteArticle } = useDeleteArticle();
+  const { user } = useAuth();
+
+ const roles = user?.roles?.map((r) => r.name) ?? [];
 
   const handleDelete = (id: number | string) => {
     deleteArticle.mutate(
       { id, company: selectedCompany!.slug },
       {
         onSuccess: () => setOpen(false), // Cierra el modal solo si la eliminación fue exitosa
-      }
+      },
     );
   };
 
@@ -53,17 +57,19 @@ const ArticleDropdownActions = ({ id }: { id: string | number }) => {
             className="cursor-pointer"
             onClick={() => {
               router.push(
-                `/${selectedCompany?.slug}/almacen/inventario_articulos/editar/${id}`
+                `/${selectedCompany?.slug}/almacen/inventario_articulos/editar/${id}`,
               );
             }}
           >
             <SquarePen className="size-5" />
           </DropdownMenuItem>
-          {/* <DialogTrigger asChild>
-            <DropdownMenuItem className="cursor-pointer">
-              <Trash2 className="size-5 text-red-500" />
-            </DropdownMenuItem>
-          </DialogTrigger> */}
+          <DialogTrigger asChild>
+            {roles.includes("SUPERUSER") || roles.includes("JEFE_ALMACEN") ? (
+              <DropdownMenuItem className="cursor-pointer">
+                <Trash2 className="size-5 text-red-500" />
+              </DropdownMenuItem>
+            ) : null}
+          </DialogTrigger>
         </DropdownMenuContent>
       </DropdownMenu>
       <DialogContent>

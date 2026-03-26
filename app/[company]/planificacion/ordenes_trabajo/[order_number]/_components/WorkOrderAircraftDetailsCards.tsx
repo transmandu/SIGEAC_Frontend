@@ -25,9 +25,84 @@ const WorkOrderAircraftDetailsCards = ({ work_order }: { work_order: WorkOrder }
   const { selectedCompany } = useCompanyStore()
   const companySlug = selectedCompany?.slug || "hangar74"
 
-  const { closeWorkOrder } = useCloseWorkOrder();
-  const [closeDialogOpen, setCloseDialogOpen] = useState(false);
+  const [printOpen, setPrintOpen] = useState(false)
+  const [hoursMode, setHoursMode] = useState<HoursMode>("auto")
+  const [manualHours, setManualHours] = useState<string>("")
+  const [clientSignature, setClientSignature] = useState<string>("Freddy Guerrero")
+  const [reportPagesTotal, setReportPagesTotal] = useState<string>("2")
+  
+  const [isDownloading, setIsDownloading] = useState(false)
+  const [isPreviewing, setIsPreviewing] = useState(false)
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+  const [previewBlob, setPreviewBlob] = useState<Blob | null>(null)
 
+  const lastParamsRef = useRef<string>("");
+
+  useEffect(() => {
+    return () => { if (previewUrl) window.URL.revokeObjectURL(previewUrl); };
+  }, [previewUrl]);
+
+  const handleAction = async (mode: 'download' | 'preview') => {
+    const isDownload = mode === 'download';
+    const params: Record<string, any> = {
+      aircraft_hours_mode: hoursMode,
+      client_signature: clientSignature?.trim() ?? "",
+      report_pages_total: Number(reportPagesTotal.trim()),
+    }
+
+    if (hoursMode === "manual" && manualHours.trim() !== "") {
+      params.aircraft_hours = Number(manualHours.replace(",", "."));
+    }
+
+    const currentParamsJson = JSON.stringify(params);
+
+    if (previewUrl && previewBlob && currentParamsJson === lastParamsRef.current) {
+        if (isDownload) {
+            const url = window.URL.createObjectURL(previewBlob);
+            const link = document.createElement("a");
+            link.href = url;
+            link.download = `WO_${work_order.order_number}.pdf`;
+            document.body.appendChild(link);
+            link.click();
+            link.remove()
+            window.URL.revokeObjectURL(url);
+            setPrintOpen(false);
+            return;
+        } else if (mode === 'preview') return;
+    }
+
+    isDownload ? setIsDownloading(true) : setIsPreviewing(true);
+
+    try {
+      const response = await axiosInstance.get(
+        `/${companySlug}/work-orders/${work_order.order_number}/package`,
+        { responseType: "blob", params }
+      );
+      const blob = new Blob([response.data], { type: "application/pdf" });
+      const url = window.URL.createObjectURL(blob);
+
+      if (isDownload) {
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `WO_${work_order.order_number}.pdf`;
+        document.body.appendChild(link);
+        link.click();
+        link.remove()
+        window.URL.revokeObjectURL(url);
+        setPrintOpen(false);
+      } else {
+        lastParamsRef.current = currentParamsJson;
+        if (previewUrl) window.URL.revokeObjectURL(previewUrl);
+        setPreviewUrl(url);
+        setPreviewBlob(blob);
+      }
+    } catch (error) {
+      toast({ variant: "destructive", title: "Error", description: "No se pudo generar el PDF." });
+    } finally {
+      setIsDownloading(false);
+      setIsPreviewing(false);
+    }
+  };
 
   return (
     <div className="flex gap-4 justify-center w-full">
