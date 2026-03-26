@@ -12,7 +12,7 @@ import { Lock } from "lucide-react"
 import Link from "next/link"
 import { useCompanyStore } from "@/stores/CompanyStore"
 import { useCloseWorkOrder } from "@/actions/mantenimiento/planificacion/ordenes_trabajo/actions";
-import { PdfPreviewDialog } from "@/components/dialogs/aerolinea/administracion/PdfPreviewDialog"
+import { PdfPreviewDialog } from "@/components/dialogs/general/PdfPreviewDialog"
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel,
   AlertDialogContent, AlertDialogDescription,
