@@ -15,12 +15,14 @@ import {
 import { Receipt } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
-import { Requisition } from "@/types";
-import { CreateQuoteForm } from "@/components/forms/mantenimiento/compras/CreateQuoteForm";
+import {
+  CreateQuoteForm,
+  QuoteableRequisition,
+} from "@/components/forms/mantenimiento/compras/CreateQuoteForm";
 import { DialogTrigger } from "@radix-ui/react-dialog";
 
 interface GenerateQuoteDialogProps {
-  req: Requisition;
+  req: QuoteableRequisition;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
 }

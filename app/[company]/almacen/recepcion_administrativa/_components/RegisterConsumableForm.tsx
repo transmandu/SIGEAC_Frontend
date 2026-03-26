@@ -157,8 +157,6 @@ const formSchema = z.object({
   primary_unit_id: z.number().optional(),
   has_documentation: z.boolean().optional(),
   shelf_life: z.string().optional(),
-  inspector: z.string().optional(),
-  inspect_date: z.string().optional(),
 });
 
 export type FormValues = z.infer<typeof formSchema>;
@@ -246,11 +244,10 @@ function FileField({
                 />
                 <div
                   onClick={() => !busy && !fileName && inputRef?.click()}
-                  className={`flex items-center justify-between pl-10 pr-3 py-2 w-full border border-gray-300 rounded ${
-                    !busy && !fileName
+                  className={`flex items-center justify-between pl-10 pr-3 py-2 w-full border border-gray-300 rounded ${!busy && !fileName
                       ? "cursor-pointer hover:border-gray-400"
                       : ""
-                  } ${busy ? "opacity-50" : ""}`}
+                    } ${busy ? "opacity-50" : ""}`}
                 >
                   <span
                     className={`text-sm truncate flex-1 ${fileName ? "text-gray-900" : "text-gray-500"}`}
@@ -913,29 +910,29 @@ function UnitsModal({
                       {availableConversion.find(
                         (conv: any) =>
                           conv.primary_unit.id.toString() ===
-                            conversionFromUnit &&
+                          conversionFromUnit &&
                           conv.secondary_unit.id.toString() ===
-                            conversionToUnit,
+                          conversionToUnit,
                       )?.equivalence && (
-                        <span className="block text-xs mt-1">
-                          Equivalencia: 1{" "}
-                          {
-                            availableConversionUnits?.find(
-                              (u) => u.id.toString() === conversionFromUnit,
-                            )?.label
-                          }{" "}
-                          ={" "}
-                          {1 /
-                            availableConversion.find(
-                              (conv: any) =>
-                                conv.primary_unit.id.toString() ===
+                          <span className="block text-xs mt-1">
+                            Equivalencia: 1{" "}
+                            {
+                              availableConversionUnits?.find(
+                                (u) => u.id.toString() === conversionFromUnit,
+                              )?.label
+                            }{" "}
+                            ={" "}
+                            {1 /
+                              availableConversion.find(
+                                (conv: any) =>
+                                  conv.primary_unit.id.toString() ===
                                   conversionFromUnit &&
-                                conv.secondary_unit.id.toString() ===
+                                  conv.secondary_unit.id.toString() ===
                                   conversionToUnit,
-                            )!.equivalence}{" "}
-                          {primaryUnit?.label}
-                        </span>
-                      )}
+                              )!.equivalence}{" "}
+                            {primaryUnit?.label}
+                          </span>
+                        )}
                     </p>
                   </div>
                 )}
@@ -1073,7 +1070,7 @@ function UnitsModal({
 
 /* ----------------------------- Componente Principal ----------------------------- */
 
-export default function CreateConsumableForm({
+export default function RegisterConsumableForm({
   initialData,
   isEditing,
 }: {
@@ -1216,13 +1213,15 @@ export default function CreateConsumableForm({
     }
   };
 
+  const currentBatch = initialData?.batch ?? initialData?.batches;
+
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       part_number: initialData?.part_number || "",
       alternative_part_number: initialData?.alternative_part_number || [],
-      batch_id: initialData?.batch?.id?.toString() || "",
-      batch_name: initialData?.batch?.name || "",
+      batch_id: currentBatch?.id?.toString() || "",
+      batch_name: currentBatch?.name || "",
       manufacturer_id: initialData?.manufacturer?.id?.toString() || "",
       condition_id: initialData?.condition?.id?.toString() || "",
       description: initialData?.description || "",
@@ -1236,10 +1235,6 @@ export default function CreateConsumableForm({
         : undefined,
       primary_unit_id: initialData?.primary_unit_id || undefined,
       has_documentation: initialData?.has_documentation || false,
-      inspector: initialData?.inspector || "",
-      inspect_date: initialData?.inspect_date
-        ? initialData?.inspect_date
-        : undefined,
       shelf_life: initialData?.consumable?.shelf_life || undefined,
     },
     mode: "onBlur",
@@ -1282,8 +1277,8 @@ export default function CreateConsumableForm({
     const resetValues = {
       part_number: initialData.part_number ?? "",
       alternative_part_number: initialData.alternative_part_number ?? [],
-      batch_id: initialData.batch?.id?.toString() ?? "",
-      batch_name: initialData.batch?.name ?? "",
+      batch_id: currentBatch?.id?.toString() ?? "",
+      batch_name: currentBatch?.name ?? "",
       manufacturer_id: initialData.manufacturer?.id?.toString() ?? "",
       condition_id: initialData.condition?.id?.toString() ?? "",
       description: initialData.description ?? "",
@@ -1298,7 +1293,7 @@ export default function CreateConsumableForm({
       quantity: initialQuantity,
       min_quantity:
         initialData.consumable?.min_quantity !== undefined &&
-        initialData.consumable?.min_quantity !== null
+          initialData.consumable?.min_quantity !== null
           ? Number(initialData.consumable.min_quantity)
           : undefined,
 
@@ -1314,11 +1309,14 @@ export default function CreateConsumableForm({
     setShelfDate(shelfLifeDate);
 
     if (initialData.primary_unit_id) {
-      const unitObj = { id: initialData.primary_unit_id };
+      const unitObj =
+        units?.find((unit) => unit.id === initialData.primary_unit_id) ?? {
+          id: initialData.primary_unit_id,
+        };
       setSelectedPrimaryUnit(unitObj);
       setSecondarySelected(unitObj);
     }
-  }, [initialData, form]); // 👈 quitamos form para evitar renders extra
+  }, [currentBatch, initialData, form, units]); // 👈 quitamos form para evitar renders extra
 
   const calculateAndUpdateQuantity = useCallback(
     (quantity: number | undefined, selectedUnit: any) => {
@@ -1463,7 +1461,7 @@ export default function CreateConsumableForm({
       primary_unit_id?: number;
     } = {
       ...valuesWithoutCaducateDate,
-      status: "CHECKING",
+      status: "INCOMING",
       part_number: normalizeUpper(values.part_number),
       article_type: "consumable",
       alternative_part_number:
@@ -1473,8 +1471,8 @@ export default function CreateConsumableForm({
       inspect_date: inspectDateStr,
       fabrication_date:
         fabricationDate &&
-        fabricationDate !== null &&
-        !isNotApplicableDate(fabricationDate)
+          fabricationDate !== null &&
+          !isNotApplicableDate(fabricationDate)
           ? format(fabricationDate, "yyyy-MM-dd")
           : fabricationDate && isNotApplicableDate(fabricationDate)
             ? "1900-01-01"
@@ -1517,39 +1515,8 @@ export default function CreateConsumableForm({
           className="flex flex-col gap-6 max-w-7xl mx-auto"
           onSubmit={form.handleSubmit(onSubmit)}
         >
-          <SectionCard title="Registrar consumible">
+          <SectionCard title="Registrar Consumible">
             <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
-              <FormField
-                control={form.control}
-                name="inspector"
-                render={({ field }) => (
-                  <FormItem className="w-full">
-                    <FormLabel>
-                      Inspector (Incoming){" "}
-                      <span className="text-xs italic text-gray-500 font-normal ml-1">
-                        (Inspector)
-                      </span>
-                    </FormLabel>
-                    <FormControl>
-                      <Input placeholder="Nombre del Inspector" {...field} />
-                    </FormControl>
-                    <FormMessage className="text-xs" />
-                  </FormItem>
-                )}
-              />
-
-              <FormItem className="w-full">
-                <DatePickerField
-                  label="Fecha de Incoming"
-                  value={inspectDate}
-                  setValue={handleInspectDateChange}
-                  description="Fecha de Incoming"
-                  busy={busy}
-                  shortcuts="forward"
-                  showNotApplicable={true}
-                  required={true}
-                />
-              </FormItem>
               <FormField
                 control={form.control}
                 name="part_number"

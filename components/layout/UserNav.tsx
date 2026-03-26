@@ -35,7 +35,7 @@ export function UserNav() {
               >
                 <Avatar className="h-8 w-8">
                   <AvatarImage src="#" alt="Avatar" />
-                  <AvatarFallback className="bg-transparent">{loading ? <Loader2 className="animate-spin" /> : `${user?.first_name[0]}${user?.last_name[0]}`}</AvatarFallback>
+                  <AvatarFallback className="bg-transparent">{loading ? <Loader2 className="animate-spin" /> : `${user?.first_name}${user?.last_name}`}</AvatarFallback>
                 </Avatar>
               </Button>
             </DropdownMenuTrigger>
