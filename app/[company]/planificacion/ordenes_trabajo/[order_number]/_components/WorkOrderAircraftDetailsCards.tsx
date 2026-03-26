@@ -1,5 +1,5 @@
 "use client"
-import {useState} from "react"
+import {useState, useEffect,useRef} from "react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -19,9 +19,11 @@ import {
   AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
   AlertDialogTrigger
 } from "@/components/ui/alert-dialog"
+import axiosInstance from "@/lib/axios"
+import { toast } from "sonner"
 
-
-const WorkOrderAircraftDetailsCards = ({ work_order }: { work_order: WorkOrder }) => {
+  type HoursMode = "auto" | "manual";
+  const WorkOrderAircraftDetailsCards = ({ work_order }: { work_order: WorkOrder }) => {
   const { selectedCompany } = useCompanyStore()
   const companySlug = selectedCompany?.slug || "hangar74"
 
@@ -30,12 +32,12 @@ const WorkOrderAircraftDetailsCards = ({ work_order }: { work_order: WorkOrder }
   const [manualHours, setManualHours] = useState<string>("")
   const [clientSignature, setClientSignature] = useState<string>("Freddy Guerrero")
   const [reportPagesTotal, setReportPagesTotal] = useState<string>("2")
-  
+  const [closeDialogOpen, setCloseDialogOpen] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false)
   const [isPreviewing, setIsPreviewing] = useState(false)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [previewBlob, setPreviewBlob] = useState<Blob | null>(null)
-
+  const {closeWorkOrder } = useCloseWorkOrder();
   const lastParamsRef = useRef<string>("");
 
   useEffect(() => {
@@ -97,7 +99,9 @@ const WorkOrderAircraftDetailsCards = ({ work_order }: { work_order: WorkOrder }
         setPreviewBlob(blob);
       }
     } catch (error) {
-      toast({ variant: "destructive", title: "Error", description: "No se pudo generar el PDF." });
+      toast.error("Error", {
+        description: "No se pudo generar el PDF.",
+      });
     } finally {
       setIsDownloading(false);
       setIsPreviewing(false);
