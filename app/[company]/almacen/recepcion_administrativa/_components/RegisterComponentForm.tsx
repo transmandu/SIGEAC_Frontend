@@ -97,7 +97,7 @@ type Props = {
   isEditing?: boolean;
 };
 
-export default function CreateComponentForm({ initialData, isEditing }: Props) {
+export default function RegisterComponentForm({ initialData, isEditing }: Props) {
   const router = useRouter();
   const { selectedCompany } = useCompanyStore();
 
@@ -226,7 +226,7 @@ export default function CreateComponentForm({ initialData, isEditing }: Props) {
         {/* Encabezado */}
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-xl">Ingreso administrativo</CardTitle>
+            <CardTitle className="text-xl">Ingresar Componente</CardTitle>
           </CardHeader>
           <CardContent className="grid grid-cols-1 xl:grid-cols-2 gap-4">
             <FormField

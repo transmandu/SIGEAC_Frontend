@@ -257,3 +257,34 @@ export const useCloseSMSActivity = () => {
     closeSMSActivity: closeSMSActivityMutation,
   };
 };
+
+export const useOpenSMSActivity = () => {
+  const queryClient = useQueryClient();
+  const { selectedCompany } = useCompanyStore();
+
+  const openSMSActivityMutation = useMutation({
+    mutationFn: async (id: string) => {
+      // Ajusta esta URL según tu API (ej. /open-sms-activity o similar)
+      const response = await axiosInstance.patch(
+        `/${selectedCompany?.slug}/sms/open-sms-activity/${id}`
+      );
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["sms-activities"] });
+      toast.success("Reabierta", {
+        description: `La actividad se ha vuelto a abrir correctamente.`,
+      });
+    },
+    onError: (error) => {
+      toast.error("Oops!", {
+        description: "No se pudo reabrir la actividad...",
+      });
+      console.log(error);
+    },
+  });
+
+  return {
+    openSMSActivity: openSMSActivityMutation,
+  };
+};

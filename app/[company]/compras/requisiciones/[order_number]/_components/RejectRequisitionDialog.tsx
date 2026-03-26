@@ -17,10 +17,15 @@ import {
 import { ClipboardX, Loader2 } from "lucide-react";
 import { useUpdateRequisitionStatus } from "@/actions/mantenimiento/compras/requisiciones/actions";
 import { useCompanyStore } from "@/stores/CompanyStore";
-import { Requisition } from "@/types";
+
+interface RejectableRequisition {
+  id: number;
+  order_number: string;
+  status: string;
+}
 
 interface Props {
-  req: Requisition;
+  req: RejectableRequisition;
   userRoles: string[];
   userName: string;
 }

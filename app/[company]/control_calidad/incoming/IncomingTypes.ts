@@ -31,7 +31,7 @@ export interface IncomingArticle {
   id: number
   batch: Batch,
   part_number: string
-  alternative_part_number?: string[]
+  alt_part_number?: string[]
   serial: string,
   ata_code: string,
 }

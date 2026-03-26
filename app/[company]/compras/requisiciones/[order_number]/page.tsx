@@ -22,7 +22,7 @@ import { es } from 'date-fns/locale';
 import { CalendarDays, Plane, User } from 'lucide-react';
 import Image from 'next/image';
 import { useParams, useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useState, type ElementType } from 'react';
 import DeleteRequisitionDialog from './_components/DeleteRequisitionDialog';
 import GenerateQuoteDialog from './_components/GenerateQuoteDialog';
 import RejectRequisitionDialog from './_components/RejectRequisitionDialog';
@@ -47,7 +47,7 @@ function MetaItem({
 }: {
   label: string;
   value?: string | null;
-  icon?: React.ElementType;
+  icon?: ElementType;
 }) {
   return (
     <div className="flex flex-col gap-0.5">
@@ -183,8 +183,8 @@ const RequisitionPage = () => {
             value={
               data?.submission_date
                 ? format(new Date(data.submission_date), 'dd MMM yyyy', {
-                    locale: es,
-                  })
+                  locale: es,
+                })
                 : undefined
             }
             icon={CalendarDays}
@@ -316,7 +316,7 @@ const RequisitionPage = () => {
                       )}
                       {a.justification && (
                         <span className="text-[10px] text-muted-foreground/60 italic block">
-                          "{a.justification}"
+                          &quot;{a.justification}&quot;
                         </span>
                       )}
 

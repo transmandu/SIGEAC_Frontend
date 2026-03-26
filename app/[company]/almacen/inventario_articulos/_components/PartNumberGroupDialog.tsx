@@ -22,8 +22,7 @@ import { useDeleteArticle } from "@/actions/mantenimiento/almacen/inventario/art
 import { useAuth } from "@/contexts/AuthContext";
 import { formatCondition } from "@/lib/warehouse/conditions";
 import { useState } from "react";
-import type { IArticleSimple } from "../_tables/warehouse-columns";
-import { getStatusBadge } from "../_tables/warehouse-columns";
+import { getStatusBadge, type IArticleSimple } from "../_tables/warehouse-columns";
 
 type Props = {
   open: boolean;

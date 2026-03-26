@@ -17,7 +17,6 @@ import { useGetVendors } from "@/hooks/general/proveedores/useGetVendors";
 import { useGetLocationsByCompanyId } from "@/hooks/sistema/useGetLocationsByCompanyId";
 import { cn } from "@/lib/utils";
 import { useCompanyStore } from "@/stores/CompanyStore";
-import { Requisition } from "@/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -75,12 +74,31 @@ const FormSchema = z.object({
 
 type FormSchemaType = z.infer<typeof FormSchema>;
 
+export interface QuoteableRequisition {
+  id: number;
+  order_number: string;
+  requested_by: string;
+  justification: string;
+  batch: {
+    batch_articles: {
+      article_part_number: string;
+      article_alt_part_number?: string;
+      quantity: number;
+      unit?: {
+        id: number;
+      } | null;
+    }[];
+  }[];
+}
+
 export function CreateQuoteForm({
   onClose,
   req,
+  initialData: _initialData,
 }: {
   onClose: () => void;
-  req: Requisition;
+  req: QuoteableRequisition;
+  initialData?: unknown;
 }) {
   const { selectedCompany } = useCompanyStore();
   const [openVendor, setOpenVendor] = useState(false);
