@@ -139,28 +139,16 @@ export const generateMinutaPDF = async (activity: any, attendeesCount: number) =
       8
     );
 
-    write(activity.executed_by || "", 182, 220, 10, 200); // REALIZADO POR 
     // 💾 Guardar PDF
     const pdfBytes = await pdfDoc.save();
-
     const uint8Array = new Uint8Array(pdfBytes);
     const blob = new Blob([uint8Array], { type: "application/pdf" });
 
-    const url = URL.createObjectURL(blob);
+    // 👇 CAMBIAMOS ESTO: En lugar de hacer link.click(), devolvemos el blob para que el Modal decida qué hacer.
+    return blob; 
 
-
-    // PREVIEW (para ajustar posiciones)
-    //window.open(url, "_blank");
-
-    // DESCARGA
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `Minuta-${activity.activity_number || "actividad"}.pdf`;
-    link.click();
-
-    URL.revokeObjectURL(url);
   } catch (error) {
     console.error("Error generando PDF:", error);
-    alert("Hubo un problema generando el PDF.");
+    throw error; // Lanzamos el error para que Next.js lo atrape
   }
 };

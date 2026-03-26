@@ -19,6 +19,9 @@ import { addDays, format } from "date-fns";
 import { es } from "date-fns/locale";
 import { generateMinutaPDF } from "@/utils/generateMinutaPDF";
 import { Button } from "@/components/ui/button";
+import { useEffect, useState, useRef } from "react";
+import axiosInstance from "@/lib/axios";
+import { cn } from "@/lib/utils";
 import {
   AlertCircle,
   AlertTriangle,
@@ -37,15 +40,17 @@ import {
   UserCheck,
   Info,
   ClipboardList,
+  Printer,
+  Eye,
 } from "lucide-react";
 import { useParams } from "next/navigation";
 import Image from "next/image";
-
 
 const ShowSMSActivity = () => {
   const { selectedCompany } = useCompanyStore();
   const { activity_id } = useParams<{ activity_id: string }>();
 
+  // 1. Primero las peticiones a la Base de Datos (Tus queries)
   const {
     data: activity,
     isLoading: isActivityLoading,
@@ -70,18 +75,84 @@ const ShowSMSActivity = () => {
     isError: isAttendanceStatsError,
   } = useGetSMSActivityAttendanceStats(activity_id);
 
+  // 2. 🏁 JUSTO AQUÍ VAN TUS ESTADOS PARA EL PDF 🏁
+  const [printOpen, setPrintOpen] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
+  const [isPreviewing, setIsPreviewing] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [previewBlob, setPreviewBlob] = useState<Blob | null>(null);
+
+  const lastParamsRef = useRef<string>("");
+
+  // Liberar memoria del navegador al cerrar o cambiar el PDF
+  useEffect(() => {
+    return () => {
+      if (previewUrl) window.URL.revokeObjectURL(previewUrl);
+    };
+  }, [previewUrl]);
+
+  // 3. Preparación de datos para gráficos
   const PieChartData = AttendanceStats
     ? [
-        {
-          name: "Asistentes",
-          value: AttendanceStats.attended,
-        },
-        {
-          name: "Inasistentes",
-          value: AttendanceStats.not_attended,
-        },
+        { name: "Asistentes", value: AttendanceStats.attended },
+        { name: "Inasistentes", value: AttendanceStats.not_attended },
       ]
     : [];
+
+    const handleAction = async (mode: 'download' | 'preview') => {
+    // 🛡️ Guarda de seguridad: Si activity no ha cargado de la base de datos, frena aquí.
+    if (!activity) return;
+
+    const isDownload = mode === 'download';
+
+    // 🛡️ Sistema de Caché Local: Si ya generamos el PDF antes, no lo vuelvas a procesar
+    if (previewUrl && previewBlob) {
+      if (isDownload) {
+        const url = window.URL.createObjectURL(previewBlob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `Minuta-${activity.activity_number || "actividad"}.pdf`;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.URL.revokeObjectURL(url);
+        setPrintOpen(false);
+        return;
+      } else if (mode === 'preview') {
+        return; // Ya está en pantalla
+      }
+    }
+
+    isDownload ? setIsDownloading(true) : setIsPreviewing(true);
+
+    try {
+      // 📝 Llamamos a tu generador (ahora nos devuelve el blob)
+      const blob = await generateMinutaPDF(activity, attendedList?.length || 0);
+      const url = window.URL.createObjectURL(blob);
+
+      if (isDownload) {
+        // Disparar la descarga normal
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `Minuta-${activity.activity_number || "actividad"}.pdf`;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.URL.revokeObjectURL(url);
+        setPrintOpen(false); // Cierra el modal
+      } else {
+        // Guardar en estados para que el <iframe> lo lea
+        if (previewUrl) window.URL.revokeObjectURL(previewUrl); // Liberar memoria vieja
+        setPreviewUrl(url);
+        setPreviewBlob(blob);
+      }
+    } catch (error) {
+      console.error("Error al gestionar la minuta:", error);
+    } finally {
+      setIsDownloading(false);
+      setIsPreviewing(false);
+    }
+  };
 
   return (
     <ContentLayout title="Actividad de SMS">
@@ -642,18 +713,95 @@ const ShowSMSActivity = () => {
           </Tabs>
         )}
 
-        {/* 🔽 Botón Descargar Minuta al FINAL */}
+       {/* 🔽 Modal de Vista Previa y Descarga de Minuta al FINAL */}
         {activity && (
           <div className="mt-10 flex justify-center">
-            <Button
-              size="lg"
-              className="px-10"
-              onClick={() =>
-                generateMinutaPDF(activity, attendedList?.length || 0)
-              }
+            <Dialog 
+              open={printOpen} 
+              onOpenChange={(val) => { 
+                setPrintOpen(val); 
+                if(!val) { 
+                  setPreviewUrl(null); 
+                  setPreviewBlob(null); 
+                  lastParamsRef.current = ""; 
+                } 
+              }}
             >
-              Descargar Minuta PDF
-            </Button>
+              <DialogTrigger asChild>
+                <Button size="lg" className="px-10 gap-2 font-semibold">
+                  <ClipboardList className="size-5" /> Gestionar Minuta PDF
+                </Button>
+              </DialogTrigger>
+
+              <DialogContent
+                className={cn(
+                  "transition-all duration-300 ease-in-out p-6 overflow-y-auto [&>button]:right-2 [&>button]:top-2 bg-background text-foreground border-border",
+                  previewUrl ? "max-w-[98vw] w-[98vw] h-[96vh]" : "max-w-md"
+                )}
+              >
+                <div className={cn("flex gap-6 h-full", previewUrl ? "flex-col lg:flex-row" : "flex-col")}>
+                  
+                  {/* PANEL DE CONTROL IZQUIERDO PULIDO 🧼 */}
+                  <div className={cn(
+                    "flex flex-col justify-start h-full gap-5", // 👈 Cambiamos a justify-start y h-full
+                    previewUrl ? "w-full lg:w-[320px] lg:border-r border-border lg:pr-6" : "w-full"
+                  )}>
+                    
+                    {/* 1. Título bien pegado al tope */}
+                    <h2 className="font-bold text-2xl tracking-tight text-foreground text-center lg:text-left mt-2">
+                      Minuta de Actividad
+                    </h2>
+                    
+                    <hr className="border-border" /> {/* Separador visual sutil */}
+
+                    {/* 2. Sección de botones (Automáticamente se pegan arriba) */}
+                    <div className="flex flex-col gap-3">
+                      {!previewUrl && (
+                        <Button
+                          variant="outline"
+                          onClick={() => handleAction('preview')}
+                          disabled={isPreviewing}
+                          className="h-11 border-primary text-primary hover:bg-primary hover:text-primary-foreground transition-all font-semibold"
+                        >
+                          {isPreviewing ? <Loader2 className="animate-spin size-4 mr-2" /> : <Eye className="size-4 mr-2" />}
+                          Ver Vista Previa
+                        </Button>
+                      )}
+                      
+                      <Button
+                        onClick={() => handleAction('download')}
+                        disabled={isDownloading}
+                        className="h-11 bg-blue-600 text-white hover:bg-blue-700 shadow-lg font-bold transition-all active:scale-[0.98]"
+                      >
+                        {isDownloading ? <Loader2 className="animate-spin size-4 mr-2" /> : <Printer className="size-4 mr-2" />}
+                        {previewUrl ? "Descargar PDF" : "Generar y Descargar"}
+                      </Button>
+
+                      {previewUrl && (
+                        <Button
+                          variant="outline"
+                          className="h-11 border-input text-muted-foreground hover:bg-accent hover:text-foreground transition-all font-semibold"
+                          onClick={() => { setPreviewUrl(null); setPreviewBlob(null); lastParamsRef.current = ""; }}
+                        >
+                          Cerrar
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* VISOR PDF DERECHO */}
+                  {previewUrl && (
+                    <div className="relative border border-border rounded-xl bg-muted/30 overflow-hidden shadow-2xl w-full h-[60vh] lg:h-full">
+                      <iframe
+                        src={`${previewUrl}#view=FitH&navpanes=0`}
+                        className="w-full h-full border-none"
+                        title="Preview"
+                      />
+                    </div>
+                  )}
+                </div>
+              </DialogContent>
+            </Dialog>
           </div>
         )}
 
