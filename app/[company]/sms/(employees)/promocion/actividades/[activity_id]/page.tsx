@@ -491,7 +491,7 @@ const ShowSMSActivity = () => {
                     Empleados Inscritos
                   </h2>
                   <Badge className="bg-blue-200 text-blue-800 dark:bg-blue-800 dark:text-blue-200">
-                    {attendedList?.length || 0} participantes
+                    {attendedList?.length || 0} participante
                   </Badge>
                 </div>
 
