@@ -175,7 +175,7 @@ export function PdfPreviewDialog({
                 </div>
               )}
               {previewUrl && (
-                <iframe src={`${previewUrl}#view=FitH&navpanes=0`} className="w-full h-full border-none" title="Preview" />
+                <iframe src={`${previewUrl}#zoom=125&navpanes=0`} className="w-full h-full border-none" title="Preview" />
               )}
             </div>
           </div>
@@ -242,7 +242,7 @@ export function PdfPreviewDialog({
             {/* VISOR PDF */}
             {previewUrl && (
               <div className="relative border border-border rounded-xl bg-muted/30 overflow-hidden shadow-2xl w-full h-[60vh] lg:h-full">
-                <iframe src={`${previewUrl}#view=FitH&navpanes=0`} className="w-full h-full border-none" title="Preview" />
+                <iframe src={`${previewUrl}#zoom=100&navpanes=0`} className="w-full h-full border-none" title="Preview" />
               </div>
             )}
           </div>

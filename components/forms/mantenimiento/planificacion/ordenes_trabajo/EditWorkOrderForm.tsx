@@ -111,6 +111,9 @@ const EditWorkOrderForm = ({ work_order, onClose }: EditWorkOrderFormProps) => {
   // ─── Estado para el AlertDialog de confirmación de borrado ───────────────
   const [taskToDelete, setTaskToDelete] = useState<EditableTask | null>(null);
 
+  // ─── Estado para auto-upload de documento ───────────────────────────────
+  const [isUploading, setIsUploading] = useState(false);
+
   // ─── Form con valores pre-llenados ──────────────────────────────────────
   const form = useForm<EditWorkOrderFormValues>({
     resolver: zodResolver(editWorkOrderSchema),
@@ -172,6 +175,39 @@ const EditWorkOrderForm = ({ work_order, onClose }: EditWorkOrderFormProps) => {
       console.error("[EditWorkOrderForm] Error al eliminar tarea:", error);
     } finally {
       setTaskToDelete(null);
+    }
+  };
+
+  // ─── Auto-upload del documento ──────────────────────────────────────────
+  const handleAutoUpload = async (file: File) => {
+    if (!selectedCompany) return;
+
+    // Validaciones básicas rápidas (coincidentes con el schema)
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error("El archivo excede los 10MB permitidos.");
+      return;
+    }
+    if (file.type !== "application/pdf") {
+      toast.error("Solo se permiten archivos PDF.");
+      return;
+    }
+
+    setIsUploading(true);
+    try {
+      await updateWorkOrder.mutateAsync({
+        id: work_order.id,
+        company: selectedCompany.slug,
+        data: {
+          ...form.getValues(),
+          date: format(form.getValues().date, "yyyy-MM-dd"),
+          document: file,
+        },
+      });
+      // El toast de éxito ya lo maneja el hook useUpdateWorkOrder
+    } catch (error) {
+      console.error("[EditWorkOrderForm] Error en auto-upload:", error);
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -247,7 +283,8 @@ const EditWorkOrderForm = ({ work_order, onClose }: EditWorkOrderFormProps) => {
   const isPending =
     updateWorkOrder.isPending ||
     updateWorkOrderTask.isPending ||
-    addWorkOrderTask.isPending;
+    addWorkOrderTask.isPending ||
+    isUploading;
 
   // ─── Render ──────────────────────────────────────────────────────────────
   return (
@@ -437,15 +474,32 @@ const EditWorkOrderForm = ({ work_order, onClose }: EditWorkOrderFormProps) => {
                     )}
                     {/* Muestra si ya había un documento guardado */}
                     {!field.value && work_order.document && (
-                      <p className="text-xs text-green-600">Ya tiene un documento cargado</p>
+                      <p className="text-xs text-green-600 flex items-center gap-1">
+                        <span className="h-2 w-2 rounded-full bg-green-500" />
+                        Ya tiene un documento cargado
+                      </p>
                     )}
                     <FormControl>
-                      <Input
-                        type="file"
-                        accept="application/pdf"
-                        disabled={isClosed}
-                        onChange={(e) => field.onChange(e.target.files?.[0])}
-                      />
+                      <div className="relative flex-1">
+                        <Input
+                          type="file"
+                          accept="application/pdf"
+                          disabled={isClosed || isUploading}
+                          className={cn(isUploading && "opacity-50")}
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              field.onChange(file);
+                              handleAutoUpload(file);
+                            }
+                          }}
+                        />
+                        {isUploading && (
+                          <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                            <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                          </div>
+                        )}
+                      </div>
                     </FormControl>
                   </div>
                   <FormMessage />

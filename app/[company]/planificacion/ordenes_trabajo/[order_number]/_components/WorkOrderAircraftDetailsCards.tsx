@@ -11,8 +11,11 @@ import { es } from "date-fns/locale"
 import { Lock } from "lucide-react"
 import Link from "next/link"
 import { useCompanyStore } from "@/stores/CompanyStore"
-import { useCloseWorkOrder } from "@/actions/mantenimiento/planificacion/ordenes_trabajo/actions";
+import { useCloseWorkOrder, useUpdateWorkOrder } from "@/actions/mantenimiento/planificacion/ordenes_trabajo/actions";
 import { PdfPreviewDialog } from "@/components/dialogs/aerolinea/administracion/PdfPreviewDialog"
+import { Input } from "@/components/ui/input"
+import { Loader2, Upload } from "lucide-react"
+import { cn } from "@/lib/utils"
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel,
   AlertDialogContent, AlertDialogDescription,
@@ -38,6 +41,8 @@ import { toast } from "sonner"
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [previewBlob, setPreviewBlob] = useState<Blob | null>(null)
   const {closeWorkOrder } = useCloseWorkOrder();
+  const { updateWorkOrder } = useUpdateWorkOrder();
+  const [isUploading, setIsUploading] = useState(false);
   const lastParamsRef = useRef<string>("");
 
   useEffect(() => {
@@ -108,6 +113,40 @@ import { toast } from "sonner"
     }
   };
 
+  const handleAutoUpload = async (file: File) => {
+    if (!selectedCompany) return;
+
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error("El archivo excede los 10MB permitidos.");
+      return;
+    }
+    if (file.type !== "application/pdf") {
+      toast.error("Solo se permiten archivos PDF.");
+      return;
+    }
+
+    setIsUploading(true);
+    try {
+      await updateWorkOrder.mutateAsync({
+        id: work_order.id,
+        company: companySlug,
+        data: {
+          document: file,
+          // Enviamos datos básicos para asegurar consistencia
+          description: work_order.description,
+          elaborated_by: work_order.elaborated_by,
+          reviewed_by: work_order.reviewed_by,
+          approved_by: work_order.approved_by,
+          date: work_order.date,
+        },
+      });
+    } catch (error) {
+      console.error("[WorkOrderAircraftDetailsCards] Error en auto-upload:", error);
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
   return (
     <div className="flex gap-4 justify-center w-full">
       <Card className="w-1/2 border-border bg-card text-card-foreground">
@@ -129,7 +168,34 @@ import { toast } from "sonner"
             endpoint={`/${companySlug}/work-orders/${work_order.order_number}/package`}
           /> 
 
-         <div className = "flex gap-4">
+          <div className="w-full max-w-xs space-y-2">
+            <div className="flex items-center justify-center gap-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+              <Upload className="size-3" />
+              {work_order.document ? "Actualizar Documento" : "Cargar Documento"}
+            </div>
+            <div className="relative">
+              <Input
+                type="file"
+                accept="application/pdf"
+                disabled={work_order.status === "CERRADO" || isUploading}
+                className={cn(
+                  "h-9 text-xs cursor-pointer bg-muted/50 hover:bg-muted transition-colors",
+                  isUploading && "opacity-50 cursor-not-allowed"
+                )}
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) handleAutoUpload(file);
+                }}
+              />
+              {isUploading && (
+                <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                  <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className = "flex flex-wrap gap-4 justify-center">
             {work_order.document && (
                 <PdfPreviewDialog
                   showConfig={false}
@@ -177,7 +243,7 @@ import { toast } from "sonner"
               </AlertDialogContent>
             </AlertDialog>
           )}
-         </div>
+          </div>
           
 
         </CardFooter>
