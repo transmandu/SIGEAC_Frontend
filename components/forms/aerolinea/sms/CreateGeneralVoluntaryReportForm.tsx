@@ -162,7 +162,7 @@ export function CreateGeneralVoluntaryReportForm({
         resolver: zodResolver(FormSchema),
         defaultValues: {
             danger_area: initialData?.danger_area || "",
-            location_id: initialData?.location?.address || "",
+            location_id: initialData?.location?.id.toString() || "",
             description: initialData?.description || "",
             possible_consequences: initialData?.possible_consequences || "",
             airport_location: initialData?.airport_location || "",
@@ -352,50 +352,42 @@ export function CreateGeneralVoluntaryReportForm({
                 </div>
 
                 <div className="flex gap-2 items-center justify-center">
-                    {isOmacLoading ? (
-                        <div className="flex items-center gap-2 p-4 border rounded-md bg-muted/50 animate-pulse">
-                            <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-                            <span className="text-sm text-muted-foreground">Verificando configuración de empresa...</span>
-                        </div>
-                    ) : (
-                        { isOmac === false && <FormField
-                            control={form.control}
-                            name="location_id"
-                            render={({ field }) => (
-                                <FormItem className="w-full">
-                                    <FormLabel>Base de Localización</FormLabel>
-                                    {isLoadingLocations ? (
-                                        <div className="flex items-center gap-2 p-2 border rounded-md bg-muted">
-                                            <Loader2 className="h-4 w-4 animate-spin " />
-                                            <span className="text-sm">Cargando locaciones...</span>
-                                        </div>
-                                    ) : (
-                                        <Select
-                                            onValueChange={field.onChange}
-                                            defaultValue={field.value}
-                                            disabled={isLoadingLocations} // Deshabilitar durante carga
-                                        >
-                                            <FormControl>
-                                                <SelectTrigger>
-                                                    <SelectValue placeholder="Seleccionar Base" />
-                                                </SelectTrigger>
-                                            </FormControl>
-                                            <SelectContent>
-                                                {locations?.map((location) => (
-                                                    <SelectItem key={location.id} value={location.id.toString()}>
-                                                        {location.address}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                    )}
+                    <FormField
+                        control={form.control}
+                        name="location_id"
+                        render={({ field }) => (
+                            <FormItem className="w-full">
+                                <FormLabel>Base de Localización</FormLabel>
+                                {isLoadingLocations ? (
+                                    <div className="flex items-center gap-2 p-2 border rounded-md bg-muted">
+                                        <Loader2 className="h-4 w-4 animate-spin " />
+                                        <span className="text-sm">Cargando locaciones...</span>
+                                    </div>
+                                ) : (
+                                    <Select
+                                        onValueChange={field.onChange}
+                                        defaultValue={field.value}
+                                        disabled={isLoadingLocations} // Deshabilitar durante carga
+                                    >
+                                        <FormControl>
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Seleccionar Base" />
+                                            </SelectTrigger>
+                                        </FormControl>
+                                        <SelectContent>
+                                            {locations?.map((location) => (
+                                                <SelectItem key={location.id} value={location.id.toString()}>
+                                                    {location.address}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                )}
 
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                    )
-                    }
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
                     <FormField
                         control={form.control}
                         name="danger_area"
@@ -430,36 +422,43 @@ export function CreateGeneralVoluntaryReportForm({
                     />
                 </div>
 
-                <FormField
-                    control={form.control}
-                    name="airport_location"
-                    render={({ field }) => (
-                        <FormItem className="w-full">
-                            <FormLabel>Lugar de Identificacion</FormLabel>
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                <FormControl>
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Seleccionar" />
-                                    </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                    <SelectItem value="CALLE_RODAJE">CALLE DE RODAJE</SelectItem>
-                                    <SelectItem value="HANGAR13B">HANGAR13B</SelectItem>
-                                    <SelectItem value="HANGAR17/18C">HANGAR17/18 C</SelectItem>
-                                    <SelectItem value="AEROPUERTO_CANAIMA">
-                                        AEROPUERTO CANAIMA
-                                    </SelectItem>
-                                    <SelectItem value="PLATAFORMA">PLATAFORMA</SelectItem>
-                                    <SelectItem value="PISTA_ATERRIZAJE">
-                                        PISTA DE ATERRIZAJE
-                                    </SelectItem>
-                                </SelectContent>
-                            </Select>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
-
+                {isOmacLoading ? (
+                    <div className="flex items-center gap-2 p-4 border rounded-md bg-muted/50 animate-pulse">
+                        <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                        <span className="text-xs text-muted-foreground">Verificando empresa...</span>
+                    </div>
+                ) : (
+                    isOmac === false && <FormField
+                        control={form.control}
+                        name="airport_location"
+                        render={({ field }) => (
+                            <FormItem className="w-full">
+                                <FormLabel>Lugar de Identificacion</FormLabel>
+                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                    <FormControl>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Seleccionar" />
+                                        </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                        <SelectItem value="CALLE_RODAJE">CALLE DE RODAJE</SelectItem>
+                                        <SelectItem value="HANGAR13B">HANGAR13B</SelectItem>
+                                        <SelectItem value="HANGAR17/18C">HANGAR17/18 C</SelectItem>
+                                        <SelectItem value="AEROPUERTO_CANAIMA">
+                                            AEROPUERTO CANAIMA
+                                        </SelectItem>
+                                        <SelectItem value="PLATAFORMA">PLATAFORMA</SelectItem>
+                                        <SelectItem value="PISTA_ATERRIZAJE">
+                                            PISTA DE ATERRIZAJE
+                                        </SelectItem>
+                                    </SelectContent>
+                                </Select>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                )
+                }
                 <FormField
                     control={form.control}
                     name="description"
