@@ -11,25 +11,15 @@ import '@react-pdf-viewer/default-layout/lib/styles/index.css';
 
 import libraryService from '@/lib/libraryService';
 
-export default function DocumentViewer({ company, documentId, isOpen, onClose }: any) {
+// 🔥 Añadimos isVersionHistory a las props con un valor por defecto false
+export default function SecureViewer({ company, documentId, isOpen, onClose, isVersionHistory = false }: any) {
   const [fileUrl, setFileUrl] = useState<string | null>(null);
   const [currentTheme, setCurrentTheme] = useState<'light' | 'dark'>('dark');
-  const activeUrlRef = useRef<string | null>(null); // Ref para limpieza agresiva de RAM
+  const activeUrlRef = useRef<string | null>(null);
 
-  // ========================================================================
-  // 🧪 MODO PRUEBA JURADO (ESTADOS)
-  // ========================================================================
-  //const [loading, setLoading] = useState(false); 
-  //const [error, setError] = useState<string | null>(
-  //  "No pudimos establecer una conexión segura para cargar este documento. Es posible que el archivo no esté disponible."
-  //);
-
-  // --- LÓGICA REAL (DESCOMENTAR AL FINALIZAR) ---
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-
-  // --- DETECCIÓN DE TEMA ---
   useEffect(() => {
     const updateTheme = () => {
       const isDark = document.documentElement.classList.contains('dark');
@@ -41,12 +31,9 @@ export default function DocumentViewer({ company, documentId, isOpen, onClose }:
     return () => observer.disconnect();
   }, []);
 
-  // --- BLOQUEO DE SEGURIDAD (TECLADO Y COPIADO) ---
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       const isControl = e.ctrlKey || e.metaKey;
-      
-      // Bloqueo de teclas de sistema + Bloqueo de 'C' (Copiar)
       const forbiddenKeys = ['s', 'p', 'u', 'c'];
       if (isControl && forbiddenKeys.includes(e.key.toLowerCase())) {
         e.preventDefault();
@@ -54,9 +41,7 @@ export default function DocumentViewer({ company, documentId, isOpen, onClose }:
     };
 
     const handleCopy = (e: ClipboardEvent) => {
-      // Bloquea cualquier intento de copiar al portapapeles
       e.preventDefault();
-      // Opcional: podrías disparar una alerta de "Contenido Protegido"
     };
 
     if (isOpen) {
@@ -94,16 +79,15 @@ export default function DocumentViewer({ company, documentId, isOpen, onClose }:
     ),
   });
 
-  // --- FUNCIÓN DE CARGA ---
   const loadFile = async () => {
     if (!isOpen || !documentId) return;
     
     setLoading(true);
     setError(null);
     try {
-      const url = await libraryService.getFileBlob(company, documentId);
+      // 🔥 Pasamos isVersionHistory como tercer parámetro al Service
+      const url = await libraryService.getFileBlob(company, documentId, isVersionHistory);
       
-      // Limpieza preventiva si el usuario salta de un manual a otro
       if (activeUrlRef.current) {
         URL.revokeObjectURL(activeUrlRef.current);
       }
@@ -117,15 +101,14 @@ export default function DocumentViewer({ company, documentId, isOpen, onClose }:
     }
   };
 
-  // --- EFECTO DE CARGA Y LIMPIEZA AGRESIVA ---
   useEffect(() => {
     if (isOpen && documentId) {
-       loadFile(); // ⚠️ MODO PRUEBA (Descomentar en producción)
+       loadFile();
     }
     
     return () => {
       if (activeUrlRef.current) {
-        URL.revokeObjectURL(activeUrlRef.current); // Libera la RAM inmediatamente
+        URL.revokeObjectURL(activeUrlRef.current);
         activeUrlRef.current = null;
         setFileUrl(null);
       }

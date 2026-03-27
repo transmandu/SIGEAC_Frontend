@@ -44,6 +44,11 @@ export default function UploadModal({ company, isOpen, onClose, onSuccess }: any
     expiration_date: '',
   });
 
+  const isSmsDepartment = (deptName: string) => {
+    const normalized = deptName.toLowerCase().trim();
+    return normalized === 'sms' || normalized.includes('seguridad operacional');
+  };
+
   useEffect(() => {
     if (isOpen && company) {
       const fetchData = async () => {
@@ -66,20 +71,20 @@ export default function UploadModal({ company, isOpen, onClose, onSuccess }: any
   }, [isOpen, company]);
 
   useEffect(() => {
-    if (formData.department_id !== "9") {
+    if (!isSmsDepartment(formData.department_name)) {
       setSmsPillar('');
       setSmsSubPoint('');
     }
-  }, [formData.department_id]);
+  }, [formData.department_name]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!file || !formData.category_id || !formData.department_id) {
-        return alert("Error: Por favor completa todos los campos obligatorios.");
+      return alert("Error: Por favor completa todos los campos obligatorios.");
     }
 
     if (formData.category_id === 'otro' && !newCategoryName.trim()) {
-        return alert("Por favor escribe el nombre de la nueva categoría.");
+      return alert("Por favor escribe el nombre de la nueva categoría.");
     }
 
     setLoading(true);
@@ -89,17 +94,16 @@ export default function UploadModal({ company, isOpen, onClose, onSuccess }: any
     data.append('category_id', formData.category_id);
     data.append('department_id', formData.department_id);
     data.append('department_name', formData.department_name);
-    
+
     if (formData.category_id === 'otro') {
-        data.append('new_category_name', newCategoryName);
+      data.append('new_category_name', newCategoryName);
     }
 
-    if (formData.department_id === "9") {
+    if (isSmsDepartment(formData.department_name)) {
       data.append('sms_pillar', smsPillar);
       data.append('sms_sub_point', smsSubPoint);
     }
 
-    // 🔥 CAMBIO AQUÍ: Enviamos el valor de requires_expiry explícitamente a Laravel
     if (hasExpiry && formData.expiration_date) {
       data.append('requires_expiry', '1');
       data.append('expiration_date', formData.expiration_date);
@@ -124,7 +128,7 @@ export default function UploadModal({ company, isOpen, onClose, onSuccess }: any
     setSmsPillar('');
     setSmsSubPoint('');
     setNewCategoryName('');
-    setHasExpiry(false); // Reseteamos también el estado del botón
+    setHasExpiry(false);
     onClose();
   };
 
@@ -220,15 +224,15 @@ export default function UploadModal({ company, isOpen, onClose, onSuccess }: any
             </div>
           )}
 
-          <div className={`transition-all duration-500 ease-in-out overflow-hidden ${formData.department_id === "9" ? 'max-h-40 opacity-100 translate-y-0' : 'max-h-0 opacity-0 -translate-y-4'}`}>
-             <div className="grid grid-cols-2 gap-4 p-4 bg-blue-50/50 dark:bg-blue-900/10 rounded-2xl border border-blue-100 dark:border-blue-900/20">
+          <div className={`transition-all duration-500 ease-in-out overflow-hidden ${isSmsDepartment(formData.department_name) ? 'max-h-40 opacity-100 translate-y-0' : 'max-h-0 opacity-0 -translate-y-4'}`}>
+              <div className="grid grid-cols-2 gap-4 p-4 bg-blue-50/50 dark:bg-blue-900/10 rounded-2xl border border-blue-100 dark:border-blue-900/20">
               <div className="space-y-1.5 col-span-1">
                 <label className="text-[10px] font-bold uppercase text-blue-600 dark:text-blue-400 flex items-center gap-2">
                   <Layers className="h-3 w-3" /> Fase SMS
                 </label>
                 <div className="relative">
                   <select 
-                    required={formData.department_id === "9"}
+                    required={isSmsDepartment(formData.department_name)}
                     className="w-full h-10 pl-3 pr-8 border border-blue-200 dark:border-blue-900/40 rounded-lg bg-white dark:bg-gray-800 text-xs text-gray-800 dark:text-white outline-none focus:ring-2 focus:ring-blue-500 appearance-none"
                     value={smsPillar}
                     onChange={(e) => { setSmsPillar(e.target.value); setSmsSubPoint(''); }}
@@ -248,7 +252,7 @@ export default function UploadModal({ company, isOpen, onClose, onSuccess }: any
                 </label>
                 <div className="relative">
                   <select 
-                    required={formData.department_id === "9"}
+                    required={isSmsDepartment(formData.department_name)}
                     disabled={!smsPillar}
                     className="w-full h-10 pl-3 pr-8 border border-blue-200 dark:border-blue-900/40 rounded-lg bg-white dark:bg-gray-800 text-xs text-gray-800 dark:text-white outline-none focus:ring-2 focus:ring-blue-500 appearance-none disabled:opacity-50"
                     value={smsSubPoint}
@@ -270,15 +274,38 @@ export default function UploadModal({ company, isOpen, onClose, onSuccess }: any
               <Calendar className="h-3.5 w-3.5 text-blue-500" /> Vigencia
             </label>
             <div className="grid grid-cols-2 gap-2 p-1 bg-gray-100 dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
-              <button type="button" className={`py-2 text-[10px] font-black rounded-lg transition-all ${!hasExpiry ? 'bg-white dark:bg-gray-700 shadow-sm text-blue-600 dark:text-blue-400' : 'text-gray-400'}`} onClick={() => setHasExpiry(false)}>PERMANENTE</button>
-              <button type="button" className={`py-2 text-[10px] font-black rounded-lg transition-all ${hasExpiry ? 'bg-white dark:bg-gray-700 shadow-sm text-blue-600 dark:text-blue-400' : 'text-gray-400'}`} onClick={() => setHasExpiry(true)}>CON VENCIMIENTO</button>
+              <button 
+                type="button" 
+                className={`py-2 text-[10px] font-black rounded-lg transition-all ${!hasExpiry ? 'bg-white dark:bg-gray-700 shadow-sm text-blue-600 dark:text-blue-400' : 'text-gray-400'}`} 
+                onClick={() => {
+                  setHasExpiry(false);
+                  setFormData({...formData, expiration_date: ''});
+                }}
+              >
+                PERMANENTE
+              </button>
+              <button 
+                type="button" 
+                className={`py-2 text-[10px] font-black rounded-lg transition-all ${hasExpiry ? 'bg-white dark:bg-gray-700 shadow-sm text-blue-600 dark:text-blue-400' : 'text-gray-400'}`} 
+                onClick={() => setHasExpiry(true)}
+              >
+                CON VENCIMIENTO
+              </button>
             </div>
           </div>
 
           <div className={`transition-all duration-500 overflow-hidden ${hasExpiry ? 'max-h-24 opacity-100' : 'max-h-0 opacity-0'}`}>
             <div className="space-y-1.5 pt-1 text-left">
-              <label className="text-[11px] font-bold uppercase text-blue-600 dark:text-blue-400 flex items-center gap-2"><Calendar className="h-3.5 w-3.5" /> Fecha de Expiración</label>
-              <input type="date" required={hasExpiry} className="w-full h-11 px-4 border border-blue-200 dark:border-blue-900/40 rounded-xl outline-none bg-blue-50/30 dark:bg-blue-900/10 text-gray-800 dark:text-white" onChange={(e) => setFormData({...formData, expiration_date: e.target.value})} />
+              <label className="text-[11px] font-bold uppercase text-blue-600 dark:text-blue-400 flex items-center gap-2">
+                <Calendar className="h-3.5 w-3.5" /> Fecha de Expiración
+              </label>
+              <input 
+                type="date" 
+                required={hasExpiry} 
+                className="w-full h-11 px-4 border border-blue-200 dark:border-blue-900/40 rounded-xl outline-none bg-blue-50/30 dark:bg-blue-900/10 text-gray-800 dark:text-white text-sm focus:ring-2 focus:ring-blue-500" 
+                value={formData.expiration_date}
+                onChange={(e) => setFormData({...formData, expiration_date: e.target.value})} 
+              />
             </div>
           </div>
 

@@ -1,5 +1,6 @@
 'use client';
 
+import { useMemo } from 'react'; // 🔥 Importamos useMemo para optimizar cálculos
 import { FileText, Clock, AlertCircle, ExternalLink } from 'lucide-react';
 import { LibraryDropdownActions } from "@/components/dropdowns/general/LibraryDropdownActions";
 
@@ -26,13 +27,18 @@ const getStatusDetails = (status: string, expirationDate: string) => {
 
 export default function DocumentRow({ doc, onView, columnVisibility, isSubItem, onDelete, canManage }: any) {
   
-  // 🔥 VALIDACIÓN: Si trae versiones, tomamos la más reciente (v.0 es la última por el backend)
-  const latestVersion = doc?.versions && doc.versions.length > 0 ? doc.versions[0] : null;
+  // 🔍 1. Encontramos la versión más reciente
+  const latestVersion = useMemo(() => {
+    return doc?.versions && doc.versions.length > 0 ? doc.versions[0] : null;
+  }, [doc?.versions]);
 
-  // Si hay versión nueva, usamos sus datos de archivo. Si no, los datos del documento padre.
   const activeFilePath = latestVersion ? latestVersion.file_path : doc?.document;
-  const activeFileType = latestVersion ? activeFilePath.split('.').pop() : doc?.file_type;
+  const activeFileType = activeFilePath ? activeFilePath.split('.').pop() : doc?.file_type;
   
+  // 🔥 NUEVA LÓGICA: Jalamos el vencimiento y estado del hijo (la versión), no del padre
+  const activeExpirationDate = latestVersion ? latestVersion.expiration_date : null;
+  const activeExpiryStatus = latestVersion ? latestVersion.expiry_status : 'no_aplica';
+
   const getFileDetails = (type: any, title: any) => {
     const t = String(type || "").toLowerCase();
     const name = String(title || "").toLowerCase();
@@ -44,12 +50,13 @@ export default function DocumentRow({ doc, onView, columnVisibility, isSubItem, 
 
   const fileDetails = getFileDetails(activeFileType, doc?.title);
   
-  // El backend actualiza la fecha de expiración del doc padre, así que la usamos directamente
-  const statusInfo = getStatusDetails(doc?.expiry_status || doc?.status, doc?.expiration_date);
+  // 🔥 Le pasamos la fecha de la versión activa a la función del estatus
+  const statusInfo = getStatusDetails(activeExpiryStatus, activeExpirationDate);
 
+  // 🗓️ Formateamos la fecha de la versión activa
   let displayExpirationDate = 'Permanente';
-  if (doc?.expiration_date) {
-    const datePart = String(doc.expiration_date).substring(0, 10);
+  if (activeExpirationDate) {
+    const datePart = String(activeExpirationDate).substring(0, 10);
     const [year, month, day] = datePart.split('-');
     displayExpirationDate = `${day}-${month}-${year}`;
   }
@@ -68,7 +75,6 @@ export default function DocumentRow({ doc, onView, columnVisibility, isSubItem, 
             <div className="flex items-center gap-2">
               <h4 className="text-[12px] font-semibold text-slate-900 dark:text-gray-100 truncate uppercase">
                 {doc.title || "Sin título"}
-                {/* 🏷️ Mostramos visualmente el número de la versión más actual al lado del título */}
                 {latestVersion && (
                   <span className="ml-2 text-[9px] font-bold text-slate-400 dark:text-gray-500 bg-slate-100 dark:bg-gray-800 px-1.5 py-0.5 rounded tracking-wider border border-slate-200 dark:border-gray-700">
                     {latestVersion.version_number}
@@ -103,7 +109,6 @@ export default function DocumentRow({ doc, onView, columnVisibility, isSubItem, 
 
       {columnVisibility.actions && (
         <div className="flex items-center gap-1 shrink-0 ml-2">
-          {/* Al hacer clic en el botón ver de la fila, cargará el documento actual de la base de datos (que ya es la última versión) */}
           <button onClick={() => onView(doc.id)} className="p-2 text-slate-400 hover:text-blue-700 dark:hover:text-white hover:bg-blue-50 dark:hover:bg-blue-600 rounded-lg transition-colors">
             <ExternalLink className="h-4 w-4" />
           </button>

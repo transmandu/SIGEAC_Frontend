@@ -60,17 +60,16 @@ const libraryService = {
     },
 
     /**
-     * 🔥 Obtiene el archivo como un Blob para visualización segura.
+     * Obtiene el archivo como un Blob para visualización segura.
      * Soporta ID privado (number) o Token Público QR (string).
      */
-    getFileBlob: async (company: string, documentId: number | string) => {
+    getFileBlob: async (company: string, documentId: number | string, isVersionHistory: boolean = false) => {
         const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000/api';
 
-        // 🟢 CASO A: Es un escaneo de QR Público (Llega un Token string de 32+ caracteres)
+        // CASO A: Es un escaneo de QR Público (Llega un Token string de 32+ caracteres)
         if (typeof documentId === 'string' && documentId.length > 10) {
             const response = await fetch(`${baseUrl}/${company}/library/shared/content/${documentId}`, {
                 method: 'GET',
-                // 🔒 Sin cabeceras de autorización de Axios para que cargue sin loguearse
             });
 
             if (!response.ok) {
@@ -81,7 +80,15 @@ const libraryService = {
             return URL.createObjectURL(blob);
         }
 
-        // 🔑 CASO B: Es la vista privada normal dentro del sistema (Llega un ID numérico)
+        // CASO B: Es una versión anterior del historial (Llega con la bandera activada)
+        if (isVersionHistory) {
+            const response = await axiosInstance.get(`/${company}/library/versions/${documentId}/view`, {
+                responseType: 'blob' 
+            });
+            return URL.createObjectURL(response.data);
+        }
+
+        // CASO C: Es la vista privada normal dentro del sistema (Llega un ID numérico normal)
         const response = await axiosInstance.get(`/${company}/library/view/${documentId}`, {
             responseType: 'blob' 
         });
