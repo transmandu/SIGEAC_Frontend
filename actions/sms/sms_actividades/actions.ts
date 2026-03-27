@@ -1,6 +1,6 @@
 import axiosInstance from "@/lib/axios";
 import { useCompanyStore } from "@/stores/CompanyStore";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { toast } from "sonner";
 
@@ -45,6 +45,9 @@ interface updateSMSActivityData {
     document?: File | string;
   };
 }
+interface NextActivityNumber {
+  next_number: string;
+}
 
 export const useCreateSMSActivity = () => {
   const queryClient = useQueryClient();
@@ -60,8 +63,14 @@ export const useCreateSMSActivity = () => {
       formData.append("activity_name", data.activity_name);
       formData.append("title", data.title);
       formData.append("activity_number", data.activity_number);
-      formData.append("start_date", format(new Date(data.start_date), "yyyy-MM-dd"));
-      formData.append("end_date", format(new Date(data.end_date), "yyyy-MM-dd"));
+      formData.append(
+        "start_date",
+        format(new Date(data.start_date), "yyyy-MM-dd"),
+      );
+      formData.append(
+        "end_date",
+        format(new Date(data.end_date), "yyyy-MM-dd"),
+      );
       formData.append("start_time", data.start_time);
       formData.append("end_time", data.end_time);
       formData.append("place", data.place);
@@ -72,7 +81,8 @@ export const useCreateSMSActivity = () => {
       formData.append("planned_by", data.planned_by);
       if (data.executed_by) formData.append("executed_by", data.executed_by);
       if (data.image instanceof File) formData.append("image", data.image);
-      if (data.document instanceof File) formData.append("document", data.document);
+      if (data.document instanceof File)
+        formData.append("document", data.document);
 
       const response = await axiosInstance.post(
         `/${company}/sms/activities`,
@@ -81,7 +91,7 @@ export const useCreateSMSActivity = () => {
           headers: {
             "Content-Type": "multipart/form-data",
           },
-        }
+        },
       );
       return response.data;
     },
@@ -145,8 +155,14 @@ export const useUpdateSMSActivity = () => {
       formData.append("activity_name", data.activity_name);
       formData.append("title", data.title);
       formData.append("activity_number", data.activity_number);
-      formData.append("start_date", format(new Date(data.start_date), "yyyy-MM-dd"));
-      formData.append("end_date", format(new Date(data.end_date), "yyyy-MM-dd"));
+      formData.append(
+        "start_date",
+        format(new Date(data.start_date), "yyyy-MM-dd"),
+      );
+      formData.append(
+        "end_date",
+        format(new Date(data.end_date), "yyyy-MM-dd"),
+      );
       formData.append("start_time", data.start_time);
       formData.append("end_time", data.end_time);
       formData.append("place", data.place);
@@ -158,14 +174,15 @@ export const useUpdateSMSActivity = () => {
       formData.append("status", data.status);
       if (data.executed_by) formData.append("executed_by", data.executed_by);
       if (data.image instanceof File) formData.append("image", data.image);
-      if (data.document instanceof File) formData.append("document", data.document);
+      if (data.document instanceof File)
+        formData.append("document", data.document);
 
       const response = await axiosInstance.post(
         `/${company}/sms/activities/${id}`,
         formData,
         {
           headers: { "Content-Type": "multipart/form-data" },
-        }
+        },
       );
       return response.data;
     },
@@ -203,12 +220,12 @@ export const useUpdateCalendarSMSActivity = () => {
     }) => {
       if (data.status === "CERRADO") {
         throw new Error(
-          "No se puede actualizar la actividad de un curso con estatus CERRADO."
+          "No se puede actualizar la actividad de un curso con estatus CERRADO.",
         );
       }
       const response = await axiosInstance.patch(
         `/${company}/sms/update-calendar-activity/${id}`,
-        data
+        data,
       );
       return response.data;
     },
@@ -236,7 +253,7 @@ export const useCloseSMSActivity = () => {
   const closeSMSActivityMutation = useMutation({
     mutationFn: async (id: string) => {
       const response = await axiosInstance.patch(
-        `/${selectedCompany?.slug}/sms/close-sms-activity/${id}`
+        `/${selectedCompany?.slug}/sms/close-sms-activity/${id}`,
       );
       return response.data;
     },
@@ -266,7 +283,7 @@ export const useOpenSMSActivity = () => {
     mutationFn: async (id: string) => {
       // Ajusta esta URL según tu API (ej. /open-sms-activity o similar)
       const response = await axiosInstance.patch(
-        `/${selectedCompany?.slug}/sms/open-sms-activity/${id}`
+        `/${selectedCompany?.slug}/sms/open-sms-activity/${id}`,
       );
       return response.data;
     },
@@ -287,4 +304,19 @@ export const useOpenSMSActivity = () => {
   return {
     openSMSActivity: openSMSActivityMutation,
   };
+};
+
+export const useGetNextActivityNumber = (company: string | null) => {
+  return useQuery<NextActivityNumber>({
+    queryKey: ["next-activity-number", company],
+    queryFn: async () => {
+      const { data } = await axiosInstance.get(
+        `/${company}/sms/next-activity-number`,
+      );
+      return data;
+    },
+    enabled: !!company,
+    staleTime: 5000,
+    retry: 1,
+  });
 };

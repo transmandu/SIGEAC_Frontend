@@ -13,6 +13,7 @@ import {
 import {
   useCreateSMSActivity,
   useUpdateSMSActivity,
+  useGetNextActivityNumber,
 } from "@/actions/sms/sms_actividades/actions";
 import { Calendar } from "@/components/ui/calendar";
 import { Input } from "@/components/ui/input";
@@ -78,7 +79,7 @@ const FormSchema = z
     {
       message: "La fecha final debe ser mayor o igual a la fecha de inicio",
       path: ["end_date"],
-    }
+    },
   );
 type FormSchemaType = z.infer<typeof FormSchema>;
 
@@ -105,6 +106,9 @@ export default function CreateSMSActivityForm({
 
   const [topics, setTopics] = useState<string[]>([]);
   const [newTopic, setNewTopic] = useState("");
+
+  const { data: nextNumberData, isLoading: isLoadingNextNumber } =
+    useGetNextActivityNumber(selectedCompany?.slug || null);
 
   const form = useForm<FormSchemaType>({
     resolver: zodResolver(FormSchema),
@@ -162,8 +166,10 @@ export default function CreateSMSActivityForm({
         planned_by: initialData.planned_by?.dni?.toString(),
         executed_by: initialData.executed_by || "",
       });
+    } else if (!isEditing && nextNumberData?.next_number) {
+      form.setValue("activity_number", nextNumberData.next_number);
     }
-  }, [isEditing, initialData, employees, form.reset, form]); // Dependencias del efecto
+  }, [isEditing, initialData, employees, nextNumberData, form.reset, form]); // Dependencias del efecto
   // ======================= FIN DE LA SOLUCIÓN =======================
   console.log("THIS IS INITIAL DATA", initialData);
   useEffect(() => {
@@ -239,7 +245,14 @@ export default function CreateSMSActivityForm({
               <FormItem>
                 <FormLabel>Número de la Actividad</FormLabel>
                 <FormControl>
-                  <Input {...field} maxLength={50} />
+                  <Input
+                    {...field}
+                    placeholder={isLoadingNextNumber ? "Cargando..." : ""}
+                    readOnly={true}
+                    tabIndex={-1}
+                    maxLength={50}
+                    className="bg-muted cursor-not-allowed font-bold text-muted-foreground"
+                  />
                 </FormControl>
                 <FormMessage className="text-xs" />
               </FormItem>
@@ -288,7 +301,7 @@ export default function CreateSMSActivityForm({
                         variant={"outline"}
                         className={cn(
                           "w-full pl-3 text-left font-normal",
-                          !field.value && "text-muted-foreground"
+                          !field.value && "text-muted-foreground",
                         )}
                       >
                         {field.value ? (
@@ -343,7 +356,7 @@ export default function CreateSMSActivityForm({
                         variant={"outline"}
                         className={cn(
                           "w-full pl-3 text-left font-normal",
-                          !field.value && "text-muted-foreground"
+                          !field.value && "text-muted-foreground",
                         )}
                       >
                         {field.value ? (
@@ -663,13 +676,21 @@ export default function CreateSMSActivityForm({
                 <div className="flex flex-col gap-4">
                   {field.value instanceof File && (
                     <div>
-                      <p className="text-sm text-gray-500">Archivo seleccionado:</p>
-                      <p className="font-semibold text-sm">{field.value.name}</p>
+                      <p className="text-sm text-gray-500">
+                        Archivo seleccionado:
+                      </p>
+                      <p className="font-semibold text-sm">
+                        {field.value.name}
+                      </p>
                     </div>
                   )}
-                  {!(field.value instanceof File) && initialData?.document && typeof initialData.document === "string" && (
-                    <p className="text-sm text-green-600">✓ Documento existente cargado</p>
-                  )}
+                  {!(field.value instanceof File) &&
+                    initialData?.document &&
+                    typeof initialData.document === "string" && (
+                      <p className="text-sm text-green-600">
+                        ✓ Documento existente cargado
+                      </p>
+                    )}
                   <FormControl>
                     <Input
                       type="file"
