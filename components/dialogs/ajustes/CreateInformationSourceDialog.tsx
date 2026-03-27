@@ -11,7 +11,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { useState } from "react";
-import { CreateInformationSourceForm } from "@/components/forms/aerolinea/sms/CreateInformationSourceForm";
+import { CreateInformationSourceForm } from "@/components/forms/sms/CreateInformationSourceForm";
 
 export default function CreateInformationSourceDialog() {
   const [open, setOpen] = useState(false);

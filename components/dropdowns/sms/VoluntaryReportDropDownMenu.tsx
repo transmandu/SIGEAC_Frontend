@@ -1,5 +1,5 @@
 import { useDeleteVoluntaryReport } from "@/actions/sms/reporte_voluntario/actions";
-import { AcceptVoluntaryReport } from "@/components/forms/aerolinea/sms/AcceptVoluntaryForm";
+import { AcceptVoluntaryReport } from "@/components/forms/sms/AcceptVoluntaryForm";
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -23,7 +23,7 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { CreateVoluntaryReportForm } from "@/components/forms/aerolinea/sms/CreateVoluntaryReportForm";
+import { CreateVoluntaryReportForm } from "@/components/forms/sms/CreateVoluntaryReportForm";
 import VoluntaryReportPdf from "@/components/pdf/sms/VoluntaryReportPdf";
 import { Button } from "@/components/ui/button";
 import {

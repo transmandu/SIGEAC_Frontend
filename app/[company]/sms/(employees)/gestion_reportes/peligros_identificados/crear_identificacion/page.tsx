@@ -2,7 +2,7 @@
 
 import { useSearchParams } from "next/navigation";
 import { ContentLayout } from "@/components/layout/ContentLayout";
-import CreateDangerIdentificationForm from "@/components/forms/aerolinea/sms/CreateIdentificationForm";
+import CreateDangerIdentificationForm from "@/components/forms/sms/CreateIdentificationForm";
 
 export default function CreateDangerIdentificationPage() {
   const searchParams = useSearchParams();

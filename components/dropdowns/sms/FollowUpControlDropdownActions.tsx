@@ -1,21 +1,19 @@
-import { useDeleteMitigationMeasure } from "@/actions/sms/medida_de_mitigacion/actions";
+import { useDeleteFollowUpControl } from "@/actions/sms/controles_de_seguimiento/actions";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { MitigationMeasure } from "@/types";
+import { FollowUpControl } from "@/types";
 import {
   ClipboardPenLine,
   Loader2,
   MoreHorizontal,
-  Plus,
   Trash2,
 } from "lucide-react";
 import { useState } from "react";
-import CreateFollowUpControlForm from "../../../forms/aerolinea/sms/CreateFollowUpControlForm";
-import CreateMitigationMeasureForm from "../../../forms/aerolinea/sms/CreateMitigationMeasureForm";
+import { EditFollowUpControlForm } from "../../../forms/sms/EditFollowUpControlForm";
 import { Button } from "../../../ui/button";
 import {
   Dialog,
@@ -25,25 +23,18 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "../../../ui/dialog";
-import { useTheme } from "next-themes";
+} from "@/components/ui/dialog";
 import { useCompanyStore } from "@/stores/CompanyStore";
 
-const MitigationMeasureDropdownActions = ({
-  mitigationMeasure,
+const FollowUpControlDropdownActions = ({
+  followUpControl,
 }: {
-  mitigationMeasure: MitigationMeasure;
+  followUpControl: FollowUpControl;
 }) => {
   const { selectedCompany } = useCompanyStore();
-  const { theme } = useTheme();
   const [open, setOpen] = useState<boolean>(false);
   const [openEdit, setOpenEdit] = useState<boolean>(false);
-
-  const { deleteMitigationMeasure } = useDeleteMitigationMeasure();
-
-  const [openCreateDangerIdentification, setOpenCreateDangerIdentification] =
-    useState<boolean>(false);
-
+  const { deleteFollowUpControl } = useDeleteFollowUpControl();
   const [openCreateFollowUpControl, setOpenCreateFollowUpControl] =
     useState<boolean>(false);
 
@@ -52,9 +43,9 @@ const MitigationMeasureDropdownActions = ({
   const handleDelete = async () => {
     const value = {
       company: selectedCompany!.slug,
-      id: mitigationMeasure.id.toString(),
+      id: followUpControl.id.toString(),
     };
-    await deleteMitigationMeasure.mutateAsync(value);
+    await deleteFollowUpControl.mutateAsync(value);
     setOpenDelete(false);
   };
   return (
@@ -70,33 +61,21 @@ const MitigationMeasureDropdownActions = ({
 
           <DropdownMenuContent
             align="center"
-            className="flex-COL gap-2 justify-center"
+            className="flex-col gap-2 justify-center"
           >
-            <DialogTrigger asChild>
-              <DropdownMenuItem
-                onClick={() => setOpenCreateFollowUpControl(true)}
-              >
-                <Plus
-                  className={`size-5 ${theme === "light" ? "text-black" : "text-white"}`}
-                />
-                <p className="pl-2">Crear Control</p>
-              </DropdownMenuItem>
-            </DialogTrigger>
-
-            {mitigationMeasure && (
-              <DropdownMenuItem onClick={() => setOpenEdit(true)}>
-                <ClipboardPenLine className="size-5" />
-                <p className="pl-2"> Editar </p>
-              </DropdownMenuItem>
-            )}
             <DialogTrigger asChild>
               <DropdownMenuItem onClick={() => setOpenDelete(true)}>
                 <Trash2 className="size-5 text-red-500" />
-                <p className="pl-2"> Eliminar </p>
+                <p className="pl-2">Eliminar</p>
               </DropdownMenuItem>
             </DialogTrigger>
 
-
+            {
+              <DropdownMenuItem onClick={() => setOpenEdit(true)}>
+                <ClipboardPenLine className="size-5" />
+                <p className="pl-2">Editar</p>
+              </DropdownMenuItem>
+            }
           </DropdownMenuContent>
         </DropdownMenu>
 
@@ -104,11 +83,11 @@ const MitigationMeasureDropdownActions = ({
           <DialogContent>
             <DialogHeader>
               <DialogTitle className="text-center">
-                ¿Seguro que desea eliminar el control de seguimiento??
+                ¿Seguro que desea eliminar el reporte??
               </DialogTitle>
               <DialogDescription className="text-center p-2 mb-0 pb-0">
                 Esta acción es irreversible y estaría eliminando por completo el
-                control de seguimiento seleccionado.
+                reporte seleccionado.
               </DialogDescription>
             </DialogHeader>
 
@@ -122,11 +101,11 @@ const MitigationMeasureDropdownActions = ({
               </Button>
 
               <Button
-                disabled={deleteMitigationMeasure.isPending}
+                disabled={deleteFollowUpControl.isPending}
                 className="hover:bg-white hover:text-black hover:border hover:border-black transition-all"
                 onClick={() => handleDelete()}
               >
-                {deleteMitigationMeasure.isPending ? (
+                {deleteFollowUpControl.isPending ? (
                   <Loader2 className="size-4 animate-spin" />
                 ) : (
                   <p>Confirmar</p>
@@ -139,29 +118,14 @@ const MitigationMeasureDropdownActions = ({
         <Dialog open={openEdit} onOpenChange={setOpenEdit}>
           <DialogContent className="flex flex-col max-w-2xl m-2">
             <DialogHeader>
-              <DialogTitle className="text-center"></DialogTitle>
-              <CreateMitigationMeasureForm
-                onClose={() => setOpenEdit(false)}
-                id={mitigationMeasure.id}
-                initialData={mitigationMeasure}
-                isEditing={true}
-              />
+              <DialogTitle></DialogTitle>
+              <DialogDescription></DialogDescription>
             </DialogHeader>
-          </DialogContent>
-        </Dialog>
 
-        <Dialog
-          open={openCreateFollowUpControl}
-          onOpenChange={setOpenCreateFollowUpControl}
-        >
-          <DialogContent className="flex flex-col max-w-2xl m-2">
-            <DialogHeader>
-              <DialogTitle className="text-center"></DialogTitle>
-              <CreateFollowUpControlForm
-                onClose={() => setOpenCreateFollowUpControl(false)}
-                id={mitigationMeasure.id}
-              />
-            </DialogHeader>
+            <EditFollowUpControlForm
+              onClose={() => setOpenEdit(false)}
+              initialData={followUpControl}
+            />
           </DialogContent>
         </Dialog>
       </Dialog>
@@ -169,4 +133,4 @@ const MitigationMeasureDropdownActions = ({
   );
 };
 
-export default MitigationMeasureDropdownActions;
+export default FollowUpControlDropdownActions;

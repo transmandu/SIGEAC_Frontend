@@ -5,11 +5,11 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { InformationSource } from "@/types";
+import { InformationSource, SafetyBulletin } from "@/types";
 import { ClipboardPen, Loader2, MoreHorizontal, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { EditInformationSourceForm } from "../../../forms/aerolinea/sms/EditInformationSourceForm";
+import { EditInformationSourceForm } from "../../../forms/sms/EditInformationSourceForm";
 import { Button } from "../../../ui/button";
 import {
   Dialog,
@@ -19,24 +19,31 @@ import {
   DialogHeader,
   DialogTitle,
 } from "../../../ui/dialog";
+import { useDeleteSafetyBulletin } from "@/actions/sms/boletin/actions";
+import { CreateSafetyBulletinForm } from "@/components/forms/sms/CreateSafetyBulletinForm";
+import { useCompanyStore } from "@/stores/CompanyStore";
 
-const InformationSourceDropdownActions = ({
-  informationSource,
+const SafetyBulletinDropdownActions = ({
+  safetyBulletin,
 }: {
-  informationSource: InformationSource;
+  safetyBulletin: SafetyBulletin;
 }) => {
+  const { selectedCompany } = useCompanyStore();
+
   const [openDelete, setOpenDelete] = useState<boolean>(false);
 
   const [openEdit, setOpenEdit] = useState<boolean>(false);
 
-  const { deleteInformationSource } = useDeleteInformationSource();
+  const { deleteSafetyBulletin } = useDeleteSafetyBulletin();
 
-  const router = useRouter();
-
-  const handleDelete = async (id: number | string) => {
-    await deleteInformationSource.mutateAsync(id);
+  const handleDelete = async () => {
+    await deleteSafetyBulletin.mutateAsync({
+      company: selectedCompany!.slug,
+      id: safetyBulletin.id,
+    });
     setOpenDelete(false);
   };
+
   return (
     <>
       <DropdownMenu>
@@ -49,15 +56,15 @@ const InformationSourceDropdownActions = ({
 
         <DropdownMenuContent
           align="center"
-          className="flex-col gap-2 justify-center"
+          className="flex gap-2 justify-center"
         >
           <DropdownMenuItem onClick={() => setOpenDelete(true)}>
             <Trash2 className="size-5 text-red-500" />
-            <p className="pl-2">Eliminar</p>
+            <p className="pl-2"></p>
           </DropdownMenuItem>
           <DropdownMenuItem onClick={() => setOpenEdit(true)}>
             <ClipboardPen className="size-5" />
-            <p className="pl-2">Editar</p>
+            <p className="pl-2"></p>
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
@@ -70,7 +77,8 @@ const InformationSourceDropdownActions = ({
               ¿Seguro que desea eliminar la fuente?
             </DialogTitle>
             <DialogDescription className="text-center p-2 mb-0 pb-0">
-              Esta acción es irreversible y estaría eliminando por completo la fuente seleccionada.
+              Esta acción es irreversible y estaría eliminando por completo la
+              fuente seleccionada.
             </DialogDescription>
           </DialogHeader>
 
@@ -84,11 +92,11 @@ const InformationSourceDropdownActions = ({
             </Button>
 
             <Button
-              disabled={deleteInformationSource.isPending}
+              disabled={deleteSafetyBulletin.isPending}
               className="hover:bg-white hover:text-black hover:border hover:border-black transition-all"
-              onClick={() => handleDelete(informationSource.id)}
+              onClick={() => handleDelete()}
             >
-              {deleteInformationSource.isPending ? (
+              {deleteSafetyBulletin.isPending ? (
                 <Loader2 className="size-4 animate-spin" />
               ) : (
                 <p>Confirmar</p>
@@ -100,15 +108,15 @@ const InformationSourceDropdownActions = ({
 
       {/* DIALOGO DE EDITAR */}
       <Dialog open={openEdit} onOpenChange={setOpenEdit}>
-        <DialogContent>
+        <DialogContent className="max-w-3xl">
           <DialogHeader>
-            <DialogTitle className="text-center">Edicion de Fuente</DialogTitle>
-            <DialogDescription className="text-center p-2 mb-0 pb-0">
-              Edicion de Fuente de Informacion
-            </DialogDescription>
+            <DialogTitle className="text-center"></DialogTitle>
+            <DialogDescription className="text-center p-2 mb-0 pb-0"></DialogDescription>
 
-            <EditInformationSourceForm
-              initialData={informationSource}
+            <CreateSafetyBulletinForm
+              key={openEdit ? (safetyBulletin.document ?? "no-doc") : "closed"}
+              isEditing={true}
+              initialData={safetyBulletin}
               onClose={() => setOpenEdit(false)}
             />
           </DialogHeader>
@@ -118,4 +126,4 @@ const InformationSourceDropdownActions = ({
   );
 };
 
-export default InformationSourceDropdownActions;
+export default SafetyBulletinDropdownActions;

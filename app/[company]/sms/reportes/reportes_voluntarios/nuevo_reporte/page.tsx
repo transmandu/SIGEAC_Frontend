@@ -1,6 +1,6 @@
 "use client";
 
-import { CreateVoluntaryReportForm } from "@/components/forms/aerolinea/sms/CreateVoluntaryReportForm";
+import { CreateVoluntaryReportForm } from "@/components/forms/sms/CreateVoluntaryReportForm";
 import { ContentLayout } from "@/components/layout/ContentLayout";
 
 const CreateVoluntaryReport = () => {

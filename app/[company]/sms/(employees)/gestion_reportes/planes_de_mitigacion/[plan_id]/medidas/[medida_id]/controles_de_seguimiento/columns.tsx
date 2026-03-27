@@ -6,7 +6,7 @@ import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
 
 import DocumentDisplayDialog from "@/components/dialogs/aerolinea/sms/DocumentDisplayDialog";
 import ImageDisplayDialog from "@/components/dialogs/aerolinea/sms/ImageDisplayDialog";
-import FollowUpControlDropdownActions from "@/components/dropdowns/aerolinea/sms/FollowUpControlDropdownActions";
+import FollowUpControlDropdownActions from "@/components/dropdowns/sms/FollowUpControlDropdownActions";
 import { Button } from "@/components/ui/button";
 import { FollowUpControl } from "@/types";
 import { es } from "date-fns/locale";

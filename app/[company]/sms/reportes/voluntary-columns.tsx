@@ -2,7 +2,7 @@
 
 import { ColumnDef } from "@tanstack/react-table";
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
-import VoluntaryReportDropdownActions from "@/components/dropdowns/aerolinea/sms/VoluntaryReportDropDownMenu";
+import VoluntaryReportDropdownActions from "@/components/dropdowns/sms/VoluntaryReportDropDownMenu";
 import { Badge } from "@/components/ui/badge";
 import { dateFormat } from "@/lib/utils";
 import { VoluntaryReport } from "@/types";

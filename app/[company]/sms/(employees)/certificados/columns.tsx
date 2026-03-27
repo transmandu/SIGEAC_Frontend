@@ -5,7 +5,7 @@ import { User, Calendar } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 // Importamos tu nuevo componente de acciones
-import CertificatesDropDownActions from "@/components/dropdowns/aerolinea/sms/CertificatesDropDownActions";
+import CertificatesDropDownActions from "@/components/dropdowns/sms/CertificatesDropDownActions";
 
 export type CertificateColumn = {
   id: number;

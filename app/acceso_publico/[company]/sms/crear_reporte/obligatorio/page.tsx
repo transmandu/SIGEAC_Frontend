@@ -1,9 +1,9 @@
 "use client";
 
 // Importamos el formulario general
-import { CreateGeneralObligatoryReportForm } from "@/components/forms/aerolinea/sms/CreateGeneralObligatoryReportForm";
+import { CreateGeneralObligatoryReportForm } from "@/components/forms/sms/CreateGeneralObligatoryReportForm";
 // Importamos el de OMAC usando un alias (as) para que no choque el nombre
-import { CreateGeneralObligatoryReportForm as CreateOmacObligatoryReportForm } from "@/components/forms/aerolinea/sms/omac/CreateGeneralObligatoryReportForm";
+import { CreateGeneralObligatoryReportForm as CreateOmacObligatoryReportForm } from "@/components/forms/sms/omac/CreateGeneralObligatoryReportForm";
 
 import { GuestContentLayout } from "@/components/layout/GuestContentLayout";
 import { useParams } from "next/navigation";

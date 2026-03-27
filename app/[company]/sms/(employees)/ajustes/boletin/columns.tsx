@@ -8,7 +8,7 @@ import { dateFormat } from "@/lib/utils";
 import { SafetyBulletin } from "@/types";
 import DocumentDisplayDialog from "@/components/dialogs/aerolinea/sms/DocumentDisplayDialog";
 import { Button } from "@/components/ui/button";
-import SafetyBulletinDropdownActions from "@/components/dropdowns/aerolinea/sms/SafetyBulletinDropDownActions";
+import SafetyBulletinDropdownActions from "@/components/dropdowns/sms/SafetyBulletinDropDownActions";
 
 export const columns: ColumnDef<SafetyBulletin>[] = [
   {
