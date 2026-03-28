@@ -47,6 +47,7 @@ import { Label } from "@/components/ui/label";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { useGetLocationsByCompany } from "@/hooks/sistema/useGetLocationsByCompany";
 import { useGetIsCompanyOmac } from "@/hooks/sistema/useGetIsCompanyOmac";
+import { COMPANY_AREAS } from "@/lib/sms/danger_areas";
 interface FormProps {
     onClose: () => void;
     initialData?: VoluntaryReport;
@@ -481,22 +482,13 @@ export function CreateVoluntaryReportForm({
                                                 <SelectValue placeholder="Seleccionar área" />
                                             </SelectTrigger>
                                         </FormControl>
-                                        <SelectContent>
-                                            <SelectItem value="OPERACIONES">OPERACIONES</SelectItem>
-                                            <SelectItem value="MANTENIMIENTO">
-                                                MANTENIMIENTO
-                                            </SelectItem>
-                                            <SelectItem value="ADMINISTRACION_RRHH">
-                                                ADMINISTRACION Y RRHH
-                                            </SelectItem>
-                                            <SelectItem value="CONTROL_CALIDAD">
-                                                CONTROL DE CALIDAD
-                                            </SelectItem>
-                                            <SelectItem value="IT">
-                                                TECNOLOGIA E INFORMACION
-                                            </SelectItem>
-                                            <SelectItem value="AVSEC">AVSEC</SelectItem>
-                                        </SelectContent>
+                                        {selectedCompany?.slug && <SelectContent>
+                                            {COMPANY_AREAS[selectedCompany?.slug]?.map((area) => (
+                                                <SelectItem key={area} value={area}>
+                                                    {area}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>}
                                     </Select>
                                     <FormMessage />
                                 </FormItem>
