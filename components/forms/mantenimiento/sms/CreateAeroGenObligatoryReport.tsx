@@ -50,6 +50,7 @@ import { CalendarIcon, Check, ChevronsUpDown, Loader2 } from "lucide-react";
 import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
 import { useGetLocationsByCompany } from "@/hooks/sistema/useGetLocationsByCompany";
+import { Textarea } from "@/components/ui/textarea";
 
 interface FormProps {
     isEditing?: boolean;
@@ -57,7 +58,7 @@ interface FormProps {
     onClose: () => void;
 }
 
-export function CreateGeneralObligatoryReportForm({
+export function CreateGenAeroObligatoryReport({
     onClose,
     isEditing,
     initialData,
@@ -67,10 +68,10 @@ export function CreateGeneralObligatoryReportForm({
             incident_location: z
                 .string()
                 .min(3, {
-                    message: "El lugar de incidente debe tener al menos 3 caracteres",
+                    message: "El lugar de evento debe tener al menos 3 caracteres",
                 })
                 .max(50, {
-                    message: "El lugar de incidente no debe exceder los 50 caracteres",
+                    message: "El lugar de evento no debe exceder los 50 caracteres",
                 }),
             description: z.string(),
             location_id: z.string(),
@@ -91,16 +92,16 @@ export function CreateGeneralObligatoryReportForm({
                 .min(3, {
                     message: "El origen del vuelo debe tener al menos 3 caracteres.",
                 })
-                .max(4, {
-                    message: "El origen del vuelo debe tener máximo 4 caracteres.",
+                .max(100, {
+                    message: "El origen del vuelo debe tener máximo 100 caracteres.",
                 }),
             last_name: z
                 .string()
                 .min(3, {
                     message: "El Apellido tener al menos 3 caracteres.",
                 })
-                .max(50, {
-                    message: "El Apellito tener máximo 50 caracteres.",
+                .max(100, {
+                    message: "El Apellito tener máximo 100 caracteres.",
                 }),
             phone_number: z
                 .string()
@@ -108,7 +109,7 @@ export function CreateGeneralObligatoryReportForm({
                     message:
                         "El numero debe tener al menos 3 caracteres.",
                 })
-                .max(50, {
+                .max(100, {
                     message:
                         "El numero debe tener máximo 50 caracteres.",
                 }),
@@ -151,7 +152,7 @@ export function CreateGeneralObligatoryReportForm({
                 return hasIncidents || hasOtherIncidents;
             },
             {
-                message: "Debe proporcionar al menos un incidente o descripción",
+                message: "Debe proporcionar al menos un evento o descripción",
                 path: ["incidents"],
             }
         );
@@ -220,7 +221,7 @@ export function CreateGeneralObligatoryReportForm({
             email: "",
         },
     });
-
+    const { reset } = form;
     const onSubmit = async (data: FormSchemaType) => {
         const value: ObligatoryReportOmacData = {
             report_date: data.report_date,           // Date
@@ -251,7 +252,9 @@ export function CreateGeneralObligatoryReportForm({
         try {
             createObligatoryReport.mutateAsync(value);
             //router.push(`/${company}/dashboard`);
-            router.push(`https://sigeac-one.vercel.app/login`);
+            //           router.push(`https://sigeac-one.vercel.app/login`);
+            reset();
+
         } catch (error) {
             console.error("Error al crear reporte:", error);
         }
@@ -352,15 +355,15 @@ export function CreateGeneralObligatoryReportForm({
                         />
                     </div>
 
-                    {/* Fecha y Hora de Incidente */}
+                    {/* Fecha y Hora del evento */}
                     <div className="flex flex-col gap-4">
-                        <h3 className="font-semibold underline">2. Fecha y Hora del Incidente</h3>
+                        <h3 className="font-semibold underline">2. Fecha y Hora del evento</h3>
                         <FormField
                             control={form.control}
                             name="incident_date"
                             render={({ field }) => (
                                 <FormItem className="flex flex-col w-full">
-                                    <FormLabel>Fecha de Incidente</FormLabel>
+                                    <FormLabel>Fecha del Evento</FormLabel>
                                     <Popover>
                                         <PopoverTrigger asChild>
                                             <FormControl>
@@ -403,7 +406,7 @@ export function CreateGeneralObligatoryReportForm({
                             name="incident_time"
                             render={({ field }) => (
                                 <FormItem className="w-full">
-                                    <FormLabel>Hora del incidente</FormLabel>
+                                    <FormLabel>Hora del Evento</FormLabel>
                                     <FormControl>
                                         <Input
                                             type="time"
@@ -451,7 +454,7 @@ export function CreateGeneralObligatoryReportForm({
                                             <SelectContent>
                                                 {locations?.map((location) => (
                                                     <SelectItem key={location.id} value={location.id.toString()}>
-                                                        {location.address}
+                                                        {location.cod_iata}
                                                     </SelectItem>
                                                 ))}
                                             </SelectContent>
@@ -470,7 +473,7 @@ export function CreateGeneralObligatoryReportForm({
                             name="incident_location"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Lugar del Incidente</FormLabel>
+                                    <FormLabel>Lugar del Evento</FormLabel>
                                     <FormControl>
                                         <Input placeholder="" {...field} maxLength={50} />
                                     </FormControl>
@@ -550,9 +553,9 @@ export function CreateGeneralObligatoryReportForm({
                         name="description"
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Descripcion del Suceso</FormLabel>
+                                <FormLabel>Descripcion del Evento</FormLabel>
                                 <FormControl>
-                                    <Input placeholder="" {...field} />
+                                    <Textarea placeholder="" {...field} />
                                 </FormControl>
                                 <FormMessage className="text-xs" />
                             </FormItem>
@@ -566,7 +569,7 @@ export function CreateGeneralObligatoryReportForm({
                                 name="incidents"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel className="mb-2 block">Incidentes:</FormLabel>
+                                        <FormLabel className="mb-2 block">Eventos:</FormLabel>
                                         <FormControl>
                                             <Popover open={open} onOpenChange={setOpen}>
                                                 <PopoverTrigger asChild>
@@ -579,17 +582,17 @@ export function CreateGeneralObligatoryReportForm({
                                                         {selectedValues && selectedValues.length > 0 ? (
                                                             <p>({selectedValues.length}) seleccionados</p>
                                                         ) : (
-                                                            "Seleccionar opciones..."
+                                                            "Seleccionar eventos..."
                                                         )}
                                                         <ChevronsUpDown className="opacity-50" />
                                                     </Button>
                                                 </PopoverTrigger>
                                                 <PopoverContent className="w-[300px] p-0">
                                                     <Command>
-                                                        <CommandInput placeholder="Buscar opciones..." />
+                                                        <CommandInput placeholder="Buscar eventos..." />
                                                         <CommandList>
                                                             <CommandEmpty>
-                                                                No se encontraron opciones.
+                                                                No se encontraron eventos.
                                                             </CommandEmpty>
                                                             <CommandGroup>
                                                                 {OPTIONS_LIST.map((option) => (
@@ -644,7 +647,7 @@ export function CreateGeneralObligatoryReportForm({
                                             />
                                         </FormControl>
                                         <FormLabel className="text-sm font-normal">
-                                            Otros incidentes
+                                            Otros eventos
                                         </FormLabel>
                                     </div>
                                     {showOtherInput && (
@@ -652,7 +655,7 @@ export function CreateGeneralObligatoryReportForm({
                                             <FormControl>
                                                 <Input
                                                     type="text"
-                                                    placeholder="Detalles del incidente"
+                                                    placeholder="Detalles del Evento"
                                                     {...form.register("other_incidents")}
                                                     onChange={handleOtherInputChange}
                                                 />

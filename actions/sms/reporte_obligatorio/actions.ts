@@ -1,5 +1,6 @@
 import axiosInstance from "@/lib/axios";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useParams } from "next/navigation";
 import { toast } from "sonner";
 // --- CAMPOS COMPARTIDOS ---
 interface BaseObligatoryReport {
@@ -71,11 +72,12 @@ interface UpdateObligatoryReportData {
 }
 
 export const useCreateObligatoryReport = () => {
+    const { company } = useParams<{ company: string }>();
     const queryClient = useQueryClient();
     const createMutation = useMutation({
         mutationFn: async (data: AnyObligatoryReport) => {
             const response = await axiosInstance.post(
-                "/transmandu/sms/obligatory-reports",
+                `/${company}/sms/obligatory-reports`,
                 data,
                 {
                     headers: {

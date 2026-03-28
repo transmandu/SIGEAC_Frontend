@@ -46,6 +46,7 @@ import { useEffect, useState } from "react";
 import { Label } from "@/components/ui/label";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { useGetLocationsByCompany } from "@/hooks/sistema/useGetLocationsByCompany";
+import { useGetIsCompanyOmac } from "@/hooks/sistema/useGetIsCompanyOmac";
 interface FormProps {
     onClose: () => void;
     initialData?: VoluntaryReport;
@@ -60,7 +61,7 @@ export function CreateVoluntaryReportForm({
     const { selectedCompany } = useCompanyStore();
     const { createVoluntaryReport } = useCreateVoluntaryReport();
     const { updateVoluntaryReport } = useUpdateVoluntaryReport();
-    const [isAnonymous, setIsAnonymous] = useState(true);
+    const [isAnonymous, setIsAnonymous] = useState(false);
     const router = useRouter();
     const [consequences, setConsequences] = useState<string[]>([]);
     const [newConsequence, setNewConsequence] = useState("");
@@ -73,7 +74,7 @@ export function CreateVoluntaryReportForm({
     const shouldEnableField = userRoles.some((role) =>
         ["SUPERUSER", "ANALISTA_SMS", "JEFE_SMS"].includes(role)
     );
-
+    const { data: isOmac } = useGetIsCompanyOmac(selectedCompany?.slug);
     const FormSchema = z.object({
         identification_date: z
             .date()
@@ -304,7 +305,7 @@ export function CreateVoluntaryReportForm({
                 </FormLabel>
 
                 <div className="space-y-6">
-                    {shouldEnableField && (
+                    {shouldEnableField && isOmac === false && (
                         <FormField
                             control={form.control}
                             name="report_number"
@@ -322,12 +323,13 @@ export function CreateVoluntaryReportForm({
 
                     {/* Sección de Fechas */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
                         <FormField
                             control={form.control}
-                            name="identification_date"
+                            name="report_date"
                             render={({ field }) => (
                                 <FormItem className="flex flex-col">
-                                    <FormLabel>Fecha de Identificación</FormLabel>
+                                    <FormLabel>Fecha de Reporte</FormLabel>
                                     <Popover>
                                         <PopoverTrigger asChild>
                                             <FormControl>
@@ -375,10 +377,10 @@ export function CreateVoluntaryReportForm({
                         />
                         <FormField
                             control={form.control}
-                            name="report_date"
+                            name="identification_date"
                             render={({ field }) => (
                                 <FormItem className="flex flex-col">
-                                    <FormLabel>Fecha de Reporte</FormLabel>
+                                    <FormLabel>Fecha de Identificación</FormLabel>
                                     <Popover>
                                         <PopoverTrigger asChild>
                                             <FormControl>
@@ -453,7 +455,7 @@ export function CreateVoluntaryReportForm({
                                             <SelectContent>
                                                 {locations?.map((location) => (
                                                     <SelectItem key={location.id} value={location.id.toString()}>
-                                                        {location.address}
+                                                        {location.cod_iata}
                                                     </SelectItem>
                                                 ))}
                                             </SelectContent>
@@ -502,7 +504,7 @@ export function CreateVoluntaryReportForm({
                         />
                     </div>
 
-                    <FormField
+                    {isOmac == false && <FormField
                         control={form.control}
                         name="airport_location"
                         render={({ field }) => (
@@ -536,6 +538,84 @@ export function CreateVoluntaryReportForm({
                             </FormItem>
                         )}
                     />
+                    }
+                    {/* Sección de Información del Reportero */}
+                    <div className="space-y-4">
+                        <div className="flex items-center space-x-2">
+                            <Checkbox
+                                id="anonymous-report"
+                                checked={isAnonymous}
+                                onCheckedChange={(checked) => {
+                                    if (typeof checked === "boolean") {
+                                        setIsAnonymous(checked);
+                                    }
+                                }}
+                            />
+                            <Label htmlFor="anonymous-report" className="text-sm">
+                                Reporte anónimo
+                            </Label>
+                        </div>
+
+                        {!isAnonymous && (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <FormField
+                                    control={form.control}
+                                    name="reporter_name"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Nombre</FormLabel>
+                                            <FormControl>
+                                                <Input placeholder="Nombre de quien reporta" {...field} />
+                                            </FormControl>
+                                            <FormMessage className="text-xs" />
+                                        </FormItem>
+                                    )}
+                                />
+                                <FormField
+                                    control={form.control}
+                                    name="reporter_last_name"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Apellido</FormLabel>
+                                            <FormControl>
+                                                <Input
+                                                    placeholder="Apellido de quien reporta"
+                                                    {...field}
+                                                />
+                                            </FormControl>
+                                            <FormMessage className="text-xs" />
+                                        </FormItem>
+                                    )}
+                                />
+                                <FormField
+                                    control={form.control}
+                                    name="reporter_email"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Correo electrónico</FormLabel>
+                                            <FormControl>
+                                                <Input placeholder="ejemplo@gmail.com" {...field} />
+                                            </FormControl>
+                                            <FormMessage className="text-xs" />
+                                        </FormItem>
+                                    )}
+                                />
+                                <FormField
+                                    control={form.control}
+                                    name="reporter_phone"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Teléfono</FormLabel>
+                                            <FormControl>
+                                                <Input placeholder="" {...field} />
+                                            </FormControl>
+                                            <FormMessage className="text-xs" />
+                                        </FormItem>
+                                    )}
+                                />
+                            </div>
+                        )}
+                    </div>
 
                     {/* Sección de Descripción y Consecuencias */}
                     <FormField
@@ -543,10 +623,10 @@ export function CreateVoluntaryReportForm({
                         name="description"
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Descripción de peligro</FormLabel>
+                                <FormLabel>Peligro Identificado</FormLabel>
                                 <FormControl>
                                     <Textarea
-                                        placeholder="Breve descripción del peligro"
+                                        placeholder="A continuacion, escriba el peligro que esta reportando"
                                         {...field}
                                         className="min-h-[100px]"
                                     />
@@ -608,83 +688,6 @@ export function CreateVoluntaryReportForm({
                     />
                 </div>
 
-                {/* Sección de Información del Reportero */}
-                <div className="space-y-4">
-                    <div className="flex items-center space-x-2">
-                        <Checkbox
-                            id="anonymous-report"
-                            checked={isAnonymous}
-                            onCheckedChange={(checked) => {
-                                if (typeof checked === "boolean") {
-                                    setIsAnonymous(checked);
-                                }
-                            }}
-                        />
-                        <Label htmlFor="anonymous-report" className="text-sm">
-                            Reporte anónimo
-                        </Label>
-                    </div>
-
-                    {!isAnonymous && (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <FormField
-                                control={form.control}
-                                name="reporter_name"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Nombre</FormLabel>
-                                        <FormControl>
-                                            <Input placeholder="Nombre de quien reporta" {...field} />
-                                        </FormControl>
-                                        <FormMessage className="text-xs" />
-                                    </FormItem>
-                                )}
-                            />
-                            <FormField
-                                control={form.control}
-                                name="reporter_last_name"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Apellido</FormLabel>
-                                        <FormControl>
-                                            <Input
-                                                placeholder="Apellido de quien reporta"
-                                                {...field}
-                                            />
-                                        </FormControl>
-                                        <FormMessage className="text-xs" />
-                                    </FormItem>
-                                )}
-                            />
-                            <FormField
-                                control={form.control}
-                                name="reporter_email"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Correo electrónico</FormLabel>
-                                        <FormControl>
-                                            <Input placeholder="ejemplo@gmail.com" {...field} />
-                                        </FormControl>
-                                        <FormMessage className="text-xs" />
-                                    </FormItem>
-                                )}
-                            />
-                            <FormField
-                                control={form.control}
-                                name="reporter_phone"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Teléfono</FormLabel>
-                                        <FormControl>
-                                            <Input placeholder="" {...field} />
-                                        </FormControl>
-                                        <FormMessage className="text-xs" />
-                                    </FormItem>
-                                )}
-                            />
-                        </div>
-                    )}
-                </div>
 
                 {/* Sección de Carga de Archivos */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
