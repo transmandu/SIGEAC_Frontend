@@ -11,8 +11,8 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { useState } from "react";
-import { CreateVoluntaryReportForm } from "@/components/forms/aerolinea/sms/CreateVoluntaryReportForm";
-import CreateMitigationMeasureForm from "@/components/forms/aerolinea/sms/CreateMitigationMeasureForm";
+import { CreateVoluntaryReportForm } from "@/components/forms/sms/CreateVoluntaryReportForm";
+import CreateMitigationMeasureForm from "@/components/forms/sms/CreateMitigationMeasureForm";
 import { useRouter } from "next/router";
 import { useParams } from "next/navigation";
 

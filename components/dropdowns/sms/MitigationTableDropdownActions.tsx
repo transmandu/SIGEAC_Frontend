@@ -3,9 +3,9 @@ import {
   useDeleteMitigationPlan,
   useOpenReport,
 } from "@/actions/sms/planes_de_mitigation/actions";
-import CreateAnalysisForm from "@/components/forms/aerolinea/sms/CreateAnalysisForm";
-import CreateMitigationMeasureForm from "@/components/forms/aerolinea/sms/CreateMitigationMeasureForm";
-import CreateMitigationPlanForm from "@/components/forms/aerolinea/sms/CreateMitigationPlanForm";
+import CreateAnalysisForm from "@/components/forms/sms/CreateAnalysisForm";
+import CreateMitigationMeasureForm from "@/components/forms/sms/CreateMitigationMeasureForm";
+import CreateMitigationPlanForm from "@/components/forms/sms/CreateMitigationPlanForm";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,

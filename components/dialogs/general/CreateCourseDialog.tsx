@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/dialog";
 import { Course } from "@/types";
 import { useState } from "react";
-import { CreateCourseForm } from "@/components/forms/aerolinea/sms/CreateCourseForm";
+import { CreateCourseForm } from "@/components/forms/sms/CreateCourseForm";
 
 interface FormProps {
   title: string;

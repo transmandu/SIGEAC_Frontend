@@ -21,8 +21,8 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import CreateDangerIdentificationForm from "@/components/forms/aerolinea/sms/CreateIdentificationForm";
-import { CreateObligatoryReportForm } from "@/components/forms/aerolinea/sms/CreateObligatoryReportForm";
+import CreateDangerIdentificationForm from "@/components/forms/sms/CreateIdentificationForm";
+import { CreateObligatoryReportForm } from "@/components/forms/sms/CreateObligatoryReportForm";
 import ObligatoryReportPdf from "@/components/pdf/sms/ObligatoryReportPdf";
 import {
   Dialog,
@@ -35,7 +35,7 @@ import {
 } from "@/components/ui/dialog";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { Button } from "@/components/ui/button";
-import { AcceptObligatoryReport } from "@/components/forms/aerolinea/sms/AcceptObligatoryForm";
+import { AcceptObligatoryReport } from "@/components/forms/sms/AcceptObligatoryForm";
 
 const ObligatoryReportDropdownActions = ({
   obligatoryReport,

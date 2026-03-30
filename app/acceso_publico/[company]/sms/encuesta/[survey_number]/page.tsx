@@ -1,4 +1,4 @@
-import SurveyResponseForm from "@/components/forms/aerolinea/sms/survey/SurveyResponseForm";
+import SurveyResponseForm from "@/components/forms/sms/survey/SurveyResponseForm";
 import { GuestContentLayout } from "@/components/layout/GuestContentLayout";
 
 const SurveyPage = () => {

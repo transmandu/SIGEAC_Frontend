@@ -2,9 +2,9 @@ import {
   useDeleteCourse,
   useFinishCourse,
 } from "@/actions/general/cursos/actions";
-import { AddCourseAttendanceForm } from "@/components/forms/aerolinea/sms/AddCourseAtendanceForm";
-import { AddToCourseForm } from "@/components/forms/aerolinea/sms/AddToCourseForm";
-import { CreateCourseForm } from "@/components/forms/aerolinea/sms/CreateCourseForm";
+import { AddCourseAttendanceForm } from "@/components/forms/sms/AddCourseAtendanceForm";
+import { AddToCourseForm } from "@/components/forms/sms/AddToCourseForm";
+import { CreateCourseForm } from "@/components/forms/sms/CreateCourseForm";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,

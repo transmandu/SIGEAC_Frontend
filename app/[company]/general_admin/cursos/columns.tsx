@@ -1,6 +1,6 @@
 "use client";
 
-import CourseDropdownActions from "@/components/dropdowns/aerolinea/sms/CourseDropdownActions";
+import CourseDropdownActions from "@/components/dropdowns/sms/CourseDropdownActions";
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
 import { Badge } from "@/components/ui/badge";
 import { dateFormat } from "@/lib/utils";

@@ -1,5 +1,5 @@
 "use client";
-import CreateSMSActivityForm from "@/components/forms/aerolinea/sms/CreateSMSActivityForm";
+import CreateSMSActivityForm from "@/components/forms/sms/CreateSMSActivityForm";
 import {
   Dialog,
   DialogContent,

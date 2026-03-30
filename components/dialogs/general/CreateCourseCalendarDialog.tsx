@@ -1,5 +1,5 @@
 "use client";
-import { CreateCourseForm } from "@/components/forms/aerolinea/sms/CreateCourseForm";
+import { CreateCourseForm } from "@/components/forms/sms/CreateCourseForm";
 import {
   Dialog,
   DialogContent,

@@ -4,7 +4,7 @@ import { ColumnDef } from "@tanstack/react-table";
 
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
 
-import ObligatoryReportDropdownActions from "@/components/dropdowns/aerolinea/sms/ObligatoryReportDropdownActions";
+import ObligatoryReportDropdownActions from "@/components/dropdowns/sms/ObligatoryReportDropdownActions";
 import { Badge } from "@/components/ui/badge";
 import { dateFormat } from "@/lib/utils";
 import { ObligatoryReport } from "@/types";

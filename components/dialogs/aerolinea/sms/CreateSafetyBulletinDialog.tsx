@@ -1,6 +1,6 @@
 "use client";
 
-import { CreateSafetyBulletinForm } from "@/components/forms/aerolinea/sms/CreateSafetyBulletinForm";
+import { CreateSafetyBulletinForm } from "@/components/forms/sms/CreateSafetyBulletinForm";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {

@@ -17,8 +17,8 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import CreateAnalysisForm from "@/components/forms/aerolinea/sms/CreateAnalysisForm";
-import CreateDangerIdentificationForm from "@/components/forms/aerolinea/sms/CreateIdentificationForm";
+import CreateAnalysisForm from "@/components/forms/sms/CreateAnalysisForm";
+import CreateDangerIdentificationForm from "@/components/forms/sms/CreateIdentificationForm";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,

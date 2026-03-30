@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/dialog";
 
 import { DangerIdentification } from "@/types";
-import CreateDangerIdentificationForm from "@/components/forms/aerolinea/sms/CreateIdentificationForm";
+import CreateDangerIdentificationForm from "@/components/forms/sms/CreateIdentificationForm";
 
 interface FormProps {
   title: string;

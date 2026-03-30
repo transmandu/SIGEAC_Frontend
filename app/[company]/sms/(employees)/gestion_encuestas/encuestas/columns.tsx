@@ -4,7 +4,7 @@ import { ColumnDef } from "@tanstack/react-table";
 
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
 
-import SurveyDropdownActions from "@/components/dropdowns/aerolinea/sms/survey/surveyDropDownActions";
+import SurveyDropdownActions from "@/components/dropdowns/sms/survey/surveyDropDownActions";
 import { Badge } from "@/components/ui/badge";
 import { Survey } from "@/types";
 import Link from "next/link";

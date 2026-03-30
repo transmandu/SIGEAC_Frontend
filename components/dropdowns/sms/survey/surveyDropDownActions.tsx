@@ -21,7 +21,7 @@ import { Survey } from "@/types";
 import { EyeIcon, Loader2, MoreHorizontal, Trash2, QrCode, Edit } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { SurveyQuestionsManager } from "@/components/forms/aerolinea/sms/survey/SurveyQuestionsManager";
+import { SurveyQuestionsManager } from "@/components/forms/sms/survey/SurveyQuestionsManager";
 import { toast } from "sonner";
 
 const SurveyDropdownActions = ({ surveyData }: { surveyData: Survey }) => {
