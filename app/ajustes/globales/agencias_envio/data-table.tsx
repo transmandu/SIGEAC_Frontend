@@ -1,4 +1,4 @@
-'use client'
+"use client"
 
 import {
   ColumnDef,
@@ -12,6 +12,7 @@ import {
   useReactTable,
 } from "@tanstack/react-table"
 
+import { CreateShippingAgencyDialog } from "@/components/dialogs/general/CreateShippingAgencyDialog"
 import { DataTablePagination } from "@/components/tables/DataTablePagination"
 import { DataTableViewOptions } from "@/components/tables/DataTableViewOptions"
 import {
@@ -22,7 +23,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { useRouter } from "next/navigation"
 import { useState } from "react"
 
 interface DataTableProps<TData, TValue> {
@@ -53,36 +53,43 @@ export function DataTable<TData, TValue>({
     }
   })
 
-
-
-
   return (
     <div>
-      {/* Opciones de vista y filtros */}
       <div className="flex items-center py-4">
+        <div className="flex gap-x-2 items-center">
+          <CreateShippingAgencyDialog />
+        </div>
         <DataTableViewOptions table={table} />
       </div>
 
-      {/* Tabla */}
       <div className="rounded-md border mb-4">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => (
-                  <TableHead key={header.id}>
-                    {header.isPlaceholder
-                      ? null
-                      : flexRender(header.column.columnDef.header, header.getContext())}
-                  </TableHead>
-                ))}
+                {headerGroup.headers.map((header) => {
+                  return (
+                    <TableHead key={header.id}>
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
+                    </TableHead>
+                  )
+                })}
               </TableRow>
             ))}
           </TableHeader>
+
           <TableBody>
             {table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
-                <TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
+                <TableRow
+                  key={row.id}
+                  data-state={row.getIsSelected() && "selected"}
+                >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
@@ -101,7 +108,6 @@ export function DataTable<TData, TValue>({
         </Table>
       </div>
 
-      {/* Paginación */}
       <DataTablePagination table={table} />
     </div>
   )

@@ -1213,12 +1213,18 @@ export type GeneralArticle = {
 
 export interface SMSCertificate {
     id: number;
-    employee_id: number;
-    course_id: number;
-    completion_date: string;
-    document: string;
-    course?: {
-        id: number;
-        name: string;
-    };
+    name: string;
+}
+export interface ShippingAgency { 
+  id: number; 
+  name: string; 
+  code: string; 
+  description?: string | null; 
+  type: 'NATIONAL' | 'INTERNATIONAL'; 
+  phone?: string | null; 
+  email?: string | null; 
+  created_at: string; 
+  updated_at: string; 
+  created_by: string; 
+  updated_by: string; 
 }

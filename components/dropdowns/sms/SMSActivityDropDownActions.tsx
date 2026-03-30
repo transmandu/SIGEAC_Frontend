@@ -1,6 +1,7 @@
 import {
   useCloseSMSActivity,
   useDeleteSMSActivity,
+  useOpenSMSActivity, // Importado
 } from "@/actions/sms/sms_actividades/actions";
 import {
   DropdownMenu,
@@ -14,6 +15,7 @@ import {
   EyeIcon,
   Loader2,
   LockKeyhole,
+  LockOpen, // Icono para reabrir
   MoreHorizontal,
   Plus,
   Trash2,
@@ -27,7 +29,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -43,25 +44,19 @@ const SMSActivityDropDownActions = ({
   smsActivity: SMSActivity;
 }) => {
   const [openDelete, setOpenDelete] = useState<boolean>(false);
-
   const { selectedCompany } = useCompanyStore();
-
   const [openEdit, setOpenEdit] = useState<boolean>(false);
-
   const [openAdd, setOpenAdd] = useState(false);
-
   const [openAttendance, setOpenAttendance] = useState(false);
-
   const [closeActivity, setCloseActivity] = useState(false);
+  const [openReopen, setOpenReopen] = useState(false); // Estado para reabrir
 
   const { deleteSMSActivity } = useDeleteSMSActivity();
-
   const { closeSMSActivity } = useCloseSMSActivity();
+  const { openSMSActivity } = useOpenSMSActivity(); // Hook para reabrir
 
   const realNow = startOfDay(new Date());
-
   const ActivityDate = startOfDay(smsActivity.end_date);
-
   const router = useRouter();
 
   const handleDelete = async () => {
@@ -77,6 +72,12 @@ const SMSActivityDropDownActions = ({
     await closeSMSActivity.mutateAsync(smsActivity.id.toString());
     setCloseActivity(false);
   };
+
+  const handleReopenActivity = async () => {
+    await openSMSActivity.mutateAsync(smsActivity.id.toString());
+    setOpenReopen(false);
+  };
+
   return (
     <>
       <DropdownMenu>
@@ -115,6 +116,14 @@ const SMSActivityDropDownActions = ({
             <EyeIcon className="size-5" />
             <p className="pl-2">Ver</p>
           </DropdownMenuItem>
+
+          {/* OPCIÓN PARA REABRIR (Solo si está CERRADO) */}
+          {smsActivity.status === "CERRADO" && (
+            <DropdownMenuItem onClick={() => setOpenReopen(true)}>
+              <LockOpen className="size-5 text-green-600" />
+              <p className="pl-2">Reabrir Actividad</p>
+            </DropdownMenuItem>
+          )}
 
           {smsActivity.status === "ABIERTO" && (
             <DropdownMenuItem onClick={() => setOpenAdd(true)}>
@@ -156,7 +165,6 @@ const SMSActivityDropDownActions = ({
             <Button
               className="bg-rose-400 hover:bg-white hover:text-black hover:border hover:border-black"
               onClick={() => setOpenDelete(false)}
-              type="submit"
             >
               Cancelar
             </Button>
@@ -183,7 +191,6 @@ const SMSActivityDropDownActions = ({
             <DialogTitle className="text-center">
               Edicion de Actividad
             </DialogTitle>
-            <DialogDescription className="text-center"></DialogDescription>
             <CreateSMSActivityForm
               initialData={smsActivity}
               isEditing={true}
@@ -200,7 +207,6 @@ const SMSActivityDropDownActions = ({
             <DialogTitle className="text-center font-light">
               Agregar o eliminar personas
             </DialogTitle>
-            <DialogDescription className="text-center"></DialogDescription>
             <AddToSMSActivity
               initialData={smsActivity}
               onClose={() => setOpenAdd(false)}
@@ -209,13 +215,13 @@ const SMSActivityDropDownActions = ({
         </DialogContent>
       </Dialog>
 
+      {/* DIALOGO DE ASISTENCIA */}
       <Dialog open={openAttendance} onOpenChange={setOpenAttendance}>
         <DialogContent className="flex flex-col max-w-2xl m-2">
           <DialogHeader>
             <DialogTitle className="text-center font-light">
               Asistencia
             </DialogTitle>
-            <DialogDescription className="text-center"></DialogDescription>
             <AddSMSActivityAttendanceForm
               initialData={smsActivity}
               onClose={() => setOpenAttendance(false)}
@@ -232,8 +238,7 @@ const SMSActivityDropDownActions = ({
               ¿Seguro que desea cerrar la actividad?
             </DialogTitle>
             <DialogDescription className="text-center p-2 mb-0 pb-0">
-              Esta acción es irreversible y estaría cerrando la actividad
-              seleccionada.
+              Esta acción cerrará la actividad y limitará su edición.
             </DialogDescription>
           </DialogHeader>
 
@@ -241,20 +246,55 @@ const SMSActivityDropDownActions = ({
             <Button
               className="bg-rose-400 hover:bg-white hover:text-black hover:border hover:border-black"
               onClick={() => setCloseActivity(false)}
-              type="submit"
             >
               Cancelar
             </Button>
 
             <Button
-              disabled={deleteSMSActivity.isPending}
+              disabled={closeSMSActivity.isPending}
               className="hover:bg-white hover:text-black hover:border hover:border-black transition-all"
               onClick={() => handleCloseActivity()}
             >
-              {deleteSMSActivity.isPending ? (
+              {closeSMSActivity.isPending ? (
                 <Loader2 className="size-4 animate-spin" />
               ) : (
                 <p>Confirmar</p>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* DIALOGO PARA REABRIR UNA ACTIVIDAD */}
+      <Dialog open={openReopen} onOpenChange={setOpenReopen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="text-center">
+              ¿Desea reabrir la actividad?
+            </DialogTitle>
+            <DialogDescription className="text-center p-2 mb-0 pb-0">
+              Al reabrirla, podrás volver a editar la información, gestionar la asistencia y 
+              agregar personas.
+            </DialogDescription>
+          </DialogHeader>
+
+          <DialogFooter className="flex flex-col-reverse gap-2 md:gap-0">
+            <Button
+              variant="outline"
+              onClick={() => setOpenReopen(false)}
+            >
+              Cancelar
+            </Button>
+
+            <Button
+              disabled={openSMSActivity.isPending}
+              className="bg-green-600 hover:bg-green-700 text-white transition-all"
+              onClick={() => handleReopenActivity()}
+            >
+              {openSMSActivity.isPending ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : (
+                <p>Confirmar Reapertura</p>
               )}
             </Button>
           </DialogFooter>

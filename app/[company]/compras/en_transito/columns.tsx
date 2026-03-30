@@ -147,7 +147,7 @@ export const getColumns = (selectedCompany?: { slug: string }): ColumnDef<Purcha
           <span className={cn(
             "text-xs tabular-nums px-2 py-0.5 rounded border",
             row.getIsExpanded()
-              ? "bg-blue-50 border-blue-200 dark:bg-amber-950/40 dark:text-amber-400 dark:border-amber-800/60"
+              ? "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-400 dark:border-amber-800/60"
               : "text-muted-foreground border-border/40 bg-muted/30"
           )}>
             {count} {count === 1 ? "ítem" : "ítems"}

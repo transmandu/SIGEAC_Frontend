@@ -1,24 +1,22 @@
 "use client";
 
-import { Article, Batch, Convertion } from "@/types";
-import { useState } from "react";
+import CreateGeneralArticleForm from "@/components/forms/mantenimiento/almacen/CreateGeneralArticleForm";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "../../../ui/select";
-import DirectComponentForm from "@/app/[company]/almacen/ingresar_inventario/_components/DirectComponentForm";
-import DirectConsumableForm from "@/app/[company]/almacen/ingresar_inventario/_components/DirectConsumableForm";
-import DirectPartForm from "@/app/[company]/almacen/ingresar_inventario/_components/DirectPartForm";
-import CreateToolForm from "./CreateToolForm";
+} from "@/components/ui/select";
+import { Article, Batch } from "@/types";
+import { useState } from "react";
+import RegisterConsumableForm from "./RegisterConsumableForm";
+import RegisterPartForm from "./RegisterPartForm";
+import RegisterToolForm from "./RegisterToolForm";
+import RegisterComponentForm from "./RegisterComponentForm";
 
 export interface EditingArticle extends Article {
   batch: Batch;
-  certificate_8130?: string;
-  certificate_vendor?: string;
-  certificate_fabricant?: string;
   tool?: {
     id: number;
     serial: string;
@@ -31,6 +29,7 @@ export interface EditingArticle extends Article {
   partComponent?: {
     id: number;
     article_id: string;
+    aircraft_id?: string;
     expiration_date?: string | null;
     fabrication_date: string | null;
     hour_date: string | null;
@@ -39,11 +38,9 @@ export interface EditingArticle extends Article {
     life_limit_part_calendar?: string;
     life_limit_part_hours?: string | number;
     life_limit_part_cycles?: string | number;
-
     hard_time_calendar?: string;
     hard_time_hours?: string | number;
     hard_time_cycles?: string | number;
-
     shelf_life?: number;
     shelf_life_unit?: string;
   };
@@ -56,6 +53,9 @@ export interface EditingArticle extends Article {
     is_managed?: boolean | string | number;
     shelf_life?: string | null;
   };
+  certificate_8130?: string;
+  certificate_vendor?: string;
+  certificate_fabricant?: string;
   has_documentation?: boolean;
 }
 
@@ -77,42 +77,43 @@ const RegisterArticleForm = ({
   }
   return (
     <div className="space-y-3 mb-4">
-      <h1 className="font-bold text-3xl">
-        {isEditing ? "Edicion de Articulo" : "Carga de Articulo"}
+      <h1 className="font-bold text-3xl mt-2">
+        {isEditing ? "Edicion de Articulo" : "Recepción Administrativa"}
       </h1>
       {!isEditing && (
-        <p className="text-sm text-muted-foreground">
-          Seleccione el tipo de articulo a registrar:
+        <p className="text-xs text-muted-foreground">
+          Seleccione el tipo de articulo a recepcionar. Si el articulo ya existe en el sistema, se actualizará su información y se agregará un nuevo lote con la cantidad ingresada:
         </p>
       )}
       <Select
         disabled={isEditing}
-        value={type} onValueChange={handleTypeSelect}
+        value={type}
+        onValueChange={handleTypeSelect}
       >
         <SelectTrigger className="w-[230px]">
           <SelectValue placeholder="Seleccionar..." />
         </SelectTrigger>
         <SelectContent>
           <SelectItem value="CONSUMIBLE">CONSUMIBLE</SelectItem>
-          <SelectItem value="HERRAMIENTA">HERRAMIENTA</SelectItem>
           <SelectItem value="COMPONENTE">COMPONENTE</SelectItem>
+          <SelectItem value="HERRAMIENTA">HERRAMIENTA</SelectItem>
           <SelectItem value="PARTE">PARTE</SelectItem>
+          <SelectItem value="GENERAL">GENERAL</SelectItem>
         </SelectContent>
       </Select>
-      {
-        type === "CONSUMIBLE" && (
-          <DirectConsumableForm isEditing={isEditing} initialData={initialData} />
-        )
-      }
+      {type === "CONSUMIBLE" && (
+        <RegisterConsumableForm isEditing={isEditing} initialData={initialData} />
+      )}
       {type === "HERRAMIENTA" && (
-        <CreateToolForm isEditing={isEditing} initialData={initialData} />
+        <RegisterToolForm isEditing={isEditing} initialData={initialData} />
       )}
       {type === "COMPONENTE" && (
-        <DirectComponentForm isEditing={isEditing} initialData={initialData} />
+        <RegisterComponentForm isEditing={isEditing} initialData={initialData} />
       )}
       {type === "PARTE" && (
-        <DirectPartForm isEditing={isEditing} initialData={initialData} />
+        <RegisterPartForm isEditing={isEditing} initialData={initialData} />
       )}
+      {type === "GENERAL" && <CreateGeneralArticleForm />}
     </div>
   );
 };

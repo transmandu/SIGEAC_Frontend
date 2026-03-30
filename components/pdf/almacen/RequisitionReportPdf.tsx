@@ -1,244 +1,129 @@
 import React from "react";
-import { Document, Page, Text, StyleSheet, View, Image as PDFImage } from "@react-pdf/renderer";
+import { Document, Page, Text, StyleSheet, View } from "@react-pdf/renderer";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { Requisition as RequisitionType } from "@/types";
-import { registerPdfFonts } from "@/lib/fontmanager"
+import { registerPdfFonts } from "@/lib/fontmanager";
 
 registerPdfFonts();
 
 const styles = StyleSheet.create({
-  page: {
-    padding: 30,
-    fontSize: 12,
-    backgroundColor: "#ffffffff",
-    fontFamily: "Calibri",
-    fontWeight: "normal",
-  },
+  page: { padding: 30, fontSize: 12, fontFamily: "Calibri", backgroundColor: "#ffffff" },
 
   /** HEADER **/
-  headerWrapper: {
-    width: "100%",
-    alignSelf: "center",
-    marginBottom: 20,
-  },
-  headerTable: {
-    flexDirection: "row",
-    width: "100%",
-  },
-  headerCell: {
-    justifyContent: "center",
-    padding: 4,
-  },
-  logoCell: {
-    width: "33%",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  logo: {
-    height: 40,
-    objectFit: "contain",
-  },
-  titleCell: {
-    width: "34%",
-    alignItems: "center",
-    justifyContent: "flex-end",
-    paddingVertical: 4,
-  },
-  titleText: {
-    fontSize: 20,
-    fontWeight: "bold",
-  },
-  rightCell: {
-    width: "33%",
-    justifyContent: "center",
-    alignItems: "flex-end",
-    paddingRight: 4,
-  },
-  rightText: {
-    fontSize: 11,
-    textAlign: "right",
-    marginBottom: 2,
-  },
+  headerWrapper: { marginBottom: 10 },
+  headerTable: { flexDirection: "row", width: "100%", borderWidth: 1, borderColor: "#000" },
+  headerCell: { padding: 4, borderRightWidth: 1, borderColor: "#000", justifyContent: "center" },
+  headerCellNoRight: { padding: 4, justifyContent: "center" },
+  titleText: { fontSize: 16, fontWeight: "bold", textAlign: "center" },
+  rightText: { fontSize: 11, textAlign: "right" },
 
-  /** BODY **/
-  section: {
-    marginBottom: 13,
-    padding: 10,
-    backgroundColor: "#dfdadaff",
-    borderRadius: 6,
-  },
-  subTitle: {
-    fontSize: 13,
-    fontWeight: "bold",
-    marginBottom: 6,
-  },
-  fieldText: {
-    fontSize: 13,
-    marginBottom: 2,
-  },
-  noRecords: {
-    fontSize: 13,
-    color: "#f44336",
-    textAlign: "center",
-    marginVertical: 20,
-  },
+  /** INFORMACIÓN GENERAL **/
+  infoTable: { width: "100%", borderWidth: 1, borderColor: "#000", marginBottom: 10 },
+  infoRow: { flexDirection: "row", borderTopWidth: 1, borderColor: "#000", minHeight: 20, alignItems: "center" },
+  infoCell: { padding: 4, borderRightWidth: 1, borderColor: "#000", fontSize: 11 },
+  infoCellNoRight: { padding: 4, fontSize: 11 },
+
+  /** ARTÍCULOS **/
+  section: { marginBottom: 13 },
+  subTitle: { fontSize: 13, fontWeight: "bold", marginBottom: 6 },
+  tableWrapper: { width: "100%", borderWidth: 1, borderColor: "#000", marginBottom: 10 },
+  tableRow: { flexDirection: "row", borderTopWidth: 1, borderColor: "#000", alignItems: "center" },
+  tableCell: { padding: 4, borderRightWidth: 1, borderColor: "#000", fontSize: 11, justifyContent: "center" },
+  tableCellNoRight: { padding: 4, fontSize: 11, justifyContent: "center" },
+  headerCellGray: { backgroundColor: "#d9d9d9", fontWeight: "bold" },
+  dataCellGray: { backgroundColor: "#f2f2f2" },
+  noRecords: { fontSize: 13, color: "#f44336", textAlign: "center", marginVertical: 20 },
 });
 
-/** estilos de la tabla **/
-const tableStyles = StyleSheet.create({
-
-  tableWrapper: {
-    width: "100%",
-    marginBottom: 10,
-    borderLeftWidth: 1,
-    borderRightWidth: 1,
-    borderBottomWidth: 1,
-    borderColor: "#000",
-  },
-  rowFirst: {
-    flexDirection: "row",
-    height: 15,
-    paddingHorizontal: 8,
-    alignItems: "flex-end",
-  },
-  titleRowText: {
-    fontSize: 11,
-    fontWeight: "bold",
-    textTransform: "uppercase",
-    textAlign: "center",
-  },
-  rowWithBorders: {
-    flexDirection: "row",
-    height: 15,
-    borderTopWidth: 1,
-    borderColor: "#000",
-    alignItems: "center",
-  },
-  cellBase: {
-    height: "100%",
-    paddingHorizontal: 6,
-    fontSize: 11,
-    borderRightWidth: 1,
-    borderColor: "#000",
-    justifyContent: "center",
-  },
-  cellNoRight: {
-    height: "100%",
-    paddingHorizontal: 6,
-    fontSize: 11,
-    justifyContent: "center",
-  },
-  headerCell: {
-    backgroundColor: "#d9d9d9",
-    fontWeight: "bold",
-  },
-  dataCell: {
-    backgroundColor: "#f2f2f2",
-  },
-});
-
-
-
-const RequisitionReportPdf = ({
-  requisition,
-  aircraftFilter = null,
-  startDate,
-  endDate,
-}: {
-  requisition: RequisitionType;
-  aircraftFilter?: string | null;
-  startDate?: Date;
-  endDate?: Date;
-}) => {
-  // En caso de que quieras filtrar por aeronave o fechas en el futuro
-  const matchesAircraft = aircraftFilter ? (requisition.aircraft?.acronym === aircraftFilter) : true;
-  const matchesStart = startDate ? new Date(requisition.submission_date) >= startDate : true;
-  const matchesEnd = endDate ? new Date(requisition.submission_date) <= endDate : true;
-
-  const shouldDisplay = matchesAircraft && matchesStart && matchesEnd;
-
+const RequisitionReportPdf = ({ requisition }: { requisition: RequisitionType }) => {
   return (
     <Document>
-      <Page size="LETTER" style={styles.page}>
-        <View fixed>
-          <View style={styles.headerWrapper}>
-            <View style={styles.headerTable}>
-              {/* Columna Izquierda: Logo */}
-              <View style={[styles.headerCell, styles.logoCell]}>
-                <PDFImage src="/tmd_nombre.png" style={styles.logo} />
-              </View>
-
-              {/* Columna Centro: Título */}
-              <View style={[styles.headerCell, styles.titleCell]}>
-                <Text style={styles.titleText}>SOLICITUD</Text>
-                <Text style={styles.titleText}>DE COMPRA</Text>
-              </View>
-
-              {/* Columna Derecha: Número y Fecha */}
-              <View style={styles.rightCell}>
-                <Text style={styles.rightText}>{requisition.order_number}</Text>
-                <Text style={styles.rightText}>
-                  FECHA: {requisition.submission_date
-                    ? format(new Date(requisition.submission_date), "PPP", { locale: es })
-                    : "Fecha no disponible"}
-                </Text>
-              </View>
+      <Page size="LETTER" style={styles.page} wrap>
+        {/* HEADER - se repite en cada página */}
+        <View style={styles.headerWrapper} fixed>
+          <View style={styles.headerTable}>
+            <View style={[styles.headerCell, { width: "33%" }]}>
+              <Text>TMD LOGO</Text>
+            </View>
+            <View style={[styles.headerCell, { width: "34%" }]}>
+              <Text style={styles.titleText}>SOLICITUD</Text>
+              <Text style={styles.titleText}>DE COMPRA</Text>
+            </View>
+            <View style={[styles.headerCellNoRight, { width: "33%" }]}>
+              <Text style={styles.rightText}>{requisition.order_number}</Text>
+              <Text style={styles.rightText}>
+                FECHA: {requisition.submission_date ? format(new Date(requisition.submission_date), "PPP", { locale: es }) : "N/A"}
+              </Text>
             </View>
           </View>
         </View>
 
-        {/* Fila 1: título sin bordes internos ni superior */}
-        <View style={tableStyles.rowFirst}>
-          <Text style={tableStyles.titleRowText}>DEPARTAMENTO EMISOR</Text>
-        </View>
-
-        <View style={tableStyles.tableWrapper}>
-
-          {/* Fila 2: Departamento (label / dato) */}
-          <View style={tableStyles.rowWithBorders}>
-            <View style={[tableStyles.cellBase, tableStyles.headerCell, { width: "20%" }]}>
-              <Text>DEPARTAMENTO:</Text>
-            </View>
-            <View style={[tableStyles.cellNoRight, tableStyles.dataCell, { width: "80%" }]}>
-            </View>
+        {/* INFORMACIÓN GENERAL - tipo tabla */}
+        <View style={styles.infoTable}>
+          <View style={styles.infoRow}>
+            <Text style={[styles.infoCell, styles.headerCellGray, { width: "25%" }]}>Solicitado por</Text>
+            <Text style={[styles.infoCellNoRight, { width: "25%" }]}>{requisition.requested_by ?? "N/A"}</Text>
+            <Text style={[styles.infoCell, styles.headerCellGray, { width: "25%" }]}>Creado por</Text>
+            <Text style={[styles.infoCellNoRight, { width: "25%" }]}>{requisition.created_by.first_name} {requisition.created_by.last_name}</Text>
           </View>
 
-          {/* Fila 3: Responsable y N° ficha / C.I. (4 celdas) */}
-          <View style={tableStyles.rowWithBorders}>
-            <View style={[tableStyles.cellBase, tableStyles.headerCell, { width: "20%" }]}>
-              <Text>RESPONSABLE:</Text>
-            </View>
-            <View style={[tableStyles.cellBase, tableStyles.dataCell, { width: "47%" }]}>
-            </View>
-            <View style={[tableStyles.cellBase, tableStyles.headerCell, { width: "18%" }]}>
-              <Text>N° FICHA / C.I.:</Text>
-            </View>
-            <View style={[tableStyles.cellNoRight, tableStyles.dataCell, { width: "15%" }]}>
-            </View>
+          <View style={styles.infoRow}>
+            <Text style={[styles.infoCell, styles.headerCellGray, { width: "25%" }]}>Estado</Text>
+            <Text style={[styles.infoCellNoRight, { width: "25%" }]}>{requisition.status ?? "-"}</Text>
+            <Text style={[styles.infoCell, styles.headerCellGray, { width: "25%" }]}>Aeronave</Text>
+            <Text style={[styles.infoCellNoRight, { width: "25%" }]}>{requisition.aircraft?.acronym ?? "N/A"}</Text>
           </View>
 
-          {/* Fila 4: Cargo (label / dato) */}
-          <View style={tableStyles.rowWithBorders}>
-            <View style={[tableStyles.cellBase, tableStyles.headerCell, { width: "20%" }]}>
-              <Text>CARGO:</Text>
-            </View>
-            <View style={[tableStyles.cellNoRight, tableStyles.dataCell, { width: "80%" }]}>
-            </View>
+          <View style={styles.infoRow}>
+            <Text style={[styles.infoCell, styles.headerCellGray, { width: "25%" }]}>Justificación</Text>
+            <Text style={[styles.infoCellNoRight, { width: "75%" }]}>{requisition.justification ?? "N/A"}</Text>
           </View>
         </View>
 
-        {shouldDisplay ? (
-          <View style={styles.section}>
-            {/* Aquí puedes mapear requisition.batch y requisition.batch_articles */}
-            <Text style={styles.subTitle}>Número de Orden: {requisition.order_number}</Text>
-            <Text style={styles.fieldText}>Estado: {requisition.status}</Text>
-            <Text style={styles.fieldText}>Aeronave: {requisition.aircraft?.acronym ?? "N/A"}</Text>
-            <Text style={styles.fieldText}>Justificación: {requisition.justification}</Text>
-          </View>
-        ) : (
-          <Text style={styles.noRecords}>No hay registros para los filtros aplicados.</Text>
-        )}
+        {/* ARTÍCULOS POR BATCH */}
+{requisition.batch && requisition.batch.length > 0 ? (
+  requisition.batch.map((batch, batchIndex) => (
+    <View key={batch.name + batchIndex} style={styles.section} wrap={false}>
+      <Text style={styles.subTitle}>Batch: {batch.name || "-"}</Text>
+      <View style={styles.tableWrapper}>
+        {/* Header */}
+        <View style={styles.tableRow}>
+          <Text style={[styles.tableCell, styles.headerCellGray, { width: "35%" }]}>Part Number</Text>
+          <Text style={[styles.tableCellNoRight, styles.headerCellGray, { width: "20%" }]}>Cantidad</Text>
+          <Text style={[styles.tableCell, styles.headerCellGray, { width: "20%" }]}>Unidad</Text>
+          <Text style={[styles.tableCellNoRight, styles.headerCellGray, { width: "25%" }]}>Observaciones</Text>
+        </View>
+
+        {/* Datos de artículos */}
+          {batch.batch_articles && batch.batch_articles.length > 0 ? (
+            batch.batch_articles.map((article, index) => {
+              const partNumber = article.article_part_number || "-";
+              const quantity = !isNaN(Number(article.quantity)) ? String(article.quantity) : "-";
+
+              // Helper seguro para unit.label
+              const unitLabel = (article.unit as unknown as { label?: string })?.label ?? "-";
+
+              return (
+                <View style={styles.tableRow} key={index}>
+                  <Text style={[styles.tableCell, styles.dataCellGray, { width: "35%" }]}>{partNumber}</Text>
+                  <Text style={[styles.tableCellNoRight, styles.dataCellGray, { width: "20%" }]}>{quantity}</Text>
+                  <Text style={[styles.tableCell, styles.dataCellGray, { width: "20%" }]}>{unitLabel}</Text>                </View>
+              );
+            })
+          ) : (
+            <View style={styles.tableRow}>
+              <Text style={[styles.tableCellNoRight, styles.dataCellGray, { width: "100%", textAlign: "center" }]}>
+                No hay artículos en este batch
+              </Text>
+            </View>
+          )}
+        </View>
+      </View>
+    ))
+  ) : (
+    <Text style={styles.noRecords}>No hay artículos para esta requisición.</Text>
+  )}
       </Page>
     </Document>
   );
