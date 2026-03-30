@@ -26,6 +26,7 @@ export default function UploadModal({ company, isOpen, onClose, onSuccess }: any
   const [loading, setLoading] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [hasExpiry, setHasExpiry] = useState(false);
+  const [isDragging, setIsDragging] = useState(false); // 🔥 Nuevo estado para feedback visual
   
   const [departments, setDepartments] = useState<{ id: number, name: string }[]>([]);
   const [categories, setCategories] = useState<{ id: number, name: string }[]>([]);
@@ -76,6 +77,32 @@ export default function UploadModal({ company, isOpen, onClose, onSuccess }: any
       setSmsSubPoint('');
     }
   }, [formData.department_name]);
+
+  // 🔥 NUEVAS FUNCIONES PARA DRAG AND DROP
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = () => {
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      const droppedFile = e.dataTransfer.files[0];
+      // Validamos extensión sutilmente
+      const ext = droppedFile.name.split('.').pop()?.toLowerCase();
+      if (['pdf', 'xlsx', 'xls'].includes(ext || '')) {
+        setFile(droppedFile);
+      } else {
+        alert("Solo se permiten archivos PDF o Excel.");
+      }
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -138,6 +165,7 @@ export default function UploadModal({ company, isOpen, onClose, onSuccess }: any
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 transition-opacity">
       <div className="bg-white dark:bg-[#1a1c1e] rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden border border-gray-200 dark:border-gray-800 animate-in zoom-in-95 duration-200">
         
+        {/* Header igual */}
         <div className="bg-gray-50 dark:bg-gray-800/40 px-6 py-4 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center">
           <div className="flex items-center gap-2">
             <div className="p-1.5 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
@@ -151,7 +179,7 @@ export default function UploadModal({ company, isOpen, onClose, onSuccess }: any
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-5">
-          
+          {/* Nombre del Documento */}
           <div className="space-y-1.5">
             <label className="text-[11px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500 flex items-center gap-2">
               <FileText className="h-3.5 w-3.5 text-blue-500" /> Nombre del Documento
@@ -165,6 +193,7 @@ export default function UploadModal({ company, isOpen, onClose, onSuccess }: any
             />
           </div>
 
+          {/* Selects de Depto y Categoría */}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1.5 text-left">
               <label className="text-[11px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500 flex items-center gap-2">
@@ -208,6 +237,7 @@ export default function UploadModal({ company, isOpen, onClose, onSuccess }: any
             </div>
           </div>
 
+          {/* Nueva categoría input */}
           {formData.category_id === 'otro' && (
             <div className="space-y-1.5 animate-in slide-in-from-top-2 duration-300">
               <label className="text-[10px] font-bold uppercase text-blue-600 dark:text-blue-400 flex items-center gap-2">
@@ -224,6 +254,7 @@ export default function UploadModal({ company, isOpen, onClose, onSuccess }: any
             </div>
           )}
 
+          {/* SMS Section */}
           <div className={`transition-all duration-500 ease-in-out overflow-hidden ${isSmsDepartment(formData.department_name) ? 'max-h-40 opacity-100 translate-y-0' : 'max-h-0 opacity-0 -translate-y-4'}`}>
               <div className="grid grid-cols-2 gap-4 p-4 bg-blue-50/50 dark:bg-blue-900/10 rounded-2xl border border-blue-100 dark:border-blue-900/20">
               <div className="space-y-1.5 col-span-1">
@@ -269,6 +300,7 @@ export default function UploadModal({ company, isOpen, onClose, onSuccess }: any
             </div>
           </div>
 
+          {/* Vigencia */}
           <div className="space-y-2">
             <label className="text-[11px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500 flex items-center gap-2">
               <Calendar className="h-3.5 w-3.5 text-blue-500" /> Vigencia
@@ -294,6 +326,7 @@ export default function UploadModal({ company, isOpen, onClose, onSuccess }: any
             </div>
           </div>
 
+          {/* Fecha de Expiración */}
           <div className={`transition-all duration-500 overflow-hidden ${hasExpiry ? 'max-h-24 opacity-100' : 'max-h-0 opacity-0'}`}>
             <div className="space-y-1.5 pt-1 text-left">
               <label className="text-[11px] font-bold uppercase text-blue-600 dark:text-blue-400 flex items-center gap-2">
@@ -309,17 +342,33 @@ export default function UploadModal({ company, isOpen, onClose, onSuccess }: any
             </div>
           </div>
 
+          {/* 🔥 CUADRO DE CARGA CON DRAG AND DROP ACTIVO */}
           <div className="pt-2">
-            <label className={`relative flex flex-col items-center justify-center w-full h-28 border-2 border-dashed rounded-2xl cursor-pointer transition-all ${file ? 'border-green-500 bg-green-50/30' : 'border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/40'}`}>
-              <div className="flex flex-col items-center justify-center text-center px-4">
-                {file ? <CheckCircle2 className="h-7 w-7 text-green-500 mb-1" /> : <UploadCloud className="h-7 w-7 text-gray-400 mb-1" />}
-                <p className="text-sm dark:text-gray-300 font-medium">{file ? '¡Archivo seleccionado!' : 'Haz clic para subir archivo'}</p>
+            <label 
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+              className={`relative flex flex-col items-center justify-center w-full h-28 border-2 border-dashed rounded-2xl cursor-pointer transition-all 
+                ${isDragging ? 'border-blue-500 bg-blue-50/50 scale-[1.01]' : ''} 
+                ${file ? 'border-green-500 bg-green-50/30' : 'border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/40 hover:border-blue-400'}`}
+            >
+              <div className="flex flex-col items-center justify-center text-center px-4 pointer-events-none">
+                {file ? <CheckCircle2 className="h-7 w-7 text-green-500 mb-1" /> : <UploadCloud className={`h-7 w-7 mb-1 ${isDragging ? 'text-blue-500' : 'text-gray-400'}`} />}
+                <p className="text-sm dark:text-gray-300 font-medium">
+                  {file ? '¡Archivo seleccionado!' : isDragging ? 'Suelta el archivo aquí' : 'Haz clic o arrastra un archivo'}
+                </p>
                 <p className="text-[10px] text-gray-400 truncate max-w-[200px]">{file ? file.name : 'PDF o Excel (Max 10MB)'}</p>
               </div>
-              <input type="file" className="hidden" accept=".pdf,.xlsx,.xls" onChange={(e) => setFile(e.target.files ? e.target.files[0] : null)} />
+              <input 
+                type="file" 
+                className="hidden" 
+                accept=".pdf,.xlsx,.xls" 
+                onChange={(e) => setFile(e.target.files ? e.target.files[0] : null)} 
+              />
             </label>
           </div>
 
+          {/* Footer Buttons */}
           <div className="flex gap-3 pt-4 border-t dark:border-gray-800">
             <button type="button" onClick={handleInternalClose} className="flex-1 px-4 py-3 text-[11px] font-black tracking-widest text-gray-400 hover:text-gray-600 uppercase">CANCELAR</button>
             <button type="submit" disabled={loading || loadingData} className="flex-1 px-4 py-3 text-[11px] font-black tracking-widest text-white bg-blue-600 rounded-xl hover:bg-blue-700 disabled:opacity-50 shadow-lg shadow-blue-500/20">

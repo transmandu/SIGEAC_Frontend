@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react'; // 🔥 Importamos useMemo para optimizar cálculos
+import { useMemo } from 'react';
 import { FileText, Clock, AlertCircle, ExternalLink } from 'lucide-react';
 import { LibraryDropdownActions } from "@/components/dropdowns/general/LibraryDropdownActions";
 
@@ -25,19 +25,28 @@ const getStatusDetails = (status: string, expirationDate: string) => {
   return { label: 'VIGENTE', classes: 'bg-emerald-50 text-emerald-700 border-emerald-100 dark:bg-emerald-500/10 dark:border-emerald-500/20', isWarning: false };
 };
 
-export default function DocumentRow({ doc, onView, columnVisibility, isSubItem, onDelete, canManage }: any) {
+export default function DocumentRow({ doc, onView, columnVisibility, isSubItem, onDelete, onRefresh, canManage }: any) {
   
-  // 🔍 1. Encontramos la versión más reciente
+  // ✅ CASCADA DINÁMICA: Siempre apunta al último elemento del array.
+  // Si borras la v3, 'length - 1' apuntará automáticamente a la v2.
   const latestVersion = useMemo(() => {
-    return doc?.versions && doc.versions.length > 0 ? doc.versions[0] : null;
-  }, [doc?.versions]);
+  if (!doc?.versions || doc.versions.length === 0) return null;
 
-  const activeFilePath = latestVersion ? latestVersion.file_path : doc?.document;
-  const activeFileType = activeFilePath ? activeFilePath.split('.').pop() : doc?.file_type;
+  // Ordenamos por ID de forma ascendente y tomamos el último
+  const sorted = [...doc.versions].sort((a, b) => Number(a.id) - Number(b.id));
+  return sorted[sorted.length - 1];
+}, [doc?.versions]);
+
+  // Si no hay versiones, usamos los datos base del documento padre
+  const activeFilePath = latestVersion ? latestVersion.file_path : (doc?.document || '');
   
-  // 🔥 NUEVA LÓGICA: Jalamos el vencimiento y estado del hijo (la versión), no del padre
-  const activeExpirationDate = latestVersion ? latestVersion.expiration_date : null;
-  const activeExpiryStatus = latestVersion ? latestVersion.expiry_status : 'no_aplica';
+  const activeFileType = useMemo(() => {
+    if (activeFilePath) return activeFilePath.split('.').pop()?.toLowerCase();
+    return doc?.file_type?.toLowerCase() || 'default';
+  }, [activeFilePath, doc?.file_type]);
+  
+  const activeExpirationDate = latestVersion ? latestVersion.expiration_date : (doc?.expiration_date || null);
+  const activeExpiryStatus = latestVersion ? latestVersion.expiry_status : (doc?.expiry_status || 'no_aplica');
 
   const getFileDetails = (type: any, title: any) => {
     const t = String(type || "").toLowerCase();
@@ -49,11 +58,8 @@ export default function DocumentRow({ doc, onView, columnVisibility, isSubItem, 
   };
 
   const fileDetails = getFileDetails(activeFileType, doc?.title);
-  
-  // 🔥 Le pasamos la fecha de la versión activa a la función del estatus
   const statusInfo = getStatusDetails(activeExpiryStatus, activeExpirationDate);
 
-  // 🗓️ Formateamos la fecha de la versión activa
   let displayExpirationDate = 'Permanente';
   if (activeExpirationDate) {
     const datePart = String(activeExpirationDate).substring(0, 10);
@@ -62,9 +68,9 @@ export default function DocumentRow({ doc, onView, columnVisibility, isSubItem, 
   }
 
   return (
-    <div className={`group flex items-center gap-4 p-3 transition-colors border-l-2 border-l-transparent hover:border-l-blue-600 border-b border-[#a8a8a8] dark:border-transparent
+    <div className={`group flex items-center gap-4 p-3 transition-colors border-l-2 border-l-transparent hover:border-l-blue-600 border-b border-slate-100 dark:border-transparent
       ${isSubItem ? 'pl-14' : 'pl-3'} 
-      ${statusInfo.isWarning ? 'bg-amber-50/70 dark:bg-amber-900/5' : 'bg-white hover:bg-slate-50/80 dark:bg-transparent dark:hover:bg-white/5'}`}>
+      bg-white hover:bg-slate-50/80 dark:bg-transparent dark:hover:bg-white/5`}>
       
       {columnVisibility.title && (
         <>
@@ -109,10 +115,20 @@ export default function DocumentRow({ doc, onView, columnVisibility, isSubItem, 
 
       {columnVisibility.actions && (
         <div className="flex items-center gap-1 shrink-0 ml-2">
-          <button onClick={() => onView(doc.id)} className="p-2 text-slate-400 hover:text-blue-700 dark:hover:text-white hover:bg-blue-50 dark:hover:bg-blue-600 rounded-lg transition-colors">
+          {/* ✅ REGLA DE ORO: Usamos doc.id (44) para que el controlador encuentre el documento padre */}
+          <button 
+            onClick={() => onView(doc.id)} 
+            className="p-2 text-slate-400 hover:text-blue-700 dark:hover:text-white hover:bg-blue-50 dark:hover:bg-blue-600 rounded-lg transition-colors"
+          >
             <ExternalLink className="h-4 w-4" />
           </button>
-          <LibraryDropdownActions doc={doc} canManage={canManage} onDelete={onDelete} />
+          
+          <LibraryDropdownActions 
+            doc={doc} 
+            canManage={canManage} 
+            onDelete={onDelete} 
+            onRefresh={onRefresh} 
+          />
         </div>
       )}
     </div>
