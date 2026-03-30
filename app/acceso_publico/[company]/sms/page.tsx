@@ -18,7 +18,7 @@ import {
     policyImages,
     smsConcepts,
     COMPANIES,
-} from "@/lib/contants/sms-data";
+} from "@/lib/constants/sms-data";
 
 import { cn } from "@/lib/utils";
 

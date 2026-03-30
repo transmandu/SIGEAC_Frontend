@@ -915,6 +915,7 @@ export type VoluntaryReport = {
 
 export type DangerIdentification = {
     id: number;
+    location_id?: Location;
     danger: string;
     current_defenses: string;
     danger_area: string;
@@ -1215,16 +1216,16 @@ export interface SMSCertificate {
     id: number;
     name: string;
 }
-export interface ShippingAgency { 
-  id: number; 
-  name: string; 
-  code: string; 
-  description?: string | null; 
-  type: 'NATIONAL' | 'INTERNATIONAL'; 
-  phone?: string | null; 
-  email?: string | null; 
-  created_at: string; 
-  updated_at: string; 
-  created_by: string; 
-  updated_by: string; 
+export interface ShippingAgency {
+    id: number;
+    name: string;
+    code: string;
+    description?: string | null;
+    type: 'NATIONAL' | 'INTERNATIONAL';
+    phone?: string | null;
+    email?: string | null;
+    created_at: string;
+    updated_at: string;
+    created_by: string;
+    updated_by: string;
 }

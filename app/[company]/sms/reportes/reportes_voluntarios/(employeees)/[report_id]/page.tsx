@@ -60,7 +60,7 @@ const ShowVoluntaryReport = () => {
                     <>
                         {!voluntaryReport.danger_identification_id ? (
                             <CreateDangerIdentificationDialog
-                                title="Crear Identificación de Peligro"
+                                title=""
                                 id={voluntaryReport.id}
                                 reportType="RVP"
                             />
