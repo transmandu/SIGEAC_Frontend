@@ -29,9 +29,10 @@ import {
   Phone,
   User,
   File,
+  Download,
 } from "lucide-react";
 import Image from "next/image";
-import ImageZoom from "@/components/ui/ImageZoom"; //funcion de zoom para imagenes
+import ImageZoom from "@/components/ui/ImageZoom";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 
@@ -49,7 +50,29 @@ const ShowVoluntaryReport = () => {
   });
 
   // ==========================================================
-  // ACCIONES
+  // HANDLERS
+  // ==========================================================
+  const handleDownloadImage = async (url: string, filename: string) => {
+    try {
+      const response = await fetch(url);
+      const blob = await response.blob();
+      const blobUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = blobUrl;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(blobUrl);
+    } catch (error) {
+      console.error("Error downloading image:", error);
+      // Fallback: open in a new tab if fetch fails due to CORS
+      window.open(url, "_blank");
+    }
+  };
+
+  // ==========================================================
+  // ACTIONS
   // ==========================================================
   const renderActionButtons = () => {
     if (!voluntaryReport) return null;
@@ -96,7 +119,7 @@ const ShowVoluntaryReport = () => {
   };
 
   // ==========================================================
-  // TARJETAS
+  // CARDS
   // ==========================================================
 
   const renderBasicInfo = () => (
@@ -231,7 +254,7 @@ const ShowVoluntaryReport = () => {
                     <ChevronRight className="w-4 h-4 mt-1 flex-shrink-0" />
                     <span className="">{consequence.trim()}</span>
                   </li>
-                )
+                ),
             )}
           </ul>
         ) : (
@@ -297,16 +320,29 @@ const ShowVoluntaryReport = () => {
 
   const renderAttachments = () => (
     <div className="space-y-4">
-      {voluntaryReport?.imageUrl && (
+      {voluntaryReport?.imageUrl &&(
         <Card>
-          <CardHeader className="pb-3">
+          <CardHeader className="pb-3 flex flex-row items-center justify-between">
             <h3 className="text-lg font-semibold">Imagen Adjunta</h3>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                if (!voluntaryReport?.imageUrl) return;
+                handleDownloadImage(
+                  voluntaryReport.imageUrl,
+                  `Imagen-RVP-${voluntaryReport.report_number || "adjunta"}.jpg`,
+                );
+              }}
+            >
+              <Download className="w-4 h-4 mr-2" />
+              Descargar Imagen
+            </Button>
           </CardHeader>
           <CardContent>
             <Dialog>
               <DialogTrigger asChild>
                 <div className="relative group w-full max-w-sm h-64 mx-auto cursor-pointer">
-                  {/* ✅ USAR img NORMAL */}
                   <Image
                     src={voluntaryReport.imageUrl}
                     alt="Imagen del reporte"
@@ -329,8 +365,10 @@ const ShowVoluntaryReport = () => {
                 <DialogHeader>
                   <DialogTitle>Imagen del Reporte</DialogTitle>
                 </DialogHeader>
-                {/* Vista expandida: usamos `ImageZoom` en lugar de `<Image />` para habilitar zoom/pan dentro del diálogo. */}
-                <div className="relative h-[60vh] flex justify-center" onClick={(e) => e.stopPropagation()}>
+                <div
+                  className="relative h-[60vh] flex justify-center"
+                  onClick={(e) => e.stopPropagation()}
+                >
                   <ImageZoom
                     src={voluntaryReport.imageUrl}
                     alt="Imagen completa del reporte"
@@ -364,7 +402,7 @@ const ShowVoluntaryReport = () => {
   );
 
   // ==========================================================
-  // RETURN PRINCIPAL
+  // MAIN RETURN
   // ==========================================================
 
   return (
@@ -378,26 +416,21 @@ const ShowVoluntaryReport = () => {
         </div>
       )}
 
-      {/* CONTENIDO */}
+      {/* CONTENT */}
       {voluntaryReport && (
         <div className="space-y-6">
-          {/* PRIMER BLOQUE: Info General + Ubicación + Fecha */}
           <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
             {renderBasicInfo()}
             {renderLocationInfo()}
             {renderIdentificationDate()}
           </div>
 
-          {/* SEGUNDO BLOQUE: Descripción + Consecuencias */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {renderDescription()}
             {renderConsequences()}
           </div>
 
-          {/* TERCER BLOQUE: Reportero */}
           {renderReporterInfo()}
-
-          {/* CUARTO BLOQUE: Adjuntos */}
           {renderAttachments()}
         </div>
       )}
