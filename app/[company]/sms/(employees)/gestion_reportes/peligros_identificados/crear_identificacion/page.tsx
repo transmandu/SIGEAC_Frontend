@@ -2,26 +2,34 @@
 
 import { useSearchParams } from "next/navigation";
 import { ContentLayout } from "@/components/layout/ContentLayout";
-import CreateDangerIdentificationForm from "@/components/forms/sms/CreateIdentificationForm";
+import { useCompanyStore } from "@/stores/CompanyStore";
+import { useGetIsCompanyOmac } from "@/hooks/sistema/useGetIsCompanyOmac";
+import { Loader2 } from "lucide-react";
+import RiskManagementTabs from "@/components/misc/RiskManagementTabs";
 
 export default function CreateDangerIdentificationPage() {
-  const searchParams = useSearchParams();
-  const reporteId = searchParams.get("reporteId");
+    const searchParams = useSearchParams();
+    const reporteId = searchParams.get("reporteId");
 
-  if (!reporteId) {
-    throw new Error("Falta el id del reporte en los parámetros de búsqueda");
-  }
+    const { selectedCompany } = useCompanyStore();
+    const { data: isOmac, isLoading } = useGetIsCompanyOmac(selectedCompany?.slug);
 
-  return (
-    <ContentLayout title="Crear Identificación de Peligro">
-      
-        
-          <CreateDangerIdentificationForm
-            id={Number(reporteId)}
-            reportType="RVP"
-          />
-        
-      
-    </ContentLayout>
-  );
+    if (!reporteId) {
+        throw new Error("Falta el id del reporte en los parámetros de búsqueda");
+    }
+
+    return (
+        <ContentLayout title="Gestión de Riesgo">
+            {isLoading ? (
+                <div className="flex justify-center py-10">
+                    <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                </div>
+            ) : (
+                <RiskManagementTabs
+                    reporteId={reporteId}
+                    isOmac={!!isOmac}
+                />
+            )}
+        </ContentLayout>
+    );
 }
