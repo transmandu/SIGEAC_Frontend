@@ -63,6 +63,9 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useGetAircrafts } from "@/hooks/aerolinea/aeronaves/useGetAircrafts";
 import { useGetDispatchReport } from "@/hooks/mantenimiento/almacen/reportes/useGetDispatchReport";
 import { useGetBalanceAndTotalReport } from "@/hooks/mantenimiento/almacen/reportes/useGetBalanceAndTotalReport";
+import { useGetAuthorizedEmployees } from "@/hooks/sistema/autorizados/useGetAuthorizedEmployees";
+import { useGetThirdParties } from "@/hooks/general/terceros/useGetThirdParties";
+import { useGetDepartments } from "@/hooks/sistema/departamento/useGetDepartment";
 
 export function DispatchReportDialog() {
   const { selectedStation, selectedCompany } = useCompanyStore();
@@ -83,6 +86,9 @@ export function DispatchReportDialog() {
   const [startDate, setStartDate] = useState<Date | undefined>();
   const [endDate, setEndDate] = useState<Date | undefined>();
   const [aircraft, setAircraft] = useState<string | null>(null);
+  const [departmentId, setDepartmentId] = useState<string | null>(null);
+  const [authorizedEmployeeId, setAuthorizedEmployeeId] = useState<string | null>(null);
+  const [thirdPartyId, setThirdPartyId] = useState<string | null>(null);
 
   const today = new Date();
 
@@ -92,6 +98,15 @@ export function DispatchReportDialog() {
   const { data: aircrafts, isLoading: isLoadingAircrafts } =
     useGetAircrafts(selectedCompany?.slug);
 
+  const { data: departments, isLoading: isLoadingDepartments } =
+    useGetDepartments(selectedCompany?.slug);
+
+  const { data: authorizedEmployees, isLoading: isLoadingEmployees } =
+    useGetAuthorizedEmployees(selectedCompany?.slug);
+
+  const { data: thirdParties, isLoading: isLoadingThirdParties } =
+    useGetThirdParties();
+
   const isDateRangeInvalid = startDate && endDate && endDate < startDate;
   const areDatesMissing = !startDate || !endDate;
 
@@ -100,30 +115,37 @@ export function DispatchReportDialog() {
       setStartDate(undefined);
       setEndDate(undefined);
       setAircraft(null);
+      setDepartmentId(null);
+      setAuthorizedEmployeeId(null);
+      setThirdPartyId(null);
       setActiveTab(defaultTab);
     }
   }, [open, defaultTab]);
 
-  const handleDownload = async (reportType: "dispatch" | "balance") => {
-    if (loadingDownload) return;
+  const buildParams = () => ({
+    location_id: selectedStation!,
+    company: selectedCompany!.slug,
+    aircraft_id: aircraft || undefined,
+    department_id: departmentId || undefined,
+    authorized_employee_id: authorizedEmployeeId || undefined,
+    third_party_id: thirdPartyId || undefined,
+    from: format(startDate!, "yyyy-MM-dd"),
+    to: format(endDate!, "yyyy-MM-dd"),
+  });
 
-    if (
-      !selectedStation ||
-      !selectedCompany?.slug ||
-      areDatesMissing ||
-      isDateRangeInvalid
-    ) return;
+  const canDownload =
+    !!selectedStation &&
+    !!selectedCompany?.slug &&
+    !areDatesMissing &&
+    !isDateRangeInvalid;
+
+  const handleDownload = async (reportType: "dispatch" | "balance") => {
+    if (loadingDownload || !canDownload) return;
 
     try {
       setLoadingDownload(true);
 
-      const params = {
-        location_id: selectedStation,
-        company: selectedCompany.slug,
-        aircraft_id: aircraft || undefined,
-        from: format(startDate!, "yyyy-MM-dd"),
-        to: format(endDate!, "yyyy-MM-dd")
-      };
+      const params = buildParams();
 
       const blob =
         reportType === "dispatch"
@@ -133,22 +155,14 @@ export function DispatchReportDialog() {
       if (!blob) return;
 
       const url = URL.createObjectURL(blob);
-
       const link = document.createElement("a");
       link.href = url;
 
       const reportName =
-        reportType === "dispatch"
-          ? "reporte-salidas"
-          : "reporte-balance-total";
+        reportType === "dispatch" ? "reporte-salidas" : "reporte-balance-total";
 
-      link.download = `${reportName}-${format(
-        startDate!,
-        "yyyyMMdd"
-      )}-${format(endDate!, "yyyyMMdd")}.pdf`;
-
+      link.download = `${reportName}-${format(startDate!, "yyyyMMdd")}-${format(endDate!, "yyyyMMdd")}.pdf`;
       link.click();
-
       setTimeout(() => URL.revokeObjectURL(url), 100);
 
       setOpen(false);
@@ -157,44 +171,30 @@ export function DispatchReportDialog() {
     }
   };
 
-  const handleExcelDispatch = async () => {
-    if (loadingDownload) return;
-
-    if (
-      !selectedStation ||
-      !selectedCompany?.slug ||
-      areDatesMissing ||
-      isDateRangeInvalid
-    ) return;
+  const handleExcelDownload = async (reportType: "dispatch" | "balance") => {
+    if (loadingDownload || !canDownload) return;
 
     try {
       setLoadingDownload(true);
 
-      const params = {
-        location_id: selectedStation,
-        company: selectedCompany.slug,
-        aircraft_id: aircraft || undefined,
-        from: format(startDate!, "yyyy-MM-dd"),
-        to: format(endDate!, "yyyy-MM-dd"),
-        format: "excel" as const
-      };
+      const params = { ...buildParams(), format: "excel" as const };
 
-      const blob = await getDispatch(params);
+      const blob =
+        reportType === "dispatch"
+          ? await getDispatch(params)
+          : await getBalance(params);
 
       if (!blob) return;
 
       const url = URL.createObjectURL(blob);
-
       const link = document.createElement("a");
       link.href = url;
 
-      link.download = `reporte-salidas-${format(
-        startDate!,
-        "yyyyMMdd"
-      )}-${format(endDate!, "yyyyMMdd")}.xlsx`;
+      const reportName =
+        reportType === "dispatch" ? "reporte-salidas" : "reporte-balance-total";
 
+      link.download = `${reportName}-${format(startDate!, "yyyyMMdd")}-${format(endDate!, "yyyyMMdd")}.xlsx`;
       link.click();
-
       setTimeout(() => URL.revokeObjectURL(url), 100);
     } finally {
       setLoadingDownload(false);
@@ -209,7 +209,7 @@ export function DispatchReportDialog() {
         </Button>
       </DialogTrigger>
 
-      <DialogContent className="sm:max-w-[480px]">
+      <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>Centro de Reportes de Almacén</DialogTitle>
           <DialogDescription>
@@ -230,7 +230,8 @@ export function DispatchReportDialog() {
             </TabsTrigger>
           </TabsList>
 
-          <div className="space-y-6 py-2">
+          <div className="space-y-4 py-2">
+            {/* Rango de fechas */}
             <div className="w-full space-y-3 p-4 bg-muted/30 rounded-lg border">
               <label className="text-sm font-medium flex items-center gap-2">
                 <CalendarIcon className="w-4 h-4 text-primary" />
@@ -303,9 +304,10 @@ export function DispatchReportDialog() {
               )}
             </div>
 
-            <div className="space-y-2">
+            {/* Filtro por Aeronave */}
+            <div className="space-y-1.5">
               <label className="text-sm font-medium">
-                Filtro por Aeronave (Opcional)
+                Aeronave (Opcional)
               </label>
 
               <Select
@@ -315,7 +317,7 @@ export function DispatchReportDialog() {
                 value={aircraft || "all"}
               >
                 <SelectTrigger disabled={isLoadingAircrafts}>
-                  <SelectValue placeholder="Seleccione una aeronave" />
+                  <SelectValue placeholder="Todas las aeronaves" />
                 </SelectTrigger>
 
                 <SelectContent>
@@ -330,14 +332,96 @@ export function DispatchReportDialog() {
               </Select>
             </div>
 
+            {/* Filtro por Departamento */}
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium">
+                Departamento (Opcional)
+              </label>
+
+              <Select
+                onValueChange={value =>
+                  setDepartmentId(value === "all" ? null : value)
+                }
+                value={departmentId || "all"}
+              >
+                <SelectTrigger disabled={isLoadingDepartments}>
+                  <SelectValue placeholder="Todos los departamentos" />
+                </SelectTrigger>
+
+                <SelectContent>
+                  <SelectItem value="all">Todos los departamentos</SelectItem>
+
+                  {departments?.map(dep => (
+                    <SelectItem key={dep.id} value={dep.id.toString()}>
+                      {dep.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Filtro por Empresa (Empleado Autorizado) */}
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium">
+                Empresa (Opcional)
+              </label>
+
+              <Select
+                onValueChange={value =>
+                  setAuthorizedEmployeeId(value === "all" ? null : value)
+                }
+                value={authorizedEmployeeId || "all"}
+              >
+                <SelectTrigger disabled={isLoadingEmployees}>
+                  <SelectValue placeholder="Todas las empresas" />
+                </SelectTrigger>
+
+                <SelectContent>
+                  <SelectItem value="all">Todas las empresas</SelectItem>
+
+                  {authorizedEmployees?.map(emp => (
+                    <SelectItem key={emp.id} value={emp.id.toString()}>
+                      {emp.employee_name} — {emp.from_company_db}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Filtro por Tercero */}
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium">
+                Tercero (Opcional)
+              </label>
+
+              <Select
+                onValueChange={value =>
+                  setThirdPartyId(value === "all" ? null : value)
+                }
+                value={thirdPartyId || "all"}
+              >
+                <SelectTrigger disabled={isLoadingThirdParties}>
+                  <SelectValue placeholder="Todos los terceros" />
+                </SelectTrigger>
+
+                <SelectContent>
+                  <SelectItem value="all">Todos los terceros</SelectItem>
+
+                  {thirdParties?.map(tp => (
+                    <SelectItem key={tp.id} value={tp.id.toString()}>
+                      {tp.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
             <TabsContent value="dispatch">
               <div className="flex gap-2">
                 <Button
                   className="w-full"
                   onClick={() => handleDownload("dispatch")}
-                  disabled={
-                    loadingDownload || areDatesMissing || isDateRangeInvalid
-                  }
+                  disabled={loadingDownload || !canDownload}
                 >
                   {loadingDownload
                     ? <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -351,10 +435,8 @@ export function DispatchReportDialog() {
                     <TooltipTrigger asChild>
                       <button
                         type="button"
-                        onClick={handleExcelDispatch}
-                        disabled={
-                          loadingDownload || areDatesMissing || isDateRangeInvalid
-                        }
+                        onClick={() => handleExcelDownload("dispatch")}
+                        disabled={loadingDownload || !canDownload}
                         className="disabled:opacity-50"
                         aria-label="Descargar Excel"
                       >
@@ -379,9 +461,7 @@ export function DispatchReportDialog() {
                 <Button
                   className="w-full"
                   onClick={() => handleDownload("balance")}
-                  disabled={
-                    loadingDownload || areDatesMissing || isDateRangeInvalid
-                  }
+                  disabled={loadingDownload || !canDownload}
                 >
                   {loadingDownload
                     ? <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -395,52 +475,8 @@ export function DispatchReportDialog() {
                     <TooltipTrigger asChild>
                       <button
                         type="button"
-                        onClick={async () => {
-                          if (
-                            !selectedStation ||
-                            !selectedCompany?.slug ||
-                            areDatesMissing ||
-                            isDateRangeInvalid
-                          ) return;
-
-                          try {
-                            setLoadingDownload(true);
-
-                            const params = {
-                              location_id: selectedStation,
-                              company: selectedCompany.slug,
-                              aircraft_id: aircraft || undefined,
-                              from: format(startDate!, "yyyy-MM-dd"),
-                              to: format(endDate!, "yyyy-MM-dd")
-                            };
-
-                            const blob = await getBalance({
-                              ...params,
-                              format: "excel"
-                            });
-
-                            if (!blob) return;
-
-                            const url = URL.createObjectURL(blob);
-
-                            const link = document.createElement("a");
-                            link.href = url;
-
-                            link.download = `reporte-balance-total-${format(
-                              startDate!,
-                              "yyyyMMdd"
-                            )}-${format(endDate!, "yyyyMMdd")}.xlsx`;
-
-                            link.click();
-
-                            setTimeout(() => URL.revokeObjectURL(url), 100);
-                          } finally {
-                            setLoadingDownload(false);
-                          }
-                        }}
-                        disabled={
-                          loadingDownload || areDatesMissing || isDateRangeInvalid
-                        }
+                        onClick={() => handleExcelDownload("balance")}
+                        disabled={loadingDownload || !canDownload}
                         className="disabled:opacity-50"
                         aria-label="Descargar Excel"
                       >
