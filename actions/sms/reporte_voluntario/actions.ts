@@ -1,5 +1,5 @@
 import axiosInstance from "@/lib/axios";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 interface VoluntaryReportData {
@@ -42,6 +42,9 @@ interface UpdateVoluntaryReportData {
     document?: File | string;
   };
 }
+interface NextNumberResponse {
+  next_number: string;
+}
 
 export const useCreateVoluntaryReport = () => {
   const queryClient = useQueryClient();
@@ -55,7 +58,7 @@ export const useCreateVoluntaryReport = () => {
           headers: {
             "Content-Type": "multipart/form-data",
           },
-        }
+        },
       );
       return response.data;
     },
@@ -91,8 +94,10 @@ export const useDeleteVoluntaryReport = () => {
     }) => {
       await axiosInstance.delete(`/${company}/sms/voluntary-reports/${id}`);
     },
-    onSuccess: (_,data) => {
-      queryClient.invalidateQueries({ queryKey: ["danger-identifications", data.company] });
+    onSuccess: (_, data) => {
+      queryClient.invalidateQueries({
+        queryKey: ["danger-identifications", data.company],
+      });
       queryClient.invalidateQueries({ queryKey: ["voluntary-reports"] });
       queryClient.invalidateQueries({ queryKey: ["analysis"] });
       toast.success("¡Eliminado!", {
@@ -124,7 +129,7 @@ export const useUpdateVoluntaryReport = () => {
           headers: {
             "Content-Type": "multipart/form-data",
           },
-        }
+        },
       );
       return response.data;
     },
@@ -154,7 +159,7 @@ export const useAcceptVoluntaryReport = () => {
     mutationFn: async ({ company, id, data }: UpdateVoluntaryReportData) => {
       const response = await axiosInstance.patch(
         `/${company}/sms/accept-voluntary-reports/${id}`,
-        data
+        data,
       );
       return response.data;
     },
@@ -175,4 +180,19 @@ export const useAcceptVoluntaryReport = () => {
   return {
     acceptVoluntaryReport: acceptVoluntaryReportMutation,
   };
+};
+
+export const useGetNextReportNumber = (company: string | null) => {
+  return useQuery<NextNumberResponse>({
+    queryKey: ["next-voluntary-report-number", company],
+    queryFn: async () => {
+      const { data } = await axiosInstance.get(
+        `/${company}/sms/next-voluntary-report-number`,
+      );
+      return data;
+    },
+    enabled: !!company,
+    staleTime: 5000,
+    retry: 1,
+  });
 };
