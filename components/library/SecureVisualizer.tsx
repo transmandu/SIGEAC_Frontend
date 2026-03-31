@@ -11,7 +11,6 @@ import '@react-pdf-viewer/default-layout/lib/styles/index.css';
 
 import libraryService from '@/lib/libraryService';
 
-// 🔥 Añadimos isVersionHistory a las props con un valor por defecto false
 export default function SecureViewer({ company, documentId, isOpen, onClose, isVersionHistory = false }: any) {
   const [fileUrl, setFileUrl] = useState<string | null>(null);
   const [currentTheme, setCurrentTheme] = useState<'light' | 'dark'>('dark');
@@ -84,8 +83,9 @@ export default function SecureViewer({ company, documentId, isOpen, onClose, isV
     
     setLoading(true);
     setError(null);
+    setFileUrl(null); // ✅ Limpiamos el rastro del PDF anterior antes de buscar el nuevo
+    
     try {
-      // 🔥 Pasamos isVersionHistory como tercer parámetro al Service
       const url = await libraryService.getFileBlob(company, documentId, isVersionHistory);
       
       if (activeUrlRef.current) {
@@ -103,17 +103,19 @@ export default function SecureViewer({ company, documentId, isOpen, onClose, isV
 
   useEffect(() => {
     if (isOpen && documentId) {
-       loadFile();
+        loadFile();
     }
     
     return () => {
       if (activeUrlRef.current) {
         URL.revokeObjectURL(activeUrlRef.current);
         activeUrlRef.current = null;
-        setFileUrl(null);
       }
+      // ✅ Al desmontar o cambiar de ID, reseteamos estados para la siguiente carga
+      setFileUrl(null);
+      setLoading(true);
     };
-  }, [isOpen, documentId]);
+  }, [isOpen, documentId, isVersionHistory]); // ✅ Añadido isVersionHistory para refrescar si cambia el modo
 
   if (!isOpen) return null;
 

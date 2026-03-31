@@ -28,25 +28,33 @@ const getStatusDetails = (status: string, expirationDate: string) => {
 export default function DocumentRow({ doc, onView, columnVisibility, isSubItem, onDelete, onRefresh, canManage }: any) {
   
   // ✅ CASCADA DINÁMICA: Siempre apunta al último elemento del array.
-  // Si borras la v3, 'length - 1' apuntará automáticamente a la v2.
-  const latestVersion = useMemo(() => {
-  if (!doc?.versions || doc.versions.length === 0) return null;
+  // Al cambiar doc.versions, este useMemo se recalcula automáticamente.
+    const latestVersion = useMemo(() => {
+    // Si no hay versiones, devolvemos null
+    if (!doc?.versions || doc.versions.length === 0) return null;
 
-  // Ordenamos por ID de forma ascendente y tomamos el último
-  const sorted = [...doc.versions].sort((a, b) => Number(a.id) - Number(b.id));
-  return sorted[sorted.length - 1];
-}, [doc?.versions]);
+    // la versión más reciente SIEMPRE será la primera del array.
+    return doc.versions[0]; 
+  }, [doc?.versions]);
 
-  // Si no hay versiones, usamos los datos base del documento padre
-  const activeFilePath = latestVersion ? latestVersion.file_path : (doc?.document || '');
+  // ✅ CAMBIO: Archivo activo derivado de la última versión disponible
+  const activeFilePath = useMemo(() => {
+    return latestVersion ? latestVersion.file_path : (doc?.document || '');
+  }, [latestVersion, doc?.document]);
   
   const activeFileType = useMemo(() => {
     if (activeFilePath) return activeFilePath.split('.').pop()?.toLowerCase();
     return doc?.file_type?.toLowerCase() || 'default';
   }, [activeFilePath, doc?.file_type]);
   
-  const activeExpirationDate = latestVersion ? latestVersion.expiration_date : (doc?.expiration_date || null);
-  const activeExpiryStatus = latestVersion ? latestVersion.expiry_status : (doc?.expiry_status || 'no_aplica');
+  // ✅ CAMBIO: Metadatos siempre sincronizados con la versión que esté "en la cima"
+  const activeExpirationDate = useMemo(() => {
+    return latestVersion ? latestVersion.expiration_date : (doc?.expiration_date || null);
+  }, [latestVersion, doc?.expiration_date]);
+
+  const activeExpiryStatus = useMemo(() => {
+    return latestVersion ? latestVersion.expiry_status : (doc?.expiry_status || 'no_aplica');
+  }, [latestVersion, doc?.expiry_status]);
 
   const getFileDetails = (type: any, title: any) => {
     const t = String(type || "").toLowerCase();
@@ -115,7 +123,6 @@ export default function DocumentRow({ doc, onView, columnVisibility, isSubItem, 
 
       {columnVisibility.actions && (
         <div className="flex items-center gap-1 shrink-0 ml-2">
-          {/* ✅ REGLA DE ORO: Usamos doc.id (44) para que el controlador encuentre el documento padre */}
           <button 
             onClick={() => onView(doc.id)} 
             className="p-2 text-slate-400 hover:text-blue-700 dark:hover:text-white hover:bg-blue-50 dark:hover:bg-blue-600 rounded-lg transition-colors"

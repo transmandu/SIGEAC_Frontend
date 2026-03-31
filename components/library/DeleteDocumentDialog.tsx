@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Trash2, FileText, Layers, ChevronDown } from "lucide-react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import axiosInstance from "@/lib/axios";
@@ -8,7 +8,7 @@ import { toast } from "sonner";
 
 interface Version {
   id: number;
-  version_number: number;
+  version_number: string; // Cambiado a string porque el Service usa "v1.0"
   change_log: string;
 }
 
@@ -22,18 +22,19 @@ interface DeleteProps {
 
 export const DeleteDocumentDialog = ({ isOpen, onClose, doc, company, onSuccess }: DeleteProps) => {
   const [deleteMode, setDeleteMode] = useState<'document' | 'version'>('document');
-  // ✅ Inicializamos siempre como array vacío
   const [versionList, setVersionList] = useState<Version[]>([]);
   const [selectedVersionToDelete, setSelectedVersionToDelete] = useState<string>("");
   const [loadingVersions, setLoadingVersions] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
 
+  // Limpiar estados al cerrar o cambiar de documento
   useEffect(() => {
     if (isOpen && doc?.id) {
       handleFetchVersions();
     } else {
       setDeleteMode('document');
       setSelectedVersionToDelete("");
+      setVersionList([]);
     }
   }, [isOpen, doc]);
 
@@ -41,12 +42,17 @@ export const DeleteDocumentDialog = ({ isOpen, onClose, doc, company, onSuccess 
     setLoadingVersions(true);
     try {
       const response = await axiosInstance.get(`/${company}/library/documents/${doc.id}/versions`);
-      // ✅ Validamos la estructura (data.data o data directamente)
-      const fetchedData = response.data?.data || response.data || [];
-      setVersionList(Array.isArray(fetchedData) ? fetchedData : []);
+      
+      /** * El controlador devuelve: { status: 'success', data: { versions: [...] } }
+       * Ajustamos el acceso a la data:
+       */
+      const fetchedVersions = response.data?.data?.versions || [];
+      setVersionList(Array.isArray(fetchedVersions) ? fetchedVersions : []);
+      
     } catch (error) {
       console.error("Error al cargar versiones:", error);
-      setVersionList([]); // ✅ Reset ante error para evitar crasheos
+      setVersionList([]);
+      toast.error("No se pudo obtener el historial de versiones");
     } finally {
       setLoadingVersions(false);
     }
@@ -54,29 +60,51 @@ export const DeleteDocumentDialog = ({ isOpen, onClose, doc, company, onSuccess 
 
   const handleFinalDelete = async () => {
     setIsProcessing(true);
+    let isActuallyDeleted = false; // Flag de control
+
     try {
       if (deleteMode === 'document') {
         await axiosInstance.delete(`/${company}/library/documents/${doc.id}`);
         toast.success("Documento eliminado correctamente");
       } else {
         if (!selectedVersionToDelete) return;
-        await axiosInstance.delete(`/${company}/library/documents/${doc.id}/versions/${selectedVersionToDelete}`);
+        await axiosInstance.delete(`/${company}/library/versions/${selectedVersionToDelete}`);
         toast.success("Versión eliminada correctamente");
       }
-      
-      await onSuccess();
-      onClose();
-    } catch (error) {
-      toast.error("Error en la operación");
+      isActuallyDeleted = true; // Si llegamos aquí, el BACKEND respondió OK
+    } catch (error: any) {
+      // Solo mostramos error si la petición de Axios falló
+      const msg = error.response?.data?.message || "Error al conectar con el servidor";
+      toast.error(msg);
+      console.error("Error en la petición DELETE:", error);
     } finally {
       setIsProcessing(false);
+      
+      // Si el borrado fue exitoso, intentamos refrescar y cerrar
+      if (isActuallyDeleted) {
+        try {
+          await onSuccess();
+          onClose();
+        } catch (refreshError) {
+          // Si onSuccess falla (ej. por un componente que ya no existe), 
+          // lo logueamos en consola pero no confundimos al usuario con un toast de error.
+          console.error("Error al refrescar la lista:", refreshError);
+          onClose(); // Cerramos igual porque el dato ya no existe en BD
+        }
+      }
     }
   };
 
-  // ✅ Helper para filtrar de forma segura (previene el error .filter is not a function)
-  const filteredVersions = Array.isArray(versionList) 
-    ? versionList.filter(v => v.version_number !== 1) 
-    : [];
+  /**
+   * Filtramos para NO mostrar la v1.0. 
+   * Usamos .toLowerCase() y .includes por seguridad en la comparación de strings.
+   */
+  const filteredVersions = useMemo(() => {
+    return versionList.filter(v => {
+      const vNum = String(v.version_number).toLowerCase();
+      return vNum !== 'v1.0' && vNum !== '1.0' && vNum !== '1';
+    });
+  }, [versionList]);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -100,6 +128,7 @@ export const DeleteDocumentDialog = ({ isOpen, onClose, doc, company, onSuccess 
           </p>
 
           <div className="space-y-3">
+            {/* Opción de eliminar Versión */}
             <div 
               onClick={() => setDeleteMode('version')}
               className={`group p-4 border rounded-xl cursor-pointer transition-all ${deleteMode === 'version' ? 'border-orange-500 bg-orange-50/10' : 'border-slate-200 dark:border-gray-800 hover:border-orange-300'}`}
@@ -112,7 +141,7 @@ export const DeleteDocumentDialog = ({ isOpen, onClose, doc, company, onSuccess 
                   <label className="text-[11px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500 flex items-center gap-2 mb-1">
                     <Layers className="h-3.5 w-3.5 text-orange-500" /> Eliminar versión específica
                   </label>
-                  <p className="text-[11px] text-slate-500 mb-3">El registro principal se mantendrá activo.</p>
+                  <p className="text-[11px] text-slate-500 mb-3">El registro principal se mantendrá activo con la versión anterior.</p>
                   
                   {deleteMode === 'version' && (
                     <div className="relative animate-in fade-in zoom-in-95 duration-200">
@@ -125,13 +154,13 @@ export const DeleteDocumentDialog = ({ isOpen, onClose, doc, company, onSuccess 
                         {loadingVersions ? (
                           <option value="">Cargando historial...</option>
                         ) : filteredVersions.length === 0 ? (
-                          <option value="">No hay versiones adicionales</option>
+                          <option value="">No hay versiones adicionales para eliminar</option>
                         ) : (
                           <>
                             <option value="">Selecciona la versión...</option>
                             {filteredVersions.map((v) => (
                               <option key={v.id} value={v.id}>
-                                V.{v.version_number} — {v.change_log || 'Sin descripción'}
+                                {v.version_number} — {v.change_log || 'Sin descripción'}
                               </option>
                             ))}
                           </>
@@ -144,6 +173,7 @@ export const DeleteDocumentDialog = ({ isOpen, onClose, doc, company, onSuccess 
               </div>
             </div>
 
+            {/* Opción de eliminar Documento Completo */}
             <div 
               onClick={() => setDeleteMode('document')}
               className={`group p-4 border rounded-xl cursor-pointer transition-all ${deleteMode === 'document' ? 'border-red-500 bg-red-50/10' : 'border-slate-200 dark:border-gray-800 hover:border-red-300'}`}
@@ -156,7 +186,7 @@ export const DeleteDocumentDialog = ({ isOpen, onClose, doc, company, onSuccess 
                   <label className="text-[11px] font-bold uppercase tracking-widest text-red-500 flex items-center gap-2 mb-1">
                     <FileText className="h-3.5 w-3.5" /> Eliminar documento completo
                   </label>
-                  <p className="text-[11px] text-slate-500">Borrado permanente de todo el historial.</p>
+                  <p className="text-[11px] text-slate-500">Borrado permanente de todo el historial y archivos físicos.</p>
                 </div>
               </div>
             </div>
@@ -166,14 +196,14 @@ export const DeleteDocumentDialog = ({ isOpen, onClose, doc, company, onSuccess 
             <button 
               type="button" 
               onClick={onClose} 
-              className="flex-1 px-4 py-3 text-[11px] font-black text-gray-400 hover:text-gray-600 uppercase"
+              className="flex-1 px-4 py-3 text-[11px] font-black text-gray-400 hover:text-gray-600 uppercase transition-colors"
             >
               CANCELAR
             </button>
             <button 
               onClick={handleFinalDelete}
-              disabled={isProcessing || (deleteMode === 'version' && !selectedVersionToDelete)}
-              className={`flex-1 px-4 py-3 text-[11px] font-black text-white rounded-xl transition-all ${deleteMode === 'document' ? 'bg-red-600 hover:bg-red-700' : 'bg-orange-600 hover:bg-orange-700'} disabled:opacity-50 uppercase`}
+              disabled={isProcessing || (deleteMode === 'version' && (!selectedVersionToDelete || filteredVersions.length === 0))}
+              className={`flex-1 px-4 py-3 text-[11px] font-black text-white rounded-xl transition-all ${deleteMode === 'document' ? 'bg-red-600 hover:bg-red-700 shadow-red-200' : 'bg-orange-600 hover:bg-orange-700 shadow-orange-200'} disabled:opacity-50 disabled:cursor-not-allowed uppercase`}
             >
               {isProcessing ? 'PROCESANDO...' : 'CONFIRMAR'}
             </button>

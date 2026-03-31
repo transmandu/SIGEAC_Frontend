@@ -5,8 +5,7 @@ import { useParams } from "next/navigation";
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
-import { Plus, Search, FolderOpen, Loader2, MoreVertical, History } from "lucide-react";
-import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Plus, Search, FolderOpen, Loader2, History } from "lucide-react";
 
 import DocumentTable from "./DocumentTable";
 import UploadModal from "./UploadModal"; 
@@ -29,7 +28,7 @@ const BibliotecaPage = () => {
   const [isViewerOpen, setIsViewerOpen] = useState(false);
   const [auditTarget, setAuditTarget] = useState<number | 'global' | null>(null);
 
-  const [columnVisibility, setColumnVisibility] = useState({
+  const [columnVisibility] = useState({
     title: true,
     expiry_date: true,
     status: true,
@@ -51,12 +50,14 @@ const BibliotecaPage = () => {
       console.error("Error al cargar la biblioteca:", error);
       toast.error("Error al sincronizar documentos");
     } finally {
+      // Pequeño delay para suavizar la transición visual del loader
       setTimeout(() => setLoading(false), 300);
     }
   }, [companySlug]);
 
   const handleDeleteDocument = async (id: number) => {
-    setLoading(true);
+    // Al eliminar, no ponemos loading total para no bloquear la UI bruscamente, 
+    // dejamos que el fetchDocs posterior maneje la carga.
     try {
       await libraryService.deleteDocument(companySlug, id); 
       toast.success("Documento eliminado correctamente");
@@ -64,7 +65,6 @@ const BibliotecaPage = () => {
     } catch (error) {
       console.error("Error al eliminar:", error);
       toast.error("No se pudo eliminar el documento");
-      setLoading(false);
     }
   };
 
@@ -86,14 +86,12 @@ const BibliotecaPage = () => {
     <ContentLayout title="Biblioteca Digital">
       <div className="flex flex-col gap-y-4">
         
-        {/* 🌀 CONTENT LOADER: Ahora sin cuadros, solo el fondo natural del tema */}
-          {loading ? (
-            <div className="flex w-full h-[600px] justify-center items-center py-20 bg-background animate-in fade-in duration-300">
-              {/* El circulito se adapta al tema: azul en claro, blanco en oscuro (o el que prefieras) */}
-              <Loader2 className="size-16 animate-spin text-blue-600 dark:text-white opacity-80" />
-            </div>
-          ) : (
-            <div className="animate-in fade-in duration-500">
+        {loading ? (
+          <div className="flex w-full h-[600px] justify-center items-center py-20 bg-background animate-in fade-in duration-300">
+            <Loader2 className="size-16 animate-spin text-blue-600 dark:text-white opacity-80" />
+          </div>
+        ) : (
+          <div className="animate-in fade-in duration-500">
             {/* HEADER */}
             <div className="flex flex-col gap-2 mb-12">
               <h1 className="text-5xl font-bold text-center text-gray-900 dark:text-white uppercase tracking-tighter">
@@ -160,7 +158,7 @@ const BibliotecaPage = () => {
                 <DocumentTable
                   company={companySlug}
                   groupedDocuments={filteredDocuments}
-                  onRefresh={fetchDocs}
+                  onRefresh={fetchDocs} // <--- AHORA SÍ CONECTADO
                   onView={(id: number) => { setViewingDocId(id); setIsViewerOpen(true); }}
                   onDelete={handleDeleteDocument}
                   onAudit={(id: number) => setAuditTarget(id)}
@@ -174,14 +172,29 @@ const BibliotecaPage = () => {
       </div>
 
       {/* MODALES */}
-      <UploadModal company={companySlug} isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onSuccess={fetchDocs} />
-      <DocumentViewer company={companySlug} documentId={viewingDocId} isOpen={isViewerOpen} onClose={() => setIsViewerOpen(false)} />
+      <UploadModal 
+        company={companySlug} 
+        isOpen={isModalOpen} 
+        onClose={() => setIsModalOpen(false)} 
+        onSuccess={fetchDocs} 
+      />
+      
+      <DocumentViewer 
+        company={companySlug} 
+        documentId={viewingDocId} 
+        isOpen={isViewerOpen} 
+        onClose={() => setIsViewerOpen(false)} 
+      />
 
       {auditTarget && (
         <div className="fixed inset-0 z-[100] flex justify-end overflow-hidden">
           <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px] animate-in fade-in duration-300" onClick={() => setAuditTarget(null)} />
           <div className="relative z-10 h-full">
-            <TraceabilityPanel documentId={auditTarget === 'global' ? null : auditTarget} company={companySlug} onClose={() => setAuditTarget(null)} />
+            <TraceabilityPanel 
+              documentId={auditTarget === 'global' ? null : auditTarget} 
+              company={companySlug} 
+              onClose={() => setAuditTarget(null)} 
+            />
           </div>
         </div>
       )}
