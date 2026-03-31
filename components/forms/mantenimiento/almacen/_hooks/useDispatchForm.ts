@@ -109,9 +109,18 @@ export type FormSchemaType = z.infer<typeof FormSchema>
 export const aeroKey = (id: string) => `A:${id}`
 export const genKey = (id: string) => `G:${id}`
 
+// ── Category mapping (fetch API uses English, submit API uses Spanish) ─────────
+
+const SUBMIT_CATEGORY_MAP: Record<string, string> = {
+  consumable: "consumible",
+  component: "componente",
+  part: "parte",
+  tool: "herramienta",
+}
+
 // ── Hook ───────────────────────────────────────────────────────────────────────
 
-export function useDispatchForm(onClose: () => void) {
+export function useDispatchForm(onClose: () => void, category: string = "consumable") {
   const { user } = useAuth()
   const { selectedStation, selectedCompany } = useCompanyStore()
 
@@ -133,7 +142,7 @@ export function useDispatchForm(onClose: () => void) {
   const { data: batches, isPending: isBatchesLoading } = useGetBatchesWithInWarehouseArticles({
     location_id: Number(selectedStation!),
     company: selectedCompany!.slug,
-    category: "consumable",
+    category,
   })
   const { data: employees, isLoading: employeesLoading } = useGetEmployeesByCompany(selectedCompany?.slug)
   const { data: hardwareRes, isLoading: isHardwareLoading } = useGetGeneralArticles()
@@ -394,7 +403,7 @@ export function useDispatchForm(onClose: () => void) {
         ...data,
         created_by: user!.username,
         submission_date: format(data.submission_date, "yyyy-MM-dd"),
-        category: "consumible",
+        category: SUBMIT_CATEGORY_MAP[category] ?? category,
         status: "APROBADO",
         approved_by: user?.employee?.[0]?.dni,
         delivered_by: user?.employee?.[0]?.dni,
