@@ -1,167 +1,186 @@
-
 "use client";
-import BarChartComponent from "@/components/charts/BarChartComponent";
+
+import DynamicBarChartComponent from "@/components/charts/DynamicBarChartComponent";
 import { PieChartComponent } from "@/components/charts/PieChartComponent";
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import DateRangePickerInput from "@/components/misc/DateRangePickerInput";
 import { Label } from "@/components/ui/label";
-import { useGetCourseStats } from "@/hooks/curso/useGetCourseStats";
+import { useGetSMSActivityStats } from "@/hooks/sms/useGetSMSActivityStats";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { format, startOfMonth } from "date-fns";
 import { Loader2 } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
-const CourseStatsPage = () => {
-    const { selectedCompany, selectedStation } = useCompanyStore();
-    const router = useRouter();
-    const pathname = usePathname();
-    const searchParams = useSearchParams();
+const SMSActivityStatsPage = () => {
+  const { selectedCompany, selectedStation } = useCompanyStore();
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
 
-    interface Params {
-        from?: string;
-        to?: string;
-        [key: string]: string | undefined;
-    }
+  interface Params {
+    from?: string;
+    to?: string;
+    [key: string]: string | undefined;
+  }
 
-    const [params, setParams] = useState<Params>({
-        from: format(startOfMonth(new Date()), "yyyy-MM-dd"),
-        to: format(new Date(), "yyyy-MM-dd"),
+  const [params, setParams] = useState<Params>({
+    from: format(startOfMonth(new Date()), "yyyy-MM-dd"),
+    to: format(new Date(), "yyyy-MM-dd"),
+  });
+
+  useEffect(() => {
+    const defaultFrom = format(startOfMonth(new Date()), "yyyy-MM-dd");
+    const defaultTo = format(new Date(), "yyyy-MM-dd");
+
+    const newParams: Params = {};
+    searchParams.forEach((value, key) => {
+      newParams[key] = value;
     });
 
-    useEffect(() => {
-        const defaultFrom = format(startOfMonth(new Date()), "yyyy-MM-dd");
-        const defaultTo = format(new Date(), "yyyy-MM-dd");
-
-        const newParams: Params = {};
-        searchParams.forEach((value, key) => {
-            newParams[key] = value;
-        });
-
-        const finalParams: Params = {
-            from: newParams.from || defaultFrom,
-            to: newParams.to || defaultTo,
-        };
-        setParams(finalParams);
-    }, [searchParams, pathname]);
-
-    // Manejar cambio de fechas desde DataFilter
-    const handleDateChange = (
-        dateRange: { from: Date; to: Date } | undefined
-    ) => {
-        if (!dateRange?.from || !dateRange?.to) return;
-
-        const newParams = new URLSearchParams(searchParams.toString());
-        newParams.set("from", format(dateRange.from, "yyyy-MM-dd"));
-        newParams.set("to", format(dateRange.to, "yyyy-MM-dd"));
-
-        router.push(`${pathname}?${newParams.toString()}`, { scroll: false });
+    const finalParams: Params = {
+      from: newParams.from || defaultFrom,
+      to: newParams.to || defaultTo,
     };
+    setParams(finalParams);
+  }, [searchParams, pathname]);
 
-    // Manejar reset de fechas
-    const handleReset = () => {
-        const defaultFrom = format(startOfMonth(new Date()), "yyyy-MM-dd");
-        const defaultTo = format(new Date(), "yyyy-MM-dd");
+  const handleDateChange = (
+    dateRange: { from: Date; to: Date } | undefined,
+  ) => {
+    if (!dateRange?.from || !dateRange?.to) return;
 
-        const newParams = new URLSearchParams();
-        newParams.set("from", defaultFrom);
-        newParams.set("to", defaultTo);
+    const newParams = new URLSearchParams(searchParams.toString());
+    newParams.set("from", format(dateRange.from, "yyyy-MM-dd"));
+    newParams.set("to", format(dateRange.to, "yyyy-MM-dd"));
 
-        router.push(`${pathname}?${newParams.toString()}`, { scroll: false });
-    };
+    router.push(`${pathname}?${newParams.toString()}`, { scroll: false });
+  };
 
-    // Hook calls for data fetching
-    const {
-        data: barChartData,
-        isLoading: isLoadingBarChart,
-        isError: isErrorBarChart,
-    } = useGetCourseStats(
-        params.from || format(startOfMonth(new Date()), "yyyy-MM-dd"),
-        params.to || format(new Date(), "yyyy-MM-dd"),
-        selectedStation ?? null,
-        selectedCompany?.slug
-    );
+  const handleReset = () => {
+    const defaultFrom = format(startOfMonth(new Date()), "yyyy-MM-dd");
+    const defaultTo = format(new Date(), "yyyy-MM-dd");
 
-    const pieChartData =
-        !barChartData?.open && !barChartData?.closed
-            ? []
-            : [
-                {
-                    name: "Pendientes",
-                    value: barChartData?.open ?? 0,
-                },
-                {
-                    name: "Ejecutados",
-                    value: barChartData?.closed ?? 0,
-                },
-            ];
+    const newParams = new URLSearchParams();
+    newParams.set("from", defaultFrom);
+    newParams.set("to", defaultTo);
 
-    return (
-        <ContentLayout title="Gráficos Estadísticos de Cursos">
-            <div className="flex flex-col space-y-4 mb-6">
-                <div className="flex justify-center items-center">
-                    <div className="flex flex-col w-full max-w-md">
-                        <Label className="text-lg font-semibold mb-2">
-                            Seleccionar Rango de Fechas:
-                        </Label>
-                        {/* ✅ DateRangePickerInput conectado con las funciones de manejo */}
-                        <DateRangePickerInput
-                            onDateChange={handleDateChange}
-                            onReset={handleReset}
-                            initialDate={{
-                                from:
-                                    params.from || format(startOfMonth(new Date()), "yyyy-MM-dd"),
-                                to: params.to || format(new Date(), "yyyy-MM-dd"),
-                            }}
-                        />
-                    </div>
-                </div>
+    router.push(`${pathname}?${newParams.toString()}`, { scroll: false });
+  };
+
+  // Llamada a nuestro nuevo Hook simulado
+  const { data: statsData, isLoading } = useGetSMSActivityStats(
+    params.from || format(startOfMonth(new Date()), "yyyy-MM-dd"),
+    params.to || format(new Date(), "yyyy-MM-dd"),
+    selectedStation ?? null,
+    selectedCompany?.slug,
+  );
+
+  return (
+    <ContentLayout title="Dashboard de Actividades SMS">
+      <div className="flex flex-col space-y-4 mb-6">
+        <div className="flex justify-center items-center">
+          <div className="flex flex-col w-full max-w-md">
+            <Label className="text-lg font-semibold mb-3 text-center">
+              Filtro de Búsqueda
+            </Label>
+            <DateRangePickerInput
+              onDateChange={handleDateChange}
+              onReset={handleReset}
+              initialDate={{
+                from:
+                  params.from || format(startOfMonth(new Date()), "yyyy-MM-dd"),
+                to: params.to || format(new Date(), "yyyy-MM-dd"),
+              }}
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Layout de Gráficos: 2 arriba, 1 ancho completo abajo */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pb-10">
+        {/* Gráfico 1: Estado General (Dona) */}
+        <div className="flex flex-col items-center p-6 rounded-xl shadow-sm border bg-card">
+          {isLoading ? (
+            <div className="flex justify-center items-center h-64">
+              <Loader2 className="size-12 animate-spin text-muted-foreground" />
             </div>
-
-            <div className="grid sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-2 2xl:grid-cols-2 gap-4">
-                <div className="flex flex-col justify-center items-center p-4 rounded-lg shadow border">
-                    {isLoadingBarChart ? (
-                        <div className="flex justify-center items-center h-48">
-                            <Loader2 className="size-24 animate-spin" />
-                        </div>
-                    ) : barChartData ? (
-                        <>
-                            <h2 className="text-sm font-semibold mb-2">
-                                Planificados vs Ejecutados
-                            </h2>
-                            <BarChartComponent
-                                data={barChartData}
-                                title="Planificados vs Ejecutados"
-                                bar_first_name="Planificados"
-                                bar_second_name="Ejecutados"
-                            />
-                        </>
-                    ) : (
-                        <p className="text-sm text-muted-foreground">
-                            Ha ocurrido un error al cargar los datos de los cursos...
-                        </p>
-                    )}
-                </div>
-
-                <div className="flex flex-col justify-center items-center p-4 rounded-lg shadow border">
-                    {isLoadingBarChart ? (
-                        <div className="flex justify-center items-center h-48">
-                            <Loader2 className="size-24 animate-spin" />
-                        </div>
-                    ) : pieChartData && pieChartData.length > 0 ? (
-                        <PieChartComponent
-                            data={pieChartData}
-                            title="Porcentaje cursos planificados y ejecutados"
-                        />
-                    ) : (
-                        <p className="text-lg text-muted-foreground">
-                            No hay datos para mostrar.
-                        </p>
-                    )}
-                </div>
+          ) : statsData?.statusData ? (
+            <div className="w-full">
+              <h2 className="text-lg font-bold mb-4 text-center">
+                Estado General de Actividades
+              </h2>
+              <PieChartComponent
+                data={statsData.statusData}
+                title="Porcentaje de Estados"
+              />
             </div>
-        </ContentLayout>
-    );
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              No hay datos de estados disponibles.
+            </p>
+          )}
+        </div>
+
+        {/* Gráfico 2: Carga por Responsable (Barras) */}
+        <div className="flex flex-col items-center p-6 rounded-xl shadow-sm border bg-card">
+          {isLoading ? (
+            <div className="flex justify-center items-center h-64">
+              <Loader2 className="size-12 animate-spin text-muted-foreground" />
+            </div>
+          ) : statsData?.responsibleData ? (
+            <div className="w-full">
+              <h2 className="text-lg font-bold mb-4 text-center">
+                Carga por Responsable
+              </h2>
+              <DynamicBarChartComponent
+                data={statsData.responsibleData.map((d) => ({
+                  name: d.name,
+                  Actividades: d.value,
+                }))}
+                title="Actividades Asignadas"
+                dataKey="Actividades"
+                color="#8b5cf6"
+              />
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              No hay datos por responsable.
+            </p>
+          )}
+        </div>
+
+        {/* Gráfico 3: Tipos de Actividades (Barras - Ocupa ambas columnas) */}
+        <div className="flex flex-col items-center p-6 rounded-xl shadow-sm border bg-card lg:col-span-2">
+          {isLoading ? (
+            <div className="flex justify-center items-center h-64">
+              <Loader2 className="size-12 animate-spin text-muted-foreground" />
+            </div>
+          ) : statsData?.typeData ? (
+            <div className="w-full">
+              <h2 className="text-lg font-bold mb-4 text-center">
+                Top Tipos de Actividades
+              </h2>
+              <DynamicBarChartComponent
+                data={statsData.typeData.map((d) => ({
+                  name: d.name,
+                  "Total Registradas": d.value,
+                }))}
+                title="Frecuencia por Tipo de Actividad"
+                dataKey="Total Registradas"
+                color="#10b981"
+                height={350}
+              />
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              No hay datos de tipos registrados.
+            </p>
+          )}
+        </div>
+      </div>
+    </ContentLayout>
+  );
 };
 
-export default CourseStatsPage;
+export default SMSActivityStatsPage;
