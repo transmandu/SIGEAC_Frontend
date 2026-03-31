@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import CreateDangerIdentificationForm from "../forms/sms/CreateIdentificationForm";
+import CreateWhyAnalysisForm from "../forms/sms/CreateWhyAnalysisForm";
 // Importa tus otros formularios aquí:
 // import RiskEvaluationForm from "./RiskEvaluationForm";
 // import MitigationForm from "./MitigationForm";
@@ -43,18 +44,10 @@ export default function RiskManagementTabs({ reporteId, isOmac }: RiskManagement
             {
                 id: "risk_management",
                 label: "2. Gestion de Riesgo",
+
                 component: <div className="p-4 border rounded-lg mt-4">Aquí va el formulario de defensas extra</div>,
             },
-            {
-                id: "follow_up_controls",
-                label: "3. Controles de Seguimiento",
-                component: <div className="p-4 border rounded-lg mt-4">Aquí va el formulario de Mitigación estándar</div>,
-            },
-            {
-                id: "close",
-                label: "4. Cierre del Reporte",
-                component: <div className="p-4 border rounded-lg mt-4">Aquí va el formulario de Mitigación estándar</div>,
-            },
+
         ];
 
     return (

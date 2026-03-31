@@ -84,14 +84,7 @@ const FormSchema = z.object({
             message: "La consecuencia a evaluar no debe exceder los 245 caracteres",
         }),
     danger_type: z.string().min(1, "Este campo es obligatorio"),
-    root_cause_analysis: z
-        .string()
-        .min(3, {
-            message: "El analisis causa raiz debe tener al menos 3 caracteres",
-        })
-        .max(900, {
-            message: "El analisis causa raiz no debe exceder los 900 caracteres",
-        }),
+
     information_source_id: z.string(),
     location_id: z.string().optional(),
 });
@@ -144,7 +137,7 @@ export default function CreateDangerIdentificationForm({
             consequence_to_evaluate: initialData?.consequence_to_evaluate || "",
             danger_area: initialData?.danger_area || "",
             danger_type: initialData?.danger_type || "",
-            root_cause_analysis: initialData?.root_cause_analysis || "",
+            // root_cause_analysis: initialData?.root_cause_analysis || "",
             description: initialData?.description || "",
             possible_consequences: initialData?.possible_consequences || "",
             location_id: initialData?.location_id ? initialData.location_id.toString() : undefined,
@@ -208,28 +201,28 @@ export default function CreateDangerIdentificationForm({
             addConsequence();
         }
     };
-
-    // --- ANÁLISIS ---
-    const addAnalysis = () => {
-        if (newAnalysis.trim()) {
-            const updated = [...analyses, newAnalysis.trim()];
-            setAnalyses(updated);
-            form.setValue("root_cause_analysis", updated.join(","));
-            setNewAnalysis("");
-        }
-    };
-    const removeAnalysis = (index: number) => {
-        const updated = analyses.filter((_, i) => i !== index);
-        setAnalyses(updated);
-        form.setValue("root_cause_analysis", updated.join(","));
-    };
-    const handleAnalysisKeyPress = (e: React.KeyboardEvent) => {
-        if (e.key === "Enter") {
-            e.preventDefault();
-            addAnalysis();
-        }
-    };
-
+    //
+    // // --- ANÁLISIS ---
+    // const addAnalysis = () => {
+    //     if (newAnalysis.trim()) {
+    //         const updated = [...analyses, newAnalysis.trim()];
+    //         setAnalyses(updated);
+    //         form.setValue("root_cause_analysis", updated.join(","));
+    //         setNewAnalysis("");
+    //     }
+    // };
+    // const removeAnalysis = (index: number) => {
+    //     const updated = analyses.filter((_, i) => i !== index);
+    //     setAnalyses(updated);
+    //     form.setValue("root_cause_analysis", updated.join(","));
+    // };
+    // const handleAnalysisKeyPress = (e: React.KeyboardEvent) => {
+    //     if (e.key === "Enter") {
+    //         e.preventDefault();
+    //         addAnalysis();
+    //     }
+    // };
+    //
     // --- ENVÍO ---
     const onSubmit = async (data: FormSchemaType) => {
         try {
@@ -547,41 +540,6 @@ export default function CreateDangerIdentificationForm({
                 }
 
                 {/* --- CONSECUENCIAS --- */}
-                <FormItem>
-                    <FormLabel>Consecuencias</FormLabel>
-                    <div className="space-y-2">
-                        <div className="flex gap-2">
-                            <Input
-                                placeholder="Escriba una consecuencia"
-                                value={newConsequence}
-                                onChange={(e) => setNewConsequence(e.target.value)}
-                                onKeyPress={handleConsequenceKeyPress}
-                            />
-                            <Button type="button" onClick={addConsequence} size="icon">
-                                <Plus className="h-4 w-4" />
-                            </Button>
-                        </div>
-                        <div className="flex flex-wrap gap-2 pt-2">
-                            {consequences.map((item, index) => (
-                                <div
-                                    key={index}
-                                    className="flex items-center gap-2 bg-muted/40 border rounded-md p-2"
-                                >
-                                    <span className="text-sm">{item}</span>
-                                    <Button
-                                        type="button"
-                                        variant="ghost"
-                                        size="icon"
-                                        className="h-5 w-5"
-                                        onClick={() => removeConsequence(index)}
-                                    >
-                                        <X className="h-4 w-4" />
-                                    </Button>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                </FormItem>
                 <FormField
                     control={form.control}
                     name="possible_consequences"
@@ -619,24 +577,22 @@ export default function CreateDangerIdentificationForm({
                         </FormItem>
                     )}
                 />
-
-                {/* --- ANALISIS CAUSA RAÍZ --- */}
                 <FormItem>
-                    <FormLabel>Análisis de los 5 ¿POR QUÉ?</FormLabel>
+                    <FormLabel>Posibles Consecuencias</FormLabel>
                     <div className="space-y-2">
                         <div className="flex gap-2">
                             <Input
-                                placeholder="Escriba un 'porqué' del análisis"
-                                value={newAnalysis}
-                                onChange={(e) => setNewAnalysis(e.target.value)}
-                                onKeyPress={handleAnalysisKeyPress}
+                                placeholder="Escriba una consecuencia"
+                                value={newConsequence}
+                                onChange={(e) => setNewConsequence(e.target.value)}
+                                onKeyPress={handleConsequenceKeyPress}
                             />
-                            <Button type="button" onClick={addAnalysis} size="icon">
+                            <Button type="button" onClick={addConsequence} size="icon">
                                 <Plus className="h-4 w-4" />
                             </Button>
                         </div>
                         <div className="flex flex-wrap gap-2 pt-2">
-                            {analyses.map((item, index) => (
+                            {consequences.map((item, index) => (
                                 <div
                                     key={index}
                                     className="flex items-center gap-2 bg-muted/40 border rounded-md p-2"
@@ -647,7 +603,7 @@ export default function CreateDangerIdentificationForm({
                                         variant="ghost"
                                         size="icon"
                                         className="h-5 w-5"
-                                        onClick={() => removeAnalysis(index)}
+                                        onClick={() => removeConsequence(index)}
                                     >
                                         <X className="h-4 w-4" />
                                     </Button>
@@ -656,17 +612,55 @@ export default function CreateDangerIdentificationForm({
                         </div>
                     </div>
                 </FormItem>
-                <FormField
-                    control={form.control}
-                    name="root_cause_analysis"
-                    render={({ field }) => (
-                        <FormItem className="hidden">
-                            <FormControl>
-                                <Input type="hidden" {...field} />
-                            </FormControl>
-                        </FormItem>
-                    )}
-                />
+
+                {/* --- ANALISIS CAUSA RAÍZ --- */}
+
+                {/* <FormItem> */}
+                {/*     <FormLabel>Análisis de los 5 ¿POR QUÉ?</FormLabel> */}
+                {/*     <div className="space-y-2"> */}
+                {/*         <div className="flex gap-2"> */}
+                {/*             <Input */}
+                {/*                 placeholder="Escriba un 'porqué' del análisis" */}
+                {/*                 value={newAnalysis} */}
+                {/*                 onChange={(e) => setNewAnalysis(e.target.value)} */}
+                {/*                 onKeyPress={handleAnalysisKeyPress} */}
+                {/*             /> */}
+                {/*             <Button type="button" onClick={addAnalysis} size="icon"> */}
+                {/*                 <Plus className="h-4 w-4" /> */}
+                {/*             </Button> */}
+                {/*         </div> */}
+                {/*         <div className="flex flex-wrap gap-2 pt-2"> */}
+                {/*             {analyses.map((item, index) => ( */}
+                {/*                 <div */}
+                {/*                     key={index} */}
+                {/*                     className="flex items-center gap-2 bg-muted/40 border rounded-md p-2" */}
+                {/*                 > */}
+                {/*                     <span className="text-sm">{item}</span> */}
+                {/*                     <Button */}
+                {/*                         type="button" */}
+                {/*                         variant="ghost" */}
+                {/*                         size="icon" */}
+                {/*                         className="h-5 w-5" */}
+                {/*                         onClick={() => removeAnalysis(index)} */}
+                {/*                     > */}
+                {/*                         <X className="h-4 w-4" /> */}
+                {/*                     </Button> */}
+                {/*                 </div> */}
+                {/*             ))} */}
+                {/*         </div> */}
+                {/*     </div> */}
+                {/* </FormItem> */}
+                {/* <FormField */}
+                {/*     control={form.control} */}
+                {/*     name="root_cause_analysis" */}
+                {/*     render={({ field }) => ( */}
+                {/*         <FormItem className="hidden"> */}
+                {/*             <FormControl> */}
+                {/*                 <Input type="hidden" {...field} /> */}
+                {/*             </FormControl> */}
+                {/*         </FormItem> */}
+                {/*     )} */}
+                {/* /> */}
                 {/* --- FOOTER --- */}
                 <div className="flex justify-between items-center gap-x-4 pt-4">
                     <Separator className="flex-1" />
