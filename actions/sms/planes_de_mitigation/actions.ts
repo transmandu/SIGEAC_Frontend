@@ -27,6 +27,7 @@ interface updateStatus {
   data: {
     mitigation_id: number | string;
     result: string;
+    close_date?: string; // Agregamos la fecha de cierre
   };
 }
 export const useCreateMitigationPlan = () => {
@@ -122,7 +123,6 @@ export const useCloseReport = () => {
   const closeReportMutation = useMutation({
     mutationKey: ["close-report"],
     mutationFn: async ({ data, company }: updateStatus) => {
-      console.log("mitigation_id", data.mitigation_id);
       await axiosInstance.patch(
         `/${company}/sms/close_report/${data.mitigation_id}`,
         data
