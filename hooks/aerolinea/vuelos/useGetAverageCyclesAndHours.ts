@@ -41,7 +41,7 @@ export const useGetAverageCyclesAndHours = (
 ) => {
   return useQuery<AverageCyclesAndHoursResponse, Error>({
     queryKey: ["average-cycles-hours", company, acronym, dateRange],
-    queryFn: () => fetchAverageCyclesAndHours(company, acronym, dateRange?? null),
+    queryFn: () => fetchAverageCyclesAndHours(company, acronym, dateRange ?? null),
     refetchOnWindowFocus: false,
     enabled: !!company && !!acronym
   });

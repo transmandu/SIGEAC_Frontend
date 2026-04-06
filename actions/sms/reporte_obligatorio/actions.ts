@@ -1,5 +1,5 @@
 import axiosInstance from "@/lib/axios";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 interface ObligatoryReportData {
@@ -51,6 +51,10 @@ interface UpdateObligatoryReportData {
   };
 }
 
+interface NextNumberResponse {
+  next_number: string;
+}
+
 export const useCreateObligatoryReport = () => {
   const queryClient = useQueryClient();
   const createMutation = useMutation({
@@ -62,7 +66,7 @@ export const useCreateObligatoryReport = () => {
           headers: {
             "Content-Type": "multipart/form-data",
           },
-        }
+        },
       );
       return response.data;
     },
@@ -98,8 +102,10 @@ export const useDeleteObligatoryReport = () => {
     }) => {
       await axiosInstance.delete(`/${company}/sms/obligatory-reports/${id}`);
     },
-    onSuccess: (_,data) => {
-      queryClient.invalidateQueries({ queryKey: ["danger-identifications", data.company] });
+    onSuccess: (_, data) => {
+      queryClient.invalidateQueries({
+        queryKey: ["danger-identifications", data.company],
+      });
       queryClient.invalidateQueries({ queryKey: ["obligatory-reports"] });
       toast.success("¡Eliminado!", {
         description: `¡El reporte ha sido eliminada correctamente!`,
@@ -130,7 +136,7 @@ export const useUpdateObligatoryReport = () => {
           headers: {
             "Content-Type": "multipart/form-data",
           },
-        }
+        },
       );
     },
     onSuccess: () => {
@@ -159,7 +165,7 @@ export const useAcceptObligatoryReport = () => {
     mutationFn: async ({ company, id, data }: UpdateObligatoryReportData) => {
       await axiosInstance.patch(
         `/${company}/sms/accept-obligatory-reports/${id}`,
-        data
+        data,
       );
     },
     onSuccess: () => {
@@ -178,4 +184,19 @@ export const useAcceptObligatoryReport = () => {
   return {
     acceptObligatoryReport: acceptObligatoryReportMutation,
   };
+};
+
+export const useGetNextReportNumber = (company: string | null) => {
+  return useQuery<NextNumberResponse>({
+    queryKey: ["next-obligatory-report-number", company],
+    queryFn: async () => {
+      const { data } = await axiosInstance.get(
+        `/${company}/sms/next-obligatory-report-number`,
+      );
+      return data;
+    },
+    enabled: !!company,
+    staleTime: 5000,
+    retry: 1,
+  });
 };

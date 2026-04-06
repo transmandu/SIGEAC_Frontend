@@ -17,6 +17,7 @@ import { z } from "zod";
 import {
   useCreateVoluntaryReport,
   useUpdateVoluntaryReport,
+  useGetNextReportNumber,
 } from "@/actions/sms/reporte_voluntario/actions";
 import { Calendar } from "@/components/ui/calendar";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -72,8 +73,11 @@ export function CreateVoluntaryReportForm({
   const userRoles = user?.roles?.map((role) => role.name) || [];
 
   const shouldEnableField = userRoles.some((role) =>
-    ["SUPERUSER", "ANALISTA_SMS", "JEFE_SMS"].includes(role)
+    ["SUPERUSER", "ANALISTA_SMS", "JEFE_SMS"].includes(role),
   );
+
+  const { data: nextNumberData, isPending: isLoadingNextNumber } =
+    useGetNextReportNumber(selectedCompany?.slug || null);
 
   const FormSchema = z.object({
     identification_date: z
@@ -150,7 +154,7 @@ export function CreateVoluntaryReportForm({
       .refine((file) => file.size <= 10 * 1024 * 1024, "Max 10MB")
       .refine(
         (file) => ["image/jpeg", "image/png"].includes(file.type),
-        "Solo JPEG/PNG"
+        "Solo JPEG/PNG",
       )
       .optional(),
 
@@ -159,34 +163,13 @@ export function CreateVoluntaryReportForm({
       .refine((file) => file.size <= 10 * 1024 * 1024, "Máximo 10MB")
       .refine(
         (file) => file.type === "application/pdf",
-        "Solo se permiten archivos PDF"
+        "Solo se permiten archivos PDF",
       )
       .optional(),
     // Otros campos del esquema@/components.
   });
 
   type FormSchemaType = z.infer<typeof FormSchema>;
-
-  useEffect(() => {
-    if (initialData && isEditing) {
-      if (
-        initialData.reporter_email &&
-        initialData.reporter_name &&
-        initialData.reporter_last_name &&
-        initialData.reporter_phone
-      ) {
-        setIsAnonymous(false);
-      }
-
-      // Inicializar las consecuencias si hay datos iniciales
-      if (initialData.possible_consequences) {
-        const initialConsequences = initialData.possible_consequences
-          .split(",")
-          .filter((item) => item.trim() !== "");
-        setConsequences(initialConsequences);
-      }
-    }
-  }, [initialData, isEditing]); // Only run when these values change
 
   const form = useForm<FormSchemaType>({
     resolver: zodResolver(FormSchema),
@@ -221,6 +204,33 @@ export function CreateVoluntaryReportForm({
       }),
     },
   });
+
+  useEffect(() => {
+    if (initialData && isEditing) {
+      if (
+        initialData.reporter_email &&
+        initialData.reporter_name &&
+        initialData.reporter_last_name &&
+        initialData.reporter_phone
+      ) {
+        setIsAnonymous(false);
+      }
+
+      // Inicializar las consecuencias si hay datos iniciales
+      if (initialData.possible_consequences) {
+        const initialConsequences = initialData.possible_consequences
+          .split(",")
+          .filter((item) => item.trim() !== "");
+        setConsequences(initialConsequences);
+      }
+
+      if (initialData.report_number) {
+        form.setValue("report_number", initialData.report_number);
+      }
+    } else if (!isEditing && nextNumberData?.next_number) {
+      form.setValue("report_number", String(nextNumberData.next_number));
+    }
+  }, [initialData, isEditing, nextNumberData, form]); // Only run when these values change
 
   // Agregar una consecuencia
   const addConsequence = () => {
@@ -282,7 +292,7 @@ export function CreateVoluntaryReportForm({
         const response = await createVoluntaryReport.mutateAsync(value);
         if (shouldEnableField) {
           router.push(
-            `/${selectedCompany?.slug}/sms/reportes/reportes_voluntarios/${response.voluntary_report_id}`
+            `/${selectedCompany?.slug}/sms/reportes/reportes_voluntarios/${response.voluntary_report_id}`,
           );
         } else {
           router.push(`/${selectedCompany?.slug}/dashboard`);
@@ -313,7 +323,21 @@ export function CreateVoluntaryReportForm({
                 <FormItem>
                   <FormLabel>Código del Reporte Voluntario</FormLabel>
                   <FormControl>
-                    <Input placeholder="" {...field} maxLength={4} />
+                    <div className="relative flex items-center text-muted-foreground">
+                      <span className="absolute left-2 select-none">RPV-</span>
+                      <Input
+                        {...field}
+                        placeholder={isLoadingNextNumber ? "Cargando..." : ""}
+                        readOnly={true}
+                        tabIndex={-1}
+                        className="bg-muted cursor-not-allowed pl-12 font-bold"
+                      />
+                      {isLoadingNextNumber && (
+                        <div className="absolute right-4 top-1/2 -translate-y-1/2">
+                          <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                        </div>
+                      )}
+                    </div>
                   </FormControl>
                   <FormMessage className="text-xs" />
                 </FormItem>
@@ -336,7 +360,7 @@ export function CreateVoluntaryReportForm({
                           variant={"outline"}
                           className={cn(
                             "w-full pl-3 text-left font-normal",
-                            !field.value && "text-muted-foreground"
+                            !field.value && "text-muted-foreground",
                           )}
                         >
                           {field.value ? (
@@ -387,7 +411,7 @@ export function CreateVoluntaryReportForm({
                           variant={"outline"}
                           className={cn(
                             "w-full pl-3 text-left font-normal",
-                            !field.value && "text-muted-foreground"
+                            !field.value && "text-muted-foreground",
                           )}
                         >
                           {field.value ? (

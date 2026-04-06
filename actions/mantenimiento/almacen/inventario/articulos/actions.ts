@@ -2,6 +2,7 @@ import axiosInstance from "@/lib/axios";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { ComponentArticle, ConsumableArticle, ToolArticle } from "@/types";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { format } from "date-fns";
 import { toast } from "sonner";
 
 interface UnitSelection {
@@ -55,6 +56,14 @@ interface SendToQuarantinePayload {
 
 type CheckResult = "PASS" | "FAIL";
 
+const serializeFormValue = (value: unknown) => {
+  if (value instanceof Date) {
+    return format(value, "yyyy-MM-dd");
+  }
+
+  return value?.toString() ?? "";
+};
+
 export type IncomingCheck = {
   check_id: number;
   result: CheckResult;
@@ -100,7 +109,7 @@ export const useCreateArticle = () => {
             formData.append(key, value);
           } else {
             // Convertimos todo lo demás a string para el envío de formulario
-            formData.append(key, value.toString());
+            formData.append(key, serializeFormValue(value));
           }
         }
       });
@@ -149,7 +158,7 @@ export const useCreateToReviewArticle = () => {
           } else if (Array.isArray(value)) {
             value.forEach((item) => formData.append(`${key}[]`, item));
           } else {
-            formData.append(key, value.toString());
+            formData.append(key, serializeFormValue(value));
           }
         }
       });
@@ -311,7 +320,7 @@ export const useEditArticle = () => {
           } else if (Array.isArray(value)) {
             value.forEach((item) => formData.append(`${key}[]`, item));
           } else {
-            formData.append(key, value.toString());
+            formData.append(key, serializeFormValue(value));
           }
         }
       });
@@ -372,7 +381,7 @@ export const useUpdateArticle = () => {
           } else if (Array.isArray(value)) {
             value.forEach((item) => formData.append(`${key}[]`, item));
           } else {
-            formData.append(key, value.toString());
+            formData.append(key, serializeFormValue(value));
           }
         }
       });

@@ -15,11 +15,12 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 import {
   useCreateObligatoryReport,
   useUpdateObligatoryReport,
+  useGetNextReportNumber,
 } from "@/actions/sms/reporte_obligatorio/actions";
 import { Calendar } from "@/components/ui/calendar";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -60,6 +61,7 @@ interface FormProps {
   initialData?: ObligatoryReport;
   onClose: () => void;
 }
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 export function CreateObligatoryReportForm({
   onClose,
@@ -71,7 +73,7 @@ export function CreateObligatoryReportForm({
   const userRoles = user?.roles?.map((role) => role.name) || [];
 
   const shouldEnableField = userRoles.some((role) =>
-    ["SUPERUSER", "ANALISTA_SMS", "JEFE_SMS"].includes(role)
+    ["SUPERUSER", "ANALISTA_SMS", "JEFE_SMS"].includes(role),
   );
 
   const FormSchema = z
@@ -149,14 +151,14 @@ export function CreateObligatoryReportForm({
       incidents: z.array(z.string()).optional(),
       other_incidents: z.preprocess(
         (val) => (val === null || val === undefined ? "" : val),
-        z.string().optional()
+        z.string().optional(),
       ),
       image: z
         .instanceof(File)
         .refine((file) => file.size <= 10 * 1024 * 1024, "Max 10MB")
         .refine(
           (file) => ["image/jpeg", "image/png"].includes(file.type),
-          "Solo JPEG/PNG"
+          "Solo JPEG/PNG",
         )
         .optional(),
       document: z
@@ -164,7 +166,7 @@ export function CreateObligatoryReportForm({
         .refine((file) => file.size <= 10 * 1024 * 1024, "Máximo 10MB")
         .refine(
           (file) => file.type === "application/pdf",
-          "Solo se permiten archivos PDF"
+          "Solo se permiten archivos PDF",
         )
         .optional(),
     })
@@ -177,7 +179,7 @@ export function CreateObligatoryReportForm({
       {
         message: "Debe proporcionar al menos un incidente o descripción",
         path: ["incidents"],
-      }
+      },
     );
 
   type FormSchemaType = z.infer<typeof FormSchema>;
@@ -187,7 +189,7 @@ export function CreateObligatoryReportForm({
   const router = useRouter();
 
   const [showOtherInput, setShowOtherInput] = useState(
-    initialData?.other_incidents ? true : false
+    initialData?.other_incidents ? true : false,
   );
 
   const [open, setOpen] = useState(false);
@@ -206,7 +208,7 @@ export function CreateObligatoryReportForm({
   // No estoy seguro si esto va aca lol
   const { selectedCompany } = useCompanyStore();
   const { data: pilots, isLoading: isLoadingPilots } = useGetPilots(
-    selectedCompany?.slug
+    selectedCompany?.slug,
   );
   const { data: aircrafts, isLoading: isLoadingAircrafts } =
     useGetAircraftAcronyms(selectedCompany?.slug);
@@ -231,6 +233,9 @@ export function CreateObligatoryReportForm({
     "Fallo en los controles de vuelo",
     "Parametros de vuelo anormales",
   ];
+
+  const { data: nextNumberData, isPending: isLoadingNextNumber } =
+    useGetNextReportNumber(selectedCompany?.slug || null);
 
   const form = useForm<FormSchemaType>({
     resolver: zodResolver(FormSchema),
@@ -320,7 +325,7 @@ export function CreateObligatoryReportForm({
         const response = await createObligatoryReport.mutateAsync(value);
         if (shouldEnableField) {
           router.push(
-            `/${selectedCompany?.slug}/sms/reportes/reportes_obligatorios/${response.obligatory_report_id}`
+            `/${selectedCompany?.slug}/sms/reportes/reportes_obligatorios/${response.obligatory_report_id}`,
           );
         } else {
           router.push(`/${selectedCompany?.slug}/dashboard`);
@@ -340,16 +345,29 @@ export function CreateObligatoryReportForm({
   };
 
   const handleOtherInputChange = (
-    event: React.ChangeEvent<HTMLInputElement>
+    event: React.ChangeEvent<HTMLInputElement>,
   ) => {
     form.setValue("other_incidents", event.target.value);
   };
+
+  useEffect(() => {
+    if (initialData && isEditing) {
+      if (initialData.report_number) {
+        form.setValue("report_number", initialData.report_number);
+      }
+    } else if (!isEditing && nextNumberData?.next_number) {
+      form.setValue("report_number", String(nextNumberData.next_number));
+    }
+  }, [initialData, isEditing, nextNumberData, form]);
 
   return (
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit(onSubmit)}
-        className="flex w-full flex-col space-y-3"
+        className={cn(
+          "flex w-full flex-col space-y-3",
+          isEditing && "max-h-[calc(100vh-10rem)]  overflow-auto",
+        )}
       >
         <FormLabel className="text-lg text-center m-2">
           Reporte Obligatorio de suceso
@@ -364,7 +382,23 @@ export function CreateObligatoryReportForm({
                 <FormItem>
                   <FormLabel>Codigo del Reporte</FormLabel>
                   <FormControl>
-                    <Input placeholder="001" {...field} maxLength={4} />
+                    <div className="relative flex items-center text-muted-foreground cursor-not-allowed select-none">
+                      <span className="absolute left-2 select-none pointer-events-none">
+                        ROS-
+                      </span>
+                      <Input
+                        {...field}
+                        placeholder={isLoadingNextNumber ? "Cargando..." : ""}
+                        readOnly={true}
+                        tabIndex={-1}
+                        className="bg-muted pl-12 font-bold pointer-events-none select-none"
+                      />
+                      {isLoadingNextNumber && (
+                        <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                          <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                        </div>
+                      )}
+                    </div>
                   </FormControl>
                   <FormMessage className="text-xs" />
                 </FormItem>
@@ -414,7 +448,7 @@ export function CreateObligatoryReportForm({
                         variant={"outline"}
                         className={cn(
                           "w-full pl-3 text-left font-normal",
-                          !field.value && "text-muted-foreground"
+                          !field.value && "text-muted-foreground",
                         )}
                       >
                         {field.value ? (
@@ -468,7 +502,7 @@ export function CreateObligatoryReportForm({
                         variant={"outline"}
                         className={cn(
                           "w-full pl-3 text-left font-normal",
-                          !field.value && "text-muted-foreground"
+                          !field.value && "text-muted-foreground",
                         )}
                       >
                         {field.value ? (
@@ -779,13 +813,13 @@ export function CreateObligatoryReportForm({
                                     selectedValues.includes(currentValue);
                                   const newValues = isSelected
                                     ? selectedValues.filter(
-                                        (v) => v !== currentValue
+                                        (v) => v !== currentValue,
                                       )
                                     : [...selectedValues, currentValue];
 
                                   setSelectedValues(newValues);
                                   field.onChange(
-                                    newValues.length > 0 ? newValues : []
+                                    newValues.length > 0 ? newValues : [],
                                   ); // Actualizar el valor del campo de formulario
                                 }}
                               >
@@ -796,7 +830,7 @@ export function CreateObligatoryReportForm({
                                       "ml-auto",
                                       selectedValues.includes(option)
                                         ? "opacity-100"
-                                        : "opacity-0"
+                                        : "opacity-0",
                                     )}
                                   />
                                 )}

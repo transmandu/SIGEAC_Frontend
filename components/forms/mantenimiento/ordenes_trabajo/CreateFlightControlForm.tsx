@@ -83,27 +83,27 @@ export default function CreateFlightControlForm({
     resolver: zodResolver(formSchema),
     defaultValues: flightData
       ? {
-          flight_cycles: flightData.flight_cycles,
-          flight_hours: flightData.flight_hours,
-          flight_number: flightData.flight_number,
-          origin: flightData.origin,
-          destination: flightData.destination,
-          aircraft_operator: flightData.aircraft_operator,
-          aircraft_id: flightData.aircraft_id.toString(),
-          flight_date:
-            typeof flightData.flight_date === "string"
-              ? new Date(flightData.flight_date)
-              : flightData.flight_date,
-        }
+        flight_cycles: flightData.flight_cycles,
+        flight_hours: flightData.flight_hours,
+        flight_number: flightData.flight_number,
+        origin: flightData.origin,
+        destination: flightData.destination,
+        aircraft_operator: flightData.aircraft_operator,
+        aircraft_id: flightData.aircraft_id.toString(),
+        flight_date:
+          typeof flightData.flight_date === "string"
+            ? new Date(flightData.flight_date)
+            : flightData.flight_date,
+      }
       : {
-          flight_cycles: 0,
-          flight_hours: 0,
-          flight_number: "",
-          origin: "",
-          destination: "",
-          aircraft_operator: "",
-          aircraft_id: deafultAircraftId ?? "",
-        },
+        flight_cycles: 0,
+        flight_hours: 0,
+        flight_number: "",
+        origin: "",
+        destination: "",
+        aircraft_operator: "",
+        aircraft_id: deafultAircraftId ?? "",
+      },
   });
   const { control } = form;
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
