@@ -142,6 +142,11 @@ const formSchema = z
 
 export type FormValues = z.infer<typeof formSchema>;
 
+const formatDateForApi = (value?: Date) =>
+  value instanceof Date && !Number.isNaN(value.getTime())
+    ? format(value, "yyyy-MM-dd")
+    : undefined;
+
 /* ----------------------------- Helpers UI ----------------------------- */
 
 const SectionCard = ({
@@ -223,11 +228,10 @@ function FileField({
                 />
                 <div
                   onClick={() => !busy && !fileName && inputRef?.click()}
-                  className={`flex items-center justify-between pl-10 pr-3 py-2 w-full border border-gray-300 rounded ${
-                    !busy && !fileName
-                      ? "cursor-pointer hover:border-gray-400"
-                      : ""
-                  } ${busy ? "opacity-50" : ""}`}
+                  className={`flex items-center justify-between pl-10 pr-3 py-2 w-full border border-gray-300 rounded ${!busy && !fileName
+                    ? "cursor-pointer hover:border-gray-400"
+                    : ""
+                    } ${busy ? "opacity-50" : ""}`}
                 >
                   <span
                     className={`text-sm truncate flex-1 ${fileName ? "text-gray-900" : "text-gray-500"}`}
@@ -461,11 +465,6 @@ export default function DirectToolForm({
     });
   }, [initialData, form]);
 
-  const [inspectDate, setInspectDate] = useState<Date | null | undefined>(
-    initialData?.inspect_date
-      ? parseISO(initialData.inspect_date)
-      : null // Por defecto "No aplica" (componentes nuevos o sin fecha)
-  );
   // Autocompletar descripción cuando encuentra resultados de búsqueda
   useEffect(() => {
     if (searchResults && searchResults.length > 0 && !isEditing) {
@@ -508,10 +507,9 @@ export default function DirectToolForm({
       part_number: normalizeUpper(values.part_number),
       alternative_part_number:
         values.alternative_part_number?.map((v) => normalizeUpper(v)) ?? [],
-      calibration_date: values.calibration_date
-        ? format(values.calibration_date, "yyyy-MM-dd")
-        : undefined,
+      calibration_date: formatDateForApi(values.calibration_date),
       batch_name: enableBatchNameEdit ? values.batch_name : undefined,
+      inspect_date: formatDateForApi(values.inspect_date),
       // next_calibration se envía como número si existe
     };
 
@@ -549,7 +547,7 @@ export default function DirectToolForm({
               render={({ field }) => (
                 <FormItem className="w-full">
                   <FormLabel>
-                      inspector (Incoming) <span className="text-xs italic text-gray-500 font-normal ml-1">(Inspector)</span>
+                    inspector (Incoming) <span className="text-xs italic text-gray-500 font-normal ml-1">(Inspector)</span>
                   </FormLabel>
                   <FormControl>
                     <Input placeholder="Nombre del Inspector" {...field} />
