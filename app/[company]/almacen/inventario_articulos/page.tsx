@@ -83,6 +83,7 @@ const InventarioArticulosPage = () => {
     true,
     undefined,
     debouncedSearch.trim() || undefined,
+    activeCategory === "CONSUMABLE" && consumableFilter === "QUIMICOS",
   )
 
   const articles = pagedArticles
@@ -141,9 +142,6 @@ const InventarioArticulosPage = () => {
     if (activeCategory !== "all") {
       if ((activeCategory === "COMPONENT" || activeCategory === "PART") && componentCondition !== "all") {
         filtered = filtered.filter((a) => a.condition === componentCondition)
-      }
-      if (activeCategory === "CONSUMABLE" && consumableFilter === "QUIMICOS") {
-        filtered = filtered.filter((a: any) => a.is_hazardous === true)
       }
     }
 
