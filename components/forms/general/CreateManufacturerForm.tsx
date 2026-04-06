@@ -30,7 +30,7 @@ const formSchema = z.object({
     message: "El nombre debe tener al menos 3 carácters.",
   }),
   description: z.string().optional(),
-  type: z.enum(["AIRCRAFT", "ENGINE", "APU", "PROPELLER", "GENERAL", "PART"], {
+  type: z.enum(["AIRCRAFT", "ENGINE", "APU", "PROPELLER", "GENERAL", "PART", "TOOL"], {
     required_error: "Debe seleccionar un tipo",
   }),
 });
@@ -38,12 +38,13 @@ const formSchema = z.object({
 interface FormProps {
   onClose: () => void;
   defaultType?:
-    | "AIRCRAFT"
-    | "ENGINE"
-    | "APU"
-    | "PROPELLER"
-    | "GENERAL"
-    | "PART";
+  | "AIRCRAFT"
+  | "ENGINE"
+  | "APU"
+  | "PROPELLER"
+  | "GENERAL"
+  | "PART"
+  | "TOOL";
   onSuccess?: (manufacturer: any) => void;
 }
 
@@ -127,6 +128,7 @@ export default function CreateManufacturerForm({
                   <SelectItem value="PROPELLER">Hélice</SelectItem>
                   <SelectItem value="GENERAL">Piezas en General</SelectItem>
                   <SelectItem value="PART">Partes/Componentes</SelectItem>
+                  <SelectItem value="TOOL">Herramientas</SelectItem>
                 </SelectContent>
               </Select>
               <FormDescription>Indique el tipo de fabricante.</FormDescription>
