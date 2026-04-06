@@ -36,6 +36,7 @@ export interface IArticleSimple {
     calibration_date?: string | null;
     next_calibration_date?: string | null;
     next_calibration?: number | string | null;
+    model?: string | null;
   };
   component?: {
     expiration_date?: string | null;
@@ -94,7 +95,9 @@ export const getStatusBadge = (status: string | null | undefined) => {
   );
 };
 
-export const flattenArticles = (data: WarehouseResponse | undefined): IArticleSimple[] => {
+export const flattenArticles = (
+  data: WarehouseResponse | undefined,
+): IArticleSimple[] => {
   if (!data?.batches) return [];
   return data.batches.flatMap((batch) =>
     batch.articles.map((article) => {
@@ -160,7 +163,7 @@ export const flattenArticles = (data: WarehouseResponse | undefined): IArticleSi
               }
             : undefined,
       };
-    })
+    }),
   );
 };
 
@@ -177,7 +180,9 @@ const parseDateLocal = (dateString: string): Date => {
 // Ahora: si es grupo, muestra __groupCount aquí (sin badge en PN)
 const quantityCol: ColumnDef<IArticleSimple> = {
   accessorKey: "quantity",
-  header: ({ column }) => <DataTableColumnHeader column={column} title="Cantidad" />,
+  header: ({ column }) => (
+    <DataTableColumnHeader column={column} title="Cantidad" />
+  ),
   cell: ({ row }) => {
     const isGroup = !!row.original.__isGroup;
 
@@ -245,37 +250,41 @@ const baseCols: ColumnDef<IArticleSimple>[] = [
     ),
   },
   {
-  accessorKey: "condition",
-  header: ({ column }) => (
-    <DataTableColumnHeader filter column={column} title="Condición" />
-  ),
-  cell: ({ row }) => {
-    const condition = row.original.condition
+    accessorKey: "condition",
+    header: ({ column }) => (
+      <DataTableColumnHeader filter column={column} title="Condición" />
+    ),
+    cell: ({ row }) => {
+      const condition = row.original.condition;
 
-    if (row.original.__isGroup) {
+      if (row.original.__isGroup) {
+        return (
+          <div className="text-muted-foreground font-bold text-center max-w-xs line-clamp-2">
+            {"-"}
+          </div>
+        );
+      }
+
+      const c = formatCondition(condition);
+
       return (
-        <div className="text-muted-foreground font-bold text-center max-w-xs line-clamp-2">
-          {"-"}
+        <div className="flex-col text-center max-w-xs line-clamp-2 leading-tight">
+          {c ? (
+            <>
+              <span className="font-bold text-foreground">{c.es}</span>{" "}
+              <span className="text-xs text-muted-foreground italic">
+                ({c.en})
+              </span>
+            </>
+          ) : (
+            <span className="text-muted-foreground font-bold">
+              Sin condición
+            </span>
+          )}
         </div>
-      )
-    }
-
-    const c = formatCondition(condition)
-
-    return (
-      <div className="flex-col text-center max-w-xs line-clamp-2 leading-tight">
-        {c ? (
-          <>
-            <span className="font-bold text-foreground">{c.es}</span>{" "}
-            <span className="text-xs text-muted-foreground italic">({c.en})</span>
-          </>
-        ) : (
-          <span className="text-muted-foreground font-bold">Sin condición</span>
-        )}
-      </div>
-    )
+      );
+    },
   },
-},
 
   {
     accessorKey: "status",
@@ -285,7 +294,12 @@ const baseCols: ColumnDef<IArticleSimple>[] = [
         return (
           <div className="flex justify-center">
             <Badge variant="outline" className="text-xs">
-              <p>Grupo <span className="text-xs text-muted-foreground">({row.original.__groupCount ?? 0})</span></p>
+              <p>
+                Grupo{" "}
+                <span className="text-xs text-muted-foreground">
+                  ({row.original.__groupCount ?? 0})
+                </span>
+              </p>
             </Badge>
           </div>
         );
@@ -308,10 +322,12 @@ const baseCols: ColumnDef<IArticleSimple>[] = [
                     ? "bg-yellow-500"
                     : descalibrated
                       ? "bg-red-500"
-                      : ""
+                      : "",
               )}
             >
-              {row.original.tool.status ? row.original.tool.status : "Sin estado"}
+              {row.original.tool.status
+                ? row.original.tool.status
+                : "Sin estado"}
             </Badge>
           )}
         </div>
@@ -342,7 +358,9 @@ export const componenteCols: ColumnDef<IArticleSimple>[] = [
   ...baseCols,
   {
     id: "shelf_life",
-    header: ({ column }) => <DataTableColumnHeader column={column} title="Shelf Life" />,
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Shelf Life" />
+    ),
     cell: ({ row }) => {
       if (row.original.__isGroup) {
         return (
@@ -374,10 +392,11 @@ export const componenteCols: ColumnDef<IArticleSimple>[] = [
       today.setHours(0, 0, 0, 0);
       date.setHours(0, 0, 0, 0);
       const daysUntilExpiry = Math.ceil(
-        (date.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
+        (date.getTime() - today.getTime()) / (1000 * 60 * 60 * 24),
       );
 
-      let variant: "default" | "secondary" | "destructive" | "outline" = "default";
+      let variant: "default" | "secondary" | "destructive" | "outline" =
+        "default";
       if (daysUntilExpiry < 0) variant = "destructive";
       else if (daysUntilExpiry <= 30) variant = "secondary";
 
@@ -392,7 +411,11 @@ export const componenteCols: ColumnDef<IArticleSimple>[] = [
   },
   {
     id: "actions",
-    header: () => <div className="sticky right-0 bg-background z-50 text-center">Acciones</div>,
+    header: () => (
+      <div className="sticky right-0 bg-background z-50 text-center">
+        Acciones
+      </div>
+    ),
     cell: ({ row }) => {
       const item = row.original;
       if (item.__isGroup) return null;
@@ -528,7 +551,9 @@ export const consumibleCols: ColumnDef<IArticleSimple>[] = [
       return (
         <div className="text-center">
           <Badge variant={variant} className="text-sm font-medium">
-            {format(date, "dd/MM/yyyy") === "01/01/1900" ? "N/A" : format(date, "dd/MM/yyyy")}
+            {format(date, "dd/MM/yyyy") === "01/01/1900"
+              ? "N/A"
+              : format(date, "dd/MM/yyyy")}
           </Badge>
         </div>
       );
@@ -562,37 +587,58 @@ export const consumibleCols: ColumnDef<IArticleSimple>[] = [
 export const herramientaCols: ColumnDef<IArticleSimple>[] = [
   ...baseCols,
   {
-    accessorKey: "calibration_date",
-    header: ({ column }) => <DataTableColumnHeader column={column} title="Fech. Calibración" />,
+    accessorKey: "model",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Modelo" />
+    ),
     cell: ({ row }) => (
       <div className="text-center text-sm font-bold text-muted-foreground">
-        {row.original.__isGroup ? (
-          "—"
-        ) : row.original.tool?.calibration_date ? (
-          format(parseDateLocal(row.original.tool.calibration_date), "dd/MM/yyyy")
-        ) : (
-          "N/A"
-        )}
+        {row.original.tool?.model ?? 'N/A'}
+      </div>
+    ),
+  },
+  {
+    accessorKey: "calibration_date",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Fech. Calibración" />
+    ),
+    cell: ({ row }) => (
+      <div className="text-center text-sm font-bold text-muted-foreground">
+        {row.original.__isGroup
+          ? "—"
+          : row.original.tool?.calibration_date
+            ? format(
+                parseDateLocal(row.original.tool.calibration_date),
+                "dd/MM/yyyy",
+              )
+            : "N/A"}
       </div>
     ),
   },
   {
     id: "next_calibration",
-    header: ({ column }) => <DataTableColumnHeader column={column} title="Prox. Cal." />,
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Prox. Cal." />
+    ),
     cell: ({ row }) => {
       if (row.original.__isGroup) {
-        return <div className="text-center text-sm font-bold text-muted-foreground">—</div>;
+        return (
+          <div className="text-center text-sm font-bold text-muted-foreground">
+            —
+          </div>
+        );
       }
 
       return (
         <div className="text-center text-sm font-bold text-muted-foreground">
-          {row.original.tool?.next_calibration && row.original.tool.calibration_date
+          {row.original.tool?.next_calibration &&
+          row.original.tool.calibration_date
             ? format(
                 addDays(
                   parseDateLocal(row.original.tool.calibration_date),
-                  Number(row.original.tool.next_calibration)
+                  Number(row.original.tool.next_calibration),
                 ),
-                "dd/MM/yyyy"
+                "dd/MM/yyyy",
               )
             : "N/A"}
         </div>
@@ -601,7 +647,11 @@ export const herramientaCols: ColumnDef<IArticleSimple>[] = [
   },
   {
     id: "actions",
-    header: () => <div className="sticky right-0 bg-background z-50 text-center">Acciones</div>,
+    header: () => (
+      <div className="sticky right-0 bg-background z-50 text-center">
+        Acciones
+      </div>
+    ),
     cell: ({ row }) => {
       const item = row.original;
       if (item.__isGroup) return null;
@@ -625,7 +675,9 @@ export const allCategoriesCols: ColumnDef<IArticleSimple>[] = [
   quantityCol,
   {
     id: "shelf_life",
-    header: ({ column }) => <DataTableColumnHeader column={column} title="Shelf Life" />,
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Shelf Life" />
+    ),
     cell: ({ row }) => {
       if (row.original.__isGroup) {
         return (
@@ -636,7 +688,8 @@ export const allCategoriesCols: ColumnDef<IArticleSimple>[] = [
       }
 
       const caducateDate =
-        row.original.component?.expiration_date || row.original.consumable?.expiration_date;
+        row.original.component?.expiration_date ||
+        row.original.consumable?.expiration_date;
 
       if (!caducateDate) {
         return (
@@ -665,10 +718,11 @@ export const allCategoriesCols: ColumnDef<IArticleSimple>[] = [
       today.setHours(0, 0, 0, 0);
       date.setHours(0, 0, 0, 0);
       const daysUntilExpiry = Math.ceil(
-        (date.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
+        (date.getTime() - today.getTime()) / (1000 * 60 * 60 * 24),
       );
 
-      let variant: "default" | "secondary" | "destructive" | "outline" = "default";
+      let variant: "default" | "secondary" | "destructive" | "outline" =
+        "default";
       if (daysUntilExpiry < 0) variant = "destructive";
       else if (daysUntilExpiry <= 30) variant = "secondary";
 
@@ -683,7 +737,11 @@ export const allCategoriesCols: ColumnDef<IArticleSimple>[] = [
   },
   {
     id: "actions",
-    header: () => <div className="sticky right-0 bg-background z-50 text-center">Acciones</div>,
+    header: () => (
+      <div className="sticky right-0 bg-background z-50 text-center">
+        Acciones
+      </div>
+    ),
     cell: ({ row }) => {
       const item = row.original;
       if (item.__isGroup) return null;
@@ -702,7 +760,7 @@ export const allCategoriesCols: ColumnDef<IArticleSimple>[] = [
 ];
 
 export const getColumnsByCategory = (
-  cat: "COMPONENT" | "PART" | "CONSUMABLE" | "TOOL"
+  cat: "COMPONENT" | "PART" | "CONSUMABLE" | "TOOL",
 ): ColumnDef<IArticleSimple>[] => {
   if (cat === "TOOL") return herramientaCols;
   if (cat === "CONSUMABLE") return consumibleCols;

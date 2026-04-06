@@ -84,11 +84,11 @@ const fileMaxBytes = 10_000_000; // 10 MB
 const formSchema = z
   .object({
     article_type: z.string().optional(),
-    part_number: z.string().min(2, "Al menos 2 caracteres."),
+    part_number: z.string().optional(),
     alternative_part_number: z.array(z.string().min(2)).optional(),
     serial: z.string().optional(),
     model: z.string().optional(),
-    description: z.string().min(2, "Al menos 2 caracteres."),
+    description: z.string().optional(),
     zone: z.string().min(1, "Campo requerido"),
     manufacturer_id: z.string().min(1, "Seleccione un fabricante"),
     batch_id: z.string().min(1, "Seleccione una descripción"),
@@ -213,6 +213,8 @@ export default function CreateToolForm({
       next_calibration: initialData?.tool?.next_calibration
         ? Number(initialData.tool.next_calibration)
         : undefined,
+
+      model: initialData?.tool?.model || "",
     },
   });
 
@@ -327,7 +329,7 @@ export default function CreateToolForm({
               )}
             />
 
-            <FormField
+            {/* <FormField
               control={form.control}
               name="alternative_part_number"
               render={({ field }) => (
@@ -341,6 +343,20 @@ export default function CreateToolForm({
                       label=""
                     />
                   </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            /> */}
+            <FormField
+              control={form.control}
+              name="model"
+              render={({ field }) => (
+                <FormItem className="w-full">
+                  <FormLabel>Modelo</FormLabel>
+                  <FormControl>
+                    <Input placeholder="" {...field} disabled={busy} />
+                  </FormControl>
+                  <FormDescription></FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
