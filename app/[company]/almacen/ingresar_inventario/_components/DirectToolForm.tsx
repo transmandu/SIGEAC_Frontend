@@ -85,11 +85,11 @@ const fileMaxBytes = 10_000_000; // 10 MB
 const formSchema = z
   .object({
     article_type: z.string().optional(),
-    part_number: z.string().min(2, "Al menos 2 caracteres."),
+    part_number: z.string().optional(),
     alternative_part_number: z.array(z.string().min(2)).optional(),
     serial: z.string().optional(),
     model: z.string().optional(),
-    description: z.string().min(2, "Al menos 2 caracteres."),
+    description: z.string().optional(),
     batch_name: z.string().optional(),
     zone: z.string().min(1, "Campo requerido"),
     manufacturer_id: z.string().min(1, "Seleccione un fabricante"),
@@ -435,6 +435,7 @@ export default function DirectToolForm({
       inspect_date: initialData?.inspect_date
         ? addDays(new Date(initialData.inspect_date), 1)
         : undefined,
+      model: initialData?.tool?.model || "",
     },
     mode: "onBlur",
   });
@@ -683,7 +684,7 @@ export default function DirectToolForm({
               )}
             />
 
-            <FormField
+            {/* <FormField
               control={form.control}
               name="alternative_part_number"
               render={({ field }) => (
@@ -706,6 +707,21 @@ export default function DirectToolForm({
                       label=""
                     />
                   </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            /> */}
+
+            <FormField
+              control={form.control}
+              name="model"
+              render={({ field }) => (
+                <FormItem className="w-full">
+                  <FormLabel>Modelo</FormLabel>
+                  <FormControl>
+                    <Input placeholder="" {...field} disabled={busy} />
+                  </FormControl>
+                  <FormDescription></FormDescription>
                   <FormMessage />
                 </FormItem>
               )}

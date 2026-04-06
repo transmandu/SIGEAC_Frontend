@@ -27,6 +27,7 @@ export interface EditingArticle extends Article {
     calibration_date?: string;
     next_calibration?: string | number;
     article_id: number;
+    model?: string;
   };
   partComponent?: {
     id: number;
@@ -87,7 +88,8 @@ const RegisterArticleForm = ({
       )}
       <Select
         disabled={isEditing}
-        value={type} onValueChange={handleTypeSelect}
+        value={type}
+        onValueChange={handleTypeSelect}
       >
         <SelectTrigger className="w-[230px]">
           <SelectValue placeholder="Seleccionar..." />
@@ -99,11 +101,9 @@ const RegisterArticleForm = ({
           <SelectItem value="PARTE">PARTE</SelectItem>
         </SelectContent>
       </Select>
-      {
-        type === "CONSUMIBLE" && (
-          <DirectConsumableForm isEditing={isEditing} initialData={initialData} />
-        )
-      }
+      {type === "CONSUMIBLE" && (
+        <DirectConsumableForm isEditing={isEditing} initialData={initialData} />
+      )}
       {type === "HERRAMIENTA" && (
         <CreateToolForm isEditing={isEditing} initialData={initialData} />
       )}
