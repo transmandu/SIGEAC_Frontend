@@ -1,31 +1,32 @@
 "use client"
-
-import { useEffect, useState, useRef } from "react"
+import {useState, useEffect,useRef} from "react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
   Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle,
 } from "@/components/ui/card"
-import { toast } from "@/components/ui/use-toast"
-import axiosInstance from "@/lib/axios"
-import { cn } from "@/lib/utils"
 import { WorkOrder } from "@/types"
 import { format } from "date-fns"
 import { es } from "date-fns/locale"
-import { Eye, Printer, Loader2 } from "lucide-react"
+import { Lock } from "lucide-react"
 import Link from "next/link"
 import { useCompanyStore } from "@/stores/CompanyStore"
-
-import {
-  Dialog, DialogContent, DialogTrigger,
-} from "@/components/ui/dialog"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import { useCloseWorkOrder, useUpdateWorkOrder } from "@/actions/mantenimiento/planificacion/ordenes_trabajo/actions";
+import { PdfPreviewDialog } from "@/components/dialogs/aerolinea/administracion/PdfPreviewDialog"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+import { Loader2, Upload } from "lucide-react"
+import { cn } from "@/lib/utils"
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel,
+  AlertDialogContent, AlertDialogDescription,
+  AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+  AlertDialogTrigger
+} from "@/components/ui/alert-dialog"
+import axiosInstance from "@/lib/axios"
+import { toast } from "sonner"
 
-type HoursMode = "auto" | "manual"
-
-const WorkOrderAircraftDetailsCards = ({ work_order }: { work_order: WorkOrder }) => {
+  type HoursMode = "auto" | "manual";
+  const WorkOrderAircraftDetailsCards = ({ work_order }: { work_order: WorkOrder }) => {
   const { selectedCompany } = useCompanyStore()
   const companySlug = selectedCompany?.slug || "hangar74"
 
@@ -34,12 +35,14 @@ const WorkOrderAircraftDetailsCards = ({ work_order }: { work_order: WorkOrder }
   const [manualHours, setManualHours] = useState<string>("")
   const [clientSignature, setClientSignature] = useState<string>("Freddy Guerrero")
   const [reportPagesTotal, setReportPagesTotal] = useState<string>("2")
-  
+  const [closeDialogOpen, setCloseDialogOpen] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false)
   const [isPreviewing, setIsPreviewing] = useState(false)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [previewBlob, setPreviewBlob] = useState<Blob | null>(null)
-
+  const {closeWorkOrder } = useCloseWorkOrder();
+  const { updateWorkOrder } = useUpdateWorkOrder();
+  const [isUploading, setIsUploading] = useState(false);
   const lastParamsRef = useRef<string>("");
 
   useEffect(() => {
@@ -101,10 +104,46 @@ const WorkOrderAircraftDetailsCards = ({ work_order }: { work_order: WorkOrder }
         setPreviewBlob(blob);
       }
     } catch (error) {
-      toast({ variant: "destructive", title: "Error", description: "No se pudo generar el PDF." });
+      toast.error("Error", {
+        description: "No se pudo generar el PDF.",
+      });
     } finally {
       setIsDownloading(false);
       setIsPreviewing(false);
+    }
+  };
+
+  const handleAutoUpload = async (file: File) => {
+    if (!selectedCompany) return;
+
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error("El archivo excede los 10MB permitidos.");
+      return;
+    }
+    if (file.type !== "application/pdf") {
+      toast.error("Solo se permiten archivos PDF.");
+      return;
+    }
+
+    setIsUploading(true);
+    try {
+      await updateWorkOrder.mutateAsync({
+        id: work_order.id,
+        company: companySlug,
+        data: {
+          document: file,
+          // Enviamos datos básicos para asegurar consistencia
+          description: work_order.description,
+          elaborated_by: work_order.elaborated_by,
+          reviewed_by: work_order.reviewed_by,
+          approved_by: work_order.approved_by,
+          date: work_order.date,
+        },
+      });
+    } catch (error) {
+      console.error("[WorkOrderAircraftDetailsCards] Error en auto-upload:", error);
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -124,146 +163,89 @@ const WorkOrderAircraftDetailsCards = ({ work_order }: { work_order: WorkOrder }
         <CardFooter className="flex flex-col gap-6">
           <Badge className={work_order.status === "ABIERTO" ? "bg-green-500 hover:bg-green-600 text-white" : "bg-red-500 text-white"}>{work_order.status}</Badge>
 
-          <Dialog open={printOpen} onOpenChange={(val) => { 
-            setPrintOpen(val); 
-            if(!val) { setPreviewUrl(null); setPreviewBlob(null); lastParamsRef.current = ""; } 
-          }}>
-            <DialogTrigger asChild>
-              <Button className="gap-2 px-8"><Printer className="size-4" /> Descargar paquete (PDF)</Button>
-            </DialogTrigger>
+         <PdfPreviewDialog
+            fileName={`WO_${work_order.order_number}`}
+            endpoint={`/${companySlug}/work-orders/${work_order.order_number}/package`}
+          /> 
 
-            <DialogContent
-              className={cn(
-                "transition-all duration-300 ease-in-out p-6 overflow-y-auto [&>button]:right-2 [&>button]:top-2 bg-background text-foreground border-border",
-                previewUrl ? "max-w-[98vw] w-[98vw] h-[96vh]" : "max-w-md"
-              )}
-            >
-              <div
+          <div className="w-full max-w-xs space-y-2">
+            <div className="flex items-center justify-center gap-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+              <Upload className="size-3" />
+              {work_order.document ? "Actualizar Documento" : "Cargar Documento"}
+            </div>
+            <div className="relative">
+              <Input
+                type="file"
+                accept="application/pdf"
+                disabled={work_order.status === "CERRADO" || isUploading}
                 className={cn(
-                  "flex gap-6 h-full",
-                  previewUrl ? "flex-col lg:flex-row" : "flex-col"
+                  "h-9 text-xs cursor-pointer bg-muted/50 hover:bg-muted transition-colors",
+                  isUploading && "opacity-50 cursor-not-allowed"
                 )}
-              >
-                
-                {/* PANEL DE CONTROL */}
-                <div
-                  className={cn(
-                    "flex flex-col gap-5 transition-all",
-                    previewUrl
-                      ? "w-full lg:w-[320px] lg:border-r border-border lg:pr-6"
-                      : "w-full"
-                  )}
-                >
-                  <h2 className="font-bold text-2xl tracking-tight text-foreground">
-                    {previewUrl ? "Ajustes" : "Configuración"}
-                  </h2>
-                  
-                  <div className="space-y-3">
-                    <Label className="text-xs font-bold uppercase text-primary tracking-widest">Horas de aeronave</Label>
-                    <RadioGroup value={hoursMode} onValueChange={(v) => setHoursMode(v as HoursMode)} className="flex flex-col gap-2">
-                      <div className="flex items-center gap-2 border border-input p-3 rounded-lg hover:bg-accent cursor-pointer transition-all">
-                        <RadioGroupItem value="auto" id="auto" />
-                        <Label htmlFor="auto" className="text-sm cursor-pointer font-medium">
-                          Automáticas (del sistema)
-                        </Label>
-                      </div>
-                      <div className="flex items-center gap-2 border border-input p-3 rounded-lg hover:bg-accent cursor-pointer transition-all">
-                        <RadioGroupItem value="manual" id="manual" />
-                        <Label htmlFor="manual" className="text-sm cursor-pointer font-medium">
-                          Manuales (definir valor)
-                        </Label>
-                      </div>
-                    </RadioGroup>
-                  </div>
-
-                  {hoursMode === "manual" && (
-                    <Input
-                      className="h-10 text-sm bg-background border-input"
-                      placeholder="0.00"
-                      value={manualHours}
-                      onChange={(e) => setManualHours(e.target.value)}
-                    />
-                  )}
-                  
-                  <div className="space-y-2">
-                    <Label className="text-xs font-bold uppercase text-primary tracking-widest">Firma del Cliente</Label>
-                    <Input
-                      className="h-10 text-sm bg-background border-input"
-                      value={clientSignature}
-                      onChange={(e) => setClientSignature(e.target.value)}
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label className="text-xs font-bold uppercase text-primary tracking-widest">Páginas Hoja Reporte</Label>
-                    <Input
-                      className="h-10 text-sm bg-background border-input"
-                      type="number"
-                      value={reportPagesTotal}
-                      onChange={(e) => setReportPagesTotal(e.target.value)}
-                    />
-                  </div>
-
-                  <div className="flex flex-col gap-3 mt-auto pt-6 border-t border-border">
-                    {!previewUrl && (
-                      <Button
-                        variant="outline"
-                        onClick={() => handleAction('preview')}
-                        disabled={isPreviewing}
-                        className="h-11 border-primary text-primary hover:bg-primary hover:text-primary-foreground transition-all font-semibold"
-                      >
-                        {isPreviewing ? <Loader2 className="animate-spin size-4 mr-2" /> : <Eye className="size-4 mr-2" />}
-                        Ver Vista Previa
-                      </Button>
-                    )}
-                    
-                    <Button
-                      onClick={() => handleAction('download')}
-                      disabled={isDownloading}
-                      className="h-11 bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg font-bold transition-all active:scale-[0.98]"
-                    >
-                      {isDownloading ? <Loader2 className="animate-spin size-4 mr-2" /> : <Printer className="size-4 mr-2" />}
-                      {previewUrl ? "Descargar PDF Final" : "Generar y Descargar"}
-                    </Button>
-
-                    {previewUrl && (
-                      <Button
-                        variant="outline"
-                        className="h-11 border-input text-muted-foreground hover:bg-accent hover:text-foreground transition-all font-semibold"
-                        onClick={() => { setPreviewUrl(null); setPreviewBlob(null); lastParamsRef.current = ""; }}
-                      >
-                        Cerrar Vista Previa
-                      </Button>
-                    )}
-                  </div>
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) handleAutoUpload(file);
+                }}
+              />
+              {isUploading && (
+                <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                  <Loader2 className="h-4 w-4 animate-spin text-primary" />
                 </div>
+              )}
+            </div>
+          </div>
 
-                {/* VISOR PDF */}
-                {previewUrl && (
-                  <div
-                    className="
-                      relative
-                      border
-                      border-border
-                      rounded-xl
-                      bg-muted/30
-                      overflow-hidden
-                      shadow-2xl
-                      w-full
-                      h-[60vh]
-                      lg:h-full
-                    "
+          <div className = "flex flex-wrap gap-4 justify-center">
+            {work_order.document && (
+                <PdfPreviewDialog
+                  showConfig={false}
+                  fileName={`DOC_WO_${work_order.order_number}`}
+                  endpoint={`/${companySlug}/work-orders/document`}
+                  fixedParams={{ path: work_order.document }}
+                  triggerLabel="Ver Documento"
+                  triggerVariant="outline"
+                />
+            )}
+            {work_order.document && work_order.status !== "CERRADO" && (
+            <AlertDialog open={closeDialogOpen} onOpenChange={setCloseDialogOpen}>
+              <AlertDialogTrigger asChild>
+                <Button variant="destructive" className="gap-2 hover:bg-red-500">
+                  <Lock className="size-4 " />
+                  Cerrar Orden de Trabajo
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>¿Cerrar esta orden de trabajo?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Esta acción cerrará permanentemente la orden <strong>{work_order.order_number}</strong>. 
+                    Una vez cerrada no podrá ser modificada.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel disabled={closeWorkOrder.isPending}>
+                    Cancelar
+                  </AlertDialogCancel>
+                  <AlertDialogAction
+                    disabled={closeWorkOrder.isPending}
+                    onClick={async () => {
+                      await closeWorkOrder.mutateAsync({
+                        id: work_order.id,
+                        company: companySlug,
+                      });
+                      setCloseDialogOpen(false);
+                    }}
+                    className="bg-red-600 hover:bg-red-700 text-white"
                   >
-                    <iframe
-                      src={`${previewUrl}#view=FitH&navpanes=0`}
-                      className="w-full h-full border-none"
-                      title="Preview"
-                    />
-                  </div>
-                )}
-              </div>
-            </DialogContent>
-          </Dialog>
+                   Si
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          )}
+          </div>
+          
+
         </CardFooter>
       </Card>
 

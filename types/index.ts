@@ -421,6 +421,7 @@ export interface WorkOrder extends Request {
   preliminary_inspection?: PrelimInspection;
   work_order_report_pages?: WorkOrderReport;
   work_order_tasks: WorkOrderTask[];
+  document?: string;
 }
 
 export type WorkOrderReport = {
