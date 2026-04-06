@@ -6,7 +6,9 @@ import { Worker, Viewer } from '@react-pdf-viewer/core';
 import { defaultLayoutPlugin } from '@react-pdf-viewer/default-layout';
 import { Button } from "@/components/ui/button";
 
+// @ts-ignore - Ignorar error cosmético de TS en PC nueva
 import '@react-pdf-viewer/core/lib/styles/index.css';
+// @ts-ignore - Ignorar error cosmético de TS en PC nueva
 import '@react-pdf-viewer/default-layout/lib/styles/index.css';
 
 import libraryService from '@/lib/libraryService';
