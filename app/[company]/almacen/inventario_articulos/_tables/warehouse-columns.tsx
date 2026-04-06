@@ -191,7 +191,7 @@ const quantityCol: ColumnDef<IArticleSimple> = {
       <div className="flex justify-center items-center">
         <Badge
           variant={q > 5 ? "default" : q > 0 ? "secondary" : "destructive"}
-          className="text-base font-bold px-3 py-1"
+          className="text-xs font-bold px-3 py-1"
         >
           {q} {unit}
         </Badge>
