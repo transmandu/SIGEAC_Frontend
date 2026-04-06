@@ -228,10 +228,11 @@ function FileField({
                 />
                 <div
                   onClick={() => !busy && !fileName && inputRef?.click()}
-                  className={`flex items-center justify-between pl-10 pr-3 py-2 w-full border border-gray-300 rounded ${!busy && !fileName
-                    ? "cursor-pointer hover:border-gray-400"
-                    : ""
-                    } ${busy ? "opacity-50" : ""}`}
+                  className={`flex items-center justify-between pl-10 pr-3 py-2 w-full border border-gray-300 rounded ${
+                    !busy && !fileName
+                      ? "cursor-pointer hover:border-gray-400"
+                      : ""
+                  } ${busy ? "opacity-50" : ""}`}
                 >
                   <span
                     className={`text-sm truncate flex-1 ${fileName ? "text-gray-900" : "text-gray-500"}`}
@@ -309,7 +310,7 @@ function DatePickerField({
               disabled={busy}
               className={cn(
                 "w-full pl-3 text-left font-normal",
-                !value && "text-muted-foreground"
+                !value && "text-muted-foreground",
               )}
             >
               {value ? (
@@ -402,7 +403,7 @@ export default function DirectToolForm({
       selectedCompany?.slug,
       selectedStation || undefined,
       partNumberToSearch,
-      "HERRAMIENTA"
+      "HERRAMIENTA",
     );
 
   const { createArticle } = useCreateArticle();
@@ -452,7 +453,7 @@ export default function DirectToolForm({
       description: initialData.description || "",
       zone: initialData.zone || "",
       manufacturer_id: initialData.manufacturer?.id?.toString() || "",
-      batch_id: initialData.batches?.id?.toString() || "",
+      batch_id: initialData.batch?.id?.toString() || "",
       batch_name: initialData.batches?.name || "",
       needs_calibration: initialData.tool?.needs_calibration ?? false,
       calibration_date: initialData.tool?.calibration_date
@@ -461,6 +462,7 @@ export default function DirectToolForm({
       next_calibration: initialData.tool?.next_calibration
         ? Number(initialData.tool.next_calibration)
         : undefined,
+
       has_documentation: initialData.has_documentation ?? false,
     });
   }, [initialData, form]);
@@ -547,7 +549,10 @@ export default function DirectToolForm({
               render={({ field }) => (
                 <FormItem className="w-full">
                   <FormLabel>
-                    inspector (Incoming) <span className="text-xs italic text-gray-500 font-normal ml-1">(Inspector)</span>
+                    inspector (Incoming){" "}
+                    <span className="text-xs italic text-gray-500 font-normal ml-1">
+                      (Inspector)
+                    </span>
                   </FormLabel>
                   <FormControl>
                     <Input placeholder="Nombre del Inspector" {...field} />
@@ -563,7 +568,10 @@ export default function DirectToolForm({
               render={({ field }) => (
                 <FormItem className="flex flex-col">
                   <FormLabel>
-                    Fecha de Inspección <span className="text-xs italic text-gray-500 font-normal ml-1">(Inspection Date)</span>
+                    Fecha de Inspección{" "}
+                    <span className="text-xs italic text-gray-500 font-normal ml-1">
+                      (Inspection Date)
+                    </span>
                   </FormLabel>
                   <Popover>
                     <PopoverTrigger asChild>
@@ -572,7 +580,7 @@ export default function DirectToolForm({
                           variant={"outline"}
                           className={cn(
                             "w-full pl-3 text-left font-normal",
-                            !field.value && "text-muted-foreground"
+                            !field.value && "text-muted-foreground",
                           )}
                         >
                           {field.value ? (
@@ -616,7 +624,10 @@ export default function DirectToolForm({
               render={({ field }) => (
                 <FormItem className="w-full">
                   <FormLabel>
-                    Nro. de parte <span className="text-xs italic text-gray-500 font-normal ml-1">(Part number)</span>
+                    Nro. de parte{" "}
+                    <span className="text-xs italic text-gray-500 font-normal ml-1">
+                      (Part number)
+                    </span>
                   </FormLabel>
                   <FormControl>
                     <Input
@@ -654,7 +665,10 @@ export default function DirectToolForm({
               render={({ field }) => (
                 <FormItem className="w-full">
                   <FormLabel>
-                    Serial <span className="text-xs italic text-gray-500 font-normal ml-1">(Serial number)</span>
+                    Serial{" "}
+                    <span className="text-xs italic text-gray-500 font-normal ml-1">
+                      (Serial number)
+                    </span>
                   </FormLabel>
                   <FormControl>
                     <Input
@@ -675,14 +689,17 @@ export default function DirectToolForm({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>
-                    Nros. de parte alternos <span className="text-xs italic text-gray-500 font-normal ml-1">(Alternative part numbers)</span>
+                    Nros. de parte alternos{" "}
+                    <span className="text-xs italic text-gray-500 font-normal ml-1">
+                      (Alternative part numbers)
+                    </span>
                   </FormLabel>
                   <FormControl>
                     <MultiInputField
                       values={field.value || []}
                       onChange={(vals) =>
                         field.onChange(
-                          vals.map((v: string) => normalizeUpper(v))
+                          vals.map((v: string) => normalizeUpper(v)),
                         )
                       }
                       placeholder={`Ej: P/N-ALT-01, PN-ALT-02`}
@@ -702,7 +719,10 @@ export default function DirectToolForm({
                   <FormItem className="w-full">
                     <div className="flex items-center justify-between">
                       <FormLabel>
-                        Descripción <span className="text-xs italic text-gray-500 font-normal ml-1">(Description)</span>
+                        Descripción{" "}
+                        <span className="text-xs italic text-gray-500 font-normal ml-1">
+                          (Description)
+                        </span>
                       </FormLabel>
                       <CreateBatchDialog
                         onSuccess={async (batchName) => {
@@ -718,7 +738,7 @@ export default function DirectToolForm({
                           const { data: updatedBatches } =
                             await refetchBatches();
                           const newBatch = updatedBatches?.find(
-                            (b: any) => b.name === batchName
+                            (b: any) => b.name === batchName,
                           );
                           if (newBatch) {
                             form.setValue("batch_id", newBatch.id.toString(), {
@@ -745,7 +765,7 @@ export default function DirectToolForm({
                         field.onChange(value);
                         if (isEditing && enableBatchNameEdit) {
                           const selectedBatch = batchesOptions?.find(
-                            (b) => b.id.toString() === value
+                            (b) => b.id.toString() === value,
                           );
                           if (selectedBatch) {
                             form.setValue("batch_name", selectedBatch.name, {
@@ -790,7 +810,7 @@ export default function DirectToolForm({
                         )}
                         {sortedBatches
                           ?.filter(
-                            (b) => !searchResults?.some((sr) => sr.id === b.id)
+                            (b) => !searchResults?.some((sr) => sr.id === b.id),
                           )
                           .map((b) => (
                             <SelectItem key={b.id} value={b.id.toString()}>
@@ -872,7 +892,10 @@ export default function DirectToolForm({
                 <FormItem className="w-full">
                   <div className="flex items-center justify-between">
                     <FormLabel>
-                      Fabricante <span className="text-xs italic text-gray-500 font-normal ml-1">(Manufacturer)</span>
+                      Fabricante{" "}
+                      <span className="text-xs italic text-gray-500 font-normal ml-1">
+                        (Manufacturer)
+                      </span>
                     </FormLabel>
                     <CreateManufacturerDialog
                       defaultType="PART"
@@ -881,7 +904,7 @@ export default function DirectToolForm({
                           form.setValue(
                             "manufacturer_id",
                             manufacturer.id.toString(),
-                            { shouldValidate: true }
+                            { shouldValidate: true },
                           );
                         }
                       }}
@@ -909,7 +932,7 @@ export default function DirectToolForm({
                           role="combobox"
                           className={cn(
                             "w-full justify-between",
-                            !field.value && "text-muted-foreground"
+                            !field.value && "text-muted-foreground",
                           )}
                         >
                           {isManufacturerLoading && (
@@ -919,7 +942,7 @@ export default function DirectToolForm({
                             <p>
                               {
                                 manufacturers?.find(
-                                  (m) => `${m.id}` === field.value
+                                  (m) => `${m.id}` === field.value,
                                 )?.name
                               }
                             </p>
@@ -940,7 +963,7 @@ export default function DirectToolForm({
                               const selected = e.currentTarget
                                 .closest("[cmdk-root]")
                                 ?.querySelector(
-                                  '[cmdk-item][aria-selected="true"]'
+                                  '[cmdk-item][aria-selected="true"]',
                                 ) as HTMLElement;
                               if (selected) {
                                 selected.click();
@@ -948,7 +971,7 @@ export default function DirectToolForm({
                                 const firstItem = e.currentTarget
                                   .closest("[cmdk-root]")
                                   ?.querySelector(
-                                    '[cmdk-item]:not([data-disabled="true"])'
+                                    '[cmdk-item]:not([data-disabled="true"])',
                                   ) as HTMLElement;
                                 if (firstItem) {
                                   firstItem.click();
@@ -970,7 +993,7 @@ export default function DirectToolForm({
                                   form.setValue(
                                     "manufacturer_id",
                                     manufacturer.id.toString(),
-                                    { shouldValidate: true }
+                                    { shouldValidate: true },
                                   );
                                 }}
                               >
@@ -979,7 +1002,7 @@ export default function DirectToolForm({
                                     "mr-2 h-4 w-4",
                                     `${manufacturer.id}` === field.value
                                       ? "opacity-100"
-                                      : "opacity-0"
+                                      : "opacity-0",
                                   )}
                                 />
                                 <p>
@@ -1004,7 +1027,10 @@ export default function DirectToolForm({
               render={({ field }) => (
                 <FormItem className="w-full">
                   <FormLabel>
-                    Ubicación interna <span className="text-xs italic text-gray-500 font-normal ml-1">(Internal location)</span>
+                    Ubicación interna{" "}
+                    <span className="text-xs italic text-gray-500 font-normal ml-1">
+                      (Internal location)
+                    </span>
                   </FormLabel>
                   <FormControl>
                     <Input
@@ -1073,26 +1099,24 @@ export default function DirectToolForm({
                   name="next_calibration"
                   render={({ field }) => (
                     <FormItem className="w-full">
-                      <FormLabel>Días hasta la próxima calibración</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          inputMode="numeric"
-                          min={1}
-                          placeholder="Ej: 180"
-                          value={field.value ?? ""}
-                          onChange={(e) =>
-                            field.onChange(
-                              e.target.value === ""
-                                ? undefined
-                                : Number(e.target.value)
-                            )
-                          }
-                          disabled={busy}
-                        />
-                      </FormControl>
+                      <FormLabel>Periodo de Calibración</FormLabel>
+                      <Select
+                        onValueChange={(value) => field.onChange(Number(value))}
+                        defaultValue={
+                          field.value ? String(field.value) : undefined
+                        }
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecciona un periodo" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="365">Anual (365 días)</SelectItem>
+                        </SelectContent>
+                      </Select>
                       <FormDescription>
-                        Número de días para programar la próxima calibración.
+                        Periodo para programar la próxima calibración.
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
@@ -1112,7 +1136,10 @@ export default function DirectToolForm({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>
-                    Observaciones <span className="text-xs italic text-gray-500 font-normal ml-1">(Observations)</span>
+                    Observaciones{" "}
+                    <span className="text-xs italic text-gray-500 font-normal ml-1">
+                      (Observations)
+                    </span>
                   </FormLabel>
                   <FormControl>
                     <Textarea
