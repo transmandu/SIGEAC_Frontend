@@ -6,50 +6,50 @@ import { format } from "date-fns";
 import { toast } from "sonner";
 
 interface UnitSelection {
-  conversion_id: number;
+    conversion_id: number;
 }
 interface ArticleData {
-  serial?: string | string[];
-  part_number: string;
-  article_type: string;
-  lot_number?: string;
-  alternative_part_number?: string[];
-  description?: string;
-  batch_name?: string;
-  zone?: string;
-  status?: string;
-  calibration_date?: string;
-  calibration_interval_days?: string;
-  manufacturer_id?: number | string;
-  condition_id?: number | string;
-  batch_id: string;
-  is_special?: boolean;
-  expiration_date?: string;
-  quantity?: string | number;
-  fabrication_date?: string;
-  calendar_date?: string;
-  certificate_8130?: File | string;
-  certificate_fabricant?: File | string;
-  certificate_vendor?: File | string;
-  image?: File | string;
-  conversions?: UnitSelection[];
-  primary_unit_id?: number;
-  life_limit_part_calendar?: string;
-  life_limit_part_hours?: string | number;
-  life_limit_part_cycles?: string | number;
-  inspector?: string;
-  inspect_date?: string;
-  hard_time_calendar?: string;
-  hard_time_hours?: string | number;
-  hard_time_cycles?: string | number;
-  ata_code ?: string;
+    serial?: string | string[];
+    part_number: string;
+    article_type: string;
+    lot_number?: string;
+    alternative_part_number?: string[];
+    description?: string;
+    batch_name?: string;
+    zone?: string;
+    status?: string;
+    calibration_date?: string;
+    calibration_interval_days?: string;
+    manufacturer_id?: number | string;
+    condition_id?: number | string;
+    batch_id: string;
+    is_special?: boolean;
+    expiration_date?: string;
+    quantity?: string | number;
+    fabrication_date?: string;
+    calendar_date?: string;
+    certificate_8130?: File | string;
+    certificate_fabricant?: File | string;
+    certificate_vendor?: File | string;
+    image?: File | string;
+    conversions?: number[];
+    primary_unit_id?: number;
+    life_limit_part_calendar?: string;
+    life_limit_part_hours?: string | number;
+    life_limit_part_cycles?: string | number;
+    inspector?: string;
+    inspect_date?: string;
+    hard_time_calendar?: string;
+    hard_time_hours?: string | number;
+    hard_time_cycles?: string | number;
+    ata_code?: string;
 }
 
 interface SendToQuarantinePayload {
-  article_id: number;
-  reason: string;
-  quarantine_entry_date: string
-  quarantine_exit_date?: string;
+    article_id: number;
+    reason: string;
+    quarantine_entry_date: string
+    quarantine_exit_date?: string;
 
 }
 
@@ -57,434 +57,434 @@ interface SendToQuarantinePayload {
 type CheckResult = "PASS" | "FAIL";
 
 const serializeFormValue = (value: unknown) => {
-  if (value instanceof Date) {
-    return format(value, "yyyy-MM-dd");
-  }
+    if (value instanceof Date) {
+        return format(value, "yyyy-MM-dd");
+    }
 
-  return value?.toString() ?? "";
+    return value?.toString() ?? "";
 };
 
 export type IncomingCheck = {
-  check_id: number;
-  result: CheckResult;
-  observation: string | null;
+    check_id: number;
+    result: CheckResult;
+    observation: string | null;
 };
 
 export type IncomingPayload = {
-  warehouse_id: number;
-  purchase_order_code: string;
-  purchase_order_id: number | null;
-  inspection_date: string;
-  items: {
-    article_id: number;
-    serial: string;
-    quantity: number;
-    checks: IncomingCheck[];
-  }[];
+    warehouse_id: number;
+    purchase_order_code: string;
+    purchase_order_id: number | null;
+    inspection_date: string;
+    items: {
+        article_id: number;
+        serial: string;
+        quantity: number;
+        checks: IncomingCheck[];
+    }[];
 };
 
 export const useCreateArticle = () => {
-  const queryClient = useQueryClient();
+    const queryClient = useQueryClient();
 
-  const createMutation = useMutation({
-    mutationKey: ["articles"],
-    mutationFn: async ({
-      data,
-      company,
-    }: {
-      company: string;
-      data: ArticleData;
-    }) => {
-      // 1. CREAMOS EL FORMDATA REAL
-      const formData = new FormData();
+    const createMutation = useMutation({
+        mutationKey: ["articles"],
+        mutationFn: async ({
+            data,
+            company,
+        }: {
+            company: string;
+            data: ArticleData;
+        }) => {
+            // 1. CREAMOS EL FORMDATA REAL
+            const formData = new FormData();
 
-      // 2. MAPEAMOS LOS DATOS AL FORMDATA
-      Object.entries(data).forEach(([key, value]) => {
-        if (value !== undefined && value !== null) {
-          // Si el valor es un array (como alternative_part_number), lo metemos uno a uno o como JSON
-          if (Array.isArray(value)) {
-            value.forEach((item) => formData.append(`${key}[]`, item));
-          } else if (value instanceof File) {
-            // Si es un archivo (imagen/certificado), se adjunta tal cual
-            formData.append(key, value);
-          } else {
-            // Convertimos todo lo demás a string para el envío de formulario
-            formData.append(key, serializeFormValue(value));
-          }
-        }
-      });
+            // 2. MAPEAMOS LOS DATOS AL FORMDATA
+            Object.entries(data).forEach(([key, value]) => {
+                if (value !== undefined && value !== null) {
+                    // Si el valor es un array (como alternative_part_number), lo metemos uno a uno o como JSON
+                    if (Array.isArray(value)) {
+                        value.forEach((item) => formData.append(`${key}[]`, item));
+                    } else if (value instanceof File) {
+                        // Si es un archivo (imagen/certificado), se adjunta tal cual
+                        formData.append(key, value);
+                    } else {
+                        // Convertimos todo lo demás a string para el envío de formulario
+                        formData.append(key, serializeFormValue(value));
+                    }
+                }
+            });
 
-      // 3. ENVIAMOS EL FORMDATA (Axios pondrá los headers automáticamente)
-      return await axiosInstance.post(`/${company}/article`, formData);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["warehouse-articles"] });
-      toast.success("¡Creado!", {
-        description: `El articulo ha sido creado correctamente.`,
-      });
-    },
-    onError: (error) => {
-      toast.error("Oops!", {
-        description: "No se pudo crear el articulo...",
-      });
-      console.log(error);
-    },
-  });
+            // 3. ENVIAMOS EL FORMDATA (Axios pondrá los headers automáticamente)
+            return await axiosInstance.post(`/${company}/article`, formData);
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["warehouse-articles"] });
+            toast.success("¡Creado!", {
+                description: `El articulo ha sido creado correctamente.`,
+            });
+        },
+        onError: (error) => {
+            toast.error("Oops!", {
+                description: "No se pudo crear el articulo...",
+            });
+            console.log(error);
+        },
+    });
 
-  return {
-    createArticle: createMutation,
-  };
+    return {
+        createArticle: createMutation,
+    };
 };
 
 export const useCreateToReviewArticle = () => {
-  const queryClient = useQueryClient();
+    const queryClient = useQueryClient();
 
-  const createMutation = useMutation({
-    mutationKey: ["articles"],
-    mutationFn: async ({
-      data,
-      company,
-    }: {
-      company: string;
-      data: ConsumableArticle | ComponentArticle | ToolArticle;
-    }) => {
-      // 1. Convertimos el objeto data a FormData real
-      const formData = new FormData();
+    const createMutation = useMutation({
+        mutationKey: ["articles"],
+        mutationFn: async ({
+            data,
+            company,
+        }: {
+            company: string;
+            data: ConsumableArticle | ComponentArticle | ToolArticle;
+        }) => {
+            // 1. Convertimos el objeto data a FormData real
+            const formData = new FormData();
 
-      Object.entries(data).forEach(([key, value]) => {
-        if (value !== undefined && value !== null) {
-          if (value instanceof File) {
-            formData.append(key, value);
-          } else if (Array.isArray(value)) {
-            value.forEach((item) => formData.append(`${key}[]`, item));
-          } else {
-            formData.append(key, serializeFormValue(value));
-          }
-        }
-      });
+            Object.entries(data).forEach(([key, value]) => {
+                if (value !== undefined && value !== null) {
+                    if (value instanceof File) {
+                        formData.append(key, value);
+                    } else if (Array.isArray(value)) {
+                        value.forEach((item) => formData.append(`${key}[]`, item));
+                    } else {
+                        formData.append(key, serializeFormValue(value));
+                    }
+                }
+            });
 
-      // 2. Enviamos el formData (Axios gestiona los límites automáticamente)
-      await axiosInstance.post(`/${company}/article`, formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
+            // 2. Enviamos el formData (Axios gestiona los límites automáticamente)
+            await axiosInstance.post(`/${company}/article`, formData, {
+                headers: {
+                    "Content-Type": "multipart/form-data",
+                },
+            });
         },
-      });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["in-review-articles"] });
-      queryClient.invalidateQueries({ queryKey: ["warehouse-articles"] });
-      toast.success("¡Registrado!", {
-        description: `El articulo ha sido registrado correctamente.`,
-      });
-    },
-    onError: (error) => {
-      toast.error("Oops!", {
-        description: "No se pudo crear el articulo...",
-      });
-      console.log(error);
-    },
-  });
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["in-review-articles"] });
+            queryClient.invalidateQueries({ queryKey: ["warehouse-articles"] });
+            toast.success("¡Registrado!", {
+                description: `El articulo ha sido registrado correctamente.`,
+            });
+        },
+        onError: (error) => {
+            toast.error("Oops!", {
+                description: "No se pudo crear el articulo...",
+            });
+            console.log(error);
+        },
+    });
 
-  return {
-    createArticle: createMutation,
-  };
+    return {
+        createArticle: createMutation,
+    };
 };
 
 export const useDeleteArticle = () => {
-  const queryClient = useQueryClient();
+    const queryClient = useQueryClient();
 
-  const deleteMutation = useMutation({
-    mutationFn: async ({
-      id,
-      company,
-    }: {
-      id: number | string;
-      company: string;
-    }) => {
-      await axiosInstance.delete(`/${company}/article/${id}`);
-    },
-    onSuccess: (_,data) => {
-      queryClient.invalidateQueries({ queryKey: ["articles"] });
-      queryClient.invalidateQueries({ queryKey: ["warehouse-articles", data.company]});
-      // queryClient.invalidateQueries({queryKey: ['warehouse-articles']})
-      toast.success("¡Eliminado!", {
-        description: `¡El articulo ha sido eliminado correctamente!`,
-      });
-    },
-    onError: (e) => {
-      toast.error("Oops!", {
-        description: "¡Hubo un error al eliminar el articulo!",
-      });
-    },
-  });
+    const deleteMutation = useMutation({
+        mutationFn: async ({
+            id,
+            company,
+        }: {
+            id: number | string;
+            company: string;
+        }) => {
+            await axiosInstance.delete(`/${company}/article/${id}`);
+        },
+        onSuccess: (_, data) => {
+            queryClient.invalidateQueries({ queryKey: ["articles"] });
+            queryClient.invalidateQueries({ queryKey: ["warehouse-articles", data.company] });
+            // queryClient.invalidateQueries({queryKey: ['warehouse-articles']})
+            toast.success("¡Eliminado!", {
+                description: `¡El articulo ha sido eliminado correctamente!`,
+            });
+        },
+        onError: (e) => {
+            toast.error("Oops!", {
+                description: "¡Hubo un error al eliminar el articulo!",
+            });
+        },
+    });
 
-  return {
-    deleteArticle: deleteMutation,
-  };
+    return {
+        deleteArticle: deleteMutation,
+    };
 };
 
 export const useUpdateArticleStatus = () => {
-  const { selectedCompany } = useCompanyStore();
-  const queryClient = useQueryClient();
-  const updateArticleStatusMutation = useMutation({
-    mutationKey: ["articles"],
-    mutationFn: async ({ id, status }: { id: number; status?: string }) => {
-      await axiosInstance.put(
-        `/${selectedCompany?.slug}/update-article-status/${id}`,
-        { status: status }
-      );
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["in-transit-articles"] });
-      queryClient.invalidateQueries({ queryKey: ["in-reception-articles"] });
-      queryClient.invalidateQueries({ queryKey: ["checking-articles"] });
-      queryClient.invalidateQueries({ queryKey: ["warehouse-articles"] });
-      queryClient.invalidateQueries({ queryKey: ["purchase-orders"] });
-      toast.success("¡Actualizado!", {
-        description: `El articulo ha sido actualizado correctamente.`,
-      });
-    },
-    onError: (error) => {
-      toast.error("Oops!", {
-        description: "No se pudo actualizar el articulo...",
-      });
-      console.log(error);
-    },
-  });
-  return {
-    updateArticleStatus: updateArticleStatusMutation,
-  };
+    const { selectedCompany } = useCompanyStore();
+    const queryClient = useQueryClient();
+    const updateArticleStatusMutation = useMutation({
+        mutationKey: ["articles"],
+        mutationFn: async ({ id, status }: { id: number; status?: string }) => {
+            await axiosInstance.put(
+                `/${selectedCompany?.slug}/update-article-status/${id}`,
+                { status: status }
+            );
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["in-transit-articles"] });
+            queryClient.invalidateQueries({ queryKey: ["in-reception-articles"] });
+            queryClient.invalidateQueries({ queryKey: ["checking-articles"] });
+            queryClient.invalidateQueries({ queryKey: ["warehouse-articles"] });
+            queryClient.invalidateQueries({ queryKey: ["purchase-orders"] });
+            toast.success("¡Actualizado!", {
+                description: `El articulo ha sido actualizado correctamente.`,
+            });
+        },
+        onError: (error) => {
+            toast.error("Oops!", {
+                description: "No se pudo actualizar el articulo...",
+            });
+            console.log(error);
+        },
+    });
+    return {
+        updateArticleStatus: updateArticleStatusMutation,
+    };
 };
 
 export const useConfirmIncomingArticle = () => {
-  const { selectedCompany } = useCompanyStore();
-  const queryClient = useQueryClient();
+    const { selectedCompany } = useCompanyStore();
+    const queryClient = useQueryClient();
 
-  const mutation = useMutation<void, Error, IncomingPayload>({
-    mutationKey: ["incoming-inspections"],
+    const mutation = useMutation<void, Error, IncomingPayload>({
+        mutationKey: ["incoming-inspections"],
 
-    mutationFn: async (payload) => {
-      if (!selectedCompany?.slug) {
-        throw new Error("Company no seleccionada");
-      }
+        mutationFn: async (payload) => {
+            if (!selectedCompany?.slug) {
+                throw new Error("Company no seleccionada");
+            }
 
-      await axiosInstance.post(
-        `/${selectedCompany.slug}/incoming-inspections`,
-        payload,
-      );
-    },
+            await axiosInstance.post(
+                `/${selectedCompany.slug}/incoming-inspections`,
+                payload,
+            );
+        },
 
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["warehouse-articles"] });
-      queryClient.invalidateQueries({ queryKey: ["articles"] });
-      queryClient.invalidateQueries({ queryKey: ["incoming-inspections"] });
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["warehouse-articles"] });
+            queryClient.invalidateQueries({ queryKey: ["articles"] });
+            queryClient.invalidateQueries({ queryKey: ["incoming-inspections"] });
 
-      toast.success("¡Inspección creada!", {
-        description: "El artículo fue enviado correctamente.",
-      });
-    },
+            toast.success("¡Inspección creada!", {
+                description: "El artículo fue enviado correctamente.",
+            });
+        },
 
-    onError: (error) => {
-      toast.error("Oops!", {
-        description: "No se pudo registrar la inspección...",
-      });
+        onError: (error) => {
+            toast.error("Oops!", {
+                description: "No se pudo registrar la inspección...",
+            });
 
-      console.error(error);
-    },
-  });
+            console.error(error);
+        },
+    });
 
-  return {
-    confirmIncoming: mutation,
-  };
+    return {
+        confirmIncoming: mutation,
+    };
 };
 
 export const useEditArticle = () => {
-  const queryClient = useQueryClient();
+    const queryClient = useQueryClient();
 
-  const editArticleMutation = useMutation({
-    mutationKey: ["articles"],
-    mutationFn: async ({
-      data,
-      company,
-    }: {
-      company: string;
-      data: any; // Usamos any para facilitar el mapeo de los diversos tipos
-    }) => {
-      const formData = new FormData();
+    const editArticleMutation = useMutation({
+        mutationKey: ["articles"],
+        mutationFn: async ({
+            data,
+            company,
+        }: {
+            company: string;
+            data: any; // Usamos any para facilitar el mapeo de los diversos tipos
+        }) => {
+            const formData = new FormData();
 
-      // Mapeo dinámico de campos al FormData
-      Object.entries(data).forEach(([key, value]) => {
-        if (value !== undefined && value !== null) {
-          if (value instanceof File) {
-            formData.append(key, value);
-          } else if (Array.isArray(value)) {
-            value.forEach((item) => formData.append(`${key}[]`, item));
-          } else {
-            formData.append(key, serializeFormValue(value));
-          }
-        }
-      });
+            // Mapeo dinámico de campos al FormData
+            Object.entries(data).forEach(([key, value]) => {
+                if (value !== undefined && value !== null) {
+                    if (value instanceof File) {
+                        formData.append(key, value);
+                    } else if (Array.isArray(value)) {
+                        value.forEach((item) => formData.append(`${key}[]`, item));
+                    } else {
+                        formData.append(key, serializeFormValue(value));
+                    }
+                }
+            });
 
-      return await axiosInstance.post(
-        `/${company}/update-article-warehouse/${data.id}`,
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        }
-      );
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["article"] });
-      queryClient.invalidateQueries({ queryKey: ["articles"] });
-      queryClient.invalidateQueries({ queryKey: ["warehouse-articles"] });
-      queryClient.invalidateQueries({ queryKey: ["batches"] });
-      queryClient.invalidateQueries({ queryKey: ["in-transit-articles"] });
-      queryClient.invalidateQueries({ queryKey: ["in-reception-articles"] });
-      toast.success("¡Actualizado!", {
-        description: `El articulo ha sido actualizado correctamente.`,
-      });
-    },
-    onError: (error) => {
-      toast.error("Oops!", {
-        description: "No se pudo actualizar el articulo...",
-      });
-      console.log(error);
-    },
-  });
-  return {
-    editArticle: editArticleMutation,
-  };
+            return await axiosInstance.post(
+                `/${company}/update-article-warehouse/${data.id}`,
+                formData,
+                {
+                    headers: {
+                        "Content-Type": "multipart/form-data",
+                    },
+                }
+            );
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["article"] });
+            queryClient.invalidateQueries({ queryKey: ["articles"] });
+            queryClient.invalidateQueries({ queryKey: ["warehouse-articles"] });
+            queryClient.invalidateQueries({ queryKey: ["batches"] });
+            queryClient.invalidateQueries({ queryKey: ["in-transit-articles"] });
+            queryClient.invalidateQueries({ queryKey: ["in-reception-articles"] });
+            toast.success("¡Actualizado!", {
+                description: `El articulo ha sido actualizado correctamente.`,
+            });
+        },
+        onError: (error) => {
+            toast.error("Oops!", {
+                description: "No se pudo actualizar el articulo...",
+            });
+            console.log(error);
+        },
+    });
+    return {
+        editArticle: editArticleMutation,
+    };
 };
 
 export const useUpdateArticle = () => {
-  const queryClient = useQueryClient();
+    const queryClient = useQueryClient();
 
-  const updateMutation = useMutation({
-    mutationKey: ["articles"],
-    mutationFn: async ({
-      id,
-      data,
-      company,
-    }: {
-      id: number | string;
-      company: string;
-      data: ArticleData;
-    }) => {
-      const formData = new FormData();
+    const updateMutation = useMutation({
+        mutationKey: ["articles"],
+        mutationFn: async ({
+            id,
+            data,
+            company,
+        }: {
+            id: number | string;
+            company: string;
+            data: ArticleData;
+        }) => {
+            const formData = new FormData();
 
-      Object.entries(data).forEach(([key, value]) => {
-        if (value !== undefined && value !== null) {
-          if (value instanceof File) {
-            formData.append(key, value);
-          } else if (Array.isArray(value)) {
-            value.forEach((item) => formData.append(`${key}[]`, item));
-          } else {
-            formData.append(key, serializeFormValue(value));
-          }
-        }
-      });
+            Object.entries(data).forEach(([key, value]) => {
+                if (value !== undefined && value !== null) {
+                    if (value instanceof File) {
+                        formData.append(key, value);
+                    } else if (Array.isArray(value)) {
+                        value.forEach((item) => formData.append(`${key}[]`, item));
+                    } else {
+                        formData.append(key, serializeFormValue(value));
+                    }
+                }
+            });
 
-      return await axiosInstance.post(`/${company}/update-article/${id}`, formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
+            return await axiosInstance.post(`/${company}/update-article/${id}`, formData, {
+                headers: {
+                    "Content-Type": "multipart/form-data",
+                },
+            });
         },
-      });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["warehouse-articles"] });
-      queryClient.invalidateQueries({ queryKey: ["articles"] });
-      queryClient.invalidateQueries({ queryKey: ["batches"] });
-      queryClient.invalidateQueries({ queryKey: ["search-batches"] });
-      toast.success("¡Actualizado!", {
-        description: `El articulo ha sido actualizado correctamente.`,
-      });
-    },
-    onError: (error) => {
-      toast.error("Oops!", {
-        description: "No se pudo actualizar el articulo...",
-      });
-      console.log(error);
-    },
-  });
-  return {
-    updateArticle: updateMutation,
-  };
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["warehouse-articles"] });
+            queryClient.invalidateQueries({ queryKey: ["articles"] });
+            queryClient.invalidateQueries({ queryKey: ["batches"] });
+            queryClient.invalidateQueries({ queryKey: ["search-batches"] });
+            toast.success("¡Actualizado!", {
+                description: `El articulo ha sido actualizado correctamente.`,
+            });
+        },
+        onError: (error) => {
+            toast.error("Oops!", {
+                description: "No se pudo actualizar el articulo...",
+            });
+            console.log(error);
+        },
+    });
+    return {
+        updateArticle: updateMutation,
+    };
 };
 
 export const useLocateArticle = () => {
-  const queryClient = useQueryClient();
-  const {selectedCompany} = useCompanyStore();
-  const locateArticleMutation = useMutation({
-    mutationKey: ["articles"],
-    mutationFn: async ({
-      id,
-      zone,
-    }: {
-      id: number | string;
-      zone: string;
-    }) => {
-      await axiosInstance.patch(`/${selectedCompany?.slug}/${id}/locate-article`, { zone });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["articles"] });
-      queryClient.invalidateQueries({ queryKey: ["warehouse-articles"] });
-      toast.success("¡Ubicado!", {
-        description: `El articulo ha sido ubicado correctamente.`,
-      });
-    },
-    onError: (error) => {
-      toast.error("Oops!", {
-        description: "No se pudo ubicar el articulo...",
-      });
-      console.log(error);
-    },
-  });
-  return {
-    locateArticle: locateArticleMutation,
-  }
+    const queryClient = useQueryClient();
+    const { selectedCompany } = useCompanyStore();
+    const locateArticleMutation = useMutation({
+        mutationKey: ["articles"],
+        mutationFn: async ({
+            id,
+            zone,
+        }: {
+            id: number | string;
+            zone: string;
+        }) => {
+            await axiosInstance.patch(`/${selectedCompany?.slug}/${id}/locate-article`, { zone });
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["articles"] });
+            queryClient.invalidateQueries({ queryKey: ["warehouse-articles"] });
+            toast.success("¡Ubicado!", {
+                description: `El articulo ha sido ubicado correctamente.`,
+            });
+        },
+        onError: (error) => {
+            toast.error("Oops!", {
+                description: "No se pudo ubicar el articulo...",
+            });
+            console.log(error);
+        },
+    });
+    return {
+        locateArticle: locateArticleMutation,
+    }
 }
 
 export const useSendToQuarantine = () => {
-  const { selectedCompany } = useCompanyStore();
-  const queryClient = useQueryClient();
+    const { selectedCompany } = useCompanyStore();
+    const queryClient = useQueryClient();
 
-  const mutation = useMutation<void, Error, SendToQuarantinePayload>({
-    mutationKey: ["quarantine-articles"],
+    const mutation = useMutation<void, Error, SendToQuarantinePayload>({
+        mutationKey: ["quarantine-articles"],
 
-    mutationFn: async (payload) => {
-      if (!selectedCompany?.slug) {
-        throw new Error("Company no seleccionada");
-      }
+        mutationFn: async (payload) => {
+            if (!selectedCompany?.slug) {
+                throw new Error("Company no seleccionada");
+            }
 
-      await axiosInstance.post(
-        `/${selectedCompany.slug}/quarantine-articles`,
-        payload,
-      );
-    },
+            await axiosInstance.post(
+                `/${selectedCompany.slug}/quarantine-articles`,
+                payload,
+            );
+        },
 
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["warehouse-articles"] });
-      queryClient.invalidateQueries({ queryKey: ["articles"] });
-      queryClient.invalidateQueries({ queryKey: ["incoming-articles"] });
-      queryClient.invalidateQueries({ queryKey: ["quarantine-articles"] });
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["warehouse-articles"] });
+            queryClient.invalidateQueries({ queryKey: ["articles"] });
+            queryClient.invalidateQueries({ queryKey: ["incoming-articles"] });
+            queryClient.invalidateQueries({ queryKey: ["quarantine-articles"] });
 
-      toast.warning("¡Enviado a cuarentena!", {
-        description: "El artículo fue enviado a cuarentena correctamente.",
-      });
-    },
+            toast.warning("¡Enviado a cuarentena!", {
+                description: "El artículo fue enviado a cuarentena correctamente.",
+            });
+        },
 
-    onError: (error) => {
-      toast.error("Oops!", {
-        description: "No se pudo registrar el artículo en cuarentena...",
-      });
+        onError: (error) => {
+            toast.error("Oops!", {
+                description: "No se pudo registrar el artículo en cuarentena...",
+            });
 
-      console.error(error);
-    },
-  });
+            console.error(error);
+        },
+    });
 
-  return {
-    sendToQuarantine: mutation,
-  };
+    return {
+        sendToQuarantine: mutation,
+    };
 };
