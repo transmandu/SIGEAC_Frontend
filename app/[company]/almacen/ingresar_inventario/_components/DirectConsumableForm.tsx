@@ -336,6 +336,7 @@ function DatePickerField({
     const [isInputMode, setIsInputMode] = useState(false);
     const [validationError, setValidationError] = useState<string>("");
 
+
     /**
      * DICCIONARIO DE TRADUCCIONES AUTOMÁTICAS
      */
@@ -735,7 +736,7 @@ export default function DirectConsumableForm({
         useGetSecondaryUnits(selectedCompany?.slug);
 
     const [selectedPrimaryUnit, setSelectedPrimaryUnit] = useState<any | null>(
-        initialData?.primary_unit_id ? { id: initialData.primary_unit_id } : null,
+        initialData?.consumable?.primary_unit_id ? { id: initialData.consumable.primary_unit_id } : null,
     );
 
     const { data: availableConversion, isLoading: isConversionLoading } =
@@ -770,7 +771,7 @@ export default function DirectConsumableForm({
 
     const [secondaryOpen, setSecondaryOpen] = useState(false);
     const [secondarySelected, setSecondarySelected] = useState<any | null>(
-        initialData?.primary_unit_id ? { id: initialData.primary_unit_id } : null,
+        initialData?.consumable?.primary_unit_id ? { id: initialData.consumable.primary_unit_id } : null,
     );
     const [secondaryQuantity, setSecondaryQuantity] = useState<
         number | undefined
@@ -854,7 +855,7 @@ export default function DirectConsumableForm({
             min_quantity: initialData?.consumable?.min_quantity
                 ? Number(initialData.consumable.min_quantity)
                 : undefined,
-            primary_unit_id: initialData?.primary_unit_id || undefined,
+            primary_unit_id: Number(initialData?.consumable?.primary_unit_id) || undefined,
             has_documentation: initialData?.has_documentation || false,
             inspector: initialData?.inspector || "",
             inspect_date: initialData?.inspect_date
@@ -869,6 +870,18 @@ export default function DirectConsumableForm({
 
     useEffect(() => {
         if (!initialData) return;
+
+        if (initialData.consumable?.conversions && Array.isArray(initialData.consumable.conversions)) {
+            const initialUnits: UnitSelection[] = initialData.consumable.conversions.map(
+                (conv: any) => ({
+                    // Usamos conv.id porque en el JSON del backend el ID de la conversión es 'id'
+                    conversion_id: Number(conv.id),
+                })
+            );
+            setSelectedUnits(initialUnits);
+        } else {
+            setSelectedUnits([]);
+        }
 
         const initialQuantity = initialData.consumable?.quantity ?? 0;
         setSecondaryQuantity(initialQuantity);
@@ -922,7 +935,9 @@ export default function DirectConsumableForm({
                     ? Number(initialData.consumable.min_quantity)
                     : undefined,
 
-            primary_unit_id: initialData?.primary_unit_id || undefined,
+            primary_unit_id: initialData?.primary_unit_id
+                ? Number(initialData.primary_unit_id)
+                : undefined,
             has_documentation: initialData.has_documentation ?? false,
         };
 
@@ -933,10 +948,10 @@ export default function DirectConsumableForm({
         setFabricationDate(fabricationDateParsed);
         setShelfDate(shelfLifeDate);
 
-        if (initialData.primary_unit_id) {
+        if (initialData?.consumable?.primary_unit_id) {
             const unitObj =
-                units?.find((unit) => unit.id === initialData.primary_unit_id) ?? {
-                    id: initialData.primary_unit_id,
+                units?.find((unit) => unit.id === Number(initialData?.consumable?.primary_unit_id)) ?? {
+                    id: initialData.consumable.primary_unit_id,
                 };
             setSelectedPrimaryUnit(unitObj);
             setSecondarySelected(unitObj);
