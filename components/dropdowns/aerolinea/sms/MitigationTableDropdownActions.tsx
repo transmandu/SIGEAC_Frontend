@@ -56,6 +56,7 @@ const MitigationTableDropdownActions = ({
   const [openEditPlan, setOpenEditPlan] = useState(false);
   const [openEditAnalyses, setOpenEditAnalyses] = useState(false);
   const [openCreateAnalysis, setOpenCreateAnalysis] = useState(false);
+  const [closeDate, setCloseDate] = useState<string>("");
   const { closeReportByMitigationId } = useCloseReport();
   const { openReportByMitigationId } = useOpenReport();
   const { theme } = useTheme();
@@ -70,14 +71,18 @@ const MitigationTableDropdownActions = ({
   };
 
   const handleCloseReport = async (id: number | string, result: string) => {
+    if (!closeDate) return; // Validación simple
+
     const value = {
       company: selectedCompany!.slug,
       data: {
         mitigation_id: id,
         result: result,
+        close_date: closeDate, // Enviamos la fecha seleccionada
       },
     };
     await closeReportByMitigationId.mutateAsync(value);
+    setCloseDate(""); // Limpiar fecha
     setCloseReport(false);
   };
 
@@ -347,48 +352,64 @@ const MitigationTableDropdownActions = ({
           </DialogContent>
         </Dialog>
 
-        <Dialog open={closeReport} onOpenChange={setCloseReport}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle className="text-center">
-                ¿Seguro que desea cerrar el reporte??
-              </DialogTitle>
-              <DialogDescription className="text-center p-2 mb-0 pb-0">
-                Esta acción es irreversible y estaría cerrando el reporte
-                seleccionado
-              </DialogDescription>
-            </DialogHeader>
+<Dialog open={closeReport} onOpenChange={setCloseReport}>
+  <DialogContent>
+    <DialogHeader>
+      <DialogTitle className="text-center">
+        ¿Seguro que desea cerrar el reporte?
+      </DialogTitle>
+      <DialogDescription className="text-center p-2 mb-0 pb-0">
+        Esta acción es irreversible. Por favor, seleccione la fecha de cierre para completar el proceso.
+      </DialogDescription>
+    </DialogHeader>
 
-            <DialogFooter className="flex flex-col-reverse gap-2 md:gap-0">
-              <Button
-                className="bg-rose-400 hover:bg-white hover:text-black hover:border hover:border-black"
-                onClick={() => setCloseReport(false)}
-                type="submit"
-              >
-                Cancelar
-              </Button>
+    {/* Campo de Fecha añadido */}
+    <div className="flex flex-col gap-2 py-4">
+      <label htmlFor="fecha_cierre" className="text-sm font-medium">
+        Fecha de cierre
+      </label>
+      <input
+        id="fecha_cierre"
+        type="date"
+        value={closeDate}
+        onChange={(e) => setCloseDate(e.target.value)}
+        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+      />
+    </div>
 
-              <Button
-                disabled={closeReportByMitigationId.isPending}
-                className="hover:bg-white hover:text-black hover:border hover:border-black transition-all"
-                onClick={() =>
-                  mitigationTable.mitigation_plan?.id
-                    ? handleCloseReport(
-                        mitigationTable.mitigation_plan.id,
-                        mitigationTable.mitigation_plan.analysis.result
-                      )
-                    : console.log("El id de mitigation_plan es undefined")
-                }
-              >
-                {closeReportByMitigationId.isPending ? (
-                  <Loader2 className="size-4 animate-spin" />
-                ) : (
-                  <p>Confirmar</p>
-                )}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+    <DialogFooter className="flex flex-col-reverse gap-2 md:gap-0">
+      <Button
+        className="bg-rose-400 hover:bg-rose-500 text-white"
+        onClick={() => {
+          setCloseReport(false);
+          setCloseDate("");
+        }}
+        type="button"
+      >
+        Cancelar
+      </Button>
+
+      <Button
+        disabled={closeReportByMitigationId.isPending || !closeDate}
+        className="hover:bg-primary/90 transition-all"
+        onClick={() =>
+          mitigationTable.mitigation_plan?.id
+            ? handleCloseReport(
+                mitigationTable.mitigation_plan.id,
+                mitigationTable.mitigation_plan.analysis.result
+              )
+            : console.log("El id de mitigation_plan es undefined")
+        }
+      >
+        {closeReportByMitigationId.isPending ? (
+          <Loader2 className="size-4 animate-spin" />
+        ) : (
+          <p>Confirmar Cierre</p>
+        )}
+      </Button>
+    </DialogFooter>
+  </DialogContent>
+</Dialog>
 
         <Dialog open={openReport} onOpenChange={setOpenReport}>
           <DialogContent>
