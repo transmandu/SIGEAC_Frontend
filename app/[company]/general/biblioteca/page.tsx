@@ -24,7 +24,7 @@ const BibliotecaPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
 
-  const [viewingDocId, setViewingDocId] = useState<number | null>(null);
+  const [viewingDocId, setViewingDocId] = useState<number | string | null>(null);
   const [isViewerOpen, setIsViewerOpen] = useState(false);
   const [auditTarget, setAuditTarget] = useState<number | 'global' | null>(null);
 

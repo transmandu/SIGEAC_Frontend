@@ -4,10 +4,20 @@ import { useState } from 'react';
 import { ChevronRight, ChevronDown, FolderOpen, Layers3, Hash } from 'lucide-react';
 import DocumentRow from './documentRow';
 
-// ✅ AÑADIDO: onRefresh en la desestructuración de props
 export default function DocumentTable({ groupedDocuments, onView, columnVisibility, onDelete, onRefresh, canManage }: any) {
   const [openDepts, setOpenDepts] = useState<string[]>(Object.keys(groupedDocuments).slice(0, 1));
   const [openSubSections, setOpenSubSections] = useState<string[]>([]);
+
+  // Intercepta el ID y le añade el Buster antes de enviarlo al padre
+  const handleViewWithBuster = (id: string | number) => {
+    const buster = new Date().getTime();
+    
+    // ✅ OPCIÓN A: Si onView acepta dos parámetros (Recomendado)
+    onView(id, buster); 
+
+    // ✅ OPCIÓN B: Si onView solo acepta un string (Ajuste de URL manual)
+    onView(`${id}`, buster); 
+  };
 
   const toggleDept = (dept: string) => {
     setOpenDepts(prev => prev.includes(dept) ? prev.filter(d => d !== dept) : [...prev, dept]);
@@ -63,8 +73,7 @@ export default function DocumentTable({ groupedDocuments, onView, columnVisibili
 
           if (subKey === 'Raiz') {
             return subDocs.map((doc: any) => (
-              // ✅ PUNTO 1: Prop onRefresh añadida
-              <DocumentRow key={doc.id} doc={doc} onView={onView} columnVisibility={columnVisibility} isSubItem={true} onDelete={onDelete} onRefresh={onRefresh} canManage={canManage} />
+              <DocumentRow key={doc.id} doc={doc} onView={handleViewWithBuster} columnVisibility={columnVisibility} isSubItem={true} onDelete={onDelete} onRefresh={onRefresh} canManage={canManage} />
             ));
           }
 
@@ -90,8 +99,7 @@ export default function DocumentTable({ groupedDocuments, onView, columnVisibili
               {isOpen && (
                 <div className="flex flex-col bg-white dark:bg-black/5 divide-y divide-slate-100 dark:divide-gray-800/20">
                   {subDocs.map((doc: any) => (
-                    // ✅ PUNTO 2: Prop onRefresh añadida
-                    <DocumentRow key={doc.id} doc={doc} onView={onView} columnVisibility={columnVisibility} isSubItem={true} onDelete={onDelete} onRefresh={onRefresh} canManage={canManage} />
+                    <DocumentRow key={doc.id} doc={doc} onView={handleViewWithBuster} columnVisibility={columnVisibility} isSubItem={true} onDelete={onDelete} onRefresh={onRefresh} canManage={canManage} />
                   ))}
                 </div>
               )}
@@ -130,8 +138,7 @@ export default function DocumentTable({ groupedDocuments, onView, columnVisibili
             {isOpen && (
               <div className="flex flex-col divide-y divide-slate-50 dark:divide-gray-800/10">
                 {isSMS ? renderSmsContent(docs) : docs.map((doc: any) => (
-                  // ✅ PUNTO 3: Prop onRefresh añadida para documentos fuera de SMS
-                  <DocumentRow key={doc.id} doc={doc} onView={onView} columnVisibility={columnVisibility} onDelete={onDelete} onRefresh={onRefresh} canManage={canManage} />
+                  <DocumentRow key={doc.id} doc={doc} onView={handleViewWithBuster} columnVisibility={columnVisibility} onDelete={onDelete} onRefresh={onRefresh} canManage={canManage} />
                 ))}
               </div>
             )}

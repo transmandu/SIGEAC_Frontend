@@ -27,17 +27,12 @@ const getStatusDetails = (status: string, expirationDate: string) => {
 
 export default function DocumentRow({ doc, onView, columnVisibility, isSubItem, onDelete, onRefresh, canManage }: any) {
   
-  // ✅ CASCADA DINÁMICA: Siempre apunta al último elemento del array.
-  // Al cambiar doc.versions, este useMemo se recalcula automáticamente.
-    const latestVersion = useMemo(() => {
-    // Si no hay versiones, devolvemos null
+  const latestVersion = useMemo(() => {
+    if (doc?.latest_version) return doc.latest_version;
     if (!doc?.versions || doc.versions.length === 0) return null;
-
-    // la versión más reciente SIEMPRE será la primera del array.
     return doc.versions[0]; 
-  }, [doc?.versions]);
+  }, [doc?.latest_version, doc?.versions]);
 
-  // ✅ CAMBIO: Archivo activo derivado de la última versión disponible
   const activeFilePath = useMemo(() => {
     return latestVersion ? latestVersion.file_path : (doc?.document || '');
   }, [latestVersion, doc?.document]);
@@ -47,7 +42,6 @@ export default function DocumentRow({ doc, onView, columnVisibility, isSubItem, 
     return doc?.file_type?.toLowerCase() || 'default';
   }, [activeFilePath, doc?.file_type]);
   
-  // ✅ CAMBIO: Metadatos siempre sincronizados con la versión que esté "en la cima"
   const activeExpirationDate = useMemo(() => {
     return latestVersion ? latestVersion.expiration_date : (doc?.expiration_date || null);
   }, [latestVersion, doc?.expiration_date]);
@@ -124,6 +118,7 @@ export default function DocumentRow({ doc, onView, columnVisibility, isSubItem, 
       {columnVisibility.actions && (
         <div className="flex items-center gap-1 shrink-0 ml-2">
           <button 
+            // ✅ LIMPIEZA: Solo enviamos el doc.id puro
             onClick={() => onView(doc.id)} 
             className="p-2 text-slate-400 hover:text-blue-700 dark:hover:text-white hover:bg-blue-50 dark:hover:bg-blue-600 rounded-lg transition-colors"
           >

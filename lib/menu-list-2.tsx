@@ -245,7 +245,7 @@ export function getMenuList(
                     label: "Biblioteca Digital", // El texto que ve el usuario (aquí sí puedes ponerlo bonito)
                     active: pathname.includes(`/${currentCompany?.slug}/general/biblioteca`),
                     icon: BookCheck,
-                    roles: ["SUPERUSER", "ANALISTA_DESARROLLO"], // Cámbialo o vacíalo [] para probar
+                    roles: [], // Cámbialo o vacíalo [] para probar
                     submenus: [],
                 }
             ],
