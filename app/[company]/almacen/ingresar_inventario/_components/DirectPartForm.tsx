@@ -596,7 +596,6 @@ export default function DirectPartForm({
             });
             // Esperar un momento para que las queries se invaliden antes de redirigir
             await new Promise((resolve) => setTimeout(resolve, 100));
-            router.push(`/${selectedCompany.slug}/ingenieria/confirmar_inventario`);
             router.refresh(); // Forzar refresco de la página
         } else {
             await createArticle.mutateAsync({
@@ -673,8 +672,8 @@ export default function DirectPartForm({
                                     <div
                                         onClick={() => !busy && !fileName && inputRef?.click()}
                                         className={`flex items-center justify-between pl-10 pr-3 py-2 w-full border border-gray-300 rounded ${!busy && !fileName
-                                                ? "cursor-pointer hover:border-gray-400"
-                                                : ""
+                                            ? "cursor-pointer hover:border-gray-400"
+                                            : ""
                                             } ${busy ? "opacity-50" : ""}`}
                                     >
                                         <span
