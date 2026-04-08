@@ -427,6 +427,13 @@ export function getMenuList(
                       pathname ===
                       "/transmandu/sms/estadisticas/indicadores_riesgo",
                   },
+                  {
+                    href: "/transmandu/sms/estadisticas/actividades",
+                    label: "Actividades",
+                    roles: ["ANALISTA_SMS", "JEFE_SMS", "SUPERUSER"],
+                    active:
+                      pathname === "/transmandu/sms/estadisticas/actividades",
+                  },
                 ],
               },
               {

@@ -10,7 +10,15 @@ import { es } from "date-fns/locale";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
-import { CalendarIcon, Check, ChevronsUpDown, FileUpIcon, Loader2, Plus, Wrench } from "lucide-react";
+import {
+  CalendarIcon,
+  Check,
+  ChevronsUpDown,
+  FileUpIcon,
+  Loader2,
+  Plus,
+  Wrench,
+} from "lucide-react";
 
 import {
   useConfirmIncomingArticle,
@@ -76,11 +84,11 @@ const fileMaxBytes = 10_000_000; // 10 MB
 const formSchema = z
   .object({
     article_type: z.string().optional(),
-    part_number: z.string().min(2, "Al menos 2 caracteres."),
+    part_number: z.string().optional(),
     alternative_part_number: z.array(z.string().min(2)).optional(),
     serial: z.string().optional(),
     model: z.string().optional(),
-    description: z.string().min(2, "Al menos 2 caracteres."),
+    description: z.string().optional(),
     zone: z.string().min(1, "Campo requerido"),
     manufacturer_id: z.string().min(1, "Seleccione un fabricante"),
     batch_id: z.string().min(1, "Seleccione una descripción"),
@@ -148,40 +156,41 @@ export default function CreateToolForm({
 
   const handleDownload = async (url: string) => {
     if (!url) return;
-    
+
     try {
-      const response = await axiosInstance.get(`/warehouse/download-certificate/${url}`, {
-        responseType: 'blob',
-      });
-      
+      const response = await axiosInstance.get(
+        `/warehouse/download-certificate/${url}`,
+        {
+          responseType: "blob",
+        },
+      );
+
       const downloadUrl = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement('a');
+      const link = document.createElement("a");
       link.href = downloadUrl;
-      link.setAttribute('download', url.split('/').pop() || 'certificate');
+      link.setAttribute("download", url.split("/").pop() || "certificate");
       document.body.appendChild(link);
       link.click();
       link.remove();
       window.URL.revokeObjectURL(downloadUrl);
-      
+
       toast.success("Certificado descargado correctamente");
     } catch (error) {
-      console.error('Error descargando el archivo:', error);
+      console.error("Error descargando el archivo:", error);
       toast.error("Error al descargar el certificado");
     }
   };
-
   const {
     data: batches,
     isPending: isBatchesLoading,
     isError: isBatchesError,
-  } = useGetBatchesByCategory("herramienta");
-  
+  } = useGetBatchesByCategory("TOOL");
+
   const {
     data: manufacturers,
     isLoading: isManufacturerLoading,
     isError: isManufacturerError,
   } = useGetManufacturers(selectedCompany?.slug);
-
 
   const { createArticle } = useCreateArticle();
   const { updateArticle } = useUpdateArticle();
@@ -196,12 +205,16 @@ export default function CreateToolForm({
       description: initialData?.description || "",
       zone: initialData?.zone || "",
       manufacturer_id: initialData?.manufacturer?.id?.toString() || "",
-      batch_id: initialData?.batches?.id?.toString() || "",
+      batch_id: initialData?.batch?.id?.toString() || "",
       needs_calibration: initialData?.tool?.needs_calibration ?? false,
       calibration_date: initialData?.tool?.calibration_date
         ? new Date(initialData.tool.calibration_date)
         : undefined,
-      next_calibration: undefined,
+      next_calibration: initialData?.tool?.next_calibration
+        ? Number(initialData.tool.next_calibration)
+        : undefined,
+
+      model: initialData?.tool?.model || "",
     },
   });
 
@@ -219,12 +232,14 @@ export default function CreateToolForm({
       description: initialData.description || "",
       zone: initialData.zone || "",
       manufacturer_id: initialData.manufacturer?.id?.toString() || "",
-      batch_id: initialData.batches?.id?.toString() || "",
+      batch_id: initialData.batch?.id?.toString() || "",
       needs_calibration: initialData.tool?.needs_calibration ?? false,
       calibration_date: initialData.tool?.calibration_date
         ? new Date(initialData.tool.calibration_date)
         : undefined,
-      next_calibration: undefined,
+      next_calibration: initialData.tool?.next_calibration
+        ? Number(initialData.tool.next_calibration)
+        : undefined,
     });
   }, [initialData, form]);
 
@@ -232,7 +247,7 @@ export default function CreateToolForm({
     isBatchesLoading ||
     isManufacturerLoading ||
     createArticle.isPending ||
-    confirmIncoming.isPending || 
+    confirmIncoming.isPending ||
     updateArticle.isPending;
 
   const batchesOptions = useMemo<Batch[] | undefined>(() => batches, [batches]);
@@ -314,7 +329,7 @@ export default function CreateToolForm({
               )}
             />
 
-            <FormField
+            {/* <FormField
               control={form.control}
               name="alternative_part_number"
               render={({ field }) => (
@@ -328,6 +343,20 @@ export default function CreateToolForm({
                       label=""
                     />
                   </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            /> */}
+            <FormField
+              control={form.control}
+              name="model"
+              render={({ field }) => (
+                <FormItem className="w-full">
+                  <FormLabel>Modelo</FormLabel>
+                  <FormControl>
+                    <Input placeholder="" {...field} disabled={busy} />
+                  </FormControl>
+                  <FormDescription></FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -352,9 +381,13 @@ export default function CreateToolForm({
                       defaultType="PART"
                       onSuccess={(manufacturer) => {
                         if (manufacturer?.id) {
-                          form.setValue("manufacturer_id", manufacturer.id.toString(), {
-                            shouldValidate: true,
-                          });
+                          form.setValue(
+                            "manufacturer_id",
+                            manufacturer.id.toString(),
+                            {
+                              shouldValidate: true,
+                            },
+                          );
                         }
                       }}
                       triggerButton={
@@ -374,12 +407,14 @@ export default function CreateToolForm({
                     <PopoverTrigger asChild>
                       <FormControl>
                         <Button
-                          disabled={isManufacturerLoading || isManufacturerError}
+                          disabled={
+                            isManufacturerLoading || isManufacturerError
+                          }
                           variant="outline"
                           role="combobox"
                           className={cn(
                             "w-full justify-between",
-                            !field.value && "text-muted-foreground"
+                            !field.value && "text-muted-foreground",
                           )}
                         >
                           {isManufacturerLoading && (
@@ -388,8 +423,9 @@ export default function CreateToolForm({
                           {field.value ? (
                             <p>
                               {
-                                manufacturers?.find((m) => `${m.id}` === field.value)
-                                  ?.name
+                                manufacturers?.find(
+                                  (m) => `${m.id}` === field.value,
+                                )?.name
                               }
                             </p>
                           ) : (
@@ -415,7 +451,7 @@ export default function CreateToolForm({
                                   form.setValue(
                                     "manufacturer_id",
                                     manufacturer.id.toString(),
-                                    { shouldValidate: true }
+                                    { shouldValidate: true },
                                   );
                                 }}
                               >
@@ -424,7 +460,7 @@ export default function CreateToolForm({
                                     "mr-2 h-4 w-4",
                                     `${manufacturer.id}` === field.value
                                       ? "opacity-100"
-                                      : "opacity-0"
+                                      : "opacity-0",
                                   )}
                                 />
                                 <p>{manufacturer.name}</p>
@@ -548,7 +584,7 @@ export default function CreateToolForm({
                               variant="outline"
                               className={cn(
                                 "w-full pl-3 text-left font-normal",
-                                !field.value && "text-muted-foreground"
+                                !field.value && "text-muted-foreground",
                               )}
                             >
                               {field.value ? (
@@ -589,19 +625,24 @@ export default function CreateToolForm({
                   name="next_calibration"
                   render={({ field }) => (
                     <FormItem className="w-full">
-                      <FormLabel>Días hasta la próxima calibración</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          inputMode="numeric"
-                          min={1}
-                          placeholder="Ej: 180"
-                          value={field.value as any}
-                          onChange={(e) => field.onChange(e.target.value)}
-                        />
-                      </FormControl>
+                      <FormLabel>Periodo de Calibración</FormLabel>
+                      <Select
+                        onValueChange={(value) => field.onChange(Number(value))}
+                        defaultValue={
+                          field.value ? String(field.value) : undefined
+                        }
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecciona un periodo" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="365">Anual (365 días)</SelectItem>
+                        </SelectContent>
+                      </Select>
                       <FormDescription>
-                        Número de días para programar la próxima calibración.
+                        Periodo para programar la próxima calibración.
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
@@ -684,10 +725,12 @@ export default function CreateToolForm({
                           <span className="font-medium">Archivo actual:</span>{" "}
                           <button
                             type="button"
-                            onClick={() => handleDownload(initialData.certificate_8130!)}
+                            onClick={() =>
+                              handleDownload(initialData.certificate_8130!)
+                            }
                             className="text-primary hover:underline cursor-pointer underline"
                           >
-                            {initialData.certificate_8130.split('/').pop()}
+                            {initialData.certificate_8130.split("/").pop()}
                           </button>
                         </div>
                       )}
@@ -730,10 +773,12 @@ export default function CreateToolForm({
                           <span className="font-medium">Archivo actual:</span>{" "}
                           <button
                             type="button"
-                            onClick={() => handleDownload(initialData.certificate_fabricant!)}
+                            onClick={() =>
+                              handleDownload(initialData.certificate_fabricant!)
+                            }
                             className="text-primary hover:underline cursor-pointer underline"
                           >
-                            {initialData.certificate_fabricant.split('/').pop()}
+                            {initialData.certificate_fabricant.split("/").pop()}
                           </button>
                         </div>
                       )}
@@ -776,10 +821,12 @@ export default function CreateToolForm({
                           <span className="font-medium">Archivo actual:</span>{" "}
                           <button
                             type="button"
-                            onClick={() => handleDownload(initialData.certificate_vendor!)}
+                            onClick={() =>
+                              handleDownload(initialData.certificate_vendor!)
+                            }
                             className="text-primary hover:underline cursor-pointer underline"
                           >
-                            {initialData.certificate_vendor.split('/').pop()}
+                            {initialData.certificate_vendor.split("/").pop()}
                           </button>
                         </div>
                       )}

@@ -554,6 +554,14 @@ export function getMenuList(
                                 pathname ===
                                 `/${currentCompany?.slug}/sms/estadisticas/indicadores_riesgo`,
                         },
+                        {
+                            href: `/${currentCompany?.slug}/sms/estadisticas/actividades`,
+                            label: "Actividades",
+                            roles: ["ANALISTA_SMS", "JEFE_SMS", "SUPERUSER"],
+                            active:
+                                pathname ===
+                                `/${currentCompany?.slug}/sms/estadisticas/actividades`,
+                        },
                     ],
                 },
 

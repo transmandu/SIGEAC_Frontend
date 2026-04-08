@@ -58,6 +58,11 @@ const editWorkOrderSchema = z.object({
   reviewed_by: z.string().min(1, "Campo obligatorio"),
   approved_by: z.string().min(1, "Campo obligatorio"),
   date: z.date({ required_error: "La fecha es obligatoria" }),
+  document: z
+      .instanceof(File)
+      .refine((f) => f.size <= 10 * 1024 * 1024, "Máximo 10MB")
+      .refine((f) => f.type === "application/pdf", "Solo se permiten archivos PDF")
+      .optional(),
 });
 
 type EditWorkOrderFormValues = z.infer<typeof editWorkOrderSchema>;
@@ -105,6 +110,9 @@ const EditWorkOrderForm = ({ work_order, onClose }: EditWorkOrderFormProps) => {
 
   // ─── Estado para el AlertDialog de confirmación de borrado ───────────────
   const [taskToDelete, setTaskToDelete] = useState<EditableTask | null>(null);
+
+  // ─── Estado para auto-upload de documento ───────────────────────────────
+  const [isUploading, setIsUploading] = useState(false);
 
   // ─── Form con valores pre-llenados ──────────────────────────────────────
   const form = useForm<EditWorkOrderFormValues>({
@@ -170,6 +178,39 @@ const EditWorkOrderForm = ({ work_order, onClose }: EditWorkOrderFormProps) => {
     }
   };
 
+  // ─── Auto-upload del documento ──────────────────────────────────────────
+  const handleAutoUpload = async (file: File) => {
+    if (!selectedCompany) return;
+
+    // Validaciones básicas rápidas (coincidentes con el schema)
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error("El archivo excede los 10MB permitidos.");
+      return;
+    }
+    if (file.type !== "application/pdf") {
+      toast.error("Solo se permiten archivos PDF.");
+      return;
+    }
+
+    setIsUploading(true);
+    try {
+      await updateWorkOrder.mutateAsync({
+        id: work_order.id,
+        company: selectedCompany.slug,
+        data: {
+          ...form.getValues(),
+          date: format(form.getValues().date, "yyyy-MM-dd"),
+          document: file,
+        },
+      });
+      // El toast de éxito ya lo maneja el hook useUpdateWorkOrder
+    } catch (error) {
+      console.error("[EditWorkOrderForm] Error en auto-upload:", error);
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
   // ─── Submit principal ────────────────────────────────────────────────────
   const onSubmit = async (data: EditWorkOrderFormValues) => {
     if (!selectedCompany) return;
@@ -195,6 +236,7 @@ const EditWorkOrderForm = ({ work_order, onClose }: EditWorkOrderFormProps) => {
           reviewed_by: data.reviewed_by,
           approved_by: data.approved_by,
           date: format(data.date, "yyyy-MM-dd"),
+          document: data.document,
         },
       });
 
@@ -241,7 +283,8 @@ const EditWorkOrderForm = ({ work_order, onClose }: EditWorkOrderFormProps) => {
   const isPending =
     updateWorkOrder.isPending ||
     updateWorkOrderTask.isPending ||
-    addWorkOrderTask.isPending;
+    addWorkOrderTask.isPending ||
+    isUploading;
 
   // ─── Render ──────────────────────────────────────────────────────────────
   return (
@@ -306,7 +349,7 @@ const EditWorkOrderForm = ({ work_order, onClose }: EditWorkOrderFormProps) => {
 
         {isClosed && (
           <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-sm text-red-600 dark:bg-red-950 dark:border-red-800 dark:text-red-400">
-            ⚠️ Esta orden de trabajo está <strong>CERRADA</strong> y no puede ser modificada.
+            Esta orden de trabajo está <strong>CERRADA</strong> y no puede ser modificada.
           </div>
         )}
 
@@ -415,6 +458,54 @@ const EditWorkOrderForm = ({ work_order, onClose }: EditWorkOrderFormProps) => {
                 )}
               />
             </div>
+
+            <FormField
+              control={form.control}
+              name="document"
+              render={({ field }) => (
+                <FormItem className="md:col-span-2">
+                  <FormLabel>Documento PDF (opcional)</FormLabel>
+                  <div className="flex items-center gap-4">
+                    {/* Muestra el nombre del archivo si ya hay uno seleccionado */}
+                    {field.value && (
+                      <p className="text-sm font-semibold text-muted-foreground">
+                        {field.value.name}
+                      </p>
+                    )}
+                    {/* Muestra si ya había un documento guardado */}
+                    {!field.value && work_order.document && (
+                      <p className="text-xs text-green-600 flex items-center gap-1">
+                        <span className="h-2 w-2 rounded-full bg-green-500" />
+                        Ya tiene un documento cargado
+                      </p>
+                    )}
+                    <FormControl>
+                      <div className="relative flex-1">
+                        <Input
+                          type="file"
+                          accept="application/pdf"
+                          disabled={isClosed || isUploading}
+                          className={cn(isUploading && "opacity-50")}
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              field.onChange(file);
+                              handleAutoUpload(file);
+                            }
+                          }}
+                        />
+                        {isUploading && (
+                          <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                            <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                          </div>
+                        )}
+                      </div>
+                    </FormControl>
+                  </div>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
             <Separator />
 
