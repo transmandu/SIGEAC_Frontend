@@ -1,7 +1,7 @@
 "use client";
 
 import { Article, Batch, Convertion } from "@/types";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import {
     Select,
     SelectContent,
@@ -72,12 +72,32 @@ const RegisterArticleForm = ({
     isEditing = false,
     initialData,
 }: IRegisterArticleProps) => {
+    // --- NUEVA FUNCIÓN DE NORMALIZACIÓN ---
+    // Esta función evita que JS interprete la fecha como UTC
+    const sanitizedData = useMemo(() => {
+        if (!initialData?.tool?.calibration_date) return initialData;
+
+        const [year, month, day] = initialData.tool.calibration_date.split('-').map(Number);
+        const localDate = new Date(year, month - 1, day);
+
+        return {
+            ...initialData,
+            tool: {
+                ...initialData.tool,
+                calibration_date: localDate as any // Lo pasamos como objeto Date ya corregido
+            }
+        };
+    }, [initialData]);
+    // ---------------------------------------
+
     const [type, setType] = useState(
         initialData?.batch.category.toUpperCase() ?? "COMPONENTE",
     );
+
     function handleTypeSelect(data: string) {
         setType(data);
     }
+
     return (
         <div className="space-y-3 mb-4">
             <h1 className="font-bold text-3xl">
@@ -103,19 +123,22 @@ const RegisterArticleForm = ({
                     <SelectItem value="PARTE">PARTE</SelectItem>
                 </SelectContent>
             </Select>
+
+            {/* NOTA: Ahora pasamos sanitizedData en lugar de initialData */}
             {type === "CONSUMIBLE" && (
-                <DirectConsumableForm isEditing={isEditing} initialData={initialData} />
+                <DirectConsumableForm isEditing={isEditing} initialData={sanitizedData} />
             )}
             {type === "HERRAMIENTA" && (
-                <CreateToolForm isEditing={isEditing} initialData={initialData} />
+                <CreateToolForm isEditing={isEditing} initialData={sanitizedData} />
             )}
             {type === "COMPONENTE" && (
-                <DirectComponentForm isEditing={isEditing} initialData={initialData} />
+                <DirectComponentForm isEditing={isEditing} initialData={sanitizedData} />
             )}
             {type === "PARTE" && (
-                <DirectPartForm isEditing={isEditing} initialData={initialData} />
+                <DirectPartForm isEditing={isEditing} initialData={sanitizedData} />
             )}
         </div>
     );
 };
+
 export default RegisterArticleForm;

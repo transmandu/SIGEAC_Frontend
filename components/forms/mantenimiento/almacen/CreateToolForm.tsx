@@ -207,13 +207,14 @@ export default function CreateToolForm({
       manufacturer_id: initialData?.manufacturer?.id?.toString() || "",
       batch_id: initialData?.batch?.id?.toString() || "",
       needs_calibration: initialData?.tool?.needs_calibration ?? false,
-      calibration_date: initialData?.tool?.calibration_date
-        ? new Date(initialData.tool.calibration_date)
-        : undefined,
+
+      // Usamos 'as any' para que TS no se queje de la discrepancia 
+      // entre la interfaz original (string) y el valor real procesado (Date).
+      calibration_date: (initialData?.tool?.calibration_date as any) || undefined,
+
       next_calibration: initialData?.tool?.next_calibration
         ? Number(initialData.tool.next_calibration)
         : undefined,
-
       model: initialData?.tool?.model || "",
     },
   });
