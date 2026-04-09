@@ -18,6 +18,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 import {
+    AeronauticalpolicyImages,
     emergencyPlans,
     policyCardsData,
     policyImages,
@@ -118,7 +119,7 @@ export const AeronauticalSMSTabs = ({ company, surveyNumbers }: SMSTabsProps) =>
                     <CardContent className="space-y-3 sm:space-y-4 text-sm sm:text-base">
                         <div className="flex justify-center items-center">
                             <ImageGalleryDialog
-                                images={policyImages}
+                                images={AeronauticalpolicyImages}
                                 trigger={
                                     <Button
                                         variant="link"

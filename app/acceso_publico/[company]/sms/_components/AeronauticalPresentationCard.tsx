@@ -21,24 +21,13 @@ const AeronauticalPresentationCard = ({ company }: PresentationCardProps) => {
                     {/* Sección de Imagen */}
                     <div className="relative h-64 lg:h-full min-h-[300px]">
                         <Image
-                            src={`${storageBaseUrl}images/sms/LOGO_TMD.png`}
-                            alt="Logo Transmandu"
+                            src={`${storageBaseUrl}images/sms/h74_sms_logo.png`}
+                            alt="Logo SMS Hangar 74"
                             fill
                             className="object-cover"
                             priority
                         />
                         {/* Overlay gradiente para legibilidad */}
-                        <div className="absolute inset-0 bg-gradient-to-r from-blue-900/70 to-transparent" />
-
-                        <div className="absolute bottom-4 left-4 lg:bottom-8 lg:left-8 text-white">
-                            <h1 className="text-2xl lg:text-3xl font-bold mb-2">
-                                Sistema de Gestión de Seguridad Operacional
-                            </h1>
-                            <p className="text-sm lg:text-base opacity-90 max-w-md">
-                                Comprometidos con la excelencia operacional y la seguridad
-                                de nuestros procesos
-                            </p>
-                        </div>
                     </div>
 
                     {/* Contenido y botones */}
