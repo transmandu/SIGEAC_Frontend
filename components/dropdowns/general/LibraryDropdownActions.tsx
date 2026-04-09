@@ -1,8 +1,8 @@
 'use client';
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useParams } from "next/navigation";
-import { MoreVertical, Trash2, QrCode, History, UploadCloud } from "lucide-react";
+import { MoreVertical, Trash2, QrCode, History, UploadCloud, Download } from "lucide-react";
 import { 
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu";
@@ -15,6 +15,7 @@ import { HistoryPanel } from "@/components/library/HistoryPanel";
 import { ShareQRDialog } from "@/components/library/ShareQRDialog";
 import { DeleteDocumentDialog } from "@/components/library/DeleteDocumentDialog";
 import { UploadVersionDialog } from "@/components/library/UploadVersionDialog";
+import { DownloadDocumentDialog } from "@/components/library/DownloadDocumentDialog";
 
 interface Props {
   doc: any;
@@ -33,11 +34,19 @@ export const LibraryDropdownActions = ({ doc, canManage, onDelete, onRefresh }: 
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
   const [uploadOpen, setUploadOpen] = useState(false);
+  const [downloadOpen, setDownloadOpen] = useState(false);
 
   // 📊 Estados de Datos
   const [selectedVersionId, setSelectedVersionId] = useState<number | null>(null);
   const [versionList, setVersionList] = useState<any[]>([]);
   const [loadingVersions, setLoadingVersions] = useState(false);
+
+  // 🛡️ Validación estricta para el botón de descarga
+  // Solo se muestra si el departamento es Seguridad Operacional o SMS
+  const canDownload = useMemo(() => {
+    const deptName = doc?.department?.name?.toUpperCase() || "";
+    return deptName.includes("SEGURIDAD OPERACIONAL") || deptName.includes("SMS");
+  }, [doc]);
 
   // 📜 Lógica para obtener versiones
   const handleFetchVersions = async () => {
@@ -45,7 +54,6 @@ export const LibraryDropdownActions = ({ doc, canManage, onDelete, onRefresh }: 
     setLoadingVersions(true);
     try {
       const response = await axiosInstance.get(`/${company}/library/documents/${doc.id}/versions`);
-      // Ajustamos según la estructura de tu respuesta API
       setVersionList(response.data.data.versions || response.data.data || []);
       setHistoryOpen(true);
     } catch (error) {
@@ -85,6 +93,14 @@ export const LibraryDropdownActions = ({ doc, canManage, onDelete, onRefresh }: 
             </DropdownMenuItem>
           )}
 
+          {/* 🟢 Renderizado condicional de descarga basado en el departamento */}
+          {canDownload && (
+            <DropdownMenuItem onClick={() => setDownloadOpen(true)} className="gap-2 cursor-pointer">
+              <Download className="h-4 w-4 text-emerald-500" />
+              <span className="text-xs font-medium">Descargar PDF</span>
+            </DropdownMenuItem>
+          )}
+
           <DropdownMenuItem onClick={handleFetchVersions} className="gap-2 cursor-pointer">
             <History className={`h-4 w-4 text-purple-500 ${loadingVersions ? 'animate-spin' : ''}`} />
             <span className="text-xs font-medium">Historial de versiones</span>
@@ -102,7 +118,14 @@ export const LibraryDropdownActions = ({ doc, canManage, onDelete, onRefresh }: 
         </DropdownMenuContent>
       </DropdownMenu>
 
-      {/* 🚀 COMPONENTES EXTRAÍDOS CON INTERFACES CORREGIDAS */}
+      {/* 🚀 COMPONENTES DE DIÁLOGO */}
+
+      <DownloadDocumentDialog 
+        isOpen={downloadOpen} 
+        onClose={() => setDownloadOpen(false)} 
+        doc={doc}
+        company={company} 
+      />
       
       <HistoryPanel 
         isOpen={historyOpen} 
@@ -112,7 +135,6 @@ export const LibraryDropdownActions = ({ doc, canManage, onDelete, onRefresh }: 
         onViewVersion={handleViewOldVersion}
       />
 
-      {/* Se agregó 'company' que faltaba */}
       <ShareQRDialog 
         isOpen={shareOpen} 
         onClose={() => setShareOpen(false)} 
@@ -120,7 +142,6 @@ export const LibraryDropdownActions = ({ doc, canManage, onDelete, onRefresh }: 
         company={company}
       />
 
-      {/* Se cambió 'onConfirm' por 'onSuccess' y se agregó 'company' según la nueva lógica del modal de borrado gestión */}
       <DeleteDocumentDialog 
         isOpen={deleteOpen} 
         onClose={() => setDeleteOpen(false)} 
