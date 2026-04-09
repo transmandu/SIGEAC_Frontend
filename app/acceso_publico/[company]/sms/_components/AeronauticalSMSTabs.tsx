@@ -21,7 +21,6 @@ import {
     AeronauticalpolicyImages,
     emergencyPlans,
     policyCardsData,
-    policyImages,
     smsConcepts,
 } from "@/lib/contants/sms-data";
 
@@ -123,7 +122,7 @@ export const AeronauticalSMSTabs = ({ company, surveyNumbers }: SMSTabsProps) =>
                                 trigger={
                                     <Button
                                         variant="link"
-                                        className="text-xs sm:text-base p-1 h-auto hover:no-underline text-blue-600 hover:text-blue-800 transition-colors"
+                                        className="text-xs sm:text-base p-1 h-auto hover:no-underline text-yellow-600 hover:text-blue-800 transition-colors"
                                     >
                                         Ver Políticas Completas
                                     </Button>
@@ -186,7 +185,7 @@ export const AeronauticalSMSTabs = ({ company, surveyNumbers }: SMSTabsProps) =>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-stretch transition-all duration-900 ease-out opacity-0 animate-fade-in delay-200">
                             {/* Términos SMS */}
                             <div
-                                className="border-l-4 border-l-blue-500 pl-4 flex flex-col cursor-pointer"
+                                className="border-l-4 border-l-yellow-500 pl-4 flex flex-col cursor-pointer"
                                 onClick={() => setIsConceptOpen(true)}
                             >
                                 <StrategyCard
@@ -206,7 +205,7 @@ export const AeronauticalSMSTabs = ({ company, surveyNumbers }: SMSTabsProps) =>
 
                             {/* Responsabilidades SMS */}
                             <FeaturesDialog features={SMSresponsibilities}>
-                                <div className="border-l-4 border-l-blue-500 pl-4 flex flex-col">
+                                <div className="border-l-4 border-l-yellow-500 pl-4 flex flex-col">
                                     <StrategyCard
                                         title="Responsabilidades SMS"
                                         description="Responsabilidades del Personal en Materia de SMS"
@@ -217,7 +216,7 @@ export const AeronauticalSMSTabs = ({ company, surveyNumbers }: SMSTabsProps) =>
 
                             {/* Encuestas SMS */}
                             <div
-                                className="border-l-4 border-l-blue-500 pl-4 cursor-pointer flex flex-col w-full"
+                                className="border-l-4 border-l-yellow-500 pl-4 cursor-pointer flex flex-col w-full"
                                 onClick={() =>
                                     router.push(
                                         `/acceso_publico/${company}/sms/encuesta/${surveyNumbers?.SMS_SURVEY}`
@@ -233,7 +232,7 @@ export const AeronauticalSMSTabs = ({ company, surveyNumbers }: SMSTabsProps) =>
 
                             {/* Trivia SMS */}
                             <div
-                                className="border-l-4 border-l-blue-500 pl-4 cursor-pointer flex flex-col w-full"
+                                className="border-l-4 border-l-yellow-500 pl-4 cursor-pointer flex flex-col w-full"
                                 onClick={() =>
                                     router.push(
                                         `/acceso_publico/${company}/sms/encuesta/${surveyNumbers?.SMS_QUIZ}`
@@ -249,7 +248,7 @@ export const AeronauticalSMSTabs = ({ company, surveyNumbers }: SMSTabsProps) =>
 
                             {/* Comunicados SMS */}
                             <div
-                                className="border-l-4 border-l-blue-500 pl-4 flex flex-col"
+                                className="border-l-4 border-l-yellow-500 pl-4 flex flex-col"
                                 onClick={() =>
                                     router.push(`/acceso_publico/${company}/sms/comunicados`)
                                 }

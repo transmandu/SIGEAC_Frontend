@@ -49,7 +49,7 @@ const AeronauticalPresentationCard = ({ company }: PresentationCardProps) => {
                                 onClick={() =>
                                     router.push(`/acceso_publico/${company}/sms/crear_reporte/voluntario`)
                                 }
-                                className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white transition-all duration-300"
+                                className="flex items-center gap-2 bg-yellow-500 hover:bg-yellow-700 text-white transition-all duration-300"
                             >
                                 <FileText className="w-4 h-4" />
                                 Reporte Voluntario
@@ -60,7 +60,7 @@ const AeronauticalPresentationCard = ({ company }: PresentationCardProps) => {
                                     router.push(`/acceso_publico/${company}/sms/crear_reporte/obligatorio`)
                                 }
                                 variant="outline"
-                                className="flex items-center gap-2 border-blue-600 text-blue-600 hover:bg-blue-50 transition-all duration-300"
+                                className="flex items-center gap-2 border-yellow-600 text-yellow-600 hover:bg-blue-50 transition-all duration-300"
                             >
                                 <Shield className="w-4 h-4" />
                                 Reporte Obligatorio
@@ -71,11 +71,11 @@ const AeronauticalPresentationCard = ({ company }: PresentationCardProps) => {
                         <div className="mt-6 pt-6 border-t border-gray-200">
                             <div className="grid grid-cols-2 gap-4 text-center">
                                 <div>
-                                    <div className="text-2xl font-bold text-blue-600">6</div>
+                                    <div className="text-2xl font-bold text-yellow-600">6</div>
                                     <div className="text-xs text-muted-foreground">Planes de Emergencia</div>
                                 </div>
                                 <div>
-                                    <div className="text-2xl font-bold text-blue-600">4</div>
+                                    <div className="text-2xl font-bold text-yellow-600">4</div>
                                     <div className="text-xs text-muted-foreground">Áreas de Estrategia</div>
                                 </div>
                             </div>
