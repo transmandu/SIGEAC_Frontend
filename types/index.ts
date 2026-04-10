@@ -893,6 +893,7 @@ export type ObligatoryReport = {
   document?: string;
   imageUrl?: string;
   documentUrl?: string;
+  close_date?: string;
 };
 
 export type VoluntaryReport = {
@@ -916,6 +917,7 @@ export type VoluntaryReport = {
   document?: File | string;
   imageUrl?: string;
   documentUrl?: string;
+  close_date?: string;
 };
 
 export type DangerIdentification = {
@@ -989,6 +991,7 @@ export type MitigationTable = {
   mitigation_plan: MitigationPlan | null;
   obligatory_report: ObligatoryReport;
   voluntary_report: VoluntaryReport;
+  close_date?: string;
 };
 
 export type ReportsByArea = {
