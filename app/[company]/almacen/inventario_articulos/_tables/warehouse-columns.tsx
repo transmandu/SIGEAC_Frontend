@@ -11,6 +11,7 @@ import { WarehouseResponse } from "@/hooks/mantenimiento/almacen/articulos/useGe
 import { StatusColumnHeader } from "@/components/tables/StatusColumnHeader";
 import { Unit } from "@/types";
 import { formatCondition } from "@/lib/warehouse/conditions";
+import StatusCellWithPopover from "@/components/misc/StatusCellWithPopover";
 
 export interface IArticleSimple {
   id: number;
@@ -312,7 +313,7 @@ const baseCols: ColumnDef<IArticleSimple>[] = [
       return (
         <div className="flex flex-col justify-center items-center space-y-2">
           {!calibrating && getStatusBadge(row.original.status?.toUpperCase())}
-          {row.original.tool && (
+          {/* {row.original.tool && (
             <Badge
               className={cn(
                 "text-xs text-center",
@@ -329,7 +330,8 @@ const baseCols: ColumnDef<IArticleSimple>[] = [
                 ? row.original.tool.status
                 : "Sin estado"}
             </Badge>
-          )}
+          )} */}
+          {row.original.tool && <StatusCellWithPopover tool={row.original} globalStatus={'hola'} />}
         </div>
       );
     },
