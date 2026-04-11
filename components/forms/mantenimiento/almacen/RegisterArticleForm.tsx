@@ -47,6 +47,7 @@ export interface EditingArticle extends Article {
 
         shelf_life?: number;
         shelf_life_unit?: string;
+        aircraft_id?: string;
     };
     consumable?: {
         lot_number?: string;
