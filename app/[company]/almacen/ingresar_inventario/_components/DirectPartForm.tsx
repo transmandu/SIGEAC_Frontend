@@ -78,7 +78,6 @@ import { EditingArticle } from "./RegisterArticleForm";
 import { useAuth } from "@/contexts/AuthContext";
 import { getConditionLabel } from "@/lib/conditions";
 import { Condition } from "@/types";
-import { useGetAircraftAcronyms } from "@/hooks/aerolinea/aeronaves/useGetAircraftAcronyms";
 /* ------------------------------- Schema ------------------------------- */
 
 const fileMaxBytes = 10_000_000; // 10 MB
