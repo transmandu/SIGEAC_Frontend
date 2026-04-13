@@ -46,23 +46,16 @@ export default function UploadModal({ company, isOpen, onClose, onSuccess }: any
     expiration_date: '',
   });
 
-  // --- LÓGICA DE PERMISOS INTEGRADA DEL PAGE ---
   const { isSuperUser, isDirector, userDeptId } = useMemo(() => {
     if (!user) return { isSuperUser: false, isDirector: false, userDeptId: null };
-
-    // 1. Verificación por ROL (Superusuarios)
     const isSuper = user.roles?.some(role => 
       ['SUPERUSER', 'ADMIN', 'ADMINISTRADOR'].includes(role.name.toUpperCase())
     );
-
-    // 2. Verificación por CARGO (Directores)
     const isDir = user.employee?.some((emp: any) => {
       const cargoNombre = emp.job_title?.name || "";
       return cargoNombre.toUpperCase().includes('DIRECTOR');
     });
-
     const deptId = user.employee?.[0]?.department?.id;
-
     return { isSuperUser: isSuper, isDirector: isDir, userDeptId: deptId };
   }, [user]);
 
@@ -80,17 +73,12 @@ export default function UploadModal({ company, isOpen, onClose, onSuccess }: any
             axiosInstance.get(`/${company}/library/departments-list`),
             axiosInstance.get(`/${company}/library/categories-list`)
           ]);
-
           let availableDepts = deptsRes.data;
-
-          // 🔥 FILTRADO: Si no es superusuario, solo mostramos su departamento
           if (!isSuperUser && userDeptId) {
             availableDepts = availableDepts.filter((d: any) => Number(d.id) === Number(userDeptId));
           }
-
           setDepartments(availableDepts);
           setCategories(catsRes.data);
-
           if (availableDepts.length === 1) {
             setFormData(prev => ({
               ...prev,
@@ -98,7 +86,6 @@ export default function UploadModal({ company, isOpen, onClose, onSuccess }: any
               department_name: availableDepts[0].name
             }));
           }
-
         } catch (error) {
           console.error("Error al cargar datos:", error);
         } finally {
@@ -127,25 +114,7 @@ export default function UploadModal({ company, isOpen, onClose, onSuccess }: any
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Validación de seguridad combinada
-    const canManage = isSuperUser || isDirector;
-    
-    if (!canManage) {
-        return alert("Error: No tienes permisos suficientes (Director o Admin) para realizar esta acción.");
-    }
-
-    if (!isSuperUser && Number(formData.department_id) !== Number(userDeptId)) {
-        return alert("Error: Solo tienes permiso para subir documentos a tu propio departamento.");
-    }
-
-    if (!file || !formData.category_id || !formData.department_id) {
-      return alert("Error: Por favor completa todos los campos obligatorios.");
-    }
-
-    if (formData.category_id === 'otro' && !newCategoryName.trim()) {
-      return alert("Por favor escribe el nombre de la nueva categoría.");
-    }
+    if (!file || !formData.category_id || !formData.department_id) return alert("Completa los campos.");
 
     setLoading(true);
     const data = new FormData();
@@ -154,13 +123,11 @@ export default function UploadModal({ company, isOpen, onClose, onSuccess }: any
     data.append('category_id', formData.category_id);
     data.append('department_id', formData.department_id);
     data.append('department_name', formData.department_name);
-
     if (formData.category_id === 'otro') data.append('new_category_name', newCategoryName);
     if (isSmsDepartment(formData.department_name)) {
       data.append('sms_pillar', smsPillar);
       data.append('sms_sub_point', smsSubPoint);
     }
-
     data.append('requires_expiry', hasExpiry ? '1' : '0');
     if (hasExpiry && formData.expiration_date) data.append('expiration_date', formData.expiration_date);
 
@@ -169,7 +136,7 @@ export default function UploadModal({ company, isOpen, onClose, onSuccess }: any
       onSuccess();
       handleInternalClose();
     } catch (error: any) {
-      alert("Error al guardar: " + (error.response?.data?.message || "Error de servidor"));
+      alert("Error al guardar: " + (error.response?.data?.message || "Error"));
     } finally {
       setLoading(false);
     }
@@ -188,32 +155,35 @@ export default function UploadModal({ company, isOpen, onClose, onSuccess }: any
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 transition-opacity text-left">
-      <div className="bg-white dark:bg-[#1a1c1e] rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden border border-gray-200 dark:border-gray-800 animate-in zoom-in-95 duration-200">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 text-left">
+      <div className="bg-white dark:bg-[#1a1c1e] rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden border border-slate-300 dark:border-gray-800 animate-in zoom-in-95 duration-200">
         
-        <div className="bg-gray-50 dark:bg-gray-800/40 px-6 py-4 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center">
+        {/* Header */}
+        <div className="bg-white dark:bg-gray-800/60 px-6 py-4 border-b border-slate-200 dark:border-gray-700 flex justify-between items-center">
           <div className="flex items-center gap-2">
             <div className="p-1.5 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
               <UploadCloud className="h-5 w-5 text-blue-600 dark:text-blue-400" />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-gray-800 dark:text-white tracking-tight">Subir nuevo documento</h2>
-              {!isSuperUser && <p className="text-[10px] text-blue-500 font-bold uppercase tracking-wider">Modo Director</p>}
+              <h2 className="text-lg font-bold text-slate-800 dark:text-white tracking-tight uppercase">Subir documento</h2>
+              {!isSuperUser && <p className="text-[10px] text-blue-500 font-bold uppercase tracking-widest">Modo Director</p>}
             </div>
           </div>
-          <button onClick={handleInternalClose} className="text-gray-400 hover:text-red-500 transition-colors p-1 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-full">
+          <button onClick={handleInternalClose} className="text-slate-400 hover:text-red-500 transition-colors p-1 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-full">
             <X className="h-5 w-5" />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-5">
-          <div className="space-y-1.5 text-left">
-            <label className="text-[11px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500 flex items-center gap-2">
+        <form onSubmit={handleSubmit} className="p-6 space-y-5 bg-slate-50 dark:bg-[#1a1c1e]">
+          
+          {/* Nombre Doc */}
+          <div className="space-y-1.5">
+            <label className="text-[11px] font-bold uppercase tracking-widest text-slate-500 dark:text-gray-400 flex items-center gap-2">
               <FileText className="h-3.5 w-3.5 text-blue-500" /> Nombre del Documento
             </label>
             <input 
               type="text" required
-              className="w-full h-11 px-4 border border-gray-300 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-gray-800 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all placeholder:text-gray-400"
+              className="w-full h-11 px-4 border border-slate-300 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-slate-700 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all placeholder:text-slate-400 shadow-sm"
               placeholder="Ej. Manual de Mantenimiento 2026"
               value={formData.title}
               onChange={(e) => setFormData({...formData, title: e.target.value})}
@@ -221,180 +191,186 @@ export default function UploadModal({ company, isOpen, onClose, onSuccess }: any
           </div>
 
           <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-1.5 text-left">
-              <label className="text-[11px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500 flex items-center gap-2">
+            {/* Depto Select */}
+            <div className="space-y-1.5">
+              <label className="text-[11px] font-bold uppercase tracking-widest text-slate-500 dark:text-gray-400 flex items-center gap-2">
                 <Building2 className="h-3.5 w-3.5 text-blue-500" /> Área / Depto
               </label>
               <div className="relative">
                 <select 
                   required disabled={loadingData || (!isSuperUser && departments.length === 1)}
-                  className="w-full h-11 pl-4 pr-10 border border-gray-300 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-gray-800 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none cursor-pointer appearance-none relative z-10 disabled:opacity-80"
+                  className="w-full h-11 pl-4 pr-10 border border-slate-300 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-slate-700 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none cursor-pointer appearance-none relative z-10 disabled:opacity-80 shadow-sm"
                   value={formData.department_id}
-                  onChange={(e) => {
-                    const selectedId = e.target.value;
-                    const selectedName = e.target.options[e.target.selectedIndex].text;
-                    setFormData({ ...formData, department_id: selectedId, department_name: selectedName });
-                  }}
+                  onChange={(e) => setFormData({ ...formData, department_id: e.target.value, department_name: e.target.options[e.target.selectedIndex].text })}
                 >
-                  {isSuperUser && <option value="" disabled>Seleccionar</option>}
+                  {isSuperUser && <option value="" disabled className="dark:bg-gray-800">Seleccionar</option>}
                   {departments.map(d => (
-                    <option key={d.id} value={d.id}>{d.name}</option>
+                    <option key={d.id} value={d.id} className="dark:bg-gray-800">{d.name}</option>
                   ))}
                 </select>
-                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none z-20" />
+                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none z-20" />
               </div>
             </div>
 
-            <div className="space-y-1.5 text-left">
-              <label className="text-[11px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500 flex items-center gap-2">
+            {/* Categoria Select */}
+            <div className="space-y-1.5">
+              <label className="text-[11px] font-bold uppercase tracking-widest text-slate-500 dark:text-gray-400 flex items-center gap-2">
                 <Tag className="h-3.5 w-3.5 text-blue-500" /> Categoría
               </label>
               <div className="relative">
                 <select 
                   required disabled={loadingData}
-                  className={`w-full h-11 pl-4 pr-10 border rounded-xl bg-white dark:bg-gray-800 text-gray-800 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none cursor-pointer appearance-none relative z-10 ${formData.category_id === 'otro' ? 'border-blue-500' : 'border-gray-300 dark:border-gray-700'}`}
+                  className={`w-full h-11 pl-4 pr-10 border rounded-xl bg-white dark:bg-gray-800 text-slate-700 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none cursor-pointer appearance-none relative z-10 shadow-sm ${formData.category_id === 'otro' ? 'border-blue-500' : 'border-slate-300 dark:border-gray-700'}`}
                   value={formData.category_id}
                   onChange={(e) => setFormData({...formData, category_id: e.target.value})}
                 >
-                  <option value="" disabled>Seleccionar</option>
-                  {categories.map(c => (<option key={c.id} value={c.id}>{c.name}</option>))}
-                  <option value="otro" className="text-blue-500 font-bold">+ AGREGAR NUEVA...</option>
+                  <option value="" disabled className="dark:bg-gray-800">Seleccionar</option>
+                  {categories.map(c => (<option key={c.id} value={c.id} className="dark:bg-gray-800">{c.name}</option>))}
+                  <option value="otro" className="text-blue-500 font-bold dark:bg-gray-800">+ AGREGAR NUEVA...</option>
                 </select>
-                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none z-20" />
+                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none z-20" />
               </div>
             </div>
           </div>
 
           {formData.category_id === 'otro' && (
-            <div className="space-y-1.5 animate-in slide-in-from-top-2 duration-300 text-left">
+            <div className="space-y-1.5 animate-in slide-in-from-top-2 duration-300">
               <label className="text-[10px] font-bold uppercase text-blue-600 dark:text-blue-400 flex items-center gap-2">
-                <PlusCircle className="h-3 w-3" /> Nombre de la nueva categoría
+                <PlusCircle className="h-3 w-3" /> Nueva categoría
               </label>
               <input 
                 type="text" required
-                className="w-full h-10 px-4 border border-blue-500 rounded-xl bg-blue-50/20 dark:bg-blue-900/10 text-gray-800 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none"
-                placeholder="Ej. Certificados de Calidad"
+                className="w-full h-10 px-4 border border-blue-500 rounded-xl bg-blue-50/30 dark:bg-blue-900/10 text-slate-700 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                placeholder="Nombre de la categoría"
                 value={newCategoryName}
                 onChange={(e) => setNewCategoryName(e.target.value)}
               />
             </div>
           )}
 
-          <div className={`transition-all duration-500 ease-in-out overflow-hidden ${isSmsDepartment(formData.department_name) ? 'max-h-40 opacity-100 translate-y-0' : 'max-h-0 opacity-0 -translate-y-4'}`}>
-              <div className="grid grid-cols-2 gap-4 p-4 bg-blue-50/50 dark:bg-blue-900/10 rounded-2xl border border-blue-100 dark:border-blue-900/20 text-left">
-              <div className="space-y-1.5 col-span-1">
-                <label className="text-[10px] font-bold uppercase text-blue-600 dark:text-blue-400 flex items-center gap-2">
-                  <Layers className="h-3 w-3" /> Fase SMS
-                </label>
-                <div className="relative">
-                  <select 
-                    required={isSmsDepartment(formData.department_name)}
-                    className="w-full h-10 pl-3 pr-8 border border-blue-200 dark:border-blue-900/40 rounded-lg bg-white dark:bg-gray-800 text-xs text-gray-800 dark:text-white outline-none focus:ring-2 focus:ring-blue-500 appearance-none"
-                    value={smsPillar}
-                    onChange={(e) => { setSmsPillar(e.target.value); setSmsSubPoint(''); }}
-                  >
-                    <option value="">Pilar...</option>
-                    {Object.keys(SMS_STRUCTURE).map(p => (
-                      <option key={p} value={p}>{p.replace(/_/g, ' ').toUpperCase()}</option>
-                    ))}
-                  </select>
-                  <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 h-3 w-3 text-blue-400 pointer-events-none" />
+          {/* SMS Section */}
+          {isSmsDepartment(formData.department_name) && (
+            <div className="p-4 bg-white dark:bg-gray-800/40 rounded-2xl border border-blue-100 dark:border-gray-700 shadow-sm transition-all animate-in fade-in slide-in-from-top-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold uppercase text-blue-600 dark:text-blue-400 flex items-center gap-2">
+                    <Layers className="h-3 w-3" /> Fase SMS
+                  </label>
+                  <div className="relative">
+                    <select 
+                      required
+                      className="w-full h-10 pl-3 pr-8 border border-slate-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-xs text-slate-700 dark:text-white outline-none focus:ring-2 focus:ring-blue-500 appearance-none"
+                      value={smsPillar}
+                      onChange={(e) => { setSmsPillar(e.target.value); setSmsSubPoint(''); }}
+                    >
+                      <option value="" className="dark:bg-gray-800">Pilar...</option>
+                      {Object.keys(SMS_STRUCTURE).map(p => (
+                        <option key={p} value={p} className="dark:bg-gray-800">{p.replace(/_/g, ' ').toUpperCase()}</option>
+                      ))}
+                    </select>
+                    <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 h-3 w-3 text-blue-400 pointer-events-none" />
+                  </div>
                 </div>
-              </div>
 
-              <div className="space-y-1.5 col-span-1 text-left">
-                <label className="text-[10px] font-bold uppercase text-blue-600 dark:text-blue-400 flex items-center gap-2">
-                  <Layers className="h-3 w-3" /> Punto
-                </label>
-                <div className="relative">
-                  <select 
-                    required={isSmsDepartment(formData.department_name)}
-                    disabled={!smsPillar}
-                    className="w-full h-10 pl-3 pr-8 border border-blue-200 dark:border-blue-900/40 rounded-lg bg-white dark:bg-gray-800 text-xs text-gray-800 dark:text-white outline-none focus:ring-2 focus:ring-blue-500 appearance-none disabled:opacity-50"
-                    value={smsSubPoint}
-                    onChange={(e) => setSmsSubPoint(e.target.value)}
-                  >
-                    <option value="">Elemento...</option>
-                    {smsPillar && SMS_STRUCTURE[smsPillar].map(s => (
-                      <option key={s} value={s}>{s.replace(/_/g, ' ').toUpperCase()}</option>
-                    ))}
-                  </select>
-                  <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 h-3 w-3 text-blue-400 pointer-events-none" />
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold uppercase text-blue-600 dark:text-blue-400 flex items-center gap-2">
+                    <Layers className="h-3 w-3" /> Punto
+                  </label>
+                  <div className="relative">
+                    <select 
+                      required disabled={!smsPillar}
+                      className="w-full h-10 pl-3 pr-8 border border-slate-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-xs text-slate-700 dark:text-white outline-none focus:ring-2 focus:ring-blue-500 appearance-none disabled:opacity-50"
+                      value={smsSubPoint}
+                      onChange={(e) => setSmsSubPoint(e.target.value)}
+                    >
+                      <option value="" className="dark:bg-gray-800">Elemento...</option>
+                      {smsPillar && SMS_STRUCTURE[smsPillar].map(s => (
+                        <option key={s} value={s} className="dark:bg-gray-800">{s.replace(/_/g, ' ').toUpperCase()}</option>
+                      ))}
+                    </select>
+                    <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 h-3 w-3 text-blue-400 pointer-events-none" />
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
+          )}
 
-          <div className="space-y-2 text-left">
-            <label className="text-[11px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500 flex items-center gap-2">
+          {/* Vigencia */}
+          <div className="space-y-2">
+            <label className="text-[11px] font-bold uppercase tracking-widest text-slate-500 dark:text-gray-400 flex items-center gap-2">
               <Calendar className="h-3.5 w-3.5 text-blue-500" /> Vigencia
             </label>
-            <div className="grid grid-cols-2 gap-2 p-1 bg-gray-100 dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
+            <div className="grid grid-cols-2 gap-2 p-1 bg-slate-200 dark:bg-gray-800/80 rounded-xl border border-slate-300 dark:border-gray-700 shadow-sm">
               <button 
                 type="button" 
-                className={`py-2 text-[10px] font-black rounded-lg transition-all ${!hasExpiry ? 'bg-white dark:bg-gray-700 shadow-sm text-blue-600 dark:text-blue-400' : 'text-gray-400'}`} 
-                onClick={() => {
-                  setHasExpiry(false);
-                  setFormData({...formData, expiration_date: ''});
-                }}
-              >
-                PERMANENTE
-              </button>
+                className={`py-2 text-[10px] font-bold rounded-lg transition-all ${!hasExpiry ? 'bg-white dark:bg-gray-600 shadow-md text-blue-600 dark:text-blue-400' : 'text-slate-500'}`} 
+                onClick={() => { setHasExpiry(false); setFormData({...formData, expiration_date: ''}); }}
+              > PERMANENTE </button>
               <button 
                 type="button" 
-                className={`py-2 text-[10px] font-black rounded-lg transition-all ${hasExpiry ? 'bg-white dark:bg-gray-700 shadow-sm text-blue-600 dark:text-blue-400' : 'text-gray-400'}`} 
+                className={`py-2 text-[10px] font-bold rounded-lg transition-all ${hasExpiry ? 'bg-white dark:bg-gray-600 shadow-md text-blue-600 dark:text-blue-400' : 'text-slate-500'}`} 
                 onClick={() => setHasExpiry(true)}
-              >
-                CON VENCIMIENTO
-              </button>
+              > CON VENCIMIENTO </button>
             </div>
           </div>
 
-          <div className={`transition-all duration-500 overflow-hidden ${hasExpiry ? 'max-h-24 opacity-100' : 'max-h-0 opacity-0'}`}>
-            <div className="space-y-1.5 pt-1 text-left">
+          {hasExpiry && (
+            <div className="space-y-1.5 animate-in slide-in-from-top-2 duration-300">
               <label className="text-[11px] font-bold uppercase text-blue-600 dark:text-blue-400 flex items-center gap-2">
                 <Calendar className="h-3.5 w-3.5" /> Fecha de Expiración
               </label>
               <input 
-                type="date" 
-                required={hasExpiry} 
-                className="w-full h-11 px-4 border border-blue-200 dark:border-blue-900/40 rounded-xl outline-none bg-blue-50/30 dark:bg-blue-900/10 text-gray-800 dark:text-white text-sm focus:ring-2 focus:ring-blue-500" 
+                type="date" required
+                className="w-full h-11 px-4 border border-slate-300 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-slate-700 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none shadow-sm" 
                 value={formData.expiration_date}
                 onChange={(e) => setFormData({...formData, expiration_date: e.target.value})} 
               />
             </div>
-          </div>
+          )}
 
+          {/* Drag and Drop con :hover y :active reactivo */}
           <div className="pt-2">
             <label 
               onDragOver={handleDragOver}
               onDragLeave={handleDragLeave}
               onDrop={handleDrop}
-              className={`relative flex flex-col items-center justify-center w-full h-28 border-2 border-dashed rounded-2xl cursor-pointer transition-all 
-                ${isDragging ? 'border-blue-500 bg-blue-50/50 scale-[1.01]' : ''} 
-                ${file ? 'border-green-500 bg-green-50/30' : 'border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/40 hover:border-blue-400'}`}
+              className={`relative flex flex-col items-center justify-center w-full h-28 border-2 border-dashed rounded-2xl cursor-pointer transition-all duration-200
+                ${isDragging 
+                  ? 'border-blue-500 bg-blue-50/50 dark:bg-blue-900/30 scale-[1.01] shadow-inner' // Estado arrastrando (Prioridad 1)
+                  : file 
+                    ? 'border-green-500 bg-green-50/30 dark:bg-green-900/10 hover:border-blue-400' // Estado con archivo (Prioridad 2)
+                    : 'border-slate-300 dark:border-gray-700 bg-white dark:bg-gray-800/40 hover:border-blue-400 hover:bg-slate-100 dark:hover:bg-gray-800 shadow-sm' // Estado base + HOVER
+                }`}
             >
               <div className="flex flex-col items-center justify-center text-center px-4 pointer-events-none">
-                {file ? <CheckCircle2 className="h-7 w-7 text-green-500 mb-1" /> : <UploadCloud className={`h-7 w-7 mb-1 ${isDragging ? 'text-blue-500' : 'text-gray-400'}`} />}
-                <p className="text-sm dark:text-gray-300 font-medium">
-                  {file ? '¡Archivo seleccionado!' : isDragging ? 'Suelta el archivo aquí' : 'Haz clic o arrastra un archivo'}
+                {file && !isDragging ? (
+                  <CheckCircle2 className="h-7 w-7 mb-1 text-green-500" />
+                ) : (
+                  <UploadCloud className={`h-7 w-7 mb-1 transition-colors ${isDragging ? 'text-blue-500' : 'text-slate-400'}`} />
+                )}
+                <p className="text-sm text-slate-600 dark:text-gray-300 font-bold">
+                  {isDragging ? '¡Suéltalo aquí!' : file ? '¡Archivo listo!' : 'Haz clic o arrastra un archivo'}
                 </p>
-                <p className="text-[10px] text-gray-400 truncate max-w-[200px]">{file ? file.name : 'PDF o Excel (Max 10MB)'}</p>
+                <p className="text-[10px] text-slate-400 truncate max-w-[200px] font-bold uppercase tracking-tighter">
+                  {file ? file.name : 'PDF (Max 10MB)'}
+                </p>
               </div>
               <input 
-                type="file" 
-                className="hidden" 
-                accept=".pdf,.xlsx,.xls" 
+                type="file" className="hidden" accept=".pdf" 
                 onChange={(e) => setFile(e.target.files ? e.target.files[0] : null)} 
               />
             </label>
           </div>
 
-          <div className="flex gap-3 pt-4 border-t dark:border-gray-800">
-            <button type="button" onClick={handleInternalClose} className="flex-1 px-4 py-3 text-[11px] font-black tracking-widest text-gray-400 hover:text-gray-600 uppercase">CANCELAR</button>
-            <button type="submit" disabled={loading || loadingData} className="flex-1 px-4 py-3 text-[11px] font-black tracking-widest text-white bg-blue-600 rounded-xl hover:bg-blue-700 disabled:opacity-50 shadow-lg shadow-blue-500/20">
-              {loading ? 'SUBIENDO...' : 'GUARDAR ARCHIVO'}
-            </button>
+          <div className="flex gap-3 pt-4 border-t border-slate-200 dark:border-gray-700">
+            <button 
+              type="button" onClick={handleInternalClose} 
+              className="flex-1 px-4 py-3 text-[11px] font-bold tracking-widest text-slate-400 hover:text-slate-600 dark:hover:text-white uppercase transition-colors"
+            > CANCELAR </button>
+            <button 
+              type="submit" disabled={loading || loadingData} 
+              className="flex-1 px-4 py-3 text-[11px] font-bold tracking-widest text-white bg-blue-600 rounded-xl hover:bg-blue-700 disabled:opacity-50 shadow-lg shadow-blue-500/20 uppercase transition-all"
+            > {loading ? 'SUBIENDO...' : 'GUARDAR ARCHIVO'} </button>
           </div>
         </form>
       </div>

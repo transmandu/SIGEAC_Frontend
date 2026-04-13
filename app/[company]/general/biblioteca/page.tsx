@@ -35,23 +35,15 @@ const BibliotecaPage = () => {
     actions: true,
   });
 
-  // --- LÓGICA DE PERMISOS ACTUALIZADA ---
   const canManage = useMemo(() => {
     if (!user) return false;
-
-    // 1. Verificación por ROL (Superusuarios)
     const isSuperUser = user.roles?.some(role => 
       ['SUPERUSER', 'ADMIN', 'ADMINISTRADOR'].includes(role.name.toUpperCase())
     );
-
-    // 2. Verificación por CARGO (Directores)
-    // Accedemos a user.employee -> job_title -> name
     const isDirector = user.employee?.some((emp: any) => {
       const cargoNombre = emp.job_title?.name || "";
       return cargoNombre.toUpperCase().includes('DIRECTOR');
     });
-
-    // Retorna true si cumple cualquiera de las dos
     return !!(isSuperUser || isDirector);
   }, [user]);
 
@@ -98,23 +90,23 @@ const BibliotecaPage = () => {
       <div className="flex flex-col gap-y-4">
         
         {loading ? (
-          <div className="flex w-full h-[600px] justify-center items-center py-20 bg-background animate-in fade-in duration-300">
+          <div className="flex w-full h-[600px] justify-center items-center py-20 bg-transparent animate-in fade-in duration-300">
             <Loader2 className="size-16 animate-spin text-blue-600 dark:text-white opacity-80" />
           </div>
         ) : (
-          <div className="animate-in fade-in duration-500">
+          <div className="animate-in fade-in slide-in-from-bottom-2 duration-500">
             {/* HEADER */}
             <div className="flex flex-col gap-2 mb-12">
-              <h1 className="text-5xl font-bold text-center text-gray-900 dark:text-white uppercase tracking-tighter">
+              <h1 className="text-5xl font-black text-center text-slate-900 dark:text-white uppercase tracking-tighter">
                 Biblioteca Digital
               </h1>
-              <p className="text-sm italic text-muted-foreground text-center">
+              <p className="text-[11px] font-bold tracking-[0.2em] text-slate-400 dark:text-slate-500 text-center uppercase">
                 Gestión de documentos técnicos y certificados de{" "}
-                <span className="font-bold uppercase text-blue-600">{companySlug}</span>
+                <span className="text-blue-600 dark:text-blue-400">{companySlug}</span>
               </p>
             </div>
 
-            {/* CONTROLES */}
+            {/* CONTROLES: Con HOVER corregido para Modo Oscuro */}
             <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex flex-wrap items-center gap-3">
                 {canManage && (
@@ -123,7 +115,7 @@ const BibliotecaPage = () => {
                       onClick={() => setIsModalOpen(true)}
                       variant="outline"
                       size="sm"
-                      className="w-fit flex items-center gap-1.5 rounded-lg border-blue-600 text-blue-600 hover:bg-blue-50 dark:border-blue-500 dark:text-blue-400 font-medium px-4 shadow-sm transition-all active:scale-95"
+                      className="w-fit flex items-center gap-1.5 rounded-xl border-blue-600 text-blue-600 hover:bg-blue-50 dark:border-blue-500 dark:text-blue-400 dark:hover:bg-blue-500/10 dark:hover:text-blue-300 font-bold text-[10px] uppercase tracking-widest px-5 h-10 shadow-sm transition-all active:scale-95"
                     >
                       <Plus className="h-4 w-4" />
                       Subir Documento
@@ -133,7 +125,7 @@ const BibliotecaPage = () => {
                       onClick={() => setAuditTarget('global')}
                       variant="outline"
                       size="sm"
-                      className="w-fit flex items-center gap-1.5 rounded-lg border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium px-4 shadow-sm transition-all active:scale-95"
+                      className="w-fit flex items-center gap-1.5 rounded-xl border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:text-white font-bold text-[10px] uppercase tracking-widest px-5 h-10 shadow-sm transition-all active:scale-95"
                     >
                       <History className="h-4 w-4" />
                       Historial
@@ -142,61 +134,54 @@ const BibliotecaPage = () => {
                 )}
               </div>
 
-              <div className="flex items-center w-full sm:w-64 bg-white dark:bg-gray-800 border border-slate-300 dark:border-gray-700 rounded-lg shadow-sm focus-within:ring-1 focus-within:ring-blue-500 transition-all">
-                <div className="pl-3 py-2">
-                  <Search className="h-4 w-4 text-gray-400" />
+              {/* BUSCADOR */}
+              <div className="flex items-center w-full sm:w-80 bg-white dark:bg-[#111214] border border-slate-300 dark:border-slate-800 rounded-xl shadow-sm focus-within:ring-2 focus-within:ring-blue-500/20 focus-within:border-blue-500 transition-all overflow-hidden h-10">
+                <div className="pl-4">
+                  <Search className="h-4 w-4 text-slate-400" />
                 </div>
                 <input
                   type="text"
-                  placeholder="Buscar documento..."
+                  placeholder="BUSCAR DOCUMENTO..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="flex-1 bg-transparent border-none outline-none px-2 py-2 text-sm text-gray-800 dark:text-white placeholder:text-gray-400"
+                  className="flex-1 bg-transparent border-none outline-none px-3 text-[10px] font-bold tracking-widest text-slate-700 dark:text-white placeholder:text-slate-300 uppercase"
                 />
               </div>
             </div>
 
             {/* TABLA SECTION */}
-            <div className="w-full rounded-xl border border-slate-300 p-8 shadow-md dark:border-gray-800 dark:bg-gray-900 bg-slate-50/50 relative">
-              <div className="flex items-center gap-2 mb-6 border-b pb-4 border-slate-300 dark:border-gray-800">
-                <FolderOpen className="h-5 w-5 text-blue-600" />
-                <h2 className="text-lg font-black text-slate-900 dark:text-gray-200 uppercase tracking-tight">
-                  Documentos Organizados
-                </h2>
-              </div>
-              
-              <div className="overflow-hidden">
-                <DocumentTable
-                  company={companySlug}
-                  groupedDocuments={filteredDocuments}
-                  onRefresh={fetchDocs}
-                  onView={(id: number) => { setViewingDocId(id); setIsViewerOpen(true); }}
-                  onDelete={handleDeleteDocument}
-                  onAudit={(id: number) => setAuditTarget(id)}
-                  columnVisibility={columnVisibility}
-                  canManage={canManage}
-                  user={user} 
-                />
+            <div className="w-full rounded-[2rem] border border-slate-200 p-1 dark:border-slate-800 dark:bg-[#1a1c1e] bg-white shadow-xl shadow-slate-200/50 dark:shadow-none relative overflow-hidden">
+              <div className="bg-slate-50/50 dark:bg-slate-800/30 p-8 rounded-[1.8rem]">
+                <div className="flex items-center gap-3 mb-8 border-b pb-6 border-slate-200 dark:border-slate-800">
+                  <div className="p-2 bg-blue-600 rounded-lg">
+                    <FolderOpen className="h-5 w-5 text-white" />
+                  </div>
+                  <h2 className="text-sm font-black text-slate-800 dark:text-white uppercase tracking-[0.1em]">
+                    Documentos Organizados
+                  </h2>
+                </div>
+                
+                <div className="overflow-x-auto">
+                  <DocumentTable
+                    company={companySlug}
+                    groupedDocuments={filteredDocuments}
+                    onRefresh={fetchDocs}
+                    onView={(id: number) => { setViewingDocId(id); setIsViewerOpen(true); }}
+                    onDelete={handleDeleteDocument}
+                    onAudit={(id: number) => setAuditTarget(id)}
+                    columnVisibility={columnVisibility}
+                    canManage={canManage}
+                    user={user} 
+                  />
+                </div>
               </div>
             </div>
           </div>
         )}
       </div>
 
-      {/* MODALES */}
-      <UploadModal 
-        company={companySlug} 
-        isOpen={isModalOpen} 
-        onClose={() => setIsModalOpen(false)} 
-        onSuccess={fetchDocs} 
-      />
-      
-      <DocumentViewer 
-        company={companySlug} 
-        documentId={viewingDocId} 
-        isOpen={isViewerOpen} 
-        onClose={() => setIsViewerOpen(false)} 
-      />
+      <UploadModal company={companySlug} isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onSuccess={fetchDocs} />
+      <DocumentViewer company={companySlug} documentId={viewingDocId} isOpen={isViewerOpen} onClose={() => setIsViewerOpen(false)} />
 
       {auditTarget && (
         <div className="fixed inset-0 z-[100] flex justify-end overflow-hidden">

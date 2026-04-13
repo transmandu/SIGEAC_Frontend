@@ -8,15 +8,9 @@ export default function DocumentTable({ groupedDocuments, onView, columnVisibili
   const [openDepts, setOpenDepts] = useState<string[]>(Object.keys(groupedDocuments).slice(0, 1));
   const [openSubSections, setOpenSubSections] = useState<string[]>([]);
 
-  // Intercepta el ID y le añade el Buster antes de enviarlo al padre
   const handleViewWithBuster = (id: string | number) => {
     const buster = new Date().getTime();
-    
-    // ✅ OPCIÓN A: Si onView acepta dos parámetros (Recomendado)
     onView(id, buster); 
-
-    // ✅ OPCIÓN B: Si onView solo acepta un string (Ajuste de URL manual)
-    onView(`${id}`, buster); 
   };
 
   const toggleDept = (dept: string) => {
@@ -58,10 +52,11 @@ export default function DocumentTable({ groupedDocuments, onView, columnVisibili
     });
 
     return Object.keys(structure).sort().map(pilarKey => (
-      <div key={pilarKey} className="flex flex-col border-b border-slate-100 dark:border-gray-800/50">
-        <div className="flex items-center gap-2 px-6 py-2 bg-slate-50/50 dark:bg-white/[0.02]">
-          <FolderOpen className="h-3.5 w-3.5 text-blue-500" />
-          <span className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-gray-300">
+      /* SECCIÓN DE PILAR (GESTION RIESGOS, etc) */
+      <div key={pilarKey} className="flex flex-col border-t first:border-t-0 border-slate-300 dark:border-gray-700/60 shadow-[inset_0_1px_3px_rgba(0,0,0,0.03)] dark:shadow-none">
+        <div className="flex items-center gap-2 px-6 py-2.5 bg-slate-200/60 dark:bg-white/[0.04]">
+          <FolderOpen className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+          <span className="text-[11px] font-bold uppercase tracking-wider text-slate-700 dark:text-gray-200">
             {pilarKey.replace(/_/g, ' ')}
           </span>
         </div>
@@ -81,23 +76,23 @@ export default function DocumentTable({ groupedDocuments, onView, columnVisibili
             <div key={subKey} className="flex flex-col">
               <button 
                 onClick={() => toggleSubSection(sectionId)}
-                className="flex items-center justify-between px-8 py-2 hover:bg-blue-50/30 dark:hover:bg-white/[0.01] transition-colors border-b border-slate-100 dark:border-gray-800/30"
+                className="flex items-center justify-between px-8 py-2.5 hover:bg-white dark:hover:bg-white/[0.02] transition-colors border-b border-slate-200 dark:border-gray-800/30"
               >
                 <div className="flex items-center gap-2">
                   {isOpen ? <ChevronDown className="h-3 w-3 text-slate-400" /> : <ChevronRight className="h-3 w-3 text-slate-400" />}
                   <Layers3 className="h-3.5 w-3.5 text-slate-400" />
-                  <span className="text-[11px] font-medium text-slate-600 dark:text-gray-400 uppercase">
+                  <span className="text-[10px] font-bold text-slate-500 dark:text-gray-400 uppercase tracking-tight">
                     {subKey.replace(/_/g, ' ')}
                   </span>
                 </div>
-                <div className="flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-slate-100 dark:bg-gray-800/50 border border-slate-200 dark:border-gray-700">
+                <div className="flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-slate-100 dark:bg-gray-800/50 border border-slate-300 dark:border-gray-700">
                   <Hash className="h-2.5 w-2.5 text-slate-500" />
                   <span className="text-[10px] font-bold text-slate-600 dark:text-gray-300">{subDocs.length}</span>
                 </div>
               </button>
 
               {isOpen && (
-                <div className="flex flex-col bg-white dark:bg-black/5 divide-y divide-slate-100 dark:divide-gray-800/20">
+                <div className="flex flex-col bg-white dark:bg-transparent divide-y divide-slate-100 dark:divide-gray-800/20">
                   {subDocs.map((doc: any) => (
                     <DocumentRow key={doc.id} doc={doc} onView={handleViewWithBuster} columnVisibility={columnVisibility} isSubItem={true} onDelete={onDelete} onRefresh={onRefresh} canManage={canManage} user={user} />
                   ))}
@@ -119,16 +114,16 @@ export default function DocumentTable({ groupedDocuments, onView, columnVisibili
         const isSMS = dept.toLowerCase().includes('seguridad operacional') || dept.toLowerCase().includes('sms');
 
         return (
-          <div key={dept} className="bg-white dark:bg-[#0f1112] rounded-xl border border-slate-200 dark:border-gray-800/50 overflow-hidden shadow-sm">
+          <div key={dept} className="bg-slate-50 dark:bg-[#0f1112] rounded-xl border border-slate-300 dark:border-gray-800/50 overflow-hidden shadow-sm">
             <button 
               onClick={() => toggleDept(dept)}
-              className={`flex items-center justify-between w-full p-4 border-l-4 ${color.border} bg-white dark:bg-gray-800/20 hover:bg-slate-50 dark:hover:bg-gray-800/40 transition-all border-b ${isOpen ? 'border-slate-100' : 'border-transparent'}`}
+              className={`flex items-center justify-between w-full p-4 border-l-4 ${color.border} bg-white dark:bg-gray-800/20 hover:bg-slate-50 dark:hover:bg-gray-800/40 transition-all border-b ${isOpen ? 'border-slate-200 dark:border-gray-800/50' : 'border-transparent'}`}
             >
               <div className="flex items-center gap-3">
                 <span className="text-sm md:text-base font-bold uppercase tracking-tight text-slate-800 dark:text-gray-100">
                   {dept}
                 </span>
-                <span className="text-[10px] font-bold bg-blue-50 text-blue-600 dark:bg-black/40 dark:text-white px-2 py-0.5 rounded-full border border-blue-100 dark:border-gray-700">
+                <span className="text-[10px] font-bold bg-blue-50 text-slate-900 dark:bg-blue-900/20 dark:text-blue-300 px-2 py-0.5 rounded-full border-2 border-blue-200 dark:border-blue-800/40">
                   {docs.length}
                 </span>
               </div>
@@ -136,7 +131,7 @@ export default function DocumentTable({ groupedDocuments, onView, columnVisibili
             </button>
 
             {isOpen && (
-              <div className="flex flex-col divide-y divide-slate-50 dark:divide-gray-800/10">
+              <div className="flex flex-col divide-y divide-slate-200 dark:divide-gray-800/10">
                 {isSMS ? renderSmsContent(docs) : docs.map((doc: any) => (
                   <DocumentRow key={doc.id} doc={doc} onView={handleViewWithBuster} columnVisibility={columnVisibility} onDelete={onDelete} onRefresh={onRefresh} canManage={canManage} user={user} />
                 ))}

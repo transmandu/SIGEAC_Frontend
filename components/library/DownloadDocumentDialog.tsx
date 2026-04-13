@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo } from "react";
-import { Download, FileText, Layers, ChevronDown, Clock } from "lucide-react";
+import { Download, FileText, ChevronDown, Clock } from "lucide-react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import axiosInstance from "@/lib/axios";
 import { downloadDocumentFile } from "@/lib/Library/download-helper";
@@ -28,7 +28,6 @@ export const DownloadDocumentDialog = ({ isOpen, onClose, doc, company }: Downlo
   const [loadingVersions, setLoadingVersions] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
 
-  // Sincronizar estados al abrir
   useEffect(() => {
     if (isOpen && doc?.id) {
       handleFetchVersions();
@@ -61,7 +60,6 @@ export const DownloadDocumentDialog = ({ isOpen, onClose, doc, company }: Downlo
         ? `/${company}/library/documents/${doc.id}/download`
         : `/${company}/library/versions/${selectedVersionToDownload}/download`;
 
-      // Buscamos el número de versión para el nombre del archivo si no es el base
       const versionObj = versionList.find(v => String(v.id) === selectedVersionToDownload);
       const label = isBase ? 'VIGENTE' : versionObj?.version_number || 'VERSION';
       const fileName = `${doc.title.replace(/\s+/g, '_')}_${label}.pdf`;
@@ -70,73 +68,77 @@ export const DownloadDocumentDialog = ({ isOpen, onClose, doc, company }: Downlo
       toast.success("Descarga iniciada");
       onClose();
     } catch (error: any) {
-      const msg = error.response?.data?.message || "No tienes permisos (Director SMS requerido) o el archivo no existe.";
+      const msg = error.response?.data?.message || "No tienes permisos o el archivo no existe.";
       toast.error(msg);
     } finally {
       setIsProcessing(false);
     }
   };
 
-  // Memorizamos las versiones (aquí podrías elegir mostrar todas o filtrar)
-  const availableVersions = useMemo(() => {
-    return versionList;
-  }, [versionList]);
+  const availableVersions = useMemo(() => versionList, [versionList]);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="bg-white dark:bg-[#1a1c1e] border-none text-slate-900 dark:text-white sm:max-w-[480px] rounded-2xl overflow-hidden p-0 outline-none shadow-2xl">
         
-        {/* Cabecera idéntica a Eliminación pero en Azul */}
-        <div className="bg-gray-50 dark:bg-gray-800/40 px-6 py-4 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center">
+        <div className="bg-slate-50 dark:bg-slate-800/50 px-6 py-5 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center">
           <div className="flex items-center gap-2">
-            <div className="p-1.5 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+            <div className="p-1.5 bg-blue-100 dark:bg-blue-500/20 rounded-lg">
               <Download className="h-5 w-5 text-blue-600 dark:text-blue-400" />
             </div>
-            <DialogTitle className="text-lg font-bold text-gray-800 dark:text-white tracking-tight uppercase">
+            <DialogTitle className="text-lg font-bold text-slate-800 dark:text-white tracking-tight uppercase">
               Gestión de Descarga
             </DialogTitle>
           </div>
         </div>
 
         <div className="p-6 space-y-5">
-          <p className="text-sm text-slate-500 dark:text-gray-400">
+          <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
             Selecciona qué versión del documento deseas descargar: <br/>
-            <span className="text-slate-900 dark:text-white font-bold">{doc?.title}</span>
+            <span className="text-slate-900 dark:text-white font-bold tracking-tight">{doc?.title}</span>
           </p>
 
           <div className="space-y-3">
-            {/* Opción: Descargar Documento Vigente */}
+            {/* Opción: Documento Vigente */}
             <div 
               onClick={() => setDownloadMode('document')}
-              className={`group p-4 border rounded-xl cursor-pointer transition-all ${downloadMode === 'document' ? 'border-blue-500 bg-blue-50/10' : 'border-slate-200 dark:border-gray-800 hover:border-blue-300'}`}
+              className={`group p-4 border rounded-2xl cursor-pointer transition-all ${
+                downloadMode === 'document' 
+                ? 'border-blue-500 bg-blue-50/40 dark:bg-blue-500/10 shadow-sm' 
+                : 'border-slate-300 dark:border-slate-800 hover:border-slate-400 dark:hover:border-slate-700 bg-white dark:bg-transparent'
+              }`}
             >
               <div className="flex items-start gap-3">
-                <div className={`mt-1 w-4 h-4 rounded-full border-2 flex items-center justify-center ${downloadMode === 'document' ? 'border-blue-500' : 'border-slate-400'}`}>
+                <div className={`mt-1 w-4 h-4 rounded-full border-2 flex items-center justify-center ${downloadMode === 'document' ? 'border-blue-500' : 'border-slate-300 dark:border-slate-600'}`}>
                   {downloadMode === 'document' && <div className="w-2 h-2 bg-blue-500 rounded-full" />}
                 </div>
                 <div>
-                  <label className="text-[11px] font-bold uppercase tracking-widest text-blue-500 flex items-center gap-2 mb-1">
-                    <FileText className="h-3.5 w-3.5" /> Documento vigente (Vigente)
+                  <label className="text-[10px] font-bold uppercase tracking-widest text-blue-600 dark:text-blue-400 flex items-center gap-2 mb-1">
+                    <FileText className="h-3.5 w-3.5" /> Documento vigente
                   </label>
-                  <p className="text-[11px] text-slate-500">Descarga el archivo más reciente registrado en el sistema.</p>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium leading-tight">Descarga el archivo más reciente registrado en el sistema.</p>
                 </div>
               </div>
             </div>
 
-            {/* Opción: Descargar Versión Específica */}
+            {/* Opción: Versión Específica */}
             <div 
               onClick={() => setDownloadMode('version')}
-              className={`group p-4 border rounded-xl cursor-pointer transition-all ${downloadMode === 'version' ? 'border-purple-500 bg-purple-50/10' : 'border-slate-200 dark:border-gray-800 hover:border-purple-300'}`}
+              className={`group p-4 border rounded-2xl cursor-pointer transition-all ${
+                downloadMode === 'version' 
+                ? 'border-purple-500 bg-purple-50/40 dark:bg-purple-500/10 shadow-sm' 
+                : 'border-slate-300 dark:border-slate-800 hover:border-slate-400 dark:hover:border-slate-700 bg-white dark:bg-transparent'
+              }`}
             >
               <div className="flex items-start gap-3">
-                <div className={`mt-1 w-4 h-4 rounded-full border-2 flex items-center justify-center ${downloadMode === 'version' ? 'border-purple-500' : 'border-slate-400'}`}>
+                <div className={`mt-1 w-4 h-4 rounded-full border-2 flex items-center justify-center ${downloadMode === 'version' ? 'border-purple-500' : 'border-slate-300 dark:border-slate-600'}`}>
                   {downloadMode === 'version' && <div className="w-2 h-2 bg-purple-500 rounded-full" />}
                 </div>
                 <div className="flex-1">
-                  <label className="text-[11px] font-bold uppercase tracking-widest text-purple-500 flex items-center gap-2 mb-1">
+                  <label className="text-[10px] font-bold uppercase tracking-widest text-purple-600 dark:text-purple-400 flex items-center gap-2 mb-1">
                     <Clock className="h-3.5 w-3.5" /> Versión del historial
                   </label>
-                  <p className="text-[11px] text-slate-500 mb-3">Selecciona una versión anterior de la trazabilidad.</p>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium mb-3 leading-tight">Selecciona una versión anterior de la trazabilidad.</p>
                   
                   {downloadMode === 'version' && (
                     <div className="relative animate-in fade-in zoom-in-95 duration-200">
@@ -144,7 +146,7 @@ export const DownloadDocumentDialog = ({ isOpen, onClose, doc, company }: Downlo
                         value={selectedVersionToDownload}
                         onChange={(e) => setSelectedVersionToDownload(e.target.value)}
                         disabled={isProcessing || loadingVersions} 
-                        className="w-full h-10 pl-3 pr-10 border border-purple-200 dark:border-purple-900/40 rounded-lg bg-white dark:bg-gray-900 text-xs text-gray-800 dark:text-white outline-none appearance-none"
+                        className="w-full h-10 pl-3 pr-10 border border-slate-200 dark:border-slate-700 rounded-xl bg-slate-50 dark:bg-[#111214] text-[11px] font-bold text-slate-700 dark:text-white outline-none appearance-none"
                       >
                         {loadingVersions ? (
                           <option value="">Cargando Versiones...</option>
@@ -169,18 +171,22 @@ export const DownloadDocumentDialog = ({ isOpen, onClose, doc, company }: Downlo
             </div>
           </div>
 
-          <div className="flex gap-3 pt-4 border-t border-gray-100 dark:border-gray-800">
+          <div className="flex gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">
             <button 
               type="button" 
               onClick={onClose} 
-              className="flex-1 px-4 py-3 text-[11px] font-black text-gray-400 hover:text-gray-600 uppercase transition-colors"
+              className="flex-1 px-4 py-3 text-[10px] font-black text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 uppercase tracking-widest transition-colors"
             >
               CANCELAR
             </button>
             <button 
               onClick={handleFinalDownload}
               disabled={isProcessing || (downloadMode === 'version' && (!selectedVersionToDownload || availableVersions.length === 0))}
-              className={`flex-1 px-4 py-3 text-[11px] font-black text-white rounded-xl transition-all ${downloadMode === 'document' ? 'bg-blue-600 hover:bg-blue-700 shadow-blue-200' : 'bg-purple-600 hover:bg-purple-700 shadow-purple-200'} disabled:opacity-50 disabled:cursor-not-allowed uppercase`}
+              className={`flex-1 px-4 py-3 text-[10px] font-black text-white rounded-xl transition-all tracking-widest shadow-md active:scale-[0.98] ${
+                downloadMode === 'document' 
+                ? 'bg-blue-600 hover:bg-blue-700 shadow-blue-100 dark:shadow-none' 
+                : 'bg-purple-600 hover:bg-purple-700 shadow-purple-100 dark:shadow-none'
+              } disabled:opacity-50 disabled:cursor-not-allowed uppercase`}
             >
               {isProcessing ? 'DESCARGANDO...' : 'INICIAR DESCARGA'}
             </button>

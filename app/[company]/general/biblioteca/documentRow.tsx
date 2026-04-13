@@ -12,17 +12,18 @@ const fileTypeDetails: any = {
 };
 
 const getStatusDetails = (status: string, expirationDate: string) => {
+  // Ajuste: Bordes más oscuros (border-blue-200, border-red-200, etc) para mejor contraste
   if (!expirationDate || status?.toLowerCase() === 'no_aplica') {
-    return { label: 'PERMANENTE', classes: 'bg-blue-50 text-blue-700 border-blue-100 dark:bg-blue-500/10 dark:border-blue-500/20', isWarning: false };
+    return { label: 'PERMANENTE', classes: 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-500/10 dark:border-blue-500/30', isWarning: false };
   }
   const now = new Date();
   const expDate = new Date(expirationDate);
   const diffTime = expDate.getTime() - now.getTime();
   const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-  if (diffTime < 0) return { label: 'VENCIDO', classes: 'bg-red-50 text-red-700 border-red-100 dark:bg-red-500/10 dark:border-red-500/20', isWarning: false };
-  if (diffDays <= 5) return { label: `VENCE EN ${diffDays} DÍAS`, classes: 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-500/10 dark:border-amber-500/20 animate-pulse', isWarning: true };
-  return { label: 'VIGENTE', classes: 'bg-emerald-50 text-emerald-700 border-emerald-100 dark:bg-emerald-500/10 dark:border-emerald-500/20', isWarning: false };
+  if (diffTime < 0) return { label: 'VENCIDO', classes: 'bg-red-50 text-red-700 border-red-200 dark:bg-red-500/10 dark:border-red-500/30', isWarning: false };
+  if (diffDays <= 5) return { label: `VENCE EN ${diffDays} DÍAS`, classes: 'bg-amber-50 text-amber-700 border-amber-300 dark:bg-amber-500/10 dark:border-amber-500/30 animate-pulse', isWarning: true };
+  return { label: 'VIGENTE', classes: 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-500/10 dark:border-emerald-500/30', isWarning: false };
 };
 
 export default function DocumentRow({ doc, onView, columnVisibility, isSubItem, onDelete, onRefresh, canManage, user }: any) {
@@ -70,28 +71,30 @@ export default function DocumentRow({ doc, onView, columnVisibility, isSubItem, 
   }
 
   return (
-    <div className={`group flex items-center gap-4 p-3 transition-colors border-l-2 border-l-transparent hover:border-l-blue-600 border-b border-slate-100 dark:border-transparent
+    <div className={`group flex items-center gap-4 p-3 transition-colors border-l-2 border-l-transparent hover:border-l-blue-600 border-b border-slate-200 dark:border-transparent
       ${isSubItem ? 'pl-14' : 'pl-3'} 
-      bg-white hover:bg-slate-50/80 dark:bg-transparent dark:hover:bg-white/5`}>
+      bg-white hover:bg-slate-100 dark:bg-transparent dark:hover:bg-white/5`}>
       
       {columnVisibility.title && (
         <>
-          <div className={`p-2 rounded-lg ${fileDetails.bgColor} shrink-0 border border-current/5`}>
+          <div className={`p-2 rounded-lg ${fileDetails.bgColor} shrink-0 border border-current/10`}>
             <FileText className={`h-5 w-5 ${fileDetails.iconColor}`} strokeWidth={2}/>
           </div>
           <div className="flex-1 min-w-0 flex flex-col gap-0.5">
             <div className="flex items-center gap-2">
-              <h4 className="text-[12px] font-semibold text-slate-900 dark:text-gray-100 truncate uppercase">
+              <h4 className="text-[12px] font-semibold text-slate-950 dark:text-gray-100 truncate uppercase">
                 {doc.title || "Sin título"}
                 {latestVersion && (
-                  <span className="ml-2 text-[9px] font-bold text-slate-400 dark:text-gray-500 bg-slate-100 dark:bg-gray-800 px-1.5 py-0.5 rounded tracking-wider border border-slate-200 dark:border-gray-700">
+                  // Ajuste: Versión con gris más oscuro y borde definido
+                  <span className="ml-2 text-[9px] font-bold text-slate-500 dark:text-gray-400 bg-slate-100 dark:bg-gray-800 px-1.5 py-0.5 rounded tracking-wider border border-slate-300 dark:border-gray-600">
                     {latestVersion.version_number}
                   </span>
                 )}
               </h4>
               {statusInfo.isWarning && <AlertCircle className="h-3.5 w-3.5 text-amber-600 animate-bounce" />}
             </div>
-            <span className={`w-fit text-[8px] font-bold px-1.5 py-0.5 rounded border border-current/20 ${fileDetails.bgColor} ${fileDetails.color}`}>
+            {/* Ajuste: Badge de tipo con borde más marcado */}
+            <span className={`w-fit text-[8px] font-bold px-1.5 py-0.5 rounded border border-current/30 ${fileDetails.bgColor} ${fileDetails.color}`}>
               {fileDetails.label}
             </span>
           </div>
@@ -101,7 +104,7 @@ export default function DocumentRow({ doc, onView, columnVisibility, isSubItem, 
       {columnVisibility.expiry_date && (
         <div className="hidden sm:flex items-center gap-2 shrink-0">
           <Clock className="h-3.5 w-3.5 text-slate-400" />
-          <span className="text-[10px] text-slate-800 dark:text-gray-300 font-medium uppercase w-20 leading-none">
+          <span className="text-[10px] text-slate-500 dark:text-gray-400 font-bold uppercase w-20 leading-none">
             {displayExpirationDate}
           </span>
         </div>
@@ -118,7 +121,6 @@ export default function DocumentRow({ doc, onView, columnVisibility, isSubItem, 
       {columnVisibility.actions && (
         <div className="flex items-center gap-1 shrink-0 ml-2">
           <button 
-            // ✅ LIMPIEZA: Solo enviamos el doc.id puro
             onClick={() => onView(doc.id)} 
             className="p-2 text-slate-400 hover:text-blue-700 dark:hover:text-white hover:bg-blue-50 dark:hover:bg-blue-600 rounded-lg transition-colors"
           >
