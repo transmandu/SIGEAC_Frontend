@@ -78,7 +78,6 @@ import { EditingArticle } from "./RegisterArticleForm";
 import { useAuth } from "@/contexts/AuthContext";
 import { getConditionLabel } from "@/lib/conditions";
 import { Condition } from "@/types";
-import { useGetAircraftAcronyms } from "@/hooks/aerolinea/aeronaves/useGetAircraftAcronyms";
 /* ------------------------------- Schema ------------------------------- */
 
 const fileMaxBytes = 10_000_000; // 10 MB
@@ -325,7 +324,7 @@ export default function DirectPartForm({
                 ? initialData?.partComponent?.fabrication_date
                 : undefined,
             has_documentation: initialData?.has_documentation ?? false,
-            aircraft_id: "",
+            aircraft_id: initialData?.partComponent?.aircraft_id?.toString() ?? "",
             life_limit_part_calendar: initialData?.partComponent
                 ?.life_limit_part_calendar
                 ? initialData?.partComponent?.life_limit_part_calendar
@@ -388,7 +387,6 @@ export default function DirectPartForm({
                 ? initialData.partComponent?.fabrication_date
                 : undefined,
             has_documentation: initialData.has_documentation ?? false,
-            aircraft_id: "",
             life_limit_part_calendar: initialData.partComponent
                 ?.life_limit_part_calendar
                 ? initialData.partComponent?.life_limit_part_calendar
@@ -404,6 +402,7 @@ export default function DirectPartForm({
                 ? initialData?.inspect_date
                 : undefined,
             ata_code: initialData?.ata_code || "",
+            aircraft_id: initialData?.partComponent?.aircraft_id?.toString() ?? "",
         });
     }, [initialData, form]);
 
