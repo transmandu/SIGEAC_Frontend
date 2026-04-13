@@ -364,59 +364,6 @@ const baseCols: ColumnDef<IArticleSimple>[] = [
 export const componenteCols: ColumnDef<IArticleSimple>[] = [
     ...baseCols,
     {
-        id: "shelf_life",
-        header: ({ column }) => (
-            <DataTableColumnHeader column={column} title="Shelf Life" />
-        ),
-        cell: ({ row }) => {
-            if (row.original.__isGroup) {
-                return (
-                    <div className="text-center">
-                        <span className="text-muted-foreground italic">—</span>
-                    </div>
-                );
-            }
-
-            const caducateDate = row.original.component?.expiration_date;
-            if (!caducateDate) {
-                return (
-                    <div className="text-center">
-                        <span className="text-muted-foreground italic">N/A</span>
-                    </div>
-                );
-            }
-
-            const date = parseDateLocal(caducateDate);
-            if (isNaN(date.getTime())) {
-                return (
-                    <div className="text-center">
-                        <span className="text-muted-foreground italic">N/A</span>
-                    </div>
-                );
-            }
-
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-            date.setHours(0, 0, 0, 0);
-            const daysUntilExpiry = Math.ceil(
-                (date.getTime() - today.getTime()) / (1000 * 60 * 60 * 24),
-            );
-
-            let variant: "default" | "secondary" | "destructive" | "outline" =
-                "default";
-            if (daysUntilExpiry < 0) variant = "destructive";
-            else if (daysUntilExpiry <= 30) variant = "secondary";
-
-            return (
-                <div className="text-center">
-                    <Badge variant={variant} className="text-sm font-medium">
-                        {format(date, "dd/MM/yyyy")}
-                    </Badge>
-                </div>
-            );
-        },
-    },
-    {
         id: "actions",
         header: () => (
             <div className="sticky right-0 bg-background z-50 text-center">
@@ -680,68 +627,6 @@ export const herramientaCols: ColumnDef<IArticleSimple>[] = [
 export const allCategoriesCols: ColumnDef<IArticleSimple>[] = [
     ...baseCols,
     quantityCol,
-    {
-        id: "shelf_life",
-        header: ({ column }) => (
-            <DataTableColumnHeader column={column} title="Shelf Life" />
-        ),
-        cell: ({ row }) => {
-            if (row.original.__isGroup) {
-                return (
-                    <div className="text-center">
-                        <span className="text-muted-foreground italic">—</span>
-                    </div>
-                );
-            }
-
-            const caducateDate =
-                row.original.component?.expiration_date ||
-                row.original.consumable?.expiration_date;
-
-            if (!caducateDate) {
-                return (
-                    <div className="text-center">
-                        <span className="text-muted-foreground italic">N/A</span>
-                    </div>
-                );
-            }
-
-            const date =
-                caducateDate instanceof Date
-                    ? caducateDate
-                    : typeof caducateDate === "string"
-                        ? parseDateLocal(caducateDate)
-                        : null;
-
-            if (!date || isNaN(date.getTime())) {
-                return (
-                    <div className="text-center">
-                        <span className="text-muted-foreground italic">N/A</span>
-                    </div>
-                );
-            }
-
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-            date.setHours(0, 0, 0, 0);
-            const daysUntilExpiry = Math.ceil(
-                (date.getTime() - today.getTime()) / (1000 * 60 * 60 * 24),
-            );
-
-            let variant: "default" | "secondary" | "destructive" | "outline" =
-                "default";
-            if (daysUntilExpiry < 0) variant = "destructive";
-            else if (daysUntilExpiry <= 30) variant = "secondary";
-
-            return (
-                <div className="text-center">
-                    <Badge variant={variant} className="text-sm font-medium">
-                        {format(date, "dd/MM/yyyy")}
-                    </Badge>
-                </div>
-            );
-        },
-    },
     {
         id: "actions",
         header: () => (
