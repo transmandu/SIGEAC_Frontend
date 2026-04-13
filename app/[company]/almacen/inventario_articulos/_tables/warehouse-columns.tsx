@@ -311,32 +311,13 @@ const baseCols: ColumnDef<IArticleSimple>[] = [
                 );
             }
 
-            const calibrated = row.original.tool?.status === "CALIBRADO";
             const calibrating = row.original.tool?.status === "EN CALIBRACION";
-            const descalibrated = row.original.tool?.status === "VENCIDO";
 
             return (
                 <div className="flex flex-col justify-center items-center space-y-2">
                     {!calibrating && getStatusBadge(row.original.status?.toUpperCase())}
-                    {/* {row.original.tool && (
-            <Badge
-              className={cn(
-                "text-xs text-center",
-                calibrated
-                  ? "bg-green-500"
-                  : calibrating
-                    ? "bg-yellow-500"
-                    : descalibrated
-                      ? "bg-red-500"
-                      : "",
-              )}
-            >
-              {row.original.tool.status
-                ? row.original.tool.status
-                : "Sin estado"}
-            </Badge>
-          )} */}
-                    {row.original.tool && <StatusCellWithPopover tool={row.original} globalStatus={'hola'} />}
+
+                    {row.original.tool && <StatusCellWithPopover tool={row.original} />}
                 </div>
             );
         },
