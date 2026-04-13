@@ -147,7 +147,7 @@ export const DownloadDocumentDialog = ({ isOpen, onClose, doc, company }: Downlo
                         className="w-full h-10 pl-3 pr-10 border border-purple-200 dark:border-purple-900/40 rounded-lg bg-white dark:bg-gray-900 text-xs text-gray-800 dark:text-white outline-none appearance-none"
                       >
                         {loadingVersions ? (
-                          <option value="">Cargando historial...</option>
+                          <option value="">Cargando Versiones...</option>
                         ) : availableVersions.length === 0 ? (
                           <option value="">No hay versiones disponibles</option>
                         ) : (

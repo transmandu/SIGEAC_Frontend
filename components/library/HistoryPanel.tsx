@@ -1,153 +1,249 @@
 'use client';
 
-import { History, X, Clock, User, Eye } from "lucide-react";
+import { useState, useEffect } from 'react';
+import libraryService from '@/lib/libraryService';
+import { 
+  History, X, Loader2, FileText, CalendarDays, MessageSquare, 
+  CheckCircle2, AlertCircle, Eye, Copy, Check 
+} from 'lucide-react';
+import { QRCodeSVG } from "qrcode.react";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 
-interface Version {
-  id: number;
-  version_number: number;
-  expiry_status: string;
-  created_at: string;
-  change_log: string;
-  employee?: {
-    first_name: string;
-    last_name?: string;
+export default function TraceabilityPanel({ documentId, company, onClose, user }: any) {
+  const [logs, setLogs] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedQR, setSelectedQR] = useState<string | null>(null);
+  const [isCopying, setIsCopying] = useState(false);
+
+  // Lógica multitenant: Buscamos el rol por nombre en lugar de ID estático
+  const isDirector = user?.role_name?.toLowerCase().includes('director');
+  const isSuperUser = user?.role_name?.toLowerCase().includes('admin') || user?.role_name?.toLowerCase().includes('super');
+
+  const formatEmployeeName = (fullName: string) => {
+    if (!fullName) return 'N/A';
+    const index = fullName.indexOf('(');
+    if (index !== -1) {
+      const name = fullName.substring(0, index).trim();
+      const id = fullName.substring(index).trim();
+      return (
+        <>
+          <span className="block truncate">{name}</span>
+          <span className="block text-[9px] text-slate-500 font-bold leading-none mt-1">{id}</span>
+        </>
+      );
+    }
+    return <span className="block truncate">{fullName}</span>;
   };
-}
 
-interface HistoryPanelProps {
-  isOpen: boolean;
-  onClose: () => void;
-  versions: Version[];
-  docTitle: string;
-  onViewVersion: (id: number) => void;
-}
+  const isLinkActive = (expiresAt: string) => {
+    return new Date(expiresAt) > new Date();
+  };
 
-export const HistoryPanel = ({ 
-  isOpen, 
-  onClose, 
-  versions, 
-  docTitle, 
-  onViewVersion 
-}: HistoryPanelProps) => {
-  
-  if (!isOpen) return null;
+  const copyToClipboard = () => {
+    if (!selectedQR) return;
+    navigator.clipboard.writeText(selectedQR);
+    setIsCopying(true);
+    setTimeout(() => setIsCopying(false), 2000);
+  };
+
+  useEffect(() => {
+    const fetchLogs = async () => {
+      setLoading(true);
+      try {
+        const data = await libraryService.getTrazabilidad(company);
+        
+        // --- FILTRADO DINÁMICO REFORZADO ---
+        let filteredData = data;
+
+        if (isDirector && !isSuperUser) {
+          filteredData = data.filter((log: any) => {
+            // Si el documento es null, el Director no tiene permiso (denegación por defecto)
+            if (!log.document) return false;
+
+            // Comparamos asegurando que ambos sean tratados como String o Number
+            return String(log.document.department_id) === String(user?.department_id);
+          });
+        }
+
+        // Filtro adicional si el panel se abre desde un documento específico
+        const finalLogs = documentId 
+          ? filteredData.filter((l: any) => String(l.document_id) === String(documentId))
+          : filteredData; 
+
+        setLogs(finalLogs);
+      } catch (error) {
+        console.error("Error cargando el historial:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchLogs();
+  }, [documentId, company, user, isDirector, isSuperUser]);
+
+  const getVersionLabel = (log: any) => {
+    if (log.document && log.document.versions) {
+      const version = log.document.versions.find((v: any) => String(v.id) === String(log.version_id));
+      return version ? version.version_number : log.current_version;
+    }
+    return log.current_version || 'N/A';
+  };
 
   return (
-    <div className="fixed inset-0 z-[100] flex justify-end overflow-hidden animate-in fade-in duration-300">
-      {/* Overlay: Fondo oscuro con blur */}
-      <div 
-        className="absolute inset-0 bg-black/40 backdrop-blur-[2px]" 
-        onClick={onClose} 
-      />
+    <div className="flex flex-col h-full bg-white dark:bg-[#0f1112] border-l border-slate-300 dark:border-gray-800 shadow-2xl w-[400px] animate-in slide-in-from-right duration-300 ease-in-out">
       
-      {/* Panel Lateral */}
-      <div className="relative w-full max-w-[480px] h-full bg-white dark:bg-[#141618] border-l border-slate-200 dark:border-gray-800 flex flex-col shadow-2xl animate-in slide-in-from-right duration-500 ease-in-out">
-        
-        {/* Header del Panel */}
-        <div className="px-6 py-5 border-b border-slate-200 dark:border-gray-800 bg-slate-50/50 dark:bg-gray-800/30 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <History className="h-4 w-4 text-purple-500" />
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-white">
-              Historial de Versiones
-            </span>
+      {/* HEADER */}
+      <div className="p-6 border-b border-slate-200 dark:border-gray-800 flex justify-between items-center bg-slate-100/50 dark:bg-white/[0.02]">
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-blue-700 rounded-lg shadow-lg shadow-blue-500/30">
+            <History className="h-5 w-5 text-white" />
           </div>
-          <button 
-            onClick={onClose} 
-            className="p-1.5 text-slate-400 hover:text-slate-700 dark:hover:text-white rounded-lg hover:bg-slate-100 dark:hover:bg-gray-800 transition-colors"
-          >
-            <X className="h-4 w-4" />
-          </button>
-        </div>
-
-        {/* Cuerpo del Panel (Scrollable) */}
-        <div className="flex-1 overflow-y-auto p-6 flex flex-col gap-6 custom-scrollbar">
-          
-          {/* Info del Documento Actual */}
-          <div className="p-4 bg-slate-50 dark:bg-white/[0.02] border border-slate-100 dark:border-gray-800 rounded-xl shadow-sm">
-            <p className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Documento Seleccionado</p>
-            <p className="text-xs font-semibold text-slate-800 dark:text-white mt-1 truncate">
-              {docTitle || "Sin título definido"}
+          <div>
+            <h3 className="text-sm font-black text-slate-950 dark:text-white uppercase tracking-widest leading-none mb-1">Historial</h3>
+            <p className="text-[10px] text-slate-600 dark:text-gray-400 font-bold uppercase tracking-tight italic">
+              {isDirector ? `Vista: ${user?.department_name || 'Mi Departamento'}` : 'Documentos Compartidos'}
             </p>
           </div>
+        </div>
+        <button onClick={onClose} className="p-2 hover:bg-slate-200 dark:hover:bg-gray-800 rounded-full transition-colors text-slate-700 dark:text-slate-400">
+          <X className="h-5 w-5" />
+        </button>
+      </div>
 
-          {/* Timeline de Cambios */}
-          <div className="flex flex-col gap-4">
-            <span className="text-[11px] font-bold text-slate-500 dark:text-gray-400 uppercase tracking-wider">
-              Línea de tiempo de cambios
-            </span>
-            
-            {versions.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-12 border-2 border-dashed border-slate-100 dark:border-gray-800 rounded-2xl">
-                <History className="h-8 w-8 text-slate-200 dark:text-gray-800 mb-2" />
-                <p className="text-xs text-slate-400 dark:text-gray-600 font-medium">No hay historial registrado.</p>
-              </div>
-            ) : (
-              <div className="flex flex-col border border-slate-200 dark:border-gray-800 rounded-xl divide-y divide-slate-200 dark:divide-gray-800 overflow-hidden shadow-sm bg-white dark:bg-transparent">
-                {versions.map((v) => (
-                  <div key={v.id} className="p-4 flex flex-col gap-3 hover:bg-slate-50/50 dark:hover:bg-white/[0.01] transition-all">
-                    
-                    {/* Fila superior: Versión y Estado */}
-                    <div className="flex items-center justify-between">
+      {/* CONTENT - Scrollbar invisible */}
+      <div className="flex-1 overflow-y-auto p-6 bg-slate-50 dark:bg-[#0a0c0d] no-scrollbar" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+        <style jsx>{`
+          .no-scrollbar::-webkit-scrollbar {
+            display: none;
+          }
+        `}</style>
+
+        {loading ? (
+          <div className="flex flex-col items-center justify-center py-20 gap-3">
+            <Loader2 className="h-8 w-8 animate-spin text-blue-700" />
+            <p className="text-[10px] font-semibold text-slate-600 dark:text-gray-400 uppercase tracking-widest">Cargando registros...</p>
+          </div>
+        ) : logs.length === 0 ? (
+          <div className="text-center py-20 border-2 border-dashed border-slate-300 dark:border-gray-800 rounded-3xl bg-white dark:bg-transparent">
+            <p className="text-[10px] text-slate-600 font-semibold uppercase px-10 italic">Sin registros disponibles</p>
+          </div>
+        ) : (
+          <div className="relative border-l-2 border-slate-300 dark:border-gray-700 ml-4 space-y-8 pb-6">
+            {logs.map((log, index) => {
+              const active = isLinkActive(log.expires_at);
+              const versionLabel = getVersionLabel(log);
+
+              return (
+                <div key={index} className="relative pl-8 group">
+                  <div className={`absolute -left-[18px] top-1 w-8 h-8 rounded-lg bg-white dark:bg-[#0f1112] border-2 ${active ? 'border-emerald-500' : 'border-slate-400'} z-10 shadow-md flex items-center justify-center p-1.5 ring-4 ring-slate-50 dark:ring-[#0a0c0d]`}>
+                    <FileText className={`h-full w-full ${active ? 'text-emerald-500' : 'text-slate-400'}`} strokeWidth={2.5}/>
+                  </div>
+                  
+                  <div 
+                    onClick={() => {
+                        const token = log.share_url || log.share_token;
+                        if (token) {
+                            const fullUrl = token.startsWith('http') ? token : `${process.env.NEXT_PUBLIC_FRONTEND_URL || 'http://localhost:3000'}/shared-viewer/${company}/${token}`;
+                            setSelectedQR(fullUrl);
+                        }
+                    }}
+                    className="bg-white dark:bg-white/[0.03] rounded-2xl p-4 border border-slate-300 dark:border-gray-800 shadow-sm transition-all hover:border-blue-400 hover:shadow-md cursor-pointer active:scale-[0.98]"
+                  >
+                    <div className="flex justify-between items-center mb-3 pb-2 border-b border-slate-100 dark:border-gray-800/50">
                       <div className="flex items-center gap-2">
-                        <span className="text-[11px] font-bold uppercase text-slate-800 dark:text-white tracking-widest bg-slate-100 dark:bg-white/[0.04] px-2 py-0.5 rounded-full border border-slate-200 dark:border-gray-800">
-                          V.{v.version_number}
-                        </span>
-
-                        {v.expiry_status === 'vencido' && (
-                          <span className="text-[10px] font-bold bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 px-2 py-0.5 rounded-full">
-                            Vencido
+                        {active ? (
+                          <span className="flex items-center gap-1 text-[9px] font-semibold text-emerald-600 uppercase bg-emerald-100 dark:bg-emerald-500/10 px-2 py-0.5 rounded-full">
+                            <CheckCircle2 className="h-2.5 w-2.5" /> Activo
                           </span>
-                        )}
-                        {v.expiry_status === 'vigente' && (
-                          <span className="text-[10px] font-bold bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 px-2 py-0.5 rounded-full">
-                            Vigente
-                          </span>
-                        )}
-                        {v.expiry_status === 'no_aplica' && (
-                          <span className="text-[10px] font-bold bg-slate-100 dark:bg-gray-800 text-slate-600 dark:text-gray-400 px-2 py-0.5 rounded-full">
-                            Permanente
+                        ) : (
+                          <span className="flex items-center gap-1 text-[9px] font-semibold text-slate-500 uppercase bg-slate-100 dark:bg-slate-500/10 px-2 py-0.5 rounded-full">
+                            <AlertCircle className="h-2.5 w-2.5" /> Expirado
                           </span>
                         )}
                       </div>
+                      <span className="text-[10px] text-slate-500 font-bold uppercase flex items-center gap-1">
+                        <CalendarDays className="h-3 w-3" /> 
+                        {new Date(log.created_at).toLocaleDateString()}
+                      </span>
+                    </div>
 
-                      <div className="flex items-center gap-1 text-slate-400 dark:text-gray-500 text-[10px] font-medium">
-                        <Clock className="h-3 w-3" />
-                        {v.created_at ? new Date(v.created_at).toLocaleDateString() : '--/--/--'}
+                    {log.document_title && (
+                      <div className="mb-3 flex items-center justify-between gap-2">
+                        <p className="text-[12px] font-bold text-blue-900 dark:text-blue-400 uppercase tracking-tight truncate leading-tight flex-1">
+                          {log.document_title}
+                        </p>
+                        {versionLabel !== 'N/A' && (
+                          <span className="shrink-0 text-[10px] font-medium bg-slate-100 dark:bg-white/[0.04] text-slate-600 dark:text-slate-300 px-2.5 py-0.5 rounded-full border border-slate-200 dark:border-gray-800 tracking-tighter">
+                            {versionLabel}
+                          </span>
+                        )}
+                      </div>
+                    )}
+
+                    <div className="grid grid-cols-2 gap-3 mb-4">
+                      <div>
+                        <p className="text-[8px] text-slate-500 dark:text-gray-500 font-semibold uppercase tracking-widest mb-1">Generado por</p>
+                        <div className="text-[11px] font-semibold text-slate-950 dark:text-gray-100 uppercase tracking-tighter leading-tight">
+                          {formatEmployeeName(log.created_by_name)}
+                        </div>
+                      </div>
+                      <div className="border-l border-slate-300 dark:border-gray-800 pl-3">
+                        <p className="text-[8px] text-slate-500 dark:text-gray-500 font-semibold uppercase tracking-widest mb-1">Asignado a</p>
+                        <div className="text-[11px] font-semibold text-slate-950 dark:text-gray-100 uppercase tracking-tighter leading-tight">
+                          {formatEmployeeName(log.shared_with_name || 'Personal Externo')}
+                        </div>
                       </div>
                     </div>
 
-                    {/* Detalle del cambio */}
-                    <div className="bg-slate-50 dark:bg-white/[0.01] p-3 rounded-lg border border-slate-100 dark:border-gray-800/50">
-                      <p className="text-[10px] font-bold text-slate-400 dark:text-gray-500 uppercase tracking-wider mb-1">Log de Cambios:</p>
-                      <p className="text-xs text-slate-700 dark:text-gray-300 font-normal leading-relaxed">
-                        {v.change_log || 'Sin descripción de cambios registrados.'}
-                      </p>
-                    </div>
-                    
-                    {/* Footer de la tarjeta: Usuario y Botón Ver */}
-                    <div className="flex items-center justify-between mt-1">
-                      <div className="flex items-center gap-1.5">
-                        <User className="h-3 w-3 text-slate-400" />
-                        <span className="text-[10px] text-slate-500 dark:text-gray-500 font-medium">
-                          {v.employee?.first_name ? `${v.employee.first_name} ${v.employee.last_name || ''}` : 'Admin Sistema'}
-                        </span>
+                    <div className="bg-slate-100 dark:bg-black/40 p-3 rounded-xl border border-slate-200 dark:border-gray-800 shadow-inner">
+                      <div className="flex items-start gap-2">
+                        <MessageSquare className="h-3 w-3 text-slate-400 mt-0.5 shrink-0" />
+                        <p className="text-[11px] text-slate-800 dark:text-gray-300 font-bold leading-tight italic line-clamp-2">
+                          "{log.reason || 'Sin descripción.'}"
+                        </p>
                       </div>
-
-                      <button 
-                        onClick={() => onViewVersion(v.id)} 
-                        className="flex items-center gap-1 h-7 px-3 border border-slate-200 dark:border-gray-800 hover:bg-slate-100 dark:hover:bg-gray-800/80 rounded-lg text-slate-600 dark:text-gray-400 transition-all active:scale-95 shadow-sm"
-                      >
-                        <Eye className="h-3 w-3" />
-                        <span className="text-[10px] font-bold uppercase tracking-wider">Ver Versión</span>
-                      </button>
                     </div>
                   </div>
-                ))}
-              </div>
-            )}
+                </div>
+              );
+            })}
           </div>
-        </div>
+        )}
       </div>
+
+      {/* MODAL QR DINÁMICO */}
+      <Dialog open={!!selectedQR} onOpenChange={() => setSelectedQR(null)}>
+        <DialogContent className="sm:max-w-[380px] p-0 flex flex-col items-center overflow-hidden shadow-2xl bg-white dark:bg-[#1a1c1e] border-slate-200 dark:border-gray-800 outline-none sm:!ml-[-440px] sm:!translate-x-0 !z-[100]">
+          <div className="w-full px-6 py-4 border-b flex items-center justify-center bg-slate-100/50 dark:bg-gray-800/40 border-slate-200 dark:border-gray-700">
+            <DialogTitle className="text-slate-900 dark:text-white text-center text-xs font-semibold uppercase tracking-widest">
+              Vista del Código QR
+            </DialogTitle>
+          </div>
+
+          <div className="p-6 flex flex-col items-center w-full space-y-6">
+            <div className="p-5 bg-white rounded-2xl shadow-xl border border-slate-200">
+              {selectedQR && (
+                <QRCodeSVG value={selectedQR} size={200} level="H" marginSize={3} />
+              )}
+            </div>
+
+            <div className="w-full space-y-4 pb-2">
+              <div className="flex items-center gap-2 p-1.5 rounded-xl border bg-slate-50 dark:bg-gray-800/50 border-slate-200 dark:border-gray-700">
+                <input readOnly value={selectedQR || ""} className="flex-1 h-8 bg-transparent border-none text-[10px] text-slate-700 dark:text-gray-400 outline-none px-2 font-mono truncate" />
+                <button onClick={copyToClipboard} className="h-8 w-8 p-0 flex items-center justify-center hover:bg-slate-200 dark:hover:bg-gray-700 rounded-lg transition-colors">
+                  {isCopying ? <Check className="h-3.5 w-3.5 text-emerald-500" /> : <Copy className="h-3.5 w-3.5 text-slate-500 dark:text-gray-400" />}
+                </button>
+              </div>
+
+              <button 
+                onClick={() => setSelectedQR(null)}
+                className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold text-[11px] uppercase tracking-widest shadow-lg shadow-blue-500/20"
+              >
+                CERRAR VISOR
+              </button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
-};
+}

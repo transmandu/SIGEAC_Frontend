@@ -1,7 +1,8 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import libraryService from '@/lib/libraryService';
 import axiosInstance from '@/lib/axios';
+import { useAuth } from "@/contexts/AuthContext";
 import { 
   X, 
   UploadCloud, 
@@ -23,10 +24,11 @@ const SMS_STRUCTURE: Record<string, string[]> = {
 };
 
 export default function UploadModal({ company, isOpen, onClose, onSuccess }: any) {
+  const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [hasExpiry, setHasExpiry] = useState(false);
-  const [isDragging, setIsDragging] = useState(false); // 🔥 Nuevo estado para feedback visual
+  const [isDragging, setIsDragging] = useState(false);
   
   const [departments, setDepartments] = useState<{ id: number, name: string }[]>([]);
   const [categories, setCategories] = useState<{ id: number, name: string }[]>([]);
@@ -34,7 +36,6 @@ export default function UploadModal({ company, isOpen, onClose, onSuccess }: any
 
   const [smsPillar, setSmsPillar] = useState('');
   const [smsSubPoint, setSmsSubPoint] = useState('');
-  
   const [newCategoryName, setNewCategoryName] = useState('');
 
   const [formData, setFormData] = useState({
@@ -44,6 +45,26 @@ export default function UploadModal({ company, isOpen, onClose, onSuccess }: any
     department_name: '',
     expiration_date: '',
   });
+
+  // --- LÓGICA DE PERMISOS INTEGRADA DEL PAGE ---
+  const { isSuperUser, isDirector, userDeptId } = useMemo(() => {
+    if (!user) return { isSuperUser: false, isDirector: false, userDeptId: null };
+
+    // 1. Verificación por ROL (Superusuarios)
+    const isSuper = user.roles?.some(role => 
+      ['SUPERUSER', 'ADMIN', 'ADMINISTRADOR'].includes(role.name.toUpperCase())
+    );
+
+    // 2. Verificación por CARGO (Directores)
+    const isDir = user.employee?.some((emp: any) => {
+      const cargoNombre = emp.job_title?.name || "";
+      return cargoNombre.toUpperCase().includes('DIRECTOR');
+    });
+
+    const deptId = user.employee?.[0]?.department?.id;
+
+    return { isSuperUser: isSuper, isDirector: isDir, userDeptId: deptId };
+  }, [user]);
 
   const isSmsDepartment = (deptName: string) => {
     const normalized = deptName.toLowerCase().trim();
@@ -59,8 +80,25 @@ export default function UploadModal({ company, isOpen, onClose, onSuccess }: any
             axiosInstance.get(`/${company}/library/departments-list`),
             axiosInstance.get(`/${company}/library/categories-list`)
           ]);
-          setDepartments(deptsRes.data);
+
+          let availableDepts = deptsRes.data;
+
+          // 🔥 FILTRADO: Si no es superusuario, solo mostramos su departamento
+          if (!isSuperUser && userDeptId) {
+            availableDepts = availableDepts.filter((d: any) => Number(d.id) === Number(userDeptId));
+          }
+
+          setDepartments(availableDepts);
           setCategories(catsRes.data);
+
+          if (availableDepts.length === 1) {
+            setFormData(prev => ({
+              ...prev,
+              department_id: availableDepts[0].id.toString(),
+              department_name: availableDepts[0].name
+            }));
+          }
+
         } catch (error) {
           console.error("Error al cargar datos:", error);
         } finally {
@@ -69,32 +107,15 @@ export default function UploadModal({ company, isOpen, onClose, onSuccess }: any
       };
       fetchData();
     }
-  }, [isOpen, company]);
+  }, [isOpen, company, isSuperUser, userDeptId]);
 
-  useEffect(() => {
-    if (!isSmsDepartment(formData.department_name)) {
-      setSmsPillar('');
-      setSmsSubPoint('');
-    }
-  }, [formData.department_name]);
-
-  // 🔥 NUEVAS FUNCIONES PARA DRAG AND DROP
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(true);
-  };
-
-  const handleDragLeave = () => {
-    setIsDragging(false);
-  };
-
+  const handleDragOver = (e: React.DragEvent) => { e.preventDefault(); setIsDragging(true); };
+  const handleDragLeave = () => { setIsDragging(false); };
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(false);
-    
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       const droppedFile = e.dataTransfer.files[0];
-      // Validamos extensión sutilmente
       const ext = droppedFile.name.split('.').pop()?.toLowerCase();
       if (['pdf', 'xlsx', 'xls'].includes(ext || '')) {
         setFile(droppedFile);
@@ -106,6 +127,18 @@ export default function UploadModal({ company, isOpen, onClose, onSuccess }: any
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validación de seguridad combinada
+    const canManage = isSuperUser || isDirector;
+    
+    if (!canManage) {
+        return alert("Error: No tienes permisos suficientes (Director o Admin) para realizar esta acción.");
+    }
+
+    if (!isSuperUser && Number(formData.department_id) !== Number(userDeptId)) {
+        return alert("Error: Solo tienes permiso para subir documentos a tu propio departamento.");
+    }
+
     if (!file || !formData.category_id || !formData.department_id) {
       return alert("Error: Por favor completa todos los campos obligatorios.");
     }
@@ -122,21 +155,14 @@ export default function UploadModal({ company, isOpen, onClose, onSuccess }: any
     data.append('department_id', formData.department_id);
     data.append('department_name', formData.department_name);
 
-    if (formData.category_id === 'otro') {
-      data.append('new_category_name', newCategoryName);
-    }
-
+    if (formData.category_id === 'otro') data.append('new_category_name', newCategoryName);
     if (isSmsDepartment(formData.department_name)) {
       data.append('sms_pillar', smsPillar);
       data.append('sms_sub_point', smsSubPoint);
     }
 
-    if (hasExpiry && formData.expiration_date) {
-      data.append('requires_expiry', '1');
-      data.append('expiration_date', formData.expiration_date);
-    } else {
-      data.append('requires_expiry', '0');
-    }
+    data.append('requires_expiry', hasExpiry ? '1' : '0');
+    if (hasExpiry && formData.expiration_date) data.append('expiration_date', formData.expiration_date);
 
     try {
       await libraryService.uploadDocument(company, data);
@@ -162,16 +188,18 @@ export default function UploadModal({ company, isOpen, onClose, onSuccess }: any
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 transition-opacity">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 transition-opacity text-left">
       <div className="bg-white dark:bg-[#1a1c1e] rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden border border-gray-200 dark:border-gray-800 animate-in zoom-in-95 duration-200">
         
-        {/* Header igual */}
         <div className="bg-gray-50 dark:bg-gray-800/40 px-6 py-4 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center">
           <div className="flex items-center gap-2">
             <div className="p-1.5 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
               <UploadCloud className="h-5 w-5 text-blue-600 dark:text-blue-400" />
             </div>
-            <h2 className="text-lg font-bold text-gray-800 dark:text-white tracking-tight">Subir nuevo documento</h2>
+            <div>
+              <h2 className="text-lg font-bold text-gray-800 dark:text-white tracking-tight">Subir nuevo documento</h2>
+              {!isSuperUser && <p className="text-[10px] text-blue-500 font-bold uppercase tracking-wider">Modo Director</p>}
+            </div>
           </div>
           <button onClick={handleInternalClose} className="text-gray-400 hover:text-red-500 transition-colors p-1 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-full">
             <X className="h-5 w-5" />
@@ -179,8 +207,7 @@ export default function UploadModal({ company, isOpen, onClose, onSuccess }: any
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-5">
-          {/* Nombre del Documento */}
-          <div className="space-y-1.5">
+          <div className="space-y-1.5 text-left">
             <label className="text-[11px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500 flex items-center gap-2">
               <FileText className="h-3.5 w-3.5 text-blue-500" /> Nombre del Documento
             </label>
@@ -193,7 +220,6 @@ export default function UploadModal({ company, isOpen, onClose, onSuccess }: any
             />
           </div>
 
-          {/* Selects de Depto y Categoría */}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1.5 text-left">
               <label className="text-[11px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500 flex items-center gap-2">
@@ -201,8 +227,8 @@ export default function UploadModal({ company, isOpen, onClose, onSuccess }: any
               </label>
               <div className="relative">
                 <select 
-                  required disabled={loadingData}
-                  className="w-full h-11 pl-4 pr-10 border border-gray-300 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-gray-800 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none cursor-pointer appearance-none relative z-10"
+                  required disabled={loadingData || (!isSuperUser && departments.length === 1)}
+                  className="w-full h-11 pl-4 pr-10 border border-gray-300 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-gray-800 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none cursor-pointer appearance-none relative z-10 disabled:opacity-80"
                   value={formData.department_id}
                   onChange={(e) => {
                     const selectedId = e.target.value;
@@ -210,8 +236,10 @@ export default function UploadModal({ company, isOpen, onClose, onSuccess }: any
                     setFormData({ ...formData, department_id: selectedId, department_name: selectedName });
                   }}
                 >
-                  <option value="" disabled>Seleccionar</option>
-                  {departments.map(d => (<option key={d.id} value={d.id}>{d.name}</option>))}
+                  {isSuperUser && <option value="" disabled>Seleccionar</option>}
+                  {departments.map(d => (
+                    <option key={d.id} value={d.id}>{d.name}</option>
+                  ))}
                 </select>
                 <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none z-20" />
               </div>
@@ -237,15 +265,13 @@ export default function UploadModal({ company, isOpen, onClose, onSuccess }: any
             </div>
           </div>
 
-          {/* Nueva categoría input */}
           {formData.category_id === 'otro' && (
-            <div className="space-y-1.5 animate-in slide-in-from-top-2 duration-300">
+            <div className="space-y-1.5 animate-in slide-in-from-top-2 duration-300 text-left">
               <label className="text-[10px] font-bold uppercase text-blue-600 dark:text-blue-400 flex items-center gap-2">
                 <PlusCircle className="h-3 w-3" /> Nombre de la nueva categoría
               </label>
               <input 
-                type="text" 
-                required
+                type="text" required
                 className="w-full h-10 px-4 border border-blue-500 rounded-xl bg-blue-50/20 dark:bg-blue-900/10 text-gray-800 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none"
                 placeholder="Ej. Certificados de Calidad"
                 value={newCategoryName}
@@ -254,9 +280,8 @@ export default function UploadModal({ company, isOpen, onClose, onSuccess }: any
             </div>
           )}
 
-          {/* SMS Section */}
           <div className={`transition-all duration-500 ease-in-out overflow-hidden ${isSmsDepartment(formData.department_name) ? 'max-h-40 opacity-100 translate-y-0' : 'max-h-0 opacity-0 -translate-y-4'}`}>
-              <div className="grid grid-cols-2 gap-4 p-4 bg-blue-50/50 dark:bg-blue-900/10 rounded-2xl border border-blue-100 dark:border-blue-900/20">
+              <div className="grid grid-cols-2 gap-4 p-4 bg-blue-50/50 dark:bg-blue-900/10 rounded-2xl border border-blue-100 dark:border-blue-900/20 text-left">
               <div className="space-y-1.5 col-span-1">
                 <label className="text-[10px] font-bold uppercase text-blue-600 dark:text-blue-400 flex items-center gap-2">
                   <Layers className="h-3 w-3" /> Fase SMS
@@ -277,7 +302,7 @@ export default function UploadModal({ company, isOpen, onClose, onSuccess }: any
                 </div>
               </div>
 
-              <div className="space-y-1.5 col-span-1">
+              <div className="space-y-1.5 col-span-1 text-left">
                 <label className="text-[10px] font-bold uppercase text-blue-600 dark:text-blue-400 flex items-center gap-2">
                   <Layers className="h-3 w-3" /> Punto
                 </label>
@@ -300,8 +325,7 @@ export default function UploadModal({ company, isOpen, onClose, onSuccess }: any
             </div>
           </div>
 
-          {/* Vigencia */}
-          <div className="space-y-2">
+          <div className="space-y-2 text-left">
             <label className="text-[11px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500 flex items-center gap-2">
               <Calendar className="h-3.5 w-3.5 text-blue-500" /> Vigencia
             </label>
@@ -326,7 +350,6 @@ export default function UploadModal({ company, isOpen, onClose, onSuccess }: any
             </div>
           </div>
 
-          {/* Fecha de Expiración */}
           <div className={`transition-all duration-500 overflow-hidden ${hasExpiry ? 'max-h-24 opacity-100' : 'max-h-0 opacity-0'}`}>
             <div className="space-y-1.5 pt-1 text-left">
               <label className="text-[11px] font-bold uppercase text-blue-600 dark:text-blue-400 flex items-center gap-2">
@@ -342,7 +365,6 @@ export default function UploadModal({ company, isOpen, onClose, onSuccess }: any
             </div>
           </div>
 
-          {/* 🔥 CUADRO DE CARGA CON DRAG AND DROP ACTIVO */}
           <div className="pt-2">
             <label 
               onDragOver={handleDragOver}
@@ -368,7 +390,6 @@ export default function UploadModal({ company, isOpen, onClose, onSuccess }: any
             </label>
           </div>
 
-          {/* Footer Buttons */}
           <div className="flex gap-3 pt-4 border-t dark:border-gray-800">
             <button type="button" onClick={handleInternalClose} className="flex-1 px-4 py-3 text-[11px] font-black tracking-widest text-gray-400 hover:text-gray-600 uppercase">CANCELAR</button>
             <button type="submit" disabled={loading || loadingData} className="flex-1 px-4 py-3 text-[11px] font-black tracking-widest text-white bg-blue-600 rounded-xl hover:bg-blue-700 disabled:opacity-50 shadow-lg shadow-blue-500/20">

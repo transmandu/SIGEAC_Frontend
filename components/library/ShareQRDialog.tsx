@@ -34,7 +34,6 @@ export const ShareQRDialog = ({ isOpen, onClose, doc, company }: ShareProps) => 
   const [activeShares, setActiveShares] = useState<any[]>([]);
   const [loadingShares, setLoadingShares] = useState(false);
 
-  // 1. FUNCIÓN DE LIMPIEZA AL CERRAR
   const handleDialogChange = (open: boolean) => {
     if (!open) {
       setGeneratedUrl("");
@@ -170,12 +169,13 @@ export const ShareQRDialog = ({ isOpen, onClose, doc, company }: ShareProps) => 
                   <div className="flex items-end gap-4">
                     <div className="flex-1 space-y-1.5">
                       <label className="text-[9px] font-black uppercase tracking-widest text-slate-400">Entregado a</label>
+                      {/* 🎨 CAMBIO: Ajuste de color de fondo para integrar con el modal */}
                       <input 
                         type="text" 
                         value={sharedWith} 
                         onChange={(e) => setSharedWith(e.target.value)} 
                         placeholder="Ej: Auditoría" 
-                        className="w-full h-10 px-3 border border-slate-200 dark:border-gray-700 rounded-xl bg-transparent dark:bg-gray-900/50 text-[11px] outline-none focus:ring-2 focus:ring-blue-500 transition-all dark:text-white" 
+                        className="w-full h-10 px-3 border border-slate-200 dark:border-gray-700 rounded-xl bg-slate-50 dark:bg-[#1a1c1e] text-[11px] outline-none focus:ring-2 focus:ring-blue-500 transition-all dark:text-white" 
                       />
                     </div>
                     <div className="flex-1 space-y-1.5">
@@ -183,10 +183,11 @@ export const ShareQRDialog = ({ isOpen, onClose, doc, company }: ShareProps) => 
                         <History className="h-2.5 w-2.5" /> Versión
                       </label>
                       <div className="relative">
+                        {/* 🎨 CAMBIO: Ajuste de color de fondo para integrar con el modal */}
                         <select 
                           value={selectedVersionId} 
                           onChange={(e) => setSelectedVersionId(e.target.value)} 
-                          className="w-full h-10 px-3 border border-slate-200 dark:border-gray-700 rounded-xl bg-transparent dark:bg-gray-900/50 text-slate-900 dark:text-white text-[11px] appearance-none focus:ring-2 focus:ring-blue-500 transition-all pr-8 cursor-pointer outline-none"
+                          className="w-full h-10 px-3 border border-slate-200 dark:border-gray-700 rounded-xl bg-slate-50 dark:bg-[#1a1c1e] text-slate-900 dark:text-white text-[11px] appearance-none focus:ring-2 focus:ring-blue-500 transition-all pr-8 cursor-pointer outline-none"
                         >
                           {doc?.versions?.map((v: any) => (
                             <option key={v.id} value={v.id} className="bg-white dark:bg-[#1a1c1e] text-slate-900 dark:text-white">
@@ -210,7 +211,13 @@ export const ShareQRDialog = ({ isOpen, onClose, doc, company }: ShareProps) => 
 
                   <div className="space-y-1.5">
                     <label className="text-[9px] font-black uppercase tracking-widest text-slate-400">Razón / Motivo *</label>
-                    <textarea value={reason} onChange={(e) => setReason(e.target.value)} placeholder="Indique el motivo..." className="w-full h-16 p-3 border border-slate-200 dark:border-gray-700 rounded-xl bg-transparent text-[11px] resize-none focus:ring-2 focus:ring-blue-500 dark:text-white" />
+                    {/* 🎨 CAMBIO: Ajuste de color de fondo para integrar con el modal */}
+                    <textarea 
+                        value={reason} 
+                        onChange={(e) => setReason(e.target.value)} 
+                        placeholder="Indique el motivo..." 
+                        className="w-full h-16 p-3 border border-slate-200 dark:border-gray-700 rounded-xl bg-slate-50 dark:bg-[#1a1c1e] text-[11px] resize-none focus:ring-2 focus:ring-blue-500 dark:text-white outline-none transition-all" 
+                    />
                   </div>
 
                   <Button disabled={!isReasonValid || loading} onClick={handleGenerateQR} className="w-full h-10 bg-blue-600 hover:bg-blue-700 text-[10px] font-black tracking-widest rounded-xl">
@@ -272,7 +279,6 @@ export const ShareQRDialog = ({ isOpen, onClose, doc, company }: ShareProps) => 
                         className="group p-4 border border-slate-100 dark:border-gray-800 rounded-xl hover:border-blue-200 hover:bg-blue-50/30 dark:hover:bg-blue-900/10 transition-all cursor-pointer flex items-center justify-between"
                       >
                         <div className="space-y-1.5">
-                          {/* 🎯 CAMBIO 2: DISTINCIÓN DE DESTINATARIO */}
                           <div className="flex flex-col">
                             <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Entregado a:</span>
                             <span className="text-[11px] font-bold text-slate-800 dark:text-white uppercase tracking-tight">
@@ -281,7 +287,6 @@ export const ShareQRDialog = ({ isOpen, onClose, doc, company }: ShareProps) => 
                           </div>
                           
                           <div className="flex items-center gap-3">
-                            {/* 🎯 CAMBIO 2: DISTINCIÓN DE VERSIÓN */}
                             <span className="flex items-center gap-1 text-[9px] font-black bg-blue-50 dark:bg-blue-900/20 text-blue-600 px-1.5 py-0.5 rounded uppercase border border-blue-100 dark:border-blue-800">
                               <History className="h-2.5 w-2.5" />
                               VERSIÓN {share.version?.version_number || 'ACTUAL'}

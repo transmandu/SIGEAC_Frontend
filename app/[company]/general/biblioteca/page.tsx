@@ -10,7 +10,7 @@ import { Plus, Search, FolderOpen, Loader2, History } from "lucide-react";
 import DocumentTable from "./DocumentTable";
 import UploadModal from "./UploadModal"; 
 import DocumentViewer from "@/components/library/SecureVisualizer";
-import TraceabilityPanel from "@/components/library/TraceabilityPanel"; 
+import TraceabilityPanel from "@/components/library/HistoryPanel"; 
 import libraryService from "@/lib/libraryService";
 import { toast } from "sonner";
 
@@ -35,10 +35,24 @@ const BibliotecaPage = () => {
     actions: true,
   });
 
+  // --- LÓGICA DE PERMISOS ACTUALIZADA ---
   const canManage = useMemo(() => {
-    const isSuperUser = user?.roles?.some(role => role.name.toUpperCase() === 'SUPERUSER');
-    const isDirector = user?.job_name === 'Director';
-    return isSuperUser || isDirector;
+    if (!user) return false;
+
+    // 1. Verificación por ROL (Superusuarios)
+    const isSuperUser = user.roles?.some(role => 
+      ['SUPERUSER', 'ADMIN', 'ADMINISTRADOR'].includes(role.name.toUpperCase())
+    );
+
+    // 2. Verificación por CARGO (Directores)
+    // Accedemos a user.employee -> job_title -> name
+    const isDirector = user.employee?.some((emp: any) => {
+      const cargoNombre = emp.job_title?.name || "";
+      return cargoNombre.toUpperCase().includes('DIRECTOR');
+    });
+
+    // Retorna true si cumple cualquiera de las dos
+    return !!(isSuperUser || isDirector);
   }, [user]);
 
   const fetchDocs = useCallback(async () => {
@@ -50,14 +64,11 @@ const BibliotecaPage = () => {
       console.error("Error al cargar la biblioteca:", error);
       toast.error("Error al sincronizar documentos");
     } finally {
-      // Pequeño delay para suavizar la transición visual del loader
       setTimeout(() => setLoading(false), 300);
     }
   }, [companySlug]);
 
   const handleDeleteDocument = async (id: number) => {
-    // Al eliminar, no ponemos loading total para no bloquear la UI bruscamente, 
-    // dejamos que el fetchDocs posterior maneje la carga.
     try {
       await libraryService.deleteDocument(companySlug, id); 
       toast.success("Documento eliminado correctamente");
@@ -158,12 +169,13 @@ const BibliotecaPage = () => {
                 <DocumentTable
                   company={companySlug}
                   groupedDocuments={filteredDocuments}
-                  onRefresh={fetchDocs} // <--- AHORA SÍ CONECTADO
+                  onRefresh={fetchDocs}
                   onView={(id: number) => { setViewingDocId(id); setIsViewerOpen(true); }}
                   onDelete={handleDeleteDocument}
                   onAudit={(id: number) => setAuditTarget(id)}
                   columnVisibility={columnVisibility}
-                  canManage={canManage} 
+                  canManage={canManage}
+                  user={user} 
                 />
               </div>
             </div>

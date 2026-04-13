@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useParams } from "next/navigation";
 import { MoreVertical, Trash2, QrCode, History, UploadCloud, Download } from "lucide-react";
 import { 
@@ -11,20 +11,45 @@ import { toast } from "sonner";
 
 // Componentes refactorizados
 import SecureViewer from "@/components/library/SecureVisualizer";
-import { HistoryPanel } from "@/components/library/HistoryPanel";
+import { HistoryPanel } from "@/components/library/VersionPanel";
 import { ShareQRDialog } from "@/components/library/ShareQRDialog";
 import { DeleteDocumentDialog } from "@/components/library/DeleteDocumentDialog";
 import { UploadVersionDialog } from "@/components/library/UploadVersionDialog";
 import { DownloadDocumentDialog } from "@/components/library/DownloadDocumentDialog";
 
+// --- INTERFACES PARA TYPESCRIPT ---
+interface Role {
+  id: number;
+  name: string;
+}
+
+interface JobTitle {
+  id: number;
+  name: string;
+}
+
+interface Employee {
+  id?: number;
+  job_title?: JobTitle;
+  position?: string; // Por si acaso el backend usa este campo
+  department_id?: number;
+}
+
+interface User {
+  id?: number;
+  roles?: Role[];
+  employee?: Employee | Employee[] | null; 
+}
+
 interface Props {
   doc: any;
+  user: User | null;
   canManage: boolean;
   onDelete: (id: number | string) => Promise<void>;
   onRefresh: () => Promise<void>;
 }
 
-export const LibraryDropdownActions = ({ doc, canManage, onDelete, onRefresh }: Props) => {
+export const LibraryDropdownActions = ({ doc, user, canManage, onDelete, onRefresh }: Props) => {
   const params = useParams();
   const company = params.company as string;
 
@@ -41,12 +66,53 @@ export const LibraryDropdownActions = ({ doc, canManage, onDelete, onRefresh }: 
   const [versionList, setVersionList] = useState<any[]>([]);
   const [loadingVersions, setLoadingVersions] = useState(false);
 
-  // 🛡️ Validación estricta para el botón de descarga
-  // Solo se muestra si el departamento es Seguridad Operacional o SMS
+  useEffect(() => {
+  console.log("🔍 ESTADO GLOBAL DEL COMPONENTE:");
+  console.log("Prop User:", user);
+  console.log("Prop Doc:", doc);
+  }, [user, doc]);
+
+
+  // 🛡️ Lógica de Descarga Corregida (Sincronizada con Laravel)
   const canDownload = useMemo(() => {
-    const deptName = doc?.department?.name?.toUpperCase() || "";
-    return deptName.includes("SEGURIDAD OPERACIONAL") || deptName.includes("SMS");
-  }, [doc]);
+    if (!user || !doc) return false;
+
+    // 1. Verificación por ROL (SUPERUSER o ADMIN)
+    const isSuperUser = user.roles?.some((role: Role) => 
+      ['SUPERUSER', 'ADMIN', 'ADMINISTRADOR'].includes(role.name.toUpperCase())
+    );
+    
+    // 2. Verificación por CARGO (Soporta Objeto único o Array)
+    const employeeData = user.employee;
+    let isDirector = false;
+
+    const checkJobTitle = (emp: Employee) => {
+      const nameFromJob = emp.job_title?.name?.toUpperCase() || "";
+      const nameFromPosition = emp.position?.toUpperCase() || "";
+      return nameFromJob.includes('DIRECTOR') || nameFromPosition.includes('DIRECTOR');
+    };
+
+    if (Array.isArray(employeeData)) {
+      isDirector = employeeData.some(emp => checkJobTitle(emp));
+    } else if (employeeData) {
+      isDirector = checkJobTitle(employeeData);
+    }
+
+    // 3. Verificación de Departamento
+    const docDeptName = doc.department?.name?.toUpperCase() || "";
+    const isSmsDept = docDeptName.includes("SEGURIDAD OPERACIONAL") || docDeptName.includes("SMS");
+
+    // Logs de depuración para tu terminal del navegador
+    console.log("--- CHEQUEO DE DESCARGA ---");
+    console.log("¿Es Director?:", isDirector);
+    console.log("¿Es Dept SMS?:", isSmsDept);
+    console.log("Dept del Doc:", docDeptName);
+
+    if (isSuperUser) return true;
+    
+    // Solo Directores del departamento SMS pueden descargar
+    return !!(isDirector && isSmsDept);
+  }, [doc, user]);
 
   // 📜 Lógica para obtener versiones
   const handleFetchVersions = async () => {
@@ -61,6 +127,24 @@ export const LibraryDropdownActions = ({ doc, canManage, onDelete, onRefresh }: 
     } finally {
       setLoadingVersions(false);
     }
+  };
+
+  const handleOpenShareQR = async () => {
+    if (!company) return;
+    
+    if (versionList.length === 0) {
+      setLoadingVersions(true);
+      try {
+        const response = await axiosInstance.get(`/${company}/library/documents/${doc.id}/versions`);
+        const versions = response.data.data.versions || response.data.data || [];
+        setVersionList(versions);
+      } catch (error) {
+        toast.error("Error al cargar versiones para el QR");
+      } finally {
+        setLoadingVersions(false);
+      }
+    }
+    setShareOpen(true);
   };
 
   const handleViewOldVersion = (versionId: number) => {
@@ -79,12 +163,15 @@ export const LibraryDropdownActions = ({ doc, canManage, onDelete, onRefresh }: 
         
         <DropdownMenuContent align="end" className="w-52 bg-white dark:bg-[#1a1c1e] border-slate-200 dark:border-gray-700 text-slate-800 dark:text-white shadow-2xl">
           
-          <DropdownMenuItem onClick={() => setShareOpen(true)} className="gap-2 cursor-pointer">
-            <QrCode className="h-4 w-4 text-blue-500" />
-            <span className="text-xs font-medium">Generar/Ver QR</span>
-          </DropdownMenuItem>
-
-          <div className="h-px bg-slate-200 dark:bg-gray-700 my-1" />
+          {canManage && (
+            <>
+              <DropdownMenuItem onClick={handleOpenShareQR} className="gap-2 cursor-pointer">
+                <QrCode className={`h-4 w-4 text-blue-500 ${loadingVersions ? 'animate-spin' : ''}`} />
+                <span className="text-xs font-medium">Generar/Ver QR</span>
+              </DropdownMenuItem>
+              <div className="h-px bg-slate-200 dark:bg-gray-700 my-1" />
+            </>
+          )}
           
           {canManage && (
             <DropdownMenuItem onClick={() => setUploadOpen(true)} className="gap-2 cursor-pointer">
@@ -93,7 +180,7 @@ export const LibraryDropdownActions = ({ doc, canManage, onDelete, onRefresh }: 
             </DropdownMenuItem>
           )}
 
-          {/* 🟢 Renderizado condicional de descarga basado en el departamento */}
+          {/* Botón de descarga condicional basado en canDownload */}
           {canDownload && (
             <DropdownMenuItem onClick={() => setDownloadOpen(true)} className="gap-2 cursor-pointer">
               <Download className="h-4 w-4 text-emerald-500" />
@@ -119,7 +206,6 @@ export const LibraryDropdownActions = ({ doc, canManage, onDelete, onRefresh }: 
       </DropdownMenu>
 
       {/* 🚀 COMPONENTES DE DIÁLOGO */}
-
       <DownloadDocumentDialog 
         isOpen={downloadOpen} 
         onClose={() => setDownloadOpen(false)} 
@@ -138,7 +224,7 @@ export const LibraryDropdownActions = ({ doc, canManage, onDelete, onRefresh }: 
       <ShareQRDialog 
         isOpen={shareOpen} 
         onClose={() => setShareOpen(false)} 
-        doc={doc} 
+        doc={{ ...doc, versions: versionList }} 
         company={company}
       />
 

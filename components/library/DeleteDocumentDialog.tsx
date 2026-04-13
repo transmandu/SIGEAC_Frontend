@@ -43,9 +43,6 @@ export const DeleteDocumentDialog = ({ isOpen, onClose, doc, company, onSuccess 
     try {
       const response = await axiosInstance.get(`/${company}/library/documents/${doc.id}/versions`);
       
-      /** * El controlador devuelve: { status: 'success', data: { versions: [...] } }
-       * Ajustamos el acceso a la data:
-       */
       const fetchedVersions = response.data?.data?.versions || [];
       setVersionList(Array.isArray(fetchedVersions) ? fetchedVersions : []);
       
@@ -152,7 +149,7 @@ export const DeleteDocumentDialog = ({ isOpen, onClose, doc, company, onSuccess 
                         className="w-full h-10 pl-3 pr-10 border border-orange-200 dark:border-orange-900/40 rounded-lg bg-white dark:bg-gray-900 text-xs text-gray-800 dark:text-white outline-none appearance-none"
                       >
                         {loadingVersions ? (
-                          <option value="">Cargando historial...</option>
+                          <option value="">Cargando Versiones...</option>
                         ) : filteredVersions.length === 0 ? (
                           <option value="">No hay versiones adicionales para eliminar</option>
                         ) : (

@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { ChevronRight, ChevronDown, FolderOpen, Layers3, Hash } from 'lucide-react';
 import DocumentRow from './documentRow';
 
-export default function DocumentTable({ groupedDocuments, onView, columnVisibility, onDelete, onRefresh, canManage }: any) {
+export default function DocumentTable({ groupedDocuments, onView, columnVisibility, onDelete, onRefresh, canManage, user }: any) {
   const [openDepts, setOpenDepts] = useState<string[]>(Object.keys(groupedDocuments).slice(0, 1));
   const [openSubSections, setOpenSubSections] = useState<string[]>([]);
 
@@ -73,7 +73,7 @@ export default function DocumentTable({ groupedDocuments, onView, columnVisibili
 
           if (subKey === 'Raiz') {
             return subDocs.map((doc: any) => (
-              <DocumentRow key={doc.id} doc={doc} onView={handleViewWithBuster} columnVisibility={columnVisibility} isSubItem={true} onDelete={onDelete} onRefresh={onRefresh} canManage={canManage} />
+              <DocumentRow key={doc.id} doc={doc} onView={handleViewWithBuster} columnVisibility={columnVisibility} isSubItem={true} onDelete={onDelete} onRefresh={onRefresh} canManage={canManage} user={user} />
             ));
           }
 
@@ -99,7 +99,7 @@ export default function DocumentTable({ groupedDocuments, onView, columnVisibili
               {isOpen && (
                 <div className="flex flex-col bg-white dark:bg-black/5 divide-y divide-slate-100 dark:divide-gray-800/20">
                   {subDocs.map((doc: any) => (
-                    <DocumentRow key={doc.id} doc={doc} onView={handleViewWithBuster} columnVisibility={columnVisibility} isSubItem={true} onDelete={onDelete} onRefresh={onRefresh} canManage={canManage} />
+                    <DocumentRow key={doc.id} doc={doc} onView={handleViewWithBuster} columnVisibility={columnVisibility} isSubItem={true} onDelete={onDelete} onRefresh={onRefresh} canManage={canManage} user={user} />
                   ))}
                 </div>
               )}
@@ -138,7 +138,7 @@ export default function DocumentTable({ groupedDocuments, onView, columnVisibili
             {isOpen && (
               <div className="flex flex-col divide-y divide-slate-50 dark:divide-gray-800/10">
                 {isSMS ? renderSmsContent(docs) : docs.map((doc: any) => (
-                  <DocumentRow key={doc.id} doc={doc} onView={handleViewWithBuster} columnVisibility={columnVisibility} onDelete={onDelete} onRefresh={onRefresh} canManage={canManage} />
+                  <DocumentRow key={doc.id} doc={doc} onView={handleViewWithBuster} columnVisibility={columnVisibility} onDelete={onDelete} onRefresh={onRefresh} canManage={canManage} user={user} />
                 ))}
               </div>
             )}

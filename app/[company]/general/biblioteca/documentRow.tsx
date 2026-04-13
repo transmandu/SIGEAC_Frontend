@@ -25,7 +25,7 @@ const getStatusDetails = (status: string, expirationDate: string) => {
   return { label: 'VIGENTE', classes: 'bg-emerald-50 text-emerald-700 border-emerald-100 dark:bg-emerald-500/10 dark:border-emerald-500/20', isWarning: false };
 };
 
-export default function DocumentRow({ doc, onView, columnVisibility, isSubItem, onDelete, onRefresh, canManage }: any) {
+export default function DocumentRow({ doc, onView, columnVisibility, isSubItem, onDelete, onRefresh, canManage, user }: any) {
   
   const latestVersion = useMemo(() => {
     if (doc?.latest_version) return doc.latest_version;
@@ -127,6 +127,7 @@ export default function DocumentRow({ doc, onView, columnVisibility, isSubItem, 
           
           <LibraryDropdownActions 
             doc={doc} 
+            user={user}
             canManage={canManage} 
             onDelete={onDelete} 
             onRefresh={onRefresh} 
