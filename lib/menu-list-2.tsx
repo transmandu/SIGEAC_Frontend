@@ -1226,8 +1226,6 @@ export function getMenuList(
         },
     ];
 
-    // 4. Filtrar el menú completo
-    const isRestrictedCompany = currentCompany?.id === 2;
 
     return (
         fullMenu
@@ -1241,14 +1239,6 @@ export function getMenuList(
                 );
 
                 // Si es la compañía restringida y el grupo es 'General', solo mostrar 'Inventario'
-                if (isRestrictedCompany && group.groupLabel === "General") {
-                    menus = menus.filter(
-                        (menu) =>
-                            menu.label === "Inventario" ||
-                            menu.label === "Solicitudes de Compra"
-                    );
-                }
-
                 return {
                     ...group,
                     menus: menus
