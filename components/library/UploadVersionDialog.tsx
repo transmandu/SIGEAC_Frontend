@@ -16,21 +16,36 @@ export const UploadVersionDialog = ({ isOpen, onClose, doc, company, onSuccess }
   const [manualRequiresExpiry, setManualRequiresExpiry] = useState<boolean | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // CAMBIO CLAVE: Inicialización reactiva al abrir el diálogo
   useEffect(() => {
     if (isOpen) {
       setSelectedFile(null);
       setChangeLog("");
       setExpirationDate("");
-      setManualRequiresExpiry(null);
+      
+      // Calculamos la naturaleza del documento original para inicializar el estado
+      if (doc) {
+        const status = String(doc?.expiry_status || '').toLowerCase().trim();
+        const dbFlag = doc?.requires_expiry === 1 || doc?.latest_version?.requires_expiry === 1;
+        const isExpiry = status === 'vigente' || status === 'vencido' || dbFlag;
+        
+        setManualRequiresExpiry(isExpiry);
+      } else {
+        setManualRequiresExpiry(null);
+      }
     }
-  }, [isOpen, doc?.id]);
+  }, [isOpen, doc]);
 
-  const requiresExpiry = useMemo(() => {
-    if (manualRequiresExpiry !== null) return manualRequiresExpiry;
+  const isOriginalExpiry = useMemo(() => {
     const status = String(doc?.expiry_status || '').toLowerCase().trim();
     const dbFlag = doc?.requires_expiry === 1 || doc?.latest_version?.requires_expiry === 1;
     return status === 'vigente' || status === 'vencido' || dbFlag;
-  }, [doc, manualRequiresExpiry]);
+  }, [doc]);
+
+  const requiresExpiry = useMemo(() => {
+    if (manualRequiresExpiry !== null) return manualRequiresExpiry;
+    return isOriginalExpiry;
+  }, [isOriginalExpiry, manualRequiresExpiry]);
 
   const handleUploadVersion = async () => {
     if (!selectedFile) return toast.error("Debes seleccionar un archivo PDF");
@@ -82,7 +97,7 @@ export const UploadVersionDialog = ({ isOpen, onClose, doc, company, onSuccess }
             <p className="text-xs font-bold text-slate-700 dark:text-white mt-0.5 truncate">{doc?.title}</p>
           </div>
 
-          {/* Selector de Archivo con HOVER y DRAG states */}
+          {/* Selector de Archivo */}
           <div className="space-y-1.5">
             <label className="text-[11px] font-bold uppercase tracking-widest text-slate-500 dark:text-gray-400">Archivo PDF *</label>
             <input 
@@ -124,7 +139,6 @@ export const UploadVersionDialog = ({ isOpen, onClose, doc, company, onSuccess }
                 )}
               </div>
               
-              {/* Botón para resetear archivo si ya hay uno */}
               {selectedFile && !isDragging && (
                 <button 
                   type="button" 
@@ -143,12 +157,24 @@ export const UploadVersionDialog = ({ isOpen, onClose, doc, company, onSuccess }
               <label className="text-[11px] font-bold uppercase tracking-widest text-slate-500 dark:text-gray-400">Vigencia</label>
               <div className="grid grid-cols-2 h-11 bg-slate-200 dark:bg-gray-800/50 rounded-xl p-1 border border-slate-300 dark:border-gray-800 shadow-sm">
                 <button 
-                  type="button" onClick={() => setManualRequiresExpiry(false)}
-                  className={`text-[10px] font-bold rounded-lg transition-all ${!requiresExpiry ? 'bg-white dark:bg-gray-700 text-blue-600 shadow-md' : 'text-slate-500'}`}
+                  type="button" 
+                  disabled={isOriginalExpiry}
+                  onClick={() => setManualRequiresExpiry(false)}
+                  title={isOriginalExpiry ? "El documento base requiere vigencia obligatoria" : ""}
+                  className={`text-[10px] font-bold rounded-lg transition-all 
+                    ${!requiresExpiry ? 'bg-white dark:bg-gray-700 text-blue-600 shadow-md' : 'text-slate-500'}
+                    ${isOriginalExpiry ? 'opacity-40 cursor-not-allowed grayscale-[0.5]' : 'hover:bg-white/50 dark:hover:bg-gray-700/50'}
+                  `}
                 > PERM. </button>
                 <button 
-                  type="button" onClick={() => setManualRequiresExpiry(true)}
-                  className={`text-[10px] font-bold rounded-lg transition-all ${requiresExpiry ? 'bg-white dark:bg-gray-700 text-blue-600 shadow-md' : 'text-slate-500'}`}
+                  type="button" 
+                  disabled={!isOriginalExpiry && !!doc?.id}
+                  onClick={() => setManualRequiresExpiry(true)}
+                  title={(!isOriginalExpiry && !!doc?.id) ? "El documento base es de tipo permanente" : ""}
+                  className={`text-[10px] font-bold rounded-lg transition-all 
+                    ${requiresExpiry ? 'bg-white dark:bg-gray-700 text-blue-600 shadow-md' : 'text-slate-500'}
+                    ${(!isOriginalExpiry && !!doc?.id) ? 'opacity-40 cursor-not-allowed grayscale-[0.5]' : 'hover:bg-white/50 dark:hover:bg-gray-700/50'}
+                  `}
                 > CON VENC. </button>
               </div>
             </div>
@@ -160,7 +186,7 @@ export const UploadVersionDialog = ({ isOpen, onClose, doc, company, onSuccess }
               <input 
                 type="date" disabled={!requiresExpiry} value={expirationDate} 
                 onChange={(e) => setExpirationDate(e.target.value)} 
-                className={`w-full h-11 px-3 border border-slate-300 dark:border-gray-800 rounded-xl bg-white dark:bg-[#1a1c1e] text-xs text-slate-700 dark:text-white outline-none focus:ring-2 focus:ring-blue-500 transition-all ${!requiresExpiry ? 'opacity-50 cursor-not-allowed' : 'shadow-sm'}`} 
+                className={`w-full h-11 px-3 border border-slate-300 dark:border-gray-800 rounded-xl bg-white dark:bg-[#1a1c1e] text-xs text-slate-700 dark:text-white outline-none focus:ring-2 focus:ring-blue-500 transition-all ${!requiresExpiry ? 'opacity-50 cursor-not-allowed bg-slate-100 dark:bg-gray-900' : 'shadow-sm'}`} 
               />
             </div>
           </div>

@@ -12,7 +12,6 @@ const fileTypeDetails: any = {
 };
 
 const getStatusDetails = (status: string, expirationDate: string) => {
-  // Ajuste: Bordes más oscuros (border-blue-200, border-red-200, etc) para mejor contraste
   if (!expirationDate || status?.toLowerCase() === 'no_aplica') {
     return { label: 'PERMANENTE', classes: 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-500/10 dark:border-blue-500/30', isWarning: false };
   }
@@ -51,6 +50,15 @@ export default function DocumentRow({ doc, onView, columnVisibility, isSubItem, 
     return latestVersion ? latestVersion.expiry_status : (doc?.expiry_status || 'no_aplica');
   }, [latestVersion, doc?.expiry_status]);
 
+  // CAMBIO: Objeto enriquecido para que el Modal reciba los datos actualizados de la versión
+  const docWithVersionData = useMemo(() => ({
+    ...doc,
+    expiry_status: activeExpiryStatus,
+    expiration_date: activeExpirationDate,
+    requires_expiry: activeExpirationDate ? 1 : 0,
+    latest_version: latestVersion
+  }), [doc, activeExpiryStatus, activeExpirationDate, latestVersion]);
+
   const getFileDetails = (type: any, title: any) => {
     const t = String(type || "").toLowerCase();
     const name = String(title || "").toLowerCase();
@@ -85,7 +93,6 @@ export default function DocumentRow({ doc, onView, columnVisibility, isSubItem, 
               <h4 className="text-[12px] font-semibold text-slate-950 dark:text-gray-100 truncate uppercase">
                 {doc.title || "Sin título"}
                 {latestVersion && (
-                  // Ajuste: Versión con gris más oscuro y borde definido
                   <span className="ml-2 text-[9px] font-bold text-slate-500 dark:text-gray-400 bg-slate-100 dark:bg-gray-800 px-1.5 py-0.5 rounded tracking-wider border border-slate-300 dark:border-gray-600">
                     {latestVersion.version_number}
                   </span>
@@ -93,7 +100,6 @@ export default function DocumentRow({ doc, onView, columnVisibility, isSubItem, 
               </h4>
               {statusInfo.isWarning && <AlertCircle className="h-3.5 w-3.5 text-amber-600 animate-bounce" />}
             </div>
-            {/* Ajuste: Badge de tipo con borde más marcado */}
             <span className={`w-fit text-[8px] font-bold px-1.5 py-0.5 rounded border border-current/30 ${fileDetails.bgColor} ${fileDetails.color}`}>
               {fileDetails.label}
             </span>
@@ -128,7 +134,7 @@ export default function DocumentRow({ doc, onView, columnVisibility, isSubItem, 
           </button>
           
           <LibraryDropdownActions 
-            doc={doc} 
+            doc={docWithVersionData}
             user={user}
             canManage={canManage} 
             onDelete={onDelete} 

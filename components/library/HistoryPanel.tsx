@@ -142,7 +142,9 @@ export default function TraceabilityPanel({ documentId, company, onClose, user }
                     onClick={() => {
                         const token = log.share_url || log.share_token;
                         if (token) {
-                            const fullUrl = token.startsWith('http') ? token : `${process.env.NEXT_PUBLIC_FRONTEND_URL || 'http://localhost:3000'}/shared-viewer/${company}/${token}`;
+                            const fullUrl = token.startsWith('http') 
+                            ? token 
+                            : `${process.env.NEXT_PUBLIC_FRONTEND_URL || 'http://localhost:3000'}/acceso_publico/shared-viewer/${company}/${token}`;
                             setSelectedQR(fullUrl);
                         }
                     }}

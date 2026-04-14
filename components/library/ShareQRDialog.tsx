@@ -300,7 +300,7 @@ export const ShareQRDialog = ({ isOpen, onClose, doc, company }: ShareProps) => 
                           <div className="flex items-center gap-4">
                             <span className="flex items-center gap-1.5 text-[9px] font-bold bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 px-2.5 py-1 rounded-full uppercase border border-blue-100 dark:border-blue-800/50">
                               <History className="h-3 w-3" />
-                              V.{share.version?.version_number || 'ACTUAL'}
+                              {share.version?.version_number || 'ACTUAL'}
                             </span>
                             <span className="flex items-center gap-1.5 text-[9px] text-slate-600 dark:text-gray-400 font-bold uppercase tracking-tight">
                               <Clock className="h-3.5 w-3.5 text-blue-500" /> 
