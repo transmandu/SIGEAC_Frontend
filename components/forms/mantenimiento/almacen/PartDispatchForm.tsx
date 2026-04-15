@@ -333,10 +333,13 @@ export function PartDispatchForm({ onClose }: FormProps) {
                         <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                       </Button>
                     </PopoverTrigger>
-                    <PopoverContent className="w-full p-0" align="start">
+                    <PopoverContent
+                      className="w-[min(var(--radix-popover-trigger-width),calc(100vw-2rem))] max-w-[calc(100vw-2rem)] p-0"
+                      align="start"
+                    >
                       <Command>
                         <CommandInput placeholder="Buscar por serial o número de parte..." />
-                        <CommandList>
+                        <CommandList onWheelCapture={(event) => event.stopPropagation()}>
                           {isBatchesLoading ? <div className="flex items-center justify-center py-6"><Loader2 className="size-4 animate-spin" /></div> :
                           isBatchesError ? <div className="py-4 text-center text-sm text-muted-foreground">Error al cargar partes</div> :
                           <>
@@ -344,11 +347,15 @@ export function PartDispatchForm({ onClose }: FormProps) {
                             {batches?.map(batch => (
                               <CommandGroup key={batch.batch_id} heading={batch.name}>
                                 {batch.articles.map(article => (
-                                  <CommandItem key={article.id} onSelect={() => handleArticleSelect(article.id!, article.serial ?? null, batch.batch_id)}>
+                                  <CommandItem
+                                    key={article.id}
+                                    className="max-w-full"
+                                    onSelect={() => handleArticleSelect(article.id!, article.serial ?? null, batch.batch_id)}
+                                  >
                                     <Check className={cn("mr-2 h-4 w-4 shrink-0", articleSelected?.id === article.id ? "opacity-100" : "opacity-0")} />
-                                    <div className="flex flex-col flex-1 min-w-0">
+                                    <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
                                       <span className="font-medium truncate">{article.serial ?? "Sin serial"}</span>
-                                      <span className="text-xs text-muted-foreground">{article.part_number}{typeof article.quantity === "number" ? ` • Disponible: ${article.quantity} ${article.unit}` : ""}</span>
+                                      <span className="truncate text-xs text-muted-foreground">{article.part_number}{typeof article.quantity === "number" ? ` • Disponible: ${article.quantity} ${article.unit}` : ""}</span>
                                     </div>
                                   </CommandItem>
                                 ))}
