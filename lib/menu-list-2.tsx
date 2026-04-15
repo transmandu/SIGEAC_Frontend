@@ -238,6 +238,23 @@ export function getMenuList(
                     ],
                     submenus: [],
                 },
+                {
+                    href: `/${currentCompany?.slug}/general/articulos_en_transito`,
+                    label: "Art. en transito",
+                    active: pathname.includes(
+                        `/${currentCompany?.slug}/general/articulos_en_transito`,
+                    ),
+                    icon: Truck,
+                    roles: [
+                        "ANALISTA_COMPRAS",
+                        "JEFE_COMPRAS",
+                        "SUPERUSER",
+                        "JEFE_ADMINISTRACION",
+                    ],
+                    submenus: [],
+
+                }
+
             ],
         },
         {
@@ -1245,7 +1262,8 @@ export function getMenuList(
                     menus = menus.filter(
                         (menu) =>
                             menu.label === "Inventario" ||
-                            menu.label === "Solicitudes de Compra"
+                            menu.label === "Solicitudes de Compra" ||
+                            menu.label === "Art. en transito"
                     );
                 }
 
