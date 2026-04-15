@@ -16,3 +16,30 @@ export type VoluntaryReport = {
     status: string
     image?: string;
 }
+
+
+export type ObligatoryReport = {
+    id: number;
+    report_date: Date;
+    report_time: string;
+    incident_date: Date;
+    incident_time: string;
+    location: Location;
+    origirin_location: Location;
+
+    name: string;
+    last_name: string;
+    phone?: string;
+    email?: string;
+
+    incidents: string;
+    other_incidents: string;
+    description: string;
+    incident_location: string;
+    status: string;
+    image?: string;
+    document?: string;
+    imageUrl?: string;
+    documentUrl?: string;
+}
+
