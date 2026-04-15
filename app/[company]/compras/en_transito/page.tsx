@@ -24,8 +24,9 @@ import {
 } from '@/components/ui/table'
 import { useGetArticlesByStatus } from '@/hooks/mantenimiento/almacen/articulos/useGetArticlesByStatus'
 import { useCompanyStore } from '@/stores/CompanyStore'
+import { useAuth } from '@/contexts/AuthContext'
 import { cn } from '@/lib/utils'
-import { ArrowRight, Loader2, MapPin, PackageCheck, Search } from 'lucide-react'
+import { ArrowRight, Loader2, MapPin, PackageCheck, Search, ShieldOff } from 'lucide-react'
 import { useMemo, useState } from 'react'
 
 // Tipo que refleja la estructura real devuelta por el backend
@@ -162,11 +163,17 @@ function ArticleRow({ article }: { article: TransitArticle; company: string }) {
   )
 }
 
+const ALMACEN_ROLES = ['ALMACEN', 'JEFE_ALMACEN', 'ANALISTA_ALMACEN', 'SUPERUSER']
+
 // ── Página ─────────────────────────────────────────────────────────────
 const EnTransitoPage = () => {
   const { selectedCompany } = useCompanyStore()
+  const { user } = useAuth()
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('ALL')
   const [search, setSearch] = useState('')
+
+  const userRoles = user?.roles?.map((r) => r.name) ?? []
+  const canView = ALMACEN_ROLES.some((r) => userRoles.includes(r))
 
   const { data: transitArticles, isLoading: loadingTransit } = useGetArticlesByStatus('TRANSIT')
   const { data: receptionArticles, isLoading: loadingReception } = useGetArticlesByStatus('RECEPTION')
@@ -195,6 +202,18 @@ const EnTransitoPage = () => {
   }, [transitArticles, receptionArticles, statusFilter, search])
 
   if (isLoading) return <LoadingPage />
+
+  if (!canView) {
+    return (
+      <ContentLayout title="Artículos en Tránsito">
+        <div className="flex flex-col items-center justify-center gap-3 py-24 text-muted-foreground">
+          <ShieldOff className="size-10" />
+          <p className="text-sm font-medium">No tienes permiso para ver esta sección.</p>
+          <p className="text-xs">Se requiere el rol de Almacén.</p>
+        </div>
+      </ContentLayout>
+    )
+  }
 
   const totalTransit = (transitArticles as TransitArticle[])?.length ?? 0
   const totalReception = (receptionArticles as TransitArticle[])?.length ?? 0
