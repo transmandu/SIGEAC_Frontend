@@ -249,7 +249,7 @@ export function getMenuList(
                         "ANALISTA_COMPRAS",
                         "JEFE_COMPRAS",
                         "SUPERUSER",
-                        "JEFE_ADMINISTRACION",
+                        "JEFE_ALMACEN",
                     ],
                     submenus: [],
 
