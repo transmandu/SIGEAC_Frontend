@@ -288,6 +288,7 @@ export type MaintenanceAircraft = {
   flight_cycles: number | string; // Puede venir como "324.00"
   fabricant_date: string;
   aircraft_parts: MaintenanceAircraftPart[];
+  aircraft_assignments?: any[];
   location: Location;
   comments: string;
 };
