@@ -27,8 +27,9 @@ import { useGetArticlesByStatus } from '@/hooks/mantenimiento/almacen/articulos/
 import { useCompanyStore } from '@/stores/CompanyStore'
 import { useAuth } from '@/contexts/AuthContext'
 import { cn } from '@/lib/utils'
-import { ArrowRight, Loader2, MapPin, PackageCheck, Search, ShieldOff } from 'lucide-react'
+import { ArrowRight, ChevronRight, Loader2, MapPin, PackageCheck, Search, ShieldOff } from 'lucide-react'
 import { useMemo, useState } from 'react'
+import { Condition, Manufacturer } from '@/types'
 
 // Tipo que refleja la estructura real devuelta por el backend
 type TransitArticle = {
@@ -39,6 +40,10 @@ type TransitArticle = {
     ata_code?: string | null
     status: string
     batch_id: string
+    condition?: Condition;
+    manufacturer?: Manufacturer;
+    quantity: number;
+    unit?: string;
     batch: {
         id: number
         name: string
@@ -60,6 +65,7 @@ type StatusFilter = 'ALL' | 'TRANSIT' | 'RECEPTION'
 function ArticleRow({ article }: { article: TransitArticle; company: string }) {
     const { updateArticleStatus } = useUpdateArticleStatus()
     const [pending, setPending] = useState(false)
+    const [expanded, setExpanded] = useState(false)
 
     const status = article.status?.toLowerCase()
     const isReception = status === 'reception'
@@ -77,90 +83,146 @@ function ArticleRow({ article }: { article: TransitArticle; company: string }) {
 
     const location = article.batch?.warehouse?.location
 
+    const hasExtra = article.condition || article.manufacturer || article.quantity != null || article.unit
+
     return (
-        <TableRow className="hover:bg-muted/30 transition-colors">
-            {/* Parte / Alterno */}
-            <TableCell>
-                <div className="space-y-1 min-w-0">
-                    <div className="font-mono text-[11px] bg-muted/60 px-1.5 py-0.5 rounded border border-border/40 w-fit tracking-wide">
-                        {article.part_number}
-                    </div>
-                    {article.alternative_part_number ? (
-                        <div className="flex items-center gap-1">
-                            <span className="shrink-0 text-[9px] font-mono font-semibold text-amber-600 dark:text-amber-500 bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800/60 px-1 py-0.5 rounded tracking-widest select-none">
-                                ALT
-                            </span>
-                            <span className="font-mono text-[11px] text-muted-foreground truncate">
-                                {article.alternative_part_number}
-                            </span>
-                        </div>
-                    ) : (
-                        <span className="text-[10px] font-mono text-muted-foreground/30 border border-dashed border-border/30 px-1 py-0.5 rounded">
-                            ALT —
-                        </span>
+        <>
+            <TableRow className="hover:bg-muted/30 transition-colors">
+                {/* Expand toggle */}
+                <TableCell className="w-8 pr-0">
+                    {hasExtra && (
+                        <button
+                            onClick={() => setExpanded((v) => !v)}
+                            className="flex items-center justify-center rounded p-0.5 text-muted-foreground/50 hover:text-foreground transition-colors"
+                        >
+                            <ChevronRight className={cn(
+                                'size-3.5 transition-transform duration-150',
+                                expanded && 'rotate-90 text-amber-600 dark:text-amber-500'
+                            )} />
+                        </button>
                     )}
-                </div>
-            </TableCell>
+                </TableCell>
 
-            {/* Nombre del batch */}
-            <TableCell>
-                <span className="text-sm font-medium">{article.batch?.name ?? '—'}</span>
-            </TableCell>
-
-            {/* Ubicación */}
-            <TableCell>
-                {location ? (
-                    <div className="flex items-center gap-1 text-muted-foreground">
-                        <MapPin className="size-3 shrink-0" />
-                        <span className="text-xs">{location.address}</span>
-                        {location.cod_iata && (
-                            <span className="font-mono text-[10px] bg-muted/60 px-1 py-0.5 rounded border border-border/40">
-                                {location.cod_iata}
+                {/* Parte / Alterno */}
+                <TableCell>
+                    <div className="space-y-1 min-w-0">
+                        <div className="font-mono text-[11px] bg-muted/60 px-1.5 py-0.5 rounded border border-border/40 w-fit tracking-wide">
+                            {article.part_number}
+                        </div>
+                        {article.alternative_part_number ? (
+                            <div className="flex items-center gap-1">
+                                <span className="shrink-0 text-[9px] font-mono font-semibold text-amber-600 dark:text-amber-500 bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800/60 px-1 py-0.5 rounded tracking-widest select-none">
+                                    ALT
+                                </span>
+                                <span className="font-mono text-[11px] text-muted-foreground truncate">
+                                    {article.alternative_part_number}
+                                </span>
+                            </div>
+                        ) : (
+                            <span className="text-[10px] font-mono text-muted-foreground/30 border border-dashed border-border/30 px-1 py-0.5 rounded">
+                                ALT —
                             </span>
                         )}
                     </div>
-                ) : (
-                    <span className="text-xs text-muted-foreground/40">—</span>
-                )}
-            </TableCell>
+                </TableCell>
 
-            {/* Estado */}
-            <TableCell>
-                <span className={cn(
-                    'text-[10px] font-medium px-1.5 py-0.5 rounded border uppercase tracking-wide',
-                    isReception
-                        ? 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-400 dark:border-amber-800/60'
-                        : 'bg-sky-50 text-sky-700 border-sky-200 dark:bg-sky-950/40 dark:text-sky-400 dark:border-sky-800/60'
-                )}>
-                    {article.status}
-                </span>
-            </TableCell>
+                {/* Nombre del batch */}
+                <TableCell>
+                    <span className="text-sm font-medium">{article.batch?.name ?? '—'}</span>
+                </TableCell>
 
-            {/* Acciones */}
-            <TableCell>
-                <Button
-                    variant="outline"
-                    size="sm"
-                    className="h-7 px-2 text-xs gap-1"
-                    disabled={pending}
-                    onClick={handleAction}
-                >
-                    {pending ? (
-                        <Loader2 className="size-3 animate-spin" />
-                    ) : isReception ? (
-                        <>
-                            <ArrowRight className="size-3" />
-                            Incoming
-                        </>
+                {/* Ubicación */}
+                <TableCell>
+                    {location ? (
+                        <div className="flex items-center gap-1 text-muted-foreground">
+                            <MapPin className="size-3 shrink-0" />
+                            <span className="text-xs">{location.address}</span>
+                            {location.cod_iata && (
+                                <span className="font-mono text-[10px] bg-muted/60 px-1 py-0.5 rounded border border-border/40">
+                                    {location.cod_iata}
+                                </span>
+                            )}
+                        </div>
                     ) : (
-                        <>
-                            <PackageCheck className="size-3" />
-                            Recepción
-                        </>
+                        <span className="text-xs text-muted-foreground/40">—</span>
                     )}
-                </Button>
-            </TableCell>
-        </TableRow>
+                </TableCell>
+
+                {/* Estado */}
+                <TableCell>
+                    <span className={cn(
+                        'text-[10px] font-medium px-1.5 py-0.5 rounded border uppercase tracking-wide',
+                        isReception
+                            ? 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-400 dark:border-amber-800/60'
+                            : 'bg-sky-50 text-sky-700 border-sky-200 dark:bg-sky-950/40 dark:text-sky-400 dark:border-sky-800/60'
+                    )}>
+                        {article.status}
+                    </span>
+                </TableCell>
+
+                {/* Acciones */}
+                <TableCell>
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-7 px-2 text-xs gap-1"
+                        disabled={pending}
+                        onClick={handleAction}
+                    >
+                        {pending ? (
+                            <Loader2 className="size-3 animate-spin" />
+                        ) : isReception ? (
+                            <>
+                                <ArrowRight className="size-3" />
+                                Incoming
+                            </>
+                        ) : (
+                            <>
+                                <PackageCheck className="size-3" />
+                                Recepción
+                            </>
+                        )}
+                    </Button>
+                </TableCell>
+            </TableRow>
+
+            {/* Sub-fila expandible */}
+            {expanded && hasExtra && (
+                <TableRow className="hover:bg-transparent">
+                    <TableCell colSpan={6} className="p-0 border-b border-border/40">
+                        <div className="pl-10 pr-4 py-3 bg-muted/20 border-l-2 border-amber-300 dark:border-amber-700/60">
+                            <div className="flex flex-wrap gap-x-6 gap-y-2 text-xs">
+                                {article.manufacturer && (
+                                    <div className="flex items-center gap-1.5">
+                                        <span className="text-muted-foreground font-medium">Fabricante:</span>
+                                        <span className="font-semibold">{article.manufacturer.name}</span>
+                                    </div>
+                                )}
+                                {article.condition && (
+                                    <div className="flex items-center gap-1.5">
+                                        <span className="text-muted-foreground font-medium">Condición:</span>
+                                        <span className="font-semibold">{article.condition.name}</span>
+                                    </div>
+                                )}
+                                {article.quantity != null && (
+                                    <div className="flex items-center gap-1.5">
+                                        <span className="text-muted-foreground font-medium">Cantidad:</span>
+                                        <span className="font-semibold tabular-nums">
+                                            {article.quantity}
+                                            {article.unit && (
+                                                <span className="ml-1 font-mono text-[10px] bg-muted/60 px-1 py-0.5 rounded border border-border/40">
+                                                    {article.unit}
+                                                </span>
+                                            )}
+                                        </span>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </TableCell>
+                </TableRow>
+            )}
+        </>
     )
 }
 
@@ -302,6 +364,7 @@ const EnTransitoPage = () => {
                     <Table>
                         <TableHeader>
                             <TableRow>
+                                <TableHead className="w-8" />
                                 <TableHead className="text-xs">Numero de Parte / Alterno</TableHead>
                                 <TableHead className="text-xs">Descripcion</TableHead>
                                 <TableHead className="text-xs">Ubicación</TableHead>
@@ -320,7 +383,7 @@ const EnTransitoPage = () => {
                                 ))
                             ) : (
                                 <TableRow>
-                                    <TableCell colSpan={5} className="h-24 text-center text-muted-foreground text-sm">
+                                    <TableCell colSpan={6} className="h-24 text-center text-muted-foreground text-sm">
                                         No se encontraron artículos
                                         {statusFilter !== 'ALL' && ` con estado ${statusFilter}`}
                                         {search && ` que coincidan con "${search}"`}.
