@@ -240,10 +240,10 @@ export function ToolDispatchForm({ onClose }: FormProps) {
                       <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-[200px] p-0">
-                    <Command>
-                      <CommandInput placeholder="Buscar una herramienta" />
-                      <CommandList>
+                    <PopoverContent className="w-[min(var(--radix-popover-trigger-width),calc(100vw-2rem))] max-w-[calc(100vw-2rem)] p-0">
+                      <Command>
+                        <CommandInput placeholder="Buscar una herramienta" />
+                      <CommandList onWheelCapture={(event) => event.stopPropagation()}>
                         <CommandEmpty className="flex justify-center">
                           {isBatchesLoading ? (
                             <Loader2 className="size-4 animate-spin" />
@@ -266,6 +266,7 @@ export function ToolDispatchForm({ onClose }: FormProps) {
                               <CommandItem
                                 disabled={article.status === "InUse"}
                                 key={article.id}
+                                className="max-w-full"
                                 onSelect={() => {
                                   handleArticleSelect(
                                     article.id!,
@@ -283,7 +284,7 @@ export function ToolDispatchForm({ onClose }: FormProps) {
                                       : "opacity-0"
                                   )}
                                 />
-                                <p className="font-medium">
+                                <p className="min-w-0 truncate font-medium">
                                   <span className="text-muted-foreground">
                                     SN:{" "}
                                   </span>

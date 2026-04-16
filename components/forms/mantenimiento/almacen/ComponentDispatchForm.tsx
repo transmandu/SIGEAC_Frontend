@@ -512,7 +512,10 @@ export function ComponentDispatchForm({ onClose }: FormProps) {
                                 </Button>
                             </PopoverTrigger>
 
-                            <PopoverContent className="w-full p-0" align="start">
+                            <PopoverContent
+                                className="w-[min(var(--radix-popover-trigger-width),calc(100vw-2rem))] max-w-[calc(100vw-2rem)] p-0"
+                                align="start"
+                            >
                                 <div className="p-2 border-b flex items-center justify-between gap-2">
                                     <div className="flex items-center gap-2">
                                         <Button type="button" variant={addTab === "aero" ? "default" : "outline"} className="h-8" onClick={() => setAddTab("aero")}>
@@ -529,7 +532,7 @@ export function ComponentDispatchForm({ onClose }: FormProps) {
 
                                 <Command>
                                     <CommandInput placeholder={addTab === "aero" ? "Buscar por lote, parte, serial o descripción..." : "Buscar por descripción, modelo o tipo..."} />
-                                    <CommandList>
+                                    <CommandList onWheelCapture={(event) => event.stopPropagation()}>
                                         <CommandEmpty>No se han encontrado artículos...</CommandEmpty>
 
                                         {addTab === "aero" ? (
@@ -544,10 +547,11 @@ export function ComponentDispatchForm({ onClose }: FormProps) {
                                                                 <CommandItem
                                                                     key={`a-${article.id}-${batch.batch_id}`}
                                                                     value={`${batch.name} ${article.part_number} ${article.serial ?? ""} ${article.description ?? ""}`}
+                                                                    className="max-w-full"
                                                                     onSelect={() => handleAddAeronautical(article)}
                                                                 >
                                                                     <Check className={cn("mr-2 h-4 w-4", already ? "opacity-100" : "opacity-0")} />
-                                                                    <div className="flex flex-col flex-1 min-w-0">
+                                                                    <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
                                                                         <span className="font-medium truncate">
                                                                             {article.part_number} {article.serial ? `· ${article.serial}` : ""}
                                                                         </span>
@@ -571,10 +575,11 @@ export function ComponentDispatchForm({ onClose }: FormProps) {
                                                         <CommandItem
                                                             key={`g-${ga.id}`}
                                                             value={`${ga.description ?? ""} ${ga.brand_model ?? ""} ${ga.variant_type ?? ""}`}
+                                                            className="max-w-full"
                                                             onSelect={() => handleAddGeneral(ga)}
                                                         >
                                                             <Check className={cn("mr-2 h-4 w-4", already ? "opacity-100" : "opacity-0")} />
-                                                            <div className="flex flex-col flex-1 min-w-0">
+                                                            <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
                                                                 <span className="font-medium truncate">{ga.description ?? "N/A"}</span>
                                                                 <span className="text-xs text-muted-foreground truncate">
                                                                     {ga.brand_model ?? "N/A"} · {ga.variant_type ?? "N/A"} · Disp: {ga.quantity ?? 0} {ga.general_primary_unit?.label ?? ""}

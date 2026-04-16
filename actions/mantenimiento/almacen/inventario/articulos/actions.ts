@@ -54,7 +54,7 @@ interface SendToQuarantinePayload {
 }
 
 
-type CheckResult = "PASS" | "FAIL";
+type CheckResult = "PASS" | "FAIL" | "NA";
 
 const serializeFormValue = (value: unknown) => {
     if (value instanceof Date) {
@@ -117,8 +117,9 @@ export const useCreateArticle = () => {
             // 3. ENVIAMOS EL FORMDATA (Axios pondrá los headers automáticamente)
             return await axiosInstance.post(`/${company}/article`, formData);
         },
-        onSuccess: () => {
+        onSuccess: (_, data) => {
             queryClient.invalidateQueries({ queryKey: ["warehouse-articles"] });
+            queryClient.invalidateQueries({ queryKey: ['articles', data.company, data.data.status] });
             toast.success("¡Creado!", {
                 description: `El articulo ha sido creado correctamente.`,
             });
@@ -235,10 +236,21 @@ export const useUpdateArticleStatus = () => {
             );
         },
         onSuccess: () => {
+            const company = selectedCompany?.slug;
+
             queryClient.invalidateQueries({ queryKey: ["in-transit-articles"] });
             queryClient.invalidateQueries({ queryKey: ["in-reception-articles"] });
             queryClient.invalidateQueries({ queryKey: ["checking-articles"] });
             queryClient.invalidateQueries({ queryKey: ["warehouse-articles"] });
+            queryClient.invalidateQueries({ queryKey: ["articles"] });
+            if (company) {
+                queryClient.invalidateQueries({ queryKey: ["articles", company, "TRANSIT"] });
+                queryClient.invalidateQueries({ queryKey: ["articles", company, "RECEPTION"] });
+                queryClient.invalidateQueries({ queryKey: ["articles", company, "INCOMING"] });
+                queryClient.invalidateQueries({ queryKey: ["articles", company, "WAITING_FOR_FORMAT"] });
+                queryClient.invalidateQueries({ queryKey: ["articles", company, "WAITING_TO_LOCATE"] });
+                queryClient.invalidateQueries({ queryKey: ["articles", company, "QUARANTINE"] });
+            }
             queryClient.invalidateQueries({ queryKey: ["purchase-orders"] });
             toast.success("¡Actualizado!", {
                 description: `El articulo ha sido actualizado correctamente.`,
@@ -275,8 +287,14 @@ export const useConfirmIncomingArticle = () => {
         },
 
         onSuccess: () => {
+            const company = selectedCompany?.slug;
+
             queryClient.invalidateQueries({ queryKey: ["warehouse-articles"] });
             queryClient.invalidateQueries({ queryKey: ["articles"] });
+            if (company) {
+                queryClient.invalidateQueries({ queryKey: ["articles", company, "INCOMING"] });
+                queryClient.invalidateQueries({ queryKey: ["articles", company, "WAITING_FOR_FORMAT"] });
+            }
             queryClient.invalidateQueries({ queryKey: ["incoming-inspections"] });
 
             toast.success("¡Inspección creada!", {
@@ -335,13 +353,14 @@ export const useEditArticle = () => {
                 }
             );
         },
-        onSuccess: () => {
+        onSuccess: (_, data) => {
             queryClient.invalidateQueries({ queryKey: ["article"] });
             queryClient.invalidateQueries({ queryKey: ["articles"] });
             queryClient.invalidateQueries({ queryKey: ["warehouse-articles"] });
             queryClient.invalidateQueries({ queryKey: ["batches"] });
             queryClient.invalidateQueries({ queryKey: ["in-transit-articles"] });
             queryClient.invalidateQueries({ queryKey: ["in-reception-articles"] });
+            queryClient.invalidateQueries({ queryKey: ['articles', data.company, data.data.status] });
             toast.success("¡Actualizado!", {
                 description: `El articulo ha sido actualizado correctamente.`,
             });
@@ -465,8 +484,14 @@ export const useSendToQuarantine = () => {
         },
 
         onSuccess: () => {
+            const company = selectedCompany?.slug;
+
             queryClient.invalidateQueries({ queryKey: ["warehouse-articles"] });
             queryClient.invalidateQueries({ queryKey: ["articles"] });
+            if (company) {
+                queryClient.invalidateQueries({ queryKey: ["articles", company, "INCOMING"] });
+                queryClient.invalidateQueries({ queryKey: ["articles", company, "QUARANTINE"] });
+            }
             queryClient.invalidateQueries({ queryKey: ["incoming-articles"] });
             queryClient.invalidateQueries({ queryKey: ["quarantine-articles"] });
 
@@ -486,5 +511,36 @@ export const useSendToQuarantine = () => {
 
     return {
         sendToQuarantine: mutation,
+    };
+};
+
+export const useUpdateToolArticleStatus = () => {
+    const { selectedCompany } = useCompanyStore();
+
+    const queryClient = useQueryClient();
+
+    const updateToolArticleStatusMutation = useMutation({
+        mutationKey: ['calibrated-tools'],
+        mutationFn: async ({ id, status, calibration_date }: { id: number; status: string; calibration_date?: string }) => {
+            await axiosInstance.patch(`/${selectedCompany?.slug}/update-tool/${id}`, {
+                status: status,
+                calibration_date: calibration_date || null,
+            });
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['warehouse-articles'] });
+            toast.success('¡Actualizado!', {
+                description: `El Material ha sido actualizado correctamente.`,
+            });
+        },
+        onError: (error) => {
+            toast.error('Oops!', {
+                description: 'No se pudo actualizar el articulo...',
+            });
+            console.log(error);
+        },
+    });
+    return {
+        updateToolArticleStatus: updateToolArticleStatusMutation,
     };
 };

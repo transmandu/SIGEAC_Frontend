@@ -474,8 +474,6 @@ export function IncomingReview({ article }: { article: any }) {
 
   const isHazardous = !!article?.batch?.is_hazarous;
   const consumable = article?.consumable;
-  const expirationDate = formatDateSafe(consumable?.expiration_date);
-  const fabricationDate = formatDateSafe(consumable?.fabrication_date);
 
   /* ── Checklist state ── */
   const { data: groups = [], isLoading } = useGetIncomingChecks(hasDocs);
@@ -516,9 +514,11 @@ export function IncomingReview({ article }: { article: any }) {
       .filter((item) => checklist[item.key] !== undefined)
       .map((item) => {
         const value = checklist[item.key];
+        const result =
+          value === false ? "FAIL" : value === "NA" ? "NA" : "PASS";
         return {
           check_id: Number(item.id),
-          result: (value === false ? "FAIL" : "PASS") as "PASS" | "FAIL",
+          result: result as "PASS" | "FAIL" | "NA",
           observation:
             value === false
               ? inspectorNotes || "Falla detectada en inspección"

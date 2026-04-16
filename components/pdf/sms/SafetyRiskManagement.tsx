@@ -1231,73 +1231,69 @@ export const FirstPage = ({
             </View>
         </View>
 
-        <View style={styles.observationContainer}>
-            <View
-                style={{
-                    position: "absolute",
-                    top: 4,
-                    left: 5,
-                    right: 5,
-                    lineHeight: 0.8,
-                }}
-            >
-                <Text style={styles.cellText}>{identification.description}</Text>
-            </View>
 
-            {/* Líneas adicionales con interlineado de 1.5 */}
-            <View style={styles.linesContainer}>
-                {[...Array(3)].map((_, index) => (
-                    <View key={index} style={styles.line} />
+        {/* BLOQUE DE DESCRIPCIÓN */}
+        <View style={[styles.observationContainer, { height: "auto", minHeight: 40, padding: 0 }]}>
+            <View style={{ paddingHorizontal: 5, paddingVertical: 2 }}>
+                <Text style={[styles.cellText, { margin: 0 }]}>{identification.description}</Text>
+            </View>
+            {/* Líneas de relleno compactas */}
+            <View>
+                {[...Array(2)].map((_, index) => (
+                    <View key={index} style={{ height: 12, borderTopWidth: 1, borderTopColor: '#000' }} />
                 ))}
             </View>
         </View>
 
-        <View style={[styles.tableRow, { marginTop: 15, borderBottom: 1 }]}>
-            <View
-                style={{
-                    ...styles.tableCell,
-                    width: "100%",
-                    backgroundColor: BLUE_HEADER,
-                }}
-            >
-                <Text style={[styles.cellTextHeader, styles.boldTitle]}>
-                    ANALISIS CAUSA RAIZ
-                </Text>
+        {/* TÍTULO DE ANÁLISIS */}
+        <View style={[styles.tableRow, { marginTop: 10, borderBottom: 1 }]}>
+            <View style={{ ...styles.tableCell, width: "100%", backgroundColor: BLUE_HEADER, paddingVertical: 2 }}>
+                <Text style={[styles.cellTextHeader, styles.boldTitle]}>ANALISIS CAUSA RAIZ</Text>
             </View>
         </View>
 
-        <View style={styles.observationContainer}>
-            <View
-                style={{
-                    position: "absolute",
-                    top: 3,
-                    left: 5,
-                    right: 5,
-                    lineHeight: 0.8,
-                }}
-            >
-                {/* Dividimos el string por comas y mapeamos cada elemento */}
-                {identification.root_cause_analysis
-                    .split(",")
-                    .concat(Array(5).fill("")) // Asegura que haya al menos 5 elementos
-                    .slice(0, 5) // Toma solo los primeros 5 elementos
-                    .map((cause, index) => (
-                        <Text key={index} style={styles.cellText}>
-                            <Text style={[styles.cellText2, styles.boldTitle]}> Por qué? </Text>
+        {/* BLOQUE DE CAUSA RAÍZ ESTILO TABLA WORD */}
+        <View style={[styles.observationContainer, { height: "auto", borderBottomWidth: 0 }]}>
+            {identification.root_cause_analysis
+                .split(",")
+                .filter(cause => cause.trim() !== "") 
+                .map((cause, index) => (
+                    <View 
+                        key={index} 
+                        style={{ 
+                            paddingHorizontal: 5, 
+                            paddingVertical: 1, // Espacio mínimo para que el borde no toque la letra
+                            borderBottomWidth: 1, 
+                            borderBottomColor: "#000",
+                            justifyContent: 'center',
+                            minHeight: 14 // Altura mínima similar a una fila de Word
+                        }}
+                    >
+                        <Text style={[styles.cellText, { margin: 0 }]}>
+                            <Text style={[styles.cellText2, styles.boldTitle]}>Por qué? </Text>
                             {cause.trim()}
                         </Text>
-                    ))}
-            </View>
-
-            {/* Líneas adicionales con interlineado de 1.5 */}
-            <View style={styles.linesContainer}>
-                {[...Array(4)].map((_, index) => (
-                    <View key={index} style={styles.line}>
-                        <Text style={[styles.cellText3]}></Text>
                     </View>
                 ))}
-            </View>
+
+            {/* Líneas de relleno: se mantienen del mismo tamaño que las filas de texto */}
+            {(() => {
+                const count = identification.root_cause_analysis.split(",").filter(c => c.trim()).length;
+                const remaining = 5 - count;
+                return remaining > 0 ? [...Array(remaining)].map((_, i) => (
+                    <View 
+                        key={`empty-${i}`} 
+                        style={{ 
+                            height: 14, 
+                            borderBottomWidth: 1, 
+                            borderBottomColor: "#000" 
+                        }} 
+                    />
+                )) : null;
+            })()}
         </View>
+
+
 
         <View style={[styles.tableRow, { borderTop: 0 }]}>
             <View
@@ -3167,16 +3163,30 @@ export const ThirdPage = ({
         </View>
 
         <View style={[styles.tableRow, { borderBottom: 1 }]}>
-            {/*FECHA DE IDENTIFICACION DEL REPORTE*/}
+            <View style={{ ...styles.tableCell, width: "33.33%", backgroundColor: WHITE }}>
+                <Text style={[styles.cellText3, { textAlign: 'center' }]}>
+                    {"\n"}
+                    {
+                        (() => {
+                            const rVoluntario = (identification as any).voluntary_report?.close_date;
+                            const rObligatorio = (identification as any).obligatory_report?.close_date;
+                            const raiz = (identification as any).close_date;
 
-            <View
-                style={{
-                    ...styles.tableCell,
-                    width: "33.33%",
-                    backgroundColor: WHITE,
-                }}
-            >
-                <Text style={styles.cellText3}>
+                            const fechaRaw = rVoluntario || rObligatorio || raiz;
+
+                            if (!fechaRaw) return "PENDIENTE";
+
+                                // TRUCO: Si la fecha viene con "00:00:00", forzamos que se lea como hora local
+                                // reemplazando el espacio por una 'T' y quitando los milisegundos si estorban,
+                                // o simplemente extrayendo los primeros 10 caracteres (YYYY-MM-DD).
+                                            
+                                const soloFecha = fechaRaw.split(' ')[0]; // Esto nos da "2026-04-10"
+                                const [year, month, day] = soloFecha.split('-');
+
+                                // Retornamos el formato manual para evitar que dateFormat mueva la zona horaria
+                            return `${day}-${month}-${year}`; 
+                        })()
+                    }
                     {"\n"}
                     {"\n"}
                 </Text>

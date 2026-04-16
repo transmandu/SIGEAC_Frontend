@@ -252,6 +252,23 @@ export function getMenuList(
                     ],
                     submenus: [],
                 },
+                {
+                    href: `/${currentCompany?.slug}/general/articulos_en_transito`,
+                    label: "Art. en transito",
+                    active: pathname.includes(
+                        `/${currentCompany?.slug}/general/articulos_en_transito`,
+                    ),
+                    icon: Truck,
+                    roles: [
+                        "ANALISTA_COMPRAS",
+                        "JEFE_COMPRAS",
+                        "SUPERUSER",
+                        "JEFE_ALMACEN",
+                    ],
+                    submenus: [],
+
+                }
+
             ],
         },
         {
