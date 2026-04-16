@@ -39,7 +39,13 @@ import Image from "next/image";
 import { useParams } from "next/navigation";
 import { ObligatoryReport } from "@/types/sms/mantenimiento";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@radix-ui/react-select";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
 import { useGetLocationsByCompany } from "@/hooks/sistema/useGetLocationsByCompany";
 
 interface FormProps {
@@ -55,9 +61,8 @@ export function CreateGenObliReport({
 }: FormProps) {
     const FormSchema = z
         .object({
-            incident_location_id: z.string(),
-            report_location_id: z.string(),
-            description: z.string(),
+            incident_location_id: z.string().min(1, "Debes seleccionar una ubicación"),
+            report_location_id: z.string().min(1, "Debes seleccionar una ubicación"), description: z.string(),
             name: z.string().min(1, "El nombre es requerido"),
             last_name: z.string().min(1, "El apellido es requerido"),
             phone: z.string().optional(),
@@ -153,13 +158,12 @@ export function CreateGenObliReport({
             report_time: initialData?.report_time ? initialData.report_time.substring(0, 5) : "00:00",
             incident_date: initialData?.incident_date ? new Date(initialData?.incident_date) : new Date(),
             incident_time: initialData?.incident_time ? initialData.incident_time.substring(0, 5) : "00:00",
-            incident_location_id: initialData?.incident_location_id?.toString() ?? "",
-            // Asegúrate de que este acceso coincida con cómo viene la data real
-            report_location_id: initialData?.incident_location_id?.id?.toString() ?? "",
-            name: initialData?.name ?? "",
-            last_name: initialData?.last_name ?? "",
-            phone: initialData?.phone ?? "",
-            email: initialData?.email ?? "",
+            incident_location_id: initialData?.incident_location?.id.toString(),
+            report_location_id: initialData?.report_location?.id?.toString(),
+            name: initialData?.name,
+            last_name: initialData?.last_name,
+            phone: initialData?.phone,
+            email: initialData?.email,
             incidents: initialData?.incidents ? JSON.parse(initialData.incidents) : [],
             other_incidents: initialData?.other_incidents ?? "",
             description: initialData?.description ?? "",
@@ -187,7 +191,7 @@ export function CreateGenObliReport({
         };
 
         try {
-            await createObligatoryReport.mutateAsync(value);
+            await createObligatoryReport.mutateAsync({ data: value, company: company });
         } catch (error) {
             console.error("Error al crear reporte:", error);
         }
@@ -372,30 +376,28 @@ export function CreateGenObliReport({
 
 
                 {/* --- SECCIÓN 3: UBICACIONES --- */}
-                <div className="space-y-4 p-4 rounded-lg border bg-muted/10">
+                <div className="space-y-4 p-4 rounded-lg border">
                     <h3 className="font-semibold text-md text-primary">2. Ubicaciones</h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-
+                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:items-start">
                         <FormField
                             control={form.control}
                             name="incident_location_id"
                             render={({ field }) => (
-                                <FormItem className="flex flex-col w-full">
+                                <FormItem className="w-full">
                                     <FormLabel>Base del Incidente</FormLabel>
                                     {isLocationsLoading ? (
-                                        <div className="flex items-center gap-2 h-10 px-3 py-2 border border-input rounded-md bg-muted/50">
-                                            <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-                                            <span className="text-sm text-muted-foreground">Cargando Bases...</span>
+                                        <div className="flex items-center gap-2 p-2 border rounded-md bg-muted">
+                                            <Loader2 className="h-4 w-4 animate-spin " />
+                                            <span className="text-sm">Cargando Bases...</span>
                                         </div>
                                     ) : (
                                         <Select
                                             onValueChange={field.onChange}
-                                            defaultValue={field.value}
+                                            value={field.value}
                                             disabled={isLocationsLoading}
                                         >
                                             <FormControl>
-                                                {/* Clases agregadas aquí para forzar el borde, tamaño y separación */}
-                                                <SelectTrigger className="w-full border border-input rounded-md bg-background px-3 py-2 h-10">
+                                                <SelectTrigger className="w-full">
                                                     <SelectValue placeholder="Seleccionar Base" />
                                                 </SelectTrigger>
                                             </FormControl>
@@ -412,27 +414,25 @@ export function CreateGenObliReport({
                                 </FormItem>
                             )}
                         />
-
                         <FormField
                             control={form.control}
                             name="report_location_id"
                             render={({ field }) => (
-                                <FormItem className="flex flex-col w-full">
+                                <FormItem className="w-full">
                                     <FormLabel>Base donde se genera</FormLabel>
                                     {isLocationsLoading ? (
-                                        <div className="flex items-center gap-2 h-10 px-3 py-2 border border-input rounded-md bg-muted/50">
-                                            <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-                                            <span className="text-sm text-muted-foreground">Cargando Bases...</span>
+                                        <div className="flex items-center gap-2 p-2 border rounded-md bg-muted">
+                                            <Loader2 className="h-4 w-4 animate-spin " />
+                                            <span className="text-sm">Cargando Bases...</span>
                                         </div>
                                     ) : (
                                         <Select
                                             onValueChange={field.onChange}
-                                            defaultValue={field.value}
+                                            value={field.value}
                                             disabled={isLocationsLoading}
                                         >
                                             <FormControl>
-                                                {/* Clases agregadas aquí para forzar el borde, tamaño y separación */}
-                                                <SelectTrigger className="w-full border border-input rounded-md bg-background px-3 py-2 h-10">
+                                                <SelectTrigger className="w-full">
                                                     <SelectValue placeholder="Seleccionar Base" />
                                                 </SelectTrigger>
                                             </FormControl>
@@ -445,12 +445,70 @@ export function CreateGenObliReport({
                                             </SelectContent>
                                         </Select>
                                     )}
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />                     </div>
+                </div>
+                {/* --- SECCIÓN 3: DATOS DEL REPORTANTE --- */}
+                <div className="space-y-4 bg-muted/30 p-4 rounded-lg border">
+                    <h3 className="font-semibold text-md text-primary">3. Datos del Reportante</h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <FormField
+                            control={form.control}
+                            name="name"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Nombre</FormLabel>
+                                    <FormControl>
+                                        <Input placeholder="Ej. Juan" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={form.control}
+                            name="last_name"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Apellido</FormLabel>
+                                    <FormControl>
+                                        <Input placeholder="Ej. Pérez" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={form.control}
+                            name="email"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Correo Electrónico (Opcional)</FormLabel>
+                                    <FormControl>
+                                        <Input type="email" placeholder="correo@ejemplo.com" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={form.control}
+                            name="phone"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Teléfono (Opcional)</FormLabel>
+                                    <FormControl>
+                                        <Input type="tel" placeholder="+58..." {...field} />
+                                    </FormControl>
                                     <FormMessage />
                                 </FormItem>
                             )}
                         />
                     </div>
                 </div>
+
                 {/* --- SECCIÓN 4: DETALLES DEL SUCESO --- */}
                 <div className="space-y-4 p-4 rounded-lg border">
                     <h3 className="font-semibold text-md text-primary">4. Detalles del Suceso</h3>

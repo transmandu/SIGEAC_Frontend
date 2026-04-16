@@ -8,10 +8,8 @@ interface ObligatoryReportData {
     report_time: string;
     incident_date: Date;
     incident_time: string;
-
     incident_location_id: string;
     report_location_id: string;
-
     name: string;
     last_name: string;
     phone?: string;
@@ -58,9 +56,15 @@ interface NextNumberResponse {
 export const useCreateObligatoryReport = () => {
     const queryClient = useQueryClient();
     const createMutation = useMutation({
-        mutationFn: async (data: ObligatoryReportData) => {
+        mutationFn: async ({
+            data,
+            company,
+        }: {
+            company: string;
+            data: ObligatoryReportData;
+        }) => {
             const response = await axiosInstance.post(
-                `transmandu/aeronautical/sms/obligatory-reports`,
+                `/${company}/aeronautical/sms/obligatory-reports`,
                 data,
                 {
                     headers: {
@@ -70,8 +74,8 @@ export const useCreateObligatoryReport = () => {
             );
             return response.data;
         },
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["obligatory-reports"] });
+        onSuccess: (_, data) => {
+            queryClient.invalidateQueries({ queryKey: ["obligatory-reports", data.company] });
             toast.success("¡Creado!", {
                 description: ` El reporte obligatorio ha sido creado correctamente.`,
             });
