@@ -53,6 +53,11 @@ interface PartsData {
     parts: AircraftPart[];
 }
 
+interface AircraftAssignment {
+    removed_date?: string | null;
+    aircraft_part?: any;
+}
+
 // Función para parsear fecha ISO sin problemas de timezone
 const parseISODate = (dateString: string | Date | null | undefined): Date => {
     if (!dateString) return new Date();
@@ -64,6 +69,58 @@ const parseISODate = (dateString: string | Date | null | undefined): Date => {
         return new Date();
     }
 };
+
+function PartsSummaryTree({ parts, level = 0 }: { parts: AircraftPart[], level?: number }) {
+    return (
+        <div className={`space-y-2 ${level > 0 ? "pl-4 border-l" : ""}`}>
+            {parts.map((part, index) => (
+                <Collapsible key={`${part.id ?? part.part_number ?? part.part_name}-${index}`}>
+                    <div className="border rounded-lg">
+                        <CollapsibleTrigger className="w-full">
+                            <div className="flex items-center justify-between p-3 hover:bg-muted/50 transition-colors text-left">
+                                <div className="flex items-center gap-2">
+                                    <ChevronDown className="h-4 w-4 transition-transform [[data-state=closed]>&]:rotate-[-90deg]" />
+                                    <div className="flex flex-col">
+                                        <span className="font-medium text-sm">{part.part_name || `Parte ${index + 1}`}</span>
+                                        <span className="text-xs text-muted-foreground">
+                                            {level === 0 ? "Parte principal" : "Subparte"}
+                                        </span>
+                                    </div>
+                                </div>
+                                <span className="text-xs text-muted-foreground">{part.part_number || "Sin PN"}</span>
+                            </div>
+                        </CollapsibleTrigger>
+                        <CollapsibleContent>
+                            <div className="p-3 pt-0 space-y-2 border-t">
+                                <div className="text-xs text-muted-foreground">
+                                    <span className="font-medium">PN:</span> {part.part_number || "N/A"}
+                                </div>
+                                <div className="text-xs text-muted-foreground">
+                                    <span className="font-medium">Condición:</span> {part.condition_type === "OVERHAULED" ? "Reacondicionada" : "Nueva"}
+                                </div>
+                                <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground">
+                                    <div><span className="font-medium">TSN:</span> {part.time_since_new ?? 0}</div>
+                                    <div><span className="font-medium">TSO:</span> {part.time_since_overhaul ?? 0}</div>
+                                    <div><span className="font-medium">CSN:</span> {part.cycles_since_new ?? 0}</div>
+                                    <div><span className="font-medium">CSO:</span> {part.cycles_since_overhaul ?? 0}</div>
+                                </div>
+
+                                {part.sub_parts && part.sub_parts.length > 0 && (
+                                    <div className="pt-2">
+                                        <div className="text-xs font-medium text-muted-foreground mb-2">
+                                            Subpartes ({part.sub_parts.length})
+                                        </div>
+                                        <PartsSummaryTree parts={part.sub_parts} level={level + 1} />
+                                    </div>
+                                )}
+                            </div>
+                        </CollapsibleContent>
+                    </div>
+                </Collapsible>
+            ))}
+        </div>
+    );
+}
 
 export default function EditAircraftPage({ params }: { params: { acronym: string, company: string } }) {
     const [currentStep, setCurrentStep] = useState(1);
@@ -98,19 +155,29 @@ export default function EditAircraftPage({ params }: { params: { acronym: string
                 ...(part.id && { id: part.id }),
                 part_name: part.part_name,
                 part_number: part.part_number,
-                serial: part.serial,
-                manufacturer_id: part.manufacturer_id,
+                serial: part.serial || "",
+                manufacturer_id: part.manufacturer_id?.toString() || "",
                 time_since_new: Math.round(Number(part.time_since_new || part.part_hours || 0) * 100) / 100,
                 time_since_overhaul: Math.round(Number(part.time_since_overhaul || 0) * 100) / 100,
                 cycles_since_new: Math.round(Number(part.cycles_since_new || part.part_cycles || 0)),
                 cycles_since_overhaul: Math.round(Number(part.cycles_since_overhaul || 0)),
-                condition_type: part.condition_type,
-                is_father: part.is_father,
+                condition_type: part.condition_type === "OVERHAULED" ? "OVERHAULED" : "NEW",
+                is_father: typeof part.is_father === "boolean" ? part.is_father : Boolean(part.sub_parts?.length),
                 category,
                 sub_parts: part.sub_parts ? transformExistingPartsToFormFormat(part.sub_parts) : []
             } as AircraftPart;
         });
     }, []); // Sin dependencias porque la función es pura
+
+    const transformAssignmentsToFormFormat = useCallback((assignments: AircraftAssignment[] = []): AircraftPart[] => {
+        const uniqueRootParts = assignments
+            .filter((assignment) => assignment.removed_date === null || assignment.removed_date === undefined)
+            .map((assignment) => assignment.aircraft_part)
+            .filter((part): part is any => Boolean(part) && !part.parent_part_id)
+            .filter((part, index, array) => array.findIndex((candidate) => candidate.id === part.id) === index);
+
+        return transformExistingPartsToFormFormat(uniqueRootParts);
+    }, [transformExistingPartsToFormFormat]);
 
     // Inicializar datos con la información existente de la aeronave
     useEffect(() => {
@@ -139,8 +206,16 @@ export default function EditAircraftPage({ params }: { params: { acronym: string
         // Inicializar datos de las partes
         if (aircraft.aircraft_parts?.length > 0) {
             setPartsData({ parts: transformExistingPartsToFormFormat(aircraft.aircraft_parts) });
+            return;
         }
-    }, [aircraft, clients, transformExistingPartsToFormFormat]);
+
+        if ((aircraft as any).aircraft_assignments?.length > 0) {
+            setPartsData({ parts: transformAssignmentsToFormFormat((aircraft as any).aircraft_assignments) });
+            return;
+        }
+
+        setPartsData({ parts: [] });
+    }, [aircraft, clients, transformAssignmentsToFormFormat, transformExistingPartsToFormFormat]);
 
     // Función para transformar las partes del formulario al formato API
     const transformPart = (part: AircraftPart, originalPart?: any): any => {
@@ -336,121 +411,13 @@ export default function EditAircraftPage({ params }: { params: { acronym: string
                                         </CardHeader>
                                         <CardContent className="p-4">
                                             <ScrollArea className="h-[300px]">
-                                                <div className="space-y-4">
-                                                    {/* Plantas de Poder */}
-                                                    {partsData.parts.filter(p => p.category === "ENGINE").length > 0 && (
-                                                        <div className="space-y-2">
-                                                            <h4 className="font-semibold text-sm text-blue-600 dark:text-blue-400">
-                                                                Plantas de Poder ({partsData.parts.filter(p => p.category === "ENGINE").length})
-                                                            </h4>
-                                                            <div className="space-y-2 pl-2">
-                                                                {partsData.parts
-                                                                    .filter(p => p.category === "ENGINE")
-                                                                    .map((part, index) => (
-                                                                        <Collapsible key={index}>
-                                                                            <div className="border rounded-lg">
-                                                                                <CollapsibleTrigger className="w-full">
-                                                                                    <div className="flex items-center justify-between p-3 hover:bg-muted/50 transition-colors">
-                                                                                        <div className="flex items-center gap-2">
-                                                                                            <ChevronDown className="h-4 w-4 transition-transform [[data-state=closed]>&]:rotate-[-90deg]" />
-                                                                                            <span className="font-medium text-sm">{part.part_name}</span>
-                                                                                        </div>
-                                                                                        <span className="text-xs text-muted-foreground">{part.part_number}</span>
-                                                                                    </div>
-                                                                                </CollapsibleTrigger>
-                                                                                <CollapsibleContent>
-                                                                                    <div className="p-3 pt-0 space-y-1 border-t">
-                                                                                        <div className="text-xs text-muted-foreground">
-                                                                                            <span className="font-medium">PN:</span> {part.part_number}
-                                                                                        </div>
-                                                                                        <div className="text-xs text-muted-foreground">
-                                                                                            <span className="font-medium">Serial:</span> {part.serial}
-                                                                                        </div>
-                                                                                    </div>
-                                                                                </CollapsibleContent>
-                                                                            </div>
-                                                                        </Collapsible>
-                                                                    ))}
-                                                            </div>
-                                                        </div>
-                                                    )}
-                                                    
-                                                    {/* APU */}
-                                                    {partsData.parts.filter(p => p.category === "APU").length > 0 && (
-                                                        <div className="space-y-2">
-                                                            <h4 className="font-semibold text-sm text-green-600 dark:text-green-400">
-                                                                APU ({partsData.parts.filter(p => p.category === "APU").length})
-                                                            </h4>
-                                                            <div className="space-y-2 pl-2">
-                                                                {partsData.parts
-                                                                    .filter(p => p.category === "APU")
-                                                                    .map((part, index) => (
-                                                                        <Collapsible key={index}>
-                                                                            <div className="border rounded-lg">
-                                                                                <CollapsibleTrigger className="w-full">
-                                                                                    <div className="flex items-center justify-between p-3 hover:bg-muted/50 transition-colors">
-                                                                                        <div className="flex items-center gap-2">
-                                                                                            <ChevronDown className="h-4 w-4 transition-transform [[data-state=closed]>&]:rotate-[-90deg]" />
-                                                                                            <span className="font-medium text-sm">{part.part_name}</span>
-                                                                                        </div>
-                                                                                        <span className="text-xs text-muted-foreground">{part.part_number}</span>
-                                                                                    </div>
-                                                                                </CollapsibleTrigger>
-                                                                                <CollapsibleContent>
-                                                                                    <div className="p-3 pt-0 space-y-1 border-t">
-                                                                                        <div className="text-xs text-muted-foreground">
-                                                                                            <span className="font-medium">PN:</span> {part.part_number}
-                                                                                        </div>
-                                                                                        <div className="text-xs text-muted-foreground">
-                                                                                            <span className="font-medium">Serial:</span> {part.serial}
-                                                                                        </div>
-                                                                                    </div>
-                                                                                </CollapsibleContent>
-                                                                            </div>
-                                                                        </Collapsible>
-                                                                    ))}
-                                                            </div>
-                                                        </div>
-                                                    )}
-                                                    
-                                                    {/* Hélices */}
-                                                    {partsData.parts.filter(p => p.category === "PROPELLER").length > 0 && (
-                                                        <div className="space-y-2">
-                                                            <h4 className="font-semibold text-sm text-orange-600 dark:text-orange-400">
-                                                                Hélices ({partsData.parts.filter(p => p.category === "PROPELLER").length})
-                                                            </h4>
-                                                            <div className="space-y-2 pl-2">
-                                                                {partsData.parts
-                                                                    .filter(p => p.category === "PROPELLER")
-                                                                    .map((part, index) => (
-                                                                        <Collapsible key={index}>
-                                                                            <div className="border rounded-lg">
-                                                                                <CollapsibleTrigger className="w-full">
-                                                                                    <div className="flex items-center justify-between p-3 hover:bg-muted/50 transition-colors">
-                                                                                        <div className="flex items-center gap-2">
-                                                                                            <ChevronDown className="h-4 w-4 transition-transform [[data-state=closed]>&]:rotate-[-90deg]" />
-                                                                                            <span className="font-medium text-sm">{part.part_name}</span>
-                                                                                        </div>
-                                                                                        <span className="text-xs text-muted-foreground">{part.part_number}</span>
-                                                                                    </div>
-                                                                                </CollapsibleTrigger>
-                                                                                <CollapsibleContent>
-                                                                                    <div className="p-3 pt-0 space-y-1 border-t">
-                                                                                        <div className="text-xs text-muted-foreground">
-                                                                                            <span className="font-medium">PN:</span> {part.part_number}
-                                                                                        </div>
-                                                                                        <div className="text-xs text-muted-foreground">
-                                                                                            <span className="font-medium">Serial:</span> {part.serial}
-                                                                                        </div>
-                                                                                    </div>
-                                                                                </CollapsibleContent>
-                                                                            </div>
-                                                                        </Collapsible>
-                                                                    ))}
-                                                            </div>
-                                                        </div>
-                                                    )}
-                                                </div>
+                                                {partsData.parts.length > 0 ? (
+                                                    <PartsSummaryTree parts={partsData.parts} />
+                                                ) : (
+                                                    <div className="h-full flex items-center justify-center text-sm text-muted-foreground">
+                                                        No hay partes registradas
+                                                    </div>
+                                                )}
                                             </ScrollArea>
                                         </CardContent>
                                     </Card>

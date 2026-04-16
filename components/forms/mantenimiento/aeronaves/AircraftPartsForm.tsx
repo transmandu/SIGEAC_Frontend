@@ -11,7 +11,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { useToast } from "@/components/ui/use-toast"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { ChevronDown, ChevronRight, Folder, FolderOpen, Layers, Layers2, MinusCircle, PlusCircle } from "lucide-react"
-import { useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { Control, useFieldArray, useForm, useWatch } from "react-hook-form"
 import { z } from "zod"
 import { ScrollArea } from "@/components/ui/scroll-area"
@@ -35,6 +35,128 @@ const PartsFormSchema = z.object({
 
 type PartsFormType = z.infer<typeof PartsFormSchema>;
 
+type RawPart = {
+    id?: number | string;
+    part_name?: string;
+    part_number?: string;
+    time_since_new?: number | string | null;
+    time_since_overhaul?: number | string | null;
+    cycles_since_new?: number | string | null;
+    cycles_since_overhaul?: number | string | null;
+    condition_type?: "NEW" | "OVERHAULED" | string | null;
+    is_father?: boolean;
+    parent_part_id?: number | string | null;
+    sub_parts?: RawPart[];
+};
+
+type AircraftAssignmentLike = {
+    removed_date?: string | null;
+    aircraft_part?: RawPart | null;
+};
+
+type InitialPartsLike = PartsFormType & {
+    aircraft_parts?: RawPart[];
+    aircraft_assignments?: AircraftAssignmentLike[];
+};
+
+const toNumber = (value: number | string | null | undefined) => {
+    const parsed = Number(value ?? 0);
+    return Number.isFinite(parsed) ? parsed : 0;
+};
+
+const normalizePart = (part: RawPart): z.infer<typeof PartSchema> => {
+    const normalizedSubParts = (part.sub_parts || []).map(normalizePart);
+
+    return {
+        part_name: part.part_name || "",
+        part_number: part.part_number || "",
+        time_since_new: toNumber(part.time_since_new),
+        time_since_overhaul: toNumber(part.time_since_overhaul),
+        cycles_since_new: toNumber(part.cycles_since_new),
+        cycles_since_overhaul: toNumber(part.cycles_since_overhaul),
+        condition_type: part.condition_type === "OVERHAULED" ? "OVERHAULED" : "NEW",
+        is_father: typeof part.is_father === "boolean" ? part.is_father : normalizedSubParts.length > 0,
+        sub_parts: normalizedSubParts
+    };
+};
+
+const buildPartsFromAssignments = (assignments: AircraftAssignmentLike[] = []): z.infer<typeof PartSchema>[] => {
+    const activeParts = assignments
+        .filter((assignment) => assignment.removed_date === null || assignment.removed_date === undefined)
+        .map((assignment) => assignment.aircraft_part)
+        .filter((part): part is RawPart => Boolean(part));
+
+    const partsById = new Map<string, RawPart>();
+
+    const collectPartTree = (part: RawPart) => {
+        const key = String(part.id ?? `${part.parent_part_id ?? "root"}-${part.part_number ?? part.part_name ?? Math.random()}`);
+        const existing = partsById.get(key);
+
+        partsById.set(key, {
+            ...part,
+            sub_parts: part.sub_parts || existing?.sub_parts || []
+        });
+
+        (part.sub_parts || []).forEach(collectPartTree);
+    };
+
+    activeParts.forEach(collectPartTree);
+
+    const parts = Array.from(partsById.values());
+    const childrenByParent = new Map<string, RawPart[]>();
+
+    parts.forEach((part) => {
+        if (part.parent_part_id === null || part.parent_part_id === undefined) return;
+
+        const parentKey = String(part.parent_part_id);
+        const siblings = childrenByParent.get(parentKey) || [];
+
+        if (!siblings.some((sibling) => String(sibling.id) === String(part.id))) {
+            siblings.push(part);
+            childrenByParent.set(parentKey, siblings);
+        }
+    });
+
+    const composeTree = (part: RawPart): RawPart => {
+        const nestedChildren = (part.sub_parts || []).map(composeTree);
+        const relatedChildren = childrenByParent.get(String(part.id ?? "")) || [];
+        const mergedChildren = [...nestedChildren];
+
+        relatedChildren.forEach((child) => {
+            if (!mergedChildren.some((existing) => String(existing.id) === String(child.id))) {
+                mergedChildren.push(composeTree(child));
+            }
+        });
+
+        return {
+            ...part,
+            sub_parts: mergedChildren
+        };
+    };
+
+    return parts
+        .filter((part) => part.parent_part_id === null || part.parent_part_id === undefined)
+        .map(composeTree)
+        .map(normalizePart);
+};
+
+const getNormalizedInitialData = (initialData?: InitialPartsLike): PartsFormType => {
+    if (initialData?.parts?.length) {
+        return { parts: initialData.parts.map(normalizePart) };
+    }
+
+    if (initialData?.aircraft_parts?.length) {
+        return { parts: initialData.aircraft_parts.map(normalizePart) };
+    }
+
+    if (initialData?.aircraft_assignments?.length) {
+        const parts = buildPartsFromAssignments(initialData.aircraft_assignments);
+        return { parts: parts.length > 0 ? parts : [{ condition_type: "NEW" }] };
+    }
+
+    return { parts: [{ condition_type: "NEW" }] };
+};
+
 // Función auxiliar para obtener valores de forma segura
 const usePartValue = <T,>(control: Control<PartsFormType>, path: string, defaultValue?: T): T => {
     return useWatch({
@@ -47,13 +169,18 @@ const usePartValue = <T,>(control: Control<PartsFormType>, path: string, default
 export function AircraftPartsInfoForm({ onNext, onBack, initialData }: {
     onNext: (data: PartsFormType) => void,
     onBack: () => void,
-    initialData?: PartsFormType
+    initialData?: InitialPartsLike
 }) {
     const { toast } = useToast();
+    const normalizedInitialData = useMemo(() => getNormalizedInitialData(initialData), [initialData]);
     const form = useForm<PartsFormType>({
         resolver: zodResolver(PartsFormSchema),
-        defaultValues: initialData || { parts: [{ condition_type: "NEW" }] }
+        defaultValues: normalizedInitialData
     });
+
+    useEffect(() => {
+        form.reset(normalizedInitialData);
+    }, [form, normalizedInitialData]);
 
     const { fields, append } = useFieldArray({
         control: form.control,
