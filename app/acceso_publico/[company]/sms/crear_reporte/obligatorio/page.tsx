@@ -33,7 +33,7 @@ const CreateObligatoryReport = () => {
     };
 
     return (
-        <GuestContentLayout title="Reporte Voluntario">
+        <GuestContentLayout title="Reporte Obligatorio">
             {renderContent()}
         </GuestContentLayout>
     );

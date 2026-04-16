@@ -24,8 +24,8 @@ export type ObligatoryReport = {
     report_time: string;
     incident_date: Date;
     incident_time: string;
-    location: Location;
-    origirin_location: Location;
+    incident_location_id: Location;
+    report_location_id: Location;
 
     name: string;
     last_name: string;
@@ -35,7 +35,6 @@ export type ObligatoryReport = {
     incidents: string;
     other_incidents: string;
     description: string;
-    incident_location: string;
     status: string;
     image?: string;
     document?: string;

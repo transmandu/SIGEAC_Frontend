@@ -4,22 +4,21 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 interface ObligatoryReportData {
-    report_number?: string;
-    description: string;
-    incident_location: string;
     report_date: Date;
+    report_time: string;
     incident_date: Date;
     incident_time: string;
-    flight_time: string;
-    pilot_id: string;
-    copilot_id: string;
-    aircraft_id: string;
-    flight_number: string;
-    flight_origin: string;
-    flight_destiny: string;
-    flight_alt_destiny: string;
+
+    incident_location_id: string;
+    report_location_id: string;
+
+    name: string;
+    last_name: string;
+    phone?: string;
+    email?: string;
     incidents?: string[];
     other_incidents?: string;
+    description: string;
     status: string;
     image?: File | string;
     document?: File | string;

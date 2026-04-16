@@ -9,14 +9,11 @@ import {
     FormLabel,
     FormMessage,
 } from "@/components/ui/form";
-
 import { Input } from "@/components/ui/input";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-
 import { useState } from "react";
-
 import { useCreateObligatoryReport } from "@/actions/mantenimiento/sms/reporte_obligatorio/actions";
 import { Calendar } from "@/components/ui/calendar";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -34,15 +31,17 @@ import {
     PopoverTrigger,
 } from "@/components/ui/popover";
 import { Separator } from "@/components/ui/separator";
-import { useGetAircraftAcronyms } from "@/hooks/aerolinea/aeronaves/useGetAircraftAcronyms";
-import { useGetPilots } from "@/hooks/sms/useGetPilots";
 import { cn } from "@/lib/utils";
-import { ObligatoryReport } from "@/types";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { CalendarIcon, Check, ChevronsUpDown } from "lucide-react";
+import { CalendarIcon, Check, ChevronsUpDown, Loader2 } from "lucide-react";
 import Image from "next/image";
 import { useParams } from "next/navigation";
+import { ObligatoryReport } from "@/types/sms/mantenimiento";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@radix-ui/react-select";
+import { useGetLocationsByCompany } from "@/hooks/sistema/useGetLocationsByCompany";
+
 interface FormProps {
     isEditing?: boolean;
     initialData?: ObligatoryReport;
@@ -56,15 +55,13 @@ export function CreateGenObliReport({
 }: FormProps) {
     const FormSchema = z
         .object({
-            incident_location: z
-                .string()
-                .min(3, {
-                    message: "El lugar de incidente debe tener al menos 3 caracteres",
-                })
-                .max(50, {
-                    message: "El lugar de incidente no debe exceder los 50 caracteres",
-                }),
+            incident_location_id: z.string(),
+            report_location_id: z.string(),
             description: z.string(),
+            name: z.string().min(1, "El nombre es requerido"),
+            last_name: z.string().min(1, "El apellido es requerido"),
+            phone: z.string().optional(),
+            email: z.string().email("Formato de correo inválido").optional().or(z.literal("")),
             report_date: z
                 .date()
                 .refine((val) => !isNaN(val.getTime()), { message: "Fecha inválida" }),
@@ -77,7 +74,6 @@ export function CreateGenObliReport({
             report_time: z.string().regex(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/, {
                 message: "Formato de hora inválido (HH:mm)",
             }),
-
             incidents: z.array(z.string()).optional(),
             other_incidents: z.preprocess(
                 (val) => (val === null || val === undefined ? "" : val),
@@ -128,86 +124,70 @@ export function CreateGenObliReport({
             try {
                 return JSON.parse(initialData.incidents);
             } catch (error) {
-                return []; // Devuelve un array vacío en caso de error de parseo
+                return [];
             }
         }
-        return []; // Devuelve un array vacío si initialData?.incidents es null o undefined
+        return [];
     });
 
-
     const OPTIONS_LIST = [
-        "La aereonave aterriza quedándose solo con el combustible de reserva o menos",
-        "Incursion en pista o calle de rodaje ( RUNAWAY INCURSION-RI)",
-        "Aproximacion no estabilizada por debajo de los 500 pies VRF o 1000 PIES IRF",
-        "Despresurizacion",
-        "Salida de pista - RUNAWAY INCURSION",
-        "Derrame de combustible",
-        "Error  de navegacion con desviacion significativa de la ruta",
-        "Casi colision (RESOLUCION ACVSORY-RA)",
-        "Despegue abortado(REJETED TAKE OFF-RTO)",
-        "Falla de motor",
-        "Tail Strike",
-        "Impacto con aves",
-        "Aterrizaje fuerte (HARD LANDING)",
-        "Alerta de fuego o humo",
-        "Wind Shear",
-        "El avion es evacuado",
-        "Fallo en los controles de vuelo",
-        "Parametros de vuelo anormales",
+        "ACCIDENTE",
+        "AERONAVES QUE RETORNAN CON REPORTES LUEGO DE SERVICIO EN HANGAR 74, C.A.",
+        "INCIDENTE GRAVE",
+        "PROCEDIMIENTOS DE INCOMING INSPECTION INCOMPLETOS",
+        "FALTA DE UTILIZACIÓN DE ELEMENTOS DE PROTECCIÓN PERSONAL",
+        "REPUESTOS SIN TARJETAS DE IDENTIFICACIÓN",
+        "INTOXICACIÓN CON QUIMICOS",
+        "HERRAMIENTAS EXTRAVIADAS",
+        "DAÑOS CAUSADOS POR ELEMENTOS EXTRAÑOS (F.O.D)",
+        "CUALQUIER DAÑO QUE SUFRA UNA AERONAVE",
+        "EFECTUAR UN TRABAJO MIENTRAS SE ENCUENTRA BAJO LAS INFLUENCIAS DEL ALCOHOL O SUSTANCIAS PROHIBIDAS",
+        "UTILIZACIÓN DE UNA HERRAMIENTA NO CALIBRADA O CON EL PERIODO DE CALIBRACIÓN VENCIDO"
     ];
 
+    const { data: locations, isLoading: isLocationsLoading } = useGetLocationsByCompany(company);
     const form = useForm<FormSchemaType>({
         resolver: zodResolver(FormSchema),
         defaultValues: {
-            description: initialData?.description,
-            incident_location: initialData?.incident_location,
-            aircraft_id: initialData?.aircraft?.id.toString(),
-            pilot_id: initialData?.pilot?.id.toString(),
-            copilot_id: initialData?.copilot?.id.toString(),
-            flight_alt_destiny: initialData?.flight_alt_destiny,
-            flight_destiny: initialData?.flight_destiny,
-            flight_number: initialData?.flight_number,
-            flight_origin: initialData?.flight_origin,
-            incidents: initialData?.incidents
-                ? JSON.parse(initialData.incidents)
-                : [],
+            report_date: initialData?.report_date ? new Date(initialData?.report_date) : new Date(),
+            report_time: initialData?.report_time ? initialData.report_time.substring(0, 5) : "00:00",
+            incident_date: initialData?.incident_date ? new Date(initialData?.incident_date) : new Date(),
+            incident_time: initialData?.incident_time ? initialData.incident_time.substring(0, 5) : "00:00",
+            incident_location_id: initialData?.incident_location_id?.toString() ?? "",
+            // Asegúrate de que este acceso coincida con cómo viene la data real
+            report_location_id: initialData?.incident_location_id?.id?.toString() ?? "",
+            name: initialData?.name ?? "",
+            last_name: initialData?.last_name ?? "",
+            phone: initialData?.phone ?? "",
+            email: initialData?.email ?? "",
+            incidents: initialData?.incidents ? JSON.parse(initialData.incidents) : [],
             other_incidents: initialData?.other_incidents ?? "",
-            report_date: initialData?.report_date
-                ? new Date(initialData?.report_date)
-                : new Date(),
-            incident_date: initialData?.incident_date
-                ? new Date(initialData?.incident_date)
-                : new Date(),
-            report_time: initialData?.report_time
-                ? initialData.report_time.substring(0, 5) // Extraemos solo HH:mm
-                : "00:00",
-            incident_time: initialData?.incident_time
-                ? initialData.incident_time.substring(0, 5) // Extraemos solo HH:mm
-                : "00:00",
+            description: initialData?.description ?? "",
         },
     });
 
     const onSubmit = async (data: FormSchemaType) => {
         const value = {
-            incident_location: data.incident_location,
-            description: data.description,
-            incident_date: data.incident_date,
             report_date: data.report_date,
-            incident_time: `${data.incident_time}:00`, // Añadimos segundos para el backend
-            report_time: `${data.report_time}:00`, // Añadimos segundos para el backend
-            flight_number: data.flight_number,
-            flight_origin: data.flight_origin,
-            flight_destiny: data.flight_destiny,
-            flight_alt_destiny: data.flight_alt_destiny,
+            report_time: `${data.report_time}:00`,
+            incident_date: data.incident_date,
+            incident_time: `${data.incident_time}:00`,
+            incident_location_id: data.incident_location_id,
+            report_location_id: data.report_location_id,
+            name: data.name,
+            last_name: data.last_name,
+            phone: data.phone,
+            email: data.email,
             incidents: data.incidents,
             other_incidents: data.other_incidents,
+            description: data.description,
+            status: "IN_PROCESS",
             image: data.image,
             document: data.document,
-            status: "PROCESO",
         };
 
         try {
-            createObligatoryReport.mutateAsync(value);
+            await createObligatoryReport.mutateAsync(value);
         } catch (error) {
             console.error("Error al crear reporte:", error);
         }
@@ -221,373 +201,344 @@ export function CreateGenObliReport({
         }
     };
 
-    const handleOtherInputChange = (
-        event: React.ChangeEvent<HTMLInputElement>
-    ) => {
+    const handleOtherInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         form.setValue("other_incidents", event.target.value);
     };
 
     return (
         <Form {...form}>
-            <form
-                onSubmit={form.handleSubmit(onSubmit)}
-                className="flex flex-col space-y-3 w-full"
-            >
-                <FormLabel className="text-lg text-center m-2 font-bold">
-                    Reporte Obligatorio de suceso
-                </FormLabel>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col space-y-6 w-full pb-4">
 
-                <div className="grid grid-cols-2 gap-4 ">
-
-                    <FormField
-                        control={form.control}
-                        name="report_date"
-                        render={({ field }) => (
-                            <FormItem className="flex flex-col mt-2.5 w-full">
-                                <FormLabel>Fecha de Reporte</FormLabel>
-                                <Popover>
-                                    <PopoverTrigger asChild>
-                                        <FormControl>
-                                            <Button
-                                                variant={"outline"}
-                                                className={cn(
-                                                    "w-full pl-3 text-left font-normal",
-                                                    !field.value && "text-muted-foreground"
-                                                )}
-                                            >
-                                                {field.value ? (
-                                                    format(field.value, "PPP", {
-                                                        locale: es,
-                                                    })
-                                                ) : (
-                                                    <span>Seleccione una fecha</span>
-                                                )}
-                                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                            </Button>
-                                        </FormControl>
-                                    </PopoverTrigger>
-                                    <PopoverContent className="w-auto p-0" align="start">
-                                        <Calendar
-                                            mode="single"
-                                            selected={field.value}
-                                            onSelect={field.onChange}
-
-                                            initialFocus
-                                            fromYear={1980} // Año mínimo que se mostrará
-                                            toYear={new Date().getFullYear()} // Año máximo (actual)
-                                            captionLayout="dropdown-buttons" // Selectores de año/mes
-                                            components={{
-                                                Dropdown: (props) => (
-                                                    <select
-                                                        {...props}
-                                                        className="bg-popover text-popover-foreground"
-                                                    >
-                                                        {props.children}
-                                                    </select>
-                                                ),
-                                            }}
-                                        />
-                                    </PopoverContent>
-                                </Popover>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-                    <FormField
-                        control={form.control}
-                        name="report_time"
-                        render={({ field }) => (
-                            <FormItem className="w-full">
-                                <FormLabel>Hora del Reporte</FormLabel>
-                                <FormControl>
-                                    <Input
-                                        type="time"
-                                        {...field}
-                                        onChange={(e) => {
-                                            // Validamos que el formato sea correcto
-                                            if (
-                                                e.target.value.match(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/)
-                                            ) {
-                                                field.onChange(e.target.value);
-                                            }
-                                        }}
-                                    />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-
-                    <FormField
-                        control={form.control}
-                        name="incident_location"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Lugar del Incidente</FormLabel>
-                                <FormControl>
-                                    <Input placeholder="" {...field} maxLength={50} />
-                                </FormControl>
-                                <FormMessage className="text-xs" />
-                            </FormItem>
-                        )}
-                    />
-
-                    <FormField
-                        control={form.control}
-                        name="description"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Descripcion del Suceso</FormLabel>
-                                <FormControl>
-                                    <Input placeholder="" {...field} />
-                                </FormControl>
-                                <FormMessage className="text-xs" />
-                            </FormItem>
-                        )}
-                    />
+                {/* Header */}
+                <div className="text-center pb-2 border-b">
+                    <FormLabel className="text-xl font-bold">
+                        H74-SMS-002 REPORTE OBLIGATORIO HANGAR
+                    </FormLabel>
                 </div>
-                <div className="flex flex-col sm:flex-row gap-2 items-center justify-center">
-                    <FormField
-                        control={form.control}
-                        name="incident_date"
-                        render={({ field }) => (
-                            <FormItem className="flex flex-col mt-2.5 w-full">
-                                <FormLabel>Fecha de Incidente</FormLabel>
-                                <Popover>
-                                    <PopoverTrigger asChild>
-                                        <FormControl>
-                                            <Button
-                                                variant={"outline"}
-                                                className={cn(
-                                                    "w-full pl-3 text-left font-normal",
-                                                    !field.value && "text-muted-foreground"
-                                                )}
-                                            >
-                                                {field.value ? (
-                                                    format(field.value, "PPP", {
-                                                        locale: es,
-                                                    })
-                                                ) : (
-                                                    <span>Seleccione una fecha</span>
-                                                )}
-                                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                            </Button>
-                                        </FormControl>
-                                    </PopoverTrigger>
-                                    <PopoverContent className="w-auto p-0" align="start">
-                                        <Calendar
-                                            mode="single"
-                                            selected={field.value}
-                                            onSelect={field.onChange}
-                                            initialFocus
-                                            fromYear={1980} // Año mínimo que se mostrará
-                                            toYear={new Date().getFullYear()} // Año máximo (actual)
-                                            captionLayout="dropdown-buttons" // Selectores de año/mes
-                                            components={{
-                                                Dropdown: (props) => (
-                                                    <select
-                                                        {...props}
-                                                        className="bg-popover text-popover-foreground"
-                                                    >
-                                                        {props.children}
-                                                    </select>
-                                                ),
-                                            }}
-                                        />
-                                    </PopoverContent>
-                                </Popover>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
+                {/* --- SECCIÓN 1: FECHAS Y HORAS --- */}
+                <div className="space-y-4 p-4 rounded-lg border">
+                    <h3 className="font-semibold text-md text-primary">1. Fechas y horas</h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
 
-                    <FormField
-                        control={form.control}
-                        name="incident_time"
-                        render={({ field }) => (
-                            <FormItem className="w-full">
-                                <FormLabel>Hora del incidente</FormLabel>
-                                <FormControl>
-                                    <Input
-                                        type="time"
-                                        {...field}
-                                        onChange={(e) => {
-                                            // Validamos que el formato sea correcto
-                                            if (
-                                                e.target.value.match(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/)
-                                            ) {
-                                                field.onChange(e.target.value);
-                                            }
-                                        }}
-                                    />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-
-                </div>
-
-                <div className="flex flex-col sm:flex-row gap-2 justify-center items-center">
-                    <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-
-
-                        <FormField
-                            control={form.control}
-                            name="flight_number"
-                            render={({ field }) => (
-                                <FormItem className="w-full">
-                                    <FormLabel>Numero de vuelo</FormLabel>
-                                    <FormControl>
-                                        <Input
-                                            placeholder="Numero del vuelo"
-                                            {...field}
-                                            maxLength={6}
-                                        />
-                                    </FormControl>
-                                    <FormMessage className="text-xs" />
-                                </FormItem>
-                            )}
-                        />
-                    </div>
-
-                    <div className="grid grid-cols-1  sm:grid-cols-3 gap-4 justify-center items-center">
-                        <FormField
-                            control={form.control}
-                            name="flight_origin"
-                            render={({ field }) => (
-                                <FormItem className="w-full">
-                                    <FormLabel>Origen de vuelo</FormLabel>
-                                    <FormControl>
-                                        <Input placeholder="Salida del vuelo" {...field} />
-                                    </FormControl>
-                                    <FormMessage className="text-xs" />
-                                </FormItem>
-                            )}
-                        />
-
-                        <FormField
-                            control={form.control}
-                            name="flight_destiny"
-                            render={({ field }) => (
-                                <FormItem className="w-full">
-                                    <FormLabel>Destino de vuelo</FormLabel>
-                                    <FormControl>
-                                        <Input placeholder="Destino del vuelo" {...field} />
-                                    </FormControl>
-                                    <FormMessage className="text-xs" />
-                                </FormItem>
-                            )}
-                        />
-                        <FormField
-                            control={form.control}
-                            name="flight_alt_destiny"
-                            render={({ field }) => (
-                                <FormItem className="w-full">
-                                    <FormLabel>Destino alterno del vuelo</FormLabel>
-                                    <FormControl>
-                                        <Input placeholder="Destino alterno del vuelo" {...field} />
-                                    </FormControl>
-                                    <FormMessage className="text-xs" />
-                                </FormItem>
-                            )}
-                        />
-                    </div>
-
-                    {!showOtherInput && (
-                        <FormField
-                            control={form.control}
-                            name="incidents"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel className="m-2">Incidentes:</FormLabel>
-                                    <FormControl>
-                                        <Popover open={open} onOpenChange={setOpen}>
+                        {/* Bloque: Reporte */}
+                        <div className="flex flex-col gap-4">
+                            <FormField
+                                control={form.control}
+                                name="report_date"
+                                render={({ field }) => (
+                                    <FormItem className="flex flex-col w-full">
+                                        <FormLabel>Fecha de Reporte</FormLabel>
+                                        <Popover>
                                             <PopoverTrigger asChild>
-                                                <Button
-                                                    variant="outline"
-                                                    role="combobox"
-                                                    aria-expanded={open}
-                                                    className="w-[300px] justify-between"
-                                                >
-                                                    {selectedValues && selectedValues.length > 0 ? (
-                                                        <p>({selectedValues.length}) seleccionados</p>
-                                                    ) : (
-                                                        "Seleccionar opciones..."
-                                                    )}
-                                                    <ChevronsUpDown className="opacity-50" />
-                                                </Button>
+                                                <FormControl>
+                                                    <Button
+                                                        variant={"outline"}
+                                                        className={cn(
+                                                            "w-full pl-3 text-left font-normal",
+                                                            !field.value && "text-muted-foreground"
+                                                        )}
+                                                    >
+                                                        {field.value ? (
+                                                            format(field.value, "PPP", { locale: es })
+                                                        ) : (
+                                                            <span>Seleccione una fecha</span>
+                                                        )}
+                                                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                                    </Button>
+                                                </FormControl>
                                             </PopoverTrigger>
-                                            <PopoverContent className="w-[300px] p-0">
-                                                <Command>
-                                                    <CommandInput placeholder="Buscar opciones..." />
-                                                    <CommandList>
-                                                        <CommandEmpty>
-                                                            No se encontraron opciones.
-                                                        </CommandEmpty>
-                                                        <CommandGroup>
-                                                            {OPTIONS_LIST.map((option) => (
-                                                                <CommandItem
-                                                                    key={option}
-                                                                    value={option}
-                                                                    onSelect={(currentValue) => {
-                                                                        const isSelected =
-                                                                            selectedValues.includes(currentValue);
-                                                                        const newValues = isSelected
-                                                                            ? selectedValues.filter(
-                                                                                (v) => v !== currentValue
-                                                                            )
-                                                                            : [...selectedValues, currentValue];
-
-                                                                        setSelectedValues(newValues);
-                                                                        field.onChange(
-                                                                            newValues.length > 0 ? newValues : []
-                                                                        ); // Actualizar el valor del campo de formulario
-                                                                    }}
-                                                                >
-                                                                    {option}
-                                                                    {selectedValues && (
-                                                                        <Check
-                                                                            className={cn(
-                                                                                "ml-auto",
-                                                                                selectedValues.includes(option)
-                                                                                    ? "opacity-100"
-                                                                                    : "opacity-0"
-                                                                            )}
-                                                                        />
-                                                                    )}
-                                                                </CommandItem>
-                                                            ))}
-                                                        </CommandGroup>
-                                                    </CommandList>
-                                                </Command>
+                                            <PopoverContent className="w-auto p-0" align="start">
+                                                <Calendar
+                                                    mode="single"
+                                                    selected={field.value}
+                                                    onSelect={field.onChange}
+                                                    initialFocus
+                                                    fromYear={1980}
+                                                    toYear={new Date().getFullYear()}
+                                                    captionLayout="dropdown-buttons"
+                                                    components={{
+                                                        Dropdown: (props) => (
+                                                            <select {...props} className="bg-popover text-popover-foreground">
+                                                                {props.children}
+                                                            </select>
+                                                        ),
+                                                    }}
+                                                />
                                             </PopoverContent>
                                         </Popover>
-                                    </FormControl>
-                                    <FormMessage className="text-xs" />
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="report_time"
+                                render={({ field }) => (
+                                    <FormItem className="w-full">
+                                        <FormLabel>Hora del Reporte</FormLabel>
+                                        <FormControl>
+                                            <Input
+                                                type="time"
+                                                {...field}
+                                                onChange={(e) => {
+                                                    if (e.target.value.match(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/)) {
+                                                        field.onChange(e.target.value);
+                                                    }
+                                                }}
+                                            />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                        </div>
+
+                        {/* Bloque: Incidente */}
+                        <div className="flex flex-col gap-4">
+                            <FormField
+                                control={form.control}
+                                name="incident_date"
+                                render={({ field }) => (
+                                    <FormItem className="flex flex-col w-full">
+                                        <FormLabel>Fecha de Incidente</FormLabel>
+                                        <Popover>
+                                            <PopoverTrigger asChild>
+                                                <FormControl>
+                                                    <Button
+                                                        variant={"outline"}
+                                                        className={cn(
+                                                            "w-full pl-3 text-left font-normal",
+                                                            !field.value && "text-muted-foreground"
+                                                        )}
+                                                    >
+                                                        {field.value ? (
+                                                            format(field.value, "PPP", { locale: es })
+                                                        ) : (
+                                                            <span>Seleccione una fecha</span>
+                                                        )}
+                                                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                                    </Button>
+                                                </FormControl>
+                                            </PopoverTrigger>
+                                            <PopoverContent className="w-auto p-0" align="start">
+                                                <Calendar
+                                                    mode="single"
+                                                    selected={field.value}
+                                                    onSelect={field.onChange}
+                                                    initialFocus
+                                                    fromYear={1980}
+                                                    toYear={new Date().getFullYear()}
+                                                    captionLayout="dropdown-buttons"
+                                                    components={{
+                                                        Dropdown: (props) => (
+                                                            <select {...props} className="bg-popover text-popover-foreground">
+                                                                {props.children}
+                                                            </select>
+                                                        ),
+                                                    }}
+                                                />
+                                            </PopoverContent>
+                                        </Popover>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="incident_time"
+                                render={({ field }) => (
+                                    <FormItem className="w-full">
+                                        <FormLabel>Hora del incidente</FormLabel>
+                                        <FormControl>
+                                            <Input
+                                                type="time"
+                                                {...field}
+                                                onChange={(e) => {
+                                                    if (e.target.value.match(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/)) {
+                                                        field.onChange(e.target.value);
+                                                    }
+                                                }}
+                                            />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                        </div>
+
+                    </div>
+                </div>
+
+
+
+                {/* --- SECCIÓN 3: UBICACIONES --- */}
+                <div className="space-y-4 p-4 rounded-lg border bg-muted/10">
+                    <h3 className="font-semibold text-md text-primary">2. Ubicaciones</h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+                        <FormField
+                            control={form.control}
+                            name="incident_location_id"
+                            render={({ field }) => (
+                                <FormItem className="flex flex-col w-full">
+                                    <FormLabel>Base del Incidente</FormLabel>
+                                    {isLocationsLoading ? (
+                                        <div className="flex items-center gap-2 h-10 px-3 py-2 border border-input rounded-md bg-muted/50">
+                                            <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                                            <span className="text-sm text-muted-foreground">Cargando Bases...</span>
+                                        </div>
+                                    ) : (
+                                        <Select
+                                            onValueChange={field.onChange}
+                                            defaultValue={field.value}
+                                            disabled={isLocationsLoading}
+                                        >
+                                            <FormControl>
+                                                {/* Clases agregadas aquí para forzar el borde, tamaño y separación */}
+                                                <SelectTrigger className="w-full border border-input rounded-md bg-background px-3 py-2 h-10">
+                                                    <SelectValue placeholder="Seleccionar Base" />
+                                                </SelectTrigger>
+                                            </FormControl>
+                                            <SelectContent>
+                                                {locations?.map((loc) => (
+                                                    <SelectItem key={loc.id} value={loc.id.toString()}>
+                                                        {loc.cod_iata}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    )}
+                                    <FormMessage />
                                 </FormItem>
                             )}
                         />
-                    )}
 
-                    <FormField
-                        control={form.control}
-                        name="other_incidents" // Campo separado para "other_incidents"
-                        render={() => (
-                            <FormItem className="mt-4">
-                                <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                                    <FormControl>
-                                        <Checkbox
-                                            checked={showOtherInput}
-                                            onCheckedChange={handleOtherCheckboxChange}
-                                        />
-                                    </FormControl>
-                                    <FormLabel className="text-sm font-normal">
-                                        Otros incidentes
-                                    </FormLabel>
+                        <FormField
+                            control={form.control}
+                            name="report_location_id"
+                            render={({ field }) => (
+                                <FormItem className="flex flex-col w-full">
+                                    <FormLabel>Base donde se genera</FormLabel>
+                                    {isLocationsLoading ? (
+                                        <div className="flex items-center gap-2 h-10 px-3 py-2 border border-input rounded-md bg-muted/50">
+                                            <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                                            <span className="text-sm text-muted-foreground">Cargando Bases...</span>
+                                        </div>
+                                    ) : (
+                                        <Select
+                                            onValueChange={field.onChange}
+                                            defaultValue={field.value}
+                                            disabled={isLocationsLoading}
+                                        >
+                                            <FormControl>
+                                                {/* Clases agregadas aquí para forzar el borde, tamaño y separación */}
+                                                <SelectTrigger className="w-full border border-input rounded-md bg-background px-3 py-2 h-10">
+                                                    <SelectValue placeholder="Seleccionar Base" />
+                                                </SelectTrigger>
+                                            </FormControl>
+                                            <SelectContent>
+                                                {locations?.map((loc) => (
+                                                    <SelectItem key={loc.id} value={loc.id.toString()}>
+                                                        {loc.cod_iata}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    )}
+                                    <FormMessage />
                                 </FormItem>
-                                {showOtherInput && (
-                                    <FormItem className="mt-2">
+                            )}
+                        />
+                    </div>
+                </div>
+                {/* --- SECCIÓN 4: DETALLES DEL SUCESO --- */}
+                <div className="space-y-4 p-4 rounded-lg border">
+                    <h3 className="font-semibold text-md text-primary">4. Detalles del Suceso</h3>
+
+                    <div className="flex flex-col gap-4">
+                        {!showOtherInput && (
+                            <FormField
+                                control={form.control}
+                                name="incidents"
+                                render={({ field }) => (
+                                    <FormItem className="flex flex-col w-full">
+                                        <FormLabel>Incidentes</FormLabel>
+                                        <FormControl>
+                                            <Popover open={open} onOpenChange={setOpen}>
+                                                <PopoverTrigger asChild>
+                                                    <Button
+                                                        variant="outline"
+                                                        role="combobox"
+                                                        aria-expanded={open}
+                                                        className="w-full sm:w-[400px] justify-between"
+                                                    >
+                                                        {selectedValues && selectedValues.length > 0 ? (
+                                                            <p>({selectedValues.length}) seleccionados</p>
+                                                        ) : (
+                                                            "Seleccionar opciones..."
+                                                        )}
+                                                        <ChevronsUpDown className="opacity-50" />
+                                                    </Button>
+                                                </PopoverTrigger>
+                                                <PopoverContent className="w-[300px] sm:w-[400px] p-0">
+                                                    <Command>
+                                                        <CommandInput placeholder="Buscar opciones..." />
+                                                        <CommandList>
+                                                            <CommandEmpty>No se encontraron opciones.</CommandEmpty>
+                                                            <CommandGroup>
+                                                                {OPTIONS_LIST.map((option) => (
+                                                                    <CommandItem
+                                                                        key={option}
+                                                                        value={option}
+                                                                        onSelect={(currentValue) => {
+                                                                            const isSelected = selectedValues.includes(currentValue);
+                                                                            const newValues = isSelected
+                                                                                ? selectedValues.filter((v) => v !== currentValue)
+                                                                                : [...selectedValues, currentValue];
+                                                                            setSelectedValues(newValues);
+                                                                            field.onChange(newValues.length > 0 ? newValues : []);
+                                                                        }}
+                                                                    >
+                                                                        {option}
+                                                                        {selectedValues && (
+                                                                            <Check
+                                                                                className={cn(
+                                                                                    "ml-auto",
+                                                                                    selectedValues.includes(option) ? "opacity-100" : "opacity-0"
+                                                                                )}
+                                                                            />
+                                                                        )}
+                                                                    </CommandItem>
+                                                                ))}
+                                                            </CommandGroup>
+                                                        </CommandList>
+                                                    </Command>
+                                                </PopoverContent>
+                                            </Popover>
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                        )}
+
+                        <FormField
+                            control={form.control}
+                            name="other_incidents"
+                            render={() => (
+                                <FormItem className="space-y-2">
+                                    <div className="flex flex-row items-center space-x-3">
+                                        <FormControl>
+                                            <Checkbox
+                                                checked={showOtherInput}
+                                                onCheckedChange={handleOtherCheckboxChange}
+                                            />
+                                        </FormControl>
+                                        <FormLabel className="text-sm font-normal">
+                                            Otros incidentes
+                                        </FormLabel>
+                                    </div>
+                                    {showOtherInput && (
                                         <FormControl>
                                             <Input
                                                 type="text"
@@ -596,22 +547,39 @@ export function CreateGenObliReport({
                                                 onChange={handleOtherInputChange}
                                             />
                                         </FormControl>
-                                    </FormItem>
-                                )}
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
+                                    )}
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
 
-                    <div className="flex justify-center items-center gap-2">
+                        <FormField
+                            control={form.control}
+                            name="description"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Descripción Completa del Suceso</FormLabel>
+                                    <FormControl>
+                                        <Textarea className="min-h-[100px]" placeholder="Detalle lo ocurrido..." {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                    </div>
+                </div>
+
+                {/* --- SECCIÓN 5: ADJUNTOS --- */}
+                <div className="space-y-4 bg-muted/30 p-4 rounded-lg border">
+                    <h3 className="font-semibold text-md text-primary">5. Evidencia Adjunta</h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                         <FormField
                             control={form.control}
                             name="image"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Imagen General</FormLabel>
-
-                                    <div className="flex items-center gap-4">
+                                    <FormLabel>Imagen General (JPEG/PNG)</FormLabel>
+                                    <div className="flex items-center gap-4 mt-2">
                                         {field.value ? (
                                             <div className="relative h-16 w-16">
                                                 <Image
@@ -619,35 +587,29 @@ export function CreateGenObliReport({
                                                     alt="Preview"
                                                     width={64}
                                                     height={64}
-                                                    className="rounded-md object-contain"
+                                                    className="rounded-md object-cover"
                                                 />
                                             </div>
-                                        ) : initialData?.image &&
-                                            typeof initialData.image === "string" ? (
+                                        ) : initialData?.image && typeof initialData.image === "string" ? (
                                             <div className="relative h-16 w-16">
                                                 <Image
-                                                    src={
-                                                        initialData.image.startsWith("data:image")
-                                                            ? initialData.image
-                                                            : `data:image/jpeg;base64,${initialData.image}`
-                                                    }
+                                                    src={initialData.image.startsWith("data:image") ? initialData.image : `data:image/jpeg;base64,${initialData.image}`}
                                                     alt="Preview"
                                                     width={64}
                                                     height={64}
-                                                    className="rounded-md object-contain"
+                                                    className="rounded-md object-cover"
                                                 />
                                             </div>
                                         ) : null}
-
                                         <FormControl>
                                             <Input
                                                 type="file"
                                                 accept="image/jpeg, image/png"
                                                 onChange={(e) => field.onChange(e.target.files?.[0])}
+                                                className="cursor-pointer file:cursor-pointer"
                                             />
                                         </FormControl>
                                     </div>
-
                                     <FormMessage />
                                 </FormItem>
                             )}
@@ -657,16 +619,12 @@ export function CreateGenObliReport({
                             name="document"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Documento PDF</FormLabel>
-                                    <div className="flex items-center gap-4">
+                                    <FormLabel>Documento (PDF)</FormLabel>
+                                    <div className="flex flex-col gap-2 mt-2">
                                         {field.value && (
-                                            <div>
-                                                <p className="text-sm text-gray-500">
-                                                    Archivo seleccionado:
-                                                </p>
-                                                <p className="font-semibold text-sm">
-                                                    {field.value.name}
-                                                </p>
+                                            <div className="text-sm text-muted-foreground">
+                                                <span className="font-semibold text-foreground">Archivo actual: </span>
+                                                {field.value.name}
                                             </div>
                                         )}
                                         <FormControl>
@@ -674,6 +632,7 @@ export function CreateGenObliReport({
                                                 type="file"
                                                 accept="application/pdf"
                                                 onChange={(e) => field.onChange(e.target.files?.[0])}
+                                                className="cursor-pointer file:cursor-pointer"
                                             />
                                         </FormControl>
                                     </div>
@@ -682,15 +641,20 @@ export function CreateGenObliReport({
                             )}
                         />
                     </div>
+                </div>
 
+                {/* --- FOOTER / SUBMIT --- */}
+                <div className="flex flex-col gap-4 mt-4">
                     <div className="flex justify-between items-center gap-x-4">
                         <Separator className="flex-1" />
-                        <p className="text-muted-foreground">SIGEAC</p>
+                        <p className="text-muted-foreground text-sm font-medium tracking-widest">SIGEAC</p>
                         <Separator className="flex-1" />
                     </div>
-                    <Button type="submit">Enviar reporte</Button>
+                    <Button type="submit" size="lg" className="w-full sm:w-auto self-center px-8">
+                        Enviar reporte
+                    </Button>
+                </div>
             </form>
         </Form>
     );
 }
-
