@@ -212,7 +212,7 @@ export type Company = {
     alt_phone_number: number;
     cod_iata: string;
     cod_oaci: string;
-    isOMAC: boolean;
+    isOmac: boolean;
     modules: Module[];
     created_at: string;
     updated_at: string;

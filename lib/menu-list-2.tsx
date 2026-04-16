@@ -47,6 +47,7 @@ type Submenu = {
     active: boolean;
     roles?: string[];
     moduleValue?: string;
+    requiresOmac?: boolean;
 };
 
 type Menu = {
@@ -57,6 +58,7 @@ type Menu = {
     roles: string[];
     moduleValue?: string;
     submenus: Submenu[];
+    requiresOmac?: boolean;
 };
 
 type Group = {
@@ -96,6 +98,18 @@ export function getMenuList(
         if (!moduleValue || !currentCompany) return true;
         // Verificar si la compañía tiene este módulo
         return currentCompany.modules.some((m) => m.value === moduleValue);
+    };
+
+    // Verificar si la empresa actual es una OMAC
+    // (Ajusta 'isOmac' por la propiedad real que uses en tu base de datos)
+
+    // Verificar el acceso dependiendo del tipo de empresa
+    const hasOmacAccess = (item: { requiresOmac?: boolean }): boolean => {
+        // Si el menú no tiene la restricción, pasa directo
+        if (item.requiresOmac === undefined) return true;
+
+        // Si tiene la restricción, verificamos si hace match con la empresa
+        return item.requiresOmac === currentCompany?.isOmac;
     };
 
     const fullMenu: Group[] = [
@@ -474,6 +488,7 @@ export function getMenuList(
                     active: pathname.includes(`/${currentCompany?.slug}/sms/reportes`),
                     icon: ClipboardPen,
                     roles: ["ANALISTA_SMS", "JEFE_SMS", "SUPERUSER"],
+                    requiresOmac: false,
                     submenus: [],
                 },
                 {
@@ -484,6 +499,7 @@ export function getMenuList(
                     ),
                     icon: ShieldAlert,
                     roles: ["ANALISTA_SMS", "JEFE_SMS", "SUPERUSER"],
+                    requiresOmac: false,
                     submenus: [
                         {
                             href: `/${currentCompany?.slug}/sms/gestion_reportes/peligros_identificados`,
@@ -511,6 +527,8 @@ export function getMenuList(
                         `/${currentCompany?.slug}/sms/estadisticas`,
                     ),
                     roles: ["ANALISTA_SMS", "JEFE_SMS", "SUPERUSER"],
+                    requiresOmac: false,
+
                     submenus: [
                         {
                             href: `/${currentCompany?.slug}/sms/estadisticas/general`,
@@ -570,6 +588,7 @@ export function getMenuList(
                     active: pathname.includes(`/${currentCompany?.slug}/sms/promocion`),
                     icon: CalendarClock,
                     roles: ["SUPERUSER", "JEFE_SMS", "ANALISTA_SMS"],
+                    requiresOmac: false,
                     submenus: [
                         {
                             href: `/${currentCompany?.slug}/sms/promocion/actividades/calendario`,
@@ -613,6 +632,7 @@ export function getMenuList(
                     ),
                     icon: ClipboardCheck,
                     roles: ["SUPERUSER", "JEFE_SMS", "ANALISTA_SMS"],
+                    requiresOmac: false,
                     submenus: [
                         {
                             href: `/${currentCompany?.slug}/sms/gestion_encuestas/crear`,
@@ -638,6 +658,7 @@ export function getMenuList(
                     active: pathname.includes(`/${currentCompany?.slug}/sms/ajustes`),
                     icon: Settings,
                     roles: ["SUPERUSER", "JEFE_SMS", "ANALISTA_SMS"],
+                    requiresOmac: false,
                     submenus: [
                         {
                             href: `/${currentCompany?.slug}/sms/ajustes/encuesta`,
@@ -1233,35 +1254,43 @@ export function getMenuList(
             .filter((group) => isModuleActive(group.moduleValue))
             // Filtrar menús y submenús
             .map((group) => {
-                // Filtrar por acceso y módulos primero
-                let menus = group.menus.filter(
-                    (menu) => isModuleActive(menu.moduleValue) && hasRoleAccess(menu)
+                // 1. Filtramos los menús principales usando const
+                const filteredMenus = group.menus.filter(
+                    (menu) =>
+                        isModuleActive(menu.moduleValue) &&
+                        hasRoleAccess(menu) &&
+                        hasOmacAccess(menu) // <-- Nuevo filtro
                 );
 
-                // Si es la compañía restringida y el grupo es 'General', solo mostrar 'Inventario'
+                // 2. Mapeamos y filtramos los submenús
+                const mappedMenus = filteredMenus
+                    .map((menu) => {
+                        const submenus = menu.submenus.filter(
+                            (sub) =>
+                                isModuleActive(sub.moduleValue) &&
+                                hasRoleAccess(sub) &&
+                                hasOmacAccess(sub) && // <-- Nuevo filtro
+                                isValidHref(sub.href)
+                        );
+
+                        const href = isValidHref(menu.href) ? menu.href : submenus[0]?.href;
+
+                        if (!href) {
+                            return null;
+                        }
+
+                        return {
+                            ...menu,
+                            href,
+                            submenus,
+                        };
+                    })
+                    .filter((menu): menu is Menu => menu !== null);
+
+                // Retornamos el grupo con los menús ya procesados
                 return {
                     ...group,
-                    menus: menus
-                        .map((menu) => {
-                            const submenus = menu.submenus.filter(
-                                (sub) =>
-                                    isModuleActive(sub.moduleValue) &&
-                                    hasRoleAccess(sub) &&
-                                    isValidHref(sub.href)
-                            );
-                            const href = isValidHref(menu.href) ? menu.href : submenus[0]?.href;
-
-                            if (!href) {
-                                return null;
-                            }
-
-                            return {
-                                ...menu,
-                                href,
-                                submenus,
-                            };
-                        })
-                        .filter((menu): menu is Menu => menu !== null),
+                    menus: mappedMenus,
                 };
             })
             // Eliminar grupos vacíos

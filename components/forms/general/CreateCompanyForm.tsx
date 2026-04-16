@@ -62,7 +62,7 @@ const FormSchema = z.object({
   cod_iata: optionalCode,
   cod_oaci: optionalCode,
   modules: z.array(z.string()),
-  isOMAC: z.boolean(),
+  isOmac: z.boolean(),
   locations: z.array(LocationSchema).min(1, "Debe agregar al menos una ubicación").optional(),
 })
 
@@ -87,7 +87,7 @@ export function CreateCompanyForm({ onClose }: FormProps) {
   const form = useForm<FormSchemaType>({
   resolver: zodResolver(FormSchema),
   defaultValues: {
-    isOMAC: false,
+    isOmac: false,
     name: "",
     fiscal_address: "",
     rif: "",
@@ -265,7 +265,7 @@ export function CreateCompanyForm({ onClose }: FormProps) {
               </div>
               <FormField
                 control={form.control}
-                name="isOMAC"
+                name="isOmac"
                 render={({ field }) => (
                   <FormItem className="flex flex-col items-start rounded-md space-y-2 py-2">
                     <FormLabel>¿Es una OMAC?</FormLabel>
