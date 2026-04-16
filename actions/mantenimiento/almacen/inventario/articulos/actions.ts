@@ -54,7 +54,7 @@ interface SendToQuarantinePayload {
 }
 
 
-type CheckResult = "PASS" | "FAIL";
+type CheckResult = "PASS" | "FAIL" | "NA";
 
 const serializeFormValue = (value: unknown) => {
     if (value instanceof Date) {
