@@ -474,8 +474,6 @@ export function IncomingReview({ article }: { article: any }) {
 
   const isHazardous = !!article?.batch?.is_hazarous;
   const consumable = article?.consumable;
-  const expirationDate = formatDateSafe(consumable?.expiration_date);
-  const fabricationDate = formatDateSafe(consumable?.fabrication_date);
 
   /* ── Checklist state ── */
   const { data: groups = [], isLoading } = useGetIncomingChecks(hasDocs);
