@@ -9,7 +9,7 @@ import {
 import { useDeleteUser } from "@/actions/aerolinea/usuarios/actions"
 import { EditUserDialog } from "@/components/dialogs/ajustes/EditUserDialog"
 import { User } from "@/types"
-import { Loader2, MoreHorizontal, Trash2, UserPen } from "lucide-react"
+import { Eye, Loader2, MoreHorizontal, Trash2, UserPen } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { Button } from "../../ui/button"
@@ -19,6 +19,7 @@ const UserDropdownActions = ({ user, companies }: { user: User, companies: { id:
 
   const [open, setOpen] = useState<boolean>(false)
   const { deleteUser } = useDeleteUser()
+  const router = useRouter()
   const handleDelete = async (id: number | string, companies: { id: number, name: string }[]) => {
     await deleteUser.mutateAsync({ id: user.id, companies });
     setOpen(false);
@@ -33,6 +34,9 @@ const UserDropdownActions = ({ user, companies }: { user: User, companies: { id:
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="center" className="flex gap-2 justify-center">
+          <DropdownMenuItem onClick={() => router.push(`/sistema/usuarios_permisos/usuarios/${user.id}`)}>
+            <Eye className="size-5 text-muted-foreground" />
+          </DropdownMenuItem>
           <DialogTrigger asChild>
             <DropdownMenuItem>
               <Trash2 className='size-5 text-red-500' />

@@ -117,8 +117,9 @@ export const useCreateArticle = () => {
             // 3. ENVIAMOS EL FORMDATA (Axios pondrá los headers automáticamente)
             return await axiosInstance.post(`/${company}/article`, formData);
         },
-        onSuccess: () => {
+        onSuccess: (_, data) => {
             queryClient.invalidateQueries({ queryKey: ["warehouse-articles"] });
+            queryClient.invalidateQueries({ queryKey: ['articles', data.company, data.data.status] });
             toast.success("¡Creado!", {
                 description: `El articulo ha sido creado correctamente.`,
             });
@@ -335,13 +336,14 @@ export const useEditArticle = () => {
                 }
             );
         },
-        onSuccess: () => {
+        onSuccess: (_, data) => {
             queryClient.invalidateQueries({ queryKey: ["article"] });
             queryClient.invalidateQueries({ queryKey: ["articles"] });
             queryClient.invalidateQueries({ queryKey: ["warehouse-articles"] });
             queryClient.invalidateQueries({ queryKey: ["batches"] });
             queryClient.invalidateQueries({ queryKey: ["in-transit-articles"] });
             queryClient.invalidateQueries({ queryKey: ["in-reception-articles"] });
+            queryClient.invalidateQueries({ queryKey: ['articles', data.company, data.data.status] });
             toast.success("¡Actualizado!", {
                 description: `El articulo ha sido actualizado correctamente.`,
             });
@@ -490,32 +492,32 @@ export const useSendToQuarantine = () => {
 };
 
 export const useUpdateToolArticleStatus = () => {
-  const { selectedCompany } = useCompanyStore();
+    const { selectedCompany } = useCompanyStore();
 
-  const queryClient = useQueryClient();
+    const queryClient = useQueryClient();
 
-  const updateToolArticleStatusMutation = useMutation({
-    mutationKey: ['calibrated-tools'],
-    mutationFn: async ({ id, status, calibration_date }: { id: number; status: string; calibration_date?: string }) => {
-      await axiosInstance.patch(`/${selectedCompany?.slug}/update-tool/${id}`, {
-        status: status,
-        calibration_date: calibration_date || null,
-      });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['warehouse-articles'] });
-      toast.success('¡Actualizado!', {
-        description: `El Material ha sido actualizado correctamente.`,
-      });
-    },
-    onError: (error) => {
-      toast.error('Oops!', {
-        description: 'No se pudo actualizar el articulo...',
-      });
-      console.log(error);
-    },
-  });
-  return {
-    updateToolArticleStatus: updateToolArticleStatusMutation,
-  };
+    const updateToolArticleStatusMutation = useMutation({
+        mutationKey: ['calibrated-tools'],
+        mutationFn: async ({ id, status, calibration_date }: { id: number; status: string; calibration_date?: string }) => {
+            await axiosInstance.patch(`/${selectedCompany?.slug}/update-tool/${id}`, {
+                status: status,
+                calibration_date: calibration_date || null,
+            });
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['warehouse-articles'] });
+            toast.success('¡Actualizado!', {
+                description: `El Material ha sido actualizado correctamente.`,
+            });
+        },
+        onError: (error) => {
+            toast.error('Oops!', {
+                description: 'No se pudo actualizar el articulo...',
+            });
+            console.log(error);
+        },
+    });
+    return {
+        updateToolArticleStatus: updateToolArticleStatusMutation,
+    };
 };

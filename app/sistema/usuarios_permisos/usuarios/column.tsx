@@ -18,6 +18,7 @@ import { redirect } from "next/navigation"
 import { useState } from "react"
 import UserStatusButton  from "@/components/misc/UserStatusButton"
 import { Info } from "lucide-react"
+import Link from "next/link"
 
 
 export const columns: ColumnDef<User>[] = [
@@ -30,9 +31,16 @@ export const columns: ColumnDef<User>[] = [
       <div className="flex items-center justify-center">
         <TooltipProvider>
           <Tooltip>
-            <TooltipTrigger className="flex justify-center"><p className='text-center font-medium'>{row.original.first_name} {row.original.last_name}</p></TooltipTrigger>
+            <TooltipTrigger asChild>
+              <Link
+                href={`/sistema/usuarios_permisos/usuarios/${row.original.id}`}
+                className="text-center font-medium hover:text-black hover:underline transition-colors"
+              >
+                {row.original.first_name} {row.original.last_name}
+              </Link>
+            </TooltipTrigger>
             <TooltipContent>
-              <p>TODO: Agregar imagen</p>
+              <p>Ver detalle del usuario</p>
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>

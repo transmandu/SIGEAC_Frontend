@@ -1461,7 +1461,7 @@ export default function RegisterConsumableForm({
             primary_unit_id?: number;
         } = {
             ...valuesWithoutCaducateDate,
-            status: "INCOMING",
+            status: "RECEPTION",
             part_number: normalizeUpper(values.part_number),
             article_type: "consumable",
             alternative_part_number:

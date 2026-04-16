@@ -187,7 +187,7 @@ export default function RegisterComponentForm({ initialData, isEditing }: Props)
       certificate_fabricant: values.certificate_fabricant,
       certificate_vendor: values.certificate_vendor,
       image: values.image,
-      status: "INCOMING",
+      status: "RECEPTION",
     }
 
     if (isEditing && initialData) {
