@@ -1,89 +1,52 @@
-import React from 'react';
-import Image from 'next/image';
-import { useRouter } from 'next/navigation';
-import { FileText, Shield } from 'lucide-react';
-import { Card } from '@/components/ui/card'; // Ajusta la ruta según tu proyecto
-import { Button } from '@/components/ui/button'; // Ajusta la ruta según tu proyecto
+"use client";
+
+import Image from "next/image";
 
 interface PresentationCardProps {
     company: string;
 }
 
 const AeronauticalPresentationCard = ({ company }: PresentationCardProps) => {
-    const router = useRouter();
     const storageBaseUrl = process.env.NEXT_PUBLIC_STORAGE_BASE_URL;
 
     return (
-        <div className="w-full mb-8">
-            {/* CARTA DE PRESENTACIÓN CON IMAGEN Y BOTONES */}
-            <Card className="overflow-hidden border-0 shadow-lg">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    {/* Sección de Imagen */}
-                    <div className="relative h-64 lg:h-full min-h-[300px]">
-                        <Image
-                            src={`${storageBaseUrl}images/sms/h74_sms_logo.png`}
-                            alt="Logo SMS Hangar 74"
-                            fill
-                            className="object-cover"
-                            priority
-                        />
-                        {/* Overlay gradiente para legibilidad */}
+        <section className="mb-8 w-full">
+            <div className="relative overflow-hidden rounded-[2rem] border border-border/60 shadow-2xl">
+                <div className="relative h-[380px] w-full sm:h-[520px] lg:h-[700px]">
+                    <Image
+                        src={`${storageBaseUrl}images/sms/sms_airplane_page.jpg`}
+                        alt="Portada del Sistema de Gestión de Seguridad Operacional"
+                        fill
+                        priority
+                        className="object-cover object-center"
+                    />
+
+                    <div className="absolute inset-0 bg-gradient-to-r from-slate-950/30 via-transparent to-transparent" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950/55 via-transparent to-transparent" />
+
+                    <div className="absolute left-5 top-5 sm:left-8 sm:top-8 lg:left-12 lg:top-12">
+                        <div className="inline-flex items-center rounded-full border border-white/15 bg-slate-950/35 px-4 py-1.5 text-[11px] font-medium uppercase tracking-[0.24em] text-white/90 backdrop-blur-md">
+                            Portal SMS Aeronáutico
+                        </div>
                     </div>
 
-                    {/* Contenido y botones */}
-                    <div className="p-6 lg:p-8 flex flex-col justify-center">
-                        <div className="space-y-4 mb-6">
-                            <h2 className="text-xl lg:text-2xl font-semibold">
-                                THIS IS FUCKING OMAC MF Bienvenido al Portal SMS
-                            </h2>
-                            <p className="text-sm lg:text-base text-muted-foreground">
-                                Este sistema está diseñado para mantener los más altos
-                                estándares de seguridad operacional en todas nuestras
-                                actividades. Explora nuestras políticas, procedimientos y
-                                recursos disponibles.
+                    <div className="absolute bottom-5 left-5 right-5 sm:bottom-8 sm:left-8 sm:right-8 lg:bottom-12 lg:left-auto lg:right-12">
+                        <div className="max-w-md rounded-[1.75rem] border border-white/12 bg-slate-950/40 p-5 text-white shadow-2xl backdrop-blur-md sm:p-6">
+                            <p className="text-[11px] uppercase tracking-[0.22em] text-slate-200">
+                                {company.toUpperCase()}
                             </p>
-                        </div>
-
-                        <div className="flex flex-col sm:flex-row gap-4">
-                            <Button
-                                onClick={() =>
-                                    router.push(`/acceso_publico/${company}/sms/crear_reporte/voluntario`)
-                                }
-                                className="flex items-center gap-2 bg-yellow-500 hover:bg-yellow-700 text-white transition-all duration-300"
-                            >
-                                <FileText className="w-4 h-4" />
-                                Reporte Voluntario
-                            </Button>
-
-                            <Button
-                                onClick={() =>
-                                    router.push(`/acceso_publico/${company}/sms/crear_reporte/obligatorio`)
-                                }
-                                variant="outline"
-                                className="flex items-center gap-2 border-yellow-600 text-yellow-600 hover:bg-blue-50 transition-all duration-300"
-                            >
-                                <Shield className="w-4 h-4" />
-                                Reporte Obligatorio
-                            </Button>
-                        </div>
-
-                        {/* Información adicional (Stats) */}
-                        <div className="mt-6 pt-6 border-t border-gray-200">
-                            <div className="grid grid-cols-2 gap-4 text-center">
-                                <div>
-                                    <div className="text-2xl font-bold text-yellow-600">6</div>
-                                    <div className="text-xs text-muted-foreground">Planes de Emergencia</div>
-                                </div>
-                                <div>
-                                    <div className="text-2xl font-bold text-yellow-600">4</div>
-                                    <div className="text-xs text-muted-foreground">Áreas de Estrategia</div>
-                                </div>
-                            </div>
+                            <h1 className="mt-2 text-2xl font-semibold leading-tight sm:text-3xl">
+                                Sistema de Gestión de Seguridad Operacional
+                            </h1>
+                            <p className="mt-3 text-sm leading-6 text-slate-200">
+                                Una presencia visual más limpia para que la portada sea el centro
+                                de atención.
+                            </p>
                         </div>
                     </div>
                 </div>
-            </Card>
-        </div>
+            </div>
+        </section>
     );
 };
 
