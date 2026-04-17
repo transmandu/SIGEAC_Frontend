@@ -165,7 +165,7 @@ const InventarioArticulosPage = () => {
     // ✅ Agrupar por PN en: all / component / part
     const shouldGroup = activeCategory === "all" || activeCategory === "COMPONENT" || activeCategory === "PART"
     return shouldGroup ? groupByPartNumber(filtered) : filtered
-  }, [articles, activeCategory, componentCondition, consumableFilter])
+  }, [articles, activeCategory, componentCondition])
 
   const serverPagination = pagedArticles?.pagination
     ? {
