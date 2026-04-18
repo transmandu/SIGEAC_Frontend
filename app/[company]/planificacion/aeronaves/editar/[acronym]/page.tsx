@@ -21,7 +21,6 @@ import { parseISO } from "date-fns";
 
 interface AircraftPart {
     id?: number; // ID para actualizaciones
-    category?: "ENGINE" | "APU" | "PROPELLER"; // Solo frontend
     part_name: string;
     part_number: string;
     serial: string;
@@ -126,6 +125,7 @@ export default function EditAircraftPage({ params }: { params: { acronym: string
     const [currentStep, setCurrentStep] = useState(1);
     const [aircraftData, setAircraftData] = useState<AircraftInfoType>();
     const [partsData, setPartsData] = useState<PartsData>({ parts: [] });
+    const [isInitialized, setIsInitialized] = useState(false);
     const { updateMaintenanceAircraft } = useUpdateMaintenanceAircraft();
     const { selectedCompany } = useCompanyStore();
     const router = useRouter();
@@ -145,12 +145,6 @@ export default function EditAircraftPage({ params }: { params: { acronym: string
     // Función para transformar partes del API al formato del formulario
     const transformExistingPartsToFormFormat = useCallback((apiParts: any[]): AircraftPart[] => {
         return apiParts.map(part => {
-            // Mapear part_type a category (case-insensitive)
-            const partType = (part.part_type || '').toLowerCase();
-            const category = partType === "apu" ? "APU" as const :
-                           partType === "propeller" ? "PROPELLER" as const :
-                           "ENGINE" as const; // Default: ENGINE
-            
             return {
                 ...(part.id && { id: part.id }),
                 part_name: part.part_name,
@@ -163,7 +157,7 @@ export default function EditAircraftPage({ params }: { params: { acronym: string
                 cycles_since_overhaul: Math.round(Number(part.cycles_since_overhaul || 0)),
                 condition_type: part.condition_type === "OVERHAULED" ? "OVERHAULED" : "NEW",
                 is_father: typeof part.is_father === "boolean" ? part.is_father : Boolean(part.sub_parts?.length),
-                category,
+                removed_date: part.removed_date || null,
                 sub_parts: part.sub_parts ? transformExistingPartsToFormFormat(part.sub_parts) : []
             } as AircraftPart;
         });
@@ -181,7 +175,8 @@ export default function EditAircraftPage({ params }: { params: { acronym: string
 
     // Inicializar datos con la información existente de la aeronave
     useEffect(() => {
-        if (!aircraft) return;
+        if (!aircraft || isInitialized) return;
+        if ((aircraft as any).client_id && !clients) return;
 
         // Buscar cliente por ID
         const clientName = (aircraft as any).client_id && clients ? 
@@ -206,34 +201,32 @@ export default function EditAircraftPage({ params }: { params: { acronym: string
         // Inicializar datos de las partes
         if (aircraft.aircraft_parts?.length > 0) {
             setPartsData({ parts: transformExistingPartsToFormFormat(aircraft.aircraft_parts) });
+            setIsInitialized(true);
             return;
         }
 
         if ((aircraft as any).aircraft_assignments?.length > 0) {
             setPartsData({ parts: transformAssignmentsToFormFormat((aircraft as any).aircraft_assignments) });
+            setIsInitialized(true);
             return;
         }
 
         setPartsData({ parts: [] });
-    }, [aircraft, clients, transformAssignmentsToFormFormat, transformExistingPartsToFormFormat]);
+        setIsInitialized(true);
+    }, [aircraft, clients, isInitialized, transformAssignmentsToFormFormat, transformExistingPartsToFormFormat]);
 
     // Función para transformar las partes del formulario al formato API
     const transformPart = (part: AircraftPart, originalPart?: any): any => {
-        const { category, ...rest } = part;
-        
-        // Mapear categoría a part_type
-        const part_type = category === "APU" ? "apu" : 
-                         category === "PROPELLER" ? "propeller" : 
-                         "engine"; // Default: engine
+        const { ...rest } = part;
         
         return {
             ...(originalPart?.id && { id: originalPart.id }), // Preservar ID para actualizaciones
             ...rest,
+            part_type: originalPart?.part_type || "engine",
             time_since_new: Math.round((rest.time_since_new ?? 0) * 100) / 100,
             time_since_overhaul: Math.round((rest.time_since_overhaul ?? 0) * 100) / 100,
             cycles_since_new: Math.round(rest.cycles_since_new ?? 0),
             cycles_since_overhaul: Math.round(rest.cycles_since_overhaul ?? 0),
-            part_type,
             sub_parts: part.sub_parts?.map((subPart, index) => {
                 const originalSubPart = originalPart?.sub_parts?.[index];
                 return transformPart(subPart, originalSubPart);
@@ -349,7 +342,10 @@ export default function EditAircraftPage({ params }: { params: { acronym: string
                                     setPartsData(data);
                                     handleNext();
                                 }}
-                                onBack={handleBack}
+                                onBack={(data) => {
+                                    setPartsData(data);
+                                    handleBack();
+                                }}
                             />
                         </TabsContent>
                     )}
