@@ -2,6 +2,7 @@ import { InformationSource, Location } from "@/types";
 
 export type VoluntaryReport = {
     id: number;
+    report_number?: string;
     report_date: string; // Las fechas vienen como string de la API (ISO format)
     identification_date: string;
     location: Location;
@@ -13,13 +14,17 @@ export type VoluntaryReport = {
     reporter_email?: string;
     description: string;
     possible_consequences: string;
-    status: string
+    status: string;
+    danger_identification_id?: number | null;
+    hazard_notification?: HazardNotification | null;
+    danger_identification?: HazardNotification | null;
     image?: string;
 }
 
 
 export type ObligatoryReport = {
     id: number;
+    report_number?: string;
     report_date: Date;
     report_time: string;
     incident_date: Date;
@@ -36,6 +41,9 @@ export type ObligatoryReport = {
     other_incidents: string;
     description: string;
     status: string;
+    danger_identification_id?: number | null;
+    hazard_notification?: HazardNotification | null;
+    danger_identification?: HazardNotification | null;
     image?: string;
     document?: string;
     imageUrl?: string;
@@ -61,5 +69,4 @@ export type HazardNotification = {
     voluntary_report?: VoluntaryReport;
     obligatory_report?: ObligatoryReport;
 }
-
 
