@@ -91,7 +91,7 @@ export function getMenuList(
             menuItem.roles.some((role) => userRoles.includes(role))
         );
     };
-
+    console.log('modulos ativos', currentCompany?.modules);
     // Verificar si el módulo está activo para la compañía
     const isModuleActive = (moduleValue?: string): boolean => {
         // Si no requiere módulo específico o no hay compañía seleccionada, está activo
@@ -104,11 +104,14 @@ export function getMenuList(
     // (Ajusta 'isOmac' por la propiedad real que uses en tu base de datos)
 
     // Verificar el acceso dependiendo del tipo de empresa
+    console.log(currentCompany?.isOmac, currentCompany, 'this is oamc or no');
     const hasOmacAccess = (item: { requiresOmac?: boolean }): boolean => {
         // Si el menú no tiene la restricción, pasa directo
         if (item.requiresOmac === undefined) return true;
 
         // Si tiene la restricción, verificamos si hace match con la empresa
+        //
+        console.log(`Verificando acceso OMAC empresa es OMAC = ${currentCompany?.isOmac}`);
         return item.requiresOmac === currentCompany?.isOmac;
     };
 
@@ -693,6 +696,44 @@ export function getMenuList(
                         },
                     ],
                 },
+                // APARTADO DE SMS UNICAMENTE PARA EMPRESAS OMAC
+                {
+                    href: `/${currentCompany?.slug}/sms/aeronautical`,
+                    label: "Gestion de Riesgos",
+                    active: pathname.includes(
+                        `/${currentCompany?.slug}/sms/aeronautical/gestion_de_riesgos`,
+                    ),
+                    icon: ShieldAlert,
+                    roles: ["COORDINADOR_SMS", "GERENTE_SMS", "SUPERUSER"],
+                    requiresOmac: true,
+                    submenus: [
+                        {
+                            href: `/${currentCompany?.slug}/sms/aeronautical/gestion_de_riesgos/reportes`,
+                            label: "Reportes",
+                            roles: ["COORDINADOR_SMS", "GERENTE_SMS", "SUPERUSER"],
+                            active:
+                                pathname ===
+                                `/${currentCompany?.slug}/sms/aeronautical/gestion_de_riesgos/reportes`,
+                        },
+                        {
+                            href: `/${currentCompany?.slug}/sms/aeronautical/gestion_de_riesgos/identificacion_peligros`,
+                            label: "Identificacion de Peligros",
+                            roles: ["COORDINADOR_SMS", "GERENTE_SMS", "SUPERUSER"],
+                            active:
+                                pathname ===
+                                `/${currentCompany?.slug}/sms/aeronautical/gestion_de_riesgos/identificacion_peligros`,
+                        },
+                        {
+                            href: `/${currentCompany?.slug}/sms/aeronautical/gestion_de_riesgos/evaluacion_mitigacion`,
+                            label: "Eval y Mitigacion",
+                            roles: ["COORDINADOR_SMS", "GERENTE_SMS", "SUPERUSER"],
+                            active:
+                                pathname ===
+                                `/${currentCompany?.slug}/sms/aeronautical/gestion_de_riesgos/evaluacion_mitigacion`,
+                        },
+                    ],
+                },
+
             ],
         },
         {
