@@ -53,20 +53,62 @@ export type ObligatoryReport = {
 export type HazardNotification = {
     id: number;
     report_number: string;
-    reception_date: string; // O Date, si prefieres manejar objetos de fecha
-    location?: Location; // Interfaz opcional de la relación
-
+    reception_date: string;
+    location?: Location;
     identification_area: string;
     danger_type: string;
     information_source?: InformationSource;
-
     description: string;
     possible_consequences: string;
     consequence_to_evaluate: string;
     analysis_of_root_causes: string;
-
     report_type: string;
     voluntary_report?: VoluntaryReport;
     obligatory_report?: ObligatoryReport;
+    mitigation_plan?: MitigationPlan;
+    analysis?: Analysis;
+
 }
+
+
+export interface MitigationPlan {
+    id: number;
+    area_responsible: string;
+    possible_consequences: string;
+    consequence_to_evaluate: string;
+    description: string;
+    mitigation_measure: MitigationMeasure[];
+    analysis?: Analysis;
+}
+
+export interface MitigationMeasure {
+    id: number;
+    description: string;
+    implementation_supervisor: string;
+    implementation_responsible: string;
+    estimated_date: string;
+    execution_date?: string;
+    follow_up_controls: FollowUpControl[];
+
+}
+
+export interface FollowUpControl {
+    id: number;
+    description: string;
+    date: string;
+    mitigation_measure_id: number;
+    image?: string;
+    document?: string;
+}
+
+export interface Analysis {
+    id: number;
+    severity: string;
+    probability: string;
+    result: string;
+    type: string;
+    hazard_notification?: number;
+    mitigation_plan_id?: number;
+}
+
 
