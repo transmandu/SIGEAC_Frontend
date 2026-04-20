@@ -1,4 +1,4 @@
-import { Location } from "@/types";
+import { InformationSource, Location } from "@/types";
 
 export type VoluntaryReport = {
     id: number;
@@ -41,4 +41,25 @@ export type ObligatoryReport = {
     imageUrl?: string;
     documentUrl?: string;
 }
+
+export type HazardNotification = {
+    id: number;
+    report_number: string;
+    reception_date: string; // O Date, si prefieres manejar objetos de fecha
+    location?: Location; // Interfaz opcional de la relación
+
+    identification_area: string;
+    danger_type: string;
+    information_source?: InformationSource;
+
+    description: string;
+    possible_consequences: string;
+    consequence_to_evaluate: string;
+    analysis_of_root_causes: string;
+
+    report_type: string;
+    voluntary_report?: VoluntaryReport;
+    obligatory_report?: ObligatoryReport;
+}
+
 
