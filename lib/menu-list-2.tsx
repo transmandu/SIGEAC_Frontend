@@ -721,7 +721,7 @@ export function getMenuList(
                             roles: ["COORDINADOR_SMS", "GERENTE_SMS", "SUPERUSER"],
                             active:
                                 pathname ===
-                                `/${currentCompany?.slug}/sms/aeronautical/gestion_de_riesgos/identificacion_peligros`,
+                                `/${currentCompany?.slug}/sms/aeronautical/gestion_de_riesgos/identificacion`,
                         },
                         {
                             href: `/${currentCompany?.slug}/sms/aeronautical/gestion_de_riesgos/evaluacion_mitigacion`,
