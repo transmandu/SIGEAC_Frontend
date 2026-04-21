@@ -3,7 +3,7 @@
 import { useForm, useFieldArray } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { format } from "date-fns";
+import { format, startOfMonth, endOfMonth } from "date-fns";
 import { es } from "date-fns/locale";
 import {
   CalendarIcon,
@@ -310,6 +310,26 @@ export default function CreateCargoShipmentForm({
                       mode="single"
                       selected={field.value}
                       onSelect={field.onChange}
+                      disabled={
+                        isEditing
+                          ? [
+                              {
+                                before: startOfMonth(
+                                  new Date(
+                                    initialData.registration_date + "T00:00:00",
+                                  ),
+                                ),
+                              },
+                              {
+                                after: endOfMonth(
+                                  new Date(
+                                    initialData.registration_date + "T00:00:00",
+                                  ),
+                                ),
+                              },
+                            ]
+                          : undefined
+                      }
                       initialFocus
                     />
                   </PopoverContent>
