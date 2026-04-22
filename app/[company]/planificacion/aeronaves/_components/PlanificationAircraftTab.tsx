@@ -7,7 +7,7 @@ import { useGetAverageCyclesAndHours } from "@/hooks/aerolinea/vuelos/useGetAver
 import { Badge } from "@/components/ui/badge"
 import { 
   Plane, Hash, Calendar as CalendarIcon, Layers, Search, 
-  Clock, ChevronRight, Edit, Package
+  Clock, ChevronRight, Edit, Package, Download, Loader2
 } from "lucide-react"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -19,6 +19,9 @@ import { MaintenanceAircraft, MaintenanceAircraftPart } from "@/types"
 import { Button } from "@/components/ui/button"
 import { useCompanyStore } from "@/stores/CompanyStore"
 import Link from "next/link"
+import axios from "axios" // Asegúrate de tener axios instalado
+import axiosInstance from '@/lib/axios';
+import { toast } from "sonner"
 
 // =========================
 // Tipos y Utilidades
@@ -112,9 +115,66 @@ function TreeNode({ part, depth = 0 }: { part: any; depth?: number }) {
 // =========================
 // Componente Principal
 // =========================
-export function PlanificationAircraftTab({ aircraft }: { aircraft: MaintenanceAircraft & { aircraft_assignments?: any[] } }) {
+export function PlanificationAircraftTab({ aircraft }: { aircraft: MaintenanceAircraft & { aircraft_assignments?: any[], id: number } }) {
   const [q, setQ] = useState("")
+  const [isDownloading, setIsDownloading] = useState(false)
   const { selectedCompany } = useCompanyStore()
+
+  // Lógica de descarga de Excel
+  const handleDownloadTraceability = async () => {
+    if (!selectedCompany?.slug || !aircraft?.id) {
+        toast.error("Datos de aeronave o empresa no disponibles");
+        return;
+    }
+    
+    setIsDownloading(true);
+    
+    try {
+        // Observa qué limpio queda: no hay URL base manual ni headers de Token
+        const response = await axiosInstance.get(
+            `/${selectedCompany.slug}/aircrafts/traceability-export`, 
+            {
+                params: { aircraft_id: aircraft.id },
+                responseType: 'blob', 
+            }
+        );
+
+        const blob = new Blob([response.data], { 
+            type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
+        });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', `Trazabilidad_${aircraft.acronym}_${format(new Date(), 'dd-MM-yyyy')}.xlsx`);
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.URL.revokeObjectURL(url);
+        
+        toast.success("Archivo generado correctamente");
+    } catch (error: any) {
+        // Manejo de errores con el fix de TypeScript que aplicamos antes
+        if (error.response?.data instanceof Blob) {
+            const reader = new FileReader();
+            reader.onload = () => {
+                const result = reader.result;
+                if (typeof result === 'string') {
+                    try {
+                        const parsed = JSON.parse(result);
+                        toast.error(parsed.error || "Error en el servidor");
+                    } catch (e) {
+                        toast.error("Error al procesar la respuesta del servidor");
+                    }
+                }
+            };
+            reader.readAsText(error.response.data);
+        } else {
+            toast.error("Error al conectar con el servidor");
+        }
+    } finally {
+        setIsDownloading(false);
+    }
+  };
 
   // Solo assignments activos
   const assignments = useMemo(() => {
@@ -128,10 +188,9 @@ export function PlanificationAircraftTab({ aircraft }: { aircraft: MaintenanceAi
     const flatten = (items: any[]) => {
       items.forEach(a => {
         flat.push(a);
-        const part = a.aircraft_part || a; // Soporte para subpartes directas
+        const part = a.aircraft_part || a; 
         if (part.sub_parts && part.sub_parts.length > 0) {
           part.sub_parts.forEach((sub: any) => {
-            // Llamada recursiva para niveles infinitos (nietos, etc)
             flatten([{ 
                 ...a, 
                 id: `sub-${sub.id}-${Math.random()}`, 
@@ -160,12 +219,30 @@ export function PlanificationAircraftTab({ aircraft }: { aircraft: MaintenanceAi
             <h1 className="flex items-center gap-2 text-2xl font-semibold tracking-tight sm:text-3xl">
               <Plane className="h-6 w-6" /> {aircraft.acronym}
             </h1>
-            <Link href={`/${selectedCompany?.slug}/planificacion/aeronaves/editar/${aircraft.acronym}`}>
-              <Button variant="outline" size="sm">
-                <Edit className="h-4 w-4 mr-2" />
-                Editar
-              </Button>
-            </Link>
+            <div className="flex items-center gap-2">
+                <Link href={`/${selectedCompany?.slug}/planificacion/aeronaves/editar/${aircraft.acronym}`}>
+                <Button variant="outline" size="sm">
+                    <Edit className="h-4 w-4 mr-2" />
+                    Editar
+                </Button>
+                </Link>
+                
+                {/* BOTÓN DE DESCARGA AÑADIDO */}
+                <Button 
+                    variant="default" 
+                    size="sm" 
+                    onClick={handleDownloadTraceability}
+                    disabled={isDownloading}
+                    className="bg-green-700 hover:bg-green-800 text-white"
+                >
+                    {isDownloading ? (
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    ) : (
+                        <Download className="h-4 w-4 mr-2" />
+                    )}
+                    Exportar Trazabilidad
+                </Button>
+            </div>
           </div>
           <p className="text-sm text-muted-foreground">Serial <span className="font-medium text-foreground">{aircraft.serial}</span></p>
         </div>
@@ -290,7 +367,6 @@ export function PlanificationAircraftTab({ aircraft }: { aircraft: MaintenanceAi
                         <TableHead>Parte / Descripción</TableHead>
                         <TableHead className="hidden sm:table-cell">PN / Serial</TableHead>
                         <TableHead className="hidden md:table-cell text-center">Tipo</TableHead>
-                        {/* <TableHead className="hidden lg:table-cell">Documento</TableHead> */}
                         <TableHead className="hidden md:table-cell">TSN / TSO</TableHead>
                         <TableHead className="hidden md:table-cell">CSN / CSO</TableHead>
                         <TableHead className="hidden lg:table-cell">Instalada</TableHead>
@@ -334,10 +410,6 @@ export function PlanificationAircraftTab({ aircraft }: { aircraft: MaintenanceAi
                                 <span className="text-muted-foreground text-xs">—</span>
                             )}
                           </TableCell>
-
-                          {/* <TableCell className="hidden lg:table-cell text-[11px] text-muted-foreground truncate max-w-[100px]">
-                            {a.aircraft_part.document || "—"}
-                          </TableCell> */}
                           
                           <TableCell className="hidden md:table-cell text-sm font-mono">
                             <div className="flex items-center gap-3">
