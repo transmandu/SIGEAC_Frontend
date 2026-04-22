@@ -1,6 +1,6 @@
 import axiosInstance from "@/lib/axios";
 import { useCompanyStore } from "@/stores/CompanyStore";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 export type GenerateReceptionFormPayload = {
   inspection_date: string;
@@ -12,6 +12,7 @@ export type GenerateReceptionFormPayload = {
 
 export function useGenerateIncomingFormat() {
   const { selectedCompany } = useCompanyStore();
+  const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (payload: GenerateReceptionFormPayload) => {
@@ -32,6 +33,16 @@ export function useGenerateIncomingFormat() {
       downloadBlob(res.data, filename);
 
       return true;
+    },
+    onSuccess: () => {
+      const company = selectedCompany?.slug;
+
+      queryClient.invalidateQueries({ queryKey: ["warehouse-articles"] });
+      queryClient.invalidateQueries({ queryKey: ["articles"] });
+      if (company) {
+        queryClient.invalidateQueries({ queryKey: ["articles", company, "WAITING_FOR_FORMAT"] });
+        queryClient.invalidateQueries({ queryKey: ["articles", company, "WAITING_TO_LOCATE"] });
+      }
     },
   });
 }

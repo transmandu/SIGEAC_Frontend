@@ -54,7 +54,7 @@ interface SendToQuarantinePayload {
 }
 
 
-type CheckResult = "PASS" | "FAIL";
+type CheckResult = "PASS" | "FAIL" | "NA";
 
 const serializeFormValue = (value: unknown) => {
     if (value instanceof Date) {
@@ -236,10 +236,21 @@ export const useUpdateArticleStatus = () => {
             );
         },
         onSuccess: () => {
+            const company = selectedCompany?.slug;
+
             queryClient.invalidateQueries({ queryKey: ["in-transit-articles"] });
             queryClient.invalidateQueries({ queryKey: ["in-reception-articles"] });
             queryClient.invalidateQueries({ queryKey: ["checking-articles"] });
             queryClient.invalidateQueries({ queryKey: ["warehouse-articles"] });
+            queryClient.invalidateQueries({ queryKey: ["articles"] });
+            if (company) {
+                queryClient.invalidateQueries({ queryKey: ["articles", company, "TRANSIT"] });
+                queryClient.invalidateQueries({ queryKey: ["articles", company, "RECEPTION"] });
+                queryClient.invalidateQueries({ queryKey: ["articles", company, "INCOMING"] });
+                queryClient.invalidateQueries({ queryKey: ["articles", company, "WAITING_FOR_FORMAT"] });
+                queryClient.invalidateQueries({ queryKey: ["articles", company, "WAITING_TO_LOCATE"] });
+                queryClient.invalidateQueries({ queryKey: ["articles", company, "QUARANTINE"] });
+            }
             queryClient.invalidateQueries({ queryKey: ["purchase-orders"] });
             toast.success("¡Actualizado!", {
                 description: `El articulo ha sido actualizado correctamente.`,
@@ -276,8 +287,14 @@ export const useConfirmIncomingArticle = () => {
         },
 
         onSuccess: () => {
+            const company = selectedCompany?.slug;
+
             queryClient.invalidateQueries({ queryKey: ["warehouse-articles"] });
             queryClient.invalidateQueries({ queryKey: ["articles"] });
+            if (company) {
+                queryClient.invalidateQueries({ queryKey: ["articles", company, "INCOMING"] });
+                queryClient.invalidateQueries({ queryKey: ["articles", company, "WAITING_FOR_FORMAT"] });
+            }
             queryClient.invalidateQueries({ queryKey: ["incoming-inspections"] });
 
             toast.success("¡Inspección creada!", {
@@ -467,8 +484,14 @@ export const useSendToQuarantine = () => {
         },
 
         onSuccess: () => {
+            const company = selectedCompany?.slug;
+
             queryClient.invalidateQueries({ queryKey: ["warehouse-articles"] });
             queryClient.invalidateQueries({ queryKey: ["articles"] });
+            if (company) {
+                queryClient.invalidateQueries({ queryKey: ["articles", company, "INCOMING"] });
+                queryClient.invalidateQueries({ queryKey: ["articles", company, "QUARANTINE"] });
+            }
             queryClient.invalidateQueries({ queryKey: ["incoming-articles"] });
             queryClient.invalidateQueries({ queryKey: ["quarantine-articles"] });
 

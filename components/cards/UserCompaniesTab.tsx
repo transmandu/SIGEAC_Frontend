@@ -53,7 +53,7 @@ const UserCompaniesTab = ({ user }: { user: User }) => {
       setAvailableLocations(locs ?? [])
       setSelectedLocationIds([])
     })
-  }, [selectedCompanyId])
+  }, [selectedCompanyId, fetchLocations])
 
   const toggleLocation = (id: number) => {
     setSelectedLocationIds((prev) =>
