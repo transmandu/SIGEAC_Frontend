@@ -41,6 +41,8 @@ import { cn } from "@/lib/utils";
 // Types
 import { HazardNotification } from "@/types/sms/mantenimiento";
 import { UpdateHazardNotification, useCreateHazardNotification } from "@/actions/mantenimiento/sms/notificacion_peligro/actions";
+import { useGetLocationsByCompany } from "@/hooks/sistema/useGetLocationsByCompany";
+import { InformationSource } from "@/types";
 
 const FormSchema = z.object({
     reception_date: z.date({
@@ -51,12 +53,15 @@ const FormSchema = z.object({
     information_source_id: z.string().min(1, "La fuente es obligatoria"),
     description: z
         .string()
-        .min(3, "Mínimo 3 caracteres")
+        .min(2, "Mínimo 2 caracteres")
         .max(1000, "Máximo 1000 caracteres"),
-    possible_consequences: z.string().min(1, "Debe agregar al menos una consecuencia"),
-    consequence_to_evaluate: z.string().min(1, "Seleccione la consecuencia principal"),
+    // possible_consequences: z.string().min(1, "Debe agregar al menos una consecuencia"),
+    // consequence_to_evaluate: z.string().min(1, "Seleccione la consecuencia principal"),
     analysis_of_root_causes: z.string().min(1, "Debe agregar al menos un análisis"),
     report_type: z.string(),
+    report_number: z.string(),
+    location_id: z.string(),
+
 });
 
 type FormSchemaType = z.infer<typeof FormSchema>;
@@ -77,16 +82,16 @@ export default function CreateHazardNotification({
     reportType,
 }: FormProps) {
     const { selectedCompany } = useCompanyStore();
-    const router = useRouter();
 
     const { data: informationSources, isLoading: isLoadingSources } = useGetInformationSources();
 
     // Llamada a los hooks según tu archivo de actions
     const { createHazardNotification } = useCreateHazardNotification();
     const { updateHazardNotification } = UpdateHazardNotification();
+    const { data: locations, isLoading: isLocationsLoading } = useGetLocationsByCompany(selectedCompany!.slug);
 
-    const [consequences, setConsequences] = useState<string[]>([]);
-    const [newConsequence, setNewConsequence] = useState("");
+    // const [consequences, setConsequences] = useState<string[]>([]);
+    // const [newConsequence, setNewConsequence] = useState("");
     const [analyses, setAnalyses] = useState<string[]>([]);
     const [newAnalysis, setNewAnalysis] = useState("");
 
@@ -101,29 +106,31 @@ export default function CreateHazardNotification({
             danger_type: initialData?.danger_type || "",
             information_source_id: initialData?.information_source?.id.toString() || "",
             description: initialData?.description || "",
-            possible_consequences: initialData?.possible_consequences || "",
-            consequence_to_evaluate: initialData?.consequence_to_evaluate || "",
+            // possible_consequences: initialData?.possible_consequences || "",
+            // consequence_to_evaluate: initialData?.consequence_to_evaluate || "",
             analysis_of_root_causes: initialData?.analysis_of_root_causes || "",
-            report_type: reportType || initialData?.report_type || "VOLUNTARIO",
+            report_type: initialData?.report_type || reportType,
+            report_number: initialData?.report_number || "",
+            location_id: initialData?.location?.id.toString() || "",
         },
     });
 
-    useEffect(() => {
-        if (initialData) {
-            const splitStr = (str: string) => str ? str.split(",").map(s => s.trim()).filter(Boolean) : [];
-            setConsequences(splitStr(initialData.possible_consequences));
-            setAnalyses(splitStr(initialData.analysis_of_root_causes));
-        }
-    }, [initialData]);
+    // useEffect(() => {
+    //     if (initialData) {
+    //         const splitStr = (str: string) => str ? str.split(",").map(s => s.trim()).filter(Boolean) : [];
+    //         setConsequences(splitStr(initialData.possible_consequences));
+    //         setAnalyses(splitStr(initialData.analysis_of_root_causes));
+    //     }
+    // }, [initialData]);
 
-    const addConsequence = () => {
-        if (newConsequence.trim()) {
-            const updated = [...consequences, newConsequence.trim()];
-            setConsequences(updated);
-            form.setValue("possible_consequences", updated.join(","));
-            setNewConsequence("");
-        }
-    };
+    // const addConsequence = () => {
+    //     if (newConsequence.trim()) {
+    //         const updated = [...consequences, newConsequence.trim()];
+    //         setConsequences(updated);
+    //         form.setValue("possible_consequences", updated.join(","));
+    //         setNewConsequence("");
+    //     }
+    // };
 
     const addAnalysis = () => {
         if (newAnalysis.trim()) {
@@ -134,32 +141,33 @@ export default function CreateHazardNotification({
         }
     };
 
+    const onError = (errors: any) => {
+        console.log("❌ Errores de validación:", errors);
+    };
+
     const onSubmit = async (values: FormSchemaType) => {
         try {
             // Preparamos el objeto 'data' tal cual lo pide tu interfaz de Action
             const dataPayload = {
                 ...values,
-                reception_date: format(values.reception_date, "yyyy-MM-dd"),
+                voluntary_report_id: reportType === "RVP" ? id.toString() : undefined,
+                obligatory_report_id: reportType === "ROS" ? id.toString() : undefined,
             };
 
             if (isEditing && initialData) {
+
                 await updateHazardNotification.mutateAsync({
-                    company: selectedCompany?.slug || null,
-                    id: initialData.id,
+                    company: selectedCompany!.slug,
                     data: dataPayload,
                 });
                 onClose?.();
             } else {
-                const response = await createHazardNotification.mutateAsync({
-                    company: selectedCompany?.slug || null,
-                    id: id, // ID del reporte padre
-                    reportType: reportType,
+                await createHazardNotification.mutateAsync({
+                    company: selectedCompany!.slug,
                     data: dataPayload,
                 });
 
-                if (response?.danger_identification_id) {
-                    router.push(`/${selectedCompany?.slug}/sms/gestion_reportes/peligros_identificados/${response.danger_identification_id}`);
-                }
+
             }
         } catch (error) {
             console.error("Error submitting form:", error);
@@ -170,7 +178,7 @@ export default function CreateHazardNotification({
 
     return (
         <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col space-y-4">
+            <form onSubmit={form.handleSubmit(onSubmit, onError)} className="flex flex-col space-y-4">
                 <h2 className="text-lg font-bold text-center">Identificación de Peligro</h2>
                 <Separator />
 
@@ -200,32 +208,59 @@ export default function CreateHazardNotification({
                         )}
                     />
 
-                    {/* Fuente de Información */}
+
+                    {/* Numero de reporte */}
                     <FormField
                         control={form.control}
-                        name="information_source_id"
+                        name="report_number"
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Fuente de Información</FormLabel>
-                                <Select onValueChange={field.onChange} value={field.value}>
+                                <FormLabel>Number</FormLabel>
+                                <FormControl>
+                                    <Input placeholder="Number" {...field} />
+                                </FormControl>
+                                <FormMessage className="text-xs" />
+                            </FormItem>
+                        )}
+                    />
+
+                </div>
+
+                <FormField
+                    control={form.control}
+                    name="location_id"
+                    render={({ field }) => (
+                        <FormItem className="w-full">
+                            <FormLabel>Base donde se genera</FormLabel>
+                            {isLocationsLoading ? (
+                                <div className="flex items-center gap-2 p-2 border rounded-md bg-muted">
+                                    <Loader2 className="h-4 w-4 animate-spin " />
+                                    <span className="text-sm">Cargando Bases...</span>
+                                </div>
+                            ) : (
+                                <Select
+                                    onValueChange={field.onChange}
+                                    defaultValue={field.value}
+                                    disabled={isLocationsLoading}
+                                >
                                     <FormControl>
                                         <SelectTrigger>
-                                            <SelectValue placeholder="Seleccione fuente" />
+                                            <SelectValue placeholder="Seleccionar Base" />
                                         </SelectTrigger>
                                     </FormControl>
                                     <SelectContent>
-                                        {informationSources?.map((source: any) => (
-                                            <SelectItem key={source.id} value={source.id.toString()}>
-                                                {source.name}
+                                        {locations?.map((loc) => (
+                                            <SelectItem key={loc.id} value={loc.id.toString()}>
+                                                {loc.cod_iata}
                                             </SelectItem>
                                         ))}
                                     </SelectContent>
                                 </Select>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-                </div>
+                            )}
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {/* Área */}
@@ -265,56 +300,48 @@ export default function CreateHazardNotification({
                     />
                 </div>
 
+                {/* Fuente de Información */}
                 <FormField
                     control={form.control}
-                    name="description"
+                    name="information_source_id"
                     render={({ field }) => (
                         <FormItem>
-                            <FormLabel>Descripción del Peligro</FormLabel>
-                            <FormControl><Textarea {...field} placeholder="Detalle el peligro identificado..." /></FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
-
-                {/* Consecuencias Tags */}
-                <div className="space-y-2">
-                    <FormLabel>Posibles Consecuencias</FormLabel>
-                    <div className="flex gap-2">
-                        <Input value={newConsequence} onChange={(e) => setNewConsequence(e.target.value)} placeholder="Añadir..." />
-                        <Button type="button" onClick={addConsequence} size="icon"><Plus className="h-4 w-4" /></Button>
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                        {consequences.map((c, i) => (
-                            <div key={i} className="flex items-center gap-1 bg-secondary p-1 px-2 rounded-md text-sm">
-                                {c} <X className="h-3 w-3 cursor-pointer" onClick={() => {
-                                    const up = consequences.filter((_, idx) => idx !== i);
-                                    setConsequences(up);
-                                    form.setValue("possible_consequences", up.join(","));
-                                }} />
-                            </div>
-                        ))}
-                    </div>
-                    {form.formState.errors.possible_consequences && <p className="text-destructive text-sm">{form.formState.errors.possible_consequences.message}</p>}
-                </div>
-
-                {/* Consecuencia a Evaluar */}
-                <FormField
-                    control={form.control}
-                    name="consequence_to_evaluate"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Consecuencia Principal a Evaluar</FormLabel>
+                            <FormLabel>Fuente de Información</FormLabel>
                             <Select onValueChange={field.onChange} value={field.value}>
-                                <FormControl><SelectTrigger><SelectValue placeholder="Seleccione de la lista" /></SelectTrigger></FormControl>
+                                <FormControl>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Seleccione fuente" />
+                                    </SelectTrigger>
+                                </FormControl>
                                 <SelectContent>
-                                    {consequences.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                                    {informationSources?.map((source: InformationSource) => (
+                                        <SelectItem key={source.id} value={source.id.toString()}>
+                                            {source.name}
+                                        </SelectItem>
+                                    ))}
                                 </SelectContent>
                             </Select>
                             <FormMessage />
                         </FormItem>
                     )}
                 />
+
+                {/* Descripción */}
+
+                <FormField
+                    control={form.control}
+                    name="description"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Descripción</FormLabel>
+                            <FormControl>
+                                <Textarea placeholder="Breve descripción" {...field} />
+                            </FormControl>
+                            <FormMessage className="text-xs" />
+                        </FormItem>
+                    )}
+                />
+
 
                 {/* Análisis Tags */}
                 <div className="space-y-2">

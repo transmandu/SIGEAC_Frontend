@@ -33,7 +33,7 @@ import {
     VoluntaryReport,
 } from '@/types/sms/mantenimiento';
 
-type ReportType = 'VOLUNTARIO' | 'OBLIGATORIO';
+type ReportType = 'RVP' | 'ROS';
 
 type ReportWithHazard<T> = T & {
     report_number?: string | null;
@@ -48,8 +48,8 @@ type SelectedReport = {
 };
 
 const REPORT_LABELS: Record<ReportType, string> = {
-    VOLUNTARIO: 'Reporte voluntario',
-    OBLIGATORIO: 'Reporte obligatorio',
+    RVP: 'Reporte voluntario',
+    ROS: 'Reporte obligatorio',
 };
 
 const getHazardNotification = <T,>(report: ReportWithHazard<T>) =>
@@ -57,11 +57,11 @@ const getHazardNotification = <T,>(report: ReportWithHazard<T>) =>
 
 const getActionLabel = <T extends { status: string }>(report: ReportWithHazard<T>) => {
     if (getHazardNotification(report)) {
-        return 'Editar identificación';
+        return 'Editar Notificación';
     }
 
     if (report.status === 'ABIERTO') {
-        return 'Crear identificación';
+        return 'Crear Notificación';
     }
 
     return 'No disponible';
@@ -103,7 +103,7 @@ const getReportCode = (
     report: ReportWithHazard<VoluntaryReport> | ReportWithHazard<ObligatoryReport>,
     type: ReportType
 ) => {
-    const prefix = type === 'VOLUNTARIO' ? 'RVP' : 'ROS';
+    const prefix = type === 'RVP' ? 'RVP' : 'ROS';
     return report.report_number
         ? `${prefix}-${report.report_number}`
         : `${prefix}-${report.id}`;
@@ -147,7 +147,7 @@ function VoluntaryReportCard({
             <div className="flex items-start justify-between gap-3">
                 <div className="space-y-1">
                     <p className="text-sm font-semibold">
-                        {getReportCode(report, 'VOLUNTARIO')}
+                        {getReportCode(report, 'RVP')}
                     </p>
                     <p className="text-sm text-muted-foreground">
                         {formatDate(report.report_date)}
@@ -199,7 +199,7 @@ function ObligatoryReportCard({
             <div className="flex items-start justify-between gap-3">
                 <div className="space-y-1">
                     <p className="text-sm font-semibold">
-                        {getReportCode(report, 'OBLIGATORIO')}
+                        {getReportCode(report, 'ROS')}
                     </p>
                     <p className="text-sm text-muted-foreground">
                         {formatDate(report.report_date)}
@@ -230,7 +230,7 @@ const Identification = () => {
     const { selectedCompany } = useCompanyStore();
     const companySlug = selectedCompany?.slug || params.company;
 
-    const [activeTab, setActiveTab] = useState<ReportType>('VOLUNTARIO');
+    const [activeTab, setActiveTab] = useState<ReportType>('RVP');
     const [selectedReport, setSelectedReport] = useState<SelectedReport | null>(null);
 
     const {
@@ -260,7 +260,7 @@ const Identification = () => {
         () =>
             normalizedVoluntaryReports.find(
                 (report) =>
-                    selectedReport?.type === 'VOLUNTARIO' && report.id === selectedReport.id
+                    selectedReport?.type === 'RVP' && report.id === selectedReport.id
             ) || null,
         [normalizedVoluntaryReports, selectedReport]
     );
@@ -269,7 +269,7 @@ const Identification = () => {
         () =>
             normalizedObligatoryReports.find(
                 (report) =>
-                    selectedReport?.type === 'OBLIGATORIO' && report.id === selectedReport.id
+                    selectedReport?.type === 'ROS' && report.id === selectedReport.id
             ) || null,
         [normalizedObligatoryReports, selectedReport]
     );
@@ -277,8 +277,8 @@ const Identification = () => {
     const currentReport = currentVoluntaryReport || currentObligatoryReport;
     const currentNotification = currentReport
         ? getHazardNotification(
-              currentReport as ReportWithHazard<VoluntaryReport | ObligatoryReport>
-          )
+            currentReport as ReportWithHazard<VoluntaryReport | ObligatoryReport>
+        )
         : null;
 
     const formMode = currentNotification ? 'edit' : 'create';
@@ -310,11 +310,11 @@ const Identification = () => {
                             className="space-y-4"
                         >
                             <TabsList className="grid w-full grid-cols-2">
-                                <TabsTrigger value="VOLUNTARIO">Voluntarios</TabsTrigger>
-                                <TabsTrigger value="OBLIGATORIO">Obligatorios</TabsTrigger>
+                                <TabsTrigger value="RVP">Voluntarios</TabsTrigger>
+                                <TabsTrigger value="ROS">Obligatorios</TabsTrigger>
                             </TabsList>
 
-                            <TabsContent value="VOLUNTARIO" className="space-y-3">
+                            <TabsContent value="RVP" className="space-y-3">
                                 {isLoadingVoluntaryReports ? (
                                     <ReportListSkeleton />
                                 ) : isVoluntaryReportsError ? (
@@ -328,13 +328,13 @@ const Identification = () => {
                                                 key={report.id}
                                                 report={report}
                                                 selected={
-                                                    selectedReport?.type === 'VOLUNTARIO' &&
+                                                    selectedReport?.type === 'RVP' &&
                                                     selectedReport.id === report.id
                                                 }
                                                 onSelect={() =>
                                                     setSelectedReport({
                                                         id: report.id,
-                                                        type: 'VOLUNTARIO',
+                                                        type: 'RVP',
                                                     })
                                                 }
                                             />
@@ -347,7 +347,7 @@ const Identification = () => {
                                 )}
                             </TabsContent>
 
-                            <TabsContent value="OBLIGATORIO" className="space-y-3">
+                            <TabsContent value="ROS" className="space-y-3">
                                 {isLoadingObligatoryReports ? (
                                     <ReportListSkeleton />
                                 ) : isObligatoryReportsError ? (
@@ -361,13 +361,13 @@ const Identification = () => {
                                                 key={report.id}
                                                 report={report}
                                                 selected={
-                                                    selectedReport?.type === 'OBLIGATORIO' &&
+                                                    selectedReport?.type === 'ROS' &&
                                                     selectedReport.id === report.id
                                                 }
                                                 onSelect={() =>
                                                     setSelectedReport({
                                                         id: report.id,
-                                                        type: 'OBLIGATORIO',
+                                                        type: 'ROS',
                                                     })
                                                 }
                                             />

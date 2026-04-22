@@ -36,7 +36,7 @@ import {
     emergencyPlans,
     policyCardsData,
     smsConcepts,
-} from "@/lib/contants/sms-data";
+} from "@/lib/constants/sms-data";
 
 interface SMSTabsProps {
     company: string;

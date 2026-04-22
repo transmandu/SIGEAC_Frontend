@@ -1,38 +1,38 @@
-import CreateHazardNotification from "@/components/forms/mantenimiento/sms/CreateHazardNotification";
 import axiosInstance from "@/lib/axios";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 interface HazardNotificationData {
-    company: string | null;
-    id: string | number; // ID del reporte padre (Voluntario/Obligatorio)
-    reportType: string;
+    company?: string;
     data: {
-        reception_date: Date | string; // Fecha de recepción del reporte
-        identification_area: string;   // Antes danger_area
+        report_number: string;
+        reception_date?: Date;
         danger_type: string;
-        information_source_id: string | number;
         description: string;
-        possible_consequences: string; // String separado por comas
-        consequence_to_evaluate: string;
-        analysis_of_root_causes: string; // Antes root_cause_analysis
-        report_type: string;            // El tipo de reporte padre
+        identification_area: string;
+        location_id: string;
+        information_source_id: string | number;
+        report_type: string;
+        analysis_of_root_causes: string;
+        voluntary_report_id?: string;
+        obligatory_report_id?: string;
     };
 }
 
 interface UpdateHazardNotificationData {
-    company: string | null;
-    id: string | number; // ID de la identificación de peligro ya existente
+    company?: string;
     data: {
-        reception_date: Date | string;
-        identification_area: string;
+        report_number: string;
+        reception_date?: Date;
         danger_type: string;
-        information_source_id: string | number;
         description: string;
-        possible_consequences: string;
-        consequence_to_evaluate: string;
-        analysis_of_root_causes: string;
+        identification_area: string;
+        location_id: string;
+        information_source_id: string | number;
         report_type: string;
+        analysis_of_root_causes: string;
+        voluntary_report_id?: string;
+        obligatory_report_id?: string;
     };
 
 
@@ -41,11 +41,10 @@ interface UpdateHazardNotificationData {
     const createMutation = useMutation({
         mutationFn: async ({
             company,
-            id,
             data,
         }: HazardNotificationData) => {
             const response = await axiosInstance.post(
-                `/${company}/sms/aeronautical/hazard-notifications/${id}`,
+                `/${company}/sms/aeronautical/hazard-notifications`,
                 data,
                 {
                     headers: {
@@ -76,6 +75,35 @@ interface UpdateHazardNotificationData {
     };
 };
 
+export const UpdateHazardNotification = () => {
+    const queryClient = useQueryClient();
+
+    const updateDangerIdentificationtMutation = useMutation({
+        mutationKey: ["hazard-notifications"],
+        mutationFn: async ({ company, data }: UpdateHazardNotificationData) => {
+            await axiosInstance.patch(
+                `/${company}/sms/aeronautical/hazard-notifications`,
+                data
+            );
+        },
+        onSuccess: (_, data) => {
+            queryClient.invalidateQueries({ queryKey: ["danger-identifications", data.company] });
+            queryClient.invalidateQueries({ queryKey: ["danger-identification"] });
+            toast.success("¡Actualizado!", {
+                description: `La identificacion de peligro ha sido actualizada correctamente.`,
+            });
+        },
+        onError: (error) => {
+            toast.error("Oops!", {
+                description: "No se pudo actualizar la identificacion de peligro...",
+            });
+            console.log(error);
+        },
+    });
+    return {
+        updateHazardNotification: updateDangerIdentificationtMutation,
+    };
+};
 export const useDeleteHazardNotification = () => {
     const queryClient = useQueryClient();
     const deleteMutation = useMutation({
@@ -112,32 +140,3 @@ export const useDeleteHazardNotification = () => {
     };
 };
 
-export const UpdateHazardNotification = () => {
-    const queryClient = useQueryClient();
-
-    const updateDangerIdentificationtMutation = useMutation({
-        mutationKey: ["hazard-notifications"],
-        mutationFn: async ({ company, data, id }: UpdateHazardNotificationData) => {
-            await axiosInstance.patch(
-                `/${company}/sms/aeronautical/hazard-notifications/${id}`,
-                data
-            );
-        },
-        onSuccess: (_, data) => {
-            queryClient.invalidateQueries({ queryKey: ["danger-identifications", data.company] });
-            queryClient.invalidateQueries({ queryKey: ["danger-identification"] });
-            toast.success("¡Actualizado!", {
-                description: `La identificacion de peligro ha sido actualizada correctamente.`,
-            });
-        },
-        onError: (error) => {
-            toast.error("Oops!", {
-                description: "No se pudo actualizar la identificacion de peligro...",
-            });
-            console.log(error);
-        },
-    });
-    return {
-        updateHazardNotification: updateDangerIdentificationtMutation,
-    };
-};
