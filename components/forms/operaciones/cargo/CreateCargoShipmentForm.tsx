@@ -46,13 +46,13 @@ import {
 import { useGetClients } from "@/hooks/general/clientes/useGetClients";
 import { useGetAircrafts } from "@/hooks/aerolinea/aeronaves/useGetAircrafts";
 import { useGetEmployeesByCompany } from "@/hooks/sistema/empleados/useGetEmployees";
-import { useGetNextGuide } from "@/hooks/cargo/useGetNextGuide";
+import { useGetNextGuide } from "@/hooks/operaciones/cargo/useGetNextGuide";
 import { useParams, useRouter } from "next/navigation";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import React, { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useGetPilots } from "@/hooks/sms/useGetPilots";
-import { useGetExternalAircraftSuggestions } from "@/hooks/cargo/useGetExternalAircraftSuggestions";
+import { useGetExternalAircraftSuggestions } from "@/hooks/operaciones/cargo/useGetExternalAircraftSuggestions";
 
 const itemSchema = z.object({
   product_description: z.string().min(1, "La descripción es requerida"),
@@ -310,26 +310,26 @@ export default function CreateCargoShipmentForm({
                       mode="single"
                       selected={field.value}
                       onSelect={field.onChange}
-                      disabled={
-                        isEditing
-                          ? [
-                              {
-                                before: startOfMonth(
-                                  new Date(
-                                    initialData.registration_date + "T00:00:00",
-                                  ),
-                                ),
-                              },
-                              {
-                                after: endOfMonth(
-                                  new Date(
-                                    initialData.registration_date + "T00:00:00",
-                                  ),
-                                ),
-                              },
-                            ]
-                          : undefined
-                      }
+                      disabled={[
+                        {
+                          before: startOfMonth(
+                            isEditing
+                              ? new Date(
+                                  initialData.registration_date + "T00:00:00",
+                                )
+                              : new Date(),
+                          ),
+                        },
+                        {
+                          after: endOfMonth(
+                            isEditing
+                              ? new Date(
+                                  initialData.registration_date + "T00:00:00",
+                                )
+                              : new Date(),
+                          ),
+                        },
+                      ]}
                       initialFocus
                     />
                   </PopoverContent>
@@ -677,7 +677,7 @@ export default function CreateCargoShipmentForm({
                 </FormLabel>
                 <FormControl>
                   <Input
-                    className="h-9 bg-muted/50 cursor-not-allowed text-center"
+                    className="h-9 bg-muted/50 cursor-not-allowed text-left"
                     readOnly
                     value={user ? `${user.first_name} ${user.last_name}` : ""}
                   />

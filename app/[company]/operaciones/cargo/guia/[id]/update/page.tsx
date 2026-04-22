@@ -2,7 +2,7 @@
 
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import { useParams } from "next/navigation";
-import { useGetCargoShipmentById } from "@/hooks/cargo/useGetCargoShipmentById";
+import { useGetCargoShipmentById } from "@/hooks/operaciones/cargo/useGetCargoShipmentById";
 import CreateCargoShipmentForm from "@/components/forms/operaciones/cargo/CreateCargoShipmentForm";
 import { Loader2 } from "lucide-react";
 

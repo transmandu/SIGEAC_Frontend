@@ -2,7 +2,7 @@
 
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import { useParams, useSearchParams, useRouter } from "next/navigation";
-import { useGetCargoShipmentsByAircraft } from "@/hooks/cargo/useGetCargoShipmentsByAircraft";
+import { useGetCargoShipmentsByAircraft } from "@/hooks/operaciones/cargo/useGetCargoShipmentsByAircraft";
 import { useGetAircrafts } from "@/hooks/aerolinea/aeronaves/useGetAircrafts";
 import { getColumns } from "../columns";
 import { DataTable } from "../data-table";
@@ -28,8 +28,10 @@ const CargoByAircraftPage = () => {
   const aircraft_id = params.aircraft_id as string;
 
   // Leer mes y año desde query params (venimos del Dashboard con ?month=&year=)
-  const initialMonth = Number(searchParams.get("month")) || new Date().getMonth() + 1;
-  const initialYear = Number(searchParams.get("year")) || new Date().getFullYear();
+  const initialMonth =
+    Number(searchParams.get("month")) || new Date().getMonth() + 1;
+  const initialYear =
+    Number(searchParams.get("year")) || new Date().getFullYear();
 
   const [month, setMonth] = useState(initialMonth);
   const [year, setYear] = useState(initialYear);
@@ -56,17 +58,23 @@ const CargoByAircraftPage = () => {
         <Breadcrumb>
           <BreadcrumbList>
             <BreadcrumbItem>
-              <BreadcrumbLink href={`/${company}/dashboard`}>Inicio</BreadcrumbLink>
+              <BreadcrumbLink href={`/${company}/dashboard`}>
+                Inicio
+              </BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>Operaciones</BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbLink href={`/${company}/operaciones/cargo`}>Carga</BreadcrumbLink>
+              <BreadcrumbLink href={`/${company}/operaciones/cargo`}>
+                Carga
+              </BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbPage>{aircraft?.acronym || `Aeronave #${aircraft_id}`}</BreadcrumbPage>
+              <BreadcrumbPage>
+                {aircraft?.acronym || `Aeronave #${aircraft_id}`}
+              </BreadcrumbPage>
             </BreadcrumbItem>
           </BreadcrumbList>
         </Breadcrumb>
@@ -96,7 +104,12 @@ const CargoByAircraftPage = () => {
         {/* Filtros y Acciones */}
         <div className="flex flex-col sm:flex-row justify-between items-center bg-muted/30 p-3 rounded-lg border mt-4 mb-2 gap-4">
           <div className="flex items-center gap-3">
-            <Button asChild variant="outline" size="icon" className="h-9 w-9 shrink-0">
+            <Button
+              asChild
+              variant="outline"
+              size="icon"
+              className="h-9 w-9 shrink-0"
+            >
               <Link href={`/${company}/operaciones/cargo`}>
                 <ArrowLeft className="h-4 w-4" />
               </Link>

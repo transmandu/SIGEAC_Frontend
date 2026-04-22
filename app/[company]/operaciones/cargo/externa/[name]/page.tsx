@@ -2,7 +2,7 @@
 
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import { useParams, useSearchParams } from "next/navigation";
-import { useGetCargoShipmentsByExternalAircraft } from "@/hooks/cargo/useGetCargoShipmentsByExternalAircraft";
+import { useGetCargoShipmentsByExternalAircraft } from "@/hooks/operaciones/cargo/useGetCargoShipmentsByExternalAircraft";
 import { getColumns } from "../../columns";
 import { DataTable } from "../../data-table";
 import { useState } from "react";

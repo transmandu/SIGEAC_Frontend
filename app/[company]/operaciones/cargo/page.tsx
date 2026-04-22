@@ -2,7 +2,7 @@
 
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import { useCompanyStore } from "@/stores/CompanyStore";
-import { useGetCargoStatsByAircraft } from "@/hooks/cargo/useGetCargoStatsByAircraft";
+import { useGetCargoStatsByAircraft } from "@/hooks/operaciones/cargo/useGetCargoStatsByAircraft";
 import { useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -28,7 +28,7 @@ import {
 } from "lucide-react";
 import { AircraftCargoStats } from "@/types";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useManageExternalAircraft } from "@/hooks/cargo/useManageExternalAircraft";
+import { useManageExternalAircraft } from "@/hooks/operaciones/cargo/useManageExternalAircraft";
 import {
   DropdownMenu,
   DropdownMenuContent,
