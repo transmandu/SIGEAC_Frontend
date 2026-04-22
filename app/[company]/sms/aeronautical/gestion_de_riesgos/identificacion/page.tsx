@@ -1,18 +1,23 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { ReactNode, useEffect, useMemo, useState } from 'react';
 import { useParams } from 'next/navigation';
 import {
     AlertCircle,
+    ChevronDown,
+    ChevronUp,
     CheckCircle2,
     ClipboardList,
     FileSearch,
+    FileText,
     MapPin,
+    ShieldAlert,
 } from 'lucide-react';
 
 import CreateHazardNotification from '@/components/forms/mantenimiento/sms/CreateHazardNotification';
 import { ContentLayout } from '@/components/layout/ContentLayout';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import {
     Card,
     CardContent,
@@ -20,6 +25,10 @@ import {
     CardHeader,
     CardTitle,
 } from '@/components/ui/card';
+import {
+    Collapsible,
+    CollapsibleContent,
+} from '@/components/ui/collapsible';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -45,6 +54,13 @@ type ReportWithHazard<T> = T & {
 type SelectedReport = {
     id: number;
     type: ReportType;
+};
+
+type DetailItem = {
+    label: string;
+    value?: ReactNode;
+    fullWidth?: boolean;
+    contentClassName?: string;
 };
 
 const REPORT_LABELS: Record<ReportType, string> = {
@@ -109,6 +125,113 @@ const getReportCode = (
         : `${prefix}-${report.id}`;
 };
 
+const hasDetailValue = (value?: ReactNode) => {
+    if (value === null || value === undefined) {
+        return false;
+    }
+
+    if (typeof value === 'string') {
+        return value.trim().length > 0;
+    }
+
+    return true;
+};
+
+const formatContactName = (...parts: Array<string | undefined>) =>
+    parts.filter(Boolean).join(' ').trim();
+
+const getVoluntaryReportDetails = (report: ReportWithHazard<VoluntaryReport>): DetailItem[] => [
+    { label: 'Codigo', value: getReportCode(report, 'RVP') },
+    { label: 'Fecha del reporte', value: formatDate(report.report_date) },
+    { label: 'Estado', value: report.status },
+    { label: 'Area identificada', value: report.identification_area },
+    { label: 'Ubicacion', value: report.location?.name },
+    {
+        label: 'Reportante',
+        value: formatContactName(report.reporter_name, report.reporter_last_name),
+    },
+    { label: 'Telefono', value: report.reporter_phone },
+    { label: 'Correo', value: report.reporter_email },
+    {
+        label: 'Descripcion del reporte',
+        value: report.description,
+        fullWidth: true,
+        contentClassName: 'whitespace-pre-wrap',
+    },
+    {
+        label: 'Posibles consecuencias',
+        value: report.possible_consequences,
+        fullWidth: true,
+        contentClassName: 'whitespace-pre-wrap',
+    },
+];
+
+const getObligatoryReportDetails = (report: ReportWithHazard<ObligatoryReport>): DetailItem[] => [
+    { label: 'Codigo', value: getReportCode(report, 'ROS') },
+    { label: 'Fecha del reporte', value: formatDate(report.report_date) },
+    { label: 'Hora del reporte', value: report.report_time },
+    { label: 'Estado', value: report.status },
+    { label: 'Fecha del incidente', value: formatDate(report.incident_date) },
+    { label: 'Hora del incidente', value: report.incident_time },
+    { label: 'Lugar del reporte', value: report.report_location?.name },
+    { label: 'Lugar del incidente', value: report.incident_location?.name },
+    { label: 'Reportante', value: formatContactName(report.name, report.last_name) },
+    { label: 'Telefono', value: report.phone },
+    { label: 'Correo', value: report.email },
+    {
+        label: 'Incidentes registrados',
+        value: report.incidents,
+        fullWidth: true,
+        contentClassName: 'whitespace-pre-wrap',
+    },
+    {
+        label: 'Otros incidentes',
+        value: report.other_incidents,
+        fullWidth: true,
+        contentClassName: 'whitespace-pre-wrap',
+    },
+    {
+        label: 'Descripcion del reporte',
+        value: report.description,
+        fullWidth: true,
+        contentClassName: 'whitespace-pre-wrap',
+    },
+];
+
+const getHazardNotificationDetails = (notification: HazardNotification): DetailItem[] => [
+    { label: 'ID', value: notification.id },
+    { label: 'Numero', value: notification.report_number },
+    { label: 'Fecha de recepcion', value: formatDate(notification.reception_date) },
+    { label: 'Area de identificacion', value: notification.identification_area },
+    { label: 'Ubicacion', value: notification.location?.name },
+    { label: 'Tipo de peligro', value: notification.danger_type },
+    { label: 'Fuente de informacion', value: notification.information_source?.name },
+    {
+        label: 'Descripcion',
+        value: notification.description,
+        fullWidth: true,
+        contentClassName: 'whitespace-pre-wrap',
+    },
+    {
+        label: 'Posibles consecuencias',
+        value: notification.possible_consequences,
+        fullWidth: true,
+        contentClassName: 'whitespace-pre-wrap',
+    },
+    {
+        label: 'Consecuencia a evaluar',
+        value: notification.consequence_to_evaluate,
+        fullWidth: true,
+        contentClassName: 'whitespace-pre-wrap',
+    },
+    {
+        label: 'Analisis de causas raiz',
+        value: notification.analysis_of_root_causes,
+        fullWidth: true,
+        contentClassName: 'whitespace-pre-wrap',
+    },
+];
+
 const ReportListSkeleton = () => (
     <div className="space-y-3">
         {Array.from({ length: 4 }).map((_, index) => (
@@ -120,6 +243,35 @@ const ReportListSkeleton = () => (
         ))}
     </div>
 );
+
+function DetailGrid({ items }: { items: DetailItem[] }) {
+    return (
+        <div className="grid gap-3 md:grid-cols-2">
+            {items.map(({ label, value, fullWidth, contentClassName }) => (
+                <div
+                    key={label}
+                    className={cn(
+                        'rounded-lg border bg-background p-3',
+                        fullWidth && 'md:col-span-2'
+                    )}
+                >
+                    <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                        {label}
+                    </p>
+                    <p
+                        className={cn(
+                            'mt-1 text-sm',
+                            !hasDetailValue(value) && 'text-muted-foreground',
+                            contentClassName
+                        )}
+                    >
+                        {hasDetailValue(value) ? value : 'Sin informacion registrada'}
+                    </p>
+                </div>
+            ))}
+        </div>
+    );
+}
 
 function VoluntaryReportCard({
     report,
@@ -232,6 +384,9 @@ const Identification = () => {
 
     const [activeTab, setActiveTab] = useState<ReportType>('RVP');
     const [selectedReport, setSelectedReport] = useState<SelectedReport | null>(null);
+    const [isReportDetailsOpen, setIsReportDetailsOpen] = useState(false);
+    const [isNotificationDetailsOpen, setIsNotificationDetailsOpen] = useState(false);
+    const [isFormOpen, setIsFormOpen] = useState(false);
 
     const {
         data: voluntaryReports,
@@ -282,6 +437,32 @@ const Identification = () => {
         : null;
 
     const formMode = currentNotification ? 'edit' : 'create';
+    const currentReportType = selectedReport?.type ?? null;
+    const currentReportCode =
+        currentReport && currentReportType
+            ? getReportCode(currentReport, currentReportType)
+            : null;
+    const reportDetails = useMemo(() => {
+        if (currentVoluntaryReport) {
+            return getVoluntaryReportDetails(currentVoluntaryReport);
+        }
+
+        if (currentObligatoryReport) {
+            return getObligatoryReportDetails(currentObligatoryReport);
+        }
+
+        return [];
+    }, [currentObligatoryReport, currentVoluntaryReport]);
+    const notificationDetails = useMemo(
+        () => (currentNotification ? getHazardNotificationDetails(currentNotification) : []),
+        [currentNotification]
+    );
+
+    useEffect(() => {
+        setIsReportDetailsOpen(false);
+        setIsNotificationDetailsOpen(false);
+        setIsFormOpen(false);
+    }, [selectedReport?.id, selectedReport?.type]);
 
     return (
         <ContentLayout title="Notificación de peligro">
@@ -394,17 +575,17 @@ const Identification = () => {
                                 <FileSearch className="h-5 w-5" />
                             )}
                             {currentReport
-                                ? `${currentNotification ? 'Editar' : 'Crear'} notificación de peligro`
-                                : 'Formulario de notificación'}
+                                ? 'Detalle del reporte y Notificacion de peligro'
+                                : 'Gestión de notificación'}
                         </CardTitle>
                         <CardDescription>
                             {currentReport ? (
                                 <span className="flex flex-wrap items-center gap-2">
                                     <span className="font-medium">
-                                        {REPORT_LABELS[selectedReport!.type]}
+                                        {REPORT_LABELS[currentReportType!]}
                                     </span>
                                     <span>-</span>
-                                    <span>{getReportCode(currentReport, selectedReport!.type)}</span>
+                                    <span>{currentReportCode}</span>
                                 </span>
                             ) : (
                                 'Seleccione un reporte en el panel izquierdo para continuar.'
@@ -429,7 +610,7 @@ const Identification = () => {
                                 <div className="rounded-lg border bg-muted/30 p-4">
                                     <div className="flex flex-wrap items-center gap-2">
                                         <Badge variant="outline">
-                                            {REPORT_LABELS[selectedReport!.type]}
+                                            {REPORT_LABELS[currentReportType!]}
                                         </Badge>
                                         <Badge
                                             className={cn(
@@ -447,7 +628,7 @@ const Identification = () => {
                                     </div>
 
                                     <p className="mt-3 text-sm font-medium">
-                                        {getReportCode(currentReport, selectedReport!.type)}
+                                        {currentReportCode}
                                     </p>
                                     <p className="mt-2 text-sm text-muted-foreground">
                                         {currentReport.description}
@@ -459,21 +640,173 @@ const Identification = () => {
                                             {formatDate(currentReport.report_date)}
                                         </div>
                                         <div>
-                                            <span className="font-medium">Acción:</span>{' '}
+                                            <span className="font-medium">Accion:</span>{' '}
                                             {currentNotification
-                                                ? 'Editar identificación existente'
-                                                : 'Crear identificación nueva'}
+                                                ? 'Editar Notificacion de peligro existente'
+                                                : 'Crear Notificacion de peligro nueva'}
+                                        </div>
+                                        <div>
+                                            <span className="font-medium">Estado:</span>{' '}
+                                            {currentReport.status}
+                                        </div>
+                                        <div>
+                                            <span className="font-medium">Ubicacion:</span>{' '}
+                                            {currentVoluntaryReport
+                                                ? getVoluntaryMeta(currentVoluntaryReport) ||
+                                                'Sin ubicacion asociada'
+                                                : getObligatoryMeta(currentObligatoryReport!) ||
+                                                'Sin ubicacion asociada'}
                                         </div>
                                     </div>
                                 </div>
 
-                                <CreateHazardNotification
-                                    key={`${selectedReport!.type}-${selectedReport!.id}-${formMode}`}
-                                    id={currentReport.id}
-                                    reportType={selectedReport!.type}
-                                    initialData={currentNotification || undefined}
-                                    isEditing={Boolean(currentNotification)}
-                                />
+                                <div className="flex flex-wrap gap-3">
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        onClick={() =>
+                                            setIsReportDetailsOpen((currentValue) => !currentValue)
+                                        }
+                                    >
+                                        {isReportDetailsOpen
+                                            ? 'Ocultar detalle del reporte'
+                                            : 'Ver detalle del reporte'}
+                                        {isReportDetailsOpen ? (
+                                            <ChevronUp className="ml-2 h-4 w-4" />
+                                        ) : (
+                                            <ChevronDown className="ml-2 h-4 w-4" />
+                                        )}
+                                    </Button>
+
+                                    {currentNotification && (
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            onClick={() =>
+                                                setIsNotificationDetailsOpen(
+                                                    (currentValue) => !currentValue
+                                                )
+                                            }
+                                        >
+                                            {isNotificationDetailsOpen
+                                                ? 'Ocultar Notificacion de peligro'
+                                                : 'Ver Notificación de peligro'}
+                                            {isNotificationDetailsOpen ? (
+                                                <ChevronUp className="ml-2 h-4 w-4" />
+                                            ) : (
+                                                <ChevronDown className="ml-2 h-4 w-4" />
+                                            )}
+                                        </Button>
+                                    )}
+
+                                    <Button
+                                        type="button"
+                                        onClick={() => setIsFormOpen((currentValue) => !currentValue)}
+                                    >
+                                        {isFormOpen
+                                            ? 'Ocultar formulario'
+                                            : currentNotification
+                                                ? 'Editar Notificacion de peligro'
+                                                : 'Crear Notificacion de peligro'}
+                                        {isFormOpen ? (
+                                            <ChevronUp className="ml-2 h-4 w-4" />
+                                        ) : (
+                                            <ChevronDown className="ml-2 h-4 w-4" />
+                                        )}
+                                    </Button>
+                                </div>
+
+                                <Collapsible
+                                    open={isReportDetailsOpen}
+                                    onOpenChange={setIsReportDetailsOpen}
+                                    className="rounded-lg border"
+                                >
+                                    <div className="flex items-center gap-3 px-4 py-3">
+                                        <FileText className="h-4 w-4 text-muted-foreground" />
+                                        <div>
+                                            <p className="text-sm font-medium">
+                                                Informacion detallada del reporte
+                                            </p>
+                                            <p className="text-xs text-muted-foreground">
+                                                Revise todos los campos relevantes del reporte
+                                                seleccionado.
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <CollapsibleContent>
+                                        <div className="border-t px-4 py-4">
+                                            <DetailGrid items={reportDetails} />
+                                        </div>
+                                    </CollapsibleContent>
+                                </Collapsible>
+
+                                {currentNotification && (
+                                    <Collapsible
+                                        open={isNotificationDetailsOpen}
+                                        onOpenChange={setIsNotificationDetailsOpen}
+                                        className="rounded-lg border"
+                                    >
+                                        <div className="flex items-center gap-3 px-4 py-3">
+                                            <ShieldAlert className="h-4 w-4 text-emerald-600" />
+                                            <div>
+                                                <p className="text-sm font-medium">
+                                                    Notificación de Peligro
+                                                </p>
+                                                <p className="text-xs text-muted-foreground">
+                                                    Este reporte ya cuenta con una notificación
+                                                    registrada.
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <CollapsibleContent>
+                                            <div className="border-t px-4 py-4">
+                                                <DetailGrid items={notificationDetails} />
+                                            </div>
+                                        </CollapsibleContent>
+                                    </Collapsible>
+                                )}
+
+                                <Collapsible
+                                    open={isFormOpen}
+                                    onOpenChange={setIsFormOpen}
+                                    className="rounded-lg border"
+                                >
+                                    <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3">
+                                        <div>
+                                            <p className="text-sm font-medium">
+                                                {currentNotification
+                                                    ? 'Formulario de edicion'
+                                                    : 'Formulario de creacion'}
+                                            </p>
+                                            <p className="text-xs text-muted-foreground">
+                                                Abra este apartado solo cuando necesite registrar o
+                                                actualizar la Notificacion de peligro.
+                                            </p>
+                                        </div>
+                                        <Badge
+                                            className={cn(
+                                                'border',
+                                                currentNotification
+                                                    ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
+                                                    : 'border-blue-200 bg-blue-50 text-blue-700'
+                                            )}
+                                        >
+                                            {currentNotification ? 'Edicion' : 'Creacion'}
+                                        </Badge>
+                                    </div>
+                                    <CollapsibleContent>
+                                        <div className="border-t px-4 py-4">
+                                            <CreateHazardNotification
+                                                key={`${currentReportType!}-${selectedReport!.id}-${formMode}`}
+                                                id={currentReport.id}
+                                                reportType={currentReportType!}
+                                                initialData={currentNotification || undefined}
+                                                isEditing={Boolean(currentNotification)}
+                                                onClose={() => setIsFormOpen(false)}
+                                            />
+                                        </div>
+                                    </CollapsibleContent>
+                                </Collapsible>
                             </div>
                         )}
                     </CardContent>

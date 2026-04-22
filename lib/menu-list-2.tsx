@@ -716,7 +716,7 @@ export function getMenuList(
                                 `/${currentCompany?.slug}/sms/aeronautical/gestion_de_riesgos/reportes`,
                         },
                         {
-                            href: `/${currentCompany?.slug}/sms/aeronautical/gestion_de_riesgos/identificacion_peligros`,
+                            href: `/${currentCompany?.slug}/sms/aeronautical/gestion_de_riesgos/identificacion`,
                             label: "Identificacion de Peligros",
                             roles: ["COORDINADOR_SMS", "GERENTE_SMS", "SUPERUSER"],
                             active:

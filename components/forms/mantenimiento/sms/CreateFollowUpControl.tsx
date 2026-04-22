@@ -73,7 +73,7 @@ export default function CreateFollowUpControl({
             data: {
                 description: values.description,
                 date: format(values.date, "yyyy-MM-dd"),
-                mitigation_measure_id: mitigationMeasureId,
+                mitigation_measure_id: mitigationMeasureId.toString(),
                 image: values.image,
                 document: values.document,
             },
@@ -125,7 +125,7 @@ export default function CreateFollowUpControl({
                                             className={cn(
                                                 "pl-3 text-left font-normal",
                                                 !field.value &&
-                                                    "text-muted-foreground"
+                                                "text-muted-foreground"
                                             )}
                                         >
                                             {field.value ? (

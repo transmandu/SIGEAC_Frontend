@@ -164,7 +164,7 @@ export default function CreateMitigationPlanAnalysis({
     const onSubmit = async (values: FormValues) => {
         const company = selectedCompany?.slug || null;
 
-        let mitigationPlanId = mitigationPlan?.id ?? null;
+        let mitigationPlanId = mitigationPlan?.id.toString() ?? null;
 
         if (mitigationPlan) {
             await updateMitigationPlan.mutateAsync({
@@ -181,7 +181,7 @@ export default function CreateMitigationPlanAnalysis({
             const response = await createMitigationPlan.mutateAsync({
                 company,
                 data: {
-                    hazard_notification_id: hazardNotification.id,
+                    hazard_notification_id: hazardNotification.id.toString(),
                     area_responsible: values.area_responsible,
                     description: values.description,
                     possible_consequences: values.possible_consequences,
@@ -189,7 +189,7 @@ export default function CreateMitigationPlanAnalysis({
                 },
             });
 
-            mitigationPlanId = getMitigationPlanId(response);
+            mitigationPlanId = getMitigationPlanId(response)?.toString() || null;
         }
 
         if (!mitigationPlanId) {
@@ -215,7 +215,7 @@ export default function CreateMitigationPlanAnalysis({
             company,
             data: {
                 ...analysisPayload,
-                mitigation_plan_id: mitigationPlanId,
+                mitigation_plan_id: mitigationPlanId.toString(),
             },
         });
     };

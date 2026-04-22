@@ -38,14 +38,14 @@ import {
 } from '@/types/sms/mantenimiento';
 
 const getNotificationSource = (notification: HazardNotification) => {
-    if (notification.voluntary_report) {
-        const code = notification.voluntary_report.report_number || notification.voluntary_report.id;
+    if (notification.voluntaryReport) {
+        const code = notification.voluntaryReport.report_number || notification.voluntaryReport.id;
         return `RVP-${code}`;
     }
 
-    if (notification.obligatory_report) {
+    if (notification.obligatoryReport) {
         const code =
-            notification.obligatory_report.report_number || notification.obligatory_report.id;
+            notification.obligatoryReport.report_number || notification.obligatoryReport.id;
         return `ROS-${code}`;
     }
 
@@ -59,7 +59,7 @@ const sortByNewestDate = (notifications: HazardNotification[]) =>
     );
 
 const getWorkflowStatus = (notification: HazardNotification) => {
-    const mitigationPlan = notification.mitigation_plan;
+    const mitigationPlan = notification.mitigationPlan;
     const analysis = mitigationPlan?.analysis || notification.analysis;
     const measures = mitigationPlan?.mitigation_measure || [];
     const controls = measures.flatMap((measure) => measure.follow_up_controls || []);
@@ -307,7 +307,7 @@ const EvaluationMitigationPage = () => {
         ) || null;
 
     const currentMitigationPlan: MitigationPlan | null =
-        selectedNotification?.mitigation_plan || null;
+        selectedNotification?.mitigationPlan || null;
     const currentAnalysis: Analysis | null =
         currentMitigationPlan?.analysis || selectedNotification?.analysis || null;
     const currentMeasures = currentMitigationPlan?.mitigation_measure || [];

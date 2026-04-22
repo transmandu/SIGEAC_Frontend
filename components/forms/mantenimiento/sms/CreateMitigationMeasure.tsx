@@ -87,7 +87,7 @@ export default function CreateMitigationMeasure({
                 execution_date: values.execution_date
                     ? format(values.execution_date, "yyyy-MM-dd")
                     : undefined,
-                mitigation_plan_id: mitigationPlanId,
+                mitigation_plan_id: mitigationPlanId.toString(),
             },
         });
 
@@ -172,7 +172,7 @@ export default function CreateMitigationMeasure({
                                                 className={cn(
                                                     "pl-3 text-left font-normal",
                                                     !field.value &&
-                                                        "text-muted-foreground"
+                                                    "text-muted-foreground"
                                                 )}
                                             >
                                                 {field.value ? (
@@ -217,7 +217,7 @@ export default function CreateMitigationMeasure({
                                                 className={cn(
                                                     "pl-3 text-left font-normal",
                                                     !field.value &&
-                                                        "text-muted-foreground"
+                                                    "text-muted-foreground"
                                                 )}
                                             >
                                                 {field.value ? (

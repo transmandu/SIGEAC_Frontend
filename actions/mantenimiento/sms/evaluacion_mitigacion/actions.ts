@@ -7,7 +7,7 @@ import { toast } from "sonner";
 interface CreateMitigationPlanData {
     company: string | null;
     data: {
-        hazard_notification_id: number | string;
+        hazard_notification_id: string;
         area_responsible: string;
         possible_consequences: string;
         consequence_to_evaluate: string;
@@ -32,7 +32,7 @@ interface CreateMitigationAnalysisData {
         probability: string;
         severity: string;
         result: string;
-        mitigation_plan_id: number | string;
+        mitigation_plan_id: string;
     };
 }
 
@@ -54,7 +54,7 @@ interface CreateMitigationMeasureData {
         implementation_responsible: string;
         estimated_date: string;
         execution_date?: string;
-        mitigation_plan_id: number | string;
+        mitigation_plan_id: string;
     };
 }
 
@@ -63,7 +63,7 @@ interface CreateFollowUpControlData {
     data: {
         description: string;
         date: string;
-        mitigation_measure_id: number | string;
+        mitigation_measure_id: string;
         image?: File;
         document?: File;
     };

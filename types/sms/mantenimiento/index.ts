@@ -15,9 +15,7 @@ export type VoluntaryReport = {
     description: string;
     possible_consequences: string;
     status: string;
-    danger_identification_id?: number | null;
-    hazard_notification?: HazardNotification | null;
-    danger_identification?: HazardNotification | null;
+    hazardNotification?: HazardNotification;
     image?: string;
 }
 
@@ -41,9 +39,7 @@ export type ObligatoryReport = {
     other_incidents: string;
     description: string;
     status: string;
-    danger_identification_id?: number | null;
-    hazard_notification?: HazardNotification | null;
-    danger_identification?: HazardNotification | null;
+    hazardNotification?: HazardNotification;
     image?: string;
     document?: string;
     imageUrl?: string;
@@ -63,9 +59,9 @@ export type HazardNotification = {
     consequence_to_evaluate: string;
     analysis_of_root_causes: string;
     report_type: string;
-    voluntary_report?: VoluntaryReport;
-    obligatory_report?: ObligatoryReport;
-    mitigation_plan?: MitigationPlan;
+    voluntaryReport?: VoluntaryReport;
+    obligatoryReport?: ObligatoryReport;
+    mitigationPlan?: MitigationPlan;
     analysis?: Analysis;
 
 }
