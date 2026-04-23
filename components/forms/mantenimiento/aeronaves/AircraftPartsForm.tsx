@@ -15,6 +15,7 @@ import { useEffect, useMemo, useState } from "react"
 import { Control, useFieldArray, useForm, useWatch } from "react-hook-form"
 import { z } from "zod"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import { Label } from "@/components/ui/label"
 
 // 1. Esquema actualizado con removed_date
 const PartSchema: any = z.object({
@@ -23,12 +24,15 @@ const PartSchema: any = z.object({
     manufacturer_id: z.string().optional(),
     part_name: z.string().min(1, "Nombre obligatorio").max(50),
     part_number: z.string().min(1, "Número obligatorio").regex(/^[A-Za-z0-9\-]+$/),
-    time_since_new: z.number().min(0).max(100000),
-    time_since_overhaul: z.number().min(0).max(100000),
-    cycles_since_new: z.number().min(0).max(50000),
-    cycles_since_overhaul: z.number().min(0).max(50000),
+    ata_chapter: z.string().optional(),
+    position: z.string().optional(),
+    time_since_new: z.number().nullable().optional(),
+    time_since_overhaul: z.number().nullable().optional(),
+    cycles_since_new: z.number().nullable().optional(),
+    cycles_since_overhaul: z.number().nullable().optional(),
     condition_type: z.enum(["NEW", "OVERHAULED"]),
     is_father: z.boolean().default(false),
+    assigned_date: z.string().nullable().optional(),
     removed_date: z.string().nullable().optional(),
     sub_parts: z.array(z.lazy(() => PartSchema)).optional()
 });
@@ -45,12 +49,17 @@ type RawPart = {
     manufacturer_id?: string;
     part_name?: string;
     part_number?: string;
+    ata_chapter?: string;
+    position?: string;
     time_since_new?: number | string | null;
     time_since_overhaul?: number | string | null;
     cycles_since_new?: number | string | null;
     cycles_since_overhaul?: number | string | null;
+    csn_na?: boolean;
+    cso_na?: boolean;
     condition_type?: "NEW" | "OVERHAULED" | string | null;
     is_father?: boolean;
+    assigned_date?: string | null;
     parent_part_id?: number | string | null;
     sub_parts?: RawPart[];
 };
@@ -72,18 +81,22 @@ const toNumber = (value: number | string | null | undefined) => {
 
 const normalizePart = (part: any): z.infer<typeof PartSchema> => {
     const normalizedSubParts = (part.sub_parts || []).map(normalizePart);
+
     return {
         id: part.id,
         serial: part.serial || "",
         manufacturer_id: part.manufacturer_id || "",
         part_name: part.part_name || "",
         part_number: part.part_number || "",
-        time_since_new: toNumber(part.time_since_new),
-        time_since_overhaul: toNumber(part.time_since_overhaul),
-        cycles_since_new: toNumber(part.cycles_since_new),
-        cycles_since_overhaul: toNumber(part.cycles_since_overhaul),
+        ata_chapter: part.ata_chapter || "",
+        position: part.position || "",
+        time_since_new: part.time_since_new ? toNumber(part.time_since_new) : null,
+        time_since_overhaul: part.time_since_overhaul ? toNumber(part.time_since_overhaul) : null,
+        cycles_since_new: part.cycles_since_new ? toNumber(part.cycles_since_new) : null,
+        cycles_since_overhaul: part.cycles_since_overhaul ? toNumber(part.cycles_since_overhaul) : null,
         condition_type: part.condition_type === "OVERHAULED" ? "OVERHAULED" : "NEW",
         is_father: typeof part.is_father === "boolean" ? part.is_father : normalizedSubParts.length > 0,
+        assigned_date: part.assigned_date || null,
         removed_date: part.removed_date || null,
         sub_parts: normalizedSubParts
     };
@@ -234,14 +247,14 @@ export function AircraftPartsInfoForm({ onNext, onBack, initialData }: {
                             </div>
                             <div className="bg-destructive/10 p-3 rounded-md mb-4 border border-destructive/20">
                                 <p className="text-[12px] text-destructive-foreground font-medium">
-                                    Al remover esta pieza, todas sus sub-partes instaladas 
+                                    Al remover esta pieza, todas sus sub-partes instaladas
                                     quedarán inactivas automáticamente.
                                 </p>
                             </div>
                             <FormLabel>Fecha de remoción</FormLabel>
-                            <Input 
-                                type="date" 
-                                value={tempDate} 
+                            <Input
+                                type="date"
+                                value={tempDate}
                                 onChange={(e) => setTempDate(e.target.value)}
                                 className="mb-6 mt-2"
                             />
@@ -270,13 +283,13 @@ export function AircraftPartsInfoForm({ onNext, onBack, initialData }: {
                                         level={0}
                                         onRemove={removeItem}
                                         onReactivate={reactivatePartTree}
-                                        onToggleExpand={toggleExpand} 
-                                        isExpanded={expandedParts[`parts.${index}`] || false} 
+                                        onToggleExpand={toggleExpand}
+                                        isExpanded={expandedParts[`parts.${index}`] || false}
                                         onAddSubpart={addSubpart}
                                         expandedParts={expandedParts}
                                     />
                                 ))}
-                                
+
                                 {/* BOTÓN DE AGREGAR PARTE PRINCIPAL */}
                                 <Button
                                     type="button"
@@ -301,17 +314,17 @@ export function AircraftPartsInfoForm({ onNext, onBack, initialData }: {
     );
 }
 
-function PartSection({ 
-    form, 
-    index, 
-    path, 
-    level, 
-    onRemove, 
-    onReactivate, 
-    onToggleExpand, 
-    isExpanded, 
-    onAddSubpart, 
-    expandedParts 
+function PartSection({
+    form,
+    index,
+    path,
+    level,
+    onRemove,
+    onReactivate,
+    onToggleExpand,
+    isExpanded,
+    onAddSubpart,
+    expandedParts
 }: {
     form: any;
     index: number;
@@ -329,6 +342,8 @@ function PartSection({
     const sub_parts = usePartValue<any[]>(form.control, `${path}.sub_parts`, []);
     const partName = usePartValue<string>(form.control, `${path}.part_name`, "");
     const partNumber = usePartValue<string>(form.control, `${path}.part_number`, "");
+    const [timeNa, setTimeNa] = useState(false)
+    const [cycleNa, setCycleNa] = useState(false)
 
     return (
         <Card className={`overflow-hidden ${level > 0 ? 'ml-6' : ''} ${isRemoved ? 'opacity-60 bg-muted/50' : ''}`}>
@@ -430,20 +445,15 @@ function PartSection({
                             />
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <FormField
                                 control={form.control}
-                                name={`${path}.time_since_new`}
+                                name={`${path}.ata_chapter`}
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>TSN</FormLabel>
+                                        <FormLabel>ATA Chapter</FormLabel>
                                         <FormControl>
-                                            <Input
-                                                placeholder="Ej: 1500"
-                                                {...field}
-                                                onChange={e => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
-                                                value={field.value ?? ""}
-                                            />
+                                            <Input placeholder="Ej: 32, 71, 72" {...field} />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -451,15 +461,27 @@ function PartSection({
                             />
                             <FormField
                                 control={form.control}
-                                name={`${path}.time_since_overhaul`}
+                                name={`${path}.position`}
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>TSO</FormLabel>
+                                        <FormLabel>Posición</FormLabel>
+                                        <FormControl>
+                                            <Input placeholder="Ej: LH, RH, CTR" {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name={`${path}.assigned_date`}
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Fecha de Asignación</FormLabel>
                                         <FormControl>
                                             <Input
-                                                placeholder="Ej: 1500"
+                                                type="date"
                                                 {...field}
-                                                onChange={e => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
                                                 value={field.value ?? ""}
                                             />
                                         </FormControl>
@@ -469,44 +491,134 @@ function PartSection({
                             />
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <FormField
-                                control={form.control}
-                                name={`${path}.cycles_since_new`}
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>CSN</FormLabel>
-                                        <FormControl>
-                                            <Input
-                                                placeholder="Ej: 1500"
-                                                {...field}
-                                                onChange={e => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
-                                                value={field.value ?? ""}
-                                            />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
+                        {/* Interruptor General - Tiempo */}
+                        <div className="flex items-center space-x-2 mb-4 bg-muted/50 p-2 rounded-md w-fit">
+                            <Checkbox
+                                id={`toggleTime-${path}`}
+                                checked={timeNa}
+                                onCheckedChange={(checked) => {
+                                    const isChecked = !!checked;
+                                    setTimeNa(isChecked);
+                                    if (isChecked) {
+                                        form.setValue(`${path}.time_since_new`, null);
+                                        form.setValue(`${path}.time_since_overhaul`, null);
+                                    }
+                                }}
                             />
-                            <FormField
-                                control={form.control}
-                                name={`${path}.cycles_since_overhaul`}
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>CSO</FormLabel>
-                                        <FormControl>
-                                            <Input
-                                                placeholder="Ej: 300"
-                                                {...field}
-                                                onChange={e => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
-                                                value={field.value ?? ""}
-                                            />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
+                            <Label htmlFor={`toggleTime-${path}`} className="text-sm font-medium cursor-pointer">
+                                (TSN/TSO) no aplica para este componente
+                            </Label>
                         </div>
+
+                        {!timeNa && (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-in fade-in duration-300">
+                                <FormField
+                                    control={form.control}
+                                    name={`${path}.time_since_new`}
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>TSN</FormLabel>
+                                            <FormControl>
+                                                <Input
+                                                    {...field}
+                                                    type="number"
+                                                    placeholder="Ej: 1500"
+                                                    value={field.value ?? ""}
+                                                    onChange={e => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
+                                                />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                                <FormField
+                                    control={form.control}
+                                    name={`${path}.time_since_overhaul`}
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>TSO</FormLabel>
+                                            <FormControl>
+                                                <Input
+                                                    {...field}
+                                                    type="number"
+                                                    placeholder="Ej: 1500"
+                                                    value={field.value ?? ""}
+                                                    onChange={e => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
+                                                />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                            </div>
+                        )}
+
+                        {/* 1. Interruptor General */}
+                        <div className="flex items-center space-x-2 mb-4 bg-muted/50 p-2 rounded-md w-fit">
+                            <Checkbox
+                                id="toggleCycles"
+                                checked={cycleNa}
+                                onCheckedChange={(checked) => {
+                                    const isChecked = !!checked;
+                                    setCycleNa(isChecked);
+                                    // Si no aplican, reseteamos ambos valores en el formulario
+                                    if (isChecked) {
+                                        form.setValue(`${path}.cycles_since_new`, null);
+                                        form.setValue(`${path}.cycles_since_overhaul`, null);
+                                    }
+                                }}
+                            />
+                            <Label htmlFor="toggleCycles" className="text-sm font-medium cursor-pointer">
+                                (CSN/CSO) no aplican para este componente
+                            </Label>
+                        </div>
+
+                        {/* 2. Renderizado Condicional */}
+                        {!cycleNa && (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-in fade-in duration-300">
+                                {/* Campo CSN */}
+                                <FormField
+                                    control={form.control}
+                                    name={`${path}.cycles_since_new`}
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>CSN</FormLabel>
+                                            <FormControl>
+                                                <Input
+                                                    {...field}
+                                                    type="number"
+                                                    placeholder="Ej: 1500"
+                                                    value={field.value ?? ""}
+                                                    onChange={e => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
+                                                />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+
+                                {/* Campo CSO */}
+                                <FormField
+                                    control={form.control}
+                                    name={`${path}.cycles_since_overhaul`}
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>CSO</FormLabel>
+                                            <FormControl>
+                                                <Input
+                                                    {...field}
+                                                    type="number"
+                                                    placeholder="Ej: 300"
+                                                    value={field.value ?? ""}
+                                                    onChange={e => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
+                                                />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                            </div>
+                        )}
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <FormField

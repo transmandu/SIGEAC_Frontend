@@ -240,7 +240,7 @@ export function PlanificationAircraftTab({ aircraft }: { aircraft: MaintenanceAi
                     ) : (
                         <Download className="h-4 w-4 mr-2" />
                     )}
-                    Exportar Trazabilidad
+                    Generar Excel
                 </Button>
             </div>
           </div>
