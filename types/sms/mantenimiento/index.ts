@@ -15,7 +15,7 @@ export type VoluntaryReport = {
     description: string;
     possible_consequences: string;
     status: string;
-    hazardNotification?: HazardNotification;
+    hazard_notification?: HazardNotification;
     image?: string;
 }
 
@@ -37,7 +37,7 @@ export type ObligatoryReport = {
     other_incidents: string;
     description: string;
     status: string;
-    hazardNotification?: HazardNotification;
+    hazard_notification?: HazardNotification;
     image?: string;
     document?: string;
     imageUrl?: string;
@@ -55,9 +55,9 @@ export type HazardNotification = {
     description: string;
     analysis_of_root_causes: string;
     report_type: string;
-    voluntaryReport?: VoluntaryReport;
-    obligatoryReport?: ObligatoryReport;
-    mitigationPlan?: MitigationPlan;
+    voluntary_report?: VoluntaryReport;
+    obligatory_report?: ObligatoryReport;
+    mitigation_plan?: MitigationPlan;
     analysis?: Analysis;
 
 }
@@ -80,7 +80,7 @@ export interface MitigationMeasure {
     implementation_responsible: string;
     estimated_date: string;
     execution_date?: string;
-    follow_up_controls: FollowUpControl[];
+    follow_up_control: FollowUpControl[];
 
 }
 
@@ -102,5 +102,4 @@ export interface Analysis {
     hazard_notification?: number;
     mitigation_plan_id?: number;
 }
-
 

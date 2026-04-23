@@ -30,7 +30,7 @@ const EvaluationMitigationPage = () => {
         sortedNotifications.find((notification) => notification.id === selectedNotificationId) ||
         null;
 
-    const currentMitigationPlan = selectedNotification?.mitigationPlan || null;
+    const currentMitigationPlan = selectedNotification?.mitigation_plan || null;
     const currentAnalysis = currentMitigationPlan?.analysis || selectedNotification?.analysis || null;
     const currentMeasures = currentMitigationPlan?.mitigation_measure || [];
 

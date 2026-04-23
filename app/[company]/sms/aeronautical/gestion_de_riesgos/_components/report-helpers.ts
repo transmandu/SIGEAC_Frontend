@@ -74,8 +74,13 @@ export const getObligatoryMeta = (report: ReportWithHazard<ObligatoryReport>) =>
         .filter(Boolean)
         .join(' - ');
 
-export const getReportCode = (
-    report: ReportWithHazard<VoluntaryReport> | ReportWithHazard<ObligatoryReport>,
+type ReportCodeSource = {
+    id: number;
+    report_number?: string | null;
+};
+
+export const getReportCode = <T extends ReportCodeSource>(
+    report: ReportWithHazard<T>,
     type: ReportType
 ) => {
     const prefix = type === 'RVP' ? 'RVP' : 'ROS';

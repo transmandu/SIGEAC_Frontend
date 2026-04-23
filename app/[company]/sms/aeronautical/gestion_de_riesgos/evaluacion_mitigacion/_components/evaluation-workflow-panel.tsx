@@ -120,7 +120,7 @@ function MitigationMeasureCard({ measure }: { measure: MitigationMeasure }) {
 
                 <div className="space-y-3">
                     <p className="text-sm font-medium">Controles registrados</p>
-                    <FollowUpControlList controls={measure.follow_up_controls || []} />
+                    <FollowUpControlList controls={measure.follow_up_control || []} />
                 </div>
             </CardContent>
         </Card>
@@ -187,7 +187,7 @@ export function EvaluationWorkflowPanel({
                             step={3}
                             title="Controles de seguimiento"
                             completed={currentMeasures.some(
-                                (measure) => (measure.follow_up_controls || []).length > 0
+                                (measure) => (measure.follow_up_control || []).length > 0
                             )}
                         />
                     </div>

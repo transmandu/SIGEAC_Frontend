@@ -6,14 +6,14 @@ export type WorkflowStatus = {
 };
 
 export const getNotificationSource = (notification: HazardNotification) => {
-    if (notification.voluntaryReport) {
-        const code = notification.voluntaryReport.report_number || notification.voluntaryReport.id;
+    if (notification.voluntary_report) {
+        const code = notification.voluntary_report.report_number || notification.voluntary_report.id;
         return `RVP-${code}`;
     }
 
-    if (notification.obligatoryReport) {
+    if (notification.obligatory_report) {
         const code =
-            notification.obligatoryReport.report_number || notification.obligatoryReport.id;
+            notification.obligatory_report.report_number || notification.obligatory_report.id;
         return `ROS-${code}`;
     }
 
@@ -26,10 +26,10 @@ export const sortByNewestDate = (notifications: HazardNotification[]) =>
     );
 
 export const getWorkflowStatus = (notification: HazardNotification): WorkflowStatus => {
-    const mitigationPlan = notification.mitigationPlan;
+    const mitigationPlan = notification.mitigation_plan;
     const analysis = mitigationPlan?.analysis || notification.analysis;
     const measures = mitigationPlan?.mitigation_measure || [];
-    const controls = measures.flatMap((measure) => measure.follow_up_controls || []);
+    const controls = measures.flatMap((measure) => measure.follow_up_control || []);
 
     if (!mitigationPlan || !analysis) {
         return {
