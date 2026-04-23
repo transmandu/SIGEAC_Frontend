@@ -1256,8 +1256,10 @@ export type CargoShipment = {
   carrier: string;
   issuer: string;
   issuer_user?: User;
-  pilot: string;
-  copilot: string;
+  pilot_id: number;
+  copilot_id: number | null;
+  pilot?: Pilot;
+  copilot?: Pilot;
   client: Client;
   aircraft: Aircraft;
   external_aircraft: string | null;

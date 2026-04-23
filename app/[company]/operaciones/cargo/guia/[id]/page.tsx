@@ -216,13 +216,21 @@ export default function CargoDetailsPage() {
                   <p className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">
                     Piloto
                   </p>
-                  <p className="text-sm">{shipment.pilot}</p>
+                  <p className="text-sm">
+                    {shipment.pilot?.employee
+                      ? `${shipment.pilot.employee.first_name} ${shipment.pilot.employee.last_name}`
+                      : "No disponible"}
+                  </p>
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">
                     Copiloto
                   </p>
-                  <p className="text-sm">{shipment.copilot || "No aplica"}</p>
+                  <p className="text-sm">
+                    {shipment.copilot?.employee
+                      ? `${shipment.copilot.employee.first_name} ${shipment.copilot.employee.last_name}`
+                      : "No aplica"}
+                  </p>
                 </div>
               </div>
             </CardContent>

@@ -387,7 +387,7 @@ const CargoPage = () => {
                   <div className="text-center py-20 text-muted-foreground">
                     <Plane className="h-12 w-12 mx-auto mb-4 opacity-30" />
                     <p className="font-medium">
-                      No hay aeronaves externas este mes.
+                      No hay aeronaves externas registradas este mes.
                     </p>
                   </div>
                 ) : (

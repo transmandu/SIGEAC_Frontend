@@ -65,8 +65,8 @@ const formSchema = z
     registration_date: z.date({ required_error: "La fecha es requerida" }),
     carrier: z.string().min(1, "El transportista es requerido"),
     issuer: z.number().min(1, "El emisor es requerido"),
-    pilot: z.string().min(1, "Debe elegir un piloto"),
-    copilot: z.string().min(1, "Debe elegir un copiloto"),
+    pilot_id: z.number().min(1, "Debe elegir un piloto"),
+    copilot_id: z.number().optional().nullable(),
     external_aircraft: z.string().optional().nullable(),
     client_id: z.coerce.number().min(1, "Debe elegir un cliente"),
     aircraft_id: z.coerce.number().optional().nullable(),
@@ -130,8 +130,8 @@ export default function CreateCargoShipmentForm({
 
           carrier: initialData.carrier,
           issuer: initialData.issuer,
-          pilot: initialData.pilot,
-          copilot: initialData.copilot || "",
+          pilot_id: initialData.pilot_id ? Number(initialData.pilot_id) : 0,
+          copilot_id: initialData.copilot_id ? Number(initialData.copilot_id) : null,
           client_id: initialData.client_id || initialData.client?.id || null,
           aircraft_id:
             initialData.aircraft_id || initialData.aircraft?.id || null,
@@ -146,8 +146,8 @@ export default function CreateCargoShipmentForm({
           registration_date: new Date(),
           carrier: "",
           issuer: 0,
-          pilot: "",
-          copilot: "",
+          pilot_id: 0,
+          copilot_id: null,
           client_id: 0,
           aircraft_id: null,
           external_aircraft: null,
@@ -691,7 +691,7 @@ export default function CreateCargoShipmentForm({
           {/* Piloto */}
           <FormField
             control={form.control}
-            name="pilot"
+            name="pilot_id"
             render={({ field }) => (
               <FormItem className="flex flex-col">
                 <FormLabel className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
@@ -709,7 +709,13 @@ export default function CreateCargoShipmentForm({
                           !field.value && "text-muted-foreground",
                         )}
                       >
-                        {field.value || "Seleccionar piloto..."}
+                        {field.value
+                          ? loadingPilots
+                            ? "Cargando..."
+                            : pilots?.find((p) => p.id === field.value)
+                              ? `${pilots.find((p) => p.id === field.value)?.employee?.first_name} ${pilots.find((p) => p.id === field.value)?.employee?.last_name}`
+                              : "Piloto no encontrado"
+                          : "Seleccionar piloto..."}
                         <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                       </Button>
                     </FormControl>
@@ -727,13 +733,13 @@ export default function CreateCargoShipmentForm({
                                 value={fullName}
                                 key={pilot.id}
                                 onSelect={() =>
-                                  form.setValue("pilot", fullName)
+                                  form.setValue("pilot_id", pilot.id)
                                 }
                               >
                                 <Check
                                   className={cn(
                                     "mr-2 h-4 w-4",
-                                    fullName === field.value
+                                    pilot.id === field.value
                                       ? "opacity-100"
                                       : "opacity-0",
                                   )}
@@ -753,7 +759,7 @@ export default function CreateCargoShipmentForm({
           {/* Copiloto */}
           <FormField
             control={form.control}
-            name="copilot"
+            name="copilot_id"
             render={({ field }) => (
               <FormItem className="flex flex-col">
                 <FormLabel className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
@@ -771,7 +777,13 @@ export default function CreateCargoShipmentForm({
                           !field.value && "text-muted-foreground",
                         )}
                       >
-                        {field.value || "Seleccionar copiloto..."}
+                        {field.value
+                          ? loadingPilots
+                            ? "Cargando..."
+                            : pilots?.find((p) => p.id === field.value)
+                              ? `${pilots.find((p) => p.id === field.value)?.employee?.first_name} ${pilots.find((p) => p.id === field.value)?.employee?.last_name}`
+                              : "Copiloto no encontrado"
+                          : "Seleccionar copiloto..."}
                         <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                       </Button>
                     </FormControl>
@@ -789,13 +801,13 @@ export default function CreateCargoShipmentForm({
                                 value={fullName}
                                 key={pilot.id}
                                 onSelect={() =>
-                                  form.setValue("copilot", fullName)
+                                  form.setValue("copilot_id", pilot.id)
                                 }
                               >
                                 <Check
                                   className={cn(
                                     "mr-2 h-4 w-4",
-                                    fullName === field.value
+                                    pilot.id === field.value
                                       ? "opacity-100"
                                       : "opacity-0",
                                   )}
