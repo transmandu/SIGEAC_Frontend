@@ -150,8 +150,6 @@ export default function CreateHazardNotification({
             // Preparamos el objeto 'data' tal cual lo pide tu interfaz de Action
             const dataPayload = {
                 ...values,
-                voluntary_report_id: reportType === "RVP" ? id.toString() : undefined,
-                obligatory_report_id: reportType === "ROS" ? id.toString() : undefined,
             };
 
             if (isEditing && initialData) {
@@ -159,6 +157,7 @@ export default function CreateHazardNotification({
                 await updateHazardNotification.mutateAsync({
                     company: selectedCompany!.slug,
                     data: dataPayload,
+                    id: initialData?.id.toString(),
                 });
                 onClose?.();
             } else {

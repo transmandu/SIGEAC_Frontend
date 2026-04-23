@@ -199,7 +199,6 @@ const getObligatoryReportDetails = (report: ReportWithHazard<ObligatoryReport>):
 ];
 
 const getHazardNotificationDetails = (notification: HazardNotification): DetailItem[] => [
-    { label: 'ID', value: notification.id },
     { label: 'Numero', value: notification.report_number },
     { label: 'Fecha de recepcion', value: formatDate(notification.reception_date) },
     { label: 'Area de identificacion', value: notification.identification_area },
@@ -209,18 +208,6 @@ const getHazardNotificationDetails = (notification: HazardNotification): DetailI
     {
         label: 'Descripcion',
         value: notification.description,
-        fullWidth: true,
-        contentClassName: 'whitespace-pre-wrap',
-    },
-    {
-        label: 'Posibles consecuencias',
-        value: notification.possible_consequences,
-        fullWidth: true,
-        contentClassName: 'whitespace-pre-wrap',
-    },
-    {
-        label: 'Consecuencia a evaluar',
-        value: notification.consequence_to_evaluate,
         fullWidth: true,
         contentClassName: 'whitespace-pre-wrap',
     },

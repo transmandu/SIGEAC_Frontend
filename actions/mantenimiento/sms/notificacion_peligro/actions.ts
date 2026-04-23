@@ -21,6 +21,7 @@ interface HazardNotificationData {
 
 interface UpdateHazardNotificationData {
     company?: string;
+    id: string;
     data: {
         report_number: string;
         reception_date?: Date;
@@ -31,8 +32,6 @@ interface UpdateHazardNotificationData {
         information_source_id: string | number;
         report_type: string;
         analysis_of_root_causes: string;
-        voluntary_report_id?: string;
-        obligatory_report_id?: string;
     };
 
 
@@ -78,11 +77,11 @@ interface UpdateHazardNotificationData {
 export const UpdateHazardNotification = () => {
     const queryClient = useQueryClient();
 
-    const updateDangerIdentificationtMutation = useMutation({
+    const updateHazardNotificationMutation = useMutation({
         mutationKey: ["hazard-notifications"],
-        mutationFn: async ({ company, data }: UpdateHazardNotificationData) => {
+        mutationFn: async ({ company, data, id }: UpdateHazardNotificationData) => {
             await axiosInstance.patch(
-                `/${company}/sms/aeronautical/hazard-notifications`,
+                `/${company}/sms/aeronautical/hazard-notifications/${id}`,
                 data
             );
         },
@@ -101,7 +100,7 @@ export const UpdateHazardNotification = () => {
         },
     });
     return {
-        updateHazardNotification: updateDangerIdentificationtMutation,
+        updateHazardNotification: updateHazardNotificationMutation,
     };
 };
 export const useDeleteHazardNotification = () => {

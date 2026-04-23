@@ -29,12 +29,10 @@ export type ObligatoryReport = {
     incident_time: string;
     incident_location: Location;
     report_location: Location;
-
     name: string;
     last_name: string;
     phone?: string;
     email?: string;
-
     incidents: string;
     other_incidents: string;
     description: string;
@@ -55,8 +53,6 @@ export type HazardNotification = {
     danger_type: string;
     information_source?: InformationSource;
     description: string;
-    possible_consequences: string;
-    consequence_to_evaluate: string;
     analysis_of_root_causes: string;
     report_type: string;
     voluntaryReport?: VoluntaryReport;
