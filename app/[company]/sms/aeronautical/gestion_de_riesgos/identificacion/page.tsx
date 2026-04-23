@@ -41,6 +41,7 @@ import {
     ObligatoryReport,
     VoluntaryReport,
 } from '@/types/sms/mantenimiento';
+import { getBadgeStatusClass } from '@/lib/sms/utils';
 
 type ReportType = 'RVP' | 'ROS';
 
@@ -145,7 +146,7 @@ const getVoluntaryReportDetails = (report: ReportWithHazard<VoluntaryReport>): D
     { label: 'Fecha del reporte', value: formatDate(report.report_date) },
     { label: 'Estado', value: report.status },
     { label: 'Area identificada', value: report.identification_area },
-    { label: 'Ubicacion', value: report.location?.name },
+    { label: 'Ubicacion', value: report.location?.cod_iata },
     {
         label: 'Reportante',
         value: formatContactName(report.reporter_name, report.reporter_last_name),
@@ -626,15 +627,11 @@ const Identification = () => {
                                             <span className="font-medium">Fecha del reporte:</span>{' '}
                                             {formatDate(currentReport.report_date)}
                                         </div>
+
                                         <div>
-                                            <span className="font-medium">Accion:</span>{' '}
-                                            {currentNotification
-                                                ? 'Editar Notificacion de peligro existente'
-                                                : 'Crear Notificacion de peligro nueva'}
-                                        </div>
-                                        <div>
-                                            <span className="font-medium">Estado:</span>{' '}
-                                            {currentReport.status}
+                                            <Badge className={getBadgeStatusClass(currentReport.status)}>
+                                                {currentReport.status}
+                                            </Badge>
                                         </div>
                                         <div>
                                             <span className="font-medium">Ubicacion:</span>{' '}

@@ -115,13 +115,13 @@ export default function CreateHazardNotification({
         },
     });
 
-    // useEffect(() => {
-    //     if (initialData) {
-    //         const splitStr = (str: string) => str ? str.split(",").map(s => s.trim()).filter(Boolean) : [];
-    //         setConsequences(splitStr(initialData.possible_consequences));
-    //         setAnalyses(splitStr(initialData.analysis_of_root_causes));
-    //     }
-    // }, [initialData]);
+    useEffect(() => {
+        if (initialData) {
+            const splitStr = (str: string) => str ? str.split(",").map(s => s.trim()).filter(Boolean) : [];
+            //setConsequences(splitStr(initialData.possible_consequences));
+            setAnalyses(splitStr(initialData.analysis_of_root_causes));
+        }
+    }, [initialData]);
 
     // const addConsequence = () => {
     //     if (newConsequence.trim()) {
