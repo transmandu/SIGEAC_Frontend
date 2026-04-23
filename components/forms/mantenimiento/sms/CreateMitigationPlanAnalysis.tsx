@@ -55,6 +55,11 @@ const FORM_SCHEMA = z.object({
 });
 
 type FormValues = z.infer<typeof FORM_SCHEMA>;
+type AnalysisPayload = {
+    probability: string;
+    severity: string;
+    result: string;
+};
 
 interface CreateMitigationPlanAnalysisProps {
     hazardNotification: HazardNotification;
@@ -88,25 +93,6 @@ const SEVERITY_OPTIONS = [
     { value: "E", label: "Insignificante (E)" },
 ];
 
-const getMitigationPlanId = (response: unknown) => {
-    if (!response || typeof response !== "object") {
-        return null;
-    }
-
-    const planResponse = response as {
-        id?: number | string;
-        mitigation_plan?: { id?: number | string };
-        mitigation_plan_id?: number | string;
-    };
-
-    return (
-        planResponse.id ??
-        planResponse.mitigation_plan?.id ??
-        planResponse.mitigation_plan_id ??
-        null
-    );
-};
-
 export default function CreateMitigationPlanAnalysis({
     hazardNotification,
     mitigationPlan,
@@ -123,14 +109,8 @@ export default function CreateMitigationPlanAnalysis({
         defaultValues: {
             area_responsible: mitigationPlan?.area_responsible || "",
             description: mitigationPlan?.description || "",
-            possible_consequences:
-                mitigationPlan?.possible_consequences ||
-                hazardNotification.possible_consequences ||
-                "",
-            consequence_to_evaluate:
-                mitigationPlan?.consequence_to_evaluate ||
-                hazardNotification.consequence_to_evaluate ||
-                "",
+            possible_consequences: mitigationPlan?.possible_consequences || "",
+            consequence_to_evaluate: mitigationPlan?.consequence_to_evaluate || "",
             probability: analysis?.probability || "",
             severity: analysis?.severity || "",
         },
@@ -140,14 +120,8 @@ export default function CreateMitigationPlanAnalysis({
         form.reset({
             area_responsible: mitigationPlan?.area_responsible || "",
             description: mitigationPlan?.description || "",
-            possible_consequences:
-                mitigationPlan?.possible_consequences ||
-                hazardNotification.possible_consequences ||
-                "",
-            consequence_to_evaluate:
-                mitigationPlan?.consequence_to_evaluate ||
-                hazardNotification.consequence_to_evaluate ||
-                "",
+            possible_consequences: mitigationPlan?.possible_consequences || "",
+            consequence_to_evaluate: mitigationPlan?.consequence_to_evaluate || "",
             probability: analysis?.probability || "",
             severity: analysis?.severity || "",
         });
@@ -164,7 +138,11 @@ export default function CreateMitigationPlanAnalysis({
     const onSubmit = async (values: FormValues) => {
         const company = selectedCompany?.slug || null;
 
-        let mitigationPlanId = mitigationPlan?.id.toString() ?? null;
+        const analysisPayload: AnalysisPayload = {
+            probability: values.probability,
+            severity: values.severity,
+            result: `${values.probability}${values.severity}`,
+        };
 
         if (mitigationPlan) {
             await updateMitigationPlan.mutateAsync({
@@ -178,7 +156,7 @@ export default function CreateMitigationPlanAnalysis({
                 },
             });
         } else {
-            const response = await createMitigationPlan.mutateAsync({
+            await createMitigationPlan.mutateAsync({
                 company,
                 data: {
                     hazard_notification_id: hazardNotification.id.toString(),
@@ -186,21 +164,11 @@ export default function CreateMitigationPlanAnalysis({
                     description: values.description,
                     possible_consequences: values.possible_consequences,
                     consequence_to_evaluate: values.consequence_to_evaluate,
+                    analysis: analysisPayload,
                 },
             });
-
-            mitigationPlanId = getMitigationPlanId(response)?.toString() || null;
+            return;
         }
-
-        if (!mitigationPlanId) {
-            throw new Error("No se pudo determinar el ID del plan de mitigación");
-        }
-
-        const analysisPayload = {
-            probability: values.probability,
-            severity: values.severity,
-            result: `${values.probability}${values.severity}`,
-        };
 
         if (analysis) {
             await updateMitigationAnalysis.mutateAsync({
@@ -215,7 +183,7 @@ export default function CreateMitigationPlanAnalysis({
             company,
             data: {
                 ...analysisPayload,
-                mitigation_plan_id: mitigationPlanId.toString(),
+                mitigation_plan_id: mitigationPlan.id.toString(),
             },
         });
     };

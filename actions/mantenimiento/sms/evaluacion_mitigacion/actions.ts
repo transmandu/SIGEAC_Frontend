@@ -12,6 +12,11 @@ interface CreateMitigationPlanData {
         possible_consequences: string;
         consequence_to_evaluate: string;
         description: string;
+        analysis: {
+            probability: string;
+            severity: string;
+            result: string;
+        };
     };
 }
 
@@ -95,6 +100,7 @@ export const useCreateMitigationPlan = () => {
         },
         onSuccess: (_, variables) => {
             invalidateWorkflowQueries(queryClient, variables.company);
+            queryClient.invalidateQueries({ queryKey: ["analysis"] });
             toast.success("Plan creado", {
                 description: "El plan de mitigación fue registrado correctamente.",
             });
