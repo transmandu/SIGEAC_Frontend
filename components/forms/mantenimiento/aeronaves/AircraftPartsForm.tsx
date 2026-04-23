@@ -74,9 +74,14 @@ type InitialPartsLike = PartsFormType & {
     aircraft_assignments?: AircraftAssignmentLike[];
 };
 
-const toNumber = (value: number | string | null | undefined) => {
-    const parsed = Number(value ?? 0);
-    return Number.isFinite(parsed) ? parsed : 0;
+const toNullableRoundedNumber = (value: number | string | null | undefined, decimals = 0) => {
+    if (value === null || value === undefined || value === "") return null;
+
+    const parsed = Number(value);
+    if (!Number.isFinite(parsed)) return null;
+
+    const factor = 10 ** decimals;
+    return Math.round(parsed * factor) / factor;
 };
 
 const normalizePart = (part: any): z.infer<typeof PartSchema> => {
@@ -90,10 +95,10 @@ const normalizePart = (part: any): z.infer<typeof PartSchema> => {
         part_number: part.part_number || "",
         ata_chapter: part.ata_chapter || "",
         position: part.position || "",
-        time_since_new: part.time_since_new ? toNumber(part.time_since_new) : null,
-        time_since_overhaul: part.time_since_overhaul ? toNumber(part.time_since_overhaul) : null,
-        cycles_since_new: part.cycles_since_new ? toNumber(part.cycles_since_new) : null,
-        cycles_since_overhaul: part.cycles_since_overhaul ? toNumber(part.cycles_since_overhaul) : null,
+        time_since_new: toNullableRoundedNumber(part.time_since_new, 2),
+        time_since_overhaul: toNullableRoundedNumber(part.time_since_overhaul, 2),
+        cycles_since_new: toNullableRoundedNumber(part.cycles_since_new),
+        cycles_since_overhaul: toNullableRoundedNumber(part.cycles_since_overhaul),
         condition_type: part.condition_type === "OVERHAULED" ? "OVERHAULED" : "NEW",
         is_father: typeof part.is_father === "boolean" ? part.is_father : normalizedSubParts.length > 0,
         assigned_date: part.assigned_date || null,
