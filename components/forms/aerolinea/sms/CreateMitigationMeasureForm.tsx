@@ -71,6 +71,13 @@ interface FormProps {
   initialData?: MitigationMeasure;
 }
 
+const parseDateLocal = (dateValue: string | Date) => {
+  if (!dateValue) return new Date();
+  const date = new Date(dateValue);
+  // getTimezoneOffset() devuelve la diferencia en minutos, la convertimos a milisegundos y se la sumamos
+  return new Date(date.getTime() + date.getTimezoneOffset() * 60000);
+};
+
 export default function CreateMitigationMeasureForm({
   onClose,
   id,
@@ -84,10 +91,10 @@ export default function CreateMitigationMeasureForm({
       implementation_responsible: initialData?.implementation_responsible || "",
       implementation_supervisor: initialData?.implementation_supervisor || "",
       estimated_date: initialData?.estimated_date
-        ? new Date(initialData.estimated_date)
+        ? parseDateLocal(initialData.estimated_date)
         : new Date(),
       execution_date: initialData?.execution_date
-        ? new Date(initialData.execution_date)
+        ? parseDateLocal(initialData.execution_date)
         : null, // Inicializar como null en lugar de new Date()
     },
   });
