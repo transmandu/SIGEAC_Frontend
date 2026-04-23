@@ -12,7 +12,7 @@ import {
 import { useState } from "react";
 import { AircraftInfoForm } from "@/components/forms/mantenimiento/aeronaves/AircraftInfoForm";
 import { AircraftPartsInfoForm, PART_CATEGORIES } from "@/components/forms/mantenimiento/aeronaves/AircraftPartsForm";
-import { useCreateMaintenanceAircraft, AircraftPartAPI } from "@/actions/mantenimiento/planificacion/aeronaves/actions";
+import { useCreateMaintenanceAircraft, AircraftPartAPI, normalizeAircraftMetric } from "@/actions/mantenimiento/planificacion/aeronaves/actions";
 import { useCreateClient } from "@/actions/general/clientes/actions";
 import { useCompanyStore } from "@/stores/CompanyStore";
 
@@ -22,10 +22,10 @@ interface AircraftPart {
   part_number: string;
   serial: string;
   manufacturer_id: string;
-  time_since_new?: number;
-  time_since_overhaul?: number;
-  cycles_since_new?: number;
-  cycles_since_overhaul?: number;
+  time_since_new?: number | null;
+  time_since_overhaul?: number | null;
+  cycles_since_new?: number | null;
+  cycles_since_overhaul?: number | null;
   condition_type: "NEW" | "OVERHAULED";
   is_father: boolean;
   sub_parts?: AircraftPart[];
@@ -74,10 +74,10 @@ export function CreateMaintenanceAircraftDialog() {
       part_number: rest.part_number,
       serial: rest.serial,
       manufacturer_id: rest.manufacturer_id,
-      time_since_new: rest.time_since_new ?? 0,
-      time_since_overhaul: rest.time_since_overhaul ?? 0,
-      cycles_since_new: rest.cycles_since_new ?? 0,
-      cycles_since_overhaul: rest.cycles_since_overhaul ?? 0,
+      time_since_new: normalizeAircraftMetric(rest.time_since_new, 2),
+      time_since_overhaul: normalizeAircraftMetric(rest.time_since_overhaul, 2),
+      cycles_since_new: normalizeAircraftMetric(rest.cycles_since_new),
+      cycles_since_overhaul: normalizeAircraftMetric(rest.cycles_since_overhaul),
       condition_type: rest.condition_type,
       is_father: rest.is_father,
       part_type,

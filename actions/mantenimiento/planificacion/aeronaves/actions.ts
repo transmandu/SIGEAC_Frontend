@@ -4,17 +4,32 @@ import { toast } from "sonner";
 
 // Interfaz para las partes de la aeronave en el API (part_type en minúsculas)
 export interface AircraftPartAPI {
+    id?: number | string;
     part_name: string;
     part_number: string;
     serial: string;
     manufacturer_id: string;
-    time_since_new: number;
-    time_since_overhaul: number;
-    cycles_since_new: number;
-    cycles_since_overhaul: number;
+    time_since_new: number | null;
+    time_since_overhaul: number | null;
+    cycles_since_new: number | null;
+    cycles_since_overhaul: number | null;
     condition_type: "NEW" | "OVERHAULED";
+    is_father?: boolean;
+    part_type?: string;
     sub_parts?: AircraftPartAPI[];
 }
+
+export const normalizeAircraftMetric = (
+    value: number | string | null | undefined,
+    decimals = 0
+): number | null => {
+    if (value === null) return null;
+
+    const parsed = Number(value ?? 0);
+    const factor = 10 ** decimals;
+
+    return Math.round(parsed * factor) / factor;
+};
 
 export interface CreateAircraftWithPartsData {
     aircraft: {

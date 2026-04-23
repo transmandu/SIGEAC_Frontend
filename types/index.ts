@@ -299,10 +299,10 @@ export type MaintenanceAircraftPart = {
   part_name: string;
   serial?: string;
   condition_type: string;
-  time_since_new?: number | string;
-  time_since_overhaul?: number | string;
-  cycles_since_new?: number | string;
-  cycles_since_overhaul?: number | string;
+  time_since_new?: number | string | null;
+  time_since_overhaul?: number | string | null;
+  cycles_since_new?: number | string | null;
+  cycles_since_overhaul?: number | string | null;
   part_hours?: number; // Alias para time_since_new (compatibilidad)
   part_cycles?: number; // Alias para cycles_since_new (compatibilidad)
   is_father?: boolean;

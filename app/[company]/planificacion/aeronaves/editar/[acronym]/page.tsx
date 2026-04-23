@@ -13,7 +13,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { AircraftInfoForm } from "@/components/forms/mantenimiento/aeronaves/AircraftInfoForm";
 import { AircraftPartsInfoForm } from "@/components/forms/mantenimiento/aeronaves/AircraftPartsForm";
-import { useUpdateMaintenanceAircraft, AircraftPartAPI } from "@/actions/mantenimiento/planificacion/aeronaves/actions";
+import { useUpdateMaintenanceAircraft, AircraftPartAPI, normalizeAircraftMetric } from "@/actions/mantenimiento/planificacion/aeronaves/actions";
 import LoadingPage from "@/components/misc/LoadingPage";
 import { useGetClients } from "@/hooks/general/clientes/useGetClients";
 import { useGetManufacturers } from "@/hooks/general/condiciones/useGetConditions";
@@ -25,10 +25,10 @@ interface AircraftPart {
     part_number: string;
     serial: string;
     manufacturer_id: string;
-    time_since_new?: number;  // Time Since New
-    time_since_overhaul?: number;  // Time Since Overhaul
-    cycles_since_new?: number;  // Cycles Since New
-    cycles_since_overhaul?: number;  // Cycles Since Overhaul
+    time_since_new?: number | null;  // Time Since New
+    time_since_overhaul?: number | null;  // Time Since Overhaul
+    cycles_since_new?: number | null;  // Cycles Since New
+    cycles_since_overhaul?: number | null;  // Cycles Since Overhaul
     condition_type: "NEW" | "OVERHAULED";
     is_father: boolean;
     sub_parts?: AircraftPart[];
@@ -68,6 +68,11 @@ const parseISODate = (dateString: string | Date | null | undefined): Date => {
         return new Date();
     }
 };
+
+const resolveMetricValue = (
+    primary: number | string | null | undefined,
+    fallback?: number | string | null
+) => primary === null ? null : primary ?? fallback;
 
 function PartsSummaryTree({ parts, level = 0 }: { parts: AircraftPart[], level?: number }) {
     return (
@@ -151,10 +156,10 @@ export default function EditAircraftPage({ params }: { params: { acronym: string
                 part_number: part.part_number,
                 serial: part.serial || "",
                 manufacturer_id: part.manufacturer_id?.toString() || "",
-                time_since_new: Math.round(Number(part.time_since_new || part.part_hours || 0) * 100) / 100,
-                time_since_overhaul: Math.round(Number(part.time_since_overhaul || 0) * 100) / 100,
-                cycles_since_new: Math.round(Number(part.cycles_since_new || part.part_cycles || 0)),
-                cycles_since_overhaul: Math.round(Number(part.cycles_since_overhaul || 0)),
+                time_since_new: normalizeAircraftMetric(resolveMetricValue(part.time_since_new, part.part_hours), 2),
+                time_since_overhaul: normalizeAircraftMetric(part.time_since_overhaul, 2),
+                cycles_since_new: normalizeAircraftMetric(resolveMetricValue(part.cycles_since_new, part.part_cycles)),
+                cycles_since_overhaul: normalizeAircraftMetric(part.cycles_since_overhaul),
                 condition_type: part.condition_type === "OVERHAULED" ? "OVERHAULED" : "NEW",
                 is_father: typeof part.is_father === "boolean" ? part.is_father : Boolean(part.sub_parts?.length),
                 removed_date: part.removed_date || null,
@@ -223,10 +228,10 @@ export default function EditAircraftPage({ params }: { params: { acronym: string
             ...(originalPart?.id && { id: originalPart.id }), // Preservar ID para actualizaciones
             ...rest,
             part_type: originalPart?.part_type || "engine",
-            time_since_new: Math.round((rest.time_since_new ?? 0) * 100) / 100,
-            time_since_overhaul: Math.round((rest.time_since_overhaul ?? 0) * 100) / 100,
-            cycles_since_new: Math.round(rest.cycles_since_new ?? 0),
-            cycles_since_overhaul: Math.round(rest.cycles_since_overhaul ?? 0),
+            time_since_new: normalizeAircraftMetric(rest.time_since_new, 2),
+            time_since_overhaul: normalizeAircraftMetric(rest.time_since_overhaul, 2),
+            cycles_since_new: normalizeAircraftMetric(rest.cycles_since_new),
+            cycles_since_overhaul: normalizeAircraftMetric(rest.cycles_since_overhaul),
             sub_parts: part.sub_parts?.map((subPart, index) => {
                 const originalSubPart = originalPart?.sub_parts?.[index];
                 return transformPart(subPart, originalSubPart);

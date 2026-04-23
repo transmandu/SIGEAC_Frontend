@@ -1,6 +1,6 @@
 "use client";
 
-import { useCreateMaintenanceAircraft, AircraftPartAPI } from "@/actions/mantenimiento/planificacion/aeronaves/actions";
+import { useCreateMaintenanceAircraft, AircraftPartAPI, normalizeAircraftMetric } from "@/actions/mantenimiento/planificacion/aeronaves/actions";
 import { useCreateClient } from "@/actions/general/clientes/actions";
 import { useGetClients } from "@/hooks/general/clientes/useGetClients";
 import { useGetManufacturers } from "@/hooks/general/condiciones/useGetConditions";
@@ -25,10 +25,10 @@ interface AircraftPart {
     part_number: string;
     serial: string;
     manufacturer_id: string;
-    time_since_new?: number;  // Time Since New
-    time_since_overhaul?: number;  // Time Since Overhaul
-    cycles_since_new?: number;  // Cycles Since New
-    cycles_since_overhaul?: number;  // Cycles Since Overhaul
+    time_since_new?: number | null;  // Time Since New
+    time_since_overhaul?: number | null;  // Time Since Overhaul
+    cycles_since_new?: number | null;  // Cycles Since New
+    cycles_since_overhaul?: number | null;  // Cycles Since Overhaul
     condition_type: "NEW" | "OVERHAULED";
     is_father: boolean;
     sub_parts?: AircraftPart[];
@@ -69,10 +69,10 @@ export default function NewAircraftPage() {
 
         return {
             ...rest,
-            time_since_new: Math.round((rest.time_since_new ?? 0) * 100) / 100,
-            time_since_overhaul: Math.round((rest.time_since_overhaul ?? 0) * 100) / 100,
-            cycles_since_new: Math.round(rest.cycles_since_new ?? 0),
-            cycles_since_overhaul: Math.round(rest.cycles_since_overhaul ?? 0),
+            time_since_new: normalizeAircraftMetric(rest.time_since_new, 2),
+            time_since_overhaul: normalizeAircraftMetric(rest.time_since_overhaul, 2),
+            cycles_since_new: normalizeAircraftMetric(rest.cycles_since_new),
+            cycles_since_overhaul: normalizeAircraftMetric(rest.cycles_since_overhaul),
             sub_parts: part.sub_parts?.map(transformPart)
         };
     };

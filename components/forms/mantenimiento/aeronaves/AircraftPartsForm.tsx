@@ -17,6 +17,12 @@ import { z } from "zod"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Label } from "@/components/ui/label"
 
+export const PART_CATEGORIES = {
+    ENGINE: "Motores",
+    APU: "APU",
+    PROPELLER: "Hélices"
+} as const;
+
 // 1. Esquema actualizado con removed_date
 const PartSchema: any = z.object({
     id: z.any().optional(),
@@ -347,8 +353,12 @@ function PartSection({
     const sub_parts = usePartValue<any[]>(form.control, `${path}.sub_parts`, []);
     const partName = usePartValue<string>(form.control, `${path}.part_name`, "");
     const partNumber = usePartValue<string>(form.control, `${path}.part_number`, "");
-    const [timeNa, setTimeNa] = useState(false)
-    const [cycleNa, setCycleNa] = useState(false)
+    const timeSinceNew = usePartValue<number | null | undefined>(form.control, `${path}.time_since_new`);
+    const timeSinceOverhaul = usePartValue<number | null | undefined>(form.control, `${path}.time_since_overhaul`);
+    const cyclesSinceNew = usePartValue<number | null | undefined>(form.control, `${path}.cycles_since_new`);
+    const cyclesSinceOverhaul = usePartValue<number | null | undefined>(form.control, `${path}.cycles_since_overhaul`);
+    const timeNa = timeSinceNew === null && timeSinceOverhaul === null;
+    const cycleNa = cyclesSinceNew === null && cyclesSinceOverhaul === null;
 
     return (
         <Card className={`overflow-hidden ${level > 0 ? 'ml-6' : ''} ${isRemoved ? 'opacity-60 bg-muted/50' : ''}`}>
@@ -503,11 +513,8 @@ function PartSection({
                                 checked={timeNa}
                                 onCheckedChange={(checked) => {
                                     const isChecked = !!checked;
-                                    setTimeNa(isChecked);
-                                    if (isChecked) {
-                                        form.setValue(`${path}.time_since_new`, null);
-                                        form.setValue(`${path}.time_since_overhaul`, null);
-                                    }
+                                    form.setValue(`${path}.time_since_new`, isChecked ? null : undefined);
+                                    form.setValue(`${path}.time_since_overhaul`, isChecked ? null : undefined);
                                 }}
                             />
                             <Label htmlFor={`toggleTime-${path}`} className="text-sm font-medium cursor-pointer">
@@ -561,19 +568,15 @@ function PartSection({
                         {/* 1. Interruptor General */}
                         <div className="flex items-center space-x-2 mb-4 bg-muted/50 p-2 rounded-md w-fit">
                             <Checkbox
-                                id="toggleCycles"
+                                id={`toggleCycles-${path}`}
                                 checked={cycleNa}
                                 onCheckedChange={(checked) => {
                                     const isChecked = !!checked;
-                                    setCycleNa(isChecked);
-                                    // Si no aplican, reseteamos ambos valores en el formulario
-                                    if (isChecked) {
-                                        form.setValue(`${path}.cycles_since_new`, null);
-                                        form.setValue(`${path}.cycles_since_overhaul`, null);
-                                    }
+                                    form.setValue(`${path}.cycles_since_new`, isChecked ? null : undefined);
+                                    form.setValue(`${path}.cycles_since_overhaul`, isChecked ? null : undefined);
                                 }}
                             />
-                            <Label htmlFor="toggleCycles" className="text-sm font-medium cursor-pointer">
+                            <Label htmlFor={`toggleCycles-${path}`} className="text-sm font-medium cursor-pointer">
                                 (CSN/CSO) no aplican para este componente
                             </Label>
                         </div>
