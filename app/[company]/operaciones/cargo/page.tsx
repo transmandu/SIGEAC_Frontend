@@ -54,6 +54,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { useAuth } from "@/contexts/AuthContext";
 
 const AircraftCard = ({
   aircraft,
@@ -70,7 +71,11 @@ const AircraftCard = ({
   const [showRenameDialog, setShowRenameDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [newName, setNewName] = useState(aircraft.acronym || "");
-
+  const { user } = useAuth();
+  const userRoles = user?.roles?.map((r) => r.name) || [];
+  const canWrite = userRoles.some((r) =>
+    ["OPERADOR_CARGA", "SUPERUSER"].includes(r),
+  );
   const { bulkRename, isRenaming, bulkDelete, isDeleting } =
     useManageExternalAircraft(company);
 
@@ -111,7 +116,7 @@ const AircraftCard = ({
     <>
       <Card className="flex flex-col justify-between hover:shadow-lg hover:border-primary/50 transition-all duration-200 group relative overflow-visible">
         {/* MENÚ DE ACCIONES (SOLO APLICA A AERONAVES EXTERNAS EN MES ACTUAL) */}
-        {aircraft.is_external && isCurrentMonth && (
+        {canWrite && aircraft.is_external && isCurrentMonth && (
           <div className="absolute top-2 right-2 z-10">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -284,6 +289,12 @@ const CargoPage = () => {
   const registeredAircrafts = statsData?.registered || [];
   const externalAircrafts = statsData?.external || [];
 
+  const { user } = useAuth();
+  const userRoles = user?.roles?.map((r) => r.name) || [];
+  const canWrite = userRoles.some((r) =>
+    ["OPERADOR_CARGA", "SUPERUSER"].includes(r),
+  );
+
   return (
     <ContentLayout title="Carga">
       <div className="flex flex-col gap-4">
@@ -325,18 +336,20 @@ const CargoPage = () => {
           </div>
 
           <div className="flex justify-end">
-            <Button asChild>
-              <Link
-                href={
-                  activeTab === "registered"
-                    ? `/${selectedCompany?.slug}/operaciones/cargo/nuevo`
-                    : `/${selectedCompany?.slug}/operaciones/cargo/externa/nuevo`
-                }
-              >
-                <Plus className="size-4 mr-2" />
-                Nuevo Registro de Carga
-              </Link>
-            </Button>
+            {canWrite && (
+              <Button asChild>
+                <Link
+                  href={
+                    activeTab === "registered"
+                      ? `/${selectedCompany?.slug}/operaciones/cargo/nuevo`
+                      : `/${selectedCompany?.slug}/operaciones/cargo/externa/nuevo`
+                  }
+                >
+                  <Plus className="size-4 mr-2" />
+                  Nuevo Registro de Carga
+                </Link>
+              </Button>
+            )}
           </div>
         </div>
 

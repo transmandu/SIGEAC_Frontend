@@ -7,6 +7,7 @@ import { useGetAircrafts } from "@/hooks/aerolinea/aeronaves/useGetAircrafts";
 import { getColumns } from "../columns";
 import { DataTable } from "../data-table";
 import { useState, useEffect } from "react";
+import { useAuth } from "@/contexts/AuthContext";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Plus, ArrowLeft, Plane } from "lucide-react";
@@ -50,7 +51,13 @@ const CargoByAircraftPage = () => {
     year,
   );
 
-  const columns = getColumns(isCurrentMonth, company);
+  const { user } = useAuth();
+  const userRoles = user?.roles?.map((r) => r.name) || [];
+  const canWrite = userRoles.some((r) =>
+    ["OPERADOR_CARGA", "SUPERUSER"].includes(r),
+  );
+
+  const columns = getColumns(isCurrentMonth, company, canWrite);
 
   return (
     <ContentLayout title="Registros de Carga">
@@ -125,7 +132,7 @@ const CargoByAircraftPage = () => {
             />
           </div>
 
-          {isCurrentMonth && (
+          {canWrite && isCurrentMonth && (
             <Button asChild>
               <Link href={`/${company}/operaciones/cargo/${aircraft_id}/nuevo`}>
                 <Plus className="size-4 mr-2" />

@@ -27,7 +27,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
-const ActionsCell = ({ row, isCurrentMonth, company }: any) => {
+const ActionsCell = ({ row, isCurrentMonth, company, canWrite }: any) => {
   const shipment = row.original;
   const [openDelete, setOpenDelete] = useState(false);
   const { deleteCargoShipment: deleteMutation } =
@@ -59,7 +59,7 @@ const ActionsCell = ({ row, isCurrentMonth, company }: any) => {
               </Link>
             </DropdownMenuItem>
 
-            {isCurrentMonth && (
+            {canWrite && isCurrentMonth && (
               <>
                 <DropdownMenuItem asChild className="cursor-pointer">
                   <Link
@@ -113,6 +113,7 @@ const ActionsCell = ({ row, isCurrentMonth, company }: any) => {
 export const getColumns = (
   isCurrentMonth: boolean,
   company: string,
+  canWrite: boolean = true,
 ): ColumnDef<CargoShipment>[] => [
   {
     accessorKey: "guide_number",
@@ -218,11 +219,12 @@ export const getColumns = (
   },
   {
     id: "actions",
-    cell: ({ row }) => (
+    cell: ({ row }: any) => (
       <ActionsCell
         row={row}
         isCurrentMonth={isCurrentMonth}
         company={company}
+        canWrite={canWrite}
       />
     ),
   },

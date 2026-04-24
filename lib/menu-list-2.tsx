@@ -702,7 +702,7 @@ export function getMenuList(
             "ANALISTA_ADMINISTRACION",
             "JEFE_ADMINISTRACION",
             "SUPERUSER",
-            "ANALISTA_CARGA",
+            "OPERADOR_CARGA",
           ],
           submenus: [],
         },
@@ -748,7 +748,13 @@ export function getMenuList(
           label: "Globales",
           active: pathname.includes("/ajustes/globales"),
           icon: Globe,
-          roles: [],
+          roles: [
+            "JEFE_ALMACEN",
+            "ANALISTA_ALMACEN",
+            "JEFE_PLANIFICACION",
+            "ANALISTA_PLANIFICACION",
+            "SUPERUSER",
+          ],
           submenus: [
             {
               href: "/ajustes/globales/unidades",
@@ -793,7 +799,13 @@ export function getMenuList(
               href: "/ajustes/globales/terceros",
               label: "Terceros",
               active: pathname === "/ajustes/terceros/clientes",
-              roles: [],
+              roles: [
+                "JEFE_ALMACEN",
+                "ANALISTA_ALMACEN",
+                "JEFE_PLANIFICACION",
+                "ANALISTA_PLANIFICACION",
+                "SUPERUSER",
+              ],
             },
             {
               href: "/ajustes/globales/condiciones",

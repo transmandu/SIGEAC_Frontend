@@ -6,6 +6,7 @@ import { useGetCargoShipmentsByExternalAircraft } from "@/hooks/operaciones/carg
 import { getColumns } from "../../columns";
 import { DataTable } from "../../data-table";
 import { useState } from "react";
+import { useAuth } from "@/contexts/AuthContext";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Plane, Plus } from "lucide-react";
@@ -44,7 +45,13 @@ const ExternalAircraftCargoPage = () => {
     year,
   );
 
-  const columns = getColumns(isCurrentMonth, company);
+  const { user } = useAuth();
+  const userRoles = user?.roles?.map((r) => r.name) || [];
+  const canWrite = userRoles.some((r) =>
+    ["OPERADOR_CARGA", "SUPERUSER"].includes(r),
+  );
+
+  const columns = getColumns(isCurrentMonth, company, canWrite);
 
   return (
     <ContentLayout title="Registros de Carga">
@@ -109,14 +116,16 @@ const ExternalAircraftCargoPage = () => {
             />
           </div>
 
-          <Button asChild>
-            <Link
-              href={`/${company}/operaciones/cargo/externa/${encodeURIComponent(name)}/nuevo`}
-            >
-              <Plus className="size-4 mr-2" />
-              Nuevo Registro
-            </Link>
-          </Button>
+          {canWrite && (
+            <Button asChild>
+              <Link
+                href={`/${company}/operaciones/cargo/externa/${encodeURIComponent(name)}/nuevo`}
+              >
+                <Plus className="size-4 mr-2" />
+                Nuevo Registro
+              </Link>
+            </Button>
+          )}
         </div>
 
         {isLoading ? (
