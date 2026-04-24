@@ -69,7 +69,7 @@ export interface MitigationPlan {
     possible_consequences: string;
     consequence_to_evaluate: string;
     description: string;
-    mitigation_measure: MitigationMeasure[];
+    measures: MitigationMeasure[];
     analysis?: Analysis;
 }
 

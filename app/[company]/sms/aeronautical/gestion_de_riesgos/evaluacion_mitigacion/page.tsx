@@ -32,7 +32,7 @@ const EvaluationMitigationPage = () => {
 
     const currentMitigationPlan = selectedNotification?.mitigation_plan || null;
     const currentAnalysis = currentMitigationPlan?.analysis || selectedNotification?.analysis || null;
-    const currentMeasures = currentMitigationPlan?.mitigation_measure || [];
+    const currentMeasures = currentMitigationPlan?.measures || [];
 
     return (
         <ContentLayout title="Evaluación y mitigación">
