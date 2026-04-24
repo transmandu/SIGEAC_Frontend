@@ -23,9 +23,13 @@ export const normalizeAircraftMetric = (
     value: number | string | null | undefined,
     decimals = 0
 ): number | null => {
-    if (value === null) return null;
+    if (value === null || value === undefined) return null;
 
-    const parsed = Number(value ?? 0);
+    if (typeof value === "string" && value.trim() === "") return null;
+
+    const parsed = Number(value);
+    if (!Number.isFinite(parsed)) return null;
+
     const factor = 10 ** decimals;
 
     return Math.round(parsed * factor) / factor;
