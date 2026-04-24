@@ -296,7 +296,7 @@ export type MaintenanceAircraft = {
 export type MaintenanceAircraftPart = {
   id?: number;
   part_number: string;
-  part_name: string;
+  type: string;
   serial?: string;
   condition_type: string;
   time_since_new?: number | string | null;

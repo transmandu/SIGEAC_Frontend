@@ -32,6 +32,7 @@ type AircraftAssignment = {
   hours_at_installation: string
   cycles_at_installation: string
   removed_date: string | null
+  part_order?: number | null
   aircraft_part: MaintenanceAircraftPart & {
     aircraft_part_id?: number | null
     sub_parts?: any[]
@@ -79,7 +80,7 @@ function TreeNode({ part, depth = 0 }: { part: any; depth?: number }) {
         
         <div className="flex flex-1 items-center justify-between ml-2">
           <div className="flex items-center gap-2">
-            <span className="text-sm font-medium">{part.part_name}</span>
+            <span className="text-sm font-medium">{part.type}</span>
             {part.condition_type && (
               <Badge variant="outline" className="text-[10px] px-1.5 h-5 font-semibold bg-primary/5 uppercase">
                 {part.condition_type}
@@ -205,7 +206,7 @@ export function PlanificationAircraftTab({ aircraft }: { aircraft: MaintenanceAi
 
     if (!q) return flat;
     return flat.filter(a => 
-      a.aircraft_part.part_name?.toLowerCase().includes(q.toLowerCase()) || 
+      a.aircraft_part.type?.toLowerCase().includes(q.toLowerCase()) || 
       a.aircraft_part.part_number?.toLowerCase().includes(q.toLowerCase())
     )
   }, [assignments, q])
@@ -366,7 +367,7 @@ export function PlanificationAircraftTab({ aircraft }: { aircraft: MaintenanceAi
                       <TableRow>
                         <TableHead>Parte / Descripción</TableHead>
                         <TableHead className="hidden sm:table-cell">PN / Serial</TableHead>
-                        <TableHead className="hidden md:table-cell text-center">Tipo</TableHead>
+                        <TableHead className="hidden md:table-cell text-center">Orden</TableHead>
                         <TableHead className="hidden md:table-cell">TSN / TSO</TableHead>
                         <TableHead className="hidden md:table-cell">CSN / CSO</TableHead>
                         <TableHead className="hidden lg:table-cell">Instalada</TableHead>
@@ -379,7 +380,7 @@ export function PlanificationAircraftTab({ aircraft }: { aircraft: MaintenanceAi
                           <TableCell>
                             <div className="flex flex-col">
                                 <div className="flex items-center gap-2">
-                                    <span className="font-medium text-sm">{a.aircraft_part.part_name}</span>
+                                    <span className="font-medium text-sm">{a.aircraft_part.type}</span>
                                     {a.aircraft_part.condition_type && (
                                         <Badge variant="secondary" className="text-[9px] uppercase tracking-wider px-1 h-4">
                                             {a.aircraft_part.condition_type}
@@ -402,12 +403,12 @@ export function PlanificationAircraftTab({ aircraft }: { aircraft: MaintenanceAi
                           </TableCell>
 
                           <TableCell className="hidden md:table-cell text-center">
-                            {a.aircraft_part.type ? (
-                                <Badge variant="outline" className="text-[9px] uppercase font-bold bg-muted/20">
-                                    {a.aircraft_part.type}
+                            {a.part_order !== null && a.part_order !== undefined ? (
+                                <Badge variant="outline" className="text-[9px] font-bold bg-muted/20">
+                                    {a.part_order}
                                 </Badge>
                             ) : (
-                                <span className="text-muted-foreground text-xs">—</span>
+                                <span className="text-muted-foreground text-xs">N/A</span>
                             )}
                           </TableCell>
                           

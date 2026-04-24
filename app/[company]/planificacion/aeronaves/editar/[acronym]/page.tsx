@@ -21,7 +21,7 @@ import { parseISO } from "date-fns";
 
 interface AircraftPart {
     id?: number; // ID para actualizaciones
-    part_name: string;
+    type: string;
     part_number: string;
     serial: string;
     manufacturer_id: string;
@@ -78,14 +78,14 @@ function PartsSummaryTree({ parts, level = 0 }: { parts: AircraftPart[], level?:
     return (
         <div className={`space-y-2 ${level > 0 ? "pl-4 border-l" : ""}`}>
             {parts.map((part, index) => (
-                <Collapsible key={`${part.id ?? part.part_number ?? part.part_name}-${index}`}>
+                <Collapsible key={`${part.id ?? part.part_number ?? part.type}-${index}`}>
                     <div className="border rounded-lg">
                         <CollapsibleTrigger className="w-full">
                             <div className="flex items-center justify-between p-3 hover:bg-muted/50 transition-colors text-left">
                                 <div className="flex items-center gap-2">
                                     <ChevronDown className="h-4 w-4 transition-transform [[data-state=closed]>&]:rotate-[-90deg]" />
                                     <div className="flex flex-col">
-                                        <span className="font-medium text-sm">{part.part_name || `Parte ${index + 1}`}</span>
+                                        <span className="font-medium text-sm">{part.type || `Parte ${index + 1}`}</span>
                                         <span className="text-xs text-muted-foreground">
                                             {level === 0 ? "Parte principal" : "Subparte"}
                                         </span>
@@ -152,7 +152,7 @@ export default function EditAircraftPage({ params }: { params: { acronym: string
         return apiParts.map(part => {
             return {
                 ...(part.id && { id: part.id }),
-                part_name: part.part_name,
+                type: part.type,
                 part_number: part.part_number,
                 serial: part.serial || "",
                 manufacturer_id: part.manufacturer_id?.toString() || "",

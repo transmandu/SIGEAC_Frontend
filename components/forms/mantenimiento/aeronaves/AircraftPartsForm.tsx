@@ -17,18 +17,13 @@ import { z } from "zod"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Label } from "@/components/ui/label"
 
-export const PART_CATEGORIES = {
-    ENGINE: "Motores",
-    APU: "APU",
-    PROPELLER: "Hélices"
-} as const;
-
 // 1. Esquema actualizado con removed_date
 const PartSchema: any = z.object({
     id: z.any().optional(),
     serial: z.string().optional(),
     manufacturer_id: z.string().optional(),
-    part_name: z.string().min(1, "Nombre obligatorio").max(50),
+    type: z.string().min(1, "Tipo obligatorio").max(50),
+    part_order: z.number().nullable().optional(),
     part_number: z.string().min(1, "Número obligatorio").regex(/^[A-Za-z0-9\-]+$/),
     ata_chapter: z.string().optional(),
     position: z.string().optional(),
@@ -53,7 +48,8 @@ type RawPart = {
     id?: number | string;
     serial?: string;
     manufacturer_id?: string;
-    part_name?: string;
+    type?: string;
+    part_order?: number | null;
     part_number?: string;
     ata_chapter?: string;
     position?: string;
@@ -97,7 +93,8 @@ const normalizePart = (part: any): z.infer<typeof PartSchema> => {
         id: part.id,
         serial: part.serial || "",
         manufacturer_id: part.manufacturer_id || "",
-        part_name: part.part_name || "",
+        type: part.type || "",
+        part_order: part.part_order || null,
         part_number: part.part_number || "",
         ata_chapter: part.ata_chapter || "",
         position: part.position || "",
@@ -122,7 +119,7 @@ const buildPartsFromAssignments = (assignments: AircraftAssignmentLike[] = []): 
     const partsById = new Map<string, RawPart>();
 
     const collectPartTree = (part: RawPart) => {
-        const key = String(part.id ?? `${part.parent_part_id ?? "root"}-${part.part_number ?? part.part_name ?? Math.random()}`);
+        const key = String(part.id ?? `${part.parent_part_id ?? "root"}-${part.part_number ?? part.type ?? Math.random()}`);
         const existing = partsById.get(key);
 
         partsById.set(key, {
@@ -351,7 +348,7 @@ function PartSection({
     const isRemoved = usePartValue<string | null>(form.control, `${path}.removed_date`, null);
     const hassub_parts = usePartValue<boolean>(form.control, `${path}.is_father`, false);
     const sub_parts = usePartValue<any[]>(form.control, `${path}.sub_parts`, []);
-    const partName = usePartValue<string>(form.control, `${path}.part_name`, "");
+    const partType = usePartValue<string>(form.control, `${path}.type`, "");
     const partNumber = usePartValue<string>(form.control, `${path}.part_number`, "");
     const timeSinceNew = usePartValue<number | null | undefined>(form.control, `${path}.time_since_new`);
     const timeSinceOverhaul = usePartValue<number | null | undefined>(form.control, `${path}.time_since_overhaul`);
@@ -380,7 +377,7 @@ function PartSection({
 
                             <div className="flex flex-col">
                                 <span className={`text-sm font-medium ${isRemoved ? 'line-through text-muted-foreground' : ''}`}>
-                                    {partName || `Parte ${index + 1}`}
+                                    {partType || `Parte ${index + 1}`}
                                     {partNumber && <Badge variant="outline" className="ml-2">{partNumber}</Badge>}
                                 </span>
                                 {isRemoved ? (
@@ -434,10 +431,10 @@ function PartSection({
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <FormField
                                 control={form.control}
-                                name={`${path}.part_name`}
+                                name={`${path}.type`}
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Nombre de la parte</FormLabel>
+                                        <FormLabel>Tipo de parte</FormLabel>
                                         <FormControl>
                                             <Input placeholder="Ej: Motor, Ala, Tren de aterrizaje" {...field} />
                                         </FormControl>
@@ -499,6 +496,44 @@ function PartSection({
                                                 {...field}
                                                 value={field.value ?? ""}
                                             />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                        </div>
+
+                        <div className="mb-4">
+                            <FormField
+                                control={form.control}
+                                name={`${path}.part_order`}
+                                render={({ field }) => (
+                                    <FormItem className="space-y-3">
+                                        <FormLabel>Orden de Parte</FormLabel>
+                                        <FormControl>
+                                            <div className="flex flex-row gap-2">
+                                                {[1, 2, 3, 4].map((order) => (
+                                                    <Button
+                                                        key={order}
+                                                        type="button"
+                                                        variant={field.value === order ? "default" : "outline"}
+                                                        size="sm"
+                                                        className="w-10 h-10 font-bold"
+                                                        onClick={() => field.onChange(order)}
+                                                    >
+                                                        {order}
+                                                    </Button>
+                                                ))}
+                                                <Button
+                                                    type="button"
+                                                    variant={field.value === null || field.value === undefined ? "default" : "outline"}
+                                                    size="sm"
+                                                    className="h-10 px-3 font-medium text-xs"
+                                                    onClick={() => field.onChange(null)}
+                                                >
+                                                    N/A
+                                                </Button>
+                                            </div>
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>

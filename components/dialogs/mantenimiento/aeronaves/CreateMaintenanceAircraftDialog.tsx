@@ -18,7 +18,7 @@ import { useCompanyStore } from "@/stores/CompanyStore";
 
 interface AircraftPart {
   category?: "ENGINE" | "APU" | "PROPELLER"; // Solo frontend
-  part_name: string;
+  type: string;
   part_number: string;
   serial: string;
   manufacturer_id: string;
@@ -70,7 +70,7 @@ export function CreateMaintenanceAircraftDialog() {
                      "engine"; // Default: engine
     
     const transformed: AircraftPartAPI = {
-      part_name: rest.part_name,
+      type: rest.type,
       part_number: rest.part_number,
       serial: rest.serial,
       manufacturer_id: rest.manufacturer_id,
@@ -234,7 +234,7 @@ export function CreateMaintenanceAircraftDialog() {
                           <div key={idx} className="bg-slate-50 dark:bg-slate-900/50 p-3 rounded-md border border-slate-200 dark:border-slate-700">
                             <div className="flex items-start justify-between mb-2">
                               <p className="font-medium text-sm text-slate-900 dark:text-slate-100">
-                                {part.part_name}
+                                {part.type}
                               </p>
                               <span className="text-xs bg-slate-200 dark:bg-slate-700 px-2 py-0.5 rounded">
                                 {part.part_number}
@@ -258,7 +258,7 @@ export function CreateMaintenanceAircraftDialog() {
                                 </p>
                                 {part.sub_parts.map((subpart, subIdx) => (
                                   <div key={subIdx} className="text-xs text-slate-500 dark:text-slate-500 mb-1">
-                                    • {subpart.part_name} ({subpart.part_number})
+                                    • {subpart.type} ({subpart.part_number})
                                   </div>
                                 ))}
                               </div>

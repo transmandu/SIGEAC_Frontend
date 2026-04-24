@@ -17,7 +17,8 @@ import { z } from "zod"
 
 // Esquema recursivo para partes/subpartes
 const PartSchema: any = z.object({
-  part_name: z.string().min(1, "Nombre obligatorio").max(50),
+  type: z.string().min(1, "Tipo obligatorio").max(50),
+  part_order: z.number().nullable().optional(),
   part_number: z.string().min(1, "Número obligatorio").regex(/^[A-Za-z0-9\-]+$/),
   total_flight_hours: z.number().min(0).optional(),
   total_flight_cycles: z.number().min(0).optional(),
@@ -212,7 +213,7 @@ function PartSection({ form, index, path, level, onRemove, onToggleExpand, isExp
   // Usar la función auxiliar para obtener los valores de forma segura
   const hassub_parts = usePartValue<boolean>(form.control, `${path}.is_father`, false);
   const sub_parts = usePartValue<any[]>(form.control, `${path}.sub_parts`, []);
-  const partName = usePartValue<string>(form.control, `${path}.part_name`, "");
+  const partType = usePartValue<string>(form.control, `${path}.type`, "");
   const partNumber = usePartValue<string>(form.control, `${path}.part_number`, "");
 
   return (
@@ -235,7 +236,7 @@ function PartSection({ form, index, path, level, onRemove, onToggleExpand, isExp
 
               <div className="flex flex-col">
                 <span className="text-sm font-medium">
-                  {partName || `Parte ${index + 1}`}
+                  {partType || `Parte ${index + 1}`}
                   {partNumber && <Badge variant="outline" className="ml-2">{partNumber}</Badge>}
                 </span>
                 <span className="text-xs text-muted-foreground">
@@ -269,10 +270,10 @@ function PartSection({ form, index, path, level, onRemove, onToggleExpand, isExp
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
-                name={`${path}.part_name`}
+                name={`${path}.type`}
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Nombre de la parte</FormLabel>
+                    <FormLabel>Tipo de parte</FormLabel>
                     <FormControl>
                       <Input placeholder="Ej: Motor, Ala, Tren de aterrizaje" {...field} />
                     </FormControl>
@@ -293,6 +294,43 @@ function PartSection({ form, index, path, level, onRemove, onToggleExpand, isExp
                   </FormItem>
                 )}
               />
+            </div>
+            <div className="mb-4 mt-4">
+                <FormField
+                    control={form.control}
+                    name={`${path}.part_order`}
+                    render={({ field }) => (
+                        <FormItem className="space-y-3">
+                            <FormLabel>Orden de Parte</FormLabel>
+                            <FormControl>
+                                <div className="flex flex-row gap-2">
+                                    {[1, 2, 3, 4].map((order) => (
+                                        <Button
+                                            key={order}
+                                            type="button"
+                                            variant={field.value === order ? "default" : "outline"}
+                                            size="sm"
+                                            className="w-10 h-10 font-bold"
+                                            onClick={() => field.onChange(order)}
+                                        >
+                                            {order}
+                                        </Button>
+                                    ))}
+                                    <Button
+                                        type="button"
+                                        variant={field.value === null || field.value === undefined ? "default" : "outline"}
+                                        size="sm"
+                                        className="h-10 px-3 font-medium text-xs"
+                                        onClick={() => field.onChange(null)}
+                                    >
+                                        N/A
+                                    </Button>
+                                </div>
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
             </div>
 
             {/* Horas y Ciclos */}

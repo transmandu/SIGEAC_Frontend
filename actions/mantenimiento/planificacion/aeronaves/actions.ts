@@ -5,7 +5,7 @@ import { toast } from "sonner";
 // Interfaz para las partes de la aeronave en el API (part_type en minúsculas)
 export interface AircraftPartAPI {
     id?: number | string;
-    part_name: string;
+    type: string;
     part_number: string;
     serial: string;
     manufacturer_id: string;
