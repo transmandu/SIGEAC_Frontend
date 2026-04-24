@@ -25,10 +25,11 @@ const UserInfoCard = ({ user }: { user: User }) => {
           {/* AVATAR */}
           <div className="relative w-[180px] h-[200px] rounded-[999px] overflow-hidden">
             <Image
-              className="object-cover"
-              alt="profile picture"
               src={employee?.photo_url || "/kanye.png"}
               fill
+              className="object-cover"
+              alt="profile"
+              unoptimized
             />
           </div>
 

@@ -4,11 +4,18 @@ import { useCompanyStore } from "@/stores/CompanyStore"
 import { useAuth } from "@/contexts/AuthContext"
 
 const fetchMyEmployee = async (company: string) => {
-  const { data } = await axios.get("/me/employee", {
-    params: { company },
-  })
+  try {
+    const { data } = await axios.get("/me/employee", {
+      params: { company },
+    })
 
-  return data.employee
+    return data.employee
+  } catch (error: any) {
+    if (error?.response?.status === 404) {
+      return null
+    }
+    throw error
+  }
 }
 
 export const useMyEmployee = () => {
@@ -26,6 +33,7 @@ export const useMyEmployee = () => {
 
     staleTime: 1000 * 60 * 5,
     refetchOnWindowFocus: false,
+
     retry: false,
   })
 }
