@@ -78,7 +78,7 @@ export default function CreateMitigationMeasure({
 
     const onSubmit = async (values: FormValues) => {
         await createMitigationMeasure.mutateAsync({
-            company: selectedCompany?.slug || null,
+            company: selectedCompany!.slug,
             data: {
                 description: values.description,
                 implementation_responsible: values.implementation_responsible,

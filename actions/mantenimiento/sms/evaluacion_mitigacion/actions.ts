@@ -52,7 +52,7 @@ interface UpdateMitigationAnalysisData {
 }
 
 interface CreateMitigationMeasureData {
-    company: string | null;
+    company?: string;
     data: {
         description: string;
         implementation_supervisor: string;
@@ -234,7 +234,7 @@ export const useCreateMitigationMeasure = () => {
             return response.data;
         },
         onSuccess: (_, variables) => {
-            invalidateWorkflowQueries(queryClient, variables.company);
+            invalidateWorkflowQueries(queryClient, variables.company ?? null);
             toast.success("Medida agregada", {
                 description: "La medida de mitigación fue registrada correctamente.",
             });
