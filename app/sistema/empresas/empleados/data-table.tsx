@@ -43,11 +43,15 @@ export function DataTable<TData, TValue>({
   data,
   renderSubComponent,
 }: DataTableProps<TData, TValue>) {
-
   const [sorting, setSorting] = useState<SortingState>([])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
-
   const [expandedRowId, setExpandedRowId] = useState<string | false>(false)
+
+  // ✅ Estado controlado de paginación
+  const [pagination, setPagination] = useState({
+    pageIndex: 0,
+    pageSize: 10,
+  })
 
   const table = useReactTable({
     data,
@@ -56,10 +60,12 @@ export function DataTable<TData, TValue>({
     state: {
       sorting,
       columnFilters,
+      pagination,
     },
 
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
+    onPaginationChange: setPagination,
 
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
@@ -68,17 +74,18 @@ export function DataTable<TData, TValue>({
     getExpandedRowModel: getExpandedRowModel(),
 
     getRowCanExpand: () => true,
+
+    // ✅ Evita que la tabla regrese a la página 1
+    // cuando React Query refresca los datos
+    autoResetPageIndex: false,
   })
 
   const isFiltered = table.getState().columnFilters.length > 0
 
   return (
     <div>
-
       <div className="flex items-center justify-between py-4">
-
         <div className="flex items-center gap-2">
-
           {isFiltered && (
             <Button
               variant="ghost"
@@ -97,9 +104,7 @@ export function DataTable<TData, TValue>({
       </div>
 
       <div className="rounded-md border mb-4">
-
         <Table>
-
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
@@ -118,10 +123,8 @@ export function DataTable<TData, TValue>({
           </TableHeader>
 
           <TableBody>
-
             {table.getRowModel().rows.length ? (
               table.getRowModel().rows.map((row) => {
-
                 const isExpanded = expandedRowId === row.id
 
                 return (
@@ -168,15 +171,11 @@ export function DataTable<TData, TValue>({
                 </TableCell>
               </TableRow>
             )}
-
           </TableBody>
-
         </Table>
-
       </div>
 
       <DataTablePagination table={table} />
-
     </div>
   )
 }

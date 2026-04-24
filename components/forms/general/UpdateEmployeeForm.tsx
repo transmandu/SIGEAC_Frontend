@@ -453,9 +453,13 @@ const buildFormData = (values: FormValues, original: any) => {
                         className="object-cover"
                     />
                     ) : (
-                    <span className="text-xs text-muted-foreground text-center px-4">
-                        Sin foto<br />del empleado
-                    </span>
+                        <div className="absolute inset-0 flex items-center justify-center">
+                            <span className="text-xs text-muted-foreground text-center leading-tight px-4">
+                            Sin foto
+                            <br />
+                            del empleado
+                            </span>
+                        </div>
                     )}
                 </div>
                 </div>
