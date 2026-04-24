@@ -23,13 +23,13 @@ const UserInfoCard = ({ user }: { user: User }) => {
         <div className="flex flex-col items-center justify-between gap-4">
 
           {/* AVATAR */}
-          <div className="relative w-[180px] h-[200px] rounded-full overflow-hidden">
+          <div className="relative w-[180px] h-[200px] rounded-full overflow-hidden" onContextMenu={(e) => e.preventDefault()}>
             <Image
               src={employee?.photo_url || "/kanye.png"}
               fill
+              sizes="200px"
               className="object-cover"
               alt="profile"
-              unoptimized
             />
           </div>
 

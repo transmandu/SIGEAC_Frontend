@@ -46,11 +46,12 @@ export function UserNav() {
                 variant="outline"
                 className="relative h-8 w-8 rounded-full"
               >
-                <Avatar className="h-8 w-8">
+                <Avatar className="h-8 w-8" onContextMenu={(e) => e.preventDefault()}>
                   <AvatarImage
                     src={employee?.photo_url || ""}
                     alt="Avatar"
                     className="object-cover w-full h-full"
+                    sizes="32px"
                   />
 
                   <AvatarFallback className="bg-transparent">

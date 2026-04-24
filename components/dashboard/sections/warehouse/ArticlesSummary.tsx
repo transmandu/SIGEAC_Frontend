@@ -26,7 +26,7 @@ export default function  ArticlesSummary({ data, isLoading, isError }: Props) {
         <Card className="rounded-xl border shadow-sm">
           <CardHeader className="pb-2 text-center">
             <CardTitle className="text-2xl font-semibold">Resumen de Artículos</CardTitle>
-            <CardDescription className="text-gray-500">Datos generales de inventario activo (Esta semana)</CardDescription>
+            <CardDescription className="text-gray-500">Resumen semanal basado en registros creados en el sistema</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6 text-center">
