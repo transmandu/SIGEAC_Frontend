@@ -446,12 +446,15 @@ const buildFormData = (values: FormValues, original: any) => {
                 <div className="flex justify-center items-center flex-1">
                 <div className="relative w-40 h-40 rounded-full overflow-hidden border-2 border-muted shadow-sm bg-background">
                     {imageSrc ? (
-                    <Image
+                        <Image
                         src={imageSrc}
                         alt="Empleado"
                         fill
+                        unoptimized
+                        quality={100}
+                        sizes="160px"
                         className="object-cover"
-                    />
+                        />
                     ) : (
                         <div className="absolute inset-0 flex items-center justify-center">
                             <span className="text-xs text-muted-foreground text-center leading-tight px-4">
