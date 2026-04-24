@@ -23,7 +23,7 @@ const UserInfoCard = ({ user }: { user: User }) => {
         <div className="flex flex-col items-center justify-between gap-4">
 
           {/* AVATAR */}
-          <div className="relative w-[180px] h-[200px] rounded-[999px] overflow-hidden">
+          <div className="relative w-[180px] h-[200px] rounded-full overflow-hidden">
             <Image
               src={employee?.photo_url || "/kanye.png"}
               fill
