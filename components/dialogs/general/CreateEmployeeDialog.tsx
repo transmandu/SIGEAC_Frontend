@@ -22,7 +22,7 @@ export function CreateEmployeeDialog() {
         <Button variant="outline">Crear Empleado</Button>
       </DialogTrigger>
 
-      <DialogContent>
+      <DialogContent className="sm:max-w-5xl">
         <DialogHeader>
           <DialogTitle>Crear Empleado</DialogTitle>
           <DialogDescription>

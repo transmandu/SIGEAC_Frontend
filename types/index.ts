@@ -791,17 +791,26 @@ export type User = {
 export type Employee = {
   id: number;
   first_name: string;
-  middle_name?: string;
+  middle_name?: string | null;
   last_name: string;
-  second_last_name?: string;
+  second_last_name?: string | null;
+  dni: string;
   dni_type: string;
   blood_type: string;
-  company: string;
-  dni: string;
+  birth_date?: string | null;
+  email?: string | null;
+  phone?: string | null;
+  address?: string | null;
+  location: Location;
   job_title: JobTitle;
   department: Department;
   user?: User;
-  location: Location;
+  user_id?: number | null;
+  start_date?: string | null;
+  end_date?: string | null;
+  isActive: boolean;
+  photo_url?: string | null;
+  company?: string;
 };
 
 export type AdministrationVendor = {
