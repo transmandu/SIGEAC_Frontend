@@ -690,6 +690,7 @@ export function getMenuList(
     },
     {
       groupLabel: "Operaciones",
+      moduleValue: "operation",
       menus: [
         {
           href: `/${currentCompany?.slug}/operaciones/cargo`,
