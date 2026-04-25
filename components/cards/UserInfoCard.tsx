@@ -7,7 +7,7 @@ import {
 } from "@/components/ui/card"
 import { Badge } from "../ui/badge"
 import { EditUserDialog } from "../dialogs/ajustes/EditUserDialog"
-import Image from "next/image"
+import { Avatar, AvatarImage } from "@/components/ui/avatar"
 import { User } from "@/types"
 import { useMyEmployee } from "@/hooks/sistema/usuario/useMyEmployee"
 
@@ -23,15 +23,17 @@ const UserInfoCard = ({ user }: { user: User }) => {
         <div className="flex flex-col items-center justify-between gap-4">
 
           {/* AVATAR */}
-          <div className="relative w-[180px] h-[200px] rounded-full overflow-hidden" onContextMenu={(e) => e.preventDefault()}>
-            <Image
+          <Avatar className="w-[180px] h-[200px] overflow-hidden">
+            <AvatarImage
               src={employee?.photo_url || "/kanye.png"}
-              fill
-              sizes="200px"
-              className="object-cover"
-              alt="profile"
+              className="w-full h-full object-cover"
+                width={360}
+                height={400}
+                style={{
+                  transform: "translateZ(0)",
+                }}
             />
-          </div>
+          </Avatar>
 
           {/* INFO */}
           <div className="flex flex-col gap-2 items-center">
