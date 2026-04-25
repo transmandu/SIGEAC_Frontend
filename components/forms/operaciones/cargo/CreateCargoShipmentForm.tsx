@@ -66,7 +66,7 @@ const formSchema = z
     carrier: z.string().min(1, "El transportista es requerido"),
     issuer: z.number().min(1, "El emisor es requerido"),
     pilot_id: z.number().min(1, "Debe elegir un piloto"),
-    copilot_id: z.number().optional().nullable(),
+    copilot_id: z.number().min(1, "Debe elegir un copiloto"),
     external_aircraft: z.string().optional().nullable(),
     client_id: z.coerce.number().min(1, "Debe elegir un cliente"),
     aircraft_id: z.coerce.number().optional().nullable(),
@@ -76,6 +76,10 @@ const formSchema = z
     message:
       "Debe Seleccionar una aeronave registrada o ingresar una aeronave externa",
     path: ["aircraft_id"],
+  })
+  .refine((data) => data.pilot_id !== data.copilot_id, {
+    message: "El piloto y copiloto no pueden ser la misma persona",
+    path: ["copilot_id"],
   });
 
 export default function CreateCargoShipmentForm({
@@ -131,7 +135,7 @@ export default function CreateCargoShipmentForm({
           carrier: initialData.carrier,
           issuer: initialData.issuer,
           pilot_id: initialData.pilot_id ? Number(initialData.pilot_id) : 0,
-          copilot_id: initialData.copilot_id ? Number(initialData.copilot_id) : null,
+          copilot_id: initialData.copilot_id ? Number(initialData.copilot_id) : 0,
           client_id: initialData.client_id || initialData.client?.id || null,
           aircraft_id:
             initialData.aircraft_id || initialData.aircraft?.id || null,
@@ -147,7 +151,7 @@ export default function CreateCargoShipmentForm({
           carrier: "",
           issuer: 0,
           pilot_id: 0,
-          copilot_id: null,
+          copilot_id: 0,
           client_id: 0,
           aircraft_id: null,
           external_aircraft: null,
@@ -726,7 +730,7 @@ export default function CreateCargoShipmentForm({
                       <CommandList>
                         <CommandEmpty>No se encontraron pilotos</CommandEmpty>
                         <CommandGroup>
-                          {pilots?.map((pilot: any) => {
+                          {pilots?.filter((p: any) => p.id !== form.watch("copilot_id")).map((pilot: any) => {
                             const fullName = `${pilot.employee?.first_name} ${pilot.employee?.last_name}`;
                             return (
                               <CommandItem
@@ -794,7 +798,7 @@ export default function CreateCargoShipmentForm({
                       <CommandList>
                         <CommandEmpty>No se encontraron pilotos</CommandEmpty>
                         <CommandGroup>
-                          {pilots?.map((pilot: any) => {
+                          {pilots?.filter((p: any) => p.id !== form.watch("pilot_id")).map((pilot: any) => {
                             const fullName = `${pilot.employee?.first_name} ${pilot.employee?.last_name}`;
                             return (
                               <CommandItem
