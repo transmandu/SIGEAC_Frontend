@@ -48,7 +48,7 @@ export function UserNav() {
               >
                 <Avatar className="h-8 w-8" onContextMenu={(e) => e.preventDefault()}>
                   <AvatarImage
-                    src={employee?.photo_url || ""}
+                    src={employee?.photo_url ? `${employee.photo_url}?size=64` : " "}
                     alt="Avatar"
                     className="object-cover w-full h-full"
                     sizes="32px"

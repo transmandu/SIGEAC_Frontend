@@ -25,13 +25,11 @@ const UserInfoCard = ({ user }: { user: User }) => {
           {/* AVATAR */}
           <Avatar className="w-[180px] h-[200px] overflow-hidden">
             <AvatarImage
-              src={employee?.photo_url || "/kanye.png"}
+              src={employee?.photo_url ? `${employee.photo_url}?size=360` : "/kanye.png"}
               className="w-full h-full object-cover"
-                width={360}
-                height={400}
-                style={{
-                  transform: "translateZ(0)",
-                }}
+              style={{
+                transform: "translateZ(0)",
+              }}
             />
           </Avatar>
 
