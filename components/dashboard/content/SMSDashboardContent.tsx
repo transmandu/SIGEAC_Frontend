@@ -32,21 +32,48 @@ export default function SMSDashboardContent({
         <TabsList className="flex justify-center mb-0 space-x-3 border-b rounded-t-xl bg-muted/40">
           <TabsTrigger
             value="DASHBOARD"
-            className="flex gap-2 data-[state=active]:border-b-2 data-[state=active]:border-blue-600 data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-t-lg px-3 py-2"
+            className="flex gap-2 px-3 py-2 rounded-t-lg transition-all
+                      text-gray-600 dark:text-gray-400
+                      data-[state=active]:border-b-2
+                      data-[state=active]:border-blue-600
+                      data-[state=active]:bg-white
+                      data-[state=active]:text-blue-600
+                      data-[state=active]:shadow-sm
+                      dark:data-[state=active]:bg-slate-900
+                      dark:data-[state=active]:border-blue-400
+                      dark:data-[state=active]:text-blue-400"
           >
             <LayoutDashboard className="size-4" /> Dashboard
           </TabsTrigger>
 
           <TabsTrigger
             value="REPORTS"
-            className="flex gap-2 data-[state=active]:border-b-2 data-[state=active]:border-blue-600 data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-t-lg px-3 py-2"
+            className="flex gap-2 px-3 py-2 rounded-t-lg transition-all
+                      text-gray-600 dark:text-gray-400
+                      data-[state=active]:border-b-2
+                      data-[state=active]:border-blue-600
+                      data-[state=active]:bg-white
+                      data-[state=active]:text-blue-600
+                      data-[state=active]:shadow-sm
+                      dark:data-[state=active]:bg-slate-900
+                      dark:data-[state=active]:border-blue-400
+                      dark:data-[state=active]:text-blue-400"
           >
             <NotebookText className="size-4" /> Reportes
           </TabsTrigger>
 
           <TabsTrigger
             value="STATISTICS"
-            className="flex gap-2 data-[state=active]:border-b-2 data-[state=active]:border-blue-600 data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-t-lg px-3 py-2"
+            className="flex gap-2 px-3 py-2 rounded-t-lg transition-all
+                      text-gray-600 dark:text-gray-400
+                      data-[state=active]:border-b-2
+                      data-[state=active]:border-blue-600
+                      data-[state=active]:bg-white
+                      data-[state=active]:text-blue-600
+                      data-[state=active]:shadow-sm
+                      dark:data-[state=active]:bg-slate-900
+                      dark:data-[state=active]:border-blue-400
+                      dark:data-[state=active]:text-blue-400"
           >
             <AreaChartIcon className="size-4" /> Estadísticas
           </TabsTrigger>

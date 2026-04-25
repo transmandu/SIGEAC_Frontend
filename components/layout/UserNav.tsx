@@ -1,6 +1,12 @@
 "use client";
 
-import { LayoutGrid, Loader2, LogOut, MailIcon, User2 } from "lucide-react";
+import {
+  LayoutGrid,
+  Loader2,
+  LogOut,
+  MailIcon,
+  User2
+} from "lucide-react";
 import Link from "next/link";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -19,10 +25,17 @@ import {
   TooltipProvider,
   TooltipTrigger
 } from "@/components/ui/tooltip";
+
 import { useAuth } from "@/contexts/AuthContext";
+import { useMyEmployee } from "@/hooks/sistema/usuario/useMyEmployee";
 
 export function UserNav() {
-  const { user, loading, logout } = useAuth()
+  const { user, loading, logout } = useAuth();
+  const { data: employee, isLoading: employeeLoading } = useMyEmployee();
+
+  const initials =
+    `${user?.first_name?.[0] ?? ""}${user?.last_name?.[0] ?? ""}`;
+
   return (
     <DropdownMenu>
       <TooltipProvider disableHoverableContent>
@@ -33,44 +46,63 @@ export function UserNav() {
                 variant="outline"
                 className="relative h-8 w-8 rounded-full"
               >
-                <Avatar className="h-8 w-8">
-                  <AvatarImage src="#" alt="Avatar" />
-                  <AvatarFallback className="bg-transparent">{loading ? <Loader2 className="animate-spin" /> : `${user?.first_name}${user?.last_name}`}</AvatarFallback>
+                <Avatar className="h-8 w-8" onContextMenu={(e) => e.preventDefault()}>
+                  <AvatarImage
+                    src={employee?.photo_url ? `${employee.photo_url}?size=64` : " "}
+                    alt="Avatar"
+                    className="object-cover w-full h-full"
+                    sizes="32px"
+                  />
+
+                  <AvatarFallback className="bg-transparent">
+                    {loading || employeeLoading ? (
+                      <Loader2 className="animate-spin w-4 h-4" />
+                    ) : (
+                      initials
+                    )}
+                  </AvatarFallback>
                 </Avatar>
               </Button>
             </DropdownMenuTrigger>
           </TooltipTrigger>
-          <TooltipContent side="bottom">Perfil</TooltipContent>
+
+          <TooltipContent side="bottom">
+            Perfil
+          </TooltipContent>
         </Tooltip>
       </TooltipProvider>
 
       <DropdownMenuContent className="w-56" align="end" forceMount>
         <DropdownMenuSeparator />
+
         <DropdownMenuGroup>
           <DropdownMenuItem className="hover:cursor-pointer" asChild>
             <Link href="/ajustes/cuenta" className="flex items-center">
-              {
-                loading && <p className="text-sm text-muted-foreground">Cargando...</p>
-              }
-              {
-                user && (
-                  <div className="flex flex-col gap-2">
-                    <div className="flex items-center">
-                      <User2 className="w-4 h-4 mr-3 text-muted-foreground" />
-                      {user.username}
-                    </div>
-                    <div className="flex items-center">
-                      <MailIcon className="w-4 h-4 mr-3 text-muted-foreground" />
-                      {user.email}
-                    </div>
+              {loading && (
+                <p className="text-sm text-muted-foreground">
+                  Cargando...
+                </p>
+              )}
+
+              {user && (
+                <div className="flex flex-col gap-2">
+                  <div className="flex items-center">
+                    <User2 className="w-4 h-4 mr-3 text-muted-foreground" />
+                    {user.username}
                   </div>
-                )
-              }
+
+                  <div className="flex items-center">
+                    <MailIcon className="w-4 h-4 mr-3 text-muted-foreground" />
+                    {user.email}
+                  </div>
+                </div>
+              )}
             </Link>
           </DropdownMenuItem>
         </DropdownMenuGroup>
+
         <DropdownMenuSeparator />
-        <DropdownMenuSeparator />
+
         <DropdownMenuGroup>
           <DropdownMenuItem className="hover:cursor-pointer" asChild>
             <Link href="/dashboard" className="flex items-center">
@@ -79,8 +111,13 @@ export function UserNav() {
             </Link>
           </DropdownMenuItem>
         </DropdownMenuGroup>
+
         <DropdownMenuSeparator />
-        <DropdownMenuItem className="hover:cursor-pointer" onClick={logout}>
+
+        <DropdownMenuItem
+          className="hover:cursor-pointer"
+          onClick={logout}
+        >
           <LogOut className="w-4 h-4 mr-3 text-muted-foreground" />
           Cerrar sesión
         </DropdownMenuItem>

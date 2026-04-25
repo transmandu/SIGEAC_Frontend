@@ -427,13 +427,13 @@ export interface WorkOrder extends Request {
 export type WorkOrderReport = {
   id: number | string;
   reports: WorkOrderReportItem[];
-}
+};
 
 export type WorkOrderReportItem = {
   ata_code: string;
   report: string;
   action_taken: string;
-}
+};
 
 export type PrelimInspection = {
   id: number | string;
@@ -553,10 +553,10 @@ export type Vendor = {
 };
 
 export type ThirdParty = {
-  id: string,
-  name: string,
-  type: string,
-}
+  id: string;
+  name: string;
+  type: string;
+};
 
 export type Permission = {
   id: number;
@@ -687,7 +687,7 @@ export type Requisition = {
       quantity: number;
       unit?: Convertion;
       image: string;
-      aircraft?: string
+      aircraft?: string;
     }[];
   }[];
   received_by: string;
@@ -792,17 +792,26 @@ export type User = {
 export type Employee = {
   id: number;
   first_name: string;
-  middle_name?: string;
+  middle_name?: string | null;
   last_name: string;
-  second_last_name?: string;
+  second_last_name?: string | null;
+  dni: string;
   dni_type: string;
   blood_type: string;
-  company: string;
-  dni: string;
+  birth_date?: string | null;
+  email?: string | null;
+  phone?: string | null;
+  address?: string | null;
+  location: Location;
   job_title: JobTitle;
   department: Department;
   user?: User;
-  location: Location;
+  user_id?: number | null;
+  start_date?: string | null;
+  end_date?: string | null;
+  isActive: boolean;
+  photo_url?: string | null;
+  company?: string;
 };
 
 export type AdministrationVendor = {
@@ -1108,7 +1117,7 @@ export type Answer = {
   option: Option;
   survey: Survey;
   text: string;
-}
+};
 
 export type Option = {
   id: string;
@@ -1119,7 +1128,7 @@ export type Option = {
 export type Question = {
   id: string;
   text: string;
-  type: 'SINGLE' | 'MULTIPLE' | 'OPEN';
+  type: "SINGLE" | "MULTIPLE" | "OPEN";
   is_required: boolean;
   options?: Option[];
 };
@@ -1146,7 +1155,7 @@ export type SafetyBulletin = {
   description: string;
   image?: string;
   document?: string;
-}
+};
 
 export type FlightHistory = {
   id: number;
@@ -1164,60 +1173,59 @@ export type FlightHistory = {
   updated_at: string;
 };
 export interface WarehouseDashboard {
-  storedCount: number
-  dispatchCount: number
-  dispatchAircraftCount: number
-  dispatchWorkOrderCount: number
-  tool_need_calibration_count: number
-  returnToolsCount: number
-  restockCount: number
+  storedCount: number;
+  dispatchCount: number;
+  dispatchAircraftCount: number;
+  dispatchWorkOrderCount: number;
+  tool_need_calibration_count: number;
+  returnToolsCount: number;
+  restockCount: number;
   tools_need_calibration: {
-    tool_id: number
-    batch_name: string
-    article_id: number
-    part_number: string
-    next_calibration: string
-    status: string
-  }[]
-  toolsToReturn: any[]
+    tool_id: number;
+    batch_name: string;
+    article_id: number;
+    part_number: string;
+    next_calibration: string;
+    status: string;
+  }[];
+  toolsToReturn: any[];
   articlesOutOfStock: {
-    id: number
-    description: string
-    part_number: string
-    serial: string | null
-    category: string
-    condition: string
-    zone: string
-  }[]
-  expired_tools_count: number
+    id: number;
+    description: string;
+    part_number: string;
+    serial: string | null;
+    category: string;
+    condition: string;
+    zone: string;
+  }[];
+  expired_tools_count: number;
   expired_tools: {
-    tool_id: number
-    article_id: number
-    batch_name: string
-    part_number: string
-    next_calibration: string
-    status: string
-  }[]
+    tool_id: number;
+    article_id: number;
+    batch_name: string;
+    part_number: string;
+    next_calibration: string;
+    status: string;
+  }[];
   userStats: {
-    id: number
-    username: string
-    name: string
-    job_title: string
-    dispatch_count: number
-    incoming_count: number
-    last_used_at: string
-  }[]
+    id: number;
+    username: string;
+    name: string;
+    job_title: string;
+    dispatch_count: number;
+    incoming_count: number;
+    last_used_at: string;
+  }[];
 }
-
 
 export type GeneralArticle = {
   id: number;
-  description: string,
-  variant_type: string,
-  quantity: number,
-  brand_model: string,
-  general_primary_unit: Unit,
-}
+  description: string;
+  variant_type: string;
+  quantity: number;
+  brand_model: string;
+  general_primary_unit: Unit;
+};
 
 export interface SMSCertificate {
   id: number;
@@ -1230,16 +1238,61 @@ export interface SMSCertificate {
     name: string;
   };
 }
-export interface ShippingAgency { 
-  id: number; 
-  name: string; 
-  code: string; 
-  description?: string | null; 
-  type: 'NATIONAL' | 'INTERNATIONAL'; 
-  phone?: string | null; 
-  email?: string | null; 
-  created_at: string; 
-  updated_at: string; 
-  created_by: string; 
-  updated_by: string; 
+export interface ShippingAgency {
+  id: number;
+  name: string;
+  code: string;
+  description?: string | null;
+  type: "NATIONAL" | "INTERNATIONAL";
+  phone?: string | null;
+  email?: string | null;
+  created_at: string;
+  updated_at: string;
+  created_by: string;
+  updated_by: string;
 }
+
+export type CargoShipmentItem = {
+  id: number;
+  product_description: string;
+  units: number;
+  weight: number;
+};
+
+export type CargoShipment = {
+  id: number;
+  guide_number: string;
+  registration_date: string;
+  carrier: string;
+  issuer: string;
+  issuer_user?: User;
+  pilot_id: number;
+  copilot_id: number | null;
+  pilot?: Pilot;
+  copilot?: Pilot;
+  client: Client;
+  aircraft: Aircraft;
+  external_aircraft: string | null;
+  month: number;
+  year: number;
+  total_units: number;
+  total_weight: number;
+  items: CargoShipmentItem[];
+  registered_by: string;
+  updated_by: string;
+};
+
+export type AircraftCargoStats = {
+  id: number;
+  acronym: string;
+  model: string;
+  serial: string;
+  cargo_count: number;
+  is_external?: boolean;
+  external_aircraft?: string;
+};
+
+export type AircraftCargoResponse = {
+  registered: AircraftCargoStats[];
+  external: AircraftCargoStats[];
+};
