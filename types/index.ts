@@ -1179,6 +1179,7 @@ export interface WarehouseDashboard {
   tool_need_calibration_count: number;
   returnToolsCount: number;
   restockCount: number;
+  entryCount: number;
   tools_need_calibration: {
     tool_id: number;
     batch_name: string;
