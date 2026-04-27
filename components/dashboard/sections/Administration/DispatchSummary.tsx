@@ -156,7 +156,7 @@ export default function DispatchSummary({
           </CardDescription>
         </CardHeader>
 
-        <CardContent className="h-[428px]">
+        <CardContent className="h-[380px]">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart
               data={dispatchChartData}
