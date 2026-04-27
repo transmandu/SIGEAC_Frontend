@@ -8,7 +8,10 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 
-import { useCreateMitigationMeasure } from "@/actions/mantenimiento/sms/evaluacion_mitigacion/actions";
+import {
+    useCreateMitigationMeasure,
+    useUpdateMitigationMeasure,
+} from "@/actions/mantenimiento/sms/evaluacion_mitigacion/actions";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -28,6 +31,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { useCompanyStore } from "@/stores/CompanyStore";
+import { MitigationMeasure } from "@/types/sms/mantenimiento";
 
 const FORM_SCHEMA = z.object({
     description: z.string().min(3, "Describa la medida de mitigación"),
@@ -47,58 +51,72 @@ type FormValues = z.infer<typeof FORM_SCHEMA>;
 
 interface CreateMitigationMeasureProps {
     mitigationPlanId: number | string;
+    initialData?: MitigationMeasure | null;
+    onSuccess?: () => void;
+    onCancel?: () => void;
 }
+
+const getDefaultValues = (initialData?: MitigationMeasure | null): FormValues => ({
+    description: initialData?.description || "",
+    implementation_responsible: initialData?.implementation_responsible || "",
+    implementation_supervisor: initialData?.implementation_supervisor || "",
+    estimated_date: initialData?.estimated_date ? new Date(initialData.estimated_date) : new Date(),
+    execution_date: initialData?.execution_date ? new Date(initialData.execution_date) : null,
+});
 
 export default function CreateMitigationMeasure({
     mitigationPlanId,
+    initialData,
+    onSuccess,
+    onCancel,
 }: CreateMitigationMeasureProps) {
     const { selectedCompany } = useCompanyStore();
     const { createMitigationMeasure } = useCreateMitigationMeasure();
+    const { updateMitigationMeasure } = useUpdateMitigationMeasure();
+    const isEditing = Boolean(initialData);
 
     const form = useForm<FormValues>({
         resolver: zodResolver(FORM_SCHEMA),
-        defaultValues: {
-            description: "",
-            implementation_responsible: "",
-            implementation_supervisor: "",
-            estimated_date: new Date(),
-            execution_date: null,
-        },
+        defaultValues: getDefaultValues(initialData),
     });
 
     useEffect(() => {
-        form.reset({
-            description: "",
-            implementation_responsible: "",
-            implementation_supervisor: "",
-            estimated_date: new Date(),
-            execution_date: null,
-        });
-    }, [form, mitigationPlanId]);
+        form.reset(getDefaultValues(initialData));
+    }, [form, initialData, mitigationPlanId]);
 
     const onSubmit = async (values: FormValues) => {
-        await createMitigationMeasure.mutateAsync({
-            company: selectedCompany!.slug,
-            data: {
-                description: values.description,
-                implementation_responsible: values.implementation_responsible,
-                implementation_supervisor: values.implementation_supervisor,
-                estimated_date: format(values.estimated_date, "yyyy-MM-dd"),
-                execution_date: values.execution_date
-                    ? format(values.execution_date, "yyyy-MM-dd")
-                    : undefined,
-                mitigation_plan_id: mitigationPlanId.toString(),
-            },
-        });
+        const payload = {
+            description: values.description,
+            implementation_responsible: values.implementation_responsible,
+            implementation_supervisor: values.implementation_supervisor,
+            estimated_date: format(values.estimated_date, "yyyy-MM-dd"),
+            execution_date: values.execution_date
+                ? format(values.execution_date, "yyyy-MM-dd")
+                : undefined,
+        };
 
-        form.reset({
-            description: "",
-            implementation_responsible: "",
-            implementation_supervisor: "",
-            estimated_date: new Date(),
-            execution_date: null,
-        });
+        if (isEditing && initialData) {
+            await updateMitigationMeasure.mutateAsync({
+                company: selectedCompany!.slug,
+                id: initialData.id,
+                data: payload,
+            });
+        } else {
+            await createMitigationMeasure.mutateAsync({
+                company: selectedCompany!.slug,
+                data: {
+                    ...payload,
+                    mitigation_plan_id: mitigationPlanId.toString(),
+                },
+            });
+        }
+
+        form.reset(getDefaultValues(initialData));
+        onSuccess?.();
     };
+
+    const isPending =
+        createMitigationMeasure.isPending || updateMitigationMeasure.isPending;
 
     return (
         <Form {...form}>
@@ -172,7 +190,7 @@ export default function CreateMitigationMeasure({
                                                 className={cn(
                                                     "pl-3 text-left font-normal",
                                                     !field.value &&
-                                                    "text-muted-foreground"
+                                                        "text-muted-foreground"
                                                 )}
                                             >
                                                 {field.value ? (
@@ -217,7 +235,7 @@ export default function CreateMitigationMeasure({
                                                 className={cn(
                                                     "pl-3 text-left font-normal",
                                                     !field.value &&
-                                                    "text-muted-foreground"
+                                                        "text-muted-foreground"
                                                 )}
                                             >
                                                 {field.value ? (
@@ -249,16 +267,22 @@ export default function CreateMitigationMeasure({
                     />
                 </div>
 
-                <Button
-                    type="submit"
-                    className="w-full"
-                    disabled={createMitigationMeasure.isPending}
-                >
-                    {createMitigationMeasure.isPending && (
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
+                    {onCancel && (
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={onCancel}
+                            disabled={isPending}
+                        >
+                            Cancelar
+                        </Button>
                     )}
-                    Agregar medida
-                </Button>
+                    <Button type="submit" className="sm:min-w-52" disabled={isPending}>
+                        {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                        {isEditing ? "Guardar cambios" : "Agregar medida"}
+                    </Button>
+                </div>
             </form>
         </Form>
     );

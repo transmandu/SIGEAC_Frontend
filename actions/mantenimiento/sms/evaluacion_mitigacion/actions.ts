@@ -63,8 +63,32 @@ interface CreateMitigationMeasureData {
     };
 }
 
+interface UpdateMitigationMeasureData {
+    company?: string;
+    id: number | string;
+    data: {
+        description: string;
+        implementation_supervisor: string;
+        implementation_responsible: string;
+        estimated_date: string;
+        execution_date?: string;
+    };
+}
+
 interface CreateFollowUpControlData {
     company: string | null;
+    data: {
+        description: string;
+        date: string;
+        mitigation_measure_id: string;
+        image?: File;
+        document?: File;
+    };
+}
+
+interface UpdateFollowUpControlData {
+    company: string | null;
+    id: number | string;
     data: {
         description: string;
         date: string;
@@ -252,6 +276,37 @@ export const useCreateMitigationMeasure = () => {
     };
 };
 
+export const useUpdateMitigationMeasure = () => {
+    const queryClient = useQueryClient();
+
+    const updateMutation = useMutation({
+        mutationFn: async ({ company, data, id }: UpdateMitigationMeasureData) => {
+            const response = await axiosInstance.patch(
+                `/${company}/sms/aeronautical/mitigation-measures/${id}`,
+                data
+            );
+
+            return response.data;
+        },
+        onSuccess: (_, variables) => {
+            invalidateWorkflowQueries(queryClient, variables.company ?? null);
+            toast.success("Medida actualizada", {
+                description: "La medida de mitigación fue actualizada correctamente.",
+            });
+        },
+        onError: (error) => {
+            toast.error("No se pudo actualizar la medida", {
+                description: "Ocurrió un error al actualizar la medida de mitigación.",
+            });
+            console.log(error);
+        },
+    });
+
+    return {
+        updateMitigationMeasure: updateMutation,
+    };
+};
+
 export const useCreateFollowUpControl = () => {
     const queryClient = useQueryClient();
 
@@ -285,5 +340,41 @@ export const useCreateFollowUpControl = () => {
 
     return {
         createFollowUpControl: createMutation,
+    };
+};
+
+export const useUpdateFollowUpControl = () => {
+    const queryClient = useQueryClient();
+
+    const updateMutation = useMutation({
+        mutationFn: async ({ company, data, id }: UpdateFollowUpControlData) => {
+            const response = await axiosInstance.post(
+                `/${company}/sms/aeronautical/update-follow-up-controls/${id}`,
+                data,
+                {
+                    headers: {
+                        "Content-Type": "multipart/form-data",
+                    },
+                }
+            );
+
+            return response.data;
+        },
+        onSuccess: (_, variables) => {
+            invalidateWorkflowQueries(queryClient, variables.company);
+            toast.success("Control actualizado", {
+                description: "El control de seguimiento fue actualizado correctamente.",
+            });
+        },
+        onError: (error) => {
+            toast.error("No se pudo actualizar el control", {
+                description: "Ocurrió un error al actualizar el control de seguimiento.",
+            });
+            console.log(error);
+        },
+    });
+
+    return {
+        updateFollowUpControl: updateMutation,
     };
 };

@@ -71,6 +71,8 @@ type NotificationSelectionPanelProps = {
     isLoading: boolean;
     isError: boolean;
     onSelectNotification: (notificationId: number) => void;
+    className?: string;
+    showSticky?: boolean;
 };
 
 export function NotificationSelectionPanel({
@@ -79,9 +81,11 @@ export function NotificationSelectionPanel({
     isLoading,
     isError,
     onSelectNotification,
+    className,
+    showSticky = true,
 }: NotificationSelectionPanelProps) {
     return (
-        <Card className="xl:sticky xl:top-6 xl:h-fit">
+        <Card className={cn(showSticky && 'xl:sticky xl:top-6 xl:h-fit', className)}>
             <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-xl">
                     <ShieldAlert className="h-5 w-5" />

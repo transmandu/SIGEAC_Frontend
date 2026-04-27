@@ -80,7 +80,7 @@ export interface MitigationMeasure {
     implementation_responsible: string;
     estimated_date: string;
     execution_date?: string;
-    follow_up_control: FollowUpControl[];
+    follow_up_controls?: FollowUpControl[];
 
 }
 
@@ -88,7 +88,7 @@ export interface FollowUpControl {
     id: number;
     description: string;
     date: string;
-    mitigation_measure_id: number;
+    mitigation_measure_id: number | string;
     image?: string;
     document?: string;
 }
@@ -102,4 +102,3 @@ export interface Analysis {
     hazard_notification?: number;
     mitigation_plan_id?: number;
 }
-

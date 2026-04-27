@@ -8,7 +8,10 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 
-import { useCreateFollowUpControl } from "@/actions/mantenimiento/sms/evaluacion_mitigacion/actions";
+import {
+    useCreateFollowUpControl,
+    useUpdateFollowUpControl,
+} from "@/actions/mantenimiento/sms/evaluacion_mitigacion/actions";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -28,6 +31,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { useCompanyStore } from "@/stores/CompanyStore";
+import { FollowUpControl } from "@/types/sms/mantenimiento";
 
 const FORM_SCHEMA = z.object({
     description: z.string().min(3, "Describa el control de seguimiento"),
@@ -42,53 +46,68 @@ type FormValues = z.infer<typeof FORM_SCHEMA>;
 
 interface CreateFollowUpControlProps {
     mitigationMeasureId: number | string;
+    initialData?: FollowUpControl | null;
+    onSuccess?: () => void;
+    onCancel?: () => void;
 }
+
+const getDefaultValues = (initialData?: FollowUpControl | null): FormValues => ({
+    description: initialData?.description || "",
+    date: initialData?.date ? new Date(initialData.date) : new Date(),
+    image: undefined,
+    document: undefined,
+});
 
 export default function CreateFollowUpControl({
     mitigationMeasureId,
+    initialData,
+    onSuccess,
+    onCancel,
 }: CreateFollowUpControlProps) {
     const { selectedCompany } = useCompanyStore();
     const { createFollowUpControl } = useCreateFollowUpControl();
+    const { updateFollowUpControl } = useUpdateFollowUpControl();
+    const isEditing = Boolean(initialData);
 
     const form = useForm<FormValues>({
         resolver: zodResolver(FORM_SCHEMA),
-        defaultValues: {
-            description: "",
-            date: new Date(),
-        },
+        defaultValues: getDefaultValues(initialData),
     });
 
     useEffect(() => {
-        form.reset({
-            description: "",
-            date: new Date(),
-            image: undefined,
-            document: undefined,
-        });
-    }, [form, mitigationMeasureId]);
+        form.reset(getDefaultValues(initialData));
+    }, [form, initialData, mitigationMeasureId]);
 
     const onSubmit = async (values: FormValues) => {
-        await createFollowUpControl.mutateAsync({
-            company: selectedCompany?.slug || null,
-            data: {
-                description: values.description,
-                date: format(values.date, "yyyy-MM-dd"),
-                mitigation_measure_id: mitigationMeasureId.toString(),
-                image: values.image,
-                document: values.document,
-            },
-        });
+        const payload = {
+            description: values.description,
+            date: format(values.date, "yyyy-MM-dd"),
+            mitigation_measure_id: mitigationMeasureId.toString(),
+            image: values.image,
+            document: values.document,
+        };
 
-        form.reset({
-            description: "",
-            date: new Date(),
-            image: undefined,
-            document: undefined,
-        });
+        if (isEditing && initialData) {
+            await updateFollowUpControl.mutateAsync({
+                company: selectedCompany?.slug || null,
+                id: initialData.id,
+                data: payload,
+            });
+        } else {
+            await createFollowUpControl.mutateAsync({
+                company: selectedCompany?.slug || null,
+                data: payload,
+            });
+        }
+
+        form.reset(getDefaultValues(initialData));
+        onSuccess?.();
     };
 
     const selectedImage = form.watch("image");
     const selectedDocument = form.watch("document");
+    const isPending =
+        createFollowUpControl.isPending || updateFollowUpControl.isPending;
 
     return (
         <Form {...form}>
@@ -125,7 +144,7 @@ export default function CreateFollowUpControl({
                                             className={cn(
                                                 "pl-3 text-left font-normal",
                                                 !field.value &&
-                                                "text-muted-foreground"
+                                                    "text-muted-foreground"
                                             )}
                                         >
                                             {field.value ? (
@@ -174,9 +193,9 @@ export default function CreateFollowUpControl({
                                         }
                                     />
                                 </FormControl>
-                                {selectedImage && (
+                                {(selectedImage || initialData?.image) && (
                                     <p className="text-xs text-muted-foreground">
-                                        {selectedImage.name}
+                                        {selectedImage?.name || initialData?.image}
                                     </p>
                                 )}
                                 <FormMessage />
@@ -201,9 +220,9 @@ export default function CreateFollowUpControl({
                                         }
                                     />
                                 </FormControl>
-                                {selectedDocument && (
+                                {(selectedDocument || initialData?.document) && (
                                     <p className="text-xs text-muted-foreground">
-                                        {selectedDocument.name}
+                                        {selectedDocument?.name || initialData?.document}
                                     </p>
                                 )}
                                 <FormMessage />
@@ -212,17 +231,23 @@ export default function CreateFollowUpControl({
                     />
                 </div>
 
-                <Button
-                    type="submit"
-                    className="w-full"
-                    disabled={createFollowUpControl.isPending}
-                >
-                    {createFollowUpControl.isPending && (
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
+                    {onCancel && (
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={onCancel}
+                            disabled={isPending}
+                        >
+                            Cancelar
+                        </Button>
                     )}
-                    <Paperclip className="mr-2 h-4 w-4" />
-                    Agregar control
-                </Button>
+                    <Button type="submit" className="sm:min-w-52" disabled={isPending}>
+                        {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                        <Paperclip className="mr-2 h-4 w-4" />
+                        {isEditing ? "Guardar cambios" : "Agregar control"}
+                    </Button>
+                </div>
             </form>
         </Form>
     );
