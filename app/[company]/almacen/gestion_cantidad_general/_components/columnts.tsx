@@ -117,7 +117,7 @@ export function buildGeneralInventoryColumns({
             header: () => <div className="text-center text-sm font-medium">Acciones</div>,
             cell: ({ row }) => (
                 <div className="flex justify-center">
-                    <GeneralArticleDropDownActions id={String(row.original.id)} />
+                    <GeneralArticleDropDownActions article={(row.original)} />
                 </div>
             ),
             enableSorting: false,
