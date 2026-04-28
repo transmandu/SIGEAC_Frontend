@@ -1,20 +1,16 @@
 "use client";
 
-import Image from "next/image";
-import { useRouter } from "next/navigation";
 import { useEffect, useState, useMemo } from "react";
-
-import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { z } from "zod";
-
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
     Form,
     FormControl,
-    FormDescription,
     FormField,
     FormItem,
     FormLabel,
@@ -26,7 +22,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 import { useCompanyStore } from "@/stores/CompanyStore";
-import loadingGif from "@/public/loading2.gif";
 import { useCreateGeneralArticle, useUpdateGeneralArticle } from "@/actions/mantenimiento/almacen/inventario/articulos_generales/actions";
 import { useGetUnits } from "@/hooks/general/unidades/useGetPrimaryUnits";
 import { useAddQuantityGeneralArticle } from "@/hooks/mantenimiento/almacen/almacen_general/useAddQuantityGeneralArticle";
@@ -89,50 +84,23 @@ const CreateGeneralArticleForm = ({
     const { updateGeneralArticle } = useUpdateGeneralArticle();
     const { addQuantityGeneralArticle } = useAddQuantityGeneralArticle();
 
+    // 1. FORMULARIO CON VALORES POR DEFECTO DINÁMICOS
     const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),
-        defaultValues: {
-            mode: isEditing ? "edit" : "create",
-            quantity: 0,
-            warehouse_id: "2",
-            description: "",
-            brand_model: "",
-            variant_type: "",
-            primary_unit_id: "",
+        values: { // Usar 'values' en lugar de 'defaultValues' para que reaccione a props
+            mode: isEditing ? "edit" : (useExisting ? "add" : "create"),
+            description: isEditing ? (initialData?.description ?? "") : (selectedArticle?.description ?? ""),
+            brand_model: isEditing ? (initialData?.brand_model ?? "") : (selectedArticle?.brand_model ?? ""),
+            variant_type: isEditing ? (initialData?.variant_type ?? "") : (selectedArticle?.variant_type ?? ""),
+            primary_unit_id: isEditing
+                ? (initialData?.general_primary_unit?.id?.toString() ?? "")
+                : (selectedArticle?.general_primary_unit?.id?.toString() ?? ""),
+            quantity: isEditing ? (initialData?.quantity ?? 0) : 0,
+            warehouse_id: initialData?.warehouse?.id?.toString() ?? "2",
         },
     });
 
     const currentMode = form.watch("mode");
-
-    // CORRECCIÓN 1: Inicialización de datos existentes (Edición)
-    useEffect(() => {
-        if (!initialData || isUnitsLoading || isEditing === false) return;
-
-        form.reset({
-            mode: "edit",
-            description: initialData.description ?? "",
-            brand_model: initialData.brand_model ?? "",
-            variant_type: initialData.variant_type ?? "",
-            quantity: 0,
-            warehouse_id: initialData.warehouse?.id?.toString() ?? "2",
-            primary_unit_id: initialData.general_primary_unit?.id?.toString() ?? "",
-        });
-    }, [initialData, isUnitsLoading, isEditing, form]);
-
-    // CORRECCIÓN 2: Sincronizar inputs cuando se elige un artículo existente para sumar stock
-    useEffect(() => {
-        if (currentMode === "add" && selectedArticle) {
-            form.setValue("description", selectedArticle.description);
-            form.setValue("brand_model", selectedArticle.brand_model ?? "");
-            form.setValue("variant_type", selectedArticle.variant_type ?? "");
-            form.setValue("primary_unit_id", selectedArticle.general_primary_unit?.id?.toString() ?? "");
-        } else if (currentMode === "create" && !isEditing) {
-            form.setValue("description", "");
-            form.setValue("brand_model", "");
-            form.setValue("variant_type", "");
-            form.setValue("primary_unit_id", "");
-        }
-    }, [selectedArticle, currentMode, form, isEditing]);
 
     const busy = createGeneralArticle?.isPending || addQuantityGeneralArticle?.isPending || updateGeneralArticle?.isPending;
 
@@ -145,7 +113,6 @@ const CreateGeneralArticleForm = ({
 
     const onSubmit = async (values: FormValues) => {
         if (!selectedCompany?.slug) return;
-
         try {
             if (values.mode === "add") {
                 if (!selectedArticle) return;
@@ -153,9 +120,6 @@ const CreateGeneralArticleForm = ({
                     id: selectedArticle.id,
                     quantity: parseFloat(values.quantity.toFixed(2)),
                 });
-                form.reset();
-                setUseExisting(false);
-                setSelectedArticle(null);
             } else if (values.mode === "edit") {
                 await updateGeneralArticle.mutateAsync({
                     id: initialData?.id!,
@@ -166,7 +130,6 @@ const CreateGeneralArticleForm = ({
                         primary_unit_id: values.primary_unit_id || "",
                     },
                 });
-                if (onClose) onClose();
             } else {
                 await createGeneralArticle.mutateAsync({
                     company: selectedCompany.slug,
@@ -179,16 +142,22 @@ const CreateGeneralArticleForm = ({
                         quantity: parseFloat(values.quantity!.toFixed(2)),
                     },
                 });
-                form.reset();
             }
+            if (onClose) onClose();
+            else form.reset();
         } catch (error) {
-            console.error("Error al procesar formulario:", error);
+            console.error("Error:", error);
         }
     };
 
     return (
         <Form {...form}>
-            <form className="flex flex-col gap-4" onSubmit={form.handleSubmit(onSubmit)}>
+            {/* LA CLAVE: El key hace que el formulario se RESETEE por completo al cambiar de artículo */}
+            <form
+                key={isEditing ? `edit-${initialData?.id}` : (selectedArticle ? `add-${selectedArticle.id}` : 'create')}
+                className="flex flex-col gap-4"
+                onSubmit={form.handleSubmit(onSubmit)}
+            >
                 <div className="space-y-1">
                     <h2 className="text-lg font-semibold">
                         {isEditing ? "Editar Artículo General" : "Registrar Artículo General"}
@@ -202,10 +171,8 @@ const CreateGeneralArticleForm = ({
                                 type="checkbox"
                                 checked={useExisting}
                                 onChange={(e) => {
-                                    const checked = e.target.checked;
-                                    setUseExisting(checked);
-                                    form.setValue("mode", checked ? "add" : "create");
-                                    if (!checked) setSelectedArticle(null);
+                                    setUseExisting(e.target.checked);
+                                    if (!e.target.checked) setSelectedArticle(null);
                                 }}
                                 className="h-4 w-4 accent-primary"
                             />
@@ -308,6 +275,7 @@ const CreateGeneralArticleForm = ({
                                 <Select
                                     disabled={currentMode === "add"}
                                     onValueChange={field.onChange}
+                                    defaultValue={field.value}
                                     value={field.value}
                                 >
                                     <FormControl>
@@ -332,7 +300,7 @@ const CreateGeneralArticleForm = ({
                 <Separator className="my-2" />
 
                 <div className="flex justify-end gap-3">
-                    <Button type="button" variant="ghost" onClick={() => router.back()} disabled={busy}>
+                    <Button type="button" variant="ghost" onClick={() => (onClose ? onClose() : router.back())} disabled={busy}>
                         Cancelar
                     </Button>
                     <Button type="submit" disabled={busy || (currentMode === "add" && !selectedArticle)} className="min-w-[120px]">
