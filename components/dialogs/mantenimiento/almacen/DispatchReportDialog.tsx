@@ -2,25 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
-import { es } from "date-fns/locale";
-
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger
-} from "@/components/ui/tooltip";
-
-import {
-  Calendar as CalendarIcon,
-  Loader2,
-  FileText,
-  Scale,
-  Download,
-  AlertCircle
-} from "lucide-react";
-
-import { Button } from "@/components/ui/button";
 
 import {
   Dialog,
@@ -31,21 +12,8 @@ import {
   DialogTrigger
 } from "@/components/ui/dialog";
 
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
-} from "@/components/ui/select";
-
-import { Calendar } from "@/components/ui/calendar";
-
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger
-} from "@/components/ui/popover";
+import { Button } from "@/components/ui/button";
+import { Loader2, Download, FileText, Scale } from "lucide-react";
 
 import {
   Tabs,
@@ -54,11 +22,9 @@ import {
   TabsTrigger
 } from "@/components/ui/tabs";
 
-import { cn } from "@/lib/utils";
 import { RiFileExcel2Fill } from "react-icons/ri";
 
 import { useCompanyStore } from "@/stores/CompanyStore";
-import { useAuth } from "@/contexts/AuthContext";
 
 import { useGetAircrafts } from "@/hooks/aerolinea/aeronaves/useGetAircrafts";
 import { useGetDispatchReport } from "@/hooks/mantenimiento/almacen/reportes/useGetDispatchReport";
@@ -67,34 +33,44 @@ import { useGetAuthorizedEmployees } from "@/hooks/sistema/autorizados/useGetAut
 import { useGetThirdParties } from "@/hooks/general/terceros/useGetThirdParties";
 import { useGetDepartments } from "@/hooks/sistema/departamento/useGetDepartment";
 
+import { useGetArticlesByStatus } from "@/hooks/mantenimiento/almacen/articulos/useGetArticlesByStatus";
+import { useGetGeneralArticles } from "@/hooks/mantenimiento/almacen/almacen_general/useGetGeneralArticles";
+
+import { DispatchReportFilters } from "@/components/dialogs/mantenimiento/almacen/DispatchReportFilters";
+
 export function DispatchReportDialog() {
   const { selectedStation, selectedCompany } = useCompanyStore();
-  const { user } = useAuth();
 
-  const roles = user?.roles ?? [];
-
-  const isAdminRole = roles.some(r =>
-    ["JEFE_ADMINISTRACION", "ANALISTA_ADMINISTRACION"].includes(r.name)
-  );
-
-  const defaultTab = isAdminRole ? "balance" : "dispatch";
-
-  const [activeTab, setActiveTab] = useState(defaultTab);
+  const [activeTab, setActiveTab] = useState("dispatch");
   const [open, setOpen] = useState(false);
   const [loadingDownload, setLoadingDownload] = useState(false);
 
+  // ===================== FECHAS =====================
   const [startDate, setStartDate] = useState<Date | undefined>();
   const [endDate, setEndDate] = useState<Date | undefined>();
+
+  // ===================== FILTROS BASE =====================
   const [aircraft, setAircraft] = useState<string | null>(null);
   const [departmentId, setDepartmentId] = useState<string | null>(null);
   const [authorizedEmployeeId, setAuthorizedEmployeeId] = useState<string | null>(null);
   const [thirdPartyId, setThirdPartyId] = useState<string | null>(null);
+
+  // ===================== FILTROS ARTÍCULOS =====================
+  const [articleFilters, setArticleFilters] = useState({
+    part_number: "",
+    alternative_part_number: "",
+    description: "",
+    batch_id: "",
+    variant_type: "",
+    brand_model: ""
+  });
 
   const today = new Date();
 
   const { mutateAsync: getDispatch } = useGetDispatchReport();
   const { mutateAsync: getBalance } = useGetBalanceAndTotalReport();
 
+  // ===================== DATA =====================
   const { data: aircrafts, isLoading: isLoadingAircrafts } =
     useGetAircrafts(selectedCompany?.slug);
 
@@ -107,8 +83,28 @@ export function DispatchReportDialog() {
   const { data: thirdParties, isLoading: isLoadingThirdParties } =
     useGetThirdParties();
 
-  const isDateRangeInvalid = startDate && endDate && endDate < startDate;
-  const areDatesMissing = !startDate || !endDate;
+  // ===================== ARTÍCULOS =====================
+  const { data: articlesByStatus = [], isLoading: isLoadingArticles } =
+    useGetArticlesByStatus("STORED");
+
+  const { data: generalArticles = [], isLoading: isLoadingGeneralArticles } =
+    useGetGeneralArticles();
+
+  // 🔥 UNIFICACIÓN DE FUENTES
+  const allArticles = [...articlesByStatus, ...generalArticles];
+
+  // ===================== VALIDACIÓN FECHAS =====================
+  const isDateRangeInvalid =
+    !!startDate &&
+    !!endDate &&
+    endDate < startDate;
+
+  const canDownload =
+    !!selectedStation &&
+    !!selectedCompany?.slug &&
+    !!startDate &&
+    !!endDate &&
+    !isDateRangeInvalid;
 
   useEffect(() => {
     if (!open) {
@@ -118,29 +114,46 @@ export function DispatchReportDialog() {
       setDepartmentId(null);
       setAuthorizedEmployeeId(null);
       setThirdPartyId(null);
-      setActiveTab(defaultTab);
-    }
-  }, [open, defaultTab]);
 
+      setArticleFilters({
+        part_number: "",
+        alternative_part_number: "",
+        description: "",
+        batch_id: "",
+        variant_type: "",
+        brand_model: ""
+      });
+
+      setActiveTab("dispatch");
+    }
+  }, [open]);
+
+  // ===================== PARAMS =====================
   const buildParams = () => ({
     location_id: selectedStation!,
     company: selectedCompany!.slug,
+
     aircraft_id: aircraft || undefined,
     department_id: departmentId || undefined,
     authorized_employee_id: authorizedEmployeeId || undefined,
     third_party_id: thirdPartyId || undefined,
+
     from: format(startDate!, "yyyy-MM-dd"),
     to: format(endDate!, "yyyy-MM-dd"),
+
+    // ===================== ARTÍCULOS =====================
+    part_number: articleFilters.part_number || undefined,
+    alternative_part_number: articleFilters.alternative_part_number || undefined,
+    description: articleFilters.description || undefined,
+    batch_id: articleFilters.batch_id || undefined,
+    variant_type: articleFilters.variant_type || undefined,
+    brand_model: articleFilters.brand_model || undefined
+    
   });
 
-  const canDownload =
-    !!selectedStation &&
-    !!selectedCompany?.slug &&
-    !areDatesMissing &&
-    !isDateRangeInvalid;
-
-  const handleDownload = async (reportType: "dispatch" | "balance") => {
-    if (loadingDownload || !canDownload) return;
+  // ===================== DOWNLOAD =====================
+  const handleDownload = async (type: "dispatch" | "balance") => {
+    if (!canDownload || loadingDownload) return;
 
     try {
       setLoadingDownload(true);
@@ -148,7 +161,7 @@ export function DispatchReportDialog() {
       const params = buildParams();
 
       const blob =
-        reportType === "dispatch"
+        type === "dispatch"
           ? await getDispatch(params)
           : await getBalance({ ...params, format: "pdf" });
 
@@ -156,12 +169,10 @@ export function DispatchReportDialog() {
 
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
+
       link.href = url;
+      link.download = `${type}-report-${format(startDate!, "yyyyMMdd")}-${format(endDate!, "yyyyMMdd")}.pdf`;
 
-      const reportName =
-        reportType === "dispatch" ? "reporte-salidas" : "reporte-balance-total";
-
-      link.download = `${reportName}-${format(startDate!, "yyyyMMdd")}-${format(endDate!, "yyyyMMdd")}.pdf`;
       link.click();
       setTimeout(() => URL.revokeObjectURL(url), 100);
 
@@ -171,8 +182,8 @@ export function DispatchReportDialog() {
     }
   };
 
-  const handleExcelDownload = async (reportType: "dispatch" | "balance") => {
-    if (loadingDownload || !canDownload) return;
+  const handleExcel = async (type: "dispatch" | "balance") => {
+    if (!canDownload || loadingDownload) return;
 
     try {
       setLoadingDownload(true);
@@ -180,7 +191,7 @@ export function DispatchReportDialog() {
       const params = { ...buildParams(), format: "excel" as const };
 
       const blob =
-        reportType === "dispatch"
+        type === "dispatch"
           ? await getDispatch(params)
           : await getBalance(params);
 
@@ -188,12 +199,10 @@ export function DispatchReportDialog() {
 
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
+
       link.href = url;
+      link.download = `${type}-report-${format(startDate!, "yyyyMMdd")}-${format(endDate!, "yyyyMMdd")}.xlsx`;
 
-      const reportName =
-        reportType === "dispatch" ? "reporte-salidas" : "reporte-balance-total";
-
-      link.download = `${reportName}-${format(startDate!, "yyyyMMdd")}-${format(endDate!, "yyyyMMdd")}.xlsx`;
       link.click();
       setTimeout(() => URL.revokeObjectURL(url), 100);
     } finally {
@@ -204,298 +213,115 @@ export function DispatchReportDialog() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" className="border-dashed h-8">
-          Generar Reporte
-        </Button>
+        <Button variant="outline">Generar Reporte</Button>
       </DialogTrigger>
 
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[550px]">
         <DialogHeader>
           <DialogTitle>Centro de Reportes de Almacén</DialogTitle>
           <DialogDescription>
-            Configura el rango de fechas y filtros para tu documento PDF.
+            Configura filtros y genera reportes de operación.
           </DialogDescription>
         </DialogHeader>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-2 mb-4">
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
+          <TabsList className="grid grid-cols-2">
             <TabsTrigger value="dispatch" className="flex gap-2 text-xs">
               <FileText className="w-3.5 h-3.5" />
-              Reporte Salidas
+              Salidas
             </TabsTrigger>
 
             <TabsTrigger value="balance" className="flex gap-2 text-xs">
               <Scale className="w-3.5 h-3.5" />
-              Balance Total
+              Balance
             </TabsTrigger>
           </TabsList>
 
-          <div className="space-y-4 py-2">
-            {/* Rango de fechas */}
-            <div className="w-full space-y-3 p-4 bg-muted/30 rounded-lg border">
-              <label className="text-sm font-medium flex items-center gap-2">
-                <CalendarIcon className="w-4 h-4 text-primary" />
-                Rango de Fechas Obligatorio
-              </label>
+          <DispatchReportFilters
+            startDate={startDate}
+            endDate={endDate}
+            setStartDate={setStartDate}
+            setEndDate={setEndDate}
 
-              <div className="flex gap-2 justify-between">
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className={cn(
-                        "w-full text-xs justify-start",
-                        !startDate && "text-muted-foreground"
-                      )}
-                    >
-                      {startDate
-                        ? format(startDate, "dd/MM/yyyy", { locale: es })
-                        : "Desde"}
-                    </Button>
-                  </PopoverTrigger>
+            aircraft={aircraft}
+            setAircraft={setAircraft}
+            aircrafts={aircrafts}
+            isLoadingAircrafts={isLoadingAircrafts}
 
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={startDate}
-                      onSelect={setStartDate}
-                      locale={es}
-                      disabled={date => date > today}
-                      initialFocus
-                    />
-                  </PopoverContent>
-                </Popover>
+            departmentId={departmentId}
+            setDepartmentId={setDepartmentId}
+            departments={departments}
+            isLoadingDepartments={isLoadingDepartments}
 
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className={cn(
-                        "w-full text-xs justify-start",
-                        !endDate && "text-muted-foreground"
-                      )}
-                    >
-                      {endDate
-                        ? format(endDate, "dd/MM/yyyy", { locale: es })
-                        : "Hasta"}
-                    </Button>
-                  </PopoverTrigger>
+            authorizedEmployeeId={authorizedEmployeeId}
+            setAuthorizedEmployeeId={setAuthorizedEmployeeId}
+            authorizedEmployees={authorizedEmployees}
+            isLoadingEmployees={isLoadingEmployees}
 
-                  <PopoverContent className="w-auto p-0" align="end">
-                    <Calendar
-                      mode="single"
-                      selected={endDate}
-                      onSelect={setEndDate}
-                      locale={es}
-                      disabled={date =>
-                        date > today || (startDate ? date < startDate : false)
-                      }
-                      initialFocus
-                    />
-                  </PopoverContent>
-                </Popover>
-              </div>
+            thirdPartyId={thirdPartyId}
+            setThirdPartyId={setThirdPartyId}
+            thirdParties={thirdParties}
+            isLoadingThirdParties={isLoadingThirdParties}
 
-              {isDateRangeInvalid && (
-                <div className="flex items-center gap-2 text-[10px] text-destructive mt-1 animate-pulse">
-                  <AlertCircle className="w-3 h-3" />
-                  La fecha final debe ser mayor a la inicial.
-                </div>
-              )}
-            </div>
+            // 🔥 ARTÍCULOS UNIFICADOS
+            articles={allArticles}
+            isLoadingArticles={isLoadingArticles || isLoadingGeneralArticles}
+            articleFilters={articleFilters}
+            setArticleFilters={setArticleFilters}
 
-            {/* Filtro por Aeronave */}
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium">
-                Aeronave (Opcional)
-              </label>
+            isDateRangeInvalid={isDateRangeInvalid}
+          />
 
-              <Select
-                onValueChange={value =>
-                  setAircraft(value === "all" ? null : value)
-                }
-                value={aircraft || "all"}
+          <TabsContent value="dispatch" className="mt-4">
+            <div className="flex gap-2">
+              <Button
+                className="w-full"
+                onClick={() => handleDownload("dispatch")}
+                disabled={!canDownload || loadingDownload}
               >
-                <SelectTrigger disabled={isLoadingAircrafts}>
-                  <SelectValue placeholder="Todas las aeronaves" />
-                </SelectTrigger>
+                {loadingDownload ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <Download className="mr-2 h-4 w-4" />
+                )}
+                Descargar Reporte de  Salidas (PDF)
+              </Button>
 
-                <SelectContent>
-                  <SelectItem value="all">Todas las aeronaves</SelectItem>
-
-                  {aircrafts?.map(item => (
-                    <SelectItem key={item.id} value={item.id.toString()}>
-                      {item.acronym ?? `Aeronave #${item.id}`}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Filtro por Departamento */}
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium">
-                Departamento (Opcional)
-              </label>
-
-              <Select
-                onValueChange={value =>
-                  setDepartmentId(value === "all" ? null : value)
-                }
-                value={departmentId || "all"}
+              <Button
+                variant="outline"
+                onClick={() => handleExcel("dispatch")}
+                disabled={!canDownload || loadingDownload}
               >
-                <SelectTrigger disabled={isLoadingDepartments}>
-                  <SelectValue placeholder="Todos los departamentos" />
-                </SelectTrigger>
-
-                <SelectContent>
-                  <SelectItem value="all">Todos los departamentos</SelectItem>
-
-                  {departments?.map(dep => (
-                    <SelectItem key={dep.id} value={dep.id.toString()}>
-                      {dep.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                <RiFileExcel2Fill className="h-5 w-5 text-green-600" />
+              </Button>
             </div>
+          </TabsContent>
 
-            {/* Filtro por Empresa (Empleado Autorizado) */}
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium">
-                Empresa (Opcional)
-              </label>
-
-              <Select
-                onValueChange={value =>
-                  setAuthorizedEmployeeId(value === "all" ? null : value)
-                }
-                value={authorizedEmployeeId || "all"}
+          <TabsContent value="balance" className="mt-4">
+            <div className="flex gap-2">
+              <Button
+                className="w-full"
+                onClick={() => handleDownload("balance")}
+                disabled={!canDownload || loadingDownload}
               >
-                <SelectTrigger disabled={isLoadingEmployees}>
-                  <SelectValue placeholder="Todas las empresas" />
-                </SelectTrigger>
+                {loadingDownload ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <Download className="mr-2 h-4 w-4" />
+                )}
+                Descargar Balance Total (PDF)
+              </Button>
 
-                <SelectContent>
-                  <SelectItem value="all">Todas las empresas</SelectItem>
-
-                  {authorizedEmployees?.map(emp => (
-                    <SelectItem key={emp.id} value={emp.id.toString()}>
-                      {emp.employee_name} — {emp.from_company_db}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Filtro por Tercero */}
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium">
-                Tercero (Opcional)
-              </label>
-
-              <Select
-                onValueChange={value =>
-                  setThirdPartyId(value === "all" ? null : value)
-                }
-                value={thirdPartyId || "all"}
+              <Button
+                variant="outline"
+                onClick={() => handleExcel("balance")}
+                disabled={!canDownload || loadingDownload}
               >
-                <SelectTrigger disabled={isLoadingThirdParties}>
-                  <SelectValue placeholder="Todos los terceros" />
-                </SelectTrigger>
-
-                <SelectContent>
-                  <SelectItem value="all">Todos los terceros</SelectItem>
-
-                  {thirdParties?.map(tp => (
-                    <SelectItem key={tp.id} value={tp.id.toString()}>
-                      {tp.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                <RiFileExcel2Fill className="h-5 w-5 text-green-600" />
+              </Button>
             </div>
+          </TabsContent>
 
-            <TabsContent value="dispatch">
-              <div className="flex gap-2">
-                <Button
-                  className="w-full"
-                  onClick={() => handleDownload("dispatch")}
-                  disabled={loadingDownload || !canDownload}
-                >
-                  {loadingDownload
-                    ? <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    : <Download className="mr-2 h-4 w-4" />}
-
-                  Descargar Reporte de Salidas
-                </Button>
-
-                <TooltipProvider>
-                  <Tooltip delayDuration={100}>
-                    <TooltipTrigger asChild>
-                      <button
-                        type="button"
-                        onClick={() => handleExcelDownload("dispatch")}
-                        disabled={loadingDownload || !canDownload}
-                        className="disabled:opacity-50"
-                        aria-label="Descargar Excel"
-                      >
-                        {loadingDownload
-                          ? <Loader2 className="size-5 animate-spin" />
-                          : <RiFileExcel2Fill className="size-6 text-green-600/80 hover:scale-125 transition-transform" />}
-                      </button>
-                    </TooltipTrigger>
-
-                    <TooltipContent>
-                      {!selectedStation || !selectedCompany?.slug
-                        ? "Selecciona ubicación y compañía"
-                        : "Descargar Excel"}
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </div>
-            </TabsContent>
-
-            <TabsContent value="balance">
-              <div className="flex gap-2">
-                <Button
-                  className="w-full"
-                  onClick={() => handleDownload("balance")}
-                  disabled={loadingDownload || !canDownload}
-                >
-                  {loadingDownload
-                    ? <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    : <Download className="mr-2 h-4 w-4" />}
-
-                  Descargar Balance Total
-                </Button>
-
-                <TooltipProvider>
-                  <Tooltip delayDuration={100}>
-                    <TooltipTrigger asChild>
-                      <button
-                        type="button"
-                        onClick={() => handleExcelDownload("balance")}
-                        disabled={loadingDownload || !canDownload}
-                        className="disabled:opacity-50"
-                        aria-label="Descargar Excel"
-                      >
-                        {loadingDownload
-                          ? <Loader2 className="size-5 animate-spin" />
-                          : <RiFileExcel2Fill className="size-6 text-green-600/80 hover:scale-125 transition-transform" />}
-                      </button>
-                    </TooltipTrigger>
-
-                    <TooltipContent>
-                      {!selectedStation || !selectedCompany?.slug
-                        ? "Selecciona ubicación y compañía"
-                        : "Descargar Excel"}
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </div>
-            </TabsContent>
-          </div>
         </Tabs>
       </DialogContent>
     </Dialog>
