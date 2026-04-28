@@ -32,13 +32,11 @@ import {
 } from "@/components/ui/popover";
 
 import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@/components/ui/command";
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 import { cn } from "@/lib/utils";
 
@@ -201,6 +199,63 @@ export function DispatchReportFilters({
     return stringValue.length > 0 ? stringValue : null;
   };
 
+  // ================= RESUMEN FILTRO GENERAL =================
+  const generalSelectedFilters = [
+    aircraft && {
+      label: "Aeronave",
+      value:
+        aircrafts?.find((a) => String(a.id) === String(aircraft))?.acronym ??
+        aircraft,
+    },
+    departmentId && {
+      label: "Departamento",
+      value:
+        departments?.find((d) => String(d.id) === String(departmentId))?.name ??
+        departmentId,
+    },
+    authorizedEmployeeId && {
+      label: "Empresa",
+      value:
+        authorizedEmployees?.find(
+          (e) => String(e.id) === String(authorizedEmployeeId)
+        )?.employee_name ?? authorizedEmployeeId,
+    },
+    thirdPartyId && {
+      label: "Tercero",
+      value:
+        thirdParties?.find((t) => String(t.id) === String(thirdPartyId))?.name ??
+        thirdPartyId,
+    },
+  ].filter(Boolean) as { label: string; value: string }[];
+
+  const generalSelectedCount = generalSelectedFilters.length;
+
+  // ================= RESUMEN FILTRO ARTÍCULOS =================
+  const articleSelectedFilters = [
+    articleFilters.part_number && {
+      label: "Part Number",
+      value: articleFilters.part_number,
+    },
+    articleFilters.alternative_part_number && {
+      label: "Alt Part",
+      value: articleFilters.alternative_part_number,
+    },
+    articleFilters.description && {
+      label: "Descripción",
+      value: articleFilters.description,
+    },
+    articleFilters.variant_type && {
+      label: "Presentación",
+      value: articleFilters.variant_type,
+    },
+    articleFilters.brand_model && {
+      label: "Marca",
+      value: articleFilters.brand_model,
+    },
+  ].filter(Boolean) as { label: string; value: string }[];
+
+  const articleSelectedCount = articleSelectedFilters.length;
+
   return (
     <div className="space-y-4 py-2 flex flex-col items-center">
 
@@ -286,12 +341,44 @@ export function DispatchReportFilters({
             >
               <span className="flex items-center gap-2 text-foreground/80">
                 <Filter className="w-4 h-4 text-muted-foreground" />
-                Filtro General
+
+                {generalSelectedCount === 0 ? (
+                  "Filtro General"
+                ) : (
+                  <span className="text-sm font-medium">
+                    Filtros Generales
+                  </span>
+                )}
               </span>
 
-              <span className="text-xs text-muted-foreground">
-                Aeronave / Depto / ...
-              </span>
+              <div className="flex items-center gap-2">
+                {generalSelectedCount > 0 && (
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <div className="w-6 h-6 rounded-full bg-indigo-600 text-white text-[11px] flex items-center justify-center font-medium">
+                          {generalSelectedCount}
+                        </div>
+                      </TooltipTrigger>
+
+                      <TooltipContent className="text-xs space-y-1">
+                        {generalSelectedFilters.map((f, i) => (
+                          <div key={i}>
+                            {f.label}:{" "}
+                            <span className="font-medium">{f.value}</span>
+                          </div>
+                        ))}
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                )}
+
+                {generalSelectedCount === 0 && (
+                  <span className="text-xs text-muted-foreground hidden sm:block">
+                    Aeronave / Depto / ...
+                  </span>
+                )}
+              </div>
             </Button>
           </PopoverTrigger>
 
@@ -395,12 +482,44 @@ export function DispatchReportFilters({
             >
               <span className="flex items-center gap-2 text-foreground/80">
                 <PackageSearch className="w-4 h-4 text-muted-foreground" />
-                Filtro de Artículos
+
+                {articleSelectedCount === 0 ? (
+                  "Filtro de Artículos"
+                ) : (
+                  <span className="text-sm font-medium">
+                    Filtro de Artículos
+                  </span>
+                )}
               </span>
 
-              <span className="text-xs text-muted-foreground">
-                Part / Desc / Marca...
-              </span>
+              <div className="flex items-center gap-2">
+                {articleSelectedCount > 0 && (
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <div className="w-6 h-6 rounded-full bg-indigo-600 text-white text-[11px] flex items-center justify-center font-medium">
+                          {articleSelectedCount}
+                        </div>
+                      </TooltipTrigger>
+
+                      <TooltipContent className="text-xs space-y-1">
+                        {articleSelectedFilters.map((f, i) => (
+                          <div key={i}>
+                            {f.label}:{" "}
+                            <span className="font-medium">{f.value}</span>
+                          </div>
+                        ))}
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                )}
+
+                {articleSelectedCount === 0 && (
+                  <span className="text-xs text-muted-foreground hidden sm:block">
+                    Part / Desc / Marca...
+                  </span>
+                )}
+              </div>
             </Button>
           </PopoverTrigger>
 
