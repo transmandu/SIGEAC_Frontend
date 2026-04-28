@@ -1,9 +1,8 @@
 // hooks/useGetVoluntaryReportById.ts
 import axiosInstance from "@/lib/axios";
-import { DangerIdentification } from "@/types";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
-
+// TODO : NEED TO FIX THIS USE GET TO SMS aeronautical
 const fetchVoluntaryReportById = async ({
     company,
     id,
@@ -12,7 +11,7 @@ const fetchVoluntaryReportById = async ({
     id: string;
 }) => {
     const { data } = await axiosInstance.get(
-        `/${company}/sms/voluntary-reports/${id}`
+        `/${company}/sms/aeronautical/voluntary-reports/${id}`
     );
 
     // Solo cargar URLs de imagen y documento
