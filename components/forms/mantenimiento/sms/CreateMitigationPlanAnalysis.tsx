@@ -125,15 +125,18 @@ const getDefaultValues = (
     const parsedConsequences = parsePossibleConsequences(
         mitigationPlan?.possible_consequences
     );
-    const selectedConsequence = mitigationPlan?.consequence_to_evaluate || "";
-    console.log('che consecuencia elegida', selectedConsequence);
+    const selectedConsequenceRaw = (mitigationPlan?.consequence_to_evaluate || "").trim();
+
+    // Prefer the exact trimmed match from parsed consequences, otherwise pick the first available
+    const selectedConsequence =
+        parsedConsequences.find((c) => c.trim() === selectedConsequenceRaw) ||
+        (parsedConsequences.length ? parsedConsequences[0] : "");
+
     return {
         area_responsible: mitigationPlan?.area_responsible || "",
         description: mitigationPlan?.description || "",
         possible_consequences: serializePossibleConsequences(parsedConsequences),
-        consequence_to_evaluate: parsedConsequences.includes(selectedConsequence)
-            ? selectedConsequence
-            : "",
+        consequence_to_evaluate: selectedConsequence,
         probability: analysis?.probability || "",
         severity: analysis?.severity || "",
     };

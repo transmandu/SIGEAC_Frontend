@@ -81,6 +81,9 @@ export interface MitigationMeasure {
     estimated_date: string;
     execution_date?: string;
     follow_up_controls?: FollowUpControl[];
+    // Some APIs return `follow_up_control` (singular) instead of `follow_up_controls`.
+    // Accept both shapes for compatibility.
+    follow_up_control?: FollowUpControl[];
 
 }
 
