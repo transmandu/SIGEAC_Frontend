@@ -1,6 +1,7 @@
 import {
   useDeleteCourse,
   useFinishCourse,
+  useReopenCourse,
 } from "@/actions/general/cursos/actions";
 import { AddCourseAttendanceForm } from "@/components/forms/aerolinea/sms/AddCourseAtendanceForm";
 import { AddToCourseForm } from "@/components/forms/aerolinea/sms/AddToCourseForm";
@@ -29,6 +30,7 @@ import {
   EyeIcon,
   Loader2,
   LockKeyholeOpen,
+  LockOpen,
   MoreHorizontal,
   Plus,
   Trash2,
@@ -43,10 +45,12 @@ const CourseDropdownActions = ({ course }: { course: Course }) => {
   const { selectedCompany } = useCompanyStore();
   const { deleteCourse } = useDeleteCourse();
   const { finishCourse } = useFinishCourse();
+  const { reopenCourse } = useReopenCourse();
   const [openDelete, setOpenDelete] = useState<boolean>(false);
   const [openAdd, setOpenAdd] = useState(false);
   const [openStatus, setOpenStatus] = useState(false);
   const [openAttendance, setOpenAttendance] = useState(false);
+  const [openReopen, setOpenReopen] = useState(false);
 
   const router = useRouter();
   const handleDelete = async () => {
@@ -63,6 +67,14 @@ const CourseDropdownActions = ({ course }: { course: Course }) => {
       company: selectedCompany!.slug,
     });
     setOpenStatus(false);
+  };
+
+  const handleReopenCourse = async () => {
+    await reopenCourse.mutateAsync({
+      id: course.id.toString(),
+      company: selectedCompany!.slug,
+    });
+    setOpenReopen(false);
   };
 
   const realNow = startOfDay(new Date());
@@ -127,6 +139,13 @@ const CourseDropdownActions = ({ course }: { course: Course }) => {
               <DropdownMenuItem onClick={() => setOpenStatus(true)}>
                 <LockKeyholeOpen className="size-5 text-green-400" />
                 <p className="pl-2">Finalizar</p>
+              </DropdownMenuItem>
+            )}
+
+            {course.status === "CERRADO" && (
+              <DropdownMenuItem onClick={() => setOpenReopen(true)}>
+                <LockOpen className="size-5 text-blue-400" />
+                <p className="pl-2">Reabrir</p>
               </DropdownMenuItem>
             )}
           </DropdownMenuContent>
@@ -241,6 +260,42 @@ const CourseDropdownActions = ({ course }: { course: Course }) => {
               onClick={() => handleCloseCourse()}
             >
               {deleteCourse.isPending ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : (
+                <p>Confirmar</p>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={openReopen} onOpenChange={setOpenReopen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="text-center">
+              ¿Seguro que desea reabrir el curso?
+            </DialogTitle>
+            <DialogDescription className="text-center p-2 mb-0 pb-0">
+              Esta acción cambiará el estatus del curso a{" "}
+              <span className="font-semibold text-green-400">ABIERTO</span>.
+            </DialogDescription>
+          </DialogHeader>
+
+          <DialogFooter className="flex flex-col-reverse gap-2 md:gap-0">
+            <Button
+              className="bg-rose-400 hover:bg-white hover:text-black hover:border hover:border-black"
+              onClick={() => setOpenReopen(false)}
+              type="button"
+            >
+              Cancelar
+            </Button>
+
+            <Button
+              disabled={reopenCourse.isPending}
+              className="hover:bg-white hover:text-black hover:border hover:border-black transition-all"
+              onClick={() => handleReopenCourse()}
+            >
+              {reopenCourse.isPending ? (
                 <Loader2 className="size-4 animate-spin" />
               ) : (
                 <p>Confirmar</p>
