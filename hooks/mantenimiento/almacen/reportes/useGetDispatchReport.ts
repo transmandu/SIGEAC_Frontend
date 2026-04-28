@@ -14,6 +14,12 @@ interface DispatchReportParams {
   from: string;
   to: string;
   format?: "pdf" | "excel";
+  part_number?: string | null;
+  alternative_part_number?: string | null;
+  description?: string | null;
+  batch_id?: string | null;
+  variant_type?: string | null;
+  brand_model?: string | null;
 }
 
 export const useGetDispatchReport = () => {
@@ -37,6 +43,12 @@ export const useGetDispatchReport = () => {
             third_party_id: params.third_party_id ?? undefined,
             from: params.from,
             to: params.to,
+            part_number: params.part_number ?? undefined,
+            alternative_part_number: params.alternative_part_number ?? undefined,
+            description: params.description ?? undefined,
+            batch_id: params.batch_id ?? undefined,
+            variant_type: params.variant_type ?? undefined,
+            brand_model: params.brand_model ?? undefined,
           },
           responseType: "blob",
         });
