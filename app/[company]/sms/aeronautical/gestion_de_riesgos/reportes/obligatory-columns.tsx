@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { dateFormat } from "@/lib/utils";
 import { ObligatoryReport } from "@/types/sms/mantenimiento";
 import { getBadgeStatusClass } from "@/lib/sms/utils";
+import { ReportDetailActions } from "./_components/report-detail-actions";
 
 export const columns: ColumnDef<ObligatoryReport>[] = [
 
@@ -86,7 +87,8 @@ export const columns: ColumnDef<ObligatoryReport>[] = [
                 </div>
             );
         },
-    }, {
+    },
+    {
         accessorKey: "status",
         header: ({ column }) => (
             <DataTableColumnHeader column={column} title="Estado" />
@@ -104,16 +106,13 @@ export const columns: ColumnDef<ObligatoryReport>[] = [
             );
         },
     },
-
-    // {
-    //     id: "actions",
-    //     cell: ({ row }) => {
-    //         const obligatoryReport = row.original;
-    //         return (
-    //             <ObligatoryReportDropdownActions
-    //                 obligatoryReport={obligatoryReport}
-    //             ></ObligatoryReportDropdownActions>
-    //         );
-    //     },
-    // },
+    {
+        id: "actions",
+        header: () => <span className="sr-only">Acciones</span>,
+        cell: ({ row }) => (
+            <div className="flex justify-center">
+                <ReportDetailActions id={row.original.id} kind="ROS" />
+            </div>
+        ),
+    },
 ];

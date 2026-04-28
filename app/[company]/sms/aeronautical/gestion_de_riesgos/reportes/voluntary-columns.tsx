@@ -8,6 +8,7 @@ import { dateFormat } from "@/lib/utils";
 import { VoluntaryReport } from "@/types/sms/mantenimiento";
 import { Badge } from "@/components/ui/badge";
 import { getBadgeStatusClass } from "@/lib/sms/utils";
+import { ReportDetailActions } from "./_components/report-detail-actions";
 
 export const columns: ColumnDef<VoluntaryReport>[] = [
 
@@ -69,13 +70,13 @@ export const columns: ColumnDef<VoluntaryReport>[] = [
             );
         },
     },
-    // {
-    //     id: "actions",
-    //     cell: ({ row }) => {
-    //         const voluntaryReport = row.original;
-    //         return (
-    //             <VoluntaryReportDropdownActions voluntaryReport={voluntaryReport} />
-    //         );
-    //     },
-    // },
+    {
+        id: "actions",
+        header: () => <span className="sr-only">Acciones</span>,
+        cell: ({ row }) => (
+            <div className="flex justify-center">
+                <ReportDetailActions id={row.original.id} kind="RVP" />
+            </div>
+        ),
+    },
 ];
