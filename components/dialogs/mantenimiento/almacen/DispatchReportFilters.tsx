@@ -7,7 +7,8 @@ import {
   Calendar as CalendarIcon,
   AlertCircle,
   Filter,
-  PackageSearch
+  PackageSearch,
+  Check
 } from "lucide-react";
 
 import { useState, useMemo } from "react";
@@ -29,6 +30,15 @@ import {
   PopoverContent,
   PopoverTrigger
 } from "@/components/ui/popover";
+
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
 
 import { cn } from "@/lib/utils";
 
@@ -122,6 +132,12 @@ export function DispatchReportFilters({
   const [openStartDate, setOpenStartDate] = useState(false);
   const [openEndDate, setOpenEndDate] = useState(false);
 
+  const [partNumberSearch, setPartNumberSearch] = useState("");
+  const [altPartSearch, setAltPartSearch] = useState("");
+  const [descriptionSearch, setDescriptionSearch] = useState("");
+  const [modelSearch, setModelSearch] = useState("");
+  const [brandSearch, setBrandSearch] = useState("");
+
   // ================= FILTRO LOCAL POR CAMPO =================
   const filteredByField = (field: string, value: string) => {
     if (!value) return articles;
@@ -179,6 +195,11 @@ export function DispatchReportFilters({
     });
     return Array.from(map.values());
   }, [articles]);
+
+  const safeValue = (value: any) => {
+    const stringValue = String(value ?? "").trim();
+    return stringValue.length > 0 ? stringValue : null;
+  };
 
   return (
     <div className="space-y-4 py-2 flex flex-col items-center">
@@ -360,216 +381,295 @@ export function DispatchReportFilters({
         </Popover>
       </div>
 
+      <div className="w-full flex justify-center">
+        <Popover open={openItems} onOpenChange={setOpenItems}>
+          <PopoverTrigger asChild>
+            <Button
+              className={cn(
+                "w-[70%] justify-between h-12 text-sm font-medium transition-all border",
+                "bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-950/20 dark:hover:bg-indigo-950/30",
+                "border-indigo-200 dark:border-indigo-900",
+                openItems &&
+                  "ring-2 ring-indigo-300/40 dark:ring-indigo-700/40"
+              )}
+            >
+              <span className="flex items-center gap-2 text-foreground/80">
+                <PackageSearch className="w-4 h-4 text-muted-foreground" />
+                Filtro de Artículos
+              </span>
 
-{/* ===================== FILTRO ARTÍCULOS ===================== */}
-<div className="w-full flex justify-center">
-  <Popover open={openItems} onOpenChange={setOpenItems}>
-    <PopoverTrigger asChild>
-      <Button
-        className={cn(
-          "w-[70%] justify-between h-12 text-sm font-medium transition-all border",
-          "bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-950/20 dark:hover:bg-indigo-950/30",
-          "border-indigo-200 dark:border-indigo-900",
-          openItems &&
-            "ring-2 ring-indigo-300/40 dark:ring-indigo-700/40"
-        )}
-      >
-        <span className="flex items-center gap-2 text-foreground/80">
-          <PackageSearch className="w-4 h-4 text-muted-foreground" />
-          Filtro de Artículos
-        </span>
+              <span className="text-xs text-muted-foreground">
+                Part / Desc / Marca...
+              </span>
+            </Button>
+          </PopoverTrigger>
 
-        <span className="text-xs text-muted-foreground">
-          Part / Desc / Modelo / OT
-        </span>
-      </Button>
-    </PopoverTrigger>
+          <PopoverContent className="w-[92vw] max-w-[340px] space-y-4 p-4">
+            {/* ================= PART NUMBER ================= */}
+            <div className="space-y-1">
+              <div className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">
+                Part Number
+              </div>
 
-    <PopoverContent className="w-[92vw] max-w-[340px] space-y-4 p-4">
+              <Select
+                value={articleFilters.part_number || "all"}
+                onValueChange={(v) =>
+                  setArticleFilters((prev: any) => ({
+                    ...prev,
+                    part_number: v === "all" ? "" : v,
+                  }))
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Seleccionar Part Number" />
+                </SelectTrigger>
 
-      {/* ================= PART NUMBER ================= */}
-      <div className="space-y-1">
-        <div className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">
-          Part Number
-        </div>
+                <SelectContent>
+                  <div className="p-2">
+                    <Input
+                      autoFocus
+                      value={partNumberSearch}
+                      onChange={(e) => setPartNumberSearch(e.target.value)}
+                      onKeyDown={(e) => e.stopPropagation()}
+                      placeholder="Buscar Part Number..."
+                      className="h-9"
+                    />
+                  </div>
 
-        <Select
-          value={articleFilters.part_number || "all"}
-          onValueChange={(v) =>
-            setArticleFilters((prev: any) => ({
-              ...prev,
-              part_number: v === "all" ? "" : v
-            }))
-          }
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Seleccionar Part Number" />
-          </SelectTrigger>
+                  <SelectItem value="all">Todos</SelectItem>
 
-          <SelectContent>
-            <SelectItem value="all">Todos</SelectItem>
-            {uniquePartNumbers.map((a: any) => (
-              <SelectItem key={a.id} value={a.part_number}>
-                {a.part_number}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+              {/* ================= PART NUMBER ================= */}
+              {uniquePartNumbers
+                .filter(
+                  (a: any) =>
+                    safeValue(a.part_number) &&
+                    a.part_number.toLowerCase().includes(partNumberSearch.toLowerCase())
+                )
+                .map((a: any) => (
+                  <SelectItem
+                    key={`pn-${a.part_number}`}
+                    value={safeValue(a.part_number)!}
+                  >
+                    {a.part_number}
+                  </SelectItem>
+                ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* ================= ALT PART ================= */}
+            <div className="space-y-1">
+              <div className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">
+                Alt Part Number
+              </div>
+
+              <Select
+                value={articleFilters.alternative_part_number || "all"}
+                onValueChange={(v) =>
+                  setArticleFilters((prev: any) => ({
+                    ...prev,
+                    alternative_part_number: v === "all" ? "" : v,
+                  }))
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Seleccionar Alt Part" />
+                </SelectTrigger>
+
+                <SelectContent>
+                  <div className="p-2">
+                    <Input
+                      value={altPartSearch}
+                      onChange={(e) => setAltPartSearch(e.target.value)}
+                      onKeyDown={(e) => e.stopPropagation()}
+                      placeholder="Buscar Alt Part..."
+                      className="h-9"
+                    />
+                  </div>
+
+                  <SelectItem value="all">Todos</SelectItem>
+
+                  {/* ================= ALT PART NUMBER ================= */}
+                  {uniqueAltPartNumbers
+                    .filter(
+                      (a: any) =>
+                        safeValue(a.alternative_part_number) &&
+                        String(a.alternative_part_number)
+                          .toLowerCase()
+                          .includes(altPartSearch.toLowerCase())
+                    )
+                    .map((a: any) => (
+                      <SelectItem
+                        key={`apn-${a.alternative_part_number}`}
+                        value={safeValue(a.alternative_part_number)!}
+                      >
+                        {a.alternative_part_number}
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* ================= DESCRIPCIÓN ================= */}
+            <div className="space-y-1">
+              <div className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">
+                Descripción
+              </div>
+
+              <Select
+                value={articleFilters.description || "all"}
+                onValueChange={(v) =>
+                  setArticleFilters((prev: any) => ({
+                    ...prev,
+                    description: v === "all" ? "" : v,
+                  }))
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Seleccionar descripción" />
+                </SelectTrigger>
+
+                <SelectContent>
+                  <div className="p-2">
+                    <Input
+                      value={descriptionSearch}
+                      onChange={(e) => setDescriptionSearch(e.target.value)}
+                      onKeyDown={(e) => e.stopPropagation()}
+                      placeholder="Buscar descripción..."
+                      className="h-9"
+                    />
+                  </div>
+
+                  <SelectItem value="all">Todos</SelectItem>
+                  {/* ================= DESCRIPCIÓN ================= */}
+                  {uniqueDescriptions
+                    .filter(
+                      (a: any) =>
+                        safeValue(a.description) &&
+                        a.description
+                          .toLowerCase()
+                          .includes(descriptionSearch.toLowerCase())
+                    )
+                    .map((a: any) => (
+                      <SelectItem
+                        key={`desc-${a.description}`}
+                        value={safeValue(a.description)!}
+                      >
+                        {a.description}
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* ================= ESPECIFICACION ================= */}
+            <div className="space-y-1">
+              <div className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">
+                Present. / Especif.
+              </div>
+
+              <Select
+                value={articleFilters.variant_type || "all"}
+                onValueChange={(v) =>
+                  setArticleFilters((prev: any) => ({
+                    ...prev,
+                    variant_type: v === "all" ? "" : v,
+                  }))
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Seleccionar Present. / Especif." />
+                </SelectTrigger>
+
+                <SelectContent>
+                  <div className="p-2">
+                    <Input
+                      value={modelSearch}
+                      onChange={(e) => setModelSearch(e.target.value)}
+                      onKeyDown={(e) => e.stopPropagation()}
+                      placeholder="Buscar Present. / Especif...."
+                      className="h-9"
+                    />
+                  </div>
+
+                  <SelectItem value="all">Todos</SelectItem>
+
+              {/* ================= PRESENTACIÓN / ESPECIF ================= */}
+              {uniqueModels
+                .filter(
+                  (a: any) =>
+                    safeValue(a.variant_type) &&
+                    a.variant_type
+                      .toLowerCase()
+                      .includes(modelSearch.toLowerCase())
+                )
+                .map((a: any) => (
+                  <SelectItem
+                    key={`variant-${a.variant_type}`}
+                    value={safeValue(a.variant_type)!}
+                  >
+                    {a.variant_type}
+                  </SelectItem>
+                ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* ================= MARCA ================= */}
+            <div className="space-y-1">
+              <div className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">
+                Marca / Modelo
+              </div>
+
+              <Select
+                value={articleFilters.brand_model || "all"}
+                onValueChange={(v) =>
+                  setArticleFilters((prev: any) => ({
+                    ...prev,
+                    brand_model: v === "all" ? "" : v,
+                  }))
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Seleccionar marca / modelo" />
+                </SelectTrigger>
+
+                <SelectContent>
+                  <div className="p-2">
+                    <Input
+                      value={brandSearch}
+                      onChange={(e) => setBrandSearch(e.target.value)}
+                      onKeyDown={(e) => e.stopPropagation()}
+                      placeholder="Buscar marca / modelo..."
+                      className="h-9"
+                    />
+                  </div>
+
+                  <SelectItem value="all">Todos</SelectItem>
+
+                  {/* ================= MARCA / MODELO ================= */}
+                  {uniqueBrands
+                    .filter(
+                      (a: any) =>
+                        safeValue(a.brand_model) &&
+                        a.brand_model
+                          .toLowerCase()
+                          .includes(brandSearch.toLowerCase())
+                    )
+                    .map((a: any) => (
+                      <SelectItem
+                        key={`brand-${a.brand_model}`}
+                        value={safeValue(a.brand_model)!}
+                      >
+                        {a.brand_model}
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </PopoverContent>
+        </Popover>
       </div>
-
-      {/* ================= ALT PART ================= */}
-      <div className="space-y-1">
-        <div className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">
-          Alt Part Number
-        </div>
-
-        <Select
-          value={articleFilters.alternative_part_number || "all"}
-          onValueChange={(v) =>
-            setArticleFilters((prev: any) => ({
-              ...prev,
-              alternative_part_number: v === "all" ? "" : v
-            }))
-          }
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Seleccionar Alt Part" />
-          </SelectTrigger>
-
-          <SelectContent>
-            <SelectItem value="all">Todos</SelectItem>
-            {uniqueAltPartNumbers.map((a: any) => (
-              <SelectItem key={a.id} value={a.alternative_part_number}>
-                {a.alternative_part_number}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-
-      {/* ================= DESCRIPCIÓN ================= */}
-      <div className="space-y-1">
-        <div className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">
-          Descripción
-        </div>
-
-        <Select
-          value={articleFilters.description || "all"}
-          onValueChange={(v) =>
-            setArticleFilters((prev: any) => ({
-              ...prev,
-              description: v === "all" ? "" : v
-            }))
-          }
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Seleccionar descripción" />
-          </SelectTrigger>
-
-          <SelectContent>
-            <SelectItem value="all">Todos</SelectItem>
-            {uniqueDescriptions.map((a: any) => (
-              <SelectItem key={a.id} value={a.description}>
-                {a.description}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-
-      {/* ================= MODELO ================= */}
-      <div className="space-y-1">
-        <div className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">
-          Modelo
-        </div>
-
-        <Select
-          value={articleFilters.variant_type || "all"}
-          onValueChange={(v) =>
-            setArticleFilters((prev: any) => ({
-              ...prev,
-              variant_type: v === "all" ? "" : v
-            }))
-          }
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Seleccionar modelo" />
-          </SelectTrigger>
-
-          <SelectContent>
-            <SelectItem value="all">Todos</SelectItem>
-            {uniqueModels.map((a: any) => (
-              <SelectItem key={a.id} value={a.variant_type}>
-                {a.variant_type}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-
-      {/* ================= MARCA ================= */}
-      <div className="space-y-1">
-        <div className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">
-          Marca
-        </div>
-
-        <Select
-          value={articleFilters.brand_model || "all"}
-          onValueChange={(v) =>
-            setArticleFilters((prev: any) => ({
-              ...prev,
-              brand_model: v === "all" ? "" : v
-            }))
-          }
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Seleccionar marca" />
-          </SelectTrigger>
-
-          <SelectContent>
-            <SelectItem value="all">Todos</SelectItem>
-            {uniqueBrands.map((a: any) => (
-              <SelectItem key={a.id} value={a.brand_model}>
-                {a.brand_model}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-
-      {/* ================= OT =================
-      <div className="space-y-1">
-        <div className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">
-          Orden de trabajo
-        </div>
-
-        <Select
-          value={articleFilters.batch_id || "all"}
-          onValueChange={(v) =>
-            setArticleFilters((prev: any) => ({
-              ...prev,
-              batch_id: v === "all" ? "" : v
-            }))
-          }
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Seleccionar OT" />
-          </SelectTrigger>
-
-          <SelectContent>
-            <SelectItem value="all">Todos</SelectItem>
-            {uniqueOTs.map((a: any) => (
-              <SelectItem key={a.id} value={a.batch_id}>
-                {a.batch_id}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div> */}
-
-    </PopoverContent>
-  </Popover>
-</div>
 
     </div>
   );
