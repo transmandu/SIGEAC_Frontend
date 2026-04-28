@@ -73,7 +73,7 @@ export const CreateCertificateForm = ({ onClose }: CreateCertificateFormProps) =
   } = useForm({
     defaultValues: {
       course_id: "",
-      completion_date: "",
+      completion_date: new Date().toISOString().split('T')[0],
       document: null,
       employee_dni: ""
     }
@@ -258,16 +258,8 @@ export const CreateCertificateForm = ({ onClose }: CreateCertificateFormProps) =
           </Select>
         </div>
 
-      <div className="grid gap-2">
-        <Label htmlFor="completion_date">Fecha de Carga</Label>
-        <input
-          id="completion_date"
-          type="date"
-          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-          {...register("completion_date", { required: "La fecha es obligatoria" })}
-        />
-        {errors.completion_date && <p className="text-xs text-red-500">{errors.completion_date.message as string}</p>}
-      </div>
+      {/* Fecha de carga oculta pero registrada con el valor por defecto */}
+      <input type="hidden" {...register("completion_date")} />
 
       <div className="grid gap-2">
         <Label>Documento</Label>

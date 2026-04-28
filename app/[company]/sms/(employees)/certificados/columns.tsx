@@ -4,6 +4,7 @@ import { ColumnDef } from "@tanstack/react-table";
 import { User, Calendar } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 // Importamos tu nuevo componente de acciones
 import CertificatesDropDownActions from "@/components/dropdowns/aerolinea/sms/CertificatesDropDownActions";
 
@@ -14,7 +15,7 @@ export type CertificateColumn = {
     start_date?: string; 
     end_date?: string; 
   };
-  employee?: { first_name: string; last_name: string; dni: string };
+  employee?: { first_name: string; last_name: string; dni: string; photo_url?: string };
   completion_date: string; 
   document: string;
 };
@@ -30,9 +31,16 @@ export const getColumns = (companySlug: string): ColumnDef<CertificateColumn>[] 
       const emp = row.original.employee;
       return emp ? (
         <div className="flex items-center gap-3">
-          <div className="h-9 w-9 rounded-full bg-muted flex items-center justify-center border border-border shadow-sm">
-            <User className="h-4 w-4 text-muted-foreground" />
-          </div>
+          <Avatar className="h-10 w-10 border border-blue-200 shadow-sm">
+            <AvatarImage 
+              src={emp?.photo_url ? `${emp.photo_url}?size=64` : ""} 
+              alt="Avatar" 
+              className="object-cover"
+            />
+            <AvatarFallback className="bg-blue-500 text-white font-bold text-xs">
+              {emp?.first_name?.[0]}{emp?.last_name?.[0]}
+            </AvatarFallback>
+          </Avatar>
           <div className="flex flex-col">
             <span className="font-bold text-sm uppercase text-foreground leading-tight">
               {`${emp.last_name}, ${emp.first_name}`}

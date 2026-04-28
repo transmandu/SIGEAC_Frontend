@@ -143,6 +143,12 @@ export function getMenuList(
                 pathname ===
                 `/${currentCompany?.slug}/general/cursos/estadisticas`,
             },
+            {
+              href: `/${currentCompany?.slug}/sms/certificados`,
+              label: "Certificados",
+              roles: [],
+              active: pathname === `/${currentCompany?.slug}/sms/certificados`,
+            },
           ],
         },
         {
@@ -175,12 +181,6 @@ export function getMenuList(
               active:
                 pathname ===
                 `/${currentCompany?.slug}/general/reporte/codigos_qr`,
-            },
-            {
-              href: `/${currentCompany?.slug}/sms/certificados`,
-              label: "Certificados",
-              roles: [],
-              active: pathname === `/${currentCompany?.slug}/sms/certificados`,
             },
           ],
         },
