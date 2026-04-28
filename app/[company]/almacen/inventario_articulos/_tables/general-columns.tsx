@@ -2,7 +2,6 @@
 
 import { ColumnDef } from "@tanstack/react-table"
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader"
-import ActivityReportsDropdownActions from "@/components/dropdowns/aerolinea/desarrollo/ActivityReportsDropdownActions"
 import { Badge } from "@/components/ui/badge"
 import { GeneralArticle } from "@/types"
 import GeneralArticleDropDownActions from "@/components/dropdowns/mantenimiento/almacen/GeneralArticleDropDownActions"
@@ -109,7 +108,7 @@ export const columns: ColumnDef<GeneralArticle>[] = [
         ),
         cell: ({ row }) => (
             <div className="flex justify-center">
-                <GeneralArticleDropDownActions id={String(row.original.id)} />
+                <GeneralArticleDropDownActions article={row.original} />
             </div>
         ),
         enableSorting: false,
