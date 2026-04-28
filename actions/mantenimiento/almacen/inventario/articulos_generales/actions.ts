@@ -4,85 +4,135 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 export interface IUpdateArticleData {
-  id: number
-  newQuantity: number;
+    id: number
+    newQuantity: number;
 }
 
 interface ArticleData {
-  article_type?: string;
-  description?: string;
-  brand_model: string;
-  quantity: number;
-  variant_type: string;
-  primary_unit_id: string;
-  warehouse_id: string;
+    article_type?: string;
+    description?: string;
+    brand_model: string;
+    quantity: number;
+    variant_type: string;
+    primary_unit_id: string;
+    warehouse_id: string;
 }
 
-export const useUpdateGeneralArticleQuantity = () => {
-  const queryClient = useQueryClient();
-  const {selectedCompany} = useCompanyStore();
-  const updateGeneralArticleQuantity = useMutation({
-    mutationKey: ["article-general-quantity"],
-    mutationFn: async ({
-      updates
-    }: {
-      updates: IUpdateArticleData[];
-    }) => {
-      await axiosInstance.patch(`/${selectedCompany?.slug}/article-general-quantity`, {
-        updates,
-      });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["general-articles"] });
-      toast.success("¡Actualizado!", {
-        description: "Las cantidades han sido actualizadas correctamente."
-      });
-    },
-    onError: (error) => {
-      toast('Hey', {
-        description: `No se actualizó correctamente: ${error}`
-      })
-    },
-  });
 
-  return {
-    updateGeneralArticleQuantity: updateGeneralArticleQuantity,
-  };
+interface updateArticleData {
+    article_type?: string;
+    description?: string;
+    brand_model?: string;
+    variant_type?: string;
+    primary_unit_id?: string;
+}
+// PARA ACTULIZAR UN ARTICULO EXEPTO SU CANTIDAD.
+export const useUpdateGeneralArticle = () => {
+    const queryClient = useQueryClient();
+    const { selectedCompany } = useCompanyStore();
+
+    const updateGeneralArticle = useMutation({
+        mutationKey: ["general-article-update", selectedCompany?.slug],
+        mutationFn: async ({
+            id,
+            articleData
+        }: {
+            id: string | number; // Recibimos el id aquí
+            articleData: updateArticleData;
+        }) => {
+            const { data } = await axiosInstance.patch(
+                `/${selectedCompany?.slug}/general-articles/${id}`,
+                { articleData }
+            );
+            return data;
+        },
+        onSuccess: () => {
+            // Refrescamos la lista de artículos
+            queryClient.invalidateQueries({
+                queryKey: ["general-articles", selectedCompany?.slug]
+            });
+
+            toast.success("¡Actualizado!", {
+                description: "Las cantidades han sido actualizadas correctamente."
+            });
+        },
+        onError: (error: any) => {
+            toast.error('Error', {
+                description: `No se actualizó correctamente: ${error.message || error}`
+            });
+        },
+    });
+
+    return {
+        updateGeneralArticle,
+    };
+};
+
+export const useUpdateGeneralArticleQuantity = () => {
+    const queryClient = useQueryClient();
+    const { selectedCompany } = useCompanyStore();
+    const updateGeneralArticleQuantity = useMutation({
+        mutationKey: ["article-general-quantity"],
+        mutationFn: async ({
+            updates
+        }: {
+            updates: IUpdateArticleData[];
+        }) => {
+            await axiosInstance.patch(`/${selectedCompany?.slug}/article-general-quantity`, {
+                updates,
+            });
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["general-articles"] });
+            toast.success("¡Actualizado!", {
+                description: "Las cantidades han sido actualizadas correctamente."
+            });
+        },
+        onError: (error) => {
+            toast('Hey', {
+                description: `No se actualizó correctamente: ${error}`
+            })
+        },
+    });
+
+    return {
+        updateGeneralArticleQuantity: updateGeneralArticleQuantity,
+    };
 };
 
 
 export const useCreateGeneralArticle = () => {
-  const queryClient = useQueryClient();
+    const queryClient = useQueryClient();
 
-  const createMutation = useMutation({
-    mutationKey: ["articles"],
-    mutationFn: async ({
-      data,
-      company,
-    }: {
-      company: string;
-      data: ArticleData;
-      }) => {
-      await axiosInstance.post(`/${company}/general-articles`, data, {
-        headers: {
-          "Content-Type": "multipart/form-data",
+    const createMutation = useMutation({
+        mutationKey: ["articles"],
+        mutationFn: async ({
+            data,
+            company,
+        }: {
+            company: string;
+            data: ArticleData;
+        }) => {
+            await axiosInstance.post(`/${company}/general-articles`, data, {
+                headers: {
+                    "Content-Type": "multipart/form-data",
+                },
+            });
         },
-      });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["general-articles"] });
-      toast.success("¡Creado!", {
-        description: `El articulo ha sido creado correctamente.`,
-      });
-    },
-    onError: (error) => {
-      toast.error("Oops!", {
-        description: "No se pudo crear el articulo...",
-      });
-      console.log(error);
-    },
-  });
-  return {
-    createGeneralArticle: createMutation,
-  };
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["general-articles"] });
+            toast.success("¡Creado!", {
+                description: `El articulo ha sido creado correctamente.`,
+            });
+        },
+        onError: (error) => {
+            toast.error("Oops!", {
+                description: "No se pudo crear el articulo...",
+            });
+            console.log(error);
+        },
+    });
+    return {
+        createGeneralArticle: createMutation,
+    };
 };
