@@ -329,8 +329,10 @@ export function DispatchReportFilters({
                     const end = new Date();
                     const start = new Date();
                     start.setDate(end.getDate() - 7);
+
                     setStartDate(start);
                     setEndDate(end);
+                    setCalendarMonth(start);
                   },
                 },
                 {
@@ -340,8 +342,10 @@ export function DispatchReportFilters({
                     const end = new Date();
                     const start = new Date();
                     start.setDate(end.getDate() - 30);
+
                     setStartDate(start);
                     setEndDate(end);
+                    setCalendarMonth(start);
                   },
                 },
                 {
@@ -354,12 +358,29 @@ export function DispatchReportFilters({
                   tooltip: "Mes visible en el calendario",
 
                   fn: () => {
-                    const now = new Date();
-                    const start = new Date(now.getFullYear(), now.getMonth(), 1);
-                    const end = new Date(now);
+                    const today = new Date();
+
+                    const start = new Date(
+                      calendarMonth.getFullYear(),
+                      calendarMonth.getMonth(),
+                      1
+                    );
+
+                    const isCurrentMonth =
+                      calendarMonth.getMonth() === today.getMonth() &&
+                      calendarMonth.getFullYear() === today.getFullYear();
+
+                    const end = isCurrentMonth
+                      ? today
+                      : new Date(
+                          calendarMonth.getFullYear(),
+                          calendarMonth.getMonth() + 1,
+                          0
+                        );
 
                     setStartDate(start);
                     setEndDate(end);
+                    setCalendarMonth(start);
                   },
                 }
               ].map((p) => (
@@ -410,28 +431,30 @@ export function DispatchReportFilters({
               <Calendar
                 mode="range"
                 selected={{ from: startDate, to: endDate }}
-
+                month={calendarMonth}
+                onMonthChange={setCalendarMonth}
                 onSelect={(range: any) => {
                   const from = range?.from;
                   const to = range?.to;
 
-                  // 🔥 RESET TOTAL si no hay fecha o ya hay rango completo
-                  if (!from || (from && to)) {
-                    setStartDate(from || undefined);
-                    setEndDate(to || undefined);
+                  if (!from) {
+                    setStartDate(undefined);
+                    setEndDate(undefined);
                     return;
                   }
 
-                  // 🔥 MISMA FECHA = rango de 1 día sin doble click
-                  if (from && !to) {
+                  // Selección de un solo día
+                  if (!to) {
                     setStartDate(from);
                     setEndDate(from);
+                    setCalendarMonth(from);
                     return;
                   }
+
+                  setStartDate(from);
+                  setEndDate(to);
+                  setCalendarMonth(from);
                 }}
-
-                onMonthChange={(month: Date) => setCalendarMonth(month)}
-
                 numberOfMonths={
                   startDate && endDate
                     ? (
@@ -442,26 +465,11 @@ export function DispatchReportFilters({
                       : 1
                     : 1
                 }
-
                 showOutsideDays={false}
                 fromMonth={new Date(new Date().getFullYear(), 0, 1)}
                 toMonth={new Date()}
-
-                defaultMonth={
-                  startDate
-                    ? new Date(startDate.getFullYear(), startDate.getMonth(), 1)
-                    : new Date(new Date().getFullYear(), new Date().getMonth(), 1)
-                }
-
-                month={
-                  startDate
-                    ? new Date(startDate.getFullYear(), startDate.getMonth(), 1)
-                    : undefined
-                }
-
                 locale={es}
                 disabled={(d) => d > new Date()}
-
                 className={cn(
                   "rounded-xl",
                   "[&_.rdp-day_selected]:bg-slate-200",
@@ -471,7 +479,6 @@ export function DispatchReportFilters({
                   "[&_.rdp-day_range_start]:bg-slate-300",
                   "[&_.rdp-day_range_end]:bg-slate-300"
                 )}
-
                 formatters={{
                   formatMonthCaption: (date) =>
                     format(date, "MMM yyyy", { locale: es })
