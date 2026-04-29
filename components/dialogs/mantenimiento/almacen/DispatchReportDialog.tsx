@@ -37,6 +37,8 @@ import { useGetArticlesByStatus } from "@/hooks/mantenimiento/almacen/articulos/
 import { useGetGeneralArticles } from "@/hooks/mantenimiento/almacen/almacen_general/useGetGeneralArticles";
 
 import { DispatchReportFilters } from "@/components/dialogs/mantenimiento/almacen/DispatchReportFilters";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+
 
 export function DispatchReportDialog() {
   const { selectedStation, selectedCompany } = useCompanyStore();
@@ -213,116 +215,171 @@ export function DispatchReportDialog() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline">Generar Reporte</Button>
+        <Button variant="outline" className="relative overflow-hidden border border-dashed border-indigo-400/50 dark:border-indigo-300/30 bg-background/70 backdrop-blur text-indigo-700 dark:text-indigo-300 font-medium tracking-wide shadow-sm transition-all duration-200 hover:border-indigo-500/60 dark:hover:border-indigo-300/50 hover:bg-indigo-50/40 dark:hover:bg-indigo-950/20 hover:shadow-md hover:-translate-y-[1px] active:translate-y-0 active:shadow-sm focus-visible:ring-2 focus-visible:ring-indigo-500/25 focus-visible:ring-offset-2">Generar Reporte</Button>
       </DialogTrigger>
 
-      <DialogContent className="sm:max-w-[550px]">
-        <DialogHeader>
-          <DialogTitle>Centro de Reportes de Almacén</DialogTitle>
-          <DialogDescription>
-            Configura filtros y genera reportes de operación.
-          </DialogDescription>
-        </DialogHeader>
+      <DialogContent className="sm:max-w-[580px] p-0 overflow-visible">
+        <div className="relative bg-gradient-to-br from-primary/5 via-background to-background px-6 pt-8 pb-1">
+          <div className="absolute inset-0 bg-grid-white/[0.02]" />
 
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid grid-cols-2">
-            <TabsTrigger value="dispatch" className="flex gap-2 text-xs">
-              <FileText className="w-3.5 h-3.5" />
-              Salidas
-            </TabsTrigger>
+          <DialogHeader className="relative">
+            <div className="flex items-center gap-4">
+              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-3xl border bg-background shadow-sm">
+                <FileText className="h-7 w-7 text-primary" />
+              </div>
 
-            <TabsTrigger value="balance" className="flex gap-2 text-xs">
-              <Scale className="w-3.5 h-3.5" />
-              Balance
-            </TabsTrigger>
-          </TabsList>
+              <div className="space-y-1">
+                <DialogTitle className="text-2xl font-bold tracking-tight leading-none">
+                  Centro de Reportes
+                </DialogTitle>
 
-          <DispatchReportFilters
-            startDate={startDate}
-            endDate={endDate}
-            setStartDate={setStartDate}
-            setEndDate={setEndDate}
+                <p className="text-sm font-medium text-primary/80">
+                  Almacén e Inventario
+                </p>
 
-            aircraft={aircraft}
-            setAircraft={setAircraft}
-            aircrafts={aircrafts}
-            isLoadingAircrafts={isLoadingAircrafts}
-
-            departmentId={departmentId}
-            setDepartmentId={setDepartmentId}
-            departments={departments}
-            isLoadingDepartments={isLoadingDepartments}
-
-            authorizedEmployeeId={authorizedEmployeeId}
-            setAuthorizedEmployeeId={setAuthorizedEmployeeId}
-            authorizedEmployees={authorizedEmployees}
-            isLoadingEmployees={isLoadingEmployees}
-
-            thirdPartyId={thirdPartyId}
-            setThirdPartyId={setThirdPartyId}
-            thirdParties={thirdParties}
-            isLoadingThirdParties={isLoadingThirdParties}
-
-            // 🔥 ARTÍCULOS UNIFICADOS
-            articles={allArticles}
-            isLoadingArticles={isLoadingArticles || isLoadingGeneralArticles}
-            articleFilters={articleFilters}
-            setArticleFilters={setArticleFilters}
-
-            isDateRangeInvalid={isDateRangeInvalid}
-          />
-
-          <TabsContent value="dispatch" className="mt-4">
-            <div className="flex gap-2">
-              <Button
-                className="w-full"
-                onClick={() => handleDownload("dispatch")}
-                disabled={!canDownload || loadingDownload}
-              >
-                {loadingDownload ? (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                ) : (
-                  <Download className="mr-2 h-4 w-4" />
-                )}
-                Descargar Reporte de  Salidas (PDF)
-              </Button>
-
-              <Button
-                variant="outline"
-                onClick={() => handleExcel("dispatch")}
-                disabled={!canDownload || loadingDownload}
-              >
-                <RiFileExcel2Fill className="h-5 w-5 text-green-600" />
-              </Button>
+                <DialogDescription className="max-w-[430px] text-sm leading-relaxed">
+                  Genera reportes operativos, balances e históricos de
+                  solicitudes de salidas.
+                </DialogDescription>
+              </div>
             </div>
-          </TabsContent>
+          </DialogHeader>
+        </div>
+        <div className="px-6 py-5">
+          <Tabs value={activeTab} onValueChange={setActiveTab}>
+            <TabsList className="grid grid-cols-2 mb-4">
+              <TabsTrigger value="dispatch" className=" flex gap-2 text-xs rounded-lg transition-all duration-200 data-[state=active]:bg-background data-[state=active]:shadow-md data-[state=active]:shadow-blue-500/10 data-[state=active]:ring-1 data-[state=active]:ring-blue-500/ data-[state=active]:text-blue-600">
+                <FileText className="w-3.5 h-3.5" />
+                Salidas
+              </TabsTrigger>
 
-          <TabsContent value="balance" className="mt-4">
-            <div className="flex gap-2">
-              <Button
-                className="w-full"
-                onClick={() => handleDownload("balance")}
-                disabled={!canDownload || loadingDownload}
-              >
-                {loadingDownload ? (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                ) : (
-                  <Download className="mr-2 h-4 w-4" />
-                )}
-                Descargar Balance Total (PDF)
-              </Button>
+              <TabsTrigger value="balance" className=" flex gap-2 text-xs rounded-lg transition-all duration-200 data-[state=active]:bg-background data-[state=active]:shadow-md data-[state=active]:shadow-blue-500/10 data-[state=active]:ring-1 data-[state=active]:ring-blue-500/ data-[state=active]:text-blue-600">
+                <Scale className="w-3.5 h-3.5" />
+                Balance
+              </TabsTrigger>
+            </TabsList>
 
-              <Button
-                variant="outline"
-                onClick={() => handleExcel("balance")}
-                disabled={!canDownload || loadingDownload}
-              >
-                <RiFileExcel2Fill className="h-5 w-5 text-green-600" />
-              </Button>
-            </div>
-          </TabsContent>
+            <DispatchReportFilters
+              startDate={startDate}
+              endDate={endDate}
+              setStartDate={setStartDate}
+              setEndDate={setEndDate}
 
-        </Tabs>
+              aircraft={aircraft}
+              setAircraft={setAircraft}
+              aircrafts={aircrafts}
+              isLoadingAircrafts={isLoadingAircrafts}
+
+              departmentId={departmentId}
+              setDepartmentId={setDepartmentId}
+              departments={departments}
+              isLoadingDepartments={isLoadingDepartments}
+
+              authorizedEmployeeId={authorizedEmployeeId}
+              setAuthorizedEmployeeId={setAuthorizedEmployeeId}
+              authorizedEmployees={authorizedEmployees}
+              isLoadingEmployees={isLoadingEmployees}
+
+              thirdPartyId={thirdPartyId}
+              setThirdPartyId={setThirdPartyId}
+              thirdParties={thirdParties}
+              isLoadingThirdParties={isLoadingThirdParties}
+
+              // 🔥 ARTÍCULOS UNIFICADOS
+              articles={allArticles}
+              isLoadingArticles={isLoadingArticles || isLoadingGeneralArticles}
+              articleFilters={articleFilters}
+              setArticleFilters={setArticleFilters}
+
+              isDateRangeInvalid={isDateRangeInvalid}
+            />
+
+            <TabsContent value="dispatch" className="mt-8">
+              <div className="grid grid-cols-[1fr_auto] gap-4 items-center">
+                <Button
+                  size="lg"
+                  className="h-12 rounded-2xl font-medium shadow-sm transition-all hover:shadow-md active:scale-[0.98]"
+                  onClick={() => handleDownload("dispatch")}
+                  disabled={!canDownload || loadingDownload}
+                >
+                  {loadingDownload ? (
+                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                  ) : (
+                    <Download className="mr-2 h-5 w-5" />
+                  )}
+
+                  Descargar Reporte
+                  <span className="ml-2 text-xs font-normal opacity-80">
+                    PDF
+                  </span>
+                </Button>
+
+                <TooltipProvider>
+                  <Tooltip delayDuration={150}>
+                    <TooltipTrigger asChild>
+                      <Button
+                        size="lg"
+                        variant="outline"
+                        className="h-12 px-4 rounded-2xl border-green-200 bg-green-50/80 text-green-700 shadow-sm transition-all hover:bg-green-100 hover:border-green-300 hover:shadow-md active:scale-[0.98] dark:border-green-900 dark:bg-green-950/30 dark:text-green-400 dark:hover:bg-green-950/50"
+                        onClick={() => handleExcel("dispatch")}
+                        disabled={!canDownload || loadingDownload}
+                      >
+                        <RiFileExcel2Fill className="h-6 w-6 shrink-0" />
+                      </Button>
+                    </TooltipTrigger>
+
+                    <TooltipContent side="top" align="center" sideOffset={10} avoidCollisions={false} className="z-[9999] whitespace-nowrap rounded-xl px-3 py-1.5">
+                      Descargar en Excel
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="balance" className="mt-8">
+              <div className="grid grid-cols-[1fr_auto] gap-4 items-center">
+                <Button
+                  size="lg"
+                  className="h-12 rounded-2xl font-medium shadow-sm transition-all hover:shadow-md active:scale-[0.98]"
+                  onClick={() => handleDownload("balance")}
+                  disabled={!canDownload || loadingDownload}
+                >
+                  {loadingDownload ? (
+                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                  ) : (
+                    <Download className="mr-2 h-5 w-5" />
+                  )}
+
+                  Descargar Balance
+                  <span className="ml-2 text-xs font-normal opacity-80">
+                    PDF
+                  </span>
+                </Button>
+
+                <TooltipProvider>
+                  <Tooltip delayDuration={150}>
+                    <TooltipTrigger asChild>
+                      <Button
+                        size="lg"
+                        variant="outline"
+                        className="h-12 px-4 rounded-2xl border-green-200 bg-green-50/80 text-green-700 shadow-sm transition-all hover:bg-green-100 hover:border-green-300 hover:shadow-md active:scale-[0.98] dark:border-green-900 dark:bg-green-950/30 dark:text-green-400 dark:hover:bg-green-950/50"
+                        onClick={() => handleExcel("balance")}
+                        disabled={!canDownload || loadingDownload}
+                      >
+                        <RiFileExcel2Fill className="h-6 w-6 shrink-0" />
+                      </Button>
+                    </TooltipTrigger>
+
+                    <TooltipContent  side="top" align="center" sideOffset={10} avoidCollisions={false} className="z-[9999] whitespace-nowrap rounded-xl px-3 py-1.5">
+                      Descargar en Excel
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
+            </TabsContent>
+
+          </Tabs>
+        </div>
       </DialogContent>
     </Dialog>
   );

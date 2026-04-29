@@ -31,7 +31,7 @@ export function RegisterDispatchRequestDialog() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button onClick={() => setOpen(true)} variant={'outline'} className="flex items-center justify-center gap-2 h-8 border-dashed">Registrar Salida</Button>
+        <Button onClick={() => setOpen(true)} variant="outline" className="flex items-center justify-center gap-2 border border-dashed border-cyan-400/50 dark:border-cyan-300/30 bg-background/70 backdrop-blur text-cyan-700 dark:text-cyan-300 font-medium tracking-wide shadow-sm transition-all duration-200 hover:border-cyan-500/60 dark:hover:border-cyan-300/50 hover:bg-cyan-50/40 dark:hover:bg-cyan-950/20 hover:shadow-md hover:-translate-y-[1px] active:translate-y-0 active:shadow-sm focus-visible:ring-2 focus-visible:ring-cyan-500/25 focus-visible:ring-offset-2">Registrar Salida</Button>
       </DialogTrigger>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
