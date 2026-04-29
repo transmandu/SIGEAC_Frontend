@@ -52,7 +52,7 @@ export default function PublicNativeViewerPage() {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       const isControl = e.ctrlKey || e.metaKey;
-      
+
       // Bloqueamos Ctrl+S (guardar), P (imprimir), U (ver código), C (copiar), X (cortar)
       const forbiddenKeys = ['s', 'p', 'u', 'c', 'x'];
       if (isControl && forbiddenKeys.includes(e.key.toLowerCase())) {
@@ -62,7 +62,7 @@ export default function PublicNativeViewerPage() {
 
     const handleCopyCut = (e: ClipboardEvent) => {
       e.preventDefault(); // Evitamos que se mueva la data original al portapapeles
-      
+
       // Sobrescribimos el portapapeles con una advertencia en lugar del texto real
       if (e.clipboardData) {
         e.clipboardData.setData('text/plain', '⚠️ Contenido Protegido por SIGEAC Library');
@@ -117,7 +117,7 @@ export default function PublicNativeViewerPage() {
   return (
     // 🔥 CAMBIO CLAVE: Cambiado 'select-none' por 'select-text' para permitir subrayar con el mouse
     <div className="h-screen w-screen flex flex-col bg-[#111214] text-white overflow-hidden select-text" onContextMenu={(e) => e.preventDefault()}>
-      
+
       {/* HEADER NATIVO */}
       <div className="p-4 border-b border-gray-800 flex justify-between items-center bg-[#1a1c1e]">
         <div className="flex items-center gap-3">
@@ -153,9 +153,9 @@ export default function PublicNativeViewerPage() {
             <p className="max-w-md text-sm text-gray-400 mb-10 font-medium italic leading-relaxed">
               {error}
             </p>
-            <Button 
-              onClick={loadFile} 
-              variant="default" 
+            <Button
+              onClick={loadFile}
+              variant="default"
               className="bg-emerald-600 hover:bg-emerald-700 flex items-center gap-2 transition-all active:scale-95"
             >
               <RotateCcw className="h-4 w-4" />
@@ -165,10 +165,10 @@ export default function PublicNativeViewerPage() {
         ) : (
           fileUrl && (
             <div className="h-full w-full">
-              <Worker workerUrl="https://unpkg.com/pdfjs-dist@3.4.120/build/pdf.worker.min.js">
-                <Viewer 
-                  fileUrl={fileUrl} 
-                  plugins={[defaultLayoutPluginInstance]} 
+              <Worker workerUrl="https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js">
+                <Viewer
+                  fileUrl={fileUrl}
+                  plugins={[defaultLayoutPluginInstance]}
                   theme="dark"
                   defaultScale={1.0}
                 />

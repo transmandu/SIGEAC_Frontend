@@ -3,8 +3,8 @@
 import { useState, useMemo, useEffect } from "react";
 import { useParams } from "next/navigation";
 import { MoreVertical, Trash2, QrCode, History, UploadCloud, Download } from "lucide-react";
-import { 
-  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger 
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
 import axiosInstance from "@/lib/axios";
 import { toast } from "sonner";
@@ -31,14 +31,14 @@ interface JobTitle {
 interface Employee {
   id?: number;
   job_title?: JobTitle;
-  position?: string; // Por si acaso el backend usa este campo
+  position?: string;
   department_id?: number;
 }
 
 interface User {
   id?: number;
   roles?: Role[];
-  employee?: Employee | Employee[] | null; 
+  employee?: Employee | Employee[] | null;
 }
 
 interface Props {
@@ -66,23 +66,27 @@ export const LibraryDropdownActions = ({ doc, user, canManage, onDelete, onRefre
   const [versionList, setVersionList] = useState<any[]>([]);
   const [loadingVersions, setLoadingVersions] = useState(false);
 
-  useEffect(() => {
-  console.log("🔍 ESTADO GLOBAL DEL COMPONENTE:");
-  console.log("Prop User:", user);
-  console.log("Prop Doc:", doc);
-  }, [user, doc]);
-
-
-  // 🛡️ Lógica de Descarga Corregida (Sincronizada con Laravel)
+  // 🛡️ Lógica de Descarga Restrictiva (Sincronizada con Laravel)
   const canDownload = useMemo(() => {
     if (!user || !doc) return false;
 
-    // 1. Verificación por ROL (SUPERUSER o ADMIN)
-    const isSuperUser = user.roles?.some((role: Role) => 
+    // 1. VALIDACIÓN DE DEPARTAMENTO (REGLA PRIMARIA)
+    // Si el documento NO es de SMS, nadie puede descargarlo (el botón se oculta)
+    const docDeptName = doc.department?.name?.toUpperCase() || "";
+    const isSmsDoc = docDeptName.includes("SEGURIDAD OPERACIONAL") || docDeptName.includes("SMS");
+
+    if (!isSmsDoc) return false;
+
+    // 2. VALIDACIÓN DE PERMISOS (Solo si el doc es de SMS)
+
+    // A. Verificación por ROL (SUPERUSER o ADMIN)
+    const isSuperUser = user.roles?.some((role: Role) =>
       ['SUPERUSER', 'ADMIN', 'ADMINISTRADOR'].includes(role.name.toUpperCase())
     );
-    
-    // 2. Verificación por CARGO (Soporta Objeto único o Array)
+
+    if (isSuperUser) return true;
+
+    // B. Verificación por CARGO (DIRECTOR)
     const employeeData = user.employee;
     let isDirector = false;
 
@@ -98,20 +102,7 @@ export const LibraryDropdownActions = ({ doc, user, canManage, onDelete, onRefre
       isDirector = checkJobTitle(employeeData);
     }
 
-    // 3. Verificación de Departamento
-    const docDeptName = doc.department?.name?.toUpperCase() || "";
-    const isSmsDept = docDeptName.includes("SEGURIDAD OPERACIONAL") || docDeptName.includes("SMS");
-
-    // Logs de depuración para tu terminal del navegador
-    console.log("--- CHEQUEO DE DESCARGA ---");
-    console.log("¿Es Director?:", isDirector);
-    console.log("¿Es Dept SMS?:", isSmsDept);
-    console.log("Dept del Doc:", docDeptName);
-
-    if (isSuperUser) return true;
-    
-    // Solo Directores del departamento SMS pueden descargar
-    return !!(isDirector && isSmsDept);
+    return isDirector;
   }, [doc, user]);
 
   // 📜 Lógica para obtener versiones
@@ -131,7 +122,7 @@ export const LibraryDropdownActions = ({ doc, user, canManage, onDelete, onRefre
 
   const handleOpenShareQR = async () => {
     if (!company) return;
-    
+
     if (versionList.length === 0) {
       setLoadingVersions(true);
       try {
@@ -160,9 +151,9 @@ export const LibraryDropdownActions = ({ doc, user, canManage, onDelete, onRefre
             <MoreVertical className="h-4 w-4" />
           </button>
         </DropdownMenuTrigger>
-        
+
         <DropdownMenuContent align="end" className="w-52 bg-white dark:bg-[#1a1c1e] border-slate-200 dark:border-gray-700 text-slate-800 dark:text-white shadow-2xl">
-          
+
           {canManage && (
             <>
               <DropdownMenuItem onClick={handleOpenShareQR} className="gap-2 cursor-pointer">
@@ -172,7 +163,7 @@ export const LibraryDropdownActions = ({ doc, user, canManage, onDelete, onRefre
               <div className="h-px bg-slate-200 dark:bg-gray-700 my-1" />
             </>
           )}
-          
+
           {canManage && (
             <DropdownMenuItem onClick={() => setUploadOpen(true)} className="gap-2 cursor-pointer">
               <UploadCloud className="h-4 w-4 text-blue-500" />
@@ -180,7 +171,7 @@ export const LibraryDropdownActions = ({ doc, user, canManage, onDelete, onRefre
             </DropdownMenuItem>
           )}
 
-          {/* Botón de descarga condicional basado en canDownload */}
+          {/* Botón de descarga condicional: Solo aparece si el Doc es de SMS y el usuario es Admin/Director */}
           {canDownload && (
             <DropdownMenuItem onClick={() => setDownloadOpen(true)} className="gap-2 cursor-pointer">
               <Download className="h-4 w-4 text-emerald-500" />
@@ -192,7 +183,7 @@ export const LibraryDropdownActions = ({ doc, user, canManage, onDelete, onRefre
             <History className={`h-4 w-4 text-purple-500 ${loadingVersions ? 'animate-spin' : ''}`} />
             <span className="text-xs font-medium">Historial de versiones</span>
           </DropdownMenuItem>
-          
+
           {canManage && (
             <>
               <div className="h-px bg-slate-200 dark:bg-gray-700 my-1" />
@@ -206,47 +197,47 @@ export const LibraryDropdownActions = ({ doc, user, canManage, onDelete, onRefre
       </DropdownMenu>
 
       {/* 🚀 COMPONENTES DE DIÁLOGO */}
-      <DownloadDocumentDialog 
-        isOpen={downloadOpen} 
-        onClose={() => setDownloadOpen(false)} 
+      <DownloadDocumentDialog
+        isOpen={downloadOpen}
+        onClose={() => setDownloadOpen(false)}
         doc={doc}
-        company={company} 
+        company={company}
       />
-      
-      <HistoryPanel 
-        isOpen={historyOpen} 
-        onClose={() => setHistoryOpen(false)} 
-        versions={versionList} 
+
+      <HistoryPanel
+        isOpen={historyOpen}
+        onClose={() => setHistoryOpen(false)}
+        versions={versionList}
         docTitle={doc.title}
         onViewVersion={handleViewOldVersion}
       />
 
-      <ShareQRDialog 
-        isOpen={shareOpen} 
-        onClose={() => setShareOpen(false)} 
-        doc={{ ...doc, versions: versionList }} 
+      <ShareQRDialog
+        isOpen={shareOpen}
+        onClose={() => setShareOpen(false)}
+        doc={{ ...doc, versions: versionList }}
         company={company}
       />
 
-      <DeleteDocumentDialog 
-        isOpen={deleteOpen} 
-        onClose={() => setDeleteOpen(false)} 
+      <DeleteDocumentDialog
+        isOpen={deleteOpen}
+        onClose={() => setDeleteOpen(false)}
         doc={doc}
         company={company}
-        onSuccess={onRefresh} 
+        onSuccess={onRefresh}
       />
 
-      <UploadVersionDialog 
-        isOpen={uploadOpen} 
-        onClose={() => setUploadOpen(false)} 
-        doc={doc} 
-        company={company} 
-        onSuccess={onRefresh} 
-      />
-
-      <SecureViewer 
+      <UploadVersionDialog
+        isOpen={uploadOpen}
+        onClose={() => setUploadOpen(false)}
+        doc={doc}
         company={company}
-        documentId={selectedVersionId} 
+        onSuccess={onRefresh}
+      />
+
+      <SecureViewer
+        company={company}
+        documentId={selectedVersionId}
         isOpen={viewerOpen}
         isVersionHistory={true}
         onClose={() => {
