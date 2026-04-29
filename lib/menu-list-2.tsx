@@ -21,6 +21,7 @@ import {
   FilePen,
   Globe,
   HandCoins,
+  Fuel,
   KeyRound,
   LayoutGrid,
   LucideIcon,
@@ -580,6 +581,16 @@ export function getMenuList(
             `/${currentCompany?.slug}/almacen/caja_herramientas`,
           ),
           icon: Wrench,
+          submenus: [],
+        },
+        {
+          href: `/${currentCompany?.slug}/almacen/combustible`,
+          label: "Combustible",
+          roles: ["JEFE_ALMACEN", "SUPERUSER"],
+          active: pathname.includes(
+            `/${currentCompany?.slug}/almacen/combustible`,
+          ),
+          icon: Fuel,
           submenus: [],
         },
         {

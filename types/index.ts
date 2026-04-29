@@ -1295,3 +1295,96 @@ export type AircraftCargoResponse = {
   registered: AircraftCargoStats[];
   external: AircraftCargoStats[];
 };
+
+export type FuelVehicleStatus = "active" | "inactive";
+
+export type FuelVehicleType = "car" | "truck" | "motorcycle" | "other";
+
+export type FuelMovementStatus = "active" | "annulled";
+
+export type FuelMovementType =
+  | "warehouse_initial_balance"
+  | "vehicle_initial_balance"
+  | "external_refuel"
+  | "warehouse_unload"
+  | "warehouse_dispatch_vehicle"
+  | "warehouse_dispatch_third_party"
+  | "vehicle_daily_consumption"
+  | "annulment";
+
+export type FuelVehicle = {
+  id: number;
+  plate: string;
+  type: FuelVehicleType;
+  responsible?: string | null;
+  tank_capacity_liters: number;
+  current_balance_liters: number;
+  status: FuelVehicleStatus;
+  created_at?: string;
+  updated_at?: string;
+};
+
+export type FuelSummary = {
+  warehouse_balance_liters: number;
+  vehicle_balance_liters: number;
+  active_vehicle_count: number;
+  movement_count_for_period?: number;
+  has_active_warehouse_initial_balance?: boolean;
+};
+
+export type FuelMovement = {
+  id: number;
+  type: FuelMovementType;
+  operational_date: string;
+  created_at?: string;
+  created_by?: User | string | null;
+  liters: number;
+  vehicle?: FuelVehicle | null;
+  vehicle_id?: number | null;
+  third_party?: ThirdParty | null;
+  third_party_id?: string | number | null;
+  dispatch_purpose?: string | null;
+  status: FuelMovementStatus;
+  observation?: string | null;
+  annulled_by_movement_id?: number | null;
+  original_movement_id?: number | null;
+};
+
+export type FuelFifoRow = {
+  entry_movement_id: number;
+  entry_type: FuelMovementType;
+  entry_operational_date: string;
+  source_vehicle?: FuelVehicle | null;
+  liters_taken: number;
+  remaining_liters_after_dispatch?: number;
+};
+
+export type FuelTraceabilityDetail = {
+  dispatch_movement_id: number;
+  total_liters: number;
+  destination_type: "vehicle" | "third_party";
+  destination_label: string;
+  fifo_rows: FuelFifoRow[];
+};
+
+export type CreateFuelVehiclePayload = {
+  plate: string;
+  type: FuelVehicleType;
+  responsible?: string | null;
+  tank_capacity_liters: number;
+  initial_balance_liters: number;
+};
+
+export type CreateFuelMovementPayload = {
+  type: FuelMovementType;
+  operational_date: string;
+  liters: number;
+  vehicle_id?: number | null;
+  third_party_id?: string | number | null;
+  dispatch_purpose?: string | null;
+  observation?: string | null;
+};
+
+export type AnnulFuelMovementPayload = {
+  reason?: string | null;
+};
