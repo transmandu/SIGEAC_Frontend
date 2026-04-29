@@ -277,7 +277,7 @@ export function DispatchReportFilters({
     <div className="space-y-4 py-2 flex flex-col items-center">
 
       {/* ===================== FECHAS ===================== */}
-      <div className="p-4 border rounded-2xl bg-muted/20 dark:bg-muted/10 space-y-3 w-full">
+      <div className="p-4 border rounded-2xl bg-muted/20 dark:bg-muted/10 space-y-3 w-full mb-4">
         <div className="flex items-center gap-2 text-foreground/80">
           <CalendarIcon className="w-4 h-4 text-muted-foreground" />
           <span className="text-sm font-medium">Rango de Fechas</span>
