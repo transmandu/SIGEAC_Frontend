@@ -1,5 +1,7 @@
 // hooks/useGetVoluntaryReportById.ts
 import axiosInstance from "@/lib/axios";
+import { Location } from "@/types";
+import { HazardNotification } from "@/types/sms/mantenimiento";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
 // TODO : NEED TO FIX THIS USE GET TO SMS aeronautical
@@ -55,21 +57,19 @@ const fetchVoluntaryReportById = async ({
 
 export type GetVoluntaryReport = {
     id: number;
-    report_number: string;
-    report_date: Date;
-    identification_date: Date;
-    danger_location: string;
-    danger_area: string;
-    description: string;
-    airport_location: string;
-    possible_consequences: string;
-    danger_identification_id: number;
-    danger_identification: DangerIdentification;
-    status: string;
+    report_number?: string;
+    report_date: string; // Las fechas vienen como string de la API (ISO format)
+    identification_date: string;
+    location: Location;
+    identification_area: string;
     reporter_name?: string;
     reporter_last_name?: string;
     reporter_phone?: string;
     reporter_email?: string;
+    description: string;
+    possible_consequences: string;
+    status: string;
+    hazard_notification?: HazardNotification;
     image?: string;
     document?: string;
     imageUrl?: string;

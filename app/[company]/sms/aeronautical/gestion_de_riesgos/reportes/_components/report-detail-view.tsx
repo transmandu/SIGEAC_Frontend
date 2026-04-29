@@ -20,13 +20,14 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { getBadgeStatusClass } from "@/lib/sms/utils";
 import { cn } from "@/lib/utils";
-import { DangerIdentification, Location, ObligatoryReport, VoluntaryReport } from "@/types";
+import { DangerIdentification, Location, ObligatoryReport } from "@/types";
 import {
   Analysis as MaintenanceAnalysis,
   FollowUpControl as MaintenanceFollowUpControl,
   HazardNotification as MaintenanceHazardNotification,
   MitigationMeasure as MaintenanceMitigationMeasure,
   MitigationPlan as MaintenanceMitigationPlan,
+  VoluntaryReport as MaintenanceVoluntaryReport,
 } from "@/types/sms/mantenimiento";
 
 import { DetailGrid } from "../../_components/detail-grid";
@@ -74,10 +75,21 @@ type ReportBaseLike = {
   danger_identification?: unknown;
 };
 
-type VoluntaryReportView = VoluntaryReport &
-  ReportBaseLike & {
+type VoluntaryReportView = ReportBaseLike &
+  Partial<MaintenanceVoluntaryReport> & {
+    identification_date?: string | Date;
     location?: Location | null;
     identification_area?: string;
+    danger_location?: string;
+    danger_area?: string;
+    airport_location?: string;
+    danger_identification_id?: number | null;
+    reporter_name?: string;
+    reporter_last_name?: string;
+    reporter_phone?: string;
+    reporter_email?: string;
+    description: string;
+    possible_consequences: string;
   };
 
 type ObligatoryReportView = ObligatoryReport & ReportBaseLike;

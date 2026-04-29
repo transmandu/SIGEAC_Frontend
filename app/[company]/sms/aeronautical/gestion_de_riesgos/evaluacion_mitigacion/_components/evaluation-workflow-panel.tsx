@@ -300,8 +300,8 @@ export function EvaluationWorkflowPanel({
                                         {isPlanFormOpen
                                             ? 'Ocultar formulario'
                                             : hasPlanAndAnalysis
-                                              ? 'Editar plan y análisis'
-                                              : 'Crear plan y análisis'}
+                                                ? 'Editar plan y análisis'
+                                                : 'Crear plan y análisis'}
                                     </Button>
                                 </CardHeader>
                                 <CardContent className="space-y-4">
@@ -370,8 +370,8 @@ export function EvaluationWorkflowPanel({
                                                 {measureEditorId === 'new'
                                                     ? 'Ocultar formulario'
                                                     : currentMeasures.length
-                                                      ? 'Crear medida'
-                                                      : 'Crear primera medida'}
+                                                        ? 'Crear medida'
+                                                        : 'Crear primera medida'}
                                             </Button>
                                         </CardHeader>
 
@@ -388,7 +388,7 @@ export function EvaluationWorkflowPanel({
 
                                     {currentMeasures.length ? (
                                         <div className="space-y-4">
-                                            {currentMeasures.map((measure) => {
+                                            {currentMeasures.map((measure, index) => {
                                                 const controls = getMeasureControls(measure);
                                                 const isEditingMeasure =
                                                     measureEditorId === measure.id;
@@ -404,7 +404,7 @@ export function EvaluationWorkflowPanel({
                                                                     <div className="flex flex-wrap items-center gap-2">
                                                                         <ShieldCheck className="h-4 w-4" />
                                                                         <p className="text-base font-semibold">
-                                                                            Medida #{measure.id}
+                                                                            Medida #{index + 1}
                                                                         </p>
                                                                         <Badge variant="outline">
                                                                             {
@@ -466,7 +466,7 @@ export function EvaluationWorkflowPanel({
                                                                             setMeasureEditorId(
                                                                                 (value) =>
                                                                                     value ===
-                                                                                    measure.id
+                                                                                        measure.id
                                                                                         ? null
                                                                                         : measure.id
                                                                             );
@@ -477,9 +477,9 @@ export function EvaluationWorkflowPanel({
                                                                                     )
                                                                                         ? ids
                                                                                         : [
-                                                                                              ...ids,
-                                                                                              measure.id,
-                                                                                          ]
+                                                                                            ...ids,
+                                                                                            measure.id,
+                                                                                        ]
                                                                             );
                                                                         }}
                                                                     >
@@ -538,7 +538,7 @@ export function EvaluationWorkflowPanel({
                                     controles de seguimiento.
                                 </div>
                             ) : (
-                                currentMeasures.map((measure) => {
+                                currentMeasures.map((measure, index) => {
                                     const controls: FollowUpControl[] = getMeasureControls(measure);
                                     const createControlKey = `new-${measure.id}`;
                                     const isCreatingControl =
@@ -571,8 +571,8 @@ export function EvaluationWorkflowPanel({
                                                     {isCreatingControl
                                                         ? 'Ocultar formulario'
                                                         : controls.length
-                                                          ? 'Agregar control'
-                                                          : 'Crear control'}
+                                                            ? 'Agregar control'
+                                                            : 'Crear control'}
                                                 </Button>
                                             </CardHeader>
                                             <CardContent className="space-y-4">
@@ -580,7 +580,7 @@ export function EvaluationWorkflowPanel({
                                                     <div className="flex flex-wrap items-center gap-2">
                                                         <ShieldCheck className="h-4 w-4" />
                                                         <p className="font-medium">
-                                                            Medida #{measure.id}
+                                                            Medida #{index + 1}
                                                         </p>
                                                         <Badge variant="outline">
                                                             {controls.length} control
@@ -672,7 +672,7 @@ export function EvaluationWorkflowPanel({
                                                                                     setControlEditorKey(
                                                                                         (value) =>
                                                                                             value ===
-                                                                                            editControlKey
+                                                                                                editControlKey
                                                                                                 ? null
                                                                                                 : editControlKey
                                                                                     );
@@ -683,9 +683,9 @@ export function EvaluationWorkflowPanel({
                                                                                             )
                                                                                                 ? ids
                                                                                                 : [
-                                                                                                      ...ids,
-                                                                                                      control.id,
-                                                                                                  ]
+                                                                                                    ...ids,
+                                                                                                    control.id,
+                                                                                                ]
                                                                                     );
                                                                                 }}
                                                                             >
