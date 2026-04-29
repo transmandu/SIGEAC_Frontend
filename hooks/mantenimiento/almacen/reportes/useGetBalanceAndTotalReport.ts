@@ -11,6 +11,7 @@ interface BalanceParams {
   department_id?: string | null;
   authorized_employee_id?: string | null;
   third_party_id?: string | null;
+  type?: "aeronautical" | "general" | null;
   from: string;
   to: string;
   format?: "pdf" | "excel"; // <-- PDF o Excel
@@ -41,6 +42,7 @@ export const useGetBalanceAndTotalReport = () => {
             department_id: params.department_id ?? undefined,
             authorized_employee_id: params.authorized_employee_id ?? undefined,
             third_party_id: params.third_party_id ?? undefined,
+            type: params.type ?? undefined,
             from: params.from,
             to: params.to,
             part_number: params.part_number ?? undefined,

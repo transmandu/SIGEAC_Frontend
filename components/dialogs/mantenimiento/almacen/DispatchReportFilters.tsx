@@ -44,6 +44,8 @@ import { cn } from "@/lib/utils";
 
 /* ---------------- TYPES ---------------- */
 
+type DispatchType = "aeronautical" | "general";
+
 interface Props {
   startDate?: Date;
   endDate?: Date;
@@ -69,6 +71,9 @@ interface Props {
   setThirdPartyId: (v: string | null) => void;
   thirdParties?: any[];
   isLoadingThirdParties?: boolean;
+
+  dispatchType: DispatchType | null;
+  setDispatchType: (v: DispatchType | null) => void;
 
   isDateRangeInvalid: boolean;
 
@@ -115,6 +120,9 @@ export function DispatchReportFilters({
   setThirdPartyId,
   thirdParties,
   isLoadingThirdParties,
+
+  dispatchType,
+  setDispatchType,
 
   isDateRangeInvalid,
 
@@ -230,6 +238,10 @@ export function DispatchReportFilters({
       value:
         thirdParties?.find((t) => String(t.id) === String(thirdPartyId))?.name ??
         thirdPartyId,
+    },
+    dispatchType && {
+      label: "Tipo",
+      value: dispatchType === "aeronautical" ? "Aeronáutico" : "General",
     },
   ].filter(Boolean) as { label: string; value: string }[];
 
@@ -613,6 +625,28 @@ export function DispatchReportFilters({
                       {tp.name}
                     </SelectItem>
                   ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-1">
+              <div className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">
+                Tipo de Despacho
+              </div>
+
+              <Select
+                value={dispatchType || "all"}
+                onValueChange={(v) =>
+                  setDispatchType(v === "all" ? null : (v as DispatchType))
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Seleccionar tipo" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos</SelectItem>
+                  <SelectItem value="aeronautical">Aeronáutico</SelectItem>
+                  <SelectItem value="general">General</SelectItem>
                 </SelectContent>
               </Select>
             </div>
