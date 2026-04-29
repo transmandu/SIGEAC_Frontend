@@ -39,6 +39,7 @@ import { useGetGeneralArticles } from "@/hooks/mantenimiento/almacen/almacen_gen
 import { DispatchReportFilters } from "@/components/dialogs/mantenimiento/almacen/DispatchReportFilters";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
+type DispatchType = "aeronautical" | "general";
 
 export function DispatchReportDialog() {
   const { selectedStation, selectedCompany } = useCompanyStore();
@@ -56,6 +57,9 @@ export function DispatchReportDialog() {
   const [departmentId, setDepartmentId] = useState<string | null>(null);
   const [authorizedEmployeeId, setAuthorizedEmployeeId] = useState<string | null>(null);
   const [thirdPartyId, setThirdPartyId] = useState<string | null>(null);
+
+  // ===================== TIPO DE DESPACHO =====================
+  const [dispatchType, setDispatchType] = useState<DispatchType | null>(null);
 
   // ===================== FILTROS ARTÍCULOS =====================
   const [articleFilters, setArticleFilters] = useState({
@@ -116,6 +120,7 @@ export function DispatchReportDialog() {
       setDepartmentId(null);
       setAuthorizedEmployeeId(null);
       setThirdPartyId(null);
+      setDispatchType(null);
 
       setArticleFilters({
         part_number: "",
@@ -139,6 +144,7 @@ export function DispatchReportDialog() {
     department_id: departmentId || undefined,
     authorized_employee_id: authorizedEmployeeId || undefined,
     third_party_id: thirdPartyId || undefined,
+    type: dispatchType || undefined,
 
     from: format(startDate!, "yyyy-MM-dd"),
     to: format(endDate!, "yyyy-MM-dd"),
@@ -284,6 +290,9 @@ export function DispatchReportDialog() {
               setThirdPartyId={setThirdPartyId}
               thirdParties={thirdParties}
               isLoadingThirdParties={isLoadingThirdParties}
+
+              dispatchType={dispatchType}
+              setDispatchType={setDispatchType}
 
               // 🔥 ARTÍCULOS UNIFICADOS
               articles={allArticles}
