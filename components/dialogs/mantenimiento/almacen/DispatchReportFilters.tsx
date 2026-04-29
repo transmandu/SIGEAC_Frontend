@@ -266,55 +266,75 @@ export function DispatchReportFilters({
           <span className="text-sm font-medium">Rango de Fechas</span>
         </div>
 
-        <div className="flex gap-2">
+        <div className="grid grid-cols-2 gap-3">
 
-          <Popover open={openStartDate} onOpenChange={setOpenStartDate}>
-            <PopoverTrigger asChild>
-              <Button variant="outline" className="w-full text-xs justify-start">
-                {startDate
-                  ? format(startDate, "dd/MM/yyyy", { locale: es })
-                  : "Desde"}
-              </Button>
-            </PopoverTrigger>
+          {/* DESDE */}
+          <div className="space-y-1">
+            <label className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide px-1">
+              Desde
+            </label>
 
-            <PopoverContent className="p-0 w-auto">
-              <Calendar
-                mode="single"
-                selected={startDate}
-                onSelect={(date) => {
-                  setStartDate(date);
-                  setOpenStartDate(false);
-                }}
-                locale={es}
-                disabled={(d) => d > today}
-              />
-            </PopoverContent>
-          </Popover>
+            <Popover open={openStartDate} onOpenChange={setOpenStartDate}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="w-full text-xs justify-start font-normal"
+                >
+                  {startDate
+                    ? format(startDate, "dd/MM/yyyy", { locale: es })
+                    : "Seleccionar"}
+                </Button>
+              </PopoverTrigger>
 
-          <Popover open={openEndDate} onOpenChange={setOpenEndDate}>
-            <PopoverTrigger asChild>
-              <Button variant="outline" className="w-full text-xs justify-start">
-                {endDate
-                  ? format(endDate, "dd/MM/yyyy", { locale: es })
-                  : "Hasta"}
-              </Button>
-            </PopoverTrigger>
+              <PopoverContent className="p-0 w-auto">
+                <Calendar
+                  mode="single"
+                  selected={startDate}
+                  onSelect={(date) => {
+                    setStartDate(date);
+                    setOpenStartDate(false);
+                  }}
+                  locale={es}
+                  disabled={(d) => d > today}
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
 
-            <PopoverContent className="p-0 w-auto">
-              <Calendar
-                mode="single"
-                selected={endDate}
-                onSelect={(date) => {
-                  setEndDate(date);
-                  setOpenEndDate(false);
-                }}
-                locale={es}
-                disabled={(d) =>
-                  d > today || (startDate ? d < startDate : false)
-                }
-              />
-            </PopoverContent>
-          </Popover>
+          {/* HASTA */}
+          <div className="space-y-1">
+            <label className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide px-1">
+              Hasta
+            </label>
+
+            <Popover open={openEndDate} onOpenChange={setOpenEndDate}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="w-full text-xs justify-start font-normal"
+                >
+                  {endDate
+                    ? format(endDate, "dd/MM/yyyy", { locale: es })
+                    : "Seleccionar"}
+                </Button>
+              </PopoverTrigger>
+
+              <PopoverContent className="p-0 w-auto">
+                <Calendar
+                  mode="single"
+                  selected={endDate}
+                  onSelect={(date) => {
+                    setEndDate(date);
+                    setOpenEndDate(false);
+                  }}
+                  locale={es}
+                  disabled={(d) =>
+                    d > today || (startDate ? d < startDate : false)
+                  }
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
 
         </div>
 
