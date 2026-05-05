@@ -6,6 +6,7 @@ import {
     ScrollText,
     ShieldCheck,
     Truck,
+    BookCheck,
 } from "lucide-react";
 
 export function buildGeneralGroup({ pathname, currentCompany }: MenuContext): Group {
@@ -138,6 +139,16 @@ export function buildGeneralGroup({ pathname, currentCompany }: MenuContext): Gr
                 ],
                 submenus: [],
             },
+
+            {
+            // 👇 Cambiamos 'biblioteca-digital' por 'biblioteca' para que coincida con tu carpeta física
+            href: `/${currentCompany?.slug}/general/biblioteca`,
+            label: "Biblioteca Digital", // El texto que ve el usuario (aquí sí puedes ponerlo bonito)
+            active: pathname.includes(`/${currentCompany?.slug}/general/biblioteca`),
+            icon: BookCheck,
+            roles: [], // Cámbialo o vacíalo [] para probar
+            submenus: [],
+            }
         ],
     };
 }
