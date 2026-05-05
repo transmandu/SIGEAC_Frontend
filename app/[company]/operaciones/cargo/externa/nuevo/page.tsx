@@ -1,7 +1,10 @@
 "use client";
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import CreateCargoShipmentForm from "@/components/forms/operaciones/cargo/CreateCargoShipmentForm";
-import { PackagePlus } from "lucide-react";
+import { PackagePlus, ArrowLeft } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
+import { useParams } from "next/navigation";
 import {
   Card,
   CardContent,
@@ -11,10 +14,18 @@ import {
 } from "@/components/ui/card";
 
 export default function CreateExternalCargoPage() {
+  const params = useParams();
+  const company = params.company as string;
+
   return (
     <ContentLayout title="Nuevo Registro">
       <div className="flex flex-col gap-4">
         <div className="flex items-center gap-4">
+          <Button asChild variant="outline" size="icon" className="h-9 w-9">
+            <Link href={`/${company}/operaciones/cargo`}>
+              <ArrowLeft className="h-4 w-4" />
+            </Link>
+          </Button>
           <div>
             <h1 className="text-3xl font-bold tracking-tight text-primary flex items-center gap-2">
               <PackagePlus className="text-muted-foreground mr-1 size-7" />

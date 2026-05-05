@@ -120,6 +120,30 @@ export const useFinishCourse = () => {
   };
 };
 
+export const useReopenCourse = () => {
+  const queryClient = useQueryClient();
+  const reopenMutation = useMutation({
+    mutationFn: async ({ company, id }: { company: string; id: string }) => {
+      await axiosInstance.patch(`/general/${company}/reopen-course/${id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["department-courses"] });
+      toast.success("¡Reabierto!", {
+        description: `¡El curso ha sido reabierto correctamente!`,
+      });
+    },
+    onError: () => {
+      toast.error("Oops!", {
+        description: "¡Hubo un error al reabrir el curso!",
+      });
+    },
+  });
+
+  return {
+    reopenCourse: reopenMutation,
+  };
+};
+
 export const useUpdateCourse = () => {
   const queryClient = useQueryClient();
   const updateMutation = useMutation({

@@ -1,10 +1,11 @@
 "use client";
-
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import { useParams } from "next/navigation";
 import { useGetCargoShipmentById } from "@/hooks/operaciones/cargo/useGetCargoShipmentById";
 import CreateCargoShipmentForm from "@/components/forms/operaciones/cargo/CreateCargoShipmentForm";
-import { Loader2 } from "lucide-react";
+import { Loader2, ArrowLeft } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
 export default function UpdateCargoShipmentPage() {
   const params = useParams();
@@ -20,12 +21,22 @@ export default function UpdateCargoShipmentPage() {
   return (
     <ContentLayout title="Editar Carga">
       <div className="flex flex-col gap-4">
-        <h1 className="text-3xl font-bold text-center">
-          Modificar Carga {cargoShipment?.guide_number}
-        </h1>
-        <p className="text-sm text-center text-muted-foreground italic mb-6">
-          Ajuste los detalles de la mercancía envíada.
-        </p>
+        <div className="flex items-center gap-4 mb-4">
+          <Button asChild variant="outline" size="icon" className="h-9 w-9">
+            <Link
+              href={
+                cargoShipment?.aircraft
+                  ? `/${company}/operaciones/cargo/${cargoShipment.aircraft.id}`
+                  : `/${company}/operaciones/cargo/externa/${encodeURIComponent(cargoShipment?.external_aircraft || "")}`
+              }
+            >
+              <ArrowLeft className="h-4 w-4" />
+            </Link>
+          </Button>
+          <h1 className="text-3xl font-bold text-center">
+            Modificar Carga {cargoShipment?.guide_number}
+          </h1>
+        </div>
 
         {isLoading && (
           <div className="flex justify-center mt-20">

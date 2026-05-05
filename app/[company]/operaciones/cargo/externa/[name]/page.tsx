@@ -9,8 +9,9 @@ import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Plane, Plus } from "lucide-react";
+import { ArrowLeft, Plane, Plus, Download } from "lucide-react";
 import { MonthYearPicker } from "@/components/selects/MonthYearPicker";
+import { useExportCargoByAircraft } from "@/hooks/operaciones/cargo/useExportCargoByAircraft";
 import { LoadingDataTable } from "@/components/tables/LoadingDataTable";
 import {
   Breadcrumb,
@@ -50,6 +51,8 @@ const ExternalAircraftCargoPage = () => {
   const canWrite = userRoles.some((r) =>
     ["OPERADOR_CARGA", "SUPERUSER"].includes(r),
   );
+
+  const { exportToExcel, isExporting } = useExportCargoByAircraft(company);
 
   const columns = getColumns(isCurrentMonth, company, canWrite);
 
@@ -116,16 +119,27 @@ const ExternalAircraftCargoPage = () => {
             />
           </div>
 
-          {canWrite && (
-            <Button asChild>
-              <Link
-                href={`/${company}/operaciones/cargo/externa/${encodeURIComponent(name)}/nuevo`}
-              >
-                <Plus className="size-4 mr-2" />
-                Nuevo Registro
-              </Link>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              onClick={() => exportToExcel(name, month, year, name, true)}
+              disabled={isExporting || isLoading || !data?.length}
+            >
+              <Download className="size-4 mr-2" />
+              {isExporting ? "Exportando..." : "Exportar Excel"}
             </Button>
-          )}
+
+            {canWrite && isCurrentMonth && (
+              <Button asChild>
+                <Link
+                  href={`/${company}/operaciones/cargo/externa/${encodeURIComponent(name)}/nuevo`}
+                >
+                  <Plus className="size-4 mr-2" />
+                  Nuevo Registro
+                </Link>
+              </Button>
+            )}
+          </div>
         </div>
 
         {isLoading ? (

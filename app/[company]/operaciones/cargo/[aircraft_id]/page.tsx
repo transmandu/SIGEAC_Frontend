@@ -10,7 +10,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Plus, ArrowLeft, Plane } from "lucide-react";
+import { Plus, ArrowLeft, Plane, Download } from "lucide-react";
 import { MonthYearPicker } from "@/components/selects/MonthYearPicker";
 import { LoadingDataTable } from "@/components/tables/LoadingDataTable";
 import {
@@ -21,6 +21,7 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
+import { useExportCargoByAircraft } from "@/hooks/operaciones/cargo/useExportCargoByAircraft";
 
 const CargoByAircraftPage = () => {
   const params = useParams();
@@ -56,7 +57,7 @@ const CargoByAircraftPage = () => {
   const canWrite = userRoles.some((r) =>
     ["OPERADOR_CARGA", "SUPERUSER"].includes(r),
   );
-
+  const { exportToExcel, isExporting } = useExportCargoByAircraft(company);
   const columns = getColumns(isCurrentMonth, company, canWrite);
 
   return (
@@ -132,14 +133,28 @@ const CargoByAircraftPage = () => {
             />
           </div>
 
-          {canWrite && isCurrentMonth && (
-            <Button asChild>
-              <Link href={`/${company}/operaciones/cargo/${aircraft_id}/nuevo`}>
-                <Plus className="size-4 mr-2" />
-                Nuevo Registro
-              </Link>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              onClick={() =>
+                exportToExcel(aircraft_id, month, year, aircraft?.acronym)
+              }
+              disabled={isExporting || isLoading || !data?.length}
+            >
+              <Download className="size-4 mr-2" />
+              {isExporting ? "Exportando..." : "Exportar Excel"}
             </Button>
-          )}
+            {canWrite && isCurrentMonth && (
+              <Button asChild>
+                <Link
+                  href={`/${company}/operaciones/cargo/${aircraft_id}/nuevo`}
+                >
+                  <Plus className="size-4 mr-2" />
+                  Nuevo Registro
+                </Link>
+              </Button>
+            )}
+          </div>
         </div>
 
         {/* Tabla de guías */}

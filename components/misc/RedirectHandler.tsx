@@ -4,7 +4,7 @@ import { useCompanyStore } from "@/stores/CompanyStore";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect } from "react";
 
-const ALLOWED_ROUTES = ['/login', '/register', '/ajustes', "/sistema", "/acceso_publico"];
+const ALLOWED_ROUTES = ['/login', '/register', '/ajustes', '/sistema', '/acceso_publico'];
 
 export const RedirectHandler = () => {
     const router = useRouter();

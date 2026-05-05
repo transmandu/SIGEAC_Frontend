@@ -11,15 +11,12 @@ interface LocationsByCompany {
 type LocationsByCompanyResponse = LocationsByCompany[];
 
 // Ajusta la función de fetch para que devuelva la estructura esperada
-export const useGetLocationsByCompanies = (company?: string) => {
+export const useGetLocationsByCompanies = () => {
   return useQuery<LocationsByCompanyResponse>({
-    queryKey: ['companie-locations', company],
+    queryKey: ['company-locations'], // 👈 sin company
     queryFn: async () => {
-      const { data } = await axiosInstance.get('/locations-by-companies', {
-        params: { company },
-      });
+      const { data } = await axiosInstance.get('/locations-by-companies');
       return data.companies_location;
     },
-    enabled: !!company,
   });
 };

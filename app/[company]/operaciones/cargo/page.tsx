@@ -115,7 +115,6 @@ const AircraftCard = ({
   return (
     <>
       <Card className="flex flex-col justify-between hover:shadow-lg hover:border-primary/50 transition-all duration-200 group relative overflow-visible">
-        {/* MENÚ DE ACCIONES (SOLO APLICA A AERONAVES EXTERNAS EN MES ACTUAL) */}
         {canWrite && aircraft.is_external && isCurrentMonth && (
           <div className="absolute top-2 right-2 z-10">
             <DropdownMenu>
@@ -148,7 +147,7 @@ const AircraftCard = ({
                 <Plane className="h-5 w-5" />
               </div>
               <div className="pr-4">
-                <p className="text-2xl font-bold tracking-tight break-all">
+                <p className="text-xl font-bold tracking-tight break-all">
                   {aircraft.acronym}
                 </p>
                 <p className="text-sm text-muted-foreground">
@@ -158,7 +157,7 @@ const AircraftCard = ({
             </div>
 
             {/* Solo se renderiza si NO hay menú colisionando (es registrada o no es mes actual) */}
-            {(!aircraft.is_external || !isCurrentMonth) && (
+            {/*             {(!aircraft.is_external || !isCurrentMonth) && (
               <span
                 className={`text-xs font-mono px-2 py-1 rounded shrink-0 ${
                   aircraft.is_external
@@ -168,7 +167,7 @@ const AircraftCard = ({
               >
                 {aircraft.is_external ? "Externa" : aircraft.serial}
               </span>
-            )}
+            )} */}
           </div>
 
           <div className="flex items-center gap-3 border rounded-lg p-3 bg-muted/30">

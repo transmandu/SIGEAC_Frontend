@@ -135,7 +135,7 @@ export default function CargoDetailsPage() {
                   <p className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">
                     Emisor
                   </p>
-                  <p className="font-medium text-sm">
+                  <p className="font-medium text-sm uppercase">
                     {shipment.issuer_user
                       ? `${shipment.issuer_user.first_name} ${shipment.issuer_user.last_name}`
                       : shipment.issuer}

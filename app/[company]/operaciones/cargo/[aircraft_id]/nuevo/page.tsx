@@ -1,3 +1,4 @@
+"use client";
 import {
   Card,
   CardContent,
@@ -10,16 +11,22 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import CreateCargoShipmentForm from "@/components/forms/operaciones/cargo/CreateCargoShipmentForm";
 import { ContentLayout } from "@/components/layout/ContentLayout";
+import { useParams } from "next/navigation";
 
-export default function NewCargoShipmentPage({
-  params,
-}: {
-  params: { company: string };
-}) {
+export default function NewCargoShipmentPage() {
+  const params = useParams();
+  const company = params.company as string;
+  const aircraft_id = params.aircraft_id as string;
+
   return (
     <ContentLayout title="Registrar Carga">
       <div className="space-y-6">
         <div className="flex items-center gap-4">
+          <Button asChild variant="outline" size="icon" className="h-9 w-9">
+            <Link href={`/${company}/operaciones/cargo/${aircraft_id}`}>
+              <ArrowLeft className="h-4 w-4" />
+            </Link>
+          </Button>
           <div>
             <h1 className="text-3xl font-bold tracking-tight text-primary flex items-center gap-2">
               <PackagePlus className="text-muted-foreground mr-1 size-7" />

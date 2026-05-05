@@ -2,25 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
-import { es } from "date-fns/locale";
-
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger
-} from "@/components/ui/tooltip";
-
-import {
-  Calendar as CalendarIcon,
-  Loader2,
-  FileText,
-  Scale,
-  Download,
-  AlertCircle
-} from "lucide-react";
-
-import { Button } from "@/components/ui/button";
 
 import {
   Dialog,
@@ -31,21 +12,8 @@ import {
   DialogTrigger
 } from "@/components/ui/dialog";
 
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
-} from "@/components/ui/select";
-
-import { Calendar } from "@/components/ui/calendar";
-
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger
-} from "@/components/ui/popover";
+import { Button } from "@/components/ui/button";
+import { Loader2, Download, FileText, Scale } from "lucide-react";
 
 import {
   Tabs,
@@ -54,11 +22,9 @@ import {
   TabsTrigger
 } from "@/components/ui/tabs";
 
-import { cn } from "@/lib/utils";
 import { RiFileExcel2Fill } from "react-icons/ri";
 
 import { useCompanyStore } from "@/stores/CompanyStore";
-import { useAuth } from "@/contexts/AuthContext";
 
 import { useGetAircrafts } from "@/hooks/aerolinea/aeronaves/useGetAircrafts";
 import { useGetDispatchReport } from "@/hooks/mantenimiento/almacen/reportes/useGetDispatchReport";
@@ -67,34 +33,50 @@ import { useGetAuthorizedEmployees } from "@/hooks/sistema/autorizados/useGetAut
 import { useGetThirdParties } from "@/hooks/general/terceros/useGetThirdParties";
 import { useGetDepartments } from "@/hooks/sistema/departamento/useGetDepartment";
 
+import { useGetArticlesByStatus } from "@/hooks/mantenimiento/almacen/articulos/useGetArticlesByStatus";
+import { useGetGeneralArticles } from "@/hooks/mantenimiento/almacen/almacen_general/useGetGeneralArticles";
+
+import { DispatchReportFilters } from "@/components/dialogs/mantenimiento/almacen/DispatchReportFilters";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+
+type DispatchType = "aeronautical" | "general";
+
 export function DispatchReportDialog() {
   const { selectedStation, selectedCompany } = useCompanyStore();
-  const { user } = useAuth();
 
-  const roles = user?.roles ?? [];
-
-  const isAdminRole = roles.some(r =>
-    ["JEFE_ADMINISTRACION", "ANALISTA_ADMINISTRACION"].includes(r.name)
-  );
-
-  const defaultTab = isAdminRole ? "balance" : "dispatch";
-
-  const [activeTab, setActiveTab] = useState(defaultTab);
+  const [activeTab, setActiveTab] = useState("dispatch");
   const [open, setOpen] = useState(false);
   const [loadingDownload, setLoadingDownload] = useState(false);
 
+  // ===================== FECHAS =====================
   const [startDate, setStartDate] = useState<Date | undefined>();
   const [endDate, setEndDate] = useState<Date | undefined>();
+
+  // ===================== FILTROS BASE =====================
   const [aircraft, setAircraft] = useState<string | null>(null);
   const [departmentId, setDepartmentId] = useState<string | null>(null);
   const [authorizedEmployeeId, setAuthorizedEmployeeId] = useState<string | null>(null);
   const [thirdPartyId, setThirdPartyId] = useState<string | null>(null);
+
+  // ===================== TIPO DE DESPACHO =====================
+  const [dispatchType, setDispatchType] = useState<DispatchType | null>(null);
+
+  // ===================== FILTROS ARTÍCULOS =====================
+  const [articleFilters, setArticleFilters] = useState({
+    part_number: "",
+    alternative_part_number: "",
+    description: "",
+    batch_id: "",
+    variant_type: "",
+    brand_model: ""
+  });
 
   const today = new Date();
 
   const { mutateAsync: getDispatch } = useGetDispatchReport();
   const { mutateAsync: getBalance } = useGetBalanceAndTotalReport();
 
+  // ===================== DATA =====================
   const { data: aircrafts, isLoading: isLoadingAircrafts } =
     useGetAircrafts(selectedCompany?.slug);
 
@@ -107,8 +89,28 @@ export function DispatchReportDialog() {
   const { data: thirdParties, isLoading: isLoadingThirdParties } =
     useGetThirdParties();
 
-  const isDateRangeInvalid = startDate && endDate && endDate < startDate;
-  const areDatesMissing = !startDate || !endDate;
+  // ===================== ARTÍCULOS =====================
+  const { data: articlesByStatus = [], isLoading: isLoadingArticles } =
+    useGetArticlesByStatus("STORED");
+
+  const { data: generalArticles = [], isLoading: isLoadingGeneralArticles } =
+    useGetGeneralArticles();
+
+  // 🔥 UNIFICACIÓN DE FUENTES
+  const allArticles = [...articlesByStatus, ...generalArticles];
+
+  // ===================== VALIDACIÓN FECHAS =====================
+  const isDateRangeInvalid =
+    !!startDate &&
+    !!endDate &&
+    endDate < startDate;
+
+  const canDownload =
+    !!selectedStation &&
+    !!selectedCompany?.slug &&
+    !!startDate &&
+    !!endDate &&
+    !isDateRangeInvalid;
 
   useEffect(() => {
     if (!open) {
@@ -118,29 +120,48 @@ export function DispatchReportDialog() {
       setDepartmentId(null);
       setAuthorizedEmployeeId(null);
       setThirdPartyId(null);
-      setActiveTab(defaultTab);
-    }
-  }, [open, defaultTab]);
+      setDispatchType(null);
 
+      setArticleFilters({
+        part_number: "",
+        alternative_part_number: "",
+        description: "",
+        batch_id: "",
+        variant_type: "",
+        brand_model: ""
+      });
+
+      setActiveTab("dispatch");
+    }
+  }, [open]);
+
+  // ===================== PARAMS =====================
   const buildParams = () => ({
     location_id: selectedStation!,
     company: selectedCompany!.slug,
+
     aircraft_id: aircraft || undefined,
     department_id: departmentId || undefined,
     authorized_employee_id: authorizedEmployeeId || undefined,
     third_party_id: thirdPartyId || undefined,
+    type: dispatchType || undefined,
+
     from: format(startDate!, "yyyy-MM-dd"),
     to: format(endDate!, "yyyy-MM-dd"),
+
+    // ===================== ARTÍCULOS =====================
+    part_number: articleFilters.part_number || undefined,
+    alternative_part_number: articleFilters.alternative_part_number || undefined,
+    description: articleFilters.description || undefined,
+    batch_id: articleFilters.batch_id || undefined,
+    variant_type: articleFilters.variant_type || undefined,
+    brand_model: articleFilters.brand_model || undefined
+    
   });
 
-  const canDownload =
-    !!selectedStation &&
-    !!selectedCompany?.slug &&
-    !areDatesMissing &&
-    !isDateRangeInvalid;
-
-  const handleDownload = async (reportType: "dispatch" | "balance") => {
-    if (loadingDownload || !canDownload) return;
+  // ===================== DOWNLOAD =====================
+  const handleDownload = async (type: "dispatch" | "balance") => {
+    if (!canDownload || loadingDownload) return;
 
     try {
       setLoadingDownload(true);
@@ -148,7 +169,7 @@ export function DispatchReportDialog() {
       const params = buildParams();
 
       const blob =
-        reportType === "dispatch"
+        type === "dispatch"
           ? await getDispatch(params)
           : await getBalance({ ...params, format: "pdf" });
 
@@ -156,12 +177,10 @@ export function DispatchReportDialog() {
 
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
+
       link.href = url;
+      link.download = `${type}-report-${format(startDate!, "yyyyMMdd")}-${format(endDate!, "yyyyMMdd")}.pdf`;
 
-      const reportName =
-        reportType === "dispatch" ? "reporte-salidas" : "reporte-balance-total";
-
-      link.download = `${reportName}-${format(startDate!, "yyyyMMdd")}-${format(endDate!, "yyyyMMdd")}.pdf`;
       link.click();
       setTimeout(() => URL.revokeObjectURL(url), 100);
 
@@ -171,8 +190,8 @@ export function DispatchReportDialog() {
     }
   };
 
-  const handleExcelDownload = async (reportType: "dispatch" | "balance") => {
-    if (loadingDownload || !canDownload) return;
+  const handleExcel = async (type: "dispatch" | "balance") => {
+    if (!canDownload || loadingDownload) return;
 
     try {
       setLoadingDownload(true);
@@ -180,7 +199,7 @@ export function DispatchReportDialog() {
       const params = { ...buildParams(), format: "excel" as const };
 
       const blob =
-        reportType === "dispatch"
+        type === "dispatch"
           ? await getDispatch(params)
           : await getBalance(params);
 
@@ -188,315 +207,211 @@ export function DispatchReportDialog() {
 
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
+
       link.href = url;
+      link.download = `${type}-report-${format(startDate!, "yyyyMMdd")}-${format(endDate!, "yyyyMMdd")}.xlsx`;
 
-      const reportName =
-        reportType === "dispatch" ? "reporte-salidas" : "reporte-balance-total";
-
-      link.download = `${reportName}-${format(startDate!, "yyyyMMdd")}-${format(endDate!, "yyyyMMdd")}.xlsx`;
       link.click();
       setTimeout(() => URL.revokeObjectURL(url), 100);
     } finally {
       setLoadingDownload(false);
     }
   };
+  const [hovered, setHovered] = useState(false)
+  const [pos, setPos] = useState({ x: 50, y: 50 })
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLButtonElement>) => {
+    if (!hovered) return
+    const rect = e.currentTarget.getBoundingClientRect()
+    const x = ((e.clientX - rect.left) / rect.width) * 100
+    const y = ((e.clientY - rect.top) / rect.height) * 100
+    setPos({ x, y })
+  }
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" className="border-dashed h-8">
+        <Button
+          onMouseEnter={() => setHovered(true)}
+          onMouseLeave={() => setHovered(false)}
+          onMouseMove={handleMouseMove}
+          variant="outline"
+          className="relative overflow-hidden border border-dashed border-blue-400/50 dark:border-blue-300/30 bg-background/70 backdrop-blur text-blue-700 dark:text-blue-300 font-medium tracking-wide shadow-sm transition-all duration-200 hover:border-blue-500/60 dark:hover:border-blue-300/50 hover:bg-blue-50/40 dark:hover:bg-blue-950/20 hover:shadow-md hover:-translate-y-[1px] active:translate-y-0 active:shadow-sm focus-visible:ring-2 focus-visible:ring-blue-500/25 focus-visible:ring-offset-2"
+          style={{
+            backgroundImage: hovered
+              ? `radial-gradient(circle at ${pos.x}% ${pos.y}%, rgba(59,130,246,0.10), transparent 65%)`
+              : 'none'
+          }}
+        >
           Generar Reporte
         </Button>
       </DialogTrigger>
 
-      <DialogContent className="sm:max-w-[500px]">
-        <DialogHeader>
-          <DialogTitle>Centro de Reportes de Almacén</DialogTitle>
-          <DialogDescription>
-            Configura el rango de fechas y filtros para tu documento PDF.
-          </DialogDescription>
-        </DialogHeader>
+      <DialogContent className="sm:max-w-[580px] p-0 overflow-visible">
+        <div className="relative bg-gradient-to-br from-primary/5 via-background to-background px-6 pt-8 pb-1">
+          <div className="absolute inset-0 bg-grid-white/[0.02]" />
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-2 mb-4">
-            <TabsTrigger value="dispatch" className="flex gap-2 text-xs">
-              <FileText className="w-3.5 h-3.5" />
-              Reporte Salidas
-            </TabsTrigger>
-
-            <TabsTrigger value="balance" className="flex gap-2 text-xs">
-              <Scale className="w-3.5 h-3.5" />
-              Balance Total
-            </TabsTrigger>
-          </TabsList>
-
-          <div className="space-y-4 py-2">
-            {/* Rango de fechas */}
-            <div className="w-full space-y-3 p-4 bg-muted/30 rounded-lg border">
-              <label className="text-sm font-medium flex items-center gap-2">
-                <CalendarIcon className="w-4 h-4 text-primary" />
-                Rango de Fechas Obligatorio
-              </label>
-
-              <div className="flex gap-2 justify-between">
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className={cn(
-                        "w-full text-xs justify-start",
-                        !startDate && "text-muted-foreground"
-                      )}
-                    >
-                      {startDate
-                        ? format(startDate, "dd/MM/yyyy", { locale: es })
-                        : "Desde"}
-                    </Button>
-                  </PopoverTrigger>
-
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={startDate}
-                      onSelect={setStartDate}
-                      locale={es}
-                      disabled={date => date > today}
-                      initialFocus
-                    />
-                  </PopoverContent>
-                </Popover>
-
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className={cn(
-                        "w-full text-xs justify-start",
-                        !endDate && "text-muted-foreground"
-                      )}
-                    >
-                      {endDate
-                        ? format(endDate, "dd/MM/yyyy", { locale: es })
-                        : "Hasta"}
-                    </Button>
-                  </PopoverTrigger>
-
-                  <PopoverContent className="w-auto p-0" align="end">
-                    <Calendar
-                      mode="single"
-                      selected={endDate}
-                      onSelect={setEndDate}
-                      locale={es}
-                      disabled={date =>
-                        date > today || (startDate ? date < startDate : false)
-                      }
-                      initialFocus
-                    />
-                  </PopoverContent>
-                </Popover>
+          <DialogHeader className="relative">
+            <div className="flex items-center gap-4">
+              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-3xl border bg-background shadow-sm">
+                <FileText className="h-7 w-7 text-primary" />
               </div>
 
-              {isDateRangeInvalid && (
-                <div className="flex items-center gap-2 text-[10px] text-destructive mt-1 animate-pulse">
-                  <AlertCircle className="w-3 h-3" />
-                  La fecha final debe ser mayor a la inicial.
-                </div>
-              )}
+              <div className="space-y-1">
+                <DialogTitle className="text-2xl font-bold tracking-tight leading-none">
+                  Centro de Reportes
+                </DialogTitle>
+
+                <p className="text-sm font-medium text-primary/80">
+                  Almacén e Inventario
+                </p>
+
+                <DialogDescription className="max-w-[430px] text-sm leading-relaxed">
+                  Genera reportes operativos, balances e históricos de
+                  solicitudes de salidas.
+                </DialogDescription>
+              </div>
             </div>
+          </DialogHeader>
+        </div>
+        <div className="px-6 py-5">
+          <Tabs value={activeTab} onValueChange={setActiveTab}>
+            <TabsList className="grid grid-cols-2 mb-4">
+              <TabsTrigger value="dispatch" className=" flex gap-2 text-xs rounded-lg transition-all duration-200 data-[state=active]:bg-background data-[state=active]:shadow-md data-[state=active]:shadow-blue-500/10 data-[state=active]:ring-1 data-[state=active]:ring-blue-500/ data-[state=active]:text-blue-600">
+                <FileText className="w-3.5 h-3.5" />
+                Salidas
+              </TabsTrigger>
 
-            {/* Filtro por Aeronave */}
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium">
-                Aeronave (Opcional)
-              </label>
+              <TabsTrigger value="balance" className=" flex gap-2 text-xs rounded-lg transition-all duration-200 data-[state=active]:bg-background data-[state=active]:shadow-md data-[state=active]:shadow-blue-500/10 data-[state=active]:ring-1 data-[state=active]:ring-blue-500/ data-[state=active]:text-blue-600">
+                <Scale className="w-3.5 h-3.5" />
+                Balance
+              </TabsTrigger>
+            </TabsList>
 
-              <Select
-                onValueChange={value =>
-                  setAircraft(value === "all" ? null : value)
-                }
-                value={aircraft || "all"}
-              >
-                <SelectTrigger disabled={isLoadingAircrafts}>
-                  <SelectValue placeholder="Todas las aeronaves" />
-                </SelectTrigger>
+            <DispatchReportFilters
+              startDate={startDate}
+              endDate={endDate}
+              setStartDate={setStartDate}
+              setEndDate={setEndDate}
 
-                <SelectContent>
-                  <SelectItem value="all">Todas las aeronaves</SelectItem>
+              aircraft={aircraft}
+              setAircraft={setAircraft}
+              aircrafts={aircrafts}
+              isLoadingAircrafts={isLoadingAircrafts}
 
-                  {aircrafts?.map(item => (
-                    <SelectItem key={item.id} value={item.id.toString()}>
-                      {item.acronym ?? `Aeronave #${item.id}`}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+              departmentId={departmentId}
+              setDepartmentId={setDepartmentId}
+              departments={departments}
+              isLoadingDepartments={isLoadingDepartments}
 
-            {/* Filtro por Departamento */}
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium">
-                Departamento (Opcional)
-              </label>
+              authorizedEmployeeId={authorizedEmployeeId}
+              setAuthorizedEmployeeId={setAuthorizedEmployeeId}
+              authorizedEmployees={authorizedEmployees}
+              isLoadingEmployees={isLoadingEmployees}
 
-              <Select
-                onValueChange={value =>
-                  setDepartmentId(value === "all" ? null : value)
-                }
-                value={departmentId || "all"}
-              >
-                <SelectTrigger disabled={isLoadingDepartments}>
-                  <SelectValue placeholder="Todos los departamentos" />
-                </SelectTrigger>
+              thirdPartyId={thirdPartyId}
+              setThirdPartyId={setThirdPartyId}
+              thirdParties={thirdParties}
+              isLoadingThirdParties={isLoadingThirdParties}
 
-                <SelectContent>
-                  <SelectItem value="all">Todos los departamentos</SelectItem>
+              dispatchType={dispatchType}
+              setDispatchType={setDispatchType}
 
-                  {departments?.map(dep => (
-                    <SelectItem key={dep.id} value={dep.id.toString()}>
-                      {dep.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+              // 🔥 ARTÍCULOS UNIFICADOS
+              articles={allArticles}
+              isLoadingArticles={isLoadingArticles || isLoadingGeneralArticles}
+              articleFilters={articleFilters}
+              setArticleFilters={setArticleFilters}
 
-            {/* Filtro por Empresa (Empleado Autorizado) */}
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium">
-                Empresa (Opcional)
-              </label>
+              isDateRangeInvalid={isDateRangeInvalid}
+            />
 
-              <Select
-                onValueChange={value =>
-                  setAuthorizedEmployeeId(value === "all" ? null : value)
-                }
-                value={authorizedEmployeeId || "all"}
-              >
-                <SelectTrigger disabled={isLoadingEmployees}>
-                  <SelectValue placeholder="Todas las empresas" />
-                </SelectTrigger>
-
-                <SelectContent>
-                  <SelectItem value="all">Todas las empresas</SelectItem>
-
-                  {authorizedEmployees?.map(emp => (
-                    <SelectItem key={emp.id} value={emp.id.toString()}>
-                      {emp.employee_name} — {emp.from_company_db}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Filtro por Tercero */}
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium">
-                Tercero (Opcional)
-              </label>
-
-              <Select
-                onValueChange={value =>
-                  setThirdPartyId(value === "all" ? null : value)
-                }
-                value={thirdPartyId || "all"}
-              >
-                <SelectTrigger disabled={isLoadingThirdParties}>
-                  <SelectValue placeholder="Todos los terceros" />
-                </SelectTrigger>
-
-                <SelectContent>
-                  <SelectItem value="all">Todos los terceros</SelectItem>
-
-                  {thirdParties?.map(tp => (
-                    <SelectItem key={tp.id} value={tp.id.toString()}>
-                      {tp.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <TabsContent value="dispatch">
-              <div className="flex gap-2">
+            <TabsContent value="dispatch" className="mt-8">
+              <div className="grid grid-cols-[1fr_auto] gap-4 items-center">
                 <Button
-                  className="w-full"
+                  size="lg"
+                  className="h-12 rounded-2xl font-medium shadow-sm transition-all hover:shadow-md active:scale-[0.98]"
                   onClick={() => handleDownload("dispatch")}
-                  disabled={loadingDownload || !canDownload}
+                  disabled={!canDownload || loadingDownload}
                 >
-                  {loadingDownload
-                    ? <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    : <Download className="mr-2 h-4 w-4" />}
+                  {loadingDownload ? (
+                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                  ) : (
+                    <Download className="mr-2 h-5 w-5" />
+                  )}
 
-                  Descargar Reporte de Salidas
+                  Descargar Reporte
+                  <span className="ml-2 text-xs font-normal opacity-80">
+                    PDF
+                  </span>
                 </Button>
 
                 <TooltipProvider>
-                  <Tooltip delayDuration={100}>
+                  <Tooltip delayDuration={150}>
                     <TooltipTrigger asChild>
-                      <button
-                        type="button"
-                        onClick={() => handleExcelDownload("dispatch")}
-                        disabled={loadingDownload || !canDownload}
-                        className="disabled:opacity-50"
-                        aria-label="Descargar Excel"
+                      <Button
+                        size="lg"
+                        variant="outline"
+                        className="h-12 px-4 rounded-2xl border-green-200 bg-green-50/80 text-green-700 shadow-sm transition-all hover:bg-green-100 hover:border-green-300 hover:shadow-md active:scale-[0.98] dark:border-green-900 dark:bg-green-950/30 dark:text-green-400 dark:hover:bg-green-950/50"
+                        onClick={() => handleExcel("dispatch")}
+                        disabled={!canDownload || loadingDownload}
                       >
-                        {loadingDownload
-                          ? <Loader2 className="size-5 animate-spin" />
-                          : <RiFileExcel2Fill className="size-6 text-green-600/80 hover:scale-125 transition-transform" />}
-                      </button>
+                        <RiFileExcel2Fill className="h-6 w-6 shrink-0" />
+                      </Button>
                     </TooltipTrigger>
 
-                    <TooltipContent>
-                      {!selectedStation || !selectedCompany?.slug
-                        ? "Selecciona ubicación y compañía"
-                        : "Descargar Excel"}
+                    <TooltipContent side="top" align="center" sideOffset={10} avoidCollisions={false} className="z-[9999] whitespace-nowrap rounded-xl px-3 py-1.5">
+                      Descargar en Excel
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
               </div>
             </TabsContent>
 
-            <TabsContent value="balance">
-              <div className="flex gap-2">
+            <TabsContent value="balance" className="mt-8">
+              <div className="grid grid-cols-[1fr_auto] gap-4 items-center">
                 <Button
-                  className="w-full"
+                  size="lg"
+                  className="h-12 rounded-2xl font-medium shadow-sm transition-all hover:shadow-md active:scale-[0.98]"
                   onClick={() => handleDownload("balance")}
-                  disabled={loadingDownload || !canDownload}
+                  disabled={!canDownload || loadingDownload}
                 >
-                  {loadingDownload
-                    ? <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    : <Download className="mr-2 h-4 w-4" />}
+                  {loadingDownload ? (
+                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                  ) : (
+                    <Download className="mr-2 h-5 w-5" />
+                  )}
 
-                  Descargar Balance Total
+                  Descargar Balance
+                  <span className="ml-2 text-xs font-normal opacity-80">
+                    PDF
+                  </span>
                 </Button>
 
                 <TooltipProvider>
-                  <Tooltip delayDuration={100}>
+                  <Tooltip delayDuration={150}>
                     <TooltipTrigger asChild>
-                      <button
-                        type="button"
-                        onClick={() => handleExcelDownload("balance")}
-                        disabled={loadingDownload || !canDownload}
-                        className="disabled:opacity-50"
-                        aria-label="Descargar Excel"
+                      <Button
+                        size="lg"
+                        variant="outline"
+                        className="h-12 px-4 rounded-2xl border-green-200 bg-green-50/80 text-green-700 shadow-sm transition-all hover:bg-green-100 hover:border-green-300 hover:shadow-md active:scale-[0.98] dark:border-green-900 dark:bg-green-950/30 dark:text-green-400 dark:hover:bg-green-950/50"
+                        onClick={() => handleExcel("balance")}
+                        disabled={!canDownload || loadingDownload}
                       >
-                        {loadingDownload
-                          ? <Loader2 className="size-5 animate-spin" />
-                          : <RiFileExcel2Fill className="size-6 text-green-600/80 hover:scale-125 transition-transform" />}
-                      </button>
+                        <RiFileExcel2Fill className="h-6 w-6 shrink-0" />
+                      </Button>
                     </TooltipTrigger>
 
-                    <TooltipContent>
-                      {!selectedStation || !selectedCompany?.slug
-                        ? "Selecciona ubicación y compañía"
-                        : "Descargar Excel"}
+                    <TooltipContent  side="top" align="center" sideOffset={10} avoidCollisions={false} className="z-[9999] whitespace-nowrap rounded-xl px-3 py-1.5">
+                      Descargar en Excel
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
               </div>
             </TabsContent>
-          </div>
-        </Tabs>
+
+          </Tabs>
+        </div>
       </DialogContent>
     </Dialog>
   );

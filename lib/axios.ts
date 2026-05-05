@@ -15,22 +15,26 @@ const axiosInstance = axios.create({
 });
 
 // 1. Interceptor de Petición: Asegura que el token lleve el formato correcto
-axiosInstance.interceptors.request.use((config) => {
-    const token = Cookies.get('auth_token');
+axiosInstance.interceptors.request.use(
+    (config) => {
+        const token = Cookies.get('auth_token');
 
-    if (token) {
-        // IMPORTANTE: Laravel necesita que el header empiece con "Bearer "
-        // Si tu cookie no lo tiene, lo añadimos aquí.
-        const authHeader = token.startsWith('Bearer ') ? token : `Bearer ${token}`;
-        config.headers.Authorization = authHeader;
+        if (token) {
+            // Laravel necesita que el header empiece con "Bearer "
+            const authHeader = token.startsWith('Bearer ') ? token : `Bearer ${token}`;
+            config.headers.Authorization = authHeader;
+        }
+
+        return config;
+    },
+    (error) => {
+        return Promise.reject(error);
     }
-
-    return config;
-});
+);
 
 // 2. Interceptor de Respuesta: Detecta si el servidor nos expulsó (Error 401)
 axiosInstance.interceptors.response.use(
-    (response) => response, // Si todo sale bien (200), no hacemos nada
+    (response) => response, // Si todo sale bien (200), retornamos la respuesta
     (error) => {
         // Si el backend responde con 401 Unauthorized
         if (error.response && error.response.status === 401) {
@@ -39,17 +43,18 @@ axiosInstance.interceptors.response.use(
             if (!isPublicRoute(pathname)) {
                 console.warn("⚠️ Sesión inválida: Redirigiendo al login...");
 
-                // Borramos las cookies para que el frontend no intente usar un token muerto
+                // Borramos las cookies para limpiar el estado
                 Cookies.remove('auth_token');
                 Cookies.remove('jwt');
 
-                // Redirigimos al usuario al login de forma forzada para limpiar el estado de React
+                // Redirigimos al usuario al login
                 if (typeof window !== 'undefined') {
                     window.location.href = '/login?session=expired';
                 }
             }
         }
 
+        // IMPORTANTE: Siempre rechazar el error para que no se pierda en el flujo de la app
         return Promise.reject(error);
     }
 );

@@ -172,3 +172,34 @@
   backdrop-filter: none;
   min-width: 100px;
 }
+@keyframes liquidMove {
+  0% {
+    transform: translateX(-30%) scaleY(1);
+  }
+  50% {
+    transform: translateX(30%) scaleY(1.2);
+  }
+  100% {
+    transform: translateX(-30%) scaleY(1);
+  }
+}
+
+.liquid-wave {
+  width: 200%;
+  height: 100%;
+  background: radial-gradient(
+    circle at 50% 50%,
+    rgba(255, 255, 255, 0.35),
+    transparent 60%
+  );
+  animation: liquidMove 3.5s ease-in-out infinite;
+  filter: blur(1px);
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}

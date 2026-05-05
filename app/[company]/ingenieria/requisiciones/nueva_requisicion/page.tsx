@@ -174,7 +174,7 @@ const CreateRequisitionPage = () => {
           // Mapear observation a justification y description
           justification: article.observation || article.justification || "",
           description: article.observation || "",
-          // Incluir aircraft_id para cada artículo (requerido por backend con isOMAC=true)
+          // Incluir aircraft_id para cada artículo (requerido por backend con isOmac=true)
           aircraft_id: aircraft.aircraft_id,
           // Asegurar que todos los campos opcionales estén presentes
           serial: article.serial || "",

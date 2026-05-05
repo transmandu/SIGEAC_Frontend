@@ -51,16 +51,17 @@ import { useGetCompanies } from '@/hooks/sistema/useGetCompanies';
 import { useCreateUser } from '@/actions/general/usuarios/actions';
 import { ScrollArea } from "@/components/ui/scroll-area";
 import Image from "next/image";
+import { genKey } from "../mantenimiento/almacen/_hooks/useDispatchForm";
 
 const formSchema = z
   .object({
-    // Datos del empleado
     first_name: z.string().min(1, "Requerido"),
     middle_name: z.string().optional(),
     last_name: z.string().min(1, "Requerido"),
     second_last_name: z.string().optional(),
     dni_type: z.string(),
     blood_type: z.string(),
+    gender: z.enum(["MALE", "FEMALE"]),
     dni: z.string().min(6, "Requerido"),
     department_id: z.string(),
     job_title_id: z.string(),
@@ -72,11 +73,7 @@ const formSchema = z
         if (!file) return true;
         return file instanceof File;
       }, "Archivo inválido"),
-
-    // Opción para crear usuario
     createUser: z.boolean(),
-
-    // Datos del usuario (condicionales)
     username: z.string().min(3, "Mínimo 3 caracteres").optional(),
     password: z.string().min(5, "Mínimo 5 caracteres").optional(),
     email: z.string().email("Correo inválido").optional(),
@@ -91,7 +88,6 @@ const formSchema = z
       .optional(),
   })
   .superRefine((data, ctx) => {
-    // Validación condicional si createUser es true
     if (data.createUser) {
       if (!data.username) {
         ctx.addIssue({
@@ -159,7 +155,7 @@ export function CreateEmployeeForm({ onSuccess }: { onSuccess?: () => void }) {
   const {
     data: companies_locations,
     error: companies_locationsError,
-  } = useGetLocationsByCompanies(selectedCompany?.slug);
+  } = useGetLocationsByCompanies();
   
   const form = useForm<EmployeeForm>({
     resolver: zodResolver(formSchema),
@@ -168,6 +164,8 @@ export function CreateEmployeeForm({ onSuccess }: { onSuccess?: () => void }) {
       last_name: "",
       dni: "",
       dni_type: 'V',
+      blood_type: "",
+      gender: "MALE",
       middle_name: "",
       second_last_name: "",
       createUser: false,
@@ -234,6 +232,7 @@ export function CreateEmployeeForm({ onSuccess }: { onSuccess?: () => void }) {
         dni: data.dni,
         dni_type: data.dni_type,
         blood_type: data.blood_type,
+        gender: data.gender,
         job_title_id: data.job_title_id,
         department_id: data.department_id,
         location_id: data.location_id,
@@ -422,14 +421,14 @@ export function CreateEmployeeForm({ onSuccess }: { onSuccess?: () => void }) {
               {/* =============== RIGHT COLUMN =============== */}
               <div className="flex flex-col gap-4">
 
-                <div className="flex gap-2 w-full">
-
+                <div className="grid grid-cols-12 gap-4 w-full items-end">
+                  
                   <FormField
                     control={form.control}
                     name="dni_type"
                     render={({ field }) => (
-                      <FormItem className="w-1/3">
-                        <FormLabel>T. de Doc.</FormLabel>
+                      <FormItem className="col-span-2">
+                        <FormLabel>T. Doc</FormLabel>
                         <Select onValueChange={field.onChange} value={field.value ?? ""}>
                           <FormControl>
                             <SelectTrigger>
@@ -442,6 +441,7 @@ export function CreateEmployeeForm({ onSuccess }: { onSuccess?: () => void }) {
                             <SelectItem value="E">E</SelectItem>
                           </SelectContent>
                         </Select>
+                        <FormMessage />
                       </FormItem>
                     )}
                   />
@@ -450,10 +450,10 @@ export function CreateEmployeeForm({ onSuccess }: { onSuccess?: () => void }) {
                     control={form.control}
                     name="dni"
                     render={({ field }) => (
-                      <FormItem className="w-full">
+                      <FormItem className="col-span-5">
                         <FormLabel>Cédula</FormLabel>
                         <FormControl>
-                          <Input placeholder="Ej. V12345678" {...field} />
+                          <Input placeholder="Ej. 12345678" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -464,12 +464,12 @@ export function CreateEmployeeForm({ onSuccess }: { onSuccess?: () => void }) {
                     control={form.control}
                     name="blood_type"
                     render={({ field }) => (
-                      <FormItem className="w-1/3">
-                        <FormLabel>T. de Sangre</FormLabel>
+                      <FormItem className="col-span-2">
+                        <FormLabel>Sangre</FormLabel>
                         <Select onValueChange={field.onChange} value={field.value ?? ""}>
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder="Seleccione" />
+                              <SelectValue placeholder="+" />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
@@ -483,6 +483,29 @@ export function CreateEmployeeForm({ onSuccess }: { onSuccess?: () => void }) {
                             <SelectItem value="O-">O-</SelectItem>
                           </SelectContent>
                         </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="gender"
+                    render={({ field }) => (
+                      <FormItem className="col-span-3">
+                        <FormLabel>Género</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value ?? ""}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="-" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="MALE">Hombre</SelectItem>
+                            <SelectItem value="FEMALE">Mujer</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
                       </FormItem>
                     )}
                   />

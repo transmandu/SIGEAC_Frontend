@@ -193,13 +193,21 @@ export function PartDispatchForm({ onClose }: FormProps) {
     if (quantityError && !showAutoAdjustMessage) return;
 
     const formattedData = {
-      ...data,
+      // Explicitly pick fields to avoid leaking department_id when destination is an aircraft
+      articles: data.articles,
+      justification: data.justification,
+      requested_by: data.requested_by,
+      work_order: data.work_order,
+      status: data.status,
       created_by: `${user?.employee?.[0]?.dni ?? ""}`,
       delivered_by: `${user?.employee?.[0]?.dni ?? ""}`,
       submission_date: format(data.submission_date, "yyyy-MM-dd"),
       category: "parte",
       isDepartment: isDepartment,
-      aircraft_id: isDepartment ? undefined : data.department_id,
+      // When isDepartment is true, the select value is a department id; otherwise it contains the aircraft id
+      // Keep ids as strings to match API typings (avoid converting to number)
+      department_id: isDepartment ? (data.department_id ? data.department_id : undefined) : undefined,
+      aircraft_id: isDepartment ? undefined : (data.department_id ? data.department_id : undefined),
     };
 
     await createDispatchRequest.mutateAsync({ data: { ...formattedData, user_id: Number(user!.id) }, company: selectedCompany!.slug });

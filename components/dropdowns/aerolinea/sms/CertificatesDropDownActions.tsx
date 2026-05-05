@@ -51,7 +51,7 @@ const CertificatesDropDownActions = ({
       .replace(/\//g, "_")
       .replace(/=+$/, "");
     
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
+    const apiUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
     const url = `${apiUrl}/${companySlug}/sms/certificates/serve/${encodedPath}`;
     window.open(url, "_blank");
   };

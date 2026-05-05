@@ -1,12 +1,17 @@
 "use client";
 
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Plane, Package2, Wrench, Users, LayoutDashboard } from "lucide-react";
 import { useState } from "react";
 import { useGetWarehouseDashboard } from "@/hooks/sistema/dashboard/useWarehouseDashboard";
 import { User } from "@/types";
 
-// Subcomponentes
+import {
+  Wrench,
+  Users,
+  Boxes,
+  ShieldCheck,
+} from "lucide-react";
+
 import ArticlesSummary from "@/components/dashboard/sections/warehouse/ArticlesSummary";
 import ToolsSummary from "@/components/dashboard/sections/warehouse/ToolsSummary";
 import UsersSummary from "@/components/dashboard/sections/warehouse/UsersSummary";
@@ -24,7 +29,8 @@ export default function WarehouseDashboardContent({
   location_id,
   roleNames,
 }: WarehouseDashboardContentProps) {
-  const [activeTab, setActiveTab] = useState("DASHBOARD");
+  const [activeTab, setActiveTab] = useState("OVERVIEW");
+
   const { data, isLoading, isError } = useGetWarehouseDashboard(
     companySlug,
     location_id
@@ -37,91 +43,71 @@ export default function WarehouseDashboardContent({
   return (
     <main className="max-w-7xl mt-6 mx-auto px-4">
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="flex justify-center mb-0 space-x-3 border-b rounded-t-xl bg-muted/40">
-          <TabsTrigger
-            value="DASHBOARD"
-            className="flex gap-2 px-3 py-2 rounded-t-lg transition-all
-                       text-gray-600 dark:text-gray-400
-                       data-[state=active]:border-b-2
-                       data-[state=active]:border-blue-600
-                       data-[state=active]:bg-white
-                       data-[state=active]:text-blue-600
-                       data-[state=active]:shadow-sm
-                       dark:data-[state=active]:bg-slate-900
-                       dark:data-[state=active]:border-blue-400
-                       dark:data-[state=active]:text-blue-400"
-          >
-            <LayoutDashboard className="size-4" /> Dashboard
-          </TabsTrigger>
 
-          <TabsTrigger
-            value="ARTICULOS"
-            className="flex gap-2 px-3 py-2 rounded-t-lg transition-all
-                       text-gray-600 dark:text-gray-400
-                       data-[state=active]:border-b-2
-                       data-[state=active]:border-blue-600
-                       data-[state=active]:bg-white
-                       data-[state=active]:text-blue-600
-                       data-[state=active]:shadow-sm
-                       dark:data-[state=active]:bg-slate-900
-                       dark:data-[state=active]:border-blue-400
-                       dark:data-[state=active]:text-blue-400"
-          >
-            <Package2 className="size-4" /> Artículos
-          </TabsTrigger>
+        {/* ================= TABS ================= */}
+        <TabsList className="w-full mb-6 p-2 rounded-2xl bg-slate-200/50 dark:bg-slate-800/60 backdrop-blur-md border border-slate-200/40 dark:border-slate-800/60">
 
-          <TabsTrigger
-            value="HERRAMIENTAS"
-            className="flex gap-2 px-3 py-2 rounded-t-lg transition-all
-                       text-gray-600 dark:text-gray-400
-                       data-[state=active]:border-b-2
-                       data-[state=active]:border-blue-600
-                       data-[state=active]:bg-white
-                       data-[state=active]:text-blue-600
-                       data-[state=active]:shadow-sm
-                       dark:data-[state=active]:bg-slate-900
-                       dark:data-[state=active]:border-blue-400
-                       dark:data-[state=active]:text-blue-400"
-          >
-            <Wrench className="size-4" /> Herramientas
-          </TabsTrigger>
+          {/* CONTENEDOR RESPONSIVE */}
+          <div className="
+            flex w-full gap-2
+            sm:justify-center
+            overflow-x-auto sm:overflow-visible
+            no-scrollbar
+          ">
 
-          {canViewUsersTab && (
-            <TabsTrigger
-              value="USUARIOS"
-              className="flex gap-2 px-3 py-2 rounded-t-lg transition-all
-                       text-gray-600 dark:text-gray-400
-                       data-[state=active]:border-b-2
-                       data-[state=active]:border-blue-600
-                       data-[state=active]:bg-white
-                       data-[state=active]:text-blue-600
-                       data-[state=active]:shadow-sm
-                       dark:data-[state=active]:bg-slate-900
-                       dark:data-[state=active]:border-blue-400
-                       dark:data-[state=active]:text-blue-400"
-            >
-              <Users className="size-4" /> Usuarios
-            </TabsTrigger>
-          )}
+            {/* inner wrapper mantiene tu desktop intacto */}
+            <div className="flex w-max sm:w-full sm:max-w-md gap-2">
+
+              <TabsTrigger value="OVERVIEW" className="flex-shrink-0 sm:flex-1 flex items-center justify-center gap-2 text-xs h-8 sm:h-7 px-4 sm:px-3 rounded-xl transition-all duration-200 text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 data-[state=active]:bg-white/80 dark:data-[state=active]:bg-slate-900/50 data-[state=active]:text-blue-600 dark:data-[state=active]:text-blue-400 data-[state=active]:shadow-[0_0_18px_rgba(37,99,235,0.25)] data-[state=active]:ring-1 data-[state=active]:ring-blue-300/50">
+                <ShieldCheck className="w-4 h-4 sm:w-3.5 sm:h-3.5 shrink-0" />
+                Principal
+              </TabsTrigger>
+
+              <TabsTrigger value="ARTICLES" className="flex-shrink-0 sm:flex-1 flex items-center justify-center gap-2 text-xs h-8 sm:h-7 px-4 sm:px-3 rounded-xl transition-all duration-200 text-slate-500 dark:text-slate-400 hover:text-cyan-600 dark:hover:text-cyan-400 data-[state=active]:bg-white/80 dark:data-[state=active]:bg-slate-900/50 data-[state=active]:text-cyan-600 dark:data-[state=active]:text-cyan-400 data-[state=active]:shadow-[0_0_18px_rgba(8,145,178,0.25)] data-[state=active]:ring-1 data-[state=active]:ring-cyan-300/50">
+                <Boxes className="w-4 h-4 sm:w-3.5 sm:h-3.5 shrink-0" />
+                Artículos
+              </TabsTrigger>
+
+              <TabsTrigger value="TOOLS" className="flex-shrink-0 sm:flex-1 flex items-center justify-center gap-2 text-xs h-8 sm:h-7 px-4 sm:px-3 rounded-xl transition-all duration-200 text-slate-500 dark:text-slate-400 hover:text-sky-600 dark:hover:text-sky-400 data-[state=active]:bg-white/80 dark:data-[state=active]:bg-slate-900/50 data-[state=active]:text-sky-600 dark:data-[state=active]:text-sky-400 data-[state=active]:shadow-[0_0_18px_rgba(2,132,199,0.25)] data-[state=active]:ring-1 data-[state=active]:ring-sky-300/50">
+                <Wrench className="w-4 h-4 sm:w-3.5 sm:h-3.5 shrink-0" />
+                Herramientas
+              </TabsTrigger>
+
+              {canViewUsersTab && (
+                <TabsTrigger value="USERS" className="flex-shrink-0 sm:flex-1 flex items-center justify-center gap-2 text-xs h-8 sm:h-7 px-4 sm:px-3 rounded-xl transition-all duration-200 text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 data-[state=active]:bg-white/80 dark:data-[state=active]:bg-slate-900/50 data-[state=active]:text-indigo-600 dark:data-[state=active]:text-indigo-400 data-[state=active]:shadow-[0_0_18px_rgba(79,70,229,0.25)] data-[state=active]:ring-1 data-[state=active]:ring-indigo-300/50">
+                  <Users className="w-4 h-4 sm:w-3.5 sm:h-3.5 shrink-0" />
+                  Usuarios
+                </TabsTrigger>
+              )}
+
+            </div>
+          </div>
         </TabsList>
 
-        <div className="mt-10">
-          <TabsContent value="DASHBOARD">
-            <div className="mt-6">
-              <DashboardSummary companySlug={companySlug} />
-            </div>
+        {/* ================= CONTENT ================= */}
+        <div className="mt-6 sm:mt-8">
+          <TabsContent value="OVERVIEW">
+            <DashboardSummary companySlug={companySlug} />
           </TabsContent>
 
-          <TabsContent value="ARTICULOS">
-            <ArticlesSummary data={data} isLoading={isLoading} isError={isError} />
+          <TabsContent value="ARTICLES">
+            <ArticlesSummary
+              data={data}
+              isLoading={isLoading}
+              isError={isError}
+            />
           </TabsContent>
 
-          <TabsContent value="HERRAMIENTAS">
-            <ToolsSummary data={data} isLoading={isLoading} isError={isError} />
+          <TabsContent value="TOOLS">
+            <ToolsSummary
+              data={data}
+              isLoading={isLoading}
+              isError={isError}
+            />
           </TabsContent>
 
           {canViewUsersTab && (
-            <TabsContent value="USUARIOS">
+            <TabsContent value="USERS">
               <UsersSummary
                 data={data}
                 isLoading={isLoading}
@@ -131,6 +117,7 @@ export default function WarehouseDashboardContent({
             </TabsContent>
           )}
         </div>
+
       </Tabs>
     </main>
   );

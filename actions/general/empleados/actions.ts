@@ -14,6 +14,7 @@ export interface CreateEmployeeSchema {
   dni: string
   dni_type: string
   blood_type: string
+  gender: "MALE" | "FEMALE"
   job_title_id: string
   department_id: string
   location_id: string

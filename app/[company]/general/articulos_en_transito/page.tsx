@@ -43,6 +43,7 @@ type TransitArticle = {
     condition?: Condition;
     manufacturer?: Manufacturer;
     quantity: number;
+    reception_date: string;
     unit?: string;
     batch: {
         id: number
@@ -129,6 +130,10 @@ function ArticleRow({ article }: { article: TransitArticle; company: string }) {
                 {/* Nombre del batch */}
                 <TableCell>
                     <span className="text-sm font-medium">{article.batch?.name ?? '—'}</span>
+                </TableCell>
+
+                <TableCell>
+                    <span className="text-sm font-medium">{article.reception_date ?? '—'}</span>
                 </TableCell>
 
                 {/* Ubicación */}
@@ -367,6 +372,7 @@ const EnTransitoPage = () => {
                                 <TableHead className="w-8" />
                                 <TableHead className="text-xs">Numero de Parte / Alterno</TableHead>
                                 <TableHead className="text-xs">Descripcion</TableHead>
+                                <TableHead className="text-xs">Fecha de Recepcion</TableHead>
                                 <TableHead className="text-xs">Ubicación</TableHead>
                                 <TableHead className="text-xs">Estado</TableHead>
                                 <TableHead className="text-xs">Acciones</TableHead>

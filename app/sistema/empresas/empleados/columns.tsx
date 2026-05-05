@@ -7,6 +7,8 @@ import { CarnetCell } from "@/app/sistema/empresas/empleados/_components/CarnetC
 import EmployeesDropdownActions from "@/components/dropdowns/general/EmployeesDropdownActions";
 import { ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
+
 
 type EmployeeMode = "active" | "inactive";
 
@@ -118,6 +120,53 @@ export const getEmployeeColumns = (
           {row.original.dni_type}-{row.original.dni}
         </div>
       ),
+    },
+    {
+      accessorKey: "gender",
+      header: () => null,
+      size: 40,
+      enableSorting: false,
+      cell: ({ row }) => {
+        const gender = row.original.gender;
+
+        const isMale = gender === "MALE";
+        const isFemale = gender === "FEMALE";
+        const isUnknown = !gender;
+
+        const label = isMale
+          ? "Hombre"
+          : isFemale
+          ? "Mujer"
+          : "No definido";
+
+        return (
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="flex justify-center">
+                  <div
+                    className={cn(
+                      "w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-semibold border",
+                      isMale &&
+                        "bg-blue-500/10 text-blue-500 border-blue-500/20",
+                      isFemale &&
+                        "bg-pink-500/10 text-pink-500 border-pink-500/20",
+                      isUnknown &&
+                        "bg-muted/40 text-muted-foreground border-muted"
+                    )}
+                  >
+                    {isMale ? "♂" : isFemale ? "♀" : "—"}
+                  </div>
+                </div>
+              </TooltipTrigger>
+
+              <TooltipContent>
+                {label}
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        );
+      },
     },
     mode === "active"
       ? {

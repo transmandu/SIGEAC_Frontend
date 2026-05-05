@@ -30,6 +30,7 @@ const formSchema = z.object({
   dni: z.string(),
   dni_type: z.string(),
   blood_type: z.string(),
+  gender: z.enum(["MALE", "FEMALE"]),
   job_title_id: z.string(),
   department_id: z.string(),
   location_id: z.string(),
@@ -89,6 +90,7 @@ export function UpdateEmployeeForm({
       dni: "",
       dni_type: "",
       blood_type: "",
+      gender: "MALE",
       job_title_id: "",
       department_id: "",
       location_id: "",
@@ -131,6 +133,7 @@ export function UpdateEmployeeForm({
       address: employee.address ?? "",
       profile_photo: undefined,
       birth_date: employee.birth_date ?? "",
+      gender: employee.gender ?? "MALE",
     });
   }, [employee, form]);
 
@@ -145,6 +148,7 @@ export function UpdateEmployeeForm({
       "dni",
       "dni_type",
       "blood_type",
+      "gender",
     ]);
 
     if (valid) setStep(2);
@@ -172,6 +176,7 @@ const buildFormData = (values: FormValues, original: any) => {
     "dni",
     "dni_type",
     "blood_type",
+    "gender",
     "job_title_id",
     "department_id",
     "location_id",
@@ -180,14 +185,12 @@ const buildFormData = (values: FormValues, original: any) => {
   Object.entries(values).forEach(([key, value]) => {
     const originalValue = original?.[key];
 
-    // 1. eliminar basura real
     if (value === undefined || value === null) return;
     if (typeof value === "string" && value.trim() === "") {
       if (REQUIRED.has(key)) return; // evita mandar vacío en obligatorios
       return;
     }
 
-    // 2. evitar overwrite innecesario
     if (
       typeof value !== "object" &&
       String(value) === String(originalValue ?? "")
@@ -195,7 +198,6 @@ const buildFormData = (values: FormValues, original: any) => {
       return;
     }
 
-    // 3. file
     if (value instanceof File) {
       formData.append(key, value);
       return;
@@ -222,10 +224,6 @@ const buildFormData = (values: FormValues, original: any) => {
     onSuccess?.();
     };
 
-  /* =========================
-     HELPERS
-  ========================= */
-
   const isEmpty = (v?: string) => !v || v === "";
 
   const normalizeOptions = (data?: Option[]) =>
@@ -233,11 +231,7 @@ const buildFormData = (values: FormValues, original: any) => {
       id: String(o.id),
       label: o.name ?? o.address ?? "Sin nombre",
     })) ?? [];
-
-  /* =========================
-     SELECT FIELD (TIPADO)
-  ========================= */
-
+    
   type SelectFieldProps = {
     name: keyof FormValues;
     label: string;
@@ -369,13 +363,13 @@ const buildFormData = (values: FormValues, original: any) => {
                 />
               </div>
 
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-12 gap-3 items-end">
                 <FormField
                   control={form.control}
                   name="dni_type"
                   render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Tipo DNI</FormLabel>
+                    <FormItem className="col-span-2">
+                      <FormLabel>Tipo</FormLabel>
                       <Select key={field.value} value={field.value || ""} onValueChange={field.onChange}>
                         <FormControl>
                           <SelectTrigger>
@@ -396,7 +390,7 @@ const buildFormData = (values: FormValues, original: any) => {
                   control={form.control}
                   name="dni"
                   render={({ field }) => (
-                    <FormItem>
+                    <FormItem className="col-span-5">
                       <FormLabel>DNI</FormLabel>
                       <FormControl>
                         <Input {...field} disabled />
@@ -409,7 +403,7 @@ const buildFormData = (values: FormValues, original: any) => {
                   control={form.control}
                   name="blood_type"
                   render={({ field }) => (
-                    <FormItem>
+                    <FormItem className="col-span-2">
                       <FormLabel>Sangre</FormLabel>
                       <Select key={field.value} value={field.value || ""} onValueChange={field.onChange}>
                         <FormControl>
@@ -427,6 +421,27 @@ const buildFormData = (values: FormValues, original: any) => {
                           )}
                         </SelectContent>
                       </Select>
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="gender"
+                  render={({ field }) => (
+                    <FormItem className="col-span-3">
+                      <FormLabel>Género</FormLabel>
+                      <Select value={field.value || ""} onValueChange={field.onChange}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Género" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="MALE">Hombre</SelectItem>
+                          <SelectItem value="FEMALE">Mujer</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
                     </FormItem>
                   )}
                 />
