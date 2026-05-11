@@ -14,7 +14,7 @@ const AeronauticalPresentationCard = ({ company }: PresentationCardProps) => {
             <div className="relative overflow-hidden rounded-[2rem] border border-border/60 shadow-2xl">
                 <div className="relative h-[380px] w-full sm:h-[520px] lg:h-[700px]">
                     <Image
-                        src={`${storageBaseUrl}images/sms/sms_airplane_page.jpg`}
+                        src={`${storageBaseUrl}images/sms/sms_airplane_page.png`}
                         alt="Portada del Sistema de Gestión de Seguridad Operacional"
                         fill
                         priority

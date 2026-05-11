@@ -5,6 +5,7 @@ import { useCompanyStore } from "@/stores/CompanyStore";
 import { useGetCargoStatsByAircraft } from "@/hooks/operaciones/cargo/useGetCargoStatsByAircraft";
 import { useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { MonthYearPicker } from "@/components/selects/MonthYearPicker";
@@ -55,6 +56,8 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/contexts/AuthContext";
+import { useExportCargoByAircraft } from "@/hooks/operaciones/cargo/useExportCargoByAircraft";
+import { Download } from "lucide-react";
 
 const AircraftCard = ({
   aircraft,
@@ -76,6 +79,7 @@ const AircraftCard = ({
   const canWrite = userRoles.some((r) =>
     ["OPERADOR_CARGA", "SUPERUSER"].includes(r),
   );
+
   const { bulkRename, isRenaming, bulkDelete, isDeleting } =
     useManageExternalAircraft(company);
 
@@ -275,8 +279,15 @@ const AircraftCard = ({
 
 const CargoPage = () => {
   const { selectedCompany } = useCompanyStore();
-  const [month, setMonth] = useState(new Date().getMonth() + 1);
-  const [year, setYear] = useState(new Date().getFullYear());
+  const searchParams = useSearchParams();
+
+  // Leer mes/año desde la URL si existen, si no, usar el mes actual
+  const [month, setMonth] = useState(
+    Number(searchParams.get("month")) || new Date().getMonth() + 1,
+  );
+  const [year, setYear] = useState(
+    Number(searchParams.get("year")) || new Date().getFullYear(),
+  );
   const [activeTab, setActiveTab] = useState("registered");
 
   const {
@@ -293,7 +304,9 @@ const CargoPage = () => {
   const canWrite = userRoles.some((r) =>
     ["OPERADOR_CARGA", "SUPERUSER"].includes(r),
   );
-
+  const { exportAll, isExporting } = useExportCargoByAircraft(
+    selectedCompany?.slug,
+  );
   return (
     <ContentLayout title="Carga">
       <div className="flex flex-col gap-4">
@@ -334,7 +347,7 @@ const CargoPage = () => {
             />
           </div>
 
-          <div className="flex justify-end">
+          <div className="flex justify-end gap-2">
             {canWrite && (
               <Button asChild>
                 <Link
@@ -349,6 +362,14 @@ const CargoPage = () => {
                 </Link>
               </Button>
             )}
+            <Button
+              variant="outline"
+              onClick={() => exportAll(month, year)}
+              disabled={isExporting || isLoading}
+            >
+              <Download className="size-4 mr-2" />
+              {isExporting ? "Exportando..." : "Exportar Todo"}
+            </Button>
           </div>
         </div>
 

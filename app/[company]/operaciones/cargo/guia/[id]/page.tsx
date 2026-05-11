@@ -90,8 +90,8 @@ export default function CargoDetailsPage() {
               <Link
                 href={
                   shipment.aircraft
-                    ? `/${company}/operaciones/cargo/${shipment.aircraft.id}`
-                    : `/${company}/operaciones/cargo/externa/${encodeURIComponent(shipment.external_aircraft || "")}`
+                    ? `/${company}/operaciones/cargo/${shipment.aircraft.id}?month=${shipment.month}&year=${shipment.year}`
+                    : `/${company}/operaciones/cargo/externa/${encodeURIComponent(shipment.external_aircraft || "")}?month=${shipment.month}&year=${shipment.year}`
                 }
               >
                 <ArrowLeft className="h-4 w-4" />
@@ -145,7 +145,11 @@ export default function CargoDetailsPage() {
                   <p className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">
                     Transportista
                   </p>
-                  <p className="font-medium text-sm">{shipment.carrier}</p>
+                  <p className="font-medium text-sm">
+                    {shipment.carrier
+                      ? `${shipment.carrier.name} ${shipment.carrier.last_name}`
+                      : "Sin asignar"}
+                  </p>
                 </div>
               </div>
             </CardContent>

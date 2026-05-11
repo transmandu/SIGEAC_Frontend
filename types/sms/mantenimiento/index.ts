@@ -17,6 +17,10 @@ export type VoluntaryReport = {
     status: string;
     hazard_notification?: HazardNotification;
     image?: string;
+    document?: string;
+    imageUrl?: string;
+    documentUrl?: string;
+    close_date?: string;
 }
 
 
@@ -84,8 +88,6 @@ export interface MitigationMeasure {
     estimated_date: string;
     execution_date?: string;
     follow_up_controls?: FollowUpControl[];
-    // Some APIs return `follow_up_control` (singular) instead of `follow_up_controls`.
-    // Accept both shapes for compatibility.
     follow_up_control?: FollowUpControl[];
 
 }

@@ -29,8 +29,8 @@ interface BatchesWithCountProp extends Batch {
 export type MsgLevel = "error" | "warn"
 export type RowMsg = { msg: string; level: MsgLevel } | undefined
 export type ConversionTarget = "aero" | "general"
-// Añadimos el tipo de categoría
-export type ItemCategory = "consumable" | "component"
+export type DispatchType = "aircraft" | "department" | "authorized" | "third_party"
+export type ItemCategory = "consumable" | "component" | "part"
 
 type ConvState = {
     target: ConversionTarget | null
@@ -52,6 +52,8 @@ const CONV_INITIAL: ConvState = {
 const AeronauticalItemSchema = z.object({
     article_id: z.coerce.number(),
     quantity: z.coerce.number(),
+    serial: z.string().nullable().optional(),
+    batch_id: z.coerce.number().optional(),
 })
 
 const GeneralItemSchema = z.object({
@@ -115,7 +117,7 @@ export const genKey = (id: string) => `G:${id}`
 
 export function useDispatchForm(
     onClose: () => void,
-    itemCategory: ItemCategory = "consumable" // Por defecto consumible, pero se puede sobrescribir
+    itemCategory: ItemCategory = "consumable"
 ) {
     const { user } = useAuth()
     const { selectedStation, selectedCompany } = useCompanyStore()
@@ -335,7 +337,7 @@ export function useDispatchForm(
         if (convState.target === "general" && convState.rowFieldId === fieldId) closeConversion()
     }, [genFA, clearRowState, convState, closeConversion])
 
-    const handleAddAeronautical = useCallback((article: Article) => {
+    const handleAddAeronautical = useCallback((article: Article, batchId?: number) => {
         if (!article?.id) return
         const id = Number(article.id)
         if (aeroSelectedSet.has(id)) {
@@ -344,7 +346,12 @@ export function useDispatchForm(
             setOpenAdd(false)
             return
         }
-        aeroFA.append({ article_id: id, quantity: 0 })
+        aeroFA.append({
+            article_id: id,
+            quantity: 0,
+            serial: article.serial ?? null,
+            batch_id: batchId,
+        })
         if (article.unit !== "u") setValue("unit", "litros")
         setOpenAdd(false)
     }, [aeroSelectedSet, watchedAero, aeroFA, removeAeroRow, setValue])
@@ -410,8 +417,12 @@ export function useDispatchForm(
                 ...data,
                 created_by: user!.username,
                 submission_date: format(data.submission_date, "yyyy-MM-dd"),
-                // 3. Modificamos la categoría basándonos en el tipo de componente a crear
-                category: itemCategory === "consumable" ? "consumible" : "componente",
+                category:
+                    itemCategory === "consumable"
+                        ? "consumible"
+                        : itemCategory === "component"
+                            ? "componente"
+                            : "parte",
                 status: "APROBADO",
                 approved_by: user?.employee?.[0]?.dni,
                 delivered_by: user?.employee?.[0]?.dni,

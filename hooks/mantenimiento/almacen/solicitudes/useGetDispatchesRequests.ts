@@ -14,6 +14,7 @@ interface IDispatch {
   destination_place: string;
   submission_date: string;
   status: "PROCESO" | "APROBADO" | "RECHAZADO";
+  category?: string;
   work_order?: string;
   aircraft?: MaintenanceAircraft;
   articles: {
@@ -21,6 +22,7 @@ interface IDispatch {
     part_number: string;
     serial: string;
     description: string;
+    category?: string;
     dispatch_quantity: string;
   }[];
 }

@@ -170,7 +170,11 @@ export const getColumns = (
       />
     ),
     cell: ({ row }) => (
-      <div className="text-center">{row.original.carrier}</div>
+      <div className="text-center">
+        {row.original.carrier
+          ? `${row.original.carrier.name} ${row.original.carrier.last_name}`
+          : "Sin asignar"}
+      </div>
     ),
   },
   {

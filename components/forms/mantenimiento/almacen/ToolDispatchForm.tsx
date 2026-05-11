@@ -104,7 +104,7 @@ export function ToolDispatchForm({ onClose }: FormProps) {
   } = useGetBatchesWithInWarehouseArticles({
     location_id: Number(selectedStation!),
     company: selectedCompany!.slug,
-    category: "herramienta",
+    category: "tool",
   });
 
   const {
@@ -154,8 +154,10 @@ export function ToolDispatchForm({ onClose }: FormProps) {
   const { setValue } = form;
 
   const onSubmit = async (data: FormSchemaType) => {
+    const { articles, ...rest } = data;
     const formattedData = {
-      ...data,
+      ...rest,
+      aeronautical_articles: articles,
       created_by: `${user?.employee[0].dni}`,
       submission_date: format(data.submission_date, "yyyy-MM-dd"),
       category: "herramienta",

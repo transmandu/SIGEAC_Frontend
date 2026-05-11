@@ -13,7 +13,7 @@ const Login = () => {
           <Logo />
         </div>
         <div className="h-full w-full flex lg:items-center justify-center dark:bg-slate-900 lg:bg-primary lg:dark:bg-primary/70">
-          <div className="flex flex-col space-y-4 lg:bg-white  lg:dark:bg-black p-2 lg:p-12 lg:shadow-lg rounded-lg">
+          <div className="flex flex-col space-y-4 lg:bg-background p-2 lg:p-12 lg:shadow-lg rounded-lg">
             <div className="hidden lg:flex w-full justify-end">
               <ThemeToggler />
             </div>

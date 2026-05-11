@@ -1,68 +1,100 @@
 import { Company } from "@/types";
 import { create } from "zustand";
 
-// Definimos la interfaz para los módulos
-interface Module {
-    id: number;
-    label: string;
-    value: string;
-}
-
-// Actualizamos el estado para usar el objeto Company
 interface CompanyState {
-    selectedCompany: Company | null;
-    selectedStation: string | null;
+  selectedCompany: Company | null;
+  selectedStation: string;
 }
 
 interface CompanyActions {
-    setSelectedCompany: (company: Company) => void;
-    setSelectedStation: (station: string) => void;
-    initFromLocalStorage: () => void;
-    reset: () => void;
+  setSelectedCompany: (company: Company | null) => void;
+  setSelectedStation: (station: string) => void;
+  initFromLocalStorage: () => void;
+  reset: () => void;
 }
 
 const initialState: CompanyState = {
-    selectedCompany: null,
-    selectedStation: null,
+  selectedCompany: null,
+  selectedStation: "",
 };
 
-export const useCompanyStore = create<CompanyState & CompanyActions>((set) => ({
-    ...initialState,
+export const useCompanyStore = create<
+  CompanyState & CompanyActions
+>((set) => ({
+  ...initialState,
 
-    setSelectedCompany: (company) => {
-        set({ selectedCompany: company });
-        // Guardamos el objeto como JSON en localStorage
-        localStorage.setItem('selectedCompany', JSON.stringify(company));
-    },
+  setSelectedCompany: (company) => {
+    set({ selectedCompany: company });
 
-    setSelectedStation: (station) => {
-        set({ selectedStation: station });
-        localStorage.setItem('selectedStation', station);
-    },
-
-    initFromLocalStorage: () => {
-        const savedSelectedCompany = localStorage.getItem('selectedCompany');
-        if (savedSelectedCompany) {
-            try {
-                // Parseamos el JSON guardado
-                const companyObj: Company = JSON.parse(savedSelectedCompany);
-                set({ selectedCompany: companyObj });
-            } catch (error) {
-                console.error("Error parsing saved company", error);
-                // Si hay error, limpiamos el valor inválido
-                localStorage.removeItem('selectedCompany');
-            }
-        }
-
-        const savedSelectedStation = localStorage.getItem('selectedStation');
-        if (savedSelectedStation) {
-            set({ selectedStation: savedSelectedStation });
-        }
-    },
-
-    reset: () => {
-        set(initialState);
-        localStorage.removeItem('selectedCompany');
-        localStorage.removeItem('selectedStation');
+    if (typeof window !== "undefined") {
+      if (company) {
+        localStorage.setItem(
+          "selectedCompany",
+          JSON.stringify(company)
+        );
+      } else {
+        localStorage.removeItem("selectedCompany");
+      }
     }
+  },
+
+  setSelectedStation: (station) => {
+    set({ selectedStation: station });
+
+    if (typeof window !== "undefined") {
+      if (station) {
+        localStorage.setItem(
+          "selectedStation",
+          station
+        );
+      } else {
+        localStorage.removeItem(
+          "selectedStation"
+        );
+      }
+    }
+  },
+
+  initFromLocalStorage: () => {
+    if (typeof window === "undefined") return;
+
+    try {
+      const savedCompany =
+        localStorage.getItem("selectedCompany");
+
+      const savedStation =
+        localStorage.getItem("selectedStation");
+
+      if (savedCompany) {
+        set({
+          selectedCompany: JSON.parse(savedCompany),
+        });
+      }
+
+      if (savedStation) {
+        set({
+          selectedStation: savedStation,
+        });
+      }
+    } catch (error) {
+      console.error(
+        "Error initializing company store",
+        error
+      );
+
+      localStorage.removeItem("selectedCompany");
+      localStorage.removeItem("selectedStation");
+
+      set(initialState);
+    }
+  },
+
+  reset: () => {
+    set(initialState);
+
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("selectedCompany");
+      localStorage.removeItem("selectedStation");
+    }
+  },
 }));

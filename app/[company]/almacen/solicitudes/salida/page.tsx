@@ -22,6 +22,7 @@ export type DispatchArticle = {
   serial?: string;
   description?: string;
   dispatch_quantity: string;
+  category?: string;
 };
 
 export type DispatchGroupRow = {

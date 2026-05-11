@@ -30,7 +30,7 @@ export function ThemeToggler() {
             <span className="sr-only">Switch Theme</span>
           </Button>
         </TooltipTrigger>
-        <TooltipContent side="bottom">Switch Theme</TooltipContent>
+        <TooltipContent side="bottom">Cambiar Tema</TooltipContent>
       </Tooltip>
     </TooltipProvider>
   );

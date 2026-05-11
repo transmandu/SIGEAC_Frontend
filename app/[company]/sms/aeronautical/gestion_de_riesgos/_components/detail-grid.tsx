@@ -13,7 +13,7 @@ export function DetailGrid({ items }: { items: DetailItem[] }) {
                     <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                         {label}
                     </p>
-                    <p
+                    <div
                         className={cn(
                             'mt-1 text-sm',
                             !hasDetailValue(value) && 'text-muted-foreground',
@@ -21,7 +21,7 @@ export function DetailGrid({ items }: { items: DetailItem[] }) {
                         )}
                     >
                         {hasDetailValue(value) ? value : 'Sin informacion registrada'}
-                    </p>
+                    </div>
                 </div>
             ))}
         </div>

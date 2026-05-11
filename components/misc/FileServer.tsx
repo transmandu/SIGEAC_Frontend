@@ -2,7 +2,6 @@ import { useEffect, useState, ReactNode } from "react";
 import axios from "axios";
 import axiosInstance from "@/lib/axios";
 
-// Definición estricta de la función para evitar el error "implicitly has any type"
 type FileServerChildrenFn = (
     url: string | null,
     isLoading: boolean,
@@ -28,6 +27,7 @@ export const FileServer = ({
 
     useEffect(() => {
         const abortController = new AbortController();
+        let currentUrl: string | null = null;
 
         const fetchFile = async () => {
             if (!path) return;
@@ -36,20 +36,26 @@ export const FileServer = ({
                 setIsLoading(true);
                 setHasError(false);
 
-                // const endpoint = type === "file"
-                //     ? `/${company}/files/serve/${btoa(path)}`
-                //     : `/${company}/sms/document/${btoa(path)}`;
+                // Endpoint dinámico según el tipo si decides reactivarlo
+                const endpoint = type === "file"
+                    ? `/${company}/files/serve/${btoa(path)}`
+                    : `/${company}/sms/document/${btoa(path)}`;
 
-
-                const endpoint = `/${company}/files/serve/${btoa(path)}`;
-
-                const { data } = await axiosInstance.get(endpoint, {
+                const response = await axiosInstance.get(endpoint, {
                     responseType: "blob",
                     signal: abortController.signal
                 });
 
-                const newUrl = URL.createObjectURL(new Blob([data]));
-                setUrl(newUrl);
+                /**
+                 * SOLUCIÓN AL BINARIO:
+                 * response.data ya es un Blob porque usamos responseType: 'blob'.
+                 * Al crear el ObjectURL directamente desde el blob de la respuesta,
+                 * este ya contiene el 'type' (MIME type) correcto enviado por el servidor.
+                 */
+                const blob = response.data;
+                currentUrl = URL.createObjectURL(blob);
+
+                setUrl(currentUrl);
             } catch (e) {
                 if (axios.isCancel(e)) return;
                 console.error("Error loading file:", e);
@@ -63,11 +69,10 @@ export const FileServer = ({
 
         return () => {
             abortController.abort();
-            if (url) {
-                URL.revokeObjectURL(url);
+            if (currentUrl) {
+                URL.revokeObjectURL(currentUrl);
             }
         };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [path, company, type]);
 
     return <>{children(url, isLoading, hasError)}</>;

@@ -1,5 +1,6 @@
 import type { Group, MenuContext } from "@/lib/menus/types";
 import {
+    CircleDollarSign,
     ClipboardList,
     PackageSearch,
     Presentation,
@@ -45,6 +46,13 @@ export function buildGeneralGroup({ pathname, currentCompany }: MenuContext): Gr
                         label: "Certificados",
                         roles: [],
                         active: pathname === `/${currentCompany?.slug}/sms/certificados`,
+                    },
+
+                    {
+                    href: `/${currentCompany?.slug}/general/cursos/resumen`,
+                    label: "Resumen",
+                    roles: [],
+                    active: pathname === `/${currentCompany?.slug}/general/cursos/resumen`,
                     },
                 ],
             },
@@ -136,6 +144,18 @@ export function buildGeneralGroup({ pathname, currentCompany }: MenuContext): Gr
                     "JEFE_COMPRAS",
                     "SUPERUSER",
                     "JEFE_ALMACEN",
+                ],
+                submenus: [],
+            },            
+            {
+                href: `/${currentCompany?.slug}/compras/gestion_costos`,
+                label: "Gestión de Costos",
+                active: pathname.includes(`/${currentCompany?.slug}/compras/gestion_costos`),
+                icon: CircleDollarSign,
+                roles: [
+                    "SUPERUSER",
+                    "JEFE_ADMINISTRACION",
+                    "ANALISTA_ADMINISTRACION",
                 ],
                 submenus: [],
             },

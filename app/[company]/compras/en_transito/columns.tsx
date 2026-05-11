@@ -1,175 +1,323 @@
 'use client'
 
-import { ColumnDef } from "@tanstack/react-table"
-import { DataTableColumnHeader } from "@/components/tables/DataTableHeader"
-import { Badge } from "@/components/ui/badge"
-import { cn } from "@/lib/utils"
-import { PurchaseOrder } from "@/types"
-import { format } from "date-fns"
-import { es } from "date-fns/locale"
-import { ChevronRight } from "lucide-react"
-import Link from "next/link"
-import PurchaseOrderDropdownActions from "@/components/dropdowns/mantenimiento/compras/PurchaseOrderDropdownActions"
+import { ColumnDef } from '@tanstack/react-table'
+import Link from 'next/link'
+import {
+  ChevronRight,
+  Loader2,
+  MapPin,
+  ArrowRight,
+  PackageCheck,
+} from 'lucide-react'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { DataTableColumnHeader } from '@/components/tables/DataTableHeader'
+import { cn } from '@/lib/utils'
+import { useUpdateArticleStatus } from '@/actions/mantenimiento/almacen/inventario/articulos/actions'
+import type { TransitArticle } from './types'
 
-export const getColumns = (selectedCompany?: { slug: string }): ColumnDef<PurchaseOrder>[] => [
-  // ── Expand indicator ──────────────────────────────────────────────
+function TransitActionButton({
+  article,
+}: {
+  article: TransitArticle
+}) {
+  const { updateArticleStatus } = useUpdateArticleStatus()
+
+  const pending = updateArticleStatus.isPending
+  const status = article.status?.toUpperCase()
+  const isReception = status === 'RECEPTION'
+  const isTransit = status === 'TRANSIT'
+
+  const handleAction = async (e: React.MouseEvent) => {
+    e.stopPropagation()
+    if (pending) return
+
+    if (isTransit) {
+      await updateArticleStatus.mutateAsync({
+        id: article.id,
+        status: 'RECEPTION',
+      })
+    }
+
+    if (isReception) {
+      await updateArticleStatus.mutateAsync({
+        id: article.id,
+        status: 'INCOMING',
+      })
+    }
+  }
+
+  return (
+    <Button
+      variant="ghost"
+      size="sm"
+      disabled={pending}
+      onClick={handleAction}
+      className="
+        h-7 px-3 gap-1.5
+        text-[11px]
+        rounded-full
+        border border-slate-200/60 dark:border-slate-700/60
+        bg-white/50 dark:bg-slate-800/40
+        hover:bg-slate-100 dark:hover:bg-slate-800
+      "
+    >
+      {pending ? (
+        <Loader2 className="size-3 animate-spin" />
+      ) : isReception ? (
+        <>
+          <ArrowRight className="size-3" />
+          Incoming
+        </>
+      ) : (
+        <>
+          <PackageCheck className="size-3" />
+          Recepción
+        </>
+      )}
+    </Button>
+  )
+}
+
+export const getColumns = (
+  selectedCompany?: { slug: string }
+): ColumnDef<TransitArticle>[] => [
+
   {
-    id: "expander",
+    id: 'expander',
+    size: 40,
     header: () => null,
     cell: ({ row }) => (
-      <ChevronRight
-        className={cn(
-          "size-3.5 text-muted-foreground/50 transition-transform duration-150",
-          row.getIsExpanded() && "rotate-90 text-amber-600 dark:text-amber-500"
+      <div className="flex justify-center w-full">
+        {row.getCanExpand() && (
+          <ChevronRight
+            className={cn(
+              'size-3.5 text-muted-foreground/50 transition-transform',
+              row.getIsExpanded() && 'rotate-90 text-emerald-500'
+            )}
+          />
         )}
-      />
+      </div>
     ),
     enableSorting: false,
     enableHiding: false,
-    size: 32,
   },
 
-  // ── Nro. de Orden ─────────────────────────────────────────────────
   {
-    accessorKey: "order_number",
+    accessorKey: 'part_number',
+    size: 340,
+
     header: ({ column }) => (
       <div className="flex justify-center w-full">
-        <DataTableColumnHeader filter column={column} title="Nro. de Orden" />
+        <DataTableColumnHeader filter column={column} title="Número de Parte" />
       </div>
     ),
-    meta: { title: "Nro. Orden" },
-    cell: ({ row }) => (
-      <div className="flex justify-center">
-        <Link
-          href={`/${selectedCompany?.slug}/compras/ordenes_compra/${row.original.order_number}`}
-          onClick={(e) => e.stopPropagation()}
-          className="font-mono text-sm font-semibold hover:text-amber-600 dark:hover:text-amber-500 transition-colors"
-        >
-          {row.original.order_number}
-        </Link>
-      </div>
-    ),
+
+    cell: ({ row }) => {
+      const hasAlt = !!row.original.alternative_part_number
+
+      return (
+        <div className="flex w-full justify-start">
+          <div className="space-y-1 min-w-0">
+
+            <div className="flex items-center gap-2">
+
+              <span className="
+                text-[9px] font-semibold uppercase tracking-widest
+                px-1.5 py-0.5 rounded-md
+                bg-emerald-100/60 dark:bg-emerald-900/30
+                text-emerald-700 dark:text-emerald-300
+                border border-emerald-200/50 dark:border-emerald-800/40
+              ">
+                P/N
+              </span>
+
+              <Link
+                href={`/${selectedCompany?.slug}/almacen/articulos/${row.original.id}`}
+                onClick={(e) => e.stopPropagation()}
+                className="
+                  text-[13px] font-semibold tracking-tight
+                  text-slate-900 dark:text-slate-100
+                  px-1 py-0.5 rounded
+                  hover:text-emerald-600 dark:hover:text-emerald-400
+                  transition-colors
+                "
+              >
+                {row.original.part_number}
+              </Link>
+
+            </div>
+            {hasAlt ? (
+              <div className="flex items-center gap-2">
+
+                <span className="
+                  text-[9px] font-semibold uppercase tracking-widest
+                  px-1.5 py-0.5 rounded-md
+                  bg-slate-200/60 dark:bg-slate-700/40
+                  text-slate-600 dark:text-slate-300
+                  border border-slate-300/40 dark:border-slate-600/40
+                ">
+                  ALT
+                </span>
+
+                <span className="font-mono text-[11px] text-muted-foreground">
+                  {row.original.alternative_part_number}
+                </span>
+
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+
+                <span className="
+                  text-[9px] font-semibold uppercase tracking-widest
+                  px-1.5 py-0.5 rounded-md
+                  bg-slate-100 dark:bg-slate-800
+                  text-slate-400
+                ">
+                  ALT
+                </span>
+
+                <span className="text-[11px] text-muted-foreground/40 italic">
+                  Sin alternativo
+                </span>
+
+              </div>
+            )}
+
+          </div>
+        </div>
+      )
+    },
   },
 
-  // ── Nro. Cotización ───────────────────────────────────────────────
   {
-    accessorKey: "quote_order",
+    accessorKey: 'batch',
+    size: 240,
+
     header: ({ column }) => (
       <div className="flex justify-center w-full">
-        <DataTableColumnHeader column={column} title="Cotización" />
+        <DataTableColumnHeader column={column} title="Descripción" />
       </div>
     ),
-    meta: { title: "Nro. Cotización" },
+
     cell: ({ row }) => (
-      <div className="flex justify-center">
-        <span className="font-mono text-xs text-muted-foreground">
-          {row.original.quote_order?.quote_number ?? "—"}
+      <div className="flex justify-center w-full">
+        <span className="text-sm font-medium text-slate-800 dark:text-slate-200">
+          {row.original.batch?.name ?? 'Sin descripción'}
         </span>
       </div>
     ),
   },
 
-  // ── Fecha ─────────────────────────────────────────────────────────
   {
-    accessorKey: "purchase_date",
+    accessorKey: 'location',
+    size: 280,
+
     header: ({ column }) => (
       <div className="flex justify-center w-full">
-        <DataTableColumnHeader column={column} title="Fecha" />
+        <DataTableColumnHeader column={column} title="Ubicación" />
       </div>
     ),
-    meta: { title: "Fecha" },
-    cell: ({ row }) => (
-      <div className="flex justify-center">
-        <span className="text-sm text-muted-foreground">
-          {format(row.original.purchase_date, "dd MMM yyyy", { locale: es })}
-        </span>
-      </div>
-    ),
+
+    cell: ({ row }) => {
+      const location = row.original.batch?.warehouse?.location
+
+      return (
+        <div className="flex justify-center w-full">
+          {location ? (
+            <div className="flex items-center gap-1.5 text-sm text-slate-600 dark:text-slate-300">
+              <MapPin className="size-3.5 opacity-60" />
+              <span className="truncate">{location.address}</span>
+            </div>
+          ) : (
+            <span className="text-muted-foreground/40">—</span>
+          )}
+        </div>
+      )
+    },
   },
 
-  // ── Proveedor ─────────────────────────────────────────────────────
   {
-    accessorKey: "vendor",
-    header: ({ column }) => (
-      <div className="flex justify-center w-full">
-        <DataTableColumnHeader column={column} title="Proveedor" />
-      </div>
-    ),
-    meta: { title: "Proveedor" },
-    cell: ({ row }) => (
-      <div className="flex justify-center">
-        <span className="text-sm font-medium">{row.original.vendor.name}</span>
-      </div>
-    ),
-  },
+    accessorKey: 'status',
+    size: 180,
 
-  // ── Status ────────────────────────────────────────────────────────
-  {
-    accessorKey: "status",
     header: ({ column }) => (
       <div className="flex justify-center w-full">
         <DataTableColumnHeader column={column} title="Estado" />
       </div>
     ),
-    meta: { title: "Estado" },
+
     cell: ({ row }) => {
-      const isPaid = row.original.status === "PAGADO"
+      const status = row.original.status?.toUpperCase()
+      const isTransit = status === 'TRANSIT'
+      const isReception = status === 'RECEPTION'
+
       return (
-        <div className="flex justify-center">
+        <div className="flex justify-center w-full">
+
           <Badge
-            className={cn(
-              "text-xs font-medium px-2 py-0.5 border",
-              isPaid
-                ? "bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-950/50 dark:text-emerald-400 dark:border-emerald-800"
-                : "bg-amber-100 text-amber-700 border-amber-200 dark:bg-amber-950/50 dark:text-amber-400 dark:border-amber-800"
-            )}
+                className={cn(
+                  `
+                    rounded-md
+                    border
+                    px-2 py-0.5
+                    text-[10px]
+                    font-semibold
+                    tracking-wide
+                    shadow-sm
+                    transition-colors duration-150
+                    cursor-default
+                  `,
+
+                  isTransit && `
+                    border-yellow-500/30
+                    bg-yellow-500/10
+                    text-yellow-700
+                    dark:text-yellow-300
+                    hover:bg-yellow-500/15
+                  `,
+
+                  isReception && `
+                    border-emerald-500/30
+                    bg-emerald-500/10
+                    text-emerald-700
+                    dark:text-emerald-300
+                    hover:bg-emerald-500/15
+                  `,
+
+                  !isTransit &&
+                    !isReception &&
+                    `
+                      border-red-500/30
+                      bg-red-500/10
+                      text-red-700
+                      dark:text-red-300
+                      hover:bg-red-500/15
+                    `
+                )}
           >
-            {row.original.status}
+            {isTransit ? 'En tránsito' : 'En recepción'}
           </Badge>
+
         </div>
       )
     },
   },
 
-  // ── Artículos ─────────────────────────────────────────────────────
   {
-    accessorKey: "articles",
+    id: 'actions',
+    size: 160,
+
     header: ({ column }) => (
       <div className="flex justify-center w-full">
-        <DataTableColumnHeader column={column} title="Artículos" />
+        <DataTableColumnHeader column={column} title="Acciones" />
       </div>
     ),
-    meta: { title: "Artículos" },
-    cell: ({ row }) => {
-      const count = row.original.article_purchase_order.length
-      return (
-        <div className="flex justify-center">
-          <span className={cn(
-            "text-xs tabular-nums px-2 py-0.5 rounded border",
-            row.getIsExpanded()
-              ? "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-400 dark:border-amber-800/60"
-              : "text-muted-foreground border-border/40 bg-muted/30"
-          )}>
-            {count} {count === 1 ? "ítem" : "ítems"}
-          </span>
-        </div>
-      )
-    },
-  },
 
-  // ── Acciones ──────────────────────────────────────────────────────
-  {
-    id: "actions",
-    header: () => null,
     cell: ({ row }) => (
-      <div
-        className="flex justify-center"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <PurchaseOrderDropdownActions po={row.original} />
+      <div className="flex justify-center w-full" onClick={(e) => e.stopPropagation()}>
+        <TransitActionButton article={row.original} />
       </div>
     ),
-    enableSorting: false,
-    enableHiding: false,
   },
 ]

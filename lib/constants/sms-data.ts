@@ -38,7 +38,7 @@ export const emergencyPlans: EmergencyPlan[] = [
     {
         //PRIMERA CARTA
         cardData: {
-            imageUrl: `images/sms/fire-extinguisher.png`,
+            imageUrl: `images/sms/plan_de_respuesta_1.png`,
             imageAlt: "icono_extintor_de_incedio",
             title: "TARJETA DE ACCION DIRECTOR DE EMERGENCIA",
             stepsTitle:
@@ -76,7 +76,7 @@ export const emergencyPlans: EmergencyPlan[] = [
     // SEGUNDA CARTA
     {
         cardData: {
-            imageUrl: `images/sms/airplane_fire.png`,
+            imageUrl: `images/sms/plan_evacuacion_2.png`,
             imageAlt: "Incendio no controlado en hangar con aeronave en servicio",
             title: "TARJETA DE ACCION PERSONAL DE GUARDIA",
             stepsTitle:
@@ -116,7 +116,7 @@ export const emergencyPlans: EmergencyPlan[] = [
     //TERCERA CARTA
     {
         cardData: {
-            imageUrl: `images/sms/fire_controled.png`,
+            imageUrl: `images/sms/curso_extintores_3.png`,
             imageAlt: "Conato de incendio en las edificaciones",
             title: "TARJETA DE ACCIÓN SMS",
             stepsTitle:
@@ -161,6 +161,107 @@ export const emergencyPlans: EmergencyPlan[] = [
             },
         ],
     },
+
+
+    //CUARTA CARTA
+    {
+        cardData: {
+            imageUrl: `images/sms/curso_primeros_auxilios_4.png`,
+            imageAlt: "Conato de incendio en las edificaciones",
+            title: "TARJETA DE ACCIÓN SMS",
+            stepsTitle:
+                "Acciones a seguir durante una emergencia de incendio en las instalaciones de la empresa.",
+            description:
+                "Garantizar la seguridad y el bienestar de las personas en caso de una emergencia; liderando y organizando el proceso de evacuación en situaciones de riesgo.",
+            actionLink: {
+                href: "#",
+                label: "Ver acción",
+            },
+        },
+        actionSteps: [
+            {
+                title: "Durante la emergencia",
+                items: [
+                    "Notificar al director de emergencia las condiciones y magnitud del incendio, y si éste puede ser controlado por medios internos.",
+
+                    "Colaborar con la labor de extinción desalojando al personal cercano del área en problema.",
+
+                    "Si el incendio es posible controlarlo con los recursos internos indicará al personal de extinción empleen los extintores más cercanos al área del problema.",
+
+                    "Prestará apoyo al director de emergencia.",
+
+                    "Coordinara las actividades de extinción de incendio, hasta la llegada de los bomberos.",
+
+                    "Garantizara la seguridad del personal verificando riesgos cercanos",
+                ],
+            },
+            {
+                title: "Después de la emergencia.",
+                items: [
+                    "Esperar indicaciones del Director de emergencia para volver o no a las actividades normales.",
+
+                    "Evaluar los daños, una vez sea entregado el informe de evaluación de daños realizado por los bomberos.",
+
+                    "Realizar el análisis de evaluación de riesgos",
+
+                    "Evaluar las medidas de mitigación existentes.",
+
+                    "Sugerir correcciones al plan de emergencia de ser necesarias.",
+                ],
+            },
+        ],
+    },
+
+    //QUINTA CARTA
+    {
+        cardData: {
+            imageUrl: `images/sms/accion_ante_sismo_5.png`,
+            imageAlt: "Conato de incendio en las edificaciones",
+            title: "TARJETA DE ACCIÓN SMS",
+            stepsTitle:
+                "Acciones a seguir durante una emergencia de incendio en las instalaciones de la empresa.",
+            description:
+                "Garantizar la seguridad y el bienestar de las personas en caso de una emergencia; liderando y organizando el proceso de evacuación en situaciones de riesgo.",
+            actionLink: {
+                href: "#",
+                label: "Ver acción",
+            },
+        },
+        actionSteps: [
+            {
+                title: "Durante la emergencia",
+                items: [
+                    "Notificar al director de emergencia las condiciones y magnitud del incendio, y si éste puede ser controlado por medios internos.",
+
+                    "Colaborar con la labor de extinción desalojando al personal cercano del área en problema.",
+
+                    "Si el incendio es posible controlarlo con los recursos internos indicará al personal de extinción empleen los extintores más cercanos al área del problema.",
+
+                    "Prestará apoyo al director de emergencia.",
+
+                    "Coordinara las actividades de extinción de incendio, hasta la llegada de los bomberos.",
+
+                    "Garantizara la seguridad del personal verificando riesgos cercanos",
+                ],
+            },
+            {
+                title: "Después de la emergencia.",
+                items: [
+                    "Esperar indicaciones del Director de emergencia para volver o no a las actividades normales.",
+
+                    "Evaluar los daños, una vez sea entregado el informe de evaluación de daños realizado por los bomberos.",
+
+                    "Realizar el análisis de evaluación de riesgos",
+
+                    "Evaluar las medidas de mitigación existentes.",
+
+                    "Sugerir correcciones al plan de emergencia de ser necesarias.",
+                ],
+            },
+        ],
+    },
+
+
 ];
 
 export const policyCardsData = [
@@ -220,6 +321,63 @@ export const policyCardsData = [
     },
 ];
 
+export const policyCardsDataOmac = [
+    {
+        icon: Building2,
+        description:
+            "1.	Ejecutar la implementación del sistema de gestión operacional. ",
+    },
+    {
+        icon: Handshake,
+        description:
+            "2.	Ejecutar la implementación del Sistema de Gestión Operacional de manera no punitiva.",
+    },
+    {
+        icon: SearchCheck,
+        description:
+            " 3.	Mejorar continuamente todos los niveles de Gestión de seguridad operacional, para lograr los objetivos trazados por la empresa ",
+    },
+    {
+        icon: ShieldCheck,
+        description:
+            "4.	Identificar continuamente los peligros y gestionar los riesgos.",
+    },
+    {
+        icon: Trophy,
+        description:
+            "5.	Corregir las fallas encontradas, en función de mantener la Seguridad Operacional en el nivel acordado.",
+    },
+    {
+        icon: BookCheck,
+        description:
+            "6.	Incentivar a su personal para que reporten los problemas de la Seguridad Operacional.",
+    },
+
+    {
+        icon: Siren,
+        description:
+            "7.	Comprender los principios en que se basa el Sistema de Gestión de la Seguridad Operacional, apoyando con recursos humanos, materiales y financieros que faciliten el desarrollo del proceso y la puesta en práctica de la política de Seguridad Operacional.",
+    },
+
+    {
+        icon: Gavel,
+        description:
+            "8.	Mantener una cultura de Seguridad Operacional positiva.",
+    },
+
+    {
+        icon: RefreshCcw,
+        description:
+            "9.	Compromete a no tomar acciones punitivas a quien reporte eventos de Seguridad Operacional, o peligros existentes, que den cuenta de condiciones que atenten a la empresa y retroalimentar a quien reporta.",
+    },
+
+    {
+        icon: Users,
+        description:
+            "10.	Asegurarse de que las políticas de Seguridad Operacional sean revisadas constantemente, actualizadas y apoyen el cumplimento del plan de implementación de SMS.",
+    },
+];
+
 export const policyImages = [
     {
         src: `${process.env.NEXT_PUBLIC_STORAGE_BASE_URL}images/sms/politica_1.png`,
@@ -230,6 +388,19 @@ export const policyImages = [
     //   alt: "Política 2",
     // },
 ];
+
+export const policyImagesOmac = [
+    {
+        src: `${process.env.NEXT_PUBLIC_STORAGE_BASE_URL}images/sms/h74_politicas.png`,
+        alt: "Política 1",
+    },
+    // {
+    //   src: `${process.env.NEXT_PUBLIC_STORAGE_BASE_URL}images/sms/politica_2.png`,
+    //   alt: "Política 2",
+    // },
+];
+
+
 
 export const AeronauticalpolicyImages = [
     {

@@ -1,20 +1,42 @@
 "use client"
 
-import { useDeleteRequisition, useUpdateRequisitionStatus } from "@/actions/mantenimiento/compras/requisiciones/actions"
+import {
+  useDeleteRequisition,
+  useUpdateRequisitionStatus
+} from "@/actions/mantenimiento/compras/requisiciones/actions"
+
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu"
+
 import { useAuth } from "@/contexts/AuthContext"
 import { useCompanyStore } from "@/stores/CompanyStore"
 import { Requisition } from "@/types"
-import { ClipboardCheck, ClipboardX, Loader2, MoreHorizontal, Trash2, FileDown, Receipt } from "lucide-react"
+
+import {
+  ClipboardX,
+  Loader2,
+  MoreHorizontal,
+  Trash2,
+  FileDown,
+  Receipt
+} from "lucide-react"
+
 import { useState } from "react"
 import { CreateQuoteForm } from "../../../forms/mantenimiento/compras/CreateQuoteForm"
 import { Button } from "../../../ui/button"
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "../../../ui/dialog"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle
+} from "../../../ui/dialog"
+
 import LoadingPage from "../../../misc/LoadingPage"
 import { PDFDownloadLink } from "@react-pdf/renderer"
 import RequisitionReportPdf from "@/components/pdf/almacen/RequisitionReportPdf"
@@ -32,37 +54,74 @@ function transformApiData(apiData: any) {
       batch: batch.id.toString(),
       batch_name: batch.name,
       batch_articles: batch.batch_articles.map((article: any) => ({
-        part_number: article.article_part_number || article.article_alt_part_number || article.pma,
+        part_number:
+          article.article_part_number ||
+          article.article_alt_part_number ||
+          article.pma,
         unit: article.unit,
         quantity: parseFloat(article.quantity),
-        image: article.image || null,
-      })),
-    })),
-  };
+        image: article.image || null
+      }))
+    }))
+  }
 }
+
+const iconClass =
+  "size-5 transition-transform duration-200 group-hover:rotate-[6deg] group-hover:scale-110"
+
+const itemBase =
+  "group flex items-center justify-center rounded-md p-2 transition-all duration-150 hover:bg-muted/60 active:scale-95"
+
+// helper visual disabled
+const disabledClass = "opacity-40 grayscale pointer-events-none"
 
 const RequisitionsDropdownActions = ({ req }: { req: Requisition }) => {
   const { user } = useAuth()
-  const [open, setOpen] = useState<boolean>(false)
-  const [openDelete, setOpenDelete] = useState<boolean>(false)
-  const [openConfirm, setOpenConfirm] = useState<boolean>(false)
-  const [openReject, setOpenReject] = useState<boolean>(false)
+  const [open, setOpen] = useState(false)
+  const [openDelete, setOpenDelete] = useState(false)
+  const [openConfirm, setOpenConfirm] = useState(false)
+  const [openReject, setOpenReject] = useState(false)
+
   const { deleteRequisition } = useDeleteRequisition()
   const { updateStatusRequisition } = useUpdateRequisitionStatus()
   const { selectedCompany } = useCompanyStore()
+
   const userRoles = user?.roles?.map(role => role.name) || []
   const initialData = transformApiData(req)
 
   if (!selectedCompany) return <LoadingPage />
 
-  const handleDelete = async (id: number, company: string) => {
-    await deleteRequisition.mutateAsync({ id, company: selectedCompany!.slug })
+  const canQuote = !(req.status === "APROBADO" || req.status === "RECHAZADO")
+  const canReject = !(req.status === "RECHAZADO" || req.status === "APROBADO")
+
+  const quoteTooltip =
+    req.status === "APROBADO"
+      ? "Una cotización ya fue aprobada para esta requisición, no puede cotizar"
+      : req.status === "RECHAZADO"
+      ? "Esta requisición ha sido rechazada, no puede cotizar"
+      : "Generar cotización"
+
+  const rejectTooltip =
+    req.status === "APROBADO"
+      ? "Esta requisición ya fue aprobada, no puede ser rechazada"
+      : req.status === "RECHAZADO"
+      ? "Esta requisición ya fue rechazada"
+      : "Rechazar solicitud"
+
+  const handleDelete = async (id: number) => {
+    await deleteRequisition.mutateAsync({
+      id,
+      company: selectedCompany!.slug
+    })
     setOpenDelete(false)
   }
 
-  const handleReject = async (id: number, updated_by: string, status: string, company: string) => {
-    const data = { status, updated_by }
-    await updateStatusRequisition.mutateAsync({ id, data, company: selectedCompany!.slug })
+  const handleReject = async (id: number, updated_by: string, status: string) => {
+    await updateStatusRequisition.mutateAsync({
+      id,
+      data: { status, updated_by },
+      company: selectedCompany!.slug
+    })
     setOpenReject(false)
   }
 
@@ -70,82 +129,112 @@ const RequisitionsDropdownActions = ({ req }: { req: Requisition }) => {
     <TooltipProvider>
       <DropdownMenu open={open} onOpenChange={setOpen}>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" className="h-8 w-8 p-0">
-            <span className="sr-only">Abrir menú</span>
+          <Button
+            variant="ghost"
+            className="h-8 w-8 p-0 hover:bg-muted/60 transition-colors"
+          >
             <MoreHorizontal className="h-4 w-4" />
           </Button>
         </DropdownMenuTrigger>
 
-        <DropdownMenuContent align="center" className="flex gap-2 justify-center">
-          {(userRoles.includes("ANALISTA_COMPRAS") || userRoles.includes("SUPERUSER")) && (
+        <DropdownMenuContent
+          align="center"
+          className="
+            flex gap-2 justify-center
+            animate-in fade-in zoom-in-95
+            duration-150
+            rounded-lg border bg-background/95 backdrop-blur-sm
+            shadow-lg
+            p-2
+            overflow-visible
+            z-[999]
+          "
+        >
+          {(userRoles.includes("ANALISTA_COMPRAS") ||
+            userRoles.includes("SUPERUSER")) && (
             <>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                    <DropdownMenuItem
-                      asChild
-                      disabled={req.status === 'APROBADO' || req.status === 'RECHAZADO'}
-                      className="cursor-pointer"
-                      onClick={() => setOpenConfirm(true)}
-                    >
-                      <button>
-                        <Receipt className='size-5' />
-                      </button>
-                    </DropdownMenuItem>
-                </TooltipTrigger>
-                <TooltipContent>
-                  {req.status === "RECHAZADO"
-                    ? "No se puede generar una cotización para una requisición rechazada."
-                    : req.status === "APROBADO"
-                    ? "Esta requisición ya fue aprobada, no se puede generar una nueva cotización."
-                    : "Generar cotización"}
-                </TooltipContent>
-              </Tooltip>
-
+              {/* COTIZACIÓN */}
               <Tooltip>
                 <TooltipTrigger asChild>
                   <span>
                     <DropdownMenuItem
-                      disabled={req.status === 'RECHAZADO' || req.status === 'APROBADO'}
-                      onClick={() => setOpenReject(true)}
-                      className="cursor-pointer"
+                      asChild
+                      disabled={!canQuote}
+                      className="p-0"
                     >
-                      <ClipboardX className="size-5" />
+                      <button
+                        onClick={() => setOpenConfirm(true)}
+                        className={`${itemBase} text-emerald-600 ${
+                          !canQuote ? disabledClass : ""
+                        }`}
+                      >
+                        <Receipt className={iconClass} />
+                      </button>
                     </DropdownMenuItem>
                   </span>
                 </TooltipTrigger>
-                <TooltipContent>
-                  {req.status === "APROBADO"
-                    ? "Una cotización de esta requisición ya fue aceptada, no se puede rechazar."
-                    : req.status === "RECHAZADO"
-                    ? "Esta requisición ya fue rechazada."
-                    : "Rechazar solicitud"}
-                </TooltipContent>
+                <TooltipContent>{quoteTooltip}</TooltipContent>
+              </Tooltip>
+
+              {/* RECHAZAR */}
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span>
+                    <DropdownMenuItem
+                      disabled={!canReject}
+                      onClick={() => setOpenReject(true)}
+                      className="p-0"
+                    >
+                      <button
+                        className={`${itemBase} text-orange-500 ${
+                          !canReject ? disabledClass : ""
+                        }`}
+                      >
+                        <ClipboardX className={iconClass} />
+                      </button>
+                    </DropdownMenuItem>
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent>{rejectTooltip}</TooltipContent>
               </Tooltip>
             </>
           )}
 
-          <PDFDownloadLink fileName={`${req.order_number}.pdf`} document={<RequisitionReportPdf requisition={req} />}>
+          {/* PDF */}
+          <PDFDownloadLink
+            fileName={`${req.order_number}.pdf`}
+            document={<RequisitionReportPdf requisition={req} />}
+          >
             <Tooltip>
               <TooltipTrigger asChild>
-                <DropdownMenuItem className="cursor-pointer">
-                  <FileDown className="size-5 text-blue-600 hover:text-blue-700" />
+                <DropdownMenuItem className="p-0">
+                  <button className={`${itemBase} text-blue-600`}>
+                    <FileDown className={iconClass} />
+                  </button>
                 </DropdownMenuItem>
               </TooltipTrigger>
               <TooltipContent>Descargar PDF</TooltipContent>
             </Tooltip>
           </PDFDownloadLink>
 
+          {/* DELETE */}
           <Tooltip>
             <TooltipTrigger asChild>
-              <DropdownMenuItem onClick={() => setOpenDelete(true)} className="cursor-pointer">
-                <Trash2 className="size-5 text-red-500" />
+              <DropdownMenuItem
+                onClick={() => setOpenDelete(true)}
+                className="p-0"
+              >
+                <button className={`${itemBase} text-red-500`}>
+                  <Trash2 className={iconClass} />
+                </button>
               </DropdownMenuItem>
             </TooltipTrigger>
-            <TooltipContent>Eliminar solicitud</TooltipContent>
+            <TooltipContent>Eliminar</TooltipContent>
           </Tooltip>
         </DropdownMenuContent>
       </DropdownMenu>
 
+      {/* DELETE DIALOG */}
       <Dialog open={openDelete} onOpenChange={setOpenDelete}>
         <DialogContent className="max-w-md">
           <DialogHeader className="flex flex-col items-center text-center space-y-3">
@@ -157,9 +246,9 @@ const RequisitionsDropdownActions = ({ req }: { req: Requisition }) => {
               Eliminar solicitud
             </DialogTitle>
 
-            <DialogDescription className="text-muted-foreground text-sm max-w-sm">
-              Esta acción eliminará permanentemente la solicitud
-              <span className="font-medium"> {req.order_number}</span>. Esta operación no se puede deshacer.
+            <DialogDescription className="text-sm">
+              Esta acción eliminará la requisición{" "}
+              <span className="font-medium">{req.order_number}</span>.
             </DialogDescription>
           </DialogHeader>
 
@@ -170,12 +259,11 @@ const RequisitionsDropdownActions = ({ req }: { req: Requisition }) => {
 
             <Button
               variant="destructive"
-              onClick={() => handleDelete(req.id, selectedCompany!.slug)}
+              onClick={() => handleDelete(req.id)}
               disabled={deleteRequisition.isPending}
-              className="flex items-center gap-2"
             >
               {deleteRequisition.isPending && (
-                <Loader2 className="animate-spin size-4" />
+                <Loader2 className="animate-spin size-4 mr-2" />
               )}
               Eliminar
             </Button>
@@ -183,21 +271,30 @@ const RequisitionsDropdownActions = ({ req }: { req: Requisition }) => {
         </DialogContent>
       </Dialog>
 
+      {/* CONFIRM */}
       <Dialog open={openConfirm} onOpenChange={setOpenConfirm}>
         <DialogContent className="max-w-3xl">
           <DialogHeader>
-            <DialogTitle className="text-center text-3xl">Generar Cotización</DialogTitle>
+            <DialogTitle className="text-center text-2xl">
+              Generar Cotización
+            </DialogTitle>
             <DialogDescription className="text-center">
-              Ingrese la información necesaria para generar la cotización.
+              Complete la información requerida
             </DialogDescription>
           </DialogHeader>
-          <CreateQuoteForm req={req} initialData={initialData} onClose={() => setOpenConfirm(false)} />
+
+          <CreateQuoteForm
+            req={req}
+            initialData={initialData}
+            onClose={() => setOpenConfirm(false)}
+          />
         </DialogContent>
       </Dialog>
 
+      {/* REJECT */}
       <Dialog open={openReject} onOpenChange={setOpenReject}>
         <DialogContent className="max-w-md">
-          <DialogHeader className="flex flex-col items-center text-center space-y-3">
+          <DialogHeader className="text-center space-y-3">
             <div className="flex items-center justify-center size-12 rounded-full bg-orange-100 dark:bg-orange-900/30">
               <ClipboardX className="size-6 text-orange-600" />
             </div>
@@ -206,8 +303,9 @@ const RequisitionsDropdownActions = ({ req }: { req: Requisition }) => {
               Rechazar solicitud
             </DialogTitle>
 
-            <DialogDescription className="text-muted-foreground text-sm max-w-sm">
-              La solicitud <span className="font-medium">{req.order_number}</span> será marcada como rechazada.
+            <DialogDescription className="text-sm">
+              La requisición{" "}
+              <span className="font-medium">{req.order_number}</span> será rechazada.
             </DialogDescription>
           </DialogHeader>
 
@@ -217,14 +315,16 @@ const RequisitionsDropdownActions = ({ req }: { req: Requisition }) => {
             </Button>
 
             <Button
-              onClick={() => handleReject(req.id, `${user?.first_name} ${user?.last_name}`, "RECHAZADO", selectedCompany!.slug)}
-              disabled={updateStatusRequisition.isPending || req.status === 'APROBADA'}
-              className="flex items-center gap-2"
+              onClick={() =>
+                handleReject(
+                  req.id,
+                  `${user?.first_name} ${user?.last_name}`,
+                  "RECHAZADO"
+                )
+              }
+              disabled={updateStatusRequisition.isPending}
             >
-              {updateStatusRequisition.isPending && (
-                <Loader2 className="animate-spin size-4" />
-              )}
-              Confirmar rechazo
+              Confirmar
             </Button>
           </DialogFooter>
         </DialogContent>

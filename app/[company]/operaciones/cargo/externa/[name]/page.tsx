@@ -70,7 +70,7 @@ const ExternalAircraftCargoPage = () => {
             <BreadcrumbItem>Operaciones</BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbLink href={`/${company}/operaciones/cargo`}>
+              <BreadcrumbLink href={`/${company}/operaciones/cargo?month=${month}&year=${year}`}>
                 Carga
               </BreadcrumbLink>
             </BreadcrumbItem>
@@ -104,7 +104,7 @@ const ExternalAircraftCargoPage = () => {
               size="icon"
               className="h-9 w-9 shrink-0"
             >
-              <Link href={`/${company}/operaciones/cargo`}>
+              <Link href={`/${company}/operaciones/cargo?month=${month}&year=${year}`}>
                 <ArrowLeft className="h-4 w-4" />
               </Link>
             </Button>
@@ -120,15 +120,6 @@ const ExternalAircraftCargoPage = () => {
           </div>
 
           <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              onClick={() => exportToExcel(name, month, year, name, true)}
-              disabled={isExporting || isLoading || !data?.length}
-            >
-              <Download className="size-4 mr-2" />
-              {isExporting ? "Exportando..." : "Exportar Excel"}
-            </Button>
-
             {canWrite && isCurrentMonth && (
               <Button asChild>
                 <Link
@@ -139,6 +130,14 @@ const ExternalAircraftCargoPage = () => {
                 </Link>
               </Button>
             )}
+            <Button
+              variant="outline"
+              onClick={() => exportToExcel(name, month, year, name, true)}
+              disabled={isExporting || isLoading || !data?.length}
+            >
+              <Download className="size-4 mr-2" />
+              {isExporting ? "Exportando..." : "Exportar Excel"}
+            </Button>
           </div>
         </div>
 

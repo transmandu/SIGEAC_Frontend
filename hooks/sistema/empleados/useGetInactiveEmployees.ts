@@ -3,7 +3,7 @@ import { Employee } from '@/types';
 import { useQuery } from '@tanstack/react-query';
 
 const fetchInactiveEmployeesByCompany = async (
-  company: string | undefined
+  company: string
 ): Promise<Employee[]> => {
   const { data } = await axiosInstance.get(
     `/${company}/employees/inactive`
@@ -12,11 +12,16 @@ const fetchInactiveEmployeesByCompany = async (
   return data;
 };
 
-export const useGetInactiveEmployeesByCompany = (company: string | undefined) => {
+export const useGetInactiveEmployeesByCompany = (
+  company?: string
+) => {
   return useQuery<Employee[], Error>({
     queryKey: ['employees-inactive', company],
-    queryFn: () => fetchInactiveEmployeesByCompany(company),
+
+    queryFn: () => fetchInactiveEmployeesByCompany(company!),
+
     enabled: !!company,
+
     refetchOnWindowFocus: false,
   });
 };

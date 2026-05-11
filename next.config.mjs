@@ -1,4 +1,4 @@
-/** @type {import('next').NextConfig} */
+// /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
     remotePatterns: [
@@ -14,7 +14,7 @@ const nextConfig = {
       },
       {
         protocol: "https",
-        hostname: "apisigeactmd74.share.zrok.io",
+        hostname: process.env.NEXT_PUBLIC_HOSTNAME,
       },
     ],
     dangerouslyAllowSVG: true,

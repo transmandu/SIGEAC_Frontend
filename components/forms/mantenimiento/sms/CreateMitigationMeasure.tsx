@@ -204,19 +204,32 @@ export default function CreateMitigationMeasure({
                                             </Button>
                                         </FormControl>
                                     </PopoverTrigger>
-                                    <PopoverContent
-                                        className="w-auto p-0"
-                                        align="start"
-                                    >
-                                        <Calendar
-                                            mode="single"
-                                            selected={field.value}
-                                            onSelect={field.onChange}
-                                            initialFocus
-                                        />
-                                    </PopoverContent>
-                                </Popover>
-                                <FormMessage />
+                                     <PopoverContent
+                                         className="w-auto p-0"
+                                         align="start"
+                                     >
+                                         <Calendar
+                                             mode="single"
+                                             selected={field.value}
+                                             onSelect={field.onChange}
+                                             initialFocus
+                                             fromYear={1980}
+                                             toYear={new Date().getFullYear() + 20}
+                                             captionLayout="dropdown-buttons"
+                                             components={{
+                                                 Dropdown: (props) => (
+                                                     <select
+                                                         {...props}
+                                                         className="bg-popover text-popover-foreground"
+                                                     >
+                                                         {props.children}
+                                                     </select>
+                                                 ),
+                                             }}
+                                         />
+                                     </PopoverContent>
+                                 </Popover>
+                                 <FormMessage />
                             </FormItem>
                         )}
                     />
@@ -249,19 +262,32 @@ export default function CreateMitigationMeasure({
                                             </Button>
                                         </FormControl>
                                     </PopoverTrigger>
-                                    <PopoverContent
-                                        className="w-auto p-0"
-                                        align="start"
-                                    >
-                                        <Calendar
-                                            mode="single"
-                                            selected={field.value || undefined}
-                                            onSelect={field.onChange}
-                                            initialFocus
-                                        />
-                                    </PopoverContent>
-                                </Popover>
-                                <FormMessage />
+                                     <PopoverContent
+                                         className="w-auto p-0"
+                                         align="start"
+                                     >
+                                         <Calendar
+                                             mode="single"
+                                             selected={field.value || undefined}
+                                             onSelect={field.onChange}
+                                             initialFocus
+                                             fromYear={1980}
+                                             toYear={new Date().getFullYear() + 20}
+                                             captionLayout="dropdown-buttons"
+                                             components={{
+                                                 Dropdown: (props) => (
+                                                     <select
+                                                         {...props}
+                                                         className="bg-popover text-popover-foreground"
+                                                     >
+                                                         {props.children}
+                                                     </select>
+                                                 ),
+                                             }}
+                                         />
+                                     </PopoverContent>
+                                 </Popover>
+                                 <FormMessage />
                             </FormItem>
                         )}
                     />

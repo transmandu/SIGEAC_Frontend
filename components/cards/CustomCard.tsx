@@ -6,103 +6,91 @@ import Link from "next/link";
 import Image from "next/image";
 
 interface CustomCardProps {
-  imageUrl?: string;
-  imageAlt?: string;
-  title?: string;
-  description: string;
-  actionLink?: {
-    href: string;
-    label: string;
-    variant?:
-      | "default"
-      | "destructive"
-      | "outline"
-      | "secondary"
-      | "ghost"
-      | "link";
-    size?: "default" | "sm" | "lg" | "icon";
-    target?: "_blank" | "_self" | "_parent" | "_top";
-  };
-  className?: string;
-  imageClassName?: string;
-  titleClassName?: string;
-  descriptionClassName?: string;
-  buttonClassName?: string;
+    imageUrl?: string;
+    imageAlt?: string;
+    title?: string;
+    description: string;
+    actionLink?: {
+        href: string;
+        label: string;
+        variant?:
+        | "default"
+        | "destructive"
+        | "outline"
+        | "secondary"
+        | "ghost"
+        | "link";
+        size?: "default" | "sm" | "lg" | "icon";
+        target?: "_blank" | "_self" | "_parent" | "_top";
+    };
+    className?: string;
+    imageClassName?: string;
+    titleClassName?: string;
+    descriptionClassName?: string;
+    buttonClassName?: string;
 }
 
 export function CustomCard({
-  imageUrl,
-  imageAlt = "Card image",
-  title,
-  description,
-  actionLink,
-  className,
-  imageClassName,
-  titleClassName,
-  descriptionClassName,
-  buttonClassName,
+    imageUrl,
+    imageAlt = "Card image",
+    title,
+    description,
+    actionLink,
+    className,
+    imageClassName,
+    titleClassName,
+    descriptionClassName,
+    buttonClassName,
 }: CustomCardProps) {
-  return (
-    <Card className={cn("w-full flex flex-col ", className)}>
-      <CardDescription></CardDescription>
-      <CardContent className="p-6 flex flex-col flex-grow items-center sm:items-stretch">
-        <div className="flex sm:flex-col items-center justify-center sm:flex-1 w-full">
-          <div className="flex flex-col items-center sm:flex-1">
-            {/* Imagen */}
-            {imageUrl && (
-              <div className="mb-4 flex justify-center relative h-32 w-32 sm:h-60 sm:w-60 flex-shrink-0">
-                <Image
-                  src={`${process.env.NEXT_PUBLIC_STORAGE_BASE_URL}${imageUrl}`}
-                  alt={imageAlt}
-                  fill
-                  className={cn("object-cover", imageClassName)}
-                />
-              </div>
-            )}
-          </div>
-          <div className="flex-1 w-full flex flex-col justify-center">
-            {/* Título (opcional) */}
-            {title && (
-              <h3
-                className={cn(
-                  "text-sm sm:text-lg font-semibold mb-2 text-center",
-                  titleClassName
+    return (
+        <Card className={cn("w-full flex flex-col ", className)}>
+            <CardDescription className="hidden"></CardDescription>
+            <CardContent className="p-6 flex flex-col flex-grow items-center sm:items-stretch">
+                <div className="flex sm:flex-col items-center justify-center sm:flex-1 w-full">
+                    <div className="flex flex-col items-center sm:flex-1">
+                        {/* Imagen - Ajustada para verse completa */}
+                        {imageUrl && (
+                            <div className="mb-4 flex justify-center relative h-32 w-32 sm:h-60 sm:w-60 flex-shrink-0">
+                                <Image
+                                    src={`${process.env.NEXT_PUBLIC_STORAGE_BASE_URL}${imageUrl}`}
+                                    alt={imageAlt}
+                                    fill
+                                    /* CAMBIO CLAVE: object-contain en lugar de object-cover */
+                                    className={cn("object-contain", imageClassName)}
+                                />
+                            </div>
+                        )}
+                    </div>
+                    <div className="flex-1 w-full flex flex-col justify-center">
+                        {title && (
+                            <h3 className={cn("text-sm sm:text-lg font-semibold mb-2 text-center", titleClassName)}>
+                                {title}
+                            </h3>
+                        )}
+                        <p className={cn("text-xs sm:text-sm text-muted-foreground text-center flex-1", descriptionClassName)}>
+                            {description}
+                        </p>
+                    </div>
+                </div>
+                {actionLink && (
+                    <div className="mt-4 flex justify-center w-full">
+                        <Button
+                            asChild
+                            variant={actionLink.variant || "outline"}
+                            size={actionLink.size || "sm"}
+                            className={cn("w-full max-w-20 sm:max-w-40", buttonClassName)}
+                        >
+                            <Link
+                                href={actionLink.href}
+                                target={actionLink.target || "_self"}
+                                className="text-xs sm:text-sm"
+                            >
+                                {actionLink.label}
+                            </Link>
+                        </Button>
+                    </div>
                 )}
-              >
-                {title}
-              </h3>
-            )}
-            {/* Descripción */}
-            <p
-              className={cn(
-                "text-xs sm:text-sm text-muted-foreground text-center flex-1",
-                descriptionClassName
-              )}
-            >
-              {description}
-            </p>
-          </div>
-        </div>
-        {/* Botón de acción (opcional) */}
-        {actionLink && (
-          <div className="mt-4 flex justify-center w-full">
-            <Button
-              asChild
-              variant={actionLink.variant || "outline"}
-              size={actionLink.size || "sm"}
-              className={cn("w-full max-w-20 sm:max-w-40", buttonClassName)}
-            >
-              <Link
-                href={actionLink.href}
-                target={actionLink.target || "_self"}
-                className="text-xs sm:text-sm"
-              >
-                {actionLink.label}
-              </Link>
-            </Button>
-          </div>
-        )}
-      </CardContent>
-    </Card>
-  );
+            </CardContent>
+        </Card>
+    );
 }

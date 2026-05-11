@@ -246,7 +246,11 @@ export const columns: ColumnDef<DispatchGroupRow>[] = [
     ),
     cell: ({ row }) => (
       <div className="flex justify-center">
-        <DispatchRequestDropdownActions id={row.original.id} />
+        <DispatchRequestDropdownActions
+          id={row.original.id}
+          category={row.original.articles[0]?.category}
+          articles={row.original.articles}
+        />
       </div>
     ),
     enableSorting: false,

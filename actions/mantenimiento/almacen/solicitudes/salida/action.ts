@@ -15,6 +15,7 @@ interface IDispatchRequestAction {
     article_id: number;
     quantity?: number;
     serial?: string | null;
+    batch_id?: number;
   }[];
   general_articles?: {
     general_article_id: number;

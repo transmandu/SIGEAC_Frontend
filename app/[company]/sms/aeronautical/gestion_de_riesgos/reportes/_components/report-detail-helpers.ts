@@ -1,5 +1,6 @@
 "use client";
 
+import { createElement } from "react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 
@@ -16,6 +17,34 @@ import {
     RiskAnalysisLike,
     VoluntaryReportView,
 } from "./report-detail-types";
+
+const parseDelimitedDetailItems = (value?: string | null) => {
+    if (!value) {
+        return [];
+    }
+
+    const source = value.includes("~") ? value.split("~") : value.split(/\n|,/);
+
+    return source.map((item) => item.trim()).filter(Boolean);
+};
+
+const renderNumberedDetailValue = (value?: string | null, fallback?: string) => {
+    const items = parseDelimitedDetailItems(value);
+
+    if (!items.length) {
+        return fallback;
+    }
+
+    if (items.length === 1) {
+        return items[0];
+    }
+
+    return createElement(
+        "ol",
+        { className: "list-decimal space-y-1 pl-5" },
+        items.map((item, index) => createElement("li", { key: `${index}-${item}` }, item)),
+    );
+};
 
 export const formatDisplayDate = (value?: string | Date | null) =>
     value
@@ -179,14 +208,10 @@ export const getReportCode = (report: { id: number; report_number?: string | nul
 };
 
 export const buildVoluntaryDetails = (report: VoluntaryReportView): DetailItem[] => [
-    { label: "Codigo", value: getReportCode(report, "RVP") },
     { label: "Fecha del reporte", value: formatDisplayDate(report.report_date) },
     { label: "Fecha de identificacion", value: formatDisplayDate(report.identification_date) },
     { label: "Estado", value: report.status },
-    { label: "Lugar del peligro", value: report.danger_location || formatLocationLabel(report.location) },
     { label: "Area del peligro", value: report.danger_area || report.identification_area },
-    { label: "Ubicacion del aeropuerto", value: report.airport_location || "N/A" },
-    { label: "Identificacion vinculada", value: report.danger_identification_id ?? "N/A" },
     { label: "Nombre", value: report.reporter_name || "N/A" },
     { label: "Apellido", value: report.reporter_last_name || "N/A" },
     { label: "Telefono", value: report.reporter_phone || "N/A" },
@@ -199,9 +224,8 @@ export const buildVoluntaryDetails = (report: VoluntaryReportView): DetailItem[]
     },
     {
         label: "Posibles consecuencias",
-        value: report.possible_consequences,
+        value: renderNumberedDetailValue(report.possible_consequences),
         fullWidth: true,
-        contentClassName: "whitespace-pre-wrap",
     },
 ];
 
@@ -261,12 +285,6 @@ export const buildDangerIdentificationDetails = (notification: HazardNotificatio
     { label: "Ubicacion", value: notification.location ? formatLocationLabel(notification.location) : "N/A" },
     { label: "Fuente de informacion", value: notification.information_source?.name || "N/A" },
     {
-        label: "Defensas actuales",
-        value: notification.current_defenses,
-        fullWidth: true,
-        contentClassName: "whitespace-pre-wrap",
-    },
-    {
         label: "Descripcion",
         value: notification.description,
         fullWidth: true,
@@ -274,34 +292,21 @@ export const buildDangerIdentificationDetails = (notification: HazardNotificatio
     },
     {
         label: "Analisis de causas raiz",
-        value: notification.analysis_of_root_causes || notification.root_cause_analysis,
+        value: renderNumberedDetailValue(
+            notification.analysis_of_root_causes || notification.root_cause_analysis,
+        ),
         fullWidth: true,
-        contentClassName: "whitespace-pre-wrap",
-    },
-    {
-        label: "Posibles consecuencias",
-        value: notification.possible_consequences || "N/A",
-        fullWidth: true,
-        contentClassName: "whitespace-pre-wrap",
-    },
-    {
-        label: "Consecuencia a evaluar",
-        value: notification.consequence_to_evaluate || "N/A",
-        fullWidth: true,
-        contentClassName: "whitespace-pre-wrap",
     },
     { label: "Fecha de gestion", value: formatDisplayDate(notification.risk_management_start_date) },
 ];
 
 export const buildMitigationPlanDetails = (plan: MitigationPlanLike): DetailItem[] => [
-    { label: "Codigo", value: plan.id ?? "N/A" },
     { label: "Area responsable", value: plan.area_responsible || plan.responsible || "N/A" },
     { label: "Fecha de inicio", value: formatDisplayDate(plan.start_date) },
     {
         label: "Posibles consecuencias",
-        value: plan.possible_consequences || "N/A",
+        value: renderNumberedDetailValue(plan.possible_consequences, "N/A"),
         fullWidth: true,
-        contentClassName: "whitespace-pre-wrap",
     },
     {
         label: "Consecuencia a evaluar",
@@ -318,7 +323,6 @@ export const buildMitigationPlanDetails = (plan: MitigationPlanLike): DetailItem
 ];
 
 export const buildMeasureDetails = (measure: MitigationMeasureLike): DetailItem[] => [
-    { label: "Codigo", value: measure.id ?? "N/A" },
     {
         label: "Descripcion",
         value: measure.description || "N/A",
@@ -338,7 +342,6 @@ export const buildMeasureDetails = (measure: MitigationMeasureLike): DetailItem[
 ];
 
 export const buildControlDetails = (control: FollowUpControlLike): DetailItem[] => [
-    { label: "Codigo", value: control.id ?? "N/A" },
     { label: "Fecha", value: formatDisplayDate(control.date) },
     {
         label: "Descripcion",
@@ -346,8 +349,7 @@ export const buildControlDetails = (control: FollowUpControlLike): DetailItem[] 
         fullWidth: true,
         contentClassName: "whitespace-pre-wrap",
     },
-    { label: "Imagen", value: control.image || "N/A" },
-    { label: "Documento", value: control.document || "N/A" },
+
 ];
 
 export const buildAnalysisEntries = (
@@ -359,8 +361,8 @@ export const buildAnalysisEntries = (
     if (notification?.analysis) {
         entries.push({
             key: "hazard-notification-analysis",
-            title: "Análisis de hazard notification",
-            description: "Evaluación asociada a la notificación de peligro.",
+            title: "Análisis Pre Mitigacion",
+            description: "Evaluación asociada a la identificacion de peligro",
             analysis: notification.analysis,
         });
     }
@@ -368,7 +370,7 @@ export const buildAnalysisEntries = (
     if (mitigationPlan?.analysis) {
         entries.push({
             key: "mitigation-plan-analysis",
-            title: "Análisis del plan de mitigación",
+            title: "Análisis Post Mitigacion",
             description: "Evaluación asociada al plan y sus medidas.",
             analysis: mitigationPlan.analysis,
         });

@@ -7,13 +7,15 @@ import { useSidebarToggle } from "@/hooks/helpers/use-sidebar-toggle";
 import { useStore } from "@/hooks/helpers/use-store";
 import { cn } from "@/lib/utils";
 import { useCompanyStore } from "@/stores/CompanyStore";
-import Image from "next/image";
+import Logo from "@/components/misc/Logo";
 import Link from "next/link";
 
 export function Sidebar() {
   const sidebar = useStore(useSidebarToggle, (state) => state);
   const { selectedCompany, selectedStation } = useCompanyStore();
+
   if (!sidebar) return null;
+
   return (
     <aside
       className={cn(
@@ -21,9 +23,21 @@ export function Sidebar() {
         sidebar?.isOpen === false ? "w-[90px]" : "w-72"
       )}
     >
-      <SidebarToggle isOpen={sidebar?.isOpen} setIsOpen={sidebar?.setIsOpen} />
+      <SidebarToggle
+        isOpen={sidebar?.isOpen}
+        setIsOpen={sidebar?.setIsOpen}
+      />
+
       <div className="relative h-full flex flex-col px-3 py-4 overflow-y-auto shadow-md dark:shadow-zinc-800 mt-5">
-        <div className="bg-background rounded-md px-2 pt-2 pb-4 mb-1 mt-4 shadow-sm dark:shadow-zinc-900 flex justify-center">
+
+        {/* LOGO CONTAINER */}
+        <div
+          className={cn(
+            "flex justify-center items-center mb-1 mt-4",
+            "bg-background",
+            "px-4 py-4"
+          )}
+        >
           <Button
             className={cn(
               "transition-transform ease-in-out duration-300 w-full justify-center",
@@ -36,12 +50,13 @@ export function Sidebar() {
               href={`/${selectedCompany?.slug}/dashboard`}
               className="flex items-center justify-center w-full"
             >
-              <Image src={"/logo.png"} width={150} height={150} alt="Logo" priority/>
+              <Logo width={120} height={120} />
             </Link>
           </Button>
         </div>
+
         {selectedCompany && selectedStation ? (
-          <Menu isOpen={sidebar?.isOpen}  />
+          <Menu isOpen={sidebar?.isOpen} />
         ) : (
           <p className="text-sm text-muted-foreground text-center mt-10">
             Por favor, seleccione una <strong>Empresa</strong> y una{" "}

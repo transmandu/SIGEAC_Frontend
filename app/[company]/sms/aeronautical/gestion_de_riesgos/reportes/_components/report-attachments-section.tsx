@@ -12,8 +12,8 @@ type ReportAttachmentsSectionProps = {
     company: string;
     report: {
         id: number;
-        image?: string | null;
-        documentUrl?: string | null;
+        image?: string;
+        document?: string;
     };
 };
 
@@ -21,7 +21,7 @@ export function ReportAttachmentsSection({
     company,
     report,
 }: ReportAttachmentsSectionProps) {
-    if (!report.image && !report.documentUrl) {
+    if (!report.image && !report.document) {
         return null;
     }
 
@@ -56,6 +56,7 @@ export function ReportAttachmentsSection({
                                         ) : null}
                                     </div>
 
+
                                     {url ? (
                                         <Button
                                             variant="outline"
@@ -79,26 +80,47 @@ export function ReportAttachmentsSection({
                 </Card>
             ) : null}
 
-            {report.documentUrl ? (
+            {report.document && (
                 <Card>
-                    <CardHeader className="space-y-2">
+                    <CardHeader>
                         <CardTitle className="flex items-center gap-2 text-xl">
-                            <File className="h-5 w-5" />
-                            Documento adjunto
+                            <File className="h-5 w-5" /> Documento adjunto
                         </CardTitle>
-                        <CardDescription>
-                            Archivo asociado al reporte para consulta o descarga.
-                        </CardDescription>
+                        <CardDescription>Vista previa del PDF cargado.</CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <Button asChild variant="outline" className="w-full">
-                            <a href={report.documentUrl} target="_blank" rel="noreferrer">
-                                Abrir documento
-                            </a>
-                        </Button>
+                        {/* Envolvemos el documento con FileServer para obtener el Blob URL */}
+                        <FileServer path={report.document} company={company}>
+                            {(url, isLoading, hasError) => (
+                                <div className="space-y-4">
+                                    <div className="relative flex aspect-[3/4] items-center justify-center overflow-hidden rounded-lg border bg-muted">
+                                        {isLoading && <p>Cargando documento...</p>}
+                                        {hasError ? (
+                                            <p className="text-destructive">Error al cargar PDF</p>
+                                        ) : url ? (
+                                            /* IMPORTANTE: Usamos iframe para el PDF */
+                                            <iframe
+                                                src={`${url}#toolbar=0`}
+                                                className="h-full w-full"
+                                                title="Preview PDF"
+                                            />
+                                        ) : null}
+                                    </div>
+
+                                    {url && (
+                                        <Button asChild variant="outline" className="w-full">
+                                            <a href={url} download={`Documento-${report.id}.pdf`}>
+                                                <Download className="mr-2 h-4 w-4" />
+                                                Descargar PDF
+                                            </a>
+                                        </Button>
+                                    )}
+                                </div>
+                            )}
+                        </FileServer>
                     </CardContent>
                 </Card>
-            ) : null}
+            )}
         </div>
     );
 }

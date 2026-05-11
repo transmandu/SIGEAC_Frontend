@@ -2,9 +2,22 @@
 
 import { useCreateClient } from "@/actions/general/clientes/actions";
 import { Button } from "@/components/ui/button";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, } from "@/components/ui/form";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
@@ -14,7 +27,7 @@ import { Checkbox } from "../../ui/checkbox";
 import { Label } from "../../ui/label";
 
 const phoneRegex = new RegExp(
-  /^([+]?[\s0-9]+)?(\d{3}|[(]?[0-9]+[)])?([-]?[\s]?[0-9])+$/
+  /^([+]?[\s0-9]+)?(\d{3}|[(]?[0-9]+[)])?([-]?[\s]?[0-9])+$/,
 );
 
 const formSchema = z.object({
@@ -25,7 +38,8 @@ const formSchema = z.object({
     })
     .max(11, {
       message: "El número de identificación tiene un máximo 9 caracteres.",
-    }).regex(/^\d+$/, {
+    })
+    .regex(/^\d+$/, {
       message: "El documento solo puede contener números",
     }),
   dni_type: z.string({
@@ -36,7 +50,7 @@ const formSchema = z.object({
     .max(40)
     .regex(
       /^[a-zA-Z0-9\s]+$/,
-      "No se permiten caracteres especiales, solo letras"
+      "No se permiten caracteres especiales, solo letras",
     )
     .min(2, {
       message: "El nombre debe tener al menos 2 caracteres y maximo 40.",
@@ -45,10 +59,14 @@ const formSchema = z.object({
     .string()
     .min(10, "El número de tlf debe tener al menos 10 digitos")
     .max(15, "El número de telefono debe tener hasta maximo 15 digitos")
-    .regex(phoneRegex, "Número de telefono invalido").optional(),
-  email: z.string().email({
-    message: "Debe ser un email válido.",
-  }).optional(),
+    .regex(phoneRegex, "Número de telefono invalido")
+    .optional(),
+  email: z
+    .string()
+    .email({
+      message: "Debe ser un email válido.",
+    })
+    .optional(),
   address: z
     .string()
     .min(2, {
@@ -56,18 +74,20 @@ const formSchema = z.object({
     })
     .max(100, {
       message: "La dirección tiene un máximo 100 caracteres.",
-    }).optional(),
+    })
+    .optional(),
   authorizing: z.enum(["PROPIETARIO", "EXPLOTADOR"], {
     message: "Debe seleccionar si es Propietario o Explotador.",
   }),
-  pay_credit_days: z.string().optional()
+  pay_credit_days: z.string().optional(),
 });
 
 interface FormProps {
   onClose: () => void;
+  onCreated?: (client: { id: number; name: string }) => void;
 }
 
-export function CreateClientForm({ onClose }: FormProps) {
+export function CreateClientForm({ onClose, onCreated }: FormProps) {
   const { selectedCompany } = useCompanyStore();
   const { createClient } = useCreateClient();
   const [isAdmin, setIsAdmin] = useState(false);
@@ -77,7 +97,15 @@ export function CreateClientForm({ onClose }: FormProps) {
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    createClient.mutate({company: selectedCompany!.slug, data: values});
+    createClient.mutate(
+      { company: selectedCompany!.slug, data: values },
+      {
+        onSuccess: (newClient) => {
+          onCreated?.(newClient); // <-- Notificamos al padre
+          onClose();
+        },
+      },
+    );
   }
 
   return (
@@ -91,7 +119,7 @@ export function CreateClientForm({ onClose }: FormProps) {
             control={form.control}
             name="dni_type"
             render={({ field }) => (
-              <FormItem >
+              <FormItem>
                 <FormLabel>Documento</FormLabel>
                 <Select
                   onValueChange={field.onChange}
@@ -190,7 +218,7 @@ export function CreateClientForm({ onClose }: FormProps) {
             )}
           />
         </div>
-        
+
         <div className="flex gap-2 items-center justify-center">
           <FormField
             control={form.control}
@@ -223,7 +251,6 @@ export function CreateClientForm({ onClose }: FormProps) {
             checked={isAdmin}
           />
           <Label>¿Es un cliente administrativo?</Label>
-
         </div>
         {isAdmin && (
           <FormField

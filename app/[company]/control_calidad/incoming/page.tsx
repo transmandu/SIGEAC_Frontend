@@ -78,7 +78,7 @@ const IncomingControlPage = () => {
           <h1 className="text-4xl font-bold">Control de Incoming</h1>
           <p className="text-sm text-muted-foreground italic">
             Aquí puede observar los artículos en flujo de Incoming y los que están
-            en espera por ubicar.
+            en espera por ubicación.
             <br />
             Filtre y/o busque si desea uno en específico.
           </p>

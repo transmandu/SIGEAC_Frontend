@@ -1,3 +1,5 @@
+"use client";
+
 import {
   Select,
   SelectContent,
@@ -10,13 +12,17 @@ import { useGetUserLocationsByCompanyId } from "@/hooks/sistema/usuario/useGetUs
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { Company } from "@/types";
 import { Loader2 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 
 const CompanySelect = () => {
-  // Hooks y estados
   const { user, loading: userLoading } = useAuth();
-  const [stationAddress, setStationAddress] = useState<string | null>(null);
-  const [isInitialized, setIsInitialized] = useState(false);
+
+  const {
+    selectedCompany,
+    selectedStation,
+    setSelectedCompany,
+    setSelectedStation,
+  } = useCompanyStore();
 
   const {
     mutate,
@@ -25,128 +31,86 @@ const CompanySelect = () => {
     isError,
   } = useGetUserLocationsByCompanyId();
 
-  const {
-    selectedCompany,
-    selectedStation,
-    setSelectedCompany,
-    setSelectedStation,
-    initFromLocalStorage,
-  } = useCompanyStore();
-
-  // Efectos
   useEffect(() => {
-    if (!isInitialized) {
-      initFromLocalStorage();
-      setIsInitialized(true);
-    }
-  }, [initFromLocalStorage, isInitialized]);
+    if (!selectedCompany?.id) return;
 
-  useEffect(() => {
-    if (isInitialized && selectedCompany) {
-      mutate(selectedCompany.id);
-    }
-  }, [selectedCompany, isInitialized, mutate, selectedStation, setSelectedStation]);
+    mutate(selectedCompany.id);
+  }, [selectedCompany?.id, mutate]);
 
-  useEffect(() => {
-    if (selectedStation && locations) {
-      const selectedLocation = locations.find(
-        (location) => location.id.toString() === selectedStation
-      );
-      setStationAddress(
-        selectedLocation
-          ? `${selectedLocation.cod_iata} - ${selectedLocation.type}`
-          : null
-      );
-    }
-  }, [selectedStation, locations]);
-
-  // Handlers
   const handleCompanySelect = (companyId: string) => {
-    const company = user?.companies?.find((c) => c.id.toString() === companyId);
-    if (company) {
-      setSelectedCompany(company);
-    }
+    const company = user?.companies?.find(
+      (c) => c.id.toString() === companyId
+    );
+
+    if (!company) return;
+
+    setSelectedCompany(company);
+    setSelectedStation("");
   };
 
-  const handleStationSelect = (value: string) => {
-    setSelectedStation(value);
+  const handleStationSelect = (stationId: string) => {
+    setSelectedStation(stationId);
   };
 
-  // Funciones auxiliares
-  const getCompanySelectValue = () => {
-    return selectedCompany ? selectedCompany.id.toString() : '';
-  };
-
-  const getCompanySelectPlaceholder = () => {
-    return selectedCompany
-      ? selectedCompany.name[0].toUpperCase() + selectedCompany.name.slice(1)
-      : 'Empresa';
-  };
-
-  // Render
   return (
-<div className="flex flex-wrap items-center justify-center gap-2 w-full">
-  <Select
-    value={getCompanySelectValue()}
-    onValueChange={handleCompanySelect}
-  >
-    <SelectTrigger className="w-[140px] sm:w-[160px] md:w-[180px]">
-      <SelectValue placeholder={getCompanySelectPlaceholder()} />
-    </SelectTrigger>
-    <SelectContent>
-      {userLoading ? (
-        <div className="flex items-center justify-center p-2">
-          <Loader2 className="w-4 h-4 animate-spin" />
-        </div>
-      ) : (
-        user?.companies?.map((company: Company) => (
-          <SelectItem value={company.id.toString()} key={company.id}>
-            {company.name}
-          </SelectItem>
-        ))
-      )}
-    </SelectContent>
-  </Select>
+    <div className="flex flex-wrap items-center justify-center gap-2 w-full">
 
-  <Select
-    disabled={!selectedCompany}
-    value={selectedStation || ''}
-    onValueChange={handleStationSelect}
-  >
-    <SelectTrigger className="w-[140px] sm:w-[160px] md:w-[180px]">
-      <SelectValue
-        placeholder={
-          locationsLoading ? (
-            <Loader2 className="animate-spin w-4 h-4" />
+      <Select
+        value={selectedCompany?.id.toString() || ""}
+        onValueChange={handleCompanySelect}
+      >
+        <SelectTrigger className="w-[140px] sm:w-[160px] md:w-[180px]">
+          <SelectValue placeholder="Empresa" />
+        </SelectTrigger>
+
+        <SelectContent>
+          {userLoading ? (
+            <div className="flex items-center justify-center p-2">
+              <Loader2 className="w-4 h-4 animate-spin" />
+            </div>
           ) : (
-            stationAddress || 'Estación'
-          )
-        }
-      />
-    </SelectTrigger>
-    <SelectContent>
-      {locationsLoading ? (
-        <div className="flex items-center justify-center p-2">
-          <Loader2 className="animate-spin w-4 h-4" />
-        </div>
-      ) : isError ? (
-        <p className="p-2 text-xs text-muted-foreground italic">
-          Ha ocurrido un error al cargar las estaciones...
-        </p>
-      ) : locations?.length === 0 ? (
-        <p className="p-2 text-xs text-muted-foreground italic">
-          No hay estaciones disponibles
-        </p>
-      ) : (
-        locations?.map((location) => (
-          <SelectItem value={location.id.toString()} key={location.id}>
-            {location.cod_iata}
-          </SelectItem>
-        ))
-      )}
-    </SelectContent>
-  </Select>
-</div>
+            user?.companies?.map((company: Company) => (
+              <SelectItem key={company.id} value={company.id.toString()}>
+                {company.name}
+              </SelectItem>
+            ))
+          )}
+        </SelectContent>
+      </Select>
+
+      <Select
+        disabled={!selectedCompany}
+        value={selectedStation || ""}
+        onValueChange={handleStationSelect}
+      >
+        <SelectTrigger className="w-[140px] sm:w-[160px] md:w-[180px]">
+          <SelectValue
+            placeholder={
+              locationsLoading ? "Cargando..." : "Estación"
+            }
+          />
+        </SelectTrigger>
+
+        <SelectContent>
+          {locationsLoading ? (
+            <div className="flex items-center justify-center p-2">
+              <Loader2 className="w-4 h-4 animate-spin" />
+            </div>
+          ) : isError ? (
+            <p className="p-2 text-xs text-muted-foreground italic">
+              Error cargando estaciones
+            </p>
+          ) : (
+            locations?.map((location) => (
+              <SelectItem key={location.id} value={location.id.toString()}>
+                {location.cod_iata}
+              </SelectItem>
+            ))
+          )}
+        </SelectContent>
+      </Select>
+
+    </div>
   );
 };
 

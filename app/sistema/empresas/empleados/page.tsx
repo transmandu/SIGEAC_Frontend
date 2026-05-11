@@ -33,24 +33,26 @@ import {
 const EmployeePage = () => {
   const { selectedCompany } = useCompanyStore();
 
-  // 🔥 CONTROL DE EXPANSIÓN GLOBAL (UNA FILA ABIERTA)
   const [expandedRowId, setExpandedRowId] = useState<string | false>(false);
 
-  // 🔵 ACTIVOS
+  const companySlug = selectedCompany?.slug;
+
   const {
     data: activeEmployees,
     isPending: loadingActive,
     isError: errorActive,
-  } = useGetEmployeesByCompany(selectedCompany?.slug);
+  } = useGetEmployeesByCompany(companySlug);
 
-  // 🔴 INACTIVOS
   const {
     data: inactiveEmployees,
     isPending: loadingInactive,
     isError: errorInactive,
-  } = useGetInactiveEmployeesByCompany(selectedCompany?.slug);
+  } = useGetInactiveEmployeesByCompany(companySlug);
 
-  const loading = loadingActive || loadingInactive;
+  const loading =
+    !companySlug ||
+    loadingActive ||
+    loadingInactive;
 
   if (loading) return <LoadingPage />;
 
@@ -81,7 +83,6 @@ const EmployeePage = () => {
           </Breadcrumb>
         </div>
 
-        {/* TITLE */}
         <div className="flex items-baseline justify-between">
           <h1 className="text-2xl font-bold">Gestión de Empleados</h1>
         </div>
@@ -96,7 +97,6 @@ const EmployeePage = () => {
           </p>
         )}
 
-        {/* TABS */}
         <Tabs defaultValue="active" className="w-full">
 
           <TabsList className="grid grid-cols-2 w-[320px]">
@@ -109,7 +109,6 @@ const EmployeePage = () => {
             </TabsTrigger>
           </TabsList>
 
-          {/* ACTIVOS */}
           <TabsContent value="active" className="mt-4">
             {activeEmployees && (
               <DataTable

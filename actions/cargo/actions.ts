@@ -14,6 +14,7 @@ export const useCreateCargoShipment = (company: string) => {
       queryClient.invalidateQueries({ queryKey: ["cargo-shipments-by-aircraft"] });
       queryClient.invalidateQueries({ queryKey: ["cargo-shipments-by-external-aircraft"] });
       queryClient.invalidateQueries({ queryKey: ["cargo-stats-by-aircraft"] });
+      queryClient.invalidateQueries({ queryKey: ["cargoNextGuide"] });
       toast.success("Creado", {
         description: "El registro de carga se ha creado correctamente.",
       });
@@ -40,6 +41,7 @@ export const useDeleteCargoShipment = (company: string) => {
       queryClient.invalidateQueries({ queryKey: ["cargo-shipments-by-aircraft"] });
       queryClient.invalidateQueries({ queryKey: ["cargo-shipments-by-external-aircraft"] });
       queryClient.invalidateQueries({ queryKey: ["cargo-stats-by-aircraft"] });
+      queryClient.invalidateQueries({ queryKey: ["cargoNextGuide"] });
       toast.success("Eliminado", {
         description: "Registro eliminado correctamente.",
       });
@@ -67,6 +69,7 @@ export const useUpdateCargoShipment = (company: string) => {
       queryClient.invalidateQueries({ queryKey: ["cargo-shipments-by-external-aircraft"] });
       queryClient.invalidateQueries({ queryKey: ["cargo-stats-by-aircraft"] });
       queryClient.invalidateQueries({ queryKey: ["cargo-shipment"] });
+      queryClient.invalidateQueries({ queryKey: ["cargoNextGuide"] });
       toast.success("Actualizado", {
         description: "El registro fue actualizado correctamente.",
       });

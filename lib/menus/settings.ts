@@ -16,6 +16,9 @@ export function buildSettingsGroup({ pathname }: MenuContext): Group {
                     "JEFE_PLANIFICACION",
                     "ANALISTA_PLANIFICACION",
                     "SUPERUSER",
+                    "COORDINADOR_SMS",
+                    "GERENTE_SMS",
+                    "EJECUTIVO_RESPONSABLE",
                 ],
                 submenus: [
                     {
@@ -84,7 +87,7 @@ export function buildSettingsGroup({ pathname }: MenuContext): Group {
                         href: "/ajustes/globales/fuentes_informacion",
                         label: "Fuentes de Informacion",
                         active: pathname === "/ajustes/globales/fuentes_informacion",
-                        roles: ["JEFE_SMS", "ANALISTA_SMS", "SUPERUSER"],
+                        roles: ["JEFE_SMS", "ANALISTA_SMS", "SUPERUSER", "COORDINADOR_SMS", "GENRENTE_SMS", "EJECUTIVO_RESPONSABLE"],
                     },
                     {
                         href: "/ajustes/globales/agencias_envio",

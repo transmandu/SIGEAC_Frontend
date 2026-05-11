@@ -138,13 +138,9 @@ export default function CreateHazardNotification({
         if (newAnalysis.trim()) {
             const updated = [...analyses, newAnalysis.trim()];
             setAnalyses(updated);
-            form.setValue("analysis_of_root_causes", updated.join(","));
+            form.setValue("analysis_of_root_causes", updated.join("~"));
             setNewAnalysis("");
         }
-    };
-
-    const onError = (errors: any) => {
-        console.log("❌ Errores de validación:", errors);
     };
 
     const onSubmit = async (values: FormSchemaType) => {
@@ -181,7 +177,7 @@ export default function CreateHazardNotification({
 
     return (
         <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit, onError)} className="flex flex-col space-y-4">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col space-y-4">
                 <h2 className="text-lg font-bold text-center">Identificación de Peligro</h2>
                 <Separator />
 
@@ -203,7 +199,25 @@ export default function CreateHazardNotification({
                                         </FormControl>
                                     </PopoverTrigger>
                                     <PopoverContent className="w-auto p-0" align="start">
-                                        <Calendar mode="single" selected={field.value} onSelect={field.onChange} initialFocus />
+                                        <Calendar
+                                            mode="single"
+                                            selected={field.value}
+                                            onSelect={field.onChange}
+                                            initialFocus
+                                            fromYear={1980}
+                                            toYear={new Date().getFullYear() + 20}
+                                            captionLayout="dropdown-buttons"
+                                            components={{
+                                                Dropdown: (props) => (
+                                                    <select
+                                                        {...props}
+                                                        className="bg-popover text-popover-foreground"
+                                                    >
+                                                        {props.children}
+                                                    </select>
+                                                ),
+                                            }}
+                                        />
                                     </PopoverContent>
                                 </Popover>
                                 <FormMessage />

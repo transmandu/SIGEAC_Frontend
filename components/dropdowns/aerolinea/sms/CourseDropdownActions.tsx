@@ -6,6 +6,7 @@ import {
 import { AddCourseAttendanceForm } from "@/components/forms/aerolinea/sms/AddCourseAtendanceForm";
 import { AddToCourseForm } from "@/components/forms/aerolinea/sms/AddToCourseForm";
 import { CreateCourseForm } from "@/components/forms/aerolinea/sms/CreateCourseForm";
+import { CreateExamForm } from "@/components/forms/aerolinea/sms/CreateExamForm";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -28,6 +29,8 @@ import { startOfDay } from "date-fns";
 import {
   ClipboardPenLine,
   EyeIcon,
+  FilePlus,
+  FileText,
   Loader2,
   LockKeyholeOpen,
   LockOpen,
@@ -51,6 +54,7 @@ const CourseDropdownActions = ({ course }: { course: Course }) => {
   const [openStatus, setOpenStatus] = useState(false);
   const [openAttendance, setOpenAttendance] = useState(false);
   const [openReopen, setOpenReopen] = useState(false);
+  const [openExam, setOpenExam] = useState(false);
 
   const router = useRouter();
   const handleDelete = async () => {
@@ -134,6 +138,24 @@ const CourseDropdownActions = ({ course }: { course: Course }) => {
                 <p className="pl-2">Asistencia</p>
               </DropdownMenuItem>
             )}
+
+            {course.status !== "CERRADO" && (
+              <DropdownMenuItem onClick={() => setOpenExam(true)}>
+                <FilePlus className="size-5" />
+                <p className="pl-2">Agregar Examen</p>
+              </DropdownMenuItem>
+            )}
+
+            <DropdownMenuItem
+              onClick={() => {
+                router.push(
+                  `/${selectedCompany?.slug}/general/cursos/${course.id}/examenes`
+                );
+              }}
+            >
+              <FileText className="size-5" />
+              <p className="pl-2">Gestionar Examenes</p>
+            </DropdownMenuItem>
 
             {CourseDate <= realNow && course.status !== "CERRADO" && (
               <DropdownMenuItem onClick={() => setOpenStatus(true)}>
@@ -302,6 +324,21 @@ const CourseDropdownActions = ({ course }: { course: Course }) => {
               )}
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={openExam} onOpenChange={setOpenExam}>
+        <DialogContent className="flex flex-col max-w-2xl m-2">
+          <DialogHeader>
+            <DialogTitle className="text-center font-bold">
+              Agregar Examen al Curso
+            </DialogTitle>
+            <DialogDescription className="text-center"></DialogDescription>
+          </DialogHeader>
+          <CreateExamForm
+            courseId={course.id.toString()}
+            onClose={() => setOpenExam(false)}
+          />
         </DialogContent>
       </Dialog>
     </>

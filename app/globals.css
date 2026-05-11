@@ -203,3 +203,16 @@
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
+/* Oculta botones nativos de mostrar contraseña y controles similares */
+input[type="password"]::-ms-reveal,
+input[type="password"]::-ms-clear,
+input[type="password"]::-webkit-credentials-auto-fill-button,
+input[type="password"]::-webkit-textfield-decoration-container,
+input[type="password"]::-webkit-password-toggle-button {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+  appearance: none !important;
+  -webkit-appearance: none !important;
+}

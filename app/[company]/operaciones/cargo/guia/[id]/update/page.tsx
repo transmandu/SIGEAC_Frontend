@@ -26,8 +26,8 @@ export default function UpdateCargoShipmentPage() {
             <Link
               href={
                 cargoShipment?.aircraft
-                  ? `/${company}/operaciones/cargo/${cargoShipment.aircraft.id}`
-                  : `/${company}/operaciones/cargo/externa/${encodeURIComponent(cargoShipment?.external_aircraft || "")}`
+                  ? `/${company}/operaciones/cargo/${cargoShipment.aircraft.id}?month=${cargoShipment.month}&year=${cargoShipment.year}`
+                  : `/${company}/operaciones/cargo/externa/${encodeURIComponent(cargoShipment?.external_aircraft || "")}?month=${cargoShipment?.month}&year=${cargoShipment?.year}`
               }
             >
               <ArrowLeft className="h-4 w-4" />

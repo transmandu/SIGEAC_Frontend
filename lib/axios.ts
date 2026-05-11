@@ -34,29 +34,22 @@ axiosInstance.interceptors.request.use(
 
 // 2. Interceptor de Respuesta: Detecta si el servidor nos expulsó (Error 401)
 axiosInstance.interceptors.response.use(
-    (response) => response, // Si todo sale bien (200), retornamos la respuesta
-    (error) => {
-        // Si el backend responde con 401 Unauthorized
-        if (error.response && error.response.status === 401) {
-            const pathname = typeof window !== 'undefined' ? window.location.pathname : '';
+  (response) => response,
+  (error) => {
+    const status = error.response?.status;
+    const url = error.config?.url;
 
-            if (!isPublicRoute(pathname)) {
-                console.warn("⚠️ Sesión inválida: Redirigiendo al login...");
+    const isAuthEndpoint =
+      url?.includes('/login') ||
+      url?.includes('/register');
 
-                // Borramos las cookies para limpiar el estado
-                Cookies.remove('auth_token');
-                Cookies.remove('jwt');
-
-                // Redirigimos al usuario al login
-                if (typeof window !== 'undefined') {
-                    window.location.href = '/login?session=expired';
-                }
-            }
-        }
-
-        // IMPORTANTE: Siempre rechazar el error para que no se pierda en el flujo de la app
-        return Promise.reject(error);
+    if (status === 401 && !isAuthEndpoint) {
+      Cookies.remove('auth_token');
+      Cookies.remove('jwt');
     }
+
+    return Promise.reject(error);
+  }
 );
 
 export default axiosInstance;

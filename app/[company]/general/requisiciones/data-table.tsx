@@ -26,7 +26,7 @@ import {
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 // import { RegisterDispatchRequestDialog } from "@/components/dialogs/mantenimiento/almacen/RegisterDispatchRequestDialog"
-import { CreateRequisitionDialog } from "@/components/dialogs/mantenimiento/compras/CreateRequisitionDialog"
+import { CreateRequisitionDialog } from "@/components/dialogs/general/CreateRequisitionDialog"
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]

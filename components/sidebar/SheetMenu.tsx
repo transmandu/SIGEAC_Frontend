@@ -11,14 +11,16 @@ import {
   SheetHeader,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import Image from "next/image";
-import { useCompanyStore } from "@/stores/CompanyStore";
+
 import CompanySelect from "../selects/CompanySelect";
+import { useCompanyStore } from "@/stores/CompanyStore";
 import { useAuth } from "@/contexts/AuthContext";
+import Logo from "@/components/misc/Logo";
 
 export function SheetMenu() {
   const { selectedCompany, selectedStation } = useCompanyStore();
   const { user } = useAuth();
+
   return (
     <Sheet>
       <SheetTrigger className="lg:hidden" asChild>
@@ -26,22 +28,35 @@ export function SheetMenu() {
           <MenuIcon size={20} />
         </Button>
       </SheetTrigger>
-      <SheetContent className="sm:max-w-72 px-3 h-full flex flex-col" side="left">
+
+      <SheetContent
+        side="left"
+        className="sm:max-w-72 px-3 h-full flex flex-col"
+      >
+        {/* HEADER / LOGO SECTION */}
         <SheetHeader>
-          <Button
-            className="flex justify-center items-center pb-2 pt-[40px]"
-            variant="link"
-            asChild
-          >
-            <Link
-              href={user ? `/login` : `/${selectedCompany?.slug}/dashboard`}
-              className="flex items-center gap-2"
+          <div className="flex justify-center items-center mt-4 mb-2 px-4 py-4 bg-background rounded-md">
+            <Button
+              variant="link"
+              asChild
+              className="w-full flex justify-center items-center"
             >
-              <Image src={"/logo.png"} width={150} height={150} alt="Logo" priority/>
-            </Link>
-          </Button>
+              <Link
+                href={`/${selectedCompany?.slug ?? ""}/dashboard`}
+                className="flex items-center justify-center"
+              >
+                <Logo width={120} height={120} />
+              </Link>
+            </Button>
+          </div>
         </SheetHeader>
-        <CompanySelect />
+
+        {/* COMPANY SELECT */}
+        <div className="mt-2">
+          <CompanySelect />
+        </div>
+
+        {/* MENU / ESTADO */}
         {selectedCompany && selectedStation ? (
           <Menu isOpen />
         ) : (

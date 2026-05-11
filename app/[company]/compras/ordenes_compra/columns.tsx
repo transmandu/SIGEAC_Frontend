@@ -7,43 +7,64 @@ import { cn } from "@/lib/utils"
 import { PurchaseOrder } from "@/types"
 import { format } from "date-fns"
 import { es } from "date-fns/locale"
-import { ChevronRight } from "lucide-react"
 import Link from "next/link"
 import PurchaseOrderDropdownActions from "@/components/dropdowns/mantenimiento/compras/PurchaseOrderDropdownActions"
+import { ChevronRight } from "lucide-react"
 
-export const getColumns = (selectedCompany?: { slug: string }): ColumnDef<PurchaseOrder>[] => [
-  // ── Expand indicator ──────────────────────────────────────────────
+export const getColumns = (
+  selectedCompany?: { slug: string }
+): ColumnDef<PurchaseOrder>[] => [
+
   {
     id: "expander",
-    header: () => null,
-    cell: ({ row }) => (
-      <ChevronRight
-        className={cn(
-          "size-3.5 text-muted-foreground/50 transition-transform duration-150",
-          row.getIsExpanded() && "rotate-90 text-amber-600 dark:text-amber-500"
-        )}
-      />
-    ),
-    enableSorting: false,
-    enableHiding: false,
     size: 32,
-  },
 
-  // ── Nro. de Orden ─────────────────────────────────────────────────
-  {
-    accessorKey: "order_number",
-    header: ({ column }) => (
+    header: () => null,
+
+    cell: ({ row }) => (
       <div className="flex justify-center w-full">
-        <DataTableColumnHeader filter column={column} title="Nro. de Orden" />
+        <ChevronRight
+          className={cn(
+            "size-3.5 text-muted-foreground/50 transition-transform duration-150",
+            row.getIsExpanded() &&
+              "rotate-90 text-emerald-600 dark:text-emerald-400"
+          )}
+        />
       </div>
     ),
-    meta: { title: "Nro. Orden" },
+
+    enableSorting: false,
+    enableHiding: false,
+  },
+
+  {
+    accessorKey: "order_number",
+    size: 180,
+
+    header: ({ column }) => (
+      <div className="flex justify-center w-full">
+        <DataTableColumnHeader filter column={column} title="Nro. Orden" />
+      </div>
+    ),
+
+    meta: {
+      title: "Nro. Orden",
+    },
+
     cell: ({ row }) => (
-      <div className="flex justify-center">
+      <div className="flex justify-center w-full">
         <Link
           href={`/${selectedCompany?.slug}/compras/ordenes_compra/${row.original.order_number}`}
           onClick={(e) => e.stopPropagation()}
-          className="font-mono text-sm font-semibold hover:text-amber-600 dark:hover:text-amber-500 transition-colors"
+          className="
+            text-sm font-semibold
+            text-slate-700 dark:text-slate-200
+
+            hover:text-emerald-600
+            dark:hover:text-emerald-400
+
+            transition-colors
+          "
         >
           {row.original.order_number}
         </Link>
@@ -51,125 +72,220 @@ export const getColumns = (selectedCompany?: { slug: string }): ColumnDef<Purcha
     ),
   },
 
-  // ── Nro. Cotización ───────────────────────────────────────────────
   {
     accessorKey: "quote_order",
+    size: 200,
+
     header: ({ column }) => (
       <div className="flex justify-center w-full">
         <DataTableColumnHeader column={column} title="Cotización" />
       </div>
     ),
-    meta: { title: "Nro. Cotización" },
+
+    meta: {
+      title: "Cotización",
+    },
+
     cell: ({ row }) => (
-      <div className="flex justify-center">
-        <span className="font-mono text-xs text-muted-foreground">
+      <div className="flex justify-center w-full">
+        <span className="text-sm text-slate-600 dark:text-slate-300">
           {row.original.quote_order?.quote_number ?? "—"}
         </span>
       </div>
     ),
   },
 
-  // ── Fecha ─────────────────────────────────────────────────────────
   {
     accessorKey: "purchase_date",
+    size: 200,
+
     header: ({ column }) => (
       <div className="flex justify-center w-full">
         <DataTableColumnHeader column={column} title="Fecha" />
       </div>
     ),
-    meta: { title: "Fecha" },
+
+    meta: {
+      title: "Fecha",
+    },
+
     cell: ({ row }) => (
-      <div className="flex justify-center">
-        <span className="text-sm text-muted-foreground">
-          {format(row.original.purchase_date, "dd MMM yyyy", { locale: es })}
+      <div className="flex justify-center w-full">
+        <span className="text-sm text-slate-600 dark:text-slate-300">
+          {format(new Date(row.original.purchase_date), "PPP", {
+            locale: es,
+          })}
         </span>
       </div>
     ),
   },
 
-  // ── Proveedor ─────────────────────────────────────────────────────
   {
     accessorKey: "vendor",
+    size: 240,
+
     header: ({ column }) => (
       <div className="flex justify-center w-full">
         <DataTableColumnHeader column={column} title="Proveedor" />
       </div>
     ),
-    meta: { title: "Proveedor" },
+
+    meta: {
+      title: "Proveedor",
+    },
+
     cell: ({ row }) => (
-      <div className="flex justify-center">
-        <span className="text-sm font-medium">{row.original.vendor.name}</span>
+      <div className="flex justify-center w-full">
+        <span className="text-sm font-medium text-slate-700 dark:text-slate-200">
+          {row.original.vendor?.name ?? "—"}
+        </span>
       </div>
     ),
   },
 
-  // ── Status ────────────────────────────────────────────────────────
   {
     accessorKey: "status",
+    size: 180,
+
     header: ({ column }) => (
       <div className="flex justify-center w-full">
         <DataTableColumnHeader column={column} title="Estado" />
       </div>
     ),
-    meta: { title: "Estado" },
+
+    meta: {
+      title: "Estado",
+    },
+
     cell: ({ row }) => {
-      const isPaid = row.original.status === "PAGADO"
+      const status = row.original.status
+
+      const approved = status === "CERRADO"
+      const process =
+        status === "PROCESO" ||
+        status === "PAGADO"
+
       return (
-        <div className="flex justify-center">
+        <div className="flex justify-center w-full">
           <Badge
             className={cn(
-              "text-xs font-medium px-2 py-0.5 border",
-              isPaid
-                ? "bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-950/50 dark:text-emerald-400 dark:border-emerald-800"
-                : "bg-amber-100 text-amber-700 border-amber-200 dark:bg-amber-950/50 dark:text-amber-400 dark:border-amber-800"
+              `
+                rounded-md
+                border
+                px-2 py-0.5
+                text-[10px]
+                font-semibold
+                tracking-wide
+                shadow-sm
+                transition-colors duration-150
+                cursor-default
+              `,
+
+              process && `
+                border-yellow-500/30
+                bg-yellow-500/10
+                text-yellow-700
+                dark:text-yellow-300
+                hover:bg-yellow-500/15
+              `,
+
+              approved && `
+                border-emerald-500/30
+                bg-emerald-500/10
+                text-emerald-700
+                dark:text-emerald-300
+                hover:bg-emerald-500/15
+              `,
+
+              !process &&
+                !approved &&
+                `
+                  border-red-500/30
+                  bg-red-500/10
+                  text-red-700
+                  dark:text-red-300
+                  hover:bg-red-500/15
+                `
             )}
           >
-            {row.original.status}
+            {status}
           </Badge>
         </div>
       )
     },
   },
 
-  // ── Artículos ─────────────────────────────────────────────────────
   {
     accessorKey: "articles",
+    size: 180,
+
     header: ({ column }) => (
       <div className="flex justify-center w-full">
         <DataTableColumnHeader column={column} title="Artículos" />
       </div>
     ),
-    meta: { title: "Artículos" },
+
+    meta: {
+      title: "Artículos",
+    },
+
     cell: ({ row }) => {
-      const count = row.original.article_purchase_order.length
+      const count = row.original.article_purchase_order?.length ?? 0
+
+      const isEmpty = count === 0
+
       return (
-        <div className="flex justify-center">
-          <span className={cn(
-            "text-xs tabular-nums px-2 py-0.5 rounded border",
-            row.getIsExpanded()
-              ? "bg-blue-50 border-blue-200 dark:bg-amber-950/40 dark:text-amber-400 dark:border-amber-800/60"
-              : "text-muted-foreground border-border/40 bg-muted/30"
-          )}>
-            {count} {count === 1 ? "ítem" : "ítems"}
-          </span>
+        <div className="flex justify-center w-full">
+          <div
+            className="
+              flex items-center justify-center
+              px-2 py-0.5
+              rounded-md
+              text-xs tabular-nums
+              border
+              transition-colors
+              bg-white/60 dark:bg-slate-900/30
+              border-slate-200/60 dark:border-slate-700/50
+              text-slate-600 dark:text-slate-300
+            "
+          >
+            <span className="font-medium">
+              {count}
+            </span>
+
+            <span className="ml-1 text-muted-foreground">
+              {count === 1 ? "artículo" : "artículos"}
+            </span>
+
+            {isEmpty && (
+              <span className="ml-1 text-[10px] text-muted-foreground/70">
+                vacío
+              </span>
+            )}
+          </div>
         </div>
       )
     },
   },
 
-  // ── Acciones ──────────────────────────────────────────────────────
   {
     id: "actions",
-    header: () => null,
+    size: 120,
+    header: ({ column }) => (
+      <div className="flex justify-center w-full">
+        <DataTableColumnHeader column={column} title="Acciones" />
+      </div>
+    ),
+    meta: {
+      title: "Acciones",
+    },
     cell: ({ row }) => (
       <div
-        className="flex justify-center"
+        className="flex justify-center w-full"
         onClick={(e) => e.stopPropagation()}
       >
         <PurchaseOrderDropdownActions po={row.original} />
       </div>
     ),
-    enableSorting: false,
-    enableHiding: false,
   },
 ]

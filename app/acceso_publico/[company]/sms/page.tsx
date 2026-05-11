@@ -13,7 +13,7 @@ import AirlinePresentationCard from "./_components/AirlinePresentationCard";
 import AeronauticalPresentationCard from "./_components/AeronauticalPresentationCard";
 import { AeronauticalSMSTabs } from "./_components/AeronauticalSMSTabs";
 import { Loader2 } from "lucide-react";
-
+import { cn } from "@/lib/utils";
 const SMSPage = () => {
     const params = useParams();
     const company = params.company as string;
@@ -35,14 +35,13 @@ const SMSPage = () => {
 
     const PresentationCard = isOmac ? AeronauticalPresentationCard : AirlinePresentationCard;
     const SMSTabs = isOmac ? AeronauticalSMSTabs : AirlineSMSTabs;
-    console.log("Company:", isOmac);
     return (
         <GuestContentLayout title="Seguridad Operacional SMS">
-            <div className="flex flex-col justify-start items-center w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-                {/* Carta de Presentación Dinámica */}
+            <div className={cn(
+                "flex flex-col justify-start items-center", // Clases base siempre presentes
+                !isOmac && "w-full max-w-6xl mx-auto px-4"   // Solo si NO es OMAC
+            )}>
                 <PresentationCard company={company} />
-
-                {/* Tabs Dinámicos */}
                 <SMSTabs company={company} surveyNumbers={surveyNumbers} />
             </div>
         </GuestContentLayout>

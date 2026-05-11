@@ -48,5 +48,40 @@ export const useExportCargoByAircraft = (company?: string) => {
       setIsExporting(false);
     }
   };
-  return { exportToExcel, isExporting };
+
+  const exportAll = async (month: number, year: number) => {
+    setIsExporting(true);
+
+    try {
+      const response = await axiosInstance.get(
+        `/${company}/cargo-shipments/export-all`,
+        {
+          params: { month, year },
+          responseType: "blob",
+        },
+      );
+
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement("a");
+      link.href = url;
+      const paddedMonth = String(month).padStart(2, "0");
+      link.setAttribute("download", `Carga_total_${paddedMonth}_${year}.xlsx`);
+      document.body.appendChild(link);
+      link.click();
+      link.parentNode?.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error: any) {
+      if (error.response?.data instanceof Blob) {
+        const text = await error.response.data.text();
+        const json = JSON.parse(text);
+        alert(json.message || "Error al generar el reporte");
+      } else {
+        alert("Error al exportar el archivo excel");
+      }
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  return { exportToExcel, exportAll, isExporting };
 };

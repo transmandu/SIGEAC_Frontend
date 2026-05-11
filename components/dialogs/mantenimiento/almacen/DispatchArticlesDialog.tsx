@@ -89,22 +89,22 @@ const DispatchArticlesDialog = ({ articles = [], work_order, justification }: Di
                 </DialogHeader>
 
                 {/* Body */}
-                <div className="px-6 py-4">
+                <div className="px-6 py-4 max-w-full overflow-x-hidden">
                     {!hasArticles ? (
                         <div className="flex flex-col items-center justify-center gap-3 py-10 text-center">
                             <div className="rounded-full border bg-muted/40 p-3">
                                 <PackageOpen className="h-6 w-6" />
                             </div>
                             <div className="space-y-1">
-                                <p className="text-sm font-medium">Sin artículos</p>
-                                <p className="text-sm text-muted-foreground">
+                                <p className="truncate text-sm font-medium">Sin artículos</p>
+                                <p className="truncate text-sm text-muted-foreground">
                                     Cuando haya despacho, aparecerá la lista aquí.
                                 </p>
                             </div>
                         </div>
                     ) : (
                         <>
-                            <ScrollArea className="h-[320px] pr-3">
+                            <ScrollArea className="h-[320px] pr-3 max-w-full">
                                 <div className="space-y-2">
                                     {articles.map((a, idx) => {
                                         const key =
@@ -126,9 +126,9 @@ const DispatchArticlesDialog = ({ articles = [], work_order, justification }: Di
                                         return (
                                             <div
                                                 key={key}
-                                                className="rounded-lg border bg-background p-3 transition-colors hover:bg-muted/30"
+                                                className="w-full min-w-0 rounded-lg border bg-background p-3 transition-colors hover:bg-muted/30"
                                             >
-                                                <div className="flex items-start justify-between gap-3">
+                                                <div className="flex items-start justify-between gap-3 min-w-0 w-full">
                                                     <div className="min-w-0">
                                                         {/* ✅ Título: PN si existe, si no Descripción */}
                                                         <p className="truncate text-sm font-medium">
@@ -165,7 +165,7 @@ const DispatchArticlesDialog = ({ articles = [], work_order, justification }: Di
                                                         )}
                                                     </div>
 
-                                                    <div className="flex shrink-0 items-center gap-2">
+                                                    <div className="flex shrink-0 items-center gap-2 whitespace-nowrap">
                                                         <Badge className="text-sm">
                                                             {formatQty(a.dispatch_quantity)}
                                                             {a.unit ? ` ${a.unit}` : ""}
