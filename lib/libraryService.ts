@@ -68,7 +68,8 @@ const libraryService = {
 
         // CASO A: Es un escaneo de QR Público (Llega un Token string de 32+ caracteres)
         if (typeof documentId === 'string' && documentId.length > 10) {
-            const response = await fetch(`${baseUrl}/${company}/library/shared/content/${documentId}`, {
+            const encodedToken = encodeURIComponent(documentId);
+            const response = await fetch(`${baseUrl}/${company}/library/shared/content/${encodedToken}`, {
                 method: 'GET',
             });
 

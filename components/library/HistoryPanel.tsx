@@ -46,6 +46,21 @@ export default function TraceabilityPanel({ documentId, company, onClose, user }
     setTimeout(() => setIsCopying(false), 2000);
   };
 
+  const getPublicViewerUrl = (token: string) => {
+    const configuredOrigin = process.env.NEXT_PUBLIC_FRONTEND_URL?.replace(/\/+$/, "");
+    const browserOrigin = typeof window !== "undefined" ? window.location.origin : "";
+    const isConfiguredLocal = !!configuredOrigin
+      && (configuredOrigin.includes("localhost") || configuredOrigin.includes("127.0.0.1"));
+    const isBrowserLocal = !browserOrigin
+      || browserOrigin.includes("localhost")
+      || browserOrigin.includes("127.0.0.1");
+    const origin = configuredOrigin && (!isConfiguredLocal || isBrowserLocal)
+      ? configuredOrigin
+      : browserOrigin;
+
+    return `${origin}/acceso_publico/shared-viewer/${company}/${encodeURIComponent(token)}`;
+  };
+
   useEffect(() => {
     const fetchLogs = async () => {
       setLoading(true);
@@ -140,11 +155,11 @@ export default function TraceabilityPanel({ documentId, company, onClose, user }
                   
                   <div 
                     onClick={() => {
-                        const token = log.share_url || log.share_token;
+                        const token = log.full_share_url || log.share_url || log.share_token;
                         if (token) {
                             const fullUrl = token.startsWith('http') 
                             ? token 
-                            : `${process.env.NEXT_PUBLIC_FRONTEND_URL || 'http://localhost:3000'}/acceso_publico/shared-viewer/${company}/${token}`;
+                            : getPublicViewerUrl(token);
                             setSelectedQR(fullUrl);
                         }
                     }}
@@ -200,7 +215,7 @@ export default function TraceabilityPanel({ documentId, company, onClose, user }
                       <div className="flex items-start gap-2">
                         <MessageSquare className="h-3 w-3 text-slate-400 mt-0.5 shrink-0" />
                         <p className="text-[11px] text-slate-800 dark:text-gray-300 font-bold leading-tight italic line-clamp-2">
-                          "{log.reason || 'Sin descripción.'}"
+                          &quot;{log.reason || 'Sin descripcion.'}&quot;
                         </p>
                       </div>
                     </div>

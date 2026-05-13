@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
-import { FileText, Clock, AlertCircle, ExternalLink } from 'lucide-react';
+import { FileText, Clock, AlertCircle, Eye } from 'lucide-react';
 import { LibraryDropdownActions } from "@/components/dropdowns/general/LibraryDropdownActions";
 
 const fileTypeDetails: any = {
@@ -128,9 +128,11 @@ export default function DocumentRow({ doc, onView, columnVisibility, isSubItem, 
         <div className="flex items-center gap-1 shrink-0 ml-2">
           <button 
             onClick={() => onView(doc.id)} 
+            aria-label="Ver documento"
+            title="Ver documento"
             className="p-2 text-slate-400 hover:text-blue-700 dark:hover:text-white hover:bg-blue-50 dark:hover:bg-blue-600 rounded-lg transition-colors"
           >
-            <ExternalLink className="h-4 w-4" />
+            <Eye className="h-4 w-4" />
           </button>
           
           <LibraryDropdownActions 
