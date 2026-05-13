@@ -348,7 +348,7 @@ export function AircraftPartsInfoForm({ onNext, onBack, initialData }: {
                                 <h3 className="text-lg font-bold">Confirmar Remoción</h3>
                             </div>
                             <div className="bg-destructive/10 p-3 rounded-md mb-4 border border-destructive/20">
-                                <p className="text-[12px] text-destructive-foreground font-medium">
+                                <p className="text-[12px] font-medium">
                                     Al remover esta pieza, todas sus sub-partes instaladas
                                     quedarán inactivas automáticamente.
                                 </p>
