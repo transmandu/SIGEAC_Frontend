@@ -7,6 +7,22 @@ import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
 
+const departmentStyles = [
+  { color: 'bg-blue-500', shape: 'rounded-full' },
+  { color: 'bg-orange-500', shape: 'rounded-full' },
+  { color: 'bg-green-500', shape: 'rounded-full' },
+  { color: 'bg-yellow-500', shape: 'rounded-full' },
+  { color: 'bg-amber-700', shape: 'rounded-full' },
+  { color: 'bg-purple-500', shape: 'rounded-full' },
+  { color: 'bg-pink-500', shape: 'rounded-full' },
+  { color: 'bg-teal-500', shape: 'rounded-full' },
+];
+
+function getDeptShape(index: number) {
+  const style = departmentStyles[index % departmentStyles.length];
+  return <div className={`w-3.5 h-3.5 shrink-0 shadow-sm ${style.color} ${style.shape}`} />;
+}
+
 export interface DepartmentFolderGroup {
   departmentId: number;
   departmentName: string;
@@ -83,12 +99,12 @@ function FolderNodeRow({
   return (
     <div>
       <div
-        className={`group flex items-center gap-1 px-2 py-1.5 rounded-lg cursor-pointer transition-all text-[11px] font-bold tracking-tight
+        className={`group flex items-center gap-1.5 px-2 py-1.5 rounded-lg cursor-pointer transition-all text-[13.5px] font-medium tracking-tight
           ${isSelected
             ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
             : dragOver
               ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 ring-2 ring-blue-400 ring-dashed'
-              : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/50'
+              : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/50'
           }`}
         style={{ paddingLeft: `${12 + level * 16}px` }}
         onClick={() => onSelect(node.path, departmentName)}
@@ -186,44 +202,55 @@ function FolderTree({
 
   return (
     <div className="space-y-0.5">
-      {departmentFolders.map((dept) => {
+      {departmentFolders.map((dept, index) => {
         const isDeptExpanded = expandedDepts.includes(dept.departmentName);
         const isLoading = loadingDeptIds.includes(dept.departmentId);
+        const isSelected = selectedDeptName === dept.departmentName && selectedFolderPath === '/';
 
         return (
           <div key={dept.departmentId}>
             {isMultiDept && (
-              <button
-                onClick={() => toggleDept(dept.departmentName, dept.departmentId)}
-                className="flex items-center gap-2 w-full px-2 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/50 transition-all"
-              >
-                {isDeptExpanded || (dept.folders.length > 0 && !isLoading) ? <ChevronDown className="h-3 w-3 shrink-0" /> : <ChevronRight className="h-3 w-3 shrink-0" />}
-                <Building2 className="h-3.5 w-3.5 shrink-0" />
-                <span className="truncate">{dept.departmentName}</span>
-                {isLoading && <Loader2 className="h-3 w-3 animate-spin shrink-0 ml-1 text-blue-500" />}
-              </button>
+              <div className={`flex items-center gap-1 w-full p-1 rounded-lg transition-all ${isSelected ? 'bg-blue-50 dark:bg-blue-900/20' : 'hover:bg-slate-100 dark:hover:bg-slate-800/50'} ${isDeptExpanded && !isSelected ? 'bg-slate-50 dark:bg-slate-800/30' : ''}`}>
+                <button
+                  onClick={(e) => { e.stopPropagation(); toggleDept(dept.departmentName, dept.departmentId); }}
+                  className="p-1.5 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-md shrink-0 text-slate-500"
+                >
+                  {isDeptExpanded || (dept.folders.length > 0 && !isLoading) ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                </button>
+                <button
+                  onClick={() => onSelect('/', dept.departmentName)}
+                  className={`flex items-center gap-2.5 flex-1 p-1.5 text-[14px] font-semibold text-left truncate ${isSelected ? 'text-blue-700 dark:text-blue-300' : 'text-slate-700 dark:text-slate-200'}`}
+                >
+                  {getDeptShape(index)}
+                  <span className="truncate">{dept.departmentName}</span>
+                  {isLoading && <Loader2 className="h-3.5 w-3.5 animate-spin shrink-0 ml-1 text-blue-500" />}
+                </button>
+              </div>
             )}
 
             {isDeptExpanded && (
-              <div className={isMultiDept ? 'ml-2 pl-2 border-l-2 border-slate-200 dark:border-slate-700' : ''}>
+              <div className={isMultiDept ? 'ml-2.5 pl-2.5 border-l-[1.5px] border-slate-200 dark:border-slate-700 mt-1 mb-2' : ''}>
                 {isLoading && dept.folders.length === 0 ? (
-                  <div className="flex items-center gap-2 px-2 py-1.5 text-[10px] text-slate-400">
+                  <div className="flex items-center gap-2 px-2 py-1.5 text-[12px] text-slate-400 font-medium">
                     <Loader2 className="h-3 w-3 animate-spin" />
                     Cargando...
                   </div>
                 ) : (
-                  <FolderNodeRow
-                    node={{ id: `root-${dept.departmentId}`, name: 'Raíz', path: '/', children: dept.folders }}
-                    selectedFolderPath={selectedFolderPath}
-                    onSelect={onSelect}
-                    onRename={onRename}
-                    onDelete={onDelete}
-                    onDropDocument={onDropDocument}
-                    canManage={canManage}
-                    departmentId={dept.departmentId}
-                    departmentName={dept.departmentName}
-                    level={0}
-                  />
+                  dept.folders.map(child => (
+                    <FolderNodeRow
+                      key={child.id}
+                      node={child}
+                      selectedFolderPath={selectedFolderPath}
+                      onSelect={onSelect}
+                      onRename={onRename}
+                      onDelete={onDelete}
+                      onDropDocument={onDropDocument}
+                      canManage={canManage}
+                      departmentId={dept.departmentId}
+                      departmentName={dept.departmentName}
+                      level={0}
+                    />
+                  ))
                 )}
               </div>
             )}

@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback, useMemo, useRef } from "react";
+import useLibraryNotifications from "@/hooks/useLibraryNotifications";
 import { useParams } from "next/navigation";
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import { Button } from "@/components/ui/button";
@@ -45,6 +46,7 @@ const BibliotecaPage = () => {
   const [dashboardOpen, setDashboardOpen] = useState(false);
 
   const [createFolderOpen, setCreateFolderOpen] = useState(false);
+  const [pendingRequestCount, setPendingRequestCount] = useState(0);
   const [renameTarget, setRenameTarget] = useState<{ node: FolderNode; departmentId: number; departmentName: string } | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<{ node: FolderNode; departmentId: number; departmentName: string } | null>(null);
 
@@ -131,14 +133,25 @@ const BibliotecaPage = () => {
     }
   }, [companySlug, isSuperUser, userDeptId, selectedDeptName]);
 
+  const refreshPendingCount = useCallback(async () => {
+    try {
+      const res = await libraryService.getShareRequests(companySlug, { status: 'pending' });
+      const list = Array.isArray(res) ? res : res.data || [];
+      setPendingRequestCount(list.length);
+    } catch {
+      setPendingRequestCount(0);
+    }
+  }, [companySlug]);
+
   const initialLoad = useCallback(async () => {
     setLoading(true);
     await Promise.all([
       fetchDocs(),
       fetchDepartments(),
     ]);
+    refreshPendingCount();
     setLoading(false);
-  }, [fetchDocs, fetchDepartments]);
+  }, [fetchDocs, fetchDepartments, refreshPendingCount]);
 
   const deptFoldersRef = useRef(departmentFolders);
   deptFoldersRef.current = departmentFolders;
@@ -167,6 +180,16 @@ const BibliotecaPage = () => {
       initialLoad();
     }
   }, [companySlug, initialLoad]);
+
+  useEffect(() => {
+    // Polling cada 15 segundos para las notificaciones de solicitudes
+    const interval = setInterval(() => {
+      if (companySlug) {
+        refreshPendingCount();
+      }
+    }, 15000);
+    return () => clearInterval(interval);
+  }, [companySlug, refreshPendingCount]);
 
   useEffect(() => {
     setDepartmentFolders(prev => {
@@ -222,6 +245,8 @@ const BibliotecaPage = () => {
     }
   }, [companySlug]);
 
+  useLibraryNotifications(user?.id ? Number(user.id) : undefined, refreshPendingCount);
+
   const handleDocRefresh = useCallback(async () => {
     await fetchDocs();
   }, [fetchDocs]);
@@ -248,7 +273,7 @@ const BibliotecaPage = () => {
         {loading ? (
           <div className="w-full rounded-[2rem] border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#1a1c1e] shadow-xl animate-pulse overflow-hidden">
             <div className="flex min-h-[400px]">
-              <div className="w-[300px] shrink-0 border-r border-slate-200 dark:border-slate-800 p-5">
+              <div className="w-[380px] shrink-0 border-r border-slate-200 dark:border-slate-800 p-5">
                 <div className="h-3 w-16 bg-slate-200 dark:bg-slate-700 rounded mb-4" />
                 {[1,2,3,4].map(i => (
                   <div key={i} className="h-3 w-full bg-slate-200 dark:bg-slate-700 rounded mb-3" style={{ width: `${60 + i * 8}%` }} />
@@ -301,13 +326,18 @@ const BibliotecaPage = () => {
                     </Button>
 
                     <Button
-                      onClick={() => setShareRequestsOpen(true)}
+                      onClick={() => { setShareRequestsOpen(true); setPendingRequestCount(0); }}
                       variant="outline"
                       size="sm"
                       className="w-fit flex items-center gap-1.5 rounded-xl border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:text-white font-bold text-[10px] uppercase tracking-widest px-5 h-10 shadow-sm transition-all active:scale-95"
                     >
                       <Send className="h-4 w-4" />
                       Solicitudes
+                      {pendingRequestCount > 0 && (
+                        <span className="ml-1 px-1.5 py-0.5 text-[9px] font-bold text-white bg-red-500 rounded-full min-w-[18px] text-center leading-none">
+                          {pendingRequestCount > 99 ? '99+' : pendingRequestCount}
+                        </span>
+                      )}
                     </Button>
 
                     <Button
@@ -342,11 +372,21 @@ const BibliotecaPage = () => {
             <div className="w-full rounded-[2rem] border border-slate-200 dark:border-slate-800 dark:bg-[#1a1c1e] bg-white shadow-xl shadow-slate-200/50 dark:shadow-none relative overflow-hidden">
               <div className="flex min-h-[400px]">
                 {/* SIDEBAR - Carpetas */}
-                <div className="w-[300px] shrink-0 border-r border-slate-200 dark:border-slate-800 p-5 flex flex-col">
-                  <h3 className="text-[10px] font-black uppercase tracking-[0.15em] text-slate-500 dark:text-slate-400 mb-3 shrink-0">
-                    Carpetas
-                  </h3>
-                  <div className="flex-1 overflow-y-auto max-h-[500px]">
+                <div className="w-[380px] shrink-0 border-r border-slate-200 dark:border-slate-800 p-5 pt-8 flex flex-col">
+                  <div className="flex items-center gap-3 mb-6 border-b pb-6 border-slate-200 dark:border-slate-800 shrink-0">
+                    <div className="p-2 bg-slate-800 dark:bg-slate-200 rounded-lg">
+                      <FolderOpen className="h-5 w-5 text-white dark:text-slate-900" />
+                    </div>
+                    <div>
+                      <h2 className="text-sm font-black text-slate-800 dark:text-white uppercase tracking-[0.1em]">
+                        Carpetas
+                      </h2>
+                      <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 tracking-wide">
+                        Organización departamental
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex-1 overflow-y-auto max-h-[500px] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-slate-200 dark:[&::-webkit-scrollbar-thumb]:bg-slate-700 [&::-webkit-scrollbar-thumb]:rounded-full pr-2">
                     <FolderTree
                       departmentFolders={departmentFolders}
                       isMultiDept={isMultiDept}
@@ -499,7 +539,8 @@ const BibliotecaPage = () => {
           <div className="relative z-10 h-full">
             <ShareRequestsPanel
               company={companySlug}
-              onClose={() => setShareRequestsOpen(false)}
+              onClose={() => { setShareRequestsOpen(false); refreshPendingCount(); }}
+              onRefresh={refreshPendingCount}
             />
           </div>
         </div>

@@ -94,7 +94,8 @@ export default function PublicNativeViewerPage() {
         libraryService.getSharedInfo(company, token),
       ]);
 
-      setReadOnly(info.read_only ?? true);
+      const isReadOnly = info.read_only === true || info.read_only === '1' || info.read_only === 1;
+      setReadOnly(isReadOnly);
       setDocTitle(info.title || '');
 
       if (activeUrlRef.current) {
@@ -123,7 +124,11 @@ export default function PublicNativeViewerPage() {
     }
   };
 
+  const hasLoaded = useRef(false);
+
   useEffect(() => {
+    if (hasLoaded.current) return;
+    hasLoaded.current = true;
     loadFile();
 
     return () => {
@@ -147,7 +152,7 @@ export default function PublicNativeViewerPage() {
           </div>
           <div>
             <h3 className="text-xs font-black uppercase tracking-[0.2em] text-white">
-              {docTitle || 'Visor Público'}
+              Visualizador Seguro
             </h3>
             <p className="text-[9px] text-gray-500 font-bold uppercase">Transmisión Protegida por SIGEAC</p>
           </div>

@@ -1,9 +1,9 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { BarChart, FileText, Share2, Eye, Send, Loader2, Building2 } from 'lucide-react';
+import { BarChart, FileText, Share2, Eye, Send, Loader2 } from 'lucide-react';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
-import libraryService, { Document, ActivityLog } from '@/lib/libraryService';
+import libraryService, { Document } from '@/lib/libraryService';
 import axiosInstance from '@/lib/axios';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -12,6 +12,137 @@ interface DashboardModalProps {
   onClose: () => void;
   company: string;
 }
+
+const CHART_COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ec4899', '#8b5cf6', '#06b6d4', '#f43f5e', '#84cc16'];
+
+const DonutChart = ({ data, total }: { data: { label: string, value: number, color: string }[], total: number }) => {
+  let currentAngle = 0;
+
+  if (total === 0) {
+    return (
+      <div className="relative w-48 h-48 mx-auto mt-4 mb-2 flex items-center justify-center">
+        <span className="text-slate-400 text-sm font-bold">Sin datos</span>
+      </div>
+    );
+  }
+
+  return (
+    <div className="relative w-48 h-48 mx-auto mt-4 mb-2">
+      <svg viewBox="0 0 100 100" className="w-full h-full transform -rotate-90 drop-shadow-sm">
+        {data.map((item, i) => {
+          if (item.value === 0) return null;
+          const fraction = item.value / total;
+          const dash = fraction * 251.2;
+          const gap = data.filter(d => d.value > 0).length > 1 ? 5 : 0;
+          const strokeDasharray = `${Math.max(0, dash - gap)} 251.2`;
+          const offset = -(currentAngle / total) * 251.2;
+          currentAngle += item.value;
+
+          return (
+            <circle
+              key={i}
+              cx="50"
+              cy="50"
+              r="40"
+              fill="transparent"
+              stroke={item.color}
+              strokeWidth="12"
+              strokeDasharray={strokeDasharray}
+              strokeDashoffset={offset}
+              strokeLinecap="round"
+              className="transition-all duration-1000 ease-out"
+            />
+          );
+        })}
+      </svg>
+      <div className="absolute inset-0 flex flex-col items-center justify-center">
+        <span className="text-3xl font-black text-slate-800 dark:text-white">{total}</span>
+        <span className="text-[9px] font-black tracking-widest text-slate-400 uppercase mt-1">Total</span>
+      </div>
+    </div>
+  );
+};
+
+const HalfDonutChart = ({ data, total }: { data: { label: string, value: number, color: string }[], total: number }) => {
+  let currentAngle = 0;
+
+  if (total === 0) {
+    return (
+      <div className="relative w-full h-24 flex items-center justify-center">
+        <span className="text-slate-400 text-sm font-bold">Sin solicitudes</span>
+      </div>
+    );
+  }
+
+  return (
+    <div className="relative w-40 h-20 mx-auto mt-6 mb-8">
+      <svg viewBox="0 0 100 50" className="w-full h-full drop-shadow-sm overflow-visible">
+        <path
+          d="M 10 50 A 40 40 0 0 1 90 50"
+          fill="transparent"
+          stroke="currentColor"
+          className="text-slate-100 dark:text-slate-800"
+          strokeWidth="12"
+          strokeLinecap="round"
+        />
+        {data.map((item, i) => {
+          if (item.value === 0) return null;
+          const fraction = item.value / total;
+          const dash = fraction * 125.66;
+          const gap = data.filter(d => d.value > 0).length > 1 ? 4 : 0;
+          const strokeDasharray = `${Math.max(0, dash - gap)} 125.66`;
+          const offset = -(currentAngle / total) * 125.66;
+          currentAngle += item.value;
+
+          return (
+            <path
+              key={i}
+              d="M 10 50 A 40 40 0 0 1 90 50"
+              fill="transparent"
+              stroke={item.color}
+              strokeWidth="12"
+              strokeDasharray={strokeDasharray}
+              strokeDashoffset={offset}
+              strokeLinecap="round"
+              className="transition-all duration-1000 ease-out"
+            />
+          );
+        })}
+      </svg>
+      <div className="absolute bottom-0 left-0 right-0 flex flex-col items-center translate-y-4">
+        <span className="text-3xl font-black text-slate-800 dark:text-white leading-none">{total}</span>
+        <span className="text-[9px] font-black tracking-widest text-slate-400 uppercase mt-1">Total</span>
+      </div>
+    </div>
+  );
+};
+
+const VerticalBarChart = ({ data }: { data: { label: string, value: number, color: string }[] }) => {
+  const maxVal = Math.max(...data.map(d => d.value), 1);
+  return (
+    <div className="flex items-end justify-around h-48 mt-4 gap-2">
+      {data.map((item, i) => {
+        const height = (item.value / maxVal) * 100;
+        return (
+          <div key={i} className="flex flex-col items-center gap-2 group flex-1 max-w-[48px]">
+            <span className="text-[11px] font-bold text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity">
+              {item.value}
+            </span>
+            <div className="w-full max-w-[20px] h-32 bg-slate-100 dark:bg-slate-800/40 rounded-full flex items-end overflow-hidden p-0.5">
+              <div
+                className="w-full rounded-full transition-all duration-1000 shadow-sm"
+                style={{ height: `${height}%`, backgroundColor: item.color }}
+              />
+            </div>
+            <span className="text-[9px] font-bold text-slate-500 uppercase truncate w-full text-center px-1" title={item.label}>
+              {item.label.split(' ')[0] === 'Direccion' || item.label.split(' ')[0] === 'Jefatura' ? item.label.split(' ')[2] : item.label.split(' ')[0]}
+            </span>
+          </div>
+        );
+      })}
+    </div>
+  );
+};
 
 export default function DashboardModal({ open, onClose, company }: DashboardModalProps) {
   const { user } = useAuth();
@@ -36,9 +167,9 @@ export default function DashboardModal({ open, onClose, company }: DashboardModa
           axiosInstance.get(`/${company}/library/trazabilidad`),
           libraryService.getShareRequests(company),
         ]);
-        setDocuments(docsRes.data || {});
-        setTraceability(traceRes.data || []);
-        setShareRequests(reqRes.data || []);
+        setDocuments(docsRes.data || docsRes || {});
+        setTraceability(traceRes.data || traceRes || []);
+        setShareRequests(Array.isArray(reqRes) ? reqRes : reqRes.data || []);
       } catch {
         setDocuments({});
         setTraceability([]);
@@ -54,10 +185,13 @@ export default function DashboardModal({ open, onClose, company }: DashboardModa
     const deptNames = Object.keys(documents);
     const byDept = deptNames.map(dept => {
       const docs = documents[dept] || [];
-      const shared = traceability.filter((t: any) =>
-        t.department?.toUpperCase() === dept.toUpperCase()
-      );
-      const totalAccesses = shared.reduce((sum: number, s: any) => sum + (s.access_count || 0), 0);
+      const shared = traceability.filter((t: any) => {
+        const dName = t.document?.department_name || t.department_name || t.department || '';
+        return dName.toUpperCase() === dept.toUpperCase();
+      });
+      const totalAccesses = shared.reduce((sum: number, s: any) => {
+        return sum + (s.access_count !== undefined ? Number(s.access_count) : (s.views !== undefined ? Number(s.views) : 1));
+      }, 0);
       const pending = shareRequests.filter((r: any) =>
         r.status === 'pending'
       );
@@ -78,103 +212,173 @@ export default function DashboardModal({ open, onClose, company }: DashboardModa
     return { byDept, totalDocs, totalShared, totalAccesses, pendingRequests };
   }, [documents, traceability, shareRequests]);
 
+  const chartData = useMemo(() => {
+    return stats.byDept.map((d, i) => ({
+      label: d.department,
+      docsValue: d.totalDocs,
+      accessValue: d.totalAccesses,
+      color: CHART_COLORS[i % CHART_COLORS.length]
+    }));
+  }, [stats]);
+
+  const reqStats = useMemo(() => {
+    const total = shareRequests.length;
+    const approved = shareRequests.filter((r: any) => r.status === 'approved' || r.status === 'aprobada').length;
+    const rejected = shareRequests.filter((r: any) => r.status === 'rejected' || r.status === 'rechazada').length;
+    const pending = shareRequests.filter((r: any) => r.status === 'pending').length;
+    return { total, approved, rejected, pending };
+  }, [shareRequests]);
+
+  const reqData = [
+    { label: 'Aprobadas', value: reqStats.approved, color: '#10b981' }, // emerald-500
+    { label: 'Pendientes', value: reqStats.pending, color: '#f59e0b' }, // amber-500
+    { label: 'Rechazadas', value: reqStats.rejected, color: '#f43f5e' }, // rose-500
+  ];
+
   const cards = [
     {
       label: 'Documentos',
       value: stats.totalDocs,
       icon: FileText,
-      color: 'text-blue-600 bg-blue-100 dark:bg-blue-900/30',
+      bgLight: 'bg-blue-50',
+      iconColor: 'text-blue-500',
     },
     {
       label: 'Compartidos',
       value: stats.totalShared,
       icon: Share2,
-      color: 'text-emerald-600 bg-emerald-100 dark:bg-emerald-900/30',
+      bgLight: 'bg-emerald-50',
+      iconColor: 'text-emerald-500',
     },
     {
-      label: 'Accesos vía QR',
+      label: 'Accesos (QR)',
       value: stats.totalAccesses,
       icon: Eye,
-      color: 'text-purple-600 bg-purple-100 dark:bg-purple-900/30',
+      bgLight: 'bg-purple-50',
+      iconColor: 'text-purple-500',
     },
     {
-      label: 'Solicitudes Pendientes',
-      value: stats.pendingRequests,
+      label: 'Solicitudes',
+      value: reqStats.pending,
       icon: Send,
-      color: 'text-amber-600 bg-amber-100 dark:bg-amber-900/30',
+      bgLight: 'bg-amber-50',
+      iconColor: 'text-amber-500',
     },
   ];
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="bg-white dark:bg-[#1a1c1e] border-none text-slate-900 dark:text-white sm:max-w-[700px] rounded-2xl overflow-hidden p-0 outline-none shadow-2xl">
-        <div className="bg-white dark:bg-gray-800/60 px-6 py-4 border-b border-slate-200 dark:border-gray-700 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="p-1.5 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
-              <BarChart className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+      <DialogContent className="bg-slate-100 dark:bg-[#0a0c10] border border-slate-200/60 dark:border-white/10 text-slate-900 dark:text-white max-w-[1200px] w-[95vw] rounded-[2rem] overflow-hidden p-0 outline-none shadow-2xl">
+        <div className="bg-white dark:bg-slate-900 px-8 py-5 border-b border-slate-200/80 dark:border-white/5 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className="p-3 bg-blue-500 rounded-2xl shadow-sm">
+              <BarChart className="h-6 w-6 text-white" />
             </div>
-            <DialogTitle className="text-lg font-bold text-slate-800 dark:text-white tracking-tight uppercase">
-              Dashboard
-            </DialogTitle>
+            <div>
+              <DialogTitle className="text-xl font-black text-slate-800 dark:text-white tracking-tight">
+                Estadísticas de la Biblioteca
+              </DialogTitle>
+              <p className="text-[12px] font-medium text-slate-500 dark:text-slate-400">
+                Análisis de interacción y volumen documental
+              </p>
+            </div>
           </div>
         </div>
 
-        <div className="p-6 space-y-6 max-h-[70vh] overflow-y-auto">
+        <div className="p-6 md:p-8 space-y-6 max-h-[85vh] overflow-y-auto [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-slate-300 dark:[&::-webkit-scrollbar-thumb]:bg-slate-700 [&::-webkit-scrollbar-thumb]:rounded-full">
           {loading ? (
-            <div className="flex items-center justify-center py-20">
-              <Loader2 className="h-10 w-10 animate-spin text-blue-500" />
+            <div className="flex flex-col items-center justify-center py-32 gap-4">
+              <Loader2 className="h-12 w-12 animate-spin text-blue-500" />
+              <p className="text-sm font-medium text-slate-500">Cargando métricas...</p>
             </div>
           ) : (
-            <>
-              <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+
+              {/* Gráfica Circular: Documentos */}
+              {isSuperUser && (
+                <div className="col-span-1 lg:col-span-1 bg-white dark:bg-slate-900 rounded-[2rem] p-6 shadow-sm border border-slate-200/50 dark:border-white/5 flex flex-col justify-between">
+                  <div>
+                    <h3 className="text-[14px] font-black text-slate-800 dark:text-white tracking-tight">
+                      Distribución Documental
+                    </h3>
+                    <p className="text-[11px] font-medium text-slate-400 mb-2">Por departamento</p>
+                  </div>
+
+                  <DonutChart data={chartData.map(d => ({ label: d.label, value: d.docsValue, color: d.color }))} total={stats.totalDocs} />
+
+                  <div className="mt-4 flex flex-wrap gap-x-4 gap-y-2 justify-center max-h-24 overflow-y-auto pr-1 [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-thumb]:bg-slate-200">
+                    {chartData.filter(d => d.docsValue > 0).map(d => (
+                      <div key={d.label} className="flex items-center gap-1.5 w-[45%]">
+                        <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: d.color }} />
+                        <span className="text-[9px] font-bold text-slate-500 truncate" title={d.label}>
+                          {d.label.substring(0, 18)}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Gráfica de Barras: Accesos */}
+              {isSuperUser && (
+                <div className="col-span-1 lg:col-span-2 bg-white dark:bg-slate-900 rounded-[2rem] p-6 shadow-sm border border-slate-200/50 dark:border-white/5">
+                  <h3 className="text-[14px] font-black text-slate-800 dark:text-white tracking-tight">
+                    Accesos Externos
+                  </h3>
+                  <p className="text-[11px] font-medium text-slate-400 mb-2">Interacciones vía QR</p>
+
+                  <VerticalBarChart data={chartData.map(d => ({ label: d.label, value: d.accessValue, color: d.color }))} />
+                </div>
+              )}
+
+              {/* Medidor (Gauge): Estado de Solicitudes */}
+              {isSuperUser && (
+                <div className="col-span-1 lg:col-span-1 bg-white dark:bg-slate-900 rounded-[2rem] p-6 shadow-sm border border-slate-200/50 dark:border-white/5 flex flex-col justify-between">
+                  <div>
+                    <h3 className="text-[14px] font-black text-slate-800 dark:text-white tracking-tight">
+                      Estado Solicitudes
+                    </h3>
+                    <p className="text-[11px] font-medium text-slate-400 mb-2">Aprobaciones y rechazos</p>
+                  </div>
+
+                  <div className="flex-1 flex flex-col justify-center">
+                    <HalfDonutChart data={reqData} total={reqStats.total} />
+                  </div>
+
+                  <div className="mt-2 flex flex-col gap-2">
+                    {reqData.map(d => (
+                      <div key={d.label} className="flex items-center justify-between bg-slate-50 dark:bg-slate-800/50 rounded-xl p-2 px-3">
+                        <div className="flex items-center gap-2">
+                          <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: d.color }} />
+                          <span className="text-[10px] font-bold text-slate-600 dark:text-slate-400">{d.label}</span>
+                        </div>
+                        <span className="text-[12px] font-black text-slate-800 dark:text-white">{d.value}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Tarjetas de Métricas Rápidas */}
+              <div className="col-span-1 lg:col-span-4 grid grid-cols-2 lg:grid-cols-4 gap-6">
                 {cards.map((card) => (
-                  <div key={card.label} className="p-5 bg-slate-50 dark:bg-gray-800/40 rounded-2xl border border-slate-200 dark:border-gray-700 shadow-sm">
-                    <div className="flex items-center justify-between mb-3">
-                      <span className="text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400">
-                        {card.label}
-                      </span>
-                      <div className={`p-2 rounded-lg ${card.color}`}>
-                        <card.icon className="h-4 w-4" />
+                  <div key={card.label} className="bg-white dark:bg-slate-900 rounded-[2rem] p-6 shadow-sm border border-slate-200/50 dark:border-white/5 flex flex-col justify-between group hover:-translate-y-1 transition-transform duration-300">
+                    <div className="flex justify-between items-center mb-4">
+                      <div className={`p-3 rounded-2xl ${card.bgLight} dark:bg-white/5`}>
+                        <card.icon className={`h-5 w-5 ${card.iconColor} dark:text-white`} />
+                      </div>
+                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{card.label}</span>
+                    </div>
+                    <div>
+                      <div className="text-4xl font-black text-slate-800 dark:text-white tracking-tighter">
+                        {card.value}
                       </div>
                     </div>
-                    <p className="text-3xl font-black text-slate-900 dark:text-white">{card.value}</p>
                   </div>
                 ))}
               </div>
 
-              {isSuperUser && stats.byDept.length > 1 && (
-                <div>
-                  <h3 className="text-[11px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-4 flex items-center gap-2">
-                    <Building2 className="h-4 w-4" /> Por Departamento
-                  </h3>
-                  <div className="space-y-2">
-                    {stats.byDept.map((dept) => {
-                      const maxVal = Math.max(...stats.byDept.map(d => d.totalDocs), 1);
-                      const pct = (dept.totalDocs / maxVal) * 100;
-                      return (
-                        <div key={dept.department} className="flex items-center gap-4">
-                          <span className="w-40 text-[10px] font-bold text-slate-600 dark:text-slate-400 uppercase truncate shrink-0">
-                            {dept.department}
-                          </span>
-                          <div className="flex-1 h-6 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
-                            <div
-                              className="h-full bg-blue-500 rounded-full transition-all duration-500 flex items-center justify-end px-2"
-                              style={{ width: `${pct}%` }}
-                            >
-                              <span className="text-[9px] font-bold text-white">{dept.totalDocs}</span>
-                            </div>
-                          </div>
-                          <div className="flex gap-3 text-[10px] text-slate-500 shrink-0">
-                            <span>{dept.totalShared} compartidos</span>
-                            <span>{dept.totalAccesses} accesos</span>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-            </>
+            </div>
           )}
         </div>
       </DialogContent>
