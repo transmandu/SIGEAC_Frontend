@@ -59,10 +59,10 @@ function FolderNodeRow({
     e.preventDefault();
     e.stopPropagation();
     setDragOver(false);
-    const docId = e.dataTransfer.getData('application/doc-id');
-    const deptName = e.dataTransfer.getData('application/dept-name');
-    if (docId && deptName) {
-      onDropDocument(parseInt(docId, 10), node.path, deptName);
+    const docId = e.dataTransfer.getData('text/plain');
+    const deptName = e.dataTransfer.getData('text/dept-name');
+    if (docId) {
+      onDropDocument(parseInt(docId, 10), node.path, deptName || '');
     }
   };
 

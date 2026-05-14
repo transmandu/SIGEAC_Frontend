@@ -92,8 +92,8 @@ export default function ShareRequestsPanel({ company, onClose }: ShareRequestsPa
   };
 
   return (
-    <div className="w-[480px] h-full bg-white dark:bg-[#1a1c1e] border-l border-slate-200 dark:border-slate-800 shadow-2xl flex flex-col animate-in slide-in-from-right duration-300">
-      <div className="px-6 py-5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between shrink-0">
+    <div className="w-[480px] h-full bg-white dark:bg-[#1a1c1e] border-l border-slate-200 dark:border-gray-700 shadow-2xl flex flex-col animate-in slide-in-from-right duration-300">
+      <div className="px-6 py-4 border-b border-slate-200 dark:border-gray-700 flex items-center justify-between shrink-0 bg-white dark:bg-gray-800/60">
         <div className="flex items-center gap-2">
           <div className="p-1.5 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
             <Share2 className="h-5 w-5 text-blue-600 dark:text-blue-400" />

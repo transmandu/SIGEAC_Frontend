@@ -108,7 +108,7 @@ export default function DashboardModal({ open, onClose, company }: DashboardModa
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="bg-white dark:bg-[#1a1c1e] border-none text-slate-900 dark:text-white sm:max-w-[700px] rounded-2xl overflow-hidden p-0 outline-none shadow-2xl">
-        <div className="bg-slate-50 dark:bg-gray-800/40 px-6 py-5 border-b border-slate-200 dark:border-gray-700 flex items-center justify-between">
+        <div className="bg-white dark:bg-gray-800/60 px-6 py-4 border-b border-slate-200 dark:border-gray-700 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="p-1.5 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
               <BarChart className="h-5 w-5 text-blue-600 dark:text-blue-400" />
@@ -128,7 +128,7 @@ export default function DashboardModal({ open, onClose, company }: DashboardModa
             <>
               <div className="grid grid-cols-2 gap-4">
                 {cards.map((card) => (
-                  <div key={card.label} className="p-5 bg-slate-50 dark:bg-white/[0.03] rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+                  <div key={card.label} className="p-5 bg-slate-50 dark:bg-gray-800/40 rounded-2xl border border-slate-200 dark:border-gray-700 shadow-sm">
                     <div className="flex items-center justify-between mb-3">
                       <span className="text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400">
                         {card.label}

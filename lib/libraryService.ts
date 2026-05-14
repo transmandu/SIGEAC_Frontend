@@ -170,7 +170,7 @@ const libraryService = {
         version_id?: number;
         shared_with_name?: string;
         reason: string;
-        expires_in_hours: number;
+        expires_at: number;
         read_only?: boolean;
     }) => {
         const response = await axiosInstance.post(`/${company}/library/share-requests`, data);

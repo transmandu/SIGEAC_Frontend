@@ -148,7 +148,7 @@ export const LibraryDropdownActions = ({ doc, user, canManage, isDipDirector, on
             </>
           )}
 
-          {canManage && !isDipDirector && (
+          {canManage && (
             <>
               <DropdownMenuItem onClick={() => setRequestShareOpen(true)} className="gap-2 cursor-pointer">
                 <Send className="h-4 w-4 text-blue-500" />
@@ -204,21 +204,19 @@ export const LibraryDropdownActions = ({ doc, user, canManage, isDipDirector, on
         onViewVersion={handleViewOldVersion}
       />
 
-      {isDipDirector ? (
-        <ShareQRDialog
-          isOpen={shareOpen}
-          onClose={() => setShareOpen(false)}
-          doc={{ ...doc, versions: versionList }}
-          company={company}
-        />
-      ) : (
-        <RequestShareDialog
-          open={requestShareOpen}
-          onClose={() => setRequestShareOpen(false)}
-          doc={doc}
-          company={company}
-        />
-      )}
+      <ShareQRDialog
+        isOpen={shareOpen}
+        onClose={() => setShareOpen(false)}
+        doc={{ ...doc, versions: versionList }}
+        company={company}
+      />
+
+      <RequestShareDialog
+        open={requestShareOpen}
+        onClose={() => setRequestShareOpen(false)}
+        doc={doc}
+        company={company}
+      />
 
       <DeleteDocumentDialog
         isOpen={deleteOpen}

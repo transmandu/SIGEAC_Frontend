@@ -89,8 +89,8 @@ export default function DocumentRow({ doc, onView, onDelete, onRefresh, canManag
   }
 
   const handleDragStart = useCallback((e: React.DragEvent) => {
-    e.dataTransfer.setData('application/doc-id', doc.id.toString());
-    e.dataTransfer.setData('application/dept-name', doc.department_name || '');
+    e.dataTransfer.setData('text/plain', doc.id.toString());
+    e.dataTransfer.setData('text/dept-name', doc.department_name || '');
     e.dataTransfer.effectAllowed = 'move';
     const el = e.currentTarget as HTMLElement;
     el.classList.add('opacity-40');

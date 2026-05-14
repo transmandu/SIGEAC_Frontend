@@ -52,7 +52,7 @@ export default function RequestShareDialog({ open, onClose, doc, company }: Requ
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!reason.trim() || reason.trim().length < 10) {
-      return toast.error('El motivo debe tener al menos 10 caracteres');
+      return toast.error('El motivo debe tener al menos 10 caracteres.');
     }
 
     setLoading(true);
@@ -62,10 +62,10 @@ export default function RequestShareDialog({ open, onClose, doc, company }: Requ
         version_id: versionId ? Number(versionId) : undefined,
         shared_with_name: sharedWithName.trim() || undefined,
         reason: reason.trim(),
-        expires_in_hours: Number(expiresIn),
+        expires_at: Number(expiresIn),
         read_only: readOnly,
       });
-      toast.success('Solicitud de compartición enviada. Pendiente de aprobación.');
+      toast.success('Solicitud enviada correctamente. Pendiente de aprobación.');
       onClose();
     } catch (error: any) {
       toast.error(error.response?.data?.message || 'Error al crear la solicitud');
@@ -77,7 +77,7 @@ export default function RequestShareDialog({ open, onClose, doc, company }: Requ
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="bg-white dark:bg-[#1a1c1e] border-none text-slate-900 dark:text-white sm:max-w-[480px] rounded-2xl overflow-hidden p-0 outline-none shadow-2xl">
-        <div className="bg-slate-50 dark:bg-gray-800/40 px-6 py-5 border-b border-slate-200 dark:border-gray-700">
+        <div className="bg-white dark:bg-gray-800/60 px-6 py-4 border-b border-slate-200 dark:border-gray-700 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="p-1.5 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
               <Share2 className="h-5 w-5 text-blue-600 dark:text-blue-400" />
@@ -91,7 +91,7 @@ export default function RequestShareDialog({ open, onClose, doc, company }: Requ
           </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-5 bg-slate-50 dark:bg-[#1a1c1e]">
+        <form onSubmit={handleSubmit} className="p-6 space-y-5 bg-white dark:bg-[#1a1c1e]">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <label className="text-[11px] font-bold uppercase tracking-widest text-slate-500 dark:text-gray-400">Versión</label>
@@ -156,7 +156,7 @@ export default function RequestShareDialog({ open, onClose, doc, company }: Requ
             />
           </div>
 
-          <label className="flex items-center gap-3 p-3 bg-white dark:bg-gray-800/40 rounded-xl border border-slate-200 dark:border-gray-700 cursor-pointer select-none">
+          <label className="flex items-center gap-3 p-3 bg-slate-50 dark:bg-gray-800/40 rounded-xl border border-slate-200 dark:border-gray-700 cursor-pointer select-none">
             <input
               type="checkbox"
               checked={readOnly}
