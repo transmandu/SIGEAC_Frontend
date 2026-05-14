@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect, useMemo } from 'react';
-import libraryService from '@/lib/libraryService';
+import libraryService, { FolderNode } from '@/lib/libraryService';
 import axiosInstance from '@/lib/axios';
 import { useAuth } from "@/contexts/AuthContext";
 import { 
@@ -12,18 +12,19 @@ import {
   Building2, 
   CheckCircle2,
   ChevronDown,
-  Layers,
-  PlusCircle 
+  Folder
 } from 'lucide-react';
 
-const SMS_STRUCTURE: Record<string, string[]> = {
-  "1_politicas_objetivos": ["1.1_compromiso", "1.2_rendicion_cuentas", "1.3_personal_clave", "1.4_respuesta_emergencias", "1.5_documentacion"],
-  "2_gestion_riesgos": ["2.1_identificacion_peligros", "2.2_evaluacion_mitigacion"],
-  "3_aseguramiento": ["3.1_medicion_rendimiento", "3.2_gestion_cambio", "4.3_mejora_continua"],
-  "4_promocion": ["4.1_instruccion_educacion", "4.2_comunicacion"]
-};
+interface UploadModalProps {
+  company: string;
+  isOpen: boolean;
+  onClose: () => void;
+  onSuccess: () => void;
+  departmentId: number | null;
+  folders: FolderNode[];
+}
 
-export default function UploadModal({ company, isOpen, onClose, onSuccess }: any) {
+export default function UploadModal({ company, isOpen, onClose, onSuccess, departmentId, folders }: UploadModalProps) {
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [file, setFile] = useState<File | null>(null);
@@ -34,9 +35,9 @@ export default function UploadModal({ company, isOpen, onClose, onSuccess }: any
   const [categories, setCategories] = useState<{ id: number, name: string }[]>([]);
   const [loadingData, setLoadingData] = useState(false);
 
-  const [smsPillar, setSmsPillar] = useState('');
-  const [smsSubPoint, setSmsSubPoint] = useState('');
   const [newCategoryName, setNewCategoryName] = useState('');
+  const [selectedFolderPath, setSelectedFolderPath] = useState('');
+  const [versionLabel, setVersionLabel] = useState('');
 
   const [formData, setFormData] = useState({
     title: '',
@@ -46,23 +47,16 @@ export default function UploadModal({ company, isOpen, onClose, onSuccess }: any
     expiration_date: '',
   });
 
-  const { isSuperUser, isDirector, userDeptId } = useMemo(() => {
-    if (!user) return { isSuperUser: false, isDirector: false, userDeptId: null };
+  const hasFolders = folders.length > 0;
+
+  const { isSuperUser, userDeptId } = useMemo(() => {
+    if (!user) return { isSuperUser: false, userDeptId: null };
     const isSuper = user.roles?.some(role => 
       ['SUPERUSER', 'ADMIN', 'ADMINISTRADOR'].includes(role.name.toUpperCase())
     );
-    const isDir = user.employee?.some((emp: any) => {
-      const cargoNombre = emp.job_title?.name || "";
-      return cargoNombre.toUpperCase().includes('DIRECTOR');
-    });
     const deptId = user.employee?.[0]?.department?.id;
-    return { isSuperUser: isSuper, isDirector: isDir, userDeptId: deptId };
+    return { isSuperUser: isSuper, userDeptId: deptId };
   }, [user]);
-
-  const isSmsDepartment = (deptName: string) => {
-    const normalized = deptName.toLowerCase().trim();
-    return normalized === 'sms' || normalized.includes('seguridad operacional');
-  };
 
   useEffect(() => {
     if (isOpen && company) {
@@ -79,7 +73,15 @@ export default function UploadModal({ company, isOpen, onClose, onSuccess }: any
           }
           setDepartments(availableDepts);
           setCategories(catsRes.data);
-          if (availableDepts.length === 1) {
+
+          if (departmentId && availableDepts.some((d: any) => Number(d.id) === Number(departmentId))) {
+            const dept = availableDepts.find((d: any) => Number(d.id) === Number(departmentId));
+            setFormData(prev => ({
+              ...prev,
+              department_id: departmentId.toString(),
+              department_name: dept?.name || ''
+            }));
+          } else if (availableDepts.length === 1) {
             setFormData(prev => ({
               ...prev,
               department_id: availableDepts[0].id.toString(),
@@ -94,7 +96,18 @@ export default function UploadModal({ company, isOpen, onClose, onSuccess }: any
       };
       fetchData();
     }
-  }, [isOpen, company, isSuperUser, userDeptId]);
+  }, [isOpen, company, isSuperUser, userDeptId, departmentId]);
+
+  const flattenFolders = (nodes: FolderNode[], prefix = ''): { id: string; name: string; path: string; label: string }[] => {
+    const result: { id: string; name: string; path: string; label: string }[] = [];
+    for (const node of nodes) {
+      result.push({ id: node.id, name: node.name, path: node.path, label: `${prefix}${node.name}` });
+      if (node.children.length > 0) {
+        result.push(...flattenFolders(node.children, `${prefix}${node.name} / `));
+      }
+    }
+    return result;
+  };
 
   const handleDragOver = (e: React.DragEvent) => { e.preventDefault(); setIsDragging(true); };
   const handleDragLeave = () => { setIsDragging(false); };
@@ -124,10 +137,8 @@ export default function UploadModal({ company, isOpen, onClose, onSuccess }: any
     data.append('department_id', formData.department_id);
     data.append('department_name', formData.department_name);
     if (formData.category_id === 'otro') data.append('new_category_name', newCategoryName);
-    if (isSmsDepartment(formData.department_name)) {
-      data.append('sms_pillar', smsPillar);
-      data.append('sms_sub_point', smsSubPoint);
-    }
+    if (selectedFolderPath) data.append('folder_path', selectedFolderPath);
+    if (versionLabel) data.append('version_label', versionLabel);
     data.append('requires_expiry', hasExpiry ? '1' : '0');
     if (hasExpiry && formData.expiration_date) data.append('expiration_date', formData.expiration_date);
 
@@ -145,10 +156,10 @@ export default function UploadModal({ company, isOpen, onClose, onSuccess }: any
   const handleInternalClose = () => {
     setFile(null);
     setFormData({ title: '', category_id: '', department_id: '', department_name: '', expiration_date: '' });
-    setSmsPillar('');
-    setSmsSubPoint('');
     setNewCategoryName('');
     setHasExpiry(false);
+    setSelectedFolderPath('');
+    setVersionLabel('');
     onClose();
   };
 
@@ -190,6 +201,21 @@ export default function UploadModal({ company, isOpen, onClose, onSuccess }: any
             />
           </div>
 
+          {/* Versión Label */}
+          <div className="space-y-1.5">
+            <label className="text-[11px] font-bold uppercase tracking-widest text-slate-500 dark:text-gray-400 flex items-center gap-2">
+              <FileText className="h-3.5 w-3.5 text-blue-500" /> Etiqueta de Versión
+            </label>
+            <input
+              type="text"
+              className="w-full h-11 px-4 border border-slate-300 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-slate-700 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all placeholder:text-slate-400 shadow-sm"
+              placeholder="Ej. Rev A, Borrador, Final..."
+              value={versionLabel}
+              onChange={(e) => setVersionLabel(e.target.value)}
+              maxLength={100}
+            />
+          </div>
+
           <div className="grid grid-cols-2 gap-4">
             {/* Depto Select */}
             <div className="space-y-1.5">
@@ -198,7 +224,7 @@ export default function UploadModal({ company, isOpen, onClose, onSuccess }: any
               </label>
               <div className="relative">
                 <select 
-                  required disabled={loadingData || (!isSuperUser && departments.length === 1)}
+                  required disabled={loadingData || (!isSuperUser && departments.length === 1) || !!departmentId}
                   className="w-full h-11 pl-4 pr-10 border border-slate-300 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-slate-700 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none cursor-pointer appearance-none relative z-10 disabled:opacity-80 shadow-sm"
                   value={formData.department_id}
                   onChange={(e) => setFormData({ ...formData, department_id: e.target.value, department_name: e.target.options[e.target.selectedIndex].text })}
@@ -236,7 +262,7 @@ export default function UploadModal({ company, isOpen, onClose, onSuccess }: any
           {formData.category_id === 'otro' && (
             <div className="space-y-1.5 animate-in slide-in-from-top-2 duration-300">
               <label className="text-[10px] font-bold uppercase text-blue-600 dark:text-blue-400 flex items-center gap-2">
-                <PlusCircle className="h-3 w-3" /> Nueva categoría
+                <Tag className="h-3 w-3" /> Nueva categoría
               </label>
               <input 
                 type="text" required
@@ -248,49 +274,24 @@ export default function UploadModal({ company, isOpen, onClose, onSuccess }: any
             </div>
           )}
 
-          {/* SMS Section */}
-          {isSmsDepartment(formData.department_name) && (
-            <div className="p-4 bg-white dark:bg-gray-800/40 rounded-2xl border border-blue-100 dark:border-gray-700 shadow-sm transition-all animate-in fade-in slide-in-from-top-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold uppercase text-blue-600 dark:text-blue-400 flex items-center gap-2">
-                    <Layers className="h-3 w-3" /> Fase SMS
-                  </label>
-                  <div className="relative">
-                    <select 
-                      required
-                      className="w-full h-10 pl-3 pr-8 border border-slate-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-xs text-slate-700 dark:text-white outline-none focus:ring-2 focus:ring-blue-500 appearance-none"
-                      value={smsPillar}
-                      onChange={(e) => { setSmsPillar(e.target.value); setSmsSubPoint(''); }}
-                    >
-                      <option value="" className="dark:bg-gray-800">Pilar...</option>
-                      {Object.keys(SMS_STRUCTURE).map(p => (
-                        <option key={p} value={p} className="dark:bg-gray-800">{p.replace(/_/g, ' ').toUpperCase()}</option>
-                      ))}
-                    </select>
-                    <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 h-3 w-3 text-blue-400 pointer-events-none" />
-                  </div>
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold uppercase text-blue-600 dark:text-blue-400 flex items-center gap-2">
-                    <Layers className="h-3 w-3" /> Punto
-                  </label>
-                  <div className="relative">
-                    <select 
-                      required disabled={!smsPillar}
-                      className="w-full h-10 pl-3 pr-8 border border-slate-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-xs text-slate-700 dark:text-white outline-none focus:ring-2 focus:ring-blue-500 appearance-none disabled:opacity-50"
-                      value={smsSubPoint}
-                      onChange={(e) => setSmsSubPoint(e.target.value)}
-                    >
-                      <option value="" className="dark:bg-gray-800">Elemento...</option>
-                      {smsPillar && SMS_STRUCTURE[smsPillar].map(s => (
-                        <option key={s} value={s} className="dark:bg-gray-800">{s.replace(/_/g, ' ').toUpperCase()}</option>
-                      ))}
-                    </select>
-                    <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 h-3 w-3 text-blue-400 pointer-events-none" />
-                  </div>
-                </div>
+          {/* Carpeta destino — solo si el depto tiene carpetas */}
+          {hasFolders && (
+            <div className="space-y-1.5">
+              <label className="text-[11px] font-bold uppercase tracking-widest text-slate-500 dark:text-gray-400 flex items-center gap-2">
+                <Folder className="h-3.5 w-3.5 text-blue-500" /> Carpeta destino
+              </label>
+              <div className="relative">
+                <select
+                  value={selectedFolderPath}
+                  onChange={(e) => setSelectedFolderPath(e.target.value)}
+                  className="w-full h-11 pl-4 pr-10 border border-slate-300 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-slate-700 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none appearance-none cursor-pointer shadow-sm"
+                >
+                  <option value="">Raíz (sin carpeta)</option>
+                  {flattenFolders(folders).map((f) => (
+                    <option key={f.id} value={f.path}>{f.label}</option>
+                  ))}
+                </select>
+                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" />
               </div>
             </div>
           )}
@@ -328,7 +329,7 @@ export default function UploadModal({ company, isOpen, onClose, onSuccess }: any
             </div>
           )}
 
-          {/* Drag and Drop con :hover y :active reactivo */}
+          {/* Drag and Drop */}
           <div className="pt-2">
             <label 
               onDragOver={handleDragOver}
@@ -336,10 +337,10 @@ export default function UploadModal({ company, isOpen, onClose, onSuccess }: any
               onDrop={handleDrop}
               className={`relative flex flex-col items-center justify-center w-full h-28 border-2 border-dashed rounded-2xl cursor-pointer transition-all duration-200
                 ${isDragging 
-                  ? 'border-blue-500 bg-blue-50/50 dark:bg-blue-900/30 scale-[1.01] shadow-inner' // Estado arrastrando (Prioridad 1)
+                  ? 'border-blue-500 bg-blue-50/50 dark:bg-blue-900/30 scale-[1.01] shadow-inner'
                   : file 
-                    ? 'border-green-500 bg-green-50/30 dark:bg-green-900/10 hover:border-blue-400' // Estado con archivo (Prioridad 2)
-                    : 'border-slate-300 dark:border-gray-700 bg-white dark:bg-gray-800/40 hover:border-blue-400 hover:bg-slate-100 dark:hover:bg-gray-800 shadow-sm' // Estado base + HOVER
+                    ? 'border-green-500 bg-green-50/30 dark:bg-green-900/10 hover:border-blue-400'
+                    : 'border-slate-300 dark:border-gray-700 bg-white dark:bg-gray-800/40 hover:border-blue-400 hover:bg-slate-100 dark:hover:bg-gray-800 shadow-sm'
                 }`}
             >
               <div className="flex flex-col items-center justify-center text-center px-4 pointer-events-none">

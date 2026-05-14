@@ -10,6 +10,7 @@ export const UploadVersionDialog = ({ isOpen, onClose, doc, company, onSuccess }
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [changeLog, setChangeLog] = useState("");
   const [expirationDate, setExpirationDate] = useState("");
+  const [versionLabel, setVersionLabel] = useState("");
   const [uploading, setUploading] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   
@@ -22,6 +23,7 @@ export const UploadVersionDialog = ({ isOpen, onClose, doc, company, onSuccess }
       setSelectedFile(null);
       setChangeLog("");
       setExpirationDate("");
+      setVersionLabel("");
       
       // Calculamos la naturaleza del documento original para inicializar el estado
       if (doc) {
@@ -56,6 +58,7 @@ export const UploadVersionDialog = ({ isOpen, onClose, doc, company, onSuccess }
     const formData = new FormData();
     formData.append("file", selectedFile);
     formData.append("change_log", changeLog);
+    if (versionLabel) formData.append("version_label", versionLabel);
     formData.append("expiration_date", requiresExpiry ? expirationDate : "");
 
     try {
@@ -198,6 +201,21 @@ export const UploadVersionDialog = ({ isOpen, onClose, doc, company, onSuccess }
               placeholder="Ej: Actualización de procedimientos por auditoría" 
               value={changeLog} onChange={(e) => setChangeLog(e.target.value)}
               className="w-full h-20 p-3 text-xs border border-slate-300 dark:border-gray-800 rounded-xl bg-white dark:bg-transparent text-slate-700 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none resize-none placeholder:text-slate-400 shadow-sm"
+            />
+          </div>
+
+          {/* Versión Label */}
+          <div className="space-y-1.5">
+            <label className="text-[11px] font-bold uppercase tracking-widest text-slate-500 dark:text-gray-400 flex items-center gap-2">
+              <FileText className="h-3.5 w-3.5 text-blue-500" /> Etiqueta de Versión
+            </label>
+            <input
+              type="text"
+              className="w-full h-11 px-4 border border-slate-300 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-slate-700 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all placeholder:text-slate-400 shadow-sm"
+              placeholder="Ej. Rev A, Borrador, Final..."
+              value={versionLabel}
+              onChange={(e) => setVersionLabel(e.target.value)}
+              maxLength={100}
             />
           </div>
 

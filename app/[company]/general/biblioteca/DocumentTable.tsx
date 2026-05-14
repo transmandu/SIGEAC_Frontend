@@ -1,145 +1,46 @@
 'use client';
 
-import { useState } from 'react';
-import { ChevronRight, ChevronDown, FolderOpen, Layers3, Hash } from 'lucide-react';
+import { FolderOpen } from 'lucide-react';
 import DocumentRow from './documentRow';
+import { Document } from '@/lib/libraryService';
 
-export default function DocumentTable({ groupedDocuments, onView, columnVisibility, onDelete, onRefresh, canManage, user }: any) {
-  const [openDepts, setOpenDepts] = useState<string[]>(Object.keys(groupedDocuments).slice(0, 1));
-  const [openSubSections, setOpenSubSections] = useState<string[]>([]);
+interface DocumentTableProps {
+  company: string;
+  documents: Document[];
+  onRefresh: () => Promise<void>;
+  onView: (id: number) => void;
+  onDelete: (id: number | string) => Promise<void>;
+  canManage: boolean;
+  isDipDirector: boolean;
+  user: any;
+}
 
-  const handleViewWithBuster = (id: string | number) => {
-    const buster = new Date().getTime();
-    onView(id, buster); 
-  };
-
-  const toggleDept = (dept: string) => {
-    setOpenDepts(prev => prev.includes(dept) ? prev.filter(d => d !== dept) : [...prev, dept]);
-  };
-
-  const toggleSubSection = (id: string) => {
-    setOpenSubSections(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
-  };
-
-  const accentColors: any = {
-    0: { border: 'border-l-blue-500' },
-    1: { border: 'border-l-orange-500' },
-    2: { border: 'border-l-emerald-500' },
-    3: { border: 'border-l-purple-500' },
-  };
-
-  const renderSmsContent = (docs: any[]) => {
-    const structure: any = {};
-    docs.forEach(doc => {
-      const parts = doc.document.split('/');
-      const libraryIndex = parts.indexOf('library');
-      let pilarRaw = 'Otros', subRaw = 'General';
-
-      if (libraryIndex !== -1 && parts.length > libraryIndex + 3) {
-        pilarRaw = parts[libraryIndex + 2];
-        subRaw = parts[libraryIndex + 3];
-      } else if (libraryIndex !== -1 && parts.length > libraryIndex + 2) {
-        pilarRaw = 'General';
-        subRaw = parts[libraryIndex + 2];
-      } else {
-        pilarRaw = parts[parts.length - 2] || 'Library';
-        subRaw = 'Raiz';
-      }
-      
-      if (!structure[pilarRaw]) structure[pilarRaw] = {};
-      if (!structure[pilarRaw][subRaw]) structure[pilarRaw][subRaw] = [];
-      structure[pilarRaw][subRaw].push(doc);
-    });
-
-    return Object.keys(structure).sort().map(pilarKey => (
-      /* SECCIÓN DE PILAR (GESTION RIESGOS, etc) */
-      <div key={pilarKey} className="flex flex-col border-t first:border-t-0 border-slate-300 dark:border-gray-700/60 shadow-[inset_0_1px_3px_rgba(0,0,0,0.03)] dark:shadow-none">
-        <div className="flex items-center gap-2 px-6 py-2.5 bg-slate-200/60 dark:bg-white/[0.04]">
-          <FolderOpen className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-          <span className="text-[11px] font-bold uppercase tracking-wider text-slate-700 dark:text-gray-200">
-            {pilarKey.replace(/_/g, ' ')}
-          </span>
-        </div>
-
-        {Object.keys(structure[pilarKey]).sort().map(subKey => {
-          const sectionId = `${pilarKey}-${subKey}`;
-          const isOpen = openSubSections.includes(sectionId);
-          const subDocs = structure[pilarKey][subKey];
-
-          if (subKey === 'Raiz') {
-            return subDocs.map((doc: any) => (
-              <DocumentRow key={doc.id} doc={doc} onView={handleViewWithBuster} columnVisibility={columnVisibility} isSubItem={true} onDelete={onDelete} onRefresh={onRefresh} canManage={canManage} user={user} />
-            ));
-          }
-
-          return (
-            <div key={subKey} className="flex flex-col">
-              <button 
-                onClick={() => toggleSubSection(sectionId)}
-                className="flex items-center justify-between px-8 py-2.5 hover:bg-white dark:hover:bg-white/[0.02] transition-colors border-b border-slate-200 dark:border-gray-800/30"
-              >
-                <div className="flex items-center gap-2">
-                  {isOpen ? <ChevronDown className="h-3 w-3 text-slate-400" /> : <ChevronRight className="h-3 w-3 text-slate-400" />}
-                  <Layers3 className="h-3.5 w-3.5 text-slate-400" />
-                  <span className="text-[10px] font-bold text-slate-500 dark:text-gray-400 uppercase tracking-tight">
-                    {subKey.replace(/_/g, ' ')}
-                  </span>
-                </div>
-                <div className="flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-slate-100 dark:bg-gray-800/50 border border-slate-300 dark:border-gray-700">
-                  <Hash className="h-2.5 w-2.5 text-slate-500" />
-                  <span className="text-[10px] font-bold text-slate-600 dark:text-gray-300">{subDocs.length}</span>
-                </div>
-              </button>
-
-              {isOpen && (
-                <div className="flex flex-col bg-white dark:bg-transparent divide-y divide-slate-100 dark:divide-gray-800/20">
-                  {subDocs.map((doc: any) => (
-                    <DocumentRow key={doc.id} doc={doc} onView={handleViewWithBuster} columnVisibility={columnVisibility} isSubItem={true} onDelete={onDelete} onRefresh={onRefresh} canManage={canManage} user={user} />
-                  ))}
-                </div>
-              )}
-            </div>
-          );
-        })}
+export default function DocumentTable({ company, documents, onRefresh, onView, onDelete, canManage, isDipDirector, user }: DocumentTableProps) {
+  if (documents.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center py-16 text-center">
+        <FolderOpen className="h-12 w-12 text-slate-300 dark:text-slate-600 mb-4" />
+        <p className="text-sm font-bold text-slate-400 dark:text-slate-500">
+          No hay documentos en esta carpeta
+        </p>
       </div>
-    ));
-  };
+    );
+  }
 
   return (
-    <div className="flex flex-col gap-4">
-      {Object.keys(groupedDocuments).map((dept, index) => {
-        const isOpen = openDepts.includes(dept);
-        const docs = groupedDocuments[dept];
-        const color = accentColors[index % 4];
-        const isSMS = dept.toLowerCase().includes('seguridad operacional') || dept.toLowerCase().includes('sms');
-
-        return (
-          <div key={dept} className="bg-slate-50 dark:bg-[#0f1112] rounded-xl border border-slate-300 dark:border-gray-800/50 overflow-hidden shadow-sm">
-            <button 
-              onClick={() => toggleDept(dept)}
-              className={`flex items-center justify-between w-full p-4 border-l-4 ${color.border} bg-white dark:bg-gray-800/20 hover:bg-slate-50 dark:hover:bg-gray-800/40 transition-all border-b ${isOpen ? 'border-slate-200 dark:border-gray-800/50' : 'border-transparent'}`}
-            >
-              <div className="flex items-center gap-3">
-                <span className="text-sm md:text-base font-bold uppercase tracking-tight text-slate-800 dark:text-gray-100">
-                  {dept}
-                </span>
-                <span className="text-[10px] font-bold bg-blue-50 text-slate-900 dark:bg-blue-900/20 dark:text-blue-300 px-2 py-0.5 rounded-full border-2 border-blue-200 dark:border-blue-800/40">
-                  {docs.length}
-                </span>
-              </div>
-              {isOpen ? <ChevronDown className="h-4 w-4 text-slate-400" /> : <ChevronRight className="h-4 w-4 text-slate-400" />}
-            </button>
-
-            {isOpen && (
-              <div className="flex flex-col divide-y divide-slate-200 dark:divide-gray-800/10">
-                {isSMS ? renderSmsContent(docs) : docs.map((doc: any) => (
-                  <DocumentRow key={doc.id} doc={doc} onView={handleViewWithBuster} columnVisibility={columnVisibility} onDelete={onDelete} onRefresh={onRefresh} canManage={canManage} user={user} />
-                ))}
-              </div>
-            )}
-          </div>
-        );
-      })}
+    <div className="flex flex-col divide-y divide-slate-200 dark:divide-gray-800/10">
+      {documents.map((doc) => (
+        <DocumentRow
+          key={doc.id}
+          doc={doc}
+          onView={onView}
+          onDelete={onDelete}
+          onRefresh={onRefresh}
+          canManage={canManage}
+          isDipDirector={isDipDirector}
+          user={user}
+        />
+      ))}
     </div>
   );
 }

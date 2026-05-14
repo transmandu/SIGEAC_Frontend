@@ -2,22 +2,21 @@
 
 import { useState, useMemo, useEffect } from "react";
 import { useParams } from "next/navigation";
-import { MoreVertical, Trash2, QrCode, History, UploadCloud, Download } from "lucide-react";
+import { MoreVertical, Trash2, QrCode, History, UploadCloud, Download, Send } from "lucide-react";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
 import axiosInstance from "@/lib/axios";
 import { toast } from "sonner";
 
-// Componentes refactorizados
 import SecureViewer from "@/components/library/SecureVisualizer";
 import { HistoryPanel } from "@/components/library/VersionPanel";
 import { ShareQRDialog } from "@/components/library/ShareQRDialog";
+import RequestShareDialog from "@/components/library/RequestShareDialog";
 import { DeleteDocumentDialog } from "@/components/library/DeleteDocumentDialog";
 import { UploadVersionDialog } from "@/components/library/UploadVersionDialog";
 import { DownloadDocumentDialog } from "@/components/library/DownloadDocumentDialog";
 
-// --- INTERFACES PARA TYPESCRIPT ---
 interface Role {
   id: number;
   name: string;
@@ -45,67 +44,53 @@ interface Props {
   doc: any;
   user: User | null;
   canManage: boolean;
+  isDipDirector: boolean;
   onDelete: (id: number | string) => Promise<void>;
   onRefresh: () => Promise<void>;
 }
 
-export const LibraryDropdownActions = ({ doc, user, canManage, onDelete, onRefresh }: Props) => {
+export const LibraryDropdownActions = ({ doc, user, canManage, isDipDirector, onDelete, onRefresh }: Props) => {
   const params = useParams();
   const company = params.company as string;
 
-  // 🛡️ Estados de Visibilidad
   const [viewerOpen, setViewerOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
+  const [requestShareOpen, setRequestShareOpen] = useState(false);
   const [uploadOpen, setUploadOpen] = useState(false);
   const [downloadOpen, setDownloadOpen] = useState(false);
 
-  // 📊 Estados de Datos
   const [selectedVersionId, setSelectedVersionId] = useState<number | null>(null);
   const [versionList, setVersionList] = useState<any[]>([]);
   const [loadingVersions, setLoadingVersions] = useState(false);
 
-  // 🛡️ Lógica de Descarga Restrictiva (Sincronizada con Laravel)
   const canDownload = useMemo(() => {
     if (!user || !doc) return false;
-
-    // 1. VALIDACIÓN DE DEPARTAMENTO (REGLA PRIMARIA)
-    // Si el documento NO es de SMS, nadie puede descargarlo (el botón se oculta)
     const docDeptName = doc.department?.name?.toUpperCase() || "";
     const isSmsDoc = docDeptName.includes("SEGURIDAD OPERACIONAL") || docDeptName.includes("SMS");
-
     if (!isSmsDoc) return false;
 
-    // 2. VALIDACIÓN DE PERMISOS (Solo si el doc es de SMS)
-
-    // A. Verificación por ROL (SUPERUSER o ADMIN)
     const isSuperUser = user.roles?.some((role: Role) =>
       ['SUPERUSER', 'ADMIN', 'ADMINISTRADOR'].includes(role.name.toUpperCase())
     );
-
     if (isSuperUser) return true;
 
-    // B. Verificación por CARGO (DIRECTOR)
     const employeeData = user.employee;
     let isDirector = false;
-
     const checkJobTitle = (emp: Employee) => {
       const nameFromJob = emp.job_title?.name?.toUpperCase() || "";
       const nameFromPosition = emp.position?.toUpperCase() || "";
       return nameFromJob.includes('DIRECTOR') || nameFromPosition.includes('DIRECTOR');
     };
-
     if (Array.isArray(employeeData)) {
       isDirector = employeeData.some(emp => checkJobTitle(emp));
     } else if (employeeData) {
       isDirector = checkJobTitle(employeeData);
     }
-
     return isDirector;
   }, [doc, user]);
 
-  // 📜 Lógica para obtener versiones
   const handleFetchVersions = async () => {
     if (!company) return;
     setLoadingVersions(true);
@@ -122,7 +107,6 @@ export const LibraryDropdownActions = ({ doc, user, canManage, onDelete, onRefre
 
   const handleOpenShareQR = async () => {
     if (!company) return;
-
     if (versionList.length === 0) {
       setLoadingVersions(true);
       try {
@@ -154,11 +138,21 @@ export const LibraryDropdownActions = ({ doc, user, canManage, onDelete, onRefre
 
         <DropdownMenuContent align="end" className="w-52 bg-white dark:bg-[#1a1c1e] border-slate-200 dark:border-gray-700 text-slate-800 dark:text-white shadow-2xl">
 
-          {canManage && (
+          {canManage && isDipDirector && (
             <>
               <DropdownMenuItem onClick={handleOpenShareQR} className="gap-2 cursor-pointer">
                 <QrCode className={`h-4 w-4 text-blue-500 ${loadingVersions ? 'animate-spin' : ''}`} />
                 <span className="text-xs font-medium">Generar/Ver QR</span>
+              </DropdownMenuItem>
+              <div className="h-px bg-slate-200 dark:bg-gray-700 my-1" />
+            </>
+          )}
+
+          {canManage && !isDipDirector && (
+            <>
+              <DropdownMenuItem onClick={() => setRequestShareOpen(true)} className="gap-2 cursor-pointer">
+                <Send className="h-4 w-4 text-blue-500" />
+                <span className="text-xs font-medium">Solicitar Compartición</span>
               </DropdownMenuItem>
               <div className="h-px bg-slate-200 dark:bg-gray-700 my-1" />
             </>
@@ -171,7 +165,6 @@ export const LibraryDropdownActions = ({ doc, user, canManage, onDelete, onRefre
             </DropdownMenuItem>
           )}
 
-          {/* Botón de descarga condicional: Solo aparece si el Doc es de SMS y el usuario es Admin/Director */}
           {canDownload && (
             <DropdownMenuItem onClick={() => setDownloadOpen(true)} className="gap-2 cursor-pointer">
               <Download className="h-4 w-4 text-emerald-500" />
@@ -196,7 +189,6 @@ export const LibraryDropdownActions = ({ doc, user, canManage, onDelete, onRefre
         </DropdownMenuContent>
       </DropdownMenu>
 
-      {/* 🚀 COMPONENTES DE DIÁLOGO */}
       <DownloadDocumentDialog
         isOpen={downloadOpen}
         onClose={() => setDownloadOpen(false)}
@@ -212,12 +204,21 @@ export const LibraryDropdownActions = ({ doc, user, canManage, onDelete, onRefre
         onViewVersion={handleViewOldVersion}
       />
 
-      <ShareQRDialog
-        isOpen={shareOpen}
-        onClose={() => setShareOpen(false)}
-        doc={{ ...doc, versions: versionList }}
-        company={company}
-      />
+      {isDipDirector ? (
+        <ShareQRDialog
+          isOpen={shareOpen}
+          onClose={() => setShareOpen(false)}
+          doc={{ ...doc, versions: versionList }}
+          company={company}
+        />
+      ) : (
+        <RequestShareDialog
+          open={requestShareOpen}
+          onClose={() => setRequestShareOpen(false)}
+          doc={doc}
+          company={company}
+        />
+      )}
 
       <DeleteDocumentDialog
         isOpen={deleteOpen}

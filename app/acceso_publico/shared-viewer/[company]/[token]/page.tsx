@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useParams } from 'next/navigation';
-import { Loader2, ShieldCheck, Lock, Frown, RotateCcw } from 'lucide-react';
+import { Loader2, ShieldCheck, Lock, Frown, RotateCcw, Download } from 'lucide-react';
 import { Worker, Viewer } from '@react-pdf-viewer/core';
 import { defaultLayoutPlugin } from '@react-pdf-viewer/default-layout';
 import { Button } from "@/components/ui/button";
@@ -22,6 +22,8 @@ export default function PublicNativeViewerPage() {
   const [fileUrl, setFileUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [readOnly, setReadOnly] = useState<boolean>(true);
+  const [docTitle, setDocTitle] = useState<string>('');
   const activeUrlRef = useRef<string | null>(null);
 
   const defaultLayoutPluginInstance = defaultLayoutPlugin({
@@ -87,18 +89,37 @@ export default function PublicNativeViewerPage() {
     setLoading(true);
     setError(null);
     try {
-      const url = await libraryService.getFileBlob(company, token);
+      const [fileUrlResult, info] = await Promise.all([
+        libraryService.getFileBlob(company, token),
+        libraryService.getSharedInfo(company, token),
+      ]);
+
+      setReadOnly(info.read_only ?? true);
+      setDocTitle(info.title || '');
 
       if (activeUrlRef.current) {
         URL.revokeObjectURL(activeUrlRef.current);
       }
 
-      activeUrlRef.current = url;
-      setFileUrl(url);
+      activeUrlRef.current = fileUrlResult;
+      setFileUrl(fileUrlResult);
     } catch (err) {
       setError("No pudimos validar este documento. Es posible que el enlace haya expirado o no sea válido.");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDownload = async () => {
+    try {
+      const blobUrl = await libraryService.getFileBlob(company, token);
+      const a = document.createElement('a');
+      a.href = blobUrl;
+      a.download = `${docTitle || 'documento'}.pdf`;
+      a.click();
+      URL.revokeObjectURL(blobUrl);
+    } catch {
+      // silent
     }
   };
 
@@ -125,10 +146,22 @@ export default function PublicNativeViewerPage() {
             <ShieldCheck className="h-5 w-5 text-emerald-500" />
           </div>
           <div>
-            <h3 className="text-xs font-black uppercase tracking-[0.2em] text-white">Visor Público</h3>
+            <h3 className="text-xs font-black uppercase tracking-[0.2em] text-white">
+              {docTitle || 'Visor Público'}
+            </h3>
             <p className="text-[9px] text-gray-500 font-bold uppercase">Transmisión Protegida por SIGEAC</p>
           </div>
         </div>
+
+        {!readOnly && !loading && !error && (
+          <button
+            onClick={handleDownload}
+            className="flex items-center gap-2 px-4 py-2 text-[10px] font-bold uppercase tracking-widest text-white bg-blue-600 hover:bg-blue-700 rounded-xl transition-all active:scale-95 shadow-lg"
+          >
+            <Download className="h-4 w-4" />
+            Descargar
+          </button>
+        )}
       </div>
 
       {/* ÁREA DE CONTENIDO (Estirada al máximo) */}

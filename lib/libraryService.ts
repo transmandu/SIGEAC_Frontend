@@ -6,6 +6,7 @@ export interface Document {
     document: string;
     category_name: string;
     department_name: string;
+    folder_path: string | null;
     emission_date: string | null;
     expiration_date: string | null;
     status: 'vigente' | 'vencido' | 'no_aplica';
@@ -20,6 +21,13 @@ export interface ActivityLog {
     ip_address: string;
     accessed_at: string;   
     action?: string; 
+}
+
+export interface FolderNode {
+    id: string;
+    name: string;
+    path: string;
+    children: FolderNode[];
 }
 
 const libraryService = {
@@ -46,7 +54,7 @@ const libraryService = {
     /**
      * Elimina un documento por ID
      */
-    deleteDocument: async (company: string, id: number) => {
+    deleteDocument: async (company: string, id: number | string) => {
         const response = await axiosInstance.delete(`/${company}/library/documents/${id}`);
         return response.data;
     },
@@ -111,6 +119,72 @@ const libraryService = {
         const response = await axiosInstance.post(`/${company}/library/logs`, {
             document_id: documentId,
             action: action
+        });
+        return response.data;
+    },
+
+    getFolders: async (company: string, departmentId: number) => {
+        const response = await axiosInstance.get(`/${company}/library/folders`, {
+            params: { department_id: departmentId }
+        });
+        return response.data;
+    },
+
+    createFolder: async (company: string, data: { department_id: number; name: string; parent_id?: string }) => {
+        const response = await axiosInstance.post(`/${company}/library/folders`, data);
+        return response.data;
+    },
+
+    updateFolder: async (company: string, folderId: string, data: { department_id: number; name: string }) => {
+        const response = await axiosInstance.patch(`/${company}/library/folders/${folderId}`, data);
+        return response.data;
+    },
+
+    deleteFolder: async (company: string, folderId: string, departmentId: number) => {
+        const response = await axiosInstance.delete(`/${company}/library/folders/${folderId}`, {
+            params: { department_id: departmentId }
+        });
+        return response.data;
+    },
+
+    getSharedInfo: async (company: string, token: string) => {
+        const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000/api';
+        const response = await fetch(`${baseUrl}/${company}/library/shared/info/${encodeURIComponent(token)}`);
+        return response.json();
+    },
+
+    moveDocument: async (company: string, documentId: number, folderPath: string) => {
+        const response = await axiosInstance.patch(`/${company}/library/documents/${documentId}/move`, {
+            folder_path: folderPath
+        });
+        return response.data;
+    },
+
+    getShareRequests: async (company: string, params?: { status?: string }) => {
+        const response = await axiosInstance.get(`/${company}/library/share-requests`, { params });
+        return response.data;
+    },
+
+    createShareRequest: async (company: string, data: {
+        document_id: number;
+        version_id?: number;
+        shared_with_name?: string;
+        reason: string;
+        expires_in_hours: number;
+        read_only?: boolean;
+    }) => {
+        const response = await axiosInstance.post(`/${company}/library/share-requests`, data);
+        return response.data;
+    },
+
+    approveShareRequest: async (company: string, requestId: number) => {
+        const response = await axiosInstance.patch(`/${company}/library/share-requests/${requestId}/approve`);
+        return response.data;
+    },
+
+    rejectShareRequest: async (company: string, requestId: number, rejectionReason: string) => {
+        const response = await axiosInstance.patch(`/${company}/library/share-requests/${requestId}/reject`, {
+            rejection_reason: rejectionReason
         });
         return response.data;
     }
