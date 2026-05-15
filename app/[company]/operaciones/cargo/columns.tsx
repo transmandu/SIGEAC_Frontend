@@ -4,7 +4,7 @@ import { useDeleteCargoShipment } from "@/actions/cargo/actions";
 import { ColumnDef } from "@tanstack/react-table";
 import { CargoShipment } from "@/types";
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
-import { format } from "date-fns";
+import { format, parseISO, isValid } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Edit, FileText, Trash, MoreHorizontal } from "lucide-react";
 import Link from "next/link";
@@ -26,6 +26,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Badge } from "@/components/ui/badge";
 
 const ActionsCell = ({ row, isCurrentMonth, company, canWrite }: any) => {
   const shipment = row.original;
@@ -141,7 +142,13 @@ export const getColumns = (
     ),
     cell: ({ row }) => {
       const dateStr = row.original.registration_date;
-      const date = dateStr ? new Date(dateStr + "T00:00:00") : new Date();
+
+      if (!dateStr) return <div className="text-center">—</div>;
+
+      const date = parseISO(dateStr);
+
+      if (!isValid(date)) return <div className="text-center">—</div>;
+
       return <div className="text-center">{format(date, "dd/MM/yyyy")}</div>;
     },
   },
@@ -176,6 +183,52 @@ export const getColumns = (
           : "Sin asignar"}
       </div>
     ),
+  },
+  {
+    accessorKey: "manifest_status",
+    header: ({ column }) => (
+      <DataTableColumnHeader
+        column={column}
+        title="Estado"
+        className="justify-center"
+      />
+    ),
+    cell: ({ row }) => {
+      const status = row.original.manifest_status;
+      const config: Record<
+        string,
+        { label: string; variant: string; className: string }
+      > = {
+        pending: {
+          label: "Pendiente",
+          variant: "outline",
+          className: "text-muted-foreground",
+        },
+        partial: {
+          label: "Parcial",
+          variant: "warning",
+          className: "",
+        },
+        manifested: {
+          label: "Manifestado",
+          variant: "default",
+          className: "bg-green-600 hover:bg-green-600/80",
+        },
+        modified: {
+          label: "Modificado",
+          variant: "default",
+          className: "bg-orange-500 hover:bg-orange-500/80",
+        },
+      };
+      const c = config[status] || config.pending;
+      return (
+        <div className="text-center">
+          <Badge variant={c.variant as any} className={c.className}>
+            {c.label}
+          </Badge>
+        </div>
+      );
+    },
   },
   {
     accessorKey: "aircraft",
