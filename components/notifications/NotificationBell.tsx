@@ -15,12 +15,20 @@ import { useNotifications } from '@/hooks/notifications/useNotifications';
 import { useCompanyStore } from '@/stores/CompanyStore';
 
 import NotificationDropdown from './NotificationDropdown';
+import { useNotificationEffects } from '@/hooks/sistema/useNotificationEffects';
 
 export default function NotificationBell() {
   const { selectedCompany } = useCompanyStore();
-  const { unreadCount } = useNotifications(selectedCompany?.slug);
+  const { notifications, unreadCount } =
+    useNotifications(selectedCompany?.slug);
 
   const [open, setOpen] = useState(false);
+
+  useNotificationEffects({
+    notifications,
+    unreadCount,
+    open,
+  });
 
   return (
     <div className="relative">

@@ -3,7 +3,7 @@
 import { useNotifications } from '@/hooks/notifications/useNotifications';
 import { useCompanyStore } from '@/stores/CompanyStore';
 import NotificationItem from './NotificationItem';
-
+import { useRef, useEffect } from 'react';
 import { Separator } from '@/components/ui/separator';
 import { Inbox, CheckCheck } from 'lucide-react';
 
@@ -30,13 +30,31 @@ export default function NotificationDropdown({ onClose }: Props) {
   const { mutate: markAllAsRead, isPending } =
     useMarkAllNotificationsAsRead(selectedCompany?.slug!);
 
+  const dropdownRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (!dropdownRef.current) return;
+
+      if (!dropdownRef.current.contains(event.target as Node)) {
+        onClose?.();
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [onClose]);
+
   return (
     <>
       {/* overlay */}
       <div className="fixed inset-0 z-40" onClick={onClose} />
 
       {/* container */}
-      <div className="absolute right-0 mt-2 w-96 rounded-xl border bg-background shadow-2xl z-50 overflow-visible">
+      <div ref={dropdownRef} className="absolute right-0 mt-2 w-96 rounded-xl border bg-background shadow-2xl z-50 overflow-visible">
 
         {/* HEADER */}
 
