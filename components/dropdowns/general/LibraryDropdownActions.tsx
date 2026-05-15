@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useEffect } from "react";
 import { useParams } from "next/navigation";
-import { MoreVertical, Trash2, QrCode, History, UploadCloud, Download, Send } from "lucide-react";
+import { MoreVertical, Trash2, Share2, History, UploadCloud, Download } from "lucide-react";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
@@ -11,8 +11,7 @@ import { toast } from "sonner";
 
 import SecureViewer from "@/components/library/SecureVisualizer";
 import { HistoryPanel } from "@/components/library/VersionPanel";
-import { ShareQRDialog } from "@/components/library/ShareQRDialog";
-import RequestShareDialog from "@/components/library/RequestShareDialog";
+import ShareDialog from "@/components/library/ShareDialog";
 import { DeleteDocumentDialog } from "@/components/library/DeleteDocumentDialog";
 import { UploadVersionDialog } from "@/components/library/UploadVersionDialog";
 import { DownloadDocumentDialog } from "@/components/library/DownloadDocumentDialog";
@@ -57,7 +56,6 @@ export const LibraryDropdownActions = ({ doc, user, canManage, isDipDirector, on
   const [historyOpen, setHistoryOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
-  const [requestShareOpen, setRequestShareOpen] = useState(false);
   const [uploadOpen, setUploadOpen] = useState(false);
   const [downloadOpen, setDownloadOpen] = useState(false);
 
@@ -105,23 +103,6 @@ export const LibraryDropdownActions = ({ doc, user, canManage, isDipDirector, on
     }
   };
 
-  const handleOpenShareQR = async () => {
-    if (!company) return;
-    if (versionList.length === 0) {
-      setLoadingVersions(true);
-      try {
-        const response = await axiosInstance.get(`/${company}/library/documents/${doc.id}/versions`);
-        const versions = response.data.data.versions || response.data.data || [];
-        setVersionList(versions);
-      } catch (error) {
-        toast.error("Error al cargar versiones para el QR");
-      } finally {
-        setLoadingVersions(false);
-      }
-    }
-    setShareOpen(true);
-  };
-
   const handleViewOldVersion = (versionId: number) => {
     setSelectedVersionId(versionId);
     setViewerOpen(true);
@@ -138,21 +119,11 @@ export const LibraryDropdownActions = ({ doc, user, canManage, isDipDirector, on
 
         <DropdownMenuContent align="end" className="w-52 bg-white dark:bg-[#1a1c1e] border-slate-200 dark:border-gray-700 text-slate-800 dark:text-white shadow-2xl">
 
-          {canManage && isDipDirector && (
-            <>
-              <DropdownMenuItem onClick={handleOpenShareQR} className="gap-2 cursor-pointer">
-                <QrCode className={`h-4 w-4 text-blue-500 ${loadingVersions ? 'animate-spin' : ''}`} />
-                <span className="text-xs font-medium">Generar/Ver QR</span>
-              </DropdownMenuItem>
-              <div className="h-px bg-slate-200 dark:bg-gray-700 my-1" />
-            </>
-          )}
-
           {canManage && (
             <>
-              <DropdownMenuItem onClick={() => setRequestShareOpen(true)} className="gap-2 cursor-pointer">
-                <Send className="h-4 w-4 text-blue-500" />
-                <span className="text-xs font-medium">Solicitar Compartición</span>
+              <DropdownMenuItem onClick={() => setShareOpen(true)} className="gap-2 cursor-pointer">
+                <Share2 className="h-4 w-4 text-blue-500" />
+                <span className="text-xs font-medium">Compartir</span>
               </DropdownMenuItem>
               <div className="h-px bg-slate-200 dark:bg-gray-700 my-1" />
             </>
@@ -204,18 +175,12 @@ export const LibraryDropdownActions = ({ doc, user, canManage, isDipDirector, on
         onViewVersion={handleViewOldVersion}
       />
 
-      <ShareQRDialog
+      <ShareDialog
         isOpen={shareOpen}
         onClose={() => setShareOpen(false)}
-        doc={{ ...doc, versions: versionList }}
-        company={company}
-      />
-
-      <RequestShareDialog
-        open={requestShareOpen}
-        onClose={() => setRequestShareOpen(false)}
         doc={doc}
         company={company}
+        isDipDirector={isDipDirector}
       />
 
       <DeleteDocumentDialog

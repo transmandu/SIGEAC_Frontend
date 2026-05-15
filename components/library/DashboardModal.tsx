@@ -14,6 +14,7 @@ interface DashboardModalProps {
 }
 
 const CHART_COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ec4899', '#8b5cf6', '#06b6d4', '#f43f5e', '#84cc16'];
+const STATUS_COLORS = { vigente: '#10b981', vencido: '#f43f5e', no_aplica: '#3b82f6' };
 
 const DonutChart = ({ data, total }: { data: { label: string, value: number, color: string }[], total: number }) => {
   let currentAngle = 0;
@@ -157,6 +158,29 @@ export default function DashboardModal({ open, onClose, company }: DashboardModa
     ) ?? false;
   }, [user]);
 
+  const isDipDirector = useMemo(() => {
+    if (isSuperUser) return true;
+    if (!user) return false;
+    return user.employee?.some((emp: any) =>
+      emp.department?.acronym?.toUpperCase() === 'DIP'
+    ) ?? false;
+  }, [isSuperUser, user]);
+
+  const isDirector = useMemo(() => {
+    if (isSuperUser) return true;
+    return user?.employee?.some((emp: any) => {
+      const name = emp.job_title?.name || '';
+      return name.toUpperCase().includes('DIRECTOR');
+    }) ?? false;
+  }, [isSuperUser, user]);
+
+  const canViewCharts = isSuperUser || isDipDirector;
+  const isSingleDeptView = isDirector && !canViewCharts;
+
+  const userDeptName = useMemo(() => {
+    return user?.employee?.[0]?.department?.name ?? null;
+  }, [user]);
+
   useEffect(() => {
     if (!open) return;
     const fetchData = async () => {
@@ -181,12 +205,18 @@ export default function DashboardModal({ open, onClose, company }: DashboardModa
     fetchData();
   }, [open, company]);
 
+  const deptNames = useMemo(() => {
+    if (isSingleDeptView && userDeptName) {
+      return Object.keys(documents).filter(d => d.toUpperCase() === userDeptName.toUpperCase());
+    }
+    return Object.keys(documents);
+  }, [documents, isSingleDeptView, userDeptName]);
+
   const stats = useMemo(() => {
-    const deptNames = Object.keys(documents);
     const byDept = deptNames.map(dept => {
       const docs = documents[dept] || [];
       const shared = traceability.filter((t: any) => {
-        const dName = t.document?.department_name || t.department_name || t.department || '';
+        const dName = t.department_name || t.document?.department?.name || '';
         return dName.toUpperCase() === dept.toUpperCase();
       });
       const totalAccesses = shared.reduce((sum: number, s: any) => {
@@ -210,7 +240,7 @@ export default function DashboardModal({ open, onClose, company }: DashboardModa
     const pendingRequests = byDept.reduce((s, d) => s + d.pendingRequests, 0);
 
     return { byDept, totalDocs, totalShared, totalAccesses, pendingRequests };
-  }, [documents, traceability, shareRequests]);
+  }, [documents, traceability, shareRequests, deptNames]);
 
   const chartData = useMemo(() => {
     return stats.byDept.map((d, i) => ({
@@ -221,18 +251,63 @@ export default function DashboardModal({ open, onClose, company }: DashboardModa
     }));
   }, [stats]);
 
+  const statusChartData = useMemo(() => {
+    if (!isSingleDeptView || !userDeptName) return [];
+    const deptDocs = Object.entries(documents)
+      .filter(([name]) => name.toUpperCase() === userDeptName.toUpperCase())
+      .flatMap(([, docs]) => docs);
+
+    const vigente = deptDocs.filter(d => d.status === 'vigente').length;
+    const vencido = deptDocs.filter(d => d.status === 'vencido').length;
+    const noAplica = deptDocs.filter(d => d.status === 'no_aplica').length;
+
+    return [
+      { label: 'Vigentes', value: vigente, color: STATUS_COLORS.vigente },
+      { label: 'Vencidos', value: vencido, color: STATUS_COLORS.vencido },
+      { label: 'Permanentes', value: noAplica, color: STATUS_COLORS.no_aplica },
+    ].filter(d => d.value > 0);
+  }, [documents, isSingleDeptView, userDeptName]);
+
+  const topDocsChart = useMemo(() => {
+    if (!isSingleDeptView || !userDeptName) return [];
+    const deptShared = traceability.filter((t: any) => {
+      const dName = t.department_name || t.document?.department?.name || '';
+      return dName.toUpperCase() === userDeptName.toUpperCase();
+    });
+    const docAccessMap = new Map<string, number>();
+    deptShared.forEach((s: any) => {
+      const title = s.document_title || 'Documento';
+      const count = s.access_count !== undefined ? Number(s.access_count) : 1;
+      docAccessMap.set(title, (docAccessMap.get(title) || 0) + count);
+    });
+    return Array.from(docAccessMap.entries())
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5)
+      .map(([label, value], i) => ({
+        label: label.length > 15 ? label.substring(0, 15) + '...' : label,
+        value,
+        color: CHART_COLORS[i % CHART_COLORS.length],
+      }));
+  }, [traceability, isSingleDeptView, userDeptName]);
+
   const reqStats = useMemo(() => {
-    const total = shareRequests.length;
-    const approved = shareRequests.filter((r: any) => r.status === 'approved' || r.status === 'aprobada').length;
-    const rejected = shareRequests.filter((r: any) => r.status === 'rejected' || r.status === 'rechazada').length;
-    const pending = shareRequests.filter((r: any) => r.status === 'pending').length;
+    let filtered = shareRequests;
+    if (isSingleDeptView && userDeptName) {
+      filtered = shareRequests.filter((r: any) =>
+        r.requester_department_name?.toUpperCase() === userDeptName.toUpperCase()
+      );
+    }
+    const total = filtered.length;
+    const approved = filtered.filter((r: any) => r.status === 'approved' || r.status === 'aprobada').length;
+    const rejected = filtered.filter((r: any) => r.status === 'rejected' || r.status === 'rechazada').length;
+    const pending = filtered.filter((r: any) => r.status === 'pending').length;
     return { total, approved, rejected, pending };
-  }, [shareRequests]);
+  }, [shareRequests, isSingleDeptView, userDeptName]);
 
   const reqData = [
-    { label: 'Aprobadas', value: reqStats.approved, color: '#10b981' }, // emerald-500
-    { label: 'Pendientes', value: reqStats.pending, color: '#f59e0b' }, // amber-500
-    { label: 'Rechazadas', value: reqStats.rejected, color: '#f43f5e' }, // rose-500
+    { label: 'Aprobadas', value: reqStats.approved, color: '#10b981' },
+    { label: 'Pendientes', value: reqStats.pending, color: '#f59e0b' },
+    { label: 'Rechazadas', value: reqStats.rejected, color: '#f43f5e' },
   ];
 
   const cards = [
@@ -259,12 +334,17 @@ export default function DashboardModal({ open, onClose, company }: DashboardModa
     },
     {
       label: 'Solicitudes',
-      value: reqStats.pending,
+      value: reqStats.total,
       icon: Send,
       bgLight: 'bg-amber-50',
       iconColor: 'text-amber-500',
     },
   ];
+
+  const subtitleText = useMemo(() => {
+    if (isSingleDeptView && userDeptName) return `Análisis del departamento ${userDeptName}`;
+    return 'Análisis de interacción y volumen documental';
+  }, [isSingleDeptView, userDeptName]);
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
@@ -279,7 +359,7 @@ export default function DashboardModal({ open, onClose, company }: DashboardModa
                 Estadísticas de la Biblioteca
               </DialogTitle>
               <p className="text-[12px] font-medium text-slate-500 dark:text-slate-400">
-                Análisis de interacción y volumen documental
+                {subtitleText}
               </p>
             </div>
           </div>
@@ -294,8 +374,7 @@ export default function DashboardModal({ open, onClose, company }: DashboardModa
           ) : (
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
 
-              {/* Gráfica Circular: Documentos */}
-              {isSuperUser && (
+              {canViewCharts && chartData.length > 0 && (
                 <div className="col-span-1 lg:col-span-1 bg-white dark:bg-slate-900 rounded-[2rem] p-6 shadow-sm border border-slate-200/50 dark:border-white/5 flex flex-col justify-between">
                   <div>
                     <h3 className="text-[14px] font-black text-slate-800 dark:text-white tracking-tight">
@@ -319,20 +398,50 @@ export default function DashboardModal({ open, onClose, company }: DashboardModa
                 </div>
               )}
 
-              {/* Gráfica de Barras: Accesos */}
-              {isSuperUser && (
-                <div className="col-span-1 lg:col-span-2 bg-white dark:bg-slate-900 rounded-[2rem] p-6 shadow-sm border border-slate-200/50 dark:border-white/5">
-                  <h3 className="text-[14px] font-black text-slate-800 dark:text-white tracking-tight">
-                    Accesos Externos
-                  </h3>
-                  <p className="text-[11px] font-medium text-slate-400 mb-2">Interacciones vía QR</p>
+              {isSingleDeptView && statusChartData.length > 0 && (
+                <div className="col-span-1 lg:col-span-1 bg-white dark:bg-slate-900 rounded-[2rem] p-6 shadow-sm border border-slate-200/50 dark:border-white/5 flex flex-col justify-between">
+                  <div>
+                    <h3 className="text-[14px] font-black text-slate-800 dark:text-white tracking-tight">
+                      Estado de Documentos
+                    </h3>
+                    <p className="text-[11px] font-medium text-slate-400 mb-2">Vigencia en el departamento</p>
+                  </div>
 
-                  <VerticalBarChart data={chartData.map(d => ({ label: d.label, value: d.accessValue, color: d.color }))} />
+                  <DonutChart data={statusChartData} total={statusChartData.reduce((s, d) => s + d.value, 0)} />
+
+                  <div className="mt-4 flex flex-wrap gap-x-4 gap-y-2 justify-center">
+                    {statusChartData.map(d => (
+                      <div key={d.label} className="flex items-center gap-1.5">
+                        <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: d.color }} />
+                        <span className="text-[9px] font-bold text-slate-500">{d.label}: {d.value}</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               )}
 
-              {/* Medidor (Gauge): Estado de Solicitudes */}
-              {isSuperUser && (
+              {(canViewCharts || isSingleDeptView) && (
+                <div className={`${isSingleDeptView ? 'col-span-1 lg:col-span-2' : 'col-span-1 lg:col-span-2'} bg-white dark:bg-slate-900 rounded-[2rem] p-6 shadow-sm border border-slate-200/50 dark:border-white/5`}>
+                  <h3 className="text-[14px] font-black text-slate-800 dark:text-white tracking-tight">
+                    {isSingleDeptView ? 'Top Documentos Accedidos' : 'Accesos Externos'}
+                  </h3>
+                  <p className="text-[11px] font-medium text-slate-400 mb-2">
+                    {isSingleDeptView ? 'Documentos con más accesos vía QR' : 'Interacciones vía QR'}
+                  </p>
+
+                  {isSingleDeptView ? (
+                    topDocsChart.length > 0 ? (
+                      <VerticalBarChart data={topDocsChart} />
+                    ) : (
+                      <div className="flex items-center justify-center h-48 text-slate-400 text-sm font-bold">Sin accesos registrados</div>
+                    )
+                  ) : (
+                    <VerticalBarChart data={chartData.map(d => ({ label: d.label, value: d.accessValue, color: d.color }))} />
+                  )}
+                </div>
+              )}
+
+              {(canViewCharts || isSingleDeptView) && (
                 <div className="col-span-1 lg:col-span-1 bg-white dark:bg-slate-900 rounded-[2rem] p-6 shadow-sm border border-slate-200/50 dark:border-white/5 flex flex-col justify-between">
                   <div>
                     <h3 className="text-[14px] font-black text-slate-800 dark:text-white tracking-tight">

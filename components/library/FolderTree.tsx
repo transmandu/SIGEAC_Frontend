@@ -1,6 +1,6 @@
 'use client';
 
-import { memo, useState } from 'react';
+import { memo, useState, useEffect } from 'react';
 import { Folder, FolderOpen, ChevronRight, ChevronDown, MoreHorizontal, Pencil, Trash2, Building2, Loader2 } from 'lucide-react';
 import { FolderNode } from '@/lib/libraryService';
 import {
@@ -72,6 +72,7 @@ function FolderNodeRow({
   const isSelected = selectedFolderPath === node.path;
 
   const handleDrop = (e: React.DragEvent) => {
+    if (!canManage) return;
     e.preventDefault();
     e.stopPropagation();
     setDragOver(false);
@@ -83,12 +84,14 @@ function FolderNodeRow({
   };
 
   const handleDragOver = (e: React.DragEvent) => {
+    if (!canManage) return;
     e.preventDefault();
     e.stopPropagation();
     setDragOver(true);
   };
 
   const handleDragLeave = (e: React.DragEvent) => {
+    if (!canManage) return;
     e.preventDefault();
     e.stopPropagation();
     setDragOver(false);
@@ -189,6 +192,17 @@ function FolderTree({
     isMultiDept ? [] : departmentFolders.map(d => d.departmentName)
   );
 
+  useEffect(() => {
+    if (!isMultiDept && departmentFolders.length > 0) {
+      setExpandedDepts(departmentFolders.map(d => d.departmentName));
+      departmentFolders.forEach(d => {
+        if (d.folders.length === 0) {
+          onToggleDept?.(d.departmentId);
+        }
+      });
+    }
+  }, [departmentFolders, isMultiDept, onToggleDept]);
+
   const toggleDept = (name: string, id: number) => {
     setExpandedDepts(prev => {
       const isExpanding = !prev.includes(name);
@@ -209,48 +223,45 @@ function FolderTree({
 
         return (
           <div key={dept.departmentId}>
-            {isMultiDept && (
-              <div className={`flex items-center gap-1 w-full p-1 rounded-lg transition-all ${isSelected ? 'bg-blue-50 dark:bg-blue-900/20' : 'hover:bg-slate-100 dark:hover:bg-slate-800/50'} ${isDeptExpanded && !isSelected ? 'bg-slate-50 dark:bg-slate-800/30' : ''}`}>
+            <div className={`flex items-center gap-1 w-full p-1 rounded-lg transition-all ${isSelected ? 'bg-blue-50 dark:bg-blue-900/20' : 'hover:bg-slate-100 dark:hover:bg-slate-800/50'} ${!isSelected && isDeptExpanded ? 'bg-slate-50 dark:bg-slate-800/30' : ''}`}>
+              {isMultiDept && (
                 <button
                   onClick={(e) => { e.stopPropagation(); toggleDept(dept.departmentName, dept.departmentId); }}
                   className="p-1.5 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-md shrink-0 text-slate-500"
                 >
                   {isDeptExpanded || (dept.folders.length > 0 && !isLoading) ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
                 </button>
-                <button
-                  onClick={() => onSelect('/', dept.departmentName)}
-                  className={`flex items-center gap-2.5 flex-1 p-1.5 text-[14px] font-semibold text-left truncate ${isSelected ? 'text-blue-700 dark:text-blue-300' : 'text-slate-700 dark:text-slate-200'}`}
-                >
-                  {getDeptShape(index)}
-                  <span className="truncate">{dept.departmentName}</span>
-                  {isLoading && <Loader2 className="h-3.5 w-3.5 animate-spin shrink-0 ml-1 text-blue-500" />}
-                </button>
-              </div>
-            )}
+              )}
+              <button
+                onClick={() => onSelect('/', dept.departmentName)}
+                className={`flex items-center gap-2.5 flex-1 p-1.5 text-[14px] font-semibold text-left truncate ${isSelected ? 'text-blue-700 dark:text-blue-300' : 'text-slate-700 dark:text-slate-200'}`}
+              >
+                {getDeptShape(index)}
+                <span className="truncate" title={dept.departmentName}>{dept.departmentName}</span>
+                {isLoading && <Loader2 className="h-3.5 w-3.5 animate-spin shrink-0 ml-1 text-blue-500" />}
+              </button>
+            </div>
 
             {isDeptExpanded && (
-              <div className={isMultiDept ? 'ml-2.5 pl-2.5 border-l-[1.5px] border-slate-200 dark:border-slate-700 mt-1 mb-2' : ''}>
+              <div className="ml-2.5 pl-2.5 border-l-[1.5px] border-slate-200 dark:border-slate-700 mt-1 mb-2">
                 {isLoading && dept.folders.length === 0 ? (
                   <div className="flex items-center gap-2 px-2 py-1.5 text-[12px] text-slate-400 font-medium">
                     <Loader2 className="h-3 w-3 animate-spin" />
                     Cargando...
                   </div>
                 ) : (
-                  dept.folders.map(child => (
-                    <FolderNodeRow
-                      key={child.id}
-                      node={child}
-                      selectedFolderPath={selectedFolderPath}
-                      onSelect={onSelect}
-                      onRename={onRename}
-                      onDelete={onDelete}
-                      onDropDocument={onDropDocument}
-                      canManage={canManage}
-                      departmentId={dept.departmentId}
-                      departmentName={dept.departmentName}
-                      level={0}
-                    />
-                  ))
+                  <FolderNodeRow
+                    node={{ id: 'root', name: 'Raíz', path: '/', children: dept.folders }}
+                    selectedFolderPath={selectedFolderPath}
+                    onSelect={onSelect}
+                    onRename={onRename}
+                    onDelete={onDelete}
+                    onDropDocument={onDropDocument}
+                    canManage={canManage}
+                    departmentId={dept.departmentId}
+                    departmentName={dept.departmentName}
+                    level={0}
+                  />
                 )}
               </div>
             )}

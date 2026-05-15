@@ -80,6 +80,16 @@ const BibliotecaPage = () => {
     ) ?? false;
   }, [isSuperUser, user]);
 
+  const isDirector = useMemo(() => {
+    if (isSuperUser) return true;
+    return user?.employee?.some((emp: any) => {
+      const name = emp.job_title?.name || '';
+      return name.toUpperCase().includes('DIRECTOR');
+    }) ?? false;
+  }, [isSuperUser, user]);
+
+  const canViewDashboard = isSuperUser || isDirector;
+
   const isMultiDept = useMemo(() => {
     return isSuperUser || departments.length > 1;
   }, [isSuperUser, departments]);
@@ -181,15 +191,7 @@ const BibliotecaPage = () => {
     }
   }, [companySlug, initialLoad]);
 
-  useEffect(() => {
-    // Polling cada 15 segundos para las notificaciones de solicitudes
-    const interval = setInterval(() => {
-      if (companySlug) {
-        refreshPendingCount();
-      }
-    }, 15000);
-    return () => clearInterval(interval);
-  }, [companySlug, refreshPendingCount]);
+  // Polling eliminado — las notificaciones llegan vía WebSocket (useLibraryNotifications)
 
   useEffect(() => {
     setDepartmentFolders(prev => {
@@ -340,15 +342,17 @@ const BibliotecaPage = () => {
                       )}
                     </Button>
 
-                    <Button
-                      onClick={() => setDashboardOpen(true)}
-                      variant="outline"
-                      size="sm"
-                      className="w-fit flex items-center gap-1.5 rounded-xl border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:text-white font-bold text-[10px] uppercase tracking-widest px-5 h-10 shadow-sm transition-all active:scale-95"
-                    >
-                      <BarChart className="h-4 w-4" />
-                      Dashboard
-                    </Button>
+                    {canViewDashboard && (
+                      <Button
+                        onClick={() => setDashboardOpen(true)}
+                        variant="outline"
+                        size="sm"
+                        className="w-fit flex items-center gap-1.5 rounded-xl border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:text-white font-bold text-[10px] uppercase tracking-widest px-5 h-10 shadow-sm transition-all active:scale-95"
+                      >
+                        <BarChart className="h-4 w-4" />
+                        Dashboard
+                      </Button>
+                    )}
                   </>
                 )}
               </div>

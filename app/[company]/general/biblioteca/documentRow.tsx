@@ -103,7 +103,7 @@ export default function DocumentRow({ doc, onView, onDelete, onRefresh, canManag
 
   return (
     <div
-      draggable
+      draggable={canManage}
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
       className="group flex items-center gap-4 p-3 transition-colors border-l-2 border-l-transparent hover:border-l-blue-600 border-b border-slate-200 dark:border-transparent bg-white hover:bg-slate-100 dark:bg-transparent dark:hover:bg-white/5 cursor-grab active:cursor-grabbing"
