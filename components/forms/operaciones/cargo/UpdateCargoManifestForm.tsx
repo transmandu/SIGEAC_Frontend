@@ -9,46 +9,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { AlertCircle, Loader2, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import {
+  CargoManifest,
+  CargoManifestItem,
+  CargoShipmentItem,
+} from "@/types";
 
-// ─── Tipos ────────────────────────────────────────────────────────────────────
-
-interface ManifestShipmentItem {
-  id: number;
-  product_description: string;
-  units: number;
-  weight: number;
-  // Calculados por el backend en index() excluyendo la contribución del manifiesto actual
-  weight_available?: number;
-  units_available?: number;
-}
-
-interface ManifestItem {
-  id: number;
-  cargo_shipment_id: number;
-  cargo_shipment_item_id: number;
-  weight_in_manifest: number;
-  units_in_manifest: number;
-  shipment?: {
-    id: number;
-    guide_number: string;
-    client?: { name: string };
-    aircraft?: { acronym: string };
-    external_aircraft?: string;
-    total_weight: number;
-    weight_dispatched: number;
-    total_units: number;
-    units_dispatched: number;
-  };
-  shipment_item?: ManifestShipmentItem;
-}
-
-interface CargoManifest {
-  id: number;
-  manifest_number: string;
-  month: number;
-  year: number;
-  items: ManifestItem[];
-}
+// ─── Tipos Locales ────────────────────────────────────────────────────────────
 
 interface ItemState {
   weight: number;
@@ -94,15 +61,14 @@ export default function UpdateCargoManifestForm({
   // Al editar, ese valor ya incluye el máximo que puede tener este manifiesto
   // (porque excluye la contribución del manifiesto actual al calcular "otros").
 
-  const getAvailableWeight = (item: ManifestItem): number => {
-    const sItem = item.shipment_item;
+  const getAvailableWeight = (item: CargoManifestItem): number => {
+    const sItem = (item as any).shipment_item || item.shipmentItem;
     if (!sItem) return Math.max(0, Number(item.weight_in_manifest));
-    // weight_available ya viene del backend excluyendo este manifiesto
     return Math.max(0, Number(sItem.weight_available ?? sItem.weight));
   };
 
-  const getAvailableUnits = (item: ManifestItem): number => {
-    const sItem = item.shipment_item;
+  const getAvailableUnits = (item: CargoManifestItem): number => {
+    const sItem = (item as any).shipment_item || item.shipmentItem;
     if (!sItem) return Math.max(0, Number(item.units_in_manifest));
     return Math.max(0, Number(sItem.units_available ?? sItem.units));
   };
@@ -181,7 +147,7 @@ export default function UpdateCargoManifestForm({
   const groupedItems = useMemo(() => {
     const groups = new Map<
       number,
-      { shipment: ManifestItem["shipment"]; items: ManifestItem[] }
+      { shipment: CargoManifestItem["shipment"]; items: CargoManifestItem[] }
     >();
     manifest.items?.forEach((item) => {
       if (!groups.has(item.cargo_shipment_id)) {
@@ -325,7 +291,8 @@ export default function UpdateCargoManifestForm({
                       isRemoved && "line-through",
                     )}
                   >
-                    {item.shipment_item?.product_description ??
+                    {(item as any).shipment_item?.product_description ??
+                      item.shipmentItem?.product_description ??
                       `Ítem #${shipmentItemId}`}
                   </span>
 
