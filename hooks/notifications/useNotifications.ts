@@ -1,32 +1,42 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useEffect } from 'react';
+import { useCallback } from 'react';
 import { fetchNotifications } from './fetchNotifications';
 
 export const useNotifications = (company?: string) => {
   const queryClient = useQueryClient();
-  const normalizedCompany = company ?? null;
+
+  const normalizedCompany = company ?? '';
 
   const query = useQuery({
     queryKey: ['notifications', normalizedCompany],
 
-    queryFn: () => fetchNotifications(normalizedCompany as string),
+    queryFn: () => fetchNotifications(normalizedCompany),
 
     enabled: !!normalizedCompany,
 
-    // IMPORTANTE: evita refetch innecesario al montar/desmontar
-    staleTime: 1000 * 60, // 1 minuto “considerado fresco”
+    /**
+     * Mantiene datos "frescos" poco tiempo
+     * para que React Query no se quede pegado demasiado
+     */
+    staleTime: 1000 * 10, // 10s
 
-    // No polling fijo (esto era lo que te estaba generando tráfico innecesario)
-    refetchInterval: false,
+    /**
+     * 🔥 CLAVE: polling ligero (fallback real-time sin WebSockets)
+     * 15–20s es un estándar razonable
+     */
+    refetchInterval: 15000,
 
-    // Refetch solo cuando el usuario vuelve a la pestaña
+    /**
+     * Refetch cuando el usuario vuelve a la pestaña
+     */
     refetchOnWindowFocus: true,
 
-    // Evita refetch al reconectar si no quieres tráfico extra
+    /**
+     * Evita refetch agresivo en reconexiones si no quieres ruido
+     */
     refetchOnReconnect: true,
   });
 
-  // Derivados
   const notifications = query.data ?? [];
 
   const unreadCount = notifications.reduce(
@@ -34,15 +44,28 @@ export const useNotifications = (company?: string) => {
     0
   );
 
-  const latestNotification = notifications.length > 0 ? notifications[0] : null;
+  const latestNotification = notifications[0] ?? null;
 
-  // 🔥 Estrategia clave SIN websocket:
-  // refetch manual solo cuando el usuario abre el dropdown
-  const refetchOnOpen = () => {
-    if (normalizedCompany) {
-      query.refetch();
-    }
-  };
+  /**
+   * 🔥 Acción manual optimizada (dropdown open, bell click, etc.)
+   */
+  const refetchOnOpen = useCallback(() => {
+    if (!normalizedCompany) return;
+
+    queryClient.invalidateQueries({
+      queryKey: ['notifications', normalizedCompany],
+    });
+  }, [queryClient, normalizedCompany]);
+
+  /**
+   * 🔥 helper global (lo usarás desde mutations)
+   * esto es lo que realmente soluciona tu problema de "no actualiza"
+   */
+  const invalidateNotifications = useCallback(() => {
+    queryClient.invalidateQueries({
+      queryKey: ['notifications'],
+    });
+  }, [queryClient]);
 
   return {
     ...query,
@@ -50,5 +73,6 @@ export const useNotifications = (company?: string) => {
     unreadCount,
     latestNotification,
     refetchOnOpen,
+    invalidateNotifications,
   };
 };
