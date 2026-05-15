@@ -3,7 +3,7 @@
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import { useParams } from "next/navigation";
 import { useGetCargoShipmentById } from "@/hooks/operaciones/cargo/useGetCargoShipmentById";
-import { format } from "date-fns";
+import { format, isValid, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -75,6 +75,9 @@ export default function CargoDetailsPage() {
     (acc, curr) => acc + Number(curr.units),
     0,
   );
+  const registrationDate = shipment.registration_date
+    ? parseISO(shipment.registration_date)
+    : null;
   const totalWeight = shipment.items.reduce(
     (acc, curr) => acc + Number(curr.weight),
     0,
@@ -123,11 +126,11 @@ export default function CargoDetailsPage() {
                   Fecha de Registro
                 </p>
                 <p className="font-medium text-sm">
-                  {format(
-                    new Date(shipment.registration_date + "T00:00:00"),
-                    "dd 'de' MMMM, yyyy",
-                    { locale: es },
-                  )}
+                  {registrationDate && isValid(registrationDate)
+                    ? format(registrationDate, "dd 'de' MMMM, yyyy", {
+                        locale: es,
+                      })
+                    : "—"}
                 </p>
               </div>
               <div className="grid grid-cols-2 gap-2">

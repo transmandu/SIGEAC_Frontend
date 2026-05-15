@@ -17,7 +17,6 @@ import { useCompanyStore } from '@/stores/CompanyStore'
 import { DataTable } from './data-table'
 import { getColumns } from './columns'
 import TransitToolbar from './_components/TransitToolBar'
-import TransitPermissionDenied from './_components/TransitPermissionDenied'
 import { useTransitArticles } from './hooks/useTransitArticles'
 import type { TransitStatusFilter } from './types'
 import TransitSubRow from './_components/TransitSubRow'
@@ -34,7 +33,6 @@ const EnTransitoPage = () => {
     totalReception,
     isLoading,
     isError,
-    canView,
   } = useTransitArticles({ status })
   const filteredArticles = useMemo(() => {
     if (!deferredSearch.trim()) return articles
@@ -72,10 +70,6 @@ const EnTransitoPage = () => {
         </div>
       </ContentLayout>
     )
-  }
-
-  if (!canView) {
-    return <TransitPermissionDenied />
   }
 
   return (

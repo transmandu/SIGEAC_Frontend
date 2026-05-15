@@ -81,7 +81,7 @@ const config = {
         planeBg1: "url('/plane1.jpg')",
         planeBg2: "url('/plane2.jpg')",
         clouds: "url('/clouds.jpg')",
-        night: "url('/night.jpg')",
+        night: "url('/night.jpeg')",
         plane: "url('/plane3.png')",
         notFound: "url('/404.avif')",
       },

@@ -19,6 +19,8 @@ export function buildSettingsGroup({ pathname }: MenuContext): Group {
                     "COORDINADOR_SMS",
                     "GERENTE_SMS",
                     "EJECUTIVO_RESPONSABLE",
+                    "JEFE_COMPRAS",
+                    "ANALISTA_COMPRAS",
                 ],
                 submenus: [
                     {

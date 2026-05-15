@@ -12,6 +12,15 @@ const AccountPage = () => {
   if (loading) {
     return <LoadingPage />
   }
+  if (!user) {
+    return (
+      <ContentLayout title="Cuenta">
+        <div className="flex items-center justify-center min-h-[300px] text-sm text-muted-foreground">
+          Sesión finalizada
+        </div>
+      </ContentLayout>
+    )
+  }
   return (
     <ContentLayout title='Cuenta'>
       <div className='space-y-3 mb-12'>
@@ -19,8 +28,8 @@ const AccountPage = () => {
         <p className='text-sm text-muted-foreground text-center'>Aquí puede ajustar la información de su cuenta, su nombre de usuario, contraseña, etc.</p>
       </div>
       <div className='flex flex-col md:flex-row items-center justify-center gap-12'>
-        <UserInfoCard user={user!} />
-        <UserInfoTabs user={user!} />
+        <UserInfoCard user={user} />
+        <UserInfoTabs user={user} />
       </div>
     </ContentLayout>
   )

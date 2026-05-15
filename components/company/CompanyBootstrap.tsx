@@ -3,25 +3,26 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Plane } from "lucide-react";
+
 import { useAuth } from "@/contexts/AuthContext";
 import { useGetUserLocationsByCompanyId } from "@/hooks/sistema/usuario/useGetUserLocationsByCompanyId";
 import { useCompanyStore } from "@/stores/CompanyStore";
+
 import CompanySelect from "@/components/selects/CompanySelect";
 
 const CompanyBootstrap = () => {
   const router = useRouter();
+  const navigatingRef = useRef(false);
+  const resolvedRef = useRef(false);
+  const companyAutoSelectedRef = useRef(false);
 
   const { user, loading: userLoading } = useAuth();
-  const [ready, setReady] = useState(false);
-  const navigatingRef = useRef(false);
-  const hydratedRef = useRef(false);
 
   const {
     selectedCompany,
     selectedStation,
     setSelectedCompany,
     setSelectedStation,
-    initFromLocalStorage,
     reset,
   } = useCompanyStore();
 
@@ -30,33 +31,71 @@ const CompanyBootstrap = () => {
     isPending: locationsLoading,
   } = useGetUserLocationsByCompanyId();
 
+  const [hydrated, setHydrated] = useState(false);
+
+  /**
+   * HYDRATION SEGURA
+   */
   useEffect(() => {
-    const init = () => {
-      initFromLocalStorage();
-      setReady(true);
-      hydratedRef.current = true;
+    const unsub = useCompanyStore.persist.onFinishHydration(() =>
+      setHydrated(true)
+    );
+
+    if (useCompanyStore.persist.hasHydrated()) {
+      setHydrated(true);
+    }
+
+    return () => unsub();
+  }, []);
+
+  /**
+   * BOOTSTRAP
+   */
+  useEffect(() => {
+    if (!hydrated || userLoading || !user) return;
+    if (navigatingRef.current || resolvedRef.current) return;
+
+    /**
+     * HISTORIAL (local dentro del effect para evitar deps)
+     */
+    const getHistory = () => {
+      if (typeof window === "undefined") return {};
+
+      try {
+        return JSON.parse(
+          localStorage.getItem("company-station-history") || "{}"
+        );
+      } catch {
+        return {};
+      }
     };
 
-    init();
-  }, [initFromLocalStorage]);
+    const saveHistory = (
+      companyId: number | string,
+      stationId: string
+    ) => {
+      if (typeof window === "undefined") return;
 
-  useEffect(() => {
+      const history = getHistory();
+
+      history[String(companyId)] = stationId;
+
+      localStorage.setItem(
+        "company-station-history",
+        JSON.stringify(history)
+      );
+    };
+
     const bootstrap = async () => {
-      if (
-        !ready ||
-        userLoading ||
-        !user ||
-        navigatingRef.current ||
-        !hydratedRef.current
-      )
-        return;
-
+      /**
+       * CASO 1: sesión restaurada válida
+       */
       if (selectedCompany && selectedStation) {
-        const companyStillExists = user.companies?.some(
+        const companyExists = user.companies?.some(
           (c) => c.id === selectedCompany.id
         );
 
-        if (!companyStillExists) {
+        if (!companyExists) {
           reset();
           return;
         }
@@ -64,56 +103,87 @@ const CompanyBootstrap = () => {
         try {
           const locations = await getLocations(selectedCompany.id);
 
-          const stationStillExists = locations.some(
-            (l) => l.id.toString() === selectedStation
-          );
-
-          if (stationStillExists) {
-            navigatingRef.current = true;
-
-            router.replace(
-              `/${selectedCompany.slug}/dashboard`
-            );
-
+          if (!locations?.length) {
+            reset();
             return;
           }
 
-          reset();
+          const stationExists = locations.some(
+            (l) => l.id.toString() === selectedStation
+          );
+
+          if (!stationExists) {
+            reset();
+            return;
+          }
+
+          navigatingRef.current = true;
+
+          router.replace(`/${selectedCompany.slug}/dashboard`);
+          return;
         } catch {
           reset();
+          return;
         }
       }
 
-      if (user.companies?.length === 1) {
-        const onlyCompany = user.companies[0];
-
-        setSelectedCompany(onlyCompany);
-
-        try {
-          const locations = await getLocations(onlyCompany.id);
-
-          if (locations.length === 1) {
-            const onlyLocation = locations[0];
-
-            setSelectedStation(
-              onlyLocation.id.toString()
-            );
-
-            navigatingRef.current = true;
-
-            router.replace(
-              `/${onlyCompany.slug}/dashboard`
-            );
-          }
-        } catch (error) {
-          console.error(error);
+      /**
+       * CASO 2: auto-select company única
+       */
+      if (!selectedCompany) {
+        if (
+          user.companies?.length === 1 &&
+          !companyAutoSelectedRef.current
+        ) {
+          companyAutoSelectedRef.current = true;
+          setSelectedCompany(user.companies[0]);
         }
+        return;
+      }
+
+      const company = selectedCompany;
+
+      const companyExists = user.companies?.some(
+        (c) => c.id === company.id
+      );
+
+      if (!companyExists) {
+        reset();
+        return;
+      }
+
+      try {
+        const locations = await getLocations(company.id);
+
+        if (!locations?.length) return;
+
+        /**
+         * CASO A: solo 1 estación
+         */
+        if (locations.length === 1) {
+          const station = locations[0].id.toString();
+
+          setSelectedStation(station);
+          saveHistory(company.id, station);
+
+          navigatingRef.current = true;
+
+          router.replace(`/${company.slug}/dashboard`);
+          return;
+        }
+
+        /**
+         * CASO B: múltiples estaciones → esperar selección manual
+         */
+        resolvedRef.current = true;
+      } catch (error) {
+        console.error(error);
       }
     };
 
     bootstrap();
   }, [
-    ready,
+    hydrated,
     user,
     userLoading,
     selectedCompany,
@@ -125,66 +195,37 @@ const CompanyBootstrap = () => {
     router,
   ]);
 
-  useEffect(() => {
-    if (
-      selectedCompany &&
-      selectedStation &&
-      ready &&
-      !userLoading &&
-      !navigatingRef.current
-    ) {
-      navigatingRef.current = true;
-
-      router.replace(
-        `/${selectedCompany.slug}/dashboard`
-      );
-    }
-  }, [
-    selectedCompany,
-    selectedStation,
-    ready,
-    userLoading,
-    router,
-  ]);
-
+  /**
+   * LOADING
+   */
   if (
-    !ready ||
+    !hydrated ||
     userLoading ||
     locationsLoading ||
-    !hydratedRef.current ||
     navigatingRef.current
   ) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen w-full bg-background">
-        
         <div className="relative flex flex-col items-center gap-4">
-
-          {/* Avión animado */}
           <div className="relative">
             <Plane className="w-10 h-10 text-primary animate-bounce" />
-
-            {/* glow sutil */}
             <div className="absolute inset-0 blur-xl opacity-30 bg-primary rounded-full scale-150" />
           </div>
 
-          {/* Texto */}
           <div className="text-center space-y-1">
-            <p className="text-sl font-medium text-foreground">
+            <p className="text-sm font-medium text-foreground">
               Preparando tu entorno
             </p>
-            <p className="text-xl text-muted-foreground">
+            <p className="text-sm text-muted-foreground">
               Cargando configuración del sistema...
             </p>
           </div>
 
-          {/* barra sutil de progreso */}
           <div className="w-40 h-1 bg-muted rounded-full overflow-hidden">
             <div className="h-full w-1/2 bg-primary animate-pulse rounded-full" />
           </div>
-
         </div>
       </div>
-
     );
   }
 

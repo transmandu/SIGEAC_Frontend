@@ -89,7 +89,7 @@ function DataTableInner<TData, TValue>({
       >
         <Table>
 
-          <TableHeader className="sticky top-0 z-10">
+          <TableHeader className="sticky top-0">
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow
                 key={headerGroup.id}

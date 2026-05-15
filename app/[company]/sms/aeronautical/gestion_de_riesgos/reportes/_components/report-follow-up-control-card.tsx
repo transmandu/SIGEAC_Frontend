@@ -1,6 +1,7 @@
 "use client";
 
 import { Download, File } from "lucide-react";
+import Image from "next/image";
 
 import { FileServer } from "@/components/misc/FileServer";
 import { Button } from "@/components/ui/button";
@@ -40,6 +41,7 @@ export function ReportFollowUpControlCard({
                     {control.description || "Control de seguimiento sin descripción"}
                 </CardDescription>
             </CardHeader>
+
             <CardContent className="space-y-4">
                 <DetailGrid items={buildControlDetails(control)} />
 
@@ -48,6 +50,7 @@ export function ReportFollowUpControlCard({
                         <h4 className="text-sm font-semibold text-muted-foreground">
                             Imagen del control
                         </h4>
+
                         <FileServer path={imagePath} company={company} type="file">
                             {(url, isLoading, hasError) => (
                                 <div className="space-y-3">
@@ -65,10 +68,12 @@ export function ReportFollowUpControlCard({
                                         ) : null}
 
                                         {!isLoading && !hasError && url ? (
-                                            <img
+                                            <Image
                                                 src={url}
                                                 alt={`Imagen control ${controlIndex + 1}`}
-                                                className="h-full w-full object-contain"
+                                                fill
+                                                className="object-contain"
+                                                unoptimized
                                             />
                                         ) : null}
                                     </div>
@@ -99,6 +104,7 @@ export function ReportFollowUpControlCard({
                         <h4 className="text-sm font-semibold text-muted-foreground">
                             Documento del control
                         </h4>
+
                         <FileServer path={control.document} company={company} type="file">
                             {(url, isLoading, hasError) => (
                                 <div className="space-y-3">

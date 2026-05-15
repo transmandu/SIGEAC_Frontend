@@ -35,14 +35,19 @@ export function PartSummaryCard({ part, index, level }: {
                         ) : (
                             <FileText className="h-4 w-4 text-green-500" />
                         )}
-                        <span className="font-medium">
-                            {part.part_name || `Parte ${index + 1}`}
-                        </span>
-                        {part.part_number && (
-                            <Badge variant="outline" className="ml-2">
-                                {part.part_number}
-                            </Badge>
-                        )}
+                        <div className="flex items-center gap-2">
+                            <span className={`font-medium ${part.removed_date ? 'line-through text-muted-foreground' : ''}`}>
+                                {part.part_name || `Parte ${index + 1}`}
+                            </span>
+                            {part.part_number && (
+                                <Badge variant="outline" className="ml-2">
+                                    {part.part_number}
+                                </Badge>
+                            )}
+                            {part.removed_date && (
+                                <Badge variant="destructive" className="ml-2 text-xs">Removido</Badge>
+                            )}
+                        </div>
                     </div>
                 </div>
 

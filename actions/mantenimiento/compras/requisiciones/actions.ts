@@ -121,6 +121,7 @@ export const useUpdateRequisitionStatus = () => {
       mutationFn: async ({id, data, company}: {id: number, data: {
         status: string,
         updated_by: string,
+        observation?: string | null
       }, company: string}) => {
           await axiosInstance.put(`/${company}/requisition-order-update-status/${id}`, data)
         },

@@ -2,7 +2,7 @@
 
 import { useMemo, useState, useEffect } from 'react'
 import GroupRow from './GroupRow'
-import GroupPagination from './GroupPagination'
+import GroupPagination from '../../../../../components/misc/GroupPagination'
 
 type BaseRow = {
   id: number

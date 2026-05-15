@@ -39,7 +39,12 @@ const Logo = ({
       width={width}
       height={height}
       priority
-      className={cn("w-auto h-auto", className)}
+      draggable={false}
+      onContextMenu={(e) => e.preventDefault()}
+      className={cn(
+        "w-auto h-auto select-none pointer-events-none",
+        className
+      )}
     />
   );
 };

@@ -12,10 +12,9 @@ const nextConfig = {
         port: "81",
         pathname: "/api/**",
       },
-      {
-        protocol: "https",
-        hostname: process.env.NEXT_PUBLIC_HOSTNAME,
-      },
+      ...(process.env.NEXT_PUBLIC_HOSTNAME
+        ? [{ protocol: "https", hostname: process.env.NEXT_PUBLIC_HOSTNAME }]
+        : []),
     ],
     dangerouslyAllowSVG: true,
     unoptimized: false,

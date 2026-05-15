@@ -20,6 +20,8 @@ type Props = {
   setSearch: (value: string) => void
   status: string
   setStatus: (value: string) => void
+  groupBy: string
+  setGroupBy: (value: string) => void
   placeholder?: string
 }
 
@@ -28,6 +30,8 @@ const QuotesToolBar = ({
   setSearch,
   status,
   setStatus,
+  groupBy,
+  setGroupBy,
   placeholder = 'Buscar cotizaciones...',
 }: Props) => {
   return (
@@ -119,6 +123,65 @@ const QuotesToolBar = ({
 
             <SelectItem value="RECHAZADA">
               Rechazada
+            </SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+      {/* GROUP FILTER */}
+      <div className="relative">
+        <SlidersHorizontal
+          className="
+            pointer-events-none
+            absolute left-2.5 top-1/2
+            -translate-y-1/2
+            z-10
+            size-3.5
+            text-muted-foreground
+          "
+        />
+
+        <Select
+          value={groupBy}
+          onValueChange={setGroupBy}
+        >
+          <SelectTrigger
+            className="
+              h-8 w-[220px]
+              pl-8
+              text-xs
+
+              bg-white/80 dark:bg-slate-900/60
+
+              border-slate-200/60
+              dark:border-slate-700/60
+
+              transition-colors
+
+              focus:ring-1
+              focus:ring-[#439A97]/40
+
+              data-[placeholder]:text-muted-foreground
+            "
+          >
+            <SelectValue placeholder="Agrupar por" />
+          </SelectTrigger>
+
+          <SelectContent
+            className="
+              border-slate-200/60
+              dark:border-slate-700/60
+            "
+          >
+            <SelectItem value="NONE">
+              Sin agrupación
+            </SelectItem>
+
+            <SelectItem value="requisition_order">
+              Solicitud de Compra
+            </SelectItem>
+
+            <SelectItem value="vendor">
+              Proveedor
             </SelectItem>
           </SelectContent>
         </Select>

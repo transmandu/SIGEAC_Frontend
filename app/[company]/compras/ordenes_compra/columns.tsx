@@ -101,12 +101,12 @@ export const getColumns = (
 
     header: ({ column }) => (
       <div className="flex justify-center w-full">
-        <DataTableColumnHeader column={column} title="Fecha" />
+        <DataTableColumnHeader column={column} title="Fecha de Creación" />
       </div>
     ),
 
     meta: {
-      title: "Fecha",
+      title: "Fecha de Creación",
     },
 
     cell: ({ row }) => (

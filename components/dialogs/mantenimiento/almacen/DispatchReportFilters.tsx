@@ -2,7 +2,6 @@
 
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-
 import {
   Calendar as CalendarIcon,
   AlertCircle,
@@ -12,13 +11,10 @@ import {
   CalendarDays,
   CalendarX
 } from "lucide-react";
-
 import { useState, useMemo } from "react";
-
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Calendar } from "@/components/ui/calendar";
-
 import {
   Select,
   SelectContent,
@@ -26,20 +22,17 @@ import {
   SelectTrigger,
   SelectValue
 } from "@/components/ui/select";
-
 import {
   Popover,
   PopoverContent,
   PopoverTrigger
 } from "@/components/ui/popover";
-
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-
 import { cn } from "@/lib/utils";
 
 /* ---------------- TYPES ---------------- */
@@ -51,36 +44,32 @@ interface Props {
   endDate?: Date;
   setStartDate: (d?: Date) => void;
   setEndDate: (d?: Date) => void;
-
   aircraft: string | null;
   setAircraft: (v: string | null) => void;
   aircrafts?: any[];
   isLoadingAircrafts?: boolean;
-
+  workOrder: string | null;
+  setWorkOrder: (v: string | null) => void;
+  workOrders?: { id: number; work_order: string; work_order_id: number | null }[];
+  isLoadingWorkOrders?: boolean;
   departmentId: string | null;
   setDepartmentId: (v: string | null) => void;
   departments?: any[];
   isLoadingDepartments?: boolean;
-
   authorizedEmployeeId: string | null;
   setAuthorizedEmployeeId: (v: string | null) => void;
   authorizedEmployees?: any[];
   isLoadingEmployees?: boolean;
-
   thirdPartyId: string | null;
   setThirdPartyId: (v: string | null) => void;
   thirdParties?: any[];
   isLoadingThirdParties?: boolean;
-
   dispatchType: DispatchType | null;
   setDispatchType: (v: DispatchType | null) => void;
-
   isDateRangeInvalid: boolean;
-
-  // ================= ARTÍCULOS (NUEVO) =================
+  isPlanificacionOnlyFilters: boolean;
   articles?: any[];
   isLoadingArticles?: boolean;
-
   articleFilters: {
     part_number: string;
     alternative_part_number: string;
@@ -89,7 +78,6 @@ interface Props {
     variant_type: string;
     brand_model: string;
   };
-
   setArticleFilters: (v: any) => void;
 }
 
@@ -100,46 +88,40 @@ export function DispatchReportFilters({
   endDate,
   setStartDate,
   setEndDate,
-
   aircraft,
   setAircraft,
   aircrafts,
   isLoadingAircrafts,
-
+  workOrder,
+  setWorkOrder,
+  workOrders = [],
+  isLoadingWorkOrders,
   departmentId,
   setDepartmentId,
   departments,
   isLoadingDepartments,
-
   authorizedEmployeeId,
   setAuthorizedEmployeeId,
   authorizedEmployees,
   isLoadingEmployees,
-
   thirdPartyId,
   setThirdPartyId,
   thirdParties,
   isLoadingThirdParties,
-
   dispatchType,
   setDispatchType,
-
   isDateRangeInvalid,
-
-  // ================= ARTÍCULOS =================
+  isPlanificacionOnlyFilters,
   articles = [],
   isLoadingArticles,
   articleFilters,
   setArticleFilters
 }: Props) {
   const today = new Date();
-
   const [openGeneral, setOpenGeneral] = useState(false);
   const [openItems, setOpenItems] = useState(false);
-
   const [openStartDate, setOpenStartDate] = useState(false);
   const [openEndDate, setOpenEndDate] = useState(false);
-
   const [partNumberSearch, setPartNumberSearch] = useState("");
   const [altPartSearch, setAltPartSearch] = useState("");
   const [descriptionSearch, setDescriptionSearch] = useState("");
@@ -200,11 +182,11 @@ export function DispatchReportFilters({
   }, [articles]);
 
   const uniqueOTs = useMemo(() => {
-    const map = new Map();
+    const set = new Set<string>();
     (articles ?? []).forEach((a: any) => {
-      if (a?.batch_id) map.set(a.batch_id, a);
+      if (a?.work_order) set.add(String(a.work_order));
     });
-    return Array.from(map.values());
+    return Array.from(set);
   }, [articles]);
 
   const safeValue = (value: any) => {
@@ -220,26 +202,35 @@ export function DispatchReportFilters({
         aircrafts?.find((a) => String(a.id) === String(aircraft))?.acronym ??
         aircraft,
     },
-    departmentId && {
+
+    workOrder && {
+      label: "OT",
+      value: workOrder,
+    },
+
+    !isPlanificacionOnlyFilters && departmentId && {
       label: "Departamento",
       value:
         departments?.find((d) => String(d.id) === String(departmentId))?.name ??
         departmentId,
     },
-    authorizedEmployeeId && {
+
+    !isPlanificacionOnlyFilters && authorizedEmployeeId && {
       label: "Empresa",
       value:
         authorizedEmployees?.find(
           (e) => String(e.id) === String(authorizedEmployeeId)
         )?.employee_name ?? authorizedEmployeeId,
     },
-    thirdPartyId && {
+
+    !isPlanificacionOnlyFilters && thirdPartyId && {
       label: "Tercero",
       value:
         thirdParties?.find((t) => String(t.id) === String(thirdPartyId))?.name ??
         thirdPartyId,
     },
-    dispatchType && {
+
+    !isPlanificacionOnlyFilters && dispatchType && {
       label: "Tipo",
       value: dispatchType === "aeronautical" ? "Aeronáutico" : "General",
     },
@@ -552,113 +543,141 @@ export function DispatchReportFilters({
 
           <PopoverContent className="w-[92vw] max-w-[340px] space-y-4 p-4">
 
-            <div className="space-y-1">
-              <div className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">
-                Aeronave
+              <div className="space-y-1">
+                <div className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">
+                  Aeronave
+                </div>
+
+                <Select value={aircraft || "all"} onValueChange={v => setAircraft(v === "all" ? null : v)}>
+                  <SelectTrigger disabled={isLoadingAircrafts}>
+                    <SelectValue placeholder="Seleccionar aeronave" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todas</SelectItem>
+                    {(aircrafts ?? []).map(a => (
+                      <SelectItem key={a.id} value={a.id.toString()}>
+                        {a.acronym ?? `#${a.id}`}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
-              <Select value={aircraft || "all"} onValueChange={v => setAircraft(v === "all" ? null : v)}>
-                <SelectTrigger disabled={isLoadingAircrafts}>
-                  <SelectValue placeholder="Seleccionar aeronave" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todas</SelectItem>
-                  {(aircrafts ?? []).map(a => (
-                    <SelectItem key={a.id} value={a.id.toString()}>
-                      {a.acronym ?? `#${a.id}`}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+              <div className="space-y-1">
+                <div className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">
+                  Orden de Trabajo
+                </div>
 
-            <div className="space-y-1">
-              <div className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">
-                Departamento
+                <Select
+                  value={workOrder || "all"}
+                  onValueChange={(v) => setWorkOrder(v === "all" ? null : v)}
+                >
+                  <SelectTrigger disabled={isLoadingWorkOrders}>
+                    <SelectValue placeholder="Seleccionar OT" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todas</SelectItem>
+                    {workOrders.map((ot) => (
+                      <SelectItem key={`ot-${ot.id}`} value={ot.work_order}>
+                        {ot.work_order}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
-              <Select value={departmentId || "all"} onValueChange={v => setDepartmentId(v === "all" ? null : v)}>
-                <SelectTrigger disabled={isLoadingDepartments}>
-                  <SelectValue placeholder="Seleccionar departamento" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos</SelectItem>
-                  {(departments ?? []).map(d => (
-                    <SelectItem key={d.id} value={d.id.toString()}>
-                      {d.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
 
-            <div className="space-y-1">
-              <div className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">
-                Empresa
-              </div>
+            {!isPlanificacionOnlyFilters && (
+              <>
+                <div className="space-y-1">
+                  <div className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">
+                    Departamento
+                  </div>
 
-              <Select value={authorizedEmployeeId || "all"} onValueChange={v => setAuthorizedEmployeeId(v === "all" ? null : v)}>
-                <SelectTrigger disabled={isLoadingEmployees}>
-                  <SelectValue placeholder="Seleccionar empresa" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todas</SelectItem>
-                  {(authorizedEmployees ?? []).map(emp => (
-                    <SelectItem key={emp.id} value={emp.id.toString()}>
-                      {emp.employee_name} - {(emp.from_company_db ?? "").toUpperCase()}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+                  <Select value={departmentId || "all"} onValueChange={v => setDepartmentId(v === "all" ? null : v)}>
+                    <SelectTrigger disabled={isLoadingDepartments}>
+                      <SelectValue placeholder="Seleccionar departamento" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todos</SelectItem>
+                      {(departments ?? []).map(d => (
+                        <SelectItem key={d.id} value={d.id.toString()}>
+                          {d.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
 
-            <div className="space-y-1">
-              <div className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">
-                Terceros
-              </div>
+                <div className="space-y-1">
+                  <div className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">
+                    Empresa
+                  </div>
 
-              <Select value={thirdPartyId || "all"} onValueChange={v => setThirdPartyId(v === "all" ? null : v)}>
-                <SelectTrigger disabled={isLoadingThirdParties}>
-                  <SelectValue placeholder="Seleccionar terceros" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos</SelectItem>
-                  {(thirdParties ?? []).map(tp => (
-                    <SelectItem key={tp.id} value={tp.id.toString()}>
-                      {tp.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+                  <Select value={authorizedEmployeeId || "all"} onValueChange={v => setAuthorizedEmployeeId(v === "all" ? null : v)}>
+                    <SelectTrigger disabled={isLoadingEmployees}>
+                      <SelectValue placeholder="Seleccionar empresa" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todas</SelectItem>
+                      {(authorizedEmployees ?? []).map(emp => (
+                        <SelectItem key={emp.id} value={emp.id.toString()}>
+                          {emp.employee_name} - {(emp.from_company_db ?? "").toUpperCase()}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
 
-            <div className="space-y-1">
-              <div className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">
-                Tipo de Despacho
-              </div>
+                <div className="space-y-1">
+                  <div className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">
+                    Terceros
+                  </div>
 
-              <Select
-                value={dispatchType || "all"}
-                onValueChange={(v) =>
-                  setDispatchType(v === "all" ? null : (v as DispatchType))
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Seleccionar tipo" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos</SelectItem>
-                  <SelectItem value="aeronautical">Aeronáutico</SelectItem>
-                  <SelectItem value="general">General</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+                  <Select value={thirdPartyId || "all"} onValueChange={v => setThirdPartyId(v === "all" ? null : v)}>
+                    <SelectTrigger disabled={isLoadingThirdParties}>
+                      <SelectValue placeholder="Seleccionar terceros" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todos</SelectItem>
+                      {(thirdParties ?? []).map(tp => (
+                        <SelectItem key={tp.id} value={tp.id.toString()}>
+                          {tp.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-1">
+                  <div className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">
+                    Tipo de Despacho
+                  </div>
+
+                  <Select
+                    value={dispatchType || "all"}
+                    onValueChange={(v) =>
+                      setDispatchType(v === "all" ? null : (v as DispatchType))
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Seleccionar tipo" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todos</SelectItem>
+                      <SelectItem value="aeronautical">Aeronáutico</SelectItem>
+                      <SelectItem value="general">General</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </>
+            )}
 
           </PopoverContent>
         </Popover>
       </div>
 
-      <div className="w-full flex justify-center">
+      {!isPlanificacionOnlyFilters && <div className="w-full flex justify-center">
         <Popover open={openItems} onOpenChange={setOpenItems}>
           <PopoverTrigger asChild>
             <Button
@@ -978,7 +997,7 @@ export function DispatchReportFilters({
             </div>
           </PopoverContent>
         </Popover>
-      </div>
+      </div>}
 
     </div>
   );

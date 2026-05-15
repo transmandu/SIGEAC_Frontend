@@ -26,6 +26,7 @@ import {
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
+import { DispatchReportDialog } from "@/components/dialogs/mantenimiento/almacen/DispatchReportDialog"
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
@@ -75,6 +76,8 @@ export function DataTable<TData, TValue>({
           <Link href={'/hangar74/planificacion/ordenes_trabajo/nueva_orden_trabajo'}>
             <Button variant="outline" className="flex items-center justify-center gap-2 h-8 border-dashed">Generar Orden de Trabajo</Button>
           </Link>
+          <DispatchReportDialog/>
+          
         </div>
         <DataTableViewOptions table={table} />
       </div>

@@ -66,19 +66,15 @@ export default function NewAircraftPage() {
     // Función para transformar las partes del frontend al formato API
     const transformPart = (part: AircraftPart): AircraftPartAPI => {
         const { category, ...rest } = part;
-        
-        // Mapear categoría a part_type (en minúsculas para el backend)
-        const part_type = category === "APU" ? "apu" : 
-                         category === "PROPELLER" ? "propeller" : 
-                         "engine"; // Default: engine
-        
         return {
             ...rest,
-            time_since_new: Math.round((rest.time_since_new ?? 0) * 100) / 100,
-            time_since_overhaul: Math.round((rest.time_since_overhaul ?? 0) * 100) / 100,
-            cycles_since_new: Math.round(rest.cycles_since_new ?? 0),
-            cycles_since_overhaul: Math.round(rest.cycles_since_overhaul ?? 0),
-            part_type,
+            time_since_new: rest.time_since_new !== null && rest.time_since_new !== undefined ? Math.round((rest.time_since_new as number) * 100) / 100 : null,
+            time_since_overhaul: rest.time_since_overhaul !== null && rest.time_since_overhaul !== undefined ? Math.round((rest.time_since_overhaul as number) * 100) / 100 : null,
+            cycles_since_new: rest.cycles_since_new !== null && rest.cycles_since_new !== undefined ? Math.round(rest.cycles_since_new as number) : null,
+            cycles_since_overhaul: rest.cycles_since_overhaul !== null && rest.cycles_since_overhaul !== undefined ? Math.round(rest.cycles_since_overhaul as number) : null,
+            ata_chapter: (rest as any).ata_chapter ?? null,
+            position: (rest as any).position ?? null,
+            part_order: (rest as any).part_order ?? null,
             sub_parts: part.sub_parts?.map(transformPart)
         };
     };
@@ -134,7 +130,7 @@ export default function NewAircraftPage() {
                 },
                 company: selectedCompany!.slug,
             });
-            
+
             router.push(`/${selectedCompany?.slug}/planificacion/aeronaves`);
         } catch (error) {
             console.error("Error creating aircraft:", error);
@@ -163,17 +159,17 @@ export default function NewAircraftPage() {
                             3. Resumen
                         </TabsTrigger>
                     </TabsList>
-                {currentStep === 1 && (
-                    <TabsContent value="1" className="mt-6">
-                        <AircraftInfoForm
-                            initialData={aircraftData}
-                            onNext={(data) => {
-                                setAircraftData(data);
-                                handleNext();
-                            }}
-                        />
-                    </TabsContent>
-                )}
+                    {currentStep === 1 && (
+                        <TabsContent value="1" className="mt-6">
+                            <AircraftInfoForm
+                                initialData={aircraftData}
+                                onNext={(data) => {
+                                    setAircraftData(data);
+                                    handleNext();
+                                }}
+                            />
+                        </TabsContent>
+                    )}
 
                     {currentStep === 2 && (
                         <TabsContent value="2" className="mt-6">
@@ -207,9 +203,9 @@ export default function NewAircraftPage() {
                                         </CardHeader>
                                         <CardContent className="p-4 space-y-3">
                                             <div className="grid grid-cols-2 gap-3">
-                                                <InfoItem 
-                                                    label="Fabricante" 
-                                                    value={manufacturers?.find(m => m.id.toString() === aircraftData?.manufacturer_id)?.name || aircraftData?.manufacturer_id} 
+                                                <InfoItem
+                                                    label="Fabricante"
+                                                    value={manufacturers?.find(m => m.id.toString() === aircraftData?.manufacturer_id)?.name || aircraftData?.manufacturer_id}
                                                 />
                                                 <InfoItem label="Serial" value={aircraftData?.serial} />
                                                 <InfoItem label="Matrícula" value={aircraftData?.model} />
@@ -255,7 +251,7 @@ export default function NewAircraftPage() {
                                                             </div>
                                                         </div>
                                                     )}
-                                                    
+
                                                     {/* APU */}
                                                     {partsData.parts.filter(p => p.category === "APU").length > 0 && (
                                                         <div className="space-y-2">
@@ -276,7 +272,7 @@ export default function NewAircraftPage() {
                                                             </div>
                                                         </div>
                                                     )}
-                                                    
+
                                                     {/* Hélices */}
                                                     {partsData.parts.filter(p => p.category === "PROPELLER").length > 0 && (
                                                         <div className="space-y-2">

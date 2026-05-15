@@ -1,758 +1,394 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
+import { Card } from "@/components/ui/card"
+import { Form, FormLabel } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { useToast } from "@/components/ui/use-toast"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { ChevronDown, ChevronRight, MinusCircle, PlusCircle, Cog, Zap, Fan, Plane, Check, ChevronsUpDown } from "lucide-react"
-import { useState } from "react"
-import { useFieldArray, useForm, UseFormReturn, FieldArrayWithId } from "react-hook-form"
+import { AlertTriangle } from "lucide-react"
+import PartsList from "./parts-form/PartsList"
+import { useEffect, useMemo, useState } from "react"
+import { useFieldArray, useForm } from "react-hook-form"
 import { z } from "zod"
-import { ScrollArea } from "../../../ui/scroll-area"
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "../../../ui/command"
-import { Popover, PopoverContent, PopoverTrigger } from "../../../ui/popover"
-import { cn } from "@/lib/utils"
-import { useGetManufacturers } from "@/hooks/general/fabricantes/useGetManufacturers"
-import { useCompanyStore } from "@/stores/CompanyStore"
-import { ManufacturerCombobox } from "./ManufacturerCombobox"
 
-// Función para formatear números según el separador decimal detectado
-const fmtNumber = (n: unknown): string => {
-  if (n == null || n === "") return ""
-  
-  const str = String(n).trim()
-  if (!str) return ""
-  
-  const lastDot = str.lastIndexOf(".")
-  const lastComma = str.lastIndexOf(",")
-  
-  // Determinar locale y parsear según posición de separadores
-  const isEuropean = lastComma > lastDot || (lastComma !== -1 && lastDot === -1)
-  const num = isEuropean 
-    ? Number(str.replace(/\./g, "").replace(",", "."))
-    : Number(str.replace(/,/g, ""))
-  
-  if (isNaN(num)) return ""
-  
-  return num.toLocaleString(isEuropean ? "de-DE" : "en-US", { 
-    minimumFractionDigits: 2, 
-    maximumFractionDigits: 2 
-  })
-}
 
-// Tipos de categoría para las partes
-export const PART_CATEGORIES = {
-  ENGINE: "Plantas de Poder",
-  APU: "APU",
-  PROPELLER: "Hélice"
-} as const;
 
-export type PartCategory = keyof typeof PART_CATEGORIES;
-
-// Iconos y colores para cada categoría
-const CATEGORY_CONFIG = {
-  ENGINE: {
-    icon: Cog,
-    colorName: "blue" as const
-  },
-  APU: {
-    icon: Zap,
-    colorName: "amber" as const
-  },
-  PROPELLER: {
-    icon: Fan,
-    colorName: "green" as const
-  }
-} as const;
-
-// Helper para generar clases de Tailwind dinámicamente
-const getColorClasses = (color: "blue" | "amber" | "green") => ({
-  color: `text-${color}-600 dark:text-${color}-400`,
-  bgColor: `bg-${color}-50 dark:bg-${color}-950/30`,
-  borderColor: `border-${color}-200 dark:border-${color}-800`,
-  hoverBg: `hover:bg-${color}-100 dark:hover:bg-${color}-900/40`
-});
-
-// Esquema recursivo para partes/subpartes
+// 1. Esquema actualizado con removed_date
 const PartSchema: any = z.object({
-  category: z.enum(["ENGINE", "APU", "PROPELLER"]).optional(), // Solo para frontend
-  part_name: z.string().min(1, "Nombre obligatorio").max(50),
-  part_number: z.string().min(1, "Número obligatorio").regex(/^[A-Za-z0-9\-]+$/),
-  serial: z.string().min(1, "Serial obligatorio").max(50),
-  manufacturer_id: z.string().min(1, "Fabricante obligatorio"),
-  time_since_new: z.number().min(0).optional(),  // Time Since New
-  time_since_overhaul: z.number().min(0).optional(),  // Time Since Overhaul
-  cycles_since_new: z.number().int("Debe ser un número entero").min(0).optional(),  // Cycles Since New (entero)
-  cycles_since_overhaul: z.number().int("Debe ser un número entero").min(0).optional(),  // Cycles Since Overhaul (entero)
-  condition_type: z.enum(["NEW", "OVERHAULED"]),
-  is_father: z.boolean().default(false),
-  sub_parts: z.array(z.lazy(() => PartSchema)).optional()
-});
+    id: z.any().optional(),
+    serial: z.string().optional(),
+    manufacturer_id: z.string().optional(),
+
+    type: z.string().min(1, "Tipo obligatorio").max(50),
+    position: z.enum(["LH", "RH"]).optional(),
+    part_order: z.number().nullable().optional(),
+
+    part_number: z.string().min(1, "Número obligatorio"),
+    ata_chapter: z.string().optional(),
+
+    time_since_new: z.number().nullable().optional(),
+    time_since_overhaul: z.number().nullable().optional(),
+    cycles_since_new: z.number().nullable().optional(),
+    cycles_since_overhaul: z.number().nullable().optional(),
+
+    condition_type: z.enum(["NEW", "OVERHAULED"]),
+    is_father: z.boolean().default(false),
+    removed_date: z.string().nullable().optional(),
+
+    sub_parts: z.array(z.lazy(() => PartSchema)).optional()
+})
 
 const PartsFormSchema = z.object({
-  parts: z.array(PartSchema).min(1)
-});
+    parts: z.array(PartSchema)
+})
 
-type PartsFormType = z.infer<typeof PartsFormSchema>;
+export const PART_CATEGORIES: Record<string, string> = {
+    ENGINE: "Planta de Poder",
+    APU: "APU",
+    PROPELLER: "Hélice",
+};
+
+type PartsFormType = z.infer<typeof PartsFormSchema>
+
+type RawPart = {
+    id?: number | string;
+    serial?: string;
+    manufacturer_id?: string;
+    type?: string;
+    part_number?: string;
+    ata_chapter?: string | null;
+    position?: string | null;
+    part_order?: number | null;
+    time_since_new?: number | string | null;
+    time_since_overhaul?: number | string | null;
+    cycles_since_new?: number | string | null;
+    cycles_since_overhaul?: number | string | null;
+    condition_type?: "NEW" | "OVERHAULED" | string | null;
+    is_father?: boolean;
+    parent_part_id?: number | string | null;
+    sub_parts?: RawPart[];
+};
+
+type AircraftAssignmentLike = {
+    removed_date?: string | null;
+    aircraft_part?: RawPart | null;
+    position?: string | null;
+    part_order?: number | null;
+    ata_chapter?: string | null;
+};
+
+type InitialPartsLike = PartsFormType & {
+    aircraft_parts?: RawPart[];
+    aircraft_assignments?: AircraftAssignmentLike[];
+};
+
+const toNumber = (value: number | string | null | undefined) => {
+    const parsed = Number(value ?? 0);
+    return Number.isFinite(parsed) ? parsed : 0;
+};
+
+const nullableNumber = (value: number | string | null | undefined) => {
+    if (value === null || value === undefined || value === "") return null;
+
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : null;
+};
+
+const normalizePartType = (type?: string | null) => {
+    if (!type) return "";
+    return String(type).trim().toUpperCase();
+};
+
+const normalizePart = (part: any): z.infer<typeof PartSchema> => {
+    const normalizedSubParts = (part.sub_parts || []).map(normalizePart);
+    return {
+        id: part.id,
+        serial: part.serial || "",
+        manufacturer_id: part.manufacturer_id || "",
+        type: normalizePartType(part.type),
+        part_number: part.part_number || "",
+        ata_chapter: part.ata_chapter || part.ata_number || part.ata || "",
+        position: part.position || undefined,
+        part_order: part.part_order ?? null,
+        time_since_new: nullableNumber(part.time_since_new),
+        time_since_overhaul: nullableNumber(part.time_since_overhaul),
+        cycles_since_new: nullableNumber(part.cycles_since_new),
+        cycles_since_overhaul: nullableNumber(part.cycles_since_overhaul),
+        condition_type: part.condition_type === "OVERHAULED" ? "OVERHAULED" : "NEW",
+        is_father: typeof part.is_father === "boolean" ? part.is_father : normalizedSubParts.length > 0,
+        removed_date: part.removed_date || null,
+        sub_parts: normalizedSubParts
+    };
+};
+
+const buildPartsFromAssignments = (assignments: AircraftAssignmentLike[] = []): z.infer<typeof PartSchema>[] => {
+    const entries = assignments.filter(a => a.removed_date === null || a.removed_date === undefined);
+
+    const activeEntries: RawPart[] = entries.map((assignment) => {
+        const src = (assignment.aircraft_part as any) ?? (assignment as any);
+        const assignmentData = assignment as any;
+        const position = assignmentData.position ?? src.position ?? null;
+        const part_order = assignmentData.part_order ?? src.part_order ?? null;
+        const ata_chapter = assignmentData.ata_chapter ?? src.ata_chapter ?? assignmentData.ata_number ?? src.ata_number ?? src.ata ?? null;
+        const time_since_new = assignmentData.time_since_new ?? src.time_since_new ?? null;
+        const time_since_overhaul = assignmentData.time_since_overhaul ?? src.time_since_overhaul ?? null;
+        const cycles_since_new = assignmentData.cycles_since_new ?? src.cycles_since_new ?? null;
+        const cycles_since_overhaul = assignmentData.cycles_since_overhaul ?? src.cycles_since_overhaul ?? null;
+        const condition_type = assignmentData.condition_type ?? src.condition_type ?? "NEW";
+        const type = assignmentData.type ?? src.type ?? "";
+        const serial = assignmentData.serial ?? src.serial ?? "";
+        const manufacturer_id = assignmentData.manufacturer_id ?? src.manufacturer_id ?? "";
+
+        return {
+            ...(src ?? {}),
+            type,
+            serial,
+            manufacturer_id,
+            time_since_new,
+            time_since_overhaul,
+            cycles_since_new,
+            cycles_since_overhaul,
+            condition_type,
+            position,
+            part_order,
+            ata_chapter,
+        } as RawPart;
+    }).filter(Boolean);
+
+    const partsById = new Map<string, RawPart>();
+
+    const collectPartTree = (part: RawPart) => {
+        const key = String(part.id ?? `${part.parent_part_id ?? "root"}-${part.part_number ?? part.type ?? Math.random()}`);
+        const existing = partsById.get(key);
+
+        partsById.set(key, {
+            ...part,
+            sub_parts: part.sub_parts || existing?.sub_parts || []
+        });
+        (part.sub_parts || []).forEach(collectPartTree);
+    };
+
+    activeEntries.forEach(collectPartTree);
+
+    const parts = Array.from(partsById.values());
+    const childrenByParent = new Map<string, RawPart[]>();
+    parts.forEach((part) => {
+        if (part.parent_part_id === null || part.parent_part_id === undefined) return;
+
+        const parentKey = String(part.parent_part_id);
+        const siblings = childrenByParent.get(parentKey) || [];
+
+        if (!siblings.some((sibling) => String(sibling.id) === String(part.id))) {
+            siblings.push(part);
+            childrenByParent.set(parentKey, siblings);
+        }
+    });
+
+    const composeTree = (part: RawPart): RawPart => {
+        const nestedChildren = (part.sub_parts || []).map(composeTree);
+        const relatedChildren = childrenByParent.get(String(part.id ?? "")) || [];
+        const mergedChildren = [...nestedChildren];
+        relatedChildren.forEach((child) => {
+            if (!mergedChildren.some((existing) => String(existing.id) === String(child.id))) {
+                mergedChildren.push(composeTree(child));
+            }
+        });
+        return {
+            ...part,
+            sub_parts: mergedChildren
+        };
+    };
+
+    return parts
+        .filter((part) => part.parent_part_id === null || part.parent_part_id === undefined)
+        .map(composeTree)
+        .map(normalizePart);
+};
+
+// helpers moved to parts-form/constants.ts
 
 export function AircraftPartsInfoForm({ onNext, onBack, initialData }: {
-  onNext: (data: PartsFormType) => void,
-  onBack: () => void,
-  initialData?: PartsFormType
+    onNext: (data: PartsFormType) => void,
+    onBack: (data: PartsFormType) => void,
+    initialData?: any
 }) {
-  const { toast } = useToast();
-  const { selectedCompany } = useCompanyStore();
-  const { data: manufacturers } = useGetManufacturers(selectedCompany?.slug);
-  
-  const form = useForm<PartsFormType>({
-    resolver: zodResolver(PartsFormSchema),
-    defaultValues: initialData || { parts: [{ condition_type: "NEW" }] }
-  });
+    const { toast } = useToast();
+    const [removingPath, setRemovingPath] = useState<string | null>(null);
+    const [tempDate, setTempDate] = useState<string>(new Date().toISOString().split('T')[0]);
 
-  const { fields, append, remove } = useFieldArray({
-    control: form.control,
-    name: "parts"
-  });
+    const normalizedInitialData = useMemo(() => {
+        if (initialData?.parts) {
+            const parts = (initialData.parts || []).map((p: any) => normalizePart(p));
+            return { parts: parts.length ? parts : [{ condition_type: "NEW", removed_date: null }] };
+        }
 
-  const [expandedParts, setExpandedParts] = useState<Record<number, boolean>>({});
-  const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>({
-    ENGINE: false,
-    APU: false,
-    PROPELLER: false
-  });
+        if (initialData?.aircraft_parts) {
+            const parts = (initialData.aircraft_parts || []).map((p: any) => normalizePart(p));
+            return { parts: parts.length ? parts : [{ condition_type: "NEW", removed_date: null }] };
+        }
 
+        if (initialData?.aircraft_assignments) {
+            const parts = buildPartsFromAssignments(initialData.aircraft_assignments || []);
+            return { parts: parts.length ? parts : [{ condition_type: "NEW", removed_date: null }] };
+        }
 
-  // Estado para rastrear qué categorías están marcadas como "No Aplica"
-  const [notApplicableCategories, setNotApplicableCategories] = useState<Record<string, boolean>>({
-    ENGINE: false,
-    APU: false,
-    PROPELLER: false
-  });
+        return { parts: [{ condition_type: "NEW", removed_date: null }] }
+    }, [initialData])
 
-  // Función para marcar/desmarcar una categoría como "No Aplica"
-  const toggleNotApplicable = (category: string) => {
-    setNotApplicableCategories(prev => ({
-      ...prev,
-      [category]: !prev[category]
-    }));
-  };
+    const form = useForm<PartsFormType>({
+        resolver: zodResolver(PartsFormSchema),
+        defaultValues: normalizedInitialData
+    })
 
-  const toggleExpand = (index: number) => {
-    setExpandedParts(prev => ({ ...prev, [index]: !prev[index] }));
-  };
+    useEffect(() => {
+        form.reset(normalizedInitialData);
+    }, [form, normalizedInitialData]);
 
-  const toggleCategory = (category: string) => {
-    setExpandedCategories(prev => ({ ...prev, [category]: !prev[category] }));
-  };
+    const { fields, append } = useFieldArray({
+        control: form.control,
+        name: "parts"
+    })
 
-  // Función para agregar parte con categoría específica
-  const addPartWithCategory = (category: keyof typeof PART_CATEGORIES) => {
-    append({ 
-      condition_type: "NEW",
-      category: category,
-      is_father: false
-    });
-    // Expandir la categoría y la nueva parte
-    setExpandedCategories(prev => ({ ...prev, [category]: true }));
-    setExpandedParts(prev => ({ ...prev, [fields.length]: true }));
-  };
+    const reactivatePartTree = (path: string) => {
+        form.setValue(`${path}.removed_date` as any, null);
+        const currentSubparts = form.getValues(`${path}.sub_parts` as any) || [];
+        currentSubparts.forEach((_: any, index: number) => {
+            reactivatePartTree(`${path}.sub_parts.${index}`);
+        });
+    };
 
-  // Agrupar partes por categoría
-  const partsByCategory = fields.reduce((acc, field, index) => {
-    const category = form.watch(`parts.${index}.category`) || "uncategorized";
-    if (!acc[category]) acc[category] = [];
-    acc[category].push({ field, index });
-    return acc;
-  }, {} as Record<string, Array<{ field: FieldArrayWithId<PartsFormType, "parts">; index: number }>>);
+    const applyRemoval = () => {
+        if (!removingPath) return;
+        const applyDateRecursively = (path: string, date: string) => {
+            form.setValue(`${path}.removed_date` as any, date);
+            const currentSubparts = form.getValues(`${path}.sub_parts` as any) || [];
+            currentSubparts.forEach((_: any, index: number) => {
+                applyDateRecursively(`${path}.sub_parts.${index}`, date);
+            });
+        };
 
-  const addSubpart = (partPath: string) => {
-    form.setValue(`${partPath}.sub_parts` as any, [
-      ...(form.getValues(`${partPath}.sub_parts` as any) || []),
-      { condition_type: "NEW" }
-    ]);
-  };
+        applyDateRecursively(removingPath, tempDate);
+        setRemovingPath(null);
+        toast({ title: "Pieza marcada como removida" });
+    };
 
-  const removeItem = (fullPath: string) => {
-    const pathParts = fullPath.split('.');
-    const indexToRemove = Number(pathParts.pop());
-    const parentPath = pathParts.join('.') || 'parts';
+    const removeItem = (fullPath: string) => {
+        setRemovingPath(fullPath);
+    };
 
-    // Si es una subparte
-    if (parentPath !== 'parts') {
-    const currentArray = form.getValues(parentPath as any) || [];
-      form.setValue(parentPath as any, [
-        ...currentArray.slice(0, indexToRemove),
-        ...currentArray.slice(indexToRemove + 1)
-      ]);
-      toast({
-        title: "Eliminado",
-        description: "La subparte ha sido eliminada correctamente",
-      });
-      return;
+    const [expandedParts, setExpandedParts] = useState<Record<string, boolean>>({});
+
+    const toggleExpand = (path: string) => {
+        setExpandedParts(prev => ({ ...prev, [path]: !prev[path] }));
+    };
+
+    const addSubpart = (partPath: string) => {
+        const currentSubparts = form.getValues(`${partPath}.sub_parts` as any) || [];
+        form.setValue(`${partPath}.sub_parts` as any, [
+            ...currentSubparts,
+            { condition_type: "NEW" }
+        ]);
+        if (!expandedParts[partPath]) {
+            toggleExpand(partPath);
+        }
+    };
+
+    const handleNext = (data: PartsFormType) => {
+        console.log("Validated data:", data);
+        onNext(data);
     }
 
-    // Si es una parte principal, verificar que no sea la última
-    if (fields.length <= 1) {
-      toast({
-        title: "No se puede eliminar",
-        description: "Debe haber al menos una parte registrada en alguna categoría",
-        variant: "destructive",
-      });
-      return;
+    const handleError = (errors: any) => {
+        console.log("Form submit errors:", errors);
+        toast({ title: "Errores en el formulario", description: "Revisa los campos marcados en rojo." });
     }
 
-    // Eliminar la parte principal usando el método remove de useFieldArray
-    remove(indexToRemove);
-    
-    toast({
-      title: "Eliminado",
-      description: "La parte ha sido eliminada correctamente",
-    });
-  };
+    const submitFiltered = () => {
+        const values = form.getValues();
+        const parts = values.parts || [];
 
-  const onSubmit = (data: PartsFormType) => {
-    onNext(data);
-  };
+        // Keep mapping of original indexes for error mapping
+        const origIndices: number[] = [];
+        const activeParts = parts.reduce((acc: any[], p: any, i: number) => {
+            if (!p || p.removed_date) return acc;
+            origIndices.push(i);
+            acc.push(p);
+            return acc;
+        }, [] as any[]);
 
-  return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 mt-8">
-        <ScrollArea className="h-[600px]">
-          {/* Grid de Categorías - Diseño 2x2 Mejorado */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-6 px-1">
-            {Object.entries(PART_CATEGORIES).map(([categoryKey, categoryLabel]) => {
-              const categoryParts = partsByCategory[categoryKey] || [];
-              const hasContent = categoryParts.length > 0;
-              const isNotApplicable = notApplicableCategories[categoryKey];
-              const categoryConfig = CATEGORY_CONFIG[categoryKey as keyof typeof CATEGORY_CONFIG];
-              const colorClasses = getColorClasses(categoryConfig.colorName);
-              const Icon = categoryConfig.icon;
+        // Validate only active parts using zod
+        const parsed = PartsFormSchema.safeParse({ parts: activeParts });
+        form.clearErrors();
+        if (!parsed.success) {
+            parsed.error.errors.forEach(err => {
+                const [idx, field] = err.path as any[];
+                const orig = origIndices[idx];
+                if (orig !== undefined && field) {
+                    form.setError(`parts.${orig}.${String(field)}` as any, { type: 'manual', message: err.message });
+                }
+            });
+            toast({ title: 'Errores en el formulario', description: 'Corrige los campos marcados.' });
+            return;
+        }
 
-              return (
-                <div 
-                  key={categoryKey} 
-                  className={`
-                    relative rounded-xl transition-all duration-300 shadow-sm
-                    ${isNotApplicable
-                      ? 'border-2 border-dashed border-gray-300 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-900/30 opacity-70'
-                      : hasContent
-                        ? `border-2 ${colorClasses.borderColor} ${colorClasses.bgColor} shadow-md hover:shadow-lg`
-                        : `border-2 border-dashed ${colorClasses.borderColor} ${colorClasses.bgColor}`
-                    }
-                  `}
-                >
-                  {/* Header de la categoría */}
-                  <div 
-                    className={`
-                      flex items-center justify-between p-4 cursor-pointer rounded-t-xl transition-colors
-                      ${!isNotApplicable && colorClasses.hoverBg}
-                    `}
-                    onClick={() => !isNotApplicable && toggleCategory(categoryKey)}
-                  >
-                    <div className="flex items-center gap-3">
-                      {/* Icono de la categoría */}
-                      <div className={`
-                        p-2 rounded-lg transition-transform duration-300
-                        ${isNotApplicable
-                          ? 'bg-gray-200 dark:bg-gray-800'
-                          : `${colorClasses.bgColor} ${expandedCategories[categoryKey] ? 'rotate-0' : ''}`
-                        }
-                      `}>
-                        <Icon className={`size-5 ${isNotApplicable ? 'text-gray-400' : colorClasses.color}`} />
-                      </div>
+        // If valid, send all parts (registered and removals) to the next step
+        onNext({ parts });
+    };
 
-                      {/* Título y chevron */}
-                      <div className="flex items-center gap-2">
-                        {!isNotApplicable && (
-                          <div className="transition-transform duration-200">
-                            {expandedCategories[categoryKey] ? (
-                              <ChevronDown className={`size-4 ${colorClasses.color}`} />
-                            ) : (
-                              <ChevronRight className={`size-4 ${colorClasses.color}`} />
-                            )}
-                          </div>
-                        )}
-                        <h3 className={`
-                          font-semibold text-base transition-all
-                          ${isNotApplicable
-                            ? 'line-through text-gray-400 dark:text-gray-600'
-                            : colorClasses.color
-                          }
-                        `}>
-                          {categoryLabel}
-                        </h3>
-                      </div>
-                    </div>
-
-                    {/* Badge contador */}
-                    <div className={`
-                      flex items-center justify-center min-w-[2.5rem] h-8 px-3 rounded-full font-semibold text-sm
-                      transition-all duration-200
-                      ${isNotApplicable
-                        ? 'bg-gray-200 dark:bg-gray-800 text-gray-500'
-                        : hasContent
-                          ? `${colorClasses.color} bg-white dark:bg-gray-950 ring-2 ring-current ring-opacity-20`
-                          : 'bg-gray-100 dark:bg-gray-800 text-gray-400'
-                      }
-                    `}>
-                      {isNotApplicable ? 'N/A' : categoryParts.length}
-                    </div>
-                  </div>
-
-                  {/* Divider */}
-                  {!isNotApplicable && (
-                    <div className={`h-px ${colorClasses.bgColor} opacity-60`} />
-                  )}
-
-                  {/* Contenido de la categoría */}
-                  <div className="p-4 pt-3">
-                    {/* Checkbox "No Aplica" */}
-                    <div className={`
-                      flex items-center space-x-2 mb-3 p-2 rounded-lg transition-colors
-                      ${isNotApplicable ? 'bg-gray-100 dark:bg-gray-800/50' : 'hover:bg-white/50 dark:hover:bg-gray-900/30'}
-                    `}>
-                      <Checkbox
-                        id={`not-applicable-${categoryKey}`}
-                        checked={isNotApplicable}
-                        onCheckedChange={() => toggleNotApplicable(categoryKey)}
-                        className={isNotApplicable ? 'border-gray-400' : ''}
-                      />
-                      <label
-                        htmlFor={`not-applicable-${categoryKey}`}
-                        className={`
-                          text-sm font-medium cursor-pointer select-none transition-colors
-                          ${isNotApplicable ? 'text-gray-500' : 'text-gray-700 dark:text-gray-300'}
-                        `}
-                      >
-                        No Aplica para esta aeronave
-                      </label>
-                    </div>
-
-                    {!isNotApplicable && expandedCategories[categoryKey] && (
-                      <>
-                        {hasContent && (
-                          <div className="space-y-3 mb-4">
-                            {categoryParts.map(({ field, index }: { field: FieldArrayWithId<PartsFormType, "parts">; index: number }) => (
-                              <PartSection
-                                key={field.id}
-                                form={form}
-                                index={index}
-                                path={`parts.${index}`}
-                                onRemove={removeItem}
-                                onToggleExpand={() => toggleExpand(index)}
-                                isExpanded={expandedParts[index]}
-                                onAddSubpart={addSubpart}
-                                manufacturers={manufacturers}
-                              />
-                            ))}
-                          </div>
-                        )}
-
-                        {!hasContent && (
-                          <div className="text-center py-6 mb-3">
-                            <div className={`inline-flex p-3 rounded-full ${colorClasses.bgColor} mb-2`}>
-                              <Icon className={`size-6 ${colorClasses.color} opacity-40`} />
+    return (
+        <Form {...form}>
+            <form onSubmit={(e) => e.preventDefault()} className="space-y-6 mt-4">
+                {/* MODAL DE CONFIRMACIÓN DE REMOCIÓN */}
+                {removingPath && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+                        <Card className="w-full max-w-md p-6 shadow-2xl">
+                            <div className="flex items-center gap-3 mb-4 text-destructive">
+                                <AlertTriangle size={24} />
+                                <h3 className="text-lg font-bold">Confirmar Remoción</h3>
                             </div>
-                            <p className="text-sm text-muted-foreground">
-                              No hay {categoryLabel.toLowerCase()}s registrados
-                            </p>
-                          </div>
-                        )}
+                            <div className="bg-destructive/10 p-3 rounded-md mb-4 border border-destructive/20">
+                                <p className="text-[12px] text-destructive-foreground font-medium">
+                                    Al remover esta pieza, todas sus sub-partes instaladas
+                                    quedarán inactivas automáticamente.
+                                </p>
+                            </div>
+                            <FormLabel>Fecha de remoción</FormLabel>
+                            <Input
+                                type="date"
+                                value={tempDate}
+                                onChange={(e) => setTempDate(e.target.value)}
+                                className="mb-6 mt-2"
+                            />
+                            <div className="flex justify-end gap-3">
+                                <Button variant="ghost" type="button" onClick={() => setRemovingPath(null)}>Cancelar</Button>
+                                <Button variant="destructive" type="button" onClick={applyRemoval}>Confirmar Remoción</Button>
+                            </div>
+                        </Card>
+                    </div>
+                )}
 
-                        {/* Botón para agregar parte */}
-                         <Button
-                           type="button"
-                           variant="outline"
-                               size="sm"
-                               onClick={(e) => {
-                                 e.stopPropagation();
-                                 addPartWithCategory(categoryKey as keyof typeof PART_CATEGORIES);
-                               }}
-                               className={`
-                                 w-full transition-all duration-200 font-medium
-                                 ${colorClasses.borderColor} ${colorClasses.hoverBg}
-                                 hover:shadow-md
-                               `}
-                             >
-                               <PlusCircle className={`size-4 mr-2 ${colorClasses.color}`} />
-                               <span className={colorClasses.color}>Agregar {categoryLabel}</span>
-                           </Button>
-                      </>
-                    )}
-
-                    {isNotApplicable && (
-                      <div className="text-center py-8">
-                        <p className="text-sm text-gray-500 dark:text-gray-400 italic flex items-center justify-center gap-2">
-                          <span className="text-lg">✓</span>
-                          Esta categoría no aplica
-                        </p>
-                      </div>
-                    )}
-                  </div>
+                <div className="flex justify-between items-center mb-4">
+                    <h2 className="text-xl font-semibold">Partes de Aeronave</h2>
                 </div>
-              );
-            })}
-          </div>
 
-          {/* Partes sin categoría */}
-          {partsByCategory["uncategorized"] && partsByCategory["uncategorized"].length > 0 && (
-            <div className="border-2 border-dashed border-yellow-400 dark:border-yellow-600 rounded-lg p-4 bg-yellow-50 dark:bg-yellow-950/20">
-              <h3 className="font-semibold text-base mb-3 text-yellow-800 dark:text-yellow-200">
-                ⚠️ Partes Sin Categoría Asignada
-              </h3>
-              <div className="space-y-2">
-                {partsByCategory["uncategorized"].map(({ field, index }: { field: FieldArrayWithId<PartsFormType, "parts">; index: number }) => (
-                  <PartSection
-                    key={field.id}
+                <PartsList
+                    fields={fields}
                     form={form}
-                    index={index}
-                    path={`parts.${index}`}
+                    append={append}
                     onRemove={removeItem}
-                    onToggleExpand={() => toggleExpand(index)}
-                    isExpanded={expandedParts[index]}
+                    onReactivate={reactivatePartTree}
+                    onToggleExpand={toggleExpand}
+                    expandedParts={expandedParts}
                     onAddSubpart={addSubpart}
-                    manufacturers={manufacturers}
-                  />
-                ))}
-              </div>
-            </div>
-          )}
-        </ScrollArea>
-
-          <div className="flex justify-between pt-8 mt-4">
-            <Button type="button" variant="outline" onClick={onBack}>
-              Anterior
-            </Button>
-            <Button type="submit">Siguiente</Button>
-        </div>
-      </form>
-    </Form>
-  );
-}
-
-function PartSection({ form, index, path, onRemove, onToggleExpand, isExpanded, onAddSubpart, manufacturers }: {
-  form: UseFormReturn<PartsFormType>;
-  index: number;
-  path: string;
-  onRemove: (fullPath: string) => void;
-  onToggleExpand: () => void;
-  isExpanded: boolean;
-  onAddSubpart: (path: string) => void;
-  manufacturers?: any[];
-}) {
-  const hassub_parts = form.watch(`${path}.is_father` as `parts.${number}.is_father`);
-  const sub_parts = form.watch(`${path}.sub_parts` as `parts.${number}.sub_parts`) || [];
-  const category = form.watch(`${path}.category` as `parts.${number}.category`);
-
-  return (
-    <div className="mb-8 border rounded-lg p-4 bg-white shadow-sm">
-      <div className="flex justify-between items-center mb-3">
-        <div className="flex items-center space-x-2">
-          <button type="button" onClick={onToggleExpand} className="text-muted-foreground">
-            {isExpanded ? <ChevronDown className="size-4" /> : <ChevronRight className="size-4" />}
-          </button>
-          <h3 className="font-medium">
-            Parte {index + 1}
-            {category && <span className="text-muted-foreground ml-2">({PART_CATEGORIES[category as keyof typeof PART_CATEGORIES]})</span>}
-          </h3>
-        </div>
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          onClick={() => onRemove(path)} // path será "parts.0" o "parts.0.sub_parts.1", etc.
-          className="text-destructive hover:text-destructive"
-        >
-          <MinusCircle className="size-4" />
-        </Button>
-      </div>
-
-      {isExpanded && (
-        <div className="space-y-4 pl-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Usamos 'as any' para paths dinámicos de subpartes - TypeScript no puede inferir paths recursivos */}
-            <FormField
-              control={form.control}
-              name={`${path}.part_name` as any}
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Modelo</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Ej: Motor" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name={`${path}.part_number` as any}
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Número de Parte</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Ej: ENG-001" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
-            <FormField
-              control={form.control}
-              name={`${path}.serial` as any}
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Serial</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Ej: PCE-PC0444" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name={`${path}.manufacturer_id` as any}
-              render={({ field }) => (
-                <ManufacturerCombobox
-                  value={field.value}
-                  onChange={(value) => form.setValue(`${path}.manufacturer_id` as any, value)}
-                  manufacturers={manufacturers}
-                  label="Marca"
-                  placeholder="Seleccionar o crear marca..."
-                  filterType={category || "GENERAL"}
-                  showTypeSelector={true}
                 />
-              )}
-            />
-          </div>
 
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
-            <FormField
-              control={form.control}
-              name={`${path}.time_since_new` as any}
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>TSN (Time Since New)</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="text"
-                      placeholder="Ej: 15377.50"
-                      value={field.value !== undefined ? (typeof field.value === 'number' ? fmtNumber(field.value) : String(field.value)) : ""}
-                      onChange={e => {
-                        if (e.target.value === "") {
-                          field.onChange(undefined);
-                          return;
-                        }
-                        // Permitir escribir libremente, solo filtrar caracteres no válidos
-                        const value = e.target.value.replace(/[^\d.,]/g, '');
-                        field.onChange(value);
-                      }}
-                      onBlur={(e) => {
-                        if (e.target.value === "") {
-                          field.onChange(undefined);
-                          return;
-                        }
-                        
-                        // Detectar formato y normalizar correctamente
-                        const value = e.target.value;
-                        const lastDot = value.lastIndexOf('.');
-                        const lastComma = value.lastIndexOf(',');
-                        
-                        let normalized: string;
-                        if (lastComma > lastDot) {
-                          // Formato europeo: 1.234,50 → eliminar puntos, cambiar coma por punto
-                          normalized = value.replace(/\./g, "").replace(",", ".");
-                        } else {
-                          // Formato US: 1,234.50 → eliminar comas, mantener punto
-                          normalized = value.replace(/,/g, "");
-                        }
-                        
-                        const num = parseFloat(normalized);
-                        
-                        if (!isNaN(num)) {
-                          // Redondear a 2 decimales y guardar como número
-                          const rounded = Math.round(num * 100) / 100;
-                          field.onChange(rounded);
-                        }
-                      }}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name={`${path}.time_since_overhaul` as any}
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>TSO (Time Since Overhaul)</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="text"
-                      placeholder="Ej: 2496.80"
-                      value={field.value !== undefined ? (typeof field.value === 'number' ? fmtNumber(field.value) : String(field.value)) : ""}
-                      onChange={e => {
-                        if (e.target.value === "") {
-                          field.onChange(undefined);
-                          return;
-                        }
-                        // Permitir escribir libremente, solo filtrar caracteres no válidos
-                        const value = e.target.value.replace(/[^\d.,]/g, '');
-                        field.onChange(value);
-                      }}
-                      onBlur={(e) => {
-                        if (e.target.value === "") {
-                          field.onChange(undefined);
-                          return;
-                        }
-                        
-                        // Detectar formato y normalizar correctamente
-                        const value = e.target.value;
-                        const lastDot = value.lastIndexOf('.');
-                        const lastComma = value.lastIndexOf(',');
-                        
-                        let normalized: string;
-                        if (lastComma > lastDot) {
-                          // Formato europeo: 1.234,50 → eliminar puntos, cambiar coma por punto
-                          normalized = value.replace(/\./g, "").replace(",", ".");
-                        } else {
-                          // Formato US: 1,234.50 → eliminar comas, mantener punto
-                          normalized = value.replace(/,/g, "");
-                        }
-                        
-                        const num = parseFloat(normalized);
-                        
-                        if (!isNaN(num)) {
-                          // Redondear a 2 decimales y guardar como número
-                          const rounded = Math.round(num * 100) / 100;
-                          field.onChange(rounded);
-                        }
-                      }}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
-            <FormField
-              control={form.control}
-              name={`${path}.cycles_since_new` as any}
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>CSN (Cycles Since New)</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="number"
-                      step="1"
-                      min="0"
-                      placeholder="Ej: 21228"
-                      {...field}
-                      onChange={e => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
-                      value={field.value ?? ""}
-                      onKeyDown={(e) => {
-                        // Prevenir números negativos y decimales
-                        if (e.key === '-' || e.key === '.' || e.key === ',') {
-                          e.preventDefault();
-                        }
-                      }}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name={`${path}.cycles_since_overhaul` as any}
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>CSO (Cycles Since Overhaul)</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="number"
-                      step="1"
-                      min="0"
-                      placeholder="Ej: 3865"
-                      {...field}
-                      onChange={e => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
-                      value={field.value ?? ""}
-                      onKeyDown={(e) => {
-                        // Prevenir números negativos y decimales
-                        if (e.key === '-' || e.key === '.' || e.key === ',') {
-                          e.preventDefault();
-                        }
-                      }}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-
-          <div className="mt-6">
-            <FormField
-              control={form.control}
-              name={`${path}.is_father` as any}
-              render={({ field }) => (
-                <FormItem className="flex items-center space-x-2">
-                  <FormControl>
-                    <Checkbox
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
-                  </FormControl>
-                  <FormLabel className="!mt-0">Contiene subpartes</FormLabel>
-                </FormItem>
-              )}
-            />
-          </div>
-
-          {hassub_parts && (
-            <div className="mt-4 pl-4 border-l-2 border-gray-200">
-              <h4 className="font-medium text-sm mb-3">Subpartes</h4>
-
-              {hassub_parts && sub_parts.map((_: unknown, subIndex: number) => (
-                <div key={subIndex} className="mt-4 pl-4 border-l-2 border-gray-200">
-                  <PartSection
-                    form={form}
-                    index={subIndex}
-                    path={`${path}.sub_parts.${subIndex}`}
-                    onRemove={onRemove} // Pasamos la misma función
-                    onToggleExpand={() => { }}
-                    isExpanded={true}
-                    onAddSubpart={onAddSubpart}
-                    manufacturers={manufacturers}
-                  />
+                <div className="flex justify-between pt-4">
+                    <Button type="button" variant="outline" onClick={() => onBack(form.getValues())}>Anterior</Button>
+                    <Button type="button" onClick={submitFiltered}>Siguiente</Button>
                 </div>
-              ))}
-
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => onAddSubpart(path)}
-                className="mt-2"
-              >
-                <PlusCircle className="size-3.5 mr-2" />
-                Agregar Subparte
-              </Button>
-            </div>
-          )}
-        </div>
-      )}
-    </div>
-  );
+            </form>
+        </Form>
+    );
 }
+

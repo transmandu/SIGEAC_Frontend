@@ -1,6 +1,7 @@
 "use client";
 
 import { Download, File } from "lucide-react";
+import Image from "next/image";
 
 import { FileServer } from "@/components/misc/FileServer";
 import { Button } from "@/components/ui/button";
@@ -48,14 +49,15 @@ export function ReportAttachmentsSection({
                                                 Error al cargar el archivo.
                                             </p>
                                         ) : url ? (
-                                            <img
+                                            <Image
                                                 src={url}
                                                 alt="Vista previa"
-                                                className="h-full w-full object-contain"
+                                                fill
+                                                className="object-contain"
+                                                unoptimized
                                             />
                                         ) : null}
                                     </div>
-
 
                                     {url ? (
                                         <Button
@@ -89,7 +91,6 @@ export function ReportAttachmentsSection({
                         <CardDescription>Vista previa del PDF cargado.</CardDescription>
                     </CardHeader>
                     <CardContent>
-                        {/* Envolvemos el documento con FileServer para obtener el Blob URL */}
                         <FileServer path={report.document} company={company}>
                             {(url, isLoading, hasError) => (
                                 <div className="space-y-4">
@@ -98,7 +99,6 @@ export function ReportAttachmentsSection({
                                         {hasError ? (
                                             <p className="text-destructive">Error al cargar PDF</p>
                                         ) : url ? (
-                                            /* IMPORTANTE: Usamos iframe para el PDF */
                                             <iframe
                                                 src={`${url}#toolbar=0`}
                                                 className="h-full w-full"

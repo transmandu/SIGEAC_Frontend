@@ -36,6 +36,7 @@ const RejectRequisitionDialog = ({ req, userRoles, userName }: Props) => {
 
   const allowed =
     userRoles.includes("ANALISTA_COMPRAS") ||
+    userRoles.includes("JEFE_COMPRAS") ||
     userRoles.includes("SUPERUSER");
 
   if (!allowed) return null;

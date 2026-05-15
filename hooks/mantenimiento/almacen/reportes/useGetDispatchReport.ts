@@ -8,6 +8,7 @@ interface DispatchReportParams {
   location_id: number | string;
   company: string;
   aircraft_id?: string | null;
+  work_order?: string | null;
   department_id?: string | null;
   authorized_employee_id?: string | null;
   third_party_id?: string | null;
@@ -39,6 +40,7 @@ export const useGetDispatchReport = () => {
         const response = await axiosInstance.get(endpoint, {
           params: {
             aircraft_id: params.aircraft_id ?? undefined,
+            work_order: params.work_order ?? undefined,
             department_id: params.department_id ?? undefined,
             authorized_employee_id: params.authorized_employee_id ?? undefined,
             third_party_id: params.third_party_id ?? undefined,

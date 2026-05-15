@@ -1,6 +1,6 @@
 "use client";
 
-import { format } from "date-fns";
+import { format, isValid } from "date-fns";
 import { es } from "date-fns/locale";
 import { CalendarIcon, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -237,8 +237,8 @@ export default function CreateCargoShipmentForm({
                             !field.value && "text-muted-foreground",
                           )}
                         >
-                          {field.value
-                            ? format(field.value, "PP", { locale: es })
+                          {field.value && isValid(new Date(field.value))
+                            ? format(new Date(field.value), "PP", { locale: es })
                             : "Seleccione fecha"}
                           <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                         </Button>

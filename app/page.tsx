@@ -1,4 +1,4 @@
-'use client'
+'use client';
 
 import Footer from "@/components/layout/Footer";
 import Logo from "@/components/misc/Logo";
@@ -29,6 +29,8 @@ export default function Home() {
     >
       {/* LEFT SIDE */}
       <div
+        onContextMenu={(e) => e.preventDefault()}
+        onDragStart={(e) => e.preventDefault()}
         className="
           w-full 
           flex 
@@ -42,6 +44,8 @@ export default function Home() {
           rounded-b-full 
           lg:rounded-r-full 
           lg:rounded-b-none
+
+          select-none
         "
       >
         <motion.div
@@ -75,12 +79,17 @@ export default function Home() {
               lg:top-1/2 
               lg:-translate-y-1/2 
               lg:-right-32
+
+              select-none
+              pointer-events-none
             "
             src="/plane3.png"
             width={1350}
             height={1350}
             alt="avion-al"
             priority
+            draggable={false}
+            onContextMenu={(e) => e.preventDefault()}
           />
         </motion.div>
       </div>

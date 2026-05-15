@@ -26,6 +26,8 @@ import {
   MoreVertical,
   Pencil,
   Trash2,
+  Download,
+  ClipboardList,
 } from "lucide-react";
 import { AircraftCargoStats } from "@/types";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -57,7 +59,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/contexts/AuthContext";
 import { useExportCargoByAircraft } from "@/hooks/operaciones/cargo/useExportCargoByAircraft";
-import { Download } from "lucide-react";
 
 const AircraftCard = ({
   aircraft,
@@ -159,19 +160,6 @@ const AircraftCard = ({
                 </p>
               </div>
             </div>
-
-            {/* Solo se renderiza si NO hay menú colisionando (es registrada o no es mes actual) */}
-            {/*             {(!aircraft.is_external || !isCurrentMonth) && (
-              <span
-                className={`text-xs font-mono px-2 py-1 rounded shrink-0 ${
-                  aircraft.is_external
-                    ? "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
-                    : "bg-muted text-muted-foreground"
-                }`}
-              >
-                {aircraft.is_external ? "Externa" : aircraft.serial}
-              </span>
-            )} */}
           </div>
 
           <div className="flex items-center gap-3 border rounded-lg p-3 bg-muted/30">

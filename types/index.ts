@@ -1,3 +1,5 @@
+import { string } from "zod";
+
 export type Accountant = {
   id: number;
   name: string;
@@ -289,8 +291,24 @@ export type MaintenanceAircraft = {
   flight_cycles: number | string; // Puede venir como "324.00"
   fabricant_date: string;
   aircraft_parts: MaintenanceAircraftPart[];
+  aircraft_assignments?: AircraftAssingment[];
   location: Location;
   comments: string;
+};
+
+export type AircraftAssingment = {
+  id: string;
+  aircraft: Aircraft;
+  aircraft_part: MaintenanceAircraftPart;
+  assigned_date: Date;
+  removed_date: Date;
+  time_since_new: number;
+  cycles_since_new: number;
+  time_since_overhaul: number;
+  cycles_since_overhaul: number;
+  position: string;
+  ata_chapter: string;
+  part_order: number;
 };
 
 export type MaintenanceAircraftPart = {
@@ -310,6 +328,8 @@ export type MaintenanceAircraftPart = {
   aircraft_part_id?: string | null; // ID del padre (null si es raíz)
   sub_parts?: MaintenanceAircraftPart[];
   aircraft?: MaintenanceAircraft;
+  type: string;
+  description: string;
 };
 
 export type PlanificationEvent = {
@@ -643,6 +663,7 @@ export type Quote = {
   quote_date: Date;
   created_by: string;
   status: string;
+  observation?: string;
 };
 
 export type Renting = {
@@ -697,7 +718,18 @@ export type Requisition = {
   submission_date: Date;
   work_order: WorkOrder;
   aircraft: Aircraft;
+  quotes?: RequisitionQuote[];
   type: "GENERAL" | "AERONAUTICO";
+  observation?: null;
+};
+
+export type RequisitionQuote = {
+  quote_number: string;
+  status: string;
+  vendor: {
+    name: string | null;
+  };
+  updated_at: string;
 };
 
 export type AdministrationRequisition = {
@@ -1260,9 +1292,15 @@ export interface ShippingAgency {
 
 export type CargoShipmentItem = {
   id: number;
+  cargo_shipment_id: number;
   product_description: string;
   units: number;
   weight: number;
+  // Campos de disponibilidad (calculados en backend)
+  units_available?: number;
+  weight_available?: number;
+  units_dispatched?: number;
+  weight_dispatched?: number;
 };
 
 export type CargoShipment = {
@@ -1286,6 +1324,9 @@ export type CargoShipment = {
   items: CargoShipmentItem[];
   registered_by: string;
   updated_by: string;
+  manifest_status: "pending" | "partial" | "manifested" | "modified";
+  weight_dispatched: number;
+  units_dispatched: number;
 };
 
 export type AircraftCargoStats = {
@@ -1309,4 +1350,28 @@ export type Carrier = {
   last_name: string;
   dni: string;
   phone?: string;
+};
+
+export type CargoManifest = {
+  id: number;
+  manifest_number: string;
+  month: number;
+  year: number;
+  total_weight: number;
+  total_units: number;
+  created_by: string;
+  updated_at?: string;
+  updated_by?: string | null;
+  items: CargoManifestItem[];
+};
+
+export type CargoManifestItem = {
+  id: number;
+  manifest_id: number;
+  cargo_shipment_id: number;
+  cargo_shipment_item_id: number;
+  weight_in_manifest: number;
+  units_in_manifest: number;
+  shipment?: CargoShipment;
+  shipmentItem?: CargoShipmentItem;
 };

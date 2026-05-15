@@ -24,6 +24,7 @@ import {
 
 import { RiFileExcel2Fill } from "react-icons/ri";
 
+import { useAuth } from "@/contexts/AuthContext";
 import { useCompanyStore } from "@/stores/CompanyStore";
 
 import { useGetAircrafts } from "@/hooks/aerolinea/aeronaves/useGetAircrafts";
@@ -35,6 +36,7 @@ import { useGetDepartments } from "@/hooks/sistema/departamento/useGetDepartment
 
 import { useGetArticlesByStatus } from "@/hooks/mantenimiento/almacen/articulos/useGetArticlesByStatus";
 import { useGetGeneralArticles } from "@/hooks/mantenimiento/almacen/almacen_general/useGetGeneralArticles";
+import { useGetDispatchWorkOrders } from "@/hooks/mantenimiento/almacen/reportes/useGetDispatchWorkOrders";
 
 import { DispatchReportFilters } from "@/components/dialogs/mantenimiento/almacen/DispatchReportFilters";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -43,6 +45,13 @@ type DispatchType = "aeronautical" | "general";
 
 export function DispatchReportDialog() {
   const { selectedStation, selectedCompany } = useCompanyStore();
+  const { user } = useAuth();
+
+  const isPlanificacionOnlyFilters =
+    user?.roles?.some((r) =>
+      ["JEFE_PLANIFICACION", "ANALISTA_PLANIFICACION"].includes(r.name)
+    ) ?? false;
+
 
   const [activeTab, setActiveTab] = useState("dispatch");
   const [open, setOpen] = useState(false);
@@ -54,6 +63,7 @@ export function DispatchReportDialog() {
 
   // ===================== FILTROS BASE =====================
   const [aircraft, setAircraft] = useState<string | null>(null);
+  const [workOrder, setWorkOrder] = useState<string | null>(null);
   const [departmentId, setDepartmentId] = useState<string | null>(null);
   const [authorizedEmployeeId, setAuthorizedEmployeeId] = useState<string | null>(null);
   const [thirdPartyId, setThirdPartyId] = useState<string | null>(null);
@@ -99,6 +109,9 @@ export function DispatchReportDialog() {
   // 🔥 UNIFICACIÓN DE FUENTES
   const allArticles = [...articlesByStatus, ...generalArticles];
 
+  const { data: workOrders = [], isLoading: isLoadingWorkOrders } =
+    useGetDispatchWorkOrders(selectedCompany?.slug);
+
   // ===================== VALIDACIÓN FECHAS =====================
   const isDateRangeInvalid =
     !!startDate &&
@@ -117,6 +130,7 @@ export function DispatchReportDialog() {
       setStartDate(undefined);
       setEndDate(undefined);
       setAircraft(null);
+      setWorkOrder(null);
       setDepartmentId(null);
       setAuthorizedEmployeeId(null);
       setThirdPartyId(null);
@@ -141,6 +155,7 @@ export function DispatchReportDialog() {
     company: selectedCompany!.slug,
 
     aircraft_id: aircraft || undefined,
+    work_order: workOrder || undefined,
     department_id: departmentId || undefined,
     authorized_employee_id: authorizedEmployeeId || undefined,
     third_party_id: thirdPartyId || undefined,
@@ -276,7 +291,7 @@ export function DispatchReportDialog() {
         </div>
         <div className="px-6 py-5">
           <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="grid grid-cols-2 mb-4">
+            <TabsList className="grid mb-4 grid-cols-2">
               <TabsTrigger value="dispatch" className=" flex gap-2 text-xs rounded-lg transition-all duration-200 data-[state=active]:bg-background data-[state=active]:shadow-md data-[state=active]:shadow-blue-500/10 data-[state=active]:ring-1 data-[state=active]:ring-blue-500/ data-[state=active]:text-blue-600">
                 <FileText className="w-3.5 h-3.5" />
                 Salidas
@@ -299,6 +314,11 @@ export function DispatchReportDialog() {
               aircrafts={aircrafts}
               isLoadingAircrafts={isLoadingAircrafts}
 
+              workOrder={workOrder}
+              setWorkOrder={setWorkOrder}
+              workOrders={workOrders}
+              isLoadingWorkOrders={isLoadingWorkOrders}
+
               departmentId={departmentId}
               setDepartmentId={setDepartmentId}
               departments={departments}
@@ -317,13 +337,13 @@ export function DispatchReportDialog() {
               dispatchType={dispatchType}
               setDispatchType={setDispatchType}
 
-              // 🔥 ARTÍCULOS UNIFICADOS
               articles={allArticles}
               isLoadingArticles={isLoadingArticles || isLoadingGeneralArticles}
               articleFilters={articleFilters}
               setArticleFilters={setArticleFilters}
 
               isDateRangeInvalid={isDateRangeInvalid}
+              isPlanificacionOnlyFilters={isPlanificacionOnlyFilters}
             />
 
             <TabsContent value="dispatch" className="mt-8">
