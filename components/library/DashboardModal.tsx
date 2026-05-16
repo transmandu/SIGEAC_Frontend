@@ -252,10 +252,12 @@ export default function DashboardModal({ open, onClose, company }: DashboardModa
   }, [stats]);
 
   const statusChartData = useMemo(() => {
-    if (!isSingleDeptView || !userDeptName) return [];
-    const deptDocs = Object.entries(documents)
-      .filter(([name]) => name.toUpperCase() === userDeptName.toUpperCase())
-      .flatMap(([, docs]) => docs);
+    if (!isSingleDeptView) return [];
+    const deptDocs = userDeptName
+      ? Object.entries(documents)
+          .filter(([name]) => name.toUpperCase() === userDeptName.toUpperCase())
+          .flatMap(([, docs]) => docs)
+      : Object.values(documents).flat();
 
     const vigente = deptDocs.filter(d => d.status === 'vigente').length;
     const vencido = deptDocs.filter(d => d.status === 'vencido').length;
@@ -269,15 +271,18 @@ export default function DashboardModal({ open, onClose, company }: DashboardModa
   }, [documents, isSingleDeptView, userDeptName]);
 
   const topDocsChart = useMemo(() => {
-    if (!isSingleDeptView || !userDeptName) return [];
-    const deptShared = traceability.filter((t: any) => {
-      const dName = t.department_name || t.document?.department?.name || '';
-      return dName.toUpperCase() === userDeptName.toUpperCase();
-    });
+    if (!isSingleDeptView) return [];
+    let deptShared = traceability;
+    if (userDeptName) {
+      deptShared = traceability.filter((t: any) => {
+        const dName = t.department_name || t.document?.department?.name || '';
+        return dName.toUpperCase() === userDeptName.toUpperCase();
+      });
+    }
     const docAccessMap = new Map<string, number>();
     deptShared.forEach((s: any) => {
       const title = s.document_title || 'Documento';
-      const count = s.access_count !== undefined ? Number(s.access_count) : 1;
+      const count = s.access_count !== undefined ? Number(s.access_count) : (s.views !== undefined ? Number(s.views) : 1);
       docAccessMap.set(title, (docAccessMap.get(title) || 0) + count);
     });
     return Array.from(docAccessMap.entries())
@@ -421,7 +426,7 @@ export default function DashboardModal({ open, onClose, company }: DashboardModa
               )}
 
               {(canViewCharts || isSingleDeptView) && (
-                <div className={`${isSingleDeptView ? 'col-span-1 lg:col-span-2' : 'col-span-1 lg:col-span-2'} bg-white dark:bg-slate-900 rounded-[2rem] p-6 shadow-sm border border-slate-200/50 dark:border-white/5`}>
+                <div className={`${isSingleDeptView ? (statusChartData.length > 0 ? 'col-span-1 lg:col-span-3' : 'col-span-1 lg:col-span-4') : 'col-span-1 lg:col-span-2'} bg-white dark:bg-slate-900 rounded-[2rem] p-6 shadow-sm border border-slate-200/50 dark:border-white/5`}>
                   <h3 className="text-[14px] font-black text-slate-800 dark:text-white tracking-tight">
                     {isSingleDeptView ? 'Top Documentos Accedidos' : 'Accesos Externos'}
                   </h3>
@@ -441,7 +446,7 @@ export default function DashboardModal({ open, onClose, company }: DashboardModa
                 </div>
               )}
 
-              {(canViewCharts || isSingleDeptView) && (
+              {canViewCharts && (
                 <div className="col-span-1 lg:col-span-1 bg-white dark:bg-slate-900 rounded-[2rem] p-6 shadow-sm border border-slate-200/50 dark:border-white/5 flex flex-col justify-between">
                   <div>
                     <h3 className="text-[14px] font-black text-slate-800 dark:text-white tracking-tight">
@@ -469,8 +474,8 @@ export default function DashboardModal({ open, onClose, company }: DashboardModa
               )}
 
               {/* Tarjetas de Métricas Rápidas */}
-              <div className="col-span-1 lg:col-span-4 grid grid-cols-2 lg:grid-cols-4 gap-6">
-                {cards.map((card) => (
+              <div className={`col-span-1 lg:col-span-4 grid grid-cols-2 lg:grid-cols-${(isDipDirector ? cards : cards.filter(c => c.label !== 'Solicitudes')).length} gap-6`}>
+                {(isDipDirector ? cards : cards.filter(c => c.label !== 'Solicitudes')).map((card) => (
                   <div key={card.label} className="bg-white dark:bg-slate-900 rounded-[2rem] p-6 shadow-sm border border-slate-200/50 dark:border-white/5 flex flex-col justify-between group hover:-translate-y-1 transition-transform duration-300">
                     <div className="flex justify-between items-center mb-4">
                       <div className={`p-3 rounded-2xl ${card.bgLight} dark:bg-white/5`}>

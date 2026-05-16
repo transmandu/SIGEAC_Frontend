@@ -131,7 +131,7 @@ const BibliotecaPage = () => {
     try {
       const response = await axiosInstance.get(`/${companySlug}/library/departments-list`);
       let depts = response.data || [];
-      if (!isSuperUser && userDeptId) {
+      if (!isSuperUser && !isDipDirector && userDeptId) {
         depts = depts.filter((d: any) => Number(d.id) === Number(userDeptId));
       }
       setDepartments(depts);
@@ -327,20 +327,22 @@ const BibliotecaPage = () => {
                       Historial
                     </Button>
 
-                    <Button
-                      onClick={() => { setShareRequestsOpen(true); setPendingRequestCount(0); }}
-                      variant="outline"
-                      size="sm"
-                      className="w-fit flex items-center gap-1.5 rounded-xl border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:text-white font-bold text-[10px] uppercase tracking-widest px-5 h-10 shadow-sm transition-all active:scale-95"
-                    >
-                      <Send className="h-4 w-4" />
-                      Solicitudes
-                      {pendingRequestCount > 0 && (
-                        <span className="ml-1 px-1.5 py-0.5 text-[9px] font-bold text-white bg-red-500 rounded-full min-w-[18px] text-center leading-none">
-                          {pendingRequestCount > 99 ? '99+' : pendingRequestCount}
-                        </span>
-                      )}
-                    </Button>
+                    {isDipDirector && (
+                      <Button
+                        onClick={() => { setShareRequestsOpen(true); setPendingRequestCount(0); }}
+                        variant="outline"
+                        size="sm"
+                        className="w-fit flex items-center gap-1.5 rounded-xl border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:text-white font-bold text-[10px] uppercase tracking-widest px-5 h-10 shadow-sm transition-all active:scale-95"
+                      >
+                        <Send className="h-4 w-4" />
+                        Solicitudes
+                        {pendingRequestCount > 0 && (
+                          <span className="ml-1 px-1.5 py-0.5 text-[9px] font-bold text-white bg-red-500 rounded-full min-w-[18px] text-center leading-none">
+                            {pendingRequestCount > 99 ? '99+' : pendingRequestCount}
+                          </span>
+                        )}
+                      </Button>
+                    )}
 
                     {canViewDashboard && (
                       <Button

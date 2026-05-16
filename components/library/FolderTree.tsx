@@ -1,6 +1,6 @@
 'use client';
 
-import { memo, useState, useEffect } from 'react';
+import { memo, useState, useEffect, useRef } from 'react';
 import { Folder, FolderOpen, ChevronRight, ChevronDown, MoreHorizontal, Pencil, Trash2, Building2, Loader2 } from 'lucide-react';
 import { FolderNode } from '@/lib/libraryService';
 import {
@@ -224,11 +224,14 @@ function FolderTree({
     });
   };
 
+  const toggledDepts = useRef<Set<number>>(new Set());
+
   useEffect(() => {
     if (!isMultiDept && departmentFolders.length > 0) {
       setExpandedDepts(departmentFolders.map(d => d.departmentName));
       departmentFolders.forEach(d => {
-        if (d.folders.length === 0) {
+        if (d.folders.length === 0 && !toggledDepts.current.has(d.departmentId)) {
+          toggledDepts.current.add(d.departmentId);
           onToggleDept?.(d.departmentId);
         }
       });

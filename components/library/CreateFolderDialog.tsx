@@ -150,7 +150,7 @@ export default function CreateFolderDialog({
 
           <div className="space-y-1.5">
             <label className="text-[11px] font-bold uppercase tracking-widest text-slate-500 dark:text-gray-400">
-              Carpeta padre <span className="text-[10px] font-normal normal-case tracking-normal text-slate-400">(opcional)</span>
+              Carpeta padre <span className="text-[10px] font-normal normal-case tracking-normal text-slate-400"></span>
             </label>
             <div className="relative">
               <select
@@ -159,7 +159,7 @@ export default function CreateFolderDialog({
                 className="w-full h-11 pl-4 pr-10 border border-slate-300 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-slate-700 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none appearance-none cursor-pointer"
                 disabled={!selectedDeptId}
               >
-                <option value="">Raíz (sin padre)</option>
+                <option value="">Raíz</option>
                 {flattenFolders(availableFolders).map((f) => (
                   <option key={f.id} value={f.id}>{f.label}</option>
                 ))}

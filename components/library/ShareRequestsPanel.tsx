@@ -212,45 +212,67 @@ export default function ShareRequestsPanel({ company, onClose, onRefresh }: Shar
             {activeTab === 'pending' && <p className="text-[11px] text-slate-400 mt-1">Los directores pueden solicitar compartir documentos desde el menú de acciones.</p>}
           </div>
         ) : (
-          <div className="divide-y divide-slate-100 dark:divide-slate-800/50">
+          <div className="p-4 space-y-4">
             {filteredRequests.map((req: any) => (
-              <div key={req.id} className="p-5 hover:bg-slate-50 dark:hover:bg-white/[0.02] transition-colors">
-                <div className="flex items-start justify-between gap-4 mb-3">
-                  <div className="flex-1 min-w-0">
-                    <p className="text-[12px] font-bold text-slate-800 dark:text-white truncate">
-                      {req.document?.title || req.document_title || 'Documento'}
-                    </p>
-                    <p className="text-[10px] text-slate-500 mt-0.5">
-                      Solicitado por: <span className="font-bold text-slate-700 dark:text-slate-300">{req.requested_by_name || 'N/A'}</span>
-                    </p>
-                  </div>
-                  <div className="flex flex-col items-end gap-2">
-                    {statusBadge(req.status)}
-                    <button
-                      onClick={() => setSelectedDetails(req)}
-                      className="flex items-center gap-1 text-[9px] font-bold text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 dark:bg-blue-900/20 dark:hover:bg-blue-900/40 px-2 py-1 rounded-md transition-colors uppercase"
-                    >
-                      <Info className="h-3 w-3" /> Detalles
-                    </button>
+              <div key={req.id} className="bg-white dark:bg-[#111214] border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm hover:shadow-md transition-all">
+                {/* Status and Date row */}
+                <div className="flex items-center justify-between mb-4 border-b border-slate-100 dark:border-slate-800/50 pb-3">
+                  {statusBadge(req.status)}
+                  <div className="flex items-center gap-1.5 text-[11px] font-bold text-slate-500">
+                    <CalendarDays className="h-3.5 w-3.5" />
+                    {req.created_at ? new Date(req.created_at).toLocaleDateString() : 'N/A'}
                   </div>
                 </div>
 
+                {/* Title and Version */}
+                <div className="flex items-start justify-between gap-3 mb-4">
+                  <h3 className="text-[13px] font-black text-slate-800 dark:text-white uppercase tracking-tight leading-tight flex-1">
+                    {req.document?.title || req.document_title || 'Documento'}
+                  </h3>
+                  <span className="shrink-0 inline-flex items-center px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-[10px] font-bold text-slate-600 dark:text-slate-300">
+                    {req.version?.version_label || req.version?.version_number || 'Última'}
+                  </span>
+                </div>
+
+                {/* Requester and Shared With */}
+                <div className="flex items-start mb-4">
+                  <div className="flex-1">
+                    <p className="text-[9px] font-bold uppercase text-slate-400 mb-1 tracking-wider">Solicitado por</p>
+                    <p className="text-[11px] font-bold text-slate-900 dark:text-white uppercase">
+                      {req.requested_by_name || 'N/A'}
+                    </p>
+                  </div>
+                  <div className="w-[1px] h-8 bg-slate-200 dark:bg-slate-700 mx-4"></div>
+                  <div className="flex-1">
+                    <p className="text-[9px] font-bold uppercase text-slate-400 mb-1 tracking-wider">Destinatario</p>
+                    <p className="text-[11px] font-bold text-slate-900 dark:text-white uppercase">
+                      {req.shared_with_name || 'Externo'}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Reason */}
                 {req.reason && (
-                  <div className="flex items-start gap-2 mb-3 text-[11px] text-slate-500 dark:text-slate-400">
-                    <MessageSquare className="h-3.5 w-3.5 mt-0.5 shrink-0" />
-                    <span>{req.reason}</span>
+                  <div className="flex items-start gap-2 p-3 bg-slate-50 dark:bg-slate-800/30 rounded-xl mb-4 border border-slate-100 dark:border-slate-800/50">
+                    <MessageSquare className="h-4 w-4 text-slate-400 mt-0.5 shrink-0" />
+                    <p className="text-[12px] italic font-medium text-slate-700 dark:text-slate-300">"{req.reason}"</p>
                   </div>
                 )}
 
-                {req.shared_with_name && (
-                  <div className="flex items-center gap-2 text-[10px] text-slate-500 mb-3">
-                    <Eye className="h-3 w-3" />
-                    Destinatario: <span className="font-bold text-slate-700 dark:text-slate-300">{req.shared_with_name}</span>
+                {/* Rejection Reason */}
+                {req.status === 'rejected' && req.rejection_reason && (
+                  <div className="flex items-start gap-2 p-3 bg-red-50 dark:bg-red-900/10 rounded-xl mb-4 border border-red-100 dark:border-red-900/30">
+                    <XCircle className="h-4 w-4 text-red-500 mt-0.5 shrink-0" />
+                    <div>
+                      <p className="text-[9px] font-bold uppercase text-red-500 mb-0.5 tracking-wider">Motivo de Rechazo</p>
+                      <p className="text-[11px] font-medium text-red-700 dark:text-red-400">"{req.rejection_reason}"</p>
+                    </div>
                   </div>
                 )}
 
+                {/* QR Generation Area */}
                 {req.shared_link_id && req.status === 'approved' && req.share_url && (
-                  <div className="mt-3 flex items-start gap-4 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800/40 rounded-xl">
+                  <div className="mb-4 flex items-start gap-4 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800/40 rounded-xl">
                     <div className="p-1.5 bg-white dark:bg-gray-900 rounded-lg shrink-0" data-qr-value={req.share_url}>
                       <QRCodeSVG value={req.share_url} size={72} />
                     </div>
@@ -279,60 +301,65 @@ export default function ShareRequestsPanel({ company, onClose, onRefresh }: Shar
                   </div>
                 )}
 
-                {req.status === 'rejected' && req.rejection_reason && (
-                  <div className="flex items-start gap-2 text-[11px] text-red-500 bg-red-50 dark:bg-red-500/10 p-3 rounded-xl mt-3">
-                    <XCircle className="h-3.5 w-3.5 mt-0.5 shrink-0" />
-                    <span><span className="font-bold">Motivo:</span> {req.rejection_reason}</span>
+                {/* Actions */}
+                <div className="flex flex-col gap-3">
+                  <div className="flex justify-end">
+                    <button
+                      onClick={() => setSelectedDetails(req)}
+                      className="flex items-center gap-1.5 text-[9px] font-bold text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 dark:bg-blue-900/20 dark:hover:bg-blue-900/40 px-3 py-1.5 rounded-lg transition-colors uppercase"
+                    >
+                      <Info className="h-3 w-3" /> Detalles
+                    </button>
                   </div>
-                )}
-
-                {req.status === 'pending' && isDipDirector && (
-                  <div className="mt-4 space-y-3">
-                    {rejectingId === req.id ? (
-                      <div className="space-y-2">
-                        <textarea
-                          placeholder="Motivo del rechazo..."
-                          className="w-full h-16 px-3 py-2 text-[11px] border border-red-300 dark:border-red-800 rounded-lg bg-white dark:bg-gray-800 text-slate-700 dark:text-white outline-none focus:ring-2 focus:ring-red-500 resize-none"
-                          value={rejectReason}
-                          onChange={(e) => setRejectReason(e.target.value)}
-                        />
+                  
+                  {req.status === 'pending' && isDipDirector && (
+                    <div className="pt-3 border-t border-slate-100 dark:border-slate-800/50">
+                      {rejectingId === req.id ? (
+                        <div className="space-y-2">
+                          <textarea
+                            placeholder="Motivo del rechazo..."
+                            className="w-full h-16 px-3 py-2 text-[11px] border border-red-300 dark:border-red-800 rounded-lg bg-white dark:bg-gray-800 text-slate-700 dark:text-white outline-none focus:ring-2 focus:ring-red-500 resize-none"
+                            value={rejectReason}
+                            onChange={(e) => setRejectReason(e.target.value)}
+                          />
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => { setRejectingId(null); setRejectReason(''); }}
+                              className="flex-1 py-2 text-[10px] font-bold text-slate-500 hover:text-slate-700 uppercase tracking-wider transition-colors"
+                            >
+                              CANCELAR
+                            </button>
+                            <button
+                              onClick={() => handleReject(req.id)}
+                              disabled={actionLoading === req.id}
+                              className="flex-1 py-2 text-[10px] font-bold text-white bg-red-600 rounded-lg hover:bg-red-700 disabled:opacity-50 uppercase tracking-wider"
+                            >
+                              {actionLoading === req.id ? 'RECHAZANDO...' : 'CONFIRMAR RECHAZO'}
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
                         <div className="flex gap-2">
                           <button
-                            onClick={() => { setRejectingId(null); setRejectReason(''); }}
-                            className="flex-1 py-2 text-[10px] font-bold text-slate-500 hover:text-slate-700 uppercase tracking-wider transition-colors"
+                            onClick={() => handleApprove(req.id)}
+                            disabled={actionLoading === req.id}
+                            className="flex-1 py-2 text-[10px] font-bold text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 disabled:opacity-50 uppercase tracking-wider flex items-center justify-center gap-1.5 shadow-sm active:scale-[0.98] transition-all"
                           >
-                            CANCELAR
+                            {actionLoading === req.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <CheckCircle2 className="h-3.5 w-3.5" />}
+                            APROBAR
                           </button>
                           <button
-                            onClick={() => handleReject(req.id)}
-                            disabled={actionLoading === req.id}
-                            className="flex-1 py-2 text-[10px] font-bold text-white bg-red-600 rounded-lg hover:bg-red-700 disabled:opacity-50 uppercase tracking-wider"
+                            onClick={() => setRejectingId(req.id)}
+                            className="flex-1 py-2 text-[10px] font-bold text-white bg-red-600 rounded-lg hover:bg-red-700 disabled:opacity-50 uppercase tracking-wider flex items-center justify-center gap-1.5 shadow-sm active:scale-[0.98] transition-all"
                           >
-                            {actionLoading === req.id ? 'RECHAZANDO...' : 'CONFIRMAR RECHAZO'}
+                            <XCircle className="h-3.5 w-3.5" />
+                            RECHAZAR
                           </button>
                         </div>
-                      </div>
-                    ) : (
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => handleApprove(req.id)}
-                          disabled={actionLoading === req.id}
-                          className="flex-1 py-2.5 text-[10px] font-bold text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 disabled:opacity-50 uppercase tracking-wider flex items-center justify-center gap-1.5"
-                        >
-                          {actionLoading === req.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <CheckCircle2 className="h-3.5 w-3.5" />}
-                          APROBAR
-                        </button>
-                        <button
-                          onClick={() => setRejectingId(req.id)}
-                          className="flex-1 py-2.5 text-[10px] font-bold text-white bg-red-600 rounded-lg hover:bg-red-700 uppercase tracking-wider flex items-center justify-center gap-1.5"
-                        >
-                          <XCircle className="h-3.5 w-3.5" />
-                          RECHAZAR
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                )}
+                      )}
+                    </div>
+                  )}
+                </div>
               </div>
             ))}
           </div>
@@ -342,85 +369,93 @@ export default function ShareRequestsPanel({ company, onClose, onRefresh }: Shar
 
       {/* MODAL DE DETALLES */}
       <Dialog open={!!selectedDetails} onOpenChange={() => setSelectedDetails(null)}>
-        <DialogContent className="sm:max-w-[480px] p-0 overflow-hidden shadow-2xl bg-white dark:bg-[#1a1c1e] border-slate-200 dark:border-gray-800 outline-none !z-[100]">
-          <div className="w-full px-6 py-4 border-b flex items-center justify-center bg-slate-100/50 dark:bg-gray-800/40 border-slate-200 dark:border-gray-700">
-            <DialogTitle className="text-slate-900 dark:text-white text-xs font-semibold uppercase tracking-widest flex items-center gap-2">
-              <Info className="h-4 w-4 text-blue-500" />
-              Detalles de la Solicitud
-            </DialogTitle>
+        <DialogContent className="bg-white dark:bg-[#1a1c1e] border-none text-slate-900 dark:text-white sm:max-w-[480px] rounded-2xl overflow-hidden p-0 outline-none shadow-2xl !z-[100]">
+          
+          <div className="bg-slate-50 dark:bg-slate-800/50 px-6 py-5 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center">
+            <div className="flex items-center gap-2">
+              <div className="p-1.5 bg-blue-100 dark:bg-blue-500/20 rounded-lg">
+                <Info className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+              </div>
+              <DialogTitle className="text-lg font-bold text-slate-800 dark:text-white tracking-tight uppercase">
+                Detalles de la Solicitud
+              </DialogTitle>
+            </div>
           </div>
 
           {selectedDetails && (
-            <div className="p-5 flex flex-col w-full gap-4 text-[11px] text-slate-700 dark:text-slate-300 max-h-[70vh] overflow-y-auto">
+            <div className="p-6 flex flex-col w-full gap-4 text-[11px] text-slate-700 dark:text-slate-300 max-h-[70vh] overflow-y-auto">
 
-              {/* SECCIÓN: Documento */}
-              <div className="bg-slate-50 dark:bg-gray-800/20 p-4 rounded-xl border border-slate-200 dark:border-gray-800 space-y-3">
-                <h4 className="text-[9px] font-black uppercase tracking-widest text-blue-600 dark:text-blue-400 flex items-center gap-1.5">
-                  <FileText className="h-3 w-3" /> Documento
-                </h4>
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="col-span-2">
-                    <span className="block text-[8px] font-bold uppercase text-slate-400 mb-0.5">Título</span>
-                    <span className="font-bold text-slate-900 dark:text-white">{selectedDetails.document?.title || selectedDetails.document_title || 'N/A'}</span>
-                  </div>
-                  <div>
-                    <span className="block text-[8px] font-bold uppercase text-slate-400 mb-0.5">Departamento</span>
-                    <span className="font-bold text-slate-900 dark:text-white">{selectedDetails.document_department_name || selectedDetails.document?.department?.name || 'N/A'}</span>
-                  </div>
-                  <div>
-                    <span className="block text-[8px] font-bold uppercase text-slate-400 mb-0.5">Versión</span>
-                    <span className="font-bold text-slate-900 dark:text-white">{selectedDetails.version?.version_label || selectedDetails.version?.version_number || 'Última'}</span>
+              {/* SECCIONES COMBINADAS */}
+              <div className="bg-slate-50 dark:bg-gray-800/20 rounded-xl border border-slate-200 dark:border-gray-800 flex flex-col divide-y divide-slate-200 dark:divide-gray-800">
+                {/* SECCIÓN: Documento */}
+                <div className="p-4 space-y-3">
+                  <h4 className="text-[9px] font-black uppercase tracking-widest text-blue-600 dark:text-blue-400 flex items-center gap-1.5">
+                    <FileText className="h-3 w-3" /> Documento
+                  </h4>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <span className="block text-[8px] font-bold uppercase text-slate-400 mb-0.5">Título</span>
+                      <span className="font-bold text-slate-900 dark:text-white">{selectedDetails.document?.title || selectedDetails.document_title || 'N/A'}</span>
+                    </div>
+                    <div>
+                      <span className="block text-[8px] font-bold uppercase text-slate-400 mb-0.5">Versión</span>
+                      <span className="font-bold text-slate-900 dark:text-white">{selectedDetails.version?.version_label || selectedDetails.version?.version_number || 'Última'}</span>
+                    </div>
+                    <div className="col-span-2">
+                      <span className="block text-[8px] font-bold uppercase text-slate-400 mb-0.5">Departamento</span>
+                      <span className="font-bold text-slate-900 dark:text-white">{selectedDetails.document_department_name || selectedDetails.document?.department?.name || 'N/A'}</span>
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              {/* SECCIÓN: Solicitante */}
-              <div className="bg-slate-50 dark:bg-gray-800/20 p-4 rounded-xl border border-slate-200 dark:border-gray-800 space-y-3">
-                <h4 className="text-[9px] font-black uppercase tracking-widest text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
-                  <Send className="h-3 w-3" /> Solicitante
-                </h4>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <span className="block text-[8px] font-bold uppercase text-slate-400 mb-0.5">Solicitado por</span>
-                    <span className="font-bold text-slate-900 dark:text-white">{selectedDetails.requested_by_name || 'N/A'}</span>
-                  </div>
-                  <div>
-                    <span className="block text-[8px] font-bold uppercase text-slate-400 mb-0.5">Depto. Solicitante</span>
-                    <span className="font-bold text-slate-900 dark:text-white">{selectedDetails.requester_department_name || 'N/A'}</span>
-                  </div>
-                  <div className="col-span-2">
-                    <span className="block text-[8px] font-bold uppercase text-slate-400 mb-0.5">Destinatario</span>
-                    <span className="font-bold text-slate-900 dark:text-white">{selectedDetails.shared_with_name || 'Público / Externo'}</span>
+                {/* SECCIÓN: Solicitante */}
+                <div className="p-4 space-y-3">
+                  <h4 className="text-[9px] font-black uppercase tracking-widest text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
+                    <Send className="h-3 w-3" /> Solicitante
+                  </h4>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <span className="block text-[8px] font-bold uppercase text-slate-400 mb-0.5">Solicitado por</span>
+                      <span className="font-bold text-slate-900 dark:text-white">{selectedDetails.requested_by_name || 'N/A'}</span>
+                    </div>
+                    <div>
+                      <span className="block text-[8px] font-bold uppercase text-slate-400 mb-0.5">Depto. Solicitante</span>
+                      <span className="font-bold text-slate-900 dark:text-white">{selectedDetails.requester_department_name || 'N/A'}</span>
+                    </div>
+                    <div className="col-span-2">
+                      <span className="block text-[8px] font-bold uppercase text-slate-400 mb-0.5">Destinatario</span>
+                      <span className="font-bold text-slate-900 dark:text-white">{selectedDetails.shared_with_name || 'Público / Externo'}</span>
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              {/* SECCIÓN: Seguridad y Vigencia */}
-              <div className="bg-slate-50 dark:bg-gray-800/20 p-4 rounded-xl border border-slate-200 dark:border-gray-800 space-y-3">
-                <h4 className="text-[9px] font-black uppercase tracking-widest text-purple-600 dark:text-purple-400 flex items-center gap-1.5">
-                  <ShieldAlert className="h-3 w-3" /> Seguridad y Vigencia
-                </h4>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <span className="flex items-center gap-1 text-[8px] font-bold uppercase text-slate-400 mb-0.5"><CalendarDays className="h-3 w-3" /> Fecha Solicitud</span>
-                    <span className="font-bold text-slate-900 dark:text-white">{selectedDetails.created_at ? new Date(selectedDetails.created_at).toLocaleString() : 'N/A'}</span>
+                {/* SECCIÓN: Seguridad y Vigencia */}
+                <div className="p-4 space-y-3">
+                  <h4 className="text-[9px] font-black uppercase tracking-widest text-purple-600 dark:text-purple-400 flex items-center gap-1.5">
+                    <ShieldAlert className="h-3 w-3" /> Seguridad y Vigencia
+                  </h4>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <span className="flex items-center gap-1 text-[8px] font-bold uppercase text-slate-400 mb-0.5"><CalendarDays className="h-3 w-3" /> Fecha Solicitud</span>
+                      <span className="font-bold text-slate-900 dark:text-white">{selectedDetails.created_at ? new Date(selectedDetails.created_at).toLocaleString() : 'N/A'}</span>
+                    </div>
+                    <div>
+                      <span className="flex items-center gap-1 text-[8px] font-bold uppercase text-slate-400 mb-0.5"><Clock className="h-3 w-3" /> Válido Hasta</span>
+                      <span className="font-bold text-slate-900 dark:text-white">
+                        {selectedDetails.calculated_expires_at
+                          ? new Date(selectedDetails.calculated_expires_at).toLocaleString()
+                          : 'Pendiente de aprobación'}
+                      </span>
+                    </div>
                   </div>
-                  <div>
-                    <span className="flex items-center gap-1 text-[8px] font-bold uppercase text-slate-400 mb-0.5"><Clock className="h-3 w-3" /> Válido Hasta</span>
-                    <span className="font-bold text-slate-900 dark:text-white">
-                      {selectedDetails.calculated_expires_at
-                        ? new Date(selectedDetails.calculated_expires_at).toLocaleString()
-                        : 'Pendiente de aprobación'}
-                    </span>
+                  <div className="flex items-center gap-2 pt-1">
+                    <span className="flex items-center gap-1 text-[8px] font-bold uppercase text-slate-400"><ShieldAlert className="h-3 w-3" /> Nivel:</span>
+                    {selectedDetails.read_only ? (
+                      <span className="flex items-center gap-1 text-[10px] font-bold text-amber-600 bg-amber-100 dark:bg-amber-900/30 px-2 py-0.5 rounded-full"><Eye className="h-3 w-3" /> Solo Lectura</span>
+                    ) : (
+                      <span className="flex items-center gap-1 text-[10px] font-bold text-emerald-600 bg-emerald-100 dark:bg-emerald-900/30 px-2 py-0.5 rounded-full"><CheckCircle2 className="h-3 w-3" /> Permite Descarga</span>
+                    )}
                   </div>
-                </div>
-                <div className="flex items-center gap-2 pt-1">
-                  <span className="flex items-center gap-1 text-[8px] font-bold uppercase text-slate-400"><ShieldAlert className="h-3 w-3" /> Nivel:</span>
-                  {selectedDetails.read_only ? (
-                    <span className="flex items-center gap-1 text-[10px] font-bold text-amber-600 bg-amber-100 dark:bg-amber-900/30 px-2 py-0.5 rounded-full"><Eye className="h-3 w-3" /> Solo Lectura</span>
-                  ) : (
-                    <span className="flex items-center gap-1 text-[10px] font-bold text-emerald-600 bg-emerald-100 dark:bg-emerald-900/30 px-2 py-0.5 rounded-full"><CheckCircle2 className="h-3 w-3" /> Permite Descarga</span>
-                  )}
                 </div>
               </div>
 
@@ -447,12 +482,14 @@ export default function ShareRequestsPanel({ company, onClose, onRefresh }: Shar
                 </div>
               )}
 
-              <button
-                onClick={() => setSelectedDetails(null)}
-                className="w-full mt-1 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl font-bold uppercase tracking-widest text-[10px] hover:opacity-90 transition-opacity"
-              >
-                CERRAR
-              </button>
+              <div className="flex pt-4 border-t border-slate-100 dark:border-slate-800 mt-2">
+                <button
+                  onClick={() => setSelectedDetails(null)}
+                  className="w-full px-4 py-3 text-[10px] font-black text-white bg-slate-800 hover:bg-slate-900 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-white rounded-xl uppercase tracking-widest transition-colors shadow-md active:scale-[0.98]"
+                >
+                  CERRAR
+                </button>
+              </div>
             </div>
           )}
         </DialogContent>
