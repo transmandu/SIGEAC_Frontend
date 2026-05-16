@@ -1,40 +1,23 @@
 'use client'
 
 import { useMemo, useState, useEffect } from 'react'
+
 import GroupRow from './GroupRow'
 import GroupPagination from '../../../../../components/misc/GroupPagination'
 
-type BaseRow = {
-  id: number
-  cost?: number
-  batch_name?: string
-  part_number?: string
-  serial?: string
-  quantity?: number
-  name?: string
-  description?: string
-  brand_model?: string
-  variant_type?: string
-  unit_label?: string
-}
-
 type GroupableKey =
-  | 'description'
-  | 'brand_model'
-  | 'variant_type'
-  | 'part_number'
-  | 'batch_name'
-  | 'serial'
+  | 'vendor'
+  | 'requisition_order'
 
-type Props = {
-  data: BaseRow[]
+type Props<T> = {
+  data: T[]
   groupBy: GroupableKey
-  renderTable: (rows: BaseRow[]) => React.ReactNode
+  renderTable: (rows: T[]) => React.ReactNode
 }
 
-type Group = {
+type Group<T> = {
   key: string
-  rows: BaseRow[]
+  rows: T[]
 }
 
 const PAGE_SIZE = 15
@@ -44,22 +27,23 @@ const formatGroupLabel = (value?: string | null) => {
   return value
 }
 
-const GroupedCostTable = ({
+const GroupedQuotesTable = <T extends Record<string, any>>({
   data,
   groupBy,
   renderTable,
-}: Props) => {
+}: Props<T>) => {
 
-  const groups = useMemo<Group[]>(() => {
-    const groupedMap = new Map<string, BaseRow[]>()
+  const groups = useMemo<Group<T>[]>(() => {
+    const groupedMap = new Map<string, T[]>()
 
     for (const item of data) {
-      const rawValue = item[groupBy as keyof BaseRow]
 
-      const key =
-        typeof rawValue === 'string'
-          ? rawValue
-          : rawValue?.toString?.() ?? 'Sin valor'
+      const rawValue: string | undefined =
+        groupBy === 'vendor'
+          ? item.vendor?.name
+          : item.requisition_order?.order_number
+
+      const key = rawValue?.trim() || 'Sin valor'
 
       if (!groupedMap.has(key)) {
         groupedMap.set(key, [])
@@ -80,12 +64,16 @@ const GroupedCostTable = ({
   })
 
   const totalPages = useMemo(() => {
-    return Math.max(1, Math.ceil(groups.length / PAGE_SIZE))
-  }, [groups.length])
+    return Math.max(1, Math.ceil(groups.length / pagination.pageSize))
+  }, [groups.length, pagination.pageSize])
 
   const paginatedGroups = useMemo(() => {
     const start = pagination.pageIndex * pagination.pageSize
-    return groups.slice(start, start + pagination.pageSize)
+
+    return groups.slice(
+      start,
+      start + pagination.pageSize
+    )
   }, [groups, pagination])
 
   const [expanded, setExpanded] = useState<Record<string, boolean>>({})
@@ -102,20 +90,23 @@ const GroupedCostTable = ({
       pageIndex: 0,
       pageSize: PAGE_SIZE,
     })
+
     setExpanded({})
   }, [groupBy, data])
 
   if (!groups.length) {
     return (
-      <div className="
-        rounded-xl border
-        bg-white dark:bg-slate-900/60
-        border-slate-200 dark:border-slate-700/60
-        px-6 py-10
-        text-center
-      ">
+      <div
+        className="
+          rounded-xl border
+          bg-white dark:bg-slate-900/60
+          border-slate-200 dark:border-slate-700/60
+          px-6 py-10
+          text-center
+        "
+      >
         <p className="text-sm text-muted-foreground">
-          No hay datos agrupados disponibles.
+          No hay cotizaciones agrupadas disponibles.
         </p>
       </div>
     )
@@ -124,7 +115,7 @@ const GroupedCostTable = ({
   return (
     <div className="flex flex-col gap-4">
 
-      {/* GRUPOS */}
+      {/* GROUPS */}
       {paginatedGroups.map((group) => {
         const isOpen = expanded[group.key] ?? false
 
@@ -159,27 +150,27 @@ const GroupedCostTable = ({
         )
       })}
 
-    <GroupPagination
-    pageIndex={pagination.pageIndex}
-    pageSize={pagination.pageSize}
-    pageCount={totalPages}
-    onPageChange={(page: number) =>
-        setPagination((prev) => ({
-        ...prev,
-        pageIndex: page,
-        }))
-    }
-    onPageSizeChange={(size: number) =>
-        setPagination({
-        pageIndex: 0,
-        pageSize: size,
-        })
-    }
-    totalGroups={groups.length}
-    />
+      <GroupPagination
+        pageIndex={pagination.pageIndex}
+        pageSize={pagination.pageSize}
+        pageCount={totalPages}
+        totalGroups={groups.length}
+        onPageChange={(page: number) =>
+          setPagination((prev) => ({
+            ...prev,
+            pageIndex: page,
+          }))
+        }
+        onPageSizeChange={(size: number) =>
+          setPagination({
+            pageIndex: 0,
+            pageSize: size,
+          })
+        }
+      />
 
     </div>
   )
 }
 
-export default GroupedCostTable
+export default GroupedQuotesTable

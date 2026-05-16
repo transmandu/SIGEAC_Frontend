@@ -98,6 +98,7 @@ export function buildGeneralGroup({ pathname, currentCompany }: MenuContext): Gr
                 roles: [
                     "SUPERUSER",
                     "ANALISTA_COMPRAS",
+                    "JEFE_COMPRAS",
                     "ANALISTA_PLANIFICACION",
                     "JEFE_PLANIFICACION",
                     "RRHH_ADMINISTRACION",

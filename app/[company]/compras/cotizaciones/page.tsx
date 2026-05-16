@@ -22,6 +22,7 @@ import { getColumns } from './columns'
 import { DataTable } from './data-table'
 
 import QuotesToolBar from './_components/QuotesToolBar'
+import GroupedQuotesTable from './_components/GroupedQuotesTable'
 
 const QuotesOrdersPage = () => {
   const { selectedCompany, selectedStation } = useCompanyStore()
@@ -37,6 +38,7 @@ const QuotesOrdersPage = () => {
 
   const [search, setSearch] = useState('')
   const [status, setStatus] = useState('ALL')
+  const [groupBy, setGroupBy] = useState<string>('NONE')
 
   const deferredSearch = useDeferredValue(search)
 
@@ -159,6 +161,8 @@ const QuotesOrdersPage = () => {
             setSearch={setSearch}
             status={status}
             setStatus={setStatus}
+            groupBy={groupBy}
+            setGroupBy={setGroupBy}
           />
 
           <span
@@ -173,10 +177,23 @@ const QuotesOrdersPage = () => {
           </span>
         </div>
 
-        <DataTable
-          columns={columns}
-          data={filteredQuotes}
-        />
+        {groupBy !== 'NONE' ? (
+          <GroupedQuotesTable
+            data={filteredQuotes}
+            groupBy={groupBy as any}
+            renderTable={(rows) => (
+              <DataTable
+                columns={columns}
+                data={rows}
+              />
+            )}
+          />
+        ) : (
+          <DataTable
+            columns={columns}
+            data={filteredQuotes}
+          />
+        )}
 
         {isError && (
           <div

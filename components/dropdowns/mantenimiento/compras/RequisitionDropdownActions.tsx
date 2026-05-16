@@ -122,7 +122,7 @@ const RequisitionDropdownActions = ({
               animate-in fade-in zoom-in-95 duration-200
             "
           >
-            {(userRoles.includes("ANALISTA_COMPRAS") ||
+            {(userRoles.includes("ANALISTA_COMPRAS") || userRoles.includes("JEFE_COMPRAS") ||
               userRoles.includes("SUPERUSER")) && (
               <>
                 {/* GENERAR COTIZACIÓN */}

@@ -1,12 +1,22 @@
 'use client';
 
+import { useEffect, useState, useMemo } from 'react';
+
 import { ContentLayout } from '@/components/layout/ContentLayout';
 import LoadingPage from '@/components/misc/LoadingPage';
-import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb';
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from '@/components/ui/breadcrumb';
+
 import { useAuth } from '@/contexts/AuthContext';
-import { useGetRequisition } from '@/hooks/mantenimiento/compras/useGetRequisitions';
 import { useCompanyStore } from '@/stores/CompanyStore';
-import { useEffect, useState } from 'react';
+import { useGetRequisition } from '@/hooks/mantenimiento/compras/useGetRequisitions';
+
 import { columns } from './columns';
 import { DataTable } from './data-table';
 import { Requisition } from '@/types';
@@ -14,26 +24,39 @@ import { Requisition } from '@/types';
 const RequisitionsPage = () => {
   const { user } = useAuth();
   const { selectedCompany, selectedStation } = useCompanyStore();
+
   const { data: requisitions, isLoading, isError } = useGetRequisition(
     selectedCompany?.slug,
     selectedStation ?? undefined
   );
 
-  const [filteredRequisitions, setFilteredRequisitions] = useState<Requisition[]>([]);
+  const fullAccessRoles = useMemo(
+    () => [
+      'SUPERUSER',
+      'ANALISTA_COMPRAS',
+      'JEFE_COMPRAS',
+      'JEFE_ALMACEN',
+    ],
+    []
+  );
 
-  useEffect(() => {
-    if (!requisitions) {
-      setFilteredRequisitions([]);
-      return;
-    }
-    const fullAccessRoles = ['SUPERUSER', 'ANALISTA_COMPRAS', "JEFE_COMPRAS"];
-    const hasFullAccess = user?.roles?.some(role => fullAccessRoles.includes(role.name)) ?? false;
+  const hasFullAccess = useMemo(() => {
+    return (
+      user?.roles?.some(role => fullAccessRoles.includes(role.name)) ?? false
+    );
+  }, [user, fullAccessRoles]);
+
+  const filteredRequisitions = useMemo(() => {
+    if (!requisitions) return [];
+
     if (hasFullAccess) {
-      setFilteredRequisitions(requisitions);
-    } else {
-      setFilteredRequisitions(requisitions.filter(req => req.created_by?.id === user?.id));
+      return requisitions;
     }
-  }, [requisitions, user]);
+
+    return requisitions.filter(req => {
+      return req.created_by?.id === user?.id;
+    });
+  }, [requisitions, hasFullAccess, user]);
 
   if (isLoading) {
     return <LoadingPage />;
@@ -42,10 +65,13 @@ const RequisitionsPage = () => {
   return (
     <ContentLayout title="Inventario">
       <div className="flex flex-col gap-y-2">
+
         <Breadcrumb>
           <BreadcrumbList>
             <BreadcrumbItem>
-              <BreadcrumbLink href={`/${selectedCompany?.slug}/dashboard`}>Inicio</BreadcrumbLink>
+              <BreadcrumbLink href={`/${selectedCompany?.slug}/dashboard`}>
+                Inicio
+              </BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>General</BreadcrumbItem>
@@ -55,16 +81,28 @@ const RequisitionsPage = () => {
             </BreadcrumbItem>
           </BreadcrumbList>
         </Breadcrumb>
-        <h1 className="text-4xl font-bold text-center">Solicitudes de Compra</h1>
+
+        <h1 className="text-4xl font-bold text-center">
+          Solicitudes de Compra
+        </h1>
+
         <p className="text-sm text-muted-foreground text-center italic">
-          Aquí puede observar todas las solicitudes de compra generales. <br />Filtre y/o busque si desea una en específico.
+          Aquí puede observar todas las solicitudes de compra generales.
+          <br />
+          Filtre y/o busque si desea una en específico.
         </p>
-        {filteredRequisitions.length > 0 ? (
-          <DataTable columns={columns} data={filteredRequisitions} />
-        ) : (
-          <DataTable columns={columns} data={[]} />
+
+        {isError && (
+          <p className="text-muted-foreground italic">
+            Ha ocurrido un error al cargar las solicitudes de compra...
+          </p>
         )}
-        {isError && <p className="text-muted-foreground italic">Ha ocurrido un error al cargar las solicitudes de compra...</p>}
+
+        <DataTable
+          columns={columns}
+          data={filteredRequisitions}
+        />
+
       </div>
     </ContentLayout>
   );

@@ -169,6 +169,8 @@
   scrollbar-width: none;
 }
 
+
+/* TODO LO AGREGADO DE AQUÍ PARA ABAJO ES PARTE DE LOS ESTILOS DEL ING BENJAMIN */
 /* Oculta botones nativos de mostrar contraseña y controles similares */
 input[type="password"]::-ms-reveal,
 input[type="password"]::-ms-clear,
@@ -180,4 +182,44 @@ input[type="password"]::-webkit-password-toggle-button {
   pointer-events: none !important;
   appearance: none !important;
   -webkit-appearance: none !important;
+}
+
+@keyframes marquee-x {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(calc(-1 * var(--distance)));
+  }
+}
+
+.animate-marquee-x {
+  animation: marquee-x 6s ease-in-out infinite alternate;
+}
+.scrollbar-modern {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 0, 0, 0.12) transparent;
+}
+
+/* Chrome / Edge / Safari */
+.scrollbar-modern::-webkit-scrollbar {
+  width: 4px;
+}
+
+.scrollbar-modern::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scrollbar-modern::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.12);
+  border-radius: 999px;
+  transition: background 0.2s ease;
+}
+
+.scrollbar-modern:hover::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.22);
+}
+
+.scrollbar-modern::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.25);
 }

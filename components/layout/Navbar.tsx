@@ -4,6 +4,7 @@ import { UserNav } from "@/components/layout/UserNav";
 import { SheetMenu } from "@/components/sidebar/SheetMenu";
 import CompanySelect from "../selects/CompanySelect";
 import { ThemeToggler } from "./ThemeToggler";
+import NotificationBell from '@/components/notifications/NotificationBell';
 
 interface NavbarProps {
   title: string;
@@ -33,6 +34,7 @@ export function Navbar({ title }: NavbarProps) {
         {/* DERECHA */}
         <div className="flex items-center gap-2 ml-auto flex-shrink-0 z-10">
           <ThemeToggler />
+          <NotificationBell />
           <UserNav />
         </div>
 

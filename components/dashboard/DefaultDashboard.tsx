@@ -24,15 +24,17 @@ export default function DefaultDashboard({ companySlug }: DefaultDashboardProps)
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
-          className="relative w-64 h-64 md:w-80 md:h-80 mb-12"
+          className="relative w-64 h-64 md:w-80 md:h-80 mb-12 select-none"
         >
           {/* Light mode image */}
           <Image
             src="/dashboard-construction.png"
             alt="Panel en construcción"
             fill
-            className="object-contain drop-shadow-md opacity-95 dark:hidden"
             priority
+            draggable={false}
+            onContextMenu={(e) => e.preventDefault()}
+            className="object-contain drop-shadow-md opacity-95 dark:hidden pointer-events-none select-none"
           />
 
           {/* Dark mode image */}
@@ -40,8 +42,10 @@ export default function DefaultDashboard({ companySlug }: DefaultDashboardProps)
             src="/dashboard-construction-dark.png"
             alt="Panel en construcción modo oscuro"
             fill
-            className="object-contain drop-shadow-md opacity-95 hidden dark:block"
             priority
+            draggable={false}
+            onContextMenu={(e) => e.preventDefault()}
+            className="object-contain drop-shadow-md opacity-95 hidden dark:block pointer-events-none select-none"
           />
         </motion.div>
 

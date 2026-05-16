@@ -153,13 +153,7 @@ const RequisitionsPage = () => {
               selectedCompany={selectedCompany}
             />
           )}
-          canExpandRow={(row) => {
-            const status = row.original.status
-            return (
-              status === 'COTIZADO' ||
-              status === 'APROBADO'
-            )
-          }}
+          canExpandRow={(row) => !!row.original.quotes?.length}
         />
 
         {isError && (
