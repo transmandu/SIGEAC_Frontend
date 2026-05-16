@@ -5,6 +5,7 @@ import { History, X, Clock, User, Eye } from "lucide-react";
 interface Version {
   id: number;
   version_number: number;
+  version_label?: string;
   expiry_status: string;
   created_at: string;
   change_log: string;
@@ -95,7 +96,7 @@ export const HistoryPanel = ({
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <span className="text-[11px] font-bold uppercase text-blue-600 dark:text-blue-400 tracking-widest bg-blue-50 dark:bg-blue-900/30 px-2.5 py-0.5 rounded-full border border-blue-100 dark:border-blue-800">
-                          {v.version_number}
+                          {v.version_label || v.version_number}
                         </span>
 
                         {v.expiry_status === 'vencido' && (

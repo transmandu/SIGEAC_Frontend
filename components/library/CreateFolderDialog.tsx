@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { FolderPlus, ChevronDown, Building2 } from 'lucide-react';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import libraryService, { FolderNode } from '@/lib/libraryService';
@@ -14,16 +14,42 @@ interface CreateFolderDialogProps {
   departmentName: string | null;
   departments: { id: number; name: string }[];
   folders: FolderNode[];
+  selectedFolderPath?: string | null;
   isSuperUser: boolean;
   onSuccess: (deptId: number) => void;
 }
 
+function findFolderByPath(nodes: FolderNode[], targetPath: string): FolderNode | undefined {
+  for (const node of nodes) {
+    if (node.path === targetPath) return node;
+    if (node.children.length > 0) {
+      const found = findFolderByPath(node.children, targetPath);
+      if (found) return found;
+    }
+  }
+  return undefined;
+}
+
 export default function CreateFolderDialog({
-  open, onClose, company, departmentId, departmentName, departments, folders, isSuperUser, onSuccess
+  open, onClose, company, departmentId, departmentName, departments, folders, selectedFolderPath, isSuperUser, onSuccess
 }: CreateFolderDialogProps) {
   const [name, setName] = useState('');
   const [parentId, setParentId] = useState('');
   const [selectedDeptId, setSelectedDeptId] = useState(departmentId ?? '');
+
+  useEffect(() => {
+    if (open && departmentId) setSelectedDeptId(departmentId);
+  }, [open, departmentId]);
+
+  useEffect(() => {
+    if (open && selectedFolderPath && selectedFolderPath !== '/') {
+      const match = findFolderByPath(folders, selectedFolderPath);
+      if (match) setParentId(match.id);
+    } else {
+      setParentId('');
+    }
+  }, [open, selectedFolderPath, folders]);
+
   const [loading, setLoading] = useState(false);
 
   const availableFolders = selectedDeptId
@@ -163,3 +189,6 @@ export default function CreateFolderDialog({
     </Dialog>
   );
 }
+
+
+

@@ -98,7 +98,7 @@ export default function TraceabilityPanel({ documentId, company, onClose, user }
   const getVersionLabel = (log: any) => {
     if (log.document && log.document.versions) {
       const version = log.document.versions.find((v: any) => String(v.id) === String(log.version_id));
-      return version ? version.version_number : log.current_version;
+      return version ? (version.version_label || version.version_number) : log.current_version;
     }
     return log.current_version || 'N/A';
   };

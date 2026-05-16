@@ -10,6 +10,7 @@ import { toast } from "sonner";
 interface Version {
   id: number;
   version_number: string;
+  version_label?: string;
   change_log: string;
   created_at: string;
 }
@@ -61,7 +62,7 @@ export const DownloadDocumentDialog = ({ isOpen, onClose, doc, company }: Downlo
         : `/${company}/library/versions/${selectedVersionToDownload}/download`;
 
       const versionObj = versionList.find(v => String(v.id) === selectedVersionToDownload);
-      const label = isBase ? 'VIGENTE' : versionObj?.version_number || 'VERSION';
+      const label = isBase ? 'VIGENTE' : versionObj?.version_label || versionObj?.version_number || 'VERSION';
       const fileName = `${doc.title.replace(/\s+/g, '_')}_${label}.pdf`;
 
       await downloadDocumentFile(url, fileName);
@@ -157,7 +158,7 @@ export const DownloadDocumentDialog = ({ isOpen, onClose, doc, company }: Downlo
                             <option value="">Selecciona la versión...</option>
                             {availableVersions.map((v) => (
                               <option key={v.id} value={v.id}>
-                                {v.version_number} — {v.change_log || 'Carga inicial'}
+                                {v.version_label || v.version_number} — {v.change_log || 'Carga inicial'}
                               </option>
                             ))}
                           </>

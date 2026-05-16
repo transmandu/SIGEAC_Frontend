@@ -39,6 +39,7 @@ interface FolderTreeProps {
   onDelete: (folder: FolderNode, departmentId: number, departmentName: string) => void;
   onDropDocument: (documentId: number, folderPath: string, departmentName: string) => void;
   onToggleDept?: (departmentId: number) => void;
+  companySlug: string;
   loadingDeptIds?: number[];
   canManage: boolean;
 }
@@ -54,6 +55,9 @@ function FolderNodeRow({
   departmentId,
   departmentName,
   level = 0,
+  isExpanded,
+  onToggleFolder,
+  expandedFolders,
 }: {
   node: FolderNode;
   selectedFolderPath: string | null;
@@ -65,8 +69,10 @@ function FolderNodeRow({
   departmentId: number;
   departmentName: string;
   level: number;
+  isExpanded: boolean;
+  onToggleFolder: (path: string) => void;
+  expandedFolders: Record<string, boolean>;
 }) {
-  const [expanded, setExpanded] = useState(false);
   const [dragOver, setDragOver] = useState(false);
   const hasChildren = node.children.length > 0;
   const isSelected = selectedFolderPath === node.path;
@@ -117,16 +123,16 @@ function FolderNodeRow({
       >
         {hasChildren ? (
           <button
-            onClick={(e) => { e.stopPropagation(); setExpanded(!expanded); }}
+            onClick={(e) => { e.stopPropagation(); onToggleFolder(node.path); }}
             className="p-0.5 hover:bg-slate-200 dark:hover:bg-slate-700 rounded"
           >
-            {expanded ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
+            {isExpanded ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
           </button>
         ) : (
           <span className="w-4" />
         )}
 
-        {expanded ? <FolderOpen className="h-3.5 w-3.5 shrink-0" /> : <Folder className="h-3.5 w-3.5 shrink-0" />}
+        {isExpanded ? <FolderOpen className="h-3.5 w-3.5 shrink-0" /> : <Folder className="h-3.5 w-3.5 shrink-0" />}
 
         <span className="truncate flex-1">{node.name}</span>
 
@@ -152,7 +158,7 @@ function FolderNodeRow({
         )}
       </div>
 
-      {hasChildren && expanded && (
+      {hasChildren && isExpanded && (
         <div>
           {node.children.map((child) => (
             <FolderNodeRow
@@ -167,6 +173,9 @@ function FolderNodeRow({
               departmentId={departmentId}
               departmentName={departmentName}
               level={level + 1}
+              isExpanded={!!expandedFolders[child.path]}
+              onToggleFolder={onToggleFolder}
+              expandedFolders={expandedFolders}
             />
           ))}
         </div>
@@ -187,10 +196,33 @@ function FolderTree({
   onToggleDept,
   loadingDeptIds = [],
   canManage,
+  companySlug,
 }: FolderTreeProps) {
   const [expandedDepts, setExpandedDepts] = useState<string[]>(
     isMultiDept ? [] : departmentFolders.map(d => d.departmentName)
   );
+
+  const STORAGE_KEY = `biblioteca_expanded_folders_` + companySlug;
+
+  const [expandedFolders, setExpandedFolders] = useState<Record<string, boolean>>(() => {
+    if (typeof window === 'undefined') return {};
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      return saved ? JSON.parse(saved) : {};
+    } catch {
+      return {};
+    }
+  });
+
+  const handleToggleFolder = (path: string) => {
+    setExpandedFolders(prev => {
+      const next = { ...prev, [path]: !prev[path] };
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+      } catch {}
+      return next;
+    });
+  };
 
   useEffect(() => {
     if (!isMultiDept && departmentFolders.length > 0) {
@@ -261,6 +293,9 @@ function FolderTree({
                     departmentId={dept.departmentId}
                     departmentName={dept.departmentName}
                     level={0}
+                    isExpanded={!!expandedFolders['/']}
+                    onToggleFolder={handleToggleFolder}
+                    expandedFolders={expandedFolders}
                   />
                 )}
               </div>
@@ -273,3 +308,8 @@ function FolderTree({
 }
 
 export default memo(FolderTree);
+
+
+
+
+

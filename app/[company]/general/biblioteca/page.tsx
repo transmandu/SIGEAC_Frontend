@@ -403,6 +403,7 @@ const BibliotecaPage = () => {
                       onToggleDept={handleToggleDept}
                       loadingDeptIds={loadingDeptIds}
                       canManage={canManage}
+                      companySlug={companySlug}
                     />
                   </div>
                   {canManage && (
@@ -560,3 +561,4 @@ const BibliotecaPage = () => {
 };
 
 export default BibliotecaPage;
+

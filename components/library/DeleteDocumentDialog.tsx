@@ -9,6 +9,7 @@ import { toast } from "sonner";
 interface Version {
   id: number;
   version_number: string;
+  version_label?: string;
   change_log: string;
 }
 
@@ -149,7 +150,7 @@ export const DeleteDocumentDialog = ({ isOpen, onClose, doc, company, onSuccess 
                             <option value="">Selecciona la versión...</option>
                             {filteredVersions.map((v) => (
                               <option key={v.id} value={v.id}>
-                                {v.version_number} — {v.change_log || 'Sin descripción'}
+                                {v.version_label || v.version_number} — {v.change_log || 'Sin descripción'}
                               </option>
                             ))}
                           </>
