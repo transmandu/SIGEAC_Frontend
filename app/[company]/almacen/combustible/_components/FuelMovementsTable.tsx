@@ -56,7 +56,7 @@ export function FuelMovementsTable({
                 <TableCell className="max-w-[260px] truncate">
                   {movement.dispatch_purpose || "No aplica"}
                 </TableCell>
-                <TableCell className="text-right">
+                <TableCell className="text-right font-mono tabular-nums">
                   {formatLiters(movement.liters)}
                 </TableCell>
                 <TableCell>

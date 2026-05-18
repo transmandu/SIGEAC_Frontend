@@ -57,16 +57,16 @@ export function FuelVehiclesTable({
                 <TableCell className="max-w-[220px] truncate">
                   {vehicle.responsible || "Sin responsable"}
                 </TableCell>
-                <TableCell className="text-right">
+                <TableCell className="text-right font-mono tabular-nums">
                   {formatLiters(vehicle.tank_capacity_liters)}
                 </TableCell>
-                <TableCell className="text-right font-medium">
+                <TableCell className="text-right font-mono font-medium tabular-nums">
                   {formatLiters(vehicle.current_balance_liters)}
                 </TableCell>
-                <TableCell className="text-right">
+                <TableCell className="text-right font-mono tabular-nums">
                   {vehicle.km_per_liter ? `${vehicle.km_per_liter}` : "-"}
                 </TableCell>
-                <TableCell className="text-right">
+                <TableCell className="text-right font-mono tabular-nums">
                   {vehicle.initial_km ? `${vehicle.initial_km}` : "-"}
                 </TableCell>
                 <TableCell>

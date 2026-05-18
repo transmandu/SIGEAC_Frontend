@@ -63,7 +63,7 @@ export function FuelTraceabilityPanel({
                       movement.third_party?.name ||
                       "Sin destino"}
                   </TableCell>
-                  <TableCell className="text-right">
+                  <TableCell className="text-right font-mono tabular-nums">
                     {formatLiters(movement.liters)}
                   </TableCell>
                   <TableCell className="text-right">
