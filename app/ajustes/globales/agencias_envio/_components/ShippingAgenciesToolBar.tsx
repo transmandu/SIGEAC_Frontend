@@ -17,7 +17,7 @@ const ShippingAgenciesToolBar = ({
   setSearch,
   type,
   setType,
-  placeholder = 'Buscar agencias de envío...',
+  placeholder = 'Buscar agencias/agentes de envío...',
 }: Props) => {
   return (
     <div className="flex flex-wrap items-center gap-2">
