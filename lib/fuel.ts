@@ -73,6 +73,10 @@ export const FUEL_ERROR_MESSAGES: Record<string, string> = {
   INVALID_THIRD_PARTY: "El tercero seleccionado no es valido.",
   INVALID_LITERS: "La cantidad de litros debe ser mayor a 0.",
   INVALID_TANK_CAPACITY: "La capacidad del tanque debe ser mayor a 0.",
+  MISSING_KM_PER_LITER:
+    "El vehiculo no tiene configurado el rendimiento (km/L).",
+  INVALID_ODOMETER:
+    "El kilometraje debe ser mayor al ultimo registrado.",
   CONCURRENT_STOCK_CONFLICT:
     "El saldo cambio mientras registrabas la operacion. Actualiza e intenta de nuevo.",
 };
@@ -163,6 +167,8 @@ export const normalizeFuelVehicle = (vehicle: any): FuelVehicle => ({
   status: normalizeFuelVehicleStatus(vehicle?.status),
   tank_capacity_liters: Number(vehicle?.tank_capacity_liters ?? 0),
   current_balance_liters: Number(vehicle?.current_balance_liters ?? 0),
+  km_per_liter: vehicle?.km_per_liter ? Number(vehicle.km_per_liter) : null,
+  initial_km: vehicle?.initial_km ? Number(vehicle.initial_km) : null,
 });
 
 export const normalizeFuelMovement = (movement: any): FuelMovement => ({
@@ -170,6 +176,7 @@ export const normalizeFuelMovement = (movement: any): FuelMovement => ({
   type: normalizeFuelMovementType(movement?.type),
   status: normalizeFuelMovementStatus(movement?.status),
   liters: Number(movement?.liters ?? 0),
+  odometer_km: movement?.odometer_km ? Number(movement.odometer_km) : null,
   vehicle: movement?.vehicle ? normalizeFuelVehicle(movement.vehicle) : null,
 });
 

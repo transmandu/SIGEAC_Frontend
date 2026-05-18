@@ -39,6 +39,8 @@ const formSchema = z
     initial_balance_liters: z.coerce
       .number()
       .min(0, "El saldo inicial no puede ser negativo"),
+    km_per_liter: z.coerce.number().min(0, "Debe ser mayor o igual a 0").optional(),
+    initial_km: z.coerce.number().min(0, "Debe ser mayor o igual a 0").optional(),
   })
   .refine(
     (data) => data.initial_balance_liters <= data.tank_capacity_liters,
@@ -67,6 +69,8 @@ export function CreateFuelVehicleForm({
       responsible: "",
       tank_capacity_liters: 0,
       initial_balance_liters: 0,
+      km_per_liter: 0,
+      initial_km: 0,
     },
   });
 
@@ -76,6 +80,8 @@ export function CreateFuelVehicleForm({
       plate: values.plate.trim().toUpperCase(),
       type: values.type as FuelVehicleType,
       responsible: values.responsible?.trim() || null,
+      km_per_liter: values.km_per_liter || null,
+      initial_km: values.initial_km || null,
     });
     form.reset();
     onClose();
@@ -173,6 +179,48 @@ export function CreateFuelVehicleForm({
                 <FormLabel>Saldo actual inicial</FormLabel>
                 <FormControl>
                   <Input type="number" min="0" step="0.01" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <FormField
+            control={form.control}
+            name="km_per_liter"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Rendimiento (km/L)</FormLabel>
+                <FormControl>
+                  <Input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    placeholder="Ej: 10.5"
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="initial_km"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Kilometraje inicial</FormLabel>
+                <FormControl>
+                  <Input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    placeholder="Ej: 15000"
+                    {...field}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>

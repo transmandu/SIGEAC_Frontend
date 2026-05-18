@@ -1320,6 +1320,8 @@ export type FuelVehicle = {
   responsible?: string | null;
   tank_capacity_liters: number;
   current_balance_liters: number;
+  km_per_liter?: number | null;
+  initial_km?: number | null;
   status: FuelVehicleStatus;
   created_at?: string;
   updated_at?: string;
@@ -1345,6 +1347,7 @@ export type FuelMovement = {
   third_party?: ThirdParty | null;
   third_party_id?: string | number | null;
   dispatch_purpose?: string | null;
+  odometer_km?: number | null;
   status: FuelMovementStatus;
   observation?: string | null;
   annulled_by_movement_id?: number | null;
@@ -1374,6 +1377,8 @@ export type CreateFuelVehiclePayload = {
   responsible?: string | null;
   tank_capacity_liters: number;
   initial_balance_liters: number;
+  km_per_liter?: number | null;
+  initial_km?: number | null;
 };
 
 export type CreateFuelMovementPayload = {
@@ -1383,6 +1388,7 @@ export type CreateFuelMovementPayload = {
   vehicle_id?: number | null;
   third_party_id?: string | number | null;
   dispatch_purpose?: string | null;
+  odometer_km?: number | null;
   observation?: string | null;
 };
 

@@ -42,6 +42,8 @@ export function FuelVehiclesTable({
             <TableHead>Responsable</TableHead>
             <TableHead className="text-right">Capacidad</TableHead>
             <TableHead className="text-right">Saldo</TableHead>
+            <TableHead className="text-right">km/L</TableHead>
+            <TableHead className="text-right">KM inicial</TableHead>
             <TableHead>Estado</TableHead>
             <TableHead className="text-right">Accion</TableHead>
           </TableRow>
@@ -60,6 +62,12 @@ export function FuelVehiclesTable({
                 </TableCell>
                 <TableCell className="text-right font-medium">
                   {formatLiters(vehicle.current_balance_liters)}
+                </TableCell>
+                <TableCell className="text-right">
+                  {vehicle.km_per_liter ? `${vehicle.km_per_liter}` : "-"}
+                </TableCell>
+                <TableCell className="text-right">
+                  {vehicle.initial_km ? `${vehicle.initial_km}` : "-"}
                 </TableCell>
                 <TableCell>
                   <Badge
@@ -90,7 +98,7 @@ export function FuelVehiclesTable({
             ))
           ) : (
             <TableRow>
-              <TableCell colSpan={7} className="h-24 text-center">
+              <TableCell colSpan={9} className="h-24 text-center">
                 No hay vehiculos registrados.
               </TableCell>
             </TableRow>

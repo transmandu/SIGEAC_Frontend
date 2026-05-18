@@ -34,13 +34,14 @@ import {
 import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
 import { Loader2 } from "lucide-react";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 const formSchema = z.object({
   operational_date: z.string().min(1, "La fecha es requerida"),
-  liters: z.coerce.number().positive("Los litros deben ser mayores a 0"),
+  liters: z.coerce.number().min(0),
+  odometer_km: z.coerce.number().min(0).optional(),
   vehicle_id: z.string().optional(),
   third_party_id: z.string().optional(),
   dispatch_purpose: z.string().optional(),
@@ -83,6 +84,7 @@ export function FuelMovementForm({
   onClose: () => void;
 }) {
   const createFuelMovement = useCreateFuelMovement(company);
+  const [useOdometer, setUseOdometer] = useState(false);
   const { data: thirdParties, isLoading: thirdPartiesLoading } =
     useGetThirdParties();
 
@@ -96,6 +98,7 @@ export function FuelMovementForm({
     defaultValues: {
       operational_date: format(new Date(), "yyyy-MM-dd"),
       liters: 0,
+      odometer_km: 0,
       vehicle_id: "",
       third_party_id: "",
       dispatch_purpose: "",
@@ -122,6 +125,26 @@ export function FuelMovementForm({
           ? "Debe indicar el destino o motivo del recorrido"
           : "Debe indicar para que fue realizado el despacho",
       });
+      return false;
+    }
+
+    // In odometer mode, validate km instead of liters
+    if (type === "vehicle_trip" && useOdometer) {
+      if (!values.odometer_km || values.odometer_km <= 0) {
+        form.setError("odometer_km", { message: "Debe ingresar el kilometraje actual" });
+        return false;
+      }
+      if (selectedVehicle && !selectedVehicle.km_per_liter) {
+        form.setError("odometer_km", {
+          message: "El vehiculo no tiene rendimiento (km/L) configurado",
+        });
+        return false;
+      }
+      return true;
+    }
+
+    if (values.liters <= 0) {
+      form.setError("liters", { message: "Los litros deben ser mayores a 0" });
       return false;
     }
 
@@ -170,13 +193,16 @@ export function FuelMovementForm({
   const onSubmit = async (values: FormValues) => {
     if (!validateMovement(values)) return;
 
+    const isOdometerTrip = type === "vehicle_trip" && useOdometer;
+
     await createFuelMovement.mutateAsync({
       type,
       operational_date: values.operational_date,
-      liters: values.liters,
+      liters: isOdometerTrip ? 0 : values.liters,
       vehicle_id: values.vehicle_id ? Number(values.vehicle_id) : null,
       third_party_id: values.third_party_id || null,
       dispatch_purpose: values.dispatch_purpose?.trim() || null,
+      odometer_km: isOdometerTrip ? values.odometer_km : null,
       observation: values.observation?.trim() || null,
     });
     form.reset();
@@ -193,6 +219,30 @@ export function FuelMovementForm({
           </p>
         </div>
 
+        {type === "vehicle_trip" ? (
+          <div className="flex items-center gap-3 rounded-md border bg-muted/20 p-3">
+            <label className="text-sm font-medium">Modo de calculo:</label>
+            <div className="flex gap-2">
+              <Button
+                type="button"
+                size="sm"
+                variant={!useOdometer ? "default" : "outline"}
+                onClick={() => setUseOdometer(false)}
+              >
+                Manual (litros)
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                variant={useOdometer ? "default" : "outline"}
+                onClick={() => setUseOdometer(true)}
+              >
+                Por kilometraje
+              </Button>
+            </div>
+          </div>
+        ) : null}
+
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <FormField
             control={form.control}
@@ -208,19 +258,40 @@ export function FuelMovementForm({
             )}
           />
 
-          <FormField
-            control={form.control}
-            name="liters"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Litros</FormLabel>
-                <FormControl>
-                  <Input type="number" min="0" step="0.01" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          {type === "vehicle_trip" && useOdometer ? (
+            <FormField
+              control={form.control}
+              name="odometer_km"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Kilometraje actual</FormLabel>
+                  <FormControl>
+                    <Input type="number" min="0" step="0.01" placeholder="Ej: 15320" {...field} />
+                  </FormControl>
+                  {selectedVehicle?.km_per_liter ? (
+                    <p className="text-xs text-muted-foreground">
+                      Rendimiento: {selectedVehicle.km_per_liter} km/L
+                    </p>
+                  ) : null}
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          ) : (
+            <FormField
+              control={form.control}
+              name="liters"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Litros</FormLabel>
+                  <FormControl>
+                    <Input type="number" min="0" step="0.01" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )}
         </div>
 
         {needsVehicle(type) ? (
