@@ -1310,6 +1310,7 @@ export type FuelMovementType =
   | "warehouse_dispatch_vehicle"
   | "warehouse_dispatch_third_party"
   | "vehicle_daily_consumption"
+  | "vehicle_trip"
   | "annulment";
 
 export type FuelVehicle = {

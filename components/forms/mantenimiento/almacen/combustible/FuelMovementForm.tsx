@@ -55,13 +55,14 @@ const needsVehicle = (type: FuelMovementType) =>
     "warehouse_unload",
     "warehouse_dispatch_vehicle",
     "vehicle_daily_consumption",
+    "vehicle_trip",
   ].includes(type);
 
 const needsThirdParty = (type: FuelMovementType) =>
   type === "warehouse_dispatch_third_party";
 
 const needsDispatchPurpose = (type: FuelMovementType) =>
-  ["warehouse_dispatch_vehicle", "warehouse_dispatch_third_party"].includes(
+  ["warehouse_dispatch_vehicle", "warehouse_dispatch_third_party", "vehicle_trip"].includes(
     type,
   );
 
@@ -117,7 +118,9 @@ export function FuelMovementForm({
 
     if (needsDispatchPurpose(type) && !values.dispatch_purpose?.trim()) {
       form.setError("dispatch_purpose", {
-        message: "Debe indicar para que fue realizado el despacho",
+        message: type === "vehicle_trip"
+          ? "Debe indicar el destino o motivo del recorrido"
+          : "Debe indicar para que fue realizado el despacho",
       });
       return false;
     }
@@ -136,7 +139,7 @@ export function FuelMovementForm({
     }
 
     if (
-      ["warehouse_unload", "vehicle_daily_consumption"].includes(type) &&
+      ["warehouse_unload", "vehicle_daily_consumption", "vehicle_trip"].includes(type) &&
       selectedVehicle &&
       values.liters > Number(selectedVehicle.current_balance_liters)
     ) {
@@ -295,10 +298,16 @@ export function FuelMovementForm({
             name="dispatch_purpose"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Finalidad del despacho</FormLabel>
+                <FormLabel>
+                  {type === "vehicle_trip" ? "Destino / Motivo" : "Finalidad del despacho"}
+                </FormLabel>
                 <FormControl>
                   <Textarea
-                    placeholder="Ej: BUSQUEDA DE MATERIALES EN FERRETERIA"
+                    placeholder={
+                      type === "vehicle_trip"
+                        ? "Ej: IDA A FERRETERIA POR MATERIALES"
+                        : "Ej: BUSQUEDA DE MATERIALES EN FERRETERIA"
+                    }
                     className="min-h-20 resize-none uppercase"
                     {...field}
                     onChange={(event) =>

@@ -41,6 +41,7 @@ export const FUEL_MOVEMENT_LABELS: Record<FuelMovementType, string> = {
   warehouse_dispatch_vehicle: "Despacho a vehiculo",
   warehouse_dispatch_third_party: "Despacho a tercero",
   vehicle_daily_consumption: "Consumo diario",
+  vehicle_trip: "Recorrido vehicular",
   annulment: "Anulacion",
 };
 
@@ -52,6 +53,7 @@ export const FUEL_MOVEMENT_DESCRIPTIONS: Record<FuelMovementType, string> = {
   warehouse_dispatch_vehicle: "Despacha combustible del almacen a un vehiculo.",
   warehouse_dispatch_third_party: "Despacha combustible del almacen a un tercero.",
   vehicle_daily_consumption: "Registra consumo operativo diario del vehiculo.",
+  vehicle_trip: "Registra un recorrido individual del vehiculo con destino y consumo.",
   annulment: "Reverso auditable de un movimiento.",
 };
 
@@ -151,6 +153,7 @@ export const normalizeFuelMovementType = (
     return "warehouse_dispatch_third_party";
   if (normalized === "vehicle_daily_consumption")
     return "vehicle_daily_consumption";
+  if (normalized === "vehicle_trip") return "vehicle_trip";
   return "annulment";
 };
 

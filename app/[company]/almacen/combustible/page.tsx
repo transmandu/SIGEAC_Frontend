@@ -40,6 +40,7 @@ import {
   CalendarMinus,
   Droplets,
   Fuel,
+  Route,
   ShieldAlert,
   Truck,
 } from "lucide-react";
@@ -60,6 +61,7 @@ const movementFilterOptions: Array<{
   { value: "warehouse_dispatch_vehicle", label: FUEL_MOVEMENT_LABELS.warehouse_dispatch_vehicle },
   { value: "warehouse_dispatch_third_party", label: FUEL_MOVEMENT_LABELS.warehouse_dispatch_third_party },
   { value: "vehicle_daily_consumption", label: FUEL_MOVEMENT_LABELS.vehicle_daily_consumption },
+  { value: "vehicle_trip", label: FUEL_MOVEMENT_LABELS.vehicle_trip },
   { value: "annulment", label: FUEL_MOVEMENT_LABELS.annulment },
 ];
 
@@ -214,6 +216,14 @@ export default function FuelWarehousePage() {
               summary={summary}
               vehicles={fuelVehicles}
               icon={CalendarMinus}
+              variant="outline"
+            />
+            <FuelMovementDialog
+              company={company}
+              type="vehicle_trip"
+              summary={summary}
+              vehicles={fuelVehicles}
+              icon={Route}
               variant="outline"
             />
           </CardContent>
