@@ -140,6 +140,23 @@ export function FuelMovementForm({
         });
         return false;
       }
+      if (selectedVehicle) {
+        const lastKm = Number(selectedVehicle.initial_km ?? 0);
+        if (values.odometer_km <= lastKm) {
+          form.setError("odometer_km", {
+            message: `El kilometraje debe ser mayor al ultimo registrado (${lastKm} km)`,
+          });
+          return false;
+        }
+        const distance = values.odometer_km - lastKm;
+        const estimatedLiters = Math.round((distance / selectedVehicle.km_per_liter!) * 100) / 100;
+        if (estimatedLiters > Number(selectedVehicle.current_balance_liters)) {
+          form.setError("odometer_km", {
+            message: `El consumo estimado (${formatLiters(estimatedLiters)}) supera el saldo del vehiculo (${formatLiters(selectedVehicle.current_balance_liters)})`,
+          });
+          return false;
+        }
+      }
       return true;
     }
 
@@ -195,10 +212,17 @@ export function FuelMovementForm({
 
     const isOdometerTrip = type === "vehicle_trip" && useOdometer;
 
+    let computedLiters = values.liters;
+    if (isOdometerTrip && selectedVehicle?.km_per_liter && values.odometer_km) {
+      const lastKm = Number(selectedVehicle.initial_km ?? 0);
+      const distance = values.odometer_km - lastKm;
+      computedLiters = Math.round((distance / selectedVehicle.km_per_liter) * 100) / 100;
+    }
+
     await createFuelMovement.mutateAsync({
       type,
       operational_date: values.operational_date,
-      liters: isOdometerTrip ? 0 : values.liters,
+      liters: isOdometerTrip ? computedLiters : values.liters,
       vehicle_id: values.vehicle_id ? Number(values.vehicle_id) : null,
       third_party_id: values.third_party_id || null,
       dispatch_purpose: values.dispatch_purpose?.trim() || null,
