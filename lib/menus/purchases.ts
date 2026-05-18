@@ -1,5 +1,12 @@
 import type { Group, MenuContext } from "@/lib/menus/types";
-import { ClipboardList, HandCoins, Receipt, Truck, CircleDollarSign } from "lucide-react";
+import {
+    ClipboardList,
+    HandCoins,
+    Receipt,
+    Truck,
+    CircleDollarSign,
+    HelpCircle,
+} from "lucide-react";
 
 export function buildPurchasesGroup({ pathname, currentCompany }: MenuContext): Group {
     return {
@@ -49,7 +56,20 @@ export function buildPurchasesGroup({ pathname, currentCompany }: MenuContext): 
                     "JEFE_ADMINISTRACION",
                 ],
                 submenus: [],
-            },            
+            },
+            {
+                href: `/${currentCompany?.slug}/compras/destino_indeterminado`,
+                label: "Destino indeterminado",
+                active: pathname.includes(`/${currentCompany?.slug}/compras/destino_indeterminado`),
+                icon: HelpCircle,
+                roles: [
+                    "ANALISTA_COMPRAS",
+                    "JEFE_COMPRAS",
+                    "SUPERUSER",
+                    "JEFE_ADMINISTRACION",
+                ],
+                submenus: [],
+            },
             {
                 href: `/${currentCompany?.slug}/compras/gestion_costos`,
                 label: "Gestión de Costos",

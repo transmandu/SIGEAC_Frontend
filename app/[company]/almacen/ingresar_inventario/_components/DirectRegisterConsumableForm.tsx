@@ -89,8 +89,9 @@ import loadingGif from "@/public/loading2.gif";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { Convertion } from "@/types";
 import { useQueryClient } from "@tanstack/react-query";
-import { EditingArticle } from "@/components/forms/mantenimiento/almacen/RegisterArticleForm";
+import { EditingArticle } from "./DirectRegisterArticleForm";
 import PreviewCreateConsumableDialog from "@/components/dialogs/mantenimiento/almacen/PreviewCreateConsumableDialog";
+import { DestinationUnknownField } from "@/components/forms/mantenimiento/almacen/DestinationUnknownField";
 import { getConditionLabel } from "@/lib/conditions";
 import { Condition } from "@/types";
 import { UnitsModal } from "./UnitsModal";
@@ -156,6 +157,7 @@ const formSchema = z.object({
     conversion_id: z.number().optional(),
     primary_unit_id: z.number().optional(),
     has_documentation: z.boolean().optional(),
+    destination_unknown: z.boolean().optional(),
     shelf_life: z.string().optional(),
     inspector: z.string().optional(),
     inspect_date: z.string().optional(),
@@ -692,7 +694,7 @@ function DatePickerField({
 
 /* ----------------------------- Componente Principal ----------------------------- */
 
-export default function DirectConsumableForm({
+export default function DirectRegisterConsumableForm({
     initialData,
     isEditing,
 }: {
@@ -857,6 +859,7 @@ export default function DirectConsumableForm({
                 : undefined,
             primary_unit_id: Number(initialData?.consumable?.primary_unit_id) || undefined,
             has_documentation: initialData?.has_documentation || false,
+            destination_unknown: false,
             inspector: initialData?.inspector || "",
             inspect_date: initialData?.inspect_date
                 ? initialData?.inspect_date
@@ -939,6 +942,7 @@ export default function DirectConsumableForm({
                 ? Number(initialData.primary_unit_id)
                 : undefined,
             has_documentation: initialData.has_documentation ?? false,
+            destination_unknown: false,
         };
 
         form.reset(resetValues);
@@ -1063,7 +1067,11 @@ export default function DirectConsumableForm({
     async function submitToBackend(values: FormValues) {
         if (!selectedCompany?.slug) return;
 
-        const { expiration_date: _, ...valuesWithoutCaducateDate } = values;
+        const {
+            expiration_date: _,
+            destination_unknown,
+            ...valuesWithoutCaducateDate
+        } = values;
 
         // Format dates for backend
         const caducateDateStr: string | undefined =
@@ -1101,7 +1109,7 @@ export default function DirectConsumableForm({
             primary_unit_id?: number;
         } = {
             ...valuesWithoutCaducateDate,
-            status: "CHECKING",
+            status: destination_unknown ? "TO_DETERMINATE" : "CHECKING",
             part_number: normalizeUpper(values.part_number),
             article_type: "consumable",
             alternative_part_number:
@@ -2078,6 +2086,12 @@ export default function DirectConsumableForm({
                                         )}
                                     />
                                 </div>
+                                {!isEditing && (
+                                    <DestinationUnknownField
+                                        control={form.control}
+                                        disabled={busy}
+                                    />
+                                )}
                                 {hasDocumentation && (
                                     <div className="space-y-4">
                                         <FileField

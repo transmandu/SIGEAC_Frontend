@@ -9,7 +9,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { useCompanyStore } from "@/stores/CompanyStore"
-import RegisterArticleForm from "./_components/RegisterArticleForm"
+import DirectRegisterArticleForm from "./_components/DirectRegisterArticleForm"
 
 const AgregarPage = () => {
   const { selectedCompany } = useCompanyStore();
@@ -48,7 +48,7 @@ const AgregarPage = () => {
           </BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>
-      <RegisterArticleForm isEditing={false} />
+      <DirectRegisterArticleForm isEditing={false} />
     </ContentLayout>
   )
 }

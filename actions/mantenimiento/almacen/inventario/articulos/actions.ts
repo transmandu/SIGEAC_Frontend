@@ -250,6 +250,8 @@ export const useUpdateArticleStatus = () => {
                 queryClient.invalidateQueries({ queryKey: ["articles", company, "WAITING_FOR_FORMAT"] });
                 queryClient.invalidateQueries({ queryKey: ["articles", company, "WAITING_TO_LOCATE"] });
                 queryClient.invalidateQueries({ queryKey: ["articles", company, "QUARANTINE"] });
+                queryClient.invalidateQueries({ queryKey: ["articles", company, "TO_DETERMINATE"] });
+                queryClient.invalidateQueries({ queryKey: ["articles", company, "STORED"] });
             }
             queryClient.invalidateQueries({ queryKey: ["purchase-orders"] });
             toast.success("¡Actualizado!", {

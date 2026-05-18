@@ -10,10 +10,11 @@ import {
 } from "@/components/ui/select";
 import { Article, Batch, Convertion } from "@/types";
 import { useState } from "react";
-import RegisterConsumableForm from "./RegisterConsumableForm";
-import RegisterPartForm from "./RegisterPartForm";
-import RegisterToolForm from "./RegisterToolForm";
-import RegisterComponentForm from "./RegisterComponentForm";
+import DirectRegisterConsumableForm from "./DirectRegisterConsumableForm";
+import DirectRegisterPartForm from "./DirectRegisterPartForm";
+import DirectRegisterComponentForm from "./DirectRegisterComponentForm";
+import DirectRegisterToolForm from "./DirectRegisterToolForm";
+
 
 export interface EditingArticle extends Article {
     batch: Batch;
@@ -25,6 +26,7 @@ export interface EditingArticle extends Article {
         calibration_date?: string;
         next_calibration?: string | number;
         article_id: number;
+        model?: string;
     };
     partComponent?: {
         id: number;
@@ -54,6 +56,7 @@ export interface EditingArticle extends Article {
         shelf_life?: string | null;
         primary_unit_id: string;
         conversions: Convertion[];
+
     };
     certificate_8130?: string;
     certificate_vendor?: string;
@@ -67,7 +70,7 @@ interface IRegisterArticleProps {
     category?: string;
 }
 
-const RegisterArticleForm = ({
+const DirectRegisterArticleForm = ({
     isEditing = false,
     initialData,
 }: IRegisterArticleProps) => {
@@ -79,12 +82,12 @@ const RegisterArticleForm = ({
     }
     return (
         <div className="space-y-3 mb-4">
-            <h1 className="font-bold text-3xl mt-2">
-                {isEditing ? "Edicion de Articulo" : "Recepción Administrativa"}
+            <h1 className="font-bold text-3xl">
+                {isEditing ? "Edicion de Articulo" : "Ingreso de Inventario"}
             </h1>
             {!isEditing && (
-                <p className="text-xs text-muted-foreground">
-                    Seleccione el tipo de articulo a recepcionar. Si el articulo ya existe en el sistema, se actualizará su información y se agregará un nuevo lote con la cantidad ingresada:
+                <p className="text-sm text-muted-foreground">
+                    Seleccione el tipo de articulo a registrar:
                 </p>
             )}
             <Select
@@ -104,19 +107,21 @@ const RegisterArticleForm = ({
                 </SelectContent>
             </Select>
             {type === "CONSUMIBLE" && (
-                <RegisterConsumableForm isEditing={isEditing} initialData={initialData} />
+                // <CreateConsumableForm isEditing={isEditing} initialData={initialData} />
+                <DirectRegisterConsumableForm isEditing={isEditing} initialData={initialData} />
             )}
             {type === "HERRAMIENTA" && (
-                <RegisterToolForm isEditing={isEditing} initialData={initialData} />
+                <DirectRegisterToolForm isEditing={isEditing} initialData={initialData} />
             )}
             {type === "COMPONENTE" && (
-                <RegisterComponentForm isEditing={isEditing} initialData={initialData} />
+                <DirectRegisterComponentForm isEditing={isEditing} initialData={initialData} />
             )}
             {type === "PARTE" && (
-                <RegisterPartForm isEditing={isEditing} initialData={initialData} />
+                // <CreatePartForm isEditing={isEditing} initialData={initialData} />
+                <DirectRegisterPartForm isEditing={isEditing} initialData={initialData} />
             )}
             {type === "GENERAL" && <CreateGeneralArticleForm />}
         </div>
     );
 };
-export default RegisterArticleForm;
+export default DirectRegisterArticleForm;

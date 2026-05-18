@@ -64,7 +64,8 @@ import { useCompanyStore } from "@/stores/CompanyStore";
 import { Batch } from "@/types";
 
 import loadingGif from "@/public/loading2.gif";
-import { EditingArticle } from "@/components/forms/mantenimiento/almacen/RegisterArticleForm";
+import { EditingArticle } from "./ReceptionRegisterArticleForm";
+import { DestinationUnknownField } from "@/components/forms/mantenimiento/almacen/DestinationUnknownField";
 import { CreateManufacturerDialog } from "@/components/dialogs/general/CreateManufacturerDialog";
 import { CreateBatchDialog } from "@/components/dialogs/mantenimiento/almacen/CreateBatchDialog";
 import { useUpdateArticle } from "@/actions/mantenimiento/almacen/inventario/articulos/actions";
@@ -115,6 +116,7 @@ const formSchema = z
       .optional(),
     image: z.instanceof(File).optional(),
     has_documentation: z.boolean().optional(),
+    destination_unknown: z.boolean().optional(),
     inspector: z.string().optional(),
     inspect_date: z
       .date()
@@ -364,7 +366,7 @@ function DatePickerField({
 
 /* ----------------------------- Componente ----------------------------- */
 
-export default function RegisterToolForm({
+export default function ReceptionRegisterToolForm({
   initialData,
   isEditing,
 }: {
@@ -426,6 +428,7 @@ export default function RegisterToolForm({
         ? Number(initialData.tool.next_calibration)
         : undefined,
       has_documentation: initialData?.has_documentation ?? false,
+      destination_unknown: false,
       inspector: initialData?.inspector || "",
       inspect_date: initialData?.inspect_date
         ? addDays(new Date(initialData.inspect_date), 1)
@@ -458,6 +461,7 @@ export default function RegisterToolForm({
         ? Number(initialData.tool.next_calibration)
         : undefined,
       has_documentation: initialData.has_documentation ?? false,
+      destination_unknown: false,
     });
   }, [initialData, form]);
 
@@ -502,9 +506,10 @@ export default function RegisterToolForm({
   async function onSubmit(values: FormValues) {
     if (!selectedCompany?.slug) return;
 
+    const { destination_unknown, ...valuesToSubmit } = values;
     const payload: any = {
-      ...values,
-      status: "CHECKING",
+      ...valuesToSubmit,
+      status: destination_unknown ? "TO_DETERMINATE" : "CHECKING",
       part_number: normalizeUpper(values.part_number),
       alternative_part_number:
         values.alternative_part_number?.map((v) => normalizeUpper(v)) ?? [],
@@ -1156,6 +1161,10 @@ export default function RegisterToolForm({
                 </FormItem>
               )}
             />
+
+            {!isEditing && (
+              <DestinationUnknownField control={form.control} disabled={busy} />
+            )}
 
             <Separator />
 

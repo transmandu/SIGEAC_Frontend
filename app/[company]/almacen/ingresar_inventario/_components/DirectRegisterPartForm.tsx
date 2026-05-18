@@ -74,7 +74,7 @@ import { DatePickerField } from "@/components/ui/DatePickerField";
 import { SectionCard } from "@/components/ui/SectionCard";
 import { Textarea } from "@/components/ui/textarea";
 import { MultiSerialInput } from "./MultiSerialInput";
-import { EditingArticle } from "./RegisterArticleForm";
+import { EditingArticle } from "./DirectRegisterArticleForm";
 import { useAuth } from "@/contexts/AuthContext";
 import { getConditionLabel } from "@/lib/conditions";
 import { Condition } from "@/types";
@@ -198,7 +198,7 @@ interface PreviewValues extends FormValues {
 
 /* ----------------------------- Componente ----------------------------- */
 
-export default function DirectPartForm({
+export default function DirectRegisterPartForm({
     initialData,
     isEditing,
 }: {

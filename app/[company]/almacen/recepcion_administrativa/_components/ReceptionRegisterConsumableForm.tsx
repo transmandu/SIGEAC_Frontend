@@ -92,8 +92,9 @@ import loadingGif from "@/public/loading2.gif";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { Convertion } from "@/types";
 import { useQueryClient } from "@tanstack/react-query";
-import { EditingArticle } from "@/components/forms/mantenimiento/almacen/RegisterArticleForm";
+import { EditingArticle } from "./ReceptionRegisterArticleForm";
 import PreviewCreateConsumableDialog from "@/components/dialogs/mantenimiento/almacen/PreviewCreateConsumableDialog";
+import { DestinationUnknownField } from "@/components/forms/mantenimiento/almacen/DestinationUnknownField";
 
 /* ------------------------------- Schema ------------------------------- */
 
@@ -156,6 +157,7 @@ const formSchema = z.object({
     conversion_id: z.number().optional(),
     primary_unit_id: z.number().optional(),
     has_documentation: z.boolean().optional(),
+    destination_unknown: z.boolean().optional(),
     shelf_life: z.string().optional(),
 });
 
@@ -1070,7 +1072,7 @@ function UnitsModal({
 
 /* ----------------------------- Componente Principal ----------------------------- */
 
-export default function RegisterConsumableForm({
+export default function ReceptionRegisterConsumableForm({
     initialData,
     isEditing,
 }: {
@@ -1235,6 +1237,7 @@ export default function RegisterConsumableForm({
                 : undefined,
             primary_unit_id: initialData?.primary_unit_id || undefined,
             has_documentation: initialData?.has_documentation || false,
+            destination_unknown: false,
             shelf_life: initialData?.consumable?.shelf_life || undefined,
         },
         mode: "onBlur",
@@ -1299,6 +1302,7 @@ export default function RegisterConsumableForm({
 
             primary_unit_id: initialData?.primary_unit_id || undefined,
             has_documentation: initialData.has_documentation ?? false,
+            destination_unknown: false,
         };
 
         form.reset(resetValues);
@@ -1423,7 +1427,11 @@ export default function RegisterConsumableForm({
     async function submitToBackend(values: FormValues) {
         if (!selectedCompany?.slug) return;
 
-        const { expiration_date: _, ...valuesWithoutCaducateDate } = values;
+        const {
+            expiration_date: _,
+            destination_unknown,
+            ...valuesWithoutCaducateDate
+        } = values;
 
         // Format dates for backend
         const caducateDateStr: string | undefined =
@@ -1461,7 +1469,7 @@ export default function RegisterConsumableForm({
             primary_unit_id?: number;
         } = {
             ...valuesWithoutCaducateDate,
-            status: "RECEPTION",
+            status: destination_unknown ? "TO_DETERMINATE" : "RECEPTION",
             part_number: normalizeUpper(values.part_number),
             article_type: "consumable",
             alternative_part_number:
@@ -2409,6 +2417,12 @@ export default function RegisterConsumableForm({
                                         )}
                                     />
                                 </div>
+                                {!isEditing && (
+                                    <DestinationUnknownField
+                                        control={form.control}
+                                        disabled={busy}
+                                    />
+                                )}
                                 {hasDocumentation && (
                                     <div className="space-y-4">
                                         <FileField

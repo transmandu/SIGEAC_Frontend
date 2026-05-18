@@ -33,11 +33,12 @@ import { toast } from "sonner";
 import { CreateManufacturerDialog } from "@/components/dialogs/general/CreateManufacturerDialog";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 
-import { EditingArticle } from "./RegisterArticleForm";
+import { EditingArticle } from "./ReceptionRegisterArticleForm";
 
 import { z } from "zod";
 import { FileField } from "@/app/[company]/almacen/ingresar_inventario/_components/FileField";
 import { MultiInputField } from "@/components/misc/MultiInputField";
+import { DestinationUnknownField } from "@/components/forms/mantenimiento/almacen/DestinationUnknownField";
 import { Textarea } from "@/components/ui/textarea";
 import { getConditionLabel } from "@/lib/conditions";
 
@@ -87,6 +88,7 @@ export const formSchema = z.object({
     .optional(),
 
   image: z.instanceof(File).optional(),
+  destination_unknown: z.boolean().optional(),
 });
 
 export type FormValues = z.infer<typeof formSchema>;
@@ -97,7 +99,7 @@ type Props = {
   isEditing?: boolean;
 };
 
-export default function RegisterComponentForm({ initialData, isEditing }: Props) {
+export default function ReceptionRegisterComponentForm({ initialData, isEditing }: Props) {
   const router = useRouter();
   const { selectedCompany } = useCompanyStore();
 
@@ -123,6 +125,7 @@ export default function RegisterComponentForm({ initialData, isEditing }: Props)
       manufacturer_id: initialData?.manufacturer?.id?.toString() || "",
       condition_id: initialData?.condition?.id?.toString() || "",
       description: initialData?.description || "",
+      destination_unknown: false,
     },
   });
 
@@ -136,6 +139,7 @@ export default function RegisterComponentForm({ initialData, isEditing }: Props)
       manufacturer_id: initialData.manufacturer?.id?.toString() ?? "",
       condition_id: initialData.condition?.id?.toString() ?? "",
       description: initialData.description ?? "",
+      destination_unknown: false,
     });
   }, [initialData, form]);
 
@@ -187,7 +191,7 @@ export default function RegisterComponentForm({ initialData, isEditing }: Props)
       certificate_fabricant: values.certificate_fabricant,
       certificate_vendor: values.certificate_vendor,
       image: values.image,
-      status: "RECEPTION",
+      status: values.destination_unknown ? "TO_DETERMINATE" : "RECEPTION",
     }
 
     if (isEditing && initialData) {
@@ -214,6 +218,7 @@ export default function RegisterComponentForm({ initialData, isEditing }: Props)
       manufacturer_id: "",
       condition_id: "",
       description: "",
+      destination_unknown: false,
     });
   };
 
@@ -582,6 +587,10 @@ export default function RegisterComponentForm({ initialData, isEditing }: Props)
               )}
             />
 
+            {!isEditing && (
+              <DestinationUnknownField control={form.control} disabled={busy} />
+            )}
+
             <Separator />
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -705,7 +714,10 @@ export default function RegisterComponentForm({ initialData, isEditing }: Props)
 
         {/* Indicador interno de status (opcional, por si quieres dejarlo visible en UI) */}
         <p className="text-xs text-muted-foreground">
-          Estado al registrar: <span className="font-medium">INCOMING</span>
+          Estado al registrar:{" "}
+          <span className="font-medium">
+            {form.watch("destination_unknown") ? "TO_DETERMINATE" : "RECEPTION"}
+          </span>
         </p>
       </form>
     </Form>

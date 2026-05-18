@@ -9,9 +9,9 @@ import {
     SelectTrigger,
     SelectValue,
 } from "../../../ui/select";
-import DirectComponentForm from "@/app/[company]/almacen/ingresar_inventario/_components/DirectComponentForm";
-import DirectConsumableForm from "@/app/[company]/almacen/ingresar_inventario/_components/DirectConsumableForm";
-import DirectPartForm from "@/app/[company]/almacen/ingresar_inventario/_components/DirectPartForm";
+import DirectRegisterComponentForm from "@/app/[company]/almacen/ingresar_inventario/_components/DirectRegisterComponentForm";
+import DirectRegisterConsumableForm from "@/app/[company]/almacen/ingresar_inventario/_components/DirectRegisterConsumableForm";
+import DirectRegisterPartForm from "@/app/[company]/almacen/ingresar_inventario/_components/DirectRegisterPartForm";
 import CreateToolForm from "./CreateToolForm";
 
 export interface EditingArticle extends Article {
@@ -69,7 +69,7 @@ interface IRegisterArticleProps {
     category?: string;
 }
 
-const RegisterArticleForm = ({
+const DirectRegisterArticleForm = ({
     isEditing = false,
     initialData,
 }: IRegisterArticleProps) => {
@@ -105,18 +105,18 @@ const RegisterArticleForm = ({
                 </SelectContent>
             </Select>
             {type === "CONSUMIBLE" && (
-                <DirectConsumableForm isEditing={isEditing} initialData={initialData} />
+                <DirectRegisterConsumableForm isEditing={isEditing} initialData={initialData} />
             )}
             {type === "HERRAMIENTA" && (
                 <CreateToolForm isEditing={isEditing} initialData={initialData} />
             )}
             {type === "COMPONENTE" && (
-                <DirectComponentForm isEditing={isEditing} initialData={initialData} />
+                <DirectRegisterComponentForm isEditing={isEditing} initialData={initialData} />
             )}
             {type === "PARTE" && (
-                <DirectPartForm isEditing={isEditing} initialData={initialData} />
+                <DirectRegisterPartForm isEditing={isEditing} initialData={initialData} />
             )}
         </div>
     );
 };
-export default RegisterArticleForm;
+export default DirectRegisterArticleForm;

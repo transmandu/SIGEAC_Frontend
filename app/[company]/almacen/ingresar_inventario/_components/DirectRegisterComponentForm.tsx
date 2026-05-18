@@ -74,8 +74,9 @@ import { DatePickerField } from "@/components/ui/DatePickerField";
 import { SectionCard } from "@/components/ui/SectionCard";
 import { Textarea } from "@/components/ui/textarea";
 import { MultiSerialInput } from "./MultiSerialInput";
-import { EditingArticle } from "./RegisterArticleForm";
+import { EditingArticle } from "./DirectRegisterArticleForm";
 import { useAuth } from "@/contexts/AuthContext";
+import { DestinationUnknownField } from "@/components/forms/mantenimiento/almacen/DestinationUnknownField";
 
 import { Condition } from "@/types";
 import { getConditionLabel } from "@/lib/conditions";
@@ -142,6 +143,7 @@ const formSchema = z
       .optional(),
     image: z.instanceof(File).optional(),
     has_documentation: z.boolean().optional(),
+    destination_unknown: z.boolean().optional(),
     aircraft_id: z.string().optional(),
     life_limit_part_hours: z.coerce
       .number({ invalid_type_error: "Debe ingresar una cantidad numérica" })
@@ -200,7 +202,7 @@ interface PreviewValues extends FormValues {
 
 /* ----------------------------- Componente ----------------------------- */
 
-export default function DirectComponentForm({
+export default function DirectRegisterComponentForm({
   initialData,
   isEditing,
 }: {
@@ -325,6 +327,7 @@ export default function DirectComponentForm({
         ? initialData?.partComponent?.fabrication_date
         : undefined,
       has_documentation: initialData?.has_documentation ?? false,
+      destination_unknown: false,
       aircraft_id: initialData?.partComponent?.aircraft_id?.toString() ?? "",
       life_limit_part_calendar: initialData?.partComponent
         ?.life_limit_part_calendar
@@ -385,6 +388,7 @@ export default function DirectComponentForm({
         ? initialData.partComponent?.fabrication_date
         : undefined,
       has_documentation: initialData.has_documentation ?? false,
+      destination_unknown: false,
       aircraft_id: initialData.partComponent?.aircraft_id?.toString() ?? "",
       life_limit_part_calendar: initialData.partComponent
         ?.life_limit_part_calendar
@@ -504,7 +508,11 @@ export default function DirectComponentForm({
       return; // El botón debería estar deshabilitado, pero por seguridad validamos aquí también
     }
 
-    const { expiration_date: _, ...valuesWithoutCaducateDate } = values;
+    const {
+      expiration_date: _,
+      destination_unknown,
+      ...valuesWithoutCaducateDate
+    } = values;
     const caducateDateStr: string | undefined =
       caducateDate && caducateDate !== null
         ? format(caducateDate, "yyyy-MM-dd")
@@ -532,7 +540,7 @@ export default function DirectComponentForm({
       aircraft_id?: string;
     } = {
       ...valuesWithoutCaducateDate,
-      status: "CHECKING",
+      status: destination_unknown ? "TO_DETERMINATE" : "CHECKING",
       article_type: "part",
       part_number: normalizeUpper(values.part_number),
       alternative_part_number:
@@ -1737,6 +1745,10 @@ export default function DirectComponentForm({
                 </FormItem>
               )}
             />
+
+            {!isEditing && (
+              <DestinationUnknownField control={form.control} disabled={busy} />
+            )}
 
             {hasDocumentation && (
               <>
