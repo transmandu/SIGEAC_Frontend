@@ -1313,6 +1313,10 @@ export type CargoShipment = {
   copilot_id: number | null;
   pilot?: Pilot;
   copilot?: Pilot;
+  external_pilot_id: number | null;
+  external_copilot_id: number | null;
+  externalPilot?: ExternalPilot;
+  externalCopilot?: ExternalPilot;
   client: Client;
   aircraft: Aircraft;
   external_aircraft: string | null;
@@ -1473,4 +1477,13 @@ export type CreateFuelMovementPayload = {
 
 export type AnnulFuelMovementPayload = {
   reason?: string | null;
+};
+
+export type ExternalPilot = {
+  id: number;
+  first_name: string;
+  last_name: string;
+  full_name: string;
+  license_number: string;
+  rank?: string;
 };
