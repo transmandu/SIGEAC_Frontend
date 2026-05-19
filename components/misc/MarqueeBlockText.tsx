@@ -23,7 +23,7 @@ export function MarqueeBlockText({
 
     if (!container || !content) return
 
-    setOverflowing(content.scrollHeight > container.clientHeight)
+    setOverflowing(content.scrollWidth > container.clientWidth)
   }, [text])
 
   return (
@@ -36,9 +36,10 @@ export function MarqueeBlockText({
       <p
         ref={contentRef}
         className={`
-          whitespace-pre-wrap text-sm leading-relaxed text-foreground/90
+          whitespace-nowrap
+          text-sm leading-relaxed text-foreground/90
           transition-transform duration-&lsqb;6000ms&rsqb; ease-linear
-          ${overflowing && hovered ? '-translate-y-[calc(100%-140px)]' : 'translate-y-0'}
+          ${overflowing && hovered ? '-translate-x-[calc(100%-100%)]' : 'translate-x-0'}
         `}
       >
         {text}

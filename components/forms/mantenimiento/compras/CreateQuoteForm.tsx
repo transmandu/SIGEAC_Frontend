@@ -403,10 +403,11 @@ export function CreateQuoteForm({
                   <div className="h-px flex-1 bg-border/60" />
                 </div>
 
-                <div className="rounded-md border bg-background/70 px-3 py-2.5">
+                {/* viewport fijo */}
+                <div className="rounded-md border bg-background/70 px-3 py-2.5 overflow-hidden">
                   <MarqueeBlockText
                     text={req.justification || "Sin justificación"}
-                    className="h-full"
+                    className="whitespace-nowrap text-sm leading-relaxed text-foreground/90"
                   />
                 </div>
               </div>
