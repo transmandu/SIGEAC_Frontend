@@ -31,11 +31,10 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useGetEmployeesByDepartment } from "@/hooks/sistema/useGetEmployeesByDepartament";
-import { cn } from "@/lib/utils";
+import { cn, parseServerDate } from "@/lib/utils";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { SMSActivity } from "@/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Separator } from "@radix-ui/react-select";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { CalendarIcon, Loader2, Plus, X } from "lucide-react";
@@ -83,6 +82,7 @@ const FormSchema = z
     );
 type FormSchemaType = z.infer<typeof FormSchema>;
 
+
 interface FormProps {
     onClose: (open: boolean) => void;
     initialData?: SMSActivity;
@@ -108,8 +108,8 @@ export default function CreateSMSActivityForm({
     const [newTopic, setNewTopic] = useState("");
 
     const { data: nextNumberData, isLoading: isLoadingNextNumber } =
-        useGetNextActivityNumber(selectedCompany?.slug || null);
-
+        useGetNextActivityNumber(selectedCompany!.slug);
+    console.log('next number data', nextNumberData);
     const form = useForm<FormSchemaType>({
         resolver: zodResolver(FormSchema),
         // Los defaultValues aquí están bien, pero los re-aplicaremos en el useEffect
@@ -118,12 +118,12 @@ export default function CreateSMSActivityForm({
             title: initialData?.title || "",
             activity_number: initialData?.activity_number || "",
             start_date: initialData?.start_date
-                ? new Date(initialData.start_date)
+                ? parseServerDate(initialData.start_date)
                 : selectedDate
-                    ? new Date(selectedDate)
+                    ? parseServerDate(selectedDate)
                     : new Date(),
             end_date: initialData?.end_date
-                ? new Date(initialData.end_date)
+                ? parseServerDate(initialData.end_date)
                 : undefined,
             start_time: initialData?.start_time || "",
             end_time: initialData?.end_time || "",
@@ -151,10 +151,10 @@ export default function CreateSMSActivityForm({
                 title: initialData.title || "",
                 activity_number: initialData.activity_number || "",
                 start_date: initialData.start_date
-                    ? new Date(initialData.start_date)
+                    ? parseServerDate(initialData.start_date)
                     : new Date(),
                 end_date: initialData.end_date
-                    ? new Date(initialData.end_date)
+                    ? parseServerDate(initialData.end_date)
                     : undefined,
                 start_time: initialData.start_time || "",
                 end_time: initialData.end_time || "",
@@ -247,7 +247,6 @@ export default function CreateSMSActivityForm({
                                     <Input
                                         {...field}
                                         placeholder={isLoadingNextNumber ? "Cargando..." : ""}
-                                        readOnly={true}
                                         tabIndex={-1}
                                         maxLength={50}
                                         className="bg-muted cursor-not-allowed font-bold text-muted-foreground"
