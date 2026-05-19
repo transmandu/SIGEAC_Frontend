@@ -16,10 +16,10 @@ import { Receipt } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 import {
-  CreateQuoteForm,
-  QuoteableRequisition,
+  CreateQuoteForm
 } from "@/components/forms/mantenimiento/compras/CreateQuoteForm";
 import { DialogTrigger } from "@radix-ui/react-dialog";
+import { QuoteableRequisition } from "@/types/purchase/quote";
 
 interface GenerateQuoteDialogProps {
   req: QuoteableRequisition;

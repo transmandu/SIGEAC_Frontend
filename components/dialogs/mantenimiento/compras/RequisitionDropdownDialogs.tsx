@@ -343,50 +343,57 @@ const RequisitionDropdownDialogs = ({
             className="
               border-b border-border/40
               bg-muted/20
-              px-8
-              pt-8
-              pb-6
+              px-6
+              pt-5
+              pb-4
               text-left
             "
           >
-            <div className="flex items-start gap-4">
+            <div className="flex items-center gap-3">
+
+              {/* Icono más compacto */}
               <div
                 className="
                   flex items-center justify-center
-                  size-14 shrink-0
-                  rounded-2xl
+                  size-10 shrink-0
+                  rounded-xl
                   border border-emerald-500/10
                   bg-emerald-500/[0.08]
                 "
               >
-                <Receipt className="size-6 text-emerald-600" />
+                <Receipt className="size-4.5 text-emerald-600" />
               </div>
 
-              <div className="space-y-2">
-                <DialogTitle
-                  className="
-                    text-2xl
-                    font-semibold
-                    tracking-tight
-                  "
-                >
-                  Generar cotización
-                </DialogTitle>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center justify-between gap-3">
 
+                  {/* Título */}
+                  <DialogTitle
+                    className="
+                      text-base
+                      font-semibold
+                      tracking-tight
+                      leading-none
+                    "
+                  >
+                    Generar cotización
+                  </DialogTitle>
+
+                </div>
+
+                {/* Descripción compacta */}
                 <DialogDescription
                   className="
-                    max-w-2xl
-                    text-sm
+                    mt-1
+                    text-xs
                     leading-relaxed
                     text-muted-foreground
                   "
                 >
-                  Complete la información
-                  requerida para generar una
-                  nueva cotización asociada a la
-                  requisición{" "}
-                  <span className="font-medium text-foreground">
-                    {req.order_number}
+                  Complete la información requerida para generar una nueva 
+                  cotización asociada a la requisición{" "} 
+                  <span className="font-medium text-foreground"> 
+                    {req.order_number} 
                   </span>.
                 </DialogDescription>
               </div>
