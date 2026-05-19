@@ -407,7 +407,6 @@ export function CreateQuoteForm({
                 <div className="rounded-md border bg-background/70 px-3 py-2.5 overflow-hidden">
                   <MarqueeBlockText
                     text={req.justification || "Sin justificación"}
-                    className="whitespace-nowrap text-sm leading-relaxed text-foreground/90"
                   />
                 </div>
               </div>

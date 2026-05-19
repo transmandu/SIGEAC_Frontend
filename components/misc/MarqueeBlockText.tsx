@@ -1,49 +1,57 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import { cn } from '@/lib/utils'
 
 interface Props {
   text: string
   className?: string
 }
 
-export function MarqueeBlockText({
-  text,
-  className,
-}: Props) {
+export function MarqueeBlockText({ text, className }: Props) {
   const containerRef = useRef<HTMLDivElement>(null)
-  const contentRef = useRef<HTMLParagraphElement>(null)
+  const contentRef = useRef<HTMLDivElement>(null)
 
-  const [overflowing, setOverflowing] = useState(false)
   const [hovered, setHovered] = useState(false)
+  const [distance, setDistance] = useState(0)
+  const [enabled, setEnabled] = useState(false)
 
   useEffect(() => {
-    const container = containerRef.current
-    const content = contentRef.current
+    if (!containerRef.current || !contentRef.current) return
 
-    if (!container || !content) return
+    const containerWidth = containerRef.current.offsetWidth
+    const contentWidth = contentRef.current.scrollWidth
 
-    setOverflowing(content.scrollWidth > container.clientWidth)
+    const diff = contentWidth - containerWidth
+
+    if (diff > 0) {
+      setDistance(diff)
+      setEnabled(true)
+    } else {
+      setDistance(0)
+      setEnabled(false)
+    }
   }, [text])
 
   return (
     <div
       ref={containerRef}
+      className={cn('relative w-full overflow-hidden', className)}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
-      className={`relative overflow-hidden ${className}`}
     >
-      <p
+      <div
         ref={contentRef}
-        className={`
-          whitespace-nowrap
-          text-sm leading-relaxed text-foreground/90
-          transition-transform duration-&lsqb;6000ms&rsqb; ease-linear
-          ${overflowing && hovered ? '-translate-x-[calc(100%-100%)]' : 'translate-x-0'}
-        `}
+        className={cn(
+          'whitespace-nowrap text-sm leading-relaxed text-foreground/90',
+          hovered && enabled && 'animate-marquee-loop'
+        )}
+        style={{
+          '--distance': `${distance}px`,
+        } as React.CSSProperties}
       >
-        {text}
-      </p>
+        <span>{text}</span>
+      </div>
     </div>
   )
 }

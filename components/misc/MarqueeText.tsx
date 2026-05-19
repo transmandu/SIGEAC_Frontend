@@ -23,6 +23,7 @@ export function MarqueeText({ text }: { text: string }) {
       setDistance(diff);
       setEnabled(true);
     } else {
+      setDistance(0);
       setEnabled(false);
     }
   }, [text]);
@@ -37,14 +38,12 @@ export function MarqueeText({ text }: { text: string }) {
       <div
         ref={contentRef}
         className={cn(
-          "flex whitespace-nowrap text-xs text-muted-foreground transition-transform",
-          hovered && enabled && "animate-marquee-x"
+          "flex whitespace-nowrap text-xs text-muted-foreground",
+          hovered && enabled && "animate-marquee-pingpong"
         )}
-        style={
-          {
-            "--distance": `${distance}px`,
-          } as React.CSSProperties
-        }
+        style={{
+          "--distance": `${distance}px`,
+        } as React.CSSProperties}
       >
         <span>{text}</span>
       </div>
