@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import { Check, ChevronsUpDown, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -32,6 +32,7 @@ export interface ComboboxOption {
   label: string;
   /** Badge opcional que se muestra junto a la etiqueta */
   badge?: string;
+  group?: string;
 }
 
 interface ComboboxFieldProps<T extends FieldValues> {
@@ -113,37 +114,49 @@ export function ComboboxField<T extends FieldValues>({
                   <CommandInput placeholder={searchPlaceholder} />
                   <CommandList>
                     <CommandEmpty>{emptyText}</CommandEmpty>
-                    <CommandGroup>
-                      {options.map((option) => (
-                        <CommandItem
-                          key={option.value}
-                          value={String(option.label)}
-                          onSelect={() => {
-                            form.setValue(name, option.value as any);
-                            setOpen(false);
-                          }}
-                        >
-                          <div className="flex flex-1 items-center justify-between gap-2 overflow-hidden">
-                            <span className="truncate font-medium">
-                              {option.label}
-                            </span>
-                            {option.badge && (
-                              <span className="shrink-0 text-[10px] uppercase font-bold text-muted-foreground bg-muted/50 px-1.5 py-0.5 rounded border border-border/50">
-                                {option.badge.replace(/_/g, " ")}
-                              </span>
-                            )}
-                          </div>
-                          <Check
-                            className={cn(
-                              "ml-2 h-4 w-4 shrink-0",
-                              String(option.value) === String(field.value)
-                                ? "opacity-100"
-                                : "opacity-0",
-                            )}
-                          />
-                        </CommandItem>
-                      ))}
-                    </CommandGroup>
+                    {Array.from(
+                      options.reduce((acc, opt) => {
+                        const key = opt.group ?? "";
+                        if (!acc.has(key)) acc.set(key, []);
+                        acc.get(key)!.push(opt);
+                        return acc;
+                      }, new Map<string, ComboboxOption[]>()),
+                    ).map(([groupName, groupOptions], idx) => (
+                      <Fragment key={groupName}>
+                        {idx > 0 && <CommandSeparator />}
+                        <CommandGroup heading={groupName || undefined}>
+                          {groupOptions.map((option) => (
+                            <CommandItem
+                              key={option.value}
+                              value={String(option.label)}
+                              onSelect={() => {
+                                form.setValue(name, option.value as any);
+                                setOpen(false);
+                              }}
+                            >
+                              <div className="flex flex-1 items-center justify-between gap-2 overflow-hidden">
+                                <span className="truncate font-medium">
+                                  {option.label}
+                                </span>
+                                {option.badge && (
+                                  <span className="shrink-0 text-[10px] uppercase font-bold text-muted-foreground bg-muted/50 px-1.5 py-0.5 rounded border border-border/50">
+                                    {option.badge.replace(/_/g, " ")}
+                                  </span>
+                                )}
+                              </div>
+                              <Check
+                                className={cn(
+                                  "ml-2 h-4 w-4 shrink-0",
+                                  String(option.value) === String(field.value)
+                                    ? "opacity-100"
+                                    : "opacity-0",
+                                )}
+                              />
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </Fragment>
+                    ))}
 
                     {onCreateNew && (
                       <>
