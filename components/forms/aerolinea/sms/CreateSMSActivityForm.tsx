@@ -248,7 +248,7 @@ export default function CreateSMSActivityForm({
                                         {...field}
                                         placeholder={isLoadingNextNumber ? "Cargando..." : ""}
                                         tabIndex={-1}
-                                        readOnly{true}
+                                        readOnly={true}
                                         maxLength={50}
                                         className="bg-muted cursor-not-allowed font-bold text-muted-foreground"
                                     />
