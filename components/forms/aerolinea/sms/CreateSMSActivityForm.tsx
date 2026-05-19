@@ -83,6 +83,21 @@ const FormSchema = z
     );
 type FormSchemaType = z.infer<typeof FormSchema>;
 
+// Helper to parse server date strings (YYYY-MM-DD) as local dates
+function parseServerDate(input?: string | Date | null): Date | undefined {
+    if (!input) return undefined;
+    if (input instanceof Date) return input;
+    const s = String(input);
+    const dateOnly = /^\d{4}-\d{2}-\d{2}$/;
+    if (dateOnly.test(s)) {
+        const [y, m, d] = s.split("-").map(Number);
+        return new Date(y, m - 1, d);
+    }
+    const parsed = new Date(s);
+    if (!isNaN(parsed.getTime())) return parsed;
+    return undefined;
+}
+
 interface FormProps {
     onClose: (open: boolean) => void;
     initialData?: SMSActivity;
@@ -118,12 +133,12 @@ export default function CreateSMSActivityForm({
             title: initialData?.title || "",
             activity_number: initialData?.activity_number || "",
             start_date: initialData?.start_date
-                ? new Date(initialData.start_date)
+                ? parseServerDate(initialData.start_date)
                 : selectedDate
-                    ? new Date(selectedDate)
+                    ? parseServerDate(selectedDate)
                     : new Date(),
             end_date: initialData?.end_date
-                ? new Date(initialData.end_date)
+                ? parseServerDate(initialData.end_date)
                 : undefined,
             start_time: initialData?.start_time || "",
             end_time: initialData?.end_time || "",
@@ -151,10 +166,10 @@ export default function CreateSMSActivityForm({
                 title: initialData.title || "",
                 activity_number: initialData.activity_number || "",
                 start_date: initialData.start_date
-                    ? new Date(initialData.start_date)
+                    ? parseServerDate(initialData.start_date)
                     : new Date(),
                 end_date: initialData.end_date
-                    ? new Date(initialData.end_date)
+                    ? parseServerDate(initialData.end_date)
                     : undefined,
                 start_time: initialData.start_time || "",
                 end_time: initialData.end_time || "",
