@@ -207,7 +207,7 @@ input[type="password"]::-webkit-password-toggle-button {
 }
 
 .animate-marquee-loop {
-  animation: marquee-x-loop 6s linear infinite;
+  animation: marquee-x-loop var(--duration) linear infinite;
 }
 
 .scrollbar-modern {

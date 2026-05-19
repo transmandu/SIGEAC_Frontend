@@ -8,12 +8,15 @@ interface Props {
   className?: string
 }
 
+const SPEED = 60 // px por segundo (ajustable UX)
+
 export function MarqueeBlockText({ text, className }: Props) {
   const containerRef = useRef<HTMLDivElement>(null)
   const contentRef = useRef<HTMLDivElement>(null)
 
   const [hovered, setHovered] = useState(false)
   const [distance, setDistance] = useState(0)
+  const [duration, setDuration] = useState(0)
   const [enabled, setEnabled] = useState(false)
 
   useEffect(() => {
@@ -26,9 +29,11 @@ export function MarqueeBlockText({ text, className }: Props) {
 
     if (diff > 0) {
       setDistance(diff)
+      setDuration(diff / SPEED)
       setEnabled(true)
     } else {
       setDistance(0)
+      setDuration(0)
       setEnabled(false)
     }
   }, [text])
@@ -48,6 +53,7 @@ export function MarqueeBlockText({ text, className }: Props) {
         )}
         style={{
           '--distance': `${distance}px`,
+          '--duration': `${duration}s`,
         } as React.CSSProperties}
       >
         <span>{text}</span>
