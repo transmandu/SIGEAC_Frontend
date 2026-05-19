@@ -34,14 +34,6 @@ import {
   CommandItem,
   CommandList,
 } from "../../../ui/command";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "../../../ui/dialog";
 import { Popover, PopoverContent, PopoverTrigger } from "../../../ui/popover";
 import { ScrollArea } from "../../../ui/scroll-area";
 import {
@@ -51,11 +43,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../../../ui/select";
-import CreateVendorForm from "../../general/CreateVendorForm";
 import { useGetUnits } from "@/hooks/general/unidades/useGetPrimaryUnits";
+import { QuoteableRequisition } from "@/types/purchase/quote";
+import { MarqueeBlockText } from "@/components/misc/MarqueeBlockText";
 
 const FormSchema = z.object({
-  justification: z.string({ message: "Debe ingresar una justificacion." }),
+  justification: z.string(),
   articles: z.array(
     z.object({
       part_number: z.string(),
@@ -70,26 +63,10 @@ const FormSchema = z.object({
   vendor_id: z.string({ message: "Debe seleccionar un proveedor." }),
   location_id: z.string({ message: "Debe ingresar una ubicacion destino." }),
   quote_date: z.date({ message: "Debe ingresar una fecha de cotizacion." }),
+  observation: z.string().optional(),
 });
 
 type FormSchemaType = z.infer<typeof FormSchema>;
-
-export interface QuoteableRequisition {
-  id: number;
-  order_number: string;
-  requested_by: string;
-  justification: string;
-  batch: {
-    batch_articles: {
-      article_part_number: string;
-      article_alt_part_number?: string;
-      quantity: number;
-      unit?: {
-        id: number;
-      } | null;
-    }[];
-  }[];
-}
 
 export function CreateQuoteForm({
   onClose,
@@ -122,6 +99,7 @@ export function CreateQuoteForm({
     resolver: zodResolver(FormSchema),
     defaultValues: {
       justification: req.justification || "",
+      observation: "",
       articles: transformedArticles,
     },
   });
@@ -172,6 +150,7 @@ export function CreateQuoteForm({
       company: selectedCompany!.slug,
       requisition_order_id: req.id,
       vendor_id: Number(data.vendor_id),
+      observation: data.observation || null,
       articles: data.articles.map((article: any) => ({
         ...article,
         amount: Number(article.unit_price) * Number(article.quantity),
@@ -195,202 +174,273 @@ export function CreateQuoteForm({
     <Form {...form}>
       <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5">
 
-        {/* ── Sección meta: fecha / proveedor / destino ────────────────── */}
-        <div className="grid grid-cols-3 gap-3">
-          {/* Fecha */}
-          <FormField
-            control={form.control}
-            name="quote_date"
-            render={({ field }) => (
-              <FormItem className="flex flex-col">
-                <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground mb-1">
-                  Fecha de cotización
-                </FormLabel>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <FormControl>
-                      <Button
-                        variant="outline"
-                        className={cn(
-                          "w-full justify-start text-left font-normal text-sm h-9",
-                          !field.value && "text-muted-foreground"
-                        )}
-                      >
-                        <CalendarIcon className="mr-2 h-3.5 w-3.5 opacity-60" />
-                        {field.value
-                          ? format(field.value, "dd MMM yyyy", { locale: es })
-                          : "Seleccionar fecha"}
-                      </Button>
-                    </FormControl>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={field.value}
-                      onSelect={field.onChange}
-                      locale={es}
-                      disabled={(date) =>
-                        date > new Date() || date < new Date("1900-01-01")
-                      }
-                      initialFocus
-                    />
-                  </PopoverContent>
-                </Popover>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+        {/* ── Sección meta + justificación (layout 2 columnas) ───────────── */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-stretch">
 
-          {/* Proveedor */}
-          <FormField
-            control={form.control}
-            name="vendor_id"
-            render={({ field }) => (
-              <FormItem className="flex flex-col">
-                <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground mb-1">
-                  Proveedor
-                </FormLabel>
-                <Popover open={openVendor} onOpenChange={setOpenVendor}>
-                  <PopoverTrigger asChild>
-                    <FormControl>
-                      <Button
-                        disabled={isVendorsLoading}
-                        variant="outline"
-                        role="combobox"
-                        className={cn(
-                          "w-full justify-between text-sm h-9",
-                          !field.value && "text-muted-foreground"
-                        )}
-                      >
-                        {isVendorsLoading ? (
-                          <Loader2 className="size-3.5 animate-spin" />
-                        ) : field.value ? (
-                          <span className="truncate">
-                            {vendors?.find((v) => v.id.toString() === field.value)?.name}
-                          </span>
-                        ) : (
-                          "Seleccionar..."
-                        )}
-                        <ChevronsUpDown className="ml-1 h-3.5 w-3.5 shrink-0 opacity-40" />
-                      </Button>
-                    </FormControl>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-[220px] p-0">
-                    <Command>
-                      <CommandInput placeholder="Buscar proveedor..." className="text-sm" />
-                      <CommandList>
-                        <CommandEmpty>Sin resultados.</CommandEmpty>
-                        <CommandGroup>
-                          <Dialog open={openVendorDialog} onOpenChange={setOpenVendorDialog}>
-                            <DialogTrigger asChild>
-                              <div className="flex justify-center py-1 px-2">
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="w-full text-xs h-7"
-                                  onClick={() => setOpenVendorDialog(true)}
-                                >
-                                  + Crear proveedor
-                                </Button>
-                              </div>
-                            </DialogTrigger>
-                            <DialogContent className="sm:max-w-[490px]">
-                              <DialogHeader>
-                                <DialogTitle>Crear proveedor</DialogTitle>
-                                <DialogDescription>
-                                  Complete la información del nuevo proveedor.
-                                </DialogDescription>
-                              </DialogHeader>
-                              <CreateVendorForm onClose={() => setOpenVendorDialog(false)} />
-                            </DialogContent>
-                          </Dialog>
-                          {vendors?.map((vendor) => (
-                            <CommandItem
-                              value={vendor.name}
-                              key={vendor.id.toString()}
-                              onSelect={() => {
-                                form.setValue("vendor_id", vendor.id.toString());
-                                setOpenVendor(false);
-                              }}
-                              className="text-sm"
+          {/* ───────────── IZQUIERDA ───────────── */}
+          <div className="h-full rounded-xl border bg-muted/15 overflow-hidden">
+
+            {/* Header */}
+            <div className="flex items-center justify-between border-b bg-muted/30 px-4 py-2.5">
+              <div className="flex flex-col">
+                <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  Datos de cotización
+                </span>
+
+                <span className="text-[11px] text-muted-foreground/70">
+                  Información principal de la cotización
+                </span>
+              </div>
+            </div>
+
+            {/* Body */}
+            <div className="flex flex-col gap-4 p-4">
+
+              {/* Fecha + Destino */}
+              <div className="grid grid-cols-2 gap-3">
+
+                {/* Fecha */}
+                <FormField
+                  control={form.control}
+                  name="quote_date"
+                  render={({ field }) => (
+                    <FormItem className="space-y-2">
+                      <div className="flex items-center gap-2 min-h-[16px] pb-1.5">
+                        <FormLabel className="m-0 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+                          Fecha de Cotización
+                        </FormLabel>
+
+                        <div className="h-px flex-1 bg-border/60" />
+                      </div>
+
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <FormControl>
+                            <Button
+                              variant="outline"
+                              className={cn(
+                                "h-9 w-full justify-start text-sm bg-background/70",
+                                !field.value && "text-muted-foreground"
+                              )}
                             >
-                              <Check
-                                className={cn(
-                                  "mr-2 h-3.5 w-3.5",
-                                  vendor.id.toString() === field.value ? "opacity-100" : "opacity-0"
-                                )}
-                              />
-                              {vendor.name}
-                            </CommandItem>
-                          ))}
-                          {isVendorsErros && (
-                            <p className="text-xs text-muted-foreground px-2 py-1">
-                              Error al cargar proveedores.
-                            </p>
-                          )}
-                        </CommandGroup>
-                      </CommandList>
-                    </Command>
-                  </PopoverContent>
-                </Popover>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+                              <CalendarIcon className="mr-2 h-3 w-3 opacity-60" />
 
-          {/* Destino */}
-          <FormField
-            control={form.control}
-            name="location_id"
-            render={({ field }) => (
-              <FormItem className="flex flex-col">
-                <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground mb-1">
-                  Destino
-                </FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                  <FormControl>
-                    <SelectTrigger disabled={isLocationsPending} className="h-9 text-sm">
-                      <SelectValue placeholder="Seleccionar ubicación" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {locations?.map((location) => (
-                      <SelectItem
-                        key={location.id}
-                        value={location.id.toString()}
-                        className="text-sm"
-                      >
-                        {location.address} — {location.type}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
+                              {field.value
+                                ? format(field.value, "dd MMM yyyy", { locale: es })
+                                : "Seleccionar"}
+                            </Button>
+                          </FormControl>
+                        </PopoverTrigger>
 
-        {/* ── Justificación ─────────────────────────────────────────────── */}
-        <FormField
-          control={control}
-          name="justification"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                Justificación
-              </FormLabel>
-              <FormControl>
-                <Textarea
-                  placeholder="Describa la necesidad que origina esta cotización..."
-                  className="resize-none text-sm min-h-[72px]"
-                  {...field}
+                        <PopoverContent className="w-auto p-0">
+                          <Calendar
+                            mode="single"
+                            selected={field.value}
+                            onSelect={field.onChange}
+                            locale={es}
+                            initialFocus
+                          />
+                        </PopoverContent>
+                      </Popover>
+
+                      <FormMessage />
+                    </FormItem>
+                  )}
                 />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+
+                {/* Destino */}
+                <FormField
+                  control={form.control}
+                  name="location_id"
+                  render={({ field }) => (
+                    <FormItem className="space-y-2">
+                      <div className="flex items-center gap-2 min-h-[16px] pb-1.5">
+                        <FormLabel className="m-0 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+                          Destino
+                        </FormLabel>
+
+                        <div className="h-px flex-1 bg-border/60" />
+                      </div>
+
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger className="h-9 bg-background/70 text-sm">
+                            <SelectValue placeholder="Ubicación" />
+                          </SelectTrigger>
+                        </FormControl>
+
+                        <SelectContent>
+                          {locations?.map((location) => (
+                            <SelectItem
+                              key={location.id}
+                              value={location.id.toString()}
+                            >
+                              {location.address} — {location.type}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              {/* Proveedor */}
+              <FormField
+                control={form.control}
+                name="vendor_id"
+                render={({ field }) => (
+                  <FormItem className="space-y-2">
+                    <div className="flex items-center gap-2 min-h-[16px] pb-1.5">
+                      <FormLabel className="m-0 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+                        Proveedor
+                      </FormLabel>
+
+                      <div className="h-px flex-1 bg-border/60" />
+                    </div>
+
+                    <Popover open={openVendor} onOpenChange={setOpenVendor}>
+                      <PopoverTrigger asChild>
+                        <FormControl>
+                          <Button
+                            variant="outline"
+                            disabled={isVendorsLoading}
+                            className="h-9 w-full justify-between bg-background/70 text-sm"
+                          >
+                            {isVendorsLoading ? (
+                              <Loader2 className="size-3.5 animate-spin" />
+                            ) : field.value ? (
+                              vendors?.find(
+                                v => v.id.toString() === field.value
+                              )?.name
+                            ) : (
+                              "Seleccionar proveedor"
+                            )}
+
+                            <ChevronsUpDown className="h-3 w-3 opacity-40" />
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+
+                      <PopoverContent className="w-[320px] p-0">
+                        <Command>
+                          <CommandInput placeholder="Buscar proveedor..." />
+
+                          <CommandList>
+                            <CommandEmpty>
+                              Sin resultados
+                            </CommandEmpty>
+
+                            <CommandGroup>
+                              {vendors?.map((vendor) => (
+                                <CommandItem
+                                  key={vendor.id}
+                                  value={vendor.name}
+                                  onSelect={() => {
+                                    form.setValue(
+                                      "vendor_id",
+                                      vendor.id.toString()
+                                    )
+
+                                    setOpenVendor(false)
+                                  }}
+                                >
+                                  <Check
+                                    className={cn(
+                                      "mr-2 h-3 w-3",
+                                      vendor.id.toString() === field.value
+                                        ? "opacity-100"
+                                        : "opacity-0"
+                                    )}
+                                  />
+
+                                  {vendor.name}
+                                </CommandItem>
+                              ))}
+                            </CommandGroup>
+                          </CommandList>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
+
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+          </div>
+
+          {/* ───────────── DERECHA ───────────── */}
+          <div className="h-full rounded-xl border bg-muted/15 overflow-hidden">
+
+            {/* Header del panel */}
+            <div className="flex items-center justify-between border-b bg-muted/30 px-4 py-2.5">
+              <div className="flex flex-col">
+                <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  Contexto de la cotización
+                </span>
+
+                <span className="text-[11px] text-muted-foreground/70">
+                  Información extra asociada
+                </span>
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-4 p-4">
+
+              {/* Justificación */}
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <span className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+                    Justificación de la requisición
+                  </span>
+
+                  <div className="h-px flex-1 bg-border/60" />
+                </div>
+
+                <div className="rounded-md border bg-background/70 px-3 py-2.5">
+                  <MarqueeBlockText
+                    text={req.justification || "Sin justificación"}
+                    className="h-full"
+                  />
+                </div>
+              </div>
+
+              {/* Observación */}
+              <FormField
+                control={control}
+                name="observation"
+                render={({ field }) => (
+                  <FormItem className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <FormLabel className="m-0 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+                        Observación (opcional)
+                      </FormLabel>
+
+                      <div className="h-px flex-1 bg-border/60" />
+                    </div>
+
+                    <FormControl>
+                      <Textarea
+                        placeholder="Comentario adicional para la cotización..."
+                        className="min-h-[88px] resize-none border bg-background/70 text-sm"
+                        {...field}
+                      />
+                    </FormControl>
+
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+          </div>
+
+        </div>
 
         {/* ── Artículos ─────────────────────────────────────────────────── */}
         <div className="space-y-2">
