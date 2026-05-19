@@ -31,11 +31,10 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useGetEmployeesByDepartment } from "@/hooks/sistema/useGetEmployeesByDepartament";
-import { cn } from "@/lib/utils";
+import { cn, parseServerDate } from "@/lib/utils";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { SMSActivity } from "@/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Separator } from "@radix-ui/react-select";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { CalendarIcon, Loader2, Plus, X } from "lucide-react";
@@ -83,20 +82,6 @@ const FormSchema = z
     );
 type FormSchemaType = z.infer<typeof FormSchema>;
 
-// Helper to parse server date strings (YYYY-MM-DD) as local dates
-function parseServerDate(input?: string | Date | null): Date | undefined {
-    if (!input) return undefined;
-    if (input instanceof Date) return input;
-    const s = String(input);
-    const dateOnly = /^\d{4}-\d{2}-\d{2}$/;
-    if (dateOnly.test(s)) {
-        const [y, m, d] = s.split("-").map(Number);
-        return new Date(y, m - 1, d);
-    }
-    const parsed = new Date(s);
-    if (!isNaN(parsed.getTime())) return parsed;
-    return undefined;
-}
 
 interface FormProps {
     onClose: (open: boolean) => void;
@@ -123,8 +108,8 @@ export default function CreateSMSActivityForm({
     const [newTopic, setNewTopic] = useState("");
 
     const { data: nextNumberData, isLoading: isLoadingNextNumber } =
-        useGetNextActivityNumber(selectedCompany?.slug || null);
-
+        useGetNextActivityNumber(selectedCompany!.slug);
+    console.log('next number data', nextNumberData);
     const form = useForm<FormSchemaType>({
         resolver: zodResolver(FormSchema),
         // Los defaultValues aquí están bien, pero los re-aplicaremos en el useEffect
