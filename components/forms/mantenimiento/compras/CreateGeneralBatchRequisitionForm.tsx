@@ -59,7 +59,9 @@ const FormSchema = z.object({
               .optional(),
             quantity: z.number().min(1, "Debe ingresar una cantidad válida"),
             image: z.any().optional(),
-            unit: z.string().optional(), // Inicialmente opcional
+            unit: z.string({
+              message: "Debe seleccionar una unidad",
+            }).optional(),
           })
         ),
       })
@@ -540,7 +542,7 @@ export function CreateGeneralBatchRequisitionForm({
                               onValueChange={(value) => handleArticleChange(batch.batch, index, "unit", value)}
                             >
                               <SelectTrigger className="text-xs h-8">
-                                <SelectValue placeholder="Unidad" />
+                                <SelectValue placeholder="Sin unidad seleccionada" />
                               </SelectTrigger>
                               <SelectContent>
                                 {units?.map((secU) => (

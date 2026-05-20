@@ -599,26 +599,24 @@ export function CreateQuoteForm({
                               Unidad
                             </span>
 
-                            {articles[index]?.unit && (
-                              <Select
-                                value={articles[index].unit!.toString()}
-                                onValueChange={(val) =>
-                                  form.setValue(`articles.${index}.unit`, val)
-                                }
-                              >
-                                <SelectTrigger className="h-7 text-xs w-[110px]">
-                                  <SelectValue />
-                                </SelectTrigger>
+                            <Select
+                              value={articles[index]?.unit?.toString() ?? ""}
+                              onValueChange={(val) =>
+                                form.setValue(`articles.${index}.unit`, val)
+                              }
+                            >
+                              <SelectTrigger className="h-7 text-xs w-[110px]">
+                                <SelectValue placeholder="Seleccionar" />
+                              </SelectTrigger>
 
-                                <SelectContent>
-                                  {units?.map((unit) => (
-                                    <SelectItem key={unit.id} value={unit.id.toString()}>
-                                      {unit.label}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                            )}
+                              <SelectContent>
+                                {units?.map((unit) => (
+                                  <SelectItem key={unit.id} value={unit.id.toString()}>
+                                    {unit.label}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
                           </div>
 
                         </div>

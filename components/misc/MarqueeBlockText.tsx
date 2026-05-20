@@ -8,52 +8,90 @@ interface Props {
   className?: string
 }
 
-const SPEED = 60
+const SPEED = 60 // px/s
+const PAUSE_MS = 6000
 
 export function MarqueeBlockText({ text, className }: Props) {
   const containerRef = useRef<HTMLDivElement>(null)
   const contentRef = useRef<HTMLDivElement>(null)
 
-  const [enabled, setEnabled] = useState(false)
-  const [duration, setDuration] = useState(0)
+  const [hovered, setHovered] = useState(false)
+  const [offset, setOffset] = useState(0)
+
+  const offsetRef = useRef(0)
+  const rafRef = useRef<number | null>(null)
+  const pausedRef = useRef(false)
 
   useEffect(() => {
-    if (!containerRef.current || !contentRef.current) return
-
-    const containerWidth = containerRef.current.offsetWidth
-    const contentWidth = contentRef.current.scrollWidth
-
-    const diff = contentWidth - containerWidth
-
-    if (diff > 0) {
-      setDuration(contentWidth / SPEED)
-      setEnabled(true)
-    } else {
-      setDuration(0)
-      setEnabled(false)
+    if (!hovered) {
+      offsetRef.current = 0
+      setOffset(0)
+      pausedRef.current = false
+      return
     }
-  }, [text])
+
+    const container = containerRef.current!
+    const content = contentRef.current!
+
+    const maxScroll = content.scrollWidth - container.clientWidth
+
+    let last = performance.now()
+
+    const step = (now: number) => {
+      const delta = now - last
+      last = now
+
+      if (!pausedRef.current) {
+        offsetRef.current += (SPEED * delta) / 1000
+        setOffset(offsetRef.current)
+
+        if (offsetRef.current >= maxScroll) {
+          offsetRef.current = maxScroll
+          setOffset(maxScroll)
+
+          pausedRef.current = true
+
+          setTimeout(() => {
+            // RESET ABRUPTO AL INICIO
+            offsetRef.current = 0
+            setOffset(0)
+            pausedRef.current = false
+
+            if (hovered) {
+              rafRef.current = requestAnimationFrame(step)
+            }
+          }, PAUSE_MS)
+
+          return
+        }
+      }
+
+      rafRef.current = requestAnimationFrame(step)
+    }
+
+    rafRef.current = requestAnimationFrame(step)
+
+    return () => {
+      if (rafRef.current) cancelAnimationFrame(rafRef.current)
+    }
+  }, [hovered])
 
   return (
     <div
       ref={containerRef}
       className={cn('relative w-full overflow-hidden', className)}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
     >
       <div
         ref={contentRef}
-        className={cn(
-          'flex whitespace-nowrap text-sm leading-relaxed text-foreground/90',
-          enabled && 'animate-marquee-loop'
-        )}
-        style={
-          {
-            '--duration': `${duration}s`,
-          } as React.CSSProperties
-        }
+        className="whitespace-nowrap text-sm leading-relaxed text-foreground/90"
+        style={{
+          transform: `translateX(${offset}px)`,
+          willChange: 'transform',
+        }}
       >
-        {/* duplicación clave para loop perfecto */}
-        <span className="pr-8">{text}</span>
-        {enabled && <span className="pr-8">{text}</span>}
+        {text}
       </div>
     </div>
   )
