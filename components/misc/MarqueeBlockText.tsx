@@ -20,6 +20,7 @@ export function MarqueeBlockText({ text, className }: Props) {
 
   const offsetRef = useRef(0)
   const rafRef = useRef<number | null>(null)
+  const timeoutRef = useRef<number | null>(null)
   const pausedRef = useRef(false)
 
   useEffect(() => {
@@ -27,19 +28,26 @@ export function MarqueeBlockText({ text, className }: Props) {
       offsetRef.current = 0
       setOffset(0)
       pausedRef.current = false
+
+      if (rafRef.current) cancelAnimationFrame(rafRef.current)
+      if (timeoutRef.current) clearTimeout(timeoutRef.current)
+
       return
     }
 
     const container = containerRef.current!
     const content = contentRef.current!
 
-    const maxScroll = content.scrollWidth - container.clientWidth
-
     let last = performance.now()
 
     const step = (now: number) => {
       const delta = now - last
       last = now
+
+      const containerWidth = container.clientWidth
+      const contentWidth = content.getBoundingClientRect().width
+
+      const maxScroll = Math.max(0, contentWidth - containerWidth)
 
       if (!pausedRef.current) {
         offsetRef.current += (SPEED * delta) / 1000
@@ -51,8 +59,7 @@ export function MarqueeBlockText({ text, className }: Props) {
 
           pausedRef.current = true
 
-          setTimeout(() => {
-            // RESET ABRUPTO AL INICIO
+          timeoutRef.current = window.setTimeout(() => {
             offsetRef.current = 0
             setOffset(0)
             pausedRef.current = false
@@ -73,8 +80,9 @@ export function MarqueeBlockText({ text, className }: Props) {
 
     return () => {
       if (rafRef.current) cancelAnimationFrame(rafRef.current)
+      if (timeoutRef.current) clearTimeout(timeoutRef.current)
     }
-  }, [hovered])
+  }, [hovered, text])
 
   return (
     <div
@@ -83,15 +91,17 @@ export function MarqueeBlockText({ text, className }: Props) {
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
-      <div
-        ref={contentRef}
-        className="whitespace-nowrap text-sm leading-relaxed text-foreground/90"
-        style={{
-          transform: `translateX(${offset}px)`,
-          willChange: 'transform',
-        }}
-      >
-        {text}
+      <div className="relative w-max">
+        <div
+          ref={contentRef}
+          className="inline-block whitespace-nowrap text-sm leading-relaxed text-foreground/90"
+          style={{
+            transform: `translateX(-${offset}px)`,
+            willChange: 'transform',
+          }}
+        >
+          {text?.trim()}
+        </div>
       </div>
     </div>
   )

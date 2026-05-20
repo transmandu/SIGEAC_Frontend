@@ -418,7 +418,7 @@ export function CreateQuoteForm({
                 {/* viewport fijo */}
                 <div className="rounded-md border bg-background/70 px-3 py-2.5 overflow-hidden">
                   <MarqueeBlockText
-                    text={req.justification || "Sin justificación"}
+                    text={(req.justification || "Sin justificación").trim()}
                   />
                 </div>
               </div>
@@ -605,9 +605,14 @@ export function CreateQuoteForm({
                                 form.setValue(`articles.${index}.unit`, val)
                               }
                             >
-                              <SelectTrigger className="h-7 text-xs w-[110px]">
-                                <SelectValue placeholder="Seleccionar" />
-                              </SelectTrigger>
+                            <SelectTrigger className={cn(
+                              "h-7 text-xs w-[110px]",
+                              !articles[index]?.unit && "text-muted-foreground"
+                            )}>
+                              {articles[index]?.unit
+                                ? units?.find(u => u.id.toString() === articles[index]?.unit)?.label
+                                : "Seleccionar unidad"}
+                            </SelectTrigger>
 
                               <SelectContent>
                                 {units?.map((unit) => (
