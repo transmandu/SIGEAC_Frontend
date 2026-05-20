@@ -8,16 +8,14 @@ interface Props {
   className?: string
 }
 
-const SPEED = 60 // px por segundo (ajustable UX)
+const SPEED = 60
 
 export function MarqueeBlockText({ text, className }: Props) {
   const containerRef = useRef<HTMLDivElement>(null)
   const contentRef = useRef<HTMLDivElement>(null)
 
-  const [hovered, setHovered] = useState(false)
-  const [distance, setDistance] = useState(0)
-  const [duration, setDuration] = useState(0)
   const [enabled, setEnabled] = useState(false)
+  const [duration, setDuration] = useState(0)
 
   useEffect(() => {
     if (!containerRef.current || !contentRef.current) return
@@ -28,11 +26,9 @@ export function MarqueeBlockText({ text, className }: Props) {
     const diff = contentWidth - containerWidth
 
     if (diff > 0) {
-      setDistance(diff)
-      setDuration(diff / SPEED)
+      setDuration(contentWidth / SPEED)
       setEnabled(true)
     } else {
-      setDistance(0)
       setDuration(0)
       setEnabled(false)
     }
@@ -42,21 +38,22 @@ export function MarqueeBlockText({ text, className }: Props) {
     <div
       ref={containerRef}
       className={cn('relative w-full overflow-hidden', className)}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
     >
       <div
         ref={contentRef}
         className={cn(
-          'whitespace-nowrap text-sm leading-relaxed text-foreground/90',
-          hovered && enabled && 'animate-marquee-loop'
+          'flex whitespace-nowrap text-sm leading-relaxed text-foreground/90',
+          enabled && 'animate-marquee-loop'
         )}
-        style={{
-          '--distance': `${distance}px`,
-          '--duration': `${duration}s`,
-        } as React.CSSProperties}
+        style={
+          {
+            '--duration': `${duration}s`,
+          } as React.CSSProperties
+        }
       >
-        <span>{text}</span>
+        {/* duplicación clave para loop perfecto */}
+        <span className="pr-8">{text}</span>
+        {enabled && <span className="pr-8">{text}</span>}
       </div>
     </div>
   )

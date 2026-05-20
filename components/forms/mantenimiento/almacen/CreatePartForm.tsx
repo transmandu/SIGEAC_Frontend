@@ -317,20 +317,18 @@ const CreatePartForm = ({
 
     if (isEditing && initialData) {
       await updateArticle.mutateAsync({
-        data: {
-          ...formattedValues,
-          batch_id: formattedValues.batch_id,
-          article_type: "PART",
-        },
+        data: formattedValues, // 👈 limpio
         company: selectedCompany.slug,
         id: initialData.id,
       });
+
       router.push(`/${selectedCompany.slug}/almacen/inventario_articulos`);
     } else {
       await createArticle.mutateAsync({
         company: selectedCompany.slug,
         data: formattedValues,
       });
+
       form.reset();
     }
   };

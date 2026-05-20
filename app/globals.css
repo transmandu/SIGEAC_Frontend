@@ -202,12 +202,19 @@ input[type="password"]::-webkit-password-toggle-button {
   }
 
   100% {
-    transform: translateX(calc(-1 * var(--distance)));
+    transform: translateX(-50%);
   }
 }
 
 .animate-marquee-loop {
+  display: flex;
+  width: max-content;
   animation: marquee-x-loop var(--duration) linear infinite;
+}
+
+/* opcional: pausa al hover */
+.animate-marquee-loop:hover {
+  animation-play-state: paused;
 }
 
 .scrollbar-modern {

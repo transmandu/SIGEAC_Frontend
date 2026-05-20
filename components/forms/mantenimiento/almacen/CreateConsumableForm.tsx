@@ -188,7 +188,7 @@ const CreateConsumableForm = ({
     } = useGetConditions();
 
 
-    useCreateArticle();
+    const { createArticle } = useCreateArticle();
     const { updateArticle } = useUpdateArticle();
     const { confirmIncoming } = useConfirmIncomingArticle();
 

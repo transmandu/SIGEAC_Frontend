@@ -46,6 +46,7 @@ import {
 import { useGetUnits } from "@/hooks/general/unidades/useGetPrimaryUnits";
 import { QuoteableRequisition } from "@/types/purchase/quote";
 import { MarqueeBlockText } from "@/components/misc/MarqueeBlockText";
+import { Badge } from "@/components/ui/badge";
 
 const FormSchema = z.object({
   justification: z.string(),
@@ -53,11 +54,15 @@ const FormSchema = z.object({
     z.object({
       part_number: z.string(),
       alt_part_number: z.string().optional(),
-      quantity: z.number().min(1, { message: "Debe ingresar al menos 1." }),
+      quantity: z.string().regex(/^\d+(\.\d{0,2})?$/),
       unit: z.string().optional(),
       unit_price: z
         .string()
-        .min(0, { message: "El precio no puede ser negativo." }),
+        .regex(/^\d+(\.\d{0,2})?$/, "Precio inválido"),
+      batch: z.object({
+        name: z.string(),
+        category: z.string(),
+      }),
     })
   ),
   vendor_id: z.string({ message: "Debe seleccionar un proveedor." }),
@@ -92,6 +97,10 @@ export function CreateQuoteForm({
       quantity: article.quantity,
       unit: article.unit ? article.unit.id.toString() : undefined,
       unit_price: "0",
+      batch: {
+        name: batch.name,
+        category: batch.category,
+      },
     }))
   );
 
@@ -112,11 +121,14 @@ export function CreateQuoteForm({
   });
 
   const calculateTotal = (articles: FormSchemaType["articles"]) => {
-    return articles.reduce(
-      (sum, article) =>
-        sum + (article.quantity * Number(article.unit_price) || 0),
-      0
-    );
+    return articles.reduce((sum, article) => {
+      const qty = Number(article.quantity ?? 0);
+      const price = Number(article.unit_price ?? 0);
+
+      if (Number.isNaN(qty) || Number.isNaN(price)) return sum;
+
+      return sum + qty * price;
+    }, 0);
   };
 
   const articles = useWatch({ control, name: "articles" });
@@ -443,173 +455,266 @@ export function CreateQuoteForm({
         </div>
 
         {/* ── Artículos ─────────────────────────────────────────────────── */}
-        <div className="space-y-2">
+        <div className="space-y-3">
+
+          {/* Header simple */}
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+            <span className="text-sm font-medium text-foreground">
               Artículos
             </span>
+
             <span className="text-xs text-muted-foreground tabular-nums">
               {fields.length} {fields.length === 1 ? "ítem" : "ítems"}
             </span>
           </div>
 
-          {/* Cabecera de columnas */}
-          <div className="grid grid-cols-[1fr_72px_130px_88px] gap-3 px-3 pb-1 border-b border-border/60">
-            <span className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70">
-              Parte / Alterno
-            </span>
-            <span className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70">
-              Cant.
-            </span>
-            <span className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70">
-              P. Unitario
-            </span>
-            <span className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70 text-right">
-              Total
-            </span>
-          </div>
+          <ScrollArea className={cn(fields.length > 2 && "h-[260px]")}>
+            <div className="space-y-2">
 
-          <ScrollArea className={cn(fields.length > 3 && "h-[260px]")}>
-            <div className="space-y-0">
               {fields.map((field, index) => (
                 <div
                   key={field.id}
-                  className="grid grid-cols-[1fr_72px_130px_88px] gap-3 items-start px-3 py-3 border-b border-border/30 last:border-0 hover:bg-muted/20 transition-colors"
+                  className="rounded-lg border border-border/60 bg-background/60 overflow-hidden"
                 >
-                  {/* ── Identidad de parte ── */}
-                  <div className="space-y-1.5 min-w-0">
-                    {/* Número de parte principal */}
-                    <FormField
-                      control={control}
-                      name={`articles.${index}.part_number`}
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormControl>
-                            <Input
-                              disabled
-                              className="font-mono text-sm h-8 bg-muted/60 border-border/50 disabled:opacity-100 disabled:cursor-default tracking-wide"
-                              {...field}
-                            />
-                          </FormControl>
-                        </FormItem>
+
+                  {/* HEADER DEL ARTÍCULO */}
+                  <div className="flex items-center justify-between border-b border-border/50 bg-muted/30 px-3 py-1.5">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span className="truncate text-sm font-medium text-foreground">
+                        {articles[index]?.batch?.name || "Artículo"}
+                      </span>
+
+                      {articles[index]?.batch?.category && (
+                        <Badge
+                          variant="secondary"
+                          className="h-5 px-2 text-[10px] font-medium uppercase tracking-wide text-muted-foreground"
+                        >
+                          {articles[index]?.batch?.category}
+                        </Badge>
                       )}
-                    />
-                    {/* Número de parte alterno */}
-                    <FormField
-                      control={control}
-                      name={`articles.${index}.alt_part_number`}
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormControl>
-                            <div className="flex items-center gap-1.5">
-                              <span className="shrink-0 text-[10px] font-mono font-semibold text-amber-600 dark:text-amber-500 bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800/60 px-1.5 py-0.5 rounded tracking-widest select-none">
-                                ALT
-                              </span>
+                    </div>
+                  </div>
+
+                  {/* BODY */}
+                  <div className="px-3 py-1.5">
+
+                    {/* GRID PRINCIPAL (2 bloques reales) */}
+                    <div className="grid grid-cols-2 gap-6 items-center">
+
+                      {/* ── BLOQUE IZQUIERDO: IDENTIDAD ── */}
+                      <div className="space-y-1.5 min-w-0">
+
+                        <div className="space-y-0.5">
+                          <span className="text-[10px] leading-none text-muted-foreground uppercase">
+                            Número de parte
+                          </span>
+
+                          <div className="flex items-center gap-2">
+                            <span className="text-[10px] px-2 py-[2px] rounded-md bg-teal-500/10 text-teal-700 border border-teal-500/20">
+                              P/N
+                            </span>
+
+                            <FormField
+                              control={control}
+                              name={`articles.${index}.part_number`}
+                              render={({ field }) => (
+                                <Input
+                                  {...field}
+                                  readOnly
+                                  className="h-7 text-sm bg-muted/40 border-border/50 font-medium text-foreground"
+                                />
+                              )}
+                            />
+                          </div>
+                        </div>
+
+                        <div className="space-y-1">
+                          <span className="text-[10px] leading-none text-muted-foreground uppercase">
+                            Número de parte alterno
+                          </span>
+
+                          <div className="flex items-center gap-2">
+                            <span className="text-[10px] px-2 py-[2px] rounded-md bg-slate-500/10 text-slate-600 border border-slate-500/20">
+                              ALT
+                            </span>
+
+                            <FormField
+                              control={control}
+                              name={`articles.${index}.alt_part_number`}
+                              render={({ field }) => (
+                                <Input
+                                  {...field}
+                                  placeholder="N/A"
+                                  className="h-7 text-sm border-dashed text-muted-foreground"
+                                />
+                              )}
+                            />
+                          </div>
+                        </div>
+
+                      </div>
+
+                      {/* ── BLOQUE DERECHO: OPERACIÓN ── */}
+                      <div className="grid grid-cols-3 gap-4 items-stretch">
+
+                        {/* Cantidad + Unidad */}
+                        <div className="flex flex-col gap-1 justify-start">
+
+                          {/* Cantidad */}
+                          <div className="space-y-0.5">
+                            <span className="text-[10px] leading-none text-muted-foreground uppercase">
+                              Cantidad
+                            </span>
+
+                            <FormField
+                              control={control}
+                              name={`articles.${index}.quantity`}
+                              render={({ field }) => (
                               <Input
-                                placeholder="N/A"
-                                className="font-mono text-sm h-7 text-muted-foreground placeholder:text-muted-foreground/40 border-dashed"
                                 {...field}
+                                type="text"
+                                className="h-7 text-center text-sm w-[110px]"
+                                onChange={(e) => {
+                                  let value = e.target.value;
+                                  value = value.replace(/[^0-9.,]/g, "");
+                                  value = value.replace(",", ".");
+                                  const parts = value.split(".");
+                                  if (parts.length > 2) {
+                                    value = parts[0] + "." + parts.slice(1).join("");
+                                  }
+                                  if (value.includes(".")) {
+                                    const [int, dec] = value.split(".");
+                                    value = `${int}.${dec.slice(0, 2)}`;
+                                  }
+                                  field.onChange(value);
+                                }}
                               />
-                            </div>
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-
-                  {/* ── Cantidad + Unidad ── */}
-                  <div className="space-y-1.5">
-                    <FormField
-                      control={control}
-                      name={`articles.${index}.quantity`}
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormControl>
-                            <Input
-                              type="number"
-                              min={1}
-                              className="font-mono text-sm h-8 text-center"
-                              value={field.value ?? ""}
-                              onChange={(e) => field.onChange(Number(e.target.value))}
+                              )}
                             />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    {articles[index]?.unit && (
-                      <Select value={articles[index].unit!.toString()} disabled>
-                        <SelectTrigger className="h-7 text-xs border-dashed disabled:opacity-70 disabled:cursor-default">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {units?.map((unit) => (
-                            <SelectItem key={unit.id} value={unit.id.toString()} className="text-xs">
-                              {unit.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    )}
-                  </div>
+                          </div>
 
-                  {/* ── Precio unitario ── */}
-                  <FormField
-                    control={control}
-                    name={`articles.${index}.unit_price`}
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormControl>
-                          <AmountInput {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                          {/* Unidad */}
+                          <div className="space-y-0.5">
+                            <span className="text-[10px] leading-none text-muted-foreground uppercase">
+                              Unidad
+                            </span>
 
-                  {/* ── Total de línea ── */}
-                  <div className="flex items-center justify-end pt-0.5">
-                    <span className="font-mono text-sm font-semibold tabular-nums text-right">
-                      ${(
-                        (articles[index]?.quantity || 0) *
-                        (Number(articles[index]?.unit_price) || 0)
-                      ).toFixed(2)}
-                    </span>
+                            {articles[index]?.unit && (
+                              <Select
+                                value={articles[index].unit!.toString()}
+                                onValueChange={(val) =>
+                                  form.setValue(`articles.${index}.unit`, val)
+                                }
+                              >
+                                <SelectTrigger className="h-7 text-xs w-[110px]">
+                                  <SelectValue />
+                                </SelectTrigger>
+
+                                <SelectContent>
+                                  {units?.map((unit) => (
+                                    <SelectItem key={unit.id} value={unit.id.toString()}>
+                                      {unit.label}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            )}
+                          </div>
+
+                        </div>
+
+                        {/* Precio unitario */}
+                        <div className="flex flex-col justify-center items-start h-full gap-1">
+                          <span className="text-[10px] text-muted-foreground uppercase">
+                            Precio unitario
+                          </span>
+
+                          <FormField
+                            control={control}
+                            name={`articles.${index}.unit_price`}
+                            render={({ field }) => (
+                              <AmountInput
+                                value={field.value}
+                                onChange={field.onChange}
+                                ref={field.ref}
+                                
+                              />
+                            )}
+                          />
+                        </div>
+
+                        {/* Total */}
+                        <div className="flex flex-col justify-center items-end h-full gap-1">
+                          <span className="text-[10px] text-muted-foreground uppercase">
+                            Total
+                          </span>
+
+                          <span className="font-medium tabular-nums leading-none">
+                            $
+                            {(
+                              (Number(articles[index]?.quantity) || 0) *
+                              (Number(articles[index]?.unit_price) || 0)
+                            ).toFixed(2)}
+                          </span>
+                        </div>
+
+                      </div>
+
+                    </div>
                   </div>
                 </div>
               ))}
+
             </div>
           </ScrollArea>
         </div>
 
-        {/* ── Total general ─────────────────────────────────────────────── */}
-        <div className="flex justify-end pt-1 border-t border-border/60">
-          <div className="flex items-baseline gap-3">
-            <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-              Total
+        {/* ── Total general ────────────────────────────────────────────────────── */}
+        <div className="flex justify-end pt-2 border-t border-border/60">
+          <div className="flex items-center justify-between gap-6 rounded-md bg-muted/10 px-4 py-2 border border-border/40 min-w-[200px]">
+
+            <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground whitespace-nowrap">
+              Total general
             </span>
-            <span className="font-mono text-xl font-bold tabular-nums">
+
+            <span className="font-mono text-xl font-semibold tabular-nums leading-none">
               ${total.toFixed(2)}
             </span>
+
           </div>
         </div>
 
         {/* ── Enviar ────────────────────────────────────────────────────── */}
-        <Button
-          disabled={isPending}
-          type="submit"
-          className="w-full h-10"
-        >
-          {isPending ? (
-            <Loader2 className="size-4 animate-spin" />
-          ) : (
-            <>
-              <PackageSearch className="size-4 mr-2" />
-              Crear cotización
-            </>
-          )}
-        </Button>
+        <div className="flex justify-center">
+          <Button
+            disabled={isPending}
+            type="submit"
+            className="
+              w-[400px] h-10 rounded-lg
+              bg-teal-500/20 text-teal-900
+              hover:bg-teal-500/30
+              active:bg-teal-500/40
+              border border-teal-500/30
+              shadow-sm
+              transition-colors
+              flex items-center justify-center gap-2
+
+              dark:bg-teal-400/10
+              dark:text-teal-100
+              dark:hover:bg-teal-400/20
+              dark:border-teal-400/20
+            "
+          >
+            {isPending ? (
+              <Loader2 className="size-4 animate-spin" />
+            ) : (
+              <>
+                <PackageSearch className="size-4" />
+                Crear cotización
+              </>
+            )}
+          </Button>
+        </div>
       </form>
     </Form>
   );

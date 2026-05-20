@@ -12,5 +12,7 @@ export interface QuoteableRequisition {
         id: number;
       } | null;
     }[];
+    name: string;
+    category?: string;
   }[];
 }
