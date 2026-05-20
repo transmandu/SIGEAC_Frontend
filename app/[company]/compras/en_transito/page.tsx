@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useDeferredValue, useMemo } from 'react'
-
 import { ContentLayout } from '@/components/layout/ContentLayout'
 import LoadingPage from '@/components/misc/LoadingPage'
 import BackButton from '@/components/misc/BackButton'
@@ -23,10 +22,13 @@ import TransitSubRow from './_components/TransitSubRow'
 
 const EnTransitoPage = () => {
   const { selectedCompany } = useCompanyStore()
+
   const [search, setSearch] = useState('')
   const [status, setStatus] =
     useState<TransitStatusFilter>('ALL')
+
   const deferredSearch = useDeferredValue(search)
+
   const {
     articles,
     totalTransit,
@@ -34,7 +36,13 @@ const EnTransitoPage = () => {
     isLoading,
     isError,
   } = useTransitArticles({ status })
+
+  const isInitialLoading = isLoading && !articles
+  const isUpdating = isLoading && !!articles
+
   const filteredArticles = useMemo(() => {
+    if (!articles) return []
+
     if (!deferredSearch.trim()) return articles
 
     const q = deferredSearch.toLowerCase()
@@ -53,24 +61,6 @@ const EnTransitoPage = () => {
     () => getColumns(selectedCompany ?? undefined),
     [selectedCompany]
   )
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[300px]">
-        <LoadingPage />
-      </div>
-    )
-  }
-
-  if (isError) {
-    return (
-      <ContentLayout title="Artículos en Tránsito">
-        <div className="flex items-center justify-center min-h-[300px] text-sm text-red-500">
-          Error cargando artículos en tránsito
-        </div>
-      </ContentLayout>
-    )
-  }
 
   return (
     <ContentLayout title="Artículos en Tránsito">
@@ -116,17 +106,15 @@ const EnTransitoPage = () => {
           </p>
         </div>
 
-        <div
-          className="
-            flex items-center justify-between gap-4
-            px-3 py-2
-            rounded-xl border
-            bg-slate-200/40 border-slate-200/40
-            dark:bg-slate-800/70 dark:border-slate-700/60
-            backdrop-blur-md
-            dark:shadow-[0_4px_20px_rgba(0,0,0,0.35)]
-          "
-        >
+        <div className="
+          flex items-center justify-between gap-4
+          px-3 py-2
+          rounded-xl border
+          bg-slate-200/40 border-slate-200/40
+          dark:bg-slate-800/70 dark:border-slate-700/60
+          backdrop-blur-md
+          dark:shadow-[0_4px_20px_rgba(0,0,0,0.35)]
+        ">
           <TransitToolbar
             search={search}
             setSearch={setSearch}
@@ -140,13 +128,28 @@ const EnTransitoPage = () => {
           </span>
         </div>
 
-        <DataTable
-          columns={columns}
-          data={filteredArticles}
-          // renderSubRow={(row) => (
-          //   <TransitSubRow row={row} />
-          // )}
-        />
+        {isInitialLoading && filteredArticles.length === 0 ? (
+          <div className="flex items-center justify-center min-h-[300px]">
+            <LoadingPage />
+          </div>
+        ) : (
+          <DataTable
+            columns={columns}
+            data={filteredArticles}
+            loading={isUpdating}
+            // renderSubRow={(row) => (
+            //   <TransitSubRow row={row} />
+            // )}
+          />
+        )}
+
+        {isError && (
+          <div className="rounded-lg border border-red-500/20 bg-red-500/5 px-4 py-3">
+            <p className="text-sm text-red-500">
+              Error cargando artículos en tránsito
+            </p>
+          </div>
+        )}
 
       </div>
     </ContentLayout>

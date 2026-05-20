@@ -35,7 +35,15 @@ export default function UnknownDestinationPage() {
 
   const articles = data as DestinationArticle[]
 
+  /**
+   * 🔥 Loading pattern unificado
+   */
+  const isInitialLoading = isLoading && !articles
+  const isUpdating = isLoading && !!articles
+
   const filteredArticles = useMemo(() => {
+    if (!articles) return []
+
     if (!deferredSearch.trim()) return articles
 
     const q = deferredSearch.toLowerCase()
@@ -49,17 +57,11 @@ export default function UnknownDestinationPage() {
         article.description,
         article.batch?.name,
         article.manufacturer?.name,
-      ].some((value) => value?.toLowerCase?.().includes(q))
+      ].some((value) =>
+        value?.toLowerCase?.().includes(q)
+      )
     )
   }, [articles, deferredSearch])
-
-  if (isLoading) {
-    return (
-      <div className="flex min-h-[300px] items-center justify-center">
-        <LoadingPage />
-      </div>
-    )
-  }
 
   return (
     <ContentLayout title="Destino indeterminado">
@@ -86,13 +88,15 @@ export default function UnknownDestinationPage() {
               <BreadcrumbSeparator />
 
               <BreadcrumbItem>
-                <BreadcrumbPage>Destino indeterminado</BreadcrumbPage>
+                <BreadcrumbPage>
+                  Destino indeterminado
+                </BreadcrumbPage>
               </BreadcrumbItem>
             </BreadcrumbList>
           </Breadcrumb>
         </div>
 
-        {/* Header (alineado a estándar base) */}
+        {/* Header */}
         <div className="flex flex-col gap-2 border-b pb-4">
           <h1 className="text-3xl font-semibold tracking-tight">
             Destino indeterminado
@@ -113,13 +117,25 @@ export default function UnknownDestinationPage() {
 
           <span className="shrink-0 text-xs text-muted-foreground tabular-nums">
             {filteredArticles.length}{' '}
-            {filteredArticles.length === 1 ? 'artículo' : 'artículo(s)'}
+            {filteredArticles.length === 1
+              ? 'artículo'
+              : 'artículo(s)'}
           </span>
 
         </div>
 
-        {/* Table */}
-        <DataTable columns={columns} data={filteredArticles} />
+        {/* TABLE / LOADING SPLIT */}
+        {isInitialLoading && filteredArticles.length === 0 ? (
+          <div className="flex min-h-[300px] items-center justify-center">
+            <LoadingPage />
+          </div>
+        ) : (
+          <DataTable
+            columns={columns}
+            data={filteredArticles}
+            loading={isUpdating}
+          />
+        )}
 
         {/* Error */}
         {isError && (
