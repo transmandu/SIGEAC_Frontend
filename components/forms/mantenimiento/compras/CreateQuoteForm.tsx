@@ -611,7 +611,7 @@ export function CreateQuoteForm({
                             )}>
                               {articles[index]?.unit
                                 ? units?.find(u => u.id.toString() === articles[index]?.unit)?.label
-                                : "Seleccionar unidad"}
+                                : "Sin Unidad"}
                             </SelectTrigger>
 
                               <SelectContent>
