@@ -11,7 +11,6 @@ interface UnitSelection {
 interface ArticleData {
     serial?: string | string[];
     part_number: string;
-    article_type: string;
     lot_number?: string;
     alternative_part_number?: string[];
     description?: string;
