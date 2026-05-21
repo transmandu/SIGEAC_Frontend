@@ -29,7 +29,7 @@ export function filterMenuGroups(
 
     const hasOmacAccess = (item: { requiresOmac?: boolean }): boolean => {
         if (item.requiresOmac === undefined) return true;
-        return item.requiresOmac === currentCompany?.isOmac;
+        return item.requiresOmac === currentCompany?.isOMAC;
     };
 
     return groups

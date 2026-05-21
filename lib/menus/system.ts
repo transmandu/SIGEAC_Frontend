@@ -1,9 +1,9 @@
 import type { Group, MenuContext } from "@/lib/menus/types";
 import { Blocks, Building2, KeyRound, User2 } from "lucide-react";
 
-export function buildAdminGroup({ pathname }: MenuContext): Group {
+export function buildSystemGroup({ pathname }: MenuContext): Group {
     return {
-        groupLabel: "Administrador",
+        groupLabel: "Sistema",
         menus: [
             {
                 href: "/sistema/modulos",
@@ -52,40 +52,40 @@ export function buildAdminGroup({ pathname }: MenuContext): Group {
                 ],
             },
             {
-                href: "/sistema/empresas/",
+                href: "/sistema/empresa/",
                 label: "Empresa",
-                active: pathname.includes("/sistema/empresas/"),
+                active: pathname.includes("/sistema/empresa/"),
                 icon: Building2,
                 roles: ["ADMIN", "SUPERUSER"],
                 submenus: [
                     {
-                        href: "/sistema/empresas/empresas",
+                        href: "/sistema/empresa/empresas",
                         label: "Administrar Empresas",
                         roles: ["SUPERUSER"],
                         active: pathname === "/sistema/empresas/empresas",
                     },
                     {
-                        href: "/sistema/empresas/ubicaciones",
+                        href: "/sistema/empresa/ubicaciones",
                         label: "Administrar Ubicaciones",
                         active: pathname === "/sistema/empresas/ubicaciones",
                     },
                     {
-                        href: "/sistema/empresas/empleados",
+                        href: "/sistema/empresa/empleados",
                         label: "Administrar Empleados",
                         active: pathname === "/sistema/empresas/empleados",
                     },
                     {
-                        href: "/sistema/empresas/cargos",
+                        href: "/sistema/empresa/cargos",
                         label: "Administrar Cargos",
                         active: pathname === "/sistema/empresas/cargos",
                     },
                     {
-                        href: "/sistema/empresas/departamentos",
+                        href: "/sistema/empresa/departamentos",
                         label: "Administrar Departamentos",
                         active: pathname === "/sistema/empresas/departamentos",
                     },
                     {
-                        href: "/sistema/empresas/almacenes",
+                        href: "/sistema/empresa/almacenes",
                         label: "Administrar Almacenes",
                         active: pathname === "/sistema/empresas/almacenes",
                     },

@@ -3,7 +3,7 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
 import { Employee } from "@/types";
-import { CarnetCell } from "@/app/sistema/empresas/empleados/_components/CarnetCell";
+import { CarnetCell } from "@/app/sistema/empresa/empleados/_components/CarnetCell";
 import EmployeesDropdownActions from "@/components/dropdowns/general/EmployeesDropdownActions";
 import { ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";

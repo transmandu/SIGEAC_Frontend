@@ -214,7 +214,9 @@ export type Company = {
   alt_phone_number: number;
   cod_iata: string;
   cod_oaci: string;
-  isOmac: boolean;
+  acronym: string;
+  isOMAC: boolean;
+  logo: string | null;
   modules: Module[];
   created_at: string;
   updated_at: string;
