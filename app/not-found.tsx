@@ -6,9 +6,11 @@ import { Plane } from 'lucide-react'
 import { useCompanyStore } from "@/stores/CompanyStore";
 import Image from 'next/image'
 import loadingGif from "@/public/loading2.gif";
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function NotFound() {
   const { selectedCompany } = useCompanyStore();
+  const { user } = useAuth()
 
   const [isRedirecting, setIsRedirecting] = useState(false)
 
@@ -16,6 +18,11 @@ export default function NotFound() {
 
   const handleRedirect = () => {
     if (isRedirecting) return
+    
+    if (!user) {
+      router.push('/login')
+      return
+    }
 
     setIsRedirecting(true)
     router.push(`/${selectedCompany?.slug}/dashboard`)
