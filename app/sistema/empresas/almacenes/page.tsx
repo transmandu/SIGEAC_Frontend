@@ -6,7 +6,7 @@ import { Loader2 } from 'lucide-react';
 import { columns } from './columns';
 import { DataTable } from './data-table';
 
-const AlmacenesPage = () => {
+const WarehousesPage = () => {
   const { data: warehouses, isLoading, error } = useGetWarehouses();
   return (
     <ContentLayout title={'Almacenes'}>
@@ -37,4 +37,4 @@ const AlmacenesPage = () => {
   )
 }
 
-export default AlmacenesPage
+export default WarehousesPage

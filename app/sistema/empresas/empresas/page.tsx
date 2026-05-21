@@ -4,13 +4,12 @@ import { ContentLayout } from "@/components/layout/ContentLayout";
 import { Loader2 } from "lucide-react";
 import { columns } from "./columns";
 import { DataTable } from "./data-table";
-import { useGetModules } from "@/hooks/sistema/useGetModules";
 import { useGetCompanies } from "@/hooks/sistema/useGetCompanies";
 
-const ModulePage = () => {
+const CompaniesPage = () => {
   const { data: companies, isLoading, error } = useGetCompanies();
   return (
-    <ContentLayout title="Modulos">
+    <ContentLayout title="Empresas">
       <h1 className="font-bold text-4xl text-center">Gestión de Empresas</h1>
       <p className="text-muted-foreground text-sm italic text-center mb-2">
         Aquí puede ver el listado de los empresas del sistema.
@@ -38,4 +37,4 @@ const ModulePage = () => {
   );
 };
 
-export default ModulePage;
+export default CompaniesPage;

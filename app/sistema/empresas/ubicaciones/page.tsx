@@ -6,12 +6,12 @@ import { Loader2 } from 'lucide-react'
 import { columns } from './columns'
 import { DataTable } from './data-table'
 
-const CompanyPage = () => {
+const LocationsPage = () => {
   const { data: locations, isLoading, error } = useGetLocations();
   return (
-    <ContentLayout title='Fabricantes'>
+    <ContentLayout title='Ubicaciones'>
       <h1 className='text-5xl font-bold text-center mt-2'>
-        Control de Empresas
+        Control de Ubicaciones
       </h1>
       <p className='text-sm text-muted-foreground text-center italic mt-2'>Aquí se lleva el control de las diferentes empresas registradas en el sistema.</p>
       {
@@ -37,4 +37,4 @@ const CompanyPage = () => {
   )
 }
 
-export default CompanyPage
+export default LocationsPage
