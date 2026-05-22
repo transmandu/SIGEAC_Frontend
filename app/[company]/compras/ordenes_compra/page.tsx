@@ -21,7 +21,12 @@ import PurchaseOrderToolBar from './_components/PurchaseOrderToolBar'
 
 const PurchaseOrdersPage = () => {
   const { selectedCompany, selectedStation } = useCompanyStore()
-  const { data: po, isLoading, isError } = useGetPurchaseOrders(
+
+  const {
+    data: po,
+    isLoading,
+    isError,
+  } = useGetPurchaseOrders(
     selectedCompany?.slug ?? '',
     selectedStation ?? ''
   )
@@ -30,6 +35,7 @@ const PurchaseOrdersPage = () => {
   const [status, setStatus] = useState('ALL')
 
   const deferredSearch = useDeferredValue(search)
+  const isInitialLoading = isLoading && !po
 
   const filteredPO = useMemo(() => {
     if (!po) return []
@@ -54,14 +60,6 @@ const PurchaseOrdersPage = () => {
     [selectedCompany]
   )
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[300px]">
-        <LoadingPage />
-      </div>
-    )
-  }
-
   return (
     <ContentLayout title="Órdenes de Compra">
       <div className="flex flex-col gap-6">
@@ -76,11 +74,19 @@ const PurchaseOrdersPage = () => {
                   Inicio
                 </BreadcrumbLink>
               </BreadcrumbItem>
+
               <BreadcrumbSeparator />
-              <BreadcrumbItem>Compras</BreadcrumbItem>
-              <BreadcrumbSeparator />
+
               <BreadcrumbItem>
-                <BreadcrumbPage>Órdenes de Compra</BreadcrumbPage>
+                Compras
+              </BreadcrumbItem>
+
+              <BreadcrumbSeparator />
+
+              <BreadcrumbItem>
+                <BreadcrumbPage>
+                  Órdenes de Compra
+                </BreadcrumbPage>
               </BreadcrumbItem>
             </BreadcrumbList>
           </Breadcrumb>
@@ -90,6 +96,7 @@ const PurchaseOrdersPage = () => {
           <h1 className="text-3xl font-semibold tracking-tight">
             Órdenes de Compra
           </h1>
+
           <p className="text-sm text-muted-foreground">
             Gestiona y visualiza las órdenes generadas en el sistema de compras.
           </p>
@@ -116,14 +123,21 @@ const PurchaseOrdersPage = () => {
           </span>
         </div>
 
-        <DataTable
-          columns={columns}
-          data={filteredPO}
-          renderSubRow={(row) => (
-            <PurchaseOrderSubRow row={row} />
-          )}
-        />
+        {isInitialLoading && filteredPO.length === 0 ? (
+          <div className="flex items-center justify-center min-h-[300px]">
+            <LoadingPage />
+          </div>
+        ) : (
+          <DataTable
+            columns={columns}
+            data={filteredPO}
+            renderSubRow={(row) => (
+              <PurchaseOrderSubRow row={row} />
+            )}
+          />
+        )}
 
+        {/* ERROR */}
         {isError && (
           <div className="rounded-lg border border-red-500/20 bg-red-500/5 px-4 py-3">
             <p className="text-sm text-red-500">

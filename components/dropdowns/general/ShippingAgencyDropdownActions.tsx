@@ -3,147 +3,170 @@
 import { useState } from "react"
 import { useCompanyStore } from "@/stores/CompanyStore"
 import { ShippingAgency } from "@/types"
-import { useUpdateShippingAgency, useDeleteShippingAgency } from "@/actions/general/agencias_envio/actions"
-import { DropdownMenuItem, DropdownMenu, DropdownMenuTrigger, DropdownMenuContent } from "@/components/ui/dropdown-menu"
+
+import {
+  useUpdateShippingAgency,
+  useDeleteShippingAgency
+} from "@/actions/general/agencias_envio/actions"
+
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger
+} from "@/components/ui/dropdown-menu"
+
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger
+} from "@/components/ui/tooltip"
+
 import { Button } from "@/components/ui/button"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog"
-import { Loader2, MoreHorizontal, Trash2, Edit3 } from "lucide-react"
-import { toast } from "sonner"
-import { CreateShippingAgencyForm } from "@/components/forms/general/CreateShippingAgencyForm"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { MoreHorizontal, Edit3, Trash2, Loader2 } from "lucide-react"
 
-interface Props {
-  agency: ShippingAgency
-}
+import ShippingAgencyDropdownDialogs from "@/components/dialogs/general/ShippingAgencyDropdownDialogs"
 
-export const ShippingAgencyDropdownActions = ({ agency }: Props) => {
+const iconBase =
+  "size-[18px] transition-all duration-200 ease-out group-hover:scale-110"
+
+const itemBase = `
+  group
+  flex items-center justify-center
+  size-9
+  rounded-xl
+  transition-all duration-200 ease-out
+  hover:bg-muted hover:shadow-sm
+  active:scale-95
+`
+
+const ShippingAgencyDropdownActions = ({ agency }: { agency: ShippingAgency }) => {
   const { selectedCompany } = useCompanyStore()
+
   const updateMutation = useUpdateShippingAgency(selectedCompany?.slug)
   const deleteMutation = useDeleteShippingAgency(selectedCompany?.slug)
+
+  const [openDropdown, setOpenDropdown] = useState(false)
 
   const [openEdit, setOpenEdit] = useState(false)
   const [openDelete, setOpenDelete] = useState(false)
 
   if (!selectedCompany) return null
 
-  const handleDelete = async (id: number) => {
-    await deleteMutation.mutateAsync(id)
+  const handleDelete = async () => {
+    await deleteMutation.mutateAsync(agency.id)
     setOpenDelete(false)
   }
 
   const handleUpdate = async (data: any) => {
-    await updateMutation.mutateAsync({ ...data, id: agency.id })
+    await updateMutation.mutateAsync({
+      ...data,
+      id: agency.id
+    })
     setOpenEdit(false)
   }
 
+  const isDeleting = deleteMutation.status === "pending"
+
   return (
-    <TooltipProvider>
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="ghost" className="h-8 w-8 p-0">
-            <span className="sr-only">Abrir menú</span>
-            <MoreHorizontal className="h-4 w-4" />
-          </Button>
-        </DropdownMenuTrigger>
-
-        <DropdownMenuContent align="center" className="flex gap-2 justify-center">
-
-          {/* Editar */}
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <DropdownMenuItem asChild>
-                <Button
-                  variant="ghost"
-                  className="p-2 h-10 w-10 flex items-center justify-center"
-                  onClick={() => setOpenEdit(true)}
-                >
-                  <Edit3 className="size-5" />
-                </Button>
-              </DropdownMenuItem>
-            </TooltipTrigger>
-            <TooltipContent>Editar agencia</TooltipContent>
-          </Tooltip>
-
-          {/* Eliminar */}
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <DropdownMenuItem asChild>
-                <Button
-                  variant="ghost"
-                  className="p-2 h-10 w-10 flex items-center justify-center"
-                  onClick={() => setOpenDelete(true)}
-                  disabled={deleteMutation.status === "pending"}
-                >
-                  {deleteMutation.status === "pending" ? (
-                    <Loader2 className="animate-spin size-5 text-red-500" />
-                  ) : (
-                    <Trash2 className="size-5 text-red-500" />
-                  )}
-                </Button>
-              </DropdownMenuItem>
-            </TooltipTrigger>
-            <TooltipContent>Eliminar agencia</TooltipContent>
-          </Tooltip>
-
-        </DropdownMenuContent>
-      </DropdownMenu>
-
-      {/* Dialogo de edición */}
-      <Dialog open={openEdit} onOpenChange={setOpenEdit}>
-        <DialogContent className="max-w-lg">
-          <DialogHeader>
-            <DialogTitle>Editar Agencia de Envío</DialogTitle>
-            <DialogDescription>Actualiza la información de esta agencia de envío.</DialogDescription>
-          </DialogHeader>
-
-          <CreateShippingAgencyForm
-            onClose={() => setOpenEdit(false)}
-            initialValues={{
-              name: agency.name,
-              code: agency.code,
-              description: agency.description ?? "",
-              type: agency.type,
-              phone: agency.phone ?? "",
-              email: agency.email ?? "",
-            }}
-            onSubmit={handleUpdate}
-            isLoading={updateMutation.status === "pending"}
-          />
-        </DialogContent>
-      </Dialog>
-
-      {/* Dialogo de eliminación */}
-      <Dialog open={openDelete} onOpenChange={setOpenDelete}>
-        <DialogContent className="max-w-md">
-          <DialogHeader className="flex flex-col items-center text-center space-y-3">
-            <div className="flex items-center justify-center size-12 rounded-full bg-red-100 dark:bg-red-900/30">
-              <Trash2 className="size-6 text-red-600" />
-            </div>
-
-            <DialogTitle className="text-xl font-semibold">
-              Eliminar Agencia de Envío
-            </DialogTitle>
-
-            <DialogDescription className="text-muted-foreground text-sm max-w-sm">
-              ¿Estás seguro de que deseas eliminar <span className="font-semibold">{agency.name}</span>? Esta acción no se puede deshacer.
-            </DialogDescription>
-          </DialogHeader>
-
-          <DialogFooter className="flex justify-end gap-2 pt-4">
-            <Button variant="outline" onClick={() => setOpenDelete(false)}>Cancelar</Button>
-
+    <TooltipProvider delayDuration={120}>
+      <>
+        <DropdownMenu open={openDropdown} onOpenChange={setOpenDropdown}>
+          <DropdownMenuTrigger asChild>
             <Button
-              variant="destructive"
-              onClick={() => handleDelete(agency.id)}
-              disabled={deleteMutation.status === "pending"}
-              className="flex items-center gap-2"
+              variant="ghost"
+              size="icon"
+              className="
+                size-8
+                rounded-xl
+                border border-transparent
+                transition-all duration-200
+                hover:bg-muted/70
+                hover:border-border/50
+                hover:shadow-sm
+                data-[state=open]:bg-muted
+              "
             >
-              {deleteMutation.status === "pending" && <Loader2 className="animate-spin size-4" />}
-              Eliminar
+              <MoreHorizontal className="size-4" />
             </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </DropdownMenuTrigger>
+
+          <DropdownMenuContent
+            align="center"
+            sideOffset={3}
+            className="
+              flex items-center justify-center gap-1.5
+              rounded-2xl
+              border border-border/50
+              bg-background/90
+              backdrop-blur-xl
+              shadow-xl
+              p-1.5
+              animate-in fade-in zoom-in-95 duration-200
+              overflow-visible
+            "
+          >
+            {/* EDIT */}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span>
+                  <DropdownMenuItem asChild className="p-0 focus:bg-transparent">
+                    <button
+                      onClick={() => {
+                        setOpenDropdown(false)
+                        setOpenEdit(true)
+                      }}
+                      className={`${itemBase} text-blue-600`}
+                    >
+                      <Edit3 className={iconBase} />
+                    </button>
+                  </DropdownMenuItem>
+                </span>
+              </TooltipTrigger>
+
+              <TooltipContent>Editar agencia</TooltipContent>
+            </Tooltip>
+
+            {/* DELETE */}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span>
+                  <DropdownMenuItem asChild className="p-0 focus:bg-transparent">
+                    <button
+                      onClick={() => {
+                        setOpenDropdown(false)
+                        setOpenDelete(true)
+                      }}
+                      className={`${itemBase} text-red-600`}
+                      disabled={isDeleting}
+                    >
+                      {isDeleting ? (
+                        <Loader2 className={`${iconBase} animate-spin`} />
+                      ) : (
+                        <Trash2 className={iconBase} />
+                      )}
+                    </button>
+                  </DropdownMenuItem>
+                </span>
+              </TooltipTrigger>
+
+              <TooltipContent>Eliminar agencia</TooltipContent>
+            </Tooltip>
+          </DropdownMenuContent>
+        </DropdownMenu>
+
+        {/* Dialogs separados (igual patrón base) */}
+        <ShippingAgencyDropdownDialogs
+          agency={agency}
+          openEdit={openEdit}
+          setOpenEdit={setOpenEdit}
+          openDelete={openDelete}
+          setOpenDelete={setOpenDelete}
+        />
+      </>
     </TooltipProvider>
   )
 }
+
+export default ShippingAgencyDropdownActions

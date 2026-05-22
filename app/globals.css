@@ -183,8 +183,7 @@ input[type="password"]::-webkit-password-toggle-button {
   appearance: none !important;
   -webkit-appearance: none !important;
 }
-
-@keyframes marquee-x {
+@keyframes marquee-x-pingpong {
   0% {
     transform: translateX(0);
   }
@@ -193,9 +192,31 @@ input[type="password"]::-webkit-password-toggle-button {
   }
 }
 
-.animate-marquee-x {
-  animation: marquee-x 6s ease-in-out infinite alternate;
+.animate-marquee-pingpong {
+  animation: marquee-x-pingpong 6s ease-in-out infinite alternate;
 }
+
+@keyframes marquee-x-loop {
+  0% {
+    transform: translateX(0);
+  }
+
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-marquee-loop {
+  display: flex;
+  width: max-content;
+  animation: marquee-x-loop var(--duration) linear infinite;
+}
+
+/* opcional: pausa al hover */
+.animate-marquee-loop:hover {
+  animation-play-state: paused;
+}
+
 .scrollbar-modern {
   scrollbar-width: thin;
   scrollbar-color: rgba(0, 0, 0, 0.12) transparent;

@@ -1,6 +1,6 @@
 'use client';
 
-import RegisterArticleForm from '@/app/[company]/almacen/ingresar_inventario/_components/RegisterArticleForm';
+import DirectRegisterArticleForm from '@/app/[company]/almacen/ingresar_inventario/_components/DirectRegisterArticleForm';
 import { ContentLayout } from '@/components/layout/ContentLayout';
 import LoadingPage from '@/components/misc/LoadingPage';
 import { useGetArticleById } from '@/hooks/mantenimiento/almacen/articulos/useGetArticleById';
@@ -19,7 +19,7 @@ const ConfirmInventory = () => {
   }
   return (
     <ContentLayout title="Confirmar Ingreso">
-      <RegisterArticleForm isEditing initialData={data} category={data?.batches?.category} />
+      <DirectRegisterArticleForm isEditing initialData={data} category={data?.batches?.category} />
     </ContentLayout>
   );
 };

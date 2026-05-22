@@ -33,8 +33,10 @@ export const formSchema = z
     registration_date: z.date({ required_error: "La fecha es requerida" }),
     carrier_id: z.coerce.number().min(1, "El transportista es requerido"),
     issuer: z.number().min(1, "El emisor es requerido"),
-    pilot_id: z.number().min(1, "Debe elegir un piloto"),
-    copilot_id: z.number().min(1, "Debe elegir un copiloto"),
+    pilot_id: z.string().min(1, "Debe elegir un piloto"),
+    copilot_id: z.string().min(1, "Debe elegir un copiloto"),
+    external_pilot_id: z.number().optional().nullable(),
+    external_copilot_id: z.number().optional().nullable(),
     external_aircraft: z.string().optional().nullable(),
     client_id: z.coerce.number().min(1, "Debe elegir un cliente"),
     aircraft_id: z.coerce.number().optional().nullable(),
@@ -44,8 +46,12 @@ export const formSchema = z
     message: "Debe seleccionar una aeronave registrada o ingresar una externa",
     path: ["aircraft_id"],
   })
-  .refine((data) => data.pilot_id !== data.copilot_id, {
-    message: "El piloto y copiloto no pueden ser la misma persona",
+  .refine((data) => data.pilot_id || data.external_pilot_id, {
+    message: "Debe asignar un piloto interno o externo",
+    path: ["pilot_id"],
+  })
+  .refine((data) => data.copilot_id || data.external_copilot_id, {
+    message: "Debe asignar un copiloto interno o externo",
     path: ["copilot_id"],
   });
 
@@ -53,7 +59,10 @@ export type CargoShipmentFormValues = z.infer<typeof formSchema>;
 
 // ─── Hook ─────────────────────────────────────────────────────────────────────
 
-export function useCargoShipmentForm(initialData?: any) {
+export function useCargoShipmentForm(
+  initialData?: any,
+  isExternalMode?: boolean,
+) {
   const params = useParams();
   const router = useRouter();
   const { user } = useAuth();
@@ -66,6 +75,7 @@ export function useCargoShipmentForm(initialData?: any) {
 
   const isEditing = !!initialData;
   const isExternalAircraft = !!(
+    isExternalMode ||
     params.name ||
     externalNameFromUrl ||
     initialData?.external_aircraft
@@ -112,7 +122,9 @@ export function useCargoShipmentForm(initialData?: any) {
         registrationDate instanceof Date
           ? registrationDate
           : parseISO(registrationDate);
-      return isValid(d) ? format(d, "yyyy-MM-dd") : format(new Date(), "yyyy-MM-dd");
+      return isValid(d)
+        ? format(d, "yyyy-MM-dd")
+        : format(new Date(), "yyyy-MM-dd");
     })(),
     watchedAircraftId ?? null,
     watchedExternalAircraft ?? null,
@@ -165,15 +177,33 @@ export function useCargoShipmentForm(initialData?: any) {
       ...values,
       registration_date: format(values.registration_date, "yyyy-MM-dd"),
     };
+
+    const parsePilot = (key: string) => {
+      const [type, id] = key.split(":");
+      return { type, id: parseInt(id) };
+    };
+
+    const p = parsePilot(values.pilot_id);
+    const cp = parsePilot(values.copilot_id);
+
+    const payload = {
+      ...values,
+      registration_date: format(values.registration_date, "yyyy-MM-dd"),
+      pilot_id: p.type === "int" ? p.id : null,
+      copilot_id: cp.type === "int" ? cp.id : null,
+      external_pilot_id: p.type === "ext" ? p.id : null,
+      external_copilot_id: cp.type === "ext" ? cp.id : null,
+    } as any;
+
     const path = buildRedirectPath(values);
 
     if (isEditing) {
       updateCargoShipment.mutate(
-        { id: initialData.id, data },
+        { id: initialData.id, data: payload },
         { onSuccess: () => router.push(path) },
       );
     } else {
-      createCargoShipment.mutate(data, {
+      createCargoShipment.mutate(payload, {
         onSuccess: () => {
           form.reset();
           router.push(path);
@@ -232,8 +262,8 @@ function buildDefaultValues(initialData?: any): CargoShipmentFormValues {
       registration_date: new Date(),
       carrier_id: 0,
       issuer: 0,
-      pilot_id: 0,
-      copilot_id: 0,
+      pilot_id: "",
+      copilot_id: "",
       client_id: 0,
       aircraft_id: null,
       external_aircraft: null,
@@ -245,8 +275,16 @@ function buildDefaultValues(initialData?: any): CargoShipmentFormValues {
     registration_date: safeDate(initialData.registration_date),
     carrier_id: initialData.carrier_id,
     issuer: initialData.issuer,
-    pilot_id: initialData.pilot_id ? Number(initialData.pilot_id) : 0,
-    copilot_id: initialData.copilot_id ? Number(initialData.copilot_id) : 0,
+    pilot_id: initialData.pilot_id
+      ? `int:${initialData.pilot_id}`
+      : initialData.external_pilot_id
+        ? `ext:${initialData.external_pilot_id}`
+        : "",
+    copilot_id: initialData.copilot_id
+      ? `int:${initialData.copilot_id}`
+      : initialData.external_copilot_id
+        ? `ext:${initialData.external_copilot_id}`
+        : "",
     client_id: initialData.client_id ?? initialData.client?.id ?? null,
     aircraft_id: initialData.aircraft_id ?? initialData.aircraft?.id ?? null,
     external_aircraft: initialData.external_aircraft ?? null,
