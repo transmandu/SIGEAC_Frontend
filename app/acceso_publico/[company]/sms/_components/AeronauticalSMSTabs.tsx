@@ -28,6 +28,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
     AeronauticalpolicyImages,
     emergencyPlans,
+    emergencyPlansh74,
     policyCardsData,
     policyImagesOmac,
     smsConcepts,
@@ -479,7 +480,7 @@ export const AeronauticalSMSTabs = ({ company, surveyNumbers }: SMSTabsProps) =>
                     </CardHeader>
                     <CardContent className="space-y-4 text-sm sm:text-base">
                         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                            {emergencyPlans.map((plan, index) => (
+                            {emergencyPlansh74.map((plan, index) => (
                                 <div key={index} className="flex items-stretch">
                                     <ActionPlanDialog
                                         title={`${plan.cardData?.stepsTitle}`}
