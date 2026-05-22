@@ -672,32 +672,6 @@ export function CreateGenObliReport({
                                 </FormItem>
                             )}
                         />
-                        <FormField
-                            control={form.control}
-                            name="document"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Documento (PDF)</FormLabel>
-                                    <div className="flex flex-col gap-2 mt-2">
-                                        {field.value && (
-                                            <div className="text-sm text-muted-foreground">
-                                                <span className="font-semibold text-foreground">Archivo actual: </span>
-                                                {field.value.name}
-                                            </div>
-                                        )}
-                                        <FormControl>
-                                            <Input
-                                                type="file"
-                                                accept="application/pdf"
-                                                onChange={(e) => field.onChange(e.target.files?.[0])}
-                                                className="cursor-pointer file:cursor-pointer"
-                                            />
-                                        </FormControl>
-                                    </div>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
                     </div>
                 </div>
 
