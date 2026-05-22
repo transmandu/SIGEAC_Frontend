@@ -255,7 +255,7 @@ export default function ShareRequestsPanel({ company, onClose, onRefresh }: Shar
                 {req.reason && (
                   <div className="flex items-start gap-2 p-3 bg-slate-50 dark:bg-slate-800/30 rounded-xl mb-4 border border-slate-100 dark:border-slate-800/50">
                     <MessageSquare className="h-4 w-4 text-slate-400 mt-0.5 shrink-0" />
-                    <p className="text-[12px] italic font-medium text-slate-700 dark:text-slate-300">"{req.reason}"</p>
+                    <p className="text-[12px] italic font-medium text-slate-700 dark:text-slate-300">{'"'}{req.reason}{'"'}</p>
                   </div>
                 )}
 
@@ -265,7 +265,7 @@ export default function ShareRequestsPanel({ company, onClose, onRefresh }: Shar
                     <XCircle className="h-4 w-4 text-red-500 mt-0.5 shrink-0" />
                     <div>
                       <p className="text-[9px] font-bold uppercase text-red-500 mb-0.5 tracking-wider">Motivo de Rechazo</p>
-                      <p className="text-[11px] font-medium text-red-700 dark:text-red-400">"{req.rejection_reason}"</p>
+                      <p className="text-[11px] font-medium text-red-700 dark:text-red-400">{'"'}{req.rejection_reason}{'"'}</p>
                     </div>
                   </div>
                 )}
