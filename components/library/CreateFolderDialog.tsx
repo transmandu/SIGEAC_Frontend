@@ -86,12 +86,13 @@ export default function CreateFolderDialog({
     onClose();
   };
 
-  const flattenFolders = (nodes: FolderNode[], prefix = ''): { id: string; name: string; label: string }[] => {
+  const flattenFolders = (nodes: FolderNode[], depth = 0): { id: string; name: string; label: string }[] => {
     const result: { id: string; name: string; label: string }[] = [];
+    const prefix = '\u00A0\u00A0'.repeat(depth * 2) + (depth > 0 ? '— ' : '');
     for (const node of nodes) {
       result.push({ id: node.id, name: node.name, label: `${prefix}${node.name}` });
       if (node.children.length > 0) {
-        result.push(...flattenFolders(node.children, `${prefix}${node.name} / `));
+        result.push(...flattenFolders(node.children, depth + 1));
       }
     }
     return result;

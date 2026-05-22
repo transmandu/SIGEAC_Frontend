@@ -1,11 +1,23 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { BarChart, FileText, Share2, Eye, Send, Loader2 } from 'lucide-react';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import libraryService, { Document } from '@/lib/libraryService';
 import axiosInstance from '@/lib/axios';
 import { useAuth } from '@/contexts/AuthContext';
+import { 
+  ResponsiveContainer, 
+  PieChart, 
+  Pie, 
+  Cell, 
+  Tooltip as RechartsTooltip, 
+  BarChart as RechartsBarChart, 
+  Bar, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid 
+} from 'recharts';
 
 interface DashboardModalProps {
   open: boolean;
@@ -13,11 +25,25 @@ interface DashboardModalProps {
   company: string;
 }
 
-const CHART_COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ec4899', '#8b5cf6', '#06b6d4', '#f43f5e', '#84cc16'];
-const STATUS_COLORS = { vigente: '#10b981', vencido: '#f43f5e', no_aplica: '#3b82f6' };
+// Unified professional color palette matching PieChartComponent.tsx
+const CHART_COLORS = [
+  "#64bda5", // Soft mint green
+  "#0369a1", // Deep sky blue
+  "#7c3aed", // Violet
+  "#ea580c", // Orange
+  "#16a34a", // Green
+  "#be123c", // Crimson red
+  "#4b5563", // Slate Gray
+];
+
+const STATUS_COLORS = {
+  vigente: '#64bda5',
+  vencido: '#be123c',
+  no_aplica: '#0369a1'
+};
 
 const DonutChart = ({ data, total }: { data: { label: string, value: number, color: string }[], total: number }) => {
-  let currentAngle = 0;
+  const [hovered, setHovered] = useState<{ label: string, value: number, percent: number } | null>(null);
 
   if (total === 0) {
     return (
@@ -27,45 +53,97 @@ const DonutChart = ({ data, total }: { data: { label: string, value: number, col
     );
   }
 
+  const getCleanLabel = (name: string): string => {
+    const upper = name.toUpperCase();
+    if (upper.includes('SEGURIDAD OPERACIONAL') || upper.includes('SMS')) return 'Seguridad Op.';
+    if (upper.includes('TECNOLOGIA') || upper.includes('DIP')) return 'IT / DIP';
+    if (upper.includes('MANTENIMIENTO') || upper.includes('DMA')) return 'Mantenimiento';
+    return name;
+  };
+
+  const chartData = data
+    .filter(d => d.value > 0)
+    .map(d => ({
+      name: getCleanLabel(d.label),
+      value: d.value,
+      color: d.color
+    }));
+
   return (
     <div className="relative w-48 h-48 mx-auto mt-4 mb-2">
-      <svg viewBox="0 0 100 100" className="w-full h-full transform -rotate-90 drop-shadow-sm">
-        {data.map((item, i) => {
-          if (item.value === 0) return null;
-          const fraction = item.value / total;
-          const dash = fraction * 251.2;
-          const gap = data.filter(d => d.value > 0).length > 1 ? 5 : 0;
-          const strokeDasharray = `${Math.max(0, dash - gap)} 251.2`;
-          const offset = -(currentAngle / total) * 251.2;
-          currentAngle += item.value;
-
-          return (
-            <circle
-              key={i}
-              cx="50"
-              cy="50"
-              r="40"
-              fill="transparent"
-              stroke={item.color}
-              strokeWidth="12"
-              strokeDasharray={strokeDasharray}
-              strokeDashoffset={offset}
-              strokeLinecap="round"
-              className="transition-all duration-1000 ease-out"
-            />
-          );
-        })}
-      </svg>
-      <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="text-3xl font-black text-slate-800 dark:text-white">{total}</span>
-        <span className="text-[9px] font-black tracking-widest text-slate-400 uppercase mt-1">Total</span>
+      <ResponsiveContainer width="100%" height="100%">
+        <PieChart>
+          <Pie
+            data={chartData}
+            dataKey="value"
+            nameKey="name"
+            cx="50%"
+            cy="50%"
+            innerRadius="60%"
+            outerRadius="85%"
+            paddingAngle={3}
+            onMouseEnter={(_, index) => {
+              const item = chartData[index];
+              if (item) {
+                setHovered({
+                  label: item.name,
+                  value: item.value,
+                  percent: Math.round((item.value / total) * 100)
+                });
+              }
+            }}
+            onMouseLeave={() => setHovered(null)}
+            className="outline-none"
+          >
+            {chartData.map((entry, index) => (
+              <Cell 
+                key={`cell-${index}`} 
+                fill={entry.color} 
+                className="transition-all duration-300 cursor-pointer hover:opacity-90 outline-none"
+              />
+            ))}
+          </Pie>
+          <RechartsTooltip
+            content={({ active, payload }) => {
+              if (active && payload && payload.length) {
+                const data = payload[0].payload;
+                const percent = Math.round((data.value / total) * 100);
+                return (
+                  <div className="bg-slate-900/90 dark:bg-slate-900/95 backdrop-blur-md text-white px-3 py-2 rounded-xl text-[10px] font-black border border-white/10 shadow-2xl flex flex-col gap-0.5 whitespace-nowrap">
+                    <span className="text-slate-300 uppercase tracking-widest text-[8px] font-bold">{data.name}</span>
+                    <span className="text-white text-[11px] font-black">{data.value} docs ({percent}%)</span>
+                  </div>
+                );
+              }
+              return null;
+            }}
+          />
+        </PieChart>
+      </ResponsiveContainer>
+      
+      <div className="absolute inset-0 flex flex-col items-center justify-center p-4 text-center pointer-events-none">
+        {hovered ? (
+          <>
+            <span className="text-[10px] font-black text-slate-800 dark:text-white truncate max-w-[80%] uppercase tracking-wider" title={hovered.label}>
+              {hovered.label}
+            </span>
+            <span className="text-lg font-black text-blue-600 dark:text-blue-400 mt-0.5">
+              {hovered.value} ({hovered.percent}%)
+            </span>
+          </>
+        ) : (
+          <>
+            <span className="text-3xl font-black text-slate-800 dark:text-white leading-none">{total}</span>
+            <span className="text-[9px] font-black tracking-widest text-slate-400 uppercase mt-1">Total</span>
+          </>
+        )}
       </div>
     </div>
   );
 };
 
 const HalfDonutChart = ({ data, total }: { data: { label: string, value: number, color: string }[], total: number }) => {
-  let currentAngle = 0;
+  const [hovered, setHovered] = useState<{ label: string, value: number, percent: number } | null>(null);
 
   if (total === 0) {
     return (
@@ -75,72 +153,168 @@ const HalfDonutChart = ({ data, total }: { data: { label: string, value: number,
     );
   }
 
-  return (
-    <div className="relative w-40 h-20 mx-auto mt-6 mb-8">
-      <svg viewBox="0 0 100 50" className="w-full h-full drop-shadow-sm overflow-visible">
-        <path
-          d="M 10 50 A 40 40 0 0 1 90 50"
-          fill="transparent"
-          stroke="currentColor"
-          className="text-slate-100 dark:text-slate-800"
-          strokeWidth="12"
-          strokeLinecap="round"
-        />
-        {data.map((item, i) => {
-          if (item.value === 0) return null;
-          const fraction = item.value / total;
-          const dash = fraction * 125.66;
-          const gap = data.filter(d => d.value > 0).length > 1 ? 4 : 0;
-          const strokeDasharray = `${Math.max(0, dash - gap)} 125.66`;
-          const offset = -(currentAngle / total) * 125.66;
-          currentAngle += item.value;
+  const chartData = data
+    .filter(d => d.value > 0)
+    .map(d => ({
+      name: d.label,
+      value: d.value,
+      color: d.color
+    }));
 
-          return (
-            <path
-              key={i}
-              d="M 10 50 A 40 40 0 0 1 90 50"
-              fill="transparent"
-              stroke={item.color}
-              strokeWidth="12"
-              strokeDasharray={strokeDasharray}
-              strokeDashoffset={offset}
-              strokeLinecap="round"
-              className="transition-all duration-1000 ease-out"
-            />
-          );
-        })}
-      </svg>
-      <div className="absolute bottom-0 left-0 right-0 flex flex-col items-center translate-y-4">
-        <span className="text-3xl font-black text-slate-800 dark:text-white leading-none">{total}</span>
-        <span className="text-[9px] font-black tracking-widest text-slate-400 uppercase mt-1">Total</span>
+  return (
+    <div className="relative w-44 h-32 mx-auto mt-4 mb-2 overflow-visible">
+      <ResponsiveContainer width="100%" height="100%">
+        <PieChart>
+          <Pie
+            data={chartData}
+            dataKey="value"
+            nameKey="name"
+            cx="50%"
+            cy="85%"
+            startAngle={180}
+            endAngle={0}
+            innerRadius="55%"
+            outerRadius="85%"
+            paddingAngle={3}
+            onMouseEnter={(_, index) => {
+              const item = chartData[index];
+              if (item) {
+                setHovered({
+                  label: item.name,
+                  value: item.value,
+                  percent: Math.round((item.value / total) * 100)
+                });
+              }
+            }}
+            onMouseLeave={() => setHovered(null)}
+            className="outline-none"
+          >
+            {chartData.map((entry, index) => (
+              <Cell 
+                key={`cell-${index}`} 
+                fill={entry.color} 
+                className="transition-all duration-300 cursor-pointer hover:opacity-90 outline-none"
+              />
+            ))}
+          </Pie>
+          <RechartsTooltip
+            content={({ active, payload }) => {
+              if (active && payload && payload.length) {
+                const data = payload[0].payload;
+                const percent = Math.round((data.value / total) * 100);
+                return (
+                  <div className="bg-slate-900/90 dark:bg-slate-900/95 backdrop-blur-md text-white px-3 py-2 rounded-xl text-[10px] font-black border border-white/10 shadow-2xl flex flex-col gap-0.5 whitespace-nowrap">
+                    <span className="text-slate-300 uppercase tracking-widest text-[8px] font-bold">{data.name}</span>
+                    <span className="text-white text-[11px] font-black">{data.value} solicitudes ({percent}%)</span>
+                  </div>
+                );
+              }
+              return null;
+            }}
+          />
+        </PieChart>
+      </ResponsiveContainer>
+      
+      <div className="absolute bottom-0 left-0 right-0 flex flex-col items-center pointer-events-none text-center translate-y-2">
+        {hovered ? (
+          <>
+            <span className="text-[9px] font-black text-slate-500 uppercase tracking-wider">{hovered.label}</span>
+            <span className="text-lg font-black text-blue-600 dark:text-blue-400 leading-none mt-0.5">
+              {hovered.value} ({hovered.percent}%)
+            </span>
+          </>
+        ) : (
+          <>
+            <span className="text-2xl font-black text-slate-800 dark:text-white leading-none">{total}</span>
+            <span className="text-[8px] font-black tracking-widest text-slate-400 uppercase mt-0.5">Total</span>
+          </>
+        )}
       </div>
     </div>
   );
 };
 
 const VerticalBarChart = ({ data }: { data: { label: string, value: number, color: string }[] }) => {
-  const maxVal = Math.max(...data.map(d => d.value), 1);
+  const sortedData = useMemo(() => {
+    return [...data]
+      .sort((a, b) => b.value - a.value)
+      .map(d => ({
+        name: d.label,
+        value: d.value,
+        color: d.color
+      }));
+  }, [data]);
+
+  const maxVal = Math.max(...sortedData.map(d => d.value), 1);
+
+  const getCleanDeptLabel = (name: string): string => {
+    const upper = name.toUpperCase();
+    if (upper.includes('SEGURIDAD OPERACIONAL') || upper.includes('SMS')) return 'Seguridad Op.';
+    if (upper.includes('TECNOLOGIA') || upper.includes('DIP')) return 'IT / DIP';
+    if (upper.includes('MANTENIMIENTO') || upper.includes('DMA')) return 'Mantenimiento';
+    if (upper.includes('PRESIDENCIA')) return 'Presidencia';
+    if (upper.includes('OPERACIONES')) return 'Operaciones';
+    if (upper.includes('PILOTOS')) return 'Pilotos';
+    if (upper.includes('INSTRUCCI')) return 'Instrucción';
+    if (upper.includes('CALIDAD')) return 'Calidad';
+    if (upper.includes('RRHH') || upper.includes('ADMINISTRACION')) return 'RRHH / Adm.';
+    
+    let clean = name.replace(/^(Dirección de |Direccion de |Jefatura de |Jefatura de la |Departamento de )/gi, '');
+    return clean.length > 12 ? clean.substring(0, 12) + '...' : clean;
+  };
+
   return (
-    <div className="flex items-end justify-around h-48 mt-4 gap-2">
-      {data.map((item, i) => {
-        const height = (item.value / maxVal) * 100;
-        return (
-          <div key={i} className="flex flex-col items-center gap-2 group flex-1 max-w-[48px]">
-            <span className="text-[11px] font-bold text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity">
-              {item.value}
-            </span>
-            <div className="w-full max-w-[20px] h-32 bg-slate-100 dark:bg-slate-800/40 rounded-full flex items-end overflow-hidden p-0.5">
-              <div
-                className="w-full rounded-full transition-all duration-1000 shadow-sm"
-                style={{ height: `${height}%`, backgroundColor: item.color }}
+    <div className="w-full h-52 mt-6">
+      <ResponsiveContainer width="100%" height="100%">
+        <RechartsBarChart
+          data={sortedData}
+          margin={{ top: 20, right: 10, left: -20, bottom: 5 }}
+        >
+          <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.1} />
+          <XAxis 
+            dataKey="name" 
+            tickFormatter={getCleanDeptLabel}
+            tick={{ fontSize: 9, fontWeight: 700, fill: '#64748b' }}
+            tickLine={false}
+            axisLine={false}
+          />
+          <YAxis 
+            allowDecimals={false}
+            tick={{ fontSize: 9, fontWeight: 700, fill: '#64748b' }}
+            tickLine={false}
+            axisLine={false}
+          />
+          <RechartsTooltip
+            content={({ active, payload }) => {
+              if (active && payload && payload.length) {
+                const data = payload[0].payload;
+                return (
+                  <div className="bg-slate-900/90 dark:bg-slate-900/95 backdrop-blur-md text-white px-3 py-2 rounded-xl text-[10px] font-black border border-white/10 shadow-2xl flex flex-col gap-0.5 whitespace-nowrap">
+                    <span className="text-slate-300 uppercase tracking-widest text-[8px] font-bold">{data.name}</span>
+                    <span className="text-white text-[11px] font-black">{data.value} accesos</span>
+                  </div>
+                );
+              }
+              return null;
+            }}
+          />
+          <Bar 
+            dataKey="value" 
+            radius={[6, 6, 0, 0]}
+            maxBarSize={32}
+            animationDuration={1200}
+            animationEasing="ease-out"
+          >
+            {sortedData.map((entry, index) => (
+              <Cell 
+                key={`cell-${index}`} 
+                fill={entry.color}
+                className="transition-all duration-300 cursor-pointer hover:opacity-90 outline-none"
               />
-            </div>
-            <span className="text-[9px] font-bold text-slate-500 uppercase truncate w-full text-center px-1" title={item.label}>
-              {item.label.split(' ')[0] === 'Direccion' || item.label.split(' ')[0] === 'Jefatura' ? item.label.split(' ')[2] : item.label.split(' ')[0]}
-            </span>
-          </div>
-        );
-      })}
+            ))}
+          </Bar>
+        </RechartsBarChart>
+      </ResponsiveContainer>
     </div>
   );
 };
@@ -455,7 +629,7 @@ export default function DashboardModal({ open, onClose, company }: DashboardModa
                     <p className="text-[11px] font-medium text-slate-400 mb-2">Aprobaciones y rechazos</p>
                   </div>
 
-                  <div className="flex-1 flex flex-col justify-center">
+                  <div className="flex-1 flex flex-col justify-center overflow-visible">
                     <HalfDonutChart data={reqData} total={reqStats.total} />
                   </div>
 

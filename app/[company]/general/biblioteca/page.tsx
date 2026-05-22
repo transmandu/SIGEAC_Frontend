@@ -75,9 +75,11 @@ const BibliotecaPage = () => {
   const isDipDirector = useMemo(() => {
     if (isSuperUser) return true;
     if (!user) return false;
-    return user.employee?.some((emp: any) =>
-      emp.department?.acronym?.toUpperCase() === 'DIP'
-    ) ?? false;
+    return user.employee?.some((emp: any) => {
+      const isDIP = emp.department?.acronym?.toUpperCase() === 'DIP';
+      const isDir = emp.job_title?.name?.toUpperCase().includes('DIRECTOR');
+      return isDIP && isDir;
+    }) ?? false;
   }, [isSuperUser, user]);
 
   const isDirector = useMemo(() => {
@@ -141,7 +143,7 @@ const BibliotecaPage = () => {
     } catch (error) {
       console.error("Error al cargar departamentos:", error);
     }
-  }, [companySlug, isSuperUser, userDeptId, selectedDeptName]);
+  }, [companySlug, isSuperUser, userDeptId, selectedDeptName, isDipDirector]);
 
   const refreshPendingCount = useCallback(async () => {
     try {
@@ -499,6 +501,7 @@ const BibliotecaPage = () => {
         departmentName={selectedDeptName}
         departments={departments}
         folders={currentFoldersForDialog}
+        selectedFolderPath={selectedFolderPath}
         isSuperUser={isSuperUser}
         onSuccess={(deptId) => handleFolderRefresh(deptId)}
       />
