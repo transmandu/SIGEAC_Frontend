@@ -10,7 +10,17 @@ import SMSActivityDropDownActions from "@/components/dropdowns/aerolinea/sms/SMS
 // Columnas de la tabla
 export const columns: ColumnDef<SMSActivity>[] = [
   {
-    accessorKey: "activity_number",
+    id: "activity_number",
+    accessorFn: (row) => {
+      const v = (row as any).activity_number;
+      if (v === null || v === undefined || v === "") return NaN;
+      const str = String(v).trim();
+      const digits = str.match(/\d+/);
+      if (digits) return Number(digits[0]);
+      // Fallback to plain Number conversion (handles pure numeric strings)
+      const n = Number(str);
+      return isNaN(n) ? NaN : n;
+    },
     header: ({ column }) => (
       <DataTableColumnHeader filter column={column} title="Numero de actividad" />
     ),
