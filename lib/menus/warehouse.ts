@@ -3,6 +3,7 @@ import {
     Boxes,
     ClipboardCopy,
     FileBox,
+    Fuel,
     PackageOpen,
     SquarePen,
     Wrench,
@@ -78,6 +79,16 @@ export function buildWarehouseGroup({ pathname, currentCompany }: MenuContext): 
                     `/${currentCompany?.slug}/almacen/caja_herramientas`,
                 ),
                 icon: Wrench,
+                submenus: [],
+            },
+            {
+                href: `/${currentCompany?.slug}/almacen/combustible`,
+                label: "Combustible",
+                roles: ["JEFE_ALMACEN", "SUPERUSER"],
+                active: pathname.includes(
+                    `/${currentCompany?.slug}/almacen/combustible`,
+                ),
+                icon: Fuel,
                 submenus: [],
             },
             {

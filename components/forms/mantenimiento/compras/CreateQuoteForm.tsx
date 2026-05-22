@@ -34,14 +34,6 @@ import {
   CommandItem,
   CommandList,
 } from "../../../ui/command";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "../../../ui/dialog";
 import { Popover, PopoverContent, PopoverTrigger } from "../../../ui/popover";
 import { ScrollArea } from "../../../ui/scroll-area";
 import {
@@ -51,45 +43,35 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../../../ui/select";
-import CreateVendorForm from "../../general/CreateVendorForm";
 import { useGetUnits } from "@/hooks/general/unidades/useGetPrimaryUnits";
+import { QuoteableRequisition } from "@/types/purchase/quote";
+import { MarqueeBlockText } from "@/components/misc/MarqueeBlockText";
+import { Badge } from "@/components/ui/badge";
 
 const FormSchema = z.object({
-  justification: z.string({ message: "Debe ingresar una justificacion." }),
+  justification: z.string(),
   articles: z.array(
     z.object({
       part_number: z.string(),
       alt_part_number: z.string().optional(),
-      quantity: z.number().min(1, { message: "Debe ingresar al menos 1." }),
+      quantity: z.string().regex(/^\d+(\.\d{0,2})?$/),
       unit: z.string().optional(),
       unit_price: z
         .string()
-        .min(0, { message: "El precio no puede ser negativo." }),
+        .regex(/^\d+(\.\d{0,2})?$/, "Precio inválido"),
+      batch: z.object({
+        name: z.string(),
+        category: z.string(),
+      }),
     })
   ),
   vendor_id: z.string({ message: "Debe seleccionar un proveedor." }),
   location_id: z.string({ message: "Debe ingresar una ubicacion destino." }),
   quote_date: z.date({ message: "Debe ingresar una fecha de cotizacion." }),
+  observation: z.string().optional(),
 });
 
 type FormSchemaType = z.infer<typeof FormSchema>;
-
-export interface QuoteableRequisition {
-  id: number;
-  order_number: string;
-  requested_by: string;
-  justification: string;
-  batch: {
-    batch_articles: {
-      article_part_number: string;
-      article_alt_part_number?: string;
-      quantity: number;
-      unit?: {
-        id: number;
-      } | null;
-    }[];
-  }[];
-}
 
 export function CreateQuoteForm({
   onClose,
@@ -115,6 +97,10 @@ export function CreateQuoteForm({
       quantity: article.quantity,
       unit: article.unit ? article.unit.id.toString() : undefined,
       unit_price: "0",
+      batch: {
+        name: batch.name,
+        category: batch.category,
+      },
     }))
   );
 
@@ -122,6 +108,7 @@ export function CreateQuoteForm({
     resolver: zodResolver(FormSchema),
     defaultValues: {
       justification: req.justification || "",
+      observation: "",
       articles: transformedArticles,
     },
   });
@@ -134,11 +121,14 @@ export function CreateQuoteForm({
   });
 
   const calculateTotal = (articles: FormSchemaType["articles"]) => {
-    return articles.reduce(
-      (sum, article) =>
-        sum + (article.quantity * Number(article.unit_price) || 0),
-      0
-    );
+    return articles.reduce((sum, article) => {
+      const qty = Number(article.quantity ?? 0);
+      const price = Number(article.unit_price ?? 0);
+
+      if (Number.isNaN(qty) || Number.isNaN(price)) return sum;
+
+      return sum + qty * price;
+    }, 0);
   };
 
   const articles = useWatch({ control, name: "articles" });
@@ -172,6 +162,7 @@ export function CreateQuoteForm({
       company: selectedCompany!.slug,
       requisition_order_id: req.id,
       vendor_id: Number(data.vendor_id),
+      observation: data.observation || null,
       articles: data.articles.map((article: any) => ({
         ...article,
         amount: Number(article.unit_price) * Number(article.quantity),
@@ -195,371 +186,538 @@ export function CreateQuoteForm({
     <Form {...form}>
       <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5">
 
-        {/* ── Sección meta: fecha / proveedor / destino ────────────────── */}
-        <div className="grid grid-cols-3 gap-3">
-          {/* Fecha */}
-          <FormField
-            control={form.control}
-            name="quote_date"
-            render={({ field }) => (
-              <FormItem className="flex flex-col">
-                <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground mb-1">
-                  Fecha de cotización
-                </FormLabel>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <FormControl>
-                      <Button
-                        variant="outline"
-                        className={cn(
-                          "w-full justify-start text-left font-normal text-sm h-9",
-                          !field.value && "text-muted-foreground"
-                        )}
-                      >
-                        <CalendarIcon className="mr-2 h-3.5 w-3.5 opacity-60" />
-                        {field.value
-                          ? format(field.value, "dd MMM yyyy", { locale: es })
-                          : "Seleccionar fecha"}
-                      </Button>
-                    </FormControl>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={field.value}
-                      onSelect={field.onChange}
-                      locale={es}
-                      disabled={(date) =>
-                        date > new Date() || date < new Date("1900-01-01")
-                      }
-                      initialFocus
-                    />
-                  </PopoverContent>
-                </Popover>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+        {/* ── Sección meta + justificación (layout 2 columnas) ───────────── */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-stretch">
 
-          {/* Proveedor */}
-          <FormField
-            control={form.control}
-            name="vendor_id"
-            render={({ field }) => (
-              <FormItem className="flex flex-col">
-                <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground mb-1">
-                  Proveedor
-                </FormLabel>
-                <Popover open={openVendor} onOpenChange={setOpenVendor}>
-                  <PopoverTrigger asChild>
-                    <FormControl>
-                      <Button
-                        disabled={isVendorsLoading}
-                        variant="outline"
-                        role="combobox"
-                        className={cn(
-                          "w-full justify-between text-sm h-9",
-                          !field.value && "text-muted-foreground"
-                        )}
-                      >
-                        {isVendorsLoading ? (
-                          <Loader2 className="size-3.5 animate-spin" />
-                        ) : field.value ? (
-                          <span className="truncate">
-                            {vendors?.find((v) => v.id.toString() === field.value)?.name}
-                          </span>
-                        ) : (
-                          "Seleccionar..."
-                        )}
-                        <ChevronsUpDown className="ml-1 h-3.5 w-3.5 shrink-0 opacity-40" />
-                      </Button>
-                    </FormControl>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-[220px] p-0">
-                    <Command>
-                      <CommandInput placeholder="Buscar proveedor..." className="text-sm" />
-                      <CommandList>
-                        <CommandEmpty>Sin resultados.</CommandEmpty>
-                        <CommandGroup>
-                          <Dialog open={openVendorDialog} onOpenChange={setOpenVendorDialog}>
-                            <DialogTrigger asChild>
-                              <div className="flex justify-center py-1 px-2">
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="w-full text-xs h-7"
-                                  onClick={() => setOpenVendorDialog(true)}
-                                >
-                                  + Crear proveedor
-                                </Button>
-                              </div>
-                            </DialogTrigger>
-                            <DialogContent className="sm:max-w-[490px]">
-                              <DialogHeader>
-                                <DialogTitle>Crear proveedor</DialogTitle>
-                                <DialogDescription>
-                                  Complete la información del nuevo proveedor.
-                                </DialogDescription>
-                              </DialogHeader>
-                              <CreateVendorForm onClose={() => setOpenVendorDialog(false)} />
-                            </DialogContent>
-                          </Dialog>
-                          {vendors?.map((vendor) => (
-                            <CommandItem
-                              value={vendor.name}
-                              key={vendor.id.toString()}
-                              onSelect={() => {
-                                form.setValue("vendor_id", vendor.id.toString());
-                                setOpenVendor(false);
-                              }}
-                              className="text-sm"
+          {/* ───────────── IZQUIERDA ───────────── */}
+          <div className="h-full rounded-xl border bg-muted/15 overflow-hidden">
+
+            {/* Header */}
+            <div className="flex items-center justify-between border-b bg-muted/30 px-4 py-2.5">
+              <div className="flex flex-col">
+                <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  Datos de cotización
+                </span>
+
+                <span className="text-[11px] text-muted-foreground/70">
+                  Información principal de la cotización
+                </span>
+              </div>
+            </div>
+
+            {/* Body */}
+            <div className="flex flex-col gap-4 p-4">
+
+              {/* Fecha + Destino */}
+              <div className="grid grid-cols-2 gap-3">
+
+                {/* Fecha */}
+                <FormField
+                  control={form.control}
+                  name="quote_date"
+                  render={({ field }) => (
+                    <FormItem className="space-y-2">
+                      <div className="flex items-center gap-2 min-h-[16px] pb-1.5">
+                        <FormLabel className="m-0 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+                          Fecha de Cotización
+                        </FormLabel>
+
+                        <div className="h-px flex-1 bg-border/60" />
+                      </div>
+
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <FormControl>
+                            <Button
+                              variant="outline"
+                              className={cn(
+                                "h-9 w-full justify-start text-sm bg-background/70",
+                                !field.value && "text-muted-foreground"
+                              )}
                             >
-                              <Check
-                                className={cn(
-                                  "mr-2 h-3.5 w-3.5",
-                                  vendor.id.toString() === field.value ? "opacity-100" : "opacity-0"
-                                )}
-                              />
-                              {vendor.name}
-                            </CommandItem>
-                          ))}
-                          {isVendorsErros && (
-                            <p className="text-xs text-muted-foreground px-2 py-1">
-                              Error al cargar proveedores.
-                            </p>
-                          )}
-                        </CommandGroup>
-                      </CommandList>
-                    </Command>
-                  </PopoverContent>
-                </Popover>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+                              <CalendarIcon className="mr-2 h-3 w-3 opacity-60" />
 
-          {/* Destino */}
-          <FormField
-            control={form.control}
-            name="location_id"
-            render={({ field }) => (
-              <FormItem className="flex flex-col">
-                <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground mb-1">
-                  Destino
-                </FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                  <FormControl>
-                    <SelectTrigger disabled={isLocationsPending} className="h-9 text-sm">
-                      <SelectValue placeholder="Seleccionar ubicación" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {locations?.map((location) => (
-                      <SelectItem
-                        key={location.id}
-                        value={location.id.toString()}
-                        className="text-sm"
+                              {field.value
+                                ? format(field.value, "dd MMM yyyy", { locale: es })
+                                : "Seleccionar"}
+                            </Button>
+                          </FormControl>
+                        </PopoverTrigger>
+
+                        <PopoverContent className="w-auto p-0">
+                          <Calendar
+                            mode="single"
+                            selected={field.value}
+                            onSelect={field.onChange}
+                            locale={es}
+                            initialFocus
+                          />
+                        </PopoverContent>
+                      </Popover>
+
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Destino */}
+                <FormField
+                  control={form.control}
+                  name="location_id"
+                  render={({ field }) => (
+                    <FormItem className="space-y-2">
+                      <div className="flex items-center gap-2 min-h-[16px] pb-1.5">
+                        <FormLabel className="m-0 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+                          Destino
+                        </FormLabel>
+
+                        <div className="h-px flex-1 bg-border/60" />
+                      </div>
+
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
                       >
-                        {location.address} — {location.type}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+                        <FormControl>
+                          <SelectTrigger className="h-9 bg-background/70 text-sm">
+                            <SelectValue placeholder="Ubicación" />
+                          </SelectTrigger>
+                        </FormControl>
+
+                        <SelectContent>
+                          {locations?.map((location) => (
+                            <SelectItem
+                              key={location.id}
+                              value={location.id.toString()}
+                            >
+                              {location.address} — {location.type}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              {/* Proveedor */}
+              <FormField
+                control={form.control}
+                name="vendor_id"
+                render={({ field }) => (
+                  <FormItem className="space-y-2">
+                    <div className="flex items-center gap-2 min-h-[16px] pb-1.5">
+                      <FormLabel className="m-0 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+                        Proveedor
+                      </FormLabel>
+
+                      <div className="h-px flex-1 bg-border/60" />
+                    </div>
+
+                    <Popover open={openVendor} onOpenChange={setOpenVendor}>
+                      <PopoverTrigger asChild>
+                        <FormControl>
+                          <Button
+                            variant="outline"
+                            disabled={isVendorsLoading}
+                            className="h-9 w-full justify-between bg-background/70 text-sm"
+                          >
+                            {isVendorsLoading ? (
+                              <Loader2 className="size-3.5 animate-spin" />
+                            ) : field.value ? (
+                              vendors?.find(
+                                v => v.id.toString() === field.value
+                              )?.name
+                            ) : (
+                              "Seleccionar proveedor"
+                            )}
+
+                            <ChevronsUpDown className="h-3 w-3 opacity-40" />
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+
+                      <PopoverContent className="w-[320px] p-0">
+                        <Command>
+                          <CommandInput placeholder="Buscar proveedor..." />
+
+                          <CommandList>
+                            <CommandEmpty>
+                              Sin resultados
+                            </CommandEmpty>
+
+                            <CommandGroup>
+                              {vendors?.map((vendor) => (
+                                <CommandItem
+                                  key={vendor.id}
+                                  value={vendor.name}
+                                  onSelect={() => {
+                                    form.setValue(
+                                      "vendor_id",
+                                      vendor.id.toString()
+                                    )
+
+                                    setOpenVendor(false)
+                                  }}
+                                >
+                                  <Check
+                                    className={cn(
+                                      "mr-2 h-3 w-3",
+                                      vendor.id.toString() === field.value
+                                        ? "opacity-100"
+                                        : "opacity-0"
+                                    )}
+                                  />
+
+                                  {vendor.name}
+                                </CommandItem>
+                              ))}
+                            </CommandGroup>
+                          </CommandList>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
+
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+          </div>
+
+          {/* ───────────── DERECHA ───────────── */}
+          <div className="h-full rounded-xl border bg-muted/15 overflow-hidden">
+
+            {/* Header del panel */}
+            <div className="flex items-center justify-between border-b bg-muted/30 px-4 py-2.5">
+              <div className="flex flex-col">
+                <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  Contexto de la cotización
+                </span>
+
+                <span className="text-[11px] text-muted-foreground/70">
+                  Información extra asociada
+                </span>
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-4 p-4">
+
+              {/* Justificación */}
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <span className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+                    Justificación de la requisición
+                  </span>
+
+                  <div className="h-px flex-1 bg-border/60" />
+                </div>
+
+                {/* viewport fijo */}
+                <div className="rounded-md border bg-background/70 px-3 py-2.5 overflow-hidden">
+                  <MarqueeBlockText
+                    text={(req.justification || "Sin justificación").trim()}
+                  />
+                </div>
+              </div>
+
+              {/* Observación */}
+              <FormField
+                control={control}
+                name="observation"
+                render={({ field }) => (
+                  <FormItem className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <FormLabel className="m-0 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+                        Observación (opcional)
+                      </FormLabel>
+
+                      <div className="h-px flex-1 bg-border/60" />
+                    </div>
+
+                    <FormControl>
+                      <Textarea
+                        placeholder="Comentario adicional para la cotización..."
+                        className="min-h-[88px] resize-none border bg-background/70 text-sm"
+                        {...field}
+                      />
+                    </FormControl>
+
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+          </div>
+
         </div>
 
-        {/* ── Justificación ─────────────────────────────────────────────── */}
-        <FormField
-          control={control}
-          name="justification"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                Justificación
-              </FormLabel>
-              <FormControl>
-                <Textarea
-                  placeholder="Describa la necesidad que origina esta cotización..."
-                  className="resize-none text-sm min-h-[72px]"
-                  {...field}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
         {/* ── Artículos ─────────────────────────────────────────────────── */}
-        <div className="space-y-2">
+        <div className="space-y-3">
+
+          {/* Header simple */}
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+            <span className="text-sm font-medium text-foreground">
               Artículos
             </span>
+
             <span className="text-xs text-muted-foreground tabular-nums">
               {fields.length} {fields.length === 1 ? "ítem" : "ítems"}
             </span>
           </div>
 
-          {/* Cabecera de columnas */}
-          <div className="grid grid-cols-[1fr_72px_130px_88px] gap-3 px-3 pb-1 border-b border-border/60">
-            <span className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70">
-              Parte / Alterno
-            </span>
-            <span className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70">
-              Cant.
-            </span>
-            <span className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70">
-              P. Unitario
-            </span>
-            <span className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70 text-right">
-              Total
-            </span>
-          </div>
+          <ScrollArea className={cn(fields.length > 2 && "h-[260px]")}>
+            <div className="space-y-2">
 
-          <ScrollArea className={cn(fields.length > 3 && "h-[260px]")}>
-            <div className="space-y-0">
               {fields.map((field, index) => (
                 <div
                   key={field.id}
-                  className="grid grid-cols-[1fr_72px_130px_88px] gap-3 items-start px-3 py-3 border-b border-border/30 last:border-0 hover:bg-muted/20 transition-colors"
+                  className="rounded-lg border border-border/60 bg-background/60 overflow-hidden"
                 >
-                  {/* ── Identidad de parte ── */}
-                  <div className="space-y-1.5 min-w-0">
-                    {/* Número de parte principal */}
-                    <FormField
-                      control={control}
-                      name={`articles.${index}.part_number`}
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormControl>
-                            <Input
-                              disabled
-                              className="font-mono text-sm h-8 bg-muted/60 border-border/50 disabled:opacity-100 disabled:cursor-default tracking-wide"
-                              {...field}
-                            />
-                          </FormControl>
-                        </FormItem>
+
+                  {/* HEADER DEL ARTÍCULO */}
+                  <div className="flex items-center justify-between border-b border-border/50 bg-muted/30 px-3 py-1.5">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span className="truncate text-sm font-medium text-foreground">
+                        {articles[index]?.batch?.name || "Artículo"}
+                      </span>
+
+                      {articles[index]?.batch?.category && (
+                        <Badge
+                          variant="secondary"
+                          className="h-5 px-2 text-[10px] font-medium uppercase tracking-wide text-muted-foreground"
+                        >
+                          {articles[index]?.batch?.category}
+                        </Badge>
                       )}
-                    />
-                    {/* Número de parte alterno */}
-                    <FormField
-                      control={control}
-                      name={`articles.${index}.alt_part_number`}
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormControl>
-                            <div className="flex items-center gap-1.5">
-                              <span className="shrink-0 text-[10px] font-mono font-semibold text-amber-600 dark:text-amber-500 bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800/60 px-1.5 py-0.5 rounded tracking-widest select-none">
-                                ALT
-                              </span>
+                    </div>
+                  </div>
+
+                  {/* BODY */}
+                  <div className="px-3 py-1.5">
+
+                    {/* GRID PRINCIPAL (2 bloques reales) */}
+                    <div className="grid grid-cols-2 gap-6 items-center">
+
+                      {/* ── BLOQUE IZQUIERDO: IDENTIDAD ── */}
+                      <div className="space-y-1.5 min-w-0">
+
+                        <div className="space-y-0.5">
+                          <span className="text-[10px] leading-none text-muted-foreground uppercase">
+                            Número de parte
+                          </span>
+
+                          <div className="flex items-center gap-2">
+                            <span className="text-[10px] px-2 py-[2px] rounded-md bg-teal-500/10 text-teal-700 border border-teal-500/20">
+                              P/N
+                            </span>
+
+                            <FormField
+                              control={control}
+                              name={`articles.${index}.part_number`}
+                              render={({ field }) => (
+                                <Input
+                                  {...field}
+                                  readOnly
+                                  className="h-7 text-sm bg-muted/40 border-border/50 font-medium text-foreground"
+                                />
+                              )}
+                            />
+                          </div>
+                        </div>
+
+                        <div className="space-y-1">
+                          <span className="text-[10px] leading-none text-muted-foreground uppercase">
+                            Número de parte alterno
+                          </span>
+
+                          <div className="flex items-center gap-2">
+                            <span className="text-[10px] px-2 py-[2px] rounded-md bg-slate-500/10 text-slate-600 border border-slate-500/20">
+                              ALT
+                            </span>
+
+                            <FormField
+                              control={control}
+                              name={`articles.${index}.alt_part_number`}
+                              render={({ field }) => (
+                                <Input
+                                  {...field}
+                                  placeholder="N/A"
+                                  className="h-7 text-sm border-dashed text-muted-foreground"
+                                />
+                              )}
+                            />
+                          </div>
+                        </div>
+
+                      </div>
+
+                      {/* ── BLOQUE DERECHO: OPERACIÓN ── */}
+                      <div className="grid grid-cols-3 gap-4 items-stretch">
+
+                        {/* Cantidad + Unidad */}
+                        <div className="flex flex-col gap-1 justify-start">
+
+                          {/* Cantidad */}
+                          <div className="space-y-0.5">
+                            <span className="text-[10px] leading-none text-muted-foreground uppercase">
+                              Cantidad
+                            </span>
+
+                            <FormField
+                              control={control}
+                              name={`articles.${index}.quantity`}
+                              render={({ field }) => (
                               <Input
-                                placeholder="N/A"
-                                className="font-mono text-sm h-7 text-muted-foreground placeholder:text-muted-foreground/40 border-dashed"
                                 {...field}
+                                type="text"
+                                className="h-7 text-center text-sm w-[110px]"
+                                onChange={(e) => {
+                                  let value = e.target.value;
+                                  value = value.replace(/[^0-9.,]/g, "");
+                                  value = value.replace(",", ".");
+                                  const parts = value.split(".");
+                                  if (parts.length > 2) {
+                                    value = parts[0] + "." + parts.slice(1).join("");
+                                  }
+                                  if (value.includes(".")) {
+                                    const [int, dec] = value.split(".");
+                                    value = `${int}.${dec.slice(0, 2)}`;
+                                  }
+                                  field.onChange(value);
+                                }}
                               />
-                            </div>
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-
-                  {/* ── Cantidad + Unidad ── */}
-                  <div className="space-y-1.5">
-                    <FormField
-                      control={control}
-                      name={`articles.${index}.quantity`}
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormControl>
-                            <Input
-                              type="number"
-                              min={1}
-                              className="font-mono text-sm h-8 text-center"
-                              value={field.value ?? ""}
-                              onChange={(e) => field.onChange(Number(e.target.value))}
+                              )}
                             />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    {articles[index]?.unit && (
-                      <Select value={articles[index].unit!.toString()} disabled>
-                        <SelectTrigger className="h-7 text-xs border-dashed disabled:opacity-70 disabled:cursor-default">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {units?.map((unit) => (
-                            <SelectItem key={unit.id} value={unit.id.toString()} className="text-xs">
-                              {unit.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    )}
-                  </div>
+                          </div>
 
-                  {/* ── Precio unitario ── */}
-                  <FormField
-                    control={control}
-                    name={`articles.${index}.unit_price`}
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormControl>
-                          <AmountInput {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                          {/* Unidad */}
+                          <div className="space-y-0.5">
+                            <span className="text-[10px] leading-none text-muted-foreground uppercase">
+                              Unidad
+                            </span>
 
-                  {/* ── Total de línea ── */}
-                  <div className="flex items-center justify-end pt-0.5">
-                    <span className="font-mono text-sm font-semibold tabular-nums text-right">
-                      ${(
-                        (articles[index]?.quantity || 0) *
-                        (Number(articles[index]?.unit_price) || 0)
-                      ).toFixed(2)}
-                    </span>
+                            <Select
+                              value={articles[index]?.unit?.toString() ?? ""}
+                              onValueChange={(val) =>
+                                form.setValue(`articles.${index}.unit`, val)
+                              }
+                            >
+                            <SelectTrigger className={cn(
+                              "h-7 text-xs w-[110px]",
+                              !articles[index]?.unit && "text-muted-foreground"
+                            )}>
+                              {articles[index]?.unit
+                                ? units?.find(u => u.id.toString() === articles[index]?.unit)?.label
+                                : "Sin Unidad"}
+                            </SelectTrigger>
+
+                              <SelectContent>
+                                {units?.map((unit) => (
+                                  <SelectItem key={unit.id} value={unit.id.toString()}>
+                                    {unit.label}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+
+                        </div>
+
+                        {/* Precio unitario */}
+                        <div className="flex flex-col justify-center items-start h-full gap-1">
+                          <span className="text-[10px] text-muted-foreground uppercase">
+                            Precio unitario
+                          </span>
+
+                          <FormField
+                            control={control}
+                            name={`articles.${index}.unit_price`}
+                            render={({ field }) => (
+                              <AmountInput
+                                value={field.value}
+                                onChange={field.onChange}
+                                ref={field.ref}
+                                
+                              />
+                            )}
+                          />
+                        </div>
+
+                        {/* Total */}
+                        <div className="flex flex-col justify-center items-end h-full gap-1">
+                          <span className="text-[10px] text-muted-foreground uppercase">
+                            Total
+                          </span>
+
+                          <span className="font-medium tabular-nums leading-none">
+                            $
+                            {(
+                              (Number(articles[index]?.quantity) || 0) *
+                              (Number(articles[index]?.unit_price) || 0)
+                            ).toFixed(2)}
+                          </span>
+                        </div>
+
+                      </div>
+
+                    </div>
                   </div>
                 </div>
               ))}
+
             </div>
           </ScrollArea>
         </div>
 
-        {/* ── Total general ─────────────────────────────────────────────── */}
-        <div className="flex justify-end pt-1 border-t border-border/60">
-          <div className="flex items-baseline gap-3">
-            <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-              Total
+        {/* ── Total general ────────────────────────────────────────────────────── */}
+        <div className="flex justify-end pt-2 border-t border-border/60">
+          <div className="flex items-center justify-between gap-6 rounded-md bg-muted/10 px-4 py-2 border border-border/40 min-w-[200px]">
+
+            <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground whitespace-nowrap">
+              Total general
             </span>
-            <span className="font-mono text-xl font-bold tabular-nums">
+
+            <span className="font-mono text-xl font-semibold tabular-nums leading-none">
               ${total.toFixed(2)}
             </span>
+
           </div>
         </div>
 
         {/* ── Enviar ────────────────────────────────────────────────────── */}
-        <Button
-          disabled={isPending}
-          type="submit"
-          className="w-full h-10"
-        >
-          {isPending ? (
-            <Loader2 className="size-4 animate-spin" />
-          ) : (
-            <>
-              <PackageSearch className="size-4 mr-2" />
-              Crear cotización
-            </>
-          )}
-        </Button>
+        <div className="flex justify-center">
+          <Button
+            disabled={isPending}
+            type="submit"
+            className="
+              w-[400px] h-10 rounded-lg
+              bg-teal-500/20 text-teal-900
+              hover:bg-teal-500/30
+              active:bg-teal-500/40
+              border border-teal-500/30
+              shadow-sm
+              transition-colors
+              flex items-center justify-center gap-2
+
+              dark:bg-teal-400/10
+              dark:text-teal-100
+              dark:hover:bg-teal-400/20
+              dark:border-teal-400/20
+            "
+          >
+            {isPending ? (
+              <Loader2 className="size-4 animate-spin" />
+            ) : (
+              <>
+                <PackageSearch className="size-4" />
+                Crear cotización
+              </>
+            )}
+          </Button>
+        </div>
       </form>
     </Form>
   );

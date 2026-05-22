@@ -12,6 +12,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Loader2, AlertCircle, ChevronDown, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { ItemsTable } from "./ItemsTable";
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
 
@@ -121,9 +122,10 @@ export default function CreateCargoManifestForm({
       if (next.has(item.id)) {
         next.delete(item.id);
       } else {
+        const ratio = item.weight / item.units;
         next.set(item.id, {
           shipment_id: item.cargo_shipment_id,
-          weight: item.weight_available,
+          weight: item.units_available * ratio,
           units: item.units_available,
         });
       }
@@ -153,9 +155,10 @@ export default function CreateCargoManifestForm({
       } else {
         availableItems.forEach((i) => {
           if (!next.has(i.id)) {
+            const ratio = i.weight / i.units;
             next.set(i.id, {
               shipment_id: i.cargo_shipment_id,
-              weight: i.weight_available,
+              weight: i.units_available * ratio,
               units: i.units_available,
             });
           }
@@ -171,99 +174,91 @@ export default function CreateCargoManifestForm({
   const updateWeight = (
     itemId: number,
     value: number,
-    maxAvailable: number,
+    maxAvailableWeight: number,
+    maxAvailableUnits: number,
+    weightPerUnit: number,
   ) => {
+    const calculatedUnits = Math.max(1, Math.round(value / weightPerUnit));
+
     setSelections((prev) => {
       const next = new Map(prev);
-
       const current = next.get(itemId);
-
       if (!current) return prev;
-
       next.set(itemId, {
         ...current,
-        weight: value,
+        weight: calculatedUnits * weightPerUnit,
+        units: calculatedUnits,
       });
-
       return next;
     });
 
     setErrors((prev) => {
       const next = new Map(prev);
-
       const current = next.get(itemId) ?? {};
+      const finalWeight = calculatedUnits * weightPerUnit;
+      const hasWeightError =
+        finalWeight < 0.01 || finalWeight > maxAvailableWeight;
+      const hasUnitsError =
+        calculatedUnits < 1 || calculatedUnits > maxAvailableUnits;
 
-      if (value < 0.01) {
+      if (hasWeightError || hasUnitsError) {
         next.set(itemId, {
-          ...current,
-          weight: "Mínimo: 0.01 kg",
-        });
-      } else if (value > maxAvailable) {
-        next.set(itemId, {
-          ...current,
-          weight: `Máximo: ${maxAvailable} kg`,
+          ...(hasWeightError
+            ? { weight: `Debe ser entre 0.01 y ${maxAvailableWeight} Kg` }
+            : {}),
+          ...(hasUnitsError
+            ? { units: `Debe ser entre 1 y ${maxAvailableUnits} Und` }
+            : {}),
         });
       } else {
-        const updated = { ...current };
-
-        delete updated.weight;
-
-        if (!updated.units) {
-          next.delete(itemId);
-        } else {
-          next.set(itemId, updated);
-        }
+        next.delete(itemId);
       }
-
       return next;
     });
   };
 
   // ── Actualizar unidades ──────────────────────────────────────────────────
 
-  const updateUnits = (itemId: number, value: number, maxAvailable: number) => {
+  const updateUnits = (
+    itemId: number,
+    value: number,
+    maxAvailableWeight: number,
+    maxAvailableUnits: number,
+    weightPerUnit: number,
+  ) => {
+    const calculatedWeight = value * weightPerUnit;
+
     setSelections((prev) => {
       const next = new Map(prev);
-
       const current = next.get(itemId);
-
       if (!current) return prev;
-
       next.set(itemId, {
         ...current,
+        weight: calculatedWeight,
         units: value,
       });
-
       return next;
     });
 
     setErrors((prev) => {
       const next = new Map(prev);
-
       const current = next.get(itemId) ?? {};
+      const hasWeightError =
+        calculatedWeight < 0.01 || calculatedWeight > maxAvailableWeight;
+      const hasUnitsError = value < 1 || value > maxAvailableUnits;
 
-      if (value < 1) {
+      if (hasWeightError || hasUnitsError) {
         next.set(itemId, {
-          ...current,
-          units: "Mínimo: 1",
-        });
-      } else if (value > maxAvailable) {
-        next.set(itemId, {
-          ...current,
-          units: `Máximo: ${maxAvailable}`,
+          ...(hasWeightError
+            ? { weight: `Debe ser entre 0.01 y ${maxAvailableWeight} Kg` }
+            : {}),
+          ...(hasUnitsError
+            ? { units: `Debe ser entre 1 y ${maxAvailableUnits} Und.` }
+            : {}),
         });
       } else {
-        const updated = { ...current };
-
-        delete updated.units;
-
-        if (!updated.weight) {
-          next.delete(itemId);
-        } else {
-          next.set(itemId, updated);
-        }
+        next.delete(itemId);
       }
-
       return next;
     });
   };
@@ -425,11 +420,12 @@ export default function CreateCargoManifestForm({
                   )}
 
                   {/* Encabezados */}
-                  <div className="grid grid-cols-[32px_1fr_100px_100px_130px_130px] gap-2 px-4 py-1.5 bg-muted/5 border-b border-border/30">
+                  <div className="grid grid-cols-[32px_1fr_100px_70px_100px_130px_130px] gap-2 px-4 py-1.5 bg-muted/5 border-b border-border/30">
                     {[
                       "",
                       "Producto",
                       "Total",
+                      "Peso/Und",
                       "Despach.",
                       "Und. a enviar",
                       "Peso a enviar",
@@ -457,7 +453,7 @@ export default function CreateCargoManifestForm({
                       <div
                         key={item.id}
                         className={cn(
-                          "grid grid-cols-[32px_1fr_100px_100px_130px_130px] gap-2 items-center px-4 py-2 border-b border-border/20 last:border-0 transition-colors",
+                          "grid grid-cols-[32px_1fr_100px_70px_100px_130px_130px] gap-2 items-center px-4 py-2 border-b border-border/20 last:border-0 transition-colors",
                           isSelected && "bg-primary/5",
                           isExhausted && "opacity-40 cursor-not-allowed",
                           !isExhausted && "hover:bg-muted/20 cursor-pointer",
@@ -484,7 +480,7 @@ export default function CreateCargoManifestForm({
 
                           {isExhausted && (
                             <span className="ml-1 text-[10px] text-muted-foreground">
-                              (agotado)
+                              (Manifestado)
                             </span>
                           )}
                         </span>
@@ -492,6 +488,11 @@ export default function CreateCargoManifestForm({
                         {/* Total */}
                         <span className="text-xs text-center text-muted-foreground">
                           {item.units} und / {Number(item.weight).toFixed(1)} kg
+                        </span>
+
+                        {/* Ratio */}
+                        <span className="text-xs text-center text-muted-foreground font-mono">
+                          {(item.weight / item.units).toFixed(1)} Kg/und
                         </span>
 
                         {/* Despachado */}
@@ -518,7 +519,9 @@ export default function CreateCargoManifestForm({
                                   updateUnits(
                                     item.id,
                                     parseInt(e.target.value) || 0,
+                                    item.weight_available,
                                     item.units_available,
+                                    item.weight / item.units,
                                   )
                                 }
                                 className={cn(
@@ -560,6 +563,8 @@ export default function CreateCargoManifestForm({
                                     item.id,
                                     parseFloat(e.target.value) || 0,
                                     item.weight_available,
+                                    item.units_available,
+                                    item.weight / item.units,
                                   )
                                 }
                                 className={cn(

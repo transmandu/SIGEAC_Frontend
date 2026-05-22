@@ -1,26 +1,14 @@
 'use client'
 
 import { useMemo, useState, useDeferredValue } from 'react'
-
 import { ContentLayout } from '@/components/layout/ContentLayout'
 import LoadingPage from '@/components/misc/LoadingPage'
 import BackButton from '@/components/misc/BackButton'
-
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from '@/components/ui/breadcrumb'
-
+import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb'
 import { useGetQuotes } from '@/hooks/mantenimiento/compras/useGetQuotes'
 import { useCompanyStore } from '@/stores/CompanyStore'
-
 import { getColumns } from './columns'
 import { DataTable } from './data-table'
-
 import QuotesToolBar from './_components/QuotesToolBar'
 import GroupedQuotesTable from './_components/GroupedQuotesTable'
 
@@ -41,6 +29,8 @@ const QuotesOrdersPage = () => {
   const [groupBy, setGroupBy] = useState<string>('NONE')
 
   const deferredSearch = useDeferredValue(search)
+  const isInitialLoading = isLoading && !quotes
+  const isUpdating = isLoading && !!quotes
 
   const filteredQuotes = useMemo(() => {
     if (!quotes) return []
@@ -62,23 +52,18 @@ const QuotesOrdersPage = () => {
     return filtered.filter((quote: any) => {
       return (
         quote.quote_number?.toLowerCase?.().includes(q) ||
-
         quote.requisition_order?.order_number
           ?.toLowerCase?.()
           .includes(q) ||
-
         quote.created_by?.username
           ?.toLowerCase?.()
           .includes(q) ||
-
         quote.quote_date
           ?.toLowerCase?.()
           .includes(q) ||
-
         quote.vendor?.name
           ?.toLowerCase?.()
           .includes(q) ||
-
         quote.justification
           ?.toLowerCase?.()
           .includes(q)
@@ -90,14 +75,6 @@ const QuotesOrdersPage = () => {
     () => getColumns(selectedCompany ?? undefined),
     [selectedCompany]
   )
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[300px]">
-        <LoadingPage />
-      </div>
-    )
-  }
 
   return (
     <ContentLayout title="Cotizaciones de Compra">
@@ -145,17 +122,15 @@ const QuotesOrdersPage = () => {
           </div>
         </div>
 
-        <div
-          className="
-            flex items-center justify-between gap-4
-            px-3 py-2
-            rounded-xl border
-            bg-slate-200/40 border-slate-200/40
-            dark:bg-slate-800/70 dark:border-slate-700/60
-            backdrop-blur-md
-            dark:shadow-[0_4px_20px_rgba(0,0,0,0.35)]
-          "
-        >
+        <div className="
+          flex items-center justify-between gap-4
+          px-3 py-2
+          rounded-xl border
+          bg-slate-200/40 border-slate-200/40
+          dark:bg-slate-800/70 dark:border-slate-700/60
+          backdrop-blur-md
+          dark:shadow-[0_4px_20px_rgba(0,0,0,0.35)]
+        ">
           <QuotesToolBar
             search={search}
             setSearch={setSearch}
@@ -165,19 +140,19 @@ const QuotesOrdersPage = () => {
             setGroupBy={setGroupBy}
           />
 
-          <span
-            className="
-              shrink-0
-              text-xs
-              text-muted-foreground
-              tabular-nums
-            "
-          >
-            {filteredQuotes.length} {filteredQuotes.length === 1 ? 'cotización' : 'cotizaciones'}
+          <span className="shrink-0 text-xs text-muted-foreground tabular-nums">
+            {filteredQuotes.length}{' '}
+            {filteredQuotes.length === 1
+              ? 'cotización'
+              : 'cotizaciones'}
           </span>
         </div>
 
-        {groupBy !== 'NONE' ? (
+        {isInitialLoading && filteredQuotes.length === 0 ? (
+          <div className="flex items-center justify-center min-h-[300px]">
+            <LoadingPage />
+          </div>
+        ) : groupBy !== 'NONE' ? (
           <GroupedQuotesTable
             data={filteredQuotes}
             groupBy={groupBy as any}
@@ -185,6 +160,7 @@ const QuotesOrdersPage = () => {
               <DataTable
                 columns={columns}
                 data={rows}
+                loading={isUpdating}
               />
             )}
           />
@@ -192,17 +168,12 @@ const QuotesOrdersPage = () => {
           <DataTable
             columns={columns}
             data={filteredQuotes}
+            loading={isUpdating}
           />
         )}
 
         {isError && (
-          <div
-            className="
-              rounded-lg border border-red-500/20
-              bg-red-500/5
-              px-4 py-3
-            "
-          >
+          <div className="rounded-lg border border-red-500/20 bg-red-500/5 px-4 py-3">
             <p className="text-sm text-red-500">
               Ha ocurrido un error al cargar las cotizaciones.
             </p>

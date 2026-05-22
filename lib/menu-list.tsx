@@ -1,7 +1,7 @@
 "use client";
 
 import { format } from "date-fns";
-import { buildAdminGroup } from "@/lib/menus/admin";
+import { buildSystemGroup } from "@/lib/menus/system";
 import { buildDashboardGroup } from "@/lib/menus/dashboard";
 import { buildDevelopmentGroup } from "@/lib/menus/development";
 import { buildEngineeringGroup } from "@/lib/menus/engineering";
@@ -42,7 +42,7 @@ export function getMenuList(
         buildMaintenanceGroup(context),
         buildEngineeringGroup(context),
         buildSettingsGroup(context),
-        buildAdminGroup(context),
+        buildSystemGroup(context),
     ];
 
     return filterMenuGroups(fullMenu, { currentCompany, userRoles });

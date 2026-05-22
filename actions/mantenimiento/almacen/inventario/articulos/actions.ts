@@ -11,7 +11,6 @@ interface UnitSelection {
 interface ArticleData {
     serial?: string | string[];
     part_number: string;
-    article_type: string;
     lot_number?: string;
     alternative_part_number?: string[];
     description?: string;
@@ -250,6 +249,8 @@ export const useUpdateArticleStatus = () => {
                 queryClient.invalidateQueries({ queryKey: ["articles", company, "WAITING_FOR_FORMAT"] });
                 queryClient.invalidateQueries({ queryKey: ["articles", company, "WAITING_TO_LOCATE"] });
                 queryClient.invalidateQueries({ queryKey: ["articles", company, "QUARANTINE"] });
+                queryClient.invalidateQueries({ queryKey: ["articles", company, "TO_DETERMINATE"] });
+                queryClient.invalidateQueries({ queryKey: ["articles", company, "STORED"] });
             }
             queryClient.invalidateQueries({ queryKey: ["purchase-orders"] });
             toast.success("¡Actualizado!", {
@@ -382,6 +383,7 @@ export const useUpdateArticle = () => {
 
     const updateMutation = useMutation({
         mutationKey: ["articles"],
+
         mutationFn: async ({
             id,
             data,
@@ -389,44 +391,68 @@ export const useUpdateArticle = () => {
         }: {
             id: number | string;
             company: string;
-            data: ArticleData;
+            data: Record<string, any>;
         }) => {
             const formData = new FormData();
 
             Object.entries(data).forEach(([key, value]) => {
-                if (value !== undefined && value !== null) {
-                    if (value instanceof File) {
-                        formData.append(key, value);
-                    } else if (Array.isArray(value)) {
-                        value.forEach((item) => formData.append(`${key}[]`, item));
-                    } else {
-                        formData.append(key, serializeFormValue(value));
-                    }
+                if (value === undefined || value === null) return;
+
+                // Files
+                if (value instanceof File) {
+                    formData.append(key, value);
+                    return;
                 }
+
+                // Arrays
+                if (Array.isArray(value)) {
+                    value.forEach((item) => {
+                        formData.append(`${key}[]`, item);
+                    });
+                    return;
+                }
+
+                // Objects (ej: unit, nested data)
+                if (typeof value === "object") {
+                    formData.append(key, JSON.stringify(value));
+                    return;
+                }
+
+                // Primitives
+                formData.append(key, serializeFormValue(value));
             });
 
-            return await axiosInstance.post(`/${company}/update-article/${id}`, formData, {
-                headers: {
-                    "Content-Type": "multipart/form-data",
-                },
-            });
+            return await axiosInstance.post(
+                `/${company}/update-article/${id}`,
+                formData,
+                {
+                    headers: {
+                        "Content-Type": "multipart/form-data",
+                    },
+                }
+            );
         },
+
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["warehouse-articles"] });
             queryClient.invalidateQueries({ queryKey: ["articles"] });
             queryClient.invalidateQueries({ queryKey: ["batches"] });
             queryClient.invalidateQueries({ queryKey: ["search-batches"] });
+
             toast.success("¡Actualizado!", {
-                description: `El articulo ha sido actualizado correctamente.`,
+                description: "El articulo ha sido actualizado correctamente.",
             });
         },
+
         onError: (error) => {
             toast.error("Oops!", {
                 description: "No se pudo actualizar el articulo...",
             });
+
             console.log(error);
         },
     });
+
     return {
         updateArticle: updateMutation,
     };

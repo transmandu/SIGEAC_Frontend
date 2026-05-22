@@ -42,7 +42,7 @@ function DataTableInner<TData, TValue>({
   const [expanded, setExpanded] = useState<ExpandedState>({})
   const [pagination, setPagination] = useState({
     pageIndex: 0,
-    pageSize: 15,
+    pageSize: 10,
   })
   const stableData = useMemo(() => data, [data])
 

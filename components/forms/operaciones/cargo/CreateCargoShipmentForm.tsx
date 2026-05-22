@@ -35,6 +35,8 @@ import { ComboboxField } from "@/components/ui/ComboboxField";
 import { ItemsTable } from "./ItemsTable";
 import { useCargoShipmentForm } from "@/hooks/operaciones/cargo/useCargoShipmentForm";
 import { useState } from "react";
+import { useGetExternalPilots } from "@/hooks/operaciones/cargo/useGetExternalPilots";
+import type { ComboboxOption } from "@/components/ui/ComboboxField";
 
 // ─── Props ────────────────────────────────────────────────────────────────────
 
@@ -73,12 +75,15 @@ export default function CreateCargoShipmentForm({
     totalWeight,
     calendarDisabledDates,
     user,
-  } = useCargoShipmentForm(initialData);
+    company,
+  } = useCargoShipmentForm(initialData, isExternalMode);
 
   const [openCalendar, setOpenCalendar] = useState(false);
   const [openNewCarrier, setOpenNewCarrier] = useState(false);
   const [openNewClient, setOpenNewClient] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const { data: externalPilots, isLoading: loadingExternalPilots } =
+    useGetExternalPilots(company);
 
   // ── Constructores de opciones ────────────────────────────────────────────────────────
   const aircraftOptions = (aircrafts ?? [])
@@ -98,26 +103,65 @@ export default function CreateCargoShipmentForm({
     label: c.name,
   }));
 
-  const pilotOptions = (pilots ?? [])
-    .filter(
-      (p: any) => p.rank === "CAPITAN" && p.id !== form.watch("copilot_id"),
-    )
-    .map((p: any) => ({
-      value: p.id,
-      label: `${p.employee?.first_name} ${p.employee?.last_name}`,
-      badge: p.rank,
-    }));
+  // IDs raw seleccionados para evitar duplicados entre piloto/copiloto
+  const selectedCopilotRawId = (() => {
+    const v = form.watch("copilot_id");
+    if (!v) return null;
+    return parseInt(v.split(":")[1]);
+  })();
+  const selectedPilotRawId = (() => {
+    const v = form.watch("pilot_id");
+    if (!v) return null;
+    return parseInt(v.split(":")[1]);
+  })();
+  const pilotOptions: ComboboxOption[] = [
+    ...(pilots ?? [])
+      .filter((p: any) => p.rank === "CAPITAN" && p.id !== selectedCopilotRawId)
+      .map((p: any) => ({
+        value: `int:${p.id}`,
+        label: `${p.employee?.first_name} ${p.employee?.last_name}`,
+        badge: p.rank,
+        group: "Pilotos internos",
+      })),
+    ...(externalPilots ?? [])
+      .filter(
+        (p: any) =>
+          (p.rank === "Capitán" || p.rank === "CAPITAN") &&
+          p.id !== selectedCopilotRawId,
+      )
+      .map((p: any) => ({
+        value: `ext:${p.id}`,
+        label: `${p.first_name} ${p.last_name}`,
+        badge: p.rank,
+        group: "Pilotos externos",
+      })),
+  ];
 
-  const copilotOptions = (pilots ?? [])
-    .filter(
-      (p: any) =>
-        p.rank === "PRIMER_OFICIAL" && p.id !== form.watch("pilot_id"),
-    )
-    .map((p: any) => ({
-      value: p.id,
-      label: `${p.employee?.first_name} ${p.employee?.last_name}`,
-      badge: p.rank,
-    }));
+  const copilotOptions: ComboboxOption[] = [
+    ...(pilots ?? [])
+      .filter(
+        (p: any) =>
+          p.rank === "PRIMER_OFICIAL" && p.id !== selectedPilotRawId && p.id !== 6,
+      )
+      .map((p: any) => ({
+        value: `int:${p.id}`,
+        label: `${p.employee?.first_name} ${p.employee?.last_name}`,
+        badge: p.rank,
+        group: "Copilotos internos",
+      })),
+    ...(externalPilots ?? [])
+      .filter(
+        (p: any) =>
+          (p.rank === "Primer Oficial" || p.rank === "PRIMER_OFICIAL") &&
+          p.id !== selectedPilotRawId,
+      )
+      .map((p: any) => ({
+        value: `ext:${p.id}`,
+        label: `${p.first_name} ${p.last_name}`,
+        badge: p.rank,
+        group: "Copilotos externos",
+      })),
+  ];
 
   // ── Sugerencias de aeronaves externas ──────────────────────────────────────────
   const externalValue = form.watch("external_aircraft") ?? "";
@@ -238,7 +282,9 @@ export default function CreateCargoShipmentForm({
                           )}
                         >
                           {field.value && isValid(new Date(field.value))
-                            ? format(new Date(field.value), "PP", { locale: es })
+                            ? format(new Date(field.value), "PP", {
+                                locale: es,
+                              })
                             : "Seleccione fecha"}
                           <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                         </Button>
@@ -285,7 +331,7 @@ export default function CreateCargoShipmentForm({
               searchPlaceholder="Buscar piloto..."
               emptyText="No se encontraron pilotos."
               options={pilotOptions}
-              disabled={loadingPilots}
+              disabled={loadingPilots || loadingExternalPilots}
             />
 
             {/* Nro de guía */}
@@ -344,7 +390,7 @@ export default function CreateCargoShipmentForm({
               searchPlaceholder="Buscar copiloto..."
               emptyText="No se encontraron pilotos."
               options={copilotOptions}
-              disabled={loadingPilots}
+              disabled={loadingPilots || loadingExternalPilots}
             />
           </div>
 

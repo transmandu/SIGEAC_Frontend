@@ -9,7 +9,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { useCompanyStore } from "@/stores/CompanyStore"
-import RegisterArticleForm from "./_components/RegisterArticleForm"
+import ReceptionRegisterArticleForm from "./_components/ReceptionRegisterArticleForm"
 
 const AdministrativeReceptionPage = () => {
   const { selectedCompany } = useCompanyStore();
@@ -48,7 +48,7 @@ const AdministrativeReceptionPage = () => {
           </BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>
-      <RegisterArticleForm isEditing={false} />
+      <ReceptionRegisterArticleForm isEditing={false} />
     </ContentLayout>
   )
 }

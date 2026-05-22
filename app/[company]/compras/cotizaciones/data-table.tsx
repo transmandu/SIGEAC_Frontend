@@ -44,7 +44,7 @@ function DataTableInner<TData, TValue>({
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
   const [pagination, setPagination] = useState({
     pageIndex: 0,
-    pageSize: 15,
+    pageSize: 10,
   })
 
   const stableData = useMemo(() => data, [data])

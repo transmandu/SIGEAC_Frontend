@@ -13,7 +13,12 @@ const nextConfig = {
         pathname: "/api/**",
       },
       ...(process.env.NEXT_PUBLIC_HOSTNAME
-        ? [{ protocol: "https", hostname: process.env.NEXT_PUBLIC_HOSTNAME }]
+        ? [
+            {
+              protocol: "https",
+              hostname: process.env.NEXT_PUBLIC_HOSTNAME,
+            },
+          ]
         : []),
     ],
     dangerouslyAllowSVG: true,
