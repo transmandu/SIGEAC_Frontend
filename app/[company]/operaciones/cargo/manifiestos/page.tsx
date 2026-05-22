@@ -19,6 +19,14 @@ import { Loader2, Plus } from "lucide-react";
 import { DataTable } from "../data-table";
 import { getManifestColumns } from "./columns";
 import { useAuth } from "@/contexts/AuthContext";
+import { useGetAircrafts } from "@/hooks/aerolinea/aeronaves/useGetAircrafts";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const ManifestosPage = () => {
   const params = useParams();
@@ -32,12 +40,14 @@ const ManifestosPage = () => {
   const [year, setYear] = useState(
     Number(searchParams.get("year")) || new Date().getFullYear(),
   );
+  const [filterAircraftId, setFilterAircraftId] = useState<number | null>(null);
+  const { data: aircrafts } = useGetAircrafts(company);
 
   const {
     data: manifests,
     isLoading,
     isError,
-  } = useGetCargoManifests(company, month, year);
+  } = useGetCargoManifests(company, month, year, filterAircraftId);
 
   const columns = getManifestColumns(company);
 
@@ -90,6 +100,30 @@ const ManifestosPage = () => {
               onYearChange={setYear}
             />
           </div>
+
+          <div className="flex items-center gap-4">
+            <div className="w-64">
+              <Select
+                value={filterAircraftId ? String(filterAircraftId) : "none"}
+                onValueChange={(val) =>
+                  setFilterAircraftId(val === "none" ? null : Number(val))
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Todas las aeronaves" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Todas las aeronaves</SelectItem>
+                  {(aircrafts ?? []).map((a: any) => (
+                    <SelectItem key={a.id} value={String(a.id)}>
+                      {a.acronym} — {a.model ?? ""}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
           {canWrite && (
             <Button asChild>
               <Link

@@ -67,9 +67,18 @@ export default function UpdateCargoManifestForm({
   // Hook para controlar las nuevas adiciones (Sección abajo)
   const selector = useNewItemSelector();
 
+  // Obtener aircraft_id y external_aircraft del manifiesto actual
+  const manifestAircraftId = (manifest as any).aircraft_id;
+  const manifestExternalAircraft = (manifest as any).external_aircraft;
   // Guías de carga con productos libres en el mes
   const { data: availableShipments, isLoading: loadingAvailable } =
-    useGetAvailableShipments(company, manifest.month, manifest.year);
+    useGetAvailableShipments(
+      company,
+      manifest.month,
+      manifest.year,
+      manifestAircraftId,
+      manifestExternalAircraft,
+    );
 
   // Filtro: IDs de ítems que ya están en el manifiesto actual
   const existingItemIds = useMemo(
@@ -79,6 +88,15 @@ export default function UpdateCargoManifestForm({
       ),
     [manifest.items],
   );
+
+  const manifestAircraftLabel = useMemo(() => {
+    const firstItem = manifest.items?.[0];
+    return (
+      firstItem?.shipment?.aircraft?.acronym ??
+      firstItem?.shipment?.external_aircraft ??
+      "N/a"
+    );
+  }, [manifest.items]);
 
   // Guías disponibles filtradas (excluyendo lo ya manifestado)
   const filteredAvailableShipments = useMemo(() => {
@@ -166,6 +184,24 @@ export default function UpdateCargoManifestForm({
 
   return (
     <div className="space-y-6">
+      {/* Encabezado del Manifiesto */}
+      <div className="flex items-center justify-between mb-4 border-b border-border pb-3">
+        <div>
+          <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            Aeronave
+          </span>
+          <p className="text-sm font-semibold text-primary">
+            {manifestAircraftLabel}
+          </p>
+        </div>
+        <div className="text-right">
+          <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            Manifiesto
+          </span>
+          <p className="text-sm font-semibold">{manifest.manifest_number}</p>
+        </div>
+      </div>
+
       {/* ── SECCIÓN SUPERIOR: ITEMS ACTUALES EN EL MANIFIESTO ── */}
       <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-1">
         {editor.shipmentGroups.map(([shipmentId, group]) => (

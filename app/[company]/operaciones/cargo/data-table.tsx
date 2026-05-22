@@ -59,14 +59,17 @@ export function DataTable<TData, TValue>({
     <div>
       <div className="flex items-center py-4 gap-2">
         <Input
-          placeholder="Filtrar por N° de guía..."
+          placeholder="Filtrar por N° de guía"
           value={
-            (table.getColumn("guide_number")?.getFilterValue() as string) ?? ""
+            (table.getColumn("manifest_number")?.getFilterValue() as string) ??
+            ""
           }
           onChange={(event) =>
-            table.getColumn("guide_number")?.setFilterValue(event.target.value)
+            table
+              .getColumn("manifest_number")
+              ?.setFilterValue(event.target.value)
           }
-          className="max-w-sm"
+          className="max-w-sm text-center"
         />
         <DataTableViewOptions table={table} />
       </div>
@@ -94,9 +97,7 @@ export function DataTable<TData, TValue>({
             {table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
                 <React.Fragment key={row.id}>
-                  <TableRow
-                    data-state={row.getIsSelected() && "selected"}
-                  >
+                  <TableRow data-state={row.getIsSelected() && "selected"}>
                     {row.getVisibleCells().map((cell) => (
                       <TableCell key={cell.id}>
                         {flexRender(
@@ -108,7 +109,10 @@ export function DataTable<TData, TValue>({
                   </TableRow>
                   {row.getIsExpanded() && renderSubComponent && (
                     <TableRow>
-                      <TableCell colSpan={row.getVisibleCells().length} className="p-0 border-b">
+                      <TableCell
+                        colSpan={row.getVisibleCells().length}
+                        className="p-0 border-b"
+                      >
                         {renderSubComponent({ row })}
                       </TableCell>
                     </TableRow>
