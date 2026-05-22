@@ -216,6 +216,7 @@ export type Company = {
   cod_oaci: string;
   acronym: string;
   isOMAC: boolean;
+  isOmac?: boolean;
   logo: string | null;
   modules: Module[];
   created_at: string;

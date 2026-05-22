@@ -78,6 +78,8 @@ export default function CompaniesSubRow({
 
   const modulesCount = company.modules?.length ?? 0
 
+  const logoSrc = company.logo
+
   return (
     <div className="flex flex-col gap-4">
 
@@ -159,16 +161,16 @@ export default function CompaniesSubRow({
               border-slate-200 dark:border-slate-700
             "
           >
-            {company.logo ? (
-              <Image
-                src={company.logo}
-                alt={company.slug}
-                fill
-                className="object-cover"
-              />
-            ) : (
-              <Building2 className="h-5 w-5 text-muted-foreground" />
-            )}
+          {logoSrc ? (
+            <Image
+              src={logoSrc}
+              alt={company.slug}
+              fill
+              className="object-cover"
+            />
+          ) : (
+            <Building2 className="h-5 w-5 text-muted-foreground" />
+          )}
           </div>
 
         </div>

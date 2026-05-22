@@ -4,7 +4,7 @@ import { ColumnDef } from '@tanstack/react-table'
 import { ChevronRight } from 'lucide-react'
 
 import { DataTableColumnHeader } from '@/components/tables/DataTableHeader'
-// import CompanyDropdownActions from '@/components/dropdowns/ajustes/CompanyDropdownActions'
+import CompanyDropdownActions from '@/components/dropdowns/ajustes/CompanyDropdownActions'
 
 import { Badge } from '@/components/ui/badge'
 
@@ -225,9 +225,9 @@ export const getColumns = (): ColumnDef<Company>[] => [
         className="flex justify-center w-full"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* <CompanyDropdownActions
+        <CompanyDropdownActions
           company={row.original}
-        /> */}
+        />
       </div>
     ),
   },
