@@ -1,7 +1,7 @@
 "use client";
 
 import LoadingPage from "@/components/misc/LoadingPage";
-import { useGetVoluntaryReports } from "@/hooks/sms/mantenimiento/useGetVoluntaryReports";
+import { useGetVoluntaryReports } from "@/hooks/sms/useGetVoluntaryReports";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { columns } from "./voluntary-columns";
 import { DataTable } from "./voluntary-data-table";
