@@ -1,6 +1,5 @@
 'use client';
 
-import { useDeleteRequisition } from '@/actions/mantenimiento/compras/requisiciones/actions';
 import { ContentLayout } from '@/components/layout/ContentLayout';
 import LoadingPage from '@/components/misc/LoadingPage';
 import BackButton from '@/components/misc/BackButton';
@@ -29,9 +28,7 @@ import { CalendarDays, FileText, ImageIcon, MessageSquare, Plane, User, UserChec
 import Image from 'next/image';
 import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState, type ElementType } from 'react';
-import DeleteRequisitionDialog from './_components/DeleteRequisitionDialog';
-import GenerateQuoteDialog from './_components/GenerateQuoteDialog';
-import RejectRequisitionDialog from './_components/RejectRequisitionDialog';
+import RequisitionActions from './_components/RequisitionActions';
 
 // ── Status badge ──────────────────────────────────────────────────────
 const statusBadgeCls = (status?: string) => {
@@ -104,10 +101,8 @@ function MetaItem({
 
 // ── Página ────────────────────────────────────────────────────────────
 const RequisitionPage = () => {
-  const [openDelete, setOpenDelete] = useState(false);
   const [openImage, setOpenImage] = useState<string | null>(null);
   const { selectedCompany } = useCompanyStore();
-  const { user } = useAuth();
   const router = useRouter();
   const { order_number } = useParams<{ order_number: string }>();
 
@@ -115,8 +110,6 @@ const RequisitionPage = () => {
     company: selectedCompany?.slug,
     order_number,
   });
-
-  const { deleteRequisition } = useDeleteRequisition();
 
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
@@ -129,14 +122,6 @@ const RequisitionPage = () => {
 
   if (isLoading) return <LoadingPage />;
 
-  const handleDelete = async () => {
-    await deleteRequisition.mutateAsync({
-      id: data!.id,
-      company: selectedCompany!.slug,
-    });
-    router.push(`/${selectedCompany!.slug}/compras/requisiciones`);
-  };
-
   const aircraftList = Array.from(
     new Set(
       data?.batch?.flatMap((b: any) =>
@@ -144,9 +129,6 @@ const RequisitionPage = () => {
       ) ?? []
     )
   )
-
-  const userRoles = user?.roles?.map((r) => r.name) ?? [];
-  const userName = `${user?.first_name} ${user?.last_name}`;
 
   return (
     <ContentLayout title="Solicitud de Compra">
@@ -178,50 +160,60 @@ const RequisitionPage = () => {
 
         {/* ── Header ──────────────────────────────────────────────────── */}
         <div className="flex flex-col gap-2 border-b border-border/60 pb-4">
-          <div className="flex items-start justify-between gap-4">
+
+          <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+
             {/* Title block */}
-            <div className="flex flex-col">
+            <div className="flex flex-col min-w-0 w-full">
+
               <div className="flex items-center gap-3 flex-wrap">
-                <h1 className="text-3xl font-semibold tracking-tight">
+
+                <h1 className="text-2xl md:text-3xl font-semibold tracking-tight min-w-0 break-words">
                   {order_number}
                 </h1>
 
                 <Badge className={statusBadgeCls(data?.status)}>
                   {data?.status}
                 </Badge>
+
               </div>
 
               <p className="text-sm text-muted-foreground">
                 Solicitud de Compra de {requisitionTypeLabel(data?.type)}
               </p>
-            </div>
 
-            {/* Actions */}
-            <div className="flex items-center gap-1.5 shrink-0">
-              {data && <GenerateQuoteDialog req={data} />}
-
+              {/* ACTIONS SOLO MOBILE (debajo del título) */}
               {data && (
-                <RejectRequisitionDialog
-                  req={data}
-                  userRoles={userRoles}
-                  userName={userName}
-                />
+                <div className="flex md:hidden justify-center mt-3">
+                  <RequisitionActions
+                    req={data}
+                    onSuccessDelete={() =>
+                      router.push(`/${selectedCompany!.slug}/compras/requisiciones`)
+                    }
+                  />
+                </div>
               )}
 
-              <DeleteRequisitionDialog
-                open={openDelete}
-                onOpenChange={setOpenDelete}
-                onConfirm={handleDelete}
-                loading={deleteRequisition.isPending}
-                status={data?.status}
-              />
             </div>
+
+            {/* ACTIONS DESKTOP */}
+            {data && (
+              <div className="hidden md:flex items-center gap-1.5 shrink-0">
+                <RequisitionActions
+                  req={data}
+                  onSuccessDelete={() =>
+                    router.push(`/${selectedCompany!.slug}/compras/requisiciones`)
+                  }
+                />
+              </div>
+            )}
+
           </div>
         </div>
 
         {/* ── Meta ────────────────────────────────────────────────────── */}
         <div className="mx-auto w-full max-w-4xl px-4 py-3 rounded-md border border-border/50 bg-muted/20">
-          <div className="grid grid-cols-[repeat(auto-fit,minmax(180px,1fr))] gap-x-10 gap-y-4 justify-items-center">
+          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-[repeat(auto-fit,minmax(180px,1fr))] gap-x-4 sm:gap-x-6 md:gap-x-10 gap-y-3 md:gap-y-4 justify-items-center">
             <MetaItem
               label="CREADO POR"
               value={
@@ -231,7 +223,6 @@ const RequisitionPage = () => {
               }
               icon={UserCheck}
             />
-
             <MetaItem
               label="SOLICITADO POR"
               value={data?.requested_by?.toUpperCase()}
@@ -460,7 +451,7 @@ const RequisitionPage = () => {
                           <div className="space-y-1">
 
                             <span className="text-[10px] leading-none uppercase tracking-wide text-muted-foreground select-none">
-                              Alternate Part Number
+                              Alternative Part Number
                             </span>
 
                             <div className="flex items-center gap-2 min-w-0">
