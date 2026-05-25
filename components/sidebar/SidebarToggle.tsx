@@ -1,7 +1,5 @@
-import { ChevronLeft } from "lucide-react";
-
+import { PanelLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
 
 interface SidebarToggleProps {
   isOpen: boolean | undefined;
@@ -10,20 +8,25 @@ interface SidebarToggleProps {
 
 export function SidebarToggle({ isOpen, setIsOpen }: SidebarToggleProps) {
   return (
-    <div className="invisible lg:visible absolute top-[12px] -right-[16px] z-20">
-      <Button
-        onClick={() => setIsOpen?.()}
-        className="rounded-md w-8 h-8"
-        variant="outline"
-        size="icon"
-      >
-        <ChevronLeft
-          className={cn(
-            "h-4 w-4 transition-transform ease-in-out duration-700",
-            isOpen === false ? "rotate-180" : "rotate-0"
-          )}
-        />
-      </Button>
-    </div>
+    <button
+      onClick={() => setIsOpen?.()}
+      className={cn(
+        "absolute top-3 -right-3 z-20",
+        "flex items-center justify-center",
+        "h-8 w-8 rounded-lg",
+        "bg-background border border-border/60",
+        "text-muted-foreground",
+        "hover:text-foreground hover:bg-muted/40",
+        "transition-all duration-200"
+      )}
+      aria-label="Toggle sidebar"
+    >
+      <PanelLeft
+        className={cn(
+          "h-4 w-4 transition-transform duration-300",
+          isOpen === false && "rotate-180"
+        )}
+      />
+    </button>
   );
 }
