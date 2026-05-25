@@ -21,15 +21,35 @@ import {
   CalendarDays,
   CheckCircle2,
   ClipboardList,
-  ExternalLink,
   FileText,
   Loader2,
   Trash2,
   Truck,
   User,
 } from 'lucide-react';
+import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb';
 import { useParams, useRouter } from 'next/navigation';
 import { useState } from 'react';
+import QuoteActions from './_components/QuoteActions';
+
+const statusBadgeCls = (status?: string) => {
+  const approved = status === "APROBADO"
+  const rejected = status === "RECHAZADA"
+  const pending = status === "PENDIENTE"
+
+  return cn(
+    "rounded-md border px-2 py-0.5 text-[10px] font-semibold tracking-wide shadow-sm transition-colors duration-150 cursor-default hover:scale-100 hover:translate-y-0 select-none",
+
+    approved &&
+      "border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-500/15 dark:hover:text-emerald-200",
+
+    rejected &&
+      "border-red-500/30 bg-red-500/10 text-red-700 dark:text-red-300 hover:bg-red-500/15 dark:hover:text-red-200",
+
+    pending &&
+      "border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-300 hover:bg-amber-500/15 dark:hover:text-amber-200"
+  )
+}
 
 const QuotePage = () => {
   const [openDelete, setOpenDelete] = useState(false);
@@ -104,90 +124,89 @@ const QuotePage = () => {
     createPurchaseOrder.isPending ||
     updateStatusRequisition.isPending;
 
-  const statusBadge = isApproved ? (
-    <Badge className="text-xs font-medium px-2 py-0.5 border bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-950/50 dark:text-emerald-400 dark:border-emerald-800">
-      <CheckCircle2 className="size-3 mr-1" /> APROBADO
-    </Badge>
-  ) : isRejected ? (
-    <Badge className="text-xs font-medium px-2 py-0.5 border bg-destructive/10 text-destructive border-destructive/30">
-      RECHAZADO
-    </Badge>
-  ) : (
-    <Badge className="text-xs font-medium px-2 py-0.5 border bg-amber-100 text-amber-700 border-amber-200 dark:bg-amber-950/50 dark:text-amber-400 dark:border-amber-800">
-      PENDIENTE
-    </Badge>
-  );
 
   return (
     <ContentLayout title="Cotización">
-      <div className="max-w-7xl mx-auto space-y-5 pb-12">
+      <div className="flex flex-col gap-6">
 
-        {/* ── Cabecera del documento ──────────────────────────────────── */}
-        <div className="flex items-start justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <BackButton iconOnly tooltip="Volver" variant="secondary" />
-            <div>
-              <div className="flex items-center gap-2.5">
-                <h1 className="font-mono text-2xl font-bold tracking-tight">{quote_number}</h1>
-                {statusBadge}
+        {/* ── Breadcrumb ──────────────────────────────────────────────── */}
+        <div className="flex items-center gap-3">
+          <BackButton iconOnly tooltip="Volver" variant="secondary" />
+
+          <Breadcrumb>
+            <BreadcrumbList>
+              <BreadcrumbItem>
+                <BreadcrumbLink href={`/${selectedCompany?.slug}/dashboard`}>
+                  Inicio
+                </BreadcrumbLink>
+              </BreadcrumbItem>
+
+              <BreadcrumbSeparator />
+
+              <BreadcrumbItem>
+                <BreadcrumbLink href={`/${selectedCompany?.slug}/compras/cotizaciones`}>
+                  Cotizaciones
+                </BreadcrumbLink>
+              </BreadcrumbItem>
+
+              <BreadcrumbSeparator />
+
+              <BreadcrumbItem>
+                <BreadcrumbPage>{quote_number}</BreadcrumbPage>
+              </BreadcrumbItem>
+            </BreadcrumbList>
+          </Breadcrumb>
+        </div>
+
+        {/* ── Header ──────────────────────────────────────────────────── */}
+        <div className="flex flex-col gap-2 border-b border-border/60 pb-4">
+
+          <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+
+            {/* Title block */}
+            <div className="flex flex-col min-w-0 w-full">
+
+              <div className="flex items-center gap-3 flex-wrap">
+
+                <h1 className="text-2xl md:text-3xl font-semibold tracking-tight min-w-0 break-words">
+                  {quote_number}
+                </h1>
+
+                <Badge className={statusBadgeCls(data?.status)}>
+                  {data?.status}
+                </Badge>
+
               </div>
-              {data && (
-                <p className="text-xs text-muted-foreground mt-0.5 space-x-2">
-                  {data.requisition_order?.order_number && (
-                    <span>
-                      Req:{' '}
-                      <span className="font-mono">{data.requisition_order.order_number}</span>
-                    </span>
-                  )}
-                  {data.quote_date && (
-                    <>
-                      <span className="text-muted-foreground/40">·</span>
-                      <span>
-                        {new Date(data.quote_date).toLocaleDateString('es-ES', {
-                          day: '2-digit',
-                          month: 'short',
-                          year: 'numeric',
-                        })}
-                      </span>
-                    </>
-                  )}
-                </p>
-              )}
-            </div>
-          </div>
 
-          {data && (
-            <div className="flex items-center gap-2 shrink-0">
-              {isPending && (
-                <Button onClick={() => setOpenApprove(true)}>
-                  <CheckCircle2 className="size-4 mr-2" />
-                  Aprobar
-                </Button>
+              <p className="text-sm text-muted-foreground">
+                Cotización de Compra
+                {data?.requisition_order?.order_number && (
+                  <>
+                    {" "}derivada de{" "}
+                    <span>
+                      {data.requisition_order.order_number}
+                    </span>
+                  </>
+                )}
+              </p>
+
+              {/* ACTIONS MOBILE */}
+              {data && (
+                <div className="flex md:hidden justify-center mt-3">
+                  <QuoteActions quote={data} />
+                </div>
               )}
-              {isApproved && !loadingPO && purchaseOrder?.order_number && (
-                <Button
-                  variant="outline"
-                  onClick={() =>
-                    router.push(
-                      `/${selectedCompany!.slug}/compras/ordenes_compra/${purchaseOrder.order_number}`
-                    )
-                  }
-                >
-                  <ExternalLink className="size-4 mr-2" />
-                  Ver Orden de Compra
-                </Button>
-              )}
-              <Button
-                variant="outline"
-                size="icon"
-                className="h-9 w-9 border-destructive/40 text-destructive hover:bg-destructive/10 hover:border-destructive"
-                disabled={isApproved}
-                onClick={() => setOpenDelete(true)}
-              >
-                <Trash2 className="size-4" />
-              </Button>
+
             </div>
-          )}
+
+            {/* ACTIONS DESKTOP */}
+            {data && (
+              <div className="hidden md:flex items-center gap-1.5 shrink-0">
+                <QuoteActions quote={data} />
+              </div>
+            )}
+
+          </div>
         </div>
 
         {data && (

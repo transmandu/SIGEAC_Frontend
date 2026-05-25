@@ -85,6 +85,8 @@ type Props = {
   setOpenApprove: (open: boolean) => void
   openDelete: boolean
   setOpenDelete: (open: boolean) => void
+  onSuccessUpdate?: () => void
+  onSuccessDelete?: () => void
 }
 
 const QuoteDropdownDialogs = ({
@@ -94,7 +96,9 @@ const QuoteDropdownDialogs = ({
   openApprove,
   setOpenApprove,
   openDelete,
-  setOpenDelete
+  setOpenDelete,
+  onSuccessUpdate,
+  onSuccessDelete
 }: Props) => {
   const { user } = useAuth()
   const { selectedCompany } = useCompanyStore()
@@ -130,6 +134,8 @@ const QuoteDropdownDialogs = ({
 
     setObservation("")
     setOpenReject(false)
+
+    onSuccessUpdate?.()
   }
 
   const handleApprove = async () => {
@@ -169,6 +175,8 @@ const QuoteDropdownDialogs = ({
     })
 
     setOpenApprove(false)
+
+    onSuccessUpdate?.()
   }
   const handleDelete = async () => {
     await deleteQuote.mutateAsync({
@@ -177,6 +185,8 @@ const QuoteDropdownDialogs = ({
     })
 
     setOpenDelete(false)
+
+    onSuccessDelete?.()
   }
 
   return (

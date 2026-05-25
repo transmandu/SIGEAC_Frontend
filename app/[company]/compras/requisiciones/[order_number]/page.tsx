@@ -90,7 +90,6 @@ function MetaItem({
 const RequisitionPage = () => {
   const [openImage, setOpenImage] = useState<string | null>(null);
   const { selectedCompany } = useCompanyStore();
-  const router = useRouter();
   const { order_number } = useParams<{ order_number: string }>();
 
   const { data, isLoading, refetch } = useGetRequisitionByOrderNumber({
