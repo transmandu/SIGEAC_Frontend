@@ -23,6 +23,7 @@ import {
   ClipboardList,
   FileText,
   Loader2,
+  MessageSquare,
   Trash2,
   Truck,
   User,
@@ -263,6 +264,71 @@ const QuotePage = () => {
               value={formatQuoteDate(data?.quote_date)}
               icon={CalendarDays}
             />
+
+          </div>
+        </div>
+
+        {/* ── CONTEXTO DE LA COTIZACIÓN ───────────────────────────── */}
+        <div className="w-full space-y-6">
+
+          {/* GRID PRINCIPAL */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+
+            {/* JUSTIFICACIÓN */}
+            <div className="relative rounded-xl border border-border/60 bg-gradient-to-b from-muted/30 to-muted/10 p-5 shadow-sm">
+
+              <div className="flex items-center gap-3 mb-3 select-none">
+                <span className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground whitespace-nowrap">
+                  JUSTIFICACIÓN DE LA SOLICITUD ORIGEN
+                </span>
+                <div className="h-px flex-1 bg-border/50" />
+              </div>
+
+              <div className="min-h-[100px] flex items-center justify-center">
+
+                {data?.justification?.trim() ? (
+                  <p className="w-full indent-5 text-sm leading-relaxed text-foreground/80 whitespace-pre-wrap">
+                    {data.justification}
+                  </p>
+                ) : (
+                  <div className="flex flex-col items-center gap-1.5 text-muted-foreground/60 select-none">
+                    <FileText className="size-4 opacity-60" />
+                    <span className="text-[11px] tracking-widest uppercase">
+                      SIN JUSTIFICACIÓN
+                    </span>
+                  </div>
+                )}
+
+              </div>
+            </div>
+
+            {/* OBSERVACIÓN */}
+            <div className="relative rounded-xl border border-border/60 bg-gradient-to-b from-muted/30 to-muted/10 p-5 shadow-sm">
+
+              <div className="flex items-center gap-3 mb-3 select-none">
+                <span className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground whitespace-nowrap">
+                  OBSERVACIÓN DE COTIZACIÓN
+                </span>
+                <div className="h-px flex-1 bg-border/50" />
+              </div>
+
+              <div className="min-h-[100px] flex items-center justify-center">
+
+                {data?.observation?.trim() ? (
+                  <p className="w-full indent-5 text-sm leading-relaxed text-foreground/80 whitespace-pre-wrap">
+                    {data.observation}
+                  </p>
+                ) : (
+                  <div className="flex flex-col items-center gap-1.5 text-muted-foreground/60 select-none">
+                    <MessageSquare className="size-4 opacity-60" />
+                    <span className="text-[11px] tracking-widest uppercase">
+                      SIN OBSERVACIONES
+                    </span>
+                  </div>
+                )}
+
+              </div>
+            </div>
 
           </div>
         </div>
