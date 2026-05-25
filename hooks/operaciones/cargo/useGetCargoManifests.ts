@@ -8,9 +8,11 @@ const fetchCargoManifests = async (
   month: number,
   year: number,
   aircraftId?: number | null,
+  day?: number,
 ): Promise<CargoManifest[]> => {
   const params: any = { month, year };
   if (aircraftId) params.aircraft_id = aircraftId;
+  if (day) params.day = day;
   const { data } = await axiosInstance.get(`/${company}/cargo-manifests`, { params });
   return data;
 };
@@ -19,10 +21,11 @@ export const useGetCargoManifests = (
   month: number,
   year: number,
   aircraftId?: number | null,
+  day?: number,
 ) => {
   return useQuery<CargoManifest[]>({
-    queryKey: ["cargo-manifests", month, year, aircraftId],
-    queryFn: () => fetchCargoManifests(company, month, year, aircraftId),
+    queryKey: ["cargo-manifests", month, year, aircraftId, day],
+    queryFn: () => fetchCargoManifests(company, month, year, aircraftId, day),
     enabled: !!company,
   });
 };

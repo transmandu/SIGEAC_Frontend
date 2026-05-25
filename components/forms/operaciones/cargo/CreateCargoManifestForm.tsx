@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
+import { format, parseISO, isValid } from "date-fns";
 import { useGetAvailableShipments } from "@/hooks/operaciones/cargo/useGetAvailableShipments";
 import {
   useCreateCargoManifest,
@@ -15,19 +16,8 @@ import {
   AlertCircle,
   ChevronDown,
   ChevronRight,
-  X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useGetAircrafts } from "@/hooks/aerolinea/aeronaves/useGetAircrafts";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { useGetNextManifestNumber } from "@/hooks/operaciones/cargo/useGetNextManifestNumber";
-import { useGetExternalAircraftSeggestion } from "@/hooks/operaciones/cargo/useGetExternalAircraftSuggestions";
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
 
@@ -47,6 +37,7 @@ interface ShipmentAvailable {
   id: number;
   guide_number: string;
   manifest_status: string;
+  registration_date: string;
   client?: { name: string };
   aircraft?: { acronym: string };
   external_aircraft?: string;
@@ -68,6 +59,9 @@ interface Props {
   company: string;
   month: number;
   year: number;
+  day: number;
+  selectedAircraftId: number | null;
+  externalAircraft: string | null;
   onSuccess: () => void;
 }
 
@@ -89,47 +83,20 @@ export default function CreateCargoManifestForm({
   company,
   month,
   year,
+  day,
+  selectedAircraftId,
+  externalAircraft,
   onSuccess,
 }: Props) {
-  const [selectedAircraftId, setSelectedAircraftId] = useState<number | null>(
-    null,
-  );
-  const [externalAircraft, setExternalAircraft] = useState<string>("");
-  const [showExternalInput, setShowExternalInput] = useState(false);
-  const [appliedExternal, setAppliedExternal] = useState<string>("");
-
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (
-        suggestionRef.current &&
-        !suggestionRef.current.contains(e.target as Node)
-      ) {
-        setShowSuggestions(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
-  const [showSuggestions, setShowSuggestions] = useState(false);
-  const suggestionRef = useRef<HTMLDivElement>(null);
-
   const { data: availableShipments, isLoading: loadingAvailable } =
     useGetAvailableShipments(
       company,
       month,
       year,
       selectedAircraftId,
-      appliedExternal || null,
+      externalAircraft,
+      day,
     );
-
-  const { data: nextManifestNumber } = useGetNextManifestNumber(
-    company,
-    month,
-    year,
-    selectedAircraftId,
-    appliedExternal || null,
-  );
 
   const { createCargoManifest } = useCreateCargoManifest(company);
 
@@ -150,35 +117,12 @@ export default function CreateCargoManifestForm({
     return Array.from(errors.values()).some((e) => e.weight || e.units);
   }, [errors]);
 
-  const { data: aircrafts, isLoading: loadingAircrafts } =
-    useGetAircrafts(company);
-
-  const { data: externalSuggestions } =
-    useGetExternalAircraftSeggestion(company);
-
-  const aircraftSelectOptions = [
-    { value: "none", label: "Seleccionar aeronave..." },
-    ...(aircrafts ?? []).map((a: any) => ({
-      value: a.id,
-      label: `${a.acronym} - ${a.model ?? ""}`,
-    })),
-    { value: "__external__", label: "Aeronave externa..." },
-  ];
-
-  const filteredSuggestions = useMemo(() => {
-    if (!externalSuggestions || !externalAircraft) return [];
-    const search = externalAircraft.toLowerCase();
-    return externalSuggestions.filter((s) => s.toLowerCase().includes(search));
-  }, [externalSuggestions, externalAircraft]);
-
   // ── Toggle colapsar guía ──────────────────────────────────────────────────
 
   const toggleCollapse = (shipmentId: number) => {
     setCollapsed((prev) => {
       const next = new Set(prev);
-
       next.has(shipmentId) ? next.delete(shipmentId) : next.add(shipmentId);
-
       return next;
     });
   };
@@ -391,111 +335,6 @@ export default function CreateCargoManifestForm({
 
   return (
     <div className="space-y-3">
-      {/* Selector de Aeronave */}
-      <div className="flex items-end gap-4 border-b border-border pb-4 mb-4">
-        <div className="flex-1">
-          <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-1.5 block">
-            Aeronave
-          </label>
-          {!showExternalInput ? (
-            <Select
-              value={selectedAircraftId ? String(selectedAircraftId) : "none"}
-              onValueChange={(val) => {
-                if (val === "__external__") {
-                  setShowExternalInput(true);
-                  setSelectedAircraftId(null);
-                } else if (val === "none") {
-                  setSelectedAircraftId(null);
-                  setShowExternalInput(false);
-                } else {
-                  setSelectedAircraftId(val ? Number(val) : null);
-                  setShowExternalInput(false);
-                }
-              }}
-            >
-              <SelectTrigger className="h-9">
-                <SelectValue placeholder="Seleccionar aeronave..." />
-              </SelectTrigger>
-              <SelectContent>
-                {aircraftSelectOptions.map((opt) => (
-                  <SelectItem key={String(opt.value)} value={String(opt.value)}>
-                    {opt.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          ) : (
-            <div className="relative flex gap-2">
-              <Input
-                className="h-9 uppercase flex-1"
-                placeholder="Ej: YV-206 (Helicóptero)"
-                value={externalAircraft}
-                onChange={(e) => {
-                  setExternalAircraft(e.target.value.toUpperCase());
-                  setShowSuggestions(true);
-                }}
-                onFocus={() => setShowSuggestions(true)}
-                onBlur={() => {
-                  // 1. Al perder el foco, aplicamos la búsqueda con lo que esté escrito
-                  setAppliedExternal(externalAircraft);
-                }}
-                onKeyDown={(e) => {
-                  // 2. Al presionar Enter, aplicamos la búsqueda y cerramos el dropdown
-                  if (e.key === "Enter") {
-                    e.preventDefault();
-                    setAppliedExternal(externalAircraft);
-                    setShowSuggestions(false);
-                  }
-                }}
-              />
-              {showSuggestions && filteredSuggestions.length > 0 && (
-                <div
-                  ref={suggestionRef}
-                  className="absolute top-full left-0 right-12 z-50 mt-1 max-h-48 overflow-y-auto rounded-md border bg-background shadow-lg"
-                >
-                  {filteredSuggestions.map((s) => (
-                    <div
-                      key={s}
-                      className="cursor-pointer px-3 py-2 text-sm hover:bg-accent uppercase"
-                      onMouseDown={(e) => {
-                        e.preventDefault();
-                        setExternalAircraft(s);
-                        setAppliedExternal(s);
-                        setShowSuggestions(false);
-                      }}
-                    >
-                      {s}
-                    </div>
-                  ))}
-                </div>
-              )}
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                className="h-9 w-9 shrink-0"
-                onClick={() => {
-                  setShowExternalInput(false);
-                  setExternalAircraft("");
-                  setAppliedExternal("");
-                }}
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
-          )}
-        </div>
-        {/* Preview del manifest_number */}
-        <div className="text-center">
-          <label className="text-xs  font-semibold uppercase tracking-wide text-muted-foreground mb-1 block">
-            Nº Manifiesto
-          </label>
-          <span className="text-lg font-bold tracking-widest text-primary">
-            {nextManifestNumber || "—"}
-          </span>
-        </div>
-      </div>
-
       {/* Listado de Guías o Mensaje Sin Resultados */}
       {!availableShipments || availableShipments.length === 0 ? (
         <p className="text-center text-muted-foreground py-8">
@@ -522,6 +361,23 @@ export default function CreateCargoManifestForm({
             const aircraftLabel =
               shipment.aircraft?.acronym ?? shipment.external_aircraft ?? "N/A";
 
+            const displayDate = shipment.registration_date
+              ? (() => {
+                  try {
+                    const d = parseISO(shipment.registration_date);
+                    if (!isValid(d)) return null;
+                    const local = new Date(
+                      d.getUTCFullYear(),
+                      d.getUTCMonth(),
+                      d.getUTCDate(),
+                    );
+                    return format(local, "dd/MM/yyyy");
+                  } catch {
+                    return null;
+                  }
+                })()
+              : null;
+
             return (
               <div
                 key={shipment.id}
@@ -536,6 +392,12 @@ export default function CreateCargoManifestForm({
                       <ChevronRight className="h-4 w-4 text-muted-foreground" />
                     ) : (
                       <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                    )}
+
+                    {displayDate && (
+                      <span className="text-xs text-muted-foreground border border-border rounded px-1.5 py-0.5 font-mono">
+                        {displayDate}
+                      </span>
                     )}
 
                     <span className="font-semibold text-primary text-sm">
@@ -584,7 +446,6 @@ export default function CreateCargoManifestForm({
                           onCheckedChange={() => toggleAllItems(shipment)}
                           onClick={(e) => e.stopPropagation()}
                         />
-
                         <span className="text-xs text-muted-foreground font-medium">
                           Seleccionar todos los productos
                         </span>
@@ -614,11 +475,8 @@ export default function CreateCargoManifestForm({
                     {/* Items */}
                     {shipment.items.map((item) => {
                       const isSelected = selections.has(item.id);
-
                       const sel = selections.get(item.id);
-
                       const itemErrors = errors.get(item.id);
-
                       const isExhausted = item.weight_available <= 0;
 
                       return (
@@ -649,7 +507,6 @@ export default function CreateCargoManifestForm({
                           {/* Descripción */}
                           <span className="text-sm truncate">
                             {item.product_description}
-
                             {isExhausted && (
                               <span className="ml-1 text-[10px] text-muted-foreground">
                                 (Manifestado)
@@ -702,7 +559,6 @@ export default function CreateCargoManifestForm({
                                     itemErrors?.units && "border-destructive",
                                   )}
                                 />
-
                                 {itemErrors?.units && (
                                   <span className="text-[10px] text-destructive flex items-center gap-0.5">
                                     <AlertCircle className="h-2.5 w-2.5" />
@@ -745,7 +601,6 @@ export default function CreateCargoManifestForm({
                                     itemErrors?.weight && "border-destructive",
                                   )}
                                 />
-
                                 {itemErrors?.weight && (
                                   <span className="text-[10px] text-destructive flex items-center gap-0.5">
                                     <AlertCircle className="h-2.5 w-2.5" />

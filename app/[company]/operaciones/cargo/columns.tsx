@@ -142,14 +142,18 @@ export const getColumns = (
     ),
     cell: ({ row }) => {
       const dateStr = row.original.registration_date;
-
       if (!dateStr) return <div className="text-center">—</div>;
-
       const date = parseISO(dateStr);
-
       if (!isValid(date)) return <div className="text-center">—</div>;
-
-      return <div className="text-center">{format(date, "dd/MM/yyyy")}</div>;
+      // ✅ getUTCDate() extrae el día en UTC, que es el día real del registro
+      const localDate = new Date(
+        date.getUTCFullYear(),
+        date.getUTCMonth(),
+        date.getUTCDate(),
+      );
+      return (
+        <div className="text-center">{format(localDate, "dd/MM/yyyy")}</div>
+      );
     },
   },
   {
