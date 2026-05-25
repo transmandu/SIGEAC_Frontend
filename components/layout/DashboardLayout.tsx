@@ -15,21 +15,25 @@ export default function DashboardLayout({
 
   if (!sidebar) return null;
 
+  const { isOpen } = sidebar;
+
   return (
     <>
       <Sidebar />
+
       <main
         className={cn(
           "min-h-[calc(100vh_-_56px)] transition-[margin-left] ease-in-out duration-300",
-          sidebar?.isOpen === false ? "lg:ml-[90px]" : "lg:ml-72"
+          isOpen === false ? "lg:ml-[90px]" : "lg:ml-72"
         )}
       >
         {children}
       </main>
+
       <footer
         className={cn(
           "transition-[margin-left] ease-in-out duration-300",
-          sidebar?.isOpen === false ? "lg:ml-[90px]" : "lg:ml-72"
+          isOpen === false ? "lg:ml-[90px]" : "lg:ml-72"
         )}
       >
         <Footer />
