@@ -16,20 +16,19 @@ export function Sidebar() {
 
   if (!sidebar) return null;
 
+  const { isOpen, setIsOpen } = sidebar;
+
   return (
     <aside
       className={cn(
-        "fixed top-0 left-0 z-20 h-screen -translate-x-full lg:translate-x-0 transition-[width] ease-in-out duration-300",
-        sidebar?.isOpen === false ? "w-[90px]" : "w-72"
+        "fixed top-0 left-0 z-20 h-screen -translate-x-full lg:translate-x-0",
+        "transition-[width] ease-in-out duration-300",
+        isOpen === false ? "w-[90px]" : "w-72"
       )}
     >
-      <SidebarToggle
-        isOpen={sidebar?.isOpen}
-        setIsOpen={sidebar?.setIsOpen}
-      />
+      <SidebarToggle isOpen={isOpen} setIsOpen={setIsOpen} />
 
       <div className="relative h-full flex flex-col px-3 py-4 overflow-y-auto shadow-md dark:shadow-zinc-800 mt-5">
-
         {/* LOGO CONTAINER */}
         <div
           className={cn(
@@ -41,7 +40,7 @@ export function Sidebar() {
           <Button
             className={cn(
               "transition-transform ease-in-out duration-300 w-full justify-center",
-              sidebar?.isOpen === false ? "translate-x-1" : "translate-x-0"
+              isOpen === false ? "translate-x-1" : "translate-x-0"
             )}
             variant="link"
             asChild
@@ -56,7 +55,7 @@ export function Sidebar() {
         </div>
 
         {selectedCompany && selectedStation ? (
-          <Menu isOpen={sidebar?.isOpen} />
+          <Menu isOpen={isOpen} />
         ) : (
           <p className="text-sm text-muted-foreground text-center mt-10">
             Por favor, seleccione una <strong>Empresa</strong> y una{" "}

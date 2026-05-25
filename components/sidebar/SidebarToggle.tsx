@@ -8,25 +8,26 @@ interface SidebarToggleProps {
 
 export function SidebarToggle({ isOpen, setIsOpen }: SidebarToggleProps) {
   return (
-    <button
-      onClick={() => setIsOpen?.()}
-      className={cn(
-        "absolute top-3 -right-3 z-20",
-        "flex items-center justify-center",
-        "h-8 w-8 rounded-lg",
-        "bg-background border border-border/60",
-        "text-muted-foreground",
-        "hover:text-foreground hover:bg-muted/40",
-        "transition-all duration-200"
-      )}
-      aria-label="Toggle sidebar"
-    >
-      <PanelLeft
+    <div className="hidden lg:flex absolute top-3 -right-3 z-20">
+      <button
+        onClick={() => setIsOpen?.()}
         className={cn(
-          "h-4 w-4 transition-transform duration-300",
-          isOpen === false && "rotate-180"
+          "flex items-center justify-center",
+          "h-8 w-8 rounded-lg",
+          "bg-background border border-border/60",
+          "text-muted-foreground",
+          "hover:text-foreground hover:bg-muted/40",
+          "transition-all duration-200"
         )}
-      />
-    </button>
+        aria-label="Toggle sidebar"
+      >
+        <PanelLeft
+          className={cn(
+            "h-4 w-4 transition-transform duration-300",
+            isOpen === false && "rotate-180"
+          )}
+        />
+      </button>
+    </div>
   );
 }
