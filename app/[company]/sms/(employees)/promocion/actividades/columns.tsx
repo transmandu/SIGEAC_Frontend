@@ -7,27 +7,22 @@ import { dateFormat } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import SMSActivityDropDownActions from "@/components/dropdowns/aerolinea/sms/SMSActivityDropDownActions";
 
+export type SMSActivityTableRow = SMSActivity & {
+  display_activity_number?: string;
+};
+
 // Columnas de la tabla
-export const columns: ColumnDef<SMSActivity>[] = [
+export const columns: ColumnDef<SMSActivityTableRow>[] = [
   {
     id: "activity_number",
-    accessorFn: (row) => {
-      const v = (row as any).activity_number;
-      if (v === null || v === undefined || v === "") return NaN;
-      const str = String(v).trim();
-      const digits = str.match(/\d+/);
-      if (digits) return Number(digits[0]);
-      // Fallback to plain Number conversion (handles pure numeric strings)
-      const n = Number(str);
-      return isNaN(n) ? NaN : n;
-    },
+    accessorFn: (row) => row.display_activity_number ?? row.activity_number ?? "",
     header: ({ column }) => (
       <DataTableColumnHeader filter column={column} title="Numero de actividad" />
     ),
     meta: { title: "Numero de actividad" },
     cell: ({ row }) =>
       <div className="flex justify-center text-center">
-        {row.original.activity_number ?? "N/A"}
+        {row.original.display_activity_number ?? row.original.activity_number ?? "N/A"}
       </div>,
   },
   {
