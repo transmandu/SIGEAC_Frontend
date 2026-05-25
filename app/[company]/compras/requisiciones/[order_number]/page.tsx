@@ -93,7 +93,7 @@ const RequisitionPage = () => {
   const router = useRouter();
   const { order_number } = useParams<{ order_number: string }>();
 
-  const { data, isLoading } = useGetRequisitionByOrderNumber({
+  const { data, isLoading, refetch } = useGetRequisitionByOrderNumber({
     company: selectedCompany?.slug,
     order_number,
   });
@@ -172,12 +172,7 @@ const RequisitionPage = () => {
               {/* ACTIONS SOLO MOBILE (debajo del título) */}
               {data && (
                 <div className="flex md:hidden justify-center mt-3">
-                  <RequisitionActions
-                    req={data}
-                    onSuccessDelete={() =>
-                      router.push(`/${selectedCompany!.slug}/compras/requisiciones`)
-                    }
-                  />
+                  <RequisitionActions req={data} onSuccessUpdate={refetch}/>
                 </div>
               )}
 
@@ -186,12 +181,7 @@ const RequisitionPage = () => {
             {/* ACTIONS DESKTOP */}
             {data && (
               <div className="hidden md:flex items-center gap-1.5 shrink-0">
-                <RequisitionActions
-                  req={data}
-                  onSuccessDelete={() =>
-                    router.push(`/${selectedCompany!.slug}/compras/requisiciones`)
-                  }
-                />
+                <RequisitionActions req={data} onSuccessUpdate={refetch}/>
               </div>
             )}
 
