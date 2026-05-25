@@ -19,7 +19,6 @@ import Logo from "@/components/misc/Logo";
 
 export function SheetMenu() {
   const { selectedCompany, selectedStation } = useCompanyStore();
-  const { user } = useAuth();
 
   return (
     <Sheet>
