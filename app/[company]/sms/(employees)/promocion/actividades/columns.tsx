@@ -15,7 +15,17 @@ export type SMSActivityTableRow = SMSActivity & {
 export const columns: ColumnDef<SMSActivityTableRow>[] = [
   {
     id: "activity_number",
-    accessorFn: (row) => row.display_activity_number ?? row.activity_number ?? "",
+    accessorFn: (row) => {
+      const value = row.display_activity_number ?? row.activity_number ?? "";
+      const match = String(value).match(/^(\d{3})-(\d{4})$/);
+
+      if (!match) return Number.NEGATIVE_INFINITY;
+
+      const sequence = Number(match[1]);
+      const year = Number(match[2]);
+
+      return -year * 1000 + sequence;
+    },
     header: ({ column }) => (
       <DataTableColumnHeader filter column={column} title="Numero de actividad" />
     ),
