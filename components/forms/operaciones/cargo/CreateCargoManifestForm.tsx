@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { format, parseISO, isValid } from "date-fns";
 import { useGetAvailableShipments } from "@/hooks/operaciones/cargo/useGetAvailableShipments";
 import {
   useCreateCargoManifest,
@@ -10,9 +11,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, AlertCircle, ChevronDown, ChevronRight } from "lucide-react";
+import {
+  Loader2,
+  AlertCircle,
+  ChevronDown,
+  ChevronRight,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
-import { ItemsTable } from "./ItemsTable";
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
 
@@ -32,6 +37,7 @@ interface ShipmentAvailable {
   id: number;
   guide_number: string;
   manifest_status: string;
+  registration_date: string;
   client?: { name: string };
   aircraft?: { acronym: string };
   external_aircraft?: string;
@@ -53,6 +59,9 @@ interface Props {
   company: string;
   month: number;
   year: number;
+  day: number;
+  selectedAircraftId: number | null;
+  externalAircraft: string | null;
   onSuccess: () => void;
 }
 
@@ -74,13 +83,20 @@ export default function CreateCargoManifestForm({
   company,
   month,
   year,
+  day,
+  selectedAircraftId,
+  externalAircraft,
   onSuccess,
 }: Props) {
-  const { data: shipments, isLoading } = useGetAvailableShipments(
-    company,
-    month,
-    year,
-  );
+  const { data: availableShipments, isLoading: loadingAvailable } =
+    useGetAvailableShipments(
+      company,
+      month,
+      year,
+      selectedAircraftId,
+      externalAircraft,
+      day,
+    );
 
   const { createCargoManifest } = useCreateCargoManifest(company);
 
@@ -106,9 +122,7 @@ export default function CreateCargoManifestForm({
   const toggleCollapse = (shipmentId: number) => {
     setCollapsed((prev) => {
       const next = new Set(prev);
-
       next.has(shipmentId) ? next.delete(shipmentId) : next.add(shipmentId);
-
       return next;
     });
   };
@@ -299,6 +313,8 @@ export default function CreateCargoManifestForm({
       {
         month,
         year,
+        aircraft_id: selectedAircraftId,
+        external_aircraft: externalAircraft || null,
         items,
       },
       { onSuccess },
@@ -307,7 +323,7 @@ export default function CreateCargoManifestForm({
 
   // ── Render loading ────────────────────────────────────────────────────────
 
-  if (isLoading) {
+  if (loadingAvailable) {
     return (
       <div className="flex justify-center py-12">
         <Loader2 className="animate-spin h-8 w-8 text-primary" />
@@ -315,286 +331,299 @@ export default function CreateCargoManifestForm({
     );
   }
 
-  // ── Sin resultados ────────────────────────────────────────────────────────
-
-  if (!shipments || shipments.length === 0) {
-    return (
-      <p className="text-center text-muted-foreground py-8">
-        No hay guías disponibles para este período.
-      </p>
-    );
-  }
-
   // ── Render principal ──────────────────────────────────────────────────────
 
   return (
     <div className="space-y-3">
-      <div className="space-y-2 max-h-[60vh] overflow-y-auto pr-1">
-        {(shipments as ShipmentAvailable[]).map((shipment) => {
-          const isCollapsed = collapsed.has(shipment.id);
+      {/* Listado de Guías o Mensaje Sin Resultados */}
+      {!availableShipments || availableShipments.length === 0 ? (
+        <p className="text-center text-muted-foreground py-8">
+          No hay guías disponibles para este período.
+        </p>
+      ) : (
+        <div className="space-y-2 max-h-[60vh] overflow-y-auto pr-1">
+          {(availableShipments as ShipmentAvailable[]).map((shipment) => {
+            const isCollapsed = collapsed.has(shipment.id);
 
-          const availItems = shipment.items.filter(
-            (i) => i.weight_available > 0,
-          );
+            const availItems = shipment.items.filter(
+              (i) => i.weight_available > 0,
+            );
 
-          const allSelected =
-            availItems.length > 0 &&
-            availItems.every((i) => selections.has(i.id));
+            const allSelected =
+              availItems.length > 0 &&
+              availItems.every((i) => selections.has(i.id));
 
-          const someSelected = availItems.some((i) => selections.has(i.id));
+            const someSelected = availItems.some((i) => selections.has(i.id));
 
-          const status =
-            statusConfig[shipment.manifest_status] ?? statusConfig.pending;
+            const status =
+              statusConfig[shipment.manifest_status] ?? statusConfig.pending;
 
-          const aircraftLabel =
-            shipment.aircraft?.acronym ?? shipment.external_aircraft ?? "N/A";
+            const aircraftLabel =
+              shipment.aircraft?.acronym ?? shipment.external_aircraft ?? "N/A";
 
-          return (
-            <div
-              key={shipment.id}
-              className="border border-border rounded-lg overflow-hidden"
-            >
-              {/* Header */}
+            const displayDate = shipment.registration_date
+              ? (() => {
+                  try {
+                    const d = parseISO(shipment.registration_date);
+                    if (!isValid(d)) return null;
+                    const local = new Date(
+                      d.getUTCFullYear(),
+                      d.getUTCMonth(),
+                      d.getUTCDate(),
+                    );
+                    return format(local, "dd/MM/yyyy");
+                  } catch {
+                    return null;
+                  }
+                })()
+              : null;
+
+            return (
               <div
-                className="flex items-center justify-between px-4 py-2.5 bg-muted/30 cursor-pointer hover:bg-muted/50 transition-colors"
-                onClick={() => toggleCollapse(shipment.id)}
+                key={shipment.id}
+                className="border border-border rounded-lg overflow-hidden"
               >
-                <div className="flex items-center gap-3">
-                  {isCollapsed ? (
-                    <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                  ) : (
-                    <ChevronDown className="h-4 w-4 text-muted-foreground" />
-                  )}
-
-                  <span className="font-semibold text-primary text-sm">
-                    {shipment.guide_number}
-                  </span>
-
-                  <span className="text-sm text-muted-foreground">
-                    {shipment.client?.name ?? "Sin cliente"}
-                  </span>
-
-                  <span className="text-xs text-muted-foreground border border-border rounded px-1.5 py-0.5">
-                    {aircraftLabel}
-                  </span>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  {someSelected && (
-                    <span className="text-xs text-primary font-medium">
-                      {availItems.filter((i) => selections.has(i.id)).length}/
-                      {availItems.length} seleccionados
-                    </span>
-                  )}
-
-                  <Badge
-                    className={cn(
-                      "text-[10px] px-1.5 py-0.5",
-                      status.className,
+                <div
+                  className="flex items-center justify-between px-4 py-2.5 bg-muted/30 cursor-pointer hover:bg-muted/50 transition-colors"
+                  onClick={() => toggleCollapse(shipment.id)}
+                >
+                  <div className="flex items-center gap-3">
+                    {isCollapsed ? (
+                      <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                    ) : (
+                      <ChevronDown className="h-4 w-4 text-muted-foreground" />
                     )}
-                  >
-                    {status.label}
-                  </Badge>
-                </div>
-              </div>
 
-              {/* Contenido */}
-              {!isCollapsed && (
-                <div>
-                  {/* Seleccionar todos */}
-                  {availItems.length > 0 && (
-                    <div
-                      className="flex items-center gap-2 px-4 py-1.5 border-b border-border/50 bg-muted/10 cursor-pointer hover:bg-muted/20"
-                      onClick={() => toggleAllItems(shipment)}
-                    >
-                      <Checkbox
-                        checked={allSelected}
-                        onCheckedChange={() => toggleAllItems(shipment)}
-                        onClick={(e) => e.stopPropagation()}
-                      />
-
-                      <span className="text-xs text-muted-foreground font-medium">
-                        Seleccionar todos los productos
+                    {displayDate && (
+                      <span className="text-xs text-muted-foreground border border-border rounded px-1.5 py-0.5 font-mono">
+                        {displayDate}
                       </span>
-                    </div>
-                  )}
+                    )}
 
-                  {/* Encabezados */}
-                  <div className="grid grid-cols-[32px_1fr_100px_70px_100px_130px_130px] gap-2 px-4 py-1.5 bg-muted/5 border-b border-border/30">
-                    {[
-                      "",
-                      "Producto",
-                      "Total",
-                      "Peso/Und",
-                      "Despach.",
-                      "Und. a enviar",
-                      "Peso a enviar",
-                    ].map((h) => (
-                      <span
-                        key={h}
-                        className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground text-center first:text-left"
-                      >
-                        {h}
-                      </span>
-                    ))}
+                    <span className="font-semibold text-primary text-sm">
+                      {shipment.guide_number}
+                    </span>
+
+                    <span className="text-sm text-muted-foreground">
+                      {shipment.client?.name ?? "Sin cliente"}
+                    </span>
+
+                    <span className="text-xs text-muted-foreground border border-border rounded px-1.5 py-0.5">
+                      {aircraftLabel}
+                    </span>
                   </div>
 
-                  {/* Items */}
-                  {shipment.items.map((item) => {
-                    const isSelected = selections.has(item.id);
+                  <div className="flex items-center gap-2">
+                    {someSelected && (
+                      <span className="text-xs text-primary font-medium">
+                        {availItems.filter((i) => selections.has(i.id)).length}/
+                        {availItems.length} seleccionados
+                      </span>
+                    )}
 
-                    const sel = selections.get(item.id);
-
-                    const itemErrors = errors.get(item.id);
-
-                    const isExhausted = item.weight_available <= 0;
-
-                    return (
-                      <div
-                        key={item.id}
-                        className={cn(
-                          "grid grid-cols-[32px_1fr_100px_70px_100px_130px_130px] gap-2 items-center px-4 py-2 border-b border-border/20 last:border-0 transition-colors",
-                          isSelected && "bg-primary/5",
-                          isExhausted && "opacity-40 cursor-not-allowed",
-                          !isExhausted && "hover:bg-muted/20 cursor-pointer",
-                        )}
-                        onClick={() => !isExhausted && toggleItem(item)}
-                      >
-                        {/* Checkbox */}
-                        <div
-                          className="flex justify-center"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <Checkbox
-                            checked={isSelected}
-                            disabled={isExhausted}
-                            onCheckedChange={() =>
-                              !isExhausted && toggleItem(item)
-                            }
-                          />
-                        </div>
-
-                        {/* Descripción */}
-                        <span className="text-sm truncate">
-                          {item.product_description}
-
-                          {isExhausted && (
-                            <span className="ml-1 text-[10px] text-muted-foreground">
-                              (Manifestado)
-                            </span>
-                          )}
-                        </span>
-
-                        {/* Total */}
-                        <span className="text-xs text-center text-muted-foreground">
-                          {item.units} und / {Number(item.weight).toFixed(1)} kg
-                        </span>
-
-                        {/* Ratio */}
-                        <span className="text-xs text-center text-muted-foreground font-mono">
-                          {(item.weight / item.units).toFixed(1)} Kg/und
-                        </span>
-
-                        {/* Despachado */}
-                        <span className="text-xs text-center text-muted-foreground">
-                          {item.units_dispatched} und /{" "}
-                          {Number(item.weight_dispatched).toFixed(1)} kg
-                        </span>
-
-                        {/* Unidades */}
-                        <div
-                          className="flex flex-col items-center gap-0.5"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          {isSelected ? (
-                            <>
-                              <Input
-                                type="number"
-                                min={1}
-                                max={item.units_available}
-                                step={1}
-                                value={sel?.units || ""}
-                                placeholder="0"
-                                onChange={(e) =>
-                                  updateUnits(
-                                    item.id,
-                                    parseInt(e.target.value) || 0,
-                                    item.weight_available,
-                                    item.units_available,
-                                    item.weight / item.units,
-                                  )
-                                }
-                                className={cn(
-                                  "h-7 w-20 text-center text-xs",
-                                  itemErrors?.units && "border-destructive",
-                                )}
-                              />
-
-                              {itemErrors?.units && (
-                                <span className="text-[10px] text-destructive flex items-center gap-0.5">
-                                  <AlertCircle className="h-2.5 w-2.5" />
-                                  {itemErrors.units}
-                                </span>
-                              )}
-                            </>
-                          ) : (
-                            <span className="text-muted-foreground text-xs">
-                              —
-                            </span>
-                          )}
-                        </div>
-
-                        {/* Peso */}
-                        <div
-                          className="flex flex-col items-center gap-0.5"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          {isSelected ? (
-                            <>
-                              <Input
-                                type="number"
-                                min={0.01}
-                                max={item.weight_available}
-                                step={0.01}
-                                value={sel?.weight || ""}
-                                placeholder="0"
-                                onChange={(e) =>
-                                  updateWeight(
-                                    item.id,
-                                    parseFloat(e.target.value) || 0,
-                                    item.weight_available,
-                                    item.units_available,
-                                    item.weight / item.units,
-                                  )
-                                }
-                                className={cn(
-                                  "h-7 w-24 text-center text-xs",
-                                  itemErrors?.weight && "border-destructive",
-                                )}
-                              />
-
-                              {itemErrors?.weight && (
-                                <span className="text-[10px] text-destructive flex items-center gap-0.5">
-                                  <AlertCircle className="h-2.5 w-2.5" />
-                                  {itemErrors.weight}
-                                </span>
-                              )}
-                            </>
-                          ) : (
-                            <span className="text-muted-foreground text-xs">
-                              —
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })}
+                    <Badge
+                      className={cn(
+                        "text-[10px] px-1.5 py-0.5",
+                        status.className,
+                      )}
+                    >
+                      {status.label}
+                    </Badge>
+                  </div>
                 </div>
-              )}
-            </div>
-          );
-        })}
-      </div>
+
+                {/* Contenido */}
+                {!isCollapsed && (
+                  <div>
+                    {/* Seleccionar todos */}
+                    {availItems.length > 0 && (
+                      <div
+                        className="flex items-center gap-2 px-4 py-1.5 border-b border-border/50 bg-muted/10 cursor-pointer hover:bg-muted/20"
+                        onClick={() => toggleAllItems(shipment)}
+                      >
+                        <Checkbox
+                          checked={allSelected}
+                          onCheckedChange={() => toggleAllItems(shipment)}
+                          onClick={(e) => e.stopPropagation()}
+                        />
+                        <span className="text-xs text-muted-foreground font-medium">
+                          Seleccionar todos los productos
+                        </span>
+                      </div>
+                    )}
+
+                    {/* Encabezados */}
+                    <div className="grid grid-cols-[32px_1fr_100px_70px_100px_130px_130px] gap-2 px-4 py-1.5 bg-muted/5 border-b border-border/30">
+                      {[
+                        "",
+                        "Producto",
+                        "Total",
+                        "Peso/Und",
+                        "Despach.",
+                        "Und. a enviar",
+                        "Peso a enviar",
+                      ].map((h) => (
+                        <span
+                          key={h}
+                          className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground text-center first:text-left"
+                        >
+                          {h}
+                        </span>
+                      ))}
+                    </div>
+
+                    {/* Items */}
+                    {shipment.items.map((item) => {
+                      const isSelected = selections.has(item.id);
+                      const sel = selections.get(item.id);
+                      const itemErrors = errors.get(item.id);
+                      const isExhausted = item.weight_available <= 0;
+
+                      return (
+                        <div
+                          key={item.id}
+                          className={cn(
+                            "grid grid-cols-[32px_1fr_100px_70px_100px_130px_130px] gap-2 items-center px-4 py-2 border-b border-border/20 last:border-0 transition-colors",
+                            isSelected && "bg-primary/5",
+                            isExhausted && "opacity-40 cursor-not-allowed",
+                            !isExhausted && "hover:bg-muted/20 cursor-pointer",
+                          )}
+                          onClick={() => !isExhausted && toggleItem(item)}
+                        >
+                          {/* Checkbox */}
+                          <div
+                            className="flex justify-center"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <Checkbox
+                              checked={isSelected}
+                              disabled={isExhausted}
+                              onCheckedChange={() =>
+                                !isExhausted && toggleItem(item)
+                              }
+                            />
+                          </div>
+
+                          {/* Descripción */}
+                          <span className="text-sm truncate">
+                            {item.product_description}
+                            {isExhausted && (
+                              <span className="ml-1 text-[10px] text-muted-foreground">
+                                (Manifestado)
+                              </span>
+                            )}
+                          </span>
+
+                          {/* Total */}
+                          <span className="text-xs text-center text-muted-foreground">
+                            {item.units} und / {Number(item.weight).toFixed(1)}{" "}
+                            kg
+                          </span>
+
+                          {/* Ratio */}
+                          <span className="text-xs text-center text-muted-foreground font-mono">
+                            {(item.weight / item.units).toFixed(1)} Kg/und
+                          </span>
+
+                          {/* Despachado */}
+                          <span className="text-xs text-center text-muted-foreground">
+                            {item.units_dispatched} und /{" "}
+                            {Number(item.weight_dispatched).toFixed(1)} kg
+                          </span>
+
+                          {/* Unidades */}
+                          <div
+                            className="flex flex-col items-center gap-0.5"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            {isSelected ? (
+                              <>
+                                <Input
+                                  type="number"
+                                  min={1}
+                                  max={item.units_available}
+                                  step={1}
+                                  value={sel?.units || ""}
+                                  placeholder="0"
+                                  onChange={(e) =>
+                                    updateUnits(
+                                      item.id,
+                                      parseInt(e.target.value) || 0,
+                                      item.weight_available,
+                                      item.units_available,
+                                      item.weight / item.units,
+                                    )
+                                  }
+                                  className={cn(
+                                    "h-7 w-20 text-center text-xs",
+                                    itemErrors?.units && "border-destructive",
+                                  )}
+                                />
+                                {itemErrors?.units && (
+                                  <span className="text-[10px] text-destructive flex items-center gap-0.5">
+                                    <AlertCircle className="h-2.5 w-2.5" />
+                                    {itemErrors.units}
+                                  </span>
+                                )}
+                              </>
+                            ) : (
+                              <span className="text-muted-foreground text-xs">
+                                —
+                              </span>
+                            )}
+                          </div>
+
+                          {/* Peso */}
+                          <div
+                            className="flex flex-col items-center gap-0.5"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            {isSelected ? (
+                              <>
+                                <Input
+                                  type="number"
+                                  min={0.01}
+                                  max={item.weight_available}
+                                  step={0.01}
+                                  value={sel?.weight || ""}
+                                  placeholder="0"
+                                  onChange={(e) =>
+                                    updateWeight(
+                                      item.id,
+                                      parseFloat(e.target.value) || 0,
+                                      item.weight_available,
+                                      item.units_available,
+                                      item.weight / item.units,
+                                    )
+                                  }
+                                  className={cn(
+                                    "h-7 w-24 text-center text-xs",
+                                    itemErrors?.weight && "border-destructive",
+                                  )}
+                                />
+                                {itemErrors?.weight && (
+                                  <span className="text-[10px] text-destructive flex items-center gap-0.5">
+                                    <AlertCircle className="h-2.5 w-2.5" />
+                                    {itemErrors.weight}
+                                  </span>
+                                )}
+                              </>
+                            ) : (
+                              <span className="text-muted-foreground text-xs">
+                                —
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
 
       {/* Footer */}
       <div className="flex items-center justify-between border-t pt-3">
@@ -628,7 +657,8 @@ export default function CreateCargoManifestForm({
         <Button
           onClick={handleSubmit}
           disabled={
-            selections.size === 0 || hasErrors || createCargoManifest.isPending
+            createCargoManifest.isPending ||
+            (!selectedAircraftId && !externalAircraft)
           }
         >
           {createCargoManifest.isPending ? (

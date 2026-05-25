@@ -1360,6 +1360,9 @@ export type Carrier = {
 export type CargoManifest = {
     id: number;
     manifest_number: string;
+    aircraft_id: number | null;
+    external_aircraft: string | null;
+    aircraft?: Aircraft | null;
     month: number;
     year: number;
     total_weight: number;

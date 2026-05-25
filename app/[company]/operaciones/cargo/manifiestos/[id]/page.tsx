@@ -83,6 +83,11 @@ export default function ManifestDetailPage() {
     0,
   );
 
+  const aircraftLabel =
+    (manifest as any).aircraft?.acronym ??
+    (manifest as any).external_aircraft ??
+    "Varias";
+
   return (
     <ContentLayout title="Detalle del Manifiesto">
       <div className="flex flex-col gap-6 p-1 max-w-6xl mx-auto w-full pb-10">
@@ -96,11 +101,22 @@ export default function ManifestDetailPage() {
                 <ArrowLeft className="h-4 w-4" />
               </Link>
             </Button>
-            <h1 className="text-2xl font-bold flex items-center gap-2">
-              <FileText className="h-6 w-6 text-primary" />
-              Manifiesto Nº{" "}
-              <span className="text-primary">{manifest.manifest_number}</span>
-            </h1>
+            <div className="flex items-center gap-4">
+              <div>
+                <p className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">
+                  Manifiesto
+                </p>
+                <p className="text-lg font-bold text-primary">
+                  {manifest.manifest_number}
+                </p>
+              </div>
+              <div className="border-l border-border pl-4">
+                <p className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">
+                  Aeronave
+                </p>
+                <p className="text-lg font-semibold">{aircraftLabel}</p>
+              </div>
+            </div>
           </div>
         </div>
 

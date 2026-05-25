@@ -146,6 +146,18 @@ export const getManifestColumns = (
     ),
   },
   {
+    accessorKey: "aircraft",
+    header: "Aeronave",
+    cell: ({ row }) => {
+      const manifest = row.original;
+      const aircraftLabel =
+        (manifest as any).aircraft?.acronym ??
+        (manifest as any).external_aircraft ??
+        "N/A";
+      return <span className="text-sm">{aircraftLabel}</span>;
+    },
+  },
+  {
     id: "items_count",
     header: ({ column }) => (
       <DataTableColumnHeader
@@ -154,9 +166,12 @@ export const getManifestColumns = (
         className="justify-center"
       />
     ),
-    cell: ({ row }) => (
-      <div className="text-center">{row.original.items?.length ?? 0}</div>
-    ),
+    cell: ({ row }) => {
+      const uniqueShipments = new Set(
+        (row.original.items ?? []).map((i) => i.cargo_shipment_id),
+      );
+      return <div className="text-center">{uniqueShipments.size}</div>;
+    },
   },
   {
     accessorKey: "total_weight",

@@ -39,6 +39,8 @@ export const useCreateCargoManifest = (company: string) => {
     mutationFn: async (data: {
       month: number;
       year: number;
+      aircraft_id?: number | null;
+      external_aircraft?: string | null;
       items: ManifestItemPayload[];
     }) => {
       const response = await axiosInstance.post(
@@ -55,8 +57,8 @@ export const useCreateCargoManifest = (company: string) => {
     },
     onError: (error: any) => {
       const message =
-        error?.response?.data?.message ||
-        "Ha ocurrido un error al crear el manifiesto.";
+      error?.response?.data?.message ||
+      "Ha ocurrido un error al crear el manifiesto.";
       toast.error("Error", { description: message });
     },
   });
