@@ -26,7 +26,7 @@ import { ArrowLeft, X } from "lucide-react";
 import CreateCargoManifestForm from "@/components/forms/operaciones/cargo/CreateCargoManifestForm";
 import { useGetAircrafts } from "@/hooks/aerolinea/aeronaves/useGetAircrafts";
 import { useGetNextManifestNumber } from "@/hooks/operaciones/cargo/useGetNextManifestNumber";
-import { useGetExternalAircraftSeggestion } from "@/hooks/operaciones/cargo/useGetExternalAircraftSuggestions";
+import { useGetExternalAircraftSuggestions } from "@/hooks/operaciones/cargo/useGetExternalAircraftSuggestions";
 
 const NuevoManifiestoPage = () => {
   const params = useParams();
@@ -71,7 +71,7 @@ const NuevoManifiestoPage = () => {
 
   const { data: aircrafts } = useGetAircrafts(company);
   const { data: externalSuggestions } =
-    useGetExternalAircraftSeggestion(company);
+    useGetExternalAircraftSuggestions(company);
   const { data: nextManifestNumber } = useGetNextManifestNumber(
     company,
     month,

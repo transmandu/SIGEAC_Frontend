@@ -3,7 +3,7 @@
 import axiosInstance from "@/lib/axios";
 import { useQuery } from "@tanstack/react-query";
 
-export const useGetExternalAircraftSeggestion = (
+export const useGetExternalAircraftSuggestions = (
   company: string,
   search?: string,
 ) => {
