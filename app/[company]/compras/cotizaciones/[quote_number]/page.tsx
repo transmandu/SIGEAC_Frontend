@@ -27,9 +27,11 @@ import {
   Truck,
   User,
 } from 'lucide-react';
+import { format } from 'date-fns';
+import { es } from 'date-fns/locale';
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb';
 import { useParams, useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useEffect, useState, type ElementType } from 'react';
 import QuoteActions from './_components/QuoteActions';
 
 const statusBadgeCls = (status?: string) => {
@@ -48,6 +50,40 @@ const statusBadgeCls = (status?: string) => {
 
     pending &&
       "border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-300 hover:bg-amber-500/15 dark:hover:text-amber-200"
+  )
+}
+
+const formatQuoteDate = (date?: string | Date | null): string | undefined => {
+  if (!date) return undefined;
+
+  const d = typeof date === "string" ? new Date(date) : date;
+
+  const day = format(d, "dd");
+  const month = format(d, "MMMM", { locale: es }).toUpperCase();
+  const year = format(d, "yyyy");
+
+  return `${day} ${month} ${year}`;
+};
+
+function MetaItem({
+  label,
+  value,
+  icon: Icon,
+}: {
+  label: string
+  value?: string | null
+  icon?: ElementType
+}) {
+  return (
+    <div className="flex flex-col gap-0.5">
+      <span className="text-[10px] font-medium tracking-wider text-muted-foreground/60 select-none">
+        {label}
+      </span>
+      <span className="text-sm font-medium flex items-center gap-1.5">
+        {Icon && <Icon className="size-3.5 text-muted-foreground/50 shrink-0" />}
+        {value ?? "—"}
+      </span>
+    </div>
   )
 }
 
@@ -116,9 +152,6 @@ const QuotePage = () => {
     }
   };
 
-  const isApproved = data?.status === 'APROBADO';
-  const isPending = data?.status === 'PENDIENTE';
-  const isRejected = data?.status === 'RECHAZADA';
   const isApprovePending =
     updateStatusQuote.isPending ||
     createPurchaseOrder.isPending ||
@@ -209,44 +242,33 @@ const QuotePage = () => {
           </div>
         </div>
 
+        {/* ── Meta ────────────────────────────────────────────────────── */}
+        <div className="mx-auto w-full max-w-4xl px-4 py-3 rounded-md border border-border/50 bg-muted/20">
+          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-[repeat(auto-fit,minmax(180px,1fr))] gap-x-4 sm:gap-x-6 md:gap-x-10 gap-y-3 md:gap-y-4 justify-items-center">
+
+            <MetaItem
+              label="PROVEEDOR"
+              value={data?.vendor?.name?.toUpperCase()}
+              icon={Truck}
+            />
+
+            <MetaItem
+              label="CREADO POR"
+              value={data?.created_by?.toUpperCase()}
+              icon={User}
+            />
+
+            <MetaItem
+              label="FECHA DE COTIZACIÓN"
+              value={formatQuoteDate(data?.quote_date)}
+              icon={CalendarDays}
+            />
+
+          </div>
+        </div>
+
         {data && (
           <>
-            {/* ── Meta: proveedor / creado por / fecha ───────────────── */}
-            <div className="grid grid-cols-3 gap-3">
-              <div className="flex items-start gap-2.5 p-3 rounded-lg border border-border/60 bg-muted/20">
-                <Truck className="size-4 text-muted-foreground mt-0.5 shrink-0" />
-                <div>
-                  <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70">
-                    Proveedor
-                  </p>
-                  <p className="text-sm font-medium mt-0.5">{data.vendor.name}</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-2.5 p-3 rounded-lg border border-border/60 bg-muted/20">
-                <User className="size-4 text-muted-foreground mt-0.5 shrink-0" />
-                <div>
-                  <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70">
-                    Creado por
-                  </p>
-                  <p className="text-sm font-medium mt-0.5">{data.created_by}</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-2.5 p-3 rounded-lg border border-border/60 bg-muted/20">
-                <CalendarDays className="size-4 text-muted-foreground mt-0.5 shrink-0" />
-                <div>
-                  <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70">
-                    Fecha cotización
-                  </p>
-                  <p className="text-sm font-medium mt-0.5">
-                    {new Date(data.quote_date).toLocaleDateString('es-ES', {
-                      day: '2-digit',
-                      month: 'long',
-                      year: 'numeric',
-                    })}
-                  </p>
-                </div>
-              </div>
-            </div>
 
             {/* ── Justificación ───────────────────────────────────────── */}
             {data.justification && (

@@ -13,7 +13,7 @@ import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { CalendarDays, FileText, ImageIcon, MessageSquare, Plane, User, UserCheck, UserPlus } from 'lucide-react';
 import Image from 'next/image';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import { useEffect, useState, type ElementType } from 'react';
 import RequisitionActions from './_components/RequisitionActions';
 

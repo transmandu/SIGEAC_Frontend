@@ -2,10 +2,8 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-
 import { useAuth } from "@/contexts/AuthContext"
 import { useCompanyStore } from "@/stores/CompanyStore"
-
 import { Button } from "@/components/ui/button"
 import {
   Tooltip,
@@ -13,14 +11,11 @@ import {
   TooltipProvider,
   TooltipTrigger
 } from "@/components/ui/tooltip"
-
 import {
   ClipboardCheck,
   ClipboardX,
-  Loader2,
   Trash2
 } from "lucide-react"
-
 import QuoteDropdownDialogs from "@/components/dialogs/mantenimiento/compras/QuoteDropdownDialogs"
 import { Quote } from "@/types"
 
@@ -32,13 +27,14 @@ const iconBase =
   "size-[20px] transition-all duration-200 ease-out group-hover:scale-110"
 
 const itemBase =
-  "group relative flex items-center justify-center size-10 rounded-xl transition-all duration-200 " +
+  "group relative flex items-center justify-center size-11 rounded-full transition-all duration-200 " +
   "hover:bg-muted/60 hover:shadow-sm active:scale-95 " +
   "border border-transparent hover:border-border/40"
 
 const toolbar =
   "flex items-center gap-1.5 px-2 py-1 rounded-full " +
-  "bg-muted/30 border border-border/40 shadow-sm backdrop-blur-md"
+  "bg-muted/30 border border-border/40 shadow-sm backdrop-blur-md " +
+  "flex-wrap sm:flex-nowrap"
 
 /* =========================
    TYPES
