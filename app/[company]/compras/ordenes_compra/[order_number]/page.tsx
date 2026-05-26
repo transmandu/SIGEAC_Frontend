@@ -5,9 +5,6 @@ import LoadingPage from '@/components/misc/LoadingPage';
 import BackButton from '@/components/misc/BackButton';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Separator } from "@/components/ui/separator";
-import { CompletePurchaseForm } from '@/components/forms/mantenimiento/compras/CompletePurchaseForm';
 import { useGetPurchaseOrder } from '@/hooks/mantenimiento/compras/useGetPurchaseOrder';
 import { cn } from '@/lib/utils';
 import { useCompanyStore } from '@/stores/CompanyStore';
@@ -322,56 +319,6 @@ const PurchaseOrderPage = () => {
         )}
       </div>
 
-      {/* ── Dialog: Completar compra ─────────────────────────────────── */}
-      {data && (
-        <Dialog open={openComplete} onOpenChange={setOpenComplete}>
-          <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader className="pb-2 border-b border-border/60">
-              <div className="flex items-center gap-3">
-                <div className="flex items-center justify-center h-9 w-9 rounded-lg bg-amber-100 dark:bg-amber-950/60 text-amber-600 dark:text-amber-500 shrink-0">
-                  <ClipboardCheck className="h-4 w-4" />
-                </div>
-                <div>
-                  <DialogTitle className="text-base font-semibold leading-tight">
-                    Completar orden de compra
-                  </DialogTitle>
-                  <p className="text-xs text-muted-foreground mt-0.5">
-                    OC <span className="font-mono">{order_number}</span>
-                    {' · '}
-                    {data.vendor?.name}
-                  </p>
-                </div>
-              </div>
-            </DialogHeader>
-            <CompletePurchaseForm po={data} onClose={() => setOpenComplete(false)} />
-          </DialogContent>
-        </Dialog>
-      )}
-
-      {/* ── Dialog: Eliminar ────────────────────────────────────────── */}
-      <Dialog open={openDelete} onOpenChange={setOpenDelete}>
-        <DialogContent className="sm:max-w-sm">
-          <DialogHeader>
-            <DialogTitle className="text-base font-semibold">
-              Eliminar orden de compra
-            </DialogTitle>
-            <p className="text-sm text-muted-foreground mt-1">
-              Esta acción no se puede deshacer. ¿Confirma que desea eliminar la OC{' '}
-              <span className="font-mono font-medium text-foreground">{order_number}</span>?
-            </p>
-          </DialogHeader>
-          <Separator />
-          <DialogFooter className="gap-2">
-            <Button variant="outline" onClick={() => setOpenDelete(false)}>
-              Cancelar
-            </Button>
-            <Button variant="destructive">
-              <Trash2 className="size-4 mr-2" />
-              Eliminar
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </ContentLayout>
   );
 };
