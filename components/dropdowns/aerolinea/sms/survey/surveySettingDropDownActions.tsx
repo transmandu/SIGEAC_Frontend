@@ -169,7 +169,7 @@ const SurveySettingDropdownActions = ({
 
                         <div className="flex justify-center">
                             <QRGenerator
-                                value={`${process.env.NEXT_PUBLIC_URL}${selectedCompany?.slug}/sms/encuesta/${surveyData.survey_number}`}
+                                value={`${process.env.NEXT_PUBLIC_URL}acceso_publico/${selectedCompany?.slug}/sms/encuesta/${surveyData.survey_number}`}
                                 fileName={`encuesta-${surveyData.survey_number}`}
                                 bgColor="#3088FF"
                                 showLink={true}

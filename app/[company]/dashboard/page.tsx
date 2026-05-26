@@ -53,14 +53,7 @@ export default function DashboardPage() {
       return "SMS";
     }
 
-    if (
-      hasRole([
-        "ANALISTA_ADMINISTRACION",
-        "RRHH_ADMINISTRACION",
-        "JEFE_ADMINISTRACION",
-        "CONTADOR_ADMINISTRACION",
-      ])
-    ) {
+    if (hasRole(["ANALISTA_ADMINISTRACION", "RRHH_ADMINISTRACION", "JEFE_ADMINISTRACION", "CONTADOR_ADMINISTRACION",])) {
       return "ADMINISTRATION";
     }
 

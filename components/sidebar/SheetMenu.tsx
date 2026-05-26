@@ -19,13 +19,25 @@ import Logo from "@/components/misc/Logo";
 
 export function SheetMenu() {
   const { selectedCompany, selectedStation } = useCompanyStore();
-  const { user } = useAuth();
 
   return (
     <Sheet>
       <SheetTrigger className="lg:hidden" asChild>
-        <Button className="h-8" variant="outline" size="icon">
-          <MenuIcon size={20} />
+        <Button
+          variant="outline"
+          size="icon"
+          className="
+            h-8 w-8
+            rounded-lg
+            bg-background
+            border border-border/60
+            text-muted-foreground
+            hover:text-foreground
+            hover:bg-muted/40
+            transition-all duration-200
+          "
+        >
+          <MenuIcon className="h-4 w-4" />
         </Button>
       </SheetTrigger>
 

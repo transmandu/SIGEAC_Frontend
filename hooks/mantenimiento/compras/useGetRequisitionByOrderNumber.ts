@@ -16,6 +16,7 @@ export interface RequisitionByOrderNumber {
   submission_date?: Date;
   submitted_date?: Date;
   aircraft?: Aircraft;
+  observation?: string;
   batch: {
     id: number;
     name: string;
