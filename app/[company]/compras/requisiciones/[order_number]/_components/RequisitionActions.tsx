@@ -2,10 +2,7 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-
-import { useAuth } from "@/contexts/AuthContext"
 import { useCompanyStore } from "@/stores/CompanyStore"
-
 import { Button } from "@/components/ui/button"
 import {
   Tooltip,
@@ -13,16 +10,13 @@ import {
   TooltipProvider,
   TooltipTrigger
 } from "@/components/ui/tooltip"
-
 import {
   ClipboardX,
   FileDown,
   Receipt,
   Trash2
 } from "lucide-react"
-
 import { PDFDownloadLink } from "@react-pdf/renderer"
-
 import RequisitionReportPdf from "@/components/pdf/almacen/RequisitionReportPdf"
 import RequisitionDropdownDialogs from "@/components/dialogs/mantenimiento/compras/RequisitionDropdownDialogs"
 
@@ -45,7 +39,6 @@ export interface RequisitionByOrderNumber {
   batch: {
     id: number
     name: string
-
     batch_articles: {
       article_part_number: string
       article_alt_part_number?: string
@@ -79,35 +72,32 @@ export default function RequisitionActions({
   onSuccessUpdate
 }: Props) {
   const router = useRouter()
-
-  const { user } = useAuth()
-
   const { selectedCompany } = useCompanyStore()
 
   const [openDelete, setOpenDelete] = useState(false)
   const [openConfirm, setOpenConfirm] = useState(false)
   const [openReject, setOpenReject] = useState(false)
 
-  const userRoles =
-    user?.roles?.map((r: any) => r.name) || []
+  const status = req.status
 
-  const canAct =
-    !(
-      req.status === "APROBADO" ||
-      req.status === "RECHAZADO"
-    )
+  const isApproved = status === "APROBADO"
+  const isRejected = status === "RECHAZADO"
+  const isFinal = isApproved || isRejected
+
+  const canAct = !isFinal
+  const canDelete = !isFinal
 
   const quoteTooltip =
-    req.status === "APROBADO"
-      ? "Una cotización ya fue aprobada"
-      : req.status === "RECHAZADO"
+    isApproved
+      ? "Requisición ya aprobada"
+      : isRejected
       ? "Requisición rechazada"
-      : "Generar cotización"
+      : "Generar / aprobar requisición"
 
   const rejectTooltip =
-    req.status === "APROBADO"
+    isApproved
       ? "Ya fue aprobada"
-      : req.status === "RECHAZADO"
+      : isRejected
       ? "Ya fue rechazada"
       : "Rechazar solicitud"
 
@@ -116,10 +106,7 @@ export default function RequisitionActions({
   }
 
   const handleSuccessDelete = () => {
-    router.push(
-      `/${selectedCompany!.slug}/compras/requisiciones`
-    )
-
+    router.push(`/${selectedCompany!.slug}/compras/requisiciones`)
     router.refresh()
   }
 
@@ -127,55 +114,48 @@ export default function RequisitionActions({
     <TooltipProvider delayDuration={120}>
       <div className={toolbar}>
 
-        {(userRoles.includes("ANALISTA_COMPRAS") ||
-          userRoles.includes("JEFE_COMPRAS") ||
-          userRoles.includes("SUPERUSER")) && (
+        {/* APROBAR / GENERAR */}
+        {canAct && (
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
                 variant="ghost"
                 size="icon"
-                disabled={!canAct}
                 onClick={() => setOpenConfirm(true)}
                 className={`${itemBase} text-emerald-600`}
               >
                 <Receipt className={iconBase} />
               </Button>
             </TooltipTrigger>
-
-            <TooltipContent>
-              {quoteTooltip}
-            </TooltipContent>
+            <TooltipContent>{quoteTooltip}</TooltipContent>
           </Tooltip>
         )}
 
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              disabled={!canAct}
-              onClick={() => setOpenReject(true)}
-              className={`${itemBase} text-orange-600`}
-            >
-              <ClipboardX className={iconBase} />
-            </Button>
-          </TooltipTrigger>
+        {/* RECHAZAR */}
+        {canAct && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setOpenReject(true)}
+                className={`${itemBase} text-orange-600`}
+              >
+                <ClipboardX className={iconBase} />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>{rejectTooltip}</TooltipContent>
+          </Tooltip>
+        )}
 
-          <TooltipContent>
-            {rejectTooltip}
-          </TooltipContent>
-        </Tooltip>
-
+        {/* PDF (siempre visible) */}
         <Tooltip>
           <TooltipTrigger asChild>
             <div>
               <PDFDownloadLink
                 fileName={`${req.order_number}.pdf`}
                 document={
-                  <RequisitionReportPdf
-                    requisition={req as any}
-                  />
+                  <RequisitionReportPdf requisition={req as any} />
                 }
               >
                 <Button
@@ -188,28 +168,25 @@ export default function RequisitionActions({
               </PDFDownloadLink>
             </div>
           </TooltipTrigger>
-
-          <TooltipContent>
-            Descargar PDF
-          </TooltipContent>
+          <TooltipContent>Descargar PDF</TooltipContent>
         </Tooltip>
 
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setOpenDelete(true)}
-              className={`${itemBase} text-red-600`}
-            >
-              <Trash2 className={iconBase} />
-            </Button>
-          </TooltipTrigger>
-
-          <TooltipContent>
-            Eliminar solicitud
-          </TooltipContent>
-        </Tooltip>
+        {/* DELETE */}
+        {canDelete && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setOpenDelete(true)}
+                className={`${itemBase} text-red-600`}
+              >
+                <Trash2 className={iconBase} />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Eliminar solicitud</TooltipContent>
+          </Tooltip>
+        )}
 
         <RequisitionDropdownDialogs
           req={req as any}

@@ -17,18 +17,11 @@ import { Button } from "@/components/ui/button"
 import {
   ClipboardCheck,
   ClipboardX,
-  Loader2,
   Minus,
   MoreHorizontal,
   Trash2
 } from "lucide-react"
 import { Quote } from "@/types"
-import { useAuth } from "@/contexts/AuthContext"
-import { useCompanyStore } from "@/stores/CompanyStore"
-import { useDeleteQuote, useUpdateQuoteStatus } from "@/actions/mantenimiento/compras/cotizaciones/actions"
-import { useUpdateRequisitionStatus } from "@/actions/mantenimiento/compras/requisiciones/actions"
-import { useCreatePurchaseOrder } from "@/actions/mantenimiento/compras/ordenes_compras/actions"
-
 import QuoteDropdownDialogs from "@/components/dialogs/mantenimiento/compras/QuoteDropdownDialogs"
 
 const iconBase =
@@ -54,18 +47,11 @@ const disabledClass =
   "opacity-40 grayscale pointer-events-none cursor-not-allowed"
 
 const QuoteDropdownActions = ({ quote }: { quote: Quote }) => {
-  const { user } = useAuth()
-  const { selectedCompany } = useCompanyStore()
 
   const [openDropdown, setOpenDropdown] = useState(false)
   const [openReject, setOpenReject] = useState(false)
   const [openApprove, setOpenApprove] = useState(false)
   const [openDelete, setOpenDelete] = useState(false)
-
-  const { updateStatusQuote } = useUpdateQuoteStatus()
-  const { updateStatusRequisition } = useUpdateRequisitionStatus()
-  const { createPurchaseOrder } = useCreatePurchaseOrder()
-  const { deleteQuote } = useDeleteQuote()
 
   const canDelete = quote.status === "PENDIENTE"
 
@@ -74,67 +60,6 @@ const QuoteDropdownActions = ({ quote }: { quote: Quote }) => {
     quote.status === "RECHAZADA"
 
   const canAct = !isInactive
-
-  const handleReject = async () => {
-    await updateStatusQuote.mutateAsync({
-      id: quote.id,
-      data: {
-        status: "RECHAZADA",
-        updated_by: `${user?.first_name} ${user?.last_name}`
-      },
-      company: selectedCompany!.slug
-    })
-
-    await updateStatusRequisition.mutateAsync({
-      id: quote.requisition_order.id,
-      data: {
-        status: "PROCESO",
-        updated_by: `${user?.first_name} ${user?.last_name}`
-      },
-      company: selectedCompany!.slug
-    })
-
-    setOpenReject(false)
-  }
-
-  const handleApprove = async () => {
-    const poData = {
-      status: "PROCESO",
-      justification: quote.justification,
-      purchase_date: new Date(),
-      sub_total: Number(quote.total),
-      total: Number(quote.total),
-      vendor_id: Number(quote.vendor.id),
-      created_by: `${user?.first_name} ${user?.last_name}`,
-      articles_purchase_orders: quote.article_quote_order,
-      quote_order_id: Number(quote.id)
-    }
-
-    await updateStatusQuote.mutateAsync({
-      id: quote.id,
-      data: {
-        status: "APROBADO",
-        updated_by: `${user?.first_name} ${user?.last_name}`
-      },
-      company: selectedCompany!.slug
-    })
-
-    await createPurchaseOrder.mutateAsync({
-      data: poData,
-      company: selectedCompany!.slug
-    })
-
-    await updateStatusRequisition.mutateAsync({
-      id: quote.requisition_order.id,
-      data: {
-        status: "APROBADO",
-        updated_by: `${user?.first_name} ${user?.last_name}`
-      },
-      company: selectedCompany!.slug
-    })
-
-    setOpenApprove(false)
-  }
 
   return (
     <TooltipProvider delayDuration={120}>
