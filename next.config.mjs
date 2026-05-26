@@ -3,7 +3,7 @@ const nextConfig = {
   images: {
     remotePatterns: [
       {
-        protocol: "http", // O "https" si tiene certificado
+        protocol: "http",
         hostname: "172.190.0.162",
       },
       {
@@ -24,6 +24,12 @@ const nextConfig = {
     dangerouslyAllowSVG: true,
     unoptimized: false,
   },
+  // --- Funciona el visualizador seguro ---
+  webpack: (config) => {
+    config.resolve.alias.canvas = false;
+    return config;
+  },
+  
 };
 
 export default nextConfig;
