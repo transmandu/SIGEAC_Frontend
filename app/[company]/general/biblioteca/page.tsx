@@ -35,6 +35,7 @@ const BibliotecaPage = () => {
   const [selectedDeptName, setSelectedDeptName] = useState<string | null>(null);
   const [selectedFolderPath, setSelectedFolderPath] = useState<string | null>(null);
   const [loadingDeptIds, setLoadingDeptIds] = useState<number[]>([]);
+  const [movingDocument, setMovingDocument] = useState(false);
 
   const [groupedDocuments, setGroupedDocuments] = useState<Record<string, Document[]>>({});
 
@@ -137,13 +138,13 @@ const BibliotecaPage = () => {
         depts = depts.filter((d: any) => Number(d.id) === Number(userDeptId));
       }
       setDepartments(depts);
-      if (depts.length === 1 && !selectedDeptName) {
-        setSelectedDeptName(depts[0].name);
+      if (depts.length === 1) {
+        setSelectedDeptName(prev => prev ?? depts[0].name);
       }
     } catch (error) {
       console.error("Error al cargar departamentos:", error);
     }
-  }, [companySlug, isSuperUser, userDeptId, selectedDeptName, isDipDirector]);
+  }, [companySlug, isSuperUser, userDeptId, isDipDirector]);
 
   const refreshPendingCount = useCallback(async () => {
     try {
@@ -218,6 +219,7 @@ const BibliotecaPage = () => {
   };
 
   const handleDropDocument = async (documentId: number, folderPath: string, departmentName: string) => {
+    setMovingDocument(true);
     try {
       await libraryService.moveDocument(companySlug, documentId, folderPath);
       toast.success("Documento movido exitosamente");
@@ -228,6 +230,8 @@ const BibliotecaPage = () => {
       )]);
     } catch (error: any) {
       toast.error(error.response?.data?.message || "Error al mover el documento");
+    } finally {
+      setMovingDocument(false);
     }
   };
 
@@ -378,6 +382,14 @@ const BibliotecaPage = () => {
 
             {/* TARJETA ÚNICA: SIDEBAR + CONTENIDO */}
             <div className="w-full rounded-[2rem] border border-slate-200 dark:border-slate-800 dark:bg-[#1a1c1e] bg-white shadow-xl shadow-slate-200/50 dark:shadow-none relative overflow-hidden">
+              {movingDocument && (
+                <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-3 bg-white/75 dark:bg-[#1a1c1e]/75 backdrop-blur-[2px]">
+                  <Loader2 className="h-9 w-9 animate-spin text-blue-600 dark:text-blue-400" />
+                  <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
+                    Moviendo documento...
+                  </p>
+                </div>
+              )}
               <div className="flex min-h-[400px]">
                 {/* SIDEBAR - Carpetas */}
                 <div className="w-[380px] shrink-0 border-r border-slate-200 dark:border-slate-800 p-5 pt-8 flex flex-col">
