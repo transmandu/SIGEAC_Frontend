@@ -210,6 +210,40 @@ export const getColumns = (
   },
 
   {
+    accessorKey: 'reception_date', // si tu API lo manda así
+    size: 200,
+
+    header: ({ column }) => (
+      <div className="flex justify-center w-full">
+        <DataTableColumnHeader column={column} title="Fecha de recepción" />
+      </div>
+    ),
+
+    cell: ({ row }) => {
+      const status = row.original.status?.toUpperCase()
+      const isReception = status === 'RECEPTION' || status === 'reception'
+
+      if (!isReception) {
+        return (
+          <div className="flex justify-center w-full">
+            <span className="text-muted-foreground/40">—</span>
+          </div>
+        )
+      }
+
+      const date = row.original['reception_date']
+
+      return (
+        <div className="flex justify-center w-full">
+          <span className="text-sm text-slate-700 dark:text-slate-200">
+            {date ? new Date(date).toLocaleDateString() : 'Sin fecha'}
+          </span>
+        </div>
+      )
+    },
+  },
+
+  {
     accessorKey: 'location',
     size: 280,
 
