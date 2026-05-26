@@ -1,12 +1,14 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { X, Loader2, ShieldCheck, Lock, Frown, RotateCcw } from 'lucide-react';
 import { Worker, Viewer } from '@react-pdf-viewer/core';
 import { defaultLayoutPlugin } from '@react-pdf-viewer/default-layout';
 import { Button } from "@/components/ui/button";
 
+// @ts-ignore - Ignorar error cosmético de TS en PC nueva
 import '@react-pdf-viewer/core/lib/styles/index.css';
+// @ts-ignore - Ignorar error cosmético de TS en PC nueva
 import '@react-pdf-viewer/default-layout/lib/styles/index.css';
 
 import libraryService from '@/lib/libraryService';
@@ -78,15 +80,19 @@ export default function SecureViewer({ company, documentId, isOpen, onClose, isV
     ),
   });
 
-  const loadFile = async () => {
+  const loadFile = useCallback(async () => {
     if (!isOpen || !documentId) return;
 
     setLoading(true);
     setError(null);
-    setFileUrl(null); // ✅ Limpiamos el rastro del PDF anterior antes de buscar el nuevo
+    setFileUrl(null);
 
     try {
-      const url = await libraryService.getFileBlob(company, documentId, isVersionHistory);
+      const url = await libraryService.getFileBlob(
+        company,
+        documentId,
+        isVersionHistory
+      );
 
       if (activeUrlRef.current) {
         URL.revokeObjectURL(activeUrlRef.current);
@@ -99,7 +105,7 @@ export default function SecureViewer({ company, documentId, isOpen, onClose, isV
     } finally {
       setLoading(false);
     }
-  };
+  }, [isOpen, documentId, company, isVersionHistory]);
 
   useEffect(() => {
     if (isOpen && documentId) {
@@ -111,11 +117,11 @@ export default function SecureViewer({ company, documentId, isOpen, onClose, isV
         URL.revokeObjectURL(activeUrlRef.current);
         activeUrlRef.current = null;
       }
-      // ✅ Al desmontar o cambiar de ID, reseteamos estados para la siguiente carga
+
       setFileUrl(null);
       setLoading(true);
     };
-  }, [isOpen, documentId, isVersionHistory]); // ✅ Añadido isVersionHistory para refrescar si cambia el modo
+  }, [isOpen, documentId, loadFile]);
 
   if (!isOpen) return null;
 

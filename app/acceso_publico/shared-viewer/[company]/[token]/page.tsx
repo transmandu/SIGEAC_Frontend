@@ -6,7 +6,7 @@ import { Loader2, ShieldCheck, Lock, Frown, RotateCcw, Download } from 'lucide-r
 import { Worker, Viewer } from '@react-pdf-viewer/core';
 import { defaultLayoutPlugin } from '@react-pdf-viewer/default-layout';
 import { Button } from "@/components/ui/button";
-
+import { useCallback } from 'react';
 // @ts-ignore - Ignorar error cosmético de TS en PC nueva
 import '@react-pdf-viewer/core/lib/styles/index.css';
 // @ts-ignore - Ignorar error cosmético de TS en PC nueva
@@ -83,18 +83,23 @@ export default function PublicNativeViewerPage() {
   }, []);
 
   // --- FUNCIÓN DE CARGA ---
-  const loadFile = async () => {
+  const loadFile = useCallback(async () => {
     if (!token) return;
 
     setLoading(true);
     setError(null);
+
     try {
       const [fileUrlResult, info] = await Promise.all([
         libraryService.getFileBlob(company, token),
         libraryService.getSharedInfo(company, token),
       ]);
 
-      const isReadOnly = info.read_only === true || info.read_only === '1' || info.read_only === 1;
+      const isReadOnly =
+        info.read_only === true ||
+        info.read_only === '1' ||
+        info.read_only === 1;
+
       setReadOnly(isReadOnly);
       setDocTitle(info.title || '');
 
@@ -104,12 +109,12 @@ export default function PublicNativeViewerPage() {
 
       activeUrlRef.current = fileUrlResult;
       setFileUrl(fileUrlResult);
-    } catch (err) {
+    } catch {
       setError("No pudimos validar este documento. Es posible que el enlace haya expirado o no sea válido.");
     } finally {
       setLoading(false);
     }
-  };
+  }, [company, token]);
 
   const handleDownload = async () => {
     try {
@@ -129,6 +134,7 @@ export default function PublicNativeViewerPage() {
   useEffect(() => {
     if (hasLoaded.current) return;
     hasLoaded.current = true;
+
     loadFile();
 
     return () => {
@@ -138,7 +144,7 @@ export default function PublicNativeViewerPage() {
         setFileUrl(null);
       }
     };
-  }, [company, token]);
+  }, [loadFile]);
 
   return (
     // 🔥 CAMBIO CLAVE: Cambiado 'select-none' por 'select-text' para permitir subrayar con el mouse

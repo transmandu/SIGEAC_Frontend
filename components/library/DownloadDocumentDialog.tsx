@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { Download, FileText, ChevronDown, Clock } from "lucide-react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import axiosInstance from "@/lib/axios";
@@ -29,20 +29,14 @@ export const DownloadDocumentDialog = ({ isOpen, onClose, doc, company }: Downlo
   const [loadingVersions, setLoadingVersions] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
 
-  useEffect(() => {
-    if (isOpen && doc?.id) {
-      handleFetchVersions();
-    } else {
-      setDownloadMode('document');
-      setSelectedVersionToDownload("");
-      setVersionList([]);
-    }
-  }, [isOpen, doc]);
-
-  const handleFetchVersions = async () => {
+  const handleFetchVersions = useCallback(async () => {
     setLoadingVersions(true);
+
     try {
-      const response = await axiosInstance.get(`/${company}/library/documents/${doc.id}/versions`);
+      const response = await axiosInstance.get(
+        `/${company}/library/documents/${doc.id}/versions`
+      );
+
       const fetchedVersions = response.data?.data?.versions || [];
       setVersionList(Array.isArray(fetchedVersions) ? fetchedVersions : []);
     } catch (error) {
@@ -51,7 +45,7 @@ export const DownloadDocumentDialog = ({ isOpen, onClose, doc, company }: Downlo
     } finally {
       setLoadingVersions(false);
     }
-  };
+  }, [company, doc?.id]);
 
   const handleFinalDownload = async () => {
     setIsProcessing(true);
@@ -77,6 +71,16 @@ export const DownloadDocumentDialog = ({ isOpen, onClose, doc, company }: Downlo
   };
 
   const availableVersions = useMemo(() => versionList, [versionList]);
+
+  useEffect(() => {
+    if (isOpen && doc?.id) {
+      handleFetchVersions();
+    } else {
+      setDownloadMode('document');
+      setSelectedVersionToDownload("");
+      setVersionList([]);
+    }
+  }, [isOpen, doc?.id, handleFetchVersions]);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>

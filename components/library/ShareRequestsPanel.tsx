@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import libraryService from '@/lib/libraryService';
 import { useAuth } from '@/contexts/AuthContext';
 import { X, Loader2, Send, CheckCircle2, XCircle, Clock, FileText, MessageSquare, Eye, Copy, Check, Share2, Info, CalendarDays, ShieldAlert, Download } from 'lucide-react';
@@ -40,8 +40,9 @@ export default function ShareRequestsPanel({ company, onClose, onRefresh }: Shar
     return !!(isSuperUser || isDirector);
   }, [user]);
 
-  const fetchRequests = async () => {
+  const fetchRequests = useCallback(async () => {
     setLoading(true);
+
     try {
       const res = await libraryService.getShareRequests(company);
       setRequests(Array.isArray(res) ? res : res.data || []);
@@ -50,11 +51,11 @@ export default function ShareRequestsPanel({ company, onClose, onRefresh }: Shar
     } finally {
       setLoading(false);
     }
-  };
+  }, [company]);
 
   useEffect(() => {
     fetchRequests();
-  }, [company]);
+  }, [company, fetchRequests]);
 
   const filteredRequests = useMemo(() => {
     if (activeTab === 'all') return requests;

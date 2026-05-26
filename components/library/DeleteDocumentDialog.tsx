@@ -5,6 +5,7 @@ import { Trash2, FileText, Layers, ChevronDown } from "lucide-react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import axiosInstance from "@/lib/axios";
 import { toast } from "sonner";
+import { useCallback } from "react";
 
 interface Version {
   id: number;
@@ -28,20 +29,14 @@ export const DeleteDocumentDialog = ({ isOpen, onClose, doc, company, onSuccess 
   const [loadingVersions, setLoadingVersions] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
 
-  useEffect(() => {
-    if (isOpen && doc?.id) {
-      handleFetchVersions();
-    } else {
-      setDeleteMode('document');
-      setSelectedVersionToDelete("");
-      setVersionList([]);
-    }
-  }, [isOpen, doc]);
-
-  const handleFetchVersions = async () => {
+  const handleFetchVersions = useCallback(async () => {
     setLoadingVersions(true);
+
     try {
-      const response = await axiosInstance.get(`/${company}/library/documents/${doc.id}/versions`);
+      const response = await axiosInstance.get(
+        `/${company}/library/documents/${doc.id}/versions`
+      );
+
       const fetchedVersions = response.data?.data?.versions || [];
       setVersionList(Array.isArray(fetchedVersions) ? fetchedVersions : []);
     } catch (error) {
@@ -51,7 +46,7 @@ export const DeleteDocumentDialog = ({ isOpen, onClose, doc, company, onSuccess 
     } finally {
       setLoadingVersions(false);
     }
-  };
+  }, [company, doc?.id]);
 
   const handleFinalDelete = async () => {
     setIsProcessing(true);
@@ -89,6 +84,16 @@ export const DeleteDocumentDialog = ({ isOpen, onClose, doc, company, onSuccess 
       return vNum !== 'v1.0' && vNum !== '1.0' && vNum !== '1';
     });
   }, [versionList]);
+
+  useEffect(() => {
+    if (isOpen && doc?.id) {
+      handleFetchVersions();
+    } else {
+      setDeleteMode('document');
+      setSelectedVersionToDelete("");
+      setVersionList([]);
+    }
+  }, [isOpen, doc?.id, handleFetchVersions]);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
