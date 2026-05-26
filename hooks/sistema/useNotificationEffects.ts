@@ -19,12 +19,13 @@ export function useNotificationEffects({
 }: Params) {
   const prevIdsRef = useRef<string[]>([]);
   const prevUnreadRef = useRef(0);
+  const isFirstLoadRef = useRef(true);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const baseTitleRef = useRef<string>('');
   const titleTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // init audio + base title
+  // init audio + base title (solo una vez)
   useEffect(() => {
     audioRef.current = new Audio('/sounds/notification.mp3');
     audioRef.current.volume = 0.5;
@@ -34,9 +35,7 @@ export function useNotificationEffects({
 
   const setBurstTitle = (count: number) => {
     const label =
-      count === 1
-        ? 'Nueva notificación'
-        : 'Nuevas notificaciones';
+      count === 1 ? 'Nueva notificación' : 'Nuevas notificaciones';
 
     document.title = `(${count}) ${label} - SIGEAC`;
 
@@ -55,14 +54,24 @@ export function useNotificationEffects({
   useEffect(() => {
     const currentIds = notifications?.map(n => n.id) ?? [];
 
-    const hasNew =
-      currentIds.some(id => !prevIdsRef.current.includes(id));
+    // 🔒 evitar disparo en hidratación o cambio de página
+    if (isFirstLoadRef.current) {
+      prevIdsRef.current = currentIds;
+      prevUnreadRef.current = unreadCount;
+      isFirstLoadRef.current = false;
+      return;
+    }
 
-    const unreadIncreased = unreadCount > prevUnreadRef.current;
+    // 🔍 detectar notificaciones realmente nuevas
+    const newIds = currentIds.filter(
+      id => !prevIdsRef.current.includes(id)
+    );
 
-    const shouldTrigger = hasNew && unreadIncreased;
+    const shouldTrigger =
+      newIds.length > 0 &&
+      unreadCount > prevUnreadRef.current;
 
-    // 🔊 sonido
+    // 🔊 sonido SOLO si hay nuevas reales
     if (shouldTrigger) {
       audioRef.current?.play().catch(err => {
         console.warn('Audio blocked:', err);
@@ -81,6 +90,7 @@ export function useNotificationEffects({
       }
     }
 
+    // 📌 actualizar referencias
     prevIdsRef.current = currentIds;
     prevUnreadRef.current = unreadCount;
   }, [notifications, unreadCount, open]);
