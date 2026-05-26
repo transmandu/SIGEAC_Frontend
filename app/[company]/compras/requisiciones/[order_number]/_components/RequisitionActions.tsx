@@ -92,7 +92,7 @@ export default function RequisitionActions({
       ? "Requisición ya aprobada"
       : isRejected
       ? "Requisición rechazada"
-      : "Generar / aprobar requisición"
+      : "Generar cotización"
 
   const rejectTooltip =
     isApproved
