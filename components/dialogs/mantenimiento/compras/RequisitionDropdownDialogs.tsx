@@ -4,11 +4,9 @@ import {
   useDeleteRequisition,
   useUpdateRequisitionStatus
 } from "@/actions/mantenimiento/compras/requisiciones/actions"
-
 import { useAuth } from "@/contexts/AuthContext"
 import { useCompanyStore } from "@/stores/CompanyStore"
 import { Requisition } from "@/types"
-
 import {
     AlertTriangle,
   ClipboardX,
@@ -16,13 +14,9 @@ import {
   Receipt,
   Trash2
 } from "lucide-react"
-
 import LoadingPage from "@/components/misc/LoadingPage"
-
 import { CreateQuoteForm } from "../../../forms/mantenimiento/compras/CreateQuoteForm"
-
 import { Button } from "@/components/ui/button"
-
 import {
   Dialog,
   DialogContent,
@@ -64,15 +58,14 @@ function transformApiData(apiData: any) {
 
 type Props = {
   req: Requisition
-
   openDelete: boolean
   setOpenDelete: (open: boolean) => void
-
   openConfirm: boolean
   setOpenConfirm: (open: boolean) => void
-
   openReject: boolean
   setOpenReject: (open: boolean) => void
+  onSuccessUpdate?: () => void
+  onSuccessDelete?: () => void
 }
 
 const dialogClass = `
@@ -88,15 +81,14 @@ const dialogClass = `
 
 const RequisitionDropdownDialogs = ({
   req,
-
   openDelete,
   setOpenDelete,
-
   openConfirm,
   setOpenConfirm,
-
   openReject,
-  setOpenReject
+  setOpenReject,
+  onSuccessUpdate,
+  onSuccessDelete
 }: Props) => {
   const { user } = useAuth()
 
@@ -121,6 +113,8 @@ const RequisitionDropdownDialogs = ({
     })
 
     setOpenDelete(false)
+
+    onSuccessDelete?.()
   }
 
   const handleReject = async (
@@ -140,6 +134,8 @@ const RequisitionDropdownDialogs = ({
 
     setObservation("")
     setOpenReject(false)
+
+    onSuccessUpdate?.()
   }
 
   return (
@@ -404,9 +400,10 @@ const RequisitionDropdownDialogs = ({
             <CreateQuoteForm
               req={req}
               initialData={initialData}
-              onClose={() =>
+              onClose={() => {
                 setOpenConfirm(false)
-              }
+                onSuccessUpdate?.()
+              }}
             />
           </div>
         </DialogContent>

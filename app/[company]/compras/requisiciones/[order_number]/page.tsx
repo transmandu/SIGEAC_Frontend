@@ -13,7 +13,7 @@ import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { CalendarDays, FileText, ImageIcon, MessageSquare, Plane, User, UserCheck, UserPlus } from 'lucide-react';
 import Image from 'next/image';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import { useEffect, useState, type ElementType } from 'react';
 import RequisitionActions from './_components/RequisitionActions';
 
@@ -90,10 +90,9 @@ function MetaItem({
 const RequisitionPage = () => {
   const [openImage, setOpenImage] = useState<string | null>(null);
   const { selectedCompany } = useCompanyStore();
-  const router = useRouter();
   const { order_number } = useParams<{ order_number: string }>();
 
-  const { data, isLoading } = useGetRequisitionByOrderNumber({
+  const { data, isLoading, refetch } = useGetRequisitionByOrderNumber({
     company: selectedCompany?.slug,
     order_number,
   });
@@ -172,12 +171,7 @@ const RequisitionPage = () => {
               {/* ACTIONS SOLO MOBILE (debajo del título) */}
               {data && (
                 <div className="flex md:hidden justify-center mt-3">
-                  <RequisitionActions
-                    req={data}
-                    onSuccessDelete={() =>
-                      router.push(`/${selectedCompany!.slug}/compras/requisiciones`)
-                    }
-                  />
+                  <RequisitionActions req={data} onSuccessUpdate={refetch}/>
                 </div>
               )}
 
@@ -186,12 +180,7 @@ const RequisitionPage = () => {
             {/* ACTIONS DESKTOP */}
             {data && (
               <div className="hidden md:flex items-center gap-1.5 shrink-0">
-                <RequisitionActions
-                  req={data}
-                  onSuccessDelete={() =>
-                    router.push(`/${selectedCompany!.slug}/compras/requisiciones`)
-                  }
-                />
+                <RequisitionActions req={data} onSuccessUpdate={refetch}/>
               </div>
             )}
 

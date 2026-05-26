@@ -1,7 +1,10 @@
 "use client"
 
 import { useState } from "react"
+import { useRouter } from "next/navigation"
+
 import { useAuth } from "@/contexts/AuthContext"
+import { useCompanyStore } from "@/stores/CompanyStore"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -11,9 +14,15 @@ import {
   TooltipTrigger
 } from "@/components/ui/tooltip"
 
-import { ClipboardX, FileDown, Receipt, Trash2 } from "lucide-react"
+import {
+  ClipboardX,
+  FileDown,
+  Receipt,
+  Trash2
+} from "lucide-react"
 
 import { PDFDownloadLink } from "@react-pdf/renderer"
+
 import RequisitionReportPdf from "@/components/pdf/almacen/RequisitionReportPdf"
 import RequisitionDropdownDialogs from "@/components/dialogs/mantenimiento/compras/RequisitionDropdownDialogs"
 
@@ -32,9 +41,11 @@ export interface RequisitionByOrderNumber {
   submitted_date?: Date
   aircraft?: any
   observation?: string
+
   batch: {
     id: number
     name: string
+
     batch_articles: {
       article_part_number: string
       article_alt_part_number?: string
@@ -47,7 +58,7 @@ export interface RequisitionByOrderNumber {
 
 type Props = {
   req: RequisitionByOrderNumber
-  onSuccessDelete?: () => void
+  onSuccessUpdate?: () => Promise<any>
 }
 
 const iconBase =
@@ -63,19 +74,28 @@ const toolbar =
   "bg-muted/30 border border-border/40 shadow-sm backdrop-blur-md " +
   "flex-wrap sm:flex-nowrap"
 
-const circleHover =
-  "before:absolute before:inset-0 before:rounded-full before:scale-0 before:transition-transform before:duration-200 hover:before:scale-100"
+export default function RequisitionActions({
+  req,
+  onSuccessUpdate
+}: Props) {
+  const router = useRouter()
 
-export default function RequisitionActions({ req }: Props) {
   const { user } = useAuth()
+
+  const { selectedCompany } = useCompanyStore()
 
   const [openDelete, setOpenDelete] = useState(false)
   const [openConfirm, setOpenConfirm] = useState(false)
   const [openReject, setOpenReject] = useState(false)
 
-  const userRoles = user?.roles?.map((r: any) => r.name) || []
+  const userRoles =
+    user?.roles?.map((r: any) => r.name) || []
 
-  const canAct = !(req.status === "APROBADO" || req.status === "RECHAZADO")
+  const canAct =
+    !(
+      req.status === "APROBADO" ||
+      req.status === "RECHAZADO"
+    )
 
   const quoteTooltip =
     req.status === "APROBADO"
@@ -90,6 +110,18 @@ export default function RequisitionActions({ req }: Props) {
       : req.status === "RECHAZADO"
       ? "Ya fue rechazada"
       : "Rechazar solicitud"
+
+  const handleSuccessUpdate = async () => {
+    await onSuccessUpdate?.()
+  }
+
+  const handleSuccessDelete = () => {
+    router.push(
+      `/${selectedCompany!.slug}/compras/requisiciones`
+    )
+
+    router.refresh()
+  }
 
   return (
     <TooltipProvider delayDuration={120}>
@@ -110,7 +142,10 @@ export default function RequisitionActions({ req }: Props) {
                 <Receipt className={iconBase} />
               </Button>
             </TooltipTrigger>
-            <TooltipContent>{quoteTooltip}</TooltipContent>
+
+            <TooltipContent>
+              {quoteTooltip}
+            </TooltipContent>
           </Tooltip>
         )}
 
@@ -126,7 +161,10 @@ export default function RequisitionActions({ req }: Props) {
               <ClipboardX className={iconBase} />
             </Button>
           </TooltipTrigger>
-          <TooltipContent>{rejectTooltip}</TooltipContent>
+
+          <TooltipContent>
+            {rejectTooltip}
+          </TooltipContent>
         </Tooltip>
 
         <Tooltip>
@@ -134,7 +172,11 @@ export default function RequisitionActions({ req }: Props) {
             <div>
               <PDFDownloadLink
                 fileName={`${req.order_number}.pdf`}
-                document={<RequisitionReportPdf requisition={req as any} />}
+                document={
+                  <RequisitionReportPdf
+                    requisition={req as any}
+                  />
+                }
               >
                 <Button
                   variant="ghost"
@@ -146,7 +188,10 @@ export default function RequisitionActions({ req }: Props) {
               </PDFDownloadLink>
             </div>
           </TooltipTrigger>
-          <TooltipContent>Descargar PDF</TooltipContent>
+
+          <TooltipContent>
+            Descargar PDF
+          </TooltipContent>
         </Tooltip>
 
         <Tooltip>
@@ -160,7 +205,10 @@ export default function RequisitionActions({ req }: Props) {
               <Trash2 className={iconBase} />
             </Button>
           </TooltipTrigger>
-          <TooltipContent>Eliminar solicitud</TooltipContent>
+
+          <TooltipContent>
+            Eliminar solicitud
+          </TooltipContent>
         </Tooltip>
 
         <RequisitionDropdownDialogs
@@ -171,6 +219,8 @@ export default function RequisitionActions({ req }: Props) {
           setOpenConfirm={setOpenConfirm}
           openReject={openReject}
           setOpenReject={setOpenReject}
+          onSuccessUpdate={handleSuccessUpdate}
+          onSuccessDelete={handleSuccessDelete}
         />
       </div>
     </TooltipProvider>
