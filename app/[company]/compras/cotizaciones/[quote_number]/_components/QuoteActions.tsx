@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation"
 import { useCompanyStore } from "@/stores/CompanyStore"
 import { Button } from "@/components/ui/button"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { ClipboardCheck, ClipboardX, Trash2, ExternalLink } from "lucide-react"
+import { ClipboardCheck, ClipboardX, Trash2, ExternalLink, FileDown } from "lucide-react"
 import QuoteDropdownDialogs from "@/components/dialogs/mantenimiento/compras/QuoteDropdownDialogs"
 import { Quote } from "@/types"
 import { useGetPurchaseOrderByQuoteId } from "@/hooks/mantenimiento/compras/useGetPurchaseOrderByQuoteId"
@@ -113,6 +113,28 @@ export default function QuoteActions({
             <TooltipContent>Rechazar cotización</TooltipContent>
           </Tooltip>
         )}
+        
+        {/* PDF DOWNLOAD (placeholder) */}
+        <Tooltip>
+        <TooltipTrigger asChild>
+            <span className="inline-flex">
+            <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => {
+                console.log("PDF download not implemented yet")
+                }}
+                className={`${itemBase} text-blue-600`}
+            >
+                <FileDown className={iconBase} />
+            </Button>
+            </span>
+        </TooltipTrigger>
+
+        <TooltipContent side="top">
+            ¡Próximamente!
+        </TooltipContent>
+        </Tooltip>
 
         {/* DELETE */}
         {canDelete && (
@@ -130,7 +152,7 @@ export default function QuoteActions({
             <TooltipContent>Eliminar cotización</TooltipContent>
           </Tooltip>
         )}
-
+        
         {/* PO LINK */}
         {isApproved && (
           <Tooltip>
