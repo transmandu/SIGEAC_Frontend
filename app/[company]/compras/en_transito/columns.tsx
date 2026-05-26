@@ -210,34 +210,64 @@ export const getColumns = (
   },
 
   {
-    accessorKey: 'reception_date', // si tu API lo manda así
-    size: 200,
+    accessorKey: 'status_date',
+    size: 220,
 
     header: ({ column }) => (
       <div className="flex justify-center w-full">
-        <DataTableColumnHeader column={column} title="Fecha de recepción" />
+        <DataTableColumnHeader column={column} title="Fecha de Movimiento" />
       </div>
     ),
 
     cell: ({ row }) => {
       const status = row.original.status?.toUpperCase()
-      const isReception = status === 'RECEPTION' || status === 'reception'
+      const isTransit = status === 'TRANSIT'
+      const isReception = status === 'RECEPTION'
 
-      if (!isReception) {
+      const date = isTransit
+        ? row.original.created_at
+        : isReception
+          ? row.original.reception_date
+          : null
+
+      const label = isTransit
+        ? 'ESTÁ EN TRÁNSITO'
+        : isReception
+          ? 'ESTÁ EN RECEPCIÓN'
+          : null
+
+      const formatDate = (value?: string | null) => {
+        if (!value) return null
+        return new Intl.DateTimeFormat('es-ES', {day: '2-digit', month: 'long', year: 'numeric',}).format(new Date(value)).toUpperCase()
+      }
+
+      if (!date) {
         return (
           <div className="flex justify-center w-full">
-            <span className="text-muted-foreground/40">—</span>
+            <span className="text-xs text-muted-foreground/40">
+              -
+            </span>
           </div>
         )
       }
 
-      const date = row.original['reception_date']
-
       return (
-        <div className="flex justify-center w-full">
-          <span className="text-sm text-slate-700 dark:text-slate-200">
-            {date ? new Date(date).toLocaleDateString() : 'Sin fecha'}
+        <div className="flex flex-col items-center justify-center w-full leading-tight">
+
+          <span className="text-[10px] text-muted-foreground/60">
+            DESDE EL
           </span>
+
+          <span className="text-sm font-medium">
+            {formatDate(date)}
+          </span>
+
+          {label && (
+            <span className="text-[10px] text-muted-foreground/60">
+              {label}
+            </span>
+          )}
+
         </div>
       )
     },
