@@ -2,7 +2,6 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { useAuth } from "@/contexts/AuthContext"
 import { useCompanyStore } from "@/stores/CompanyStore"
 import { Button } from "@/components/ui/button"
 import {
@@ -14,10 +13,14 @@ import {
 import {
   ClipboardCheck,
   ClipboardX,
-  Trash2
+  Trash2,
+  ExternalLink
 } from "lucide-react"
+
 import QuoteDropdownDialogs from "@/components/dialogs/mantenimiento/compras/QuoteDropdownDialogs"
 import { Quote } from "@/types"
+
+import { useGetPurchaseOrderByQuoteId } from "@/hooks/mantenimiento/compras/useGetPurchaseOrderByQuoteId"
 
 /* =========================
    STYLES
@@ -36,65 +39,51 @@ const toolbar =
   "bg-muted/30 border border-border/40 shadow-sm backdrop-blur-md " +
   "flex-wrap sm:flex-nowrap"
 
-/* =========================
-   TYPES
-========================= */
-
-type Props = {
-  quote: Quote
-  onSuccessUpdate?: () => Promise<any>
-}
-
-/* =========================
-   COMPONENT
-========================= */
-
 export default function QuoteActions({
   quote,
   onSuccessUpdate
-}: Props) {
+}: {
+  quote: Quote
+  onSuccessUpdate?: () => Promise<any>
+}) {
   const router = useRouter()
-  const { user } = useAuth()
   const { selectedCompany } = useCompanyStore()
 
   const [openApprove, setOpenApprove] = useState(false)
   const [openReject, setOpenReject] = useState(false)
   const [openDelete, setOpenDelete] = useState(false)
 
-  const userRoles =
-    user?.roles?.map((r: any) => r.name) || []
+  const status = quote.status
 
-  const isFinalState =
-    quote.status === "APROBADO" ||
-    quote.status === "RECHAZADA"
+  const isApproved = status === "APROBADO"
+  const isRejected = status === "RECHAZADA"
+  const isPending = status === "PENDIENTE"
 
-  const canAct = !isFinalState
+  const canAct = isPending
+  const canDelete = !isApproved
 
-  const canDelete = quote.status === "PENDIENTE"
+  /* =========================
+     FETCH CONTROLADO
+  ========================= */
 
-  const approveTooltip =
-    quote.status === "APROBADO"
-      ? "Ya está aprobada"
-      : quote.status === "RECHAZADA"
-      ? "No se puede aprobar una cotización rechazada"
-      : "Aprobar cotización"
+  const shouldFetchPO =
+    isApproved && !!selectedCompany?.slug && !!quote.id
 
-  const rejectTooltip =
-    quote.status === "APROBADO"
-      ? "Ya está aprobada"
-      : quote.status === "RECHAZADA"
-      ? "Ya fue rechazada"
-      : "Rechazar cotización"
+  const {
+    data: purchaseOrder,
+    isFetching
+  } = useGetPurchaseOrderByQuoteId({
+    company: selectedCompany?.slug,
+    quoteId: quote.id,
+    enabled: shouldFetchPO
+  })
 
-  const handleSuccessUpdate = async () => {
-    await onSuccessUpdate?.()
-  }
+  const handleGoToPO = () => {
+    if (!purchaseOrder?.order_number || !selectedCompany) return
 
-  const handleSuccessDelete = () => {
     router.push(
-      `/${selectedCompany!.slug}/compras/cotizaciones`
+      `/${selectedCompany.slug}/compras/ordenes_compra/${purchaseOrder.order_number}`
     )
-    router.refresh()
   }
 
   if (!selectedCompany) return null
@@ -103,49 +92,41 @@ export default function QuoteActions({
     <TooltipProvider delayDuration={120}>
       <div className={toolbar}>
 
-        {/* =========================
-            APPROVE
-        ========================= */}
-        {userRoles.includes("ANALISTA_COMPRAS") ||
-        userRoles.includes("JEFE_COMPRAS") ||
-        userRoles.includes("SUPERUSER") ? (
+        {/* APPROVE */}
+        {canAct && (
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
                 variant="ghost"
                 size="icon"
-                disabled={!canAct}
                 onClick={() => setOpenApprove(true)}
                 className={`${itemBase} text-emerald-600`}
               >
                 <ClipboardCheck className={iconBase} />
               </Button>
             </TooltipTrigger>
-            <TooltipContent>{approveTooltip}</TooltipContent>
+            <TooltipContent>Aprobar cotización</TooltipContent>
           </Tooltip>
-        ) : null}
+        )}
 
-        {/* =========================
-            REJECT
-        ========================= */}
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              disabled={!canAct}
-              onClick={() => setOpenReject(true)}
-              className={`${itemBase} text-orange-600`}
-            >
-              <ClipboardX className={iconBase} />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>{rejectTooltip}</TooltipContent>
-        </Tooltip>
+        {/* REJECT */}
+        {canAct && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setOpenReject(true)}
+                className={`${itemBase} text-orange-600`}
+              >
+                <ClipboardX className={iconBase} />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Rechazar cotización</TooltipContent>
+          </Tooltip>
+        )}
 
-        {/* =========================
-            DELETE
-        ========================= */}
+        {/* DELETE */}
         {canDelete && (
           <Tooltip>
             <TooltipTrigger asChild>
@@ -158,16 +139,36 @@ export default function QuoteActions({
                 <Trash2 className={iconBase} />
               </Button>
             </TooltipTrigger>
+            <TooltipContent>Eliminar cotización</TooltipContent>
+          </Tooltip>
+        )}
+
+        {/* PO LINK */}
+        {isApproved && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                disabled={!purchaseOrder?.order_number}
+                onClick={handleGoToPO}
+                className={`${itemBase} text-blue-600`}
+              >
+                <ExternalLink className={iconBase} />
+              </Button>
+            </TooltipTrigger>
 
             <TooltipContent>
-              Eliminar cotización
+              {isFetching
+                ? "Cargando..."
+                : purchaseOrder?.order_number
+                ? "Ver orden de compra"
+                : "No existe orden de compra"}
             </TooltipContent>
           </Tooltip>
         )}
 
-        {/* =========================
-            DIALOGS
-        ========================= */}
+        {/* DIALOGS */}
         <QuoteDropdownDialogs
           quote={quote}
           openApprove={openApprove}
@@ -176,8 +177,11 @@ export default function QuoteActions({
           setOpenReject={setOpenReject}
           openDelete={openDelete}
           setOpenDelete={setOpenDelete}
-          onSuccessUpdate={handleSuccessUpdate}
-          onSuccessDelete={handleSuccessDelete}
+          onSuccessUpdate={onSuccessUpdate}
+          onSuccessDelete={() => {
+            router.push(`/${selectedCompany.slug}/compras/cotizaciones`)
+            router.refresh()
+          }}
         />
 
       </div>
