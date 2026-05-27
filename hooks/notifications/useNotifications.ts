@@ -15,26 +15,34 @@ export const useNotifications = (company?: string) => {
     enabled: !!normalizedCompany,
 
     /**
-     * Mantiene datos "frescos" poco tiempo
-     * para que React Query no se quede pegado demasiado
+     * Mantener cache viva bastante tiempo
      */
-    staleTime: 1000 * 10, // 10s
+    staleTime: 1000 * 60 * 5, // 5 min
 
     /**
-     * 🔥 CLAVE: polling ligero (fallback real-time sin WebSockets)
-     * 15–20s es un estándar razonable
+     * Mantener en memoria
      */
-    refetchInterval: 15000,
+    gcTime: 1000 * 60 * 30, // 30 min
 
     /**
-     * Refetch cuando el usuario vuelve a la pestaña
+     * ❌ NO polling constante
+     */
+    refetchInterval: false,
+
+    /**
+     * Solo refresca cuando vuelves a la pestaña
      */
     refetchOnWindowFocus: true,
 
     /**
-     * Evita refetch agresivo en reconexiones si no quieres ruido
+     * Refetch al reconectarse internet
      */
     refetchOnReconnect: true,
+
+    /**
+     * Evita refetch innecesario al montar
+     */
+    refetchOnMount: false,
   });
 
   const notifications = query.data ?? [];
@@ -47,7 +55,7 @@ export const useNotifications = (company?: string) => {
   const latestNotification = notifications[0] ?? null;
 
   /**
-   * 🔥 Acción manual optimizada (dropdown open, bell click, etc.)
+   * Manual refresh
    */
   const refetchOnOpen = useCallback(() => {
     if (!normalizedCompany) return;
@@ -58,8 +66,7 @@ export const useNotifications = (company?: string) => {
   }, [queryClient, normalizedCompany]);
 
   /**
-   * 🔥 helper global (lo usarás desde mutations)
-   * esto es lo que realmente soluciona tu problema de "no actualiza"
+   * Global invalidation
    */
   const invalidateNotifications = useCallback(() => {
     queryClient.invalidateQueries({
