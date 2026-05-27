@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Plane } from "lucide-react";
+import { Plane, PlaneTakeoff } from "lucide-react";
 
 import { useAuth } from "@/contexts/AuthContext";
 import { useGetUserLocationsByCompanyId } from "@/hooks/sistema/usuario/useGetUserLocationsByCompanyId";
@@ -12,6 +12,7 @@ import CompanySelect from "@/components/selects/CompanySelect";
 
 const CompanyBootstrap = () => {
   const router = useRouter();
+
   const navigatingRef = useRef(false);
   const resolvedRef = useRef(false);
   const companyAutoSelectedRef = useRef(false);
@@ -33,9 +34,6 @@ const CompanyBootstrap = () => {
 
   const [hydrated, setHydrated] = useState(false);
 
-  /**
-   * HYDRATION SEGURA
-   */
   useEffect(() => {
     const unsub = useCompanyStore.persist.onFinishHydration(() =>
       setHydrated(true)
@@ -48,16 +46,10 @@ const CompanyBootstrap = () => {
     return () => unsub();
   }, []);
 
-  /**
-   * BOOTSTRAP
-   */
   useEffect(() => {
     if (!hydrated || userLoading || !user) return;
     if (navigatingRef.current || resolvedRef.current) return;
 
-    /**
-     * HISTORIAL (local dentro del effect para evitar deps)
-     */
     const getHistory = () => {
       if (typeof window === "undefined") return {};
 
@@ -87,9 +79,6 @@ const CompanyBootstrap = () => {
     };
 
     const bootstrap = async () => {
-      /**
-       * CASO 1: sesión restaurada válida
-       */
       if (selectedCompany && selectedStation) {
         const companyExists = user.companies?.some(
           (c) => c.id === selectedCompany.id
@@ -127,9 +116,6 @@ const CompanyBootstrap = () => {
         }
       }
 
-      /**
-       * CASO 2: auto-select company única
-       */
       if (!selectedCompany) {
         if (
           user.companies?.length === 1 &&
@@ -138,32 +124,22 @@ const CompanyBootstrap = () => {
           companyAutoSelectedRef.current = true;
           setSelectedCompany(user.companies[0]);
         }
+
         return;
       }
 
       const company = selectedCompany;
-
-      const companyExists = user.companies?.some(
-        (c) => c.id === company.id
-      );
-
-      if (!companyExists) {
-        reset();
-        return;
-      }
 
       try {
         const locations = await getLocations(company.id);
 
         if (!locations?.length) return;
 
-        /**
-         * CASO A: solo 1 estación
-         */
         if (locations.length === 1) {
           const station = locations[0].id.toString();
 
           setSelectedStation(station);
+
           saveHistory(company.id, station);
 
           navigatingRef.current = true;
@@ -172,9 +148,6 @@ const CompanyBootstrap = () => {
           return;
         }
 
-        /**
-         * CASO B: múltiples estaciones → esperar selección manual
-         */
         resolvedRef.current = true;
       } catch (error) {
         console.error(error);
@@ -195,15 +168,16 @@ const CompanyBootstrap = () => {
     router,
   ]);
 
-  /**
-   * LOADING
-   */
-  if (
+  const isLoading =
     !hydrated ||
     userLoading ||
     locationsLoading ||
-    navigatingRef.current
-  ) {
+    navigatingRef.current;
+
+  /**
+   * LOADING SCREEN COMPLETA
+   */
+  if (isLoading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen w-full bg-background">
         <div className="relative flex flex-col items-center gap-4">
@@ -216,6 +190,7 @@ const CompanyBootstrap = () => {
             <p className="text-sm font-medium text-foreground">
               Preparando tu entorno
             </p>
+
             <p className="text-sm text-muted-foreground">
               Cargando configuración del sistema...
             </p>
@@ -229,7 +204,29 @@ const CompanyBootstrap = () => {
     );
   }
 
-  return <CompanySelect />;
+  /**
+   * PANTALLA REAL
+   */
+  return (
+    <div className="flex justify-end min-h-screen w-full">
+      <div className="flex justify-center items-center max-w-sm mx-auto">
+        <div className="flex flex-col items-center justify-center gap-2">
+          <PlaneTakeoff className="size-32" />
+
+          <h1 className="text-6xl font-bold text-center">
+            ¡Bienvenido a SIGEAC!
+          </h1>
+
+          <p className="text-muted-foreground text-center">
+            Por favor, seleccione una <strong>empresa</strong> y una{" "}
+            <strong>estación</strong> para comenzar.
+          </p>
+
+          <CompanySelect />
+        </div>
+      </div>
+    </div>
+  );
 };
 
 export default CompanyBootstrap;
