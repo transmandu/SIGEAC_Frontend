@@ -195,14 +195,14 @@ export const getColumns = (
     size: 240,
 
     header: ({ column }) => (
-      <div className="flex justify-center w-full">
+      <div className="flex justify-center items-center w-full text-center">
         <DataTableColumnHeader column={column} title="Descripción" />
       </div>
     ),
 
     cell: ({ row }) => (
-      <div className="flex justify-center w-full">
-        <span className="text-sm font-medium text-slate-800 dark:text-slate-200">
+      <div className="flex items-center justify-center w-full text-center px-2">
+        <span className="block w-full text-sm font-medium text-slate-800 dark:text-slate-200 break-words">
           {row.original.batch?.name ?? 'Sin descripción'}
         </span>
       </div>
@@ -238,7 +238,15 @@ export const getColumns = (
 
       const formatDate = (value?: string | null) => {
         if (!value) return null
-        return new Intl.DateTimeFormat('es-ES', {day: '2-digit', month: 'long', year: 'numeric',}).format(new Date(value)).toUpperCase()
+
+        const [year, month, day] = value.split('-').map(Number)
+        const safeDate = new Date(year, month - 1, day)
+
+        return new Intl.DateTimeFormat('es-ES', {
+          day: '2-digit',
+          month: 'long',
+          year: 'numeric',
+        }).format(safeDate).toUpperCase()
       }
 
       if (!date) {
