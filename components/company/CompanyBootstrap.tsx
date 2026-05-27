@@ -210,7 +210,7 @@ const CompanyBootstrap = () => {
   return (
     <div className="flex justify-end min-h-screen w-full">
       <div className="flex justify-center items-center max-w-sm mx-auto">
-        <div className="flex flex-col items-center justify-center gap-2">
+        <div className="flex flex-col items-center justify-center gap-2 -translate-y-14">
           <PlaneTakeoff className="size-32" />
 
           <h1 className="text-6xl font-bold text-center">
