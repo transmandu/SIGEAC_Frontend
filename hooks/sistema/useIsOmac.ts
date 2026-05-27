@@ -4,7 +4,7 @@ import axios from '@/lib/axios';
 
 const fetchIsOmac = async (company: string): Promise<boolean> => {
     const response = await axios.get(`/${company}/is-omac`);
-    return !!response.data.isOmac;
+    return !!response.data.isOMAC;
 };
 
 

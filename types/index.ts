@@ -215,7 +215,7 @@ export type Company = {
     cod_iata: string;
     cod_oaci: string;
     acronym: string;
-    isOmac: boolean;
+    isOMAC: boolean;
     logo: string | null;
     modules: Module[];
     created_at: string;
