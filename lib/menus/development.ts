@@ -9,6 +9,7 @@ export function buildDevelopmentGroup({
     return {
         groupLabel: "Desarrollo",
         moduleValue: "development",
+        requiresNonOmac: true,
         menus: [
             {
                 href: `/${currentCompany?.slug}/desarrollo`,

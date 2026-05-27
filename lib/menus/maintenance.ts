@@ -5,6 +5,7 @@ export function buildMaintenanceGroup({ pathname, currentCompany }: MenuContext)
     return {
         groupLabel: "Mantenimiento",
         moduleValue: "maintenance",
+        requiresOmac: true,
         menus: [
             {
                 href: `/${currentCompany?.slug}/mantenimiento/servicios`,

@@ -8,6 +8,7 @@ export function buildPlanificationGroup({
     return {
         groupLabel: "Planificación",
         moduleValue: "planification",
+        requiresOmac: true,
         menus: [
             {
                 href: `/${currentCompany?.slug}/planificacion/calendario`,

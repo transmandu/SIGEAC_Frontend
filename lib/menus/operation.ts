@@ -5,6 +5,7 @@ export function buildOperationGroup({ pathname, currentCompany }: MenuContext): 
     return {
         groupLabel: "Operaciones",
         moduleValue: "operation",
+        requiresNonOmac: true,
         menus: [
             {
                 href: `/${currentCompany?.slug}/operaciones/cargo`,
