@@ -6,7 +6,7 @@ import { useParams } from "next/navigation";
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
-import { Plus, Search, FolderOpen, Loader2, History, FolderPlus, Send, BarChart } from "lucide-react";
+import { Plus, Search, FolderOpen, Loader2, History, FolderPlus, Send, BarChart, SlidersHorizontal, X, Filter } from "lucide-react";
 
 import DocumentTable from "./DocumentTable";
 import UploadModal from "./UploadModal";
@@ -29,6 +29,26 @@ const BibliotecaPage = () => {
 
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState<string>("");
+  const [selectedStatus, setSelectedStatus] = useState<string>("");
+  const [categoriesList, setCategoriesList] = useState<{ id: number; name: string }[]>([]);
+  const [showFilters, setShowFilters] = useState(false);
+
+  const popoverRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (popoverRef.current && !popoverRef.current.contains(event.target as Node)) {
+        setShowFilters(false);
+      }
+    };
+    if (showFilters) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [showFilters]);
 
   const [departments, setDepartments] = useState<{ id: number; name: string }[]>([]);
   const [departmentFolders, setDepartmentFolders] = useState<DepartmentFolderGroup[]>([]);
@@ -102,6 +122,26 @@ const BibliotecaPage = () => {
     return groupedDocuments[selectedDeptName] as Document[];
   }, [selectedDeptName, groupedDocuments]);
 
+  const categoriesToDisplay = useMemo(() => {
+    if (categoriesList && categoriesList.length > 0) {
+      return categoriesList;
+    }
+    // Fallback dinámico: Extraer categorías directamente de los documentos reales cargados
+    const uniqueNames = new Set<string>();
+    Object.values(groupedDocuments).forEach((docs: any) => {
+      if (Array.isArray(docs)) {
+        docs.forEach((d: any) => {
+          const name = d.category_name || d.category?.name;
+          if (name) uniqueNames.add(name);
+        });
+      }
+    });
+    return Array.from(uniqueNames).sort().map((name, index) => ({
+      id: index,
+      name: name
+    }));
+  }, [categoriesList, groupedDocuments]);
+
   const filteredDocs = useMemo(() => {
     let docs = currentDeptDocs;
 
@@ -117,8 +157,22 @@ const BibliotecaPage = () => {
       );
     }
 
+    if (selectedCategory) {
+      docs = docs.filter(d => {
+        const catName = d.category_name || (d as any).category?.name;
+        return catName?.toLowerCase() === selectedCategory.toLowerCase();
+      });
+    }
+
+    if (selectedStatus) {
+      docs = docs.filter(d => {
+        const statusValue = (d as any).expiry_status || d.status;
+        return statusValue?.toLowerCase() === selectedStatus.toLowerCase();
+      });
+    }
+
     return docs;
-  }, [currentDeptDocs, selectedFolderPath, searchTerm]);
+  }, [currentDeptDocs, selectedFolderPath, searchTerm, selectedCategory, selectedStatus]);
 
   const fetchDocs = useCallback(async () => {
     try {
@@ -146,6 +200,15 @@ const BibliotecaPage = () => {
     }
   }, [companySlug, isSuperUser, userDeptId, isDipDirector]);
 
+  const fetchCategories = useCallback(async () => {
+    try {
+      const response = await axiosInstance.get(`/${companySlug}/library/categories-list`);
+      setCategoriesList(response.data || []);
+    } catch (error) {
+      console.error("Error al cargar categorías:", error);
+    }
+  }, [companySlug]);
+
   const refreshPendingCount = useCallback(async () => {
     try {
       const res = await libraryService.getShareRequests(companySlug, { status: 'pending' });
@@ -161,10 +224,11 @@ const BibliotecaPage = () => {
     await Promise.all([
       fetchDocs(),
       fetchDepartments(),
+      fetchCategories(),
     ]);
     refreshPendingCount();
     setLoading(false);
-  }, [fetchDocs, fetchDepartments, refreshPendingCount]);
+  }, [fetchDocs, fetchDepartments, fetchCategories, refreshPendingCount]);
 
   const deptFoldersRef = useRef(departmentFolders);
   deptFoldersRef.current = departmentFolders;
@@ -365,18 +429,87 @@ const BibliotecaPage = () => {
                 )}
               </div>
 
-              {/* BUSCADOR */}
-              <div className="flex items-center w-full sm:w-80 bg-white dark:bg-[#111214] border border-slate-300 dark:border-slate-800 rounded-xl shadow-sm focus-within:ring-2 focus-within:ring-blue-500/20 focus-within:border-blue-500 transition-all overflow-hidden h-10">
-                <div className="pl-4">
-                  <Search className="h-4 w-4 text-slate-400" />
+              {/* BUSCADOR CON POPOVER DE FILTROS */}
+              <div className="relative flex items-center w-full sm:w-80" ref={popoverRef}>
+                <div className="flex items-center w-full bg-white dark:bg-[#111214] border border-slate-300 dark:border-slate-800 rounded-xl shadow-sm focus-within:ring-2 focus-within:ring-blue-500/20 focus-within:border-blue-500 transition-all overflow-hidden h-10">
+                  <div className="pl-4">
+                    <Search className="h-4 w-4 text-slate-400" />
+                  </div>
+                  <input
+                    type="text"
+                    placeholder="BUSCAR DOCUMENTO..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="flex-1 bg-transparent border-none outline-none px-3 text-[10px] font-bold tracking-widest text-slate-700 dark:text-white placeholder:text-slate-300 uppercase"
+                  />
+                  {/* Botón de filtro con indicador */}
+                  <button
+                    type="button"
+                    onClick={() => setShowFilters(!showFilters)}
+                    className={`flex items-center justify-center h-full px-3.5 border-l border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-900 transition-all text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 relative ${
+                      selectedCategory || selectedStatus ? "text-blue-600 dark:text-blue-400 bg-blue-50/50 dark:bg-blue-900/10" : ""
+                    }`}
+                    title="Filtros avanzados"
+                  >
+                    <SlidersHorizontal className="h-4 w-4" />
+                    {(selectedCategory || selectedStatus) && (
+                      <span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-blue-600 dark:bg-blue-400 animate-pulse" />
+                    )}
+                  </button>
                 </div>
-                <input
-                  type="text"
-                  placeholder="BUSCAR DOCUMENTO..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="flex-1 bg-transparent border-none outline-none px-3 text-[10px] font-bold tracking-widest text-slate-700 dark:text-white placeholder:text-slate-300 uppercase"
-                />
+
+                {/* POPOVER DE FILTROS */}
+                {showFilters && (
+                  <div className="absolute right-0 top-12 z-50 w-72 p-5 bg-white dark:bg-[#1a1c1e] border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl animate-in fade-in slide-in-from-top-2 duration-200">
+                    <div className="flex items-center justify-between mb-4 pb-2 border-b border-slate-100 dark:border-slate-800">
+                      <span className="text-[11px] font-black uppercase tracking-wider text-slate-855 dark:text-white">Filtros</span>
+                      {(selectedCategory || selectedStatus || searchTerm) && (
+                        <button
+                          onClick={() => {
+                            setSelectedCategory("");
+                            setSelectedStatus("");
+                            setSearchTerm("");
+                          }}
+                          className="text-[9px] font-extrabold text-red-500 hover:text-red-600 uppercase tracking-widest transition-colors"
+                        >
+                          Limpiar todo
+                        </button>
+                      )}
+                    </div>
+
+                    <div className="space-y-4">
+                      {/* Categoría Selector */}
+                      <div className="space-y-1.5">
+                        <label className="text-[9px] font-extrabold uppercase tracking-widest text-slate-400 dark:text-slate-500">Categoría</label>
+                        <select
+                          value={selectedCategory}
+                          onChange={(e) => setSelectedCategory(e.target.value)}
+                          className="w-full h-9 px-3 border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-[#111214] text-slate-700 dark:text-white text-[10px] font-bold tracking-wider uppercase focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all cursor-pointer"
+                        >
+                          <option value="">TODAS LAS CATEGORÍAS</option>
+                          {categoriesToDisplay.map(cat => (
+                            <option key={cat.id} value={cat.name}>{cat.name}</option>
+                          ))}
+                        </select>
+                      </div>
+
+                      {/* Estado Selector */}
+                      <div className="space-y-1.5">
+                        <label className="text-[9px] font-extrabold uppercase tracking-widest text-slate-400 dark:text-slate-500">Estado</label>
+                        <select
+                          value={selectedStatus}
+                          onChange={(e) => setSelectedStatus(e.target.value)}
+                          className="w-full h-9 px-3 border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-[#111214] text-slate-700 dark:text-white text-[10px] font-bold tracking-wider uppercase focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all cursor-pointer"
+                        >
+                          <option value="">TODOS LOS ESTADOS</option>
+                          <option value="vigente">VIGENTE</option>
+                          <option value="vencido">VENCIDO</option>
+                          <option value="no_aplica">NO APLICA</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 
