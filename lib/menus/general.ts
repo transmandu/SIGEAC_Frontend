@@ -166,7 +166,7 @@ export function buildGeneralGroup({ pathname, currentCompany }: MenuContext): Gr
                 icon: BookCheck,
                 roles: [],
                 submenus: [],
-                requiresOmac: true,
+                requiresNonOmac: true,
             }
         ],
     };

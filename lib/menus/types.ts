@@ -8,6 +8,7 @@ export type Submenu = {
     roles?: string[];
     moduleValue?: string;
     requiresOmac?: boolean;
+    requiresNonOmac?: boolean;
 };
 
 export type Menu = {
@@ -19,6 +20,7 @@ export type Menu = {
     moduleValue?: string;
     submenus: Submenu[];
     requiresOmac?: boolean;
+    requiresNonOmac?: boolean;
 };
 
 export type Group = {
