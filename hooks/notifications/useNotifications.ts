@@ -2,14 +2,10 @@ import {
   useQuery,
   useQueryClient,
 } from '@tanstack/react-query'
-
 import {
-  useCallback,
   useEffect,
 } from 'react'
-
 import { fetchNotifications } from './fetchNotifications'
-
 import echo from '@/lib/echo'
 
 export const useNotifications = (
@@ -20,68 +16,28 @@ export const useNotifications = (
 
   const normalizedCompany = company ?? ''
 
-  /**
-   * React Query
-   */
   const query = useQuery({
     queryKey: ['notifications', normalizedCompany],
-
     queryFn: () =>
       fetchNotifications(normalizedCompany),
-
     enabled: !!normalizedCompany,
-
-    /**
-     * Cache fresca
-     */
-    staleTime: 1000 * 60 * 5,
-
-    /**
-     * Tiempo en memoria
-     */
+    staleTime: Infinity,
     gcTime: 1000 * 60 * 30,
-
-    /**
-     * ❌ Ya NO usamos polling
-     */
-    refetchInterval: false,
-
-    /**
-     * Refetch al volver a pestaña
-     */
-    refetchOnWindowFocus: true,
-
-    /**
-     * Refetch si vuelve internet
-     */
-    refetchOnReconnect: true,
-
-    /**
-     * Evita fetch agresivo al montar
-     */
-    refetchOnMount: false,
   })
 
-  /**
-   * Reverb realtime
-   */
   useEffect(() => {
     if (!echo || !userId) return
-
     const echoInstance = echo
-
     const channel = echoInstance.private(
       `users.${userId}`
     )
 
     channel.listen(
       '.notification.created',
-      (event: any) => {
+      () => {
         console.log(
-          'Nueva notificación:',
-          event
+          'Nueva notificación'
         )
-
         queryClient.invalidateQueries({
           queryKey: [
             'notifications',
@@ -112,36 +68,10 @@ export const useNotifications = (
   const latestNotification =
     notifications[0] ?? null
 
-  /**
-   * Refetch manual
-   */
-  const refetchOnOpen = useCallback(() => {
-    if (!normalizedCompany) return
-
-    queryClient.invalidateQueries({
-      queryKey: [
-        'notifications',
-        normalizedCompany,
-      ],
-    })
-  }, [queryClient, normalizedCompany])
-
-  /**
-   * Invalidate global
-   */
-  const invalidateNotifications =
-    useCallback(() => {
-      queryClient.invalidateQueries({
-        queryKey: ['notifications'],
-      })
-    }, [queryClient])
-
   return {
     ...query,
     notifications,
     unreadCount,
     latestNotification,
-    refetchOnOpen,
-    invalidateNotifications,
   }
 }
