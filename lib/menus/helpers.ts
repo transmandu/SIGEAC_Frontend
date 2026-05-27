@@ -27,6 +27,16 @@ export function filterMenuGroups(
         return currentCompany.modules.some((module) => module.value === moduleValue);
     };
 
+
+    const hasGroupOmacAccess = (group: Group) => {
+        const isOmac = currentCompany?.isOMAC ?? false;
+
+        if (group.requiresOmac) return isOmac;
+        if (group.requiresNonOmac) return !isOmac;
+
+        return true;
+    };
+
     const hasOmacAccess = (item: {
         requiresOmac?: boolean;
         requiresNonOmac?: boolean;
@@ -41,7 +51,7 @@ export function filterMenuGroups(
     };
 
     return groups
-        .filter((group) => isModuleActive(group.moduleValue))
+        .filter((group) => isModuleActive(group.moduleValue) && hasGroupOmacAccess(group))
         .map((group) => {
             const filteredMenus = group.menus.filter(
                 (menu) =>

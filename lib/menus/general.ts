@@ -4,7 +4,6 @@ import {
     ClipboardList,
     PackageSearch,
     Presentation,
-    ScrollText,
     ShieldCheck,
     Truck,
     BookCheck,
