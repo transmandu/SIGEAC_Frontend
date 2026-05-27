@@ -159,18 +159,15 @@ export function buildGeneralGroup({ pathname, currentCompany }: MenuContext): Gr
                 submenus: [],
             },
 
-            ...(currentCompany?.slug === "transmandu"
-                ? [
-                    {
-                        href: `/${currentCompany?.slug}/general/biblioteca`,
-                        label: "Biblioteca Digital",
-                        active: pathname.includes(`/${currentCompany?.slug}/general/biblioteca`),
-                        icon: BookCheck,
-                        roles: [],
-                        submenus: [],
-                    },
-                ]
-                : []),
+            {
+                href: `/${currentCompany?.slug}/general/biblioteca`,
+                label: "Biblioteca Digital",
+                active: pathname.includes(`/${currentCompany?.slug}/general/biblioteca`),
+                icon: BookCheck,
+                roles: [],
+                submenus: [],
+                requiresOmac: true,
+            }
         ],
     };
 }

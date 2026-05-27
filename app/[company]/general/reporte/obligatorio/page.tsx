@@ -9,7 +9,7 @@ const CreateObligatoryReport = () => {
 
     const { selectedCompany } = useCompanyStore();
 
-    const Component = selectedCompany?.isOmac ? CreateGenObliReport : CreateObligatoryReportForm;
+    const Component = selectedCompany?.isOMAC ? CreateGenObliReport : CreateObligatoryReportForm;
     return (
         <ContentLayout title="Creacion de Reporte Obligatorio">
             <div className="flex flex-col justify-center items-center">

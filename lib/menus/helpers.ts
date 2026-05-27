@@ -27,10 +27,12 @@ export function filterMenuGroups(
         return currentCompany.modules.some((module) => module.value === moduleValue);
     };
 
-    const hasOmacAccess: (item: { requiresOmac?: boolean }) => boolean = (item) => {
-        if (item.requiresOmac === undefined) return true;
-        const companyIsOmac = currentCompany?.isOmac ?? (currentCompany as any)?.isOmac;
-        return item.requiresOmac === companyIsOmac;
+    const hasOmacAccess = (item: { requiresOmac?: boolean }) => {
+        const isOMAC = currentCompany?.isOMAC ?? false;
+
+        if (!item.requiresOmac) return true;
+
+        return isOMAC === true;
     };
 
     return groups

@@ -8,7 +8,7 @@ import { useCompanyStore } from "@/stores/CompanyStore";
 const CreateVoluntaryReport = () => {
     const { selectedCompany } = useCompanyStore();
 
-    const Component = selectedCompany?.isOmac ? CreateGenVolReport : CreateVoluntaryReportForm;
+    const Component = selectedCompany?.isOMAC ? CreateGenVolReport : CreateVoluntaryReportForm;
     return (
         <ContentLayout title="Creación de Reporte Voluntario">
             <div className="flex flex-col justify-center items-center">
