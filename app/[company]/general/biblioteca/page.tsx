@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback, useMemo, useRef } from "react";
-import useLibraryNotifications from "@/hooks/useLibraryNotifications";
+import useLibraryNotifications from "@/hooks/notifications/useLibraryNotifications";
 import { useParams } from "next/navigation";
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import { Button } from "@/components/ui/button";

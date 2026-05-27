@@ -1,78 +1,140 @@
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useCallback } from 'react';
-import { fetchNotifications } from './fetchNotifications';
+import {
+  useQuery,
+  useQueryClient,
+} from '@tanstack/react-query'
 
-export const useNotifications = (company?: string) => {
-  const queryClient = useQueryClient();
+import {
+  useCallback,
+  useEffect,
+} from 'react'
 
-  const normalizedCompany = company ?? '';
+import { fetchNotifications } from './fetchNotifications'
 
+import echo from '@/lib/echo'
+
+export const useNotifications = (
+  company?: string,
+  userId?: number
+) => {
+  const queryClient = useQueryClient()
+
+  const normalizedCompany = company ?? ''
+
+  /**
+   * React Query
+   */
   const query = useQuery({
     queryKey: ['notifications', normalizedCompany],
 
-    queryFn: () => fetchNotifications(normalizedCompany),
+    queryFn: () =>
+      fetchNotifications(normalizedCompany),
 
     enabled: !!normalizedCompany,
 
     /**
-     * Mantener cache viva bastante tiempo
+     * Cache fresca
      */
-    staleTime: 1000 * 60 * 5, // 5 min
+    staleTime: 1000 * 60 * 5,
 
     /**
-     * Mantener en memoria
+     * Tiempo en memoria
      */
-    gcTime: 1000 * 60 * 30, // 30 min
+    gcTime: 1000 * 60 * 30,
 
     /**
-     * ❌ NO polling constante
+     * ❌ Ya NO usamos polling
      */
     refetchInterval: false,
 
     /**
-     * Solo refresca cuando vuelves a la pestaña
+     * Refetch al volver a pestaña
      */
     refetchOnWindowFocus: true,
 
     /**
-     * Refetch al reconectarse internet
+     * Refetch si vuelve internet
      */
     refetchOnReconnect: true,
 
     /**
-     * Evita refetch innecesario al montar
+     * Evita fetch agresivo al montar
      */
     refetchOnMount: false,
-  });
+  })
 
-  const notifications = query.data ?? [];
+  /**
+   * Reverb realtime
+   */
+  useEffect(() => {
+    if (!echo || !userId) return
+
+    const echoInstance = echo
+
+    const channel = echoInstance.private(
+      `users.${userId}`
+    )
+
+    channel.listen(
+      '.notification.created',
+      (event: any) => {
+        console.log(
+          'Nueva notificación:',
+          event
+        )
+
+        queryClient.invalidateQueries({
+          queryKey: [
+            'notifications',
+            normalizedCompany,
+          ],
+        })
+      }
+    )
+
+    return () => {
+      echoInstance.leave(
+        `private-users.${userId}`
+      )
+    }
+  }, [
+    userId,
+    normalizedCompany,
+    queryClient,
+  ])
+
+  const notifications = query.data ?? []
 
   const unreadCount = notifications.reduce(
     (acc, n) => acc + (n.read_at ? 0 : 1),
     0
-  );
+  )
 
-  const latestNotification = notifications[0] ?? null;
+  const latestNotification =
+    notifications[0] ?? null
 
   /**
-   * Manual refresh
+   * Refetch manual
    */
   const refetchOnOpen = useCallback(() => {
-    if (!normalizedCompany) return;
+    if (!normalizedCompany) return
 
     queryClient.invalidateQueries({
-      queryKey: ['notifications', normalizedCompany],
-    });
-  }, [queryClient, normalizedCompany]);
+      queryKey: [
+        'notifications',
+        normalizedCompany,
+      ],
+    })
+  }, [queryClient, normalizedCompany])
 
   /**
-   * Global invalidation
+   * Invalidate global
    */
-  const invalidateNotifications = useCallback(() => {
-    queryClient.invalidateQueries({
-      queryKey: ['notifications'],
-    });
-  }, [queryClient]);
+  const invalidateNotifications =
+    useCallback(() => {
+      queryClient.invalidateQueries({
+        queryKey: ['notifications'],
+      })
+    }, [queryClient])
 
   return {
     ...query,
@@ -81,5 +143,5 @@ export const useNotifications = (company?: string) => {
     latestNotification,
     refetchOnOpen,
     invalidateNotifications,
-  };
-};
+  }
+}
