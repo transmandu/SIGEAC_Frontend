@@ -1,49 +1,56 @@
-'use client';
+'use client'
 
-import { useEffect } from 'react';
-import echo from '@/lib/echo';
-import { toast } from 'sonner';
+import { useEffect, useMemo } from 'react'
+import { toast } from 'sonner'
+import { getEcho } from '@/lib/echo'
 
 export default function useLibraryNotifications(
-  userId: number | undefined,
+  userId?: string | number,
   onNotification?: () => void
 ) {
+  const normalizedUserId = useMemo(() => {
+    if (typeof userId === 'string') {
+      const parsed = Number(userId)
+      return Number.isNaN(parsed) ? undefined : parsed
+    }
+
+    return userId
+  }, [userId])
+
+  const isReady = !!normalizedUserId
+
   useEffect(() => {
-    if (!echo || !userId) return;
+    if (!isReady || !normalizedUserId) return
 
-    const echoInstance = echo;
+    const echoInstance = getEcho()
 
-    const channel = echoInstance.private(
-      `library-notification.${userId}`
-    );
+    if (!echoInstance) return
 
-    channel.listen(
-      '.share-request.reviewed',
-      (e: any) => {
-        const status =
-          e.status === 'approved'
-            ? 'aprobada'
-            : 'rechazada';
+    const channelName = `library-notification.${normalizedUserId}`
 
-        toast.success(
-          `Notificación: ${
-            e.message ||
-            `Solicitud ${status}`
-          }`
-        );
+    const channel = echoInstance.private(channelName)
 
-        onNotification?.();
-      }
-    );
+    const handler = (event: any) => {
+      const status =
+        event.status === 'approved'
+          ? 'aprobada'
+          : 'rechazada'
+
+      toast.success(
+        `Notificación: ${
+          event.message || `Solicitud ${status}`
+        }`
+      )
+
+      onNotification?.()
+    }
+
+    channel.listen('.share-request.reviewed', handler)
 
     return () => {
-      channel.stopListening(
-        '.share-request.reviewed'
-      );
+      channel.stopListening('.share-request.reviewed')
 
-      echoInstance.leave(
-        `private-library-notification.${userId}`
-      );
-    };
-  }, [userId, onNotification]);
+      echoInstance.leave(channelName)
+    }
+  }, [isReady, normalizedUserId, onNotification])
 }

@@ -16,11 +16,13 @@ import { useCompanyStore } from '@/stores/CompanyStore';
 
 import NotificationDropdown from './NotificationDropdown';
 import { useNotificationEffects } from '@/hooks/sistema/useNotificationEffects';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function NotificationBell() {
   const { selectedCompany } = useCompanyStore();
+  const { user } = useAuth()
   const { notifications, unreadCount } =
-    useNotifications(selectedCompany?.slug);
+    useNotifications(selectedCompany?.slug, user?.id);
 
   const [open, setOpen] = useState(false);
 

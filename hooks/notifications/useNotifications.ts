@@ -1,62 +1,60 @@
-import {
-  useQuery,
-  useQueryClient,
-} from '@tanstack/react-query'
-import {
-  useEffect,
-} from 'react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useEffect, useMemo } from 'react'
 import { fetchNotifications } from './fetchNotifications'
-import echo from '@/lib/echo'
+import { getEcho } from '@/lib/echo'
+import { Notification } from '@/types/notifications/types'
 
 export const useNotifications = (
   company?: string,
-  userId?: number
+  userId?: string | number
 ) => {
   const queryClient = useQueryClient()
 
-  const normalizedCompany = company ?? ''
+  const normalizedCompany = company?.trim() ?? ''
+
+  const normalizedUserId = useMemo(() => {
+    if (typeof userId === 'string') {
+      const parsed = Number(userId)
+      return Number.isNaN(parsed) ? undefined : parsed
+    }
+
+    return userId
+  }, [userId])
+
+  const isReady = !!normalizedCompany && !!normalizedUserId
 
   const query = useQuery({
     queryKey: ['notifications', normalizedCompany],
-    queryFn: () =>
-      fetchNotifications(normalizedCompany),
+    queryFn: () => fetchNotifications(normalizedCompany),
     enabled: !!normalizedCompany,
     staleTime: Infinity,
     gcTime: 1000 * 60 * 30,
   })
 
   useEffect(() => {
-    if (!echo || !userId) return
-    const echoInstance = echo
-    const channel = echoInstance.private(
-      `users.${userId}`
-    )
+    if (!isReady || !normalizedUserId) return
 
-    channel.listen(
-      '.notification.created',
-      () => {
-        console.log(
-          'Nueva notificación'
-        )
-        queryClient.invalidateQueries({
-          queryKey: [
-            'notifications',
-            normalizedCompany,
-          ],
-        })
-      }
-    )
+    const echoInstance = getEcho()
 
-    return () => {
-      echoInstance.leave(
-        `private-users.${userId}`
+    if (!echoInstance) return
+
+    const channelName = `notifications.${normalizedUserId}`
+    const channel = echoInstance.private(channelName)
+
+    const handler = (event: Notification) => {
+      queryClient.setQueryData(
+        ['notifications', normalizedCompany],
+        (old: Notification[] = []) => [event, ...old]
       )
     }
-  }, [
-    userId,
-    normalizedCompany,
-    queryClient,
-  ])
+
+    channel.listen('.new-notification', handler)
+
+    return () => {
+      channel.stopListening('.new-notification')
+      echoInstance.leave(channelName)
+    }
+  }, [isReady, normalizedUserId, normalizedCompany, queryClient])
 
   const notifications = query.data ?? []
 
@@ -65,8 +63,7 @@ export const useNotifications = (
     0
   )
 
-  const latestNotification =
-    notifications[0] ?? null
+  const latestNotification = notifications[0] ?? null
 
   return {
     ...query,

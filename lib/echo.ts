@@ -2,78 +2,55 @@ import Echo from 'laravel-echo'
 import Pusher from 'pusher-js'
 import axiosInstance from '@/lib/axios'
 
-if (typeof window !== 'undefined') {
+declare global {
+  interface Window {
+    __echo?: Echo
+    Pusher: any
+  }
+}
+
+const createEcho = () => {
+  if (typeof window === 'undefined') return null
+
   window.Pusher = Pusher
+
+  return new Echo({
+    broadcaster: 'reverb',
+    key: process.env.NEXT_PUBLIC_REVERB_APP_KEY!,
+
+    wsHost: process.env.NEXT_PUBLIC_REVERB_HOST!,
+    wsPort: Number(process.env.NEXT_PUBLIC_REVERB_PORT ?? 8080),
+    wssPort: Number(process.env.NEXT_PUBLIC_REVERB_PORT ?? 8080),
+
+    forceTLS:
+      (process.env.NEXT_PUBLIC_REVERB_SCHEME ?? 'http') === 'https',
+
+    enabledTransports: ['ws', 'wss'],
+    disableStats: true,
+
+    authorizer: (channel: any) => ({
+      authorize: (socketId: string, callback: Function) => {
+        axiosInstance
+          .post('/broadcasting/auth', {
+            socket_id: socketId,
+            channel_name: channel.name,
+          })
+          .then(res => callback(false, res.data))
+          .catch(err => {
+            console.error('Broadcast auth error:', err)
+            callback(true, err)
+          })
+      },
+    }),
+  })
 }
 
-const echo =
-  typeof window !== 'undefined'
-    ? new Echo({
-        broadcaster: 'reverb',
+export const getEcho = (): Echo | null => {
+  if (typeof window === 'undefined') return null
 
-        key: process.env.NEXT_PUBLIC_REVERB_APP_KEY!,
+  if (!window.__echo) {
+    window.__echo = createEcho() as Echo
+  }
 
-        wsHost: process.env.NEXT_PUBLIC_REVERB_HOST!,
-
-        wsPort: Number(
-          process.env.NEXT_PUBLIC_REVERB_PORT ?? 8080
-        ),
-
-        wssPort: Number(
-          process.env.NEXT_PUBLIC_REVERB_PORT ?? 8080
-        ),
-
-        forceTLS:
-          (process.env.NEXT_PUBLIC_REVERB_SCHEME ?? 'http') ===
-          'https',
-
-        enabledTransports: ['ws', 'wss'],
-
-        disableStats: true,
-
-        authorizer: (channel: any) => ({
-          authorize: (
-            socketId: string,
-            callback: (
-              error: boolean,
-              data?: any
-            ) => void
-          ) => {
-            axiosInstance
-              .post('/broadcasting/auth', {
-                socket_id: socketId,
-                channel_name: channel.name,
-              })
-              .then((response) => {
-                callback(false, response.data)
-              })
-              .catch((error) => {
-                console.error(
-                  '❌ Broadcast auth error:',
-                  error
-                )
-
-                callback(true, error)
-              })
-          },
-        }),
-      })
-    : null
-
-if (echo) {
-  echo.connector.pusher.connection.bind(
-    'connected',
-    () => {
-      console.log('✅ Reverb conectado')
-    }
-  )
-
-  echo.connector.pusher.connection.bind(
-    'error',
-    (error: any) => {
-      console.error('❌ Reverb error:', error)
-    }
-  )
+  return window.__echo
 }
-
-export default echo
