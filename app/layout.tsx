@@ -1,10 +1,10 @@
+import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
 import { AuthProvider } from "@/contexts/AuthContext";
 import QueryClientProvider from "@/providers/query-provider";
 import { ThemeProvider } from "@/providers/theme-provider";
 import type { Metadata } from "next";
 import { Poppins } from "next/font/google";
-import "./globals.css";
 import { RedirectHandler } from "@/components/misc/RedirectHandler";
 import { TooltipProvider } from "@/components/ui/tooltip";
 
@@ -33,7 +33,7 @@ export default function RootLayout({
               enableSystem
               disableTransitionOnChange
             >
-              <TooltipProvider delayDuration={200}> {/* 👈 Aquí */}
+              <TooltipProvider delayDuration={200}> {/* Here */}
                 {children}
               </TooltipProvider>
               <Toaster />

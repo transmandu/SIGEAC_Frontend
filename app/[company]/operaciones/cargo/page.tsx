@@ -95,7 +95,7 @@ const AircraftCard = ({
       {
         month,
         year,
-        oldName: aircraft.external_aircraft || aircraft.acronym,
+        oldName: aircraft.acronym,
         newName: newName,
       },
       {
@@ -109,7 +109,7 @@ const AircraftCard = ({
       {
         month,
         year,
-        externalAircraft: aircraft.external_aircraft || aircraft.acronym,
+        externalAircraft: aircraft.acronym,
       },
       {
         onSuccess: () => setShowDeleteDialog(false),
@@ -182,9 +182,9 @@ const AircraftCard = ({
           <Button asChild className="w-full gap-2" variant="outline">
             <Link
               href={
-                aircraft.is_external
-                  ? `/${company}/operaciones/cargo/externa/${encodeURIComponent(aircraft.external_aircraft || aircraft.acronym)}?month=${month}&year=${year}`
-                  : `/${company}/operaciones/cargo/${aircraft.id}?month=${month}&year=${year}`
+                aircraft.id
+                  ? `/${company}/operaciones/cargo/${aircraft.id}?month=${month}&year=${year}`
+                  : `/${company}/operaciones/cargo/externa/${encodeURIComponent(aircraft.acronym)}?month=${month}&year=${year}`
               }
             >
               Ver Registros de Carga
@@ -342,7 +342,7 @@ const CargoPage = () => {
                   href={
                     activeTab === "registered"
                       ? `/${selectedCompany?.slug}/operaciones/cargo/nuevo`
-                      : `/${selectedCompany?.slug}/operaciones/cargo/externa/nuevo`
+                      : `/${selectedCompany?.slug}/operaciones/cargo/nuevo?external=true`
                   }
                 >
                   <Plus className="size-4 mr-2" />
@@ -415,7 +415,7 @@ const CargoPage = () => {
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                     {externalAircrafts.map((aircraft) => (
                       <AircraftCard
-                        key={`ext-${aircraft.external_aircraft}`}
+                        key={`ext-${aircraft.acronym}`}
                         aircraft={aircraft}
                         company={selectedCompany?.slug || ""}
                         month={month}

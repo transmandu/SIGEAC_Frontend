@@ -37,14 +37,9 @@ export const formSchema = z
     copilot_id: z.string().min(1, "Debe elegir un copiloto"),
     external_pilot_id: z.number().optional().nullable(),
     external_copilot_id: z.number().optional().nullable(),
-    external_aircraft: z.string().optional().nullable(),
     client_id: z.coerce.number().min(1, "Debe elegir un cliente"),
-    aircraft_id: z.coerce.number().optional().nullable(),
+    aircraft_id: z.coerce.number().min(1, "Debe seleccionar una aeronave"),
     items: z.array(itemSchema).min(1, "Debe agregar al menos un producto"),
-  })
-  .refine((data) => data.aircraft_id || data.external_aircraft, {
-    message: "Debe seleccionar una aeronave registrada o ingresar una externa",
-    path: ["aircraft_id"],
   })
   .refine((data) => data.pilot_id || data.external_pilot_id, {
     message: "Debe asignar un piloto interno o externo",
@@ -61,7 +56,6 @@ export type CargoShipmentFormValues = z.infer<typeof formSchema>;
 
 export function useCargoShipmentForm(
   initialData?: any,
-  isExternalMode?: boolean,
 ) {
   const params = useParams();
   const router = useRouter();
@@ -70,16 +64,10 @@ export function useCargoShipmentForm(
   const company = params.company as string;
   const aircraftIdFromUrl = params.aircraft_id;
   const externalNameFromUrl = params.name
-    ? decodeURIComponent(params.name as string)
-    : null;
+  ? decodeURIComponent(params.name as string)
+  : null;
 
   const isEditing = !!initialData;
-  const isExternalAircraft = !!(
-    isExternalMode ||
-    params.name ||
-    externalNameFromUrl ||
-    initialData?.external_aircraft
-  );
 
   // ── Queries ────────────────────────────────────────────────────────────────
   const { data: clients, isLoading: loadingClients } = useGetClients(company);
@@ -90,8 +78,6 @@ export function useCargoShipmentForm(
   const { data: employees, isLoading: loadingEmployees } =
     useGetEmployeesByCompany(company);
   const { data: pilots, isLoading: loadingPilots } = useGetPilots(company);
-  const { data: externalSuggestions } =
-    useGetExternalAircraftSuggestions(company);
 
   // ── Mutaciones ──────────────────────────────────────────────────────────────
   const { createCargoShipment } = useCreateCargoShipment(company);
@@ -112,7 +98,6 @@ export function useCargoShipmentForm(
   const watchedItems = form.watch("items");
   const registrationDate = form.watch("registration_date");
   const watchedAircraftId = form.watch("aircraft_id");
-  const watchedExternalAircraft = form.watch("external_aircraft");
 
   const { data: guideData, isLoading: loadingGuide } = useGetNextGuide(
     company,
@@ -127,7 +112,7 @@ export function useCargoShipmentForm(
         : format(new Date(), "yyyy-MM-dd");
     })(),
     watchedAircraftId ?? null,
-    watchedExternalAircraft ?? null,
+    null,
   );
 
   // ── use Effects ───────────────────────────────────────────────────────────
@@ -141,9 +126,15 @@ export function useCargoShipmentForm(
   }, [aircraftIdFromUrl, isEditing, form]);
 
   useEffect(() => {
-    if (externalNameFromUrl && !isEditing)
-      form.setValue("external_aircraft", externalNameFromUrl);
-  }, [externalNameFromUrl, isEditing, form]);
+    if(externalNameFromUrl && !isEditing && aircrafts) {
+      const match = (aircrafts as any[]).find(
+        (a) => a.acronym === externalNameFromUrl,
+      );
+      if(match){
+        form.setValue("aircraft_id", match.id);
+      }
+    }
+  }, [externalNameFromUrl, isEditing, form, aircrafts]);
 
   // ── Derivados ────────────────────────────────────────────────────────────────
   const totalUnits = watchedItems?.reduce(
@@ -157,7 +148,7 @@ export function useCargoShipmentForm(
 
   const guideNumber = isEditing
     ? initialData.guide_number
-    : !watchedAircraftId && !watchedExternalAircraft
+    : !watchedAircraftId
       ? "Selec. Aeronave"
       : loadingGuide
         ? "..."
@@ -167,8 +158,6 @@ export function useCargoShipmentForm(
   function buildRedirectPath(data: CargoShipmentFormValues) {
     if (data.aircraft_id)
       return `/${company}/operaciones/cargo/${data.aircraft_id}`;
-    if (data.external_aircraft)
-      return `/${company}/operaciones/cargo/externa/${encodeURIComponent(data.external_aircraft)}`;
     return `/${company}/operaciones/cargo`;
   }
 
@@ -221,11 +210,9 @@ export function useCargoShipmentForm(
     onSubmit: form.handleSubmit(onSubmit),
     isPending: createCargoShipment.isPending || updateCargoShipment.isPending,
     isEditing,
-    isExternalAircraft,
     // parámetros de url
     company,
     aircraftIdFromUrl,
-    externalNameFromUrl,
     // datos
     clients,
     loadingClients,
@@ -237,7 +224,6 @@ export function useCargoShipmentForm(
     loadingEmployees,
     pilots,
     loadingPilots,
-    externalSuggestions,
     guideNumber,
     // totales
     totalUnits,
@@ -265,8 +251,7 @@ function buildDefaultValues(initialData?: any): CargoShipmentFormValues {
       pilot_id: "",
       copilot_id: "",
       client_id: 0,
-      aircraft_id: null,
-      external_aircraft: null,
+      aircraft_id: 0,
       items: [{ product_description: "", units: 0, weight: 0 }],
     };
   }
@@ -286,8 +271,7 @@ function buildDefaultValues(initialData?: any): CargoShipmentFormValues {
         ? `ext:${initialData.external_copilot_id}`
         : "",
     client_id: initialData.client_id ?? initialData.client?.id ?? null,
-    aircraft_id: initialData.aircraft_id ?? initialData.aircraft?.id ?? null,
-    external_aircraft: initialData.external_aircraft ?? null,
+    aircraft_id: initialData.aircraft_id ?? initialData.aircraft?.id ?? undefined,
     items: initialData.items.map((item: any) => ({
       product_description: item.product_description,
       units: item.units,

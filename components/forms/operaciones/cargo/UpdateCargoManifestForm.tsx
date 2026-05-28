@@ -67,9 +67,7 @@ export default function UpdateCargoManifestForm({
   // Hook para controlar las nuevas adiciones (Sección abajo)
   const selector = useNewItemSelector();
 
-  // Obtener aircraft_id y external_aircraft del manifiesto actual
-  const manifestAircraftId = (manifest as any).aircraft_id;
-  const manifestExternalAircraft = (manifest as any).external_aircraft;
+  const manifestAircraftId = manifest.aircraft_id;
   // Guías de carga con productos libres en el mes
   const { data: availableShipments, isLoading: loadingAvailable } =
     useGetAvailableShipments(
@@ -77,7 +75,6 @@ export default function UpdateCargoManifestForm({
       manifest.month,
       manifest.year,
       manifestAircraftId,
-      manifestExternalAircraft,
     );
 
   // Filtro: IDs de ítems que ya están en el manifiesto actual
@@ -92,9 +89,7 @@ export default function UpdateCargoManifestForm({
   const manifestAircraftLabel = useMemo(() => {
     const firstItem = manifest.items?.[0];
     return (
-      firstItem?.shipment?.aircraft?.acronym ??
-      firstItem?.shipment?.external_aircraft ??
-      "N/a"
+      firstItem?.shipment?.aircraft?.acronym ?? "N/a"
     );
   }, [manifest.items]);
 
