@@ -46,7 +46,6 @@ export const getColumns = (
             text-center
             hover:text-emerald-600
             dark:hover:text-emerald-400
-
             transition-colors
           "
         >
@@ -78,8 +77,8 @@ export const getColumns = (
         <Link
           href={`/${selectedCompany?.slug}/compras/requisiciones/${row.original.requisition_order?.order_number}`}
           className="
-            text-sm font-medium
-            text-slate-700 dark:text-slate-200
+            text-sm
+            text-slate-600 dark:text-slate-300
             text-center
             hover:text-slate-900
             dark:hover:text-slate-400
