@@ -19,8 +19,8 @@ const createEcho = () => {
     key: process.env.NEXT_PUBLIC_REVERB_APP_KEY!,
 
     wsHost: process.env.NEXT_PUBLIC_REVERB_HOST!,
-    wsPort: Number(process.env.NEXT_PUBLIC_REVERB_PORT ?? 8080),
-    wssPort: Number(process.env.NEXT_PUBLIC_REVERB_PORT ?? 8080),
+    wsPort: Number(process.env.NEXT_PUBLIC_REVERB_PORT ?? 80),
+    wssPort: Number(process.env.NEXT_PUBLIC_REVERB_PORT ?? 443),
 
     forceTLS:
       (process.env.NEXT_PUBLIC_REVERB_SCHEME ?? 'http') === 'https',
