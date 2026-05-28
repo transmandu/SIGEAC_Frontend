@@ -61,7 +61,6 @@ interface Props {
   year: number;
   day: number;
   selectedAircraftId: number | null;
-  externalAircraft: string | null;
   onSuccess: () => void;
 }
 
@@ -85,7 +84,6 @@ export default function CreateCargoManifestForm({
   year,
   day,
   selectedAircraftId,
-  externalAircraft,
   onSuccess,
 }: Props) {
   const { data: availableShipments, isLoading: loadingAvailable } =
@@ -94,7 +92,6 @@ export default function CreateCargoManifestForm({
       month,
       year,
       selectedAircraftId,
-      externalAircraft,
       day,
     );
 
@@ -314,7 +311,6 @@ export default function CreateCargoManifestForm({
         month,
         year,
         aircraft_id: selectedAircraftId,
-        external_aircraft: externalAircraft || null,
         items,
       },
       { onSuccess },
@@ -658,8 +654,8 @@ export default function CreateCargoManifestForm({
           onClick={handleSubmit}
           disabled={
             createCargoManifest.isPending ||
-            (!selectedAircraftId && !externalAircraft)
-          }
+          (!selectedAircraftId)
+        }
         >
           {createCargoManifest.isPending ? (
             <>
