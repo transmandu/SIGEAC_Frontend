@@ -132,19 +132,13 @@ export const getColumns = (
                 P/N
               </span>
 
-              <Link
-                href={`/${selectedCompany?.slug}/almacen/articulos/${row.original.id}`}
-                onClick={(e) => e.stopPropagation()}
-                className="
-                  text-[13px] font-semibold tracking-tight
-                  text-slate-900 dark:text-slate-100
-                  px-1 py-0.5 rounded
-                  hover:text-emerald-600 dark:hover:text-emerald-400
-                  transition-colors
-                "
-              >
+              <span className="
+                text-[13px] font-semibold tracking-tight
+                text-slate-900 dark:text-slate-100
+                px-1 py-0.5 rounded
+              ">
                 {row.original.part_number}
-              </Link>
+              </span>
 
             </div>
             {hasAlt ? (
