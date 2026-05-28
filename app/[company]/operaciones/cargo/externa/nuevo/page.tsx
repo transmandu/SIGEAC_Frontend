@@ -47,7 +47,7 @@ export default function CreateExternalCargoPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="md:px-6 md:pb-6 p-0">
-            <CreateCargoShipmentForm isExternalMode={true} />
+            <CreateCargoShipmentForm />
           </CardContent>
         </Card>
       </div>

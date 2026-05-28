@@ -1322,6 +1322,7 @@ export type CargoShipment = {
     externalCopilot?: ExternalPilot;
     client: Client;
     aircraft: Aircraft;
+    external_aircraft?: string | null;
     month: number;
     year: number;
     total_units: number;
