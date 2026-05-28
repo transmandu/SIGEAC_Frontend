@@ -1,6 +1,8 @@
 "use client"
 
 import { useState } from "react"
+import { useRouter } from "next/navigation"
+import { useCompanyStore } from "@/stores/CompanyStore"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,12 +19,15 @@ import { Button } from "@/components/ui/button"
 import {
   ClipboardCheck,
   ClipboardX,
-  Minus,
+  ExternalLink,
+  FileDown,
   MoreHorizontal,
   Trash2
 } from "lucide-react"
 import { Quote } from "@/types"
+// import { PDFDownloadLink } from "@react-pdf/renderer"
 import QuoteDropdownDialogs from "@/components/dialogs/mantenimiento/compras/QuoteDropdownDialogs"
+import { useGetPurchaseOrderByQuoteId } from "@/hooks/mantenimiento/compras/useGetPurchaseOrderByQuoteId"
 
 const iconBase =
   "size-[18px] transition-all duration-200 ease-out group-hover:scale-110"
@@ -43,43 +48,29 @@ const itemBase = `
   active:scale-95
 `
 
-const disabledClass =
-  "opacity-40 grayscale pointer-events-none cursor-not-allowed"
-
 const QuoteDropdownActions = ({ quote }: { quote: Quote }) => {
+  const router = useRouter()
+  const { selectedCompany } = useCompanyStore()
 
   const [openDropdown, setOpenDropdown] = useState(false)
   const [openReject, setOpenReject] = useState(false)
   const [openApprove, setOpenApprove] = useState(false)
   const [openDelete, setOpenDelete] = useState(false)
 
-  const canDelete = quote.status === "PENDIENTE"
+  const canDelete = quote.status !== "APROBADO"
+  const canViewPO = quote.status === "APROBADO"
+  const canApproveOrReject = quote.status === "PENDIENTE"
 
-  const isInactive =
-    quote.status === "APROBADO" ||
-    quote.status === "RECHAZADA"
-
-  const canAct = !isInactive
+  const shouldFetchPO = canViewPO && !!selectedCompany?.slug && !!quote.id
+  const {data: purchaseOrder, isFetching} = useGetPurchaseOrderByQuoteId({company: selectedCompany?.slug, quoteId: quote.id, enabled: shouldFetchPO})
+  const handleGoToPO = () => {
+    if (!purchaseOrder?.order_number || !selectedCompany) return
+    router.push(`/${selectedCompany.slug}/compras/ordenes_compra/${purchaseOrder.order_number}`)
+  }
 
   return (
     <TooltipProvider delayDuration={120}>
       <>
-        {isInactive ? (
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                className="h-8 w-8 p-0 cursor-not-allowed"
-              >
-                <Minus className="h-4 w-4 text-muted-foreground/30" />
-              </Button>
-            </TooltipTrigger>
-
-            <TooltipContent>
-              No hay acciones disponibles para el estado actual.
-            </TooltipContent>
-          </Tooltip>
-        ) : (
         <DropdownMenu
           open={openDropdown}
           onOpenChange={setOpenDropdown}
@@ -119,54 +110,116 @@ const QuoteDropdownActions = ({ quote }: { quote: Quote }) => {
             "
           >
             {/* APPROVE */}
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <span>
-                  <DropdownMenuItem
-                    asChild
-                    className="p-0 focus:bg-transparent"
-                    disabled={!canAct}
-                  >
-                    <button
-                      onClick={() => {
-                        setOpenDropdown(false)
-                        setOpenApprove(true)
-                      }}
-                      className={`${itemBase} text-emerald-600 ${!canAct ? disabledClass : ""}`}
+            {canApproveOrReject && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span>
+                    <DropdownMenuItem
+                      asChild
+                      className="p-0 focus:bg-transparent"
                     >
-                      <ClipboardCheck className={iconBase} />
-                    </button>
-                  </DropdownMenuItem>
-                </span>
-              </TooltipTrigger>
+                      <button
+                        onClick={() => {
+                          setOpenDropdown(false)
+                          setOpenApprove(true)
+                        }}
+                        className={`${itemBase} text-emerald-600`}
+                      >
+                        <ClipboardCheck className={iconBase} />
+                      </button>
+                    </DropdownMenuItem>
+                  </span>
+                </TooltipTrigger>
 
-              <TooltipContent>Aprobar cotización</TooltipContent>
-            </Tooltip>
+                <TooltipContent>
+                  Aprobar cotización
+                </TooltipContent>
+              </Tooltip>
+            )}
 
             {/* REJECT */}
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <span>
+            {canApproveOrReject && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span>
+                    <DropdownMenuItem
+                      asChild
+                      className="p-0 focus:bg-transparent"
+                    >
+                      <button
+                        onClick={() => {
+                          setOpenDropdown(false)
+                          setOpenReject(true)
+                        }}
+                        className={`${itemBase} text-orange-600`}
+                      >
+                        <ClipboardX className={iconBase} />
+                      </button>
+                    </DropdownMenuItem>
+                  </span>
+                </TooltipTrigger>
+
+                <TooltipContent>
+                  Rechazar cotización
+                </TooltipContent>
+              </Tooltip>
+            )}
+
+            {/* PDF */}
+            {/* <PDFDownloadLink
+              fileName={`${quote.quote_number}.pdf`}
+              document={
+                < quote={quote} />
+              }
+            > */}
+              <Tooltip>
+                <TooltipTrigger asChild>
                   <DropdownMenuItem
                     asChild
                     className="p-0 focus:bg-transparent"
-                    disabled={!canAct}
                   >
                     <button
-                      onClick={() => {
-                        setOpenDropdown(false)
-                        setOpenReject(true)
-                      }}
-                      className={`${itemBase} text-orange-600 ${!canAct ? disabledClass : ""}`}
+                      className={`
+                        ${itemBase}
+                        text-blue-600
+                      `}
                     >
-                      <ClipboardX className={iconBase} />
+                      <FileDown className={iconBase} />
                     </button>
                   </DropdownMenuItem>
-                </span>
-              </TooltipTrigger>
+                </TooltipTrigger>
 
-              <TooltipContent>Rechazar cotización</TooltipContent>
-            </Tooltip>
+                <TooltipContent>
+                  ¡Próximamente!
+                </TooltipContent>
+              </Tooltip>
+            {/* </PDFDownloadLink> */}
+
+            {/* PO LINK */}
+            {canViewPO && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    disabled={!purchaseOrder?.order_number}
+                    onClick={handleGoToPO}
+                    className={`${itemBase} text-indigo-600`}
+                  >
+                    <ExternalLink className={iconBase} />
+                  </Button>
+                </TooltipTrigger>
+
+                <TooltipContent>
+                  {isFetching
+                    ? "Cargando..."
+                    : purchaseOrder?.order_number
+                    ? "Ver orden de compra"
+                    : "No existe orden de compra"}
+                </TooltipContent>
+              </Tooltip>
+            )}
+
             {/* DELETE */}
             {canDelete && (
               <Tooltip>
@@ -196,7 +249,6 @@ const QuoteDropdownActions = ({ quote }: { quote: Quote }) => {
             )}
           </DropdownMenuContent>
         </DropdownMenu>
-        )}
 
         <QuoteDropdownDialogs
           quote={quote}

@@ -162,7 +162,7 @@ export default function QuoteActions({
                 size="icon"
                 disabled={!purchaseOrder?.order_number}
                 onClick={handleGoToPO}
-                className={`${itemBase} text-blue-600`}
+                className={`${itemBase} text-indigo-600`}
               >
                 <ExternalLink className={iconBase} />
               </Button>
