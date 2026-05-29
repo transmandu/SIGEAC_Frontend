@@ -23,40 +23,10 @@ import {
   Package,
   ChevronRight,
   Plus,
-  MoreVertical,
-  Pencil,
-  Trash2,
   Download,
-  ClipboardList,
 } from "lucide-react";
 import { AircraftCargoStats } from "@/types";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useManageExternalAircraft } from "@/hooks/operaciones/cargo/useManageExternalAircraft";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
 import { useAuth } from "@/contexts/AuthContext";
 import { useExportCargoByAircraft } from "@/hooks/operaciones/cargo/useExportCargoByAircraft";
 
@@ -71,197 +41,54 @@ const AircraftCard = ({
   month: number;
   year: number;
 }) => {
-  // Manejo de menús y diálogos
-  const [showRenameDialog, setShowRenameDialog] = useState(false);
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const [newName, setNewName] = useState(aircraft.acronym || "");
-  const { user } = useAuth();
-  const userRoles = user?.roles?.map((r) => r.name) || [];
-  const canWrite = userRoles.some((r) =>
-    ["OPERADOR_CARGA", "SUPERUSER"].includes(r),
-  );
-
-  const { bulkRename, isRenaming, bulkDelete, isDeleting } =
-    useManageExternalAircraft(company);
-
-  // Verificamos si estamos viendo el mes actual
-  const isCurrentMonth =
-    Number(month) === new Date().getMonth() + 1 &&
-    Number(year) === new Date().getFullYear();
-
-  const handleRename = () => {
-    if (!newName.trim() || newName.trim() === aircraft.acronym) return;
-    bulkRename(
-      {
-        month,
-        year,
-        oldName: aircraft.acronym,
-        newName: newName,
-      },
-      {
-        onSuccess: () => setShowRenameDialog(false),
-      },
-    );
-  };
-
-  const handleDelete = () => {
-    bulkDelete(
-      {
-        month,
-        year,
-        externalAircraft: aircraft.acronym,
-      },
-      {
-        onSuccess: () => setShowDeleteDialog(false),
-      },
-    );
-  };
-
   return (
-    <>
-      <Card className="flex flex-col justify-between hover:shadow-lg hover:border-primary/50 transition-all duration-200 group relative overflow-visible">
-        {canWrite && aircraft.is_external && isCurrentMonth && (
-          <div className="absolute top-2 right-2 z-10">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="h-8 w-8 p-0">
-                  <MoreVertical className="h-4 w-4 text-muted-foreground" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => setShowRenameDialog(true)}>
-                  <Pencil className="mr-2 h-4 w-4" />
-                  <span>Actualizar Datos</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  className="text-red-600 focus:bg-red-100 focus:text-red-600 dark:focus:bg-red-900/30"
-                  onClick={() => setShowDeleteDialog(true)}
-                >
-                  <Trash2 className="mr-2 h-4 w-4" />
-                  <span>Eliminar Registro</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        )}
-
-        <CardContent className="pt-6 pb-2 space-y-4">
-          <div className="flex items-start justify-between">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
-                <Plane className="h-5 w-5" />
-              </div>
-              <div className="pr-4">
-                <p className="text-xl font-bold tracking-tight break-all">
-                  {aircraft.acronym}
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  {aircraft.model}
-                </p>
-              </div>
+    <Card className="flex flex-col justify-between hover:shadow-lg hover:border-primary/50 transition-all duration-200 group relative overflow-visible">
+      <CardContent className="pt-6 pb-2 space-y-4">
+        <div className="flex items-start justify-between">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
+              <Plane className="h-5 w-5" />
+            </div>
+            <div className="pr-4">
+              <p className="text-xl font-bold tracking-tight break-all">
+                {aircraft.acronym}
+              </p>
+              <p className="text-sm text-muted-foreground">{aircraft.model}</p>
             </div>
           </div>
+        </div>
 
-          <div className="flex items-center gap-3 border rounded-lg p-3 bg-muted/30">
-            <Package className="h-5 w-5 text-muted-foreground shrink-0" />
-            <div>
-              <p className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">
-                Guías registradas
-              </p>
-              <p className="text-xl font-bold text-primary">
-                {aircraft.cargo_count}
-                <span className="text-sm font-normal text-muted-foreground ml-1">
-                  este mes
-                </span>
-              </p>
-            </div>
+        <div className="flex items-center gap-3 border rounded-lg p-3 bg-muted/30">
+          <Package className="h-5 w-5 text-muted-foreground shrink-0" />
+          <div>
+            <p className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">
+              Guías registradas
+            </p>
+            <p className="text-xl font-bold text-primary">
+              {aircraft.cargo_count}
+              <span className="text-sm font-normal text-muted-foreground ml-1">
+                este mes
+              </span>
+            </p>
           </div>
-        </CardContent>
+        </div>
+      </CardContent>
 
-        <CardFooter className="pt-2 pb-5">
-          <Button asChild className="w-full gap-2" variant="outline">
-            <Link
-              href={
-                aircraft.id
-                  ? `/${company}/operaciones/cargo/${aircraft.id}?month=${month}&year=${year}`
-                  : `/${company}/operaciones/cargo/externa/${encodeURIComponent(aircraft.acronym)}?month=${month}&year=${year}`
-              }
-            >
-              Ver Registros de Carga
-              <ChevronRight className="h-4 w-4" />
-            </Link>
-          </Button>
-        </CardFooter>
-      </Card>
-
-      {/* DIÁLOGO RENOMBRAR */}
-      <Dialog open={showRenameDialog} onOpenChange={setShowRenameDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Renombrar Aeronave</DialogTitle>
-            <DialogDescription>
-              Esto actualizará el nombre <b>{aircraft.acronym}</b> a la nueva
-              sigla en todas las <b>guías de carga</b> registradas este mes.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="py-4">
-            <Input
-              className="uppercase"
-              value={newName}
-              onChange={(e) => setNewName(e.target.value.toUpperCase())}
-              placeholder="NUEVA SIGLA"
-            />
-          </div>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setShowRenameDialog(false)}
-            >
-              Cancelar
-            </Button>
-            <Button
-              disabled={
-                !newName.trim() ||
-                newName.trim() === aircraft.acronym ||
-                isRenaming
-              }
-              onClick={handleRename}
-            >
-              {isRenaming ? "Guardando..." : "Guardar Cambios"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* DIÁLOGO ELIMINAR */}
-      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>¿Está seguro?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Esta acción eliminará <b>{aircraft.cargo_count} registros</b> de
-              carga asociados a la aeronave {aircraft.acronym} para el mes en
-              curso. Esta acción no se puede deshacer.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={isDeleting}>
-              Cancelar
-            </AlertDialogCancel>
-            <AlertDialogAction
-              className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
-              onClick={(e) => {
-                e.preventDefault();
-                handleDelete();
-              }}
-              disabled={isDeleting}
-            >
-              {isDeleting ? "Eliminando..." : "Sí, eliminar registros"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </>
+      <CardFooter className="pt-2 pb-5">
+        <Button asChild className="w-full gap-2" variant="outline">
+          <Link
+            href={
+              aircraft.id
+                ? `/${company}/operaciones/cargo/${aircraft.id}?month=${month}&year=${year}`
+                : `/${company}/operaciones/cargo/externa/${encodeURIComponent(aircraft.acronym)}?month=${month}&year=${year}`
+            }
+          >
+            Ver Registros de Carga
+            <ChevronRight className="h-4 w-4" />
+          </Link>
+        </Button>
+      </CardFooter>
+    </Card>
   );
 };
 
