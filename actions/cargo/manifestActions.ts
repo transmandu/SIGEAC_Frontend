@@ -23,7 +23,7 @@ export interface ManifestItemUpdatePayload {
 const invalidateAll = (queryClient: ReturnType<typeof useQueryClient>) => {
   queryClient.invalidateQueries({ queryKey: ["cargo-manifests"] });
   queryClient.invalidateQueries({
-    queryKey: ["available-shipments-for-manifest"],
+    queryKey: ["available-shipments"],
   });
   queryClient.invalidateQueries({ queryKey: ["cargo-shipments-by-aircraft"] });
   queryClient.invalidateQueries({
