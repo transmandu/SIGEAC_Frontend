@@ -109,6 +109,7 @@ export function buildGeneralGroup({ pathname, currentCompany }: MenuContext): Gr
                     "TECNICO_MANTENIMIENTO_AERONAUTICO",
                     "JEFE_MANTENIMIENTO",
                 ],
+                requiresOmac: true,
                 submenus: [],
             },
             {
@@ -130,6 +131,7 @@ export function buildGeneralGroup({ pathname, currentCompany }: MenuContext): Gr
                     "TESTER",
                     "ENGINEERING",
                 ],
+                requiresOmac: true,
                 submenus: [],
             },
             {
@@ -143,6 +145,7 @@ export function buildGeneralGroup({ pathname, currentCompany }: MenuContext): Gr
                     "SUPERUSER",
                     "JEFE_ALMACEN",
                 ],
+                requiresOmac: true,
                 submenus: [],
             },            
             {
@@ -155,6 +158,7 @@ export function buildGeneralGroup({ pathname, currentCompany }: MenuContext): Gr
                     "JEFE_ADMINISTRACION",
                     "ANALISTA_ADMINISTRACION",
                 ],
+                requiresOmac: true,
                 submenus: [],
             },
 
