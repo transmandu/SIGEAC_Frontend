@@ -142,7 +142,7 @@ export const getColumns = (
 
     cell: ({ row }) => (
       <div className="flex justify-center w-full">
-        <span className="text-sm font-medium text-slate-700 dark:text-slate-200">
+        <span className="text-sm font-medium text-center text-slate-700 dark:text-slate-200">
           {row.original.vendor?.name ?? "—"}
         </span>
       </div>
