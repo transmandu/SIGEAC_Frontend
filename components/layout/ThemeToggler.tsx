@@ -2,35 +2,115 @@
 
 import * as React from "react";
 import { useTheme } from "next-themes";
+import { AnimatePresence, motion } from "motion/react";
 
-import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-  TooltipProvider
+  TooltipProvider,
 } from "@/components/ui/tooltip";
-import { MoonIcon, SunIcon } from "lucide-react";
+
+import { SunMedium, MoonStar } from "lucide-react";
 
 export function ThemeToggler() {
-  const { setTheme, theme } = useTheme();
+  const { setTheme, resolvedTheme } = useTheme();
+
+  const isDark = resolvedTheme === "dark";
+
+  const toggleTheme = () => {
+    setTheme(isDark ? "light" : "dark");
+  };
 
   return (
     <TooltipProvider disableHoverableContent>
-      <Tooltip delayDuration={100}>
+      <Tooltip delayDuration={120}>
         <TooltipTrigger asChild>
-          <Button
-            className="rounded-full w-8 h-8 bg-background"
-            variant="outline"
-            size="icon"
-            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+          <button
+            onClick={toggleTheme}
+            aria-label="Toggle theme"
+            className={cn(
+              "relative flex items-center justify-center",
+              "h-9 w-9 rounded-full",
+              "bg-background",
+              "border border-border/80",
+              "text-foreground/90",
+              "hover:text-foreground",
+              "hover:bg-muted/70",
+              "hover:border-border",
+              "transition-colors duration-200",
+              "active:scale-95"
+            )}
           >
-            <SunIcon className="w-[1.2rem] h-[1.2rem] rotate-90 scale-0 transition-transform ease-in-out duration-500 dark:rotate-0 dark:scale-100" />
-            <MoonIcon className="absolute w-[1.2rem] h-[1.2rem] rotate-0 scale-1000 transition-transform ease-in-out duration-500 dark:-rotate-90 dark:scale-0" />
-            <span className="sr-only">Switch Theme</span>
-          </Button>
+            <AnimatePresence mode="wait" initial={false}>
+              {isDark ? (
+                <motion.div
+                  key="sun"
+                  initial={{
+                    opacity: 0,
+                    rotate: -90,
+                    scale: 0.75,
+                    filter: "blur(2px)",
+                  }}
+                  animate={{
+                    opacity: 1,
+                    rotate: 0,
+                    scale: 1,
+                    filter: "blur(0px)",
+                  }}
+                  exit={{
+                    opacity: 0,
+                    rotate: 90,
+                    scale: 0.75,
+                    filter: "blur(2px)",
+                  }}
+                  transition={{
+                    duration: 0.28,
+                    ease: [0.22, 1, 0.36, 1],
+                  }}
+                  className="absolute"
+                >
+                  <SunMedium className="h-4 w-4" />
+                </motion.div>
+              ) : (
+                <motion.div
+                  key="moon"
+                  initial={{
+                    opacity: 0,
+                    rotate: 90,
+                    scale: 0.75,
+                    filter: "blur(2px)",
+                  }}
+                  animate={{
+                    opacity: 1,
+                    rotate: 0,
+                    scale: 1,
+                    filter: "blur(0px)",
+                  }}
+                  exit={{
+                    opacity: 0,
+                    rotate: -90,
+                    scale: 0.75,
+                    filter: "blur(2px)",
+                  }}
+                  transition={{
+                    duration: 0.28,
+                    ease: [0.22, 1, 0.36, 1],
+                  }}
+                  className="absolute"
+                >
+                  <MoonStar className="h-4 w-4" />
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </button>
         </TooltipTrigger>
-        <TooltipContent side="bottom">Cambiar Tema</TooltipContent>
+
+        <TooltipContent side="bottom">
+          Cambiar tema
+        </TooltipContent>
       </Tooltip>
     </TooltipProvider>
   );

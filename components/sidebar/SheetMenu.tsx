@@ -1,10 +1,22 @@
 "use client";
 
-import { MenuIcon } from "lucide-react";
+import { useState } from "react";
 import Link from "next/link";
 
+import {
+  PanelLeftOpen,
+  PanelLeftClose,
+} from "lucide-react";
+
+import {
+  AnimatePresence,
+  motion,
+} from "motion/react";
+
+import { cn } from "@/lib/utils";
+
 import { Menu } from "@/components/sidebar/Menu";
-import { Button } from "@/components/ui/button";
+
 import {
   Sheet,
   SheetContent,
@@ -13,53 +25,112 @@ import {
 } from "@/components/ui/sheet";
 
 import CompanySelect from "../selects/CompanySelect";
+
 import { useCompanyStore } from "@/stores/CompanyStore";
-import { useAuth } from "@/contexts/AuthContext";
+
 import Logo from "@/components/misc/Logo";
 
 export function SheetMenu() {
-  const { selectedCompany, selectedStation } = useCompanyStore();
+  const { selectedCompany, selectedStation } =
+    useCompanyStore();
+
+  const [open, setOpen] = useState(false);
 
   return (
-    <Sheet>
+    <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger className="lg:hidden" asChild>
-        <Button
-          variant="outline"
-          size="icon"
-          className="
-            h-8 w-8
-            rounded-lg
-            bg-background
-            border border-border/60
-            text-muted-foreground
-            hover:text-foreground
-            hover:bg-muted/40
-            transition-all duration-200
-          "
+        <motion.button
+          whileTap={{
+            scale: 0.92,
+          }}
+          transition={{
+            duration: 0.18,
+            ease: [0.22, 1, 0.36, 1],
+          }}
+          className={cn(
+            "relative flex items-center justify-center",
+            "h-9 w-9 rounded-lg",
+            "bg-background",
+            "border border-border/70",
+            "text-foreground/80",
+            "hover:text-foreground",
+            "hover:bg-muted/60",
+            "hover:border-border",
+            "transition-colors duration-200",
+            "shadow-sm"
+          )}
         >
-          <MenuIcon className="h-4 w-4" />
-        </Button>
+          <AnimatePresence mode="wait" initial={false}>
+            {open ? (
+              <motion.div
+                key="close"
+                initial={{
+                  opacity: 0,
+                  rotate: -90,
+                  scale: 0.8,
+                }}
+                animate={{
+                  opacity: 1,
+                  rotate: 0,
+                  scale: 1,
+                }}
+                exit={{
+                  opacity: 0,
+                  rotate: 90,
+                  scale: 0.8,
+                }}
+                transition={{
+                  duration: 0.22,
+                  ease: [0.22, 1, 0.36, 1],
+                }}
+                className="absolute"
+              >
+                <PanelLeftClose className="h-4 w-4" />
+              </motion.div>
+            ) : (
+              <motion.div
+                key="open"
+                initial={{
+                  opacity: 0,
+                  rotate: 90,
+                  scale: 0.8,
+                }}
+                animate={{
+                  opacity: 1,
+                  rotate: 0,
+                  scale: 1,
+                }}
+                exit={{
+                  opacity: 0,
+                  rotate: -90,
+                  scale: 0.8,
+                }}
+                transition={{
+                  duration: 0.22,
+                  ease: [0.22, 1, 0.36, 1],
+                }}
+                className="absolute"
+              >
+                <PanelLeftOpen className="h-4 w-4" />
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </motion.button>
       </SheetTrigger>
 
       <SheetContent
         side="left"
         className="sm:max-w-72 px-3 h-full flex flex-col"
       >
-        {/* HEADER / LOGO SECTION */}
+        {/* HEADER */}
         <SheetHeader>
           <div className="flex justify-center items-center mt-4 mb-2 px-4 py-4 bg-background rounded-md">
-            <Button
-              variant="link"
-              asChild
-              className="w-full flex justify-center items-center"
+            <Link
+              href={`/${selectedCompany?.slug ?? ""}/dashboard`}
+              className="flex items-center justify-center"
             >
-              <Link
-                href={`/${selectedCompany?.slug ?? ""}/dashboard`}
-                className="flex items-center justify-center"
-              >
-                <Logo width={120} height={120} />
-              </Link>
-            </Button>
+              <Logo width={120} height={120} />
+            </Link>
           </div>
         </SheetHeader>
 
@@ -68,7 +139,7 @@ export function SheetMenu() {
           <CompanySelect />
         </div>
 
-        {/* MENU / ESTADO */}
+        {/* MENU / STATE */}
         {selectedCompany && selectedStation ? (
           <Menu isOpen />
         ) : (
