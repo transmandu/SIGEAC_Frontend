@@ -74,23 +74,17 @@ const CompanySelect = () => {
         <SelectTrigger
           className={cn(
             BASE_TRIGGER,
-
-            // base interaction
-            "hover:border-border",
-            "hover:bg-muted/40",
-            "hover:text-foreground",
-
-            // OPEN STATE (esto es lo correcto en Radix)
-            "data-[state=open]:border-blue-500/50",
-            "data-[state=open]:bg-muted/30",
-
-            // GLOW SOLO CUANDO ESTÁ ABIERTO
-            "data-[state=open]:shadow-[0_0_0_3px_rgba(59,130,246,0.10)]",
-
-            // smooth transitions
-            "transition-all duration-200 ease-out",
-
-            // press feel
+            "bg-gradient-to-br from-background/70 to-background/40",
+            "backdrop-blur-md",
+            "border border-slate-400/60 dark:border-slate-600/60",
+            "shadow-sm",
+            "text-slate-700 dark:text-slate-200",
+            "hover:border-blue-400/30",
+            "hover:shadow-md hover:shadow-blue-500/10",
+            "data-[state=open]:border-blue-400/40",
+            "data-[state=open]:ring-2 data-[state=open]:ring-blue-500/15",
+            "data-[state=open]:shadow-md data-[state=open]:shadow-blue-500/15",
+            "transition-all duration-200",
             "active:scale-[0.99]"
           )}
         >
@@ -127,23 +121,17 @@ const CompanySelect = () => {
         <SelectTrigger
           className={cn(
             BASE_TRIGGER,
-
-            // base interaction
-            "hover:border-border",
-            "hover:bg-muted/40",
-            "hover:text-foreground",
-
-            // OPEN STATE (esto es lo correcto en Radix)
-            "data-[state=open]:border-blue-500/50",
-            "data-[state=open]:bg-muted/30",
-
-            // GLOW SOLO CUANDO ESTÁ ABIERTO
-            "data-[state=open]:shadow-[0_0_0_3px_rgba(59,130,246,0.10)]",
-
-            // smooth transitions
-            "transition-all duration-200 ease-out",
-
-            // press feel
+            "bg-gradient-to-br from-background/70 to-background/40",
+            "backdrop-blur-md",
+            "border border-slate-400/60 dark:border-slate-600/60",
+            "shadow-sm",
+            "text-slate-700 dark:text-slate-200",
+            "hover:border-blue-400/30",
+            "hover:shadow-md hover:shadow-blue-500/10",
+            "data-[state=open]:border-blue-400/40",
+            "data-[state=open]:ring-2 data-[state=open]:ring-blue-500/15",
+            "data-[state=open]:shadow-md data-[state=open]:shadow-blue-500/15",
+            "transition-all duration-200",
             "active:scale-[0.99]"
           )}
         >
