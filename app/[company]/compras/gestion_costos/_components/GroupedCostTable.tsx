@@ -1,8 +1,8 @@
 'use client'
 
-import { useMemo, useState, useEffect } from 'react'
+import { useMemo, useState, useEffect} from 'react'
 import GroupRow from './GroupRow'
-import GroupPagination from '../../../../../components/misc/GroupPagination'
+import GroupPagination from '@/components/misc/GroupPagination' 
 
 type BaseRow = {
   id: number
@@ -16,6 +16,9 @@ type BaseRow = {
   brand_model?: string
   variant_type?: string
   unit_label?: string
+
+  _groupIndex?: number
+  _groupRows?: BaseRow[]
 }
 
 type GroupableKey =
@@ -30,6 +33,7 @@ type Props = {
   data: BaseRow[]
   groupBy: GroupableKey
   renderTable: (rows: BaseRow[]) => React.ReactNode
+  setDrafts?: React.Dispatch<React.SetStateAction<Record<number, any>>>
 }
 
 type Group = {
@@ -124,15 +128,20 @@ const GroupedCostTable = ({
   return (
     <div className="flex flex-col gap-4">
 
-      {/* GRUPOS */}
       {paginatedGroups.map((group) => {
         const isOpen = expanded[group.key] ?? false
+
+        const enrichedRows = group.rows.map((r, idx) => ({
+          ...r,
+          _groupIndex: idx,
+          _groupRows: group.rows,
+        }))
 
         return (
           <div
             key={group.key}
             className="
-              overflow-hidden
+              overflow-visible
               rounded-2xl border
               border-slate-200/80
               dark:border-slate-700/60
@@ -152,32 +161,31 @@ const GroupedCostTable = ({
 
             {isOpen && (
               <div className="p-2 md:p-3">
-                {renderTable(group.rows)}
+                {renderTable(enrichedRows)}
               </div>
             )}
           </div>
         )
       })}
 
-    <GroupPagination
-    pageIndex={pagination.pageIndex}
-    pageSize={pagination.pageSize}
-    pageCount={totalPages}
-    onPageChange={(page: number) =>
-        setPagination((prev) => ({
-        ...prev,
-        pageIndex: page,
-        }))
-    }
-    onPageSizeChange={(size: number) =>
-        setPagination({
-        pageIndex: 0,
-        pageSize: size,
-        })
-    }
-    totalGroups={groups.length}
-    />
-
+      <GroupPagination
+        pageIndex={pagination.pageIndex}
+        pageSize={pagination.pageSize}
+        pageCount={totalPages}
+        onPageChange={(page: number) =>
+          setPagination((prev) => ({
+            ...prev,
+            pageIndex: page,
+          }))
+        }
+        onPageSizeChange={(size: number) =>
+          setPagination({
+            pageIndex: 0,
+            pageSize: size,
+          })
+        }
+        totalGroups={groups.length}
+      />
     </div>
   )
 }

@@ -55,6 +55,7 @@ type BaseRow = {
   id: number
   cost?: number
   batch_name?: string
+  condition_name?: string
   part_number?: string
   serial?: string
   quantity?: number
@@ -110,6 +111,7 @@ const CostManagementPage = () => {
       batch.articles.map((article) => ({
         id: article.id,
         batch_name: batch.name,
+        condition_name: article.condition?.name,
         part_number: article.part_number,
         serial: article.serial,
         unit_label: article.unit?.label,
@@ -201,6 +203,10 @@ const CostManagementPage = () => {
     setDrafts,
   ])
 
+  const handleReset = useCallback(() => {
+    setDrafts({})
+  }, [setDrafts])
+
   const columns = useMemo(
     () =>
       getColumns({
@@ -286,6 +292,7 @@ const CostManagementPage = () => {
           hasChanges={hasChanges}
           modifiedCount={getChangedRows().length}
           onSave={handleSave}
+          onReset={handleReset}
         />
 
         {isInitialLoading && filteredData.length === 0 ? (
@@ -304,6 +311,7 @@ const CostManagementPage = () => {
                 costDrafts={costDrafts}
               />
             )}
+            setDrafts={setDrafts}
           />
         ) : (
           <DataTable
