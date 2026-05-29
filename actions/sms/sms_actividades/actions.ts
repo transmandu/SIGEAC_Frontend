@@ -16,6 +16,7 @@ interface SMSActivityData {
   topics: string;
   objetive: string;
   description: string;
+  categories: string[];
   authorized_by: string;
   planned_by: string;
   executed_by?: string;
@@ -37,6 +38,7 @@ interface updateSMSActivityData {
     topics: string;
     objetive: string;
     description: string;
+    categories: string[];
     authorized_by: string;
     planned_by: string;
     executed_by?: string;
@@ -77,6 +79,9 @@ export const useCreateSMSActivity = () => {
       formData.append("topics", data.topics);
       formData.append("objetive", data.objetive);
       formData.append("description", data.description);
+      data.categories.forEach((categoryId) => {
+        formData.append("categories[]", categoryId);
+      });
       formData.append("authorized_by", data.authorized_by);
       formData.append("planned_by", data.planned_by);
       if (data.executed_by) formData.append("executed_by", data.executed_by);
@@ -169,6 +174,9 @@ export const useUpdateSMSActivity = () => {
       formData.append("topics", data.topics);
       formData.append("objetive", data.objetive);
       formData.append("description", data.description);
+      data.categories.forEach((categoryId) => {
+        formData.append("categories[]", categoryId);
+      });
       formData.append("authorized_by", data.authorized_by);
       formData.append("planned_by", data.planned_by);
       formData.append("status", data.status);
