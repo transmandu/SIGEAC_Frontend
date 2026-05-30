@@ -103,44 +103,55 @@ export function Menu({ isOpen }: MenuProps) {
                         <li className={cn("w-full", groupLabel ? "pt-3" : "")} key={index}>
                             {(isOpen && groupLabel) || isOpen === undefined ? (
                                 <div className="px-2 pb-2">
-<button
-    type="button"
-    onClick={() =>
-        isSuperUser &&
-        groupLabel &&
-        toggleGroup(groupLabel)
-    }
-    className={cn(
-        "group flex w-full items-center gap-3 rounded-xl px-2 py-1.5 transition-all duration-200",
-        "relative overflow-hidden",
-        isSuperUser && "cursor-pointer"
-    )}
->
-    {/* hover glow sutil sin afectar layout */}
-    {isSuperUser && (
-        <span className="absolute inset-0 rounded-xl opacity-0 transition-opacity duration-200 group-hover:opacity-100 bg-muted/30" />
-    )}
+                                    <button
+                                        type="button"
+                                        onClick={() =>
+                                            isSuperUser &&
+                                            groupLabel &&
+                                            toggleGroup(groupLabel)
+                                        }
+                                        className={cn(
+                                            "group flex w-full items-center gap-3 rounded-xl px-2 py-1.5 transition-all duration-200",
+                                            "relative overflow-hidden",
 
-    <p
-        className={cn(
-            "relative z-10 max-w-[180px] truncate text-[10px] font-semibold uppercase tracking-[0.24em] text-muted-foreground/90 transition-colors",
-            isSuperUser && "group-hover:text-foreground"
-        )}
-    >
-        {groupLabel}
-    </p>
+                                            // SOLO interactivo si es superuser
+                                            isSuperUser ? "cursor-pointer" : "cursor-default"
+                                        )}
+                                    >
+                                        {/* Hover SOLO para superuser */}
+                                        {isSuperUser && (
+                                            <span className="absolute inset-0 rounded-xl opacity-0 transition-opacity duration-200 group-hover:opacity-100 bg-muted/30" />
+                                        )}
 
-    <span className="relative z-10 h-px flex-1 bg-border/60 transition-colors group-hover:bg-border/80" />
+                                        <p
+                                            className={cn(
+                                                "relative z-10 max-w-[180px] truncate text-[10px] font-semibold uppercase tracking-[0.24em] text-muted-foreground/90 transition-colors",
 
-    {isSuperUser && (
-        <ChevronDown
-            className={cn(
-                "relative z-10 h-3 w-3 shrink-0 text-muted-foreground transition-all duration-200 group-hover:text-foreground/90",
-                isCollapsed && "-rotate-90"
-            )}
-        />
-    )}
-</button>
+                                                // SOLO hover effect si es superuser
+                                                isSuperUser && "group-hover:text-foreground"
+                                            )}
+                                        >
+                                            {groupLabel}
+                                        </p>
+
+                                        <span
+                                            className={cn(
+                                                "relative z-10 h-px flex-1 bg-border/60 transition-colors",
+
+                                                // hover SOLO si es superuser
+                                                isSuperUser && "group-hover:bg-border/80"
+                                            )}
+                                        />
+
+                                        {isSuperUser && (
+                                            <ChevronDown
+                                                className={cn(
+                                                    "relative z-10 h-3 w-3 shrink-0 text-muted-foreground transition-all duration-200 group-hover:text-foreground/90",
+                                                    isCollapsed && "-rotate-90"
+                                                )}
+                                            />
+                                        )}
+                                    </button>
                                 </div>
                             ) : !isOpen && isOpen !== undefined && groupLabel ? (
                                 <TooltipProvider>
