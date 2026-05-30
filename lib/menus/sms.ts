@@ -12,7 +12,7 @@ export function buildSmsGroup({ pathname, currentCompany }: MenuContext): Group 
     return {
         groupLabel: "SMS",
         moduleValue: "sms",
-        requiresOmac: false,
+        requiresNonOmac: true,
         menus: [
             {
                 href: `/${currentCompany?.slug}/sms/reportes`,
@@ -20,7 +20,6 @@ export function buildSmsGroup({ pathname, currentCompany }: MenuContext): Group 
                 active: pathname.includes(`/${currentCompany?.slug}/sms/reportes`),
                 icon: ClipboardPen,
                 roles: ["ANALISTA_SMS", "JEFE_SMS", "SUPERUSER"],
-                requiresOmac: false,
                 submenus: [],
             },
             {
@@ -31,7 +30,6 @@ export function buildSmsGroup({ pathname, currentCompany }: MenuContext): Group 
                 ),
                 icon: ShieldAlert,
                 roles: ["ANALISTA_SMS", "JEFE_SMS", "SUPERUSER"],
-                requiresOmac: false,
                 submenus: [
                     {
                         href: `/${currentCompany?.slug}/sms/gestion_reportes/peligros_identificados`,
@@ -57,7 +55,6 @@ export function buildSmsGroup({ pathname, currentCompany }: MenuContext): Group 
                 icon: AreaChartIcon,
                 active: pathname.includes(`/${currentCompany?.slug}/sms/estadisticas`),
                 roles: ["ANALISTA_SMS", "JEFE_SMS", "SUPERUSER"],
-                requiresOmac: false,
                 submenus: [
                     {
                         href: `/${currentCompany?.slug}/sms/estadisticas/general`,
@@ -107,7 +104,6 @@ export function buildSmsGroup({ pathname, currentCompany }: MenuContext): Group 
                 active: pathname.includes(`/${currentCompany?.slug}/sms/promocion`),
                 icon: CalendarClock,
                 roles: ["SUPERUSER", "JEFE_SMS", "ANALISTA_SMS"],
-                requiresOmac: false,
                 submenus: [
                     {
                         href: `/${currentCompany?.slug}/sms/promocion/actividades/calendario`,
@@ -143,7 +139,7 @@ export function buildSmsGroup({ pathname, currentCompany }: MenuContext): Group 
                 ),
                 icon: ClipboardCheck,
                 roles: ["SUPERUSER", "JEFE_SMS", "ANALISTA_SMS"],
-                requiresOmac: false,
+                requiresNonOmac: true,
                 submenus: [
                     {
                         href: `/${currentCompany?.slug}/sms/gestion_encuestas/crear`,
@@ -169,7 +165,6 @@ export function buildSmsGroup({ pathname, currentCompany }: MenuContext): Group 
                 active: pathname.includes(`/${currentCompany?.slug}/sms/ajustes`),
                 icon: Settings,
                 roles: ["SUPERUSER", "JEFE_SMS", "ANALISTA_SMS"],
-                requiresOmac: false,
                 submenus: [
                     {
                         href: `/${currentCompany?.slug}/sms/ajustes/encuesta`,
@@ -193,7 +188,7 @@ export function buildSmsGroup({ pathname, currentCompany }: MenuContext): Group 
                 ),
                 icon: ShieldAlert,
                 roles: ["COORDINADOR_SMS", "GERENTE_SMS", "SUPERUSER"],
-                requiresOmac: true,
+                requiresNonOmac: true,
                 submenus: [
                     {
                         href: `/${currentCompany?.slug}/sms/aeronautical/gestion_de_riesgos/reportes`,
