@@ -12,6 +12,7 @@ export function buildSmsGroup({ pathname, currentCompany }: MenuContext): Group 
     return {
         groupLabel: "SMS",
         moduleValue: "sms",
+        requiresOmac: false,
         menus: [
             {
                 href: `/${currentCompany?.slug}/sms/reportes`,
