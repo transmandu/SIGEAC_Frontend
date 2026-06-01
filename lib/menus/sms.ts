@@ -29,6 +29,7 @@ export function buildSmsGroup({ pathname, currentCompany }: MenuContext): Group 
                 ),
                 icon: ShieldAlert,
                 roles: ["ANALISTA_SMS", "JEFE_SMS", "SUPERUSER"],
+                requiresNonOmac: true,
                 submenus: [
                     {
                         href: `/${currentCompany?.slug}/sms/gestion_reportes/peligros_identificados`,
@@ -190,7 +191,6 @@ export function buildSmsGroup({ pathname, currentCompany }: MenuContext): Group 
                 ),
                 icon: ShieldAlert,
                 roles: ["COORDINADOR_SMS", "GERENTE_SMS", "SUPERUSER"],
-                requiresNonOmac: true,
                 submenus: [
                     {
                         href: `/${currentCompany?.slug}/sms/aeronautical/gestion_de_riesgos/reportes`,
