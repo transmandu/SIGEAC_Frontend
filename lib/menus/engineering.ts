@@ -5,7 +5,6 @@ export function buildEngineeringGroup({ pathname, currentCompany }: MenuContext)
     return {
         groupLabel: "Ingenieria",
         moduleValue: "engineering",
-        requiresOmac: true,
         menus: [
             {
                 href: `/${currentCompany?.slug}/ingenieria/confirmar_inventario`,
@@ -15,6 +14,7 @@ export function buildEngineeringGroup({ pathname, currentCompany }: MenuContext)
                 ),
                 icon: ClipboardCheck,
                 roles: ["SUPERUSER", "ENGINEERING"],
+                requiresOmac: true,
                 submenus: [],
             },
         ],

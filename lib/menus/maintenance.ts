@@ -5,7 +5,6 @@ export function buildMaintenanceGroup({ pathname, currentCompany }: MenuContext)
     return {
         groupLabel: "Mantenimiento",
         moduleValue: "maintenance",
-        requiresOmac: true,
         menus: [
             {
                 href: `/${currentCompany?.slug}/mantenimiento/servicios`,
@@ -13,6 +12,7 @@ export function buildMaintenanceGroup({ pathname, currentCompany }: MenuContext)
                 active: pathname.includes(`/${currentCompany?.slug}/mantenimiento/servicios`),
                 icon: Drill,
                 roles: ["ANALISTA_PLANIFICACION", "JEFE_PLANIFICACION", "SUPERUSER"],
+                requiresOmac: true,
                 submenus: [],
             },
         ],

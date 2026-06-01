@@ -8,7 +8,6 @@ export function buildPlanificationGroup({
     return {
         groupLabel: "Planificación",
         moduleValue: "planification",
-        requiresOmac: true,
         menus: [
             {
                 href: `/${currentCompany?.slug}/planificacion/calendario`,
@@ -16,6 +15,7 @@ export function buildPlanificationGroup({
                 active: pathname.includes(`/${currentCompany?.slug}/planificacion/calendario`),
                 icon: CalendarFold,
                 roles: ["ANALISTA_PLANIFICACION", "JEFE_PLANIFICACION", "SUPERUSER"],
+                requiresOmac: true,
                 submenus: [],
             },
             {
@@ -26,6 +26,7 @@ export function buildPlanificationGroup({
                 ),
                 icon: SquarePen,
                 roles: ["ANALISTA_PLANIFICACION", "JEFE_PLANIFICACION", "SUPERUSER"],
+                requiresOmac: true,
                 submenus: [
                     {
                         href: `/${currentCompany?.slug}/planificacion/ordenes_trabajo/`,
@@ -42,6 +43,7 @@ export function buildPlanificationGroup({
                 active: pathname.includes(`/${currentCompany?.slug}/planificacion/reportes`),
                 icon: Plane,
                 roles: ["ANALISTA_PLANIFICACION", "JEFE_PLANIFICACION", "SUPERUSER"],
+                requiresOmac: true,
                 submenus: [
                     {
                         href: `/${currentCompany?.slug}/planificacion/aeronaves`,
@@ -57,6 +59,7 @@ export function buildPlanificationGroup({
                     `/${currentCompany?.slug}/planificacion/control_vuelos`,
                 ),
                 icon: BookCheck,
+                requiresOmac: true,
                 roles: ["ANALISTA_PLANIFICACION", "JEFE_PLANIFICACION", "SUPERUSER"],
                 submenus: [
                     {
