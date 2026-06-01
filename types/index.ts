@@ -806,6 +806,11 @@ export type Unit = {
     updated_at: Date;
 };
 
+export type CompanyModule = {
+    id: number;
+    label: string;
+};
+
 export type User = {
     id: string;
     username: string;
@@ -822,6 +827,10 @@ export type User = {
     permissions: Permission[];
     companies: Company[];
     employee: Employee[];
+    modules_by_company?: {
+        company_id: number;
+        modules: CompanyModule[];
+    }[];
 };
 
 export type Employee = {

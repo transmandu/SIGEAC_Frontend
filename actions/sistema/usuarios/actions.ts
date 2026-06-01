@@ -88,3 +88,69 @@ export const useRemoveCompanyFromUser = () => {
 
   return { removeCompany: mutation }
 }
+
+export const useAddModulesToUser = () => {
+  const queryClient = useQueryClient()
+
+  const mutation = useMutation({
+    mutationFn: async ({
+      userId,
+      companyId,
+      moduleIds,
+    }: {
+      userId: string
+      companyId: number
+      moduleIds: number[]
+    }) => {
+      await axiosInstance.post(`/users/${userId}/modules`, {
+        company_id: companyId,
+        module_ids: moduleIds,
+      })
+    },
+
+    onSuccess: (_, { userId }) => {
+      queryClient.invalidateQueries({ queryKey: ['user', userId] })
+      toast.success("Módulos asignados correctamente.")
+    },
+
+    onError: () => {
+      toast.error("No se pudieron asignar los módulos.")
+    },
+  })
+
+  return { addModules: mutation }
+}
+
+export const useRemoveModulesFromUser = () => {
+  const queryClient = useQueryClient()
+
+  const mutation = useMutation({
+    mutationFn: async ({
+      userId,
+      companyId,
+      moduleIds,
+    }: {
+      userId: string
+      companyId: number
+      moduleIds: number[]
+    }) => {
+      await axiosInstance.delete(`/users/${userId}/modules`, {
+        data: {
+          company_id: companyId,
+          module_ids: moduleIds,
+        },
+      })
+    },
+
+    onSuccess: (_, { userId }) => {
+      queryClient.invalidateQueries({ queryKey: ['user', userId] })
+      toast.success("Módulos removidos correctamente.")
+    },
+
+    onError: () => {
+      toast.error("No se pudieron remover los módulos.")
+    },
+  })
+
+  return { removeModules: mutation }
+}
