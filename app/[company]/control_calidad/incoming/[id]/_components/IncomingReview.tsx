@@ -63,6 +63,7 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
+import { toast } from "sonner";
 import { type ChecklistValue } from "../../IncomingTypes";
 import { StatusBadge } from "./StatusBadge";
 
@@ -453,7 +454,7 @@ function ChecklistContent({
    ═══════════════════════════════════════════════════════ */
 
 export function IncomingReview({ article }: { article: any }) {
-  const { selectedCompany } = useCompanyStore();
+  const { selectedCompany, selectedStation } = useCompanyStore();
   const router = useRouter();
   const { confirmIncoming } = useConfirmIncomingArticle();
   const { sendToQuarantine } = useSendToQuarantine();
@@ -505,6 +506,11 @@ export function IncomingReview({ article }: { article: any }) {
   const actionDisabled =
     (decision === "QUARANTINE" ? !quarantineEnabled : false) || (progress !== 100);
 
+  const currentWarehouseId = Number(selectedStation);
+  const incomingQuantity = Number(
+    article?.consumable?.quantity ?? article?.quantity ?? 1
+  );
+
   /* ── Handlers ── */
   const setValue = (key: string, val: ChecklistValue) =>
     setChecklist((prev) => ({ ...prev, [key]: val }));
@@ -527,7 +533,7 @@ export function IncomingReview({ article }: { article: any }) {
       });
 
     return {
-      warehouse_id: Number(article?.warehouse_id) || Number(article?.batch?.warehouse_id) || 1,
+      warehouse_id: currentWarehouseId,
       purchase_order_code: "N/A",
       purchase_order_id: null,
       inspection_date: format(incomingDate, "yyyy-MM-dd"),
@@ -537,7 +543,9 @@ export function IncomingReview({ article }: { article: any }) {
           serial: Array.isArray(article?.serial)
             ? article.serial[0]
             : article?.serial,
-          quantity: 1,
+          quantity: Number.isFinite(incomingQuantity) && incomingQuantity > 0
+            ? incomingQuantity
+            : 1,
           checks,
         },
       ],
@@ -546,6 +554,11 @@ export function IncomingReview({ article }: { article: any }) {
 
   const confirmAccept = async () => {
     if (!user || !selectedCompany) return;
+    if (!selectedStation || !Number.isFinite(currentWarehouseId) || currentWarehouseId <= 0) {
+      toast.error("Seleccione un almacén válido antes de registrar el incoming.");
+      return;
+    }
+
     await confirmIncoming.mutateAsync(buildPayload());
     setAcceptOpen(false);
     router.push(`/${selectedCompany.slug}/control_calidad/incoming`);

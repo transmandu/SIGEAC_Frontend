@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Loader2, MoreHorizontal, PackageSearch } from "lucide-react"
 import { useState } from "react"
+import { toast } from "sonner"
 import { Button } from "../../../ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "../../../ui/dialog"
 
@@ -19,11 +20,19 @@ const WaitingToLocateArticleDropdownActions = ({ id }: { id: number }) => {
   const { locateArticle } = useLocateArticle()
   const [zone, setZone] = useState<string>("")
   const handleLocate = async (id: number) => {
+    const trimmedZone = zone.trim()
+
+    if (!trimmedZone) {
+      toast.error("Ingrese una zona de almacén válida.")
+      return
+    }
+
     await locateArticle.mutateAsync({
       id: id,
-      zone: zone,
+      zone: trimmedZone,
     });
     setOpen(false);
+    setZone("");
   }
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -62,7 +71,7 @@ const WaitingToLocateArticleDropdownActions = ({ id }: { id: number }) => {
         </div>
         <DialogFooter className="flex flex-col gap-2 md:gap-0">
           <Button className="bg-rose-400 hover:bg-white hover:text-black hover:border hover:border-black" onClick={() => setOpen(false)} type="submit">Cancelar</Button>
-          <Button disabled={locateArticle.isPending} className="hover:bg-white hover:text-black hover:border hover:border-black transition-all" onClick={() => handleLocate(id)}>{locateArticle.isPending ? <Loader2 className="size-4 animate-spin" /> : <p>Confirmar</p>}</Button>
+          <Button disabled={locateArticle.isPending || !zone.trim()} className="hover:bg-white hover:text-black hover:border hover:border-black transition-all" onClick={() => handleLocate(id)}>{locateArticle.isPending ? <Loader2 className="size-4 animate-spin" /> : <p>Confirmar</p>}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
