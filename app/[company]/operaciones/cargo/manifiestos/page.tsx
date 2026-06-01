@@ -49,12 +49,10 @@ const ManifestosPage = () => {
   const year = filterDate.getFullYear();
   const day = filterDate.getDate();
   const { data: aircrafts } = useGetAircrafts(company);
-  const { data: externalSuggestions } = useGetExternalAircraftSuggestions(company);
+  const { data: externalSuggestions } =
+    useGetExternalAircraftSuggestions(company);
 
-  const internalAircrafts = useMemo(
-    () => aircrafts ?? [],
-    [aircrafts],
-  );
+  const internalAircrafts = useMemo(() => aircrafts ?? [], [aircrafts]);
 
   const externalAircrafts = useMemo(
     () => externalSuggestions ?? [],
