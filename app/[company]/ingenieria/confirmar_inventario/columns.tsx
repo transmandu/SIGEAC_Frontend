@@ -2,6 +2,7 @@
 
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import { WarehouseResponse } from "@/hooks/mantenimiento/almacen/articulos/useGetWarehouseArticlesByCategory";
 import { ColumnDef } from "@tanstack/react-table";
 import { addDays, format, parseISO } from "date-fns";
@@ -172,6 +173,33 @@ const baseCols: ColumnDef<IArticleSimple>[] = [
   },
 ];
 
+const selectionColumn: ColumnDef<IArticleSimple> = {
+  id: "select",
+  header: ({ table }) => (
+    <div className="flex justify-center">
+      <Checkbox
+        checked={
+          table.getIsAllPageRowsSelected() ||
+          (table.getIsSomePageRowsSelected() && "indeterminate")
+        }
+        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+        aria-label="Seleccionar todos"
+      />
+    </div>
+  ),
+  cell: ({ row }) => (
+    <div className="flex justify-center">
+      <Checkbox
+        checked={row.getIsSelected()}
+        onCheckedChange={(value) => row.toggleSelected(!!value)}
+        aria-label="Seleccionar articulo"
+      />
+    </div>
+  ),
+  enableSorting: false,
+  enableHiding: false,
+};
+
 // Columnas para COMPONENTE (baseCols + acciones)
 const componenteCols: ColumnDef<IArticleSimple>[] = [
   ...baseCols,
@@ -280,7 +308,7 @@ export const herramientaCols: ColumnDef<IArticleSimple>[] = [
 export const getColumnsByCategory = (
   cat: "COMPONENT" | "CONSUMABLE" | "TOOL" | "PART"
 ): ColumnDef<IArticleSimple>[] => {
-  if (cat === "TOOL") return herramientaCols;
-  if (cat === "CONSUMABLE") return consumibleCols;
-  return componenteCols; // componente u otros
+  if (cat === "TOOL") return [selectionColumn, ...herramientaCols];
+  if (cat === "CONSUMABLE") return [selectionColumn, ...consumibleCols];
+  return [selectionColumn, ...componenteCols]; // componente u otros
 };

@@ -3,6 +3,7 @@
 import {
   ColumnDef,
   ColumnFiltersState,
+  RowSelectionState,
   SortingState,
   VisibilityState,
   flexRender,
@@ -21,16 +22,20 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
+  onSelectionChange?: (ids: number[]) => void;
+  selectionResetKey?: number;
 }
 
 export function DataTable<TData, TValue>({
   columns,
   data,
+  onSelectionChange,
+  selectionResetKey,
 }: DataTableProps<TData, TValue>) {
   // ============================================
   // STATE MANAGEMENT
@@ -38,6 +43,7 @@ export function DataTable<TData, TValue>({
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
+  const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
 
   // ============================================
   // TABLE CONFIGURATION
@@ -45,6 +51,8 @@ export function DataTable<TData, TValue>({
   const table = useReactTable({
     data,
     columns,
+    getRowId: (row, index) => String((row as { id?: number | string }).id ?? index),
+    enableRowSelection: true,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     onSortingChange: setSorting,
@@ -52,12 +60,30 @@ export function DataTable<TData, TValue>({
     onColumnFiltersChange: setColumnFilters,
     getFilteredRowModel: getFilteredRowModel(),
     onColumnVisibilityChange: setColumnVisibility,
+    onRowSelectionChange: setRowSelection,
     state: {
       sorting,
       columnFilters,
       columnVisibility,
+      rowSelection,
     },
   });
+
+  useEffect(() => {
+    if (!onSelectionChange) return;
+
+    const ids = table
+      .getSelectedRowModel()
+      .rows.map((row) => Number((row.original as { id?: number }).id))
+      .filter((id) => Number.isFinite(id));
+
+    onSelectionChange(ids);
+  }, [onSelectionChange, rowSelection]);
+
+  useEffect(() => {
+    if (selectionResetKey === undefined) return;
+    table.resetRowSelection();
+  }, [selectionResetKey]);
 
   // ============================================
   // RENDER

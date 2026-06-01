@@ -228,10 +228,30 @@ export const useUpdateArticleStatus = () => {
     const queryClient = useQueryClient();
     const updateArticleStatusMutation = useMutation({
         mutationKey: ["articles"],
-        mutationFn: async ({ id, status }: { id: number; status?: string }) => {
+        mutationFn: async ({
+            id,
+            ids,
+            status,
+        }: {
+            id?: number;
+            ids?: number[];
+            status?: string;
+        }) => {
+            if (ids && ids.length > 0) {
+                await axiosInstance.put(
+                    `/${selectedCompany?.slug}/update-article-status`,
+                    { status, ids }
+                );
+                return;
+            }
+
+            if (id === undefined) {
+                throw new Error("Debe proporcionar un id o una lista de ids");
+            }
+
             await axiosInstance.put(
                 `/${selectedCompany?.slug}/update-article-status/${id}`,
-                { status: status }
+                { status }
             );
         },
         onSuccess: () => {
