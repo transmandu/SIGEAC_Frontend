@@ -7,7 +7,7 @@ export function buildQualityControlGroup({
 }: MenuContext): Group {
     return {
         groupLabel: "Control de Calidad",
-        requiresOmac: true,
+        moduleValue: "quality_control",
         menus: [
             {
                 href: `/${currentCompany?.slug}/control_calidad/incoming`,

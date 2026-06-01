@@ -27,31 +27,13 @@ export function filterMenuGroups(
         return currentCompany.modules.some((module) => module.value === moduleValue);
     };
 
-
-    const hasGroupOmacAccess = (group: Group) => {
-        const isOmac = currentCompany?.isOMAC ?? false;
-
-        if (group.requiresOmac) return isOmac;
-        if (group.requiresNonOmac) return !isOmac;
-
-        return true;
-    };
-
-    const hasOmacAccess = (item: {
-        requiresOmac?: boolean;
-        requiresNonOmac?: boolean;
-    }) => {
-        const isOmac = currentCompany?.isOMAC ?? false;
-
-        if (item.requiresOmac) return isOmac;
-
-        if (item.requiresNonOmac) return !isOmac;
-
-        return true;
+    const hasOmacAccess = (item: { requiresOmac?: boolean }): boolean => {
+        if (item.requiresOmac === undefined) return true;
+        return item.requiresOmac === currentCompany?.isOMAC;
     };
 
     return groups
-        .filter((group) => isModuleActive(group.moduleValue) && hasGroupOmacAccess(group))
+        .filter((group) => isModuleActive(group.moduleValue))
         .map((group) => {
             const filteredMenus = group.menus.filter(
                 (menu) =>
