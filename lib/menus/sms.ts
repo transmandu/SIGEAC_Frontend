@@ -12,7 +12,6 @@ export function buildSmsGroup({ pathname, currentCompany }: MenuContext): Group 
     return {
         groupLabel: "SMS",
         moduleValue: "sms",
-        requiresNonOmac: true,
         menus: [
             {
                 href: `/${currentCompany?.slug}/sms/reportes`,
@@ -55,6 +54,7 @@ export function buildSmsGroup({ pathname, currentCompany }: MenuContext): Group 
                 icon: AreaChartIcon,
                 active: pathname.includes(`/${currentCompany?.slug}/sms/estadisticas`),
                 roles: ["ANALISTA_SMS", "JEFE_SMS", "SUPERUSER"],
+                requiresNonOmac: true,
                 submenus: [
                     {
                         href: `/${currentCompany?.slug}/sms/estadisticas/general`,
@@ -104,6 +104,7 @@ export function buildSmsGroup({ pathname, currentCompany }: MenuContext): Group 
                 active: pathname.includes(`/${currentCompany?.slug}/sms/promocion`),
                 icon: CalendarClock,
                 roles: ["SUPERUSER", "JEFE_SMS", "ANALISTA_SMS"],
+                requiresNonOmac: true,
                 submenus: [
                     {
                         href: `/${currentCompany?.slug}/sms/promocion/actividades/calendario`,
@@ -165,6 +166,7 @@ export function buildSmsGroup({ pathname, currentCompany }: MenuContext): Group 
                 active: pathname.includes(`/${currentCompany?.slug}/sms/ajustes`),
                 icon: Settings,
                 roles: ["SUPERUSER", "JEFE_SMS", "ANALISTA_SMS"],
+                        requiresNonOmac: true,
                 submenus: [
                     {
                         href: `/${currentCompany?.slug}/sms/ajustes/encuesta`,
