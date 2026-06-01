@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import libraryService from '@/lib/libraryService';
 import { useAuth } from '@/contexts/AuthContext';
 import { X, Loader2, Send, CheckCircle2, XCircle, Clock, FileText, MessageSquare, Eye, Copy, Check, Share2, Info, CalendarDays, ShieldAlert, Download } from 'lucide-react';
@@ -15,6 +15,10 @@ interface ShareRequestsPanelProps {
 }
 
 type FilterTab = 'all' | 'pending' | 'approved' | 'rejected';
+
+const isReadOnlyAccess = (value: unknown) => {
+  return value === true || value === 1 || value === '1';
+};
 
 export default function ShareRequestsPanel({ company, onClose, onRefresh }: ShareRequestsPanelProps) {
   const { user } = useAuth();
@@ -40,8 +44,9 @@ export default function ShareRequestsPanel({ company, onClose, onRefresh }: Shar
     return !!(isSuperUser || isDirector);
   }, [user]);
 
-  const fetchRequests = async () => {
+  const fetchRequests = useCallback(async () => {
     setLoading(true);
+
     try {
       const res = await libraryService.getShareRequests(company);
       setRequests(Array.isArray(res) ? res : res.data || []);
@@ -50,11 +55,11 @@ export default function ShareRequestsPanel({ company, onClose, onRefresh }: Shar
     } finally {
       setLoading(false);
     }
-  };
+  }, [company]);
 
   useEffect(() => {
     fetchRequests();
-  }, [company]);
+  }, [company, fetchRequests]);
 
   const filteredRequests = useMemo(() => {
     if (activeTab === 'all') return requests;
@@ -450,7 +455,7 @@ export default function ShareRequestsPanel({ company, onClose, onRefresh }: Shar
                   </div>
                   <div className="flex items-center gap-2 pt-1">
                     <span className="flex items-center gap-1 text-[8px] font-bold uppercase text-slate-400"><ShieldAlert className="h-3 w-3" /> Nivel:</span>
-                    {selectedDetails.read_only ? (
+                    {isReadOnlyAccess(selectedDetails.read_only) ? (
                       <span className="flex items-center gap-1 text-[10px] font-bold text-amber-600 bg-amber-100 dark:bg-amber-900/30 px-2 py-0.5 rounded-full"><Eye className="h-3 w-3" /> Solo Lectura</span>
                     ) : (
                       <span className="flex items-center gap-1 text-[10px] font-bold text-emerald-600 bg-emerald-100 dark:bg-emerald-900/30 px-2 py-0.5 rounded-full"><CheckCircle2 className="h-3 w-3" /> Permite Descarga</span>

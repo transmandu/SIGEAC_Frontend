@@ -4,7 +4,11 @@ import { format, isValid } from "date-fns";
 import { es } from "date-fns/locale";
 import { CalendarIcon, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
-
+import { useSearchParams } from "next/navigation";
+import {
+  useGetExternalAircraftSuggestions,
+  type ExternalAircraftSuggestion,
+} from "@/hooks/operaciones/cargo/useGetExternalAircraftSuggestions";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Input } from "@/components/ui/input";
@@ -43,7 +47,6 @@ import type { ComboboxOption } from "@/components/ui/ComboboxField";
 interface CreateCargoShipmentFormProps {
   onSuccess?: () => void;
   initialData?: any;
-  isExternalMode?: boolean;
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -51,16 +54,13 @@ interface CreateCargoShipmentFormProps {
 export default function CreateCargoShipmentForm({
   onSuccess,
   initialData,
-  isExternalMode,
 }: CreateCargoShipmentFormProps) {
   const {
     form,
     onSubmit,
     isPending,
     isEditing,
-    isExternalAircraft,
     aircraftIdFromUrl,
-    externalNameFromUrl,
     clients,
     loadingClients,
     carriers,
@@ -69,29 +69,56 @@ export default function CreateCargoShipmentForm({
     loadingAircrafts,
     pilots,
     loadingPilots,
-    externalSuggestions,
     guideNumber,
     totalUnits,
     totalWeight,
     calendarDisabledDates,
     user,
     company,
-  } = useCargoShipmentForm(initialData, isExternalMode);
+  } = useCargoShipmentForm(initialData);
 
   const [openCalendar, setOpenCalendar] = useState(false);
   const [openNewCarrier, setOpenNewCarrier] = useState(false);
   const [openNewClient, setOpenNewClient] = useState(false);
-  const [showSuggestions, setShowSuggestions] = useState(false);
   const { data: externalPilots, isLoading: loadingExternalPilots } =
     useGetExternalPilots(company);
 
+  const searchParams = useSearchParams();
+  const isExternalMode =
+    searchParams.get("external") === "true" && !aircraftIdFromUrl;
+
+  const { data: externalSuggestions, isLoading: loadingExternalSuggestions } =
+    useGetExternalAircraftSuggestions(company);
+
   // ── Constructores de opciones ────────────────────────────────────────────────────────
-  const aircraftOptions = (aircrafts ?? [])
-    .filter((a: any) => ![4, 6].includes(a.id))
-    .map((a: any) => ({
+  // Opciones solo de aeronaves de la empresa
+  const internalAircraftOptions: ComboboxOption[] = (aircrafts ?? []).map(
+    (a: any) => ({
       value: a.id,
-      label: a.acronym ?? a.serial ?? `Aeronave ${a.id}`,
-    }));
+      label: a.model
+        ? `${a.model} - ${a.acronym}`
+        : (a.acronym ?? a.serial ?? `Aeronave ${a.id}`),
+    })
+  );
+
+  // Opciones solo de aeronaves externas
+  const externalAircraftOptions: ComboboxOption[] = (
+    externalSuggestions ?? []
+  ).map((a: ExternalAircraftSuggestion) => ({
+    value: a.id as number,
+    label: a.model ? `${a.model} - ${a.acronym}` : a.acronym,
+  }));
+
+  // Opciones combinadas (usado para resolver la etiqueta si viene bloqueado por URL)
+  const allAircraftOptions: ComboboxOption[] = [
+    ...internalAircraftOptions,
+    ...(externalSuggestions ?? []).map((a: ExternalAircraftSuggestion) => ({
+      value: a.id as number,
+      label: a.model
+        ? `${a.model} - ${a.acronym} (Externa)`
+        : `${a.acronym} (Externa)`,
+    })),
+  ];
 
   const carrierOptions = (carriers ?? []).map((c: any) => ({
     value: c.id,
@@ -141,7 +168,9 @@ export default function CreateCargoShipmentForm({
     ...(pilots ?? [])
       .filter(
         (p: any) =>
-          p.rank === "PRIMER_OFICIAL" && p.id !== selectedPilotRawId && p.id !== 6,
+          p.rank === "PRIMER_OFICIAL" &&
+          p.id !== selectedPilotRawId &&
+          p.id !== 6,
       )
       .map((p: any) => ({
         value: `int:${p.id}`,
@@ -164,13 +193,6 @@ export default function CreateCargoShipmentForm({
   ];
 
   // ── Sugerencias de aeronaves externas ──────────────────────────────────────────
-  const externalValue = form.watch("external_aircraft") ?? "";
-  const filteredSuggestions = (externalSuggestions ?? []).filter(
-    (s: string) =>
-      s.includes(externalValue.toUpperCase()) &&
-      s !== externalValue.toUpperCase(),
-  );
-
   // ─────────────────────────────────────────────────────────────────────────
 
   return (
@@ -190,76 +212,33 @@ export default function CreateCargoShipmentForm({
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-x-4 gap-y-4 border border-border p-4 rounded-xl shadow-sm bg-card">
             {/* Aeronave */}
             <div className="flex flex-col space-y-2">
-              <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground leading-none mt-1">
-                Aeronave {isExternalAircraft ? "(Externa)" : ""}
-              </label>
-
-              {isExternalAircraft ? (
-                <FormField
-                  control={form.control}
-                  name="external_aircraft"
-                  render={({ field }) => (
-                    <FormItem className="space-y-0 relative -top-[1px]">
-                      <FormControl>
-                        <div className="relative">
-                          <Input
-                            className="h-9 uppercase"
-                            placeholder="Ej: YV-206 (Helicóptero)"
-                            readOnly={isEditing || !!externalNameFromUrl}
-                            autoComplete="off"
-                            {...field}
-                            value={field.value ?? ""}
-                            onChange={(e) =>
-                              field.onChange(e.target.value.toUpperCase())
-                            }
-                            onFocus={() => setShowSuggestions(true)}
-                            onBlur={() =>
-                              setTimeout(() => setShowSuggestions(false), 200)
-                            }
-                          />
-                          {showSuggestions &&
-                            !isEditing &&
-                            !externalNameFromUrl &&
-                            filteredSuggestions.length > 0 && (
-                              <div className="absolute z-50 w-full mt-1 bg-background border rounded-md shadow-lg max-h-48 overflow-auto">
-                                {filteredSuggestions.map((s: string) => (
-                                  <div
-                                    key={s}
-                                    className="px-3 py-2 text-sm hover:bg-primary/10 hover:text-primary cursor-pointer transition-colors"
-                                    onMouseDown={(e) => {
-                                      e.preventDefault();
-                                      field.onChange(s);
-                                      setShowSuggestions(false);
-                                    }}
-                                  >
-                                    {s}
-                                  </div>
-                                ))}
-                              </div>
-                            )}
-                        </div>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              ) : (
-                <ComboboxField
-                  form={form}
-                  name="aircraft_id"
-                  label=""
-                  placeholder="Seleccionar aeronave..."
-                  searchPlaceholder="Buscar aeronave..."
-                  emptyText="No se encontró la aeronave."
-                  options={[
-                    { value: "", label: "Ninguna" },
-                    ...aircraftOptions,
-                  ]}
-                  disabled={
-                    loadingAircrafts || isEditing || !!aircraftIdFromUrl
-                  }
-                />
-              )}
+              <ComboboxField
+                form={form}
+                name="aircraft_id"
+                label={isExternalMode ? "Aeronave Externa" : "Aeronave"}
+                placeholder={
+                  isExternalMode
+                    ? "Seleccionar aeronave externa..."
+                    : "Seleccionar aeronave..."
+                }
+                searchPlaceholder="Buscar aeronave..."
+                emptyText="No se encontró la aeronave."
+                options={
+                  isExternalMode
+                    ? [
+                        { value: "", label: "Ninguna" },
+                        ...externalAircraftOptions,
+                      ]
+                    : aircraftIdFromUrl
+                      ? [{ value: "", label: "Ninguna" }, ...allAircraftOptions]
+                      : [{ value: "", label: "Ninguna" }, ...internalAircraftOptions]
+                }
+                disabled={
+                  isExternalMode
+                    ? loadingExternalSuggestions
+                    : loadingAircrafts || isEditing || !!aircraftIdFromUrl
+                }
+              />
             </div>
 
             {/* Fecha */}

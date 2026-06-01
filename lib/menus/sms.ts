@@ -19,7 +19,6 @@ export function buildSmsGroup({ pathname, currentCompany }: MenuContext): Group 
                 active: pathname.includes(`/${currentCompany?.slug}/sms/reportes`),
                 icon: ClipboardPen,
                 roles: ["ANALISTA_SMS", "JEFE_SMS", "SUPERUSER"],
-                requiresOmac: false,
                 submenus: [],
             },
             {
@@ -192,7 +191,6 @@ export function buildSmsGroup({ pathname, currentCompany }: MenuContext): Group 
                 ),
                 icon: ShieldAlert,
                 roles: ["COORDINADOR_SMS", "GERENTE_SMS", "SUPERUSER"],
-                requiresOmac: true,
                 submenus: [
                     {
                         href: `/${currentCompany?.slug}/sms/aeronautical/gestion_de_riesgos/reportes`,

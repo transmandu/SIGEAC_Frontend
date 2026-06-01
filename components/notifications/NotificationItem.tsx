@@ -14,11 +14,15 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 
+import { useRouter } from 'next/navigation';
+
 export default function NotificationItem({
   notification,
 }: {
   notification: Notification;
 }) {
+  const router = useRouter();
+
   const { selectedCompany } = useCompanyStore();
 
   const { mutate: markAsRead, isPending } =
@@ -33,8 +37,15 @@ export default function NotificationItem({
     }
   };
 
+  const handleNavigate = () => {
+    const url = notification.data?.url;
+    if (!url) return;
+    router.push(url);
+  };
+
   return (
     <div
+      onClick={handleNavigate}
       className={cn(
         'group relative flex gap-3 px-3 py-2 cursor-pointer transition-all',
         'rounded-xl mx-1',
@@ -44,65 +55,64 @@ export default function NotificationItem({
         'overflow-hidden'
       )}
     >
-    {/* ACTION + GRADIENT BACKDROP */}
-    {isUnread && (
-    <div
-        className="
-        absolute right-0 top-0 h-full w-20 overflow-visible
-
-        flex items-center justify-center
-
-        opacity-0 scale-95 translate-x-2
-        group-hover:opacity-100 group-hover:scale-100 group-hover:translate-x-0
-
-        transition-all duration-200 ease-out
-        "
-    >
-        {/* GRADIENT BACKDROP */}
+      {/* ACTION + GRADIENT BACKDROP */}
+      {isUnread && (
         <div
-        className="
-            absolute inset-0
-            bg-gradient-to-l from-black/30 via-black/10 to-transparent
-            pointer-events-none
+          className="
+            absolute right-0 top-0 h-full w-20 overflow-visible
 
-            rounded-r-xl
-        "
-        />
+            flex items-center justify-center
 
-        <TooltipProvider delayDuration={100}>
-        <Tooltip>
-            <TooltipTrigger asChild>
-            <button
-                onClick={handleMarkAsRead}
-                disabled={isPending}
-                className="
-                relative z-10
+            opacity-0 scale-95 translate-x-2
+            group-hover:opacity-100 group-hover:scale-100 group-hover:translate-x-0
 
-                flex items-center justify-center
-                w-8 h-8
+            transition-all duration-200 ease-out
+          "
+        >
+          {/* GRADIENT BACKDROP */}
+          <div
+            className="
+              absolute inset-0
+              bg-gradient-to-l from-black/30 via-black/10 to-transparent
+              pointer-events-none
+              rounded-r-xl
+            "
+          />
 
-                rounded-md
-                bg-background/70 backdrop-blur-md
-                border border-border/40
-                shadow-sm
+          <TooltipProvider delayDuration={100}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  onClick={handleMarkAsRead}
+                  disabled={isPending}
+                  className="
+                    relative z-10
 
-                hover:bg-background
-                active:scale-95
+                    flex items-center justify-center
+                    w-8 h-8
 
-                transition
-                "
-            >
-                <Check className="w-4 h-4 text-green-600" />
-            </button>
-            </TooltipTrigger>
+                    rounded-md
+                    bg-background/70 backdrop-blur-md
+                    border border-border/40
+                    shadow-sm
 
-            <TooltipContent side="left">
-            Marcar como leído
-            </TooltipContent>
-        </Tooltip>
-        </TooltipProvider>
-    </div>
-    )}
+                    hover:bg-background
+                    active:scale-95
+
+                    transition
+                  "
+                >
+                  <Check className="w-4 h-4 text-green-600" />
+                </button>
+              </TooltipTrigger>
+
+              <TooltipContent side="left">
+                Marcar como leído
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
+      )}
 
       {/* ICON */}
       <div className="mt-0.5 flex-shrink-0">
@@ -120,7 +130,6 @@ export default function NotificationItem({
 
       {/* CONTENT */}
       <div className="flex-1 min-w-0">
-
         {/* TITLE */}
         <div className="flex items-start justify-between gap-2">
           <p

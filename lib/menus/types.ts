@@ -24,6 +24,7 @@ export type Menu = {
 export type Group = {
     groupLabel: string;
     moduleValue?: string;
+    requiresOmac?: boolean;
     menus: Menu[];
 };
 

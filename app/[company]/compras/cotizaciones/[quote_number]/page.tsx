@@ -153,7 +153,7 @@ const QuotePage = () => {
               {/* ACTIONS MOBILE */}
               {data && (
                 <div className="flex md:hidden justify-center mt-3">
-                  <QuoteActions quote={data} />
+                  <QuoteActions quote={data} onSuccessUpdate={refetch}/>
                 </div>
               )}
 
@@ -162,7 +162,7 @@ const QuotePage = () => {
             {/* ACTIONS DESKTOP */}
             {data && (
               <div className="hidden md:flex items-center gap-1.5 shrink-0">
-                <QuoteActions quote={data} />
+                <QuoteActions quote={data} onSuccessUpdate={refetch}/>
               </div>
             )}
 

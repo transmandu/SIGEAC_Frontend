@@ -25,6 +25,7 @@ export type Aircraft = {
     brand: string;
     serial: string;
     acronym: string;
+    is_external: boolean;
     flight_hours: number;
     cycles: number;
     fabricant_date: Date;
@@ -215,7 +216,7 @@ export type Company = {
     cod_iata: string;
     cod_oaci: string;
     acronym: string;
-    isOmac: boolean;
+    isOMAC: boolean;
     logo: string | null;
     modules: Module[];
     created_at: string;
@@ -1328,7 +1329,7 @@ export type CargoShipment = {
     externalCopilot?: ExternalPilot;
     client: Client;
     aircraft: Aircraft;
-    external_aircraft: string | null;
+    external_aircraft?: string | null;
     month: number;
     year: number;
     total_units: number;
@@ -1348,7 +1349,6 @@ export type AircraftCargoStats = {
     serial: string;
     cargo_count: number;
     is_external?: boolean;
-    external_aircraft?: string;
 };
 
 export type AircraftCargoResponse = {
@@ -1368,13 +1368,13 @@ export type CargoManifest = {
     id: number;
     manifest_number: string;
     aircraft_id: number | null;
-    external_aircraft: string | null;
     aircraft?: Aircraft | null;
     month: number;
     year: number;
     total_weight: number;
     total_units: number;
     created_by: string;
+    created_at?: string;
     updated_at?: string;
     updated_by?: string | null;
     items: CargoManifestItem[];

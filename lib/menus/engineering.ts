@@ -14,6 +14,7 @@ export function buildEngineeringGroup({ pathname, currentCompany }: MenuContext)
                 ),
                 icon: ClipboardCheck,
                 roles: ["SUPERUSER", "ENGINEERING"],
+                requiresOmac: true,
                 submenus: [],
             },
         ],

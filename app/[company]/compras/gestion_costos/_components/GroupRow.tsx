@@ -5,7 +5,12 @@ import {
   ChevronDown,
   ChevronRight,
 } from 'lucide-react'
-
+import { CopyPlus } from 'lucide-react'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
 import { cn } from '@/lib/utils'
 
 type Props = {
@@ -13,6 +18,7 @@ type Props = {
   count: number
   expanded: boolean
   onToggle: () => void
+  onPropagate?: () => void
 }
 
 const GroupRow = ({
@@ -20,6 +26,7 @@ const GroupRow = ({
   count,
   expanded,
   onToggle,
+  onPropagate
 }: Props) => {
   return (
     <button
@@ -116,28 +123,56 @@ const GroupRow = ({
         </div>
       </div>
 
-      <div
-        className="
-          shrink-0
+      <div className="flex items-center gap-2 shrink-0">
 
-          rounded-full
-          border
+        {expanded && onPropagate && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  onPropagate()
+                }}
+                className="
+                  p-1.5 rounded-md
+                  hover:bg-slate-200/60
+                  dark:hover:bg-slate-700/60
+                  transition
+                "
+              >
+                <CopyPlus className="size-4 text-emerald-500" />
+              </button>
+            </TooltipTrigger>
 
-          border-slate-200
-          dark:border-slate-700/60
+            <TooltipContent>
+              Propagar costo al grupo
+            </TooltipContent>
+          </Tooltip>
+        )}
 
-          bg-white/80
-          dark:bg-slate-900/60
+        <div
+          className="
+            rounded-full
+            border
 
-          px-3 py-1
+            border-slate-200
+            dark:border-slate-700/60
 
-          text-xs font-medium
-          text-muted-foreground
+            bg-white/80
+            dark:bg-slate-900/60
 
-          tabular-nums
-        "
-      >
-        {count} {count === 1 ? 'artículo' : 'artículos'}
+            px-3 py-1
+
+            text-xs font-medium
+            text-muted-foreground
+
+            tabular-nums
+          "
+        >
+          {count} {count === 1 ? 'artículo' : 'artículos'}
+        </div>
+
       </div>
     </button>
   )

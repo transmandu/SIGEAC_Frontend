@@ -5,6 +5,13 @@ import { DataTableColumnHeader } from '@/components/tables/DataTableHeader'
 import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
 import React from 'react'
+import { CopyPlus } from 'lucide-react'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger
+} from "@/components/ui/tooltip"
 
 export type ArticleCostRow = {
   id: number
@@ -13,6 +20,7 @@ export type ArticleCostRow = {
   serial?: string
   unit_label?: string
   cost?: number
+  condition_name?: string
 }
 
 export type ArticleCostColumnsArgs = {
@@ -33,6 +41,18 @@ const isModified = (
     current !== undefined && current !== null ? String(current) : ''
 
   return draftStr !== currentStr || draftStr === '0'
+}
+
+const usdFormatter = new Intl.NumberFormat('en-US', {
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+})
+
+const normalizeCostInput = (value: string) => {
+  return value
+    .replace(',', '.')        // coma → punto
+    .replace(/[^0-9.]/g, '')  // elimina basura
+    .replace(/(\..*)\./g, '$1') // solo un punto decimal
 }
 
 export function getArticleCostColumns({
@@ -110,6 +130,23 @@ export function getArticleCostColumns({
     // },
 
     {
+      accessorKey: 'condition_name',
+      size: 120,
+      header: ({ column }) => (
+        <div className="flex justify-center w-full">
+          <DataTableColumnHeader column={column} title="Condición" />
+        </div>
+      ),
+      cell: ({ row }) => (
+        <div className="flex justify-center w-full">
+          <span className="block text-sm text-slate-500 dark:text-slate-400 text-center">
+            {row.original.condition_name ?? '—'}
+          </span>
+        </div>
+      ),
+    },
+
+    {
       accessorKey: 'cost',
       size: 140,
       header: ({ column }) => (
@@ -121,16 +158,35 @@ export function getArticleCostColumns({
       cell: ({ row, table }) => {
         const id = row.original.id
         const current = row.original.cost
+
         const meta = table.options.meta as any
         const costDrafts = meta?.costDrafts ?? {}
         const draft = costDrafts[id]
-        const modified = isModified(id, costDrafts, current)
+
+        const modified =
+          draft !== undefined &&
+          draft !== null &&
+          String(draft) !== String(current ?? 0)
+
+        const groupRows = (row.original as any)._groupRows
+        const groupIndex = (row.original as any)._groupIndex
 
         const currentValue =
-          current !== undefined && current !== null ? String(current) : '0'
+          current !== undefined && current !== null
+            ? usdFormatter.format(current)
+            : usdFormatter.format(0)
 
-        const draftValue =
-          draft !== undefined && draft !== null ? String(draft) : ''
+        const handlePropagateFromRow = () => {
+          if (!groupRows || groupIndex === undefined) return
+
+          const value = draft ?? current ?? 0
+
+          groupRows.forEach((r: any, idx: number) => {
+            if (idx > groupIndex) {
+              onCostChange(r.id, String(value))
+            }
+          })
+        }
 
         return (
           <div className="flex justify-center w-full">
@@ -145,49 +201,52 @@ export function getArticleCostColumns({
             >
               <span className="text-xs text-muted-foreground">$</span>
 
-              {modified ? (
-                <>
-                  <span className="text-xs text-muted-foreground line-through tabular-nums">
-                    {currentValue}
-                  </span>
+              <Input
+                inputMode="decimal"
+                value={draft ?? ''}
+                placeholder={currentValue}
+                onChange={(e) =>
+                  onCostChange(id, normalizeCostInput(e.target.value))
+                }
+                className="
+                  h-6 w-16 border-0 bg-transparent p-0
+                  text-sm tabular-nums text-center font-medium
+                  text-foreground
+                  focus-visible:ring-0 focus-visible:ring-offset-0
+                "
+              />
 
-                  <span className="text-xs text-muted-foreground">→</span>
+              {modified && groupRows && (
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          handlePropagateFromRow()
+                        }}
+                        className="
+                          ml-1 p-1 rounded-md
+                          hover:bg-slate-200/60
+                          dark:hover:bg-slate-700/60
+                          overflow-visible
+                        "
+                      >
+                        <CopyPlus className="size-3.5 text-emerald-500" />
+                      </button>
+                    </TooltipTrigger>
 
-                  <Input
-                    inputMode="decimal"
-                    value={draftValue}
-                    autoFocus
-                    onChange={(e) => onCostChange(id, e.target.value)}
-                    className="
-                      h-6 w-16 border-0 bg-transparent p-0
-                      text-sm tabular-nums text-center font-medium
-                      text-foreground
-                      focus-visible:ring-0 focus-visible:ring-offset-0
-                    "
-                  />
-                </>
-              ) : (
-                <Input
-                  inputMode="decimal"
-                  value=""
-                  placeholder={currentValue}
-                  onChange={(e) => onCostChange(id, e.target.value)}
-                  className="
-                    h-6 w-16 border-0 bg-transparent p-0
-                    text-sm tabular-nums text-center
-                    text-muted-foreground
-                    focus-visible:ring-0 focus-visible:ring-offset-0
-                  "
-                />
-              )}
-
-              {modified && (
-                <div className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                    <TooltipContent>
+                      + Replicar costo
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               )}
             </div>
           </div>
         )
       },
-    },
+    }
   ]
 }

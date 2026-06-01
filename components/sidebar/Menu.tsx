@@ -1,10 +1,9 @@
 "use client";
 
-import { Minus } from "lucide-react";
+import { ChevronDown, Minus } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useMemo } from "react";
-
+import { useEffect, useMemo, useState } from "react";
 import { CollapseMenuButton } from "@/components/sidebar/CollapseMenuButton";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -27,6 +26,44 @@ export function Menu({ isOpen }: MenuProps) {
     const { user } = useAuth();
     const pathname = usePathname();
     const { selectedCompany } = useCompanyStore();
+    const storageKey = useMemo(
+        () => `sidebar-collapsed-groups-${selectedCompany?.slug ?? "default"}`,
+        [selectedCompany?.slug]
+    );
+
+    const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>({});
+
+    const isSuperUser = user?.roles?.some(
+        (role) => role.name === "SUPERUSER"
+    );
+
+    useEffect(() => {
+        try {
+            const saved = localStorage.getItem(storageKey);
+
+            setCollapsedGroups(
+                saved ? JSON.parse(saved) : {}
+            );
+        } catch {
+            setCollapsedGroups({});
+        }
+    }, [storageKey]);
+
+    const toggleGroup = (groupLabel: string) => {
+        setCollapsedGroups((prev) => {
+            const next = {
+                ...prev,
+                [groupLabel]: !prev[groupLabel],
+            };
+
+            localStorage.setItem(
+                storageKey,
+                JSON.stringify(next)
+            );
+
+            return next;
+        });
+    };
 
     // Memoize the menu list to prevent unnecessary recalculations
     const menuList = useMemo(() => {
@@ -58,16 +95,63 @@ export function Menu({ isOpen }: MenuProps) {
                         `min-h-[${menuContainerHeight}]`
                     )}
                 >
-                    {menuList.map(({ groupLabel, menus }, index) => (
+                {menuList.map(({ groupLabel, menus }, index) => {
+                    const isCollapsed =
+                        collapsedGroups[groupLabel] ?? false;
+
+                    return (
                         <li className={cn("w-full", groupLabel ? "pt-3" : "")} key={index}>
                             {(isOpen && groupLabel) || isOpen === undefined ? (
                                 <div className="px-2 pb-2">
-                                    <div className="flex items-center gap-3">
-                                        <p className="max-w-[180px] truncate text-[10px] font-semibold uppercase tracking-[0.24em] text-muted-foreground/90">
+                                    <button
+                                        type="button"
+                                        onClick={() =>
+                                            isSuperUser &&
+                                            groupLabel &&
+                                            toggleGroup(groupLabel)
+                                        }
+                                        className={cn(
+                                            "group flex w-full items-center gap-3 rounded-xl px-2 py-1.5 transition-all duration-200",
+                                            "relative overflow-hidden",
+
+                                            // SOLO interactivo si es superuser
+                                            isSuperUser ? "cursor-pointer" : "cursor-default"
+                                        )}
+                                    >
+                                        {/* Hover SOLO para superuser */}
+                                        {isSuperUser && (
+                                            <span className="absolute inset-0 rounded-xl opacity-0 transition-opacity duration-200 group-hover:opacity-100 bg-muted/30" />
+                                        )}
+
+                                        <p
+                                            className={cn(
+                                                "relative z-10 max-w-[180px] truncate text-[10px] font-semibold uppercase tracking-[0.24em] text-muted-foreground/90 transition-colors",
+
+                                                // SOLO hover effect si es superuser
+                                                isSuperUser && "group-hover:text-foreground"
+                                            )}
+                                        >
                                             {groupLabel}
                                         </p>
-                                        <span className="h-px flex-1 bg-border/70" />
-                                    </div>
+
+                                        <span
+                                            className={cn(
+                                                "relative z-10 h-px flex-1 bg-border/60 transition-colors",
+
+                                                // hover SOLO si es superuser
+                                                isSuperUser && "group-hover:bg-border/80"
+                                            )}
+                                        />
+
+                                        {isSuperUser && (
+                                            <ChevronDown
+                                                className={cn(
+                                                    "relative z-10 h-3 w-3 shrink-0 text-muted-foreground transition-all duration-200 group-hover:text-foreground/90",
+                                                    isCollapsed && "-rotate-90"
+                                                )}
+                                            />
+                                        )}
+                                    </button>
                                 </div>
                             ) : !isOpen && isOpen !== undefined && groupLabel ? (
                                 <TooltipProvider>
@@ -87,70 +171,79 @@ export function Menu({ isOpen }: MenuProps) {
                             ) : (
                                 <p className="pb-2"></p>
                             )}
-                            {menus.map(
-                                ({ href, label, icon: Icon, active, submenus }, index) =>
-                                    submenus.length === 0 ? (
-                                        <div className="w-full" key={index}>
-                                            <TooltipProvider disableHoverableContent>
-                                                <Tooltip delayDuration={100}>
-                                                    <TooltipTrigger asChild>
-                                                        <Button
-                                                            variant="ghost"
-                                                            className={getItemClassName(active)}
-                                                            asChild
-                                                        >
-                                                            <Link href={href}>
-                                                                <span
-                                                                    className={cn(
-                                                                        "absolute left-0 top-1/2 h-6 w-[3px] -translate-y-1/2 rounded-r-full bg-emerald-500 opacity-0 transition-opacity duration-200",
-                                                                        active && "opacity-100"
-                                                                    )}
-                                                                />
-                                                                <span
-                                                                    className={cn(
-                                                                        "flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-transparent bg-muted/30 text-muted-foreground transition-all duration-200 group-hover:border-border/60 group-hover:bg-background group-hover:text-foreground",
-                                                                        active &&
-                                                                        "border-border/80 bg-background text-foreground shadow-sm shadow-black/5",
-                                                                        isOpen === false ? "mx-auto" : "mr-3"
-                                                                    )}
-                                                                >
-                                                                    <Icon size={18} />
-                                                                </span>
-                                                                <p
-                                                                    className={cn(
-                                                                        "truncate text-left text-[13px] font-medium transition-all duration-200",
-                                                                        isOpen === false
-                                                                            ? "-translate-x-96 opacity-0"
-                                                                            : "translate-x-0 opacity-100"
-                                                                    )}
-                                                                >
-                                                                    {label}
-                                                                </p>
-                                                            </Link>
-                                                        </Button>
-                                                    </TooltipTrigger>
-                                                    {isOpen === false && (
-                                                        <TooltipContent side="right" className="rounded-lg">
-                                                            {label}
-                                                        </TooltipContent>
-                                                    )}
-                                                </Tooltip>
-                                            </TooltipProvider>
-                                        </div>
-                                    ) : (
-                                        <div className="w-full" key={index}>
-                                            <CollapseMenuButton
-                                                icon={Icon}
-                                                label={label}
-                                                active={active}
-                                                submenus={submenus}
-                                                isOpen={isOpen}
-                                            />
-                                        </div>
-                                    )
-                            )}
+
+                            {(!isSuperUser || !isCollapsed) &&
+                                menus.map(
+                                    ({ href, label, icon: Icon, active, submenus }, index) =>
+                                        submenus.length === 0 ? (
+                                            <div className="w-full" key={index}>
+                                                <TooltipProvider disableHoverableContent>
+                                                    <Tooltip delayDuration={100}>
+                                                        <TooltipTrigger asChild>
+                                                            <Button
+                                                                variant="ghost"
+                                                                className={getItemClassName(active)}
+                                                                asChild
+                                                            >
+                                                                <Link href={href}>
+                                                                    <span
+                                                                        className={cn(
+                                                                            "absolute left-0 top-1/2 h-6 w-[3px] -translate-y-1/2 rounded-r-full bg-emerald-500 opacity-0 transition-opacity duration-200",
+                                                                            active && "opacity-100"
+                                                                        )}
+                                                                    />
+                                                                    <span
+                                                                        className={cn(
+                                                                            "flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-transparent bg-muted/30 text-muted-foreground transition-all duration-200 group-hover:border-border/60 group-hover:bg-background group-hover:text-foreground",
+                                                                            active &&
+                                                                                "border-border/80 bg-background text-foreground shadow-sm shadow-black/5",
+                                                                            isOpen === false
+                                                                                ? "mx-auto"
+                                                                                : "mr-3"
+                                                                        )}
+                                                                    >
+                                                                        <Icon size={18} />
+                                                                    </span>
+                                                                    <p
+                                                                        className={cn(
+                                                                            "truncate text-left text-[13px] font-medium transition-all duration-200",
+                                                                            isOpen === false
+                                                                                ? "-translate-x-96 opacity-0"
+                                                                                : "translate-x-0 opacity-100"
+                                                                        )}
+                                                                    >
+                                                                        {label}
+                                                                    </p>
+                                                                </Link>
+                                                            </Button>
+                                                        </TooltipTrigger>
+
+                                                        {isOpen === false && (
+                                                            <TooltipContent
+                                                                side="right"
+                                                                className="rounded-lg"
+                                                            >
+                                                                {label}
+                                                            </TooltipContent>
+                                                        )}
+                                                    </Tooltip>
+                                                </TooltipProvider>
+                                            </div>
+                                        ) : (
+                                            <div className="w-full" key={index}>
+                                                <CollapseMenuButton
+                                                    icon={Icon}
+                                                    label={label}
+                                                    active={active}
+                                                    submenus={submenus}
+                                                    isOpen={isOpen}
+                                                />
+                                            </div>
+                                        )
+                                )}
                         </li>
-                    ))}
+                    );
+                })}
                 </ul>
             </nav>
         </ScrollArea>

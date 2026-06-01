@@ -20,10 +20,10 @@ const SMSPage = () => {
 
     // Queries
     const { data: surveyNumbers } = useGetSurveySettingNumbers(company);
-    const { data: isOmac, isLoading: isOmacLoading } = useIsOmac(company); // Pasamos el slug/id
+    const { data: isOMAC, isLoading: isOMACLoading } = useIsOmac(company); // Pasamos el slug/id
 
     // Manejo de carga inicial
-    if (isOmacLoading) {
+    if (isOMACLoading) {
         return (
             <GuestContentLayout title="Seguridad Operacional SMS">
                 <div className="flex flex-col justify-center items-center w-full h-[70vh]">
@@ -33,13 +33,13 @@ const SMSPage = () => {
         );
     }
 
-    const PresentationCard = isOmac ? AeronauticalPresentationCard : AirlinePresentationCard;
-    const SMSTabs = isOmac ? AeronauticalSMSTabs : AirlineSMSTabs;
+    const PresentationCard = isOMAC ? AeronauticalPresentationCard : AirlinePresentationCard;
+    const SMSTabs = isOMAC ? AeronauticalSMSTabs : AirlineSMSTabs;
     return (
         <GuestContentLayout title="Seguridad Operacional SMS">
             <div className={cn(
                 "flex flex-col justify-start items-center", // Clases base siempre presentes
-                !isOmac && "w-full max-w-6xl mx-auto px-4"   // Solo si NO es OMAC
+                !isOMAC && "w-full max-w-6xl mx-auto px-4"   // Solo si NO es OMAC
             )}>
                 <PresentationCard company={company} />
                 <SMSTabs company={company} surveyNumbers={surveyNumbers} />

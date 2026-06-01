@@ -33,6 +33,7 @@ import {
 } from "./columns";
 import { DataTable } from "./data-table";
 import { useGetWarehouseArticlesByCategory } from "@/hooks/mantenimiento/almacen/articulos/useGetWarehouseArticlesByCategory";
+import { useUpdateArticleStatus } from "@/actions/mantenimiento/almacen/inventario/articulos/actions";
 type Category = "COMPONENT" | "CONSUMABLE" | "TOOL" | "PART";
 
 const InventarioArticulosPage = () => {
@@ -53,6 +54,9 @@ const InventarioArticulosPage = () => {
     "all",
   );
   const [partNumberSearch, setPartNumberSearch] = useState("");
+  const [selectedArticleIds, setSelectedArticleIds] = useState<number[]>([]);
+  const [selectionResetKey, setSelectionResetKey] = useState(0);
+  const { updateArticleStatus } = useUpdateArticleStatus();
 
   // Fetch
   const { data: articles, isLoading: isLoadingArticles } =
@@ -122,6 +126,18 @@ const InventarioArticulosPage = () => {
   ]);
 
   const handleClearSearch = () => setPartNumberSearch("");
+
+  const handleMassAccept = async () => {
+    if (selectedArticleIds.length === 0) return;
+
+    await updateArticleStatus.mutateAsync({
+      ids: selectedArticleIds,
+      status: "STORED",
+    });
+
+    setSelectedArticleIds([]);
+    setSelectionResetKey((prev) => prev + 1);
+  };
 
   return (
     <ContentLayout title="Inventario">
@@ -229,7 +245,34 @@ const InventarioArticulosPage = () => {
                   <Loader2 className="size-24 animate-spin" />
                 </div>
               ) : (
-                <DataTable columns={cols} data={currentData} />
+                <div className="space-y-4">
+                  <div className="flex justify-end">
+                    <Button
+                      onClick={handleMassAccept}
+                      disabled={
+                        selectedArticleIds.length === 0 ||
+                        updateArticleStatus.isPending
+                      }
+                      className="min-w-[220px]"
+                    >
+                      {updateArticleStatus.isPending ? (
+                        <span className="flex items-center gap-2">
+                          <Loader2 className="size-4 animate-spin" />
+                          Procesando...
+                        </span>
+                      ) : (
+                        `Aceptar seleccionados (${selectedArticleIds.length})`
+                      )}
+                    </Button>
+                  </div>
+
+                  <DataTable
+                    columns={cols}
+                    data={currentData}
+                    onSelectionChange={setSelectedArticleIds}
+                    selectionResetKey={selectionResetKey}
+                  />
+                </div>
               )}
             </TabsContent>
           </Tabs>

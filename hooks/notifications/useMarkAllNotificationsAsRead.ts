@@ -11,10 +11,10 @@ export const useMarkAllNotificationsAsRead = (company: string) => {
       );
     },
 
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ['notifications-unread-count', company],
-      });
-    },
+  onSuccess: () => {
+    queryClient.invalidateQueries({
+      queryKey: ['notifications', company],
+    })
+  }
   });
 };

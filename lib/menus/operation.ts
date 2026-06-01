@@ -17,6 +17,7 @@ export function buildOperationGroup({ pathname, currentCompany }: MenuContext): 
                     "SUPERUSER",
                     "OPERADOR_CARGA",
                 ],
+                requiresOmac: false,
                 submenus: [
                     {
                         href: `/${currentCompany?.slug}/operaciones/cargo`,

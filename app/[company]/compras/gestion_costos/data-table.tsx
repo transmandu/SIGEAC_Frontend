@@ -80,7 +80,7 @@ function DataTableInner<TData>({
 
       <div
         className="
-          rounded-xl border overflow-hidden
+          rounded-xl border overflow-visible
           bg-white dark:bg-slate-900/60
           border-slate-200 dark:border-slate-700/60
         "

@@ -2,15 +2,17 @@
 
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import { useParams, useSearchParams, useRouter } from "next/navigation";
-import { useState, useRef, useMemo, useEffect } from "react";
+import { useState, useMemo } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { DayMonthYearPicker } from "@/components/selects/DayMonthYearPicker";
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
+  SelectLabel,
+  SelectSeparator,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
@@ -22,11 +24,11 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
-import { ArrowLeft, X } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import CreateCargoManifestForm from "@/components/forms/operaciones/cargo/CreateCargoManifestForm";
 import { useGetAircrafts } from "@/hooks/aerolinea/aeronaves/useGetAircrafts";
-import { useGetNextManifestNumber } from "@/hooks/operaciones/cargo/useGetNextManifestNumber";
 import { useGetExternalAircraftSuggestions } from "@/hooks/operaciones/cargo/useGetExternalAircraftSuggestions";
+import { useGetNextManifestNumber } from "@/hooks/operaciones/cargo/useGetNextManifestNumber";
 
 const NuevoManifiestoPage = () => {
   const params = useParams();
@@ -47,53 +49,31 @@ const NuevoManifiestoPage = () => {
 
   // ── Aeronave ───────────────────────────────────────────────────────────────
   const [selectedAircraftId, setSelectedAircraftId] = useState<number | null>(
-    null,
+    () => {
+      const id = Number(searchParams.get("aircraft_id"));
+      return id > 0 ? id : null;
+    },
   );
-  const [externalAircraft, setExternalAircraft] = useState<string>("");
-  const [showExternalInput, setShowExternalInput] = useState(false);
-  const [appliedExternal, setAppliedExternal] = useState<string>("");
-  const [showSuggestions, setShowSuggestions] = useState(false);
-  const suggestionRef = useRef<HTMLDivElement>(null);
-
-  // Cerrar dropdown de sugerencias al hacer clic fuera
-  useEffect(() => {
-    const handler = (e: MouseEvent) => {
-      if (
-        suggestionRef.current &&
-        !suggestionRef.current.contains(e.target as Node)
-      ) {
-        setShowSuggestions(false);
-      }
-    };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, []);
 
   const { data: aircrafts } = useGetAircrafts(company);
-  const { data: externalSuggestions } =
-    useGetExternalAircraftSuggestions(company);
+  const { data: externalSuggestions } = useGetExternalAircraftSuggestions(company);
+
+  const internalAircraft = useMemo(
+    () => aircrafts ?? [],
+    [aircrafts],
+  );
+
+  const externalAircraft = useMemo(
+    () => externalSuggestions ?? [],
+    [externalSuggestions],
+  );
+
   const { data: nextManifestNumber } = useGetNextManifestNumber(
     company,
     month,
     year,
     selectedAircraftId,
-    appliedExternal || null,
   );
-
-  const aircraftSelectOptions = [
-    { value: "none", label: "Seleccionar aeronave..." },
-    ...(aircrafts ?? []).map((a: any) => ({
-      value: String(a.id),
-      label: `${a.acronym} - ${a.model ?? ""}`,
-    })),
-    { value: "__external__", label: "Aeronave externa..." },
-  ];
-
-  const filteredSuggestions = useMemo(() => {
-    if (!externalSuggestions || !externalAircraft) return [];
-    const search = externalAircraft.toLowerCase();
-    return externalSuggestions.filter((s) => s.toLowerCase().includes(search));
-  }, [externalSuggestions, externalAircraft]);
 
   // ── Éxito ──────────────────────────────────────────────────────────────────
   const handleSuccess = () => {
@@ -158,7 +138,7 @@ const NuevoManifiestoPage = () => {
         {/* ─── Barra unificada: Fecha | Aeronave | Nº Manifiesto ────────── */}
         <div className="flex justify-between flex-wrap items-end gap-4 bg-muted/30 p-3 rounded-lg border mt-4">
           {/* Fecha */}
-          <div className="flex flex-col items-start gap-1">
+          <div className="flex flex-col items-center gap-1">
             <span className="text-sm font-medium text-muted-foreground whitespace-nowrap">
               Fecha
             </span>
@@ -169,95 +149,51 @@ const NuevoManifiestoPage = () => {
           </div>
 
           {/* Aeronave */}
-          <div className="flex flex-col min-w-[300px]">
+          <div className="flex flex-col items-center min-w-[300px]">
             <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-1.5 block">
               Aeronave
             </label>
-            {!showExternalInput ? (
-              <Select
-                value={selectedAircraftId ? String(selectedAircraftId) : "none"}
-                onValueChange={(val) => {
-                  if (val === "__external__") {
-                    setShowExternalInput(true);
-                    setSelectedAircraftId(null);
-                  } else if (val === "none") {
-                    setSelectedAircraftId(null);
-                    setShowExternalInput(false);
-                  } else {
-                    setSelectedAircraftId(val ? Number(val) : null);
-                    setShowExternalInput(false);
-                  }
-                }}
-              >
-                <SelectTrigger className="h-9">
-                  <SelectValue placeholder="Seleccionar aeronave..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {aircraftSelectOptions.map((opt) => (
-                    <SelectItem key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            ) : (
-              <div className="relative flex gap-2">
-                <Input
-                  className="h-9 uppercase flex-1"
-                  placeholder="Ej: YV-206 (Helicóptero)"
-                  value={externalAircraft}
-                  onChange={(e) => {
-                    setExternalAircraft(e.target.value.toUpperCase());
-                    setShowSuggestions(true);
-                  }}
-                  onFocus={() => setShowSuggestions(true)}
-                  onBlur={() => {
-                    setAppliedExternal(externalAircraft);
-                  }}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      e.preventDefault();
-                      setAppliedExternal(externalAircraft);
-                      setShowSuggestions(false);
-                    }
-                  }}
-                />
-                {showSuggestions && filteredSuggestions.length > 0 && (
-                  <div
-                    ref={suggestionRef}
-                    className="absolute top-full left-0 right-12 z-50 mt-1 max-h-48 overflow-y-auto rounded-md border bg-background shadow-lg"
-                  >
-                    {filteredSuggestions.map((s) => (
-                      <div
-                        key={s}
-                        className="cursor-pointer px-3 py-2 text-sm hover:bg-accent uppercase"
-                        onMouseDown={(e) => {
-                          e.preventDefault();
-                          setExternalAircraft(s);
-                          setAppliedExternal(s);
-                          setShowSuggestions(false);
-                        }}
-                      >
-                        {s}
-                      </div>
+            <Select
+              value={selectedAircraftId ? `reg:${selectedAircraftId}` : "none"}
+              onValueChange={(val) => {
+                if (val === "none") {
+                  setSelectedAircraftId(null);
+                } else if (val.startsWith("reg:")) {
+                  setSelectedAircraftId(Number(val.slice(4)));
+                }
+              }}
+            >
+              <SelectTrigger className="h-9">
+                <SelectValue placeholder="Seleccionar aeronave..." />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">Seleccionar aeronave...</SelectItem>
+
+                {internalAircraft.length > 0 && (
+                  <SelectGroup>
+                    <SelectSeparator />
+                    <SelectLabel>Registradas</SelectLabel>
+                    {internalAircraft.map((a: any) => (
+                      <SelectItem key={`reg:${a.id}`} value={`reg:${a.id}`}>
+                        {a.acronym} {a.model ? `- ${a.model}` : ""}
+                      </SelectItem>
                     ))}
-                  </div>
+                  </SelectGroup>
                 )}
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="h-9 w-9 shrink-0"
-                  onClick={() => {
-                    setShowExternalInput(false);
-                    setExternalAircraft("");
-                    setAppliedExternal("");
-                  }}
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              </div>
-            )}
+
+                {externalAircraft.length > 0 && (
+                  <SelectGroup>
+                    <SelectSeparator />
+                    <SelectLabel>Externas</SelectLabel>
+                    {externalAircraft.map((a: any) => (
+                      <SelectItem key={`reg:${a.id}`} value={`reg:${a.id}`}>
+                        {a.acronym} {a.model ? `- ${a.model}` : ""} (Externa)
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
+                )}
+              </SelectContent>
+            </Select>
           </div>
 
           {/* Nº Manifiesto */}
@@ -277,7 +213,6 @@ const NuevoManifiestoPage = () => {
           year={year}
           day={day}
           selectedAircraftId={selectedAircraftId}
-          externalAircraft={appliedExternal || null}
           onSuccess={handleSuccess}
         />
       </div>

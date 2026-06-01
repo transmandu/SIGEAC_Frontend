@@ -215,7 +215,7 @@ export default function CompaniesSubRow({
                     }
                     label="Tipo de organización"
                     value={
-                        company.isOmac ? (
+                        company.isOMAC ? (
                             <Badge
                                 className="
                   mt-1 w-fit rounded-md

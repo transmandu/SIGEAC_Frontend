@@ -88,9 +88,15 @@ export const getColumns = (
 
     cell: ({ row }) => (
       <div className="flex justify-center w-full">
-        <span className="text-sm text-slate-600 dark:text-slate-300">
+        <Link
+          href={`/${selectedCompany?.slug}/compras/ordenes_compra/${row.original.order_number}`}
+          onClick={(e) => e.stopPropagation()}
+          className="text-sm text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-400 hover:underline underline-offset-4 decoration-1"
+        >
+            
           {row.original.quote_order?.quote_number ?? "—"}
-        </span>
+
+        </Link>
       </div>
     ),
   },
@@ -136,7 +142,7 @@ export const getColumns = (
 
     cell: ({ row }) => (
       <div className="flex justify-center w-full">
-        <span className="text-sm font-medium text-slate-700 dark:text-slate-200">
+        <span className="text-sm font-medium text-center text-slate-700 dark:text-slate-200">
           {row.original.vendor?.name ?? "—"}
         </span>
       </div>

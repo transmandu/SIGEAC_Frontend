@@ -1,78 +1,74 @@
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useCallback } from 'react';
-import { fetchNotifications } from './fetchNotifications';
+import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useEffect, useMemo } from 'react'
+import { fetchNotifications } from './fetchNotifications'
+import { getEcho } from '@/lib/echo'
+import { Notification } from '@/types/notifications/types'
 
-export const useNotifications = (company?: string) => {
-  const queryClient = useQueryClient();
+export const useNotifications = (
+  company?: string,
+  userId?: string | number
+) => {
+  const queryClient = useQueryClient()
 
-  const normalizedCompany = company ?? '';
+  const normalizedCompany = company?.trim() ?? ''
+
+  const normalizedUserId = useMemo(() => {
+    if (typeof userId === 'string') {
+      const parsed = Number(userId)
+      return Number.isNaN(parsed) ? undefined : parsed
+    }
+
+    return userId
+  }, [userId])
+
+  const isReady = !!normalizedCompany && !!normalizedUserId
 
   const query = useQuery({
     queryKey: ['notifications', normalizedCompany],
-
     queryFn: () => fetchNotifications(normalizedCompany),
-
     enabled: !!normalizedCompany,
+    staleTime: Infinity,
+    gcTime: 1000 * 60 * 30,
+  })
 
-    /**
-     * Mantiene datos "frescos" poco tiempo
-     * para que React Query no se quede pegado demasiado
-     */
-    staleTime: 1000 * 10, // 10s
+  useEffect(() => {
+    if (!isReady || !normalizedUserId) return
 
-    /**
-     * 🔥 CLAVE: polling ligero (fallback real-time sin WebSockets)
-     * 15–20s es un estándar razonable
-     */
-    refetchInterval: 15000,
+    const echoInstance = getEcho()
 
-    /**
-     * Refetch cuando el usuario vuelve a la pestaña
-     */
-    refetchOnWindowFocus: true,
+    if (!echoInstance) return
 
-    /**
-     * Evita refetch agresivo en reconexiones si no quieres ruido
-     */
-    refetchOnReconnect: true,
-  });
+    const channelName = `notifications.${normalizedUserId}`
+    const channel = echoInstance.private(channelName)
 
-  const notifications = query.data ?? [];
+    const handler = (event: Notification) => {
+      queryClient.setQueryData(
+        ['notifications', normalizedCompany],
+        (old: Notification[] = []) => [event, ...old]
+      )
+    }
+
+    channel.listen('.new-notification', handler)
+
+    return () => {
+      channel.stopListening('.new-notification')
+      echoInstance.leave(channelName)
+    }
+  }, [isReady, normalizedUserId, normalizedCompany, queryClient])
+
+  const notifications = query.data ?? []
 
   const unreadCount = notifications.reduce(
     (acc, n) => acc + (n.read_at ? 0 : 1),
     0
-  );
+  )
 
-  const latestNotification = notifications[0] ?? null;
-
-  /**
-   * 🔥 Acción manual optimizada (dropdown open, bell click, etc.)
-   */
-  const refetchOnOpen = useCallback(() => {
-    if (!normalizedCompany) return;
-
-    queryClient.invalidateQueries({
-      queryKey: ['notifications', normalizedCompany],
-    });
-  }, [queryClient, normalizedCompany]);
-
-  /**
-   * 🔥 helper global (lo usarás desde mutations)
-   * esto es lo que realmente soluciona tu problema de "no actualiza"
-   */
-  const invalidateNotifications = useCallback(() => {
-    queryClient.invalidateQueries({
-      queryKey: ['notifications'],
-    });
-  }, [queryClient]);
+  const latestNotification = notifications[0] ?? null
 
   return {
     ...query,
     notifications,
     unreadCount,
     latestNotification,
-    refetchOnOpen,
-    invalidateNotifications,
-  };
-};
+  }
+}

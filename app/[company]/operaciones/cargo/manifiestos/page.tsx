@@ -3,7 +3,7 @@
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import { useParams, useSearchParams } from "next/navigation";
 import { useGetCargoManifests } from "@/hooks/operaciones/cargo/useGetCargoManifests";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { DayMonthYearPicker } from "@/components/selects/DayMonthYearPicker";
@@ -20,12 +20,16 @@ import { DataTable } from "../data-table";
 import { getManifestColumns } from "./columns";
 import { useAuth } from "@/contexts/AuthContext";
 import { useGetAircrafts } from "@/hooks/aerolinea/aeronaves/useGetAircrafts";
+import { useGetExternalAircraftSuggestions } from "@/hooks/operaciones/cargo/useGetExternalAircraftSuggestions";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
+  SelectGroup,
+  SelectLabel,
+  SelectSeparator,
 } from "@/components/ui/select";
 
 const ManifestosPage = () => {
@@ -45,6 +49,15 @@ const ManifestosPage = () => {
   const year = filterDate.getFullYear();
   const day = filterDate.getDate();
   const { data: aircrafts } = useGetAircrafts(company);
+  const { data: externalSuggestions } =
+    useGetExternalAircraftSuggestions(company);
+
+  const internalAircrafts = useMemo(() => aircrafts ?? [], [aircrafts]);
+
+  const externalAircrafts = useMemo(
+    () => externalSuggestions ?? [],
+    [externalSuggestions],
+  );
 
   const {
     data: manifests,
@@ -105,21 +118,42 @@ const ManifestosPage = () => {
           <div className="flex items-center gap-4">
             <div className="w-64">
               <Select
-                value={filterAircraftId ? String(filterAircraftId) : "none"}
-                onValueChange={(val) =>
-                  setFilterAircraftId(val === "none" ? null : Number(val))
-                }
+                value={filterAircraftId ? `reg:${filterAircraftId}` : "none"}
+                onValueChange={(val) => {
+                  if (val === "none") {
+                    setFilterAircraftId(null);
+                  } else if (val.startsWith("reg:")) {
+                    setFilterAircraftId(Number(val.slice(4)));
+                  }
+                }}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Todas las aeronaves" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="none">Todas las aeronaves</SelectItem>
-                  {(aircrafts ?? []).map((a: any) => (
-                    <SelectItem key={a.id} value={String(a.id)}>
-                      {a.acronym} — {a.model ?? ""}
-                    </SelectItem>
-                  ))}
+                  {internalAircrafts.length > 0 && (
+                    <SelectGroup>
+                      <SelectSeparator />
+                      <SelectLabel>Registradas</SelectLabel>
+                      {internalAircrafts.map((a: any) => (
+                        <SelectItem key={`reg:${a.id}`} value={`reg:${a.id}`}>
+                          {a.acronym} {a.model ? `- ${a.model}` : ""}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
+                  )}
+                  {externalAircrafts && externalAircrafts.length > 0 && (
+                    <SelectGroup>
+                      <SelectSeparator />
+                      <SelectLabel>Externas</SelectLabel>
+                      {externalAircrafts.map((a: any) => (
+                        <SelectItem key={`reg:${a.id}`} value={`reg:${a.id}`}>
+                          {a.acronym} {a.model ? `- ${a.model}` : ""} (Externa)
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
+                  )}
                 </SelectContent>
               </Select>
             </div>
@@ -128,7 +162,7 @@ const ManifestosPage = () => {
           {canWrite && (
             <Button asChild>
               <Link
-                href={`/${company}/operaciones/cargo/manifiestos/nuevo?month=${month}&year=${year}&day=${day}`}
+                href={`/${company}/operaciones/cargo/manifiestos/nuevo?month=${month}&year=${year}&day=${day}${filterAircraftId ? `&aircraft_id=${filterAircraftId}` : ""}`}
               >
                 <Plus className="size-4 mr-2" /> Nuevo Manifiesto
               </Link>

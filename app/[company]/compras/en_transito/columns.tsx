@@ -132,19 +132,13 @@ export const getColumns = (
                 P/N
               </span>
 
-              <Link
-                href={`/${selectedCompany?.slug}/almacen/articulos/${row.original.id}`}
-                onClick={(e) => e.stopPropagation()}
-                className="
-                  text-[13px] font-semibold tracking-tight
-                  text-slate-900 dark:text-slate-100
-                  px-1 py-0.5 rounded
-                  hover:text-emerald-600 dark:hover:text-emerald-400
-                  transition-colors
-                "
-              >
+              <span className="
+                text-[13px] font-semibold tracking-tight
+                text-slate-900 dark:text-slate-100
+                px-1 py-0.5 rounded
+              ">
                 {row.original.part_number}
-              </Link>
+              </span>
 
             </div>
             {hasAlt ? (
@@ -195,18 +189,90 @@ export const getColumns = (
     size: 240,
 
     header: ({ column }) => (
-      <div className="flex justify-center w-full">
+      <div className="flex justify-center items-center w-full text-center">
         <DataTableColumnHeader column={column} title="Descripción" />
       </div>
     ),
 
     cell: ({ row }) => (
-      <div className="flex justify-center w-full">
-        <span className="text-sm font-medium text-slate-800 dark:text-slate-200">
+      <div className="flex items-center justify-center w-full text-center px-2">
+        <span className="block w-full text-sm font-medium text-slate-800 dark:text-slate-200 break-words">
           {row.original.batch?.name ?? 'Sin descripción'}
         </span>
       </div>
     ),
+  },
+
+  {
+    accessorKey: 'status_date',
+    size: 220,
+
+    header: ({ column }) => (
+      <div className="flex justify-center w-full">
+        <DataTableColumnHeader column={column} title="Fecha de Movimiento" />
+      </div>
+    ),
+
+    cell: ({ row }) => {
+      const status = row.original.status?.toUpperCase()
+      const isTransit = status === 'TRANSIT'
+      const isReception = status === 'RECEPTION'
+
+      const date = isTransit
+        ? row.original.created_at
+        : isReception
+          ? row.original.reception_date
+          : null
+
+      const label = isTransit
+        ? 'ESTÁ EN TRÁNSITO'
+        : isReception
+          ? 'ESTÁ EN RECEPCIÓN'
+          : null
+
+      const formatDate = (value?: string | null) => {
+        if (!value) return null
+
+        const [year, month, day] = value.split('-').map(Number)
+        const safeDate = new Date(year, month - 1, day)
+
+        return new Intl.DateTimeFormat('es-ES', {
+          day: '2-digit',
+          month: 'long',
+          year: 'numeric',
+        }).format(safeDate).toUpperCase()
+      }
+
+      if (!date) {
+        return (
+          <div className="flex justify-center w-full">
+            <span className="text-xs text-muted-foreground/40">
+              -
+            </span>
+          </div>
+        )
+      }
+
+      return (
+        <div className="flex flex-col items-center justify-center w-full leading-tight">
+
+          <span className="text-[10px] text-muted-foreground/60">
+            DESDE EL
+          </span>
+
+          <span className="text-sm font-medium">
+            {formatDate(date)}
+          </span>
+
+          {label && (
+            <span className="text-[10px] text-muted-foreground/60">
+              {label}
+            </span>
+          )}
+
+        </div>
+      )
+    },
   },
 
   {

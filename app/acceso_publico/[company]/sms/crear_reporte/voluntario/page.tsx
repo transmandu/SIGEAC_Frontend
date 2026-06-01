@@ -9,11 +9,11 @@ import { useParams } from "next/navigation";
 
 const CreateVoluntaryReport = () => {
     const { company } = useParams();
-    const { data: isOmac, isLoading: isOmacLoading } = useIsOmac(company as string);
+    const { data: isOMAC, isLoading: isOMACLoading } = useIsOmac(company as string);
 
     // Extracted content logic to avoid "pyramid of doom" ternaries in the main return
     const renderContent = () => {
-        if (isOmacLoading) {
+        if (isOMACLoading) {
             return (
                 <div className="flex h-[70vh] w-full items-center justify-center">
                     <Loader2 className="text-primary h-12 w-12 animate-spin origin-center sm:h-20 sm:w-20" />
@@ -22,7 +22,7 @@ const CreateVoluntaryReport = () => {
         }
 
         // Dynamically assign the component based on the condition
-        const FormComponent = isOmac ? CreateGenVolReport : CreateGeneralVoluntaryReportForm;
+        const FormComponent = isOMAC ? CreateGenVolReport : CreateGeneralVoluntaryReportForm;
 
         return (
             <div className="flex flex-col items-center justify-center">

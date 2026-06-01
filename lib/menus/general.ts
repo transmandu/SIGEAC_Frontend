@@ -4,7 +4,6 @@ import {
     ClipboardList,
     PackageSearch,
     Presentation,
-    ScrollText,
     ShieldCheck,
     Truck,
     BookCheck,
@@ -13,7 +12,6 @@ import {
 export function buildGeneralGroup({ pathname, currentCompany }: MenuContext): Group {
     return {
         groupLabel: "General",
-        moduleValue: "",
         menus: [
             {
                 href: `/${currentCompany?.slug}/general/cursos`,
@@ -160,13 +158,13 @@ export function buildGeneralGroup({ pathname, currentCompany }: MenuContext): Gr
             },
 
             {
-            // 👇 Cambiamos 'biblioteca-digital' por 'biblioteca' para que coincida con tu carpeta física
-            href: `/${currentCompany?.slug}/general/biblioteca`,
-            label: "Biblioteca Digital", // El texto que ve el usuario (aquí sí puedes ponerlo bonito)
-            active: pathname.includes(`/${currentCompany?.slug}/general/biblioteca`),
-            icon: BookCheck,
-            roles: [], // Cámbialo o vacíalo [] para probar
-            submenus: [],
+                href: `/${currentCompany?.slug}/general/biblioteca`,
+                label: "Biblioteca Digital",
+                active: pathname.includes(`/${currentCompany?.slug}/general/biblioteca`),
+                icon: BookCheck,
+                roles: [],
+                submenus: [],
+                requiresOmac: false,
             }
         ],
     };

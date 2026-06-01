@@ -3,12 +3,19 @@
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
-import { CheckCircle2, Save } from 'lucide-react'
+import { CheckCircle2, Save, Undo2 } from 'lucide-react'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
 
 type Props = {
   hasChanges: boolean
   modifiedCount: number
   onSave: () => void
+  onReset?: () => void
   loading?: boolean
 }
 
@@ -16,6 +23,7 @@ const CostSaveBar = ({
   hasChanges,
   modifiedCount,
   onSave,
+  onReset,
   loading,
 }: Props) => {
   return (
@@ -55,20 +63,49 @@ const CostSaveBar = ({
 
         <div className="h-4 w-px bg-slate-300/60 dark:bg-slate-700/60" />
 
-        <Button
-          size="sm"
-          onClick={onSave}
-          disabled={loading || !hasChanges}
-          className={cn(
-            'h-8 px-3 gap-2 text-xs',
-            'bg-[#439A97] hover:bg-[#3a8683]',
-            'text-white',
-            'shadow-sm'
+        <div className="flex items-center gap-2">
+          {onReset && (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={onReset}
+                    disabled={loading || !hasChanges}
+                    className={cn(
+                      'h-8 w-8 p-0 flex items-center justify-center',
+                      'text-rose-500 hover:text-rose-600',
+                      'hover:bg-rose-50 dark:hover:bg-rose-500/10',
+                      'transition-colors'
+                    )}
+                  >
+                    <Undo2 className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+
+                <TooltipContent side="top" className="text-xs">
+                  Deshacer todos los cambios
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           )}
-        >
-          <Save className="h-3.5 w-3.5" />
-          Guardar
-        </Button>
+
+          <Button
+            size="sm"
+            onClick={onSave}
+            disabled={loading || !hasChanges}
+            className={cn(
+              'h-8 px-3 gap-2 text-xs',
+              'bg-[#439A97] hover:bg-[#3a8683]',
+              'text-white',
+              'shadow-sm'
+            )}
+          >
+            <Save className="h-3.5 w-3.5" />
+            Guardar
+          </Button>
+        </div>
       </div>
     </div>
   )
